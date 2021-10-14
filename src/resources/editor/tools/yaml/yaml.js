@@ -5572,6 +5572,8 @@ function navigateSchema(schema, path)
 // correspond to the edges of an object, where position == range.end.
 function locateCursor(annotation, position)
 {
+  let failedLast = false;
+  
   function locate(node, pathSoFar) {
     if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
       for (let i = 0; i < node.components.length; i += 2) {
@@ -5588,7 +5590,10 @@ function locateCursor(annotation, position)
 
       // if we "fell through the pair cracks", that is, if the cursor is inside a mapping
       // but not inside any of the actual mapping pairs, then we stop the location at the
-      // object itself.
+      // object itself, but report an error so that the recipients may handle it
+      // case-by-base.
+
+      failedLast = true;
       
       return pathSoFar;
       // throw new Error("Internal error: cursor outside bounds in mapping locate?");
@@ -5620,7 +5625,11 @@ function locateCursor(annotation, position)
       }
     }
   }
-  return locate(annotation, []).flat(Infinity).reverse();
+  const value = locate(annotation, []).flat(Infinity).reverse();
+  return {
+    withError: failedLast,
+    value
+  };
 }
 
 // attempt many parses at current line by deleting one character at a
@@ -5660,9 +5669,11 @@ function* attemptParsesAtLine(context, parser)
         start: 0,
         end: codeLines[position.row - 1].range.end
       });
+      chunks.push("\n");
     }
-    chunks.push(`\n${currentLine.substring(0, currentColumn)}\n`);
+    chunks.push(`${currentLine.substring(0, currentColumn)}`);
     if (position.row + 1 < codeLines.length) {
+      chunks.push("\n");
       chunks.push({
         start: codeLines[position.row + 1].range.start,
         end: codeLines[codeLines.length - 1].range.end
@@ -5714,7 +5725,6 @@ function getIndent(l)
 
 function getYamlIndentTree(code)
 {
-  debugger;
   const lines = core.lines(code);
   const predecessor = [];
   const indents = [];
@@ -5916,7 +5926,7 @@ async function completionsFromGoodParseYAML(context)
 
     if (line.substring(0, line.length - deletions).trim().length === 0) {
       // the valid parse we found puts us in a pure-whitespace line, so we should locate
-      // on indentation as well.
+      // entirely on indentation.
       const path = locateFromIndentation({
         line: line.substring(0, deletions),
         code: mappedCode.value,
@@ -5928,11 +5938,25 @@ async function completionsFromGoodParseYAML(context)
       return completions({ schema, path, word, indent, commentPrefix });
     } else {
       const doc = buildAnnotated(tree, mappedCode);
+      if (doc.end !== mappedCode.value.length) {
+        // some tree-sitter "error-tolerant parses" are particularly bad for us
+        // here, we guard against "partial" parses where tree-sitter doesn't consume the entire string.
+        
+        // this is symptomatic of a bad object. When this happens, bail on the current parse.
+        continue;
+      }
       const index = core.rowColToIndex(mappedCode.value)({
         row: position.row,
         column: position.column - deletions
       });
-      const path = locateCursor(doc, index);
+      const { withError: locateFailed, value: path } = locateCursor(doc, index);
+      if (locateFailed) {
+        // if cursor is at the end of line at it's an object mapping,
+        // we can fix this.
+        if (position.column >= line.length && line.indexOf(":") !== -1) {
+          path.push(line.trim().split(":")[0]);
+        }
+      }
       return completions({ schema, path, word, indent, commentPrefix });
     }
   }
@@ -5942,6 +5966,52 @@ async function completionsFromGoodParseYAML(context)
 
 async function completionsFromGoodParseMarkdown(context)
 {
+  const {
+    code,
+    position,
+    line
+  } = context;
+  const result = core.breakQuartoMd(core.asMappedString(code));
+  
+  let linesSoFar = 0;
+  let foundCell = undefined;
+  for (const cell of result.cells) {
+    const size = core.lines(cell.source.value).length;
+    if (size + linesSoFar > position.row) {
+      foundCell = cell;
+      break;
+    }
+    linesSoFar += size;
+  }
+  if (foundCell === undefined) {
+    return false;
+  }
+  if (foundCell.cell_type === "raw") {
+    const schema = (await getSchemas()).schemas["front-matter"];
+    // complete the yaml front matter
+    return completionsFromGoodParseYAML({
+      line,
+      code: foundCell.source.value,
+      position,
+      schema
+    });
+  } else if (foundCell.cell_type.language) {
+    return completionsFromGoodParseScript({
+      code: foundCell.source.value,
+      position: {
+        row: position.row - linesSoFar,
+        column: position.column
+      },
+      line
+    });
+    // complete the yaml inside a chunk
+  } else if (foundCell.cell_type === "markdown") {
+    // we're inside a markdown, no completions
+    return false;
+  } else {
+    throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+  }
+  
   return false;
 }
 
@@ -5971,8 +6041,7 @@ async function completionsFromGoodParseScript(context)
     mappedCode);
   
   const schemas = (await getSchemas()).schemas;
-  debugger;
-  const schema = schemas.languages[language];
+  const schema = schemas.languages[language].schema;
   const commentPrefix = core.kLangCommentChars[language] + "| ";
 
   return completionsFromGoodParseYAML({
@@ -5995,6 +6064,7 @@ async function completionsFromGoodParseScript(context)
 window.QuartoYamlEditorTools = {
 
   getCompletions: async function(context) {
+    const extension = context.path.split(".").pop() || "";
     const dispatch = {
       "markdown": completionsFromGoodParseMarkdown,
       "yaml": completionsFromGoodParseYAML,
@@ -6005,7 +6075,7 @@ window.QuartoYamlEditorTools = {
     }
     const schemas = (await getSchemas()).schemas;
     const schema = ({
-      "yaml": schemas.config,
+      "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
       "markdown": null, // can't be known ahead of time
       "script": null
     })[context.filetype];
