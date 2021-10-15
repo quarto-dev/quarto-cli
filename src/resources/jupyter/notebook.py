@@ -131,13 +131,14 @@ def notebook_execute(options, status):
       cell = cell_clear_output(cell)
 
       # execute cell
-      cell = cell_execute(
-         client, 
-         cell, 
-         index, 
-         current_code_cell,
-         eval,
-         index > 0 # add_to_history
+      if cell.cell_type == 'code':
+         cell = cell_execute(
+            client, 
+            cell, 
+            index, 
+            current_code_cell - 1,
+            eval,
+            index > 0 # add_to_history
       )
 
       # if this was the setup cell, see if we need to exit b/c dependencies are out of date
@@ -325,9 +326,6 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
       if allow_errors:
         cell["metadata"]["tags"].remove('raises-exception')
 
-   # update execution count
-   if cell.cell_type == 'code':
-      cell.execution_count = execution_count
 
    # return cell
    return cell

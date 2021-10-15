@@ -38,6 +38,7 @@ import {
 import { Format } from "../../config/types.ts";
 import {
   isHtmlCompatible,
+  isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
 } from "../../config/format.ts";
@@ -236,6 +237,7 @@ export const jupyterEngine: ExecutionEngine = {
         toHtml: isHtmlCompatible(options.format),
         toLatex: isLatexOutput(options.format.pandoc),
         toMarkdown: isMarkdownOutput(options.format.pandoc),
+        toIpynb: isIpynbOutput(options.format.pandoc),
         figFormat: options.format.execute[kFigFormat],
         figDpi: options.format.execute[kFigDpi],
       },

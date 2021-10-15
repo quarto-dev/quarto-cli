@@ -174,6 +174,7 @@ export interface JupyterCellWithOptions extends JupyterCell {
 
 export interface JupyterOutput {
   output_type: "stream" | "display_data" | "execute_result" | "error";
+  execution_count?: null | number;
   isolated?: boolean;
 }
 
@@ -641,6 +642,7 @@ export interface JupyterToMarkdownOptions {
   toHtml?: boolean;
   toLatex?: boolean;
   toMarkdown?: boolean;
+  toIpynb?: boolean;
   figFormat?: string;
   figDpi?: number;
 }
@@ -695,6 +697,23 @@ export function jupyterToMarkdown(
         throw new Error("Unexpected cell type " + cell.cell_type);
     }
     md.push("\n");
+  }
+
+  // include jupyter metadata if we are targeting ipynb
+  if (options.toIpynb) {
+    md.push("---\n");
+    const jupyterMetadata = {
+      jupyter: {
+        ...nb.metadata,
+      },
+    };
+    const yamlText = stringify(jupyterMetadata, {
+      indent: 2,
+      sortKeys: false,
+      skipInvalid: true,
+    });
+    md.push(yamlText);
+    md.push("---\n");
   }
 
   // return markdown and any widget requirements
@@ -975,6 +994,11 @@ function mdFromCodeCell(
     }
   }
 
+  // add execution_count if we have one
+  if (typeof (cell.execution_count) === "number") {
+    divMd.push(`execution_count="${cell.execution_count}" `);
+  }
+
   // create string for div enclosure (we'll use it later but
   // only if there is actually content in the div)
   const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
@@ -1029,6 +1053,8 @@ function mdFromCodeCell(
       source.unshift(...optionsSource);
       source.unshift("```{{" + options.language + "}}\n");
       source.push("\n```\n");
+    } else if (cell.optionsSource.length > 0) {
+      source = mdTrimEmptyLines(source, "leading");
     }
     md.push(...source, "\n");
     md.push(ticks + "\n");
@@ -1079,6 +1105,11 @@ function mdFromCodeCell(
           (isWarningOutput(output) && hideWarnings(cell, options))
         ) {
           md.push(` .hidden`);
+        }
+
+        // add execution count if we have one
+        if (typeof (output.execution_count) === "number") {
+          md.push(` execution_count=${output.execution_count}`);
         }
 
         md.push("}\n");

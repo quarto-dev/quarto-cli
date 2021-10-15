@@ -64,7 +64,11 @@ export function isHtmlOutput(
 }
 
 export function isRevealjsOutput(format: FormatPandoc) {
-  return format.to && format.to.startsWith("revealjs");
+  return !!format.to && format.to.startsWith("revealjs");
+}
+
+export function isIpynbOutput(format: FormatPandoc) {
+  return !!format.to && format.to.startsWith("ipynb");
 }
 
 export function isMarkdownOutput(
