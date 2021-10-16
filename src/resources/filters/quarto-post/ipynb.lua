@@ -65,6 +65,14 @@ function ipynb()
         if (el.attr.classes.includes('cell-code')) then
           el.attr.classes = removeClass(el.attr.classes, 'cell-code')
         end
+      end,
+
+      RawBlock = function(el)
+        local rawDiv = pandoc.Div(
+          { el }, 
+          pandoc.Attr("", { "cell", "raw" })
+        )
+        return rawDiv
       end
     }
   else

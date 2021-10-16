@@ -525,6 +525,14 @@ export async function renderPandoc(
     });
   }
 
+  // run format postprocessor
+  if (format.postprocessor) {
+    const outputFile = isAbsolute(pandocOptions.output)
+      ? pandocOptions.output
+      : join(dirname(pandocOptions.source), pandocOptions.output);
+    await format.postprocessor(outputFile);
+  }
+
   // run html postprocessors if we have them
   const resourceRefs = await runHtmlPostprocessors(
     pandocOptions,

@@ -96,6 +96,7 @@ import {
   kCellOutHeight,
   kCellOutWidth,
   kCellPanel,
+  kCellRawMimeType,
   kCellTags,
   kCodeFold,
   kCodeOverflow,
@@ -110,7 +111,6 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
-  kRawMimeType,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -158,7 +158,7 @@ export interface JupyterCellMetadata {
   [kCellFormat]?: string; // for "raw"
   [kCellName]?: string; // optional alias for 'label'
   [kCellTags]?: string[];
-  [kRawMimeType]?: string;
+  [kCellRawMimeType]?: string;
 
   // used to preserve line spacing
   [kCellLinesToNext]?: number;
@@ -790,7 +790,7 @@ export function mdFromContentCell(cell: JupyterCell) {
 }
 
 export function mdFromRawCell(cell: JupyterCell) {
-  const mimeType = cell.metadata?.[kRawMimeType];
+  const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
     switch (mimeType) {
       case kTextHtml:
