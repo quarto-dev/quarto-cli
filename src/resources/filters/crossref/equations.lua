@@ -30,7 +30,7 @@ function processEquations(blockEl)
     local processInline = true
     if mathInlines then
       if el.t == "Space" then
-        mathInlines:insert(el.t)
+        mathInlines:insert(el)
         processInline = false
       elseif el.t == "Str" and refLabel("eq", el) then
 
