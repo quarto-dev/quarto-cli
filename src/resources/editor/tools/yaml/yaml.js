@@ -13,6 +13,8 @@ window.QuartoYamlEditorTools = {
   getCompletions: function(context) {
 
     const {
+      path,      // path to file
+      embedded,  // is this an embedded editor?
       filetype,  // "yaml" | "script" | "markdown"
       line,      // editing line up to the cursor
       code,      // full contents of the buffer
@@ -40,29 +42,52 @@ window.QuartoYamlEditorTools = {
         // array of completions
         completions: [
           {
+            // type ("key" or "value")
+            type: "key",
+
             // subsitute 'value' for the token if this completion is accepted
             value: token + "foo",
 
+            // display text for completions popup
+            display: "display1",
+
             // additional documentation on this completion (can be null)
-            description: "docs on foo"
+            description: "docs on foo",
+
+            // should we automatically initiate another completion request when
+            // this one is accepted (e.g. if we complete a yaml key and then
+            // want to immediately show available values for that key)
+            suggest_on_accept: false,
+
+            // should we replace the entire current line to the end?
+            replace_to_end: true
           },
           {
+            // type
+            type: "value",
+
             // value
             value: token + "bar",
 
+            // display text for completions popup
+            display: "display2",
+
             // documentation (note html is accepted)
-            description: "docs on <b>bar</b>"
+            description: "docs on <b>bar</b>",
+
+            // should we automatically initiate another completion request when
+            // this one is accepted (e.g. if we complete a yaml key and then
+            // want to immediately show available values for that key)
+            suggest_on_accept: false,
+
+            // should we replace the entire current line to the end?
+            replace_to_end: false
           }
         ],
 
         // is this cacheable for subsequent results that add to the token
         // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
         cacheable: true,
-
-        // should we automatically initiate another completion request when
-        // this one is accepted (e.g. if we complete a yaml key and then
-        // want to immediately show available values for that key)
-        suggest_on_accept: false
       })
     });
   },
@@ -70,6 +95,8 @@ window.QuartoYamlEditorTools = {
   getLint: function(context) {
 
     const {
+      path,      // path to file
+      embedded,  // is this an embedded editor?
       filetype,  // "yaml" | "script" | "markdown"
       line,      // editing line up to the cursor
       code,      // full contents of the buffer
