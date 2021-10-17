@@ -56,7 +56,7 @@ function ipynb()
         el.attr.classes = fixupCellOutputClasses(
           el.attr.classes, 
           'cell-output-display', 
-          { 'execute_result' }
+          { 'display_data' }
         )
         return el
       end,
@@ -67,6 +67,9 @@ function ipynb()
         end
       end,
 
+      -- note that this also catches raw blocks inside display_data 
+      -- but pandoc seems to ignore the .cell .raw envelope in this
+      -- case and correctly produce text/html cell output
       RawBlock = function(el)
         local rawDiv = pandoc.Div(
           { el }, 

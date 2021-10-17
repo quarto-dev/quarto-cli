@@ -76,12 +76,13 @@ export function isMarkdownOutput(
   flavors = ["markdown", "gfm", "commonmark"],
 ) {
   const to = (format.to || "").replace(/[\+\-_].*$/, "");
-  return flavors.includes(to);
+  return flavors.includes(to) || isIpynbOutput(format);
 }
 
 export function isHtmlCompatible(format: Format) {
   return isHtmlOutput(format.pandoc) ||
-    (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]);
+    (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]) ||
+    isIpynbOutput(format.pandoc);
 }
 
 export function isJavascriptCompatible(format: Format) {

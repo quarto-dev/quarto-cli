@@ -658,10 +658,12 @@ export function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): JupyterToMarkdownResult {
   // optional content injection / html preservation for html output
-  const dependencies = options.toHtml
+  // that isn't an ipynb
+  const isHtml = options.toHtml && !options.toIpynb;
+  const dependencies = isHtml
     ? extractJupyterWidgetDependencies(nb)
     : undefined;
-  const htmlPreserve = options.toHtml ? removeAndPreserveHtml(nb) : undefined;
+  const htmlPreserve = isHtml ? removeAndPreserveHtml(nb) : undefined;
 
   // generate markdown
   const md: string[] = [];
@@ -1293,6 +1295,20 @@ function mdOutputDisplayData(
         options,
         figureOptions,
       );
+    } else if (displayDataIsMarkdown(mimeType)) {
+      return mdMarkdownOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsLatex(mimeType)) {
+      return mdLatexOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsHtml(mimeType)) {
+      return mdHtmlOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsJson(mimeType)) {
+      return mdJsonOutput(
+        mimeType,
+        output.data[mimeType] as Record<string, unknown>,
+        options,
+      );
+    } else if (displayDataIsJavascript(mimeType)) {
+      return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
     } else if (displayDataIsTextPlain(mimeType)) {
       const lines = output.data[mimeType] as string[];
       // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
@@ -1306,19 +1322,6 @@ function mdOutputDisplayData(
       } else {
         return mdCodeOutput(lines);
       }
-    } else if (displayDataIsMarkdown(mimeType)) {
-      return mdMarkdownOutput(output.data[mimeType] as string[]);
-    } else if (displayDataIsLatex(mimeType)) {
-      return mdLatexOutput(output.data[mimeType] as string[]);
-    } else if (displayDataIsHtml(mimeType)) {
-      return mdHtmlOutput(output.data[mimeType] as string[]);
-    } else if (displayDataIsJson(mimeType)) {
-      return mdJsonOutput(
-        mimeType,
-        output.data[mimeType] as Record<string, unknown>,
-      );
-    } else if (displayDataIsJavascript(mimeType)) {
-      return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
     }
   }
 
@@ -1431,8 +1434,16 @@ function mdHtmlOutput(html: string[]) {
   return mdFormatOutput("html", html);
 }
 
-function mdJsonOutput(mimeType: string, json: Record<string, unknown>) {
-  return mdScriptOutput(mimeType, [JSON.stringify(json)]);
+function mdJsonOutput(
+  mimeType: string,
+  json: Record<string, unknown>,
+  options: JupyterToMarkdownOptions,
+) {
+  if (options.toIpynb) {
+    return mdCodeOutput([JSON.stringify(json)], "json");
+  } else {
+    return mdScriptOutput(mimeType, [JSON.stringify(json)]);
+  }
 }
 
 function mdScriptOutput(mimeType: string, script: string[]) {
@@ -1474,8 +1485,9 @@ function mdTrimEmptyLines(
   return lines;
 }
 
-function mdCodeOutput(code: string[]) {
-  return mdEnclosedOutput("```", code, "```");
+function mdCodeOutput(code: string[], clz?: string) {
+  const open = "```" + (clz ? `{.${clz}}` : "");
+  return mdEnclosedOutput(open, code, "```");
 }
 
 function mdEnclosedOutput(begin: string, text: string[], end: string) {
