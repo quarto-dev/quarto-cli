@@ -1,6 +1,7 @@
 <% 
 
 let styleCss = sidebar.style === "floating" ? "floating" : "docked";
+let borderColor = sidebar['border-color'] ? "border-" + sidebar['border-color'] : "";
 
 let alignCss = ""
 if (sidebar.align === "center") {

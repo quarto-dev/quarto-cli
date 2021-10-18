@@ -411,6 +411,23 @@ nav .nav-item.compact .nav-link {
   display: none;
 }
 
+// Toggle the top secondar navigation bar
+@include media-breakpoint-down(md) {
+  .quarto-secondary-nav {
+    display: block;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .quarto-secondary-nav {
+    display: none;
+  }
+}
+
+.quarto-secondary-nav .quarto-btn-toggle {
+  padding-right: 0;
+}
+
 .quarto-secondary-nav[aria-expanded="false"]
   .quarto-btn-toggle
   .bi-chevron-right::before {
@@ -732,6 +749,9 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   @if variable-exists(footer-bg) {
     background-color: $footer-bg;
   }
+}
+
+body:not(.floating) .nav-footer {
   @if variable-exists(footer-border) and $footer-border {
     @if variable-exists(footer-border-color) {
       border-top: 1px solid $footer-border-color;

@@ -1,10 +1,8 @@
 <% if (nav.layout) { %>
 
-</main>
+</main> <!-- /main -->
 
-
-<nav class="page-navigation <%- nav.sidebar && nav.sidebar.style !== "floating" ? "page-navigation-docked" : ""  %>">
-
+<nav class="page-navigation">
   <div class="nav-page nav-page-previous">
     <% if (nav.prevPage) { %>
       <a  href="<%- nav.prevPage.href %>">
@@ -24,7 +22,7 @@
 
 </nav>
 
-</div> <!-- /main column -->
+</div> <!-- /content -->
 
 
 <% if (nav.footer && (nav.footer.left || nav.footer.center || nav.footer.right)) { %>
@@ -48,8 +46,6 @@
   </div>
 </footer>
 <% } %>
-
-
 
 
 <% } %>

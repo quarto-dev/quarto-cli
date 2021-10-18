@@ -58,16 +58,16 @@
 <% } %>
 
 <% if (nav.sidebar && nav.layout) { %>
-  <% let textCss = nav.sidebar.type ? nav.sidebar.type === "dark" ? "text-light" : "text-dark" :  "" %>
-  <nav class="quarto-secondary-nav d-lg-none d-md-block <%= textCss %>" 
+  <% let textCss = nav.sidebar.type ? nav.sidebar.type === "dark" ? " text-light" : " text-dark" :  "" %>
+  <nav class="quarto-secondary-nav<%= textCss %>" 
         data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" 
         aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation"
         onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }"
   >
     <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title mb-0 fs-3 d-inline"></h1>
+      <h1 class="quarto-secondary-nav-title"></h1>
       <button type="button" 
-        class="quarto-btn-toggle btn d-lg-none py-0 px-1 d-inline-block border-0 <%= textCss %>">
+        class="quarto-btn-toggle btn<%= textCss %>">
         <i class="bi bi-chevron-right"></i>
       </button>
     </div>
@@ -75,23 +75,24 @@
 <% } %>
 
 </header>
-<% } %> <!-- /navbar/sidebar -->
+<% } %> 
 
 <% if (nav.layout) { %>
 
-<% targetDiv = !nav.sidebar || nav.sidebar.style === "floating" %>
-
+<!-- content -->
 <div id="quarto-content" class="quarto-container base-grid content-grid-rows page-layout-<%- nav.layout %>">
 
+<!-- sidebar -->
 <% if (nav.sidebar) { %>
-  <% borderColor = nav.sidebar['border-color'] ? "border-" + nav.sidebar['border-color'] : "" %>
   <% partial('sidebar.ejs', { sidebar: nav.sidebar, navbar: !!nav.navbar }) %>
 <% } %>
 
+<!-- toc -->
 <% if (nav.layout === "article" && nav.toc) { %>
     <div id="quarto-toc-sidebar" class="sidebar sidebar-toc"></div>
 <% } %>
 
+<!-- main -->
 <main class="content base-grid">
 
 <% } %>
