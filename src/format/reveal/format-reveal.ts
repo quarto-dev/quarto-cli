@@ -21,6 +21,18 @@ export function revealjsFormat() {
     {
       metadata: {
         theme: "white",
+        controlsTutorial: false,
+        hash: true,
+        hashOneBasedIndex: true,
+        center: false,
+        transition: 'none',
+        backgroundTransition: 'none',
+        width: 1600,
+        height: 900,
+        margin: 0.1,
+      },
+      pandoc: {
+        from: 'markdown-auto_identifiers',
       },
       formatExtras: (_input: string, _flags: PandocFlags, _format: Format) => {
         return {
