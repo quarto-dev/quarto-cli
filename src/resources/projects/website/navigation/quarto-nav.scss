@@ -9,6 +9,7 @@ body {
   margin: 0;
 }
 
+// Define the grid for a floating layout
 body.floating {
   @include media-breakpoint-up(lg) {
     display: grid;
@@ -22,7 +23,7 @@ body.floating {
       [screen-end]
       auto;
     gap: 0;
-    .base-grid {
+    .page-columns {
       display: grid;
       grid-template-columns:
         auto
@@ -39,7 +40,7 @@ body.floating {
 
   @include media-breakpoint-down(lg) {
     body,
-    .base-grid {
+    .page-columns {
       display: grid;
       grid-template-columns:
         [screen-start page-start] 1.5em [content-start] minmax(
@@ -53,7 +54,7 @@ body.floating {
 
   @include media-breakpoint-down(md) {
     body,
-    .base-grid {
+    .page-columns {
       display: grid;
       grid-template-columns:
         [screen-start page-start] 1.5em [content-start] minmax(
@@ -70,10 +71,12 @@ body.floating {
   }
 }
 
+// Define the grid for a docked layout
+
 body:not(.floating) {
   @include media-breakpoint-up(lg) {
     body,
-    .base-grid {
+    .page-columns {
       display: grid;
       grid-template-columns:
         [screen-start] minmax(min-content, 250px)
@@ -85,7 +88,7 @@ body:not(.floating) {
 
   @include media-breakpoint-down(lg) {
     body,
-    .base-grid {
+    .page-columns {
       display: grid;
       grid-template-columns:
         [screen-start page-start] 1.5em [content-start] minmax(
@@ -99,7 +102,7 @@ body:not(.floating) {
 
   @include media-breakpoint-down(md) {
     body,
-    .base-grid {
+    .page-columns {
       display: grid;
       grid-template-columns:
         [screen-start page-start] 1.5em [content-start] minmax(
@@ -116,12 +119,15 @@ body:not(.floating) {
   }
 }
 
+// Positions a header, body, and footer in rows
 body,
-.base-grid-rows {
+.page-row-navigation {
   grid-template-rows: [page-top] max-content [contents-top] max-content [contents-bottom] max-content [page-bottom];
 }
 
-.content-grid-rows {
+// Positions contents followed by a region below the content
+// (used for pagination controls)
+.page-rows-contents {
   grid-template-rows:
     [content-top] minmax(max-content, 1fr) [content-bottom] minmax(
       60px,
@@ -130,7 +136,8 @@ body,
     [page-bottom];
 }
 
-.main-grid-rows {
+// Automatically creates new rows
+.page-rows {
   grid-auto-rows: auto;
 }
 
