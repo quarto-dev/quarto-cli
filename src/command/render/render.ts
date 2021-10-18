@@ -816,6 +816,12 @@ export function resolveFormatsFromMetadata(
     // merge configs
     const config = mergeConfigs(baseFormat, format);
 
+    // apply any metadata filter
+    const metadataFilter = defaultWriterFormat(to).metadataFilter;
+    if (metadataFilter) {
+      config.metadata = metadataFilter(ld.cloneDeep(config.metadata));
+    }
+
     // apply command line arguments
 
     // --no-execute-code
@@ -927,7 +933,7 @@ async function resolveFormats(
     Object.keys(projFormats).concat(Object.keys(inputFormats)),
   );
   const mergedFormats: Record<string, Format> = {};
-  targetFormats.forEach((format) => {
+  targetFormats.forEach((format: string) => {
     // alias formats
     const projFormat = projFormats[format];
     const inputFormat = inputFormats[format];
