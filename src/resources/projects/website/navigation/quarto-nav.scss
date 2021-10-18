@@ -12,65 +12,52 @@ $content-padding-top: 14px !default;
   gap: 0;
 }
 
-// Grid
-// col-gutter
-// side
-// body
-// middle
-// page
-// screen
-
-// Gutter == body-end ->
-
-// Docked Grid Definitions
+// Floating Grid Definitions
 @mixin page-columns-float-wide {
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset] auto
-    [page-start] minmax(0px, 150px)
+    [page-start] minmax(80px, 150px)
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1em
-    [body-content-start] minmax(50px, calc(400px - 1em))
-    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-start] min(60vw, calc(800px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
-    [page-end-inset] minmax(0px, 150px)
+    [page-end-inset] minmax(70px, 150px)
     [page-end] auto
     [screen-end-inset] 1.5em
     [screen-end];
 }
 
+// medium 976 down
 @mixin page-columns-float-mid {
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset] auto
     [page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] minmax(50px, calc(400px - 1em))
-    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-start] min(70vw, calc(750px - 2em))
     [body-content-end] 1em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(0px, 150px)
+    [body-end-outset] 25px
+    [page-end-inset] minmax(50px, 150px)
     [page-end] auto
     [screen-end-inset] 1.5em
     [screen-end];
 }
 
+//small 768 down
 @mixin page-columns-float-narrow {
   @include page-columns();
   grid-template-columns:
-    [screen-start] 1.5em
-    [screen-start-inset] auto
-    [page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] minmax(50px, calc(400px - 1em))
-    [body-content-center] minmax(50px, calc(400px - 1em))
-    [body-content-end] 1em
-    [body-end body-end-outset page-end-inset page-end] auto
-    [screen-end-inset] 1.5em
+    [screen-start] 1em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] calc(
+      100vw - 2em
+    )
+    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
     [screen-end];
 }
 
@@ -79,16 +66,15 @@ $content-padding-top: 14px !default;
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
-    [screen-start-inset page-start] minmax(0px, 150px)
+    [screen-start-inset page-start] minmax(100px, 150px)
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1em
-    [body-content-start] minmax(50px, calc(400px - 1em))
-    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-start] min(60vw, calc(800px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
-    [page-end-inset] minmax(0px, 150px)
+    [page-end-inset] minmax(75px, 150px)
     [page-end] auto
     [screen-end-inset] 1.5em
     [screen-end];
@@ -99,8 +85,7 @@ $content-padding-top: 14px !default;
   grid-template-columns:
     [screen-start screen-start-inset page-start page-start-inset body-start-outset] 1.5em
     [body-start] 1em
-    [body-content-start] minmax(50px, calc(400px - 1em))
-    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-start] min(70vw, calc(750px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
@@ -114,8 +99,7 @@ $content-padding-top: 14px !default;
   @include page-columns();
   grid-template-columns:
     [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] minmax(50px, calc(400px - 1em))
-    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-start] calc(100vw - 2em)
     [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
     [screen-end];
 }
@@ -129,12 +113,14 @@ body {
 
 @include media-breakpoint-up(lg) {
   body.floating {
+    main > *:not(script),
     .page-columns {
       @include page-columns-float-wide();
     }
   }
 
   body:not(.floating) {
+    main > *:not(script),
     .page-columns {
       @include page-columns-docked-wide();
     }
@@ -143,12 +129,14 @@ body {
 
 @include media-breakpoint-down(lg) {
   body.floating {
+    main > *:not(script),
     .page-columns {
       @include page-columns-float-mid();
     }
   }
 
   body:not(.floating) {
+    main > *:not(script),
     .page-columns {
       @include page-columns-docked-mid();
     }
@@ -157,12 +145,14 @@ body {
 
 @include media-breakpoint-down(md) {
   body.floating {
+    main > *:not(script),
     .page-columns {
       @include page-columns-float-narrow();
     }
   }
 
   body:not(.floating) {
+    main > *:not(script),
     .page-columns {
       @include page-columns-docked-narrow();
     }
@@ -231,20 +221,67 @@ body,
   grid-row: contents-bottom / page-bottom;
 }
 
-.content > * {
+.col-screen {
+  grid-column: screen-start / screen-end;
+  z-index: 2500;
+}
+
+.col-screen-inset {
+  grid-column: screen-start-inset / screen-end-inset;
+  z-index: 2500;
+}
+
+.col-page-outset {
+  grid-column: page-start-inset / page-end-inset;
+  z-index: 2500;
+}
+
+.col-page-outset-right {
+  grid-column: body-content-start / page-end-inset;
+  z-index: 2500;
+}
+
+.col-page-outset-left {
+  grid-column: page-start-inset / body-content-end;
+  z-index: 2500;
+}
+
+.col-body-outset {
+  grid-column: body-start-outset / body-end-outset;
+  z-index: 2500;
+}
+
+.col-body-outset-right {
+  grid-column: body-content-start / body-end-outset;
+  z-index: 2500;
+}
+
+.col-body-outset-left {
+  grid-column: body-start-inset / body-content-end;
+  z-index: 2500;
+}
+
+.col-content {
   grid-column: body-content-start / body-content-end;
 }
 
-.layout-page {
-  grid-column: page-start / page-end;
+.col-gutter-right {
+  grid-column: body-end / page-end;
+  z-index: 2500;
 }
 
-.layout-screen {
+.col-gutter-left {
+  grid-column: page-start / body-start;
+  float: right;
+  z-index: 2500;
+}
+
+main > *:not(script) {
   grid-column: screen-start / screen-end;
 }
 
-.layout-content {
-  grid-column: body-start / body-end;
+main > *:not(script) > *:not(script) {
+  grid-column: body-content-start / body-content-end;
 }
 
 // Grid padding (no gutters)
