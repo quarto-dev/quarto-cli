@@ -1,3 +1,183 @@
+// Grid layout
+body {
+  margin: 0;
+}
+
+@include media-breakpoint-up(lg) {
+  body.floating {
+    main > *:not(script),
+    .page-columns {
+      @include page-columns-float-wide();
+    }
+  }
+
+  body:not(.floating) {
+    main > *:not(script),
+    .page-columns {
+      @include page-columns-docked-wide();
+    }
+  }
+}
+
+@include media-breakpoint-down(lg) {
+  body.floating {
+    main > *:not(script),
+    .page-columns {
+      @include page-columns-float-mid();
+    }
+  }
+
+  body:not(.floating) {
+    main > *:not(script),
+    .page-columns {
+      @include page-columns-docked-mid();
+    }
+  }
+}
+
+@include media-breakpoint-down(md) {
+  body.floating {
+    main > *:not(script),
+    .page-columns {
+      @include page-columns-float-narrow();
+    }
+  }
+
+  body:not(.floating) {
+    main > *:not(script),
+    .page-columns {
+      @include page-columns-docked-narrow();
+    }
+  }
+
+  #TOC {
+    display: none;
+  }
+}
+
+// Positions a header, body, and footer in rows
+body,
+.page-row-navigation {
+  grid-template-rows: [page-top] max-content [contents-top] max-content [contents-bottom] max-content [page-bottom];
+}
+
+// Positions contents followed by a region below the content
+// (used for pagination controls)
+.page-rows-contents {
+  grid-template-rows:
+    [content-top] minmax(max-content, 1fr) [content-bottom] minmax(
+      60px,
+      max-content
+    )
+    [page-bottom];
+}
+
+// Automatically creates new rows
+.page-rows {
+  grid-auto-rows: auto;
+}
+
+.header {
+  grid-column: screen-start / screen-end;
+  grid-row: page-top / contents-top;
+}
+
+#quarto-content {
+  padding: 0;
+  grid-column: screen-start / screen-end;
+  grid-row: contents-top / contents-bottom;
+}
+
+.sidebar.sidebar-navigation {
+  grid-column: page-start / body-start;
+  grid-row: content-top / page-bottom;
+}
+
+.sidebar.sidebar-toc {
+  grid-column: body-end / page-end;
+  grid-row: content-top / page-bottom;
+}
+
+.content {
+  grid-column: screen-start / screen-end;
+  grid-row: content-top / content-bottom;
+}
+
+.page-navigation {
+  grid-column: body-start / body-end;
+  grid-row: content-bottom / page-bottom;
+}
+
+.footer {
+  grid-column: screen-start / screen-end;
+  grid-row: contents-bottom / page-bottom;
+}
+
+.col-screen {
+  grid-column: screen-start / screen-end;
+  z-index: 2500;
+}
+
+.col-screen-inset {
+  grid-column: screen-start-inset / screen-end-inset;
+  z-index: 2500;
+}
+
+.col-page-outset {
+  grid-column: page-start-inset / page-end-inset;
+  z-index: 2500;
+}
+
+.col-page-outset-right {
+  grid-column: body-content-start / page-end-inset;
+  z-index: 2500;
+}
+
+.col-page-outset-left {
+  grid-column: page-start-inset / body-content-end;
+  z-index: 2500;
+}
+
+.col-body-outset {
+  grid-column: body-start-outset / body-end-outset;
+  z-index: 2500;
+}
+
+.col-body-outset-right {
+  grid-column: body-content-start / body-end-outset;
+  z-index: 2500;
+}
+
+.col-body-outset-left {
+  grid-column: body-start-inset / body-content-end;
+  z-index: 2500;
+}
+
+.col-content {
+  grid-column: body-content-start / body-content-end;
+}
+
+.col-gutter-right {
+  grid-column: body-end / page-end;
+  z-index: 2500;
+}
+
+.col-gutter-left {
+  grid-column: page-start / body-start;
+  float: right;
+  z-index: 2500;
+}
+
+main > *:not(script) {
+  grid-column: screen-start / screen-end;
+}
+
+main > *:not(script) > *:not(script) {
+  grid-column: body-content-start / body-content-end;
+}
+
+// Rest of rules
+
 body {
   @if variable-exists(margin-top) {
     margin-top: $margin-top;

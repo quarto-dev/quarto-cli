@@ -1,9 +1,106 @@
-
-
 @mixin body-secondary {
   @if variable-exists(body-secondary) {
     color: $body-secondary;
   } @else {
     color: theme-dim($body-color, 25%);
   }
+}
+
+// Grid Layouts
+
+@mixin page-columns {
+  display: grid;
+  gap: 0;
+}
+
+// Floating Grid Definitions
+@mixin page-columns-float-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] auto
+    [page-start] minmax(80px, 150px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1em
+    [body-content-start] min(60vw, calc(800px - 2em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(70px, 150px)
+    [page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+// medium 976 down
+@mixin page-columns-float-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] auto
+    [page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] min(70vw, calc(750px - 2em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 25px
+    [page-end-inset] minmax(50px, 150px)
+    [page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+//small 768 down
+@mixin page-columns-float-narrow {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] calc(
+      100vw - 2em
+    )
+    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
+    [screen-end];
+}
+
+// Docked Grid Definitions
+@mixin page-columns-docked-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset page-start] minmax(100px, 150px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1em
+    [body-content-start] min(60vw, calc(800px - 2em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(75px, 150px)
+    [page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-docked-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start screen-start-inset page-start page-start-inset body-start-outset] 1.5em
+    [body-start] 1em
+    [body-content-start] min(70vw, calc(750px - 2em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(75px, 150px)
+    [page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-docked-narrow {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] calc(100vw - 2em)
+    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
+    [screen-end];
 }
