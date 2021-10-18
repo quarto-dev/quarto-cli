@@ -182,6 +182,7 @@ export interface Format {
   execute: FormatExecute;
   pandoc: FormatPandoc;
   metadata: Metadata;
+  metadataFilter?: (metadata: Metadata) => Metadata;
   postprocessor?: (output: string) => Promise<void>;
   formatExtras?: (
     input: string,

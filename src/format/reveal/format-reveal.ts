@@ -10,30 +10,98 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   Format,
   kHtmlPostprocessors,
+  Metadata,
   PandocFlags,
 } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 
+const kRevealOptions = [
+  "controls",
+  "controlsTutorial",
+  "controlsLayout",
+  "controlsBackArrows",
+  "progress",
+  "slideNumber",
+  "showSlideNumber",
+  "hash",
+  "hashOneBasedIndex",
+  "respondToHashChanges",
+  "history",
+  "keyboard",
+  "overview",
+  "disableLayout",
+  "center",
+  "touch",
+  "loop",
+  "rtl",
+  "navigationMode",
+  "shuffle",
+  "fragments",
+  "fragmentInURL",
+  "embedded",
+  "help",
+  "pause",
+  "showNotes",
+  "autoPlayMedia",
+  "preloadIframes",
+  "autoSlide",
+  "autoSlideStoppable",
+  "autoSlideMethod",
+  "defaultTiming",
+  "mouseWheel",
+  "display",
+  "hideInactiveCursor",
+  "hideCursorTime",
+  "previewLinks",
+  "transition",
+  "transitionSpeed",
+  "backgroundTransition",
+  "viewDistance",
+  "mobileViewDistance",
+  "parallaxBackgroundImage",
+  "parallaxBackgroundSize",
+  "parallaxBackgroundHorizontal",
+  "parallaxBackgroundVertical",
+  "width",
+  "height",
+  "margin",
+  "minScale",
+  "maxScale",
+  "mathjax",
+];
+
+const kRevealKebabOptions = kRevealOptions.reduce(
+  (options: string[], option: string) => {
+    const kebab = camelToKebab(option);
+    if (kebab !== option) {
+      options.push(kebab);
+    }
+    return options;
+  },
+  [],
+);
+
 export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
-      metadata: {
+      metadata: revealMetadataFilter({
         theme: "white",
         controlsTutorial: false,
         hash: true,
         hashOneBasedIndex: true,
         center: false,
-        transition: 'none',
-        backgroundTransition: 'none',
+        transition: "none",
+        backgroundTransition: "none",
         width: 1600,
         height: 900,
         margin: 0.1,
-      },
+      }),
       pandoc: {
-        from: 'markdown-auto_identifiers',
+        from: "markdown-auto_identifiers",
       },
+      metadataFilter: revealMetadataFilter,
       formatExtras: (_input: string, _flags: PandocFlags, _format: Format) => {
         return {
           html: {
@@ -43,6 +111,22 @@ export function revealjsFormat() {
       },
     },
   );
+}
+
+function revealMetadataFilter(metadata: Metadata) {
+  // convert kebab case to camel case for reveal options
+  const filtered: Metadata = {};
+  Object.keys(metadata).forEach((key) => {
+    const value = metadata[key];
+    if (
+      kRevealKebabOptions.includes(key)
+    ) {
+      filtered[kebabToCamel(key)] = value;
+    } else {
+      filtered[key] = value;
+    }
+  });
+  return filtered;
 }
 
 function revealHtmlPostprocessor() {
@@ -65,4 +149,31 @@ function revealHtmlPostprocessor() {
 
     return Promise.resolve([]);
   };
+}
+
+function camelToKebab(camel: string) {
+  const kebab: string[] = [];
+  for (let i = 0; i < camel.length; i++) {
+    const ch = camel.charAt(i);
+    if (ch === ch.toUpperCase()) {
+      kebab.push("-");
+      kebab.push(ch.toLowerCase());
+    } else {
+      kebab.push(ch);
+    }
+  }
+  return kebab.join("");
+}
+
+function kebabToCamel(kebab: string) {
+  const camel: string[] = [];
+  for (let i = 0; i < kebab.length; i++) {
+    const ch = kebab.charAt(i);
+    if (ch === "-") {
+      camel.push(kebab.charAt(++i).toUpperCase());
+    } else {
+      camel.push(ch);
+    }
+  }
+  return camel.join("");
 }
