@@ -301,6 +301,14 @@ function navigationHtmlPostprocessor(
     // Process any markdown rendered through the render envelope
     markdownPipeline.processRenderedMarkdown(doc);
 
+    // Note sidebar style on body
+    // TODO: Should we compute this using the using project instead?
+    // It is slightly complicated since we need to compute the sidebar
+    const sidebarEl = doc.body.getElementById("quarto-sidebar");
+    if (sidebarEl?.classList.contains("floating")) {
+      doc.body.classList.add("floating");
+    }
+
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");
     for (let i = 0; i < navLinks.length; i++) {
