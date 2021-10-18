@@ -22,58 +22,102 @@ $content-padding-top: 14px !default;
 
 // Gutter == body-end ->
 
+// Docked Grid Definitions
 @mixin page-columns-float-wide {
   @include page-columns();
   grid-template-columns:
-    auto
-    [screen-start] minmax(min-content, 250px)
-    [page-start] 1.5em
-    [content-start] minmax(min-content, 800px)
-    [content-end] 1.5em
-    [page-end] minmax(min-content, 180px)
-    [screen-end]
-    auto;
+    [screen-start] 1.5em
+    [screen-start-inset] auto
+    [page-start] minmax(0px, 150px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1em
+    [body-content-start] minmax(50px, calc(400px - 1em))
+    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 150px)
+    [page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
 }
 
 @mixin page-columns-float-mid {
   @include page-columns();
   grid-template-columns:
-    auto
-    [screen-start page-start] 1.5em
-    [content-start] minmax(min-content, 800px)
-    [content-end] 1.5em
-    [page-end] minmax(min-content, 180px)
-    [screen-end]
-    auto;
+    [screen-start] 1.5em
+    [screen-start-inset] auto
+    [page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] minmax(50px, calc(400px - 1em))
+    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 150px)
+    [page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
 }
 
 @mixin page-columns-float-narrow {
   @include page-columns();
   grid-template-columns:
-    [screen-start page-start] 0.75em [content-start] minmax(min-content, 800px)
-    [content-end] 0.75em [page-end screen-end];
+    [screen-start] 1.5em
+    [screen-start-inset] auto
+    [page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] minmax(50px, calc(400px - 1em))
+    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-end] 1em
+    [body-end body-end-outset page-end-inset page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
 }
 
+// Docked Grid Definitions
 @mixin page-columns-docked-wide {
   @include page-columns();
   grid-template-columns:
-    [screen-start] minmax(min-content, 250px)
-    [page-start] 1.5em [content-start] minmax(100px, 800px)
-    [content-end] 1.5em [page-end] minmax(min-content, 180px) [screen-end];
+    [screen-start] 1.5em
+    [screen-start-inset page-start] minmax(0px, 150px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1em
+    [body-content-start] minmax(50px, calc(400px - 1em))
+    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 150px)
+    [page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
 }
 
 @mixin page-columns-docked-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start page-start] 1.5em [content-start] minmax(100px, 800px)
-    [content-end] 1.5em [page-end] 150px [screen-end];
+    [screen-start screen-start-inset page-start page-start-inset body-start-outset] 1.5em
+    [body-start] 1em
+    [body-content-start] minmax(50px, calc(400px - 1em))
+    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 150px)
+    [page-end] auto
+    [screen-end-inset] 1.5em
+    [screen-end];
 }
 
 @mixin page-columns-docked-narrow {
   @include page-columns();
   grid-template-columns:
-    [screen-start page-start] 0.75em [content-start] minmax(100px, 800px)
-    [content-end] 0.75em [page-end screen-end];
+    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] minmax(50px, calc(400px - 1em))
+    [body-content-center] minmax(50px, calc(400px - 1em))
+    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
+    [screen-end];
 }
 
 /*-- scss:rules --*/
@@ -85,14 +129,12 @@ body {
 
 @include media-breakpoint-up(lg) {
   body.floating {
-    @include page-columns-float-wide();
     .page-columns {
       @include page-columns-float-wide();
     }
   }
 
   body:not(.floating) {
-    @include page-columns-docked-wide();
     .page-columns {
       @include page-columns-docked-wide();
     }
@@ -101,14 +143,12 @@ body {
 
 @include media-breakpoint-down(lg) {
   body.floating {
-    @include page-columns-float-mid();
     .page-columns {
       @include page-columns-float-mid();
     }
   }
 
   body:not(.floating) {
-    @include page-columns-docked-mid();
     .page-columns {
       @include page-columns-docked-mid();
     }
@@ -117,14 +157,12 @@ body {
 
 @include media-breakpoint-down(md) {
   body.floating {
-    @include page-columns-float-narrow();
     .page-columns {
       @include page-columns-float-narrow();
     }
   }
 
   body:not(.floating) {
-    @include page-columns-docked-narrow();
     .page-columns {
       @include page-columns-docked-narrow();
     }
@@ -169,12 +207,12 @@ body,
 }
 
 .sidebar.sidebar-navigation {
-  grid-column: screen-start / page-start;
+  grid-column: page-start / body-start;
   grid-row: content-top / page-bottom;
 }
 
 .sidebar.sidebar-toc {
-  grid-column: page-end / screen-end;
+  grid-column: body-end / page-end;
   grid-row: content-top / page-bottom;
 }
 
@@ -184,7 +222,7 @@ body,
 }
 
 .page-navigation {
-  grid-column: content-start / content-end;
+  grid-column: body-start / body-end;
   grid-row: content-bottom / page-bottom;
 }
 
@@ -194,7 +232,7 @@ body,
 }
 
 .content > * {
-  grid-column: content-start / content-end;
+  grid-column: body-content-start / body-content-end;
 }
 
 .layout-page {
@@ -206,7 +244,7 @@ body,
 }
 
 .layout-content {
-  grid-column: content-start / content-end;
+  grid-column: body-start / body-end;
 }
 
 // Grid padding (no gutters)
