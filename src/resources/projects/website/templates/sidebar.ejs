@@ -1,6 +1,5 @@
 <% 
 
-let mCss = sidebar.style === "floating" ? "ms-lg-auto" : "me-lg-auto";
 let styleCss = sidebar.style === "floating" ? "floating" : "docked";
 
 let alignCss = ""
@@ -31,7 +30,7 @@ if (sidebar.title && !navbar) {
 }
 %>
 
-<nav class="<%- mCss %> <%- styleCss %> overflow-auto">
+<nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation <%- styleCss %> overflow-auto">
   
    <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
   <div class="px-3 pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">

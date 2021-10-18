@@ -325,7 +325,7 @@ li code:not(.sourceCode) {
   top: 0px;
 }
 
-.sidebar-toc > nav > h2 {
+.sidebar-toc > h2 {
   font-size: $toc-font-size;
   font-weight: 400;
   margin-bottom: 0.5rem;
@@ -336,19 +336,19 @@ li code:not(.sourceCode) {
   padding-top: 20px;
 }
 
-.sidebar-toc > nav > ul a {
+.sidebar-toc > ul a {
   border-left: 1px solid $gray-200;
   padding-left: 0.6rem;
 }
 
-.sidebar-toc > nav ul {
+.sidebar-toc ul {
   padding-left: 0;
   list-style: none;
   font-size: $toc-font-size;
   font-weight: 300;
 }
 
-.sidebar-toc > nav ul li a {
+.sidebar-toc > ul li a {
   line-height: 1.1rem;
   padding-bottom: 0.2rem;
   padding-top: 0.2rem;
@@ -360,17 +360,17 @@ $indent: 1.2em;
 @for $i from 1 through $toc-indent-depth {
   $selector-depth: repeat-chars(" ul > li >", $i);
 
-  .sidebar-toc > nav ul > li > #{$selector-depth} a {
+  .sidebar-toc ul > li > #{$selector-depth} a {
     padding-left: #{$indent * $i};
   }
 }
 
-.sidebar-toc > nav ul > li > ul > li > a.active {
+.sidebar-toc ul > li > ul > li > a.active {
   border-left: 1px solid $link-color;
   color: $link-color !important;
 }
 
-.sidebar-toc > nav ul > li > a.active {
+.sidebar-toc ul > li > a.active {
   border-left: 1px solid $link-color;
   color: $link-color !important;
 }

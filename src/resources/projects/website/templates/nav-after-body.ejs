@@ -3,7 +3,7 @@
 </main>
 
 
-<div class="page-navigation <%- nav.sidebar && nav.sidebar.style !== "floating" ? "page-navigation-docked" : ""  %>">
+<nav class="page-navigation <%- nav.sidebar && nav.sidebar.style !== "floating" ? "page-navigation-docked" : ""  %>">
 
   <div class="nav-page nav-page-previous">
     <% if (nav.prevPage) { %>
@@ -22,34 +22,34 @@
     <% } %>
   </div>
 
-</div>
-
+</nav>
 
 </div> <!-- /main column -->
 
-</div> <!-- /row -->
+
 <% if (nav.footer && (nav.footer.left || nav.footer.center || nav.footer.right)) { %>
-<div class="grid">
-  <div class="nav-footer g-col-24 px-3">
+<footer class="footer">
+  <div class="nav-footer">
     <% if (nav.footer.left) { %> 
-    <div class="nav-footer-left me-auto">
+    <div class="nav-footer-left">
       <% partial('nav-footer-section.ejs', { contents: nav.footer.left })%>
     </div>   
     <% } %>
     <% if (nav.footer.center) { %> 
-      <div class="nav-footer-center me-auto ms-auto">
+      <div class="nav-footer-center">
         <% partial('nav-footer-section.ejs', { contents: nav.footer.center}) %>
       </div>
     <% } %>
     <% if (nav.footer.right) { %> 
-    <div class="nav-footer-right ms-auto">
+    <div class="nav-footer-right">
       <% partial('nav-footer-section.ejs', { contents: nav.footer.right}) %>
     </div>
     <% } %> 
   </div>
-</div>
+</footer>
 <% } %>
 
-</div> <!-- /container fluid -->
+
+
 
 <% } %>
