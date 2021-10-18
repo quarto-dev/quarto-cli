@@ -9,11 +9,7 @@
 
   <% if (nav.navbar) { %>  
     <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-light <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
-      <% if (nav.sidebar && nav.sidebar.style === "floating") { %>
-        <div class="container-fluid mx-auto w-100">
-      <% } else { %>
-        <div class="container-fluid w-100">
-      <% } %>
+      <div class="navbar-container container-fluid">
       <% partial('navbrand.ejs', nav.navbar) %>
       <% if (nav.navbar.left || nav.navbar.right) { %>  
         <% if (nav.navbar.collapse) { %>

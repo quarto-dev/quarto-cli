@@ -240,6 +240,10 @@ header.headroom--unpinned {
   transform: translateY(-100%);
 }
 
+.navbar-container {
+  width: 100%;
+}
+
 .navbar-brand {
   text-overflow: ellipsis;
   overflow: hidden;
