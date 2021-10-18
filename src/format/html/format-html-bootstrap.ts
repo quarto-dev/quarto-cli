@@ -215,8 +215,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
     const toc = doc.querySelector('nav[role="doc-toc"]');
     const tocSidebar = doc.getElementById("quarto-toc-sidebar");
     if (toc && tocSidebar) {
-      tocSidebar.appendChild(toc);
-
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
       for (let i = 0; i < tocLinks.length; i++) {
@@ -242,6 +240,14 @@ function bootstrapHtmlPostprocessor(format: Format) {
         const ul = nestedUls[i] as Element;
         ul.classList.add("collapse");
       }
+
+      // Copy the classes over
+      tocSidebar.classList.forEach((className) => {
+        toc.classList.add(className);
+      });
+      // Replace the toc placeholder and move any classes
+      toc.remove();
+      tocSidebar.replaceWith(toc);
     }
 
     // add .table class to pandoc tables
