@@ -57,11 +57,11 @@ body.floating {
     .page-columns {
       display: grid;
       grid-template-columns:
-        [screen-start page-start] 1.5em [content-start] minmax(
+        [screen-start page-start] 0.75em [content-start] minmax(
           min-content,
           800px
         )
-        [content-end] 1.5em [page-end screen-end];
+        [content-end] 0.75em [page-end screen-end];
       gap: 0;
     }
 
@@ -80,7 +80,7 @@ body:not(.floating) {
       display: grid;
       grid-template-columns:
         [screen-start] minmax(min-content, 250px)
-        [page-start] 1.5em [content-start] minmax(min-content, 800px)
+        [page-start] 1.5em [content-start] minmax(100px, 800px)
         [content-end] 1.5em [page-end] minmax(min-content, 180px) [screen-end];
       gap: 0;
     }
@@ -91,10 +91,7 @@ body:not(.floating) {
     .page-columns {
       display: grid;
       grid-template-columns:
-        [screen-start page-start] 1.5em [content-start] minmax(
-          min-content,
-          800px
-        )
+        [screen-start page-start] 1.5em [content-start] minmax(100px, 800px)
         [content-end] 1.5em [page-end] 150px [screen-end];
       gap: 0;
     }
@@ -105,11 +102,8 @@ body:not(.floating) {
     .page-columns {
       display: grid;
       grid-template-columns:
-        [screen-start page-start] 1.5em [content-start] minmax(
-          min-content,
-          800px
-        )
-        [content-end] 1.5em [page-end screen-end];
+        [screen-start page-start] 0.75em [content-start] minmax(100px, 800px)
+        [content-end] 0.75em [page-end screen-end];
       gap: 0;
     }
 
