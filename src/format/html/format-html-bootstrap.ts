@@ -184,15 +184,25 @@ function bootstrapHtmlPostprocessor(format: Format) {
     }
 
     // Process col classes into our grid system
+
+    // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
-      '[class^="col-"], [class*=" col-"]',
+      '[class^="column-"], [class*=" column-"]',
     );
+    // If there are any of these elements, we need to be sure that their
+    // parents have acess to the grid system, so make the parent full screen width
+    // and apply the grid system to it (now the child 'column-' element can be positioned
+    // anywhere in the grid system)
     if (columnLayouts && columnLayouts.length > 0) {
       const ensureInGrid = (el: Element, setLayout: boolean) => {
+        // Add the grid system. Children of the grid system
+        // are placed into the body-content column by default
+        // (CSS implements this)
         if (!el.classList.contains("page-columns")) {
           el.classList.add("page-columns");
         }
 
+        // Mark full width
         if (setLayout && !el.classList.contains("page-full")) {
           el.classList.add("page-full");
         }
