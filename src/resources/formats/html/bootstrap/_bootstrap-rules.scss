@@ -155,18 +155,9 @@ body,
 }
 
 @include media-breakpoint-up(lg) {
-  .col-gutter-right {
+  .col-gutter {
     grid-column: body-end / page-end;
     z-index: 2500;
-  }
-
-  .col-gutter-left {
-    grid-column: page-start / body-start;
-    z-index: 2500;
-  }
-
-  .col-gutter-left,
-  .col-gutter-right {
     font-size: 0.775em;
   }
 
@@ -177,18 +168,9 @@ body,
 }
 
 @include media-breakpoint-down(lg) {
-  .col-gutter-right {
+  .col-gutter {
     grid-column: body-end / page-end;
     z-index: 2500;
-  }
-
-  .col-gutter-left {
-    grid-column: body-content-start / body-content-end;
-    z-index: 2500;
-  }
-
-  .col-gutter-left,
-  .col-gutter-right {
     font-size: 0.775em;
   }
 
@@ -199,8 +181,7 @@ body,
 }
 
 @include media-breakpoint-down(md) {
-  .col-gutter-right,
-  .col-gutter-left {
+  .col-gutter {
     grid-column: body-content-start / body-content-end;
     z-index: 2500;
   }

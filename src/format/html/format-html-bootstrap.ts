@@ -208,7 +208,9 @@ function bootstrapHtmlPostprocessor(format: Format) {
 
       columnLayouts.forEach((node) => {
         const el = node as Element;
-        ensureInGrid(el, false);
+        if (el.parentElement) {
+          ensureInGrid(el.parentElement, true);
+        }
       });
     }
 
