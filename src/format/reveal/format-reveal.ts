@@ -73,6 +73,8 @@ const kRevealOptions = [
   "mathjax",
 ];
 
+const kHashType = "hash-type";
+
 const kRevealKebabOptions = kRevealOptions.reduce(
   (options: string[], option: string) => {
     const kebab = camelToKebab(option);
@@ -88,10 +90,13 @@ export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
+      metadata: revealMetadataFilter({
+        [kHashType]: "id",
+      }),
       metadataFilter: revealMetadataFilter,
       formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
         const extras: FormatExtras = {};
-
+        // Only tweak when Quarto theme is used (no reveal theme)
         if (format.metadata[kTheme] === undefined) {
           extras.metadata = revealMetadataFilter({
             theme: "white",
@@ -103,9 +108,13 @@ export function revealjsFormat() {
             backgroundTransition: "none",
           });
 
-          extras.pandoc = {
-            from: "markdown-auto_identifiers",
-          };
+          extras.pandoc = format.metadata[kHashType] === "id"
+            ? {
+              from: "markdown-auto_identifiers",
+            }
+            : {
+              from: "markdown",
+            };
         }
 
         extras.html = {
