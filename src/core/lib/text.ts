@@ -17,7 +17,7 @@ export function normalizeNewlines(text: string) {
 
 // we can't use matchAll here because we need to support old Chromium
 // in the IDE
-function lineOffsets(text: string) {
+export function lineOffsets(text: string) {
   const offsets = [0];
   const re = /\r?\n/g;
   let match;

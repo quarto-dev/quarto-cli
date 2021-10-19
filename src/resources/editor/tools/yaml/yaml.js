@@ -413,13 +413,12 @@
         };
         if (cell_type === "code" && (language === "ojs" || language === "dot")) {
           const { yaml, source: source2, sourceStartLine } = partitionCellOptionsMapped(language, cell.source, validate);
-          const breaks = Array.from(cell.source.value.matchAll(/\r?\n/g));
+          const breaks = lineOffsets(cell.source.value).slice(1);
           let strUpToLastBreak = "";
           if (sourceStartLine > 0) {
             if (breaks.length) {
               const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
-              const pos = lastBreak.index + lastBreak[0].length;
-              strUpToLastBreak = cell.source.value.substring(0, pos);
+              strUpToLastBreak = cell.source.value.substring(0, lastBreak);
             } else {
               strUpToLastBreak = cell.source.value;
             }
@@ -571,6 +570,7 @@
     kLangCommentChars,
     rangedSubstring,
     rangedLines,
+    lineOffsets,
     lines,
     normalizeNewlines,
     indexToRowCol,

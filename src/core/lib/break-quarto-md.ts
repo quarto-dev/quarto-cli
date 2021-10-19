@@ -8,7 +8,7 @@
 *
 */
 
-import { lines } from "./text.ts";
+import { lineOffsets, lines } from "./text.ts";
 import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./ranged-text.ts";
 import { mappedString, MappedString, mappedConcat } from "./mapped-text.ts";
 
@@ -95,16 +95,13 @@ export function breakQuartoMd(
         );
         // FIXME I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
-        const breaks = Array.from(cell.source.value.matchAll(/\r?\n/g));
+        const breaks = lineOffsets(cell.source.value).slice(1);
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
           if (breaks.length) {
-            // FIXME matchAll apparently breaks typechecking?
-            // "error: TS2538 [ERROR]: Type 'RegExpMatchArray' cannot be used as an index type.
-            // deno-lint-ignore no-explicit-any
-            const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)] as any;
-            const pos = lastBreak.index + lastBreak[0].length;
-            strUpToLastBreak = cell.source.value.substring(0, pos);
+            const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
+            // const pos = lastBreak.index + lastBreak[0].length;
+            strUpToLastBreak = cell.source.value.substring(0, lastBreak);
           } else {
             strUpToLastBreak = cell.source.value;
           }
