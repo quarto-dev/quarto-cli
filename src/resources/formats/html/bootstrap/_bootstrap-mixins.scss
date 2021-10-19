@@ -23,7 +23,7 @@
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1em
-    [body-content-start] min(55vw, 800px - 2em)
+    [body-content-start] minmax(550px, calc(800px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
@@ -40,7 +40,7 @@
     [screen-start] 1.5em
     [screen-start-inset] auto
     [page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] min(60vw, 750px - 2em)
+    [body-content-start] minmax(550px, calc(750px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 25px
@@ -71,7 +71,7 @@
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1em
-    [body-content-start] min(55vw, 800px - 2em)
+    [body-content-start] minmax(550px, calc(800px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
@@ -86,7 +86,7 @@
   grid-template-columns:
     [screen-start screen-start-inset page-start page-start-inset body-start-outset] 1.5em
     [body-start] 1em
-    [body-content-start] min(60vw, 750px - 2em)
+    [body-content-start] minmax(550px, calc(750px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
