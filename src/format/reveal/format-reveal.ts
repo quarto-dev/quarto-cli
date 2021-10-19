@@ -85,19 +85,24 @@ const kRevealOptions = [
   "mathjax",
 ];
 
-const kRevealThemes = [
-  "black",
+const kRevealLightThemes = [
   "white",
-  "league",
   "beige",
   "sky",
-  "night",
   "serif",
   "simple",
   "solarized",
+];
+
+const kRevealDarkThemes = [
+  "black",
+  "league",
+  "night",
   "blood",
   "moon",
 ];
+
+const kRevealThemes = [...kRevealLightThemes, ...kRevealDarkThemes];
 
 const kHashType = "hash-type";
 
@@ -254,7 +259,8 @@ function revealHighlightPatch(template: string) {
 
 function revealHighlightStyleHeaderInclude(format: Format) {
   // check for a highlight style
-  const highlightStyle = format.pandoc[kHighlightStyle] || "a11y-light";
+  const highlightStyle = format.pandoc[kHighlightStyle] ||
+    revealHighlightDefault(format.metadata[kTheme] as string | undefined);
 
   // is it a built-in one?
   const highlightStyleResource = formatResourcePath(
@@ -278,6 +284,10 @@ function revealHighlightStyleHeaderInclude(format: Format) {
     }\n</style>\n`,
   );
   return styleHeaderInclude;
+}
+
+function revealHighlightDefault(theme: string | undefined) {
+  return kRevealDarkThemes.includes(theme || "") ? "a11y-dark" : "a11y-light";
 }
 
 function revealHighlightHtmlPostprocessor() {
