@@ -73,6 +73,20 @@ const kRevealOptions = [
   "mathjax",
 ];
 
+const kRevealThemes = [
+  "black",
+  "white",
+  "league",
+  "beige",
+  "sky",
+  "night",
+  "serif",
+  "simple",
+  "solarized",
+  "blood",
+  "moon",
+];
+
 const kHashType = "hash-type";
 
 const kRevealKebabOptions = kRevealOptions.reduce(
@@ -96,8 +110,11 @@ export function revealjsFormat() {
       metadataFilter: revealMetadataFilter,
       formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
         const extras: FormatExtras = {};
-        // Only tweak when Quarto theme is used (no reveal theme)
-        if (format.metadata[kTheme] === undefined) {
+        // Only tweak when no reveal built-in theme is used
+        if (
+          format.metadata[kTheme] ||
+          !kRevealThemes.includes(format.metadata[kTheme] as string)
+        ) {
           if (format.pandoc[kFrom] != undefined) {
             throw new Error("from can't be changed in reveal format.");
           }
