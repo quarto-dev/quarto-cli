@@ -96,6 +96,7 @@ import {
   kCellOutHeight,
   kCellOutWidth,
   kCellPanel,
+  kCellRawMimeType,
   kCellTags,
   kCodeFold,
   kCodeOverflow,
@@ -110,7 +111,6 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
-  kRawMimeType,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -158,7 +158,7 @@ export interface JupyterCellMetadata {
   [kCellFormat]?: string; // for "raw"
   [kCellName]?: string; // optional alias for 'label'
   [kCellTags]?: string[];
-  [kRawMimeType]?: string;
+  [kCellRawMimeType]?: string;
 
   // used to preserve line spacing
   [kCellLinesToNext]?: number;
@@ -174,6 +174,7 @@ export interface JupyterCellWithOptions extends JupyterCell {
 
 export interface JupyterOutput {
   output_type: "stream" | "display_data" | "execute_result" | "error";
+  execution_count?: null | number;
   isolated?: boolean;
 }
 
@@ -641,6 +642,7 @@ export interface JupyterToMarkdownOptions {
   toHtml?: boolean;
   toLatex?: boolean;
   toMarkdown?: boolean;
+  toIpynb?: boolean;
   figFormat?: string;
   figDpi?: number;
 }
@@ -656,10 +658,12 @@ export function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): JupyterToMarkdownResult {
   // optional content injection / html preservation for html output
-  const dependencies = options.toHtml
+  // that isn't an ipynb
+  const isHtml = options.toHtml && !options.toIpynb;
+  const dependencies = isHtml
     ? extractJupyterWidgetDependencies(nb)
     : undefined;
-  const htmlPreserve = options.toHtml ? removeAndPreserveHtml(nb) : undefined;
+  const htmlPreserve = isHtml ? removeAndPreserveHtml(nb) : undefined;
 
   // generate markdown
   const md: string[] = [];
@@ -695,6 +699,23 @@ export function jupyterToMarkdown(
         throw new Error("Unexpected cell type " + cell.cell_type);
     }
     md.push("\n");
+  }
+
+  // include jupyter metadata if we are targeting ipynb
+  if (options.toIpynb) {
+    md.push("---\n");
+    const jupyterMetadata = {
+      jupyter: {
+        ...nb.metadata,
+      },
+    };
+    const yamlText = stringify(jupyterMetadata, {
+      indent: 2,
+      sortKeys: false,
+      skipInvalid: true,
+    });
+    md.push(yamlText);
+    md.push("---\n");
   }
 
   // return markdown and any widget requirements
@@ -771,7 +792,7 @@ export function mdFromContentCell(cell: JupyterCell) {
 }
 
 export function mdFromRawCell(cell: JupyterCell) {
-  const mimeType = cell.metadata?.[kRawMimeType];
+  const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
     switch (mimeType) {
       case kTextHtml:
@@ -975,6 +996,11 @@ function mdFromCodeCell(
     }
   }
 
+  // add execution_count if we have one
+  if (typeof (cell.execution_count) === "number") {
+    divMd.push(`execution_count="${cell.execution_count}" `);
+  }
+
   // create string for div enclosure (we'll use it later but
   // only if there is actually content in the div)
   const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
@@ -1029,6 +1055,8 @@ function mdFromCodeCell(
       source.unshift(...optionsSource);
       source.unshift("```{{" + options.language + "}}\n");
       source.push("\n```\n");
+    } else if (cell.optionsSource.length > 0) {
+      source = mdTrimEmptyLines(source, "leading");
     }
     md.push(...source, "\n");
     md.push(ticks + "\n");
@@ -1079,6 +1107,11 @@ function mdFromCodeCell(
           (isWarningOutput(output) && hideWarnings(cell, options))
         ) {
           md.push(` .hidden`);
+        }
+
+        // add execution count if we have one
+        if (typeof (output.execution_count) === "number") {
+          md.push(` execution_count=${output.execution_count}`);
         }
 
         md.push("}\n");
@@ -1262,6 +1295,20 @@ function mdOutputDisplayData(
         options,
         figureOptions,
       );
+    } else if (displayDataIsMarkdown(mimeType)) {
+      return mdMarkdownOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsLatex(mimeType)) {
+      return mdLatexOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsHtml(mimeType)) {
+      return mdHtmlOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsJson(mimeType)) {
+      return mdJsonOutput(
+        mimeType,
+        output.data[mimeType] as Record<string, unknown>,
+        options,
+      );
+    } else if (displayDataIsJavascript(mimeType)) {
+      return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
     } else if (displayDataIsTextPlain(mimeType)) {
       const lines = output.data[mimeType] as string[];
       // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
@@ -1275,19 +1322,6 @@ function mdOutputDisplayData(
       } else {
         return mdCodeOutput(lines);
       }
-    } else if (displayDataIsMarkdown(mimeType)) {
-      return mdMarkdownOutput(output.data[mimeType] as string[]);
-    } else if (displayDataIsLatex(mimeType)) {
-      return mdLatexOutput(output.data[mimeType] as string[]);
-    } else if (displayDataIsHtml(mimeType)) {
-      return mdHtmlOutput(output.data[mimeType] as string[]);
-    } else if (displayDataIsJson(mimeType)) {
-      return mdJsonOutput(
-        mimeType,
-        output.data[mimeType] as Record<string, unknown>,
-      );
-    } else if (displayDataIsJavascript(mimeType)) {
-      return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
     }
   }
 
@@ -1400,8 +1434,16 @@ function mdHtmlOutput(html: string[]) {
   return mdFormatOutput("html", html);
 }
 
-function mdJsonOutput(mimeType: string, json: Record<string, unknown>) {
-  return mdScriptOutput(mimeType, [JSON.stringify(json)]);
+function mdJsonOutput(
+  mimeType: string,
+  json: Record<string, unknown>,
+  options: JupyterToMarkdownOptions,
+) {
+  if (options.toIpynb) {
+    return mdCodeOutput([JSON.stringify(json)], "json");
+  } else {
+    return mdScriptOutput(mimeType, [JSON.stringify(json)]);
+  }
 }
 
 function mdScriptOutput(mimeType: string, script: string[]) {
@@ -1443,8 +1485,9 @@ function mdTrimEmptyLines(
   return lines;
 }
 
-function mdCodeOutput(code: string[]) {
-  return mdEnclosedOutput("```", code, "```");
+function mdCodeOutput(code: string[], clz?: string) {
+  const open = "```" + (clz ? `{.${clz}}` : "");
+  return mdEnclosedOutput(open, code, "```");
 }
 
 function mdEnclosedOutput(begin: string, text: string[], end: string) {

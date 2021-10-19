@@ -32,6 +32,7 @@ import {
   createWordprocessorFormat,
 } from "./formats-shared.ts";
 import { revealjsFormat } from "./reveal/format-reveal.ts";
+import { ipynbFormat } from "./ipynb/format-ipynb.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -239,15 +240,6 @@ function rtfFormat(): Format {
   return createFormat("rtf", createWordprocessorFormat("rtf"), {
     pandoc: {
       standalone: true,
-    },
-  });
-}
-
-function ipynbFormat(): Format {
-  return createFormat("ipynb", {
-    pandoc: {
-      standalone: true,
-      "ipynb-output": "all",
     },
   });
 }

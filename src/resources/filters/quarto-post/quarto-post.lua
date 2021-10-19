@@ -19,6 +19,7 @@ import("bootstrap.lua")
 import("latexdiv.lua")
 import("foldcode.lua")
 import("book-cleanup.lua")
+import("ipynb.lua")
 import("ojs.lua")
 import("../common/params.lua")
 import("../common/table.lua")
@@ -36,7 +37,8 @@ return {
   combineFilters({
     latexDiv(),
     foldCode(),
-    bootstrap()
+    bootstrap(),
+    ipynb()
   }),
   ojs()
 }

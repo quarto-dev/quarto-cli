@@ -304,7 +304,7 @@ export const kCellFormat = "format";
 export const kCellName = "name";
 export const kCellTags = "tags";
 export const kCellLinesToNext = "lines_to_next_cell";
-export const kRawMimeType = "raw_mimetype";
+export const kCellRawMimeType = "raw_mimetype";
 
 export const kCellId = "id";
 export const kCellLabel = "label";
