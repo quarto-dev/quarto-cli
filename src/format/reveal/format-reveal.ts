@@ -94,9 +94,6 @@ export function revealjsFormat() {
         center: false,
         transition: "none",
         backgroundTransition: "none",
-        width: 1600,
-        height: 900,
-        margin: 0.1,
       }),
       pandoc: {
         from: "markdown-auto_identifiers",
