@@ -24,18 +24,16 @@ import {
   kOutputFile,
   kSelfContained,
   kSelfContainedMath,
-  kTemplate,
   kVariant,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
-import { isHtmlOutput } from "../../config/format.ts";
 
 import {
   quartoLatexmkOutputRecipe,
   useQuartoLatexmk,
 } from "./latexmk/latexmk.ts";
 
-import { havePandocArg, kStdOut, replacePandocOutputArg } from "./flags.ts";
+import { kStdOut, replacePandocOutputArg } from "./flags.ts";
 import { OutputRecipe, RenderContext, RenderFlags } from "./types.ts";
 import { resolveKeepSource } from "./codetools.ts";
 
@@ -48,9 +46,9 @@ import { resolveKeepSource } from "./codetools.ts";
 
 export const kPatchedTemplateExt = ".patched";
 
-export async function outputRecipe(
+export function outputRecipe(
   context: RenderContext,
-): Promise<OutputRecipe> {
+): OutputRecipe {
   // alias
   const input = context.target.input;
   const options = context.options;
@@ -91,19 +89,6 @@ export async function outputRecipe(
     // keep source if requested (via keep-source or code-tools), we are targeting html,
     // and engine can keep it (e.g. we wouldn't keep an .ipynb file as source)
     resolveKeepSource(recipe.format, context.engine, context.target);
-
-    // patch templates as necessary (don't patch if there is a user specified template)
-    if (
-      !format.pandoc[kTemplate] && !havePandocArg(recipe.args, "--template")
-    ) {
-      if (format.pandoc.to && isHtmlOutput(format.pandoc.to, true)) {
-        recipe.format.pandoc[kTemplate] = await patchHtmlTemplate(
-          format.pandoc.to,
-          format,
-          options.flags,
-        );
-      }
-    }
 
     // helper function to re-write output
     const updateOutput = (output: string) => {
@@ -185,9 +170,10 @@ export async function outputRecipe(
   }
 }
 
-async function patchHtmlTemplate(
+export async function patchHtmlTemplate(
   templateName: string,
   format: Format,
+  patches?: Array<(template: string) => string>,
   flags?: RenderFlags,
 ) {
   return await patchTemplate(templateName, (template) => {
@@ -212,9 +198,11 @@ async function patchHtmlTemplate(
       }
     }
 
-    // extra stuff so reveal works with jupyter widgets
-    if (templateName === "revealjs") {
-      patchedTemplate = patchRevealsJsTemplate(template);
+    // apply extra patches
+    if (patches) {
+      for (const patch of patches) {
+        patchedTemplate = patch(patchedTemplate);
+      }
     }
 
     // make math evade self-contained
@@ -238,7 +226,7 @@ async function patchHtmlTemplate(
 
     // replace generator
     patchedTemplate = patchedTemplate.replace(
-      /<meta name="generator" content="pandoc" \/>/,
+      /<meta name="generator" content="pandoc"\s*\/?>/,
       `<meta name="generator" content="quarto-${quartoConfig.version()}" \/>`,
     );
 
@@ -327,18 +315,6 @@ function katexScript(url: string) {
     });
   </script>
   `;
-}
-
-function patchRevealsJsTemplate(template: string) {
-  template = template.replace(
-    /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m,
-    "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
-  );
-  template = template.replace(
-    /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
-    "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
-  );
-  return template;
 }
 
 async function patchTemplate(
