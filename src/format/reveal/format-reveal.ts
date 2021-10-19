@@ -281,12 +281,21 @@ function revealHighlightStyleHeaderInclude(format: Format) {
 }
 
 function revealHighlightHtmlPostprocessor() {
+  const kDataLineNumbers = "data-line-numbers";
   return (doc: Document): Promise<string[]> => {
     const codeElements = doc.querySelectorAll("code");
     for (let i = 0; i < codeElements.length; i++) {
       const codeEl = codeElements.item(i) as Element;
       if (codeEl.parentElement?.tagName === "PRE") {
-        codeEl.className = "language-" + codeEl.parentElement.className;
+        const preEl = codeEl.parentElement;
+        codeEl.className = "language-" + preEl.className;
+        if (preEl.hasAttribute(kDataLineNumbers)) {
+          codeEl.setAttribute(
+            kDataLineNumbers,
+            preEl.getAttribute(kDataLineNumbers),
+          );
+          preEl.removeAttribute(kDataLineNumbers);
+        }
       }
     }
 
