@@ -9,10 +9,12 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import {
   Format,
+  FormatExtras,
   kHtmlPostprocessors,
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
+import { kTheme } from "../../config/constants.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 
@@ -82,29 +84,40 @@ const kRevealKebabOptions = kRevealOptions.reduce(
   [],
 );
 
+const kThemeQuarto = "quarto";
+
 export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
-      metadata: revealMetadataFilter({
-        theme: "white",
-        controlsTutorial: false,
-        hash: true,
-        hashOneBasedIndex: true,
-        center: false,
-        transition: "none",
-        backgroundTransition: "none",
-      }),
-      pandoc: {
-        from: "markdown-auto_identifiers",
+      metadata: {
+        theme: kThemeQuarto,
       },
       metadataFilter: revealMetadataFilter,
-      formatExtras: (_input: string, _flags: PandocFlags, _format: Format) => {
-        return {
-          html: {
-            [kHtmlPostprocessors]: [revealHtmlPostprocessor()],
-          },
+      formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
+        const extras: FormatExtras = {};
+
+        if (format.metadata[kTheme] === kThemeQuarto) {
+          format.metadata[kTheme] = "white";
+
+          extras.metadata = revealMetadataFilter({
+            controlsTutorial: false,
+            hash: true,
+            hashOneBasedIndex: true,
+            center: false,
+            transition: "none",
+            backgroundTransition: "none",
+          });
+          extras.pandoc = {
+            from: "markdown-auto_identifiers",
+          };
+        }
+
+        extras.html = {
+          [kHtmlPostprocessors]: [revealHtmlPostprocessor()],
         };
+
+        return extras;
       },
     },
   );
