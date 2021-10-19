@@ -173,6 +173,11 @@ body,
     grid-column: page-start / body-start;
     z-index: 2500;
   }
+
+  .col-gutter-left,
+  .col-gutter-right {
+    font-size: 0.775em;
+  }
 }
 
 @include media-breakpoint-down(lg) {
@@ -184,6 +189,11 @@ body,
   .col-gutter-left {
     grid-column: body-content-start / body-content-end;
     z-index: 2500;
+  }
+
+  .col-gutter-left,
+  .col-gutter-right {
+    font-size: 0.775em;
   }
 }
 
