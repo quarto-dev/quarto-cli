@@ -14,7 +14,7 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
-import { kTheme } from "../../config/constants.ts";
+import { kFrom, kTheme } from "../../config/constants.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 
@@ -98,15 +98,9 @@ export function revealjsFormat() {
         const extras: FormatExtras = {};
         // Only tweak when Quarto theme is used (no reveal theme)
         if (format.metadata[kTheme] === undefined) {
-          extras.metadata = revealMetadataFilter({
-            theme: "white",
-            controlsTutorial: false,
-            hash: true,
-            hashOneBasedIndex: true,
-            center: false,
-            transition: "none",
-            backgroundTransition: "none",
-          });
+          if (format.pandoc[kFrom] != undefined) {
+            throw new Error("from can't be changed in reveal format.");
+          }
 
           extras.pandoc = format.metadata[kHashType] === "id"
             ? {
@@ -115,6 +109,16 @@ export function revealjsFormat() {
             : {
               from: "markdown",
             };
+
+          extras.metadata = revealMetadataFilter({
+            theme: "white",
+            center: false,
+            controlsTutorial: false,
+            hash: true,
+            hashOneBasedIndex: true,
+            transition: "none",
+            backgroundTransition: "none",
+          });
         }
 
         extras.html = {
