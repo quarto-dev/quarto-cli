@@ -14,7 +14,7 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
-import { kFrom, kTheme } from "../../config/constants.ts";
+import { kTheme } from "../../config/constants.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 
@@ -84,24 +84,17 @@ const kRevealKebabOptions = kRevealOptions.reduce(
   [],
 );
 
-const kThemeQuarto = "quarto";
-
 export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
-      metadata: {
-        theme: kThemeQuarto,
-      },
       metadataFilter: revealMetadataFilter,
       formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
         const extras: FormatExtras = {};
 
-        if (format.metadata[kTheme] === kThemeQuarto) {
-          format.metadata[kTheme] = "white";
-          format.pandoc[kFrom] = `${format.pandoc[kFrom]}-auto_identifiers`;
-
+        if (format.metadata[kTheme] === undefined) {
           extras.metadata = revealMetadataFilter({
+            theme: "white",
             controlsTutorial: false,
             hash: true,
             hashOneBasedIndex: true,
@@ -109,6 +102,10 @@ export function revealjsFormat() {
             transition: "none",
             backgroundTransition: "none",
           });
+
+          extras.pandoc = {
+            from: "markdown-auto_identifiers",
+          };
         }
 
         extras.html = {
