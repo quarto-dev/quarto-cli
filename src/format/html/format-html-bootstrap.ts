@@ -193,8 +193,8 @@ function bootstrapHtmlPostprocessor(format: Format) {
           el.classList.add("page-columns");
         }
 
-        if (setLayout && !el.classList.contains("col-screen")) {
-          el.classList.add("col-screen");
+        if (setLayout && !el.classList.contains("page-full")) {
+          el.classList.add("page-full");
         }
 
         // Process parents up to the main tag
