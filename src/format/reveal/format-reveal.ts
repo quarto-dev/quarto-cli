@@ -14,7 +14,7 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
-import { kTheme } from "../../config/constants.ts";
+import { kFrom, kTheme } from "../../config/constants.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 
@@ -99,6 +99,7 @@ export function revealjsFormat() {
 
         if (format.metadata[kTheme] === kThemeQuarto) {
           format.metadata[kTheme] = "white";
+          format.pandoc[kFrom] = "markdown-auto_identifiers";
 
           extras.metadata = revealMetadataFilter({
             controlsTutorial: false,
@@ -108,9 +109,6 @@ export function revealjsFormat() {
             transition: "none",
             backgroundTransition: "none",
           });
-          extras.pandoc = {
-            from: "markdown-auto_identifiers",
-          };
         }
 
         extras.html = {
