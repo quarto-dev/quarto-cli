@@ -5,16 +5,12 @@ body {
 
 @include media-breakpoint-up(lg) {
   body.floating {
-    main > *:not(script),
-    main section,
     .page-columns {
       @include page-columns-float-wide();
     }
   }
 
   body:not(.floating) {
-    main > *:not(script),
-    main section,
     .page-columns {
       @include page-columns-docked-wide();
     }
@@ -23,16 +19,12 @@ body {
 
 @include media-breakpoint-down(lg) {
   body.floating {
-    main > *:not(script),
-    main section,
     .page-columns {
       @include page-columns-float-mid();
     }
   }
 
   body:not(.floating) {
-    main > *:not(script),
-    main section,
     .page-columns {
       @include page-columns-docked-mid();
     }
@@ -41,16 +33,12 @@ body {
 
 @include media-breakpoint-down(md) {
   body.floating {
-    main > *:not(script),
-    main section,
     .page-columns {
       @include page-columns-float-narrow();
     }
   }
 
   body:not(.floating) {
-    main > *:not(script),
-    main section,
     .page-columns {
       @include page-columns-docked-narrow();
     }
@@ -76,6 +64,10 @@ body,
       max-content
     )
     [page-bottom];
+}
+
+.page-columns > * {
+  grid-column: body-content-start / body-content-end;
 }
 
 // Automatically creates new rows
@@ -105,7 +97,7 @@ body,
 }
 
 .content {
-  grid-column: screen-start / screen-end;
+  grid-column: body-content-start / body-content-end;
   grid-row: content-top / content-bottom;
 }
 
@@ -203,19 +195,6 @@ body,
     grid-column: body-content-start / body-content-end;
     z-index: 2500;
   }
-}
-
-main > *:not(script) {
-  grid-column: screen-start / screen-end;
-}
-
-main section {
-  grid-column: screen-start / screen-end;
-}
-
-main section > *:not(script):not(section),
-main > *:not(script) > *:not(script):not(section) {
-  grid-column: body-content-start / body-content-end;
 }
 
 // Rest of rules

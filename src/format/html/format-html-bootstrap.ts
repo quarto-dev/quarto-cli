@@ -183,6 +183,35 @@ function bootstrapHtmlPostprocessor(format: Format) {
       title.classList.add("display-7");
     }
 
+    // Process col classes into our grid system
+    const columnLayouts = doc.querySelectorAll(
+      '[class^="col-"], [class*=" col-"]',
+    );
+    if (columnLayouts && columnLayouts.length > 0) {
+      const ensureInGrid = (el: Element, setLayout: boolean) => {
+        if (!el.classList.contains("page-columns")) {
+          el.classList.add("page-columns");
+        }
+
+        if (setLayout && !el.classList.contains("col-screen")) {
+          el.classList.add("col-screen");
+        }
+
+        // Process parents up to the main tag
+        if (el.tagName !== "MAIN") {
+          const parent = el.parentElement;
+          if (parent) {
+            ensureInGrid(parent, true);
+          }
+        }
+      };
+
+      columnLayouts.forEach((node) => {
+        const el = node as Element;
+        ensureInGrid(el, false);
+      });
+    }
+
     // add 'lead' to subtitle
     const subtitle = doc.querySelector("header > .subtitle");
     if (subtitle) {
