@@ -113,7 +113,7 @@ export function revealjsFormat() {
         const extras: FormatExtras = {};
         // Only tweak when no reveal built-in theme is used
         if (
-          format.metadata[kTheme] ||
+          format.metadata[kTheme] === undefined ||
           !kRevealThemes.includes(format.metadata[kTheme] as string)
         ) {
           if (format.pandoc[kFrom] != undefined) {
