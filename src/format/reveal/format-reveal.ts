@@ -9,7 +9,12 @@ import { existsSync } from "fs/mod.ts";
 import { basename, join } from "path/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { kHighlightStyle, kIncludeInHeader } from "../../config/constants.ts";
+import {
+  kFrom,
+  kHighlightStyle,
+  kIncludeInHeader,
+  kTheme,
+} from "../../config/constants.ts";
 
 import {
   Format,
@@ -23,6 +28,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { sessionTempFile } from "../../core/temp.ts";
+import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 
 const kRevealOptions = [
   "controls",
@@ -79,6 +85,22 @@ const kRevealOptions = [
   "mathjax",
 ];
 
+const kRevealThemes = [
+  "black",
+  "white",
+  "league",
+  "beige",
+  "sky",
+  "night",
+  "serif",
+  "simple",
+  "solarized",
+  "blood",
+  "moon",
+];
+
+const kHashType = "hash-type";
+
 const kRevealKebabOptions = kRevealOptions.reduce(
   (options: string[], option: string) => {
     const kebab = camelToKebab(option);
@@ -94,35 +116,72 @@ export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
-      metadata: revealMetadataFilter({
-        theme: "white",
-      }),
       metadataFilter: revealMetadataFilter,
       formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
-        // extras to return
+        // start with baseline extras that we always apply
         const extras: FormatExtras = {
-          args: ["--no-highlight"],
-          [kIncludeInHeader]: [revealHighlightStyleHeaderInclude(format)],
+          args: [],
+          pandoc: {},
+          metadata: {},
+          [kIncludeInHeader]: [],
           html: {
-            [kTemplatePatches]: revealTemplatePatches(format),
+            [kTemplatePatches]: [revealRequireJsPatch],
             [kHtmlPostprocessors]: [
               revealInitializeHtmlPostprocessor(),
-              revealHighlightHtmlPostprocessor(),
             ],
           },
         };
+
+        // replace pandoc highlighting with highlight.js
+        extras.args?.push("--no-highlight");
+        extras[kIncludeInHeader]?.push(
+          revealHighlightStyleHeaderInclude(format),
+        );
+        extras.html?.[kTemplatePatches]?.push(revealHighlightPatch);
+        extras.html?.[kHtmlPostprocessors]?.push(
+          revealHighlightHtmlPostprocessor(),
+        );
+
+        // provide alternate defaults when no explicit reveal theme is provided
+        if (
+          format.metadata[kTheme] === undefined ||
+          !kRevealThemes.includes(format.metadata[kTheme] as string)
+        ) {
+          // hash-type number
+          if (
+            format.metadata[kHashType] === undefined ||
+            format.metadata[kHashType] === "number"
+          ) {
+            extras.pandoc = {
+              ...extras.pandoc,
+              from: pandocFormatWith(
+                format.pandoc[kFrom] || "markdown",
+                "",
+                "-auto_identifiers",
+              ),
+            };
+          }
+
+          // other defaults
+          extras.metadata = {
+            ...extras.metadata,
+            ...revealMetadataFilter({
+              theme: "white",
+              center: false,
+              controlsTutorial: false,
+              hash: true,
+              hashOneBasedIndex: true,
+              transition: "none",
+              backgroundTransition: "none",
+            }),
+          };
+        }
+
+        // return extras
         return extras;
       },
     },
   );
-}
-
-function revealTemplatePatches(_format: Format) {
-  const patches = [
-    revealRequireJsPatch,
-    revealHighlightPatch,
-  ];
-  return patches;
 }
 
 const kRevelJsRegEx =
