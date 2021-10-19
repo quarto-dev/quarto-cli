@@ -18,6 +18,7 @@ import {
 import { kFrom, kTheme } from "../../config/constants.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
+import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 
 const kRevealOptions = [
   "controls",
@@ -113,18 +114,18 @@ export function revealjsFormat() {
           format.metadata[kTheme] === undefined ||
           !kRevealThemes.includes(format.metadata[kTheme] as string)
         ) {
-          if (format.pandoc[kFrom] != undefined) {
-            throw new Error("from can't be changed in reveal format.");
-          }
-
-          extras.pandoc = format.metadata[kHashType] === undefined ||
-              format.metadata[kHashType] === "number"
-            ? {
-              from: "markdown-auto_identifiers",
-            }
-            : {
-              from: "markdown",
+          if (
+            format.metadata[kHashType] === undefined ||
+            format.metadata[kHashType] === "number"
+          ) {
+            extras.pandoc = {
+              from: pandocFormatWith(
+                format.pandoc[kFrom] || "markdown",
+                "",
+                "-auto_identifiers",
+              ),
             };
+          }
 
           extras.metadata = revealMetadataFilter({
             theme: "white",
