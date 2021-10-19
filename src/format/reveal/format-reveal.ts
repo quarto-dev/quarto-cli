@@ -289,12 +289,18 @@ function revealHighlightHtmlPostprocessor() {
       if (codeEl.parentElement?.tagName === "PRE") {
         const preEl = codeEl.parentElement;
         codeEl.className = "language-" + preEl.className;
+        let lineNumbersEl: Element | undefined;
         if (preEl.hasAttribute(kDataLineNumbers)) {
+          lineNumbersEl = preEl;
+        } else if (preEl.parentElement?.hasAttribute(kDataLineNumbers)) {
+          lineNumbersEl = preEl.parentElement;
+        }
+        if (lineNumbersEl !== undefined) {
           codeEl.setAttribute(
             kDataLineNumbers,
-            preEl.getAttribute(kDataLineNumbers),
+            lineNumbersEl.getAttribute(kDataLineNumbers),
           );
-          preEl.removeAttribute(kDataLineNumbers);
+          lineNumbersEl.removeAttribute(kDataLineNumbers);
         }
       }
     }
