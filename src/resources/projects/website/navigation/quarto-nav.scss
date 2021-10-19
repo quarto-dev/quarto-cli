@@ -7,7 +7,7 @@ $content-padding-top: 14px !default;
 
 footer.footer .nav-footer,
 #quarto-header nav {
-  padding-left: 0.75em;
+  padding-left: 1em;
   padding-right: 1em;
 }
 
@@ -113,10 +113,6 @@ nav .nav-item.compact .nav-link {
 
 .sidebar #quarto-search {
   margin-top: 0.5rem;
-}
-
-.sidebar-navigation {
-  padding-left: 20px;
 }
 
 .sidebar-navigation a {
@@ -448,6 +444,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
 #quarto-sidebar {
   width: 100%;
+  padding-right: 1em;
 }
 
 #quarto-sidebar .sidebar-menu-container {

@@ -34,7 +34,7 @@ if (sidebar.title && !navbar) {
 <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation <%- styleCss %> overflow-auto">
   
    <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
-  <div class="px-3 pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
+  <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
     <% } %>
@@ -77,7 +77,7 @@ if (sidebar.title && !navbar) {
   <% } %>
 
   <div class="sidebar-menu-container"> 
-  <ul class="list-unstyled mt-1 px-3">
+  <ul class="list-unstyled mt-1">
   <% sidebar.contents.forEach(item => { %>
       <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
   <% }) %>
