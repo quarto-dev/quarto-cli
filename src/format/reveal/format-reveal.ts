@@ -5,17 +5,24 @@
 *
 */
 
+import { existsSync } from "fs/mod.ts";
+import { basename, join } from "path/mod.ts";
+
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { kHighlightStyle, kIncludeInHeader } from "../../config/constants.ts";
 
 import {
   Format,
+  FormatExtras,
   kHtmlPostprocessors,
   kTemplatePatches,
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
+import { sessionTempFile } from "../../core/temp.ts";
 
 const kRevealOptions = [
   "controls",
@@ -92,30 +99,47 @@ export function revealjsFormat() {
       }),
       metadataFilter: revealMetadataFilter,
       formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
-        return {
+        // extras to return
+        const extras: FormatExtras = {
+          args: ["--no-highlight"],
+          [kIncludeInHeader]: [revealHighlightStyleHeaderInclude(format)],
           html: {
-            [kTemplatePatches]: [revealTemplatePatch(format)],
-            [kHtmlPostprocessors]: [revealHtmlPostprocessor()],
+            [kTemplatePatches]: revealTemplatePatches(format),
+            [kHtmlPostprocessors]: [
+              revealInitializeHtmlPostprocessor(),
+              revealHighlightHtmlPostprocessor(),
+            ],
           },
         };
+        return extras;
       },
     },
   );
 }
 
-function revealTemplatePatch(_format: Format) {
+function revealTemplatePatches(_format: Format) {
+  const patches = [
+    revealRequireJsPatch,
+    revealHighlightPatch,
+  ];
+  return patches;
+}
+
+const kRevelJsRegEx =
+  /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m;
+const kRevealJsPlugins = "<!-- reveal.js plugins -->";
+
+function revealRequireJsPatch(template: string) {
   // fix require usages to be compatible with jupyter widgets
-  return (template: string) => {
-    template = template.replace(
-      /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m,
-      "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
-    );
-    template = template.replace(
-      /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
-      "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
-    );
-    return template;
-  };
+  template = template.replace(
+    kRevelJsRegEx,
+    "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
+  );
+  template = template.replace(
+    /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
+    "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
+  );
+  return template;
 }
 
 function revealMetadataFilter(metadata: Metadata) {
@@ -134,7 +158,7 @@ function revealMetadataFilter(metadata: Metadata) {
   return filtered;
 }
 
-function revealHtmlPostprocessor() {
+function revealInitializeHtmlPostprocessor() {
   return (doc: Document): Promise<string[]> => {
     // find reveal initializatio and perform fixups
     const scripts = doc.querySelectorAll("script");
@@ -149,6 +173,61 @@ function revealHtmlPostprocessor() {
           /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
           "slideNumber: '$1'",
         );
+      }
+    }
+
+    return Promise.resolve([]);
+  };
+}
+
+function revealHighlightPatch(template: string) {
+  template = template.replace(
+    kRevealJsPlugins,
+    kRevealJsPlugins +
+      '\n  <script src="$revealjs-url$/plugin/highlight/highlight.js"></script>',
+  );
+  template = template.replace(
+    "plugins: [",
+    "plugins: [ RevealHighlight,\n",
+  );
+  return template;
+}
+
+function revealHighlightStyleHeaderInclude(format: Format) {
+  // check for a highlight style
+  const highlightStyle = format.pandoc[kHighlightStyle] || "a11y-light";
+
+  // is it a built-in one?
+  const highlightStyleResource = formatResourcePath(
+    "revealjs",
+    join("highlight", highlightStyle + ".css"),
+  );
+  const highlightStyleFile = existsSync(highlightStyleResource)
+    ? highlightStyleResource
+    : highlightStyle;
+  if (!existsSync(highlightStyleFile)) {
+    throw new Error(
+      `Highlight style ${basename(highlightStyleFile)} not found.`,
+    );
+  }
+
+  const styleHeaderInclude = sessionTempFile({ suffix: ".html" });
+  Deno.writeTextFileSync(
+    styleHeaderInclude,
+    `<style type="text/css">\n${
+      Deno.readTextFileSync(highlightStyleFile)
+    }\n</style>\n`,
+  );
+  return styleHeaderInclude;
+}
+
+function revealHighlightHtmlPostprocessor() {
+  return (doc: Document): Promise<string[]> => {
+    const codeElements = doc.querySelectorAll("code");
+    for (let i = 0; i < codeElements.length; i++) {
+      const codeEl = codeElements.item(i) as Element;
+      if (codeEl.parentElement?.tagName === "PRE") {
+        codeEl.className = "language-" + codeEl.parentElement.className;
       }
     }
 

@@ -155,6 +155,7 @@ export interface SassBundle {
 }
 
 export interface FormatExtras {
+  args?: string[];
   pandoc?: FormatPandoc;
   metadata?: Metadata;
   [kTocTitle]?: string;

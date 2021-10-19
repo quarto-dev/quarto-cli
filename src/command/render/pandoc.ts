@@ -226,6 +226,12 @@ export async function runPandoc(
       );
     }
 
+    // merge args
+    if (extras.args) {
+      args.push(...extras.args);
+      printArgs.push(...extras.args);
+    }
+
     // merge pandoc
     if (extras.pandoc) {
       allDefaults = mergeConfigs(extras.pandoc, allDefaults);
