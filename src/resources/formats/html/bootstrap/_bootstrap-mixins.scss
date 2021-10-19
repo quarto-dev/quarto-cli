@@ -18,17 +18,17 @@
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
-    [screen-start-inset] auto
+    [screen-start-inset] 5fr
     [page-start] minmax(80px, 150px)
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1em
-    [body-content-start] minmax(550px, calc(800px - 2em))
+    [body-content-start] minmax(auto, calc(800px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
     [page-end-inset] minmax(125px, 150px)
-    [page-end] auto
+    [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
 }
@@ -38,14 +38,14 @@
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
-    [screen-start-inset] auto
+    [screen-start-inset] 5fr
     [page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] minmax(550px, calc(750px - 2em))
+    [body-content-start] minmax(auto, calc(750px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 25px
     [page-end-inset] minmax(50px, 150px)
-    [page-end] auto
+    [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
 }
@@ -71,12 +71,12 @@
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1em
-    [body-content-start] minmax(550px, calc(800px - 2em))
+    [body-content-start] minmax(auto, calc(800px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
     [page-end-inset] minmax(90px, 150px)
-    [page-end] auto
+    [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
 }
@@ -86,12 +86,12 @@
   grid-template-columns:
     [screen-start screen-start-inset page-start page-start-inset body-start-outset] 1.5em
     [body-start] 1em
-    [body-content-start] minmax(550px, calc(750px - 2em))
+    [body-content-start] minmax(auto, calc(750px - 2em))
     [body-content-end] 1em
     [body-end] 50px
     [body-end-outset] 50px
     [page-end-inset] minmax(125px, 150px)
-    [page-end] auto
+    [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
 }
