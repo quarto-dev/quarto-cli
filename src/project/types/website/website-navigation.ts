@@ -307,6 +307,8 @@ function navigationHtmlPostprocessor(
     const sidebarEl = doc.body.getElementById("quarto-sidebar");
     if (sidebarEl?.classList.contains("floating")) {
       doc.body.classList.add("floating");
+    } else if (sidebarEl?.classList.contains("docked")) {
+      doc.body.classList.add("docked");
     }
 
     // latch active nav link

@@ -4,13 +4,19 @@ body {
 }
 
 @include media-breakpoint-up(lg) {
+  body {
+    .page-columns {
+      @include page-columns-plain-wide();
+    }
+  }
+
   body.floating {
     .page-columns {
       @include page-columns-float-wide();
     }
   }
 
-  body:not(.floating) {
+  body.docked {
     .page-columns {
       @include page-columns-docked-wide();
     }
@@ -18,13 +24,19 @@ body {
 }
 
 @include media-breakpoint-down(lg) {
+  body {
+    .page-columns {
+      @include page-columns-plain-mid();
+    }
+  }
+
   body.floating {
     .page-columns {
       @include page-columns-float-mid();
     }
   }
 
-  body:not(.floating) {
+  body.docked {
     .page-columns {
       @include page-columns-docked-mid();
     }
@@ -32,13 +44,19 @@ body {
 }
 
 @include media-breakpoint-down(md) {
+  body {
+    .page-columns {
+      @include page-columns-plain-narrow();
+    }
+  }
+
   body.floating {
     .page-columns {
       @include page-columns-float-narrow();
     }
   }
 
-  body:not(.floating) {
+  body.docked {
     .page-columns {
       @include page-columns-docked-narrow();
     }
