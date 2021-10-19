@@ -105,7 +105,7 @@ export function revealjsFormat() {
     createHtmlPresentationFormat(9, 5),
     {
       metadata: revealMetadataFilter({
-        [kHashType]: "id",
+        [kHashType]: "number",
       }),
       metadataFilter: revealMetadataFilter,
       formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
@@ -119,7 +119,7 @@ export function revealjsFormat() {
             throw new Error("from can't be changed in reveal format.");
           }
 
-          extras.pandoc = format.metadata[kHashType] === "id"
+          extras.pandoc = format.metadata[kHashType] === "number"
             ? {
               from: "markdown-auto_identifiers",
             }
