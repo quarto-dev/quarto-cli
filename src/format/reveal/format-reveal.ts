@@ -9,13 +9,16 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import {
   Format,
+  FormatExtras,
   kHtmlPostprocessors,
   kTemplatePatches,
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
+import { kFrom, kTheme } from "../../config/constants.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
+import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 
 const kRevealOptions = [
   "controls",
@@ -72,6 +75,22 @@ const kRevealOptions = [
   "mathjax",
 ];
 
+const kRevealThemes = [
+  "black",
+  "white",
+  "league",
+  "beige",
+  "sky",
+  "night",
+  "serif",
+  "simple",
+  "solarized",
+  "blood",
+  "moon",
+];
+
+const kHashType = "hash-type";
+
 const kRevealKebabOptions = kRevealOptions.reduce(
   (options: string[], option: string) => {
     const kebab = camelToKebab(option);
@@ -87,17 +106,44 @@ export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
-      metadata: revealMetadataFilter({
-        theme: "white",
-      }),
       metadataFilter: revealMetadataFilter,
       formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
-        return {
-          html: {
-            [kTemplatePatches]: [revealTemplatePatch(format)],
-            [kHtmlPostprocessors]: [revealHtmlPostprocessor()],
-          },
+        const extras: FormatExtras = {};
+        // Only tweak when no reveal built-in theme is used
+        if (
+          format.metadata[kTheme] === undefined ||
+          !kRevealThemes.includes(format.metadata[kTheme] as string)
+        ) {
+          if (
+            format.metadata[kHashType] === undefined ||
+            format.metadata[kHashType] === "number"
+          ) {
+            extras.pandoc = {
+              from: pandocFormatWith(
+                format.pandoc[kFrom] || "markdown",
+                "",
+                "-auto_identifiers",
+              ),
+            };
+          }
+
+          extras.metadata = revealMetadataFilter({
+            theme: "white",
+            center: false,
+            controlsTutorial: false,
+            hash: true,
+            hashOneBasedIndex: true,
+            transition: "none",
+            backgroundTransition: "none",
+          });
+        }
+
+        extras.html = {
+          [kTemplatePatches]: [revealTemplatePatch(format)],
+          [kHtmlPostprocessors]: [revealHtmlPostprocessor()],
         };
+
+        return extras;
       },
     },
   );

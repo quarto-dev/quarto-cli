@@ -184,9 +184,7 @@ function defaultFormat(): Format {
       [kLinkExternalIcon]: false,
       [kLinkExternalNewwindow]: false,
     },
-    pandoc: {
-      from: "markdown",
-    },
+    pandoc: {},
     metadata: {},
   };
 }
