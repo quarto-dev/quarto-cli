@@ -10,6 +10,7 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   Format,
   kHtmlPostprocessors,
+  kTemplatePatches,
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
@@ -90,15 +91,31 @@ export function revealjsFormat() {
         theme: "white",
       }),
       metadataFilter: revealMetadataFilter,
-      formatExtras: (_input: string, _flags: PandocFlags, _format: Format) => {
+      formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
         return {
           html: {
+            [kTemplatePatches]: [revealTemplatePatch(format)],
             [kHtmlPostprocessors]: [revealHtmlPostprocessor()],
           },
         };
       },
     },
   );
+}
+
+function revealTemplatePatch(_format: Format) {
+  // fix require usages to be compatible with jupyter widgets
+  return (template: string) => {
+    template = template.replace(
+      /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m,
+      "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
+    );
+    template = template.replace(
+      /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
+      "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
+    );
+    return template;
+  };
 }
 
 function revealMetadataFilter(metadata: Metadata) {

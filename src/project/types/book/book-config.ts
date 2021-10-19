@@ -64,8 +64,6 @@ import {
   kTitle,
 } from "../../../config/constants.ts";
 
-import { binaryPath } from "../../../core/resources.ts";
-import { execProcess } from "../../../core/process.ts";
 import { texSafeFilename } from "../../../core/tex.ts";
 
 const kAppendicesSectionLabel = "Appendices";
@@ -476,27 +474,6 @@ const kSharingUrls: Record<string, SidebarTool> = {
     url: "https://twitter.com/intent/tweet?url=|url|",
   },
 };
-
-async function renderMarkdown(markdown: string, keyname: string) {
-  const result = await execProcess({
-    cmd: [
-      binaryPath("pandoc"),
-      "--from",
-      "markdown",
-      "--to",
-      "html",
-    ],
-    stdout: "piped",
-  }, markdown);
-
-  if (result.success) {
-    return result.stdout;
-  } else {
-    throw new Error(
-      `Invalid ${keyname} - please verify that the markdown is valid.`,
-    );
-  }
-}
 
 async function inputIsNumbered(
   projectDir: string,
