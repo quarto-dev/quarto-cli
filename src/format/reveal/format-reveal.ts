@@ -99,7 +99,7 @@ export function revealjsFormat() {
 
         if (format.metadata[kTheme] === kThemeQuarto) {
           format.metadata[kTheme] = "white";
-          format.pandoc[kFrom] = "markdown-auto_identifiers";
+          format.pandoc[kFrom] = `${format.pandoc[kFrom]}-auto_identifiers`;
 
           extras.metadata = revealMetadataFilter({
             controlsTutorial: false,
