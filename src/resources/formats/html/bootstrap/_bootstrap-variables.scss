@@ -104,6 +104,13 @@ $footer-left-font-size: $footer-font-size !default;
 $footer-center-font-size: $footer-font-size !default;
 $footer-right-font-size: $footer-font-size !default;
 
+// Body Secondary Background Color
+$body-bg-secondary: if(
+  variable-exists(body-bg),
+  theme-dim($body-bg, 50),
+  #ddd
+) !default;
+
 // Disable default grid system and switch to CSS grid
 $enable-grid-classes: false;
 $enable-cssgrid: true;

@@ -187,7 +187,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
 
     // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
-      '[class^="column-"], [class*=" column-"]',
+      '[class^="column-"], [class*=" column-"], aside',
     );
     // If there are any of these elements, we need to be sure that their
     // parents have acess to the grid system, so make the parent full screen width
