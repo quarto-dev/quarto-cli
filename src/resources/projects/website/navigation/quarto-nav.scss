@@ -296,7 +296,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   }
 }
 
-.sidebar.sidebar-navigation nav {
+nav.sidebar.sidebar-navigation {
   @if $sidebar-bg {
     background-color: $sidebar-bg;
   } @else {
@@ -633,9 +633,4 @@ body:not(.floating) .nav-footer {
 
 .nav-footer-right {
   margin-left: auto;
-}
-
-.quarto-grid {
-  display: grid;
-  grid-template-columns: [screen-start] 1fr [page-start] 1fr [content-start] 1fr [content-end] 1fr [page-end] 1fr [main-end];
 }

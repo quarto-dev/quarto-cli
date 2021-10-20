@@ -108,9 +108,18 @@ body,
   grid-row: contents-top / contents-bottom;
 }
 
-.sidebar.sidebar-navigation {
-  grid-column: page-start / body-start;
-  grid-row: content-top / page-bottom;
+body.floating {
+  .sidebar.sidebar-navigation {
+    grid-column: page-start / body-start;
+    grid-row: content-top / page-bottom;
+  }
+}
+
+body.docked {
+  .sidebar.sidebar-navigation {
+    grid-column: screen-start / body-start;
+    grid-row: content-top / page-bottom;
+  }
 }
 
 .sidebar.sidebar-toc {
@@ -923,6 +932,10 @@ $callouts: (
 .navbar-collapse .quarto-color-scheme-toggle {
   padding-left: 0.6rem;
   padding-right: 0;
+}
+
+.sidebar-navigation {
+  padding-left: 20px;
 }
 
 .sidebar-navigation .quarto-color-scheme-toggle .bi::before {
