@@ -164,6 +164,10 @@ h6:hover > .anchorjs-link,
   }
 }
 
+#TOC {
+  z-index: $zindex-sticky;
+}
+
 #quarto-sidebar > *,
 #TOC > * {
   transition: opacity 0.25s ease-in-out;

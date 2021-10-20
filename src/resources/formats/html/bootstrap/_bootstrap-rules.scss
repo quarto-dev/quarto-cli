@@ -144,37 +144,44 @@ body.docked {
 
 .column-screen-inset {
   grid-column: screen-start-inset / screen-end-inset;
-  z-index: 2500;
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
 }
 
 .column-page-outset {
   grid-column: page-start-inset / page-end-inset;
-  z-index: 2500;
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
 }
 
 .column-page-outset-right {
   grid-column: body-content-start / page-end-inset;
-  z-index: 2500;
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
 }
 
 .column-page-outset-left {
   grid-column: page-start-inset / body-content-end;
-  z-index: 2500;
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
 }
 
 .column-body-outset {
   grid-column: body-start-outset / body-end-outset;
-  z-index: 2500;
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
 }
 
 .column-body-outset-right {
   grid-column: body-content-start / body-end-outset;
-  z-index: 2500;
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
 }
 
 .column-body-outset-left {
   grid-column: body-start-inset / body-content-end;
-  z-index: 2500;
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
 }
 
 .column-content {
@@ -185,7 +192,13 @@ body.docked {
   grid-column: screen-start / screen-end;
   padding: 1em;
   background: $light;
-  z-index: 2500;
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
+}
+
+.column-zindex {
+  z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
 }
 
 img.img-fluid.column-screen,
@@ -197,13 +210,14 @@ img.img-fluid.column-screen-inset-shaded {
   aside,
   .column-gutter {
     grid-column: body-end / page-end !important;
-    z-index: 2500;
+    z-index: $zindex-content;
     font-size: 0.775em;
   }
 
   .column-screen {
     grid-column: screen-start / screen-end;
-    z-index: 2500;
+    z-index: $zindex-content;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -211,13 +225,14 @@ img.img-fluid.column-screen-inset-shaded {
   aside,
   .column-gutter {
     grid-column: body-end / page-end !important;
-    z-index: 2500;
+    z-index: $zindex-content;
     font-size: 0.775em;
   }
 
   .column-screen {
     grid-column: screen-start / screen-end;
-    z-index: 2500;
+    z-index: $zindex-content;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -225,12 +240,14 @@ img.img-fluid.column-screen-inset-shaded {
   aside,
   .column-gutter {
     grid-column: body-content-start / body-content-end !important;
-    z-index: 2500;
+    z-index: $zindex-content;
+    transform: translate3d(0, 0, 0);
   }
 
   .column-screen {
     grid-column: body-content-start / body-content-end;
-    z-index: 2500;
+    z-index: $zindex-content;
+    transform: translate3d(0, 0, 0);
   }
 }
 
