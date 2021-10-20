@@ -15,8 +15,9 @@ import {
   kTemplatePatches,
   Metadata,
 } from "../../config/types.ts";
-import { mergeConfigs } from "../../core/config.ts";
+import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { readYaml } from "../../core/yaml.ts";
 
@@ -45,44 +46,51 @@ export function revealPluginExtras(format: Format, libDir: string) {
   const stylesheets: string[] = [];
   const config: Metadata = {};
 
-  // read plugins
+  // built-in plugins + user plugins
+  const pluginBundles: Array<RevealPluginBundle | string> = [{
+    plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
+  }];
   if (Array.isArray(format.metadata[kRevealPlugins])) {
-    const pluginBundles = format.metadata[kRevealPlugins] as Array<
-      RevealPluginBundle | string
-    >;
-    for (let bundle of pluginBundles) {
-      // convert string to plugin
-      if (typeof (bundle) === "string") {
-        bundle = {
-          plugin: bundle,
-        };
-      }
+    pluginBundles.push(
+      ...(format.metadata[kRevealPlugins] as Array<
+        RevealPluginBundle | string
+      >),
+    );
+  }
 
-      // read from bundle
-      const plugin = pluginFromBundle(bundle);
+  // read plugins
+  for (let bundle of pluginBundles) {
+    // convert string to plugin
+    if (typeof (bundle) === "string") {
+      bundle = {
+        plugin: bundle,
+      };
+    }
 
-      // note name
-      names.push(plugin.name);
+    // read from bundle
+    const plugin = pluginFromBundle(bundle);
 
-      // copy plugin
-      const pluginDir = join(pluginsDir, plugin.name);
-      copyMinimal(bundle.plugin, pluginDir);
+    // note name
+    names.push(plugin.name);
 
-      // note script
-      const pluginScript = join(pluginDir, plugin.script);
-      scripts.push(pathWithForwardSlashes(pluginScript));
+    // copy plugin (plugin dir uses a kebab-case version of name)
+    const pluginDir = join(pluginsDir, camelToKebab(plugin.name));
+    copyMinimal(bundle.plugin, pluginDir);
 
-      // note stylesheet
-      if (plugin.stylesheet) {
-        const pluginStylesheet = join(pluginDir, plugin.stylesheet);
-        stylesheets.push(pathWithForwardSlashes(pluginStylesheet));
-      }
+    // note script
+    const pluginScript = join(pluginDir, plugin.script);
+    scripts.push(pathWithForwardSlashes(pluginScript));
 
-      // add to config
-      if (plugin.config) {
-        for (const key of Object.keys(plugin.config)) {
-          config[key] = plugin.config[key];
-        }
+    // note stylesheet
+    if (plugin.stylesheet) {
+      const pluginStylesheet = join(pluginDir, plugin.stylesheet);
+      stylesheets.push(pathWithForwardSlashes(pluginStylesheet));
+    }
+
+    // add to config
+    if (plugin.config) {
+      for (const key of Object.keys(plugin.config)) {
+        config[key] = plugin.config[key];
       }
     }
   }
@@ -97,7 +105,7 @@ export function revealPluginExtras(format: Format, libDir: string) {
 
   // link tags for stylesheets
   const linkTags = stylesheets.map((file) => {
-    return `<link type="text/css" rel="stylesheet" src="${file}">`;
+    return `<link href="${file}" rel="stylesheet">`;
   }).join("\n");
   const linkTagsInclude = sessionTempFile({ suffix: ".html" });
   Deno.writeTextFileSync(linkTagsInclude, linkTags);

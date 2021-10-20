@@ -18,7 +18,7 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
-import { mergeConfigs } from "../../core/config.ts";
+import { camelToKebab, kebabToCamel, mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
@@ -255,31 +255,4 @@ function revealInitializeHtmlPostprocessor() {
 
     return Promise.resolve([]);
   };
-}
-
-function camelToKebab(camel: string) {
-  const kebab: string[] = [];
-  for (let i = 0; i < camel.length; i++) {
-    const ch = camel.charAt(i);
-    if (ch === ch.toUpperCase()) {
-      kebab.push("-");
-      kebab.push(ch.toLowerCase());
-    } else {
-      kebab.push(ch);
-    }
-  }
-  return kebab.join("");
-}
-
-function kebabToCamel(kebab: string) {
-  const camel: string[] = [];
-  for (let i = 0; i < kebab.length; i++) {
-    const ch = kebab.charAt(i);
-    if (ch === "-") {
-      camel.push(kebab.charAt(++i).toUpperCase());
-    } else {
-      camel.push(ch);
-    }
-  }
-  return camel.join("");
 }

@@ -48,3 +48,34 @@ export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
     },
   );
 }
+
+export function camelToKebab(camel: string) {
+  const kebab: string[] = [];
+  for (let i = 0; i < camel.length; i++) {
+    const ch = camel.charAt(i);
+    if (ch === ch.toUpperCase()) {
+      if (i > 0) {
+        kebab.push("-");
+      }
+      kebab.push(ch.toLowerCase());
+    } else {
+      kebab.push(ch);
+    }
+  }
+  return kebab.join("");
+}
+
+export function kebabToCamel(kebab: string, leadingUppercase = false) {
+  const camel: string[] = [];
+  for (let i = 0; i < kebab.length; i++) {
+    const ch = kebab.charAt(i);
+    if (ch === "-") {
+      camel.push(kebab.charAt(++i).toUpperCase());
+    } else if ((i === 0) && leadingUppercase) {
+      camel.push(ch.toUpperCase());
+    } else {
+      camel.push(ch);
+    }
+  }
+  return camel.join("");
+}
