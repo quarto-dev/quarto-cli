@@ -5,16 +5,8 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
-import { basename, join } from "path/mod.ts";
-
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import {
-  kFrom,
-  kHighlightStyle,
-  kIncludeInHeader,
-  kTheme,
-} from "../../config/constants.ts";
+import { kFrom, kIncludeInHeader, kTheme } from "../../config/constants.ts";
 
 import {
   Format,
@@ -27,7 +19,6 @@ import {
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
-import { sessionTempFile } from "../../core/temp.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 
@@ -152,16 +143,6 @@ export function revealjsFormat() {
           extras.metadata![kRevealJsUrl] = pathWithForwardSlashes(revealDir);
         }
 
-        // replace pandoc highlighting with highlight.js
-        extras.args?.push("--no-highlight");
-        extras[kIncludeInHeader]?.push(
-          revealHighlightStyleHeaderInclude(format),
-        );
-        extras.html?.[kTemplatePatches]?.push(revealHighlightPatch);
-        extras.html?.[kHtmlPostprocessors]?.push(
-          revealHighlightHtmlPostprocessor(),
-        );
-
         // provide alternate defaults when no explicit reveal theme is provided
         if (
           format.metadata[kTheme] === undefined ||
@@ -208,7 +189,6 @@ export function revealjsFormat() {
 
 const kRevelJsRegEx =
   /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m;
-const kRevealJsPlugins = "<!-- reveal.js plugins -->";
 
 function revealRequireJsPatch(template: string) {
   // fix require usages to be compatible with jupyter widgets
@@ -254,81 +234,6 @@ function revealInitializeHtmlPostprocessor() {
           /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
           "slideNumber: '$1'",
         );
-      }
-    }
-
-    return Promise.resolve([]);
-  };
-}
-
-function revealHighlightPatch(template: string) {
-  template = template.replace(
-    kRevealJsPlugins,
-    kRevealJsPlugins +
-      '\n  <script src="$revealjs-url$/plugin/highlight/highlight.js"></script>',
-  );
-  template = template.replace(
-    "plugins: [",
-    "plugins: [ RevealHighlight,\n",
-  );
-  return template;
-}
-
-function revealHighlightStyleHeaderInclude(format: Format) {
-  // check for a highlight style
-  const highlightStyle = format.pandoc[kHighlightStyle] ||
-    revealHighlightDefault(format.metadata[kTheme] as string | undefined);
-
-  // is it a built-in one?
-  const highlightStyleResource = formatResourcePath(
-    "revealjs",
-    join("highlight", highlightStyle + ".css"),
-  );
-  const highlightStyleFile = existsSync(highlightStyleResource)
-    ? highlightStyleResource
-    : highlightStyle;
-  if (!existsSync(highlightStyleFile)) {
-    throw new Error(
-      `Highlight style ${basename(highlightStyleFile)} not found.`,
-    );
-  }
-
-  const styleHeaderInclude = sessionTempFile({ suffix: ".html" });
-  Deno.writeTextFileSync(
-    styleHeaderInclude,
-    `<style type="text/css">\n${
-      Deno.readTextFileSync(highlightStyleFile)
-    }\n</style>\n`,
-  );
-  return styleHeaderInclude;
-}
-
-function revealHighlightDefault(theme: string | undefined) {
-  return kRevealDarkThemes.includes(theme || "") ? "a11y-dark" : "a11y-light";
-}
-
-function revealHighlightHtmlPostprocessor() {
-  const kDataLineNumbers = "data-line-numbers";
-  return (doc: Document): Promise<string[]> => {
-    const codeElements = doc.querySelectorAll("code");
-    for (let i = 0; i < codeElements.length; i++) {
-      const codeEl = codeElements.item(i) as Element;
-      if (codeEl.parentElement?.tagName === "PRE") {
-        const preEl = codeEl.parentElement;
-        codeEl.className = "language-" + preEl.className;
-        let lineNumbersEl: Element | undefined;
-        if (preEl.hasAttribute(kDataLineNumbers)) {
-          lineNumbersEl = preEl;
-        } else if (preEl.parentElement?.hasAttribute(kDataLineNumbers)) {
-          lineNumbersEl = preEl.parentElement;
-        }
-        if (lineNumbersEl !== undefined) {
-          codeEl.setAttribute(
-            kDataLineNumbers,
-            lineNumbersEl.getAttribute(kDataLineNumbers),
-          );
-          lineNumbersEl.removeAttribute(kDataLineNumbers);
-        }
       }
     }
 
