@@ -177,6 +177,7 @@ export async function runPandoc(
         options.source,
         options.flags || {},
         options.format,
+        options.libDir,
       ))
       : {};
 

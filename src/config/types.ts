@@ -191,6 +191,7 @@ export interface Format {
     input: string,
     flags: PandocFlags,
     format: Format,
+    libDir: string,
   ) => Promise<FormatExtras>;
   extensions?: Record<string, unknown>;
 }

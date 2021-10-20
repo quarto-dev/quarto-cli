@@ -29,6 +29,9 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
+import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
+
+const kRevealJsUrl = "revealjs-url";
 
 const kRevealOptions = [
   "controls",
@@ -122,12 +125,17 @@ export function revealjsFormat() {
     createHtmlPresentationFormat(9, 5),
     {
       metadataFilter: revealMetadataFilter,
-      formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
+      formatExtras: (
+        _input: string,
+        _flags: PandocFlags,
+        format: Format,
+        libDir: string,
+      ) => {
         // start with baseline extras that we always apply
         const extras: FormatExtras = {
           args: [],
           pandoc: {},
-          metadata: {},
+          metadata: {} as Metadata,
           [kIncludeInHeader]: [],
           html: {
             [kTemplatePatches]: [revealRequireJsPatch],
@@ -136,6 +144,13 @@ export function revealjsFormat() {
             ],
           },
         };
+
+        // if there is no revealjs-url provided then use our embedded copy
+        if (format.metadata[kRevealJsUrl] === undefined) {
+          const revealDir = join(libDir, "reveal");
+          copyMinimal(formatResourcePath("revealjs", "reveal"), revealDir);
+          extras.metadata![kRevealJsUrl] = pathWithForwardSlashes(revealDir);
+        }
 
         // replace pandoc highlighting with highlight.js
         extras.args?.push("--no-highlight");
