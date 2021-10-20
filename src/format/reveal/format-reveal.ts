@@ -5,6 +5,8 @@
 *
 */
 
+import { join } from "path/mod.ts";
+
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { kFrom, kIncludeInHeader, kTheme } from "../../config/constants.ts";
 
