@@ -179,6 +179,11 @@ body,
   z-index: 2500;
 }
 
+img.img-fluid.column-screen,
+img.img-fluid.column-screen-inset-shaded {
+  width: 100%;
+}
+
 @include media-breakpoint-up(lg) {
   aside,
   .column-gutter {
