@@ -133,7 +133,7 @@ body.docked {
 }
 
 .page-navigation {
-  grid-column: body-start / body-end;
+  grid-column: body-content-start / body-content-end;
   grid-row: content-bottom / page-bottom;
 }
 
