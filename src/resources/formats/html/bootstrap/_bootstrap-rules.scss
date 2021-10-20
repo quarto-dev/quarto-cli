@@ -179,12 +179,6 @@ body,
   z-index: 2500;
 }
 
-.column-float-body {
-  border: solid red 1px;
-  float: right;
-  grid-column: body-content-start / body-content-end;
-}
-
 @include media-breakpoint-up(lg) {
   aside,
   .column-gutter {
