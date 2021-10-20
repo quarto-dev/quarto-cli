@@ -12,9 +12,9 @@ import { kFrom, kIncludeInHeader, kTheme } from "../../config/constants.ts";
 
 import {
   Format,
-  FormatExtras,
   kHtmlPostprocessors,
   kTemplatePatches,
+  kTextHighlightingMode,
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
@@ -23,6 +23,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
+import { htmlFormatExtras } from "../html/format-html.ts";
 
 const kRevealJsUrl = "revealjs-url";
 
@@ -124,19 +125,22 @@ export function revealjsFormat() {
         format: Format,
         libDir: string,
       ) => {
-        // start with baseline extras that we always apply
-        const extras: FormatExtras = {
-          args: [],
-          pandoc: {},
-          metadata: {} as Metadata,
-          [kIncludeInHeader]: [],
-          html: {
-            [kTemplatePatches]: [revealRequireJsPatch],
-            [kHtmlPostprocessors]: [
-              revealInitializeHtmlPostprocessor(),
-            ],
+        // start with html format extras and our standard extras
+        const extras = mergeConfigs(
+          htmlFormatExtras(format),
+          {
+            args: [],
+            pandoc: {},
+            metadata: {} as Metadata,
+            [kIncludeInHeader]: [],
+            html: {
+              [kTemplatePatches]: [revealRequireJsPatch],
+              [kHtmlPostprocessors]: [
+                revealInitializeHtmlPostprocessor(),
+              ],
+            },
           },
-        };
+        );
 
         // if there is no revealjs-url provided then use our embedded copy
         if (format.metadata[kRevealJsUrl] === undefined) {
@@ -146,6 +150,8 @@ export function revealjsFormat() {
         }
 
         // provide alternate defaults when no explicit reveal theme is provided
+        const dark = format.metadata[kTheme] &&
+          kRevealDarkThemes.includes(format.metadata[kTheme] as string);
         if (
           format.metadata[kTheme] === undefined ||
           !kRevealThemes.includes(format.metadata[kTheme] as string)
@@ -181,6 +187,9 @@ export function revealjsFormat() {
             }),
           };
         }
+
+        // provide default highlighting style
+        extras.html![kTextHighlightingMode] = dark ? "dark" : "light";
 
         // return extras
         return extras;
