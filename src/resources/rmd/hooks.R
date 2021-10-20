@@ -85,6 +85,18 @@ knitr_hooks <- function(format, resourceDir) {
     options
   }
 
+  opts_hooks[["collapse"]] <- function(options) {
+    if (isTRUE(options[["collapse"]])) {
+      comment <- options[["comment"]]
+      if (is.null(comment) || nzchar(comment) || is.na(comment)) {
+        options[["comment"]] <- "##"
+      }
+    }
+   
+    # return options
+    options
+  }
+
   # opts hooks for implementing keep-hidden
   register_hidden_hook <- function(option, hidden = option) {
     opts_hooks[[option]] <<- function(options) {
