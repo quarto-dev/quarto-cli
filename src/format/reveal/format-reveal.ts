@@ -187,6 +187,8 @@ export function revealjsFormat() {
             ...extras.metadata,
             ...revealMetadataFilter({
               theme: "white",
+              width: 1050,
+              height: 700,
               center: false,
               controlsTutorial: false,
               hash: true,
