@@ -186,6 +186,7 @@ export function revealjsFormat() {
               center: false,
               controlsTutorial: false,
               hash: true,
+              fragmentInURL: false,
               hashOneBasedIndex: true,
               transition: "none",
               backgroundTransition: "none",
