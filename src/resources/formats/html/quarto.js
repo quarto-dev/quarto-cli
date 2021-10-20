@@ -92,6 +92,74 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   };
 
+  const inHiddenRegion = (top, bottom, hiddenRegions) => {
+    for (const region of hiddenRegions) {
+      if (top <= region.bottom && bottom >= region.top) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const manageSidebarVisiblity = (el) => {
+    let isVisible = true;
+
+    return (hiddenRegions) => {
+      if (el === null) {
+        return;
+      }
+
+      // Find the last element of the TOC
+      const lastChildEl = el.lastElementChild;
+
+      if (lastChildEl) {
+        // Find the top of the first special element
+        const elTop = el.offsetTop;
+        const elBottom =
+          elTop + lastChildEl.offsetTop + lastChildEl.offsetHeight;
+        console.log(elTop, elBottom);
+
+        // If the TOC is hidden, check whether it will appear
+        if (!isVisible) {
+          if (!inHiddenRegion(elTop, elBottom, hiddenRegions)) {
+            for (const child of el.children) {
+              child.style.opacity = 1;
+            }
+            isVisible = true;
+          }
+        } else {
+          if (inHiddenRegion(elTop, elBottom, hiddenRegions)) {
+            for (const child of el.children) {
+              child.style.opacity = 0;
+            }
+            isVisible = false;
+          }
+        }
+      }
+    };
+  };
+
+  const tocScrollVisibility = manageSidebarVisiblity(tocEl);
+  const sidebarScrollVisiblity = manageSidebarVisiblity(
+    window.document.getElementById("quarto-sidebar")
+  );
+  // Find the first element that uses formatting in special columns
+  const fullWidthEls = window.document.body.querySelectorAll(
+    '[class^="column-"], [class*=" column-"], aside'
+  );
+
+  const toggleTOC = () => {
+    const hiddenRegions = [];
+    for (const fullWidthEl of fullWidthEls) {
+      hiddenRegions.push({
+        top: fullWidthEl.offsetTop,
+        bottom: fullWidthEl.offsetTop + fullWidthEl.offsetHeight,
+      });
+    }
+    tocScrollVisibility(hiddenRegions);
+    sidebarScrollVisiblity(hiddenRegions);
+  };
+
   // Walk the TOC and collapse/expand nodes
   // Nodes are expanded if:
   // - they are top level
@@ -140,6 +208,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     throttle(() => {
       updateActiveLink();
       walk(tocEl, 0);
+      toggleTOC();
     }, 10)
   );
 });
@@ -161,3 +230,6 @@ function throttle(func, wait) {
     }
   };
 }
+
+// Find the side element or toc element with the highest Y position
+// Find the highest full width element in the document that is full width

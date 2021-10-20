@@ -172,7 +172,7 @@ export function htmlFormatExtras(
   // quarto.js helpers
   scripts.push({
     name: "quarto.js",
-    path: formatResourcePath("html", join("toc", "quarto-toc.js")),
+    path: formatResourcePath("html", "quarto.js"),
   });
 
   // popper if required

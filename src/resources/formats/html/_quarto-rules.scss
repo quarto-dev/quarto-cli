@@ -164,6 +164,11 @@ h6:hover > .anchorjs-link,
   }
 }
 
+#quarto-sidebar > *,
+#TOC > * {
+  transition: opacity 0.25s ease-in-out;
+}
+
 // utterances
 .utterances {
   max-width: none;
