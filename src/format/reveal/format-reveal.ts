@@ -24,6 +24,7 @@ import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
+import { revealPluginExtras } from "./format-reveal-plugin.ts";
 
 const kRevealJsUrl = "revealjs-url";
 
@@ -125,9 +126,11 @@ export function revealjsFormat() {
         format: Format,
         libDir: string,
       ) => {
-        // start with html format extras and our standard extras
+        // start with html format extras and our standard  & plugin extras
         const extras = mergeConfigs(
+          // extras for all html formats
           htmlFormatExtras(format),
+          // default extras for reveal
           {
             args: [],
             pandoc: {},
@@ -140,6 +143,8 @@ export function revealjsFormat() {
               ],
             },
           },
+          // plugin extras
+          revealPluginExtras(format, libDir),
         );
 
         // if there is no revealjs-url provided then use our embedded copy
