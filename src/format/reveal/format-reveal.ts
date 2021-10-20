@@ -309,6 +309,8 @@ function revealHighlightDefault(theme: string | undefined) {
 
 function revealHighlightHtmlPostprocessor() {
   const kDataLineNumbers = "data-line-numbers";
+  const kDataTrim = "data-trim";
+  const kDataNoEscape = "data-noescape";
   return (doc: Document): Promise<string[]> => {
     const codeElements = doc.querySelectorAll("code");
     for (let i = 0; i < codeElements.length; i++) {
@@ -316,24 +318,30 @@ function revealHighlightHtmlPostprocessor() {
       if (codeEl.parentElement?.tagName === "PRE") {
         const preEl = codeEl.parentElement;
         codeEl.className = "language-" + preEl.className;
-        let lineNumbersEl: Element | undefined;
-        if (preEl.hasAttribute(kDataLineNumbers)) {
-          lineNumbersEl = preEl;
-        } else if (preEl.parentElement?.hasAttribute(kDataLineNumbers)) {
-          lineNumbersEl = preEl.parentElement;
-        }
-        if (lineNumbersEl !== undefined) {
-          codeEl.setAttribute(
-            kDataLineNumbers,
-            lineNumbersEl.getAttribute(kDataLineNumbers),
-          );
-          lineNumbersEl.removeAttribute(kDataLineNumbers);
-        }
+        movePreAttributeOnCode(preEl, codeEl, kDataLineNumbers);
+        movePreAttributeOnCode(preEl, codeEl, kDataTrim);
+        movePreAttributeOnCode(preEl, codeEl, kDataNoEscape);
       }
     }
 
     return Promise.resolve([]);
   };
+}
+
+function movePreAttributeOnCode(preEl: Element, codeEl: Element, attr: string) {
+  let attrEl: Element | undefined;
+  if (preEl.hasAttribute(attr)) {
+    attrEl = preEl;
+  } else if (preEl.parentElement?.hasAttribute(attr)) {
+    attrEl = preEl.parentElement;
+  }
+  if (attrEl !== undefined) {
+    codeEl.setAttribute(
+      attr,
+      preEl.getAttribute(attr),
+    );
+    preEl.removeAttribute(attr);
+  }
 }
 
 function camelToKebab(camel: string) {
