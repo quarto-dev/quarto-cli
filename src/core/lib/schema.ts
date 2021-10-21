@@ -8,10 +8,17 @@
 */
 
 export type Schema = any;
+
 export interface Completion {
+  display: string,
+  type: "key" | "value",
   value: string,
   description: string,
-  suggest_on_accept: boolean
+  suggest_on_accept: boolean,
+  
+  // `schema` stores the concrete schema that yielded the completion.
+  // We need to carry it explicitly because of combinators like oneOf
+  schema?: Schema
 };
 
 export function schemaType(schema: Schema)
@@ -42,8 +49,10 @@ export function schemaExhaustiveCompletions(schema: Schema)
     case "oneOf":
       return schema.oneOf.every(schemaExhaustiveCompletions);
     case "allOf":
-      return schema.oneOf.every(schemaExhaustiveCompletions);
+      return schema.allOf.every(schemaExhaustiveCompletions);
     case "array":
+      return true;
+    case "object":
       return true;
     default:
       return schema.exhaustiveCompletions || false;
@@ -61,12 +70,18 @@ export function schemaCompletions(schema: Schema): Completion[]
     const result = (schema.completions || []).map((c: any) => {
       if (typeof c === "string") {
         return {
+          type: "value",
+          display: c,
           value: c,
           description: "",
-          suggest_on_accept: false
+          suggest_on_accept: false,
+          schema
         };
       }
-      return c;
+      return {
+        ...c,
+        schema
+      };
     });
     return result;
   }
@@ -90,10 +105,6 @@ export function schemaCompletions(schema: Schema): Completion[]
       return schema.allOf.map(schemaCompletions).flat();
     default:
       return [];
-      // return [{
-      //   value: "",
-      //   description: schema.documentation || schema.description.slice(3) // skip "be " prefix
-      // }];
   }
 }
 

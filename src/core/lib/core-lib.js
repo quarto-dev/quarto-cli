@@ -393,9 +393,6 @@
     const lineBuffer = [];
     const flushLineBuffer = (cell_type) => {
       if (lineBuffer.length) {
-        if (lineBuffer[lineBuffer.length - 1].substring === "") {
-          lineBuffer.splice(lineBuffer.length - 1, 1);
-        }
         const mappedChunks = [];
         for (const line of lineBuffer) {
           mappedChunks.push(line.range);
@@ -527,12 +524,18 @@
       const result2 = (schema.completions || []).map((c) => {
         if (typeof c === "string") {
           return {
+            type: "value",
+            display: c,
             value: c,
             description: "",
-            suggest_on_accept: false
+            suggest_on_accept: false,
+            schema
           };
         }
-        return c;
+        return {
+          ...c,
+          schema
+        };
       });
       return result2;
     };

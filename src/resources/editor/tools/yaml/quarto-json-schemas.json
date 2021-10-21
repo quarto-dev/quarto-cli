@@ -310,101 +310,141 @@
           },
           "completions": [
             {
+              "type": "key",
+              "display": "fig.width",
               "value": "fig.width: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig.height",
               "value": "fig.height: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig.format",
               "value": "fig.format: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "fig.dpi",
               "value": "fig.dpi: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "cache",
               "value": "cache: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "freeze",
               "value": "freeze: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "enabled",
               "value": "enabled: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "ipynb",
               "value": "ipynb: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "daemon",
               "value": "daemon: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "daemon-restart",
               "value": "daemon-restart: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "debug",
               "value": "debug: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "engine",
               "value": "engine: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "eval",
               "value": "eval: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "error",
               "value": "error: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "echo",
               "value": "echo: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "output",
               "value": "output: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "warning",
               "value": "warning: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "include",
               "value": "include: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "keep-md",
               "value": "keep-md: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "keep-ipynb",
               "value": "keep-ipynb: ",
               "description": "",
               "suggest_on_accept": true
@@ -729,101 +769,141 @@
                   },
                   "completions": [
                     {
+                      "type": "key",
+                      "display": "fig.width",
                       "value": "fig.width: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
+                      "type": "key",
+                      "display": "fig.height",
                       "value": "fig.height: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
+                      "type": "key",
+                      "display": "fig.format",
                       "value": "fig.format: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "fig.dpi",
                       "value": "fig.dpi: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
+                      "type": "key",
+                      "display": "cache",
                       "value": "cache: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "freeze",
                       "value": "freeze: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "enabled",
                       "value": "enabled: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "ipynb",
                       "value": "ipynb: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "daemon",
                       "value": "daemon: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
+                      "type": "key",
+                      "display": "daemon-restart",
                       "value": "daemon-restart: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "debug",
                       "value": "debug: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "engine",
                       "value": "engine: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
+                      "type": "key",
+                      "display": "eval",
                       "value": "eval: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "error",
                       "value": "error: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "echo",
                       "value": "echo: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "output",
                       "value": "output: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "warning",
                       "value": "warning: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "include",
                       "value": "include: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "keep-md",
                       "value": "keep-md: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
+                      "type": "key",
+                      "display": "keep-ipynb",
                       "value": "keep-ipynb: ",
                       "description": "",
                       "suggest_on_accept": true
@@ -833,9 +913,11 @@
               },
               "completions": [
                 {
+                  "type": "key",
+                  "display": "html",
                   "value": "html: ",
                   "description": "",
-                  "suggest_on_accept": false
+                  "suggest_on_accept": true
                 }
               ]
             }
@@ -845,19 +927,25 @@
       },
       "completions": [
         {
+          "type": "key",
+          "display": "title",
           "value": "title: ",
           "description": "",
           "suggest_on_accept": false
         },
         {
+          "type": "key",
+          "display": "execute",
           "value": "execute: ",
           "description": "",
-          "suggest_on_accept": false
+          "suggest_on_accept": true
         },
         {
+          "type": "key",
+          "display": "format",
           "value": "format: ",
           "description": "",
-          "suggest_on_accept": false
+          "suggest_on_accept": true
         }
       ]
     },
@@ -888,11 +976,15 @@
           },
           "completions": [
             {
+              "type": "key",
+              "display": "type",
               "value": "type: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "output-dir",
               "value": "output-dir: ",
               "description": "",
               "suggest_on_accept": false
@@ -1006,21 +1098,29 @@
                   },
                   "completions": [
                     {
+                      "type": "key",
+                      "display": "index-name",
                       "value": "index-name: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
+                      "type": "key",
+                      "display": "application-id",
                       "value": "application-id: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
+                      "type": "key",
+                      "display": "search-only-api-key",
                       "value": "search-only-api-key: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
+                      "type": "key",
+                      "display": "analytics-events",
                       "value": "analytics-events: ",
                       "description": "",
                       "suggest_on_accept": true
@@ -1030,6 +1130,8 @@
               },
               "completions": [
                 {
+                  "type": "key",
+                  "display": "algolia",
                   "value": "algolia: ",
                   "description": "",
                   "suggest_on_accept": true
@@ -1099,16 +1201,22 @@
                         },
                         "completions": [
                           {
+                            "type": "key",
+                            "display": "text",
                             "value": "text: ",
                             "description": "entry description",
                             "suggest_on_accept": false
                           },
                           {
+                            "type": "key",
+                            "display": "href",
                             "value": "href: ",
                             "description": "URL of the link",
                             "suggest_on_accept": false
                           },
                           {
+                            "type": "key",
+                            "display": "icon",
                             "value": "icon: ",
                             "description": "font-awesome icon id",
                             "suggest_on_accept": false
@@ -1122,31 +1230,43 @@
               },
               "completions": [
                 {
+                  "type": "key",
+                  "display": "background",
                   "value": "background: ",
                   "description": "",
                   "suggest_on_accept": false
                 },
                 {
+                  "type": "key",
+                  "display": "logo",
                   "value": "logo: ",
                   "description": "",
                   "suggest_on_accept": false
                 },
                 {
+                  "type": "key",
+                  "display": "title",
                   "value": "title: ",
                   "description": "",
                   "suggest_on_accept": true
                 },
                 {
+                  "type": "key",
+                  "display": "collapse-below",
                   "value": "collapse-below: ",
                   "description": "",
                   "suggest_on_accept": false
                 },
                 {
+                  "type": "key",
+                  "display": "sidebar-menus",
                   "value": "sidebar-menus: ",
                   "description": "",
                   "suggest_on_accept": true
                 },
                 {
+                  "type": "key",
+                  "display": "right",
                   "value": "right: ",
                   "description": "",
                   "suggest_on_accept": true
@@ -1209,16 +1329,22 @@
                           },
                           "completions": [
                             {
+                              "type": "key",
+                              "display": "text",
                               "value": "text: ",
                               "description": "entry description",
                               "suggest_on_accept": false
                             },
                             {
+                              "type": "key",
+                              "display": "href",
                               "value": "href: ",
                               "description": "URL of the link",
                               "suggest_on_accept": false
                             },
                             {
+                              "type": "key",
+                              "display": "icon",
                               "value": "icon: ",
                               "description": "font-awesome icon id",
                               "suggest_on_accept": false
@@ -1244,11 +1370,15 @@
                           },
                           "completions": [
                             {
+                              "type": "key",
+                              "display": "section",
                               "value": "section: ",
                               "description": "",
                               "suggest_on_accept": false
                             },
                             {
+                              "type": "key",
+                              "display": "contents",
                               "value": "contents: ",
                               "description": "",
                               "suggest_on_accept": true
@@ -1263,31 +1393,43 @@
                 },
                 "completions": [
                   {
+                    "type": "key",
+                    "display": "id",
                     "value": "id: ",
                     "description": "",
                     "suggest_on_accept": false
                   },
                   {
+                    "type": "key",
+                    "display": "title",
                     "value": "title: ",
                     "description": "",
                     "suggest_on_accept": false
                   },
                   {
+                    "type": "key",
+                    "display": "sytle",
                     "value": "sytle: ",
                     "description": "",
                     "suggest_on_accept": false
                   },
                   {
+                    "type": "key",
+                    "display": "collapse-level",
                     "value": "collapse-level: ",
                     "description": "",
                     "suggest_on_accept": false
                   },
                   {
+                    "type": "key",
+                    "display": "align",
                     "value": "align: ",
                     "description": "",
                     "suggest_on_accept": false
                   },
                   {
+                    "type": "key",
+                    "display": "contents",
                     "value": "contents: ",
                     "description": "",
                     "suggest_on_accept": true
@@ -1298,61 +1440,85 @@
           },
           "completions": [
             {
+              "type": "key",
+              "display": "title",
               "value": "title: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "image",
               "value": "image: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "google-analytics",
               "value": "google-analytics: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "open-graph",
               "value": "open-graph: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "twitter-card",
               "value": "twitter-card: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "site-url",
               "value": "site-url: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "repo-url",
               "value": "repo-url: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "repo-actions",
               "value": "repo-actions: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "page-navigation",
               "value": "page-navigation: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "search",
               "value": "search: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "navbar",
               "value": "navbar: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "sidebar",
               "value": "sidebar: ",
               "description": "",
               "suggest_on_accept": true
@@ -1374,21 +1540,29 @@
       },
       "completions": [
         {
+          "type": "key",
+          "display": "project",
           "value": "project: ",
           "description": "",
-          "suggest_on_accept": false
+          "suggest_on_accept": true
         },
         {
+          "type": "key",
+          "display": "site",
           "value": "site: ",
           "description": "",
           "suggest_on_accept": true
         },
         {
+          "type": "key",
+          "display": "bibliography",
           "value": "bibliography: ",
           "description": "",
           "suggest_on_accept": false
         },
         {
+          "type": "key",
+          "display": "filters",
           "value": "filters: ",
           "description": "",
           "suggest_on_accept": true
@@ -1589,116 +1763,162 @@
           },
           "completions": [
             {
+              "type": "key",
+              "display": "label",
               "value": "label: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-cap",
               "value": "fig-cap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-subcap",
               "value": "fig-subcap: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "lst-label",
               "value": "lst-label: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "lst-cap",
               "value": "lst-cap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "classes",
               "value": "classes: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "panel",
               "value": "panel: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-fold",
               "value": "code-fold: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-summary",
               "value": "code-summary: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-overflow",
               "value": "code-overflow: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-scap",
               "value": "fig-scap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-link",
               "value": "fig-link: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-align",
               "value": "fig-align: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-env",
               "value": "fig-env: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-pos",
               "value": "fig-pos: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-alt",
               "value": "fig-alt: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "eval",
               "value": "eval: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "error",
               "value": "error: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "echo",
               "value": "echo: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "output",
               "value": "output: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "include",
               "value": "include: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "layout-ncol",
               "value": "layout-ncol: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "layout-nrow",
               "value": "layout-nrow: ",
               "description": "",
               "suggest_on_accept": false
@@ -1909,126 +2129,176 @@
           },
           "completions": [
             {
+              "type": "key",
+              "display": "label",
               "value": "label: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-cap",
               "value": "fig-cap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-subcap",
               "value": "fig-subcap: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "lst-label",
               "value": "lst-label: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "lst-cap",
               "value": "lst-cap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "classes",
               "value": "classes: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "panel",
               "value": "panel: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-fold",
               "value": "code-fold: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-summary",
               "value": "code-summary: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-overflow",
               "value": "code-overflow: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-scap",
               "value": "fig-scap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-link",
               "value": "fig-link: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-align",
               "value": "fig-align: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-env",
               "value": "fig-env: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-pos",
               "value": "fig-pos: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-alt",
               "value": "fig-alt: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "eval",
               "value": "eval: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "error",
               "value": "error: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "echo",
               "value": "echo: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "output",
               "value": "output: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "include",
               "value": "include: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "layout-ncol",
               "value": "layout-ncol: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "layout-nrow",
               "value": "layout-nrow: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "md-indent",
               "value": "md-indent: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "warning",
               "value": "warning: ",
               "description": "",
               "suggest_on_accept": true
@@ -2226,116 +2496,162 @@
           },
           "completions": [
             {
+              "type": "key",
+              "display": "label",
               "value": "label: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-cap",
               "value": "fig-cap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-subcap",
               "value": "fig-subcap: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "lst-label",
               "value": "lst-label: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "lst-cap",
               "value": "lst-cap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "classes",
               "value": "classes: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "panel",
               "value": "panel: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-fold",
               "value": "code-fold: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-summary",
               "value": "code-summary: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "code-overflow",
               "value": "code-overflow: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-scap",
               "value": "fig-scap: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-link",
               "value": "fig-link: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-align",
               "value": "fig-align: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-env",
               "value": "fig-env: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-pos",
               "value": "fig-pos: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "fig-alt",
               "value": "fig-alt: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "eval",
               "value": "eval: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "error",
               "value": "error: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "echo",
               "value": "echo: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "output",
               "value": "output: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "include",
               "value": "include: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
+              "type": "key",
+              "display": "layout-ncol",
               "value": "layout-ncol: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
+              "type": "key",
+              "display": "layout-nrow",
               "value": "layout-nrow: ",
               "description": "",
               "suggest_on_accept": false

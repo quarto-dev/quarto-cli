@@ -372,13 +372,15 @@ function completions(obj)
   const completions = matchingSchemas.map(schema => {
     const result = core.schemaCompletions(schema);
     return result.map(completion => {
+      // we only change indentation on keys
       if (!completion.suggest_on_accept ||
-          core.schemaType(schema) !== "object") {
+          completion.type === "value" || 
+          core.schemaType(completion.schema) !== "object") {
         return completion;
       }
       
       const key = completion.value.split(":")[0];
-      const subSchema = schema.properties[key];
+      const subSchema = completion.schema.properties[key];
       if (core.schemaType(subSchema) === "object") {
         return {
           ...completion,
@@ -422,21 +424,27 @@ async function completionsFromGoodParseYAML(context)
   // RStudio sends us here in Visual Editor mode for the YAML front matter
   // but includes the --- delimiters, so we trim those.
   if (code.startsWith("---")) {
-    code = code.slice(3);
-    context = { ...context, code };
     if (position.row === 0) {
       // user asked for autocomplete on "---": report none
       return false;
     }
+    code = code.slice(3);
+    // NB we don't need to update position here because we're leaving
+    // the newlines alone
+    context = {
+      ...context,
+      code
+    };
   }
+  
   if (code.endsWith("---")) {
     const codeLines = core.lines(code);
-    code = code.slice(0, -3);
-    context = { ...context, code };
     if (position.row === codeLines.length - 1) {
       // user asked for autocomplete on "---": report none
       return false;
     }
+    code = code.slice(0, -3);
+    context = { ...context, code };
   }
 
   const parser = await getTreeSitter();
@@ -451,7 +459,10 @@ async function completionsFromGoodParseYAML(context)
     // we're in a pure-whitespace line, we should locate entirely based on indentation
     const path = locateFromIndentation(context);
     const indent = line.length;
-    return completions({ schema, path, word, indent, commentPrefix });
+    let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+    rawCompletions.completions = rawCompletions.completions.filter(
+      completion => completion.type === "key");
+    return rawCompletions;
   }
   const indent = line.trimEnd().length - line.trim().length;
   
@@ -473,7 +484,11 @@ async function completionsFromGoodParseYAML(context)
           column: position.column - deletions
         }
       });
-      return completions({ schema, path, word, indent, commentPrefix });
+      // we're in an empty line, so the only valid completions are object keys
+      let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+      rawCompletions.completions = rawCompletions.completions.filter(
+        completion => completion.type === "key");
+      return rawCompletions;
     } else {
       const doc = buildAnnotated(tree, mappedCode);
       if (doc.end !== mappedCode.value.length) {
@@ -489,13 +504,32 @@ async function completionsFromGoodParseYAML(context)
       });
       const { withError: locateFailed, value: path } = locateCursor(doc, index);
       if (locateFailed) {
-        // if cursor is at the end of line at it's an object mapping,
-        // we can fix this.
+        // if cursor is at the end of line and it's an object mapping,
+        // we can fix the failed location.
         if (position.column >= line.length && line.indexOf(":") !== -1) {
           path.push(line.trim().split(":")[0]);
         }
       }
-      return completions({ schema, path, word, indent, commentPrefix });
+      let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+
+      // filter raw completions depending on cursor context. We use "_" to denote
+      // the cursor position. We need to handle:
+      // 
+      // 1. "     _": empty line, complete only on keys
+      // 2. "     foo: _": completion on value position of object
+      // 3. "     - _": completion on array sequence
+      // 4. "     - foo: ": completion on value position of object inside array sequence
+      // 
+      // case 1 was handled upstream of this, so we don't need to handle it here
+      // cases 2 and 4 take only value completions
+      // case 3 takes all completions
+      
+      // this picks up only cases 2 and 4
+      if (line.indexOf(":") !== -1) {
+        rawCompletions.completions = rawCompletions.completions.filter(
+          completion => completion.type === "value");
+      }
+      return rawCompletions;
     }
   }
   
@@ -514,7 +548,11 @@ async function completionsFromGoodParseMarkdown(context)
   let linesSoFar = 0;
   let foundCell = undefined;
   for (const cell of result.cells) {
-    const size = core.lines(cell.source.value).length;
+    let size = core.lines(cell.source.value).length;
+    if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
+      // language cells don't bring starting and ending triple backticks, we must compensate here
+      size += 2;
+    }
     if (size + linesSoFar > position.row) {
       foundCell = cell;
       break;
@@ -535,9 +573,10 @@ async function completionsFromGoodParseMarkdown(context)
     });
   } else if (foundCell.cell_type.language) {
     return completionsFromGoodParseScript({
+      language: foundCell.cell_type.language,
       code: foundCell.source.value,
       position: {
-        row: position.row - linesSoFar,
+        row: position.row - (linesSoFar + 1),
         column: position.column
       },
       line
@@ -556,20 +595,30 @@ async function completionsFromGoodParseMarkdown(context)
 async function completionsFromGoodParseScript(context)
 {
   const codeLines = core.rangedLines(context.code);
-  if (codeLines.length < 2) {
-    // need both language and code to autocomplete. length < 2 implies
-    // we're missing one of them at least: skip.
-    return false;
+  let language;
+  let codeStartLine;
+  
+  if (!context.language) {
+    if (codeLines.length < 2) {
+      // need both language and code to autocomplete. length < 2 implies
+      // we're missing one of them at least: skip.
+      return false;
+    }
+    const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+    if (!m) {
+      // couldn't recognize language in script, return false
+      return false;
+    }
+    codeStartLine = 1;
+    language = m[1];
+  } else {
+    codeStartLine = 0;
+    language = context.language;
   }
-  const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
-  if (!m) {
-    // couldn't recognize language in script, return false
-    return false;
-  }
-  const language = m[1];
+  // const language = m[1];
   const mappedCode = core.mappedString(
     context.code,
-    [{ start: codeLines[1].range.start,
+    [{ start: codeLines[codeStartLine].range.start,
        end: codeLines[codeLines.length-1].range.end }]);
 
   let {
@@ -590,8 +639,8 @@ async function completionsFromGoodParseScript(context)
     // position is easy enough to compute explicitly. This might not
     // hold in the future...
     position: {
-      // -1 subtract the "{language}" line
-      row: context.position.row - 1,
+      // -1 subtract the "{language}" line if necessary
+      row: context.position.row - codeStartLine,
       // subtract the "#| " entry
       column: context.position.column - commentPrefix.length
     },

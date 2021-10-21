@@ -149,6 +149,8 @@ export function objectSchema(params: {
     const valueS = properties[k];
       
     completions.push({
+      type: "key",
+      display: k,
       value: `${k}: `,
       description: completionsParam?.[k] || "",
       suggest_on_accept: valueS && schemaExhaustiveCompletions(valueS)

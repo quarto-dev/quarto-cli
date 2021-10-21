@@ -61,9 +61,12 @@ export function breakQuartoMd(
     cell_type: "markdown" | "code" | "raw" | "math",
   ) => {
     if (lineBuffer.length) {
-      if (lineBuffer[lineBuffer.length - 1].substring === "") {
-        lineBuffer.splice(lineBuffer.length - 1, 1);
-      }
+      // FIXME: understand why was this here. This makes our line
+      // count computations wrong
+      //
+      // if (lineBuffer[lineBuffer.length - 1].substring === "") {
+      //   lineBuffer.splice(lineBuffer.length - 1, 1);
+      // }
 
       const mappedChunks: (string | Range)[] = [];
       for (const line of lineBuffer) {
