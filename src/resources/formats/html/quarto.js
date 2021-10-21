@@ -107,9 +107,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const manageSidebarVisiblity = (el, placeholderDescriptor) => {
     let isVisible = true;
 
-    const elBackground = window
-      .getComputedStyle(el, null)
-      .getPropertyValue("background");
     return (hiddenRegions) => {
       if (el === null) {
         return;
@@ -119,8 +116,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const lastChildEl = el.lastElementChild;
 
       if (lastChildEl) {
-        // Find the top of the first special element and other
-        // properties (for example the computed background color)
+        // Find the top and bottom o the element that is being managed
         const elTop = el.offsetTop;
         const elBottom =
           elTop + lastChildEl.offsetTop + lastChildEl.offsetHeight;
@@ -146,6 +142,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           // If the element is visible, hide it if it conflicts with overlay regions
           // and insert a placeholder toggle
           if (inHiddenRegion(elTop, elBottom, hiddenRegions)) {
+            const elBackground = window
+              .getComputedStyle(el, null)
+              .getPropertyValue("background");
+
             for (const child of el.children) {
               child.style.opacity = 0;
             }
