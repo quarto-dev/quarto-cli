@@ -12,11 +12,11 @@ function initQuartoLineHighlight(Reveal) {
     const divSourceCode = Reveal.getRevealElement().querySelectorAll('div.sourceCode');
 
     divSourceCode.forEach(el => {
-        if (el.hasAttribute('data-line-numbers')) {
+        if (el.hasAttribute('data-code-line-numbers')) {
             // highlightLines;
-            const highlightedLines = splitLineNumbers(el.getAttribute('data-line-numbers'));
-            if (highlightedLines.length) {
-                highlightedLines[0].forEach(
+            const highlightSteps = splitLineNumbers(el.getAttribute('data-code-line-numbers'));
+            if (highlightSteps.length) {
+                highlightSteps[0].forEach(
                     highlight => {
                         spanToHighlight = [];
                         // if a range
