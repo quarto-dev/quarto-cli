@@ -243,6 +243,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       hideOverlappedSidebars();
     }, 10)
   );
+  window.addEventListener(
+    "resize",
+    throttle(() => {
+      hideOverlappedSidebars();
+    }, 10)
+  );
 });
 
 // TODO: Create shared throttle js function (see quarto-nav.js)
