@@ -37,9 +37,11 @@ footer.footer .nav-footer,
 }
 
 // headroom
+.headroom-target,
 header.headroom {
   will-change: transform;
   transition: transform 200ms linear;
+  transition: position 200ms linear;
 }
 
 header.headroom--pinned {

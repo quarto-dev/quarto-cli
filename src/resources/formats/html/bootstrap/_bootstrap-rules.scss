@@ -196,8 +196,13 @@ body.docked {
   transform: translate3d(0, 0, 0);
 }
 
-.column-zindex {
+.zindex-content {
   z-index: $zindex-content;
+  transform: translate3d(0, 0, 0);
+}
+
+.zindex-modal {
+  z-index: $zindex-modal;
   transform: translate3d(0, 0, 0);
 }
 

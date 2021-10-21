@@ -104,7 +104,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     return false;
   };
 
-  const manageSidebarVisiblity = (el) => {
+  const manageSidebarVisiblity = (el, placeholderDescriptor) => {
     let isVisible = true;
 
     return (hiddenRegions) => {
@@ -127,6 +127,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             for (const child of el.children) {
               child.style.opacity = 1;
             }
+
+            const placeholderEl = window.document.getElementById(
+              placeholderDescriptor.id
+            );
+            if (placeholderEl) {
+              placeholderEl.remove();
+            }
+
             isVisible = true;
           }
         } else {
@@ -134,6 +142,64 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             for (const child of el.children) {
               child.style.opacity = 0;
             }
+            const pos = el.getBoundingClientRect();
+            const elCenterX = pos.left + (pos.right - pos.left) / 2;
+
+            // Center in parent
+            // round bottom corners
+
+            const toggleContainer = window.document.createElement("div");
+            toggleContainer.classList.add("zindex-modal");
+            toggleContainer.classList.add("quarto-sidebar-toggle");
+            toggleContainer.classList.add("headroom-target"); // Marks this to be managed by headeroom
+            toggleContainer.id = placeholderDescriptor.id;
+            toggleContainer.style.background = el.style.background;
+            toggleContainer.style.position = "fixed";
+
+            const toggleTitle = window.document.createElement("div");
+            const titleEl = window.document.body.querySelector(
+              placeholderDescriptor.titleSelector
+            );
+            toggleTitle.innerText = titleEl.innerText;
+            toggleTitle.classList.add("zindex-modal");
+            toggleTitle.classList.add("quarto-sidebar-toggle-title");
+            toggleContainer.append(toggleTitle);
+
+            const toggleContents = window.document.createElement("div");
+            toggleContents.classList = el.classList;
+            toggleContents.classList.add("zindex-modal");
+            toggleContents.classList.add("quarto-sidebar-toggle-contents");
+            for (const child of el.children) {
+              if (child.id === "toc-title") {
+                continue;
+              }
+
+              const clone = child.cloneNode(true);
+              clone.style.opacity = 1;
+              toggleContents.append(clone);
+            }
+            toggleContents.style.height = "0px";
+            toggleContainer.append(toggleContents);
+
+            let tocShowing = false;
+            toggleContainer.onclick = (e) => {
+              if (!tocShowing) {
+                toggleContainer.classList.add("expanded");
+                toggleContents.style.height = null;
+                tocShowing = true;
+              } else {
+                toggleContents.style.height = "0px";
+                toggleContainer.classList.remove("expanded");
+                tocShowing = false;
+              }
+            };
+            el.parentElement.prepend(toggleContainer);
+            // position the element
+            const left = elCenterX - toggleContainer.offsetWidth / 2;
+            console.log(toggleContainer.offsetWidth);
+            toggleContainer.style.left = `${left}px`;
+            toggleContainer.style.top = `${pos.top}px`;
+
             isVisible = false;
           }
         }
@@ -142,8 +208,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   };
 
   // Manage the visibility of the toc and the sidebar
-  const tocScrollVisibility = manageSidebarVisiblity(tocEl);
-  const sidebarScrollVisiblity = manageSidebarVisiblity(sidebarEl);
+  const tocScrollVisibility = manageSidebarVisiblity(tocEl, {
+    id: "quarto-toc-toggle",
+    titleSelector: "#toc-title",
+  });
+  const sidebarScrollVisiblity = manageSidebarVisiblity(sidebarEl, {
+    id: "quarto-sidebarnav-toggle",
+    titleSelector: ".title",
+  });
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
     '[class^="column-"], [class*=" column-"], aside'
