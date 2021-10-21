@@ -117,7 +117,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         const elTop = el.offsetTop;
         const elBottom =
           elTop + lastChildEl.offsetTop + lastChildEl.offsetHeight;
-        console.log(elTop, elBottom);
 
         // If the TOC is hidden, check whether it will appear
         if (!isVisible) {
@@ -144,20 +143,49 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     window.document.getElementById("quarto-sidebar")
   );
   // Find the first element that uses formatting in special columns
-  const fullWidthEls = window.document.body.querySelectorAll(
+  const conflictingEls = window.document.body.querySelectorAll(
     '[class^="column-"], [class*=" column-"], aside'
   );
 
-  const toggleTOC = () => {
-    const hiddenRegions = [];
-    for (const fullWidthEl of fullWidthEls) {
-      hiddenRegions.push({
-        top: fullWidthEl.offsetTop,
-        bottom: fullWidthEl.offsetTop + fullWidthEl.offsetHeight,
-      });
+  const arrConflictingEls = Array.from(conflictingEls);
+
+  const leftSideConflictEls = arrConflictingEls.filter((el) => {
+    if (el.tagName === "ASIDE") {
+      return false;
     }
-    tocScrollVisibility(hiddenRegions);
-    sidebarScrollVisiblity(hiddenRegions);
+    return Array.from(el.classList).find((className) => {
+      return (
+        className.startsWith("column-") &&
+        !className.endsWith("right") &&
+        className !== "column-gutter"
+      );
+    });
+  });
+  const rightSideConflictEls = arrConflictingEls.filter((el) => {
+    if (el.tagName === "ASIDE") {
+      return true;
+    }
+
+    return Array.from(el.classList).find((className) => {
+      return className.startsWith("column-") && !className.endsWith("left");
+    });
+  });
+
+  console.log(leftSideConflictEls);
+  console.log(rightSideConflictEls);
+
+  function toRegions(els) {
+    return els.map((el) => {
+      return {
+        top: el.offsetTop,
+        bottom: el.offsetTop + el.offsetHeight,
+      };
+    });
+  }
+
+  const toggleTOC = () => {
+    tocScrollVisibility(toRegions(rightSideConflictEls));
+    sidebarScrollVisiblity(toRegions(leftSideConflictEls));
   };
 
   // Walk the TOC and collapse/expand nodes
