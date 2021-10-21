@@ -7,6 +7,7 @@
 import {
   kBibliography,
   kCodeFold,
+  kCodeLineNumbers,
   kCodeSummary,
   kFigAlign,
   kHeaderIncludes,
@@ -195,6 +196,10 @@ function quartoFilterParams(format: Format) {
   const foldSummary = format.render[kCodeSummary];
   if (foldSummary) {
     params[kCodeSummary] = foldSummary;
+  }
+  const lineNumbers = format.render[kCodeLineNumbers];
+  if (lineNumbers) {
+    params[kCodeLineNumbers] = lineNumbers;
   }
   const keepHidden = format.render[kKeepHidden];
   if (keepHidden) {

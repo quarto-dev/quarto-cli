@@ -12,6 +12,7 @@ import {
   kCiteMethod,
   kCiteproc,
   kCodeFold,
+  kCodeLineNumbers,
   kCodeLink,
   kCodeOverflow,
   kCodeSummary,
@@ -211,6 +212,7 @@ export interface FormatRender {
   [kCodeSummary]?: string;
   [kCodeOverflow]?: "wrap" | "scroll";
   [kCodeLink]?: boolean;
+  [kCodeLineNumbers]?: boolean;
   [kCodeTools]?: boolean | {
     source?: boolean;
     toggle?: boolean;

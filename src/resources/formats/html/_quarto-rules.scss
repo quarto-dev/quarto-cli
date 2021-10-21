@@ -190,6 +190,9 @@ code.sourceCode {
   position: relative;
 }
 
+// improve appearance of pandoc line numbers
+// TODO
+
 // default to scrolling <code> output rather than wrapping, since
 // multi-column tabular output (very common for R & Python) is
 // unreadable when wrapped.

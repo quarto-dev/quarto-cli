@@ -256,6 +256,7 @@ knitr_hooks <- function(format, resourceDir) {
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
                      "lst-label", "classes", "panel", "code-fold", "code-summary", "code-overflow",
+                     "code-line-numbers",
                      "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "yaml.code", "code", "params.src", "original.params.src", 
@@ -323,6 +324,10 @@ knitr_hooks <- function(format, resourceDir) {
     fold <- options[["code-summary"]]
     if (!is.null(fold)) {
       attr <- paste(attr, paste0('code-summary="', as.character(fold), '"'))
+    }
+    lineNumbers <- options[["code-line-numbers"]]
+    if (!is.null(lineNumbers)) {
+      attr <- paste(attr, paste0('code-line-numbers="', as.character(lineNumbers), '"'))
     }
 
     lang <- tolower(options$engine)

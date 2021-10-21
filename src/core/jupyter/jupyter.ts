@@ -99,6 +99,7 @@ import {
   kCellRawMimeType,
   kCellTags,
   kCodeFold,
+  kCodeLineNumbers,
   kCodeOverflow,
   kCodeSummary,
   kEcho,
@@ -198,6 +199,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellClasses]?: string;
   [kCellPanel]?: string;
   [kCodeFold]?: string;
+  [kCodeLineNumbers]?: boolean | string;
   [kCodeSummary]?: string;
   [kCodeOverflow]?: string;
   [kCellMdIndent]?: string;
@@ -243,6 +245,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellOutHeight,
   kCellMdIndent,
   kCodeFold,
+  kCodeLineNumbers,
   kCodeSummary,
   kCodeOverflow,
 ];
@@ -1040,6 +1043,9 @@ function mdFromCodeCell(
     }
     if (typeof cell.options[kCodeSummary] !== "undefined") {
       md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
+    }
+    if (typeof cell.options[kCodeLineNumbers] !== "undefined") {
+      md.push(` code-line-numbers=\"${cell.options[kCodeLineNumbers]}\"`);
     }
     md.push("}\n");
     let source = ld.cloneDeep(cell.source);
