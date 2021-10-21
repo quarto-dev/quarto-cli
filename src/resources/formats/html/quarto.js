@@ -119,13 +119,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const lastChildEl = el.lastElementChild;
 
       if (lastChildEl) {
-        // Find the top of the first special element
+        // Find the top of the first special element and other
+        // properties (for example the computed background color)
         const elTop = el.offsetTop;
         const elBottom =
           elTop + lastChildEl.offsetTop + lastChildEl.offsetHeight;
 
-        // If the TOC is hidden, check whether it will appear
         if (!isVisible) {
+          // If the element is current not visible reveal if there are
+          // no conflicts with overlay regions
           if (!inHiddenRegion(elTop, elBottom, hiddenRegions)) {
             for (const child of el.children) {
               child.style.opacity = 1;
@@ -141,15 +143,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             isVisible = true;
           }
         } else {
+          // If the element is visible, hide it if it conflicts with overlay regions
+          // and insert a placeholder toggle
           if (inHiddenRegion(elTop, elBottom, hiddenRegions)) {
             for (const child of el.children) {
               child.style.opacity = 0;
             }
             const pos = el.getBoundingClientRect();
             const elCenterX = pos.left + (pos.right - pos.left) / 2;
-
-            // Center in parent
-            // round bottom corners
 
             const toggleContainer = window.document.createElement("div");
             toggleContainer.classList.add("zindex-modal");
@@ -192,21 +193,42 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
             // Process clicks
             let tocShowing = false;
-            toggleContainer.onclick = () => {
+            // Allow the caller to control whether this is dismissed
+            // when it is clicked (e.g. sidebar navigation supports
+            // opening and closing the nav tree, so don't dismiss on click)
+            const clickEl = placeholderDescriptor.dismissOnClick
+              ? toggleContainer
+              : toggleTitle;
+
+            const closeToggle = () => {
+              if (tocShowing) {
+                toggleContainer.classList.remove("expanded");
+                toggleContents.style.height = "0px";
+                tocShowing = false;
+              }
+            };
+
+            // Get rid of any expanded toggle if the user scrolls
+            window.document.addEventListener(
+              "scroll",
+              throttle(() => {
+                closeToggle();
+              }, 100)
+            );
+
+            // Process the click
+            clickEl.onclick = () => {
               if (!tocShowing) {
                 toggleContainer.classList.add("expanded");
                 toggleContents.style.height = null;
                 tocShowing = true;
               } else {
-                toggleContents.style.height = "0px";
-                toggleContainer.classList.remove("expanded");
-                tocShowing = false;
+                closeToggle();
               }
             };
 
             // position the element
             const left = elCenterX - toggleContainer.offsetWidth / 2;
-            console.log(toggleContainer.offsetWidth);
             toggleContainer.style.left = `${left}px`;
             toggleContainer.style.top = `${pos.top}px`;
 
@@ -221,10 +243,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const tocScrollVisibility = manageSidebarVisiblity(tocEl, {
     id: "quarto-toc-toggle",
     titleSelector: "#toc-title",
+    dismissOnClick: true,
   });
   const sidebarScrollVisiblity = manageSidebarVisiblity(sidebarEl, {
     id: "quarto-sidebarnav-toggle",
     titleSelector: ".title",
+    dismissOnClick: false,
   });
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
