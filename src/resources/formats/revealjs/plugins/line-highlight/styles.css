@@ -1,4 +1,5 @@
-/* required for Pandoc numbered line feature */
+/* required for Pandoc numbered line feature 
+Can be remove with next pandoc release > 2.14.2 */
 
 .reveal .sourceCode {
     overflow: visible;
