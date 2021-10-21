@@ -57,8 +57,8 @@ function splitLineNumbers(lineNumbersAttr) {
                 range => {
                     if (/^[\d-]+$/.test(range)) {
                         range = range.split(delimiters.lineRange)
-                        const firstLine = parseInt(range[0]);
-                        const lastLine = range[1] ? parseInt(range[1]) : undefined
+                        const firstLine = parseInt(range[0], 10);
+                        const lastLine = range[1] ? parseInt(range[1], 10) : undefined
                         return {
                             first: firstLine,
                             last: lastLine,
