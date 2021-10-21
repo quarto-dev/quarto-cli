@@ -6,9 +6,10 @@ const sectionChanged = new CustomEvent("quarto-sectionChanged", {
 });
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
-  // get table of contents (bail if we don't have one)
+  // get table of contents and sidebar (bail if we don't have at least one)
   var tocEl = window.document.getElementById("TOC");
-  if (!tocEl) return;
+  var sidebarEl = window.document.getElementById("quarto-sidebar");
+  if (!tocEl && !sidebarEl) return;
 
   // function to determine whether the element has a previous sibling that is active
   const prevSiblingIsActiveLink = (el) => {
@@ -21,7 +22,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   };
 
   // Track scrolling and mark TOC links as active
-  const tocLinks = [...tocEl.querySelectorAll("a[data-scroll-target]")];
+  const tocLinks = tocEl
+    ? [...tocEl.querySelectorAll("a[data-scroll-target]")]
+    : [];
   const makeActive = (link) => tocLinks[link].classList.add("active");
   const removeActive = (link) => tocLinks[link].classList.remove("active");
   const removeAllActive = () =>
@@ -138,17 +141,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   };
 
+  // Manage the visibility of the toc and the sidebar
   const tocScrollVisibility = manageSidebarVisiblity(tocEl);
-  const sidebarScrollVisiblity = manageSidebarVisiblity(
-    window.document.getElementById("quarto-sidebar")
-  );
+  const sidebarScrollVisiblity = manageSidebarVisiblity(sidebarEl);
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
     '[class^="column-"], [class*=" column-"], aside'
   );
 
+  // Filter all the possibly conflicting elements into ones
+  // the do conflict on the left or ride side
   const arrConflictingEls = Array.from(conflictingEls);
-
   const leftSideConflictEls = arrConflictingEls.filter((el) => {
     if (el.tagName === "ASIDE") {
       return false;
@@ -171,9 +174,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     });
   });
 
-  console.log(leftSideConflictEls);
-  console.log(rightSideConflictEls);
-
   function toRegions(els) {
     return els.map((el) => {
       return {
@@ -183,7 +183,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     });
   }
 
-  const toggleTOC = () => {
+  const hideOverlappedSidebars = () => {
     tocScrollVisibility(toRegions(rightSideConflictEls));
     sidebarScrollVisiblity(toRegions(leftSideConflictEls));
   };
@@ -227,16 +227,20 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   // walk the TOC and expand / collapse any items that should be shown
 
-  walk(tocEl, 0);
-  updateActiveLink();
+  if (tocEl) {
+    walk(tocEl, 0);
+    updateActiveLink();
+  }
 
   // Throttle the scroll event and walk peridiocally
   window.document.addEventListener(
     "scroll",
     throttle(() => {
-      updateActiveLink();
-      walk(tocEl, 0);
-      toggleTOC();
+      if (tocEl) {
+        updateActiveLink();
+        walk(tocEl, 0);
+      }
+      hideOverlappedSidebars();
     }, 10)
   );
 });
