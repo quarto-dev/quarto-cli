@@ -106,6 +106,7 @@ const kRevealDarkThemes = [
   "moon",
 ];
 
+// deno-lint-ignore no-unused-vars
 const kRevealThemes = [...kRevealLightThemes, ...kRevealDarkThemes];
 
 const kHashType = "hash-type";
@@ -168,6 +169,11 @@ export function revealjsFormat() {
 
         // provide alternate defaults unless the user requests revealjs defaults
         if (format.metadata[kRevealJsConfig] !== "default") {
+          // quarto style tweaks
+          extras?.[kIncludeInHeader]?.push(
+            formatResourcePath("revealjs", "styles-quarto.html"),
+          );
+
           // other defaults
           extras.metadata = {
             ...extras.metadata,
