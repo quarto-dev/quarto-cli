@@ -156,11 +156,16 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             toggleContainer.style.background = el.style.background;
             toggleContainer.style.position = "fixed";
 
+            const toggleIcon = window.document.createElement("i");
+            toggleIcon.classList.add("quarto-sidebar-toggle-icon");
+            toggleIcon.classList.add("bi");
+            toggleIcon.classList.add("bi-caret-down-fill");
+
             const toggleTitle = window.document.createElement("div");
             const titleEl = window.document.body.querySelector(
               placeholderDescriptor.titleSelector
             );
-            toggleTitle.innerText = titleEl.innerText;
+            toggleTitle.append(titleEl.innerText, toggleIcon);
             toggleTitle.classList.add("zindex-modal");
             toggleTitle.classList.add("quarto-sidebar-toggle-title");
             toggleContainer.append(toggleTitle);
@@ -180,9 +185,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             }
             toggleContents.style.height = "0px";
             toggleContainer.append(toggleContents);
+            el.parentElement.prepend(toggleContainer);
 
+            // Process clicks
             let tocShowing = false;
-            toggleContainer.onclick = (e) => {
+            toggleContainer.onclick = () => {
               if (!tocShowing) {
                 toggleContainer.classList.add("expanded");
                 toggleContents.style.height = null;
@@ -193,7 +200,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 tocShowing = false;
               }
             };
-            el.parentElement.prepend(toggleContainer);
+
             // position the element
             const left = elCenterX - toggleContainer.offsetWidth / 2;
             console.log(toggleContainer.offsetWidth);

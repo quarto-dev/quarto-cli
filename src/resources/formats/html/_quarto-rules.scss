@@ -116,11 +116,25 @@ figure > figcaption {
 .quarto-sidebar-toggle-title {
   cursor: pointer;
   padding-bottom: 2px;
-  margin-left: 0.5em;
-  margin-right: 0.5em;
+  margin-left: 0.25em;
   text-align: center;
   font-weight: 400;
-  font-size: 0.875em;
+  font-size: 0.775em;
+}
+
+.quarto-sidebar-toggle-icon {
+  color: $border-color;
+  margin-right: 0.5em;
+  float: right;
+  transition: transform 0.2s ease;
+}
+
+.quarto-sidebar-toggle-icon::before {
+  padding-top: 5px;
+}
+
+.quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-icon {
+  transform: rotate(-180deg);
 }
 
 .quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-title {
@@ -130,6 +144,7 @@ figure > figcaption {
 .quarto-sidebar-toggle-contents {
   padding-right: 10px;
   padding-left: 10px;
+  transition: max-height 0.5s ease;
 }
 
 .quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-contents {
