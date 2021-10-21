@@ -1,3 +1,9 @@
+/* required for Pandoc numbered line feature */
+
 .reveal .sourceCode {
     overflow: visible;
+}
+
+.reveal div.sourceCode.has-line-highlights pre code>span:not(.highlight-line) {
+    opacity: 0.4;
 }
