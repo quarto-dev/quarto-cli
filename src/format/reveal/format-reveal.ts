@@ -5,6 +5,7 @@
 *
 */
 
+import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
@@ -30,6 +31,7 @@ import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
 import { revealPluginExtras } from "./format-reveal-plugin.ts";
+import { compileWithCache } from "../../command/render/sass.ts";
 
 const kRevealJsUrl = "revealjs-url";
 const kRevealJsConfig = "revealjs-config";
@@ -106,7 +108,6 @@ const kRevealDarkThemes = [
   "moon",
 ];
 
-// deno-lint-ignore no-unused-vars
 const kRevealThemes = [...kRevealLightThemes, ...kRevealDarkThemes];
 
 const kHashType = "hash-type";
@@ -127,7 +128,7 @@ export function revealjsFormat() {
     createHtmlPresentationFormat(9, 5),
     {
       metadataFilter: revealMetadataFilter,
-      formatExtras: (
+      formatExtras: async (
         _input: string,
         _flags: PandocFlags,
         format: Format,
@@ -148,6 +149,7 @@ export function revealjsFormat() {
             metadata: {
               [kLinkCitations]: true,
             } as Metadata,
+            metadataOverride: {} as Metadata,
             [kIncludeInHeader]: [formatResourcePath("revealjs", "styles.html")],
             html: {
               [kTemplatePatches]: [revealRequireJsPatch],
@@ -162,9 +164,32 @@ export function revealjsFormat() {
 
         // if there is no revealjs-url provided then use our embedded copy
         if (format.metadata[kRevealJsUrl] === undefined) {
+          // copy reveal dir
           const revealDir = join(libDir, "revealjs");
           copyMinimal(formatResourcePath("revealjs", "reveal"), revealDir);
           extras.metadata![kRevealJsUrl] = pathWithForwardSlashes(revealDir);
+
+          // theme could be a reveal theme name or an sccs file
+          // (if no theme is specified then use our built in theme)
+          const theme = (format.metadata![kTheme] ||
+            formatResourcePath("revealjs", "theme.scss")) as string;
+          if (!kRevealThemes.includes(theme)) {
+            const cssThemeDir = join(revealDir, "css", "theme");
+            const cssSourceDir = join(cssThemeDir, "source");
+            const cssTemplateDir = join(cssThemeDir, "template");
+            const themeScss = Deno.readTextFileSync(
+              existsSync(theme) ? theme : join(cssSourceDir, theme + ".scss"),
+            );
+            const scss = await compileWithCache(themeScss, [
+              cssSourceDir,
+              cssTemplateDir,
+            ]);
+            Deno.copyFileSync(
+              scss,
+              join(revealDir, "dist", "theme", "quarto.css"),
+            );
+            extras.metadataOverride![kTheme] = "quarto";
+          }
         }
 
         // provide alternate defaults unless the user requests revealjs defaults
@@ -178,7 +203,6 @@ export function revealjsFormat() {
           extras.metadata = {
             ...extras.metadata,
             ...revealMetadataFilter({
-              theme: "white",
               width: 1050,
               height: 700,
               center: false,

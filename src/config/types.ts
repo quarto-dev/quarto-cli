@@ -159,6 +159,7 @@ export interface FormatExtras {
   args?: string[];
   pandoc?: FormatPandoc;
   metadata?: Metadata;
+  metadataOverride?: Metadata;
   [kTocTitle]?: string;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];

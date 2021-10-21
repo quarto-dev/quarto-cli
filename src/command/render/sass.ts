@@ -239,7 +239,7 @@ export function sassLayerDir(
   };
 }
 
-async function compileWithCache(
+export async function compileWithCache(
   input: string,
   loadPaths: string[],
   compressed?: boolean,
