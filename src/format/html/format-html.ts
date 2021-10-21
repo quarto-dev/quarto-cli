@@ -89,6 +89,209 @@ export function htmlFormat(
   );
 }
 
+export const kQuartoHtmlDependency = "quarto-html";
+export function htmlFormatExtras(format: Format): FormatExtras {
+  // lists of scripts and ejs data for the orchestration script
+
+  const scripts: DependencyFile[] = [];
+  const stylesheets: DependencyFile[] = [];
+  const bootstrap = formatHasBootstrap(format);
+  const sassBundles: SassBundle[] = [];
+  const dependencies: FormatDependency[] = [];
+
+  const options: Record<string, unknown> = format.metadata[kComments]
+    ? {
+      [kHypothesis]:
+        (format.metadata[kComments] as Record<string, unknown>)[kHypothesis] ||
+        false,
+      [kUtterances]:
+        (format.metadata[kComments] as Record<string, unknown>)[kUtterances] ||
+        false,
+    }
+    : {};
+  options.codeLink = format.metadata[kCodeLink] || false;
+  if (bootstrap) {
+    options.copyCode = format.metadata[kCodeCopy] !== false;
+    options.anchors = format.metadata[kAnchorSections] !== false;
+    options.hoverCitations = format.metadata[kHoverCitations] !== false;
+    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
+  } else {
+    options.copyCode = format.metadata[kCodeCopy] || false;
+    options.anchors = format.metadata[kAnchorSections] || false;
+    options.hoverCitations = format.metadata[kHoverCitations] || false;
+    options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
+  }
+  options.codeTools = formatHasCodeTools(format);
+  options.darkMode = formatDarkMode(format);
+  options.linkExternalIcon = format.render[kLinkExternalIcon];
+  options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
+
+  // quarto.js helpers
+  scripts.push({
+    name: "quarto.js",
+    path: formatResourcePath("html", join("toc", "quarto-toc.js")),
+  });
+
+  // popper if required
+  options.tippy = options.hoverCitations || options.hoverFootnotes;
+  if (bootstrap || options.tippy) {
+    scripts.push({
+      name: "popper.min.js",
+      path: formatResourcePath("html", join("popper", "popper.min.js")),
+    });
+  }
+
+  // tippy if required
+  if (options.tippy) {
+    scripts.push({
+      name: "tippy.umd.min.js",
+      path: formatResourcePath("html", join("tippy", "tippy.umd.min.js")),
+    });
+    stylesheets.push({
+      name: "tippy.css",
+      path: formatResourcePath("html", join("tippy", "tippy.css")),
+    });
+
+    // If this is a bootstrap format, include requires sass
+    if (bootstrap) {
+      options.tippyTheme = "quarto";
+      sassBundles.push({
+        key: "tippy.scss",
+        dependency: kBootstrapDependencyName,
+        quarto: {
+          functions: "",
+          defaults: "",
+          mixins: "",
+          rules: Deno.readTextFileSync(
+            formatResourcePath("html", join("tippy", "_tippy.scss")),
+          ),
+        },
+      });
+    } else {
+      options.tippyTheme = "light-border";
+      stylesheets.push({
+        name: "light-border.css",
+        path: formatResourcePath("html", join("tippy", "light-border.css")),
+      });
+    }
+  }
+
+  // clipboard.js if required
+  if (options.copyCode) {
+    dependencies.push(clipboardDependency());
+  }
+
+  // anchors if required
+  if (options.anchors) {
+    scripts.push({
+      name: "anchor.min.js",
+      path: formatResourcePath("html", join("anchor", "anchor.min.js")),
+    });
+    options.anchors = typeof (options.anchors) === "string"
+      ? options.anchors
+      : true;
+  }
+
+  // add quarto sass bundle of we aren't in bootstrap
+  if (!bootstrap) {
+    sassBundles.push({
+      dependency: kQuartoHtmlDependency,
+      key: kQuartoHtmlDependency,
+      quarto: {
+        use: ["sass:color", "sass:math"],
+        defaults: quartoDefaults(format),
+        functions: quartoFunctions(),
+        mixins: "",
+        rules: quartoRules(),
+      },
+    });
+    sassBundles.push({
+      dependency: kQuartoHtmlDependency,
+      key: kQuartoHtmlDependency,
+      quarto: {
+        defaults: "",
+        functions: "",
+        mixins: "",
+        rules: quartoGlobalCssVariableRules(),
+      },
+    });
+  }
+
+  // header includes
+  const includeInHeader: string[] = [];
+
+  // hypothesis
+  if (options.hypothesis) {
+    const hypothesisHeader = sessionTempFile({ suffix: ".html" });
+    Deno.writeTextFileSync(
+      hypothesisHeader,
+      renderEjs(
+        formatResourcePath("html", join("hypothesis", "hypothesis.ejs")),
+        { hypothesis: options.hypothesis },
+      ),
+    );
+    includeInHeader.push(hypothesisHeader);
+  }
+
+  // after body
+  const includeAfterBody: string[] = [];
+
+  // add main orchestion script if we have any options enabled
+  const quartoHtmlRequired = Object.keys(options).some((option) =>
+    !!options[option]
+  );
+  if (quartoHtmlRequired) {
+    // html orchestration script
+    const quartoHtmlScript = sessionTempFile();
+    Deno.writeTextFileSync(
+      quartoHtmlScript,
+      renderEjs(
+        formatResourcePath("html", join("templates", "quarto-html.ejs")),
+        options,
+      ),
+    );
+    includeAfterBody.push(quartoHtmlScript);
+  }
+
+  // utterances
+  if (options.utterances) {
+    if (typeof (options.utterances) !== "object") {
+      throw new Error("Invalid utterances configuration (must provide a repo");
+    }
+    const utterances = options.utterances as Record<string, string>;
+    if (!utterances["repo"]) {
+      throw new Error("Invalid utterances coniguration (must provide a repo)");
+    }
+    utterances["issue-term"] = utterances["issue-term"] || "pathname";
+    utterances["theme"] = utterances["theme"] || "github-light";
+    const utterancesAfterBody = sessionTempFile({ suffix: ".html" });
+    Deno.writeTextFileSync(
+      utterancesAfterBody,
+      renderEjs(
+        formatResourcePath("html", join("utterances", "utterances.ejs")),
+        { utterances },
+      ),
+    );
+    includeAfterBody.push(utterancesAfterBody);
+  }
+
+  // return extras
+  dependencies.push({
+    name: kQuartoHtmlDependency,
+    scripts,
+    stylesheets,
+  });
+  return {
+    [kIncludeInHeader]: includeInHeader,
+    [kIncludeAfterBody]: includeAfterBody,
+    html: {
+      [kDependencies]: dependencies,
+      [kSassBundles]: sassBundles,
+      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format)],
+    },
+  };
+}
+
 const kFormatHasBootstrap = "has-bootstrap";
 function htmlFormatFilterParams(format: Format) {
   return {
@@ -96,7 +299,7 @@ function htmlFormatFilterParams(format: Format) {
   };
 }
 
-export function htmlFormatPostprocessor(format: Format) {
+function htmlFormatPostprocessor(format: Format) {
   // do we have haveBootstrap
   const haveBootstrap = formatHasBootstrap(format);
 
@@ -205,216 +408,6 @@ function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
   } else {
     return boostrapExtras(input, flags, format);
   }
-}
-
-export const kQuartoHtmlDependency = "quarto-html";
-function htmlFormatExtras(format: Format): FormatExtras {
-  // lists of scripts and ejs data for the orchestration script
-
-  const scripts: DependencyFile[] = [];
-  const stylesheets: DependencyFile[] = [];
-  const bootstrap = formatHasBootstrap(format);
-  const sassBundles: SassBundle[] = [];
-  const dependencies: FormatDependency[] = [];
-
-  const options: Record<string, unknown> = format.metadata[kComments]
-    ? {
-      [kHypothesis]:
-        (format.metadata[kComments] as Record<string, unknown>)[kHypothesis] ||
-        false,
-      [kUtterances]:
-        (format.metadata[kComments] as Record<string, unknown>)[kUtterances] ||
-        false,
-    }
-    : {};
-  options.codeLink = format.metadata[kCodeLink] || false;
-  if (bootstrap) {
-    options.copyCode = format.metadata[kCodeCopy] !== false;
-    options.anchors = format.metadata[kAnchorSections] !== false;
-    options.hoverCitations = format.metadata[kHoverCitations] !== false;
-    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
-  } else {
-    options.copyCode = format.metadata[kCodeCopy] || false;
-    options.anchors = format.metadata[kAnchorSections] || false;
-    options.hoverCitations = format.metadata[kHoverCitations] || false;
-    options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
-  }
-  options.codeTools = formatHasCodeTools(format);
-  options.darkMode = formatDarkMode(format);
-  options.linkExternalIcon = format.render[kLinkExternalIcon];
-  options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
-
-  // quarto.js helpers
-  scripts.push({
-    name: "quarto.js",
-    path: formatResourcePath("html", join("toc", "quarto-toc.js")),
-  });
-
-  // popper if required
-  options.tippy = options.hoverCitations || options.hoverFootnotes;
-  if (bootstrap || options.tippy) {
-    scripts.push({
-      name: "popper.min.js",
-      path: formatResourcePath("html", join("popper", "popper.min.js")),
-    });
-  }
-
-  // tippy if required
-  if (options.tippy) {
-    scripts.push({
-      name: "tippy.umd.min.js",
-      path: formatResourcePath("html", join("tippy", "tippy.umd.min.js")),
-    });
-    stylesheets.push({
-      name: "tippy.css",
-      path: formatResourcePath("html", join("tippy", "tippy.css")),
-    });
-
-    // If this is a bootstrap format, include requires sass
-    if (bootstrap) {
-      options.tippyTheme = "quarto";
-      sassBundles.push({
-        key: "tippy.scss",
-        dependency: kBootstrapDependencyName,
-        quarto: {
-          functions: "",
-          defaults: "",
-          mixins: "",
-          rules: Deno.readTextFileSync(
-            formatResourcePath("html", join("tippy", "_tippy.scss")),
-          ),
-        },
-      });
-    } else {
-      options.tippyTheme = "light-border";
-      stylesheets.push({
-        name: "light-border.css",
-        path: formatResourcePath("html", join("tippy", "light-border.css")),
-      });
-    }
-  }
-
-  // clipboard.js if required
-  if (options.copyCode) {
-    dependencies.push(clipboardDependency());
-  }
-
-  // anchors if required
-  if (options.anchors) {
-    scripts.push({
-      name: "anchor.min.js",
-      path: formatResourcePath("html", join("anchor", "anchor.min.js")),
-    });
-    options.anchors = typeof (options.anchors) === "string"
-      ? options.anchors
-      : true;
-  }
-
-  // add main orchestion script if we have any options enabled
-  const quartoHtmlRequired = Object.keys(options).some((option) =>
-    !!options[option]
-  );
-
-  if (quartoHtmlRequired) {
-    // add quarto sass bundle of we aren't in bootstrap
-    if (!bootstrap) {
-      sassBundles.push({
-        dependency: kQuartoHtmlDependency,
-        key: kQuartoHtmlDependency,
-        quarto: {
-          use: ["sass:color", "sass:math"],
-          defaults: quartoDefaults(format),
-          functions: quartoFunctions(),
-          mixins: "",
-          rules: quartoRules(),
-        },
-      });
-    }
-  }
-
-  if (!bootstrap) {
-    sassBundles.push({
-      dependency: kQuartoHtmlDependency,
-      key: kQuartoHtmlDependency,
-      quarto: {
-        defaults: "",
-        functions: "",
-        mixins: "",
-        rules: quartoGlobalCssVariableRules(),
-      },
-    });
-  }
-
-  // header includes
-  const includeInHeader: string[] = [];
-
-  // hypothesis
-  if (options.hypothesis) {
-    const hypothesisHeader = sessionTempFile({ suffix: ".html" });
-    Deno.writeTextFileSync(
-      hypothesisHeader,
-      renderEjs(
-        formatResourcePath("html", join("hypothesis", "hypothesis.ejs")),
-        { hypothesis: options.hypothesis },
-      ),
-    );
-    includeInHeader.push(hypothesisHeader);
-  }
-
-  // after body
-  const includeAfterBody: string[] = [];
-
-  // quarto html helpers
-  if (quartoHtmlRequired) {
-    // html orchestration script
-    const quartoHtmlScript = sessionTempFile();
-    Deno.writeTextFileSync(
-      quartoHtmlScript,
-      renderEjs(
-        formatResourcePath("html", join("templates", "quarto-html.ejs")),
-        options,
-      ),
-    );
-    includeAfterBody.push(quartoHtmlScript);
-  }
-
-  // utterances
-  if (options.utterances) {
-    if (typeof (options.utterances) !== "object") {
-      throw new Error("Invalid utterances configuration (must provide a repo");
-    }
-    const utterances = options.utterances as Record<string, string>;
-    if (!utterances["repo"]) {
-      throw new Error("Invalid utterances coniguration (must provide a repo)");
-    }
-    utterances["issue-term"] = utterances["issue-term"] || "pathname";
-    utterances["theme"] = utterances["theme"] || "github-light";
-    const utterancesAfterBody = sessionTempFile({ suffix: ".html" });
-    Deno.writeTextFileSync(
-      utterancesAfterBody,
-      renderEjs(
-        formatResourcePath("html", join("utterances", "utterances.ejs")),
-        { utterances },
-      ),
-    );
-    includeAfterBody.push(utterancesAfterBody);
-  }
-
-  // return extras
-  dependencies.push({
-    name: kQuartoHtmlDependency,
-    scripts,
-    stylesheets,
-  });
-  return {
-    [kIncludeInHeader]: includeInHeader,
-    [kIncludeAfterBody]: includeAfterBody,
-    html: {
-      [kDependencies]: dependencies,
-      [kSassBundles]: sassBundles,
-      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format)],
-    },
-  };
 }
 
 function pandocExtras(format: Format) {

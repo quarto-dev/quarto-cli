@@ -98,6 +98,7 @@ import {
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
 export const kHtmlPostprocessors = "html-postprocessors";
+export const kTemplatePatches = "template-patches";
 export const kBodyEnvelope = "body-envelope";
 export const kTextHighlightingMode = "text-highlighting-mode";
 export const kQuartoCssVariables = "css-variables";
@@ -154,6 +155,7 @@ export interface SassBundle {
 }
 
 export interface FormatExtras {
+  args?: string[];
   pandoc?: FormatPandoc;
   metadata?: Metadata;
   [kTocTitle]?: string;
@@ -169,6 +171,7 @@ export interface FormatExtras {
     [kDependencies]?: FormatDependency[];
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
+    [kTemplatePatches]?: Array<(template: string) => string>;
     [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
     [kTextHighlightingMode]?: "light" | "dark" | "none" | undefined;
     [kQuartoCssVariables]?: string[];
@@ -188,6 +191,7 @@ export interface Format {
     input: string,
     flags: PandocFlags,
     format: Format,
+    libDir: string,
   ) => Promise<FormatExtras>;
   extensions?: Record<string, unknown>;
 }

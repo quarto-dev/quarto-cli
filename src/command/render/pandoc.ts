@@ -31,6 +31,7 @@ import {
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
+  kTemplatePatches,
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import { isHtmlOutput, isLatexOutput } from "../../config/format.ts";
@@ -54,7 +55,7 @@ import {
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
-import { removePandocArgs } from "./flags.ts";
+import { havePandocArg, removePandocArgs } from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
@@ -78,6 +79,7 @@ import {
   kPageTitle,
   kQuartoVarsKey,
   kResources,
+  kTemplate,
   kTitle,
   kTitlePrefix,
   kTocTitle,
@@ -102,6 +104,7 @@ import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
+import { patchHtmlTemplate } from "./output.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -174,6 +177,7 @@ export async function runPandoc(
         options.source,
         options.flags || {},
         options.format,
+        options.libDir,
       ))
       : {};
 
@@ -223,6 +227,12 @@ export async function runPandoc(
       );
     }
 
+    // merge args
+    if (extras.args) {
+      args.push(...extras.args);
+      printArgs.push(...extras.args);
+    }
+
     // merge pandoc
     if (extras.pandoc) {
       allDefaults = mergeConfigs(extras.pandoc, allDefaults);
@@ -243,6 +253,18 @@ export async function runPandoc(
       );
       printMetadata = mergeConfigs(extras.metadata, printMetadata);
       cleanMetadataForPrinting(printMetadata);
+    }
+
+    // patch template (if its a built-in pandoc template)
+    if (!allDefaults[kTemplate] && !havePandocArg(args, "--template")) {
+      if (allDefaults.to && isHtmlOutput(allDefaults.to)) {
+        allDefaults[kTemplate] = await patchHtmlTemplate(
+          allDefaults.to,
+          options.format,
+          extras.html?.[kTemplatePatches],
+          options.flags,
+        );
+      }
     }
 
     // more cleanup
