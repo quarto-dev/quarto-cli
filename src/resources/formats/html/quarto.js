@@ -107,6 +107,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const manageSidebarVisiblity = (el, placeholderDescriptor) => {
     let isVisible = true;
 
+    const elBackground = window
+      .getComputedStyle(el, null)
+      .getPropertyValue("background");
     return (hiddenRegions) => {
       if (el === null) {
         return;
@@ -153,7 +156,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             toggleContainer.classList.add("quarto-sidebar-toggle");
             toggleContainer.classList.add("headroom-target"); // Marks this to be managed by headeroom
             toggleContainer.id = placeholderDescriptor.id;
-            toggleContainer.style.background = el.style.background;
             toggleContainer.style.position = "fixed";
 
             const toggleIcon = window.document.createElement("i");
@@ -171,6 +173,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             toggleContainer.append(toggleTitle);
 
             const toggleContents = window.document.createElement("div");
+            toggleContents.style.background = elBackground;
             toggleContents.classList = el.classList;
             toggleContents.classList.add("zindex-modal");
             toggleContents.classList.add("quarto-sidebar-toggle-contents");

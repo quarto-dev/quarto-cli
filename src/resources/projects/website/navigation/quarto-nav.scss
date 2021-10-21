@@ -277,7 +277,7 @@ $sidebar-hover-color: rgba($sidebar-hl, 0.8) !default;
 $sidebar-active-color: $sidebar-hl !default;
 $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
-.sidebar.sidebar-navigation .sidebar.sidebar-navigation {
+.sidebar.sidebar-navigation {
   color: $sidebar-color;
   .sidebar-item {
     color: $sidebar-color;
