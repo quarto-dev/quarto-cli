@@ -8,7 +8,12 @@
 import { join } from "path/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { kFrom, kIncludeInHeader, kTheme } from "../../config/constants.ts";
+import {
+  kFrom,
+  kIncludeInHeader,
+  kLinkCitations,
+  kTheme,
+} from "../../config/constants.ts";
 
 import {
   Format,
@@ -25,6 +30,7 @@ import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
 import { revealPluginExtras } from "./format-reveal-plugin.ts";
+import { kCodeCopy } from "../html/format-html-shared.ts";
 
 const kRevealJsUrl = "revealjs-url";
 
@@ -129,13 +135,19 @@ export function revealjsFormat() {
         // start with html format extras and our standard  & plugin extras
         const extras = mergeConfigs(
           // extras for all html formats
-          htmlFormatExtras(format),
+          htmlFormatExtras(format, {
+            copyCode: true,
+            hoverCitations: true,
+            hoverFootnotes: true,
+          }),
           // default extras for reveal
           {
             args: [],
             pandoc: {},
-            metadata: {} as Metadata,
-            [kIncludeInHeader]: [],
+            metadata: {
+              [kLinkCitations]: true,
+            } as Metadata,
+            [kIncludeInHeader]: [formatResourcePath("revealjs", "styles.html")],
             html: {
               [kTemplatePatches]: [revealRequireJsPatch],
               [kHtmlPostprocessors]: [
@@ -186,8 +198,8 @@ export function revealjsFormat() {
               center: false,
               controlsTutorial: false,
               hash: true,
-              fragmentInURL: false,
               hashOneBasedIndex: true,
+              fragmentInURL: false,
               transition: "none",
               backgroundTransition: "none",
             }),
@@ -252,6 +264,33 @@ function revealInitializeHtmlPostprocessor() {
           "slideNumber: '$1'",
         );
       }
+    }
+
+    // disable footnote and citation links (we use a popup for them)
+    const notes = doc.querySelectorAll('a[role="doc-noteref"]');
+    for (const note of notes) {
+      const noteEl = note as Element;
+      noteEl.setAttribute("onclick", "return false;");
+    }
+    const cites = doc.querySelectorAll('a[role="doc-biblioref"');
+    for (const cite of cites) {
+      const citeEl = cite as Element;
+      citeEl.setAttribute("onclick", "return false;");
+    }
+
+    // create hidden reveal-references div at the bottom of the document
+    // and move pandoc generated footnotes and bibliography into it
+    // (it will be used as the content source by reference popups)
+    const referencesDiv = doc.createElement("div");
+    referencesDiv.classList.add("reveal-references");
+    doc.body.appendChild(referencesDiv);
+    const endnotes = doc.querySelector('section[role="doc-endnotes"]');
+    if (endnotes) {
+      referencesDiv.appendChild(endnotes);
+    }
+    const refs = doc.querySelector("#refs");
+    if (refs) {
+      referencesDiv.appendChild(refs);
     }
 
     return Promise.resolve([]);

@@ -214,6 +214,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       content: contentFn,
       maxWidth: 500,
       delay: 100,
+      arrow: false,
       interactive: true,
       interactiveBorder: 10,
       theme: '<%= tippyTheme %>',
@@ -230,7 +231,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     tippyHover(ref, function() {
       let href = ref.getAttribute('href');
       try { href = new URL(href).hash; } catch {}
-      const id = href.replace(/^#/, "");
+      const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
     });
