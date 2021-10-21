@@ -194,12 +194,7 @@ export function revealjsFormat() {
 
         // provide alternate defaults unless the user requests revealjs defaults
         if (format.metadata[kRevealJsConfig] !== "default") {
-          // quarto style tweaks
-          extras?.[kIncludeInHeader]?.push(
-            formatResourcePath("revealjs", "styles-quarto.html"),
-          );
-
-          // other defaults
+          // opinionated version of reveal config defaults
           extras.metadata = {
             ...extras.metadata,
             ...revealMetadataFilter({
