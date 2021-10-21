@@ -30,9 +30,9 @@ import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
 import { revealPluginExtras } from "./format-reveal-plugin.ts";
-import { kCodeCopy } from "../html/format-html-shared.ts";
 
 const kRevealJsUrl = "revealjs-url";
+const kRevealJsConfig = "revealjs-config";
 
 const kRevealOptions = [
   "controls",
@@ -161,33 +161,13 @@ export function revealjsFormat() {
 
         // if there is no revealjs-url provided then use our embedded copy
         if (format.metadata[kRevealJsUrl] === undefined) {
-          const revealDir = join(libDir, "reveal");
+          const revealDir = join(libDir, "revealjs");
           copyMinimal(formatResourcePath("revealjs", "reveal"), revealDir);
           extras.metadata![kRevealJsUrl] = pathWithForwardSlashes(revealDir);
         }
 
-        // provide alternate defaults when no explicit reveal theme is provided
-        const dark = format.metadata[kTheme] &&
-          kRevealDarkThemes.includes(format.metadata[kTheme] as string);
-        if (
-          format.metadata[kTheme] === undefined ||
-          !kRevealThemes.includes(format.metadata[kTheme] as string)
-        ) {
-          // hash-type number
-          if (
-            format.metadata[kHashType] === undefined ||
-            format.metadata[kHashType] === "number"
-          ) {
-            extras.pandoc = {
-              ...extras.pandoc,
-              from: pandocFormatWith(
-                format.pandoc[kFrom] || "markdown",
-                "",
-                "-auto_identifiers",
-              ),
-            };
-          }
-
+        // provide alternate defaults unless the user requests revealjs defaults
+        if (format.metadata[kRevealJsConfig] !== "default") {
           // other defaults
           extras.metadata = {
             ...extras.metadata,
@@ -207,7 +187,22 @@ export function revealjsFormat() {
         }
 
         // provide default highlighting style
+        const dark = format.metadata[kTheme] &&
+          kRevealDarkThemes.includes(format.metadata[kTheme] as string);
         extras.html![kTextHighlightingMode] = dark ? "dark" : "light";
+
+        // allow hash-type: number (as shorthand for -auto_identifiers)
+        // hash-type number
+        if (format.metadata[kHashType] !== "id") {
+          extras.pandoc = {
+            ...extras.pandoc,
+            from: pandocFormatWith(
+              format.pandoc[kFrom] || "markdown",
+              "",
+              "-auto_identifiers",
+            ),
+          };
+        }
 
         // return extras
         return extras;
