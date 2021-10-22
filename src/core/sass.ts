@@ -11,7 +11,7 @@ import { join } from "path/mod.ts";
 import { quartoCacheDir } from "./appdirs.ts";
 import { sessionTempFile } from "./temp.ts";
 
-import { SassBundle, SassLayer } from "../config/types.ts";
+import { SassBundleLayers, SassLayer } from "../config/types.ts";
 import { dartCompile } from "./dart-sass.ts";
 
 import { ld } from "lodash/mod.ts";
@@ -42,7 +42,10 @@ export function outputVariable(
   return `$${variable.name}: ${variable.value}${isDefault ? " !default" : ""};`;
 }
 
-export async function compileSass(bundles: SassBundle[], minified = true) {
+export async function compileSass(
+  bundles: SassBundleLayers[],
+  minified = true,
+) {
   const imports = ld.uniq(bundles.flatMap((bundle) => {
     return [
       ...(bundle.user?.use || []),

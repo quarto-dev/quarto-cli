@@ -1,0 +1,77 @@
+/*-- scss:defaults --*/
+
+// Background of the presentation
+$backgroundColor: #fff !default;
+
+// Primary/body text
+$mainFont: "Lato", sans-serif !default;
+$mainFontSize: 42px !default;
+$mainColor: #222 !default;
+
+// Vertical spacing between blocks of text
+$blockMargin: 16px !default;
+
+// Headings
+$headingMargin: 0 0 $blockMargin 0 !default;
+$headingFont: $mainFont !default;
+$headingColor: $mainColor !default;
+$headingLineHeight: 1.2 !default;
+$headingLetterSpacing: normal !default;
+$headingTextTransform: none !default;
+$headingTextShadow: none !default;
+$headingFontWeight: 400 !default;
+$heading1TextShadow: $headingTextShadow !default;
+
+$heading1Size: 2.5em !default;
+$heading2Size: 1.6em !default;
+$heading3Size: 1.3em !default;
+$heading4Size: 1em !default;
+
+$codeFont: monospace !default;
+
+$code-block-theme-dark-threshhold: 40% !default;
+
+// Links and actions
+$linkColor: #2a76dd !default;
+$linkColorHover: lighten($linkColor, 15%) !default;
+
+// Text selection
+$selectionBackgroundColor: lighten($linkColor, 25%) !default;
+$selectionColor: #fff !default;
+
+/*-- scss:mixins --*/
+
+// Generates the presentation background, can be overridden
+// to return a background image or gradient
+@mixin bodyBackground() {
+  background: $backgroundColor;
+}
+
+/*-- scss:rules --*/
+
+// Change text colors against dark slide backgrounds
+@include dark-bg-text-color(#fff);
+
+#title-slide {
+  text-align: center;
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal pre {
+  width: 95%;
+  box-shadow: none;
+  border: 1px solid lighten($mainColor, 70%);
+  margin: $blockMargin 0;
+  padding: 5px;
+}
+
+// This is a sentinel value that renderers can use to determine
+// whether the theme is dark or light
+@if (color.blackness($backgroundColor) > $code-block-theme-dark-threshhold) {
+  /*! dark */
+} @else {
+  /*! light */
+}

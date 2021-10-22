@@ -139,13 +139,16 @@ export interface SassLayer {
   rules: string;
 }
 
-export interface SassBundle {
+export interface SassBundleLayers {
   key: string;
-  dependency: string;
   user?: SassLayer;
   quarto?: SassLayer;
   framework?: SassLayer;
   loadPaths?: string[];
+}
+
+export interface SassBundle extends SassBundleLayers {
+  dependency: string;
   dark?: {
     user?: SassLayer;
     quarto?: SassLayer;

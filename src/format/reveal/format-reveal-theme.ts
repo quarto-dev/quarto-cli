@@ -13,15 +13,17 @@ import {
   Format,
   kTextHighlightingMode,
   Metadata,
+  SassBundleLayers,
   SassLayer,
 } from "../../config/types.ts";
 
 import { isFileRef } from "../../core/http.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { compileWithCache } from "../../core/sass.ts";
+import { compileSass, sassLayerFile } from "../../core/sass.ts";
 
 import { kRevealJsUrl } from "./format-reveal.ts";
+import { cssHasDarkModeSentinel } from "../../command/render/pandoc-html.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -94,22 +96,32 @@ export async function revealTheme(format: Format, libDir: string) {
   if (!existsSync(theme)) {
     throw new Error(`Theme file '${theme}' not found`);
   }
+
   const cssThemeDir = join(revealDir, "css", "theme");
-  const cssSourceDir = join(cssThemeDir, "source");
-  const cssTemplateDir = join(cssThemeDir, "template");
-  const themeScss = Deno.readTextFileSync(theme);
-  const scss = await compileWithCache(themeScss, [
-    cssSourceDir,
-    cssTemplateDir,
-  ]);
+  const loadPaths = [
+    join(cssThemeDir, "source"),
+    join(cssThemeDir, "template"),
+  ];
+
+  // create sass bundle layers
+  const bundleLayers: SassBundleLayers = {
+    key: "reveal-theme",
+    user: themeLayer(theme),
+    quarto: quartoLayer(),
+    framework: revealFrameworkLayer(revealDir),
+    loadPaths,
+  };
+
+  // compile sass
+  const css = await compileSass([bundleLayers]);
   Deno.copyFileSync(
-    scss,
+    css,
     join(revealDir, "dist", "theme", "quarto.css"),
   );
   metadata[kTheme] = "quarto";
 
-  // TODO: sniff out highlight mode
-  const highlightingMode: "light" | "dark" = "light";
+  const highlightingMode: "light" | "dark" =
+    cssHasDarkModeSentinel(Deno.readTextFileSync(css)) ? "dark" : "light";
 
   // return
   return {
@@ -136,9 +148,19 @@ function revealFrameworkLayer(revealDir: string): SassLayer {
     );
   };
   return {
-    defaults: readTemplate("settings.scss"),
+    defaults: "",
     functions: "",
     mixins: readTemplate("mixins.scss"),
     rules: readTemplate("theme.scss"),
   };
+}
+
+function quartoLayer(): SassLayer {
+  const layer = sassLayerFile(formatResourcePath("revealjs", "quarto.scss"));
+  layer.use = ["sass:color", "sass:map", "sass:math"];
+  return layer;
+}
+
+function themeLayer(theme: string): SassLayer {
+  return sassLayerFile(theme);
 }
