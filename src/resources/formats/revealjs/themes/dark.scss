@@ -1,0 +1,9 @@
+/*-- scss:defaults --*/
+
+$mainColor: #fff !default;
+$backgroundColor: #191919 !default;
+$linkColor: #42affa;
+
+/*-- scss:rules --*/
+
+@include light-bg-text-color(#222);

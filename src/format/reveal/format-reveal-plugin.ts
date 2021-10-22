@@ -21,7 +21,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { readYaml } from "../../core/yaml.ts";
 
-const kRevealPlugins = "reveal-plugins";
+const kRevealjsPlugins = "revealjs-plugins";
 
 interface RevealPluginBundle {
   plugin: string;
@@ -38,7 +38,7 @@ interface RevealPlugin {
 
 export function revealPluginExtras(format: Format, libDir: string) {
   // directory to copy plugins into
-  const pluginsDir = join(libDir, "reveal-plugins");
+  const pluginsDir = join(libDir, "revealjs-plugins");
 
   // accumlate content to inject
   const names: string[] = [];
@@ -50,9 +50,9 @@ export function revealPluginExtras(format: Format, libDir: string) {
   const pluginBundles: Array<RevealPluginBundle | string> = [{
     plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
   }];
-  if (Array.isArray(format.metadata[kRevealPlugins])) {
+  if (Array.isArray(format.metadata[kRevealjsPlugins])) {
     pluginBundles.push(
-      ...(format.metadata[kRevealPlugins] as Array<
+      ...(format.metadata[kRevealjsPlugins] as Array<
         RevealPluginBundle | string
       >),
     );

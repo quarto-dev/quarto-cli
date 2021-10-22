@@ -5,10 +5,12 @@
 *
 */
 
-import { join } from "path/mod.ts";
-
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { kFrom, kIncludeInHeader, kTheme } from "../../config/constants.ts";
+import {
+  kFrom,
+  kIncludeInHeader,
+  kLinkCitations,
+} from "../../config/constants.ts";
 
 import {
   Format,
@@ -22,11 +24,9 @@ import { camelToKebab, kebabToCamel, mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
-import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
 import { revealPluginExtras } from "./format-reveal-plugin.ts";
-
-const kRevealJsUrl = "revealjs-url";
+import { revealTheme } from "./format-reveal-theme.ts";
 
 const kRevealOptions = [
   "controls",
@@ -83,27 +83,6 @@ const kRevealOptions = [
   "mathjax",
 ];
 
-const kRevealLightThemes = [
-  "white",
-  "beige",
-  "sky",
-  "serif",
-  "simple",
-  "solarized",
-];
-
-const kRevealDarkThemes = [
-  "black",
-  "league",
-  "night",
-  "blood",
-  "moon",
-];
-
-const kRevealThemes = [...kRevealLightThemes, ...kRevealDarkThemes];
-
-const kHashType = "hash-type";
-
 const kRevealKebabOptions = kRevealOptions.reduce(
   (options: string[], option: string) => {
     const kebab = camelToKebab(option);
@@ -115,12 +94,17 @@ const kRevealKebabOptions = kRevealOptions.reduce(
   [],
 );
 
+export const kRevealJsUrl = "revealjs-url";
+export const kRevealJsConfig = "revealjs-config";
+
+export const kHashType = "hash-type";
+
 export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
       metadataFilter: revealMetadataFilter,
-      formatExtras: (
+      formatExtras: async (
         _input: string,
         _flags: PandocFlags,
         format: Format,
@@ -129,13 +113,20 @@ export function revealjsFormat() {
         // start with html format extras and our standard  & plugin extras
         const extras = mergeConfigs(
           // extras for all html formats
-          htmlFormatExtras(format),
+          htmlFormatExtras(format, {
+            copyCode: true,
+            hoverCitations: true,
+            hoverFootnotes: true,
+          }),
           // default extras for reveal
           {
             args: [],
             pandoc: {},
-            metadata: {} as Metadata,
-            [kIncludeInHeader]: [],
+            metadata: {
+              [kLinkCitations]: true,
+            } as Metadata,
+            metadataOverride: {} as Metadata,
+            [kIncludeInHeader]: [formatResourcePath("revealjs", "styles.html")],
             html: {
               [kTemplatePatches]: [revealRequireJsPatch],
               [kHtmlPostprocessors]: [
@@ -147,55 +138,45 @@ export function revealjsFormat() {
           revealPluginExtras(format, libDir),
         );
 
-        // if there is no revealjs-url provided then use our embedded copy
-        if (format.metadata[kRevealJsUrl] === undefined) {
-          const revealDir = join(libDir, "reveal");
-          copyMinimal(formatResourcePath("revealjs", "reveal"), revealDir);
-          extras.metadata![kRevealJsUrl] = pathWithForwardSlashes(revealDir);
-        }
+        // get theme info (including text highlighing mode)
+        const theme = await revealTheme(format, libDir);
+        extras.metadataOverride = {
+          ...extras.metadataOverride,
+          ...theme.metadata,
+        };
+        extras.html![kTextHighlightingMode] = theme[kTextHighlightingMode];
 
-        // provide alternate defaults when no explicit reveal theme is provided
-        const dark = format.metadata[kTheme] &&
-          kRevealDarkThemes.includes(format.metadata[kTheme] as string);
-        if (
-          format.metadata[kTheme] === undefined ||
-          !kRevealThemes.includes(format.metadata[kTheme] as string)
-        ) {
-          // hash-type number
-          if (
-            format.metadata[kHashType] === undefined ||
-            format.metadata[kHashType] === "number"
-          ) {
-            extras.pandoc = {
-              ...extras.pandoc,
-              from: pandocFormatWith(
-                format.pandoc[kFrom] || "markdown",
-                "",
-                "-auto_identifiers",
-              ),
-            };
-          }
-
-          // other defaults
+        // provide alternate defaults unless the user requests revealjs defaults
+        if (format.metadata[kRevealJsConfig] !== "default") {
+          // opinionated version of reveal config defaults
           extras.metadata = {
             ...extras.metadata,
             ...revealMetadataFilter({
-              theme: "white",
               width: 1050,
               height: 700,
+              margin: 0.1,
               center: false,
               controlsTutorial: false,
               hash: true,
-              fragmentInURL: false,
               hashOneBasedIndex: true,
+              fragmentInURL: false,
               transition: "none",
               backgroundTransition: "none",
             }),
           };
         }
 
-        // provide default highlighting style
-        extras.html![kTextHighlightingMode] = dark ? "dark" : "light";
+        // hash-type: number (as shorthand for -auto_identifiers)
+        if (format.metadata[kHashType] !== "id") {
+          extras.pandoc = {
+            ...extras.pandoc,
+            from: pandocFormatWith(
+              format.pandoc[kFrom] || "markdown",
+              "",
+              "-auto_identifiers",
+            ),
+          };
+        }
 
         // return extras
         return extras;
@@ -252,6 +233,33 @@ function revealInitializeHtmlPostprocessor() {
           "slideNumber: '$1'",
         );
       }
+    }
+
+    // disable footnote and citation links (we use a popup for them)
+    const notes = doc.querySelectorAll('a[role="doc-noteref"]');
+    for (const note of notes) {
+      const noteEl = note as Element;
+      noteEl.setAttribute("onclick", "return false;");
+    }
+    const cites = doc.querySelectorAll('a[role="doc-biblioref"');
+    for (const cite of cites) {
+      const citeEl = cite as Element;
+      citeEl.setAttribute("onclick", "return false;");
+    }
+
+    // create hidden reveal-references div at the bottom of the document
+    // and move pandoc generated footnotes and bibliography into it
+    // (it will be used as the content source by reference popups)
+    const referencesDiv = doc.createElement("div");
+    referencesDiv.classList.add("reveal-references");
+    doc.body.appendChild(referencesDiv);
+    const endnotes = doc.querySelector('section[role="doc-endnotes"]');
+    if (endnotes) {
+      referencesDiv.appendChild(endnotes);
+    }
+    const refs = doc.querySelector("#refs");
+    if (refs) {
+      referencesDiv.appendChild(refs);
     }
 
     return Promise.resolve([]);

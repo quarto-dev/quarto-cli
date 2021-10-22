@@ -90,12 +90,29 @@ export function htmlFormat(
 }
 
 export const kQuartoHtmlDependency = "quarto-html";
-export function htmlFormatExtras(format: Format): FormatExtras {
-  // lists of scripts and ejs data for the orchestration script
 
+export interface HtmlFormatFeatureDefaults {
+  copyCode?: boolean;
+  anchors?: boolean;
+  hoverCitations?: boolean;
+  hoverFootnotes?: boolean;
+}
+
+export function htmlFormatExtras(
+  format: Format,
+  featureDefaults?: HtmlFormatFeatureDefaults,
+): FormatExtras {
+  // note whether we are targeting bootstrap
+  const bootstrap = formatHasBootstrap(format);
+
+  // populate feature defaults if none provided
+  if (!featureDefaults) {
+    featureDefaults = htmlFormatFeatureDefaults(bootstrap);
+  }
+
+  // lists of scripts and ejs data for the orchestration script
   const scripts: DependencyFile[] = [];
   const stylesheets: DependencyFile[] = [];
-  const bootstrap = formatHasBootstrap(format);
   const sassBundles: SassBundle[] = [];
   const dependencies: FormatDependency[] = [];
 
@@ -110,15 +127,26 @@ export function htmlFormatExtras(format: Format): FormatExtras {
     }
     : {};
   options.codeLink = format.metadata[kCodeLink] || false;
-  if (bootstrap) {
+
+  // apply defaults
+  if (featureDefaults.copyCode) {
     options.copyCode = format.metadata[kCodeCopy] !== false;
-    options.anchors = format.metadata[kAnchorSections] !== false;
-    options.hoverCitations = format.metadata[kHoverCitations] !== false;
-    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
   } else {
     options.copyCode = format.metadata[kCodeCopy] || false;
+  }
+  if (featureDefaults.anchors) {
+    options.anchors = format.metadata[kAnchorSections] !== false;
+  } else {
     options.anchors = format.metadata[kAnchorSections] || false;
+  }
+  if (featureDefaults.hoverCitations) {
+    options.hoverCitations = format.metadata[kHoverCitations] !== false;
+  } else {
     options.hoverCitations = format.metadata[kHoverCitations] || false;
+  }
+  if (featureDefaults.hoverFootnotes) {
+    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
+  } else {
     options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
   }
   options.codeTools = formatHasCodeTools(format);
@@ -287,7 +315,7 @@ export function htmlFormatExtras(format: Format): FormatExtras {
     html: {
       [kDependencies]: dependencies,
       [kSassBundles]: sassBundles,
-      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format)],
+      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format, featureDefaults)],
     },
   };
 }
@@ -299,16 +327,44 @@ function htmlFormatFilterParams(format: Format) {
   };
 }
 
-function htmlFormatPostprocessor(format: Format) {
+function htmlFormatFeatureDefaults(
+  bootstrap: boolean,
+): HtmlFormatFeatureDefaults {
+  if (bootstrap) {
+    return {
+      copyCode: true,
+      anchors: true,
+      hoverCitations: true,
+      hoverFootnotes: true,
+    };
+  } else {
+    return {
+      copyCode: false,
+      anchors: false,
+      hoverCitations: false,
+      hoverFootnotes: false,
+    };
+  }
+}
+
+function htmlFormatPostprocessor(
+  format: Format,
+  featureDefaults?: HtmlFormatFeatureDefaults,
+) {
   // do we have haveBootstrap
   const haveBootstrap = formatHasBootstrap(format);
 
+  // get feature defaults
+  if (!featureDefaults) {
+    featureDefaults = htmlFormatFeatureDefaults(haveBootstrap);
+  }
+
   // read options
-  const codeCopy = haveBootstrap
+  const codeCopy = featureDefaults.copyCode
     ? format.metadata[kCodeCopy] !== false
     : format.metadata[kCodeCopy] || false;
 
-  const anchors = haveBootstrap
+  const anchors = featureDefaults.anchors
     ? format.metadata[kAnchorSections] !== false
     : format.metadata[kAnchorSections] || false;
 

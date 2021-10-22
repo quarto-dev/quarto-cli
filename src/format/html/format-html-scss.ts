@@ -15,14 +15,13 @@ import {
   asCssNumber,
   asCssSize,
 } from "../../core/css.ts";
+import { mergeLayers, sassLayer } from "../../core/sass.ts";
 
 import { outputVariable, SassVariable, sassVariable } from "../../core/sass.ts";
 
 import { Format, SassBundle, SassLayer } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
-
-import { mergeLayers, sassLayer } from "../../command/render/sass.ts";
 
 import {
   kSite,
@@ -100,7 +99,7 @@ function layerQuartoScss(
       mixins: "",
       rules: Deno.readTextFileSync(boostrapRules),
     },
-    loadPath: dirname(boostrapRules),
+    loadPaths: [dirname(boostrapRules)],
     dark: darkLayer
       ? {
         user: darkLayer,
