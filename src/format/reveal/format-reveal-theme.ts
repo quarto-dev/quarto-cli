@@ -9,7 +9,12 @@ import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { kTheme } from "../../config/constants.ts";
-import { Format, kTextHighlightingMode, Metadata } from "../../config/types.ts";
+import {
+  Format,
+  kTextHighlightingMode,
+  Metadata,
+  SassLayer,
+} from "../../config/types.ts";
 
 import { isFileRef } from "../../core/http.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
@@ -59,10 +64,10 @@ export async function revealTheme(format: Format, libDir: string) {
 
   // are we using a reveal base theme? if we are then just return
   // as-is with highlighting mode detected
-  const defaultTheme = format.metadata?.[kTheme] === undefined;
-  const revealBaseTheme =
-    (!defaultTheme &&
-      kRevealThemes.includes(format.metadata?.[kTheme] as string)) ||
+  const defaultTheme = (format.metadata?.[kTheme] === undefined ||
+    format.metadata?.[kTheme] === "default");
+  const revealBaseTheme = (!defaultTheme &&
+    kRevealThemes.includes(format.metadata?.[kTheme] as string)) ||
     (defaultTheme && !localReveal);
   if (revealBaseTheme) {
     return {
@@ -82,15 +87,17 @@ export async function revealTheme(format: Format, libDir: string) {
   }
 
   // theme is either user provided scss or quarto built-in scss
-  const themeFile = (format.metadata?.[kTheme] ||
-    formatResourcePath("revealjs", "theme.scss")) as string;
-  if (!existsSync(themeFile)) {
-    throw new Error(`Theme file '${themeFile}' not found`);
+  let theme = format.metadata?.[kTheme] as string | undefined || "default";
+  if (!existsSync(theme)) {
+    theme = formatResourcePath("revealjs", join("themes", `${theme}.scss`));
+  }
+  if (!existsSync(theme)) {
+    throw new Error(`Theme file '${theme}' not found`);
   }
   const cssThemeDir = join(revealDir, "css", "theme");
   const cssSourceDir = join(cssThemeDir, "source");
   const cssTemplateDir = join(cssThemeDir, "template");
-  const themeScss = Deno.readTextFileSync(themeFile);
+  const themeScss = Deno.readTextFileSync(theme);
   const scss = await compileWithCache(themeScss, [
     cssSourceDir,
     cssTemplateDir,
@@ -101,8 +108,10 @@ export async function revealTheme(format: Format, libDir: string) {
   );
   metadata[kTheme] = "quarto";
 
-  // return
+  // TODO: sniff out highlight mode
   const highlightingMode: "light" | "dark" = "light";
+
+  // return
   return {
     metadata,
     [kTextHighlightingMode]: highlightingMode,
@@ -120,8 +129,16 @@ function revealBaseThemeHighlightingMode(theme?: unknown) {
   }
 }
 
-/*
-function revealFrameworkLayer(revealDir: string) : SassLayer {
-  const
+function revealFrameworkLayer(revealDir: string): SassLayer {
+  const readTemplate = (template: string) => {
+    return Deno.readTextFileSync(
+      join(revealDir, "css", "theme", "template", template),
+    );
+  };
+  return {
+    defaults: readTemplate("settings.scss"),
+    functions: "",
+    mixins: readTemplate("mixins.scss"),
+    rules: readTemplate("theme.scss"),
+  };
 }
-*/
