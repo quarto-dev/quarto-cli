@@ -122,6 +122,7 @@ $selectionColor: #fff !default;
   box-shadow: none;
   background-color: $code-block-bg;
   border: $border-width solid $code-block-border-color;
+  border-radius: $border-radius;
   margin: $blockMargin 0;
   padding: 6px 9px;
 }
