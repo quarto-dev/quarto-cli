@@ -32,6 +32,7 @@ import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
 import { revealPluginExtras } from "./format-reveal-plugin.ts";
 import { compileWithCache } from "../../command/render/sass.ts";
+import { isFileRef } from "../../core/http.ts";
 
 const kRevealJsUrl = "revealjs-url";
 const kRevealJsConfig = "revealjs-config";
@@ -163,11 +164,16 @@ export function revealjsFormat() {
         );
 
         // if there is no revealjs-url provided then use our embedded copy
-        if (format.metadata[kRevealJsUrl] === undefined) {
+        const revealJsUrl = format.metadata[kRevealJsUrl] as string | undefined;
+        if ((revealJsUrl === undefined) || isFileRef(revealJsUrl)) {
           // copy reveal dir
+          const revealSrcDir = revealJsUrl ||
+            formatResourcePath("revealjs", "reveal");
           const revealDir = join(libDir, "revealjs");
-          copyMinimal(formatResourcePath("revealjs", "reveal"), revealDir);
-          extras.metadata![kRevealJsUrl] = pathWithForwardSlashes(revealDir);
+          copyMinimal(revealSrcDir, revealDir);
+          extras.metadataOverride![kRevealJsUrl] = pathWithForwardSlashes(
+            revealDir,
+          );
 
           // theme could be a reveal theme name or an sccs file
           // (if no theme is specified then use our built in theme)
@@ -200,6 +206,7 @@ export function revealjsFormat() {
             ...revealMetadataFilter({
               width: 1050,
               height: 700,
+              margin: 0.1,
               center: false,
               controlsTutorial: false,
               hash: true,
