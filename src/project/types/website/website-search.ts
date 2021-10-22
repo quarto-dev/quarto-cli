@@ -30,7 +30,7 @@ import { projectOffset } from "../../project-shared.ts";
 
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websiteConfig, websitePath, websiteTitle } from "./website-config.ts";
-import { sassLayer } from "../../../command/render/sass.ts";
+import { sassLayer } from "../../../core/sass.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
 import { warning } from "log/mod.ts";
 import {

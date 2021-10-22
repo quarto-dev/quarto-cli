@@ -14,8 +14,7 @@ import { Format, kTextHighlightingMode, Metadata } from "../../config/types.ts";
 import { isFileRef } from "../../core/http.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-
-import { compileWithCache } from "../../command/render/sass.ts";
+import { compileWithCache } from "../../core/sass.ts";
 
 import { kRevealJsUrl } from "./format-reveal.ts";
 

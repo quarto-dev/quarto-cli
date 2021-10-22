@@ -16,6 +16,7 @@ import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId, getDecodedAttribute } from "../../../core/html.ts";
+import { sassLayer } from "../../../core/sass.ts";
 
 import {
   Format,
@@ -97,7 +98,6 @@ import {
   kTocTitle,
 } from "../../../config/constants.ts";
 import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
-import { sassLayer } from "../../../command/render/sass.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,

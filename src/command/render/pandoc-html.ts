@@ -24,10 +24,9 @@ import { kDefaultHighlightStyle } from "./types.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { textHighlightThemePath } from "../../core/resources.ts";
+import { compileSass } from "../../core/sass.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
-
-import { compileSass } from "./sass.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
