@@ -102,7 +102,6 @@ figure > figcaption {
 
 // sidebar handling
 .quarto-sidebar-toggle {
-  background: $navbar-bg;
   border-color: $border-color;
   border-bottom-left-radius: $border-radius;
   border-bottom-right-radius: $border-radius;
@@ -114,13 +113,32 @@ figure > figcaption {
 }
 
 .quarto-sidebar-toggle-title {
-  color: $navbar-fg;
   cursor: pointer;
   padding-bottom: 2px;
   margin-left: 0.25em;
   text-align: center;
   font-weight: 400;
   font-size: 0.775em;
+}
+
+#quarto-content.page-navbar {
+  .quarto-sidebar-toggle {
+    background: $navbar-bg;
+  }
+
+  .quarto-sidebar-toggle-title {
+    color: $navbar-fg;
+  }
+}
+
+#quarto-content:not(.page-navbar) {
+  .quarto-sidebar-toggle {
+    background: $body-bg;
+  }
+
+  .quarto-sidebar-toggle-title {
+    color: $body-color;
+  }
 }
 
 .quarto-sidebar-toggle-icon {

@@ -76,7 +76,7 @@
 <% if (nav.layout) { %>
 
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-<%- nav.layout %>">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-<%- nav.layout %><%- nav.navbar ? ' page-navbar': ''%>">
 
 <!-- sidebar -->
 <% if (nav.sidebar) { %>
