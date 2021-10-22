@@ -27,7 +27,7 @@ $presentation-heading-color: $body-color !default;
 $presentation-heading-line-height: 1.2 !default;
 $presentation-heading-text-transform: none !default;
 $presentation-heading-font-weight: 600 !default;
-$presentation-block-margin: 16px !default;
+$presentation-block-margin: 12px !default;
 $revealjs-font-size-root: $presentation-font-size-root !default;
 $revealjs-h1-font-size: $presentation-h1-font-size !default;
 $revealjs-h2-font-size: $presentation-h2-font-size !default;
@@ -39,6 +39,12 @@ $revealjs-heading-color: $presentation-heading-color !default;
 $revealjs-heading-line-height: $presentation-heading-line-height !default;
 $revealjs-heading-text-transform: $presentation-heading-text-transform !default;
 $revealjs-heading-font-weight: $presentation-heading-font-weight !default;
+
+// text alignment
+$presentation-slide-text-align: left !default;
+$presentation-title-slide-text-align: center !default;
+$reveal-slide-text-align: $presentation-slide-text-align !default;
+$reveal-title-slide-text-align: $presentation-title-slide-text-align !default;
 
 // code blocks
 $code-block-bg: $body-bg !default;
@@ -97,11 +103,11 @@ $selectionColor: #fff !default;
 @include dark-bg-text-color(#fff);
 
 #title-slide {
-  text-align: center;
+  text-align: $presentation-title-slide-text-align;
 }
 
 .reveal .slides {
-  text-align: left;
+  text-align: $reveal-slide-text-align;
 }
 
 .reveal pre {
@@ -110,7 +116,7 @@ $selectionColor: #fff !default;
   background-color: $code-block-bg;
   border: $border-width solid $code-block-border-color;
   margin: $blockMargin 0;
-  padding: 4px;
+  padding: 6px 9px;
 }
 
 .tippy-box[data-theme~="quarto-reveal"] {
