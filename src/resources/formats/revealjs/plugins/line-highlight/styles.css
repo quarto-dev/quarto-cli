@@ -19,3 +19,12 @@ Can be remove with next pandoc release > 2.14.2 */
     width: 100%;
     box-sizing: border-box;
 }
+
+.reveal pre.code-wrapper {
+    display: grid;
+}
+
+.reveal pre.code-wrapper>code {
+    grid-row: 1;
+    grid-column: 1;
+}
