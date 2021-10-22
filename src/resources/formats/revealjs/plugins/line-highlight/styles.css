@@ -5,7 +5,7 @@ Can be remove with next pandoc release > 2.14.2 */
     overflow: visible;
 }
 
-.reveal div.sourceCode.has-line-highlights pre code>span:not(.highlight-line) {
+.reveal div.sourceCode pre code.has-line-highlights>span:not(.highlight-line) {
     opacity: 0.4;
 }
 

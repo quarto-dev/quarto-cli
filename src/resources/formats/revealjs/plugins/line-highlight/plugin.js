@@ -8,58 +8,75 @@ window.QuartoLineHighlight = function() {
     }
 };
 
+const delimiters = {
+    step: '|',
+    line: ',',
+    lineRange: '-',
+};
+
 function initQuartoLineHighlight(Reveal) {
-    const delimiters = {
-        step: '|',
-        line: ',',
-        lineRange: '-',
-    };
 
     const divSourceCode = Reveal.getRevealElement().querySelectorAll('div.sourceCode');
 
     divSourceCode.forEach(el => {
         if (el.hasAttribute('data-code-line-numbers')) {
-            // highlightLines;
-            const highlightSteps = splitLineNumbers(el.getAttribute('data-code-line-numbers'), delimiters);
-            if (highlightSteps.length) {
-                // If we have at least one step, we generate fragments
-                if (highlightSteps > 1) {
-                    let fragmentIndex = null
-                    const codeBlock = el.querySelectorAll("pre code");
+            const codeLineAttr = el.getAttribute('data-code-line-numbers')
+            if (!isLinesSelector(codeLineAttr)) {
+                el.removeAttribute('data-code-line-numbers')
+            } else {
+                // highlightLines;
+                const highlightSteps = splitLineNumbers(codeLineAttr);
+                if (highlightSteps.length) {
+                    // If we have at least one step, we generate fragments
+                    /*                 if (highlightSteps > 1) {
+                                        let fragmentIndex = null
+                                        const codeBlock = el.querySelectorAll("pre code");
 
-                    // Generate fragments for all steps except the original block
-                    highlightSteps.slice(1).forEach(
+                                        // Generate fragments for all steps except the original block
+                                        highlightSteps.slice(1).forEach(
+                                            highlight => {
+                                                var fragmentBlock = codeBlock.cloneNode(true);
+                                                fragmentBlock.setAttribute('data-code-line-numbers', )
+                                                fragmentBlock.classList.add("fragment");
+
+
+                                            }
+                                        )
+                                    } */
+                    highlightSteps[0].forEach(
                         highlight => {
-                            var fragmentBlock = codeBlock.cloneNode(true);
-                            fragmentBlock.setAttribute('data-code-line-numbers', )
-                            fragmentBlock.classList.add("fragment");
+                            const preCodeBlock = el.querySelectorAll("pre code");
+                            preCodeBlock.forEach(
+                                codeBlock => {
+                                    // Add expected class on <pre> for reveal CSS
+                                    codeBlock.parentNode.classList.add('code-wrapper');
 
+                                    // Select lines to highlight
+                                    spanToHighlight = [];
+                                    if (typeof highlight.last === 'number') {
+                                        spanToHighlight = [].slice.call(codeBlock.querySelectorAll(':scope > span:nth-child(n+' + highlight.first + '):nth-child(-n+' + highlight.last + ')'));
+                                    } else if (typeof highlight.first === 'number') {
+                                        spanToHighlight = [].slice.call(codeBlock.querySelectorAll(':scope > span:nth-child(' + highlight.first + ')'));
+                                    }
+                                    if (spanToHighlight.length) {
+                                        // Add a class on <code> and <span> to select line to highlight
+                                        spanToHighlight.forEach(
+                                            span => span.classList.add('highlight-line')
+                                        );
+                                        codeBlock.classList.add('has-line-highlights');
+                                    }
 
-                        }
-                    )
+                                }
+                            )
+
+                        });
                 }
-                highlightSteps[0].forEach(
-                    highlight => {
-                        spanToHighlight = [];
-                        // if a range
-                        if (typeof highlight.last === 'number') {
-                            spanToHighlight = [].slice.call(el.querySelectorAll('pre code > span:nth-child(n+' + highlight.first + '):nth-child(-n+' + highlight.last + ')'));
-                        } else if (typeof highlight.first === 'number') {
-                            spanToHighlight = [].slice.call(el.querySelectorAll('pre code > span:nth-child(' + highlight.first + ')'));
-                        }
-                        if (spanToHighlight.length) {
-                            spanToHighlight.forEach(
-                                span => span.classList.add('highlight-line')
-                            );
-                            el.classList.add('has-line-highlights');
-                        }
-                    });
             }
         }
     })
 }
 
-function splitLineNumbers(lineNumbersAttr, delimiters) {
+function splitLineNumbers(lineNumbersAttr) {
     // remove space
     lineNumbersAttr = lineNumbersAttr.replace("/\s/g", '');
     // seperate steps (for fragment)
@@ -87,7 +104,7 @@ function splitLineNumbers(lineNumbersAttr, delimiters) {
         });
 }
 
-function joinLineNumbers(splittedLineNumbers, delimiters) {
+function joinLineNumbers(splittedLineNumbers) {
     return splittedLineNumbers.map(function(highlights) {
 
         return highlights.map(function(highlight) {
@@ -108,4 +125,9 @@ function joinLineNumbers(splittedLineNumbers, delimiters) {
         }).join(delimiters.line);
 
     }).join(delimiters.step);
+}
+
+function isLinesSelector(attr) {
+    const regex = new RegExp('^[\\d' + Object.values(delimiters).join('') + ']+$');
+    return regex.test(attr)
 }
