@@ -20,7 +20,7 @@ import {
 import { isFileRef } from "../../core/http.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { compileSass, sassLayerFile } from "../../core/sass.ts";
+import { compileSass, mergeLayers, sassLayerFile } from "../../core/sass.ts";
 
 import { kRevealJsUrl } from "./format-reveal.ts";
 import { cssHasDarkModeSentinel } from "../../command/render/pandoc-html.ts";
@@ -89,13 +89,20 @@ export async function revealTheme(format: Format, libDir: string) {
   }
 
   // theme is either user provided scss or quarto built-in scss
-  let theme = format.metadata?.[kTheme] as string | undefined || "default";
-  if (!existsSync(theme)) {
-    theme = formatResourcePath("revealjs", join("themes", `${theme}.scss`));
-  }
-  if (!existsSync(theme)) {
-    throw new Error(`Theme file '${theme}' not found`);
-  }
+  const themeConfig =
+    (format.metadata?.[kTheme] as string | string[] | undefined) || "default";
+  const themeLayers = (Array.isArray(themeConfig) ? themeConfig : [themeConfig])
+    .map(
+      (theme) => {
+        if (!existsSync(theme)) {
+          theme = formatResourcePath(
+            "revealjs",
+            join("themes", `${theme}.scss`),
+          );
+        }
+        return themeLayer(theme);
+      },
+    );
 
   const cssThemeDir = join(revealDir, "css", "theme");
   const loadPaths = [
@@ -106,7 +113,7 @@ export async function revealTheme(format: Format, libDir: string) {
   // create sass bundle layers
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
-    user: themeLayer(theme),
+    user: mergeLayers(...themeLayers),
     quarto: quartoLayer(),
     framework: revealFrameworkLayer(revealDir),
     loadPaths,

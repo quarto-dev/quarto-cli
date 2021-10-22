@@ -1,10 +1,12 @@
 /*-- scss:defaults --*/
 
+@import url(./fonts/source-sans-pro/source-sans-pro.css);
+
 // Background of the presentation
 $backgroundColor: #fff !default;
 
 // Primary/body text
-$mainFont: "Lato", sans-serif !default;
+$mainFont: "Source Sans Pro", Helvetica, sans-serif !default;
 $mainFontSize: 42px !default;
 $mainColor: #222 !default;
 
@@ -19,7 +21,7 @@ $headingLineHeight: 1.2 !default;
 $headingLetterSpacing: normal !default;
 $headingTextTransform: none !default;
 $headingTextShadow: none !default;
-$headingFontWeight: 400 !default;
+$headingFontWeight: 600 !default;
 $heading1TextShadow: $headingTextShadow !default;
 
 $heading1Size: 2.5em !default;
