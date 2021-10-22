@@ -10,21 +10,18 @@ Can be remove with next pandoc release > 2.14.2 */
 }
 
 
-/* For fragmented highlighting */
+/* For fragmented highlighting, position code node onto each other and set a background color */
 
-.reveal div.sourceCode pre code:not(:first-child).fragment {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.reveal pre.code-wrapper {
+.reveal pre {
     display: grid;
 }
 
-.reveal pre.code-wrapper>code {
+.reveal pre>code {
     grid-row: 1;
     grid-column: 1;
+}
+
+.reveal div.sourceCode code {
+    /* Using revealjs variable */
+    background-color: var(--r-background-color);
 }
