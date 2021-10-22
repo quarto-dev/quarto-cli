@@ -11,7 +11,7 @@ testRender(input, "html", false, [
     /Subkey Value/,
     /Hello World/,
   ], [
-    /\?/,
+    /\?meta/,
   ]),
 ]);
 
@@ -31,7 +31,7 @@ testRender(inputVars, "html", false, [
     /bar/,
     /Variable 2 Sub Sub VALUE/,
   ], [
-    /\?/,
+    /\?var/,
   ]),
 ]);
 
