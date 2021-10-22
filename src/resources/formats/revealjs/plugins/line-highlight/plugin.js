@@ -9,13 +9,35 @@ window.QuartoLineHighlight = function() {
 };
 
 function initQuartoLineHighlight(Reveal) {
+    const delimiters = {
+        step: '|',
+        line: ',',
+        lineRange: '-',
+    };
+
     const divSourceCode = Reveal.getRevealElement().querySelectorAll('div.sourceCode');
 
     divSourceCode.forEach(el => {
         if (el.hasAttribute('data-code-line-numbers')) {
             // highlightLines;
-            const highlightSteps = splitLineNumbers(el.getAttribute('data-code-line-numbers'));
+            const highlightSteps = splitLineNumbers(el.getAttribute('data-code-line-numbers'), delimiters);
             if (highlightSteps.length) {
+                // If we have at least one step, we generate fragments
+                if (highlightSteps > 1) {
+                    let fragmentIndex = null
+                    const codeBlock = el.querySelectorAll("pre code");
+
+                    // Generate fragments for all steps except the original block
+                    highlightSteps.slice(1).forEach(
+                        highlight => {
+                            var fragmentBlock = codeBlock.cloneNode(true);
+                            fragmentBlock.setAttribute('data-code-line-numbers', )
+                            fragmentBlock.classList.add("fragment");
+
+
+                        }
+                    )
+                }
                 highlightSteps[0].forEach(
                     highlight => {
                         spanToHighlight = [];
@@ -37,12 +59,7 @@ function initQuartoLineHighlight(Reveal) {
     })
 }
 
-function splitLineNumbers(lineNumbersAttr) {
-    const delimiters = {
-        step: '|',
-        line: ',',
-        lineRange: '-',
-    };
+function splitLineNumbers(lineNumbersAttr, delimiters) {
     // remove space
     lineNumbersAttr = lineNumbersAttr.replace("/\s/g", '');
     // seperate steps (for fragment)
@@ -68,4 +85,27 @@ function splitLineNumbers(lineNumbersAttr) {
                     }
                 });
         });
+}
+
+function joinLineNumbers(splittedLineNumbers, delimiters) {
+    return splittedLineNumbers.map(function(highlights) {
+
+        return highlights.map(function(highlight) {
+
+            // Line range
+            if (typeof highlight.last === 'number') {
+                return highlight.first + delimiters.lineRange + highlight.last;
+            }
+            // Single line
+            else if (typeof highlight.first === 'number') {
+                return highlight.first;
+            }
+            // All lines
+            else {
+                return '';
+            }
+
+        }).join(delimiters.line);
+
+    }).join(delimiters.step);
 }

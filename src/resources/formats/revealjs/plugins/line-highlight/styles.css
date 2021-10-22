@@ -8,3 +8,14 @@ Can be remove with next pandoc release > 2.14.2 */
 .reveal div.sourceCode.has-line-highlights pre code>span:not(.highlight-line) {
     opacity: 0.4;
 }
+
+
+/* For fragmented highlighting */
+
+.reveal div.sourceCode pre code:not(:first-child).fragment {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
