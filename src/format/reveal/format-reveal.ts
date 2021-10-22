@@ -117,6 +117,7 @@ export function revealjsFormat() {
             copyCode: true,
             hoverCitations: true,
             hoverFootnotes: true,
+            tippyTheme: "quarto-reveal",
           }),
           // default extras for reveal
           {

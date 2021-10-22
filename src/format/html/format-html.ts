@@ -96,6 +96,7 @@ export interface HtmlFormatFeatureDefaults {
   anchors?: boolean;
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
+  tippyTheme?: string;
 }
 
 export function htmlFormatExtras(
@@ -181,26 +182,29 @@ export function htmlFormatExtras(
     });
 
     // If this is a bootstrap format, include requires sass
-    if (bootstrap) {
-      options.tippyTheme = "quarto";
-      sassBundles.push({
-        key: "tippy.scss",
-        dependency: kBootstrapDependencyName,
-        quarto: {
-          functions: "",
-          defaults: "",
-          mixins: "",
-          rules: Deno.readTextFileSync(
-            formatResourcePath("html", join("tippy", "_tippy.scss")),
-          ),
-        },
-      });
-    } else {
-      options.tippyTheme = "light-border";
-      stylesheets.push({
-        name: "light-border.css",
-        path: formatResourcePath("html", join("tippy", "light-border.css")),
-      });
+    options.tippyTheme = featureDefaults.tippyTheme;
+    if (options.tippyTheme === undefined) {
+      if (bootstrap) {
+        options.tippyTheme = "quarto";
+        sassBundles.push({
+          key: "tippy.scss",
+          dependency: kBootstrapDependencyName,
+          quarto: {
+            functions: "",
+            defaults: "",
+            mixins: "",
+            rules: Deno.readTextFileSync(
+              formatResourcePath("html", join("tippy", "_tippy.scss")),
+            ),
+          },
+        });
+      } else {
+        options.tippyTheme = "light-border";
+        stylesheets.push({
+          name: "light-border.css",
+          path: formatResourcePath("html", join("tippy", "light-border.css")),
+        });
+      }
     }
   }
 

@@ -2,39 +2,81 @@
 
 @import url(./fonts/source-sans-pro/source-sans-pro.css);
 
+// fonts
+$font-family-sans-serif: "Source Sans Pro", Helvetica, sans-serif !default;
+$font-family-monospace: monospace !default;
+
+// main colors
+$body-bg: #fff !default;
+$body-color: #222 !default;
+$link-color: #2a76dd !default;
+
+// border colors
+$border-color: lighten($body-color, 30%) !default;
+$border-width: 1px !default;
+$border-radius: 3px !default;
+
+// font sizes and margins
+$presentation-font-size-root: 42px !default;
+$presentation-h1-font-size: 2.5em !default;
+$presentation-h2-font-size: 1.6em !default;
+$presentation-h3-font-size: 1.3em !default;
+$presentation-h4-font-size: 1em !default;
+$presentation-heading-font: $font-family-sans-serif !default;
+$presentation-heading-color: $body-color !default;
+$presentation-heading-line-height: 1.2 !default;
+$presentation-heading-text-transform: none !default;
+$presentation-heading-font-weight: 600 !default;
+$presentation-block-margin: 16px !default;
+$revealjs-font-size-root: $presentation-font-size-root !default;
+$revealjs-h1-font-size: $presentation-h1-font-size !default;
+$revealjs-h2-font-size: $presentation-h2-font-size !default;
+$revealjs-h3-font-size: $presentation-h3-font-size !default;
+$revealjs-h4-font-size: $presentation-h4-font-size !default;
+$revealjs-block-margin: $presentation-block-margin !default;
+$revealjs-heading-font: $presentation-heading-font !default;
+$revealjs-heading-color: $presentation-heading-color !default;
+$revealjs-heading-line-height: $presentation-heading-line-height !default;
+$revealjs-heading-text-transform: $presentation-heading-text-transform !default;
+$revealjs-heading-font-weight: $presentation-heading-font-weight !default;
+
+// code blocks
+$code-block-bg: $body-bg !default;
+$code-block-border-color: lighten($body-color, 60%) !default;
+
 // Background of the presentation
-$backgroundColor: #fff !default;
+$backgroundColor: $body-bg !default;
 
 // Primary/body text
-$mainFont: "Source Sans Pro", Helvetica, sans-serif !default;
-$mainFontSize: 42px !default;
-$mainColor: #222 !default;
+$mainFont: $font-family-sans-serif !default;
+$mainFontSize: $revealjs-font-size-root !default;
+$mainColor: $body-color !default;
 
 // Vertical spacing between blocks of text
-$blockMargin: 16px !default;
+$blockMargin: $revealjs-block-margin !default;
 
 // Headings
 $headingMargin: 0 0 $blockMargin 0 !default;
-$headingFont: $mainFont !default;
-$headingColor: $mainColor !default;
-$headingLineHeight: 1.2 !default;
+$headingFont: $revealjs-heading-font !default;
+$headingColor: $revealjs-heading-color !default;
+$headingLineHeight: $revealjs-heading-line-height !default;
 $headingLetterSpacing: normal !default;
-$headingTextTransform: none !default;
+$headingTextTransform: $revealjs-heading-text-transform !default;
 $headingTextShadow: none !default;
-$headingFontWeight: 600 !default;
+$headingFontWeight: $revealjs-heading-font-weight !default;
 $heading1TextShadow: $headingTextShadow !default;
 
-$heading1Size: 2.5em !default;
-$heading2Size: 1.6em !default;
-$heading3Size: 1.3em !default;
-$heading4Size: 1em !default;
+$heading1Size: $revealjs-h1-font-size !default;
+$heading2Size: $revealjs-h2-font-size !default;
+$heading3Size: $revealjs-h3-font-size !default;
+$heading4Size: $revealjs-h4-font-size !default;
 
-$codeFont: monospace !default;
+$codeFont: $font-family-monospace !default;
 
 $code-block-theme-dark-threshhold: 40% !default;
 
 // Links and actions
-$linkColor: #2a76dd !default;
+$linkColor: $link-color !default;
 $linkColorHover: lighten($linkColor, 15%) !default;
 
 // Text selection
@@ -65,9 +107,27 @@ $selectionColor: #fff !default;
 .reveal pre {
   width: 95%;
   box-shadow: none;
-  border: 1px solid lighten($mainColor, 70%);
+  background-color: $code-block-bg;
+  border: $border-width solid $code-block-border-color;
   margin: $blockMargin 0;
-  padding: 5px;
+  padding: 4px;
+}
+
+.tippy-box[data-theme~="quarto-reveal"] {
+  background-color: $backgroundColor;
+  color: $mainColor;
+  border-radius: $border-radius;
+  border: solid $border-width $border-color;
+  font-size: 0.8em;
+}
+
+.tippy-box[data-theme~="quarto-reveal"] .tippy-arrow {
+  color: $border-color;
+}
+
+.tippy-box[data-placement^="bottom"] > .tippy-content {
+  padding: 7px 10px;
+  z-index: 1;
 }
 
 // This is a sentinel value that renderers can use to determine
