@@ -145,7 +145,7 @@ export interface SassBundle {
   user?: SassLayer;
   quarto?: SassLayer;
   framework?: SassLayer;
-  loadPath?: string;
+  loadPaths?: string[];
   dark?: {
     user?: SassLayer;
     quarto?: SassLayer;

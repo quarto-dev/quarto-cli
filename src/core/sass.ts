@@ -89,8 +89,8 @@ export async function compileSass(bundles: SassBundle[], minified = true) {
   // Set any load paths used to resolve imports
   const loadPaths: string[] = [];
   bundles.forEach((bundle) => {
-    if (bundle.loadPath) {
-      loadPaths.push(bundle.loadPath);
+    if (bundle.loadPaths) {
+      loadPaths.push(...bundle.loadPaths);
     }
   });
 
@@ -304,7 +304,7 @@ export async function compileWithCache(
   } else {
     const outputFilePath = sessionTempFile({ suffix: "css" });
     // Skip the cache and just compile
-    const cssOutput = await dartCompile(input, loadPaths, compressed);
+    const cssOutput = await dartCompile(input, ld.uniq(loadPaths), compressed);
     Deno.writeTextFileSync(outputFilePath, cssOutput || "");
     return outputFilePath;
   }

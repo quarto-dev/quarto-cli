@@ -99,7 +99,7 @@ function layerQuartoScss(
       mixins: "",
       rules: Deno.readTextFileSync(boostrapRules),
     },
-    loadPath: dirname(boostrapRules),
+    loadPaths: [dirname(boostrapRules)],
     dark: darkLayer
       ? {
         user: darkLayer,
