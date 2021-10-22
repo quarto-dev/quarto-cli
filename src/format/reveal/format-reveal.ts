@@ -5,15 +5,11 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
-
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kFrom,
   kIncludeInHeader,
   kLinkCitations,
-  kTheme,
 } from "../../config/constants.ts";
 
 import {
@@ -28,14 +24,9 @@ import { camelToKebab, kebabToCamel, mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
-import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
 import { revealPluginExtras } from "./format-reveal-plugin.ts";
-import { compileWithCache } from "../../command/render/sass.ts";
-import { isFileRef } from "../../core/http.ts";
-
-const kRevealJsUrl = "revealjs-url";
-const kRevealJsConfig = "revealjs-config";
+import { revealTheme } from "./format-reveal-theme.ts";
 
 const kRevealOptions = [
   "controls",
@@ -92,27 +83,6 @@ const kRevealOptions = [
   "mathjax",
 ];
 
-const kRevealLightThemes = [
-  "white",
-  "beige",
-  "sky",
-  "serif",
-  "simple",
-  "solarized",
-];
-
-const kRevealDarkThemes = [
-  "black",
-  "league",
-  "night",
-  "blood",
-  "moon",
-];
-
-const kRevealThemes = [...kRevealLightThemes, ...kRevealDarkThemes];
-
-const kHashType = "hash-type";
-
 const kRevealKebabOptions = kRevealOptions.reduce(
   (options: string[], option: string) => {
     const kebab = camelToKebab(option);
@@ -123,6 +93,11 @@ const kRevealKebabOptions = kRevealOptions.reduce(
   },
   [],
 );
+
+export const kRevealJsUrl = "revealjs-url";
+export const kRevealJsConfig = "revealjs-config";
+
+export const kHashType = "hash-type";
 
 export function revealjsFormat() {
   return mergeConfigs(
@@ -163,40 +138,13 @@ export function revealjsFormat() {
           revealPluginExtras(format, libDir),
         );
 
-        // if there is no revealjs-url provided then use our embedded copy
-        const revealJsUrl = format.metadata[kRevealJsUrl] as string | undefined;
-        if ((revealJsUrl === undefined) || isFileRef(revealJsUrl)) {
-          // copy reveal dir
-          const revealSrcDir = revealJsUrl ||
-            formatResourcePath("revealjs", "reveal");
-          const revealDir = join(libDir, "revealjs");
-          copyMinimal(revealSrcDir, revealDir);
-          extras.metadataOverride![kRevealJsUrl] = pathWithForwardSlashes(
-            revealDir,
-          );
-
-          // theme could be a reveal theme name or an sccs file
-          // (if no theme is specified then use our built in theme)
-          const theme = (format.metadata![kTheme] ||
-            formatResourcePath("revealjs", "theme.scss")) as string;
-          if (!kRevealThemes.includes(theme)) {
-            const cssThemeDir = join(revealDir, "css", "theme");
-            const cssSourceDir = join(cssThemeDir, "source");
-            const cssTemplateDir = join(cssThemeDir, "template");
-            const themeScss = Deno.readTextFileSync(
-              existsSync(theme) ? theme : join(cssSourceDir, theme + ".scss"),
-            );
-            const scss = await compileWithCache(themeScss, [
-              cssSourceDir,
-              cssTemplateDir,
-            ]);
-            Deno.copyFileSync(
-              scss,
-              join(revealDir, "dist", "theme", "quarto.css"),
-            );
-            extras.metadataOverride![kTheme] = "quarto";
-          }
-        }
+        // get theme info (including text highlighing mode)
+        const theme = await revealTheme(format, libDir);
+        extras.metadataOverride = {
+          ...extras.metadataOverride,
+          ...theme.metadata,
+        };
+        extras.html![kTextHighlightingMode] = theme[kTextHighlightingMode];
 
         // provide alternate defaults unless the user requests revealjs defaults
         if (format.metadata[kRevealJsConfig] !== "default") {
@@ -218,13 +166,7 @@ export function revealjsFormat() {
           };
         }
 
-        // provide default highlighting style
-        const dark = format.metadata[kTheme] &&
-          kRevealDarkThemes.includes(format.metadata[kTheme] as string);
-        extras.html![kTextHighlightingMode] = dark ? "dark" : "light";
-
-        // allow hash-type: number (as shorthand for -auto_identifiers)
-        // hash-type number
+        // hash-type: number (as shorthand for -auto_identifiers)
         if (format.metadata[kHashType] !== "id") {
           extras.pandoc = {
             ...extras.pandoc,
