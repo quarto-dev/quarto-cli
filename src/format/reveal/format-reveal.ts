@@ -150,6 +150,12 @@ export function revealjsFormat() {
 
         // provide alternate defaults unless the user requests revealjs defaults
         if (format.metadata[kRevealJsConfig] !== "default") {
+          // defalue value for controls is based on whether the user has
+          // set the navigation mode back to "default" or "grid"
+          const navigationMode = format.metadata["navigationMode"];
+          const controls = navigationMode === "default" ||
+            navigationMode === "grid";
+
           // opinionated version of reveal config defaults
           extras.metadata = {
             ...extras.metadata,
@@ -159,6 +165,7 @@ export function revealjsFormat() {
               margin: 0.1,
               center: false,
               navigationMode: "linear",
+              controls,
               controlsTutorial: false,
               hash: true,
               hashOneBasedIndex: true,
