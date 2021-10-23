@@ -143,6 +143,11 @@ $selectionColor: #fff !default;
   line-height: $revealjs-line-height;
 }
 
+.reveal .slide-number {
+  color: $link-color;
+  background-color: $body-bg;
+}
+
 .tippy-box[data-theme~="quarto-reveal"] {
   background-color: $backgroundColor;
   color: $mainColor;

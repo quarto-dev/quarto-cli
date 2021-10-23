@@ -150,11 +150,16 @@ export function revealjsFormat() {
 
         // provide alternate defaults unless the user requests revealjs defaults
         if (format.metadata[kRevealJsConfig] !== "default") {
-          // defalue value for controls is based on whether the user has
-          // set the navigation mode back to "default" or "grid"
+          // detect whether we are using vertical slides
           const navigationMode = format.metadata["navigationMode"];
-          const controls = navigationMode === "default" ||
+          const verticalSlides = navigationMode === "default" ||
             navigationMode === "grid";
+
+          // if the user set slideNumber to true then provide
+          // linear slides (if they havne't specified vertical slides)
+          if (format.metadata["slideNumber"] === true && !verticalSlides) {
+            extras.metadataOverride["slideNumber"] = "c/t";
+          }
 
           // opinionated version of reveal config defaults
           extras.metadata = {
@@ -165,10 +170,10 @@ export function revealjsFormat() {
               margin: 0.1,
               center: false,
               navigationMode: "linear",
-              controls,
+              controls: verticalSlides,
               controlsTutorial: false,
               hash: true,
-              hashOneBasedIndex: true,
+              hashOneBasedIndex: false,
               fragmentInURL: false,
               transition: "none",
               backgroundTransition: "none",
