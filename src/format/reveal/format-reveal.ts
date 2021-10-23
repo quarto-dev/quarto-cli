@@ -98,6 +98,7 @@ export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
 
 export const kHashType = "hash-type";
+export const kCenterTitleSlide = "center-title-slide";
 
 export function revealjsFormat() {
   return mergeConfigs(
@@ -131,7 +132,7 @@ export function revealjsFormat() {
             html: {
               [kTemplatePatches]: [revealRequireJsPatch],
               [kHtmlPostprocessors]: [
-                revealInitializeHtmlPostprocessor(),
+                revealInitializeHtmlPostprocessor(format),
               ],
             },
           },
@@ -218,7 +219,7 @@ function revealMetadataFilter(metadata: Metadata) {
   return filtered;
 }
 
-function revealInitializeHtmlPostprocessor() {
+function revealInitializeHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
     // find reveal initializatio and perform fixups
     const scripts = doc.querySelectorAll("script");
@@ -233,6 +234,21 @@ function revealInitializeHtmlPostprocessor() {
           /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
           "slideNumber: '$1'",
         );
+      }
+    }
+
+    // center title slide if requested
+    // note that disabling title slide centering when the rest of the
+    // slides are centered doesn't currently work b/c reveal consults
+    // the global 'center' config as well as the class. to overcome
+    // this we'd need to always set 'center: false` and then
+    // put the .center classes onto each slide manually. we're not
+    // doing this now the odds a user would want all of their
+    // slides cnetered but NOT the title slide are close to zero
+    if (format.metadata[kCenterTitleSlide] !== false) {
+      const titleSlide = doc.getElementById("title-slide") as Element;
+      if (titleSlide) {
+        titleSlide.classList.add("center");
       }
     }
 
