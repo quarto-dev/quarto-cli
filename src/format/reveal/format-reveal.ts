@@ -158,6 +158,7 @@ export function revealjsFormat() {
               height: 700,
               margin: 0.1,
               center: false,
+              navigationMode: "linear",
               controlsTutorial: false,
               hash: true,
               hashOneBasedIndex: true,
@@ -249,6 +250,10 @@ function revealInitializeHtmlPostprocessor(format: Format) {
       const titleSlide = doc.getElementById("title-slide") as Element;
       if (titleSlide) {
         titleSlide.classList.add("center");
+      }
+      const titleSlides = doc.querySelectorAll(".title-slide");
+      for (const slide of titleSlides) {
+        (slide as Element).classList.add("center");
       }
     }
 
