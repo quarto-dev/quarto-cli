@@ -36,7 +36,7 @@ export async function render(
   options: RenderOptions,
 ): Promise<RenderResult> {
   // determine target context/files
-  const context = await projectContext(path);
+  const context = await projectContext(path, options.flags);
 
   if (Deno.statSync(path).isDirectory) {
     // if the path is a sub-directory of the project, then create
@@ -54,7 +54,7 @@ export async function render(
 
     // all directories are considered projects
     return renderProject(
-      context || await projectContextForDirectory(path),
+      context || await projectContextForDirectory(path, options.flags),
       options,
       files,
     );
