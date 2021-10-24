@@ -215,6 +215,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       maxWidth: 500,
       delay: 100,
       arrow: false,
+      appendTo: function(el) {
+        return el.closest("section.slide") || el.parentElement;
+      },
       interactive: true,
       interactiveBorder: 10,
       theme: '<%= tippyTheme %>',
