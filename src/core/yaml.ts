@@ -44,17 +44,19 @@ export function readYamlFromMarkdown(
     while (match != null) {
       const yamlBlock = removeYamlDelimiters(match[2]);
 
-      // exclude yaml blocks that start with a blank line
+      // exclude yaml blocks that start with a blank line, start with
+      // a yaml delimiter (can occur if two "---" stack together) or
+      // are entirely empty
       // (that's not valid for pandoc yaml blocks)
-      if (!yamlBlock.startsWith("\n\n")) {
-        try {
-          // make sure it parses before we add it
-          parse(yamlBlock, { json: true, schema: JSON_SCHEMA });
-          // add it
-          yaml += yamlBlock;
-        } catch {
-          // continue if we find an unparseable yaml block
-        }
+      if (
+        !yamlBlock.startsWith("\n\n") &&
+        !yamlBlock.startsWith("\n---") &&
+        (yamlBlock.trim().length > 0)
+      ) {
+        // surface errors immediately for invalid yaml
+        parse(yamlBlock, { json: true, schema: JSON_SCHEMA });
+        // add it
+        yaml += yamlBlock;
       }
 
       match = kRegExYAML.exec(markdown);
