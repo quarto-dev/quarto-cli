@@ -87,7 +87,7 @@ export const quartoDefaults = (format: Format) => {
         "code-copy-selector",
         format.metadata[kCodeCopy] === undefined ||
           format.metadata[kCodeCopy] === "hover"
-          ? '"pre.sourceCode:hover > "'
+          ? '"pre.sourceCode code:hover > "'
           : '""',
       ),
     ),

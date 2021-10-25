@@ -1,22 +1,27 @@
-/* required for Pandoc numbered line feature 
-Can be remove with next pandoc release > 2.14.2 */
-
-.reveal .sourceCode {
-    overflow: visible;
+.reveal
+  div.sourceCode
+  pre
+  code.has-line-highlights
+  > span:not(.highlight-line) {
+  opacity: 0.4;
 }
 
-.reveal div.sourceCode pre code.has-line-highlights>span:not(.highlight-line) {
-    opacity: 0.4;
+.reveal pre.numberSource {
+  padding-left: 0;
 }
 
-
-/* For fragmented highlighting, position code node onto each other and set a background color */
-
-.reveal pre {
-    display: grid;
+.reveal pre.numberSource code > span {
+  left: -2.1em;
 }
 
-.reveal pre>code {
-    grid-row: 1;
-    grid-column: 1;
+pre.numberSource code > span > a:first-child::before {
+  left: -0.7em;
+}
+
+.reveal pre > code:not(:first-child).fragment {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
 }

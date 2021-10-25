@@ -411,8 +411,10 @@ function htmlFormatPostprocessor(
         const copyIcon = doc.createElement("i");
         copyIcon.classList.add("bi");
         copyButton.appendChild(copyIcon);
-
-        code.appendChild(copyButton);
+        const codeEl = code.querySelector("code");
+        if (codeEl) {
+          codeEl.appendChild(copyButton);
+        }
       }
     }
 

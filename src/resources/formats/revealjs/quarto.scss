@@ -124,7 +124,6 @@ $selectionColor: #fff !default;
   border: $border-width solid $code-block-border-color;
   border-radius: $border-radius;
   margin: $blockMargin 0;
-  padding: 6px 9px;
 }
 
 .reveal code {
@@ -135,6 +134,7 @@ $selectionColor: #fff !default;
 .reveal pre code {
   color: $body-color;
   background-color: $code-block-bg;
+  padding: 6px 9px;
 }
 
 .reveal p,
