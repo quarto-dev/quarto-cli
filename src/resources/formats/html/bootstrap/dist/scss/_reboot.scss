@@ -1,13 +1,11 @@
 // stylelint-disable declaration-no-important, selector-no-qualifying-type, property-no-vendor-prefix
 
-
 // Reboot
 //
 // Normalization of HTML elements, manually forked from Normalize.css to remove
 // styles targeting irrelevant browsers while applying new styles.
 //
 // Normalize is licensed MIT. https://github.com/necolas/normalize.css
-
 
 // Document
 //
@@ -19,14 +17,15 @@
   box-sizing: border-box;
 }
 
-
 // Root
 //
 // Ability to the value of the root font sizes, affecting the value of `rem`.
 // null by default, thus nothing is generated.
 
 :root {
-  font-size: $font-size-root;
+  @if $font-size-root != null {
+    font-size: var(--#{$variable-prefix}root-font-size);
+  }
 
   @if $enable-smooth-scroll {
     @media (prefers-reduced-motion: no-preference) {
@@ -35,7 +34,6 @@
   }
 }
 
-
 // Body
 //
 // 1. Remove the margin in all browsers.
@@ -43,19 +41,20 @@
 // 3. Prevent adjustments of font size after orientation changes in iOS.
 // 4. Change the default tap highlight to be completely transparent in iOS.
 
+// scss-docs-start reboot-body-rules
 body {
   margin: 0; // 1
-  font-family: $font-family-base;
-  @include font-size($font-size-base);
-  font-weight: $font-weight-base;
-  line-height: $line-height-base;
-  color: $body-color;
-  text-align: $body-text-align;
-  background-color: $body-bg; // 2
+  font-family: var(--#{$variable-prefix}body-font-family);
+  @include font-size(var(--#{$variable-prefix}body-font-size));
+  font-weight: var(--#{$variable-prefix}body-font-weight);
+  line-height: var(--#{$variable-prefix}body-line-height);
+  color: var(--#{$variable-prefix}body-color);
+  text-align: var(--#{$variable-prefix}body-text-align);
+  background-color: var(--#{$variable-prefix}body-bg); // 2
   -webkit-text-size-adjust: 100%; // 3
   -webkit-tap-highlight-color: rgba($black, 0); // 4
 }
-
+// scss-docs-end reboot-body-rules
 
 // Content grouping
 //
@@ -73,7 +72,6 @@ hr {
 hr:not([size]) {
   height: $hr-height; // 2
 }
-
 
 // Typography
 //
@@ -121,7 +119,6 @@ h6 {
   @include font-size($h6-font-size);
 }
 
-
 // Reset margins on paragraphs
 //
 // Similarly, the top margin on `<p>`s get reset. However, we also reset the
@@ -132,7 +129,6 @@ p {
   margin-bottom: $paragraph-margin-bottom;
 }
 
-
 // Abbreviations
 //
 // 1. Duplicate behavior to the data-bs-* attribute for our tooltip plugin
@@ -141,7 +137,8 @@ p {
 // 4. Prevent the text-decoration to be skipped.
 
 abbr[title],
-abbr[data-bs-original-title] { // 1
+abbr[data-bs-original-title] {
+  // 1
   text-decoration: underline dotted; // 2
   -webkit-text-decoration: underline dotted; // 2
   -moz-text-decoration: underline dotted; // 2
@@ -151,7 +148,6 @@ abbr[data-bs-original-title] { // 1
   text-decoration-skip-ink: none; // 4
 }
 
-
 // Address
 
 address {
@@ -159,7 +155,6 @@ address {
   font-style: normal;
   line-height: inherit;
 }
-
 
 // Lists
 
@@ -189,10 +184,9 @@ dt {
 // 1. Undo browser default
 
 dd {
-  margin-bottom: .5rem;
+  margin-bottom: 0.5rem;
   margin-left: 0; // 1
 }
-
 
 // Blockquote
 
@@ -200,13 +194,14 @@ blockquote {
   margin: 0 0 1rem;
   padding: ($blockquote-font-size / 2) $blockquote-font-size;
   border-left: $blockquote-border-width solid $blockquote-border-color;
-  p, ul, ol {
+  p,
+  ul,
+  ol {
     &:last-child {
       margin-bottom: 0;
     }
   }
 }
-
 
 // Strong
 //
@@ -217,7 +212,6 @@ strong {
   font-weight: $font-weight-bolder;
 }
 
-
 // Small
 //
 // Add the correct font size in all browsers
@@ -226,14 +220,12 @@ small {
   @include font-size($small-font-size);
 }
 
-
 // Mark
 
 mark {
   padding: $mark-padding;
   background-color: $mark-bg;
 }
-
 
 // Sub and Sup
 //
@@ -248,9 +240,12 @@ sup {
   vertical-align: baseline;
 }
 
-sub { bottom: -.25em; }
-sup { top: -.5em; }
-
+sub {
+  bottom: -0.25em;
+}
+sup {
+  top: -0.5em;
+}
 
 // Links
 
@@ -284,7 +279,6 @@ a:not([href]):not([class]) {
     text-decoration: none;
   }
 }
-
 
 // Code
 
@@ -351,7 +345,6 @@ kbd {
   }
 }
 
-
 // Figures
 //
 // Apply a consistent margin strategy (matches our type styles).
@@ -360,14 +353,12 @@ figure {
   margin: 0 0 1rem;
 }
 
-
 // Images and content
 
 img,
 svg {
   vertical-align: middle;
 }
-
 
 // Tables
 //
@@ -405,7 +396,6 @@ th {
   border-style: solid;
   border-width: 0;
 }
-
 
 // Forms
 //
@@ -593,7 +583,6 @@ legend {
   padding: 0;
 }
 
-
 // Inherit font family and line height for file input buttons
 
 ::file-selector-button {
@@ -629,7 +618,6 @@ summary {
   cursor: pointer;
 }
 
-
 // Progress
 //
 // Add the correct vertical alignment in Chrome, Firefox, and Opera.
@@ -637,7 +625,6 @@ summary {
 progress {
   vertical-align: baseline;
 }
-
 
 // Hidden attribute
 //

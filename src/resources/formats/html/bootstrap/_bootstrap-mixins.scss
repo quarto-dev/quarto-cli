@@ -1,9 +1,147 @@
-
-
 @mixin body-secondary {
   @if variable-exists(body-secondary) {
     color: $body-secondary;
   } @else {
     color: theme-dim($body-color, 25%);
   }
+}
+
+// Grid Layouts
+
+@mixin page-columns {
+  display: grid;
+  gap: 0;
+}
+
+// Floating Grid Definitions
+@mixin page-columns-float-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start] minmax(80px, 150px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(125px, 200px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+// medium 976 down
+@mixin page-columns-float-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 25px
+    [page-end-inset] minmax(50px, 150px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+//small 768 down
+@mixin page-columns-float-narrow {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] calc(
+      100vw - 2em
+    )
+    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
+    [screen-end];
+}
+
+// Docked Grid Definitions
+@mixin page-columns-docked-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset page-start] minmax(50px, 100px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 100px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-docked-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1.25em
+    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(25px, 50px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-docked-narrow {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] calc(100vw - 2em)
+    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
+    [screen-end];
+}
+
+// Docked Grid Definitions
+@mixin page-columns-plain-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset page-start page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1em
+    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(75px, 115px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-plain-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start screen-start-inset page-start page-start-inset body-start-outset] 1.5em
+    [body-start] 1em
+    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-end] 1em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(125px, 150px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-plain-narrow {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] calc(100vw - 2em)
+    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
+    [screen-end];
 }

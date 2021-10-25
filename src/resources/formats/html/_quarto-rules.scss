@@ -100,6 +100,91 @@ figure > figcaption {
   margin-top: 0.5em;
 }
 
+// sidebar handling
+.quarto-sidebar-toggle {
+  border-color: $border-color;
+  border-bottom-left-radius: $border-radius;
+  border-bottom-right-radius: $border-radius;
+  border-style: solid;
+  border-width: 1px;
+  overflow: hidden;
+  border-top-width: 0px;
+  padding-top: 0px !important;
+}
+
+.quarto-sidebar-toggle-title {
+  cursor: pointer;
+  padding-bottom: 2px;
+  margin-left: 0.25em;
+  text-align: center;
+  font-weight: 400;
+  font-size: 0.775em;
+}
+
+#quarto-content.page-navbar {
+  .quarto-sidebar-toggle {
+    background: $navbar-bg;
+  }
+
+  .quarto-sidebar-toggle-title {
+    color: $navbar-fg;
+  }
+}
+
+#quarto-content:not(.page-navbar) {
+  .quarto-sidebar-toggle {
+    background: $body-bg;
+  }
+
+  .quarto-sidebar-toggle-title {
+    color: $body-color;
+  }
+}
+
+.quarto-sidebar-toggle-icon {
+  color: $border-color;
+  margin-right: 0.5em;
+  float: right;
+  transition: transform 0.2s ease;
+}
+
+.quarto-sidebar-toggle-icon::before {
+  padding-top: 5px;
+}
+
+.quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-icon {
+  transform: rotate(-180deg);
+}
+
+.quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-title {
+  border-bottom: solid $border-color 1px;
+}
+
+.quarto-sidebar-toggle-contents {
+  padding-right: 10px;
+  padding-left: 10px;
+  transition: max-height 0.5s ease;
+}
+
+.quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-contents {
+  padding-top: 1em;
+  padding-bottom: 10px;
+}
+
+.quarto-sidebar-toggle:not(.expanded) .quarto-sidebar-toggle-contents {
+  padding-top: 0px !important;
+  padding-bottom: 0px;
+}
+
+#TOC {
+  z-index: $zindex-sticky;
+}
+
+#quarto-sidebar > *,
+#TOC > * {
+  transition: opacity 0.15s ease;
+}
+
 // anchor
 
 // anchor js
@@ -128,7 +213,7 @@ h6:hover > .anchorjs-link,
 }
 
 #title-block-header {
-  margin-block-end: 1rem;
+  margin-block-end: 0;
   position: relative;
 }
 

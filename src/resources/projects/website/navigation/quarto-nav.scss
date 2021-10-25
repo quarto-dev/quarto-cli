@@ -1,36 +1,47 @@
 /*-- scss:defaults --*/
 $content-padding-top: 14px !default;
-// top-paading
+
+/*-- scss:mixins --*/
 
 /*-- scss:rules --*/
 
+footer.footer .nav-footer,
+#quarto-header nav {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+#TOC {
+  padding-left: 0.5em;
+}
+
 // content padding
-#quarto-sidebar nav,
-#quarto-toc-sidebar nav,
-#quarto-content main {
+#quarto-content > * {
   padding-top: $content-padding-top;
 }
 
 @include media-breakpoint-up(lg) {
-  #quarto-content main {
+  #quarto-content > * {
     padding-top: $content-padding-top;
   }
 }
 
 @include media-breakpoint-down(lg) {
-  #quarto-content main {
+  #quarto-content {
     padding-top: 0;
   }
 
-  #quarto-content main .subtitle {
+  #quarto-content .subtitle {
     padding-top: $content-padding-top;
   }
 }
 
 // headroom
+.headroom-target,
 header.headroom {
   will-change: transform;
   transition: transform 200ms linear;
+  transition: position 200ms linear;
 }
 
 header.headroom--pinned {
@@ -39,6 +50,10 @@ header.headroom--pinned {
 
 header.headroom--unpinned {
   transform: translateY(-100%);
+}
+
+.navbar-container {
+  width: 100%;
 }
 
 .navbar-brand {
@@ -100,10 +115,6 @@ nav .nav-item.compact .nav-link {
 
 .sidebar #quarto-search {
   margin-top: 0.5rem;
-}
-
-.sidebar-navigation {
-  padding-left: 20px;
 }
 
 .sidebar-navigation a {
@@ -219,6 +230,23 @@ nav .nav-item.compact .nav-link {
   display: none;
 }
 
+// Toggle the top secondar navigation bar
+@include media-breakpoint-down(md) {
+  .quarto-secondary-nav {
+    display: block;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .quarto-secondary-nav {
+    display: none;
+  }
+}
+
+.quarto-secondary-nav .quarto-btn-toggle {
+  padding-right: 0;
+}
+
 .quarto-secondary-nav[aria-expanded="false"]
   .quarto-btn-toggle
   .bi-chevron-right::before {
@@ -249,7 +277,7 @@ $sidebar-hover-color: rgba($sidebar-hl, 0.8) !default;
 $sidebar-active-color: $sidebar-hl !default;
 $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
-.sidebar.sidebar-navigation .sidebar.sidebar-navigation {
+.sidebar.sidebar-navigation {
   color: $sidebar-color;
   .sidebar-item {
     color: $sidebar-color;
@@ -270,7 +298,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   }
 }
 
-.sidebar.sidebar-navigation nav {
+nav.sidebar.sidebar-navigation {
   @if $sidebar-bg {
     background-color: $sidebar-bg;
   } @else {
@@ -278,17 +306,20 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   }
 }
 
-.sidebar.sidebar-navigation nav:not(.floating) {
+.sidebar.sidebar-navigation:not(.floating) {
   border-right: 1px solid $table-border-color !important;
 }
 
 @include media-breakpoint-down(lg) {
   .sidebar-navigation .sidebar-item a,
-  .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
   .sidebar-navigation,
   .sidebar-navigation .sidebar-menu-container a {
     font-size: $sidebar-font-size-collapse;
+  }
+
+  .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item {
+    font-size: $sidebar-font-size-section-collapse;
   }
 
   .sidebar-logo {
@@ -322,6 +353,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
   .sidebar.sidebar-navigation {
     transition: height 0.15s linear;
+    width: 100%;
   }
 
   nav.quarto-secondary-nav {
@@ -410,6 +442,11 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
 .sidebar nav.docked .sidebar-menu-container {
   flex-grow: 1;
+}
+
+#quarto-sidebar {
+  width: 100%;
+  padding-right: 1em;
 }
 
 #quarto-sidebar .sidebar-menu-container {
@@ -532,6 +569,9 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   @if variable-exists(footer-bg) {
     background-color: $footer-bg;
   }
+}
+
+body:not(.floating) .nav-footer {
   @if variable-exists(footer-border) and $footer-border {
     @if variable-exists(footer-border-color) {
       border-top: 1px solid $footer-border-color;
@@ -583,4 +623,16 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 .nav-footer-right .footer-items .nav-link {
   padding-left: 0.8em;
   padding-right: 0em;
+}
+.nav-footer-left {
+  margin-right: auto;
+}
+
+.nav-footer-center {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.nav-footer-right {
+  margin-left: auto;
 }

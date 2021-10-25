@@ -8,7 +8,7 @@ $theme: "quartz" !default;
 
 $white:    #fff !default;
 $gray-100: #f8f9fa !default;
-$gray-200: #e9ecef !default;
+$gray-200: #e9e9e8 !default;
 $gray-300: #dee2e6 !default;
 $gray-400: #ced4da !default;
 $gray-500: #adb5bd !default;
@@ -35,7 +35,7 @@ $success:       $green !default;
 $info:          $cyan !default;
 $warning:       $yellow !default;
 $danger:        $orange !default;
-$light:         $gray-100 !default;
+$light:         $gray-200 !default;
 $dark:          $gray-900 !default;
 
 $min-contrast-ratio:   1.5 !default;
@@ -326,8 +326,12 @@ body {
   border-right: none;
 }
 
-.form-select {
+.form-select:not([multiple]) {
   transition: border-color .15s ease-in-out;
+
+  option {
+    color: $black;
+  }
 }
 
 .bg-light .form-control {
@@ -345,12 +349,19 @@ body {
   @include glass(.3);
 }
 
+.selectize-dropdown {
+  @include glass(.3);
+  background-color: transparent !important;
+}
+
 .nav-tabs {
   .nav-link {
     transition: none;
 
-    &:hover {
+    &:hover,
+    &:focus {
       color: $white;
+      isolation: auto;
     }
 
     &,
@@ -373,13 +384,26 @@ body {
     border-radius: $border-radius;
     transform: scale(1.1);
 
-    &:hover {
+    &:hover,
+    &:focus {
       color: $gray-800;
     }
   }
 
   .dropdown-menu {
     border-radius: $border-radius;
+  }
+}
+
+.nav-pills {
+  .nav-link {
+    transition: none;
+
+    &:hover,
+    &:focus {
+      color: $white;
+      isolation: auto;
+    }
   }
 }
 

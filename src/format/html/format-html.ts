@@ -170,10 +170,12 @@ export function htmlFormatExtras(
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
 
   // quarto.js helpers
-  scripts.push({
-    name: "quarto.js",
-    path: formatResourcePath("html", join("toc", "quarto-toc.js")),
-  });
+  if (bootstrap) {
+    scripts.push({
+      name: "quarto.js",
+      path: formatResourcePath("html", "quarto.js"),
+    });
+  }
 
   // popper if required
   options.tippy = options.hoverCitations || options.hoverFootnotes;

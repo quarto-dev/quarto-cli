@@ -58,7 +58,7 @@ $danger:        $red !default;
 $light:         lighten($body-color, 50%) !default;
 $dark:          $body-bg !default;
 
-$min-contrast-ratio:   2 !default;
+$min-contrast-ratio:   1.95 !default;
 
 $enable-shadows: true !default;
 $enable-gradients: true !default;

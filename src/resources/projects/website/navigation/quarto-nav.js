@@ -43,7 +43,9 @@ window.document.addEventListener("DOMContentLoaded", function () {
     bodyEl.style.paddingTop = offset + "px";
 
     // deal with sidebar offsets
-    const sidebars = window.document.querySelectorAll(".sidebar");
+    const sidebars = window.document.querySelectorAll(
+      ".sidebar, .headroom-target"
+    );
     sidebars.forEach((sidebar) => {
       if (!animated) {
         sidebar.classList.add("notransition");
@@ -100,14 +102,18 @@ window.document.addEventListener("DOMContentLoaded", function () {
     const headroom = new window.Headroom(header, {
       tolerance: 5,
       onPin: function () {
-        const sidebars = window.document.querySelectorAll(".sidebar");
+        const sidebars = window.document.querySelectorAll(
+          ".sidebar, .headroom-target"
+        );
         sidebars.forEach((sidebar) => {
           sidebar.classList.remove("sidebar-unpinned");
         });
         updateDocumentOffset();
       },
       onUnpin: function () {
-        const sidebars = window.document.querySelectorAll(".sidebar");
+        const sidebars = window.document.querySelectorAll(
+          ".sidebar, .headroom-target"
+        );
         sidebars.forEach((sidebar) => {
           sidebar.classList.add("sidebar-unpinned");
         });

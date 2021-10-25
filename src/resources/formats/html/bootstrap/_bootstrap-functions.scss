@@ -53,7 +53,7 @@
   }
 }
 
-@function repeat($chars, $n) {
+@function repeat-chars($chars, $n) {
   $final: "";
   @for $i from 1 through $n {
     $final: $final + $chars;
