@@ -8,9 +8,9 @@ window.QuartoLineHighlight = function() {
     const kCodeLineNumbersAttr = 'data-code-line-numbers';
     const kFragmentIndex = 'data-fragment-index';
 
-    function initQuartoLineHighlight(Reveal) {
+    function initQuartoLineHighlight(deck) {
 
-        const divSourceCode = Reveal.getRevealElement().querySelectorAll('div.sourceCode');
+        const divSourceCode = deck.getRevealElement().querySelectorAll('div.sourceCode');
         // Process each div created by Pandoc highlighting - numbered line are already included.
         divSourceCode.forEach(el => {
             if (el.hasAttribute(kCodeLineNumbersAttr)) {
