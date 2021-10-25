@@ -21,7 +21,8 @@ import { partitionCellOptionsMapped, kLangCommentChars } from "./partition-cell-
 import { rangedSubstring, rangedLines } from "./ranged-text.ts";
 import { lineOffsets, lines, normalizeNewlines, indexToRowCol, rowColToIndex } from "./text.ts";
 import { schemaType, schemaCompletions } from "./schema.ts";
-
+import { YAMLSchema } from "./yaml-schema.ts";
+  
 const result = {
   glb,
 
@@ -45,7 +46,10 @@ const result = {
   rowColToIndex,
 
   schemaType,
-  schemaCompletions
+  schemaCompletions,
+
+  YAMLSchema,
+  setupAjv
 };
 
 if (window) {

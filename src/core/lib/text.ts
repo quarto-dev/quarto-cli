@@ -45,3 +45,34 @@ export function rowColToIndex(text: string) {
     return offsets[position.row] + position.column;
   }
 }
+
+
+// just like the version on core/text.ts, but without colors or the
+// sprintf dependency
+export function formatLineRange(
+  text: string, firstLine: number, lastLine: number
+)
+{
+  const lineWidth = Math.max(
+    String(firstLine + 1).length,
+    String(lastLine + 1).length);
+  const pad = " ".repeat(lineWidth);
+
+  const ls = lines(text);
+  
+  const result = [];
+  for (let i = firstLine; i <= lastLine; ++i)
+  {
+    const numberStr = `${pad}${i + 1}`.slice(-lineWidth);
+    const lineStr = ls[i];
+    result.push({
+      lineNumber: i,
+      content: numberStr + lineStr,
+      rawLine: ls[i]
+    });
+  }
+  return {
+    prefixWidth: lineWidth + 2,
+    lines: result
+  };
+}
