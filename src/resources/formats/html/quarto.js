@@ -149,10 +149,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             for (const child of el.children) {
               child.style.opacity = 0;
             }
-            const pos = el.getBoundingClientRect();
-            const elCenterX = pos.left + (pos.right - pos.left) / 2;
 
             const toggleContainer = window.document.createElement("div");
+            toggleContainer.style.width = "100%";
             toggleContainer.classList.add("zindex-modal");
             toggleContainer.classList.add("quarto-sidebar-toggle");
             toggleContainer.classList.add("headroom-target"); // Marks this to be managed by headeroom
@@ -227,10 +226,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               }
             };
 
-            // position the element
-            const left = elCenterX - toggleContainer.offsetWidth / 2;
-            toggleContainer.style.left = `${left}px`;
-            toggleContainer.style.top = `${pos.top}px`;
+            // position the element (top left of parent, same width as parent)
+            const elRect = el.getBoundingClientRect();
+            toggleContainer.style.left = `${elRect.left}px`;
+            toggleContainer.style.top = `${elRect.top}px`;
+            toggleContainer.style.width = `${elRect.width}px`;
 
             isVisible = false;
           }
