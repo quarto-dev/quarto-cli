@@ -14,7 +14,6 @@ import { Range } from "../ranged-text.ts";
 import { MappedString, mappedIndexToRowCol } from "../mapped-text.ts";
 import { formatLineRange, lines } from "../text.ts";
 import { error } from "log/mod.ts";
-import { rgb24 } from "fmt/colors.ts";
 import { normalizeSchema } from "../lib/schema.ts";
 
 const ajv = new Ajv({ allErrors: true });
