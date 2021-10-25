@@ -5,6 +5,12 @@ window.QuartoLineHighlight = function() {
         lineRange: '-',
     };
 
+    const regex = new RegExp('^[\\d' + Object.values(delimiters).join('') + ']+$');
+
+    function isLinesSelector(attr) {
+        return regex.test(attr)
+    }
+
     const kCodeLineNumbersAttr = 'data-code-line-numbers';
     const kFragmentIndex = 'data-fragment-index';
 
@@ -145,11 +151,6 @@ window.QuartoLineHighlight = function() {
             }).join(delimiters.line);
 
         }).join(delimiters.step);
-    }
-
-    function isLinesSelector(attr) {
-        const regex = new RegExp('^[\\d' + Object.values(delimiters).join('') + ']+$');
-        return regex.test(attr)
     }
 
     return {
