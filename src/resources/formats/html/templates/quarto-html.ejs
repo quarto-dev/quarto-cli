@@ -216,7 +216,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       delay: 100,
       arrow: false,
       appendTo: function(el) {
-        return el.closest("section.slide") || el.parentElement;
+        <% if (tippyParent) { %>
+          return el.closest("<%= tippyParent %>") || el.parentElement;
+        <% } else { %>
+          return el.parentElement;
+        <% } %>
       },
       interactive: true,
       interactiveBorder: 10,

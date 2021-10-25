@@ -97,6 +97,7 @@ export interface HtmlFormatFeatureDefaults {
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
   tippyTheme?: string;
+  tippyParent?: string;
 }
 
 export function htmlFormatExtras(
@@ -163,6 +164,7 @@ export function htmlFormatExtras(
 
   // popper if required
   options.tippy = options.hoverCitations || options.hoverFootnotes;
+  options.tippyParent = featureDefaults.tippyParent;
   if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
