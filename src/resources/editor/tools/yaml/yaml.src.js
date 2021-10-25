@@ -181,17 +181,21 @@ function* attemptParsesAtLine(context, parser)
     code,      // full contents of the buffer
     position   // row/column of cursor (0-based)
   } = context;
+
+  if (code.value === undefined) {
+    code = core.asMappedString(code);
+  }
   
-  const tree = parser.parse(code);
+  const tree = parser.parse(code.value);
   if (tree.rootNode.type !== 'ERROR') {
     yield {
       parse: tree,
-      code: core.asMappedString(code),
+      code,
       deletions: 0
     };
   }
 
-  const codeLines = core.rangedLines(code);
+  const codeLines = core.rangedLines(code.value);
 
   const currentLine = codeLines[position.row].substring;
   let currentColumn = position.column;
@@ -303,11 +307,16 @@ function getYamlIndentTree(code)
 
 function locateFromIndentation(context)
 {
-  const {
+  let {
     line,      // editing line up to the cursor
     code,      // full contents of the buffer
     position   // row/column of cursor (0-based)
   } = context;
+
+  // currently we don't need mappedstrings here, so we cast to string
+  if (code.value !== undefined) {
+    code = code.value;
+  }
 
   const { predecessor, indentation } = getYamlIndentTree(code);
 
@@ -414,6 +423,10 @@ async function validationFromGoodParseYAML(context)
     schema,    // schema of yaml object
   } = context;
 
+  if (code.value === undefined) {
+    throw new Error("Internal error: Expected a MappedString");
+  }
+
   return false;  
 }
 
@@ -433,13 +446,12 @@ async function automationFromGoodParseYAML(kind, context)
   
   // RStudio sends us here in Visual Editor mode for the YAML front matter
   // but includes the --- delimiters, so we trim those.
-  if (code.startsWith("---")) {
-    if (kind === "completions" &&
-        position.row === 0) {
+  if (code.value.startsWith("---")) {
+    if (kind === "completions" && position.row === 0) {
       // user asked for autocomplete on "---": report none
       return false;
     }
-    code = code.slice(3);
+    code = core.mappedString(code, [{ begin: 0, end: 3 }]);
     // NB we don't need to update position here because we're leaving
     // the newlines alone
     context = {
@@ -448,14 +460,14 @@ async function automationFromGoodParseYAML(kind, context)
     };
   }
   
-  if (code.endsWith("---")) {
-    const codeLines = core.lines(code);
+  if (code.value.endsWith("---")) {
+    const codeLines = core.mappedLines(code);
     if (kind === "completions" &&
         position.row === codeLines.length - 1) {
       // user asked for autocomplete on "---": report none
       return false;
     }
-    code = code.slice(0, -3);
+    code = core.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
     context = {
       ...context, code
     };
@@ -484,12 +496,12 @@ async function completionsFromGoodParseYAML(context)
   
   // RStudio sends us here in Visual Editor mode for the YAML front matter
   // but includes the --- delimiters, so we trim those.
-  if (code.startsWith("---")) {
+  if (code.value.startsWith("---")) {
     if (position.row === 0) {
       // user asked for autocomplete on "---": report none
       return false;
     }
-    code = code.slice(3);
+    code = core.mappedString(code, [{ begin: 0, end: 3 }]);
     // NB we don't need to update position here because we're leaving
     // the newlines alone
     context = {
@@ -498,13 +510,13 @@ async function completionsFromGoodParseYAML(context)
     };
   }
   
-  if (code.endsWith("---")) {
-    const codeLines = core.lines(code);
+  if (code.value.endsWith("---")) {
+    const codeLines = core.mappedLines(code);
     if (position.row === codeLines.length - 1) {
       // user asked for autocomplete on "---": report none
       return false;
     }
-    code = code.slice(0, -3);
+    code = core.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
     context = { ...context, code };
   }
 
@@ -604,53 +616,72 @@ async function automationFromGoodParseMarkdown(kind, context)
     position,
     line
   } = context;
-  const result = core.breakQuartoMd(core.asMappedString(code));
-  
-  let linesSoFar = 0;
-  let foundCell = undefined;
-  for (const cell of result.cells) {
-    let size = core.lines(cell.source.value).length;
-    if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
-      // language cells don't bring starting and ending triple backticks, we must compensate here
-      size += 2;
+ 
+  const result = core.breakQuartoMd(code);
+    
+  if (kind === "completions") {
+    let linesSoFar = 0;
+    let foundCell = undefined;
+    for (const cell of result.cells) {
+      let size = core.lines(cell.source.value).length;
+      if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
+        // language cells don't bring starting and ending triple backticks, we must compensate here
+        size += 2;
+      }
+      if (size + linesSoFar > position.row) {
+        foundCell = cell;
+        break;
+      }
+      linesSoFar += size;
     }
-    if (size + linesSoFar > position.row) {
-      foundCell = cell;
-      break;
+    if (foundCell === undefined) {
+      return false;
     }
-    linesSoFar += size;
-  }
-  if (foundCell === undefined) {
-    return false;
-  }
-  if (foundCell.cell_type === "raw") {
-    const schema = (await getSchemas()).schemas["front-matter"];
-    // complete the yaml front matter
-    return automationFromGoodParseYAML(kind, {
-      line,
-      code: foundCell.source.value,
-      position,
-      schema
-    });
-  } else if (foundCell.cell_type.language) {
-    return automationFromGoodParseScript(kind, {
-      language: foundCell.cell_type.language,
-      code: foundCell.source.value,
-      position: {
-        row: position.row - (linesSoFar + 1),
-        column: position.column
-      },
-      line
-    });
-    // complete the yaml inside a chunk
-  } else if (foundCell.cell_type === "markdown") {
-    // we're inside a markdown, no completions
-    return false;
+    if (foundCell.cell_type === "raw") {
+      const schema = (await getSchemas()).schemas["front-matter"];
+      // complete the yaml front matter
+      return automationFromGoodParseYAML(kind, {
+        line,
+        code: foundCell.source,
+        position,
+        schema
+      });
+    } else if (foundCell.cell_type.language) {
+      return automationFromGoodParseScript(kind, {
+        language: foundCell.cell_type.language,
+        code: foundCell.source,
+        position: {
+          row: position.row - (linesSoFar + 1),
+          column: position.column
+        },
+        line
+      });
+      // complete the yaml inside a chunk
+    } else if (foundCell.cell_type === "markdown") {
+      // we're inside a markdown, no completions
+      return false;
+    } else {
+      throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+    }
   } else {
-    throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+    const lints = [];
+    
+    for (const cell of result.cells) {
+      if (cell.cell_type === "raw") {
+        lints.push(...validationFromGoodParseYAML({
+          code: cell.source,
+          schema: (await getSchemas()).schemas["front-matter"]
+        }));
+      } else if (cell.cell_type.language) {
+        lints.push(...automationFromGoodParseScript(kind, {
+          code: cell.source,
+          language: cell.cell_type.language,
+          line,
+        }));
+      }
+    }
+    return lints;
   }
-  
-  return false;
 }
 
 async function completionsFromGoodParseMarkdown(context)
@@ -684,14 +715,14 @@ async function completionsFromGoodParseMarkdown(context)
     // complete the yaml front matter
     return completionsFromGoodParseYAML({
       line,
-      code: foundCell.source.value,
+      code: foundCell.source,
       position,
       schema
     });
   } else if (foundCell.cell_type.language) {
     return automationFromGoodParseScript("completions", {
       language: foundCell.cell_type.language,
-      code: foundCell.source.value,
+      code: foundCell.source,
       position: {
         row: position.row - (linesSoFar + 1),
         column: position.column
@@ -711,7 +742,7 @@ async function completionsFromGoodParseMarkdown(context)
 
 async function automationFromGoodParseScript(kind, context)
 {
-  const codeLines = core.rangedLines(context.code);
+  const codeLines = core.rangedLines(context.code.value);
   let language;
   let codeStartLine;
   
@@ -753,7 +784,7 @@ async function automationFromGoodParseScript(kind, context)
   
   return func({
     line: context.line.slice(commentPrefix.length),
-    code: mappedYaml.value,
+    code: mappedYaml,
     commentPrefix,
     // NB we get lucky here that the "inverse mapping" of the cursor
     // position is easy enough to compute explicitly. This might not
@@ -794,6 +825,7 @@ async function getAutomation(kind, context)
 
   const result = await automationFileTypeDispatch(context.filetype, kind, {
     ...context,
+    code: core.asMappedString(context.code),
     schema
   });
   
@@ -804,53 +836,12 @@ async function getAutomation(kind, context)
 window.QuartoYamlEditorTools = {
 
   getCompletions: async function(context) {
+    debugger;
     return getAutomation("completions", context);
   },
 
   getLint: async function(context) {
+    debugger;
     return getAutomation("validation", context);
   }
-
-  //   const {
-  //     filetype,  // "yaml" | "script" | "markdown"
-  //     line,      // editing line up to the cursor
-  //     code,      // full contents of the buffer
-  //     position   // row/column of cursor (0-based)
-  //   } = context;
-  //   const dispatch = {
-  //     "markdown": validationFromGoodParseMarkdown,
-  //     "yaml": validationFromGoodParseYAML,
-  //     "script": validationFromGoodParseScript
-  //   };
-  //   if (!dispatch[context.filetype]) {
-  //     return null;
-  //   }
-  //   return new Promise(function(resolve, reject) {
-  //     // resolve no diagnostics 
-  //     // TODO: remove this code once real diagnostics work
-  //     resolve(null);
-  //     return;
-  //     // look for the word 'bolas' and mark it (note that the front
-  //     // end already takes care of removing marks around the active
-  //     // cursor so we can ignore the cursor and line context)
-  //     const kBolas = "bolas";
-  //     const lint = [];
-  //     const lines = code.split("\n");
-  //     for (var i = 0; i<lines.length; i++) {
-  //       const line = lines[i];
-  //       const pos = line.indexOf(kBolas);
-  //       if (pos !== -1) {
-  //         lint.push({
-  //           "start.row": i,
-  //           "start.column": pos,
-  //           "end.row": i,
-  //           "end.column": pos + kBolas.length,
-  //           "text": "Don'tn let that guy in here!!",
-  //           "type": "error"
-  //         });
-  //       }
-  //     }
-  //     resolve(lint);
-  //   });
-  // }
 };
