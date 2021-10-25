@@ -60,6 +60,7 @@ import {
   kHoverFootnotes,
   kHypothesis,
   kUtterances,
+  quartoBaseLayer,
   quartoDefaults,
   quartoFunctions,
   quartoGlobalCssVariableRules,
@@ -105,10 +106,16 @@ export interface HtmlFormatTippyOptions {
   config?: Metadata;
 }
 
+export interface HtmlFormatScssOptions {
+  quartoBase?: boolean;
+  quartoCssVars?: boolean;
+}
+
 export function htmlFormatExtras(
   format: Format,
   featureDefaults?: HtmlFormatFeatureDefaults,
   tippyOptions?: HtmlFormatTippyOptions,
+  scssOptions?: HtmlFormatScssOptions,
 ): FormatExtras {
   // note whether we are targeting bootstrap
   const bootstrap = formatHasBootstrap(format);
@@ -123,6 +130,15 @@ export function htmlFormatExtras(
   }
   if (!tippyOptions.config) {
     tippyOptions.config = {};
+  }
+  if (!scssOptions) {
+    scssOptions = {};
+  }
+  if (scssOptions.quartoBase === undefined) {
+    scssOptions.quartoBase = true;
+  }
+  if (scssOptions.quartoCssVars === undefined) {
+    scssOptions.quartoCssVars = true;
   }
 
   // lists of scripts and ejs data for the orchestration script
@@ -244,27 +260,25 @@ export function htmlFormatExtras(
 
   // add quarto sass bundle of we aren't in bootstrap
   if (!bootstrap) {
-    sassBundles.push({
-      dependency: kQuartoHtmlDependency,
-      key: kQuartoHtmlDependency,
-      quarto: {
-        use: ["sass:color", "sass:math"],
-        defaults: quartoDefaults(format),
-        functions: quartoFunctions(),
-        mixins: "",
-        rules: quartoRules(),
-      },
-    });
-    sassBundles.push({
-      dependency: kQuartoHtmlDependency,
-      key: kQuartoHtmlDependency,
-      quarto: {
-        defaults: "",
-        functions: "",
-        mixins: "",
-        rules: quartoGlobalCssVariableRules(),
-      },
-    });
+    if (scssOptions.quartoBase) {
+      sassBundles.push({
+        dependency: kQuartoHtmlDependency,
+        key: kQuartoHtmlDependency,
+        quarto: quartoBaseLayer(format),
+      });
+    }
+    if (scssOptions.quartoCssVars) {
+      sassBundles.push({
+        dependency: kQuartoHtmlDependency,
+        key: kQuartoHtmlDependency,
+        quarto: {
+          defaults: "",
+          functions: "",
+          mixins: "",
+          rules: quartoGlobalCssVariableRules(),
+        },
+      });
+    }
   }
 
   // header includes

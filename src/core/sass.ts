@@ -141,11 +141,15 @@ const kLayerBoundaryLine = RegExp(layoutBoundary);
 const kLayerBoundaryTest = RegExp(layoutBoundary, "m");
 
 export function mergeLayers(...layers: SassLayer[]) {
+  const themeUse: string[] = [];
   const themeDefaults: string[] = [];
   const themeRules: string[] = [];
   const themeFunctions: string[] = [];
   const themeMixins: string[] = [];
   layers.forEach((theme) => {
+    if (theme.use) {
+      themeUse.push(...theme.use);
+    }
     if (theme.defaults) {
       themeDefaults.push(theme.defaults);
     }
@@ -164,6 +168,7 @@ export function mergeLayers(...layers: SassLayer[]) {
   });
 
   return {
+    use: ld.uniq(themeUse),
     defaults: themeDefaults.join("\n"),
     functions: themeFunctions.join("\n"),
     mixins: themeMixins.join("\n"),

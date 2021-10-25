@@ -25,6 +25,7 @@ import { compileSass, mergeLayers, sassLayerFile } from "../../core/sass.ts";
 import { kRevealJsUrl } from "./format-reveal.ts";
 import { cssHasDarkModeSentinel } from "../../command/render/pandoc-html.ts";
 import { pandocVariablesToThemeScss } from "../html/format-html-scss.ts";
+import { quartoBaseLayer } from "../html/format-html-shared.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -124,7 +125,7 @@ export async function revealTheme(format: Format, libDir: string) {
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
     user: mergeLayers(yamlLayer, ...themeLayers),
-    quarto: quartoLayer(),
+    quarto: mergeLayers(quartoBaseLayer(format), quartoLayer()),
     framework: revealFrameworkLayer(revealDir),
     loadPaths,
   };

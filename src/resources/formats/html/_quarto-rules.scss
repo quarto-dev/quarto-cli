@@ -100,91 +100,6 @@ figure > figcaption {
   margin-top: 0.5em;
 }
 
-// sidebar handling
-.quarto-sidebar-toggle {
-  border-color: $border-color;
-  border-bottom-left-radius: $border-radius;
-  border-bottom-right-radius: $border-radius;
-  border-style: solid;
-  border-width: 1px;
-  overflow: hidden;
-  border-top-width: 0px;
-  padding-top: 0px !important;
-}
-
-.quarto-sidebar-toggle-title {
-  cursor: pointer;
-  padding-bottom: 2px;
-  margin-left: 0.25em;
-  text-align: center;
-  font-weight: 400;
-  font-size: 0.775em;
-}
-
-#quarto-content.page-navbar {
-  .quarto-sidebar-toggle {
-    background: $navbar-bg;
-  }
-
-  .quarto-sidebar-toggle-title {
-    color: $navbar-fg;
-  }
-}
-
-#quarto-content:not(.page-navbar) {
-  .quarto-sidebar-toggle {
-    background: $body-bg;
-  }
-
-  .quarto-sidebar-toggle-title {
-    color: $body-color;
-  }
-}
-
-.quarto-sidebar-toggle-icon {
-  color: $border-color;
-  margin-right: 0.5em;
-  float: right;
-  transition: transform 0.2s ease;
-}
-
-.quarto-sidebar-toggle-icon::before {
-  padding-top: 5px;
-}
-
-.quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-icon {
-  transform: rotate(-180deg);
-}
-
-.quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-title {
-  border-bottom: solid $border-color 1px;
-}
-
-.quarto-sidebar-toggle-contents {
-  padding-right: 10px;
-  padding-left: 10px;
-  transition: max-height 0.5s ease;
-}
-
-.quarto-sidebar-toggle.expanded .quarto-sidebar-toggle-contents {
-  padding-top: 1em;
-  padding-bottom: 10px;
-}
-
-.quarto-sidebar-toggle:not(.expanded) .quarto-sidebar-toggle-contents {
-  padding-top: 0px !important;
-  padding-bottom: 0px;
-}
-
-#TOC {
-  z-index: $zindex-sticky;
-}
-
-#quarto-sidebar > *,
-#TOC > * {
-  transition: opacity 0.15s ease;
-}
-
 // anchor
 
 // anchor js
@@ -275,9 +190,6 @@ code.sourceCode {
   position: relative;
 }
 
-// improve appearance of pandoc line numbers
-// TODO
-
 // default to scrolling <code> output rather than wrapping, since
 // multi-column tabular output (very common for R & Python) is
 // unreadable when wrapped.
@@ -356,13 +268,30 @@ a.external:after:hover {
   width: 1rem;
   content: "";
   vertical-align: -0.125em;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
+  @if variable-exists(text-muted) {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($text-muted)}" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
+  } @else {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
+  }
   background-repeat: no-repeat;
   background-size: 1rem 1rem;
 }
 
 #{$code-copy-selector} .code-copy-button-checked > .bi::before {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>');
+  @if variable-exists(text-muted) {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($text-muted)}" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>');
+  } @else {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>');
+  }
+}
+
+@if variable-exists(link-color) {
+  #{$code-copy-selector} .code-copy-button:hover > .bi::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($link-color)}" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
+  }
+  #{$code-copy-selector} .code-copy-button-checked:hover > .bi::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($link-color)}"  viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>');
+  }
 }
 
 // code linking (pkgdown style)

@@ -10,6 +10,7 @@ $font-family-monospace: monospace !default;
 $body-bg: #fff !default;
 $body-color: #222 !default;
 $link-color: #2a76dd !default;
+$text-muted: lighten($body-color, 60%) !default;
 
 // border colors
 $border-color: lighten($body-color, 30%) !default;
@@ -95,6 +96,13 @@ $linkColorHover: lighten($linkColor, 15%) !default;
 // Text selection
 $selectionBackgroundColor: lighten($linkColor, 25%) !default;
 $selectionColor: #fff !default;
+
+/*-- scss:functions --*/
+
+@function colorToRGB($color) {
+  @return "rgb(" + red($color) + ", " + green($color) + ", " + blue($color) +
+    ")";
+}
 
 /*-- scss:mixins --*/
 

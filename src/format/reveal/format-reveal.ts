@@ -125,6 +125,8 @@ export function revealjsFormat() {
             config: {
               offset: [0, 0],
             },
+          }, {
+            quartoBase: false,
           }),
           // default extras for reveal
           {
