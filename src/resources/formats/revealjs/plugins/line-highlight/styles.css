@@ -20,8 +20,3 @@ Can be remove with next pandoc release > 2.14.2 */
     grid-row: 1;
     grid-column: 1;
 }
-
-.reveal div.sourceCode code {
-    /* Using revealjs variable */
-    background-color: var(--r-background-color);
-}
