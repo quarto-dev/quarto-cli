@@ -209,24 +209,28 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% if (tippy) { %>
   function tippyHover(el, contentFn) {
-    window.tippy(el, {
+    const config = {
       allowHTML: true,
       content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
       appendTo: function(el) {
-        <% if (tippyParent) { %>
-          return el.closest("<%= tippyParent %>") || el.parentElement;
+        <% if (tippyOptions.parent) { %>
+          return el.closest('<%= tippyOptions.parent %>') || el.parentElement;
         <% } else { %>
           return el.parentElement;
         <% } %>
       },
       interactive: true,
       interactiveBorder: 10,
-      theme: '<%= tippyTheme %>',
+      theme: '<%= tippyOptions.theme %>',
       placement: 'bottom-start'
-    }); 
+    };
+    <% for(const key of Object.keys(tippyOptions.config)) { %>
+      config['<%= key %>'] = <%= tippyOptions.config[key] %>;
+    <% } %>
+    window.tippy(el, config); 
   }
   <% } %>
 

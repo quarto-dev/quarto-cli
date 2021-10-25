@@ -118,8 +118,10 @@ export function revealjsFormat() {
             copyCode: true,
             hoverCitations: true,
             hoverFootnotes: true,
-            tippyTheme: "quarto-reveal",
-            tippyParent: "section.slide",
+          }, // tippy options
+          {
+            theme: "quarto-reveal",
+            parent: "section.slide",
           }),
           // default extras for reveal
           {

@@ -33,6 +33,7 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  Metadata,
   PandocFlags,
   SassBundle,
 } from "../../config/types.ts";
@@ -96,13 +97,18 @@ export interface HtmlFormatFeatureDefaults {
   anchors?: boolean;
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
-  tippyTheme?: string;
-  tippyParent?: string;
+}
+
+export interface HtmlFormatTippyOptions {
+  theme?: string;
+  parent?: string;
+  config?: Metadata;
 }
 
 export function htmlFormatExtras(
   format: Format,
   featureDefaults?: HtmlFormatFeatureDefaults,
+  tippyOptions?: HtmlFormatTippyOptions,
 ): FormatExtras {
   // note whether we are targeting bootstrap
   const bootstrap = formatHasBootstrap(format);
@@ -110,6 +116,13 @@ export function htmlFormatExtras(
   // populate feature defaults if none provided
   if (!featureDefaults) {
     featureDefaults = htmlFormatFeatureDefaults(bootstrap);
+  }
+  // empty tippy options if none provided
+  if (!tippyOptions) {
+    tippyOptions = {};
+  }
+  if (!tippyOptions.config) {
+    tippyOptions.config = {};
   }
 
   // lists of scripts and ejs data for the orchestration script
@@ -164,7 +177,6 @@ export function htmlFormatExtras(
 
   // popper if required
   options.tippy = options.hoverCitations || options.hoverFootnotes;
-  options.tippyParent = featureDefaults.tippyParent;
   if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
@@ -184,10 +196,9 @@ export function htmlFormatExtras(
     });
 
     // If this is a bootstrap format, include requires sass
-    options.tippyTheme = featureDefaults.tippyTheme;
-    if (options.tippyTheme === undefined) {
+    if (tippyOptions.theme === undefined) {
       if (bootstrap) {
-        options.tippyTheme = "quarto";
+        tippyOptions.theme = "quarto";
         sassBundles.push({
           key: "tippy.scss",
           dependency: kBootstrapDependencyName,
@@ -201,7 +212,7 @@ export function htmlFormatExtras(
           },
         });
       } else {
-        options.tippyTheme = "light-border";
+        tippyOptions.theme = "light-border";
         stylesheets.push({
           name: "light-border.css",
           path: formatResourcePath("html", join("tippy", "light-border.css")),
@@ -209,6 +220,9 @@ export function htmlFormatExtras(
       }
     }
   }
+
+  // propagate tippyOptions
+  options.tippyOptions = tippyOptions;
 
   // clipboard.js if required
   if (options.copyCode) {
