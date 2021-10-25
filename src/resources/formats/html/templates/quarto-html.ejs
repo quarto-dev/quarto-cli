@@ -228,7 +228,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       placement: 'bottom-start'
     };
     <% for(const key of Object.keys(tippyOptions.config)) { %>
-      config['<%= key %>'] = <%= tippyOptions.config[key] %>;
+      config['<%= key %>'] = <%= JSON.stringify(tippyOptions.config[key]) %>;
     <% } %>
     window.tippy(el, config); 
   }

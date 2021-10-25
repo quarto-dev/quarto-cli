@@ -122,6 +122,9 @@ export function revealjsFormat() {
           {
             theme: "quarto-reveal",
             parent: "section.slide",
+            config: {
+              offset: [0, 0],
+            },
           }),
           // default extras for reveal
           {
