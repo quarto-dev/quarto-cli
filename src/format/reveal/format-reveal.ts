@@ -112,7 +112,7 @@ export function revealjsFormat() {
         libDir: string,
       ) => {
         // start with html format extras and our standard  & plugin extras
-        const extras = mergeConfigs(
+        let extras = mergeConfigs(
           // extras for all html formats
           htmlFormatExtras(format, {
             copyCode: true,
@@ -142,8 +142,6 @@ export function revealjsFormat() {
               ],
             },
           },
-          // plugin extras
-          revealPluginExtras(format, libDir),
         );
 
         // get theme info (including text highlighing mode)
@@ -153,6 +151,14 @@ export function revealjsFormat() {
           ...theme.metadata,
         };
         extras.html![kTextHighlightingMode] = theme[kTextHighlightingMode];
+
+        // if this is local then add plugins
+        if (theme.revealDir) {
+          extras = mergeConfigs(
+            extras,
+            revealPluginExtras(format, theme.revealDir),
+          );
+        }
 
         // provide alternate defaults unless the user requests revealjs defaults
         if (format.metadata[kRevealJsConfig] !== "default") {
@@ -164,7 +170,7 @@ export function revealjsFormat() {
           // if the user set slideNumber to true then provide
           // linear slides (if they havne't specified vertical slides)
           if (format.metadata["slideNumber"] === true && !verticalSlides) {
-            extras.metadataOverride["slideNumber"] = "c/t";
+            extras.metadataOverride!["slideNumber"] = "c/t";
           }
 
           // opinionated version of reveal config defaults
