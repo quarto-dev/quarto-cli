@@ -407,6 +407,67 @@ function completions(obj)
   });
 }
 
+async function validationFromGoodParseYAML(context)
+{
+  let {
+    code,      // full contents of the buffer
+    schema,    // schema of yaml object
+  } = context;
+
+  return false;  
+}
+
+async function automationFromGoodParseYAML(kind, context)
+{
+  let {
+    line,      // editing line up to the cursor
+    code,      // full contents of the buffer
+    position,  // row/column of cursor (0-based)
+    schema,    // schema of yaml object
+
+    // if this is a yaml inside a language chunk, it will have a comment prefix which we need to know about in order to autocomplete linebreaks correctly.
+    commentPrefix
+  } = context;
+
+  commentPrefix = commentPrefix || "";
+  
+  // RStudio sends us here in Visual Editor mode for the YAML front matter
+  // but includes the --- delimiters, so we trim those.
+  if (code.startsWith("---")) {
+    if (kind === "completions" &&
+        position.row === 0) {
+      // user asked for autocomplete on "---": report none
+      return false;
+    }
+    code = code.slice(3);
+    // NB we don't need to update position here because we're leaving
+    // the newlines alone
+    context = {
+      ...context,
+      code
+    };
+  }
+  
+  if (code.endsWith("---")) {
+    const codeLines = core.lines(code);
+    if (kind === "completions" &&
+        position.row === codeLines.length - 1) {
+      // user asked for autocomplete on "---": report none
+      return false;
+    }
+    code = code.slice(0, -3);
+    context = {
+      ...context, code
+    };
+  }
+
+  const func = (
+    kind === "completions" ?
+      completionsFromGoodParseYAML :
+      validationFromGoodParseYAML);
+  return func(context);
+}
+
 async function completionsFromGoodParseYAML(context)
 {
   let {
@@ -536,6 +597,62 @@ async function completionsFromGoodParseYAML(context)
   return false;
 };
 
+async function automationFromGoodParseMarkdown(kind, context)
+{
+  const {
+    code,
+    position,
+    line
+  } = context;
+  const result = core.breakQuartoMd(core.asMappedString(code));
+  
+  let linesSoFar = 0;
+  let foundCell = undefined;
+  for (const cell of result.cells) {
+    let size = core.lines(cell.source.value).length;
+    if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
+      // language cells don't bring starting and ending triple backticks, we must compensate here
+      size += 2;
+    }
+    if (size + linesSoFar > position.row) {
+      foundCell = cell;
+      break;
+    }
+    linesSoFar += size;
+  }
+  if (foundCell === undefined) {
+    return false;
+  }
+  if (foundCell.cell_type === "raw") {
+    const schema = (await getSchemas()).schemas["front-matter"];
+    // complete the yaml front matter
+    return automationFromGoodParseYAML(kind, {
+      line,
+      code: foundCell.source.value,
+      position,
+      schema
+    });
+  } else if (foundCell.cell_type.language) {
+    return automationFromGoodParseScript(kind, {
+      language: foundCell.cell_type.language,
+      code: foundCell.source.value,
+      position: {
+        row: position.row - (linesSoFar + 1),
+        column: position.column
+      },
+      line
+    });
+    // complete the yaml inside a chunk
+  } else if (foundCell.cell_type === "markdown") {
+    // we're inside a markdown, no completions
+    return false;
+  } else {
+    throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+  }
+  
+  return false;
+}
+
 async function completionsFromGoodParseMarkdown(context)
 {
   const {
@@ -572,7 +689,7 @@ async function completionsFromGoodParseMarkdown(context)
       schema
     });
   } else if (foundCell.cell_type.language) {
-    return completionsFromGoodParseScript({
+    return automationFromGoodParseScript("completions", {
       language: foundCell.cell_type.language,
       code: foundCell.source.value,
       position: {
@@ -592,7 +709,7 @@ async function completionsFromGoodParseMarkdown(context)
   return false;
 }
 
-async function completionsFromGoodParseScript(context)
+async function automationFromGoodParseScript(kind, context)
 {
   const codeLines = core.rangedLines(context.code);
   let language;
@@ -623,15 +740,18 @@ async function completionsFromGoodParseScript(context)
 
   let {
     mappedYaml
-  } = core.partitionCellOptionsMapped(
-    language,
-    mappedCode);
+  } = core.partitionCellOptionsMapped(language, mappedCode);
   
   const schemas = (await getSchemas()).schemas;
   const schema = schemas.languages[language].schema;
   const commentPrefix = core.kLangCommentChars[language] + "| ";
 
-  return completionsFromGoodParseYAML({
+  const func = (
+    kind === "completions" ?
+      completionsFromGoodParseYAML :
+      validationFromGoodParseYAML);
+  
+  return func({
     line: context.line.slice(commentPrefix.length),
     code: mappedYaml.value,
     commentPrefix,
@@ -648,71 +768,89 @@ async function completionsFromGoodParseScript(context)
   });
 }
 
+async function automationFileTypeDispatch(filetype, kind, context)
+{
+  switch (filetype) {
+  case "markdown":
+    return automationFromGoodParseMarkdown(kind, context);
+  case "yaml":
+    return automationFromGoodParseYAML(kind, context);
+  case "script":
+    return automationFromGoodParseScript(kind, context);
+  default:
+    return null;
+  }
+}
+
+async function getAutomation(kind, context)
+{
+  const extension = context.path.split(".").pop() || "";
+  const schemas = (await getSchemas()).schemas;
+  const schema = ({
+    "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
+    "markdown": null, // can't be known ahead of time
+    "script": null
+  })[context.filetype];
+
+  const result = await automationFileTypeDispatch(context.filetype, kind, {
+    ...context,
+    schema
+  });
+  
+  console.log({kind, context, result});
+  return result || null;
+}
+
 window.QuartoYamlEditorTools = {
 
   getCompletions: async function(context) {
-    const extension = context.path.split(".").pop() || "";
-    const dispatch = {
-      "markdown": completionsFromGoodParseMarkdown,
-      "yaml": completionsFromGoodParseYAML,
-      "script": completionsFromGoodParseScript
-    };
-    if (!dispatch[context.filetype]) {
-      return new Promise(function(r, _) { r(null); });
-    }
-    const schemas = (await getSchemas()).schemas;
-    const schema = ({
-      "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
-      "markdown": null, // can't be known ahead of time
-      "script": null
-    })[context.filetype];
-
-    const result = await dispatch[context.filetype]({
-      ...context,
-      schema
-    });
-    console.log({result});
-    return result ||
-      (new Promise(function(r, _) { r(null); }));
+    return getAutomation("completions", context);
   },
 
-  getLint: function(context) {
-
-    const {
-      filetype,  // "yaml" | "script" | "markdown"
-      line,      // editing line up to the cursor
-      code,      // full contents of the buffer
-      position   // row/column of cursor (0-based)
-    } = context;
-
-    return new Promise(function(resolve, reject) {
-
-      // resolve no diagnostics 
-      // TODO: remove this code once real diagnostics work
-      resolve(null);
-      return;
-
-      // look for the word 'bolas' and mark it (note that the front
-      // end already takes care of removing marks around the active
-      // cursor so we can ignore the cursor and line context)
-      const kBolas = "bolas";
-      const lint = [];
-      const lines = code.split("\n");
-      for (var i = 0; i<lines.length; i++) {
-        const line = lines[i];
-        const pos = line.indexOf(kBolas);
-        if (pos !== -1) {
-          lint.push({
-            "start.row": i,
-            "start.column": pos,
-            "end.row": i,
-            "end.column": pos + kBolas.length,
-            "text": "Don'tn let that guy in here!!",
-            "type": "error"
-          });
-        }
-      }
-      resolve(lint);
-    });
+  getLint: async function(context) {
+    return getAutomation("validation", context);
   }
+
+  //   const {
+  //     filetype,  // "yaml" | "script" | "markdown"
+  //     line,      // editing line up to the cursor
+  //     code,      // full contents of the buffer
+  //     position   // row/column of cursor (0-based)
+  //   } = context;
+  //   const dispatch = {
+  //     "markdown": validationFromGoodParseMarkdown,
+  //     "yaml": validationFromGoodParseYAML,
+  //     "script": validationFromGoodParseScript
+  //   };
+  //   if (!dispatch[context.filetype]) {
+  //     return null;
+  //   }
+  //   return new Promise(function(resolve, reject) {
+  //     // resolve no diagnostics 
+  //     // TODO: remove this code once real diagnostics work
+  //     resolve(null);
+  //     return;
+  //     // look for the word 'bolas' and mark it (note that the front
+  //     // end already takes care of removing marks around the active
+  //     // cursor so we can ignore the cursor and line context)
+  //     const kBolas = "bolas";
+  //     const lint = [];
+  //     const lines = code.split("\n");
+  //     for (var i = 0; i<lines.length; i++) {
+  //       const line = lines[i];
+  //       const pos = line.indexOf(kBolas);
+  //       if (pos !== -1) {
+  //         lint.push({
+  //           "start.row": i,
+  //           "start.column": pos,
+  //           "end.row": i,
+  //           "end.column": pos + kBolas.length,
+  //           "text": "Don'tn let that guy in here!!",
+  //           "type": "error"
+  //         });
+  //       }
+  //     }
+  //     resolve(lint);
+  //   });
+  // }
 };
