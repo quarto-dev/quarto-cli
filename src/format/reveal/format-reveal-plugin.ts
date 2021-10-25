@@ -36,9 +36,9 @@ interface RevealPlugin {
   config?: Metadata;
 }
 
-export function revealPluginExtras(format: Format, libDir: string) {
+export function revealPluginExtras(format: Format, revealDir: string) {
   // directory to copy plugins into
-  const pluginsDir = join(libDir, "revealjs-plugins");
+  const pluginsDir = join(revealDir, "plugin");
 
   // accumlate content to inject
   const names: string[] = [];

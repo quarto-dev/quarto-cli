@@ -33,6 +33,7 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  Metadata,
   PandocFlags,
   SassBundle,
 } from "../../config/types.ts";
@@ -98,9 +99,16 @@ export interface HtmlFormatFeatureDefaults {
   hoverFootnotes?: boolean;
 }
 
+export interface HtmlFormatTippyOptions {
+  theme?: string;
+  parent?: string;
+  config?: Metadata;
+}
+
 export function htmlFormatExtras(
   format: Format,
   featureDefaults?: HtmlFormatFeatureDefaults,
+  tippyOptions?: HtmlFormatTippyOptions,
 ): FormatExtras {
   // note whether we are targeting bootstrap
   const bootstrap = formatHasBootstrap(format);
@@ -108,6 +116,13 @@ export function htmlFormatExtras(
   // populate feature defaults if none provided
   if (!featureDefaults) {
     featureDefaults = htmlFormatFeatureDefaults(bootstrap);
+  }
+  // empty tippy options if none provided
+  if (!tippyOptions) {
+    tippyOptions = {};
+  }
+  if (!tippyOptions.config) {
+    tippyOptions.config = {};
   }
 
   // lists of scripts and ejs data for the orchestration script
@@ -181,28 +196,33 @@ export function htmlFormatExtras(
     });
 
     // If this is a bootstrap format, include requires sass
-    if (bootstrap) {
-      options.tippyTheme = "quarto";
-      sassBundles.push({
-        key: "tippy.scss",
-        dependency: kBootstrapDependencyName,
-        quarto: {
-          functions: "",
-          defaults: "",
-          mixins: "",
-          rules: Deno.readTextFileSync(
-            formatResourcePath("html", join("tippy", "_tippy.scss")),
-          ),
-        },
-      });
-    } else {
-      options.tippyTheme = "light-border";
-      stylesheets.push({
-        name: "light-border.css",
-        path: formatResourcePath("html", join("tippy", "light-border.css")),
-      });
+    if (tippyOptions.theme === undefined) {
+      if (bootstrap) {
+        tippyOptions.theme = "quarto";
+        sassBundles.push({
+          key: "tippy.scss",
+          dependency: kBootstrapDependencyName,
+          quarto: {
+            functions: "",
+            defaults: "",
+            mixins: "",
+            rules: Deno.readTextFileSync(
+              formatResourcePath("html", join("tippy", "_tippy.scss")),
+            ),
+          },
+        });
+      } else {
+        tippyOptions.theme = "light-border";
+        stylesheets.push({
+          name: "light-border.css",
+          path: formatResourcePath("html", join("tippy", "light-border.css")),
+        });
+      }
     }
   }
+
+  // propagate tippyOptions
+  options.tippyOptions = tippyOptions;
 
   // clipboard.js if required
   if (options.copyCode) {

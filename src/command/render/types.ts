@@ -133,6 +133,7 @@ export interface PandocOptions {
 // command line flags that we need to inspect
 export interface RenderFlags extends PandocFlags {
   // quarto flags
+  outputDir?: string;
   executeDir?: string;
   execute?: boolean;
   executeCache?: true | false | "refresh";

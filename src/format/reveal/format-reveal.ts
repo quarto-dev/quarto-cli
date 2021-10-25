@@ -98,6 +98,7 @@ export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
 
 export const kHashType = "hash-type";
+export const kCenterTitleSlide = "center-title-slide";
 
 export function revealjsFormat() {
   return mergeConfigs(
@@ -111,12 +112,19 @@ export function revealjsFormat() {
         libDir: string,
       ) => {
         // start with html format extras and our standard  & plugin extras
-        const extras = mergeConfigs(
+        let extras = mergeConfigs(
           // extras for all html formats
           htmlFormatExtras(format, {
             copyCode: true,
             hoverCitations: true,
             hoverFootnotes: true,
+          }, // tippy options
+          {
+            theme: "quarto-reveal",
+            parent: "section.slide",
+            config: {
+              offset: [0, 0],
+            },
           }),
           // default extras for reveal
           {
@@ -130,12 +138,10 @@ export function revealjsFormat() {
             html: {
               [kTemplatePatches]: [revealRequireJsPatch],
               [kHtmlPostprocessors]: [
-                revealInitializeHtmlPostprocessor(),
+                revealInitializeHtmlPostprocessor(format),
               ],
             },
           },
-          // plugin extras
-          revealPluginExtras(format, libDir),
         );
 
         // get theme info (including text highlighing mode)
@@ -146,8 +152,27 @@ export function revealjsFormat() {
         };
         extras.html![kTextHighlightingMode] = theme[kTextHighlightingMode];
 
+        // if this is local then add plugins
+        if (theme.revealDir) {
+          extras = mergeConfigs(
+            extras,
+            revealPluginExtras(format, theme.revealDir),
+          );
+        }
+
         // provide alternate defaults unless the user requests revealjs defaults
         if (format.metadata[kRevealJsConfig] !== "default") {
+          // detect whether we are using vertical slides
+          const navigationMode = format.metadata["navigationMode"];
+          const verticalSlides = navigationMode === "default" ||
+            navigationMode === "grid";
+
+          // if the user set slideNumber to true then provide
+          // linear slides (if they havne't specified vertical slides)
+          if (format.metadata["slideNumber"] === true && !verticalSlides) {
+            extras.metadataOverride!["slideNumber"] = "c/t";
+          }
+
           // opinionated version of reveal config defaults
           extras.metadata = {
             ...extras.metadata,
@@ -156,9 +181,11 @@ export function revealjsFormat() {
               height: 700,
               margin: 0.1,
               center: false,
+              navigationMode: "linear",
+              controls: verticalSlides,
               controlsTutorial: false,
               hash: true,
-              hashOneBasedIndex: true,
+              hashOneBasedIndex: false,
               fragmentInURL: false,
               transition: "none",
               backgroundTransition: "none",
@@ -217,7 +244,7 @@ function revealMetadataFilter(metadata: Metadata) {
   return filtered;
 }
 
-function revealInitializeHtmlPostprocessor() {
+function revealInitializeHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
     // find reveal initializatio and perform fixups
     const scripts = doc.querySelectorAll("script");
@@ -232,6 +259,25 @@ function revealInitializeHtmlPostprocessor() {
           /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
           "slideNumber: '$1'",
         );
+      }
+    }
+
+    // center title slide if requested
+    // note that disabling title slide centering when the rest of the
+    // slides are centered doesn't currently work b/c reveal consults
+    // the global 'center' config as well as the class. to overcome
+    // this we'd need to always set 'center: false` and then
+    // put the .center classes onto each slide manually. we're not
+    // doing this now the odds a user would want all of their
+    // slides cnetered but NOT the title slide are close to zero
+    if (format.metadata[kCenterTitleSlide] !== false) {
+      const titleSlide = doc.getElementById("title-slide") as Element;
+      if (titleSlide) {
+        titleSlide.classList.add("center");
+      }
+      const titleSlides = doc.querySelectorAll(".title-slide");
+      for (const slide of titleSlides) {
+        (slide as Element).classList.add("center");
       }
     }
 

@@ -67,7 +67,7 @@ export async function preview(
   options: PreviewOptions,
 ) {
   // see if this is in a project that should be previewed w/ serve
-  const project = await projectContext(file, false, true);
+  const project = await projectContext(file, flags, false, true);
   if (project && projectIsWebsite(project)) {
     if (isProjectInputFile(file, project)) {
       const result = await renderProject(project, { flags, pandocArgs }, [

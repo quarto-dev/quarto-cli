@@ -31,11 +31,13 @@ import { copyProjectForServe } from "./serve-shared.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpReloader } from "../../core/http-reload.ts";
 import { Format } from "../../config/types.ts";
+import { RenderFlags } from "../render/types.ts";
 
 export async function watchProject(
   project: ProjectContext,
   serveProject: ProjectContext,
   resourceFiles: string[],
+  flags: RenderFlags,
   options: ServeOptions,
 ): Promise<ProjectWatcher> {
   // track renderOnChange inputs
@@ -57,8 +59,9 @@ export async function watchProject(
   // helper to refresh project config
   const refreshProjectConfig = async () => {
     // get project and temporary serve project
-    project = (await projectContext(project.dir, false, true))!;
-    serveProject = (await projectContext(serveProject.dir, false, true))!;
+    project = (await projectContext(project.dir, flags, false, true))!;
+    serveProject =
+      (await projectContext(serveProject.dir, flags, false, true))!;
     await updateRenderOnChangeInputs();
   };
 

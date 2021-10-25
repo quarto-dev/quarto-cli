@@ -73,7 +73,7 @@ export async function serveProject(
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, false, true);
+    project = await projectContext(target, flags, false, true);
     if (!project || !project?.config) {
       throw new Error(`${target} is not a website or book project`);
     }
@@ -136,7 +136,7 @@ export async function serveProject(
 
   // create mirror of project for serving
   const serveDir = copyProjectForServe(project, true);
-  const serveProject = (await projectContext(serveDir, false, true))!;
+  const serveProject = (await projectContext(serveDir, flags, false, true))!;
 
   // append resource files from render results
   resourceFiles.push(...ld.uniq(
@@ -148,6 +148,7 @@ export async function serveProject(
     project,
     serveProject,
     resourceFiles,
+    flags,
     options,
   );
 

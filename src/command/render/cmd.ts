@@ -32,6 +32,10 @@ export const renderCommand = new Command()
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
+    "--output-dir",
+    "Write project output to DIR (path is project relative)",
+  )
+  .option(
     "--execute",
     "Execute code (--no-execute to skip execution).",
   )

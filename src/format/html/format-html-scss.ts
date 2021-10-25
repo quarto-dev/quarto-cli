@@ -90,11 +90,7 @@ function layerQuartoScss(
       ].join("\n"),
     },
     framework: {
-      defaults: pandocVariablesToBootstrapDefaults(format.metadata).map(
-        (variable) => {
-          return outputVariable(variable, false);
-        },
-      ).join("\n"),
+      defaults: pandocVariablesToThemeScss(format.metadata),
       functions: sassUtils,
       mixins: "",
       rules: Deno.readTextFileSync(boostrapRules),
@@ -229,7 +225,7 @@ function resolveThemeLayer(
   return [themeSassLayer, defaultDark];
 }
 
-function pandocVariablesToBootstrapDefaults(
+function pandocVariablesToThemeDefaults(
   metadata: Metadata,
 ): SassVariable[] {
   const explicitVars: SassVariable[] = [];
@@ -270,6 +266,17 @@ function pandocVariablesToBootstrapDefaults(
   });
 
   return explicitVars;
+}
+
+export function pandocVariablesToThemeScss(
+  metadata: Metadata,
+  asDefaults = false,
+) {
+  return pandocVariablesToThemeDefaults(metadata).map(
+    (variable) => {
+      return outputVariable(variable, asDefaults);
+    },
+  ).join("\n");
 }
 
 const kCodeBorderLeft = "code-block-border-left";
