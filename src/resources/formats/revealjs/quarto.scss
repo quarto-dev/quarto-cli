@@ -54,7 +54,7 @@ $code-block-bg: $body-bg !default;
 $code-block-border-color: lighten($body-color, 60%) !default;
 
 // inline code
-$code-color: #4758ab !default;
+$code-color: var(--quarto-hl-fu-color) !default;
 $code-bg: $body-bg !default;
 
 // Background of the presentation
