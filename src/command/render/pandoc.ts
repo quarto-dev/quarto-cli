@@ -124,6 +124,14 @@ export async function runPandoc(
     args.push("--quiet");
   }
 
+  // merge in any extra metadata
+  if (options.metadata) {
+    options.format.metadata = mergeConfigs(
+      options.format.metadata,
+      options.metadata,
+    );
+  }
+
   // save args and metadata so we can print them (we may subsequently edit them)
   const printArgs = [...args];
   let printMetadata = {

@@ -106,9 +106,6 @@ export interface PandocOptions {
   // original source file
   source: string;
 
-  // original metadata
-  metadata: Metadata;
-
   // output file that will be written
   output: string;
 
@@ -117,8 +114,12 @@ export interface PandocOptions {
 
   // target format
   format: Format;
+
   // command line args for pandoc
   args: string[];
+
+  // extra metadata to merge
+  metadata?: Metadata;
 
   // optoinal project context
   project?: ProjectContext;

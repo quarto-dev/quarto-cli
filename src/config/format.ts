@@ -63,6 +63,15 @@ export function isHtmlOutput(
   }
 }
 
+export function isPresentationOutput(format: FormatPandoc) {
+  if (format.to) {
+    return ["s5", "dzslides", "slidy", "slideous", "revealjs", "beamer", "pptx"]
+      .some((to) => format.to?.startsWith(to));
+  } else {
+    return false;
+  }
+}
+
 export function isRevealjsOutput(format: FormatPandoc) {
   return !!format.to && format.to.startsWith("revealjs");
 }
