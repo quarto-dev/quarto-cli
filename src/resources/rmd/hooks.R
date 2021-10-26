@@ -261,7 +261,9 @@ knitr_hooks <- function(format, resourceDir) {
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "yaml.code", "code", "params.src", "original.params.src", 
                     "fenced.echo", "chunk.echo",
-                    "out.width.px", "out.height.px", "indent")
+                    "out.width.px", "out.height.px", "indent", "class.source", 
+                    "class.output", "class.message", "class.warning", "class.error", "attr.source", 
+                    "attr.output", "attr.message", "attr.warning", "attr.error")
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
     unknown_opts <- setdiff(names(options), known_opts)
     unknown_opts <- Filter(Negate(is.null), unknown_opts)
