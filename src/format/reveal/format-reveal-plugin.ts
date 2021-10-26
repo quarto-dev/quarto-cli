@@ -181,7 +181,7 @@ export function injectRevealConfig(
     const kRevealInitialize = "Reveal.initialize({";
     template = template.replace(
       kRevealInitialize,
-      kRevealInitialize + "\n" + configJs.join(",") + ",\n",
+      kRevealInitialize + "\n" + configJs.join(",\n") + ",\n",
     );
   }
   return template;
