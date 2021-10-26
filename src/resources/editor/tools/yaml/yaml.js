@@ -6995,7 +6995,6 @@ Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function () {
 
 },{"./compile/codegen":2,"./compile/validate":15,"./core":18,"./refs/json-schema-draft-07.json":20,"./vocabularies/discriminator":45,"./vocabularies/draft7":47}]},{},[])("ajv")
 });
-debugger;
 window.ajv = new window.ajv7({ allErrors: false });
 (() => {
   // binary-search.ts
@@ -7067,6 +7066,25 @@ window.ajv = new window.ajv7({ allErrors: false });
     const offsets = lineOffsets(text);
     return function(position) {
       return offsets[position.row] + position.column;
+    };
+  }
+  function formatLineRange(text, firstLine, lastLine) {
+    const lineWidth = Math.max(String(firstLine + 1).length, String(lastLine + 1).length);
+    const pad = " ".repeat(lineWidth);
+    const ls = lines(text);
+    const result2 = [];
+    for (let i = firstLine; i <= lastLine; ++i) {
+      const numberStr = `${pad}${i + 1}`.slice(-lineWidth);
+      const lineStr = ls[i];
+      result2.push({
+        lineNumber: i,
+        content: numberStr + lineStr,
+        rawLine: ls[i]
+      });
+    }
+    return {
+      prefixWidth: lineWidth + 2,
+      lines: result2
     };
   }
 
@@ -7499,6 +7517,53 @@ window.ajv = new window.ajv7({ allErrors: false });
     return lines3;
   }
 
+  // promise.ts
+  var PromiseQueue = class {
+    constructor() {
+      this.queue = new Array();
+      this.running = false;
+    }
+    enqueue(promise, clearPending = false) {
+      return new Promise((resolve, reject) => {
+        if (clearPending) {
+          this.queue.splice(0, this.queue.length);
+        }
+        this.queue.push({
+          promise,
+          resolve,
+          reject
+        });
+        this.dequeue();
+      });
+    }
+    dequeue() {
+      if (this.running) {
+        return false;
+      }
+      const item = this.queue.shift();
+      if (!item) {
+        return false;
+      }
+      try {
+        this.running = true;
+        item.promise().then((value) => {
+          this.running = false;
+          item.resolve(value);
+          this.dequeue();
+        }).catch((err) => {
+          this.running = false;
+          item.reject(err);
+          this.dequeue();
+        });
+      } catch (err) {
+        this.running = false;
+        item.reject(err);
+        this.dequeue();
+      }
+      return true;
+    }
+  };
+
   // schema.ts
   function schemaType(schema) {
     const t = schema.type;
@@ -7558,6 +7623,200 @@ window.ajv = new window.ajv7({ allErrors: false });
         return [];
     }
   }
+  function walkSchema(schema, f) {
+    f(schema);
+    switch (schemaType(schema)) {
+      case "array":
+        if (schema.items) {
+          walkSchema(schema.items, f);
+        }
+        ;
+        break;
+      case "anyOf":
+        for (const s of schema.anyOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "oneOf":
+        for (const s of schema.oneOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "allOf":
+        for (const s of schema.allOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "object":
+        if (schema.properties) {
+          for (const key of Object.getOwnPropertyNames(schema.properties)) {
+            const s = schema.properties[key];
+            walkSchema(s, f);
+          }
+        }
+        if (schema.additionalProperties) {
+          walkSchema(schema.additionalProperties, f);
+        }
+        break;
+    }
+  }
+  function normalizeSchema(schema) {
+    const result2 = JSON.parse(JSON.stringify(schema));
+    walkSchema(result2, (schema2) => {
+      if (schema2.completions) {
+        delete schema2.completions;
+      }
+      if (schema2.exhaustiveCompletions) {
+        delete schema2.exhaustiveCompletions;
+      }
+      if (schema2.documentation) {
+        delete schema2.documentation;
+      }
+    });
+    return result2;
+  }
+
+  // yaml-schema.ts
+  var ajv = void 0;
+  function setupAjv(_ajv) {
+    debugger;
+    ajv = _ajv;
+  }
+  function navigate(path, annotation, pathIndex = 0) {
+    if (pathIndex >= path.length) {
+      return annotation;
+    }
+    if (annotation.kind === "mapping") {
+      const { components } = annotation;
+      const searchKey = path[pathIndex];
+      for (let i = 0; i < components.length; i += 2) {
+        const key = components[i].result;
+        if (key === searchKey) {
+          return navigate(path, components[i + 1], pathIndex + 1);
+        }
+      }
+      throw new Error("Internal error: searchKey not found in mapping object");
+    } else if (annotation.kind === "sequence") {
+      const searchKey = Number(path[pathIndex]);
+      return navigate(path, annotation.components[searchKey], pathIndex + 1);
+    } else {
+      throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
+    }
+  }
+  function navigateSchema(path, schema, pathIndex = 0) {
+    if (pathIndex >= path.length - 1) {
+      return schema;
+    }
+    const pathVal = path[pathIndex];
+    if (pathVal === "properties") {
+      const key = path[pathIndex + 1];
+      const subSchema = schema.properties[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "anyOf") {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.anyOf[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "oneOf") {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.oneOf[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else {
+      console.log({ path });
+      throw new Error("Internal error: Failed to navigate schema path");
+    }
+  }
+  function isProperPrefix(a, b) {
+    return b.length > a.length && b.substring(0, a.length) === a;
+  }
+  function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
+    const result2 = [];
+    const locF = mappedIndexToRowCol(source);
+    for (const error of validationErrors) {
+      const instancePath = error.instancePath;
+      const path = error.instancePath.split("/").slice(1);
+      if (["oneOf", "anyOf"].indexOf(error.keyword) !== -1 && validationErrors.filter((otherError) => isProperPrefix(instancePath, otherError.instancePath)).length > 0) {
+        continue;
+      }
+      if (["enum", "type"].indexOf(error.keyword) !== -1 && validationErrors.some((otherError) => instancePath === otherError.instancePath && ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1)) {
+        continue;
+      }
+      const schemaPath = error.schemaPath.split("/").slice(1);
+      const violatingObject = navigate(path, annotation);
+      const innerSchema = navigateSchema(schemaPath, schema);
+      let message = "";
+      const start = locF(violatingObject.start);
+      const end = locF(violatingObject.end);
+      const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
+      message = `${locStr}: Expected field ${instancePath} to ${innerSchema.description}`;
+      result2.push({
+        instancePath,
+        violatingObject,
+        message,
+        source
+      });
+    }
+    result2.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
+    return result2;
+  }
+  var YAMLSchema = class {
+    constructor(schema) {
+      this.schema = schema;
+      this.validate = ajv.compile(normalizeSchema(schema));
+    }
+    validateParse(src, annotation) {
+      let errors = [];
+      if (!this.validate(annotation.result)) {
+        errors = localizeAndPruneErrors(annotation, this.validate.errors, src, this.schema);
+        return {
+          result: annotation.result,
+          errors
+        };
+      } else {
+        return {
+          result: annotation.result,
+          errors: []
+        };
+      }
+    }
+    reportErrorsInSource(result2, src, message, error) {
+      if (result2.errors.length) {
+        const locF = mappedIndexToRowCol(src);
+        const nLines = lines(src.originalString).length;
+        error(message);
+        for (const err of result2.errors) {
+          console.log(err.message);
+          let startO = err.violatingObject.start;
+          let endO = err.violatingObject.end;
+          while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
+            startO++;
+          }
+          while (src.mapClosest(endO) > src.mapClosest(startO) && src.originalString[src.mapClosest(endO)].match(/\s/)) {
+            endO--;
+          }
+          const start = locF(startO);
+          const end = locF(endO);
+          const {
+            prefixWidth,
+            lines: lines3
+          } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+          for (const { lineNumber, content, rawLine } of lines3) {
+            console.log(content);
+            if (lineNumber >= start.line && lineNumber <= end.line) {
+              const startColumn = lineNumber > start.line ? 0 : start.column;
+              const endColumn = lineNumber < end.line ? rawLine.length : end.column;
+              console.log(" ".repeat(prefixWidth + startColumn) + "^".repeat(endColumn - startColumn + 1));
+            }
+          }
+        }
+      }
+      return result2;
+    }
+    validateParseWithErrors(src, annotation, message, error) {
+      const result2 = this.validateParse(src, annotation);
+      this.reportErrorsInSource(result2, src, message, error);
+      return result2;
+    }
+  };
 
   // index.ts
   var result = {
@@ -7569,6 +7828,7 @@ window.ajv = new window.ajv7({ allErrors: false });
     mappedIndexToRowCol,
     partitionCellOptionsMapped,
     kLangCommentChars,
+    PromiseQueue,
     rangedSubstring,
     rangedLines,
     lineOffsets,
@@ -7577,7 +7837,9 @@ window.ajv = new window.ajv7({ allErrors: false });
     indexToRowCol,
     rowColToIndex,
     schemaType,
-    schemaCompletions
+    schemaCompletions,
+    YAMLSchema,
+    setupAjv
   };
   if (window) {
     window._quartoCoreLib = result;
@@ -12461,1034 +12723,781 @@ function marshalEdit(edit) {
 if (typeof exports === 'object') {
   module.exports = TreeSitter;
 }
-// deno-lint-ignore-file
-
-// The "filetype" passed to getCompletions and getLint indicates the 
-// structure of the passed code buffer:
-//
-//   yaml      - standalone yaml file
-//   script    - script that may have embedded YAML comments (e.g. #| foo: bar)
-//   markdown  - markdown file that may have embedded YAML front matter as 
-//               well as code chunks that include script w/ YAML
-
-const Parser = window.TreeSitter;
-
-let _schemas;
-let _parser;
-
-const core = window._quartoCoreLib;
-
-async function getSchemas() {
-  if (_schemas) {
-    return _schemas;
+(() => {
+  // validator-queue.js
+  var core = window._quartoCoreLib;
+  var yamlValidators = {};
+  var validatorQueues = {};
+  function getValidator(context) {
+    const {
+      schema,
+      schemaName
+    } = context;
+    if (yamlValidators[schemaName]) {
+      return yamlValidators[schemaName];
+    }
+    const validator = new core.YAMLSchema(schema);
+    yamlValidators[schemaName] = validator;
+    return validator;
   }
-  const response = await fetch('/quarto/resources/editor/tools/yaml/quarto-json-schemas.json');
-  _schemas = response.json();
-  return _schemas;
-}
-
-async function getTreeSitter() {
-  if (_parser) {
-    return _parser;
+  async function withValidator(context, fun) {
+    const {
+      schemaName
+    } = context;
+    if (validatorQueues[schemaName] === void 0) {
+      validatorQueues[schemaName] = new core.PromiseQueue();
+    }
+    const queue = validatorQueues[schemaName];
+    return await queue.enqueue(async () => {
+      const validator = getValidator(context);
+      try {
+        return await fun(validator);
+      } finally {
+        return void 0;
+      }
+    });
   }
-  
-  const Parser = window.TreeSitter;
-  
-  await Parser.init();
-  
-  _parser = new Parser;
-  const YAML = await Parser.Language.load('/quarto/resources/editor/tools/yaml/tree-sitter-yaml.wasm'); // FIXME
-  
-  _parser.setLanguage(YAML);
-  return _parser;
-};
 
-function navigateSchema(schema, path)
-{
-  const refs = {};
-  function inner(subSchema, index) {
-    if (subSchema.$id) {
-      refs[subSchema.$id] = subSchema;
-    }
-    if (subSchema.$ref) {
-      if (refs[subSchema.$ref] === undefined) {
-        throw new Error(`Internal error: schema reference ${subSchema.$ref} undefined`);
+  // tree-sitter-annotated-yaml.js
+  function buildAnnotated(tree, mappedSource) {
+    const singletonBuild = (node) => {
+      return buildNode(node.firstChild);
+    };
+    const buildNode = (node) => {
+      if (node === null) {
+        return null;
       }
-      subSchema = refs[subSchema.$ref];
-    }
-    if (index === path.length) {
-      return [subSchema];
-    }
-    const st = core.schemaType(subSchema);
-    if (st === "object") {
-      const key = path[index];
-      if (subSchema.properties[key] === undefined) {
-        // because we're using this in an autocomplete scenario, there's the "last entry is a prefix of a
-        // valid key" special case.
-        if (index !== path.length - 1) {
-          return [];
+      if (dispatch[node.type] === void 0) {
+        throw new Error(`Internal error: don't know how to build node of type ${node.type}`);
+      }
+      return dispatch[node.type](node);
+    };
+    const annotateEmpty = (position) => {
+      const mappedPos = mappedSource.mapClosest(position);
+      return {
+        start: mappedPos,
+        end: mappedPos,
+        result: null,
+        kind: "<<EMPTY>>",
+        components: []
+      };
+    };
+    const annotate = (node, result, components) => {
+      return {
+        start: mappedSource.mapClosest(node.startIndex),
+        end: mappedSource.mapClosest(node.endIndex),
+        result,
+        kind: node.type,
+        components
+      };
+    };
+    const dispatch = {
+      "stream": singletonBuild,
+      "document": singletonBuild,
+      "block_node": singletonBuild,
+      "flow_node": singletonBuild,
+      "block_sequence": (node) => {
+        const result = [], components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          if (child.type !== "block_sequence_item") {
+            continue;
+          }
+          const component = buildNode(child);
+          components.push(component);
+          result.push(component.result);
         }
-        const completions = Object.getOwnPropertyNames(subSchema.properties).filter(
-          name => name.startsWith(key));
-        if (completions.length === 0) {
-          return [];
+        return annotate(node, result, components);
+      },
+      "block_sequence_item": (node) => {
+        if (node.childCount < 2) {
+          return annotateEmpty(node.endIndex);
+        } else {
+          return buildNode(node.child(1));
         }
-        return [subSchema];
-      }
-      return inner(subSchema.properties[key], index + 1);
-    } else if (st === "array") {
-      // arrays are uniformly typed, easy
-      if (subSchema.items === undefined) {
-        // no items schema, can't navigate to expected schema
-        return [];
-      }
-      return inner(subSchema.items, index + 1);
-    } else if (st === "anyOf") {
-      return subSchema.anyOf.map(ss => inner(ss, index));
-    } else if (st === "allOf") {
-      // FIXME
-      throw new Error("Internal error: don't know how to navigate allOf schema :(");
-    } else if (st === "oneOf") {
-      const result = subSchema.oneOf.map(ss => inner(ss, index)).flat(Infinity);
-      if (result.length !== 1) {
-        return [];
-      } else {
-        return result;
-      }
-    } else {
-      // if path wanted to navigate deeper but this is a YAML
-      // "terminal" (not a compound type) then this is not a valid
-      // schema to complete on.
-      return [];
-    }
-  };
-  return inner(schema, 0).flat(Infinity);
-}
-
-// locateCursor is lenient wrt locating inside the last character of a
-// range (by using position <= foo instead of position < foo).  That
-// happens because tree-sitter's robust parsing sometimes returns
-// "partial objects" which are missing parts of the tree.  In those
-// cases, we want the cursor to be "inside a null value", and they
-// correspond to the edges of an object, where position == range.end.
-function locateCursor(annotation, position)
-{
-  let failedLast = false;
-  
-  function locate(node, pathSoFar) {
-    if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
-      for (let i = 0; i < node.components.length; i += 2) {
-        const keyC = node.components[i],
-              valueC = node.components[i+1];
-        if (keyC.start <= position && position <= keyC.end) {
-          return [keyC.result, pathSoFar];
-        } else if (valueC.start <= position && position <= valueC.end) {
-          return locate(valueC, [keyC.result, pathSoFar]);
-        }
-      }
-      
-      // FIXME: decide what to do if cursor lands exactly on ":"?
-
-      // if we "fell through the pair cracks", that is, if the cursor is inside a mapping
-      // but not inside any of the actual mapping pairs, then we stop the location at the
-      // object itself, but report an error so that the recipients may handle it
-      // case-by-base.
-
-      failedLast = true;
-      
-      return pathSoFar;
-      // throw new Error("Internal error: cursor outside bounds in mapping locate?");
-    } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
-      for (let i = 0; i < node.components.length; ++i) {
-        const valueC = node.components[i];
-        if (valueC.start <= position && position <= valueC.end) {
-          return locate(valueC, [i, pathSoFar]);
-        }
-        if (valueC.start > position) {
-          // We went too far: that means we're caught in between entries. Assume
-          // that we're inside the previous element but that we can't navigate any further
-          // If we're at the beginning of the sequence, assume that we're done exactly here.
-          if (i === 0) {
-            return pathSoFar;
-          } else {
-            return [i-1, pathSoFar];
+      },
+      "double_quote_scalar": (node) => {
+        return annotate(node, JSON.parse(node.text), []);
+      },
+      "plain_scalar": (node) => {
+        function getV() {
+          try {
+            return JSON.parse(node.text);
+          } catch (e) {
+            return node.text;
           }
         }
+        const v = getV();
+        return annotate(node, v, []);
+      },
+      "flow_sequence": (node) => {
+        const result = [], components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          if (child.type !== "flow_node") {
+            continue;
+          }
+          const component = buildNode(child);
+          components.push(component);
+          result.push(component.result);
+        }
+        return annotate(node, result, components);
+      },
+      "block_mapping": (node) => {
+        const result = {}, components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          let component;
+          if (child.type === "ERROR") {
+            result[child.text] = "<<ERROR>>";
+            const key2 = annotate(child, child.text, []);
+            const value2 = annotateEmpty(child.endIndex);
+            component = annotate(child, {
+              key: key2.result,
+              value: value2.result
+            }, [key2, value2]);
+          } else if (child.type !== "block_mapping_pair") {
+            debugger;
+            throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
+          } else {
+            component = buildNode(child);
+          }
+          const { key, value } = component.result;
+          result[key] = value;
+          components.push(...component.components);
+        }
+        return annotate(node, result, components);
+      },
+      "block_mapping_pair": (node) => {
+        let key, value;
+        if (node.childCount === 3) {
+          key = annotate(node.child(0), node.child(0).text, []);
+          value = buildNode(node.child(2));
+        } else if (node.childCount === 2) {
+          key = annotate(node.child(0), node.child(0).text, []);
+          value = annotateEmpty(node.endIndex);
+        } else {
+          key = annotateEmpty(node.endIndex);
+          value = annotateEmpty(node.endIndex);
+        }
+        return annotate(node, {
+          key: key.result,
+          value: value.result
+        }, [key, value]);
       }
-
-      throw new Error("Internal error: cursor outside bounds in sequence locate?");
-    } else {
-      if (node.kind !== "<<EMPTY>>") {
-        return [node.result, pathSoFar];
-      } else {
-        // we're inside an error, don't report that.
+    };
+    return buildNode(tree.rootNode);
+  }
+  function locateCursor(annotation, position) {
+    let failedLast = false;
+    function locate(node, pathSoFar) {
+      if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
+        for (let i = 0; i < node.components.length; i += 2) {
+          const keyC = node.components[i], valueC = node.components[i + 1];
+          if (keyC.start <= position && position <= keyC.end) {
+            return [keyC.result, pathSoFar];
+          } else if (valueC.start <= position && position <= valueC.end) {
+            return locate(valueC, [keyC.result, pathSoFar]);
+          }
+        }
+        failedLast = true;
         return pathSoFar;
+      } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
+        for (let i = 0; i < node.components.length; ++i) {
+          const valueC = node.components[i];
+          if (valueC.start <= position && position <= valueC.end) {
+            return locate(valueC, [i, pathSoFar]);
+          }
+          if (valueC.start > position) {
+            if (i === 0) {
+              return pathSoFar;
+            } else {
+              return [i - 1, pathSoFar];
+            }
+          }
+        }
+        throw new Error("Internal error: cursor outside bounds in sequence locate?");
+      } else {
+        if (node.kind !== "<<EMPTY>>") {
+          return [node.result, pathSoFar];
+        } else {
+          return pathSoFar;
+        }
       }
     }
-  }
-  const value = locate(annotation, []).flat(Infinity).reverse();
-  return {
-    withError: failedLast,
-    value
-  };
-}
-
-// attempt many parses at current line by deleting one character at a
-// time, and yields them in sequence
-
-function* attemptParsesAtLine(context, parser)
-{ 
-  const {
-    filetype,  // "yaml" | "script" | "markdown"
-    line,      // editing line up to the cursor
-    code,      // full contents of the buffer
-    position   // row/column of cursor (0-based)
-  } = context;
-
-  if (code.value === undefined) {
-    code = core.asMappedString(code);
-  }
-  
-  const tree = parser.parse(code.value);
-  if (tree.rootNode.type !== 'ERROR') {
-    yield {
-      parse: tree,
-      code,
-      deletions: 0
+    const value = locate(annotation, []).flat(Infinity).reverse();
+    return {
+      withError: failedLast,
+      value
     };
   }
 
-  const codeLines = core.rangedLines(code.value);
-
-  const currentLine = codeLines[position.row].substring;
-  let currentColumn = position.column;
-  let deletions = 0;
-
-  while (currentColumn > 0) {
-    currentColumn--;
-    deletions++;
-
-    let chunks = [];
-    if (position.row > 0) {
-      chunks.push({
-        start: 0,
-        end: codeLines[position.row - 1].range.end
-      });
-      chunks.push("\n");
+  // parsing.js
+  var core2 = window._quartoCoreLib;
+  var _parser;
+  async function getTreeSitter() {
+    if (_parser) {
+      return _parser;
     }
-    chunks.push(`${currentLine.substring(0, currentColumn)}`);
-    if (position.row + 1 < codeLines.length) {
-      chunks.push("\n");
-      chunks.push({
-        start: codeLines[position.row + 1].range.start,
-        end: codeLines[codeLines.length - 1].range.end
-      });
+    const Parser = window.TreeSitter;
+    await Parser.init();
+    _parser = new Parser();
+    const YAML = await Parser.Language.load("/quarto/resources/editor/tools/yaml/tree-sitter-yaml.wasm");
+    _parser.setLanguage(YAML);
+    return _parser;
+  }
+  function* attemptParsesAtLine(context, parser) {
+    let {
+      filetype,
+      line,
+      code,
+      position
+    } = context;
+    if (code.value === void 0) {
+      code = core2.asMappedString(code);
     }
-    const newCode = core.mappedString(code, chunks);
-    
-    const tree = parser.parse(newCode.value);
-    if (tree.rootNode.type !== 'ERROR') {
+    const tree = parser.parse(code.value);
+    if (tree.rootNode.type !== "ERROR") {
       yield {
         parse: tree,
-        code: newCode,
-        deletions
+        code,
+        deletions: 0
       };
     }
-  }
-};
-
-function completionsPromise(opts)
-{
-  let {
-    completions,
-    word
-  } = opts;
-  completions = completions.slice();
-  completions.sort((a, b) => a.value.localeCompare(b.value));
-  
-  return new Promise(function(resolve, reject) {
-    // resolve completions
-    resolve({
-
-      // token to replace
-      token: word,
-
-      // array of completions
-      completions,
-
-      // is this cacheable for subsequent results that add to the token
-      // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
-      cacheable: true,
-    });
-  });
-}
-
-function getIndent(l)
-{
-  return l.length - l.trimStart().length;
-}
-
-function getYamlIndentTree(code)
-{
-  const lines = core.lines(code);
-  const predecessor = [];
-  const indents = [];
-
-  let indentation = -1;
-  let prevPredecessor = -1;
-  for (let i = 0; i < lines.length; ++i) {
-    const line = lines[i];
-    const lineIndent = getIndent(line);
-    indents.push(lineIndent);
-
-    if (line.trim().length === 0) {
-      predecessor[i] = predecessor[prevPredecessor];
-    } else if (lineIndent === indentation) {
-      predecessor[i] = predecessor[prevPredecessor];
-      prevPredecessor = i;
-    } else if (lineIndent < indentation) {
-      // go down the predecessor relation
-      let v = prevPredecessor;
-      while (v >= 0 && indents[v] >= lineIndent) {
-        v = predecessor[v];
+    const codeLines = core2.rangedLines(code.value);
+    const currentLine = codeLines[position.row].substring;
+    let currentColumn = position.column;
+    let deletions = 0;
+    while (currentColumn > 0) {
+      currentColumn--;
+      deletions++;
+      let chunks = [];
+      if (position.row > 0) {
+        chunks.push({
+          start: 0,
+          end: codeLines[position.row - 1].range.end
+        });
+        chunks.push("\n");
       }
-      predecessor[i] = v;
-      prevPredecessor = i;
-      indentation = lineIndent;
-    } else {
-      // pre: lineIndent > indentation
-      predecessor[i] = prevPredecessor;
-      prevPredecessor = i;
-      indentation = lineIndent;
-    }
-  }
-  return {
-    predecessor,
-    indentation: indents
-  };
-}
-
-function locateFromIndentation(context)
-{
-  let {
-    line,      // editing line up to the cursor
-    code,      // full contents of the buffer
-    position   // row/column of cursor (0-based)
-  } = context;
-
-  // currently we don't need mappedstrings here, so we cast to string
-  if (code.value !== undefined) {
-    code = code.value;
-  }
-
-  const { predecessor, indentation } = getYamlIndentTree(code);
-
-  const lines = core.lines(code);
-  let lineNo = position.row;
-  const path = [];
-  let lineIndent = getIndent(line);
-  while (lineNo !== -1) {
-    const trimmed = lines[lineNo].trim();
-
-    // treat whitespace differently: find first non-whitespace line above it and compare indents
-    if (trimmed.length === 0) {
-      let prev = lineNo;
-      while (prev >= 0 && lines[prev].trim().length === 0) {
-        prev--;
+      chunks.push(`${currentLine.substring(0, currentColumn)}`);
+      if (position.row + 1 < codeLines.length) {
+        chunks.push("\n");
+        chunks.push({
+          start: codeLines[position.row + 1].range.start,
+          end: codeLines[codeLines.length - 1].range.end
+        });
       }
-      if (prev === -1) {
-        // all whitespace..?! we give up.
-        break;
-      }
-      const prevIndent = getIndent(lines[prev]);
-      if (prevIndent < lineIndent) {
-        // we're indented deeper than the previous indent: Locate through that.
-        lineNo = prev;
-        continue;
-      }
-    }
-    if (lineIndent >= indentation[lineNo]) {
-      if (trimmed.startsWith("-")) {
-        // sequence entry
-        // we report the wrong number here, but since we don't
-        // actually need to know which entry in the array this is in
-        // order to navigate the schema, this is fine.
-        path.push(0);
-      } else if (trimmed.endsWith(":")) {
-        // mapping
-        path.push(trimmed.substring(0, trimmed.length - 1));
-      } else if (trimmed.length !== 0) {
-        // parse error?
-        return undefined;
-      }
-    }
-    lineNo = predecessor[lineNo];
-  }
-  path.reverse();
-  return path;
-}
-
-function completions(obj)
-{
-  const {
-    schema,
-    path,
-    word,
-    indent,
-    commentPrefix
-  } = obj;
-  const noCompletions = new Promise(function(r, _) { r(null); });
-  const matchingSchemas = navigateSchema(schema, path);
-
-  // indent mappings and sequences automatically
-  const completions = matchingSchemas.map(schema => {
-    const result = core.schemaCompletions(schema);
-    return result.map(completion => {
-      // we only change indentation on keys
-      if (!completion.suggest_on_accept ||
-          completion.type === "value" || 
-          core.schemaType(completion.schema) !== "object") {
-        return completion;
-      }
-      
-      const key = completion.value.split(":")[0];
-      const subSchema = completion.schema.properties[key];
-      if (core.schemaType(subSchema) === "object") {
-        return {
-          ...completion,
-          value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2)
+      const newCode = core2.mappedString(code, chunks);
+      const tree2 = parser.parse(newCode.value);
+      if (tree2.rootNode.type !== "ERROR") {
+        yield {
+          parse: tree2,
+          code: newCode,
+          deletions
         };
-      } else if (core.schemaType(subSchema) === "array") {
-        return {
-          ...completion,
-          value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2) + "- "
-        };
+      }
+    }
+  }
+  function getIndent(l) {
+    return l.length - l.trimStart().length;
+  }
+  function getYamlIndentTree(code) {
+    const lines = core2.lines(code);
+    const predecessor = [];
+    const indents = [];
+    let indentation = -1;
+    let prevPredecessor = -1;
+    for (let i = 0; i < lines.length; ++i) {
+      const line = lines[i];
+      const lineIndent = getIndent(line);
+      indents.push(lineIndent);
+      if (line.trim().length === 0) {
+        predecessor[i] = predecessor[prevPredecessor];
+      } else if (lineIndent === indentation) {
+        predecessor[i] = predecessor[prevPredecessor];
+        prevPredecessor = i;
+      } else if (lineIndent < indentation) {
+        let v = prevPredecessor;
+        while (v >= 0 && indents[v] >= lineIndent) {
+          v = predecessor[v];
+        }
+        predecessor[i] = v;
+        prevPredecessor = i;
+        indentation = lineIndent;
       } else {
-        return completion;
+        predecessor[i] = prevPredecessor;
+        prevPredecessor = i;
+        indentation = lineIndent;
       }
-    });
-  }).flat().filter(c => c.value.startsWith(word));
-  
-  if (completions.length === 0) {
-    return noCompletions;
-  }
-
-  return completionsPromise({
-    completions,
-    word
-  });
-}
-
-async function validationFromGoodParseYAML(context)
-{
-  let {
-    code,      // full contents of the buffer
-    schema,    // schema of yaml object
-  } = context;
-
-  if (code.value === undefined) {
-    throw new Error("Internal error: Expected a MappedString");
-  }
-
-  return false;  
-}
-
-async function automationFromGoodParseYAML(kind, context)
-{
-  let {
-    line,      // editing line up to the cursor
-    code,      // full contents of the buffer
-    position,  // row/column of cursor (0-based)
-    schema,    // schema of yaml object
-
-    // if this is a yaml inside a language chunk, it will have a comment prefix which we need to know about in order to autocomplete linebreaks correctly.
-    commentPrefix
-  } = context;
-
-  commentPrefix = commentPrefix || "";
-  
-  // RStudio sends us here in Visual Editor mode for the YAML front matter
-  // but includes the --- delimiters, so we trim those.
-  if (code.value.startsWith("---")) {
-    if (kind === "completions" && position.row === 0) {
-      // user asked for autocomplete on "---": report none
-      return false;
     }
-    code = core.mappedString(code, [{ begin: 0, end: 3 }]);
-    // NB we don't need to update position here because we're leaving
-    // the newlines alone
-    context = {
-      ...context,
-      code
+    return {
+      predecessor,
+      indentation: indents
     };
   }
-  
-  if (code.value.endsWith("---")) {
-    const codeLines = core.mappedLines(code);
-    if (kind === "completions" &&
-        position.row === codeLines.length - 1) {
-      // user asked for autocomplete on "---": report none
-      return false;
+  function locateFromIndentation(context) {
+    let {
+      line,
+      code,
+      position
+    } = context;
+    if (code.value !== void 0) {
+      code = code.value;
     }
-    code = core.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
-    context = {
-      ...context, code
-    };
-  }
-
-  const func = (
-    kind === "completions" ?
-      completionsFromGoodParseYAML :
-      validationFromGoodParseYAML);
-  return func(context);
-}
-
-async function completionsFromGoodParseYAML(context)
-{
-  let {
-    line,      // editing line up to the cursor
-    code,      // full contents of the buffer
-    position,  // row/column of cursor (0-based)
-    schema,    // schema of yaml object
-
-    // if this is a yaml inside a language chunk, it will have a comment prefix which we need to know about in order to autocomplete linebreaks correctly.
-    commentPrefix
-  } = context;
-
-  commentPrefix = commentPrefix || "";
-  
-  // RStudio sends us here in Visual Editor mode for the YAML front matter
-  // but includes the --- delimiters, so we trim those.
-  if (code.value.startsWith("---")) {
-    if (position.row === 0) {
-      // user asked for autocomplete on "---": report none
-      return false;
+    const { predecessor, indentation } = getYamlIndentTree(code);
+    const lines = core2.lines(code);
+    let lineNo = position.row;
+    const path = [];
+    let lineIndent = getIndent(line);
+    while (lineNo !== -1) {
+      const trimmed = lines[lineNo].trim();
+      if (trimmed.length === 0) {
+        let prev = lineNo;
+        while (prev >= 0 && lines[prev].trim().length === 0) {
+          prev--;
+        }
+        if (prev === -1) {
+          break;
+        }
+        const prevIndent = getIndent(lines[prev]);
+        if (prevIndent < lineIndent) {
+          lineNo = prev;
+          continue;
+        }
+      }
+      if (lineIndent >= indentation[lineNo]) {
+        if (trimmed.startsWith("-")) {
+          path.push(0);
+        } else if (trimmed.endsWith(":")) {
+          path.push(trimmed.substring(0, trimmed.length - 1));
+        } else if (trimmed.length !== 0) {
+          return void 0;
+        }
+      }
+      lineNo = predecessor[lineNo];
     }
-    code = core.mappedString(code, [{ begin: 0, end: 3 }]);
-    // NB we don't need to update position here because we're leaving
-    // the newlines alone
-    context = {
-      ...context,
-      code
-    };
+    path.reverse();
+    return path;
   }
-  
-  if (code.value.endsWith("---")) {
-    const codeLines = core.mappedLines(code);
-    if (position.row === codeLines.length - 1) {
-      // user asked for autocomplete on "---": report none
-      return false;
+
+  // schemas.js
+  var core3 = window._quartoCoreLib;
+  var _schemas;
+  async function getSchemas() {
+    if (_schemas) {
+      return _schemas;
     }
-    code = core.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
-    context = { ...context, code };
+    const response = await fetch("/quarto/resources/editor/tools/yaml/quarto-json-schemas.json");
+    _schemas = response.json();
+    return _schemas;
+  }
+  function navigateSchema(schema, path) {
+    const refs = {};
+    function inner(subSchema, index) {
+      if (subSchema.$id) {
+        refs[subSchema.$id] = subSchema;
+      }
+      if (subSchema.$ref) {
+        if (refs[subSchema.$ref] === void 0) {
+          throw new Error(`Internal error: schema reference ${subSchema.$ref} undefined`);
+        }
+        subSchema = refs[subSchema.$ref];
+      }
+      if (index === path.length) {
+        return [subSchema];
+      }
+      const st = core3.schemaType(subSchema);
+      if (st === "object") {
+        const key = path[index];
+        if (subSchema.properties[key] === void 0) {
+          if (index !== path.length - 1) {
+            return [];
+          }
+          const completions2 = Object.getOwnPropertyNames(subSchema.properties).filter((name) => name.startsWith(key));
+          if (completions2.length === 0) {
+            return [];
+          }
+          return [subSchema];
+        }
+        return inner(subSchema.properties[key], index + 1);
+      } else if (st === "array") {
+        if (subSchema.items === void 0) {
+          return [];
+        }
+        return inner(subSchema.items, index + 1);
+      } else if (st === "anyOf") {
+        return subSchema.anyOf.map((ss) => inner(ss, index));
+      } else if (st === "allOf") {
+        throw new Error("Internal error: don't know how to navigate allOf schema :(");
+      } else if (st === "oneOf") {
+        const result = subSchema.oneOf.map((ss) => inner(ss, index)).flat(Infinity);
+        if (result.length !== 1) {
+          return [];
+        } else {
+          return result;
+        }
+      } else {
+        return [];
+      }
+    }
+    ;
+    return inner(schema, 0).flat(Infinity);
   }
 
-  const parser = await getTreeSitter();
-  let word;
-  if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
-    word = "";
-  } else {
-    word = line.split(" ").slice(-1)[0];
-  }
-
-  if (line.trim().length === 0) {
-    // we're in a pure-whitespace line, we should locate entirely based on indentation
-    const path = locateFromIndentation(context);
-    const indent = line.length;
-    let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
-    rawCompletions.completions = rawCompletions.completions.filter(
-      completion => completion.type === "key");
-    return rawCompletions;
-  }
-  const indent = line.trimEnd().length - line.trim().length;
-  
-  for (const parseResult of attemptParsesAtLine(context, parser)) {
+  // automation.js
+  var core4 = window._quartoCoreLib;
+  async function validationFromGoodParseYAML(context) {
     const {
-      parse: tree,
-      code: mappedCode,
-      deletions
-    } = parseResult;
-
-    if (line.substring(0, line.length - deletions).trim().length === 0) {
-      // the valid parse we found puts us in a pure-whitespace line, so we should locate
-      // entirely on indentation.
-      const path = locateFromIndentation({
-        line: line.substring(0, deletions),
-        code: mappedCode.value,
-        position: {
+      code
+    } = context;
+    if (code.value === void 0) {
+      throw new Error("Internal error: Expected a MappedString");
+    }
+    debugger;
+    return await withValidator(context, async (validator) => {
+      const parser = await getTreeSitter();
+      for (const parseResult of attemptParsesAtLine(context, parser)) {
+        const {
+          parse: tree,
+          code: mappedCode,
+          deletions
+        } = parseResult;
+        const annotation = buildAnnotated(tree, mappedCode);
+        if (annotation.end !== mappedCode.value.length) {
+          continue;
+        }
+        const validationResult = validator.validateParse(code, annotation);
+        debugger;
+        return false;
+      }
+      return false;
+    });
+  }
+  async function automationFromGoodParseYAML(kind, context) {
+    let {
+      line,
+      code,
+      position,
+      schema,
+      commentPrefix
+    } = context;
+    commentPrefix = commentPrefix || "";
+    if (code.value.startsWith("---")) {
+      if (kind === "completions" && position.row === 0) {
+        return false;
+      }
+      code = core4.mappedString(code, [{ begin: 0, end: 3 }]);
+      context = {
+        ...context,
+        code
+      };
+    }
+    if (code.value.endsWith("---")) {
+      const codeLines = core4.mappedLines(code);
+      if (kind === "completions" && position.row === codeLines.length - 1) {
+        return false;
+      }
+      code = core4.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
+      context = {
+        ...context,
+        code
+      };
+    }
+    const func = kind === "completions" ? completionsFromGoodParseYAML : validationFromGoodParseYAML;
+    return func(context);
+  }
+  async function completionsFromGoodParseYAML(context) {
+    let {
+      line,
+      code,
+      position,
+      schema,
+      commentPrefix
+    } = context;
+    commentPrefix = commentPrefix || "";
+    if (code.value.startsWith("---")) {
+      if (position.row === 0) {
+        return false;
+      }
+      code = core4.mappedString(code, [{ begin: 0, end: 3 }]);
+      context = {
+        ...context,
+        code
+      };
+    }
+    if (code.value.endsWith("---")) {
+      const codeLines = core4.mappedLines(code);
+      if (position.row === codeLines.length - 1) {
+        return false;
+      }
+      code = core4.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
+      context = { ...context, code };
+    }
+    const parser = await getTreeSitter();
+    let word;
+    if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
+      word = "";
+    } else {
+      word = line.split(" ").slice(-1)[0];
+    }
+    if (line.trim().length === 0) {
+      const path = locateFromIndentation(context);
+      const indent2 = line.length;
+      let rawCompletions = await completions({ schema, path, word, indent: indent2, commentPrefix });
+      rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "key");
+      return rawCompletions;
+    }
+    const indent = line.trimEnd().length - line.trim().length;
+    for (const parseResult of attemptParsesAtLine(context, parser)) {
+      const {
+        parse: tree,
+        code: mappedCode,
+        deletions
+      } = parseResult;
+      if (line.substring(0, line.length - deletions).trim().length === 0) {
+        const path = locateFromIndentation({
+          line: line.substring(0, deletions),
+          code: mappedCode.value,
+          position: {
+            row: position.row,
+            column: position.column - deletions
+          }
+        });
+        let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+        rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "key");
+        return rawCompletions;
+      } else {
+        const doc = buildAnnotated(tree, mappedCode);
+        if (doc.end !== mappedCode.value.length) {
+          continue;
+        }
+        const index = core4.rowColToIndex(mappedCode.value)({
           row: position.row,
           column: position.column - deletions
+        });
+        const { withError: locateFailed, value: path } = locateCursor(doc, index);
+        if (locateFailed) {
+          if (position.column >= line.length && line.indexOf(":") !== -1) {
+            path.push(line.trim().split(":")[0]);
+          }
         }
-      });
-      // we're in an empty line, so the only valid completions are object keys
-      let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
-      rawCompletions.completions = rawCompletions.completions.filter(
-        completion => completion.type === "key");
-      return rawCompletions;
-    } else {
-      const doc = buildAnnotated(tree, mappedCode);
-      if (doc.end !== mappedCode.value.length) {
-        // some tree-sitter "error-tolerant parses" are particularly bad for us
-        // here, we guard against "partial" parses where tree-sitter doesn't consume the entire string.
-        
-        // this is symptomatic of a bad object. When this happens, bail on the current parse.
-        continue;
-      }
-      const index = core.rowColToIndex(mappedCode.value)({
-        row: position.row,
-        column: position.column - deletions
-      });
-      const { withError: locateFailed, value: path } = locateCursor(doc, index);
-      if (locateFailed) {
-        // if cursor is at the end of line and it's an object mapping,
-        // we can fix the failed location.
-        if (position.column >= line.length && line.indexOf(":") !== -1) {
-          path.push(line.trim().split(":")[0]);
+        let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+        if (line.indexOf(":") !== -1) {
+          rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "value");
         }
-      }
-      let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
-
-      // filter raw completions depending on cursor context. We use "_" to denote
-      // the cursor position. We need to handle:
-      // 
-      // 1. "     _": empty line, complete only on keys
-      // 2. "     foo: _": completion on value position of object
-      // 3. "     - _": completion on array sequence
-      // 4. "     - foo: ": completion on value position of object inside array sequence
-      // 
-      // case 1 was handled upstream of this, so we don't need to handle it here
-      // cases 2 and 4 take only value completions
-      // case 3 takes all completions
-      
-      // this picks up only cases 2 and 4
-      if (line.indexOf(":") !== -1) {
-        rawCompletions.completions = rawCompletions.completions.filter(
-          completion => completion.type === "value");
-      }
-      return rawCompletions;
-    }
-  }
-  
-  return false;
-};
-
-async function automationFromGoodParseMarkdown(kind, context)
-{
-  const {
-    code,
-    position,
-    line
-  } = context;
- 
-  const result = core.breakQuartoMd(code);
-    
-  if (kind === "completions") {
-    let linesSoFar = 0;
-    let foundCell = undefined;
-    for (const cell of result.cells) {
-      let size = core.lines(cell.source.value).length;
-      if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
-        // language cells don't bring starting and ending triple backticks, we must compensate here
-        size += 2;
-      }
-      if (size + linesSoFar > position.row) {
-        foundCell = cell;
-        break;
-      }
-      linesSoFar += size;
-    }
-    if (foundCell === undefined) {
-      return false;
-    }
-    if (foundCell.cell_type === "raw") {
-      const schema = (await getSchemas()).schemas["front-matter"];
-      // complete the yaml front matter
-      return automationFromGoodParseYAML(kind, {
-        line,
-        code: foundCell.source,
-        position,
-        schema
-      });
-    } else if (foundCell.cell_type.language) {
-      return automationFromGoodParseScript(kind, {
-        language: foundCell.cell_type.language,
-        code: foundCell.source,
-        position: {
-          row: position.row - (linesSoFar + 1),
-          column: position.column
-        },
-        line
-      });
-      // complete the yaml inside a chunk
-    } else if (foundCell.cell_type === "markdown") {
-      // we're inside a markdown, no completions
-      return false;
-    } else {
-      throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
-    }
-  } else {
-    const lints = [];
-    
-    for (const cell of result.cells) {
-      if (cell.cell_type === "raw") {
-        lints.push(...validationFromGoodParseYAML({
-          code: cell.source,
-          schema: (await getSchemas()).schemas["front-matter"]
-        }));
-      } else if (cell.cell_type.language) {
-        lints.push(...automationFromGoodParseScript(kind, {
-          code: cell.source,
-          language: cell.cell_type.language,
-          line,
-        }));
+        return rawCompletions;
       }
     }
-    return lints;
-  }
-}
-
-async function completionsFromGoodParseMarkdown(context)
-{
-  const {
-    code,
-    position,
-    line
-  } = context;
-  const result = core.breakQuartoMd(core.asMappedString(code));
-  
-  let linesSoFar = 0;
-  let foundCell = undefined;
-  for (const cell of result.cells) {
-    let size = core.lines(cell.source.value).length;
-    if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
-      // language cells don't bring starting and ending triple backticks, we must compensate here
-      size += 2;
-    }
-    if (size + linesSoFar > position.row) {
-      foundCell = cell;
-      break;
-    }
-    linesSoFar += size;
-  }
-  if (foundCell === undefined) {
     return false;
   }
-  if (foundCell.cell_type === "raw") {
-    const schema = (await getSchemas()).schemas["front-matter"];
-    // complete the yaml front matter
-    return completionsFromGoodParseYAML({
-      line,
-      code: foundCell.source,
+  function completionsPromise(opts) {
+    let {
+      completions: completions2,
+      word
+    } = opts;
+    completions2 = completions2.slice();
+    completions2.sort((a, b) => a.value.localeCompare(b.value));
+    return new Promise(function(resolve, reject) {
+      resolve({
+        token: word,
+        completions: completions2,
+        cacheable: true
+      });
+    });
+  }
+  function completions(obj) {
+    const {
+      schema,
+      path,
+      word,
+      indent,
+      commentPrefix
+    } = obj;
+    const noCompletions = new Promise(function(r, _) {
+      r(null);
+    });
+    const matchingSchemas = navigateSchema(schema, path);
+    const completions2 = matchingSchemas.map((schema2) => {
+      const result = core4.schemaCompletions(schema2);
+      return result.map((completion) => {
+        if (!completion.suggest_on_accept || completion.type === "value" || core4.schemaType(completion.schema) !== "object") {
+          return completion;
+        }
+        const key = completion.value.split(":")[0];
+        const subSchema = completion.schema.properties[key];
+        if (core4.schemaType(subSchema) === "object") {
+          return {
+            ...completion,
+            value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2)
+          };
+        } else if (core4.schemaType(subSchema) === "array") {
+          return {
+            ...completion,
+            value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2) + "- "
+          };
+        } else {
+          return completion;
+        }
+      });
+    }).flat().filter((c) => c.value.startsWith(word));
+    if (completions2.length === 0) {
+      return noCompletions;
+    }
+    return completionsPromise({
+      completions: completions2,
+      word
+    });
+  }
+  async function automationFromGoodParseMarkdown(kind, context) {
+    const {
+      code,
       position,
+      line
+    } = context;
+    const result = core4.breakQuartoMd(code);
+    if (kind === "completions") {
+      let linesSoFar = 0;
+      let foundCell = void 0;
+      for (const cell of result.cells) {
+        let size = core4.lines(cell.source.value).length;
+        if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
+          size += 2;
+        }
+        if (size + linesSoFar > position.row) {
+          foundCell = cell;
+          break;
+        }
+        linesSoFar += size;
+      }
+      if (foundCell === void 0) {
+        return false;
+      }
+      if (foundCell.cell_type === "raw") {
+        const schema = (await getSchemas()).schemas["front-matter"];
+        return automationFromGoodParseYAML(kind, {
+          line,
+          position,
+          schema,
+          code: foundCell.source,
+          schemaName: "front-matter"
+        });
+      } else if (foundCell.cell_type.language) {
+        return automationFromGoodParseScript(kind, {
+          language: foundCell.cell_type.language,
+          code: foundCell.source,
+          position: {
+            row: position.row - (linesSoFar + 1),
+            column: position.column
+          },
+          line
+        });
+      } else if (foundCell.cell_type === "markdown") {
+        return false;
+      } else {
+        throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+      }
+    } else {
+      const lints = [];
+      for (const cell of result.cells) {
+        if (cell.cell_type === "raw") {
+          lints.push(...validationFromGoodParseYAML({
+            code: cell.source,
+            schema: (await getSchemas()).schemas["front-matter"]
+          }));
+        } else if (cell.cell_type.language) {
+          lints.push(...automationFromGoodParseScript(kind, {
+            code: cell.source,
+            language: cell.cell_type.language,
+            line
+          }));
+        }
+      }
+      return lints;
+    }
+  }
+  async function automationFromGoodParseScript(kind, context) {
+    const codeLines = core4.rangedLines(context.code.value);
+    let language;
+    let codeStartLine;
+    if (!context.language) {
+      if (codeLines.length < 2) {
+        return false;
+      }
+      const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+      if (!m) {
+        return false;
+      }
+      codeStartLine = 1;
+      language = m[1];
+    } else {
+      codeStartLine = 0;
+      language = context.language;
+    }
+    const mappedCode = core4.mappedString(context.code, [{
+      start: codeLines[codeStartLine].range.start,
+      end: codeLines[codeLines.length - 1].range.end
+    }]);
+    let {
+      mappedYaml
+    } = core4.partitionCellOptionsMapped(language, mappedCode);
+    const schemas = (await getSchemas()).schemas;
+    const schema = schemas.languages[language].schema;
+    const commentPrefix = core4.kLangCommentChars[language] + "| ";
+    const func = kind === "completions" ? completionsFromGoodParseYAML : validationFromGoodParseYAML;
+    return func({
+      line: context.line.slice(commentPrefix.length),
+      code: mappedYaml,
+      commentPrefix,
+      position: {
+        row: context.position.row - codeStartLine,
+        column: context.position.column - commentPrefix.length
+      },
       schema
     });
-  } else if (foundCell.cell_type.language) {
-    return automationFromGoodParseScript("completions", {
-      language: foundCell.cell_type.language,
-      code: foundCell.source,
-      position: {
-        row: position.row - (linesSoFar + 1),
-        column: position.column
-      },
-      line
+  }
+  async function automationFileTypeDispatch(filetype, kind, context) {
+    switch (filetype) {
+      case "markdown":
+        return automationFromGoodParseMarkdown(kind, context);
+      case "yaml":
+        return automationFromGoodParseYAML(kind, context);
+      case "script":
+        return automationFromGoodParseScript(kind, context);
+      default:
+        return null;
+    }
+  }
+  async function getAutomation(kind, context) {
+    const extension = context.path.split(".").pop() || "";
+    const schemas = (await getSchemas()).schemas;
+    const schema = {
+      "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
+      "markdown": null,
+      "script": null
+    }[context.filetype];
+    const schemaName = {
+      "yaml": extension === "qmd" ? "front-matter" : "config",
+      "markdown": null,
+      "script": null
+    }[context.filetype];
+    const result = await automationFileTypeDispatch(context.filetype, kind, {
+      ...context,
+      code: core4.asMappedString(context.code),
+      schema,
+      schemaName
     });
-    // complete the yaml inside a chunk
-  } else if (foundCell.cell_type === "markdown") {
-    // we're inside a markdown, no completions
-    return false;
-  } else {
-    throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+    console.log({ kind, context, result });
+    return result || null;
   }
-  
-  return false;
-}
-
-async function automationFromGoodParseScript(kind, context)
-{
-  const codeLines = core.rangedLines(context.code.value);
-  let language;
-  let codeStartLine;
-  
-  if (!context.language) {
-    if (codeLines.length < 2) {
-      // need both language and code to autocomplete. length < 2 implies
-      // we're missing one of them at least: skip.
-      return false;
-    }
-    const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
-    if (!m) {
-      // couldn't recognize language in script, return false
-      return false;
-    }
-    codeStartLine = 1;
-    language = m[1];
-  } else {
-    codeStartLine = 0;
-    language = context.language;
-  }
-  // const language = m[1];
-  const mappedCode = core.mappedString(
-    context.code,
-    [{ start: codeLines[codeStartLine].range.start,
-       end: codeLines[codeLines.length-1].range.end }]);
-
-  let {
-    mappedYaml
-  } = core.partitionCellOptionsMapped(language, mappedCode);
-  
-  const schemas = (await getSchemas()).schemas;
-  const schema = schemas.languages[language].schema;
-  const commentPrefix = core.kLangCommentChars[language] + "| ";
-
-  const func = (
-    kind === "completions" ?
-      completionsFromGoodParseYAML :
-      validationFromGoodParseYAML);
-  
-  return func({
-    line: context.line.slice(commentPrefix.length),
-    code: mappedYaml,
-    commentPrefix,
-    // NB we get lucky here that the "inverse mapping" of the cursor
-    // position is easy enough to compute explicitly. This might not
-    // hold in the future...
-    position: {
-      // -1 subtract the "{language}" line if necessary
-      row: context.position.row - codeStartLine,
-      // subtract the "#| " entry
-      column: context.position.column - commentPrefix.length
+  window.QuartoYamlEditorTools = {
+    getCompletions: async function(context) {
+      debugger;
+      return getAutomation("completions", context);
     },
-    schema,
-  });
-}
-
-async function automationFileTypeDispatch(filetype, kind, context)
-{
-  switch (filetype) {
-  case "markdown":
-    return automationFromGoodParseMarkdown(kind, context);
-  case "yaml":
-    return automationFromGoodParseYAML(kind, context);
-  case "script":
-    return automationFromGoodParseScript(kind, context);
-  default:
-    return null;
-  }
-}
-
-async function getAutomation(kind, context)
-{
-  const extension = context.path.split(".").pop() || "";
-  const schemas = (await getSchemas()).schemas;
-  const schema = ({
-    "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
-    "markdown": null, // can't be known ahead of time
-    "script": null
-  })[context.filetype];
-
-  const result = await automationFileTypeDispatch(context.filetype, kind, {
-    ...context,
-    code: core.asMappedString(context.code),
-    schema
-  });
-  
-  console.log({kind, context, result});
-  return result || null;
-}
-
-window.QuartoYamlEditorTools = {
-
-  getCompletions: async function(context) {
-    debugger;
-    return getAutomation("completions", context);
-  },
-
-  getLint: async function(context) {
-    debugger;
-    return getAutomation("validation", context);
-  }
-};
-/*
-* tree-sitter-annotated-yaml.ts
-* 
-* Copyright (C) 2021 by RStudio, PBC
-*
-*/
-
-/**
- * given a tree from tree-sitter-yaml and the mappedString
- * corresponding to the source, returns an AnnotatedParse (cf
- * `src/core/schema/annotated-yaml.ts`)
- */
-function buildAnnotated(tree, mappedSource)
-{
-  const singletonBuild = (node) => {
-    return buildNode(node.firstChild);
-  };
-  const buildNode = (node) => {
-    if (node === null) {
-      // This can come up with parse errors
-      return null;
-    }
-    if (dispatch[node.type] === undefined) {
-      throw new Error(`Internal error: don't know how to build node of type ${node.type}`);
-    }
-    return dispatch[node.type](node);
-  };
-
-  const annotateEmpty = (position) => {
-    const mappedPos = mappedSource.mapClosest(position);
-    return {
-      start: mappedPos,
-      end: mappedPos,
-      result: null,
-      kind: "<<EMPTY>>",
-      components: []
-    };
-  };
-  
-  const annotate = (node, result, components) => {
-    return {
-      start: mappedSource.mapClosest(node.startIndex),
-      end: mappedSource.mapClosest(node.endIndex),
-      result,
-      kind: node.type, // FIXME this is almost certainly wrong because it doesn't match js-yaml.
-      components
-    };
-  };
-  
-  const dispatch = {
-    "stream": singletonBuild,
-    "document": singletonBuild,
-    "block_node": singletonBuild,
-    "flow_node": singletonBuild,
-    "block_sequence": (node) => {
-      const result = [], components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
-        if (child.type !== "block_sequence_item") {
-          continue;
-        }
-        const component = buildNode(child);
-        components.push(component);
-        result.push(component.result);
-      }
-      return annotate(node, result, components);
-    },
-    "block_sequence_item": (node) => {
-      if (node.childCount < 2) {
-        return annotateEmpty(node.endIndex);
-      } else {
-        return buildNode(node.child(1));
-      }
-    },
-    "double_quote_scalar": (node) => {
-      return annotate(node, JSON.parse(node.text), []);
-    },
-    "plain_scalar": (node) => {
-      // FIXME yuck, the yaml rules are ugly. I'm sure we'll get this wrong at first, oh well.
-      function getV() {
-        try {
-          return JSON.parse(node.text); // this catches things like numbers, which YAML wants to convert to actual numbers
-        } catch (e) {
-          return node.text; // if that fails, return the actual string value.
-        }
-      }
-      const v = getV();
-      return annotate(node, v, []);
-    },
-    "flow_sequence": (node) => {
-      const result = [], components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
-        if (child.type !== "flow_node") {
-          continue;
-        }
-        const component = buildNode(child);
-        components.push(component);
-        result.push(component.result);
-      }
-      return annotate(node, result, components);
-    },
-    "block_mapping": (node) => {
-      const result = {}, components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
-        let component;
-        if (child.type === "ERROR") {
-          // attempt to recover from error
-          result[child.text] = "<<ERROR>>";
-          const key = annotate(child, child.text, []);
-          const value = annotateEmpty(child.endIndex);
-          component = annotate(child, {
-            key: key.result,
-            value: value.result
-          }, [key, value]);
-        } else if (child.type !== "block_mapping_pair") {
-          debugger;
-          throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
-        } else {
-          component = buildNode(child);
-        }
-        const { key, value } = component.result;
-        // FIXME what do we do in the presence of parse errors that result empty keys?
-        // if (key === null) { }
-        result[key] = value;
-        components.push(...component.components);
-      }
-      return annotate(node, result, components);
-    },
-    "block_mapping_pair": (node) => {
-      let key, value;
-      if (node.childCount === 3) {
-        // when three children exist, we assume a good parse 
-        key = annotate(node.child(0), node.child(0).text, []);
-        value = buildNode(node.child(2));
-      } else if (node.childCount === 2) {
-        // when two children exist, we assume a bad parse with missing value 
-        key = annotate(node.child(0), node.child(0).text, []);
-        value = annotateEmpty(node.endIndex);
-      } else {
-        // otherwise, we assume a bad parse, return empty on both key and value
-        key = annotateEmpty(node.endIndex);
-        value = annotateEmpty(node.endIndex);
-      }
-      
-      return annotate(node, {
-        key: key.result,
-        value: value.result
-      }, [key, value]);
+    getLint: async function(context) {
+      debugger;
+      core4.setupAjv(window.ajv);
+      return getAutomation("validation", context);
     }
   };
-  
-  return buildNode(tree.rootNode);
-  
-}
-
-
-/** just like `src/core/schema/yaml-schema.ts:navigate`, but expects
- * the node kinds which come from tree-sitter-yaml parser
- */
-function navigate(path, annotation, pathIndex = 0)
-{
-  if (pathIndex >= path.length) {
-    return annotation;
-  }
-  if (annotation.kind === "block_mapping") {
-    const { components } = annotation;
-    const searchKey = path[pathIndex];
-    for (let i = 0; i < components.length; i += 2) {
-      const key = components[i].result;
-      if (key === searchKey) {
-        return navigate(path, components[i + 1], pathIndex + 1);
-      }
-    }
-    throw new Error("Internal error: searchKey not found in mapping object");
-  } else if (annotation.kind === "block_sequence") {
-    const searchKey = Number(path[pathIndex]);
-    return navigate(path, annotation.components[searchKey], pathIndex + 1);
-  } else {
-    throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
-  }
-  
-}
+})();

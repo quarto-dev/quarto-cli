@@ -1,5 +1,5 @@
 /*
-* tree-sitter-annotated-yaml.ts
+* tree-sitter-annotated-yaml.js
 * 
 * Copyright (C) 2021 by RStudio, PBC
 *
@@ -10,7 +10,7 @@
  * corresponding to the source, returns an AnnotatedParse (cf
  * `src/core/schema/annotated-yaml.ts`)
  */
-function buildAnnotated(tree, mappedSource)
+export function buildAnnotated(tree, mappedSource)
 {
   const singletonBuild = (node) => {
     return buildNode(node.firstChild);
@@ -115,7 +115,6 @@ function buildAnnotated(tree, mappedSource)
             value: value.result
           }, [key, value]);
         } else if (child.type !== "block_mapping_pair") {
-          debugger;
           throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
         } else {
           component = buildNode(child);
@@ -159,7 +158,7 @@ function buildAnnotated(tree, mappedSource)
 /** just like `src/core/schema/yaml-schema.ts:navigate`, but expects
  * the node kinds which come from tree-sitter-yaml parser
  */
-function navigate(path, annotation, pathIndex = 0)
+export function navigate(path, annotation, pathIndex = 0)
 {
   if (pathIndex >= path.length) {
     return annotation;
@@ -180,5 +179,73 @@ function navigate(path, annotation, pathIndex = 0)
   } else {
     throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
+}
+
+
+// locateCursor is lenient wrt locating inside the last character of a
+// range (by using position <= foo instead of position < foo).  That
+// happens because tree-sitter's robust parsing sometimes returns
+// "partial objects" which are missing parts of the tree.  In those
+// cases, we want the cursor to be "inside a null value", and they
+// correspond to the edges of an object, where position == range.end.
+export function locateCursor(annotation, position)
+{
+  let failedLast = false;
   
+  function locate(node, pathSoFar) {
+    if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
+      for (let i = 0; i < node.components.length; i += 2) {
+        const keyC = node.components[i],
+              valueC = node.components[i+1];
+        if (keyC.start <= position && position <= keyC.end) {
+          return [keyC.result, pathSoFar];
+        } else if (valueC.start <= position && position <= valueC.end) {
+          return locate(valueC, [keyC.result, pathSoFar]);
+        }
+      }
+      
+      // FIXME: decide what to do if cursor lands exactly on ":"?
+
+      // if we "fell through the pair cracks", that is, if the cursor is inside a mapping
+      // but not inside any of the actual mapping pairs, then we stop the location at the
+      // object itself, but report an error so that the recipients may handle it
+      // case-by-base.
+
+      failedLast = true;
+      
+      return pathSoFar;
+      // throw new Error("Internal error: cursor outside bounds in mapping locate?");
+    } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
+      for (let i = 0; i < node.components.length; ++i) {
+        const valueC = node.components[i];
+        if (valueC.start <= position && position <= valueC.end) {
+          return locate(valueC, [i, pathSoFar]);
+        }
+        if (valueC.start > position) {
+          // We went too far: that means we're caught in between entries. Assume
+          // that we're inside the previous element but that we can't navigate any further
+          // If we're at the beginning of the sequence, assume that we're done exactly here.
+          if (i === 0) {
+            return pathSoFar;
+          } else {
+            return [i-1, pathSoFar];
+          }
+        }
+      }
+
+      throw new Error("Internal error: cursor outside bounds in sequence locate?");
+    } else {
+      if (node.kind !== "<<EMPTY>>") {
+        return [node.result, pathSoFar];
+      } else {
+        // we're inside an error, don't report that.
+        return pathSoFar;
+      }
+    }
+  }
+  const value = locate(annotation, []).flat(Infinity).reverse();
+  return {
+    withError: failedLast,
+    value
+  };
 }
