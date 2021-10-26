@@ -76,6 +76,7 @@ import {
   kCellColabType,
   kCellColbOutputId,
   kCellCollapsed,
+  kCellColumn,
   kCellDeletable,
   kCellFigAlign,
   kCellFigAlt,
@@ -198,6 +199,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellLstCap]?: string;
   [kCellClasses]?: string;
   [kCellPanel]?: string;
+  [kCellColumn]?: string;
   [kCodeFold]?: string;
   [kCodeLineNumbers]?: boolean | string;
   [kCodeSummary]?: string;
@@ -231,6 +233,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellLabel,
   kCellClasses,
   kCellPanel,
+  kCellColumn,
   kCellFigCap,
   kCellFigSubCap,
   kCellFigScap,
@@ -972,6 +975,9 @@ function mdFromCodeCell(
     const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
     if (typeof cell.options[kCellPanel] === "string") {
       classes.push(`panel-${cell.options[kCellPanel]}`);
+    }
+    if (typeof cell.options[kCellColumn] === "string") {
+      classes.push(`column-${cell.options[kCellColumn]}`);
     }
     const classText = classes
       .map((clz: string) => {
