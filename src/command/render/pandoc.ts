@@ -247,10 +247,13 @@ export async function runPandoc(
 
     // merge metadata
     if (extras.metadata) {
-      options.format.metadata = mergeConfigs(
-        extras.metadata,
-        options.format.metadata,
-      );
+      options.format.metadata = {
+        ...mergeConfigs(
+          extras.metadata,
+          options.format.metadata,
+        ),
+        ...extras.metadataOverride,
+      };
       printMetadata = mergeConfigs(extras.metadata, printMetadata);
       cleanMetadataForPrinting(printMetadata);
     }

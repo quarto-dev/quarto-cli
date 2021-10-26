@@ -16,6 +16,7 @@ import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId, getDecodedAttribute } from "../../../core/html.ts";
+import { sassLayer } from "../../../core/sass.ts";
 
 import {
   Format,
@@ -97,7 +98,6 @@ import {
   kTocTitle,
 } from "../../../config/constants.ts";
 import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
-import { sassLayer } from "../../../command/render/sass.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
@@ -300,6 +300,16 @@ function navigationHtmlPostprocessor(
   return async (doc: Document) => {
     // Process any markdown rendered through the render envelope
     markdownPipeline.processRenderedMarkdown(doc);
+
+    // Note sidebar style on body
+    // TODO: Should we compute this using the using project instead?
+    // It is slightly complicated since we need to compute the sidebar
+    const sidebarEl = doc.body.getElementById("quarto-sidebar");
+    if (sidebarEl?.classList.contains("floating")) {
+      doc.body.classList.add("floating");
+    } else if (sidebarEl?.classList.contains("docked")) {
+      doc.body.classList.add("docked");
+    }
 
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");

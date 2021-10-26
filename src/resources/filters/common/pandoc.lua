@@ -31,6 +31,11 @@ function isPowerPointOutput()
   return FORMAT == "pptx"
 end
 
+-- check for revealjs output
+function isRevealJsOutput()
+  return FORMAT == "revealjs"
+end
+
 -- check for epub output
 function isEpubOutput()
   local formats = {

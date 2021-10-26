@@ -15,14 +15,13 @@ import {
   asCssNumber,
   asCssSize,
 } from "../../core/css.ts";
+import { mergeLayers, sassLayer } from "../../core/sass.ts";
 
 import { outputVariable, SassVariable, sassVariable } from "../../core/sass.ts";
 
 import { Format, SassBundle, SassLayer } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
-
-import { mergeLayers, sassLayer } from "../../command/render/sass.ts";
 
 import {
   kSite,
@@ -91,16 +90,12 @@ function layerQuartoScss(
       ].join("\n"),
     },
     framework: {
-      defaults: pandocVariablesToBootstrapDefaults(format.metadata).map(
-        (variable) => {
-          return outputVariable(variable, false);
-        },
-      ).join("\n"),
+      defaults: pandocVariablesToThemeScss(format.metadata),
       functions: sassUtils,
       mixins: "",
       rules: Deno.readTextFileSync(boostrapRules),
     },
-    loadPath: dirname(boostrapRules),
+    loadPaths: [dirname(boostrapRules)],
     dark: darkLayer
       ? {
         user: darkLayer,
@@ -230,7 +225,7 @@ function resolveThemeLayer(
   return [themeSassLayer, defaultDark];
 }
 
-function pandocVariablesToBootstrapDefaults(
+function pandocVariablesToThemeDefaults(
   metadata: Metadata,
 ): SassVariable[] {
   const explicitVars: SassVariable[] = [];
@@ -271,6 +266,17 @@ function pandocVariablesToBootstrapDefaults(
   });
 
   return explicitVars;
+}
+
+export function pandocVariablesToThemeScss(
+  metadata: Metadata,
+  asDefaults = false,
+) {
+  return pandocVariablesToThemeDefaults(metadata).map(
+    (variable) => {
+      return outputVariable(variable, asDefaults);
+    },
+  ).join("\n");
 }
 
 const kCodeBorderLeft = "code-block-border-left";

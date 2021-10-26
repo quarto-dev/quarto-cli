@@ -24,10 +24,9 @@ import { kDefaultHighlightStyle } from "./types.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { textHighlightThemePath } from "../../core/resources.ts";
+import { compileSass } from "../../core/sass.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
-
-import { compileSass } from "./sass.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -199,6 +198,10 @@ export async function resolveSassBundles(
   return extras;
 }
 
+export function cssHasDarkModeSentinel(css: string) {
+  return !!css.match(/\/\*! dark \*\//g);
+}
+
 // Generates syntax highlighting Css and Css variables
 async function resolveQuartoSyntaxHighlighting(
   extras: FormatExtras,
@@ -249,7 +252,6 @@ async function resolveQuartoSyntaxHighlighting(
 
         // Compile the scss
         const highlightCssPath = await compileSass([{
-          dependency: cssFileName,
           key: cssFileName,
           quarto: {
             defaults: "",
@@ -357,7 +359,7 @@ function processCssIntoExtras(cssPath: string, extras: FormatExtras) {
   const css = Deno.readTextFileSync(cssPath);
 
   // Extract dark sentinel value
-  if (!extras.html[kTextHighlightingMode] && css.match(/\/\*! dark \*\//g)) {
+  if (!extras.html[kTextHighlightingMode] && cssHasDarkModeSentinel(css)) {
     setTextHighlightStyle("dark", extras);
   }
 

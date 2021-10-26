@@ -53,6 +53,7 @@ import {
   kCellLstCap,
   kCellLstLabel,
   kCodeFold,
+  kCodeLineNumbers,
   kCodeOverflow,
   kEcho,
   kError,
@@ -414,6 +415,7 @@ export async function ojsCompile(
         kCellLstCap,
         kCellLstLabel,
         kCodeFold,
+        kCodeLineNumbers,
         kCodeSummary,
         kCodeOverflow,
         kCellClasses,
@@ -505,6 +507,12 @@ export async function ojsCompile(
           cell.options?.[kCodeFold]
       ) {
         srcAttrs.push(`${kCodeFold}="${cell.options?.[kCodeFold]}"`);
+      }
+
+      if (cell.options?.[kCodeLineNumbers]) {
+        srcAttrs.push(
+          `${kCodeLineNumbers}="${cell.options?.[kCodeLineNumbers]}"`,
+        );
       }
 
       const srcConfig = {

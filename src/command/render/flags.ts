@@ -55,6 +55,11 @@ export function parseRenderFlags(args: string[]) {
         }
         break;
 
+      case "--output-dir":
+        arg = argsStack.shift();
+        flags.outputDir = arg;
+        break;
+
       case "--self-contained":
         flags[kSelfContained] = true;
         arg = argsStack.shift();
@@ -333,6 +338,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
 
   // remove other args as needed
   const removeArgs = new Map<string, boolean>();
+  removeArgs.set("--output-dir", true);
   removeArgs.set("--execute", false);
   removeArgs.set("--no-execute", false);
   removeArgs.set("-P", true);

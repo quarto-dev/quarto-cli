@@ -41,6 +41,7 @@ import("panel-tabset.lua")
 import("panel-input.lua")
 import("panel-layout.lua")
 import("hidden.lua")
+import("line-numbers.lua")
 import("../common/colors.lua")
 import("../common/params.lua")
 import("../common/error.lua")
@@ -78,6 +79,7 @@ return {
     figures(),
     theorems(),
     callout(),
+    lineNumbers(),
     engineEscape(),
     panelInput(),
     panelTabset(),

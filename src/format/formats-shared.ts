@@ -10,6 +10,7 @@ import { mergeConfigs } from "../core/config.ts";
 import {
   kCache,
   kCodeFold,
+  kCodeLineNumbers,
   kCodeLink,
   kCodeOverflow,
   kCodeSummary,
@@ -169,6 +170,7 @@ function defaultFormat(): Format {
       [kCodeSummary]: "Code",
       [kCodeOverflow]: "scroll",
       [kCodeLink]: false,
+      [kCodeLineNumbers]: false,
       [kCodeTools]: false,
       [kMergeIncludes]: true,
       [kSelfContainedMath]: false,

@@ -16,11 +16,10 @@
   }
 }
 
-// Add fg contrasts for each bg utility
-$bg-colors: map-get($utilities, background-color);
-@each $key, $val in map-get($bg-colors, values) {
+// Add fg contrasts for each bg utility class
+@each $key, $val in $utilities-colors {
   .bg-#{$key} {
-    color: color-contrast($val);
+    color: color-contrast(rgb(nth($val, 1), nth($val, 2), nth($val, 3)));
   }
 }
 

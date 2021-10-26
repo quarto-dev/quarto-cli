@@ -183,6 +183,47 @@ function bootstrapHtmlPostprocessor(format: Format) {
       title.classList.add("display-7");
     }
 
+    // Process col classes into our grid system
+
+    // Find any elements that are using fancy layouts (columns)
+    const columnLayouts = doc.querySelectorAll(
+      '[class^="column-"], [class*=" column-"], aside',
+    );
+    // If there are any of these elements, we need to be sure that their
+    // parents have acess to the grid system, so make the parent full screen width
+    // and apply the grid system to it (now the child 'column-' element can be positioned
+    // anywhere in the grid system)
+    if (columnLayouts && columnLayouts.length > 0) {
+      const ensureInGrid = (el: Element, setLayout: boolean) => {
+        // Add the grid system. Children of the grid system
+        // are placed into the body-content column by default
+        // (CSS implements this)
+        if (!el.classList.contains("page-columns")) {
+          el.classList.add("page-columns");
+        }
+
+        // Mark full width
+        if (setLayout && !el.classList.contains("page-full")) {
+          el.classList.add("page-full");
+        }
+
+        // Process parents up to the main tag
+        if (el.tagName !== "MAIN") {
+          const parent = el.parentElement;
+          if (parent) {
+            ensureInGrid(parent, true);
+          }
+        }
+      };
+
+      columnLayouts.forEach((node) => {
+        const el = node as Element;
+        if (el.parentElement) {
+          ensureInGrid(el.parentElement, true);
+        }
+      });
+    }
+
     // add 'lead' to subtitle
     const subtitle = doc.querySelector("header > .subtitle");
     if (subtitle) {
@@ -215,8 +256,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
     const toc = doc.querySelector('nav[role="doc-toc"]');
     const tocSidebar = doc.getElementById("quarto-toc-sidebar");
     if (toc && tocSidebar) {
-      tocSidebar.appendChild(toc);
-
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
       for (let i = 0; i < tocLinks.length; i++) {
@@ -242,6 +281,14 @@ function bootstrapHtmlPostprocessor(format: Format) {
         const ul = nestedUls[i] as Element;
         ul.classList.add("collapse");
       }
+
+      // Copy the classes over
+      tocSidebar.classList.forEach((className) => {
+        toc.classList.add(className);
+      });
+      // Replace the toc placeholder and move any classes
+      toc.remove();
+      tocSidebar.replaceWith(toc);
     }
 
     // add .table class to pandoc tables

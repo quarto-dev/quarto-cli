@@ -8,9 +8,6 @@ $h5-font-size: 1.1rem !default;
 $kbd-padding-y: 0.4rem !default;
 $kbd-padding-x: 0.4rem !default;
 
-// Body max-width
-$max-width: 1400px !default;
-
 // Speed up the default transition for the navbar
 $transition-collapse: height 0.2s ease !default;
 
@@ -97,6 +94,7 @@ $sidebar-hl: null;
 $sidebar-font-size: 0.875rem !default;
 $sidebar-font-size-section: 1rem !default;
 $sidebar-font-size-collapse: 1rem !default;
+$sidebar-font-size-section-collapse: 1.1rem !default;
 
 // Footer coloring
 $footer-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
@@ -105,3 +103,18 @@ $footer-font-size: 0.825em !default;
 $footer-left-font-size: $footer-font-size !default;
 $footer-center-font-size: $footer-font-size !default;
 $footer-right-font-size: $footer-font-size !default;
+
+// Body Secondary Background Color
+$body-bg-secondary: if(
+  variable-exists(body-bg),
+  theme-dim($body-bg, 50),
+  #ddd
+) !default;
+
+// Disable default grid system and switch to CSS grid
+$enable-grid-classes: false;
+$enable-cssgrid: true;
+$grid-gutter-width: 0;
+$grid-columns: 24;
+
+$zindex-content: 1025;

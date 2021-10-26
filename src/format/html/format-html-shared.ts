@@ -73,6 +73,18 @@ export const quartoBootstrapFunctions = () =>
     join("bootstrap", "_bootstrap-functions.scss"),
   ));
 
+export const quartoBaseLayer = (format: Format) => {
+  return {
+    use: ["sass:color", "sass:map", "sass:math"],
+    defaults: [
+      quartoDefaults(format),
+    ].join("\n"),
+    functions: quartoFunctions(),
+    mixins: "",
+    rules: quartoRules(),
+  };
+};
+
 export const quartoFunctions = () =>
   Deno.readTextFileSync(formatResourcePath(
     "html",
@@ -87,7 +99,7 @@ export const quartoDefaults = (format: Format) => {
         "code-copy-selector",
         format.metadata[kCodeCopy] === undefined ||
           format.metadata[kCodeCopy] === "hover"
-          ? '"pre.sourceCode:hover > "'
+          ? '"pre.sourceCode code:hover > "'
           : '""',
       ),
     ),

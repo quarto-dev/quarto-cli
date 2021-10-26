@@ -12,6 +12,7 @@ import {
   kCiteMethod,
   kCiteproc,
   kCodeFold,
+  kCodeLineNumbers,
   kCodeLink,
   kCodeOverflow,
   kCodeSummary,
@@ -138,13 +139,16 @@ export interface SassLayer {
   rules: string;
 }
 
-export interface SassBundle {
+export interface SassBundleLayers {
   key: string;
-  dependency: string;
   user?: SassLayer;
   quarto?: SassLayer;
   framework?: SassLayer;
-  loadPath?: string;
+  loadPaths?: string[];
+}
+
+export interface SassBundle extends SassBundleLayers {
+  dependency: string;
   dark?: {
     user?: SassLayer;
     quarto?: SassLayer;
@@ -158,6 +162,7 @@ export interface FormatExtras {
   args?: string[];
   pandoc?: FormatPandoc;
   metadata?: Metadata;
+  metadataOverride?: Metadata;
   [kTocTitle]?: string;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
@@ -211,6 +216,7 @@ export interface FormatRender {
   [kCodeSummary]?: string;
   [kCodeOverflow]?: "wrap" | "scroll";
   [kCodeLink]?: boolean;
+  [kCodeLineNumbers]?: boolean;
   [kCodeTools]?: boolean | {
     source?: boolean;
     toggle?: boolean;

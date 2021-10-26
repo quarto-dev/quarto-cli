@@ -48,6 +48,7 @@ export const kOutputDivs = "output-divs";
 export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
 export const kCodeFold = "code-fold";
+export const kCodeLineNumbers = "code-line-numbers";
 export const kCodeSummary = "code-summary";
 export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
@@ -107,6 +108,7 @@ export const kRenderDefaultsKeys = [
   kFigAlign,
   kCodeFold,
   kCodeLink,
+  kCodeLineNumbers,
   kCodeSummary,
   kCodeOverflow,
   kCodeTools,

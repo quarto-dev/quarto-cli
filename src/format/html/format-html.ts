@@ -33,6 +33,7 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  Metadata,
   PandocFlags,
   SassBundle,
 } from "../../config/types.ts";
@@ -59,6 +60,7 @@ import {
   kHoverFootnotes,
   kHypothesis,
   kUtterances,
+  quartoBaseLayer,
   quartoDefaults,
   quartoFunctions,
   quartoGlobalCssVariableRules,
@@ -90,12 +92,58 @@ export function htmlFormat(
 }
 
 export const kQuartoHtmlDependency = "quarto-html";
-export function htmlFormatExtras(format: Format): FormatExtras {
-  // lists of scripts and ejs data for the orchestration script
 
+export interface HtmlFormatFeatureDefaults {
+  copyCode?: boolean;
+  anchors?: boolean;
+  hoverCitations?: boolean;
+  hoverFootnotes?: boolean;
+}
+
+export interface HtmlFormatTippyOptions {
+  theme?: string;
+  parent?: string;
+  config?: Metadata;
+}
+
+export interface HtmlFormatScssOptions {
+  quartoBase?: boolean;
+  quartoCssVars?: boolean;
+}
+
+export function htmlFormatExtras(
+  format: Format,
+  featureDefaults?: HtmlFormatFeatureDefaults,
+  tippyOptions?: HtmlFormatTippyOptions,
+  scssOptions?: HtmlFormatScssOptions,
+): FormatExtras {
+  // note whether we are targeting bootstrap
+  const bootstrap = formatHasBootstrap(format);
+
+  // populate feature defaults if none provided
+  if (!featureDefaults) {
+    featureDefaults = htmlFormatFeatureDefaults(bootstrap);
+  }
+  // empty tippy options if none provided
+  if (!tippyOptions) {
+    tippyOptions = {};
+  }
+  if (!tippyOptions.config) {
+    tippyOptions.config = {};
+  }
+  if (!scssOptions) {
+    scssOptions = {};
+  }
+  if (scssOptions.quartoBase === undefined) {
+    scssOptions.quartoBase = true;
+  }
+  if (scssOptions.quartoCssVars === undefined) {
+    scssOptions.quartoCssVars = true;
+  }
+
+  // lists of scripts and ejs data for the orchestration script
   const scripts: DependencyFile[] = [];
   const stylesheets: DependencyFile[] = [];
-  const bootstrap = formatHasBootstrap(format);
   const sassBundles: SassBundle[] = [];
   const dependencies: FormatDependency[] = [];
 
@@ -110,15 +158,26 @@ export function htmlFormatExtras(format: Format): FormatExtras {
     }
     : {};
   options.codeLink = format.metadata[kCodeLink] || false;
-  if (bootstrap) {
+
+  // apply defaults
+  if (featureDefaults.copyCode) {
     options.copyCode = format.metadata[kCodeCopy] !== false;
-    options.anchors = format.metadata[kAnchorSections] !== false;
-    options.hoverCitations = format.metadata[kHoverCitations] !== false;
-    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
   } else {
     options.copyCode = format.metadata[kCodeCopy] || false;
+  }
+  if (featureDefaults.anchors) {
+    options.anchors = format.metadata[kAnchorSections] !== false;
+  } else {
     options.anchors = format.metadata[kAnchorSections] || false;
+  }
+  if (featureDefaults.hoverCitations) {
+    options.hoverCitations = format.metadata[kHoverCitations] !== false;
+  } else {
     options.hoverCitations = format.metadata[kHoverCitations] || false;
+  }
+  if (featureDefaults.hoverFootnotes) {
+    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
+  } else {
     options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
   }
   options.codeTools = formatHasCodeTools(format);
@@ -127,10 +186,12 @@ export function htmlFormatExtras(format: Format): FormatExtras {
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
 
   // quarto.js helpers
-  scripts.push({
-    name: "quarto.js",
-    path: formatResourcePath("html", join("toc", "quarto-toc.js")),
-  });
+  if (bootstrap) {
+    scripts.push({
+      name: "quarto.js",
+      path: formatResourcePath("html", "quarto.js"),
+    });
+  }
 
   // popper if required
   options.tippy = options.hoverCitations || options.hoverFootnotes;
@@ -153,28 +214,33 @@ export function htmlFormatExtras(format: Format): FormatExtras {
     });
 
     // If this is a bootstrap format, include requires sass
-    if (bootstrap) {
-      options.tippyTheme = "quarto";
-      sassBundles.push({
-        key: "tippy.scss",
-        dependency: kBootstrapDependencyName,
-        quarto: {
-          functions: "",
-          defaults: "",
-          mixins: "",
-          rules: Deno.readTextFileSync(
-            formatResourcePath("html", join("tippy", "_tippy.scss")),
-          ),
-        },
-      });
-    } else {
-      options.tippyTheme = "light-border";
-      stylesheets.push({
-        name: "light-border.css",
-        path: formatResourcePath("html", join("tippy", "light-border.css")),
-      });
+    if (tippyOptions.theme === undefined) {
+      if (bootstrap) {
+        tippyOptions.theme = "quarto";
+        sassBundles.push({
+          key: "tippy.scss",
+          dependency: kBootstrapDependencyName,
+          quarto: {
+            functions: "",
+            defaults: "",
+            mixins: "",
+            rules: Deno.readTextFileSync(
+              formatResourcePath("html", join("tippy", "_tippy.scss")),
+            ),
+          },
+        });
+      } else {
+        tippyOptions.theme = "light-border";
+        stylesheets.push({
+          name: "light-border.css",
+          path: formatResourcePath("html", join("tippy", "light-border.css")),
+        });
+      }
     }
   }
+
+  // propagate tippyOptions
+  options.tippyOptions = tippyOptions;
 
   // clipboard.js if required
   if (options.copyCode) {
@@ -194,27 +260,25 @@ export function htmlFormatExtras(format: Format): FormatExtras {
 
   // add quarto sass bundle of we aren't in bootstrap
   if (!bootstrap) {
-    sassBundles.push({
-      dependency: kQuartoHtmlDependency,
-      key: kQuartoHtmlDependency,
-      quarto: {
-        use: ["sass:color", "sass:math"],
-        defaults: quartoDefaults(format),
-        functions: quartoFunctions(),
-        mixins: "",
-        rules: quartoRules(),
-      },
-    });
-    sassBundles.push({
-      dependency: kQuartoHtmlDependency,
-      key: kQuartoHtmlDependency,
-      quarto: {
-        defaults: "",
-        functions: "",
-        mixins: "",
-        rules: quartoGlobalCssVariableRules(),
-      },
-    });
+    if (scssOptions.quartoBase) {
+      sassBundles.push({
+        dependency: kQuartoHtmlDependency,
+        key: kQuartoHtmlDependency,
+        quarto: quartoBaseLayer(format),
+      });
+    }
+    if (scssOptions.quartoCssVars) {
+      sassBundles.push({
+        dependency: kQuartoHtmlDependency,
+        key: kQuartoHtmlDependency,
+        quarto: {
+          defaults: "",
+          functions: "",
+          mixins: "",
+          rules: quartoGlobalCssVariableRules(),
+        },
+      });
+    }
   }
 
   // header includes
@@ -287,7 +351,7 @@ export function htmlFormatExtras(format: Format): FormatExtras {
     html: {
       [kDependencies]: dependencies,
       [kSassBundles]: sassBundles,
-      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format)],
+      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format, featureDefaults)],
     },
   };
 }
@@ -299,16 +363,44 @@ function htmlFormatFilterParams(format: Format) {
   };
 }
 
-function htmlFormatPostprocessor(format: Format) {
+function htmlFormatFeatureDefaults(
+  bootstrap: boolean,
+): HtmlFormatFeatureDefaults {
+  if (bootstrap) {
+    return {
+      copyCode: true,
+      anchors: true,
+      hoverCitations: true,
+      hoverFootnotes: true,
+    };
+  } else {
+    return {
+      copyCode: false,
+      anchors: false,
+      hoverCitations: false,
+      hoverFootnotes: false,
+    };
+  }
+}
+
+function htmlFormatPostprocessor(
+  format: Format,
+  featureDefaults?: HtmlFormatFeatureDefaults,
+) {
   // do we have haveBootstrap
   const haveBootstrap = formatHasBootstrap(format);
 
+  // get feature defaults
+  if (!featureDefaults) {
+    featureDefaults = htmlFormatFeatureDefaults(haveBootstrap);
+  }
+
   // read options
-  const codeCopy = haveBootstrap
+  const codeCopy = featureDefaults.copyCode
     ? format.metadata[kCodeCopy] !== false
     : format.metadata[kCodeCopy] || false;
 
-  const anchors = haveBootstrap
+  const anchors = featureDefaults.anchors
     ? format.metadata[kAnchorSections] !== false
     : format.metadata[kAnchorSections] || false;
 
@@ -335,8 +427,10 @@ function htmlFormatPostprocessor(format: Format) {
         const copyIcon = doc.createElement("i");
         copyIcon.classList.add("bi");
         copyButton.appendChild(copyIcon);
-
-        code.appendChild(copyButton);
+        const codeEl = code.querySelector("code");
+        if (codeEl) {
+          codeEl.appendChild(copyButton);
+        }
       }
     }
 

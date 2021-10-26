@@ -913,7 +913,11 @@ async function resolveFormats(
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
-  const projMetadata = await projectMetadataForInputFile(target.input, project);
+  const projMetadata = await projectMetadataForInputFile(
+    target.input,
+    options.flags,
+    project,
+  );
   const inputMetadata = target.metadata;
 
   // determine order of formats

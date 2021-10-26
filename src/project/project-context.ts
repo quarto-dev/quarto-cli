@@ -47,6 +47,7 @@ import { projectResourceFiles } from "./project-resources.ts";
 import { gitignoreEntries } from "./project-gitignore.ts";
 
 import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
+import { RenderFlags } from "../command/render/types.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -73,6 +74,7 @@ export function deleteProjectMetadata(metadata: Metadata) {
 
 export async function projectContext(
   path: string,
+  flags?: RenderFlags,
   force = false,
   forceHtml = false,
 ): Promise<ProjectContext | undefined> {
@@ -104,8 +106,12 @@ export async function projectContext(
       }
 
       if (projectConfig?.project) {
-        // get project config and type
+        // provide output-dir from command line if specfified
+        if (flags?.outputDir) {
+          projectConfig.project[kProjectOutputDir] = flags.outputDir;
+        }
 
+        // get project config and type
         const type = projectType(projectConfig.project?.[kProjectType]);
         if (
           projectConfig.project[kProjectLibDir] === undefined && type.libDir
@@ -189,8 +195,9 @@ export async function projectContext(
 // a context (i.e. implicitly treat directory as a project)
 export function projectContextForDirectory(
   path: string,
+  flags?: RenderFlags,
 ): Promise<ProjectContext> {
-  return projectContext(path, true) as Promise<ProjectContext>;
+  return projectContext(path, flags, true) as Promise<ProjectContext>;
 }
 
 export function projectIsWebsite(context?: ProjectContext): boolean {
@@ -219,13 +226,14 @@ export function projectIgnoreGlobs(dir: string) {
 
 export async function projectMetadataForInputFile(
   input: string,
+  flags?: RenderFlags,
   project?: ProjectContext,
 ): Promise<Metadata> {
   if (project) {
     // don't mutate caller
     project = ld.cloneDeep(project) as ProjectContext;
   } else {
-    project = await projectContext(input);
+    project = await projectContext(input, flags);
   }
 
   const projConfig = project?.config || {};
