@@ -1,0 +1,8 @@
+name: multiplex
+script: [socket.io.js, plugin.js]
+register: false
+config:
+  multiplex:
+    secret: null
+    id: null
+    url: "https://reveal-multiplex.glitch.me/"

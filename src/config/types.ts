@@ -172,6 +172,7 @@ export interface FormatExtras {
     post?: string[];
   };
   [kFilterParams]?: Record<string, unknown>;
+  postprocessors?: Array<(output: string) => Promise<void>>;
   html?: {
     [kDependencies]?: FormatDependency[];
     [kSassBundles]?: SassBundle[];
@@ -191,13 +192,16 @@ export interface Format {
   pandoc: FormatPandoc;
   metadata: Metadata;
   metadataFilter?: (metadata: Metadata) => Metadata;
-  postprocessor?: (output: string) => Promise<void>;
   formatExtras?: (
     input: string,
     flags: PandocFlags,
     format: Format,
     libDir: string,
   ) => Promise<FormatExtras>;
+  formatPreviewFile?: (
+    file: string,
+    format: Format,
+  ) => string;
   extensions?: Record<string, unknown>;
 }
 

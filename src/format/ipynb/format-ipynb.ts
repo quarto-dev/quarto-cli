@@ -22,32 +22,36 @@ export function ipynbFormat(): Format {
       standalone: true,
       "ipynb-output": "all",
     },
-    postprocessor: (output: string) => {
-      // convert raw cell metadata format to raw_mimetype used by jupyter
-      const nb = jupyterFromFile(output);
-      nb.cells = nb.cells.map((cell) => {
-        if (cell.cell_type == "raw") {
-          if (cell.metadata[kCellFormat]) {
-            const format = cell.metadata[kCellFormat];
-            delete cell.metadata[kCellFormat];
-            if (format === kTextHtml) {
-              cell.metadata[kCellRawMimeType] = format;
-            } else if (format === "tex") {
-              cell.metadata[kCellRawMimeType] = kTextLatex;
-            } else if (format === "rst") {
-              cell.metadata[kCellRawMimeType] = kRestructuredText;
-            } else if (format === "rtf") {
-              cell.metadata[kCellRawMimeType] = kApplicationRtf;
-            } else {
-              // restore format b/c we didn't convert it
-              cell.metadata[kCellFormat] = format;
+    formatExtras: () => {
+      return {
+        postprocessors: [(output: string) => {
+          // convert raw cell metadata format to raw_mimetype used by jupyter
+          const nb = jupyterFromFile(output);
+          nb.cells = nb.cells.map((cell) => {
+            if (cell.cell_type == "raw") {
+              if (cell.metadata[kCellFormat]) {
+                const format = cell.metadata[kCellFormat];
+                delete cell.metadata[kCellFormat];
+                if (format === kTextHtml) {
+                  cell.metadata[kCellRawMimeType] = format;
+                } else if (format === "tex") {
+                  cell.metadata[kCellRawMimeType] = kTextLatex;
+                } else if (format === "rst") {
+                  cell.metadata[kCellRawMimeType] = kRestructuredText;
+                } else if (format === "rtf") {
+                  cell.metadata[kCellRawMimeType] = kApplicationRtf;
+                } else {
+                  // restore format b/c we didn't convert it
+                  cell.metadata[kCellFormat] = format;
+                }
+              }
             }
-          }
-        }
-        return cell;
-      });
-      Deno.writeTextFileSync(output, JSON.stringify(nb, null, 2));
-      return Promise.resolve();
+            return cell;
+          });
+          Deno.writeTextFileSync(output, JSON.stringify(nb, null, 2));
+          return Promise.resolve();
+        }],
+      };
     },
   });
 }

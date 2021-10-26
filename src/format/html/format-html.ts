@@ -61,10 +61,7 @@ import {
   kHypothesis,
   kUtterances,
   quartoBaseLayer,
-  quartoDefaults,
-  quartoFunctions,
   quartoGlobalCssVariableRules,
-  quartoRules,
 } from "./format-html-shared.ts";
 
 export function htmlFormat(

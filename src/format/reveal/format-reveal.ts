@@ -27,6 +27,10 @@ import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
 import { revealPluginExtras } from "./format-reveal-plugin.ts";
 import { revealTheme } from "./format-reveal-theme.ts";
+import {
+  revealMuliplexPreviewFile,
+  revealMultiplexExtras,
+} from "./format-reveal-multiplex.ts";
 
 const kRevealOptions = [
   "controls",
@@ -105,6 +109,7 @@ export function revealjsFormat() {
     createHtmlPresentationFormat(9, 5),
     {
       metadataFilter: revealMetadataFilter,
+      formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
         _input: string,
         _flags: PandocFlags,
@@ -160,6 +165,12 @@ export function revealjsFormat() {
             extras,
             revealPluginExtras(format, theme.revealDir),
           );
+        }
+
+        // add multiplex if we have it
+        const multiplexExtras = revealMultiplexExtras(format);
+        if (multiplexExtras) {
+          extras = mergeConfigs(extras, multiplexExtras);
         }
 
         // provide alternate defaults unless the user requests revealjs defaults

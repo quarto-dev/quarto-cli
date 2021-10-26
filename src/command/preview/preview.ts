@@ -391,6 +391,10 @@ function htmlFileRequestHandlerOptions(
     },
     onFile: async (file: string) => {
       if (isHtmlContent(file)) {
+        // does the provide an alternate preview file?
+        if (format.formatPreviewFile) {
+          file = format.formatPreviewFile(file, format);
+        }
         const fileContents = await Deno.readFile(file);
         return reloader.injectClient(fileContents, inputFile, format);
       }
