@@ -42,15 +42,9 @@ export function revealMultiplexExtras(
         // read file
         const content = await Deno.readTextFile(output);
 
-        // substitute master.js for client.js
-        const speakerContent = content.replace(
-          'revealjs/plugin/multiplex/client.js" async',
-          'revealjs/plugin/multiplex/master.js" async',
-        );
-
-        // write speakder version
+        // write speaker version
         const speakerOutput = revealSpeakerOutput(output);
-        await Deno.writeTextFile(speakerOutput, speakerContent);
+        await Deno.writeTextFile(speakerOutput, content);
 
         // remove the secret and the speaker notes from the client version
         let clientContent = content.replace(
@@ -61,7 +55,6 @@ export function revealMultiplexExtras(
           /(\/\/ reveal\.js plugins\n\s*plugins: \[[^\[]+?)(RevealNotes,)([^\[]+?\])/,
           "$1$3",
         );
-
         await Deno.writeTextFile(output, clientContent);
       }],
     };

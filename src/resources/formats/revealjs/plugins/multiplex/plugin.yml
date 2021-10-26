@@ -1,5 +1,5 @@
 name: multiplex
-script: [socket.io.js, { path: client.js, async: true }]
+script: [socket.io.js, plugin.js]
 register: false
 config:
   multiplex:
