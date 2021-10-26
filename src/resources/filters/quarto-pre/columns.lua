@@ -19,14 +19,18 @@ function columns()
     end,
 
     RawBlock = function(el) 
-      if el.format == 'html' then
-        if el.text == '<aside>' then 
-          el = beginSideNote()
-        elseif el.text == '</aside>' then
-          el = endSideNote()
+      -- Implements support for raw <aside> tags and replaces them with
+      -- our raw latex representation
+      if isLatexOutput() then
+        if el.format == 'html' then
+          if el.text == '<aside>' then 
+            el = beginSideNote()
+          elseif el.text == '</aside>' then
+            el = endSideNote()
+          end
+          return el
         end
       end
-      return el
     end,
 
     Para = function(el) 
@@ -76,17 +80,17 @@ end
 
 function beginSideNote(inline) 
   if inline then
-    return pandoc.RawInline('latex', '\\marginpar{')
+    return pandoc.RawInline('latex', '\\begin{footnotesize}\\marginnote{')
   else 
-    return pandoc.RawBlock('latex', '\\marginpar{')
+    return pandoc.RawBlock('latex', '\\begin{footnotesize}\\marginnote{')
   end
 end
 
 function endSideNote(inline) 
   if inline then
-    return pandoc.RawInline('latex', '}')
+    return pandoc.RawInline('latex', '}\\end{footnotesize}')
   else
-    return pandoc.RawBlock('latex', '}')
+    return pandoc.RawBlock('latex', '}\\end{footnotesize}')
   end
 end
 
