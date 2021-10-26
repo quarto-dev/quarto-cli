@@ -132,7 +132,6 @@
               value: value2.result
             }, [key2, value2]);
           } else if (child.type !== "block_mapping_pair") {
-            debugger;
             throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
           } else {
             component = buildNode(child);
