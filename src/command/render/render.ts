@@ -525,19 +525,21 @@ export async function renderPandoc(
     });
   }
 
-  // run format postprocessor
-  if (format.postprocessor) {
-    const outputFile = isAbsolute(pandocOptions.output)
-      ? pandocOptions.output
-      : join(dirname(pandocOptions.source), pandocOptions.output);
-    await format.postprocessor(outputFile);
-  }
-
   // run html postprocessors if we have them
   const resourceRefs = await runHtmlPostprocessors(
     pandocOptions,
     pandocResult.htmlPostprocessors,
   );
+
+  // run generic postprocessors
+  if (pandocResult.postprocessors) {
+    const outputFile = isAbsolute(pandocOptions.output)
+      ? pandocOptions.output
+      : join(dirname(pandocOptions.source), pandocOptions.output);
+    for (const postprocessor of pandocResult.postprocessors) {
+      await postprocessor(outputFile);
+    }
+  }
 
   // ensure flags
   const flags = context.options.flags || {};

@@ -40,6 +40,7 @@ export interface RenderContext {
 
 export interface RunPandocResult {
   resources: string[];
+  postprocessors?: Array<(output: string) => Promise<void>>;
   htmlPostprocessors: Array<(doc: Document) => Promise<string[]>>;
 }
 
