@@ -10,10 +10,19 @@
 
 import { Range } from "../ranged-text.ts";
 import { MappedString, mappedIndexToRowCol } from "./mapped-text.ts";
-import { formatLineRange, lines } from "./text.js";
+import { formatLineRange, lines } from "./text.ts";
 import { normalizeSchema } from "./schema.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
+
+export interface AnnotatedParse
+{
+  start: number,
+  end: number,
+  result: any,
+  kind: string,
+  components: AnnotatedParse[]
+};
 
 let ajv: any = undefined;
 
@@ -21,17 +30,24 @@ let ajv: any = undefined;
    library from the Ajv dependency. This allows us core-lib not to
    depend directly on Ajv, which in turn lets us use the UMD version
    of Ajv in the Javascript runtime.
+
+   Ideally, we'd do the same for the YAML parsers, which are different
+   in deno and in the browser. At some point, we might want to shim over
+   these two parsers and inject a common dependency into yaml-schema.
+
+   Right now, we do this indirectly by expecting an AnnotatedParse as
+   input to the validation class. It gets the job done but isn't very
+   clean.
 */
 export function setupAjv(_ajv: any)
 {
+  debugger;
   ajv = _ajv;
 }
 
 // deno-lint-ignore no-explicit-any
 export type JSONSchema = any;
 
-// NB we change the params field from the URL above to be able to inspect the
-// value
 export interface ErrorObject {
   keyword: string; // validation keyword.
   instancePath: string; // JSON Pointer to the location in the data instance (e.g., `"/prop/1/subProp"`).
@@ -196,25 +212,43 @@ export class YAMLSchema
     this.validate = ajv.compile(normalizeSchema(schema));
   }
 
-  parseAndValidate(src: MappedString)
+  // FIXME this is the old method before YAMLSchema was used in both IDE and Deno
+  // envs
+  //
+  // parseAndValidate(src: MappedString)
+  // {
+  //   const annotation = readAnnotatedYamlFromMappedString(src);
+  //   return this.validateParse(src, annotation);
+  // }
+
+  validateParse(
+    src: MappedString,
+    annotation: AnnotatedParse
+  )
   {
-    const annotation = readAnnotatedYamlFromMappedString(src);
     let errors: LocalizedError[] = [];
     if (!this.validate(annotation.result)) {
       errors = localizeAndPruneErrors(
         annotation, this.validate.errors,
         src, this.schema);
+      return {
+        result: annotation.result,
+        errors
+      };
+    } else {
+      return {
+        result: annotation.result,
+        errors: []
+      };
     }
-    return {
-      result: annotation.result,
-      errors
-    };
   }
+  
 
   reportErrorsInSource(
     result: ValidatedParseResult,
     src: MappedString,
-    message: string
+    message: string,
+    error: (a: string) => any
   )
   {
     if (result.errors.length) {
@@ -265,16 +299,29 @@ export class YAMLSchema
     }
     return result;
   }
-  
-  parseAndValidateWithErrors(
+
+  // FIXME this is the old method with a single parse API
+  //
+  // parseAndValidateWithErrors(
+  //   src: MappedString,
+  //   message: string
+  // )
+  // {
+  //   const result = this.parseAndValidate(src);
+  //   this.reportErrorsInSource(result, src, message);
+  //   return result;
+  // }
+
+  validateParseWithErrors(
     src: MappedString,
-    message: string
+    annotation: AnnotatedParse,
+    message: string,
+    error: (a: string) => any
   )
   {
-    const result = this.parseAndValidate(src);
-    this.reportErrorsInSource(result, src, message);
+    const result = this.validateParse(src, annotation);
+    this.reportErrorsInSource(result, src, message, error);
     return result;
   }
-  
 }
 

@@ -18,11 +18,12 @@ import { glb } from "./binary-search.ts";
 import { breakQuartoMd } from "./break-quarto-md.ts";
 import { mappedString, asMappedString, mappedConcat, mappedIndexToRowCol } from "./mapped-text.ts";
 import { partitionCellOptionsMapped, kLangCommentChars } from "./partition-cell-options.ts";
+import { PromiseQueue } from "./promise.ts";
 import { rangedSubstring, rangedLines } from "./ranged-text.ts";
 import { lineOffsets, lines, normalizeNewlines, indexToRowCol, rowColToIndex } from "./text.ts";
 import { schemaType, schemaCompletions } from "./schema.ts";
-import { YAMLSchema } from "./yaml-schema.ts";
-  
+import { YAMLSchema, setupAjv } from "./yaml-schema.ts";
+
 const result = {
   glb,
 
@@ -35,6 +36,8 @@ const result = {
 
   partitionCellOptionsMapped,
   kLangCommentChars,
+
+  PromiseQueue,
 
   rangedSubstring,
   rangedLines,

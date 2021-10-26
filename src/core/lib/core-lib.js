@@ -70,6 +70,25 @@
       return offsets[position.row] + position.column;
     };
   }
+  function formatLineRange(text, firstLine, lastLine) {
+    const lineWidth = Math.max(String(firstLine + 1).length, String(lastLine + 1).length);
+    const pad = " ".repeat(lineWidth);
+    const ls = lines(text);
+    const result2 = [];
+    for (let i = firstLine; i <= lastLine; ++i) {
+      const numberStr = `${pad}${i + 1}`.slice(-lineWidth);
+      const lineStr = ls[i];
+      result2.push({
+        lineNumber: i,
+        content: numberStr + lineStr,
+        rawLine: ls[i]
+      });
+    }
+    return {
+      prefixWidth: lineWidth + 2,
+      lines: result2
+    };
+  }
 
   // ranged-text.ts
   function rangedSubstring(src, start, end = -1) {
@@ -500,6 +519,53 @@
     return lines3;
   }
 
+  // promise.ts
+  var PromiseQueue = class {
+    constructor() {
+      this.queue = new Array();
+      this.running = false;
+    }
+    enqueue(promise, clearPending = false) {
+      return new Promise((resolve, reject) => {
+        if (clearPending) {
+          this.queue.splice(0, this.queue.length);
+        }
+        this.queue.push({
+          promise,
+          resolve,
+          reject
+        });
+        this.dequeue();
+      });
+    }
+    dequeue() {
+      if (this.running) {
+        return false;
+      }
+      const item = this.queue.shift();
+      if (!item) {
+        return false;
+      }
+      try {
+        this.running = true;
+        item.promise().then((value) => {
+          this.running = false;
+          item.resolve(value);
+          this.dequeue();
+        }).catch((err) => {
+          this.running = false;
+          item.reject(err);
+          this.dequeue();
+        });
+      } catch (err) {
+        this.running = false;
+        item.reject(err);
+        this.dequeue();
+      }
+      return true;
+    }
+  };
+
   // schema.ts
   function schemaType(schema) {
     const t = schema.type;
@@ -559,6 +625,200 @@
         return [];
     }
   }
+  function walkSchema(schema, f) {
+    f(schema);
+    switch (schemaType(schema)) {
+      case "array":
+        if (schema.items) {
+          walkSchema(schema.items, f);
+        }
+        ;
+        break;
+      case "anyOf":
+        for (const s of schema.anyOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "oneOf":
+        for (const s of schema.oneOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "allOf":
+        for (const s of schema.allOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "object":
+        if (schema.properties) {
+          for (const key of Object.getOwnPropertyNames(schema.properties)) {
+            const s = schema.properties[key];
+            walkSchema(s, f);
+          }
+        }
+        if (schema.additionalProperties) {
+          walkSchema(schema.additionalProperties, f);
+        }
+        break;
+    }
+  }
+  function normalizeSchema(schema) {
+    const result2 = JSON.parse(JSON.stringify(schema));
+    walkSchema(result2, (schema2) => {
+      if (schema2.completions) {
+        delete schema2.completions;
+      }
+      if (schema2.exhaustiveCompletions) {
+        delete schema2.exhaustiveCompletions;
+      }
+      if (schema2.documentation) {
+        delete schema2.documentation;
+      }
+    });
+    return result2;
+  }
+
+  // yaml-schema.ts
+  var ajv = void 0;
+  function setupAjv(_ajv) {
+    debugger;
+    ajv = _ajv;
+  }
+  function navigate(path, annotation, pathIndex = 0) {
+    if (pathIndex >= path.length) {
+      return annotation;
+    }
+    if (annotation.kind === "mapping") {
+      const { components } = annotation;
+      const searchKey = path[pathIndex];
+      for (let i = 0; i < components.length; i += 2) {
+        const key = components[i].result;
+        if (key === searchKey) {
+          return navigate(path, components[i + 1], pathIndex + 1);
+        }
+      }
+      throw new Error("Internal error: searchKey not found in mapping object");
+    } else if (annotation.kind === "sequence") {
+      const searchKey = Number(path[pathIndex]);
+      return navigate(path, annotation.components[searchKey], pathIndex + 1);
+    } else {
+      throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
+    }
+  }
+  function navigateSchema(path, schema, pathIndex = 0) {
+    if (pathIndex >= path.length - 1) {
+      return schema;
+    }
+    const pathVal = path[pathIndex];
+    if (pathVal === "properties") {
+      const key = path[pathIndex + 1];
+      const subSchema = schema.properties[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "anyOf") {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.anyOf[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "oneOf") {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.oneOf[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else {
+      console.log({ path });
+      throw new Error("Internal error: Failed to navigate schema path");
+    }
+  }
+  function isProperPrefix(a, b) {
+    return b.length > a.length && b.substring(0, a.length) === a;
+  }
+  function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
+    const result2 = [];
+    const locF = mappedIndexToRowCol(source);
+    for (const error of validationErrors) {
+      const instancePath = error.instancePath;
+      const path = error.instancePath.split("/").slice(1);
+      if (["oneOf", "anyOf"].indexOf(error.keyword) !== -1 && validationErrors.filter((otherError) => isProperPrefix(instancePath, otherError.instancePath)).length > 0) {
+        continue;
+      }
+      if (["enum", "type"].indexOf(error.keyword) !== -1 && validationErrors.some((otherError) => instancePath === otherError.instancePath && ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1)) {
+        continue;
+      }
+      const schemaPath = error.schemaPath.split("/").slice(1);
+      const violatingObject = navigate(path, annotation);
+      const innerSchema = navigateSchema(schemaPath, schema);
+      let message = "";
+      const start = locF(violatingObject.start);
+      const end = locF(violatingObject.end);
+      const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
+      message = `${locStr}: Expected field ${instancePath} to ${innerSchema.description}`;
+      result2.push({
+        instancePath,
+        violatingObject,
+        message,
+        source
+      });
+    }
+    result2.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
+    return result2;
+  }
+  var YAMLSchema = class {
+    constructor(schema) {
+      this.schema = schema;
+      this.validate = ajv.compile(normalizeSchema(schema));
+    }
+    validateParse(src, annotation) {
+      let errors = [];
+      if (!this.validate(annotation.result)) {
+        errors = localizeAndPruneErrors(annotation, this.validate.errors, src, this.schema);
+        return {
+          result: annotation.result,
+          errors
+        };
+      } else {
+        return {
+          result: annotation.result,
+          errors: []
+        };
+      }
+    }
+    reportErrorsInSource(result2, src, message, error) {
+      if (result2.errors.length) {
+        const locF = mappedIndexToRowCol(src);
+        const nLines = lines(src.originalString).length;
+        error(message);
+        for (const err of result2.errors) {
+          console.log(err.message);
+          let startO = err.violatingObject.start;
+          let endO = err.violatingObject.end;
+          while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
+            startO++;
+          }
+          while (src.mapClosest(endO) > src.mapClosest(startO) && src.originalString[src.mapClosest(endO)].match(/\s/)) {
+            endO--;
+          }
+          const start = locF(startO);
+          const end = locF(endO);
+          const {
+            prefixWidth,
+            lines: lines3
+          } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+          for (const { lineNumber, content, rawLine } of lines3) {
+            console.log(content);
+            if (lineNumber >= start.line && lineNumber <= end.line) {
+              const startColumn = lineNumber > start.line ? 0 : start.column;
+              const endColumn = lineNumber < end.line ? rawLine.length : end.column;
+              console.log(" ".repeat(prefixWidth + startColumn) + "^".repeat(endColumn - startColumn + 1));
+            }
+          }
+        }
+      }
+      return result2;
+    }
+    validateParseWithErrors(src, annotation, message, error) {
+      const result2 = this.validateParse(src, annotation);
+      this.reportErrorsInSource(result2, src, message, error);
+      return result2;
+    }
+  };
 
   // index.ts
   var result = {
@@ -570,6 +830,7 @@
     mappedIndexToRowCol,
     partitionCellOptionsMapped,
     kLangCommentChars,
+    PromiseQueue,
     rangedSubstring,
     rangedLines,
     lineOffsets,
@@ -578,7 +839,9 @@
     indexToRowCol,
     rowColToIndex,
     schemaType,
-    schemaCompletions
+    schemaCompletions,
+    YAMLSchema,
+    setupAjv
   };
   if (window) {
     window._quartoCoreLib = result;

@@ -6,6 +6,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { error } from "log/mod.ts";
+
 import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./lib/ranged-text.ts";
 import { asMappedString, mappedString, MappedString } from "./lib/mapped-text.ts";
 import {
@@ -19,7 +21,7 @@ import { readYamlFromString } from "./yaml.ts";
 import { readAnnotatedYamlFromMappedString } from "./schema/annotated-yaml.ts";
 import { warnOnce } from "./log.ts";
 
-import { LocalizedError } from "./schema/yaml-schema.ts";
+import { LocalizedError } from "./lib/yaml-schema.ts";
 import { languageOptionsValidators } from "./schema/chunk-metadata.ts";
 
 export function partitionCellOptions(
@@ -90,7 +92,8 @@ export function parseAndValidateCellOptions(
   if (validator === undefined || !validate) {
     yaml = readAnnotatedYamlFromMappedString(mappedYaml);
   } else {
-    const valResult = validator.parseAndValidate(mappedYaml);
+    const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
+    const valResult = validator.validateParse(mappedYaml, annotation);
     if (valResult.errors.length > 0) {
       yamlValidationErrors = valResult.errors;
     } else {
@@ -130,7 +133,8 @@ export function partitionCellOptionsMapped(
         result: yaml,
         errors: yamlValidationErrors
       }, mappedYaml!,
-      `Validation of YAML ${language} chunk options failed`
+      `Validation of YAML ${language} chunk options failed`,
+      error
     );
   }
   

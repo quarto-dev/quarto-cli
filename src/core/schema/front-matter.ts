@@ -45,7 +45,13 @@ import {
   error
 } from "log/mod.ts";
 
-import { formatExecuteOptionsSchema as execute } from "./types.ts";
+import {
+  formatExecuteOptionsSchema as execute
+} from "./types.ts";
+
+import {
+  readAnnotatedYamlFromMappedString
+} from "./annotated-yaml.ts";
 
 export const htmlOptionsSchema = execute;
 
@@ -92,5 +98,7 @@ export function validateYAMLFrontMatter(context: RenderContext)
     [{ start: lineRanges[1].range.start, end: lineRanges[lineRanges.length - 2].range.end }]
   );
 
-  return frontMatter.parseAndValidateWithErrors(frontMatterText, "Validation of YAML front matter failed.");
+  const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
+  return frontMatter.validateParseWithErrors(
+    frontMatterText, annotation, "Validation of YAML front matter failed.", error);
 }
