@@ -192,12 +192,6 @@ window.QuartoLineHighlight = function () {
         viewportHeight) /
         2;
 
-    // Account for offsets in position applied to the
-    // <table> that holds our lines of code
-    // TODO: adapt to pandoc
-    // var lineTable = block.querySelector('.hljs-ln');
-    // if (lineTable) targetTop += lineTable.offsetTop - parseInt(blockStyles.paddingTop);
-
     // Make sure the scroll target is within bounds
     targetTop = Math.max(
       Math.min(targetTop, block.scrollHeight - viewportHeight),
