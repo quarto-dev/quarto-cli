@@ -72,9 +72,14 @@ end
 
 function renderAside(el) 
   if isLatexOutput() and #el.content == 1 and el.content[1].t == 'Para' then
+    local offset = ''
+    if el.attr ~= nil and el.attr.attributes['offset'] then
+      offset = el.attr.attributes['offset']
+    end
+
     local p = el.content[1]
     tprepend(p.content, {beginSideNote(true)})
-    tappend(p.content, {endSideNote(true)})
+    tappend(p.content, {endSideNote(true, offset)})
   end
 end
 
@@ -86,11 +91,18 @@ function beginSideNote(inline)
   end
 end
 
-function endSideNote(inline) 
+function endSideNote(inline, offset) 
+
+  if offset ~= nil and offset ~= '' then
+    offset = '[' .. offset .. ']'
+  else 
+    ofset = ''
+  end
+
   if inline then
-    return pandoc.RawInline('latex', '}\\end{footnotesize}')
+    return pandoc.RawInline('latex', '}' .. offset .. '\\end{footnotesize}')
   else
-    return pandoc.RawBlock('latex', '}\\end{footnotesize}')
+    return pandoc.RawBlock('latex', '}' .. offset .. '\\end{footnotesize}')
   end
 end
 
