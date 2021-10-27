@@ -476,11 +476,13 @@ function latexFigureEnv(el)
 
       -- a gutter figure or aside
       if isMarginEnv(class) then 
+        noteHasColumns()
         return "marginfigure"
       end
 
       -- any column that resolves to full width
       if isStarEnv(class) then
+        noteHasColumns()
         return "figure*"
       end
     end  
@@ -491,16 +493,19 @@ function latexFigureEnv(el)
 end
 
 function latexTableEnv(el)
+ 
   local classes = el.classes
   for i,class in ipairs(classes) do
 
     -- a gutter figure or aside
     if isMarginEnv(class) then 
+      noteHasColumns()
       return "margintable"
     end
 
     -- any column that resolves to full width
     if isStarEnv(class) then
+      noteHasColumns()
       return "table*"
     end
   end  

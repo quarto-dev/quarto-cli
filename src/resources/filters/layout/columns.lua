@@ -32,16 +32,6 @@ function columns()
         end
       end
       return el
-    end,
-
-    Para = function(el) 
-      if el.attr ~= undefined then
-        local columnClasses = resolveColumnClasses(el)
-        if #columnClasses > 0 then
-            -- Note that we are using columns
-            layoutState.hasColumns = true
-        end
-      end
     end
   }
 end
@@ -51,8 +41,7 @@ function forwardColumnClass(el)
   -- read the classes that should be forwarded
   local columnClasses = resolveColumnClasses(el)
   if #columnClasses > 0 then 
-    -- Note that we are using columns
-    layoutState.hasColumns = true
+    noteHasColumns()
 
     -- Forward the column classes inside code blocks
     for i, childEl in ipairs(el.content) do 
@@ -76,13 +65,6 @@ function forwardColumnClass(el)
   end         
 end
 
-function renderAside(el) 
-  if isLatexOutput() and #el.content > 0 then
-    tprepend(el.content, {beginSideNote()})
-    tappend(el.content, {endSideNote(el)})
-  end
-end
-
 function renderDivColumn(el) 
   -- don't render this if it requires panel layout. 
   -- panel layout will take care of rendering anything special
@@ -91,6 +73,8 @@ function renderDivColumn(el)
     -- see if there are any column classes
     local columnClasses = resolveColumnClasses(el)
     if #columnClasses > 0 then
+      noteHasColumns() 
+      
       if #el.content > 0 then
         
         if hasFigureRef(el) then 
@@ -108,6 +92,11 @@ function renderDivColumn(el)
     end
   end
 end
+
+function noteHasColumns() 
+  layoutState.hasColumns = true
+end
+
 
 function wrapContentsWithEnvironment(el, env) 
   tprepend(el.content, {latexBeginEnv(env)})
@@ -134,9 +123,7 @@ function notColumnClass(clz)
 end
 
 function resolveColumnClasses(el) 
-  local columnClasses = el.attr.classes:filter(isColumnClass)
-  layoutState.hasColumns = layoutState.hasColumns or #columnClasses > 0
-  return columnClasses
+  return el.attr.classes:filter(isColumnClass)
 end
 
 function isColumnClass(clz) 
