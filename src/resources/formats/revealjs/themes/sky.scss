@@ -1,0 +1,40 @@
+/*-- scss:defaults --*/
+
+@import url(https://fonts.googleapis.com/css?family=Quicksand:400,700,400italic,700italic);
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
+
+// fonts
+$font-family-sans-serif: "Open Sans", sans-serif !default;
+
+// colors
+$body-bg: #f7fbfc !default;
+$body-color: #333 !default;
+$link-color: #3b759e !default;
+$selection-bg: #134674 !default;
+
+// headings
+$presentation-heading-font: "Quicksand", sans-serif !default;
+$presentation-heading-text-transform: uppercase !default;
+$presentation-heading-font-weight: normal !default;
+$presentation-heading-letter-spacing: -0.08em;
+
+// code blocks
+$code-block-border-color: lighten($link-color, 30%) !default;
+$code-block-bg: transparent !default;
+
+/*-- scss:mixins --*/
+
+// Background generator
+@mixin bodyBackground() {
+  @include radial-gradient(#add9e4, #f7fbfc);
+}
+
+/*-- scss:rules --*/
+
+// Fix links so they are not cut off
+.reveal a {
+  line-height: 1.3em;
+}
+
+// Change text colors against dark slide backgrounds
+@include dark-bg-text-color(#fff);

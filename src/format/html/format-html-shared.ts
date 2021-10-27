@@ -6,7 +6,7 @@
 */
 import { join } from "path/mod.ts";
 import { outputVariable, sassVariable } from "../../core/sass.ts";
-import { kCodeOverflow } from "../../config/constants.ts";
+import { kCodeOverflow, kLinkExternalIcon } from "../../config/constants.ts";
 import { Format, FormatDependency } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
@@ -44,6 +44,18 @@ export const quartoRules = () =>
     "_quarto-rules.scss",
   ));
 
+export const quartoCopyCodeRules = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-rules-copy-code.scss",
+  ));
+
+export const quartoLinkExternalRules = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-rules-link-external.scss",
+  ));
+
 export const quartoGlobalCssVariableRules = () => {
   return `
   $font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
@@ -73,7 +85,15 @@ export const quartoBootstrapFunctions = () =>
     join("bootstrap", "_bootstrap-functions.scss"),
   ));
 
-export const quartoBaseLayer = (format: Format) => {
+export const quartoBaseLayer = (format: Format, codeCopyDefault = false) => {
+  const rules: string[] = [quartoRules()];
+  if (!!format.metadata[kCodeCopy] || codeCopyDefault) {
+    rules.push(quartoCopyCodeRules());
+  }
+  if (format.render[kLinkExternalIcon]) {
+    rules.push(quartoLinkExternalRules());
+  }
+
   return {
     use: ["sass:color", "sass:map", "sass:math"],
     defaults: [
@@ -81,7 +101,7 @@ export const quartoBaseLayer = (format: Format) => {
     ].join("\n"),
     functions: quartoFunctions(),
     mixins: "",
-    rules: quartoRules(),
+    rules: rules.join("\n"),
   };
 };
 
