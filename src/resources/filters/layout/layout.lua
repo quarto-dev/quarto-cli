@@ -8,7 +8,9 @@ PANDOC_VERSION:must_be_at_least '2.13'
 text = require 'text'
 
 -- global layout state
-layoutState = {}
+layoutState = {
+  hasColumns = false,
+}
 
 -- [import]
 function import(script)
@@ -25,6 +27,7 @@ import("odt.lua")
 import("pptx.lua")
 import("table.lua")
 import("figures.lua")
+import("columns.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/validate.lua")
@@ -44,7 +47,7 @@ function layoutPanels()
 
   return {
     Div = function(el)
-      if shouldLayoutDiv(el) then
+      if requiresPanelLayout(el) then
         
         -- partition
         local preamble, cells, caption = partitionCells(el)
@@ -89,7 +92,7 @@ function layoutPanels()
 end
 
 
-function shouldLayoutDiv(divEl)
+function requiresPanelLayout(divEl)
   
   if hasLayoutAttributes(divEl) then
     return true
@@ -276,6 +279,7 @@ initParams()
 
 -- chain of filters
 return {
+  columns(),
   layoutPanels(),
   extendedFigures(),
   layoutMetaInject()

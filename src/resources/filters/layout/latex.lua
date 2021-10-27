@@ -81,8 +81,6 @@ function latexPanelEnv(divEl, layout)
       env = latexTableEnv(divEl)
     end
   end
-  
-dump(divEl.classes)
 
   return env, pos
   
@@ -463,8 +461,10 @@ function latexRemoveTableDelims(el)
   })
 end
 
+
+
 function latexFigureEnv(el) 
-  -- Check whether the user has specified a figure environment
+ -- Check whether the user has specified a figure environment
   local figEnv = attribute(el, kFigEnv, nil)
   if figEnv ~= nil then
     -- the user specified figure environment

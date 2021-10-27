@@ -15,6 +15,20 @@ function layoutMetaInject()
           inject(usePackage("tikz"))
         end
       end)
+
+      if layoutState.hasColumns and isLatexOutput() then
+        -- inject sidenotes package
+        metaInjectLatex(meta, function(inject)
+          inject(
+            usePackage("sidenotes")
+          )
+          inject(
+            usePackage("marginnote")
+          )
+        end)
+      end
+
+
         
       return meta
     end
