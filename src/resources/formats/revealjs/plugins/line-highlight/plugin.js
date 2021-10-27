@@ -1,263 +1,297 @@
-window.QuartoLineHighlight = function() {
-    const delimiters = {
-        step: '|',
-        line: ',',
-        lineRange: '-',
-    };
+window.QuartoLineHighlight = function () {
+  const delimiters = {
+    step: "|",
+    line: ",",
+    lineRange: "-",
+  };
 
-    const regex = new RegExp('^[\\d' + Object.values(delimiters).join('') + ']+$');
+  const regex = new RegExp(
+    "^[\\d" + Object.values(delimiters).join("") + "]+$"
+  );
 
-    function isLinesSelector(attr) {
-        return regex.test(attr)
-    }
+  function isLinesSelector(attr) {
+    return regex.test(attr);
+  }
 
-    const kCodeLineNumbersAttr = 'data-code-line-numbers';
-    const kFragmentIndex = 'data-fragment-index';
+  const kCodeLineNumbersAttr = "data-code-line-numbers";
+  const kFragmentIndex = "data-fragment-index";
 
-    function initQuartoLineHighlight(deck) {
+  function initQuartoLineHighlight(deck) {
+    const divSourceCode = deck
+      .getRevealElement()
+      .querySelectorAll("div.sourceCode");
+    // Process each div created by Pandoc highlighting - numbered line are already included.
+    divSourceCode.forEach((el) => {
+      if (el.hasAttribute(kCodeLineNumbersAttr)) {
+        const codeLineAttr = el.getAttribute(kCodeLineNumbersAttr);
+        el.removeAttribute("data-code-line-numbers");
+        if (isLinesSelector(codeLineAttr)) {
+          // Only process if attr is a string to select lines to highlights
+          // e.g "1|3,6|8-11"
+          const codeBlock = el.querySelectorAll("pre code");
+          codeBlock.forEach((code) => {
+            // move attributes on code block
+            code.setAttribute(kCodeLineNumbersAttr, codeLineAttr);
 
-        const divSourceCode = deck.getRevealElement().querySelectorAll('div.sourceCode');
-        // Process each div created by Pandoc highlighting - numbered line are already included.
-        divSourceCode.forEach(el => {
-            if (el.hasAttribute(kCodeLineNumbersAttr)) {
+            const scrollState = { currentBlock: code };
 
-                const codeLineAttr = el.getAttribute(kCodeLineNumbersAttr);
-                el.removeAttribute('data-code-line-numbers');
-                if (isLinesSelector(codeLineAttr)) {
-                    // Only process if attr is a string to select lines to highlights
-                    // e.g "1|3,6|8-11"
-                    const codeBlock = el.querySelectorAll("pre code");
-                    codeBlock.forEach(
-                        code => {
+            // Check if there are steps and duplicate code block accordingly
+            const highlightSteps = splitLineNumbers(codeLineAttr);
+            if (highlightSteps.length > 1) {
+              // If the original code block has a fragment-index,
+              // each clone should follow in an incremental sequence
+              let fragmentIndex = parseInt(
+                code.getAttribute(kFragmentIndex),
+                10
+              );
+              fragmentIndex =
+                typeof fragmentIndex !== "number" || isNaN(fragmentIndex)
+                  ? null
+                  : fragmentIndex;
 
+              highlightSteps.slice(1).forEach(
+                // Generate fragments for all steps except the original block
+                (step) => {
+                  var fragmentBlock = code.cloneNode(true);
+                  fragmentBlock.setAttribute(
+                    "data-code-line-numbers",
+                    joinLineNumbers([step])
+                  );
+                  fragmentBlock.classList.add("fragment");
+                  code.parentNode.appendChild(fragmentBlock);
+                  // Each new <code> element is highlighted based on the new attributes value
+                  highlightCodeBlock(fragmentBlock);
 
-                            // move attributes on code block
-                            code.setAttribute(kCodeLineNumbersAttr, codeLineAttr)
+                  if (typeof fragmentIndex === "number") {
+                    fragmentBlock.setAttribute(kFragmentIndex, fragmentIndex);
+                    fragmentIndex += 1;
+                  } else {
+                    fragmentBlock.removeAttribute(kFragmentIndex);
+                  }
 
-                            const scrollState = { currentBlock: code };
-
-                            // Check if there are steps and duplicate code block accordingly
-                            const highlightSteps = splitLineNumbers(codeLineAttr);
-                            if (highlightSteps.length > 1) {
-                                // If the original code block has a fragment-index,
-                                // each clone should follow in an incremental sequence
-                                let fragmentIndex = parseInt(code.getAttribute(kFragmentIndex), 10);
-                                fragmentIndex = typeof fragmentIndex !== 'number' || isNaN(fragmentIndex) ? null : fragmentIndex;
-
-                                highlightSteps.slice(1).forEach(
-                                    // Generate fragments for all steps except the original block
-                                    step => {
-                                        var fragmentBlock = code.cloneNode(true);
-                                        fragmentBlock.setAttribute('data-code-line-numbers', joinLineNumbers([step]));
-                                        fragmentBlock.classList.add("fragment");
-                                        code.parentNode.appendChild(fragmentBlock);
-                                        // Each new <code> element is highlighted based on the new attributes value
-                                        highlightCodeBlock(fragmentBlock);
-
-                                        if (typeof fragmentIndex === 'number') {
-                                            fragmentBlock.setAttribute(kFragmentIndex, fragmentIndex);
-                                            fragmentIndex += 1;
-                                        } else {
-                                            fragmentBlock.removeAttribute(kFragmentIndex);
-                                        }
-
-                                        // Scroll highlights into view as we step through them
-                                        fragmentBlock.addEventListener('visible', scrollHighlightedLineIntoView.bind(this, fragmentBlock, scrollState));
-                                        fragmentBlock.addEventListener('hidden', scrollHighlightedLineIntoView.bind(this, fragmentBlock.previousSibling, scrollState));
-
-                                    }
-                                )
-                                code.removeAttribute(kFragmentIndex);
-                                code.setAttribute(kCodeLineNumbersAttr, joinLineNumbers([highlightSteps[0]]));
-                            }
-                            // TODO add scrolling animation: scroll the first highlight into view when the slide
-
-                            highlightCodeBlock(code);
-
-                        });
+                  // Scroll highlights into view as we step through them
+                  fragmentBlock.addEventListener(
+                    "visible",
+                    scrollHighlightedLineIntoView.bind(
+                      this,
+                      fragmentBlock,
+                      scrollState
+                    )
+                  );
+                  fragmentBlock.addEventListener(
+                    "hidden",
+                    scrollHighlightedLineIntoView.bind(
+                      this,
+                      fragmentBlock.previousSibling,
+                      scrollState
+                    )
+                  );
                 }
+              );
+              code.removeAttribute(kFragmentIndex);
+              code.setAttribute(
+                kCodeLineNumbersAttr,
+                joinLineNumbers([highlightSteps[0]])
+              );
             }
-        });
-    }
+            // TODO add scrolling animation: scroll the first highlight into view when the slide
 
-    function highlightCodeBlock(codeBlock) {
+            highlightCodeBlock(code);
+          });
+        }
+      }
+    });
+  }
 
-        const highlightSteps = splitLineNumbers(codeBlock.getAttribute(kCodeLineNumbersAttr));
+  function highlightCodeBlock(codeBlock) {
+    const highlightSteps = splitLineNumbers(
+      codeBlock.getAttribute(kCodeLineNumbersAttr)
+    );
 
-        if (highlightSteps.length) {
-            // If we have at least one step, we generate fragments
-            highlightSteps[0].forEach(
-                highlight => {
-                    // Add expected class on <pre> for reveal CSS
-                    codeBlock.parentNode.classList.add('code-wrapper');
+    if (highlightSteps.length) {
+      // If we have at least one step, we generate fragments
+      highlightSteps[0].forEach((highlight) => {
+        // Add expected class on <pre> for reveal CSS
+        codeBlock.parentNode.classList.add("code-wrapper");
 
-                    // Select lines to highlight
-                    spanToHighlight = [];
-                    if (typeof highlight.last === 'number') {
-                        spanToHighlight = [].slice.call(codeBlock.querySelectorAll(':scope > span:nth-child(n+' + highlight.first + '):nth-child(-n+' + highlight.last + ')'));
-                    } else if (typeof highlight.first === 'number') {
-                        spanToHighlight = [].slice.call(codeBlock.querySelectorAll(':scope > span:nth-child(' + highlight.first + ')'));
-                    }
-                    if (spanToHighlight.length) {
-                        // Add a class on <code> and <span> to select line to highlight
-                        spanToHighlight.forEach(
-                            span => span.classList.add('highlight-line')
-                        );
-                        codeBlock.classList.add('has-line-highlights');
-                    }
-                }
+        // Select lines to highlight
+        spanToHighlight = [];
+        if (typeof highlight.last === "number") {
+          spanToHighlight = [].slice.call(
+            codeBlock.querySelectorAll(
+              ":scope > span:nth-child(n+" +
+                highlight.first +
+                "):nth-child(-n+" +
+                highlight.last +
+                ")"
             )
+          );
+        } else if (typeof highlight.first === "number") {
+          spanToHighlight = [].slice.call(
+            codeBlock.querySelectorAll(
+              ":scope > span:nth-child(" + highlight.first + ")"
+            )
+          );
         }
+        if (spanToHighlight.length) {
+          // Add a class on <code> and <span> to select line to highlight
+          spanToHighlight.forEach((span) =>
+            span.classList.add("highlight-line")
+          );
+          codeBlock.classList.add("has-line-highlights");
+        }
+      });
+    }
+  }
+
+  /**
+   * Animates scrolling to the first highlighted line
+   * in the given code block.
+   */
+  function scrollHighlightedLineIntoView(block, scrollState, skipAnimation) {
+    window.cancelAnimationFrame(scrollState.animationFrameID);
+
+    // Match the scroll position of the currently visible
+    // code block
+    if (scrollState.currentBlock) {
+      block.scrollTop = scrollState.currentBlock.scrollTop;
     }
 
-    /**
-     * Animates scrolling to the first highlighted line
-     * in the given code block.
-     */
-    function scrollHighlightedLineIntoView(block, scrollState, skipAnimation) {
-        window.cancelAnimationFrame(scrollState.animationFrameID);
+    // Remember the current code block so that we can match
+    // its scroll position when showing/hiding fragments
+    scrollState.currentBlock = block;
 
-        // Match the scroll position of the currently visible
-        // code block
-        if (scrollState.currentBlock) {
-            block.scrollTop = scrollState.currentBlock.scrollTop;
+    const highlightBounds = getHighlightedLineBounds(block);
+    let viewportHeight = block.offsetHeight;
+
+    // Subtract padding from the viewport height
+    const blockStyles = window.getComputedStyle(block);
+    viewportHeight -=
+      parseInt(blockStyles.paddingTop) + parseInt(blockStyles.paddingBottom);
+
+    // Scroll position which centers all highlights
+    const startTop = block.scrollTop;
+    let targetTop =
+      highlightBounds.top +
+      (Math.min(highlightBounds.bottom - highlightBounds.top, viewportHeight) -
+        viewportHeight) /
+        2;
+
+    // Account for offsets in position applied to the
+    // <table> that holds our lines of code
+    // TODO: adapt to pandoc
+    // var lineTable = block.querySelector('.hljs-ln');
+    // if (lineTable) targetTop += lineTable.offsetTop - parseInt(blockStyles.paddingTop);
+
+    // Make sure the scroll target is within bounds
+    targetTop = Math.max(
+      Math.min(targetTop, block.scrollHeight - viewportHeight),
+      0
+    );
+
+    if (skipAnimation === true || startTop === targetTop) {
+      block.scrollTop = targetTop;
+    } else {
+      // Don't attempt to scroll if there is no overflow
+      if (block.scrollHeight <= viewportHeight) return;
+
+      let time = 0;
+
+      const animate = function () {
+        time = Math.min(time + 0.02, 1);
+
+        // Update our eased scroll position
+        block.scrollTop =
+          startTop + (targetTop - startTop) * easeInOutQuart(time);
+
+        // Keep animating unless we've reached the end
+        if (time < 1) {
+          scrollState.animationFrameID = requestAnimationFrame(animate);
         }
+      };
 
-        // Remember the current code block so that we can match
-        // its scroll position when showing/hiding fragments
-        scrollState.currentBlock = block;
-
-        const highlightBounds = getHighlightedLineBounds(block)
-        let viewportHeight = block.offsetHeight;
-
-        // Subtract padding from the viewport height
-        const blockStyles = window.getComputedStyle(block);
-        viewportHeight -= parseInt(blockStyles.paddingTop) + parseInt(blockStyles.paddingBottom);
-
-        // Scroll position which centers all highlights
-        const startTop = block.scrollTop;
-        let targetTop = highlightBounds.top + (Math.min(highlightBounds.bottom - highlightBounds.top, viewportHeight) - viewportHeight) / 2;
-
-        // Account for offsets in position applied to the
-        // <table> that holds our lines of code
-        // TODO: adapt to pandoc
-        // var lineTable = block.querySelector('.hljs-ln');
-        // if (lineTable) targetTop += lineTable.offsetTop - parseInt(blockStyles.paddingTop);
-
-        // Make sure the scroll target is within bounds
-        targetTop = Math.max(Math.min(targetTop, block.scrollHeight - viewportHeight), 0);
-
-        if (skipAnimation === true || startTop === targetTop) {
-            block.scrollTop = targetTop;
-        } else {
-
-            // Don't attempt to scroll if there is no overflow
-            if (block.scrollHeight <= viewportHeight) return;
-
-            let time = 0;
-
-            const animate = function() {
-                time = Math.min(time + 0.02, 1);
-
-                // Update our eased scroll position
-                block.scrollTop = startTop + (targetTop - startTop) * easeInOutQuart(time);
-
-                // Keep animating unless we've reached the end
-                if (time < 1) {
-                    scrollState.animationFrameID = requestAnimationFrame(animate);
-                }
-            };
-
-            animate();
-
-        }
+      animate();
     }
+  }
 
-    function getHighlightedLineBounds(block) {
+  function getHighlightedLineBounds(block) {
+    const highlightedLines = block.querySelectorAll(".highlight-line");
+    if (highlightedLines.length === 0) {
+      return { top: 0, bottom: 0 };
+    } else {
+      const firstHighlight = highlightedLines[0];
+      const lastHighlight = highlightedLines[highlightedLines.length - 1];
 
-        const highlightedLines = block.querySelectorAll('.highlight-line');
-        if (highlightedLines.length === 0) {
-            return { top: 0, bottom: 0 };
+      return {
+        top: firstHighlight.offsetTop,
+        bottom: lastHighlight.offsetTop + lastHighlight.offsetHeight,
+      };
+    }
+  }
+
+  /**
+   * The easing function used when scrolling.
+   */
+  function easeInOutQuart(t) {
+    // easeInOutQuart
+    return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t;
+  }
+
+  function splitLineNumbers(lineNumbersAttr) {
+    // remove space
+    lineNumbersAttr = lineNumbersAttr.replace("/s/g", "");
+    // seperate steps (for fragment)
+    lineNumbersAttr = lineNumbersAttr.split(delimiters.step);
+
+    // for each step, calculate first and last line, if any
+    return lineNumbersAttr.map((highlights) => {
+      // detect lines
+      const lines = highlights.split(delimiters.line);
+      return lines.map((range) => {
+        if (/^[\d-]+$/.test(range)) {
+          range = range.split(delimiters.lineRange);
+          const firstLine = parseInt(range[0], 10);
+          const lastLine = range[1] ? parseInt(range[1], 10) : undefined;
+          return {
+            first: firstLine,
+            last: lastLine,
+          };
         } else {
-            const firstHighlight = highlightedLines[0];
-            const lastHighlight = highlightedLines[highlightedLines.length - 1];
+          return {};
+        }
+      });
+    });
+  }
 
-            return {
-                top: firstHighlight.offsetTop,
-                bottom: lastHighlight.offsetTop + lastHighlight.offsetHeight
+  function joinLineNumbers(splittedLineNumbers) {
+    return splittedLineNumbers
+      .map(function (highlights) {
+        return highlights
+          .map(function (highlight) {
+            // Line range
+            if (typeof highlight.last === "number") {
+              return highlight.first + delimiters.lineRange + highlight.last;
             }
-        }
+            // Single line
+            else if (typeof highlight.first === "number") {
+              return highlight.first;
+            }
+            // All lines
+            else {
+              return "";
+            }
+          })
+          .join(delimiters.line);
+      })
+      .join(delimiters.step);
+  }
 
-    }
+  return {
+    id: "quarto-line-highlight",
+    init: function (deck) {
+      initQuartoLineHighlight(deck);
 
-    /**
-     * The easing function used when scrolling.
-     */
-    function easeInOutQuart(t) {
-        // easeInOutQuart
-        return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t;
-
-    }
-
-
-
-    function splitLineNumbers(lineNumbersAttr) {
-        // remove space
-        lineNumbersAttr = lineNumbersAttr.replace("/\s/g", '');
-        // seperate steps (for fragment)
-        lineNumbersAttr = lineNumbersAttr.split(delimiters.step)
-
-        // for each step, calculate first and last line, if any
-        return lineNumbersAttr.map(
-            highlights => {
-                // detect lines
-                const lines = highlights.split(delimiters.line)
-                return lines.map(
-                    range => {
-                        if (/^[\d-]+$/.test(range)) {
-                            range = range.split(delimiters.lineRange)
-                            const firstLine = parseInt(range[0], 10);
-                            const lastLine = range[1] ? parseInt(range[1], 10) : undefined
-                            return {
-                                first: firstLine,
-                                last: lastLine,
-                            };
-                        } else {
-                            return {};
-                        }
-                    });
-            });
-    }
-
-    function joinLineNumbers(splittedLineNumbers) {
-        return splittedLineNumbers.map(function(highlights) {
-
-            return highlights.map(function(highlight) {
-
-                // Line range
-                if (typeof highlight.last === 'number') {
-                    return highlight.first + delimiters.lineRange + highlight.last;
-                }
-                // Single line
-                else if (typeof highlight.first === 'number') {
-                    return highlight.first;
-                }
-                // All lines
-                else {
-                    return '';
-                }
-
-            }).join(delimiters.line);
-
-        }).join(delimiters.step);
-    }
-
-    return {
-        id: 'quarto-line-highlight',
-        init: function(deck) {
-            initQuartoLineHighlight(deck)
-
-            // TODO: insert special print pdf handling for scroll code block
-        }
-    }
+      // TODO: insert special print pdf handling for scroll code block
+    },
+  };
 };
