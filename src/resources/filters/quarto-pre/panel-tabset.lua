@@ -7,8 +7,12 @@ function panelTabset()
   return {
     -- tabsets and callouts
     Div = function(div)
-      if hasBootstrap() and div.attr.classes:find("panel-tabset") then
-        return tabsetDiv(div)
+      if div.attr.classes:find("panel-tabset") then
+        if hasBootstrap() then
+          return tabsetDiv(div, bootstrapTabs())
+        else
+          return tabsetDiv(div, tabbyTabs())
+        end
       elseif isLatexOutput() or isDocxOutput() or isEpubOutput() then
         return tabsetLatex(div)
       else
@@ -18,7 +22,8 @@ function panelTabset()
   }
 end
 
-function tabsetDiv(div)
+
+function tabsetDiv(div, renderer)
 
   -- create a unique id for the tabset
   local tabsetid = "tabset-" .. tabsetidx
@@ -44,7 +49,7 @@ function tabsetDiv(div)
 
     -- init tab navigation 
     local nav = pandoc.List:new()
-    nav:insert(pandoc.RawInline('html', '<ul class="nav nav-tabs" role="tablist">'))
+    nav:insert(pandoc.RawInline('html', '<ul ' .. renderer.ulAttribs(tabsetid) .. '>'))
 
     -- init tab panes
     local panes = pandoc.Div({}, div.attr)
@@ -68,26 +73,14 @@ function tabsetDiv(div)
       local tablinkid = tabid .. "-tab"
 
       -- navigation
-      local active = ""
-      local selected = "false"
-      if i==1 then
-        active = " active"
-        selected = "true"
-      end
-      nav:insert(pandoc.RawInline('html', '<li class="nav-item" role="presentation">'))
-      nav:insert(pandoc.RawInline('html', '<a class="nav-link' .. active .. '" id="' .. tablinkid .. '" data-bs-toggle="tab" data-bs-target="#' .. tabid .. '" role="tab" aria-controls="' .. tabid .. '" aria-selected="' .. selected .. '">'))
+      nav:insert(pandoc.RawInline('html', '<li ' .. renderer.liAttribs() .. '>'))
+      nav:insert(pandoc.RawInline('html', '<a ' .. renderer.liLinkAttribs(tabid, i==1) .. '>'))
       nav:extend(heading.content)
       nav:insert(pandoc.RawInline('html', '</a></li>'))
 
       -- pane
-      local pane = pandoc.Div({}, heading.attr)
-      pane.attr.identifier = tabid
-      pane.attr.classes:insert("tab-pane")
-      if i==1 then
-        pane.attr.classes:insert("active")
-      end
-      pane.attr.attributes["role"] = "tabpanel"
-      pane.attr.attributes["aria-labeledby"] = tablinkid
+      local paneAttr = renderer.paneAttribs(tabid, i==1, heading.attr)
+      local pane = pandoc.Div({}, paneAttr)
       pane.content:extend(tab.content)
       panes.content:insert(pane)
     end
@@ -103,6 +96,63 @@ function tabsetDiv(div)
 
   end 
 end
+
+function bootstrapTabs() 
+  return {
+    ulAttribs = function(tabsetid)
+      return 'class="nav nav-tabs" role="tablist"'
+    end,
+    liAttribs = function(tabid, isActive)
+      return 'class="nav-item" role="presentation"'
+    end,
+    liLinkAttribs = function(tabid, isActive)
+      local tablinkid = tabid .. "-tab"
+      local active = ""
+      local selected = "false"
+      if isActive then
+        active = " active"
+        selected = "true"
+      end
+      return 'class="nav-link' .. active .. '" id="' .. tablinkid .. '" data-bs-toggle="tab" data-bs-target="#' .. tabid .. '" role="tab" aria-controls="' .. tabid .. '" aria-selected="' .. selected .. '"'
+    end,
+    paneAttribs = function(tabid, isActive, headingAttribs)
+      local tablinkid = tabid .. "-tab"
+      local attribs = headingAttribs:clone()
+      attribs.identifier = tabid
+      attribs.classes:insert("tab-pane")
+      if isActive then
+        attribs.classes:insert("active")
+      end
+      attribs.attributes["role"] = "tabpanel"
+      attribs.attributes["aria-labeledby"] = tablinkid
+      return attribs
+    end
+  }
+end
+
+function tabbyTabs()
+  return {
+    ulAttribs = function(tabsetid)
+      return 'id="' .. tabsetid .. '" class="panel-tabset-tabby"'
+    end,
+    liAttribs = function(tabid, isActive)
+      return ''
+    end,
+    liLinkAttribs = function(tabid, isActive)
+      local default = ""
+      if isActive then
+        default = "data-tabby-default "
+      end
+      return default .. 'href="#' .. tabid .. '"'
+    end,
+    paneAttribs = function(tabid, isActive, headingAttribs)
+      local attribs = headingAttribs:clone()
+      attribs.identifier = tabid
+      return attribs
+    end
+  }
+end
+
 
 function tabsetLatex(div)
   -- find the first heading in the tabset
