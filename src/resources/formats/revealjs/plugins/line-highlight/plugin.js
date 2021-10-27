@@ -157,6 +157,8 @@ window.QuartoLineHighlight = function() {
         id: 'quarto-line-highlight',
         init: function(deck) {
             initQuartoLineHighlight(deck)
+
+            // TODO: insert special print pdf handling for scroll code block
         }
     }
 };
