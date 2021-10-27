@@ -5,44 +5,43 @@
 // fonts
 $font-family-sans-serif: "Source Sans Pro", Helvetica, sans-serif !default;
 $font-family-monospace: monospace !default;
+$presentation-font-size-root: 40px !default;
+$presentation-line-height: 1.3 !default;
 
 // main colors
 $body-bg: #fff !default;
 $body-color: #222 !default;
-$link-color: #2a76dd !default;
 $text-muted: lighten($body-color, 60%) !default;
+
+// link colors
+$link-color: #2a76dd !default;
+$link-color-hover: lighten($link-color, 15%) !default;
+
+// selection colors
+$selection-bg: lighten($link-color, 25%) !default;
+$selection-color: $body-bg !default;
 
 // border colors
 $border-color: lighten($body-color, 30%) !default;
 $border-width: 1px !default;
 $border-radius: 3px !default;
 
-// font sizes and margins
-$presentation-font-size-root: 42px !default;
+// headings
+$presentation-heading-font: $font-family-sans-serif !default;
+$presentation-heading-color: $body-color !default;
+$presentation-heading-line-height: 1.2 !default;
+$presentation-heading-letter-spacing: normal !default;
+$presentation-heading-text-transform: none !default;
+$presentation-heading-text-shadow: none !default;
+$presentation-h1-text-shadow: none !default;
+$presentation-heading-font-weight: 600 !default;
 $presentation-h1-font-size: 2.5em !default;
 $presentation-h2-font-size: 1.6em !default;
 $presentation-h3-font-size: 1.3em !default;
 $presentation-h4-font-size: 1em !default;
-$presentation-heading-font: $font-family-sans-serif !default;
-$presentation-heading-color: $body-color !default;
-$presentation-heading-line-height: 1.2 !default;
-$presentation-heading-text-transform: none !default;
-$presentation-heading-font-weight: 600 !default;
-$presentation-block-margin: 12px !default;
-$presentation-line-height: 1.3 !default;
 
-$revealjs-font-size-root: $presentation-font-size-root !default;
-$revealjs-h1-font-size: $presentation-h1-font-size !default;
-$revealjs-h2-font-size: $presentation-h2-font-size !default;
-$revealjs-h3-font-size: $presentation-h3-font-size !default;
-$revealjs-h4-font-size: $presentation-h4-font-size !default;
-$revealjs-heading-font: $presentation-heading-font !default;
-$revealjs-heading-color: $presentation-heading-color !default;
-$revealjs-heading-line-height: $presentation-heading-line-height !default;
-$revealjs-heading-text-transform: $presentation-heading-text-transform !default;
-$revealjs-heading-font-weight: $presentation-heading-font-weight !default;
-$revealjs-block-margin: $presentation-block-margin !default;
-$revealjs-line-height: $presentation-line-height !default;
+// margins
+$presentation-block-margin: 12px !default;
 
 // text alignment
 $presentation-slide-text-align: left !default;
@@ -56,7 +55,28 @@ $code-block-border-color: lighten($body-color, 60%) !default;
 
 // inline code
 $code-color: var(--quarto-hl-fu-color) !default;
-$code-bg: $body-bg !default;
+$code-bg: transparent !default;
+
+// --- derive reveal versions of presentation variables for finer-grained override ---
+
+$revealjs-font-size-root: $presentation-font-size-root !default;
+$revealjs-h1-font-size: $presentation-h1-font-size !default;
+$revealjs-h2-font-size: $presentation-h2-font-size !default;
+$revealjs-h3-font-size: $presentation-h3-font-size !default;
+$revealjs-h4-font-size: $presentation-h4-font-size !default;
+$revealjs-heading-font: $presentation-heading-font !default;
+$revealjs-heading-color: $presentation-heading-color !default;
+$revealjs-heading-line-height: $presentation-heading-line-height !default;
+$revealjs-heading-letter-spacing: $presentation-heading-letter-spacing !default;
+$revealjs-heading-text-transform: $presentation-heading-text-transform !default;
+$revealjs-heading-text-shadow: $presentation-heading-text-shadow !default;
+$revealjs-h1-text-shadow: $presentation-h1-text-shadow !default;
+
+$revealjs-heading-font-weight: $presentation-heading-font-weight !default;
+$revealjs-block-margin: $presentation-block-margin !default;
+$revealjs-line-height: $presentation-line-height !default;
+
+// ---- map to reveal scss variables ---
 
 // Background of the presentation
 $backgroundColor: $body-bg !default;
@@ -74,11 +94,11 @@ $headingMargin: 0 0 $blockMargin 0 !default;
 $headingFont: $revealjs-heading-font !default;
 $headingColor: $revealjs-heading-color !default;
 $headingLineHeight: $revealjs-heading-line-height !default;
-$headingLetterSpacing: normal !default;
+$headingLetterSpacing: $revealjs-heading-letter-spacing !default;
 $headingTextTransform: $revealjs-heading-text-transform !default;
-$headingTextShadow: none !default;
+$headingTextShadow: $revealjs-heading-text-shadow !default;
+$heading1TextShadow: $revealjs-h1-text-shadow !default;
 $headingFontWeight: $revealjs-heading-font-weight !default;
-$heading1TextShadow: $headingTextShadow !default;
 
 $heading1Size: $revealjs-h1-font-size !default;
 $heading2Size: $revealjs-h2-font-size !default;
@@ -91,11 +111,11 @@ $code-block-theme-dark-threshhold: 40% !default;
 
 // Links and actions
 $linkColor: $link-color !default;
-$linkColorHover: lighten($linkColor, 15%) !default;
+$linkColorHover: $link-color-hover !default;
 
 // Text selection
-$selectionBackgroundColor: lighten($linkColor, 25%) !default;
-$selectionColor: #fff !default;
+$selectionBackgroundColor: $selection-bg !default;
+$selectionColor: $selection-color !default;
 
 /*-- scss:functions --*/
 
