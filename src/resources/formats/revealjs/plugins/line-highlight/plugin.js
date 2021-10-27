@@ -94,7 +94,22 @@ window.QuartoLineHighlight = function () {
                 joinLineNumbers([highlightSteps[0]])
               );
             }
-            // TODO add scrolling animation: scroll the first highlight into view when the slide
+
+            // Scroll the first highlight into view when the slide becomes visible.
+            const slide =
+              typeof code.closest === "function"
+                ? code.closest("section:not(.stack)")
+                : null;
+            if (slide) {
+              const scrollFirstHighlightIntoView = function () {
+                scrollHighlightedLineIntoView(code, scrollState, true);
+                slide.removeEventListener(
+                  "visible",
+                  scrollFirstHighlightIntoView
+                );
+              };
+              slide.addEventListener("visible", scrollFirstHighlightIntoView);
+            }
 
             highlightCodeBlock(code);
           });
