@@ -11,14 +11,20 @@ import { Format, FormatDependency } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
 
+// features that are enabled by default for 'html'. setting
+// all of these to false will yield the minimal html output
+// that quarto can produce (there is still some CSS we generate
+// to provide figure layout, etc.)
+export const kTabsets = "tabsets";
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
+export const kHoverCitations = "hover-citations";
+export const kHoverFootnotes = "hover-footnotes";
+
 export const kPageLayout = "page-layout";
 export const kPageLayoutArticle = "article";
 export const kPageLayoutCustom = "custom";
 export const kPageLayoutNone = "none";
-export const kHoverCitations = "hover-citations";
-export const kHoverFootnotes = "hover-footnotes";
 export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";

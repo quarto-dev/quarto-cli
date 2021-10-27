@@ -59,6 +59,7 @@ import {
   kHoverCitations,
   kHoverFootnotes,
   kHypothesis,
+  kTabsets,
   kUtterances,
   quartoBaseLayer,
   quartoGlobalCssVariableRules,
@@ -91,6 +92,7 @@ export function htmlFormat(
 export const kQuartoHtmlDependency = "quarto-html";
 
 export interface HtmlFormatFeatureDefaults {
+  tabby?: boolean;
   copyCode?: boolean;
   anchors?: boolean;
   hoverCitations?: boolean;
@@ -157,6 +159,11 @@ export function htmlFormatExtras(
   options.codeLink = format.metadata[kCodeLink] || false;
 
   // apply defaults
+  if (featureDefaults.tabby) {
+    options.tabby = format.metadata[kTabsets] !== false;
+  } else {
+    options.tabby = format.metadata[kTabsets] || false;
+  }
   if (featureDefaults.copyCode) {
     options.copyCode = format.metadata[kCodeCopy] !== false;
   } else {
@@ -187,6 +194,21 @@ export function htmlFormatExtras(
     scripts.push({
       name: "quarto.js",
       path: formatResourcePath("html", "quarto.js"),
+    });
+  }
+
+  // tabby if required
+  if (options.tabby) {
+    scripts.push({
+      name: "tabby.min.js",
+      path: formatResourcePath("html", join("tabby", "js", "tabby.min.js")),
+    });
+    stylesheets.push({
+      name: "tabby-ui.min.css",
+      path: formatResourcePath(
+        "html",
+        join("tabby", "css", "tabby-ui.min.css"),
+      ),
     });
   }
 
@@ -363,21 +385,13 @@ function htmlFormatFilterParams(format: Format) {
 function htmlFormatFeatureDefaults(
   bootstrap: boolean,
 ): HtmlFormatFeatureDefaults {
-  if (bootstrap) {
-    return {
-      copyCode: true,
-      anchors: true,
-      hoverCitations: true,
-      hoverFootnotes: true,
-    };
-  } else {
-    return {
-      copyCode: false,
-      anchors: false,
-      hoverCitations: false,
-      hoverFootnotes: false,
-    };
-  }
+  return {
+    tabby: !bootstrap,
+    copyCode: true,
+    anchors: true,
+    hoverCitations: true,
+    hoverFootnotes: true,
+  };
 }
 
 function htmlFormatPostprocessor(
