@@ -59,6 +59,7 @@ import {
   kHoverCitations,
   kHoverFootnotes,
   kHypothesis,
+  kMinimal,
   kTabsets,
   kUtterances,
   quartoBaseLayer,
@@ -72,6 +73,16 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
+      metadataFilter: (metadata: Metadata) => {
+        if (!!metadata[kMinimal] && metadata[kTheme] === undefined) {
+          return {
+            ...metadata,
+            theme: "none",
+          };
+        } else {
+          return metadata;
+        }
+      },
       formatExtras: (input: string, flags: PandocFlags, format: Format) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
@@ -121,7 +132,7 @@ export function htmlFormatExtras(
 
   // populate feature defaults if none provided
   if (!featureDefaults) {
-    featureDefaults = htmlFormatFeatureDefaults(bootstrap);
+    featureDefaults = htmlFormatFeatureDefaults(format);
   }
   // empty tippy options if none provided
   if (!tippyOptions) {
@@ -383,14 +394,16 @@ function htmlFormatFilterParams(format: Format) {
 }
 
 function htmlFormatFeatureDefaults(
-  bootstrap: boolean,
+  format: Format,
 ): HtmlFormatFeatureDefaults {
+  const bootstrap = formatHasBootstrap(format);
+  const minimal = format.metadata[kMinimal] === true;
   return {
-    tabby: !bootstrap,
-    copyCode: true,
-    anchors: true,
-    hoverCitations: true,
-    hoverFootnotes: true,
+    tabby: !minimal && !bootstrap,
+    copyCode: !minimal,
+    anchors: !minimal,
+    hoverCitations: !minimal,
+    hoverFootnotes: !minimal,
   };
 }
 
@@ -403,7 +416,7 @@ function htmlFormatPostprocessor(
 
   // get feature defaults
   if (!featureDefaults) {
-    featureDefaults = htmlFormatFeatureDefaults(haveBootstrap);
+    featureDefaults = htmlFormatFeatureDefaults(format);
   }
 
   // read options
