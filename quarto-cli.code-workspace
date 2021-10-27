@@ -16,14 +16,6 @@
     "deno.path": "./package/dist/bin/deno",
     "deno.suggest.imports.hosts": {
       "https://deno.land": true
-    },
-    "editor.formatOnSave": true,
-    "[r]": {
-      "editor.formatOnSave": false
-    },
-    "[html]": {
-      "editor.formatOnSave": false
-    },
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
   }
 }
