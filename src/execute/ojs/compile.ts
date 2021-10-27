@@ -15,6 +15,7 @@ import { Format, kDependencies } from "../../config/types.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
   kCellClasses,
+  kCellColumn,
   kCellFigAlign,
   kCellFigAlt,
   kCellFigEnv,
@@ -408,6 +409,7 @@ export async function ojsCompile(
         kCodeOverflow,
         kCellClasses,
         kCellPanel,
+        kCellColumn,
         "include.hidden",
         "source.hidden",
         "plot.hidden",
@@ -442,6 +444,9 @@ export async function ojsCompile(
       const classes = (cell.options?.classes as (undefined | string[])) || [];
       if (typeof cell.options?.panel === "string") {
         classes.push(`panel-${cell.options?.panel}`);
+      }
+      if (typeof cell.options?.column === "string") {
+        classes.push(`column-${cell.options?.column}`);
       }
       const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??
         true;

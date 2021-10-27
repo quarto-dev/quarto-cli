@@ -1,21 +1,21 @@
 {
-   "folders": [
-      {
-         "path": "."
-      }
-   ],
-   "settings": {
-      "editor.tabSize": 2,
-      "debug.javascript.unmapMissingSources": true,
-      "julia.format.indent": 2,
-      "julia.format.indents": false,
-      "deno.importMap": "./src/import_map.json",
-      "deno.lint": true,
-      "deno.enable": true,
-      "deno.unstable": true,
-      "deno.path": "./package/dist/bin/deno",
-      "deno.suggest.imports.hosts": {
-         "https://deno.land": true
-      }
-   }
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.tabSize": 2,
+    "debug.javascript.unmapMissingSources": true,
+    "julia.format.indent": 2,
+    "julia.format.indents": false,
+    "deno.importMap": "./src/import_map.json",
+    "deno.lint": true,
+    "deno.enable": true,
+    "deno.unstable": true,
+    "deno.path": "./package/dist/bin/deno",
+    "deno.suggest.imports.hosts": {
+      "https://deno.land": true
+    }
+  }
 }

@@ -26,6 +26,18 @@ function quartoPreMetaInject()
         end)
       end
 
+      if preState.hasColumns and isLatexOutput() then
+        -- inject sidenotes package
+        metaInjectLatex(meta, function(inject)
+          inject(
+            usePackage("sidenotes")
+          )
+          inject(
+            usePackage("marginnote")
+          )
+        end)
+      end
+
       metaInjectLatex(meta, function(inject)
         if preState.usingTikz then
           inject(usePackage("tikz"))

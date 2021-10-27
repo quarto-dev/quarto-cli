@@ -101,6 +101,7 @@ function latexJoinParas(content)
 end
 
 function latexImageFigure(image)
+
   return renderLatexFigure(image, function(figure)
     
     -- make a copy of the caption and clear it
@@ -154,9 +155,9 @@ function renderLatexFigure(el, render)
   
   -- create container
   local figure = pandoc.Div({})
-  
+
   -- begin the figure
-  local figEnv = attribute(el, kFigEnv, "figure")
+  local figEnv = latexFigureEnv(el)
   local figPos = attribute(el, kFigPos, nil)
   figure.content:insert(latexBeginEnv(figEnv, figPos))
   
@@ -458,6 +459,42 @@ function latexRemoveTableDelims(el)
       end
     end
   })
+end
+
+function latexFigureEnv(el) 
+  -- Check whether the user has specified a figure environment
+  local figEnv = attribute(el, kFigEnv, nil)
+  if figEnv ~= nil then
+    -- the user specified figure environment
+    return figEnv
+  else
+    -- if not user specified, look for other classes which might determine environment
+    local classes = el.classes
+    for i,class in ipairs(classes) do
+
+      -- a gutter figure or aside
+      if isMarginFigureEnv(class) then 
+        return "marginfigure"
+      end
+
+      -- any column that resolves to full width
+      if isFigureStarEnv(class) then
+        return "figure*"
+      end
+    end  
+
+    -- the default figure environment
+    return "figure"
+  end
+end
+
+function isFigureStarEnv(clz) 
+  local match = clz:match('^column%-screen') 
+  return clz:match('^column%-screen') or clz:match('^column%-page')
+end
+
+function isMarginFigureEnv(clz) 
+  return clz == 'column-gutter' or clz == 'aside'
 end
 
 function latexMinipageValign(vAlign) 

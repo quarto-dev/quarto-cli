@@ -213,6 +213,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-up(lg) {
+  div.aside,
   aside,
   .column-gutter {
     grid-column: body-end / page-end !important;
@@ -228,6 +229,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(lg) {
+  div.aside,
   aside,
   .column-gutter {
     grid-column: body-end / page-end !important;
@@ -243,6 +245,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(md) {
+  div.aside,
   aside,
   .column-gutter {
     grid-column: body-content-start / body-content-end !important;
