@@ -20,6 +20,7 @@ window.QuartoLineHighlight = function() {
         // Process each div created by Pandoc highlighting - numbered line are already included.
         divSourceCode.forEach(el => {
             if (el.hasAttribute(kCodeLineNumbersAttr)) {
+
                 const codeLineAttr = el.getAttribute(kCodeLineNumbersAttr);
                 el.removeAttribute('data-code-line-numbers');
                 if (isLinesSelector(codeLineAttr)) {
@@ -28,8 +29,12 @@ window.QuartoLineHighlight = function() {
                     const codeBlock = el.querySelectorAll("pre code");
                     codeBlock.forEach(
                         code => {
+
+
                             // move attributes on code block
                             code.setAttribute(kCodeLineNumbersAttr, codeLineAttr)
+
+                            const scrollState = { currentBlock: code };
 
                             // Check if there are steps and duplicate code block accordingly
                             const highlightSteps = splitLineNumbers(codeLineAttr);
@@ -56,7 +61,10 @@ window.QuartoLineHighlight = function() {
                                             fragmentBlock.removeAttribute(kFragmentIndex);
                                         }
 
-                                        // TODO add scrolling animation
+                                        // Scroll highlights into view as we step through them
+                                        fragmentBlock.addEventListener('visible', scrollHighlightedLineIntoView.bind(Plugin, fragmentBlock, scrollState));
+                                        fragmentBlock.addEventListener('hidden', scrollHighlightedLineIntoView.bind(Plugin, fragmentBlock.previousSibling, scrollState));
+
                                     }
                                 )
                                 code.removeAttribute(kFragmentIndex);
@@ -101,6 +109,97 @@ window.QuartoLineHighlight = function() {
             )
         }
     }
+
+    /**
+     * Animates scrolling to the first highlighted line
+     * in the given code block.
+     */
+    function scrollHighlightedLineIntoView(block, scrollState, skipAnimation) {
+        window.cancelAnimationFrame(scrollState.animationFrameID);
+
+        // Match the scroll position of the currently visible
+        // code block
+        if (scrollState.currentBlock) {
+            block.scrollTop = scrollState.currentBlock.scrollTop;
+        }
+
+        // Remember the current code block so that we can match
+        // its scroll position when showing/hiding fragments
+        scrollState.currentBlock = block;
+
+        const highlightBounds = getHighlightedLineBounds(block)
+        let viewportHeight = block.offsetHeight;
+
+        // Subtract padding from the viewport height
+        const blockStyles = window.getComputedStyle(block);
+        viewportHeight -= parseInt(blockStyles.paddingTop) + parseInt(blockStyles.paddingBottom);
+
+        // Scroll position which centers all highlights
+        const startTop = block.scrollTop;
+        let targetTop = highlightBounds.top + (Math.min(highlightBounds.bottom - highlightBounds.top, viewportHeight) - viewportHeight) / 2;
+
+        // Account for offsets in position applied to the
+        // <table> that holds our lines of code
+        // TODO: adapt to pandoc
+        // var lineTable = block.querySelector('.hljs-ln');
+        // if (lineTable) targetTop += lineTable.offsetTop - parseInt(blockStyles.paddingTop);
+
+        // Make sure the scroll target is within bounds
+        targetTop = Math.max(Math.min(targetTop, block.scrollHeight - viewportHeight), 0);
+
+        if (skipAnimation === true || startTop === targetTop) {
+            block.scrollTop = targetTop;
+        } else {
+
+            // Don't attempt to scroll if there is no overflow
+            if (block.scrollHeight <= viewportHeight) return;
+
+            let time = 0;
+
+            const animate = function() {
+                time = Math.min(time + 0.02, 1);
+
+                // Update our eased scroll position
+                block.scrollTop = startTop + (targetTop - startTop) * easeInOutQuart(time);
+
+                // Keep animating unless we've reached the end
+                if (time < 1) {
+                    scrollState.animationFrameID = requestAnimationFrame(animate);
+                }
+            };
+
+            animate();
+
+        }
+    }
+
+    function getHighlightedLineBounds(block) {
+
+        const highlightedLines = block.querySelectorAll('.highlight-line');
+        if (highlightedLines.length === 0) {
+            return { top: 0, bottom: 0 };
+        } else {
+            const firstHighlight = highlightedLines[0];
+            const lastHighlight = highlightedLines[highlightedLines.length - 1];
+
+            return {
+                top: firstHighlight.offsetTop,
+                bottom: lastHighlight.offsetTop + lastHighlight.offsetHeight
+            }
+        }
+
+    }
+
+    /**
+     * The easing function used when scrolling.
+     */
+    function easeInOutQuart(t) {
+        // easeInOutQuart
+        return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t;
+
+    }
+
+
 
     function splitLineNumbers(lineNumbersAttr) {
         // remove space
