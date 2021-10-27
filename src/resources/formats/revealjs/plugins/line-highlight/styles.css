@@ -25,3 +25,7 @@ pre.numberSource code > span > a:first-child::before {
   width: 100%;
   box-sizing: border-box;
 }
+
+.reveal div.sourceCode pre code {
+  min-height: 100%;
+}
