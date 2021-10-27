@@ -47,6 +47,7 @@ window.QuartoLineHighlight = function () {
                   ? null
                   : fragmentIndex;
 
+              let stepN = 1;
               highlightSteps.slice(1).forEach(
                 // Generate fragments for all steps except the original block
                 (step) => {
@@ -56,7 +57,23 @@ window.QuartoLineHighlight = function () {
                     joinLineNumbers([step])
                   );
                   fragmentBlock.classList.add("fragment");
+
+                  // Pandoc sets id on spans we need to keep unique
+                  fragmentBlock
+                    .querySelectorAll(":scope > span")
+                    .forEach((span) => {
+                      if (span.hasAttribute("id")) {
+                        span.setAttribute(
+                          "id",
+                          span.getAttribute("id").concat("-" + stepN)
+                        );
+                      }
+                    });
+                  stepN = ++stepN;
+
+                  // Add duplicated <code> element after existing one
                   code.parentNode.appendChild(fragmentBlock);
+
                   // Each new <code> element is highlighted based on the new attributes value
                   highlightCodeBlock(fragmentBlock);
 
