@@ -300,7 +300,21 @@ window.QuartoLineHighlight = function () {
     init: function (deck) {
       initQuartoLineHighlight(deck);
 
-      // TODO: insert special print pdf handling for scroll code block
+      // If we're printing to PDF, scroll the code highlights of
+      // all blocks in the deck into view at once
+      deck.on("pdf-ready", function () {
+        [].slice
+          .call(
+            deck
+              .getRevealElement()
+              .querySelectorAll(
+                "pre code[data-code-line-numbers].current-fragment"
+              )
+          )
+          .forEach(function (block) {
+            scrollHighlightedLineIntoView(block, {}, true);
+          });
+      });
     },
   };
 };
