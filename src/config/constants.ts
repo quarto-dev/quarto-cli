@@ -306,6 +306,8 @@ export const kCellFormat = "format";
 export const kCellName = "name";
 export const kCellTags = "tags";
 export const kCellLinesToNext = "lines_to_next_cell";
+export const kCellSlideshow = "slideshow";
+export const kCellSlideshowSlideType = "slide_type";
 export const kCellRawMimeType = "raw_mimetype";
 
 export const kCellId = "id";

@@ -41,6 +41,7 @@ import {
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
+  isPresentationOutput,
 } from "../../config/format.ts";
 
 import {
@@ -238,6 +239,7 @@ export const jupyterEngine: ExecutionEngine = {
         toLatex: isLatexOutput(options.format.pandoc),
         toMarkdown: isMarkdownOutput(options.format.pandoc),
         toIpynb: isIpynbOutput(options.format.pandoc),
+        toPresentation: isPresentationOutput(options.format.pandoc),
         figFormat: options.format.execute[kFigFormat],
         figDpi: options.format.execute[kFigDpi],
       },
@@ -261,6 +263,7 @@ export const jupyterEngine: ExecutionEngine = {
       markdown: result.markdown,
       supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],
+      metadata: result.metadata,
       includes,
       engineDependencies,
       preserve: result.htmlPreserve,
