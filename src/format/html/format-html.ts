@@ -123,6 +123,7 @@ export function htmlFormatExtras(
   if (!featureDefaults) {
     featureDefaults = htmlFormatFeatureDefaults(bootstrap);
   }
+
   // empty tippy options if none provided
   if (!tippyOptions) {
     tippyOptions = {};
@@ -438,10 +439,7 @@ function htmlFormatPostprocessor(
         const copyIcon = doc.createElement("i");
         copyIcon.classList.add("bi");
         copyButton.appendChild(copyIcon);
-        const codeEl = code.querySelector("code");
-        if (codeEl) {
-          codeEl.appendChild(copyButton);
-        }
+        code.appendChild(copyButton);
       }
     }
 
