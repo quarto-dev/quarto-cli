@@ -63,26 +63,27 @@ end
 function latexPanelEnv(divEl, layout)
   
   -- defaults
-  local env = "figure"
+  local env = latexFigureEnv(divEl)
   local pos = nil
   
   -- explicit figure panel
   if hasFigureRef(divEl) then
-    env = attribute(divEl, kFigEnv, env)
     pos = attribute(divEl, kFigPos, pos)
   -- explicit table panel
   elseif hasTableRef(divEl) then
-    env = "table"
+    env = latexTableEnv(divEl)
   -- if there are embedded tables then we need to use table
   else 
     local haveTables = layout:find_if(function(row)
       return row:find_if(hasTableRef)
     end)
     if haveTables then
-      env = "table"
+      env = latexTableEnv(divEl)
     end
   end
   
+dump(divEl.classes)
+
   return env, pos
   
 end
@@ -177,6 +178,7 @@ function renderLatexFigure(el, render)
   return figure
   
 end
+
 
 
 function markupLatexCaption(el, caption)
@@ -473,12 +475,12 @@ function latexFigureEnv(el)
     for i,class in ipairs(classes) do
 
       -- a gutter figure or aside
-      if isMarginFigureEnv(class) then 
+      if isMarginEnv(class) then 
         return "marginfigure"
       end
 
       -- any column that resolves to full width
-      if isFigureStarEnv(class) then
+      if isStarEnv(class) then
         return "figure*"
       end
     end  
@@ -488,12 +490,32 @@ function latexFigureEnv(el)
   end
 end
 
-function isFigureStarEnv(clz) 
+function latexTableEnv(el)
+  local classes = el.classes
+  for i,class in ipairs(classes) do
+
+    -- a gutter figure or aside
+    if isMarginEnv(class) then 
+      return "margintable"
+    end
+
+    -- any column that resolves to full width
+    if isStarEnv(class) then
+      return "table*"
+    end
+  end  
+
+  -- the default figure environment
+  return "table"
+end
+
+
+function isStarEnv(clz) 
   local match = clz:match('^column%-screen') 
   return clz:match('^column%-screen') or clz:match('^column%-page')
 end
 
-function isMarginFigureEnv(clz) 
+function isMarginEnv(clz) 
   return clz == 'column-gutter' or clz == 'aside'
 end
 
