@@ -62,8 +62,8 @@ window.QuartoLineHighlight = function() {
                                         }
 
                                         // Scroll highlights into view as we step through them
-                                        fragmentBlock.addEventListener('visible', scrollHighlightedLineIntoView.bind(Plugin, fragmentBlock, scrollState));
-                                        fragmentBlock.addEventListener('hidden', scrollHighlightedLineIntoView.bind(Plugin, fragmentBlock.previousSibling, scrollState));
+                                        fragmentBlock.addEventListener('visible', scrollHighlightedLineIntoView.bind(this, fragmentBlock, scrollState));
+                                        fragmentBlock.addEventListener('hidden', scrollHighlightedLineIntoView.bind(this, fragmentBlock.previousSibling, scrollState));
 
                                     }
                                 )
