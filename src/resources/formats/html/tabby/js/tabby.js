@@ -70,6 +70,10 @@
       tab.dispatchEvent(event);
     };
 
+    var focusHandler = function (event) {
+      toggle(event.target);
+    };
+
     /**
      * Remove roles and attributes from a tab and its content
      * @param  {Node}   tab      The tab
@@ -82,11 +86,13 @@
         tab.id = "";
       }
 
+      // remove event listener
+      tab.removeEventListener("focus", focusHandler, true);
+
       // Remove roles
       tab.removeAttribute("role");
       tab.removeAttribute("aria-controls");
       tab.removeAttribute("aria-selected");
-      tab.removeAttribute("tabindex");
       tab.closest("li").removeAttribute("role");
       content.removeAttribute("role");
       content.removeAttribute("aria-labelledby");
@@ -108,6 +114,7 @@
       // Add roles
       tab.setAttribute("role", "tab");
       tab.setAttribute("aria-controls", content.id);
+      tab.setAttribute("tabindex", "0");
       tab.closest("li").setAttribute("role", "presentation");
       content.setAttribute("role", "tabpanel");
       content.setAttribute("aria-labelledby", tab.id);
@@ -117,9 +124,11 @@
         tab.setAttribute("aria-selected", "true");
       } else {
         tab.setAttribute("aria-selected", "false");
-        tab.setAttribute("tabindex", "-1");
         content.setAttribute("hidden", "hidden");
       }
+
+      // add focus event listender
+      tab.addEventListener("focus", focusHandler);
     };
 
     /**
@@ -136,7 +145,6 @@
 
       // Hide the tab
       tab.setAttribute("aria-selected", "false");
-      tab.setAttribute("tabindex", "-1");
 
       // Hide the content
       if (!content) return { previousTab: tab };
@@ -156,7 +164,6 @@
      */
     var show = function (tab, content) {
       tab.setAttribute("aria-selected", "true");
-      tab.setAttribute("tabindex", "0");
       content.removeAttribute("hidden");
       tab.focus();
     };
@@ -236,18 +243,6 @@
 
       // Toggle the tab
       toggle(map.tabs[index]);
-    };
-
-    /**
-     * Activate a tab based on the URL
-     * @param  {String} selector The selector for this instantiation
-     */
-    var loadFromURL = function (selector) {
-      if (window.location.hash.length < 1) return;
-      var tab = document.querySelector(
-        selector + ' [role="tab"][href*="' + window.location.hash + '"]'
-      );
-      toggle(tab);
     };
 
     /**
@@ -359,21 +354,7 @@
         if (!tab.matches(selector + ' [role="tab"]')) return;
 
         // Only run for specific keys
-        if (
-          [
-            "ArrowUp",
-            "ArrowDown",
-            "ArrowLeft",
-            "ArrowRight",
-            "Up",
-            "Down",
-            "Left",
-            "Right",
-            "Home",
-            "End",
-          ].indexOf(event.key) < 0
-        )
-          return;
+        if (["Home", "End"].indexOf(event.key) < 0) return;
 
         // Switch tabs
         switchTabs(tab, event.key);
@@ -388,9 +369,6 @@
 
         // Setup the DOM
         publicAPIs.setup();
-
-        // Load a tab from the URL
-        loadFromURL(selector);
 
         // Add event listeners
         document.documentElement.addEventListener("click", clickHandler, true);
