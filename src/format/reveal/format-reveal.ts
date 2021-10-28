@@ -120,7 +120,7 @@ export function revealjsFormat() {
         let extras = mergeConfigs(
           // extras for all html formats
           htmlFormatExtras(format, {
-            tabby: true,
+            tabby: false,
             anchors: false,
             copyCode: true,
             hoverCitations: true,

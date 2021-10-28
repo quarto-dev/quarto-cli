@@ -7,7 +7,7 @@ function panelTabset()
   return {
     -- tabsets and callouts
     Div = function(div)
-      if div.attr.classes:find("panel-tabset") then
+      if div.attr.classes:find("panel-tabset") and not isRevealJsOutput() then
         if hasBootstrap() then
           return tabsetDiv(div, bootstrapTabs())
         else
