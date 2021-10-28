@@ -25,9 +25,9 @@ function columns()
         if el.format == 'html' then
           if el.text == '<aside>' then 
             noteHasColumns()
-            el = beginSideNote()
+            el = latexBeginSidenote()
           elseif el.text == '</aside>' then
-            el = endSideNote()
+            el = latexEndSidenote(el)
           end
         end
       end
@@ -79,14 +79,14 @@ function renderDivColumn(el)
         
         if hasFigureRef(el) then 
           -- figures
-          wrapContentsWithEnvironment(el, latexFigureEnv(el))
+          latexWrapEnvironment(el, latexFigureEnv(el))
         elseif hasTableRef(el) then
           -- tables
-          wrapContentsWithEnvironment(el, latexTableEnv(el))
+          latexWrapEnvironment(el, latexTableEnv(el))
         else
           -- other things (margin notes)
-          tprepend(el.content, {beginSideNote()});
-          tappend(el.content, {endSideNote(el)})
+          tprepend(el.content, {latexBeginSidenote()});
+          tappend(el.content, {latexEndSidenote(el)})
         end
       end   
     end
@@ -95,27 +95,6 @@ end
 
 function noteHasColumns() 
   layoutState.hasColumns = true
-end
-
-
-function wrapContentsWithEnvironment(el, env) 
-  tprepend(el.content, {latexBeginEnv(env)})
-  tappend(el.content, {latexEndEnv(env)})
-end
-
-function beginSideNote() 
-  return pandoc.RawBlock('latex', '\\begin{footnotesize}\\marginnote{')
-end
-
-function endSideNote(el)
-  local offset = ''
-  if el.attr ~= nil then
-    local offsetValue = el.attr.attributes['offset']
-    if offsetValue ~= nil then
-      offset = '[' .. offsetValue .. ']'
-    end  
-  end
-  return pandoc.RawBlock('latex', '}' .. offset .. '\\end{footnotesize}')
 end
 
 function notColumnClass(clz) 

@@ -28,14 +28,21 @@ function layoutMetaInject()
             usePackage("marginnote")
           )
         end)
-        local documentclass = pandoc.utils.stringify(readOption(meta, 'documentclass'))
 
-        if documentclass == 'scrartcl' then
-          oneSidedColumnLayout(meta)
-        elseif documentclass == 'scrbook' then
-          twoSidedColumnLayout(meta)
-        elseif documentclass == 'scrreport' then
-          oneSidedColumnLayout(meta)
+        -- add layout configuration based upon the document class
+        -- we will customize any koma templates that have no custom geometries 
+        -- specified. If a custom geometry is specified, we're expecting the
+        -- user to address the geometry and layout
+        local documentclassRaw = readOption(meta, 'documentclass');
+        if documentclassRaw ~= nil then 
+          local documentclass = pandoc.utils.stringify(documentclassRaw)
+          if documentclass == 'scrartcl' then
+            oneSidedColumnLayout(meta)
+          elseif documentclass == 'scrbook' then
+            twoSidedColumnLayout(meta)
+          elseif documentclass == 'scrreport' then
+            oneSidedColumnLayout(meta)
+          end  
         end
       end
       return meta
