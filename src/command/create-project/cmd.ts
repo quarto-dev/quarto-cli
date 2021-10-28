@@ -12,10 +12,12 @@ import { Command, EnumType } from "cliffy/command/mod.ts";
 import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
-import { projectTypes } from "../../project/types/project-types.ts";
+import { projectTypes, projectTypeAliases } from "../../project/types/project-types.ts";
 import { kMarkdownEngine } from "../../execute/types.ts";
 
 const kProjectTypes = projectTypes();
+const kProjectTypeAliases = projectTypeAliases();
+const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
 const kExecutionEngines = executionEngines().reverse();
 
 const editorType = new EnumType(["visual", "source"]);
@@ -34,11 +36,11 @@ export const createProjectCommand = new Command()
     `Project type (${kProjectTypes.join(", ")})`,
     {
       value: (value: string): string => {
-        if (kProjectTypes.indexOf(value || "default") === -1) {
+        if (kProjectTypesAndAliases.indexOf(value || "default") === -1) {
           throw new Error(
             `Project type must be one of ${
               kProjectTypes.join(", ")
-            }, but got "${value}".`,
+            } or site (deprecated), but got "${value}".`,
           );
         }
         return value;
@@ -87,7 +89,7 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create a website project",
-    "quarto create-project mysite --type site",
+    "quarto create-project mysite --type website",
   )
   .example(
     "Create a book project",
@@ -95,11 +97,11 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create a website project with jupyter",
-    "quarto create-project mysite --type site --engine jupyter",
+    "quarto create-project mysite --type website --engine jupyter",
   )
   .example(
     "Create a website project with jupyter + kernel",
-    "quarto create-project mysite --type site --engine jupyter:python3",
+    "quarto create-project mysite --type website --engine jupyter:python3",
   )
   .example(
     "Create a book project with knitr",

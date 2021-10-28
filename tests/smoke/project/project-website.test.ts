@@ -26,7 +26,7 @@ import {
 // A website project
 testQuartoCmd(
   "create-project",
-  [kProjectWorkingDir, "--type", "site"],
+  [kProjectWorkingDir, "--type", "website"],
   [
     fileExists(kQuartoProjectFile),
     fileExists(join(kProjectWorkingDir, "index.qmd")),
@@ -39,7 +39,7 @@ testQuartoCmd(
           metadata["project"] !== undefined && metadata["site"] !== undefined
         ) {
           const type = (metadata["project"] as Metadata)["type"];
-          return type === "site";
+          return type === "website";
         } else {
           return false;
         }

@@ -23,7 +23,7 @@ unitTest("yaml", () => {
 
   // Tests of the result
   assert(
-    (yaml.project as Metadata).type === "site",
+    (yaml.project as Metadata).type === "website",
     "Project type not read properly",
   );
   assert(
