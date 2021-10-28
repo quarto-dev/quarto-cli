@@ -213,14 +213,7 @@ export function htmlFormatExtras(
   if (options.tabby) {
     scripts.push({
       name: "tabby.min.js",
-      path: formatResourcePath("html", join("tabby", "js", "tabby.min.js")),
-    });
-    stylesheets.push({
-      name: "tabby-ui.min.css",
-      path: formatResourcePath(
-        "html",
-        join("tabby", "css", "tabby-ui.min.css"),
-      ),
+      path: formatResourcePath("html", join("tabby", "js", "tabby.js")),
     });
   }
 
@@ -295,7 +288,7 @@ export function htmlFormatExtras(
       sassBundles.push({
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
-        quarto: quartoBaseLayer(format),
+        quarto: quartoBaseLayer(format, !!options.copyCode, !!options.tabby),
       });
     }
     if (scssOptions.quartoCssVars) {
