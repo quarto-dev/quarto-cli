@@ -117,7 +117,7 @@ export async function revealTheme(format: Format, libDir: string) {
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
     user: mergeLayers(yamlLayer, ...themeLayers),
-    quarto: mergeLayers(quartoBaseLayer(format, true, false), quartoLayer()),
+    quarto: mergeLayers(quartoBaseLayer(format, true, true), quartoLayer()),
     framework: revealFrameworkLayer(revealSrcDir),
     loadPaths,
   };
