@@ -203,7 +203,7 @@ export function projectContextForDirectory(
 export function projectIsWebsite(context?: ProjectContext): boolean {
   if (context) {
     const projType = projectType(context.config?.project?.[kProjectType]);
-    return projType.type === "site" || projType.inheritsType === "site";
+    return projType.type === "website" || projType.inheritsType === "website";
   } else {
     return false;
   }

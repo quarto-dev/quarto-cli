@@ -60,7 +60,8 @@ import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 import { defaultProjectType } from "../project-default.ts";
 
 export const websiteProjectType: ProjectType = {
-  type: "site",
+  type: "website",
+  typeAliases: ["site"],
   create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "website"));
 
