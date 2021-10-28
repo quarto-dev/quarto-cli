@@ -66,6 +66,12 @@ export const quartoLinkExternalRules = () =>
     "_quarto-rules-link-external.scss",
   ));
 
+export const quartoTabbyRules = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-rules-tabby.scss",
+  ));
+
 export const quartoGlobalCssVariableRules = () => {
   return `
   $font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
@@ -95,10 +101,17 @@ export const quartoBootstrapFunctions = () =>
     join("bootstrap", "_bootstrap-functions.scss"),
   ));
 
-export const quartoBaseLayer = (format: Format, codeCopyDefault = false) => {
+export const quartoBaseLayer = (
+  format: Format,
+  codeCopy = false,
+  tabby = false,
+) => {
   const rules: string[] = [quartoRules()];
-  if (!!format.metadata[kCodeCopy] || codeCopyDefault) {
+  if (codeCopy) {
     rules.push(quartoCopyCodeRules());
+  }
+  if (tabby) {
+    rules.push(quartoTabbyRules());
   }
   if (format.render[kLinkExternalIcon]) {
     rules.push(quartoLinkExternalRules());

@@ -57,6 +57,9 @@ $code-block-border-color: lighten($body-color, 60%) !default;
 $code-color: var(--quarto-hl-fu-color) !default;
 $code-bg: transparent !default;
 
+// tabset
+$tabset-border-color: $code-block-border-color !default;
+
 // --- derive reveal versions of presentation variables for finer-grained override ---
 
 $revealjs-font-size-root: $presentation-font-size-root !default;
@@ -191,6 +194,10 @@ $selectionColor: $selection-color !default;
 .tippy-box[data-placement^="bottom"] > .tippy-content {
   padding: 7px 10px;
   z-index: 1;
+}
+
+.reveal .panel-tabset [role="tab"] {
+  padding: 0.25em 0.7em;
 }
 
 // This is a sentinel value that renderers can use to determine
