@@ -1,3 +1,4 @@
+# adapted from https://github.com/hakimel/reveal.js/tree/master/plugin/highlight
 name: QuartoLineHighlight
 script: plugin.js
 stylesheet: styles.css
