@@ -11,7 +11,9 @@ import { kIncludeInHeader } from "../../config/constants.ts";
 
 import {
   Format,
+  FormatDependency,
   FormatExtras,
+  kDependencies,
   kTemplatePatches,
   Metadata,
 } from "../../config/types.ts";
@@ -23,6 +25,8 @@ import { readYaml } from "../../core/yaml.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
+
+const kRevealSlideTone = "slide-tone";
 
 interface RevealPluginBundle {
   plugin: string;
@@ -52,14 +56,24 @@ export function revealPluginExtras(format: Format, revealDir: string) {
   const scripts: RevealPluginScript[] = [];
   const stylesheets: string[] = [];
   const config: Metadata = {};
+  const dependencies: FormatDependency[] = [];
 
-  // built-in plugins + user plugins
+  // built-in plugins
   const pluginBundles: Array<RevealPluginBundle | string> = [
     {
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
     { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
   ];
+
+  // tone plugin (optional)
+  const tonePlugin = revealTonePlugin(format);
+  if (tonePlugin) {
+    dependencies.push(toneDependency());
+    pluginBundles.push(tonePlugin);
+  }
+
+  // multiplex plugin (optional)
   const multiplexPlugin = revealMultiplexPlugin(format);
   if (multiplexPlugin) {
     pluginBundles.push(multiplexPlugin);
@@ -127,6 +141,7 @@ export function revealPluginExtras(format: Format, revealDir: string) {
   const extras: FormatExtras = {
     [kIncludeInHeader]: [],
     html: {
+      [kDependencies]: dependencies,
       [kTemplatePatches]: [],
     },
   };
@@ -188,6 +203,25 @@ export function injectRevealConfig(
     );
   }
   return template;
+}
+
+function revealTonePlugin(format: Format) {
+  if (format.metadata[kRevealSlideTone]) {
+    return { plugin: formatResourcePath("revealjs", join("plugins", "tone")) };
+  } else {
+    return undefined;
+  }
+}
+
+function toneDependency() {
+  const dependency: FormatDependency = {
+    name: "tone",
+    scripts: [{
+      name: "tone.js",
+      path: formatResourcePath("revealjs", join("tone", "tone.js")),
+    }],
+  };
+  return dependency;
 }
 
 function pluginFromBundle(bundle: RevealPluginBundle): RevealPlugin {
