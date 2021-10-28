@@ -16,6 +16,19 @@ window.QuartoA11y = function () {
       window.document.body.addEventListener("keydown", function (event) {
         const kTabKeyCode = 9;
         if (event.keyCode === kTabKeyCode) {
+          // if the accessiblityWrapper or body is focused then cancel event and focus first focusable element
+          if (
+            document.activeElement.classList.contains("accessibilityWrapper")
+          ) {
+            const focusable = getKeyboardFocusableElements(
+              document.activeElement
+            );
+            if (focusable.length > 0) {
+              focusable[0].focus();
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }
           window.document.body.classList.add("using-keyboard");
         }
       });
@@ -26,9 +39,11 @@ window.QuartoA11y = function () {
       // slide change focuses first focusable element
       deck.on("slidechanged", function (event) {
         setTimeout(function () {
-          const focusable = getKeyboardFocusableElements(event.currentSlide);
-          if (focusable.length > 0) {
-            focusable[0].focus();
+          const wrapper = event.currentSlide.querySelector(
+            ".accessibilityWrapper"
+          );
+          if (wrapper) {
+            wrapper.focus();
           }
         }, 100);
       });
@@ -59,7 +74,9 @@ window.QuartoA11y = function () {
 
         var contents = slideArray[index].innerHTML;
         slideArray[index].innerHTML =
-          '<div class="accessibilityWrapper">' + contents + "</div>";
+          '<div class="accessibilityWrapper" tabindex="-1">' +
+          contents +
+          "</div>";
       }
 
       // get slides, wrap contents in 'accessibilityWrapper'

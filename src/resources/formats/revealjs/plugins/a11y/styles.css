@@ -2,12 +2,12 @@
 .reveal .slides > section > section > .accessibilityWrapper {
   display: none;
   visibility: hidden;
+  outline: none;
 }
 
 .reveal .slides section.present > .accessibilityWrapper {
   display: block;
   visibility: visible;
-  outline: none;
 }
 .reveal .slides.staticPage > section {
   display: block !important;
