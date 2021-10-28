@@ -74,6 +74,16 @@
       toggle(event.target);
     };
 
+    var getKeyboardFocusableElements = function (element) {
+      return [
+        ...element.querySelectorAll(
+          'a[href], button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])'
+        ),
+      ].filter(
+        (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden")
+      );
+    };
+
     /**
      * Remove roles and attributes from a tab and its content
      * @param  {Node}   tab      The tab
@@ -93,6 +103,7 @@
       tab.removeAttribute("role");
       tab.removeAttribute("aria-controls");
       tab.removeAttribute("aria-selected");
+      tab.removeAttribute("tabindex");
       tab.closest("li").removeAttribute("role");
       content.removeAttribute("role");
       content.removeAttribute("aria-labelledby");
@@ -114,7 +125,6 @@
       // Add roles
       tab.setAttribute("role", "tab");
       tab.setAttribute("aria-controls", content.id);
-      tab.setAttribute("tabindex", "0");
       tab.closest("li").setAttribute("role", "presentation");
       content.setAttribute("role", "tabpanel");
       content.setAttribute("aria-labelledby", tab.id);
@@ -302,11 +312,27 @@
         // Add role to wrapper
         tabWrapper.setAttribute("role", "tablist");
 
-        // Add roles to tabs
+        // Add roles to tabs. provide dynanmic tab indexes if we are within reveal
+        var contentTabindexes =
+          window.document.body.classList.contains("reveal-viewport");
+        var nextTabindex = 1;
         Array.prototype.forEach.call(tabs, function (tab) {
+          if (contentTabindexes) {
+            tab.setAttribute("tabindex", "" + nextTabindex++);
+          } else {
+            tab.setAttribute("tabindex", "0");
+          }
+
           // Get the tab content
           var content = document.querySelector(tab.hash);
           if (!content) return;
+
+          // set tab indexes for content
+          if (contentTabindexes) {
+            getKeyboardFocusableElements(content).forEach(function (el) {
+              el.setAttribute("tabindex", "" + nextTabindex++);
+            });
+          }
 
           // Setup the tab
           setupTab(tab, content, settings);
