@@ -213,7 +213,7 @@ export function htmlFormatExtras(
   if (options.tabby) {
     scripts.push({
       name: "tabby.min.js",
-      path: formatResourcePath("html", join("tabby", "js", "tabby.min.js")),
+      path: formatResourcePath("html", join("tabby", "js", "tabby.js")),
     });
   }
 
