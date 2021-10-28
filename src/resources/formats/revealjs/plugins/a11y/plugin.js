@@ -25,10 +25,12 @@ window.QuartoA11y = function () {
 
       // slide change focuses first focusable element
       deck.on("slidechanged", function (event) {
-        const focusable = getKeyboardFocusableElements(event.currentSlide);
-        if (focusable.length > 0) {
-          focusable[0].focus();
-        }
+        setTimeout(function () {
+          const focusable = getKeyboardFocusableElements(event.currentSlide);
+          if (focusable.length > 0) {
+            focusable[0].focus();
+          }
+        }, 100);
       });
 
       // wrap slide content in an .accessibilityWrapper so that it has display: none
