@@ -1,6 +1,7 @@
 -- latex.lua
 -- Copyright (C) 2020 by RStudio, PBC
-
+kSideCaptionEnv = 'sidecaption'
+kSideCaptionClass = 'caption-gutter'
 
 function latexPanel(divEl, layout, caption)
   
@@ -44,8 +45,7 @@ function latexPanel(divEl, layout, caption)
   
   -- surround caption w/ appropriate latex (and end the panel)
   if caption then
-    markupLatexCaption(divEl, caption.content)
-    panel.content:insert(caption)
+    insertLatexCaption(divEl, panel.content, caption.content)
   end
   
   -- end latex env
@@ -165,8 +165,7 @@ function renderLatexFigure(el, render)
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and inlinesToString(captionInlines) ~= "" then
-    markupLatexCaption(el, captionInlines)
-    figure.content:insert(pandoc.Para(captionInlines))
+    insertLatexCaption(el, figure.content, captionInlines)
   end
   
   -- end figure
@@ -177,13 +176,40 @@ function renderLatexFigure(el, render)
   
 end
 
+function latexCaptionEnv(el) 
+  if el.attr.classes:includes(kSideCaptionClass) then
+    return kSideCaptionEnv
+  else
+    return 'caption'
+  end
+end
 
+function insertLatexCaption(divEl, content, captionInlines) 
+  local captionEnv = latexCaptionEnv(divEl)
+  markupLatexCaption(divEl, captionInlines, captionEnv)
+  if captionEnv == kSideCaptionEnv then
+    if #content > 1 then
+      content:insert(2, pandoc.Para(captionInlines))
+    else
+      content:insert(#content, pandoc.Para(captionInlines))
+    end
+  else 
+    content:insert(pandoc.Para(captionInlines))
+  end
+end
 
-function markupLatexCaption(el, caption)
+function markupLatexCaption(el, caption, captionEnv)
+
+  -- by default, just use the caption env
+  if captionEnv == nil then
+    captionEnv = 'caption'
+  end
+
+  local captionEnv = latexCaptionEnv(el)
   
   -- caption prefix (includes \\caption macro + optional [subcap] + {)
   local captionPrefix = pandoc.List:new({
-    pandoc.RawInline("latex", "\\caption")
+    pandoc.RawInline("latex", "\\" .. captionEnv)
   })
   local figScap = attribute(el, kFigScap, nil)
   if figScap then
