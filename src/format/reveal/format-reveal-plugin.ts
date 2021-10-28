@@ -54,9 +54,12 @@ export function revealPluginExtras(format: Format, revealDir: string) {
   const config: Metadata = {};
 
   // built-in plugins + user plugins
-  const pluginBundles: Array<RevealPluginBundle | string> = [{
-    plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
-  }];
+  const pluginBundles: Array<RevealPluginBundle | string> = [
+    {
+      plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
+    },
+    { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
+  ];
   const multiplexPlugin = revealMultiplexPlugin(format);
   if (multiplexPlugin) {
     pluginBundles.push(multiplexPlugin);
