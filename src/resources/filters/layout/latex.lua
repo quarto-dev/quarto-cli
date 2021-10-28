@@ -198,6 +198,25 @@ function markupLatexCaption(el, caption)
   caption:insert(pandoc.RawInline("latex", "}"))
 end
 
+function latexBeginSidenote() 
+  return pandoc.RawBlock('latex', '\\begin{footnotesize}\\marginnote{')
+end
+
+function latexEndSidenote(el)
+  local offset = ''
+  if el.attr ~= nil then
+    local offsetValue = el.attr.attributes['offset']
+    if offsetValue ~= nil then
+      offset = '[' .. offsetValue .. ']'
+    end  
+  end
+  return pandoc.RawBlock('latex', '}' .. offset .. '\\end{footnotesize}')
+end
+
+function latexWrapEnvironment(el, env) 
+  tprepend(el.content, {latexBeginEnv(env)})
+  tappend(el.content, {latexEndEnv(env)})
+end
 
 function latexBeginAlign(align)
   if align == "center" then
