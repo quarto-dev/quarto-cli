@@ -70,6 +70,10 @@
       tab.dispatchEvent(event);
     };
 
+    var focusHandler = function (event) {
+      toggle(event.target);
+    };
+
     /**
      * Remove roles and attributes from a tab and its content
      * @param  {Node}   tab      The tab
@@ -81,6 +85,9 @@
       if (tab.id.slice(0, settings.idPrefix.length) === settings.idPrefix) {
         tab.id = "";
       }
+
+      // remove event listener
+      tab.removeEventListener("focus", focusHandler, true);
 
       // Remove roles
       tab.removeAttribute("role");
@@ -107,6 +114,7 @@
       // Add roles
       tab.setAttribute("role", "tab");
       tab.setAttribute("aria-controls", content.id);
+      tab.setAttribute("tabindex", "0");
       tab.closest("li").setAttribute("role", "presentation");
       content.setAttribute("role", "tabpanel");
       content.setAttribute("aria-labelledby", tab.id);
@@ -118,6 +126,9 @@
         tab.setAttribute("aria-selected", "false");
         content.setAttribute("hidden", "hidden");
       }
+
+      // add focus event listender
+      tab.addEventListener("focus", focusHandler);
     };
 
     /**
@@ -232,18 +243,6 @@
 
       // Toggle the tab
       toggle(map.tabs[index]);
-    };
-
-    /**
-     * Activate a tab based on the URL
-     * @param  {String} selector The selector for this instantiation
-     */
-    var loadFromURL = function (selector) {
-      if (window.location.hash.length < 1) return;
-      var tab = document.querySelector(
-        selector + ' [role="tab"][href*="' + window.location.hash + '"]'
-      );
-      toggle(tab);
     };
 
     /**
@@ -370,9 +369,6 @@
 
         // Setup the DOM
         publicAPIs.setup();
-
-        // Load a tab from the URL
-        loadFromURL(selector);
 
         // Add event listeners
         document.documentElement.addEventListener("click", clickHandler, true);
