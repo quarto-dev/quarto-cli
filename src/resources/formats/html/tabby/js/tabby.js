@@ -1,396 +1,422 @@
 (function (root, factory) {
-  if (typeof define === "function" && define.amd) {
-    define([], function () {
-      return factory(root);
-    });
-  } else if (typeof exports === "object") {
-    module.exports = factory(root);
-  } else {
-    root.Tabby = factory(root);
-  }
-})(
-  typeof global !== "undefined"
-    ? global
-    : typeof window !== "undefined"
-    ? window
-    : this,
-  function (window) {
-    "use strict";
+	if ( typeof define === 'function' && define.amd ) {
+		define([], function () {
+			return factory(root);
+		});
+	} else if ( typeof exports === 'object' ) {
+		module.exports = factory(root);
+	} else {
+		root.Tabby = factory(root);
+	}
+})(typeof global !== 'undefined' ? global : typeof window !== 'undefined' ? window : this, function (window) {
 
-    //
-    // Variables
-    //
+	'use strict';
 
-    var defaults = {
-      idPrefix: "tabby-toggle_",
-      default: "[data-tabby-default]",
-    };
+	//
+	// Variables
+	//
 
-    //
-    // Methods
-    //
+	var defaults = {
+		idPrefix: 'tabby-toggle_',
+		default: '[data-tabby-default]'
+	};
 
-    /**
-     * Merge two or more objects together.
-     * @param   {Object}   objects  The objects to merge together
-     * @returns {Object}            Merged values of defaults and options
-     */
-    var extend = function () {
-      var merged = {};
-      Array.prototype.forEach.call(arguments, function (obj) {
-        for (var key in obj) {
-          if (!obj.hasOwnProperty(key)) return;
-          merged[key] = obj[key];
-        }
-      });
-      return merged;
-    };
 
-    /**
-     * Emit a custom event
-     * @param  {String} type    The event type
-     * @param  {Node}   tab     The tab to attach the event to
-     * @param  {Node}   details Details about the event
-     */
-    var emitEvent = function (tab, details) {
-      // Create a new event
-      var event;
-      if (typeof window.CustomEvent === "function") {
-        event = new CustomEvent("tabby", {
-          bubbles: true,
-          cancelable: true,
-          detail: details,
-        });
-      } else {
-        event = document.createEvent("CustomEvent");
-        event.initCustomEvent("tabby", true, true, details);
-      }
+	//
+	// Methods
+	//
 
-      // Dispatch the event
-      tab.dispatchEvent(event);
-    };
+	/**
+	 * Merge two or more objects together.
+	 * @param   {Object}   objects  The objects to merge together
+	 * @returns {Object}            Merged values of defaults and options
+	 */
+	var extend = function () {
+		var merged = {};
+		Array.prototype.forEach.call(arguments, function (obj) {
+			for (var key in obj) {
+				if (!obj.hasOwnProperty(key)) return;
+				merged[key] = obj[key];
+			}
+		});
+		return merged;
+	};
 
-    /**
-     * Remove roles and attributes from a tab and its content
-     * @param  {Node}   tab      The tab
-     * @param  {Node}   content  The tab content
-     * @param  {Object} settings User settings and options
-     */
-    var destroyTab = function (tab, content, settings) {
-      // Remove the generated ID
-      if (tab.id.slice(0, settings.idPrefix.length) === settings.idPrefix) {
-        tab.id = "";
-      }
+	/**
+	 * Emit a custom event
+	 * @param  {String} type    The event type
+	 * @param  {Node}   tab     The tab to attach the event to
+	 * @param  {Node}   details Details about the event
+	 */
+	var emitEvent = function (tab, details) {
 
-      // Remove roles
-      tab.removeAttribute("role");
-      tab.removeAttribute("aria-controls");
-      tab.removeAttribute("aria-selected");
-      tab.closest("li").removeAttribute("role");
-      content.removeAttribute("role");
-      content.removeAttribute("aria-labelledby");
-      content.removeAttribute("hidden");
-    };
+		// Create a new event
+		var event;
+		if (typeof window.CustomEvent === 'function') {
+			event = new CustomEvent('tabby', {
+				bubbles: true,
+				cancelable: true,
+				detail: details
+			});
+		} else {
+			event = document.createEvent('CustomEvent');
+			event.initCustomEvent('tabby', true, true, details);
+		}
 
-    /**
-     * Add the required roles and attributes to a tab and its content
-     * @param  {Node}   tab      The tab
-     * @param  {Node}   content  The tab content
-     * @param  {Object} settings User settings and options
-     */
-    var setupTab = function (tab, content, settings) {
-      // Give tab an ID if it doesn't already have one
-      if (!tab.id) {
-        tab.id = settings.idPrefix + content.id;
-      }
+		// Dispatch the event
+		tab.dispatchEvent(event);
 
-      // Add roles
-      tab.setAttribute("role", "tab");
-      tab.setAttribute("aria-controls", content.id);
-      tab.closest("li").setAttribute("role", "presentation");
-      content.setAttribute("role", "tabpanel");
-      content.setAttribute("aria-labelledby", tab.id);
+	};
 
-      // Add selected state
-      if (tab.matches(settings.default)) {
-        tab.setAttribute("aria-selected", "true");
-      } else {
-        tab.setAttribute("aria-selected", "false");
-        content.setAttribute("hidden", "hidden");
-      }
-    };
+	/**
+	 * Remove roles and attributes from a tab and its content
+	 * @param  {Node}   tab      The tab
+	 * @param  {Node}   content  The tab content
+	 * @param  {Object} settings User settings and options
+	 */
+	var destroyTab = function (tab, content, settings) {
 
-    /**
-     * Hide a tab and its content
-     * @param  {Node} newTab The new tab that's replacing it
-     */
-    var hide = function (newTab) {
-      // Variables
-      var tabGroup = newTab.closest('[role="tablist"]');
-      if (!tabGroup) return {};
-      var tab = tabGroup.querySelector('[role="tab"][aria-selected="true"]');
-      if (!tab) return {};
-      var content = document.querySelector(tab.hash);
+		// Remove the generated ID
+		if (tab.id.slice(0, settings.idPrefix.length) === settings.idPrefix) {
+			tab.id = '';
+		}
 
-      // Hide the tab
-      tab.setAttribute("aria-selected", "false");
+		// Remove roles
+		tab.removeAttribute('role');
+		tab.removeAttribute('aria-controls');
+		tab.removeAttribute('aria-selected');
+		tab.removeAttribute('tabindex');
+		tab.closest('li').removeAttribute('role');
+		content.removeAttribute('role');
+		content.removeAttribute('aria-labelledby');
+		content.removeAttribute('hidden');
 
-      // Hide the content
-      if (!content) return { previousTab: tab };
-      content.setAttribute("hidden", "hidden");
+	};
 
-      // Return the hidden tab and content
-      return {
-        previousTab: tab,
-        previousContent: content,
-      };
-    };
+	/**
+	 * Add the required roles and attributes to a tab and its content
+	 * @param  {Node}   tab      The tab
+	 * @param  {Node}   content  The tab content
+	 * @param  {Object} settings User settings and options
+	 */
+	var setupTab = function (tab, content, settings) {
 
-    /**
-     * Show a tab and its content
-     * @param  {Node} tab      The tab
-     * @param  {Node} content  The tab content
-     */
-    var show = function (tab, content) {
-      tab.setAttribute("aria-selected", "true");
-      content.removeAttribute("hidden");
-      tab.focus();
-    };
+		// Give tab an ID if it doesn't already have one
+		if (!tab.id) {
+			tab.id = settings.idPrefix + content.id;
+		}
 
-    /**
-     * Toggle a new tab
-     * @param  {Node} tab The tab to show
-     */
-    var toggle = function (tab) {
-      // Make sure there's a tab to toggle and it's not already active
-      if (!tab || tab.getAttribute("aria-selected") == "true") return;
+		// Add roles
+		tab.setAttribute('role', 'tab');
+		tab.setAttribute('aria-controls', content.id);
+		tab.closest('li').setAttribute('role', 'presentation');
+		content.setAttribute('role', 'tabpanel');
+		content.setAttribute('aria-labelledby', tab.id);
 
-      // Variables
-      var content = document.querySelector(tab.hash);
-      if (!content) return;
+		// Add selected state
+		if (tab.matches(settings.default)) {
+			tab.setAttribute('aria-selected', 'true');
+		} else {
+			tab.setAttribute('aria-selected', 'false');
+			tab.setAttribute('tabindex', '-1');
+			content.setAttribute('hidden', 'hidden');
+		}
 
-      // Hide active tab and content
-      var details = hide(tab);
+	};
 
-      // Show new tab and content
-      show(tab, content);
+	/**
+	 * Hide a tab and its content
+	 * @param  {Node} newTab The new tab that's replacing it
+	 */
+	var hide = function (newTab) {
 
-      // Add event details
-      details.tab = tab;
-      details.content = content;
+		// Variables
+		var tabGroup = newTab.closest('[role="tablist"]');
+		if (!tabGroup) return {};
+		var tab = tabGroup.querySelector('[role="tab"][aria-selected="true"]');
+		if (!tab) return {};
+		var content = document.querySelector(tab.hash);
 
-      // Emit a custom event
-      emitEvent(tab, details);
-    };
+		// Hide the tab
+		tab.setAttribute('aria-selected', 'false');
+		tab.setAttribute('tabindex', '-1');
 
-    /**
-     * Get all of the tabs in a tablist
-     * @param  {Node}   tab  A tab from the list
-     * @return {Object}      The tabs and the index of the currently active one
-     */
-    var getTabsMap = function (tab) {
-      var tabGroup = tab.closest('[role="tablist"]');
-      var tabs = tabGroup ? tabGroup.querySelectorAll('[role="tab"]') : null;
-      if (!tabs) return;
-      return {
-        tabs: tabs,
-        index: Array.prototype.indexOf.call(tabs, tab),
-      };
-    };
+		// Hide the content
+		if (!content) return {previousTab: tab};
+		content.setAttribute('hidden', 'hidden');
 
-    /**
-     * Switch the active tab based on keyboard activity
-     * @param  {Node} tab The currently active tab
-     * @param  {Key}  key The key that was pressed
-     */
-    var switchTabs = function (tab, key) {
-      // Get a map of tabs
-      var map = getTabsMap(tab);
-      if (!map) return;
-      var length = map.tabs.length - 1;
-      var index;
+		// Return the hidden tab and content
+		return {
+			previousTab: tab,
+			previousContent: content
+		};
 
-      // Go to previous tab
-      if (["ArrowUp", "ArrowLeft", "Up", "Left"].indexOf(key) > -1) {
-        index = map.index < 1 ? length : map.index - 1;
-      }
+	};
 
-      // Go to next tab
-      else if (["ArrowDown", "ArrowRight", "Down", "Right"].indexOf(key) > -1) {
-        index = map.index === length ? 0 : map.index + 1;
-      }
+	/**
+	 * Show a tab and its content
+	 * @param  {Node} tab      The tab
+	 * @param  {Node} content  The tab content
+	 */
+	var show = function (tab, content) {
+		tab.setAttribute('aria-selected', 'true');
+		tab.setAttribute('tabindex', '0');
+		content.removeAttribute('hidden');
+		tab.focus();
+	};
 
-      // Go to home
-      else if (key === "Home") {
-        index = 0;
-      }
+	/**
+	 * Toggle a new tab
+	 * @param  {Node} tab The tab to show
+	 */
+	var toggle = function (tab) {
 
-      // Go to end
-      else if (key === "End") {
-        index = length;
-      }
+		// Make sure there's a tab to toggle and it's not already active
+		if (!tab || tab.getAttribute('aria-selected') == 'true') return;
 
-      // Toggle the tab
-      toggle(map.tabs[index]);
-    };
+		// Variables
+		var content = document.querySelector(tab.hash);
+		if (!content) return;
 
-    /**
-     * Activate a tab based on the URL
-     * @param  {String} selector The selector for this instantiation
-     */
-    var loadFromURL = function (selector) {
-      if (window.location.hash.length < 1) return;
-      var tab = document.querySelector(
-        selector + ' [role="tab"][href*="' + window.location.hash + '"]'
-      );
-      toggle(tab);
-    };
+		// Hide active tab and content
+		var details = hide(tab);
 
-    /**
-     * Create the Constructor object
-     */
-    var Constructor = function (selector, options) {
-      //
-      // Variables
-      //
+		// Show new tab and content
+		show(tab, content);
 
-      var publicAPIs = {};
-      var settings, tabWrapper;
+		// Add event details
+		details.tab = tab;
+		details.content = content;
 
-      //
-      // Methods
-      //
+		// Emit a custom event
+		emitEvent(tab, details);
 
-      publicAPIs.destroy = function () {
-        // Get all tabs
-        var tabs = tabWrapper.querySelectorAll("a");
+	};
 
-        // Add roles to tabs
-        Array.prototype.forEach.call(tabs, function (tab) {
-          // Get the tab content
-          var content = document.querySelector(tab.hash);
-          if (!content) return;
+	/**
+	 * Get all of the tabs in a tablist
+	 * @param  {Node}   tab  A tab from the list
+	 * @return {Object}      The tabs and the index of the currently active one
+	 */
+	var getTabsMap = function (tab) {
+		var tabGroup = tab.closest('[role="tablist"]');
+		var tabs = tabGroup ? tabGroup.querySelectorAll('[role="tab"]') : null;
+		if (!tabs) return;
+		return {
+			tabs: tabs,
+			index: Array.prototype.indexOf.call(tabs, tab)
+		};
+	};
 
-          // Setup the tab
-          destroyTab(tab, content, settings);
-        });
+	/**
+	 * Switch the active tab based on keyboard activity
+	 * @param  {Node} tab The currently active tab
+	 * @param  {Key}  key The key that was pressed
+	 */
+	var switchTabs = function (tab, key) {
 
-        // Remove role from wrapper
-        tabWrapper.removeAttribute("role");
+		// Get a map of tabs
+		var map = getTabsMap(tab);
+		if (!map) return;
+		var length = map.tabs.length - 1;
+		var index;
 
-        // Remove event listeners
-        document.documentElement.removeEventListener(
-          "click",
-          clickHandler,
-          true
-        );
-        tabWrapper.removeEventListener("keydown", keyHandler, true);
+		// Go to previous tab
+		if (['ArrowUp', 'ArrowLeft', 'Up', 'Left'].indexOf(key) > -1) {
+			index = map.index < 1 ? length : map.index - 1;
+		}
 
-        // Reset variables
-        settings = null;
-        tabWrapper = null;
-      };
+		// Go to next tab
+		else if (['ArrowDown', 'ArrowRight', 'Down', 'Right'].indexOf(key) > -1) {
+			index = map.index === length ? 0 : map.index + 1;
+		}
 
-      /**
-       * Setup the DOM with the proper attributes
-       */
-      publicAPIs.setup = function () {
-        // Variables
-        tabWrapper = document.querySelector(selector);
-        if (!tabWrapper) return;
-        var tabs = tabWrapper.querySelectorAll("a");
+		// Go to home
+		else if (key === 'Home') {
+			index = 0;
 
-        // Add role to wrapper
-        tabWrapper.setAttribute("role", "tablist");
+		}
 
-        // Add roles to tabs
-        Array.prototype.forEach.call(tabs, function (tab) {
-          // Get the tab content
-          var content = document.querySelector(tab.hash);
-          if (!content) return;
+		// Go to end
+		else if (key === 'End') {
+			index = length;
+		}
 
-          // Setup the tab
-          setupTab(tab, content, settings);
-        });
-      };
+		// Toggle the tab
+		toggle(map.tabs[index]);
 
-      /**
-       * Toggle a tab based on an ID
-       * @param  {String|Node} id The tab to toggle
-       */
-      publicAPIs.toggle = function (id) {
-        // Get the tab
-        var tab = id;
-        if (typeof id === "string") {
-          tab = document.querySelector(
-            selector + ' [role="tab"][href*="' + id + '"]'
-          );
-        }
+	};
 
-        // Toggle the tab
-        toggle(tab);
-      };
+	/**
+	 * Activate a tab based on the URL
+	 * @param  {String} selector The selector for this instantiation
+	 */
+	var loadFromURL = function (selector) {
+		if (window.location.hash.length < 1) return;
+		var tab = document.querySelector(selector + ' [role="tab"][href*="' + window.location.hash + '"]');
+		toggle(tab);
+	};
 
-      /**
-       * Handle click events
-       */
-      var clickHandler = function (event) {
-        // Only run on toggles
-        var tab = event.target.closest(selector + ' [role="tab"]');
-        if (!tab) return;
+	/**
+	 * Create the Constructor object
+	 */
+	var Constructor = function (selector, options) {
 
-        // Prevent link behavior
-        event.preventDefault();
+		//
+		// Variables
+		//
 
-        // Toggle the tab
-        toggle(tab);
-      };
+		var publicAPIs = {};
+		var settings, tabWrapper;
 
-      /**
-       * Handle keydown events
-       */
-      var keyHandler = function (event) {
-        // Only run if a tab is in focus
-        var tab = document.activeElement;
-        if (!tab.matches(selector + ' [role="tab"]')) return;
 
-        // Only run for specific keys
-        if (["Home", "End"].indexOf(event.key) < 0) return;
+		//
+		// Methods
+		//
 
-        // Switch tabs
-        switchTabs(tab, event.key);
-      };
+		publicAPIs.destroy = function () {
 
-      /**
-       * Initialize the instance
-       */
-      var init = function () {
-        // Merge user options with defaults
-        settings = extend(defaults, options || {});
+			// Get all tabs
+			var tabs = tabWrapper.querySelectorAll('a');
 
-        // Setup the DOM
-        publicAPIs.setup();
+			// Add roles to tabs
+			Array.prototype.forEach.call(tabs, function (tab) {
 
-        // Load a tab from the URL
-        loadFromURL(selector);
+				// Get the tab content
+				var content = document.querySelector(tab.hash);
+				if (!content) return;
 
-        // Add event listeners
-        document.documentElement.addEventListener("click", clickHandler, true);
-        tabWrapper.addEventListener("keydown", keyHandler, true);
-      };
+				// Setup the tab
+				destroyTab(tab, content, settings);
 
-      //
-      // Initialize and return the Public APIs
-      //
+			});
 
-      init();
-      return publicAPIs;
-    };
+			// Remove role from wrapper
+			tabWrapper.removeAttribute('role');
 
-    //
-    // Return the Constructor
-    //
+			// Remove event listeners
+			document.documentElement.removeEventListener('click', clickHandler, true);
+			tabWrapper.removeEventListener('keydown', keyHandler, true);
 
-    return Constructor;
-  }
-);
+			// Reset variables
+			settings = null;
+			tabWrapper = null;
+
+		};
+
+		/**
+		 * Setup the DOM with the proper attributes
+		 */
+		publicAPIs.setup = function () {
+
+			// Variables
+			tabWrapper = document.querySelector(selector);
+			if (!tabWrapper) return;
+			var tabs = tabWrapper.querySelectorAll('a');
+
+			// Add role to wrapper
+			tabWrapper.setAttribute('role', 'tablist');
+
+			// Add roles to tabs
+			Array.prototype.forEach.call(tabs, function (tab) {
+
+				// Get the tab content
+				var content = document.querySelector(tab.hash);
+				if (!content) return;
+
+				// Setup the tab
+				setupTab(tab, content, settings);
+
+			});
+
+		};
+
+		/**
+		 * Toggle a tab based on an ID
+		 * @param  {String|Node} id The tab to toggle
+		 */
+		publicAPIs.toggle = function (id) {
+
+			// Get the tab
+			var tab = id;
+			if (typeof id === 'string') {
+				tab = document.querySelector(selector + ' [role="tab"][href*="' + id + '"]');
+			}
+
+			// Toggle the tab
+			toggle(tab);
+
+		};
+
+		/**
+		 * Handle click events
+		 */
+		var clickHandler = function (event) {
+
+			// Only run on toggles
+			var tab = event.target.closest(selector + ' [role="tab"]');
+			if (!tab) return;
+
+			// Prevent link behavior
+			event.preventDefault();
+
+			// Toggle the tab
+			toggle(tab);
+
+		};
+
+		/**
+		 * Handle keydown events
+		 */
+		var keyHandler = function (event) {
+
+			// Only run if a tab is in focus
+			var tab = document.activeElement;
+			if (!tab.matches(selector + ' [role="tab"]')) return;
+
+			// Only run for specific keys
+			if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Up', 'Down', 'Left', 'Right', 'Home', 'End'].indexOf(event.key) < 0) return;
+
+			// Switch tabs
+			switchTabs(tab, event.key);
+
+		};
+
+		/**
+		 * Initialize the instance
+		 */
+		var init = function () {
+
+			// Merge user options with defaults
+			settings = extend(defaults, options || {});
+
+			// Setup the DOM
+			publicAPIs.setup();
+
+			// Load a tab from the URL
+			loadFromURL(selector);
+
+			// Add event listeners
+			document.documentElement.addEventListener('click', clickHandler, true);
+			tabWrapper.addEventListener('keydown', keyHandler, true);
+
+		};
+
+
+		//
+		// Initialize and return the Public APIs
+		//
+
+		init();
+		return publicAPIs;
+
+	};
+
+
+	//
+	// Return the Constructor
+	//
+
+	return Constructor;
+
+});
