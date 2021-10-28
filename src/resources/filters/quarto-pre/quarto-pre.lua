@@ -9,7 +9,6 @@ text = require 'text'
 
 -- global state
 preState = {
-  hasColumns = false,
   usingTikz = false,
   results = {
     resourceFiles = pandoc.List:new({})
@@ -29,7 +28,6 @@ import("options.lua")
 import("shortcodes.lua")
 import("shortcodes-handlers.lua")
 import("outputs.lua")
-import("columns.lua")
 import("figures.lua")
 import("theorems.lua")
 import("resourcerefs.lua")
@@ -78,7 +76,6 @@ return {
     indexBookFileTargets(),
     bookNumbering(),
     resourceRefs(),
-    columns(),
     figures(),
     theorems(),
     callout(),
