@@ -5,12 +5,13 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kFrom,
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
+  kSlideLevel,
 } from "../../config/constants.ts";
 
 import {
@@ -155,7 +156,7 @@ export function revealjsFormat() {
             html: {
               [kTemplatePatches]: [revealRequireJsPatch],
               [kHtmlPostprocessors]: [
-                revealInitializeHtmlPostprocessor(format),
+                revealHtmlPostprocessor(format),
               ],
             },
           },
@@ -267,7 +268,7 @@ function revealMetadataFilter(metadata: Metadata) {
   return filtered;
 }
 
-function revealInitializeHtmlPostprocessor(format: Format) {
+function revealHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
     // find reveal initializatio and perform fixups
     const scripts = doc.querySelectorAll("script");
@@ -284,6 +285,23 @@ function revealInitializeHtmlPostprocessor(format: Format) {
         );
       }
     }
+
+    // remove all attributes from slide headings (pandoc has already moved
+    // them to the enclosing section)
+    const slideLevel = parseInt(format.metadata[kSlideLevel] as string, 10) ||
+      2;
+    const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
+      "H" + (i + 1)
+    );
+    const slideHeadings = doc.querySelectorAll("section.slide > :first-child");
+    slideHeadings.forEach((slideHeading) => {
+      const slideHeadingEl = slideHeading as Element;
+      if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
+        for (const attrib of slideHeadingEl.getAttributeNames()) {
+          slideHeadingEl.removeAttribute(attrib);
+        }
+      }
+    });
 
     // center title slide if requested
     // note that disabling title slide centering when the rest of the
