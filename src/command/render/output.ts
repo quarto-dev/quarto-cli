@@ -13,7 +13,7 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { partitionYamlFrontMatter } from "../../core/yaml.ts";
 import { execProcess } from "../../core/process.ts";
-import { binaryPath } from "../../core/resources.ts";
+import { pandocBinaryPath } from "../../core/resources.ts";
 import { createSessionTempDir, sessionTempFile } from "../../core/temp.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 
@@ -323,7 +323,7 @@ async function patchTemplate(
 ) {
   // get the default pandoc template for the format
   const result = await execProcess({
-    cmd: [binaryPath("pandoc"), "-D", format],
+    cmd: [pandocBinaryPath(), "-D", format],
     stdout: "piped",
   });
 

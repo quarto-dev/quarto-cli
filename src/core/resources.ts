@@ -7,6 +7,7 @@
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
+import { warnOnce } from "./log.ts";
 import { which } from "./path.ts";
 import { quartoConfig } from "./quarto.ts";
 import {
@@ -30,6 +31,23 @@ export function formatResourcePath(format: string, resource: string) {
 
 export function binaryPath(binary: string): string {
   return join(quartoConfig.binPath(), binary);
+}
+
+export function pandocBinaryPath(): string {
+  // allow override of built-in pandoc w/ QUARTO_PANDOC environment variable
+  const quartoPandoc = Deno.env.get("QUARTO_PANDOC");
+  if (quartoPandoc) {
+    if (!existsSync(quartoPandoc)) {
+      warnOnce("Specified QUARTO_PANDOC does not exist, using built in Pandoc");
+    }
+    if (Deno.statSync(quartoPandoc).isFile) {
+      return quartoPandoc;
+    } else {
+      return join(quartoPandoc, "pandoc");
+    }
+  }
+
+  return binaryPath("pandoc");
 }
 
 export async function rBinaryPath(binary: string): Promise<string> {

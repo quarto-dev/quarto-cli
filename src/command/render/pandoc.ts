@@ -37,7 +37,7 @@ import {
 import { isHtmlOutput, isLatexOutput } from "../../config/format.ts";
 import { isQuartoMetadata, metadataGetDeep } from "../../config/metadata.ts";
 import {
-  binaryPath,
+  pandocBinaryPath,
   resourcePath,
   textHighlightThemePath,
 } from "../../core/resources.ts";
@@ -114,7 +114,7 @@ export async function runPandoc(
   const cwd = dirname(options.source);
 
   // build the pandoc command (we'll feed it the input on stdin)
-  const cmd = [binaryPath("pandoc")];
+  const cmd = [pandocBinaryPath()];
 
   // build command line args
   const args = [...options.args];
