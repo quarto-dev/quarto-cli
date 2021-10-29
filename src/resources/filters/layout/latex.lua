@@ -1,7 +1,6 @@
 -- latex.lua
 -- Copyright (C) 2020 by RStudio, PBC
 kSideCaptionEnv = 'sidecaption'
-kSideCaptionClass = 'caption-gutter'
 
 function latexPanel(divEl, layout, caption)
   

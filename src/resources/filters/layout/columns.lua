@@ -1,6 +1,11 @@
 -- columns.lua
 -- Copyright (C) 2021 by RStudio, PBC
 
+
+kSideCaptionClass = 'caption-gutter'
+
+
+
 function columns() 
   
   return {
@@ -89,6 +94,8 @@ function isColumnClass(clz)
   if clz == undefined then
     return false
   elseif clz == 'aside' then
+    return true
+  elseif clz == kSideCaptionClass then
     return true
   else
     return clz:match('^column%-')

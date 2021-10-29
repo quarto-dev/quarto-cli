@@ -81,6 +81,7 @@ import {
   kCellFigAlign,
   kCellFigAlt,
   kCellFigCap,
+  kCellFigCapLoc,
   kCellFigEnv,
   kCellFigLink,
   kCellFigPos,
@@ -204,6 +205,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellLabel]?: string;
   [kCellFigCap]?: string | string[];
   [kCellFigSubCap]?: string[];
+  [kCellFigCapLoc]?: string;
   [kCellLstLabel]?: string;
   [kCellLstCap]?: string;
   [kCellClasses]?: string;
@@ -246,6 +248,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigCap,
   kCellFigSubCap,
   kCellFigScap,
+  kCellFigCapLoc,
   kCellFigLink,
   kCellFigAlign,
   kCellFigAlt,
@@ -1021,6 +1024,9 @@ function mdFromCodeCell(
     }
     if (typeof cell.options[kCellColumn] === "string") {
       classes.push(`column-${cell.options[kCellColumn]}`);
+    }
+    if (typeof cell.options[kCellFigCapLoc] === "string") {
+      classes.push(`caption-${cell.options[kCellFigCapLoc]}`);
     }
     const classText = classes
       .map((clz: string) => {
