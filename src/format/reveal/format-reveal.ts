@@ -8,6 +8,7 @@
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kFrom,
+  kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
 } from "../../config/constants.ts";
@@ -108,6 +109,13 @@ export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
+      pandoc: {
+        [kHtmlMathMethod]: {
+          method: "mathjax",
+          url:
+            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML-full",
+        },
+      },
       metadataFilter: revealMetadataFilter,
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
