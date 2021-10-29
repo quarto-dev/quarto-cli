@@ -144,29 +144,31 @@ const pdfBookExtension: BookExtension = {
 };
 
 const pdfLatexPostProcessor = async (output: string) => {
-  const fileContents = await Deno.open(output);
   const outputProcessed = sessionTempFile({ suffix: ".tex" });
-
-  const lineProcessors = [sidecaptionLineProcessor()];
-  for await (const line of readLines(fileContents)) {
-    let processedLine: string | undefined = line;
-    for (const processor of lineProcessors) {
-      if (line !== undefined) {
-        processedLine = processor(line);
+  const file = await Deno.open(output);
+  try {
+    const lineProcessors = [sidecaptionLineProcessor()];
+    for await (const line of readLines(file)) {
+      let processedLine: string | undefined = line;
+      for (const processor of lineProcessors) {
+        if (line !== undefined) {
+          processedLine = processor(line);
+        }
+      }
+      if (processedLine !== undefined) {
+        Deno.writeTextFileSync(outputProcessed, processedLine + "\n", {
+          append: true,
+        });
       }
     }
-    if (processedLine !== undefined) {
-      Deno.writeTextFileSync(outputProcessed, processedLine + "\n", {
-        append: true,
-      });
-    }
+  } finally {
+    file.close();
+    Deno.copyFileSync(outputProcessed, output);
   }
-  Deno.copyFileSync(outputProcessed, output);
 };
 
 const kBeginScanRegex = /^%quartopost-sidecaption-206BE349/;
 const kEndScanRegex = /^%\/quartopost-sidecaption-206BE349/;
-const kReplaceCaptionRegex = /^\\caption\{/;
 
 const sidecaptionLineProcessor = () => {
   let state: "scanning" | "replacing" = "scanning";
