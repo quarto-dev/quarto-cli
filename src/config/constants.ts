@@ -316,6 +316,7 @@ export const kCellLabel = "label";
 export const kCellFigCap = "fig-cap";
 export const kCellFigSubCap = "fig-subcap";
 export const kCellFigScap = "fig-scap";
+export const kCellFigCapLoc = "fig-cap-location";
 export const kCellFigLink = "fig-link";
 export const kCellFigAlign = "fig-align";
 export const kCellFigEnv = "fig-env";
