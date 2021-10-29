@@ -5,12 +5,12 @@
  *
  */
 import { execProcess } from "../process.ts";
-import { binaryPath } from "../resources.ts";
+import { pandocBinaryPath } from "../resources.ts";
 import { lines } from "../text.ts";
 
 export async function pandocListFormats() {
   const result = await execProcess({
-    cmd: [binaryPath("pandoc"), "--list-output-formats"],
+    cmd: [pandocBinaryPath(), "--list-output-formats"],
     stdout: "piped",
   });
   if (result.success) {

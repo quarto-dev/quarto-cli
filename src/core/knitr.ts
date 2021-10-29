@@ -24,7 +24,7 @@ export async function knitrCapabilities() {
   try {
     const result = await execProcess({
       cmd: [
-        rBinaryPath("Rscript"),
+        await rBinaryPath("Rscript"),
         resourcePath("capabilities/knitr.R"),
       ],
       stdout: "piped",

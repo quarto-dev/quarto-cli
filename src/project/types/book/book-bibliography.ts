@@ -16,7 +16,7 @@ import { Document, DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { execProcess } from "../../../core/process.ts";
-import { binaryPath } from "../../../core/resources.ts";
+import { pandocBinaryPath } from "../../../core/resources.ts";
 
 import { kBibliography, kCsl } from "../../../config/constants.ts";
 import { Metadata } from "../../../config/types.ts";
@@ -160,7 +160,7 @@ async function generateBibliographyHTML(
   const frontMatter = `---\n${stringify(yaml, { indent: 2 })}\n---\n`;
   const result = await execProcess({
     cmd: [
-      binaryPath("pandoc"),
+      pandocBinaryPath(),
       "--from",
       "markdown",
       "--to",

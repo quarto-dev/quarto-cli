@@ -46,6 +46,7 @@ export const kHtmlResourceTags: Record<string, string[]> = {
   "link": ["href"],
   "script": ["src"],
   "embed": ["src"],
+  "section": ["data-background-image", "data-background-video"],
 };
 
 export function discoverResourceRefs(doc: Document): Promise<string[]> {

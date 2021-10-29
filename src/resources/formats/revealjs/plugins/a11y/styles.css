@@ -1,0 +1,23 @@
+.reveal .slides > section > .accessibilityWrapper,
+.reveal .slides > section > section > .accessibilityWrapper {
+  display: none;
+  visibility: hidden;
+  outline: none;
+}
+
+.reveal .slides section.present > .accessibilityWrapper {
+  display: block;
+  visibility: visible;
+}
+.reveal .slides.staticPage > section {
+  display: block !important;
+}
+
+:focus {
+  outline: none;
+}
+
+.using-keyboard :focus {
+  outline: 1px dotted #212121;
+  outline: 5px auto -webkit-focus-ring-color;
+}
