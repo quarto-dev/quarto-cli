@@ -192,7 +192,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
         const target = captionContainer.querySelector(tagName);
         if (target) {
           target.classList.add("caption-gutter");
-          captionContainer.classList.remove("caption-gutter");
           return true;
         } else {
           return false;
@@ -217,11 +216,12 @@ function bootstrapHtmlPostprocessor(format: Format) {
             divCopy.classList.add("caption-gutter");
             divCopy.innerHTML = captionEl.innerHTML;
             parentDivEl.appendChild(divCopy);
-
-            captionContainer.classList.remove("caption-gutter");
           }
         }
       }
+
+      // Remove this since it will place the contents in the gutter if it remains present
+      captionContainer.classList.remove("caption-gutter");
     });
 
     // Process col classes into our grid system
