@@ -183,11 +183,52 @@ function bootstrapHtmlPostprocessor(format: Format) {
       title.classList.add("display-7");
     }
 
+    // Forward caption class from parents to the child fig caps
+    const gutterCaptions = doc.querySelectorAll(".caption-gutter");
+    gutterCaptions.forEach((caption) => {
+      const captionContainer = (caption as Element);
+
+      const moveClassToCaption = (tagName: string) => {
+        const target = captionContainer.querySelector(tagName);
+        if (target) {
+          target.classList.add("caption-gutter");
+          captionContainer.classList.remove("caption-gutter");
+          return true;
+        } else {
+          return false;
+        }
+      };
+
+      // First try finding a fig caption
+      const foundCaption = moveClassToCaption("figcaption");
+      if (!foundCaption) {
+        // find a table caption and copy the contents into a div with style figure-caption
+        // note that for tables, our grid inception approach isn't going to work, so
+        // we make a copy of the caption contents and place that in the same container as the
+        // table and bind it to the grid
+        const captionEl = captionContainer.querySelector("caption");
+        if (captionEl) {
+          const parentDivEl = captionEl?.parentElement?.parentElement;
+          if (parentDivEl) {
+            captionEl.classList.add("hidden");
+
+            const divCopy = doc.createElement("div");
+            divCopy.classList.add("figure-caption");
+            divCopy.classList.add("caption-gutter");
+            divCopy.innerHTML = captionEl.innerHTML;
+            parentDivEl.appendChild(divCopy);
+
+            captionContainer.classList.remove("caption-gutter");
+          }
+        }
+      }
+    });
+
     // Process col classes into our grid system
 
     // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
-      '[class^="column-"], [class*=" column-"], aside',
+      '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"]',
     );
     // If there are any of these elements, we need to be sure that their
     // parents have acess to the grid system, so make the parent full screen width

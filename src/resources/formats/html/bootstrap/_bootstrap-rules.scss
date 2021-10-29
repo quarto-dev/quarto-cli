@@ -213,6 +213,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-up(lg) {
+  .caption-gutter,
   div.aside,
   aside,
   .column-gutter {
@@ -229,6 +230,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(lg) {
+  .caption-gutter,
   div.aside,
   aside,
   .column-gutter {
@@ -245,6 +247,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(md) {
+  .caption-gutter,
   div.aside,
   aside,
   .column-gutter {
