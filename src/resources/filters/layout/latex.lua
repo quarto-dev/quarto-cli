@@ -198,6 +198,20 @@ function insertLatexCaption(divEl, content, captionInlines)
   end
 end
 
+function latexWrapSignalPostProcessor(el, token) 
+  -- this is a table div not in a panel note any caption environment
+  tprepend(el.content, {pandoc.RawBlock('latex', '%quartopost-' .. token)});
+  tappend(el.content, {pandoc.RawBlock('latex', '%/quartopost-' .. token)});
+end
+
+function latexMarkupCaptionEnv(el) 
+  local captionEnv = latexCaptionEnv(el)
+  if captionEnv == 'sidecaption' then
+    latexWrapSignalPostProcessor(el, 'sidecaption-206BE349');
+  end
+end
+
+        
 function markupLatexCaption(el, caption, captionEnv)
 
   -- by default, just use the caption env

@@ -6,14 +6,8 @@ function columns()
   return {
 
     Div = function(el)  
-      if el.attr.classes:includes('cell') then
-        -- for code chunks, forward the column classes to the output
-        -- figures or tables
-        forwardColumnClass(el)
-      else
-        -- for any top level divs, render then
-        renderDivColumn(el)
-      end
+      -- for any top level divs, render then
+      renderDivColumn(el)
       
       return el      
     end,
@@ -36,35 +30,6 @@ function columns()
   }
 end
 
-function forwardColumnClass(el) 
-
-  -- read the classes that should be forwarded
-  local columnClasses = resolveColumnClasses(el)
-  if #columnClasses > 0 then 
-    noteHasColumns()
-
-    -- Forward the column classes inside code blocks
-    for i, childEl in ipairs(el.content) do 
-      if childEl.attr ~= undefined and childEl.attr.classes:includes('cell-output-display') then
-        -- look through the children for any figures or tables
-        for j, figOrTableEl in ipairs(childEl.content) do
-          -- look for figures
-          local figure = discoverFigure(figOrTableEl, true)
-          if figure ~= nil then
-            tappend(figure.attr.classes, columnClasses)
-          end
-
-          -- forward to tables
-          if figOrTableEl.t == 'Table' then
-            tappend(figOrTableEl.attr.classes, columnClasses)
-          end
-        end
-
-      end
-    end
-  end         
-end
-
 function renderDivColumn(el) 
   -- don't render this if it requires panel layout. 
   -- panel layout will take care of rendering anything special
@@ -81,15 +46,22 @@ function renderDivColumn(el)
           -- figures
           latexWrapEnvironment(el, latexFigureEnv(el))
         elseif hasTableRef(el) then
-          -- tables
-          latexWrapEnvironment(el, latexTableEnv(el))
+          -- table divs that aren't sub tables
+          if not hasRefParent(el) then
+            latexWrapEnvironment(el, latexTableEnv(el))
+          end
         else
           -- other things (margin notes)
           tprepend(el.content, {latexBeginSidenote()});
           tappend(el.content, {latexEndSidenote(el)})
         end
       end   
+    else 
+       -- Markup any captions for the post processor
+      latexMarkupCaptionEnv(el);
     end
+
+
   end
 end
 
@@ -103,6 +75,14 @@ end
 
 function resolveColumnClasses(el) 
   return el.attr.classes:filter(isColumnClass)
+end
+
+function removeColumnClasses(el)
+  for i, clz in ipairs(el.attr.classes) do 
+    if isColumnClass(clz) then
+      el.attr.classes:remove(i)
+    end
+  end
 end
 
 function isColumnClass(clz) 
