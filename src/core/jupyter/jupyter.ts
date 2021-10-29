@@ -116,6 +116,7 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
+  kSlideLevel,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -714,7 +715,7 @@ export function jupyterToMarkdown(
     if (slideType) {
       // this automatically puts us into slide-level 0 mode
       // (i.e. manual mode, slide delimeters are "---")
-      metadata["slide-level"] = 0;
+      metadata[kSlideLevel] = 0;
 
       // write any implied delimeter (or skip entirely)
       if (slideType === "skip") {
