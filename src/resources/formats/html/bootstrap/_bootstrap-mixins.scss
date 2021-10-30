@@ -19,11 +19,11 @@
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset] 5fr
-    [page-start] minmax(80px, 150px)
+    [page-start] minmax(50px, 150px)
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1.5em
-    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-start] minmax(400px, calc(800px - 2em))
     [body-content-end] 1.5em
     [body-end] 50px
     [body-end-outset] 50px
