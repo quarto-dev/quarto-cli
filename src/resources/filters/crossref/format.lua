@@ -89,7 +89,7 @@ function numberOption(type, order, default)
   local section = order.section
   if not crossrefOption("chapters", false) then
     section = nil
-  elseif section[1] == 0 then
+  elseif section ~= undefined and section[1] == 0 then
     section = nil
   elseif crossref.maxHeading ~= 1 then
     section = nil
