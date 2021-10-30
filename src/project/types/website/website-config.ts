@@ -23,11 +23,13 @@ import { mergeConfigs } from "../../../core/config.ts";
 
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 
+export const kWebsite = "website";
+// 'website' was previously 'site'
 export const kSite = "site";
 
-export const kSiteTitle = "title";
 export const kSiteUrl = "site-url";
 export const kSitePath = "site-path";
+export const kSiteTitle = "title";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoBranch = "repo-branch";
 export const kSiteRepoActions = "repo-actions";
@@ -103,7 +105,7 @@ export function websiteConfig(
     | "search",
   project?: ProjectConfig,
 ) {
-  const site = project?.[kSite] as
+  const site = project?.[kWebsite] as
     | Record<string, unknown>
     | undefined;
 
@@ -167,7 +169,7 @@ export function websiteRepoBranch(project?: ProjectConfig): string {
 }
 
 export function websiteMetadataFields(): Array<string | RegExp> {
-  return [kSite];
+  return [kWebsite];
 }
 
 export function isGithubRepoUrl(url: string): boolean {

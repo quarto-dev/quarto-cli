@@ -73,11 +73,11 @@ import {
 
 import {
   isGithubRepoUrl,
-  kSite,
   kSiteNavbar,
   kSiteRepoActions,
   kSiteRepoUrl,
   kSiteSidebar,
+  kWebsite,
   websiteConfigActions,
   websiteHtmlFormat,
   websiteRepoBranch,
@@ -429,7 +429,7 @@ function handleRepoLinks(
 ) {
   const repoActions = websiteConfigActions(
     kSiteRepoActions,
-    kSite,
+    kWebsite,
     config,
   );
 
