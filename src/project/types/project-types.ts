@@ -22,6 +22,10 @@ export function projectTypes(): string[] {
   return kTypes().map((type) => type.type);
 }
 
+export function projectTypeAliases(): string[] {
+  return kTypes().flatMap((type) => type.typeAliases || []);
+}
+
 export function projectType(type = "default"): ProjectType {
   const projectType = kTypes().find((pt) => pt.type === type);
   if (projectType) {

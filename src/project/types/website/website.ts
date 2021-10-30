@@ -44,6 +44,7 @@ import {
 import { updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
 import {
+  kSite,
   kWebsite,
   websiteMetadataFields,
   websiteProjectConfig,
@@ -61,6 +62,7 @@ import { defaultProjectType } from "../project-default.ts";
 
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
+  typeAliases: [kSite],
   create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "website"));
 

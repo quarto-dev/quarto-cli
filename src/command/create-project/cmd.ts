@@ -12,10 +12,16 @@ import { Command, EnumType } from "cliffy/command/mod.ts";
 import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
-import { projectTypes } from "../../project/types/project-types.ts";
+import {
+  projectTypeAliases,
+  projectTypes,
+} from "../../project/types/project-types.ts";
 import { kMarkdownEngine } from "../../execute/types.ts";
 
 const kProjectTypes = projectTypes();
+const kProjectTypeAliases = projectTypeAliases();
+const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
+
 const kExecutionEngines = executionEngines().reverse();
 
 const editorType = new EnumType(["visual", "source"]);
@@ -34,7 +40,7 @@ export const createProjectCommand = new Command()
     `Project type (${kProjectTypes.join(", ")})`,
     {
       value: (value: string): string => {
-        if (kProjectTypes.indexOf(value || "default") === -1) {
+        if (kProjectTypesAndAliases.indexOf(value || "default") === -1) {
           throw new Error(
             `Project type must be one of ${
               kProjectTypes.join(", ")
