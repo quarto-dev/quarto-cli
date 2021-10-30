@@ -1,5 +1,5 @@
 project:
-  type: site
+  type: website
 
 site:
   title: "<%= title %>"

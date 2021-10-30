@@ -11,7 +11,7 @@ import { readYamlFromString } from "../../src/core/yaml.ts";
 
 const yamlStr = `
 project:
-  type: site
+  type: website
 other:
   array:
     - foo
