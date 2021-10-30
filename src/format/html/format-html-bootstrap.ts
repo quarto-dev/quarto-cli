@@ -185,11 +185,11 @@ function bootstrapHtmlPostprocessor(format: Format) {
 
     // Forward caption class from parents to the child fig caps
     const gutterCaptions = doc.querySelectorAll(".caption-gutter");
-    gutterCaptions.forEach((caption) => {
-      const captionContainer = (caption as Element);
+    gutterCaptions.forEach((captionContainerNode) => {
+      const captionContainer = (captionContainerNode as Element);
 
-      const moveClassToCaption = (tagName: string) => {
-        const target = captionContainer.querySelector(tagName);
+      const moveClassToCaption = (container: Element, sel: string) => {
+        const target = container.querySelector(sel);
         if (target) {
           target.classList.add("caption-gutter");
           return true;
@@ -198,24 +198,47 @@ function bootstrapHtmlPostprocessor(format: Format) {
         }
       };
 
-      // First try finding a fig caption
-      const foundCaption = moveClassToCaption("figcaption");
-      if (!foundCaption) {
-        // find a table caption and copy the contents into a div with style figure-caption
-        // note that for tables, our grid inception approach isn't going to work, so
-        // we make a copy of the caption contents and place that in the same container as the
-        // table and bind it to the grid
-        const captionEl = captionContainer.querySelector("caption");
-        if (captionEl) {
-          const parentDivEl = captionEl?.parentElement?.parentElement;
-          if (parentDivEl) {
-            captionEl.classList.add("hidden");
+      // Deal with layout panels (we will only handle the main caption not the internals)
+      const isLayoutPanel = captionContainer.classList.contains(
+        "quarto-layout-panel",
+      );
+      if (isLayoutPanel) {
+        const figure = captionContainer.querySelector("figure");
+        if (figure) {
+          // It is a figure panel, find a direct child caption of the outer figure.
+          for (const child of figure.children) {
+            if (child.tagName === "FIGCAPTION") {
+              child.classList.add("caption-gutter");
+              break;
+            }
+          }
+        } else {
+          // it is not a figure panel, find the panel caption
+          const caption = captionContainer.querySelector(".panel-caption");
+          if (caption) {
+            caption.classList.add("caption-gutter");
+          }
+        }
+      } else {
+        // First try finding a fig caption
+        const foundCaption = moveClassToCaption(captionContainer, "figcaption");
+        if (!foundCaption) {
+          // find a table caption and copy the contents into a div with style figure-caption
+          // note that for tables, our grid inception approach isn't going to work, so
+          // we make a copy of the caption contents and place that in the same container as the
+          // table and bind it to the grid
+          const captionEl = captionContainer.querySelector("caption");
+          if (captionEl) {
+            const parentDivEl = captionEl?.parentElement?.parentElement;
+            if (parentDivEl) {
+              captionEl.classList.add("hidden");
 
-            const divCopy = doc.createElement("div");
-            divCopy.classList.add("figure-caption");
-            divCopy.classList.add("caption-gutter");
-            divCopy.innerHTML = captionEl.innerHTML;
-            parentDivEl.appendChild(divCopy);
+              const divCopy = doc.createElement("div");
+              divCopy.classList.add("figure-caption");
+              divCopy.classList.add("caption-gutter");
+              divCopy.innerHTML = captionEl.innerHTML;
+              parentDivEl.appendChild(divCopy);
+            }
           }
         }
       }
