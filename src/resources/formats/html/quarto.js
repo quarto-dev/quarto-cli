@@ -282,9 +282,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   function toRegions(els) {
     return els.map((el) => {
+      const top =
+        el.getBoundingClientRect().top + document.documentElement.scrollTop;
       return {
-        top: el.offsetTop,
-        bottom: el.offsetTop + el.offsetHeight,
+        top,
+        bottom: top + el.offsetHeight,
       };
     });
   }

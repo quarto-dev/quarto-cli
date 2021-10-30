@@ -202,6 +202,7 @@ export const kTocTitle = "toc-title";
 export const kLinkCitations = "link-citations";
 export const kDocumentClass = "documentclass";
 export const kClassOption = "classoption";
+export const kSlideLevel = "slide-level";
 
 export const kTheme = "theme";
 export const kCrossref = "crossref";
@@ -277,7 +278,7 @@ export const kPandocDefaultsKeys = [
   "tab-stop",
   "preserve-tabs",
   "incremental",
-  "slide-level",
+  kSlideLevel,
   "epub-subdirectory",
   "epub-metadata",
   "epub-fonts",
@@ -315,6 +316,7 @@ export const kCellLabel = "label";
 export const kCellFigCap = "fig-cap";
 export const kCellFigSubCap = "fig-subcap";
 export const kCellFigScap = "fig-scap";
+export const kCellFigCapLoc = "fig-cap-location";
 export const kCellFigLink = "fig-link";
 export const kCellFigAlign = "fig-align";
 export const kCellFigEnv = "fig-env";

@@ -28,6 +28,7 @@ import("pptx.lua")
 import("table.lua")
 import("figures.lua")
 import("columns.lua")
+import("columns-preprocess.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/validate.lua")
@@ -280,6 +281,7 @@ initParams()
 
 -- chain of filters
 return {
+  columnsPreprocess(),
   columns(),
   layoutPanels(),
   extendedFigures(),

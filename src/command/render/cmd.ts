@@ -120,6 +120,12 @@ export const renderCommand = new Command()
       delete options[option];
     }
 
+    // show help if requested
+    if (args.length > 0 && args[0] === "--help") {
+      renderCommand.showHelp();
+      return;
+    }
+
     // pull inputs out of the beginning of flags
     input = input || ".";
     const inputs = [input];

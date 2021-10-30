@@ -145,7 +145,7 @@ async function callR<T>(
     const result = await execProcess(
       {
         cmd: [
-          rBinaryPath("Rscript"),
+          await rBinaryPath("Rscript"),
           resourcePath("rmd/rmd.R"),
         ],
         stderr: quiet ? "piped" : "inherit",

@@ -6,7 +6,7 @@
 */
 import { assert, assertEquals } from "testing/asserts.ts";
 import { getenv } from "../../src/core/env.ts";
-import { binaryPath, resourcePath } from "../../src/core/resources.ts";
+import { pandocBinaryPath, resourcePath } from "../../src/core/resources.ts";
 import { unitTest } from "../test.ts";
 
 unitTest(
@@ -19,9 +19,8 @@ unitTest(
       d,
       "Incorrect default path returned",
     );
-
     assert(
-      binaryPath("pandoc").length > 0,
+      pandocBinaryPath().length > 0,
       "Unable to get path using binaryPath()",
     );
 

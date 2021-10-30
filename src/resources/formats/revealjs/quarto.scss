@@ -6,6 +6,7 @@
 $font-family-sans-serif: "Source Sans Pro", Helvetica, sans-serif !default;
 $font-family-monospace: monospace !default;
 $presentation-font-size-root: 40px !default;
+$presentation-font-smaller: 0.7 !default;
 $presentation-line-height: 1.3 !default;
 
 // main colors
@@ -52,6 +53,7 @@ $reveal-title-slide-text-align: $presentation-title-slide-text-align !default;
 // code blocks
 $code-block-bg: $body-bg !default;
 $code-block-border-color: lighten($body-color, 60%) !default;
+$code-block-font-size: 0.55em !default;
 
 // inline code
 $code-color: var(--quarto-hl-fu-color) !default;
@@ -155,6 +157,7 @@ $selectionColor: $selection-color !default;
   border: $border-width solid $code-block-border-color;
   border-radius: $border-radius;
   margin: $blockMargin 0;
+  font-size: $code-block-font-size;
 }
 
 .reveal code {
@@ -172,6 +175,26 @@ $selectionColor: $selection-color !default;
 .reveal .slides section,
 .reveal .slides section > section {
   line-height: $revealjs-line-height;
+}
+
+.reveal .slides section.smaller {
+  font-size: #{$presentation-font-smaller}em;
+}
+
+.reveal .slides section.smaller h1 {
+  font-size: calc(#{$revealjs-h1-font-size} / #{$presentation-font-smaller});
+}
+
+.reveal .slides section.smaller h2 {
+  font-size: calc(#{$revealjs-h2-font-size} / #{$presentation-font-smaller});
+}
+
+.reveal .slides section.smaller h3 {
+  font-size: calc(#{$revealjs-h3-font-size} / #{$presentation-font-smaller});
+}
+
+.reveal .slides section.smaller pre {
+  font-size: calc(#{$code-block-font-size} / #{$presentation-font-smaller});
 }
 
 .reveal .slide-number {

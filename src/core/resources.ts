@@ -7,7 +7,14 @@
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
+import { warnOnce } from "./log.ts";
+import { which } from "./path.ts";
 import { quartoConfig } from "./quarto.ts";
+import {
+  kHKeyCurrentUser,
+  kHKeyLocalMachine,
+  registryReadString,
+} from "./registry.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();
@@ -26,13 +33,57 @@ export function binaryPath(binary: string): string {
   return join(quartoConfig.binPath(), binary);
 }
 
-export function rBinaryPath(binary: string): string {
+export function pandocBinaryPath(): string {
+  // allow override of built-in pandoc w/ QUARTO_PANDOC environment variable
+  const quartoPandoc = Deno.env.get("QUARTO_PANDOC");
+  if (quartoPandoc) {
+    if (!existsSync(quartoPandoc)) {
+      warnOnce("Specified QUARTO_PANDOC does not exist, using built in Pandoc");
+    }
+    if (Deno.statSync(quartoPandoc).isFile) {
+      return quartoPandoc;
+    } else {
+      return join(quartoPandoc, "pandoc");
+    }
+  }
+
+  return binaryPath("pandoc");
+}
+
+export async function rBinaryPath(binary: string): Promise<string> {
+  // if there is an R_HOME then respect that
   const rHome = Deno.env.get("R_HOME");
   if (rHome) {
-    // If there is an R_HOME, respect that.
     return join(rHome, "bin", binary);
-  } else if (Deno.build.os === "windows") {
-    // On windows, try to find R in program files
+  }
+
+  // then check the path
+  const path = await which(binary);
+  if (path) {
+    return path;
+  }
+
+  // on windows check the registry for a current version
+  if (Deno.build.os === "windows") {
+    // determine current version
+    const version = await registryReadString(
+      [kHKeyLocalMachine, kHKeyCurrentUser],
+      "Software\\R-core\\R",
+      "Current Version",
+    );
+    // determine path to version
+    if (version) {
+      const installPath = await registryReadString(
+        [kHKeyLocalMachine, kHKeyCurrentUser],
+        `Software\\R-core\\R\\${version}`,
+        "InstallPath",
+      );
+      if (installPath) {
+        return join(installPath, "bin", binary);
+      }
+    }
+
+    // last ditch, try to find R in program files
     const progFiles = Deno.env.get("programfiles");
     if (progFiles) {
       // Search program files for the binary
@@ -49,7 +100,7 @@ export function rBinaryPath(binary: string): string {
     }
   }
 
-  // We couldn't find R, just pass the binary itself and hope its on the path!
+  // We couldn't find R, just pass the binary itself and hope it works out!
   return binary;
 }
 

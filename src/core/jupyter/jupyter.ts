@@ -81,6 +81,7 @@ import {
   kCellFigAlign,
   kCellFigAlt,
   kCellFigCap,
+  kCellFigCapLoc,
   kCellFigEnv,
   kCellFigLink,
   kCellFigPos,
@@ -115,6 +116,7 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
+  kSlideLevel,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -204,6 +206,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellLabel]?: string;
   [kCellFigCap]?: string | string[];
   [kCellFigSubCap]?: string[];
+  [kCellFigCapLoc]?: string;
   [kCellLstLabel]?: string;
   [kCellLstCap]?: string;
   [kCellClasses]?: string;
@@ -246,6 +249,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigCap,
   kCellFigSubCap,
   kCellFigScap,
+  kCellFigCapLoc,
   kCellFigLink,
   kCellFigAlign,
   kCellFigAlt,
@@ -711,7 +715,7 @@ export function jupyterToMarkdown(
     if (slideType) {
       // this automatically puts us into slide-level 0 mode
       // (i.e. manual mode, slide delimeters are "---")
-      metadata["slide-level"] = 0;
+      metadata[kSlideLevel] = 0;
 
       // write any implied delimeter (or skip entirely)
       if (slideType === "skip") {
@@ -1021,6 +1025,9 @@ function mdFromCodeCell(
     }
     if (typeof cell.options[kCellColumn] === "string") {
       classes.push(`column-${cell.options[kCellColumn]}`);
+    }
+    if (typeof cell.options[kCellFigCapLoc] === "string") {
+      classes.push(`caption-${cell.options[kCellFigCapLoc]}`);
     }
     const classText = classes
       .map((clz: string) => {

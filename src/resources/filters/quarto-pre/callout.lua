@@ -51,7 +51,7 @@ function callout()
     Div = function(div)
       if div.attr.classes:find_if(isCallout) then
         preState.hasCallouts = true
-        if isHtmlOutput() and not isEpubOutput() then
+        if isHtmlOutput() and hasBootstrap() then
           return calloutDiv(div) 
         elseif isLatexOutput() then
           return calloutLatex(div)

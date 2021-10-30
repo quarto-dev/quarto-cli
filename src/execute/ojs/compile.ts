@@ -18,6 +18,7 @@ import {
   kCellColumn,
   kCellFigAlign,
   kCellFigAlt,
+  kCellFigCapLoc,
   kCellFigEnv,
   kCellFigLink,
   kCellFigPos,
@@ -395,6 +396,7 @@ export async function ojsCompile(
         kCellFigCap,
         kCellFigSubCap,
         kCellFigScap,
+        kCellFigCapLoc,
         kCellFigLink,
         kCellFigAlign,
         kCellFigEnv,
@@ -448,6 +450,10 @@ export async function ojsCompile(
       if (typeof cell.options?.column === "string") {
         classes.push(`column-${cell.options?.column}`);
       }
+      if (typeof cell.options?.[kCellFigCapLoc] === "string") {
+        classes.push(`caption-${cell.options?.[kCellFigCapLoc]}`);
+      }
+
       const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??
         true;
       const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
