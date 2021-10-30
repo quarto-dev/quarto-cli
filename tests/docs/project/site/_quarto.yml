@@ -1,8 +1,8 @@
 project:
-  type: site
+  type: website
 
-site:
-  title: "site"
+website:
+  title: "website"
   navbar:
     type: dark
     background: primary
@@ -16,4 +16,3 @@ format:
     theme: cosmo
     css: styles.css
     toc: true
-
