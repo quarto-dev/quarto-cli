@@ -113,11 +113,11 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create jupyter project with venv ",
-    "quarto create-project--engine jupyter --with-venv",
+    "quarto create-project myproject --engine jupyter --with-venv",
   )
   .example(
     "Create jupyter project with venv + packages",
-    "quarto create-project--engine jupyter --with-venv pandas,matplotlib",
+    "quarto create-project myproject --engine jupyter --with-venv pandas,matplotlib",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
