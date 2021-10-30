@@ -36,7 +36,7 @@ testQuartoCmd(
         // Make sure there is a project yaml section
         const metadata = yaml as Metadata;
         if (
-          metadata["project"] !== undefined && metadata["site"] !== undefined
+          metadata["project"] !== undefined && metadata["website"] !== undefined
         ) {
           const type = (metadata["project"] as Metadata)["type"];
           return type === "website";

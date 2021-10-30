@@ -27,10 +27,10 @@ import {
   kImageWidth,
   kLocale,
   kOpenGraph,
-  kSite,
   kSiteName,
   kSiteUrl,
   kTwitterCard,
+  kWebsite,
 } from "./website-config.ts";
 import { getDecodedAttribute } from "../../../core/html.ts";
 import { computePageTitle } from "./website-shared.ts";
@@ -129,7 +129,7 @@ export function metadataHtmlPostProcessor(
       const metadata = provider.metadata;
 
       // If not explicitly enabled, skip this provider
-      const siteMeta = format.metadata[kSite] as Metadata;
+      const siteMeta = format.metadata[kWebsite] as Metadata;
       if (
         !format.metadata[provider.key] && (!siteMeta || !siteMeta[provider.key])
       ) {
@@ -146,7 +146,7 @@ export function metadataHtmlPostProcessor(
 
         // if we still haven't found a preview, use the site image
         if (metadata[kImage] === undefined) {
-          const siteMeta = format.metadata[kSite] as Metadata;
+          const siteMeta = format.metadata[kWebsite] as Metadata;
           metadata[kImage] = siteMeta[kImage];
         }
       }
@@ -187,7 +187,7 @@ function opengraphMetadata(
   const openGraph = mergedSiteAndDocumentData(kOpenGraph, format);
 
   // Check the site for title
-  const siteMeta = format.metadata[kSite] as Metadata;
+  const siteMeta = format.metadata[kWebsite] as Metadata;
   if (siteMeta && siteMeta[kTitle]) {
     metadata[kSiteName] = siteMeta[kTitle];
   }
@@ -209,7 +209,7 @@ function twitterMetadata(format: Format) {
   // populate defaults
   const twitterData = mergedSiteAndDocumentData(kTwitterCard, format);
   if (twitterData && typeof (twitterData) === "object") {
-    [kTitle, kDescription, kImage, kCreator, kSite, kCardStyle].forEach(
+    [kTitle, kDescription, kImage, kCreator, kWebsite, kCardStyle].forEach(
       (key) => {
         if (twitterData[key] !== undefined) {
           metadata[key] = twitterData[key];
@@ -242,7 +242,7 @@ function resolveImageMetadata(
   metadata: Metadata,
 ) {
   // populate defaults
-  const siteMeta = format.metadata[kSite] as Metadata;
+  const siteMeta = format.metadata[kWebsite] as Metadata;
   if (metadata[kImage] && siteMeta && siteMeta[kSiteUrl] !== undefined) {
     // Resolve any relative urls and figure out image size
     const imgMeta = imageMetadata(
@@ -263,7 +263,7 @@ function mergedSiteAndDocumentData(
   key: string,
   format: Format,
 ): boolean | Metadata {
-  const siteData = format.metadata[kSite] as Metadata;
+  const siteData = format.metadata[kWebsite] as Metadata;
 
   const siteMetadata = siteData && siteData[key] !== undefined
     ? siteData[key]
@@ -349,7 +349,7 @@ function imageSize(path: string) {
 function writeMeta(name: string, content: string, doc: Document) {
   // Meta tag
   const m = doc.createElement("META");
-  if (name.startsWith("og:")){
+  if (name.startsWith("og:")) {
     m.setAttribute("property", name);
   } else {
     m.setAttribute("name", name);
@@ -430,7 +430,7 @@ function metaMarkdownPipeline(format: Format) {
 
   const siteTitleMetaHandler = {
     getUnrendered() {
-      const siteMeta = format.metadata[kSite] as Metadata;
+      const siteMeta = format.metadata[kWebsite] as Metadata;
       if (siteMeta && siteMeta[kTitle]) {
         return { [kMetaSideNameId]: siteMeta[kTitle] as string };
       }

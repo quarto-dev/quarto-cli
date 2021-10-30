@@ -10,7 +10,7 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { Format, Metadata } from "../../../config/types.ts";
 import { NavbarItem, NavItem, Sidebar } from "../../project-config.ts";
 
-import { kSite } from "./website-config.ts";
+import { kWebsite } from "./website-config.ts";
 import { kTitle } from "../../../config/constants.ts";
 import {
   flattenItems,
@@ -47,7 +47,7 @@ export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
 }
 
 function title(format: Format) {
-  const site = (format.metadata[kSite] as Metadata);
+  const site = (format.metadata[kWebsite] as Metadata);
   if (
     site &&
     site[kTitle] &&

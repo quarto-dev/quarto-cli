@@ -1,7 +1,7 @@
 project:
   type: website
 
-site:
+website:
   title: "<%= title %>"
   navbar:
     type: dark

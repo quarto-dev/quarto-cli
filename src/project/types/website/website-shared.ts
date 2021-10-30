@@ -14,11 +14,11 @@ import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { ProjectContext } from "../../types.ts";
 import { Navbar, NavItem, Sidebar, SidebarItem } from "../../project-config.ts";
 import {
-  kSite,
   kSiteFooter,
   kSiteNavbar,
   kSitePageNavigation,
   kSiteSidebar,
+  kWebsite,
   websiteConfig,
 } from "./website-config.ts";
 import { cookieConsentEnabled } from "./website-analytics.ts";
@@ -52,7 +52,7 @@ export function computePageTitle(
   const meta = extras?.metadata || {};
   const pageTitle = meta[kPageTitle] || format.metadata[kPageTitle];
   const titlePrefix = extras?.pandoc?.[kTitlePrefix] ||
-    (format.metadata[kSite] as Record<string, unknown>)?.[kTitle];
+    (format.metadata[kWebsite] as Record<string, unknown>)?.[kTitle];
   const title = format.metadata[kTitle];
 
   if (pageTitle !== undefined) {
