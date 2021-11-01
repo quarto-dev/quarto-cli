@@ -5,11 +5,11 @@
 function parseLayoutWidths(figLayout, figureCount)
   
   -- parse json
-  figLayout = pandoc.List:new(jsonDecode(figLayout))
+  figLayout = pandoc.List(jsonDecode(figLayout))
   
   -- if there are no tables then make a table and stick the items in it
   if not figLayout:find_if(function(item) return type(item) == "table" end) then
-     figLayout = pandoc.List:new({figLayout})
+     figLayout = pandoc.List({figLayout})
   end
       
   -- validate that layout is now all rows
@@ -22,7 +22,7 @@ function parseLayoutWidths(figLayout, figureCount)
   figureLayoutCount = 0
   figLayout = figLayout:map(function(row)
     --- get the cols
-    local cols = pandoc.List:new(row)
+    local cols = pandoc.List(row)
     
     -- see if we have a total numeric value (no strings)
     local numericTotal = 0
@@ -83,7 +83,7 @@ function widthsToPercent(layout, cols)
   for _,row in ipairs(layout) do
     
     -- determine numeric widths (and their total) for the row
-    local widths = pandoc.List:new()
+    local widths = pandoc.List()
     for _,fig in ipairs(row) do
       widths[#widths+1] = 0
       local width = attribute(fig, "width", nil)

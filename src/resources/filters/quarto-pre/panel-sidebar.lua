@@ -44,7 +44,7 @@ function panelSidebar()
           "ps-0",
           "ps-lg-3"
         }
-        local newBlocks = pandoc.List:new()
+        local newBlocks = pandoc.List()
         local pendingSidebar = nil
         for i,el in ipairs(blocks) do 
           if isSidebar(el) then

@@ -11,7 +11,7 @@ text = require 'text'
 preState = {
   usingTikz = false,
   results = {
-    resourceFiles = pandoc.List:new({})
+    resourceFiles = pandoc.List({})
   },
   file = nil,
   appendix = false,

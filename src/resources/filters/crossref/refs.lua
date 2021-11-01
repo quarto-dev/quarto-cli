@@ -11,7 +11,7 @@ function resolveRefs()
       local refTypes = validRefTypes()
       
       -- scan citations for refs
-      local refs = pandoc.List:new()
+      local refs = pandoc.List()
       for i, cite in ipairs (citeEl.citations) do
         -- get the label and type, and note if the label is uppercase
         local label = text.lower(cite.id)
@@ -31,7 +31,7 @@ function resolveRefs()
             end
   
             -- create ref text
-            local ref = pandoc.List:new()
+            local ref = pandoc.List()
             if #cite.prefix > 0 then
               ref:extend(cite.prefix)
               ref:extend({nbspString()})
@@ -65,7 +65,7 @@ function resolveRefs()
   
                 -- link if requested
               if (refHyperlink()) then
-                ref = {pandoc.Link:new(ref, "#" .. label)}
+                ref = {pandoc.Link(ref, "#" .. label)}
               end
             end
   

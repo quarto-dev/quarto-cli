@@ -110,8 +110,8 @@ end
 
 function partitionCells(divEl)
   
-  local preamble = pandoc.List:new()
-  local cells = pandoc.List:new()
+  local preamble = pandoc.List()
+  local cells = pandoc.List()
   local caption = nil
   
   -- extract caption if it's a table or figure div
@@ -172,7 +172,7 @@ end
 function layoutCells(divEl, cells)
   
   -- layout to return (list of rows)
-  local rows = pandoc.List:new()
+  local rows = pandoc.List()
   
   -- note any figure layout attributes
   local layoutRows = tonumber(attribute(divEl, kLayoutNrow, nil))
@@ -193,7 +193,7 @@ function layoutCells(divEl, cells)
   if layoutCols ~= nil then
     for i,cell in ipairs(cells) do
       if math.fmod(i-1, layoutCols) == 0 then
-        rows:insert(pandoc.List:new())
+        rows:insert(pandoc.List())
       end
       rows[#rows]:insert(cell)
     end
@@ -236,7 +236,7 @@ function layoutCells(divEl, cells)
       if cellIndex > #cells then
         break
       end
-      rows:insert(pandoc.List:new())
+      rows:insert(pandoc.List())
       for _,width in ipairs(item) do
         layoutNextCell(width)
       end

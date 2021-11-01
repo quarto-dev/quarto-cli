@@ -102,7 +102,7 @@ function combineFilters(filters)
 
       -- ensure that there is a list for this key
       if filterList[key] == nil then
-        filterList[key] = pandoc.List:new()
+        filterList[key] = pandoc.List()
       end
 
       -- add the current function to the list
@@ -141,7 +141,7 @@ end
 -- lua string to pandoc inlines
 function stringToInlines(str)
   if str then
-    return pandoc.List:new({pandoc.Str(str)})
+    return pandoc.List({pandoc.Str(str)})
   else
     return nil
   end

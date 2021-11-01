@@ -194,7 +194,7 @@ function processRawTable(divEl)
           local parent = divEl.attr.attributes[kRefParent]
           if (parent) then
             order = nextSubrefOrder()
-            local subref = pandoc.List:new()
+            local subref = pandoc.List()
             prependSubrefNumber(subref, order)
             prefix = inlinesToString(subref)
           else

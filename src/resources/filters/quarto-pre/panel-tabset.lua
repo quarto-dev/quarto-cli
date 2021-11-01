@@ -34,7 +34,7 @@ function tabsetDiv(div, renderer)
   if heading ~= nil then
     -- note the level, then build tab buckets for content after these levels
     local level = heading.level
-    local tabs = pandoc.List:new()
+    local tabs = pandoc.List()
     local tab = nil
     for i=1,#div.content do 
       local el = div.content[i]
@@ -48,7 +48,7 @@ function tabsetDiv(div, renderer)
     end
 
     -- init tab navigation 
-    local nav = pandoc.List:new()
+    local nav = pandoc.List()
     nav:insert(pandoc.RawInline('html', '<ul ' .. renderer.ulAttribs(tabsetid) .. '>'))
 
     -- init tab panes
