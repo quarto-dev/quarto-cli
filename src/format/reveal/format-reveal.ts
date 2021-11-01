@@ -340,9 +340,9 @@ function revealHtmlPostprocessor(format: Format) {
     const referencesDiv = doc.createElement("div");
     referencesDiv.classList.add("reveal-references");
     doc.body.appendChild(referencesDiv);
-    const endnotes = doc.querySelector('section[role="doc-endnotes"]');
-    if (endnotes) {
-      referencesDiv.appendChild(endnotes);
+    const endnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+    for (const endnoteSection of endnotes) {
+      referencesDiv.appendChild(endnoteSection);
     }
     const refs = doc.querySelector("#refs");
     if (refs) {

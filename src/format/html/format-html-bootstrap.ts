@@ -403,17 +403,19 @@ function bootstrapHtmlPostprocessor(format: Format) {
       }
     }
 
-    // provide heading for footnotes
-    const footnotes = doc.querySelector('section[role="doc-endnotes"]');
-    if (footnotes) {
+    // provide heading for footnotes (but only if there is one section, there could
+    // be multiple if they used reference-location: block/section)
+    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+    if (footnotes.length === 1) {
+      const footnotesEl = footnotes.item(0) as Element;
       const h2 = doc.createElement("h2");
       const title =
         (format.metadata[kFootnoteSectionTitle] || "Footnotes") as string;
       if (typeof (title) == "string" && title !== "none") {
         h2.innerHTML = title;
       }
-      footnotes.insertBefore(h2, footnotes.firstChild);
-      const hr = footnotes.querySelector("hr");
+      footnotesEl.insertBefore(h2, footnotesEl.firstChild);
+      const hr = footnotesEl.querySelector("hr");
       if (hr) {
         hr.remove();
       }
