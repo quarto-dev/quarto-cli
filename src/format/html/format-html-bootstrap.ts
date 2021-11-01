@@ -39,6 +39,7 @@ import {
   kBootstrapDependencyName,
   kDocumentCss,
   kFootnoteSectionTitle,
+  kFootnotesMargin,
   kPageLayout,
   kPageLayoutArticle,
   kPageLayoutCustom,
@@ -183,6 +184,74 @@ function bootstrapHtmlPostprocessor(format: Format) {
       title.classList.add("display-7");
     }
 
+    // If margin footnotes are enabled move them
+    if (format.metadata?.[kFootnotesMargin]) {
+      // This is a little complicated because if there are multiple footnotes
+      // in a single block, we want to wrap them in a container so they
+      // all can appear adjacent to the block (otherwise only the first would appear)
+      // next to the block, and subsequent ones would appear below the block
+
+      // Find all the footnote links
+      const footnoteEls = doc.querySelectorAll(".footnote-ref");
+
+      let currentParent: Element | null = null;
+      let pendingFootnotes: Element[] = [];
+
+      const appendFootnotes = (parent: Element, footnotes: Element[]) => {
+        if (footnotes.length === 1) {
+          footnotes[0].classList.add("footnote-gutter");
+          parent.appendChild(footnotes[0]);
+        } else {
+          const containerEl = doc.createElement("div");
+          containerEl.classList.add("footnote-gutter");
+          for (const footnote of footnotes) {
+            containerEl.appendChild(footnote);
+          }
+          parent.appendChild(containerEl);
+        }
+      };
+
+      footnoteEls.forEach((footnoteEl) => {
+        const footNoteLink = footnoteEl as Element;
+        if (footNoteLink.hasAttribute("href")) {
+          const target = footNoteLink.getAttribute("href");
+          if (target) {
+            const footnoteContentsEl = doc.getElementById(target.slice(1));
+            if (footnoteContentsEl) {
+              if (
+                currentParent !== null &&
+                currentParent !== footnoteEl.parentElement
+              ) {
+                appendFootnotes(currentParent, pendingFootnotes);
+                pendingFootnotes = [];
+              }
+
+              currentParent = footnoteEl.parentElement;
+
+              // Create a new footnote div and move the contents into it
+              const footnoteDiv = doc.createElement("div");
+              footnoteDiv.id = footnoteContentsEl?.id;
+              footnoteDiv.setAttribute(
+                "role",
+                footnoteContentsEl.getAttribute("role"),
+              );
+              Array.from(footnoteContentsEl.children).forEach((child) => {
+                footnoteDiv.appendChild(child);
+              });
+              pendingFootnotes.push(footnoteDiv);
+
+              // Remove the old footnote
+              footnoteContentsEl.remove();
+            }
+          }
+        }
+      });
+
+      if (currentParent && pendingFootnotes) {
+        appendFootnotes(currentParent, pendingFootnotes);
+      }
+    }
+
     // Forward caption class from parents to the child fig caps
     const gutterCaptions = doc.querySelectorAll(".caption-gutter");
     gutterCaptions.forEach((captionContainerNode) => {
@@ -253,8 +322,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
         }
       }
     });
-
-    // Process col classes into our grid system
 
     // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
@@ -405,7 +472,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
 
     // provide heading for footnotes
     const footnotes = doc.querySelector('section[role="doc-endnotes"]');
-    if (footnotes) {
+    if (footnotes && !format.metadata?.[kFootnotesMargin]) {
       const h2 = doc.createElement("h2");
       const title =
         (format.metadata[kFootnoteSectionTitle] || "Footnotes") as string;
