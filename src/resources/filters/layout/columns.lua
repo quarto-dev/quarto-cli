@@ -13,7 +13,6 @@ function columns()
     Div = function(el)  
       -- for any top level divs, render then
       renderDivColumn(el)
-      
       return el      
     end,
 
@@ -36,9 +35,36 @@ function columns()
 end
 
 function renderDivColumn(el) 
-  -- don't render this if it requires panel layout. 
-  -- panel layout will take care of rendering anything special
-  if isLatexOutput() and not requiresPanelLayout(el) then
+
+  if el.identifier and el.identifier:find("^lst%-") then
+    -- for listings, fetch column classes from sourceCode element
+    -- and move to the appropriate spot (e.g. caption, container div)
+    local captionEl = el.content[1]
+    local codeEl = el.content[2]
+    
+    if captionEl and codeEl then
+      local columnClasses = resolveColumnClasses(codeEl)
+      if #columnClasses > 0 then
+        noteHasColumns()
+        removeColumnClasses(codeEl)
+
+        for i, clz in ipairs(columnClasses) do 
+          if clz == kSideCaptionClass and isHtmlOutput() then
+            -- wrap the caption if this is a margin caption
+            -- only do this for HTML output since Latex captions typically appear integrated into
+            -- a tabular type layout in latex documents
+            local captionContainer = pandoc.Div({captionEl}, pandoc.Attr("", {clz}))
+            el.content[1] = codeEl
+            el.content[2] = captionContainer    
+          else
+            -- move to container
+            el.attr.classes:insert(clz)
+          end
+        end
+      end
+    end
+
+  elseif isLatexOutput() and not requiresPanelLayout(el) then
 
     -- see if there are any column classes
     local columnClasses = resolveColumnClasses(el)
@@ -65,8 +91,6 @@ function renderDivColumn(el)
        -- Markup any captions for the post processor
       latexMarkupCaptionEnv(el);
     end
-
-
   end
 end
 
