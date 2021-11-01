@@ -220,19 +220,20 @@ export async function watchProject(
         } else {
           reloadTarget = "";
         }
-      }
-      // if we don't have a reload target based on html output, see if we can
-      // get one from a reloadOnChange input
-      if (!reloadTarget) {
-        const input = modified.find(isRenderOnChangeInput);
-        if (input) {
-          lastRenderOnChangeInput = input;
-          const target = await resolveInputTarget(
-            project,
-            relative(project.dir, input),
-          );
-          if (target) {
-            reloadTarget = target.outputHref;
+
+        // if we don't have a reload target based on html output, see if we can
+        // get one from a reloadOnChange input
+        if (!reloadTarget) {
+          const input = modified.find(isRenderOnChangeInput);
+          if (input) {
+            lastRenderOnChangeInput = input;
+            const target = await resolveInputTarget(
+              project,
+              relative(project.dir, input),
+            );
+            if (target) {
+              reloadTarget = target.outputHref;
+            }
           }
         }
       }

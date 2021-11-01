@@ -159,6 +159,9 @@ export async function serveProject(
     throw error;
   }
 
+  const finalOutput = renderResultFinalOutput(renderResult);
+  const pdfOutput = finalOutput && extname(finalOutput) === ".pdf";
+
   // create mirror of project for serving
   const serveDir = copyProjectForServe(project, true);
   const serveProject = (await projectContext(serveDir, flags, false, true))!;
@@ -174,7 +177,10 @@ export async function serveProject(
     serveProject,
     resourceFiles,
     flags,
-    options,
+    {
+      ...options,
+      navigate: !!options.navigate && !pdfOutput,
+    },
   );
 
   // create a promise queue so we only do one renderProject at a time
@@ -299,11 +305,6 @@ export async function serveProject(
   if (options.watch) {
     printWatchingForChangesMessage();
   }
-  printBrowsePreviewMessage(siteUrl);
-
-  // determine final output
-  const finalOutput = renderResultFinalOutput(renderResult);
-  const pdfOutput = finalOutput && extname(finalOutput) === ".pdf";
 
   // open browser if requested
   if (options.browse && finalOutput) {
@@ -312,18 +313,16 @@ export async function serveProject(
       : pdfOutput
       ? kPdfJsInitialPath
       : renderResultUrlPath(renderResult);
-    if (targetPath) {
-      openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
-    } else {
-      openUrl(siteUrl);
-    }
+    const browseUrl = targetPath
+      ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
+      : siteUrl;
+    printBrowsePreviewMessage(browseUrl);
+    openUrl(browseUrl);
   }
 
-  // TODO: the reload that occurs on file change targets the wrong URL (not web/index.html)
   // TODO: the reload that occurs doesn't cause a re-render (perhaps the file change should
   // cause the re-render? not sure how clean that would be)
-  // TODO: confirm that save -> render works as well as as straight render
-  // TODO: test with --render pdf
+  // TODO: debouncing for pdf-latex file modifications (see preview)
   // TODO: how will pdf-only configs work
 
   // if this is a pdf then we tweak the options to correctly handle pdfjs
