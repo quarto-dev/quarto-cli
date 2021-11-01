@@ -236,8 +236,24 @@ function bootstrapHtmlPostprocessor(format: Format) {
                 footnoteContentsEl.getAttribute("role"),
               );
               Array.from(footnoteContentsEl.children).forEach((child) => {
+                // Remove the backlink since this is in the gutter
+                const backLinkEl = child.querySelector(".footnote-back");
+                if (backLinkEl) {
+                  backLinkEl.remove();
+                }
+
+                // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
+                child.insertBefore(
+                  doc.createTextNode("\u00A0"),
+                  child.firstChild,
+                );
+                child.insertBefore(
+                  footNoteLink.firstChild.cloneNode(true),
+                  child.firstChild,
+                );
                 footnoteDiv.appendChild(child);
               });
+
               pendingFootnotes.push(footnoteDiv);
 
               // Remove the old footnote
@@ -469,7 +485,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
         heading.setAttribute("data-anchor-id", section.id);
       }
     }
-
 
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)
