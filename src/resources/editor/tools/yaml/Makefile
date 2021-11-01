@@ -3,14 +3,6 @@ all: yaml.js
 clean:
 	rm -f yaml.js
 
-# ajv-fix-module.js: external/ajv7.bundle.js
-# 	echo "(function () {"                   > ajv-fix-module.js
-# 	echo "  let module = { };"             >> ajv-fix-module.js
-# 	cat external/ajv7.bundle.js            >> ajv-fix-module.js
-# #	echo "  window.ajv7 = module.exports;" >> ajv-fix-module.js
-# 	echo "}());"                           >> ajv-fix-module.js
-# # 	esbuild --bundle ajv-stub.js --outfile=ajv-iife.js --format=iife
-
 automation.build.js: automation.js validator-queue.js tree-sitter-annotated-yaml.js parsing.js schemas.js 
 	esbuild --bundle automation.js --outfile=automation.build.js --format=iife
 
