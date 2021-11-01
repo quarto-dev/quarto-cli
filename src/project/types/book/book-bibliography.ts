@@ -60,7 +60,7 @@ export async function bookBibliographyPostRender(
     // find all of the refs in each document and fixup their links to point
     // to the shared bibliography output. note these refs so we can generate
     // a global bibliography. also hide the refs div in each document (as it's
-    // still used by hover-citations)
+    // still used by citations-hover)
     const citeIds: string[] = [];
     outputFiles.forEach((file) => {
       // relative path to refs html
