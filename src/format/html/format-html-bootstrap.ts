@@ -198,6 +198,11 @@ function bootstrapHtmlPostprocessor(format: Format) {
         }
       };
 
+      const removeCaptionClass = (el: Element) => {
+        // Remove this since it will place the contents in the gutter if it remains present
+        el.classList.remove("caption-gutter");
+      };
+
       // Deal with layout panels (we will only handle the main caption not the internals)
       const isLayoutPanel = captionContainer.classList.contains(
         "quarto-layout-panel",
@@ -209,6 +214,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
           for (const child of figure.children) {
             if (child.tagName === "FIGCAPTION") {
               child.classList.add("caption-gutter");
+              removeCaptionClass(captionContainer);
               break;
             }
           }
@@ -217,6 +223,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
           const caption = captionContainer.querySelector(".panel-caption");
           if (caption) {
             caption.classList.add("caption-gutter");
+            removeCaptionClass(captionContainer);
           }
         }
       } else {
@@ -238,13 +245,13 @@ function bootstrapHtmlPostprocessor(format: Format) {
               divCopy.classList.add("caption-gutter");
               divCopy.innerHTML = captionEl.innerHTML;
               parentDivEl.appendChild(divCopy);
+              removeCaptionClass(captionContainer);
             }
           }
+        } else {
+          removeCaptionClass(captionContainer);
         }
       }
-
-      // Remove this since it will place the contents in the gutter if it remains present
-      captionContainer.classList.remove("caption-gutter");
     });
 
     // Process col classes into our grid system
