@@ -18,7 +18,7 @@ function tables()
             caption = pandoc.Para(noCaption())
             el.content:insert(caption)
           end
-          local captionClone = caption:clone()
+          local captionClone = caption:clone().content
           local label = el.attr.identifier
           local order = indexNextOrder("tbl")
           prependTitlePrefix(caption, label, order)
