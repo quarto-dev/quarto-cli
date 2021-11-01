@@ -70,7 +70,7 @@ end
 
 function flatten(targetPath) 
   local pathParts = path.split(targetPath)
-  local resolvedPath = pandoc.List:new()
+  local resolvedPath = pandoc.List()
 
   for _, part in ipairs(pathParts) do 
     if part == '..' then

@@ -80,6 +80,7 @@ export interface ExecuteResult {
   markdown: string;
   supporting: string[];
   filters: string[];
+  metadata?: Metadata;
   includes?: PandocIncludes;
   engineDependencies?: Array<unknown>;
   preserve?: Record<string, string>;

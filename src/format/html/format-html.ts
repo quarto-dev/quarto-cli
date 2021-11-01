@@ -53,18 +53,17 @@ import {
   clipboardDependency,
   kAnchorSections,
   kBootstrapDependencyName,
+  kCitationsHover,
   kCodeCopy,
   kComments,
   kDocumentCss,
-  kHoverCitations,
-  kHoverFootnotes,
+  kFootnotesHover,
   kHypothesis,
+  kMinimal,
+  kTabsets,
   kUtterances,
   quartoBaseLayer,
-  quartoDefaults,
-  quartoFunctions,
   quartoGlobalCssVariableRules,
-  quartoRules,
 } from "./format-html-shared.ts";
 
 export function htmlFormat(
@@ -74,6 +73,16 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
+      metadataFilter: (metadata: Metadata) => {
+        if (!!metadata[kMinimal] && metadata[kTheme] === undefined) {
+          return {
+            ...metadata,
+            theme: "none",
+          };
+        } else {
+          return metadata;
+        }
+      },
       formatExtras: (input: string, flags: PandocFlags, format: Format) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
@@ -94,6 +103,7 @@ export function htmlFormat(
 export const kQuartoHtmlDependency = "quarto-html";
 
 export interface HtmlFormatFeatureDefaults {
+  tabby?: boolean;
   copyCode?: boolean;
   anchors?: boolean;
   hoverCitations?: boolean;
@@ -122,8 +132,9 @@ export function htmlFormatExtras(
 
   // populate feature defaults if none provided
   if (!featureDefaults) {
-    featureDefaults = htmlFormatFeatureDefaults(bootstrap);
+    featureDefaults = htmlFormatFeatureDefaults(format);
   }
+
   // empty tippy options if none provided
   if (!tippyOptions) {
     tippyOptions = {};
@@ -160,6 +171,11 @@ export function htmlFormatExtras(
   options.codeLink = format.metadata[kCodeLink] || false;
 
   // apply defaults
+  if (featureDefaults.tabby) {
+    options.tabby = format.metadata[kTabsets] !== false;
+  } else {
+    options.tabby = format.metadata[kTabsets] || false;
+  }
   if (featureDefaults.copyCode) {
     options.copyCode = format.metadata[kCodeCopy] !== false;
   } else {
@@ -171,14 +187,14 @@ export function htmlFormatExtras(
     options.anchors = format.metadata[kAnchorSections] || false;
   }
   if (featureDefaults.hoverCitations) {
-    options.hoverCitations = format.metadata[kHoverCitations] !== false;
+    options.hoverCitations = format.metadata[kCitationsHover] !== false;
   } else {
-    options.hoverCitations = format.metadata[kHoverCitations] || false;
+    options.hoverCitations = format.metadata[kCitationsHover] || false;
   }
   if (featureDefaults.hoverFootnotes) {
-    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
+    options.hoverFootnotes = format.metadata[kFootnotesHover] !== false;
   } else {
-    options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
+    options.hoverFootnotes = format.metadata[kFootnotesHover] || false;
   }
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
@@ -190,6 +206,14 @@ export function htmlFormatExtras(
     scripts.push({
       name: "quarto.js",
       path: formatResourcePath("html", "quarto.js"),
+    });
+  }
+
+  // tabby if required
+  if (options.tabby) {
+    scripts.push({
+      name: "tabby.min.js",
+      path: formatResourcePath("html", join("tabby", "js", "tabby.js")),
     });
   }
 
@@ -264,7 +288,7 @@ export function htmlFormatExtras(
       sassBundles.push({
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
-        quarto: quartoBaseLayer(format),
+        quarto: quartoBaseLayer(format, !!options.copyCode, !!options.tabby),
       });
     }
     if (scssOptions.quartoCssVars) {
@@ -364,23 +388,17 @@ function htmlFormatFilterParams(format: Format) {
 }
 
 function htmlFormatFeatureDefaults(
-  bootstrap: boolean,
+  format: Format,
 ): HtmlFormatFeatureDefaults {
-  if (bootstrap) {
-    return {
-      copyCode: true,
-      anchors: true,
-      hoverCitations: true,
-      hoverFootnotes: true,
-    };
-  } else {
-    return {
-      copyCode: false,
-      anchors: false,
-      hoverCitations: false,
-      hoverFootnotes: false,
-    };
-  }
+  const bootstrap = formatHasBootstrap(format);
+  const minimal = format.metadata[kMinimal] === true;
+  return {
+    tabby: !minimal && !bootstrap,
+    copyCode: !minimal,
+    anchors: !minimal,
+    hoverCitations: !minimal,
+    hoverFootnotes: !minimal,
+  };
 }
 
 function htmlFormatPostprocessor(
@@ -392,7 +410,7 @@ function htmlFormatPostprocessor(
 
   // get feature defaults
   if (!featureDefaults) {
-    featureDefaults = htmlFormatFeatureDefaults(haveBootstrap);
+    featureDefaults = htmlFormatFeatureDefaults(format);
   }
 
   // read options
@@ -427,10 +445,7 @@ function htmlFormatPostprocessor(
         const copyIcon = doc.createElement("i");
         copyIcon.classList.add("bi");
         copyButton.appendChild(copyIcon);
-        const codeEl = code.querySelector("code");
-        if (codeEl) {
-          codeEl.appendChild(copyButton);
-        }
+        code.appendChild(copyButton);
       }
     }
 

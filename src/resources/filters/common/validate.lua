@@ -1,8 +1,8 @@
 -- validate.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-kAlignments = pandoc.List:new({ "center", "left", "right" })
-kVAlignments = pandoc.List:new({"top", "center", "bottom"})
+kAlignments = pandoc.List({ "center", "left", "right" })
+kVAlignments = pandoc.List({"top", "center", "bottom"})
 
 function validatedAlign(align)
   return validateInList(align, kAlignments, "alignment", "center")

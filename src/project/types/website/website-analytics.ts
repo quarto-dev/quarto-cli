@@ -11,7 +11,7 @@ import { Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
 import { ProjectContext } from "../../types.ts";
-import { kSite } from "./website-config.ts";
+import { kWebsite } from "./website-config.ts";
 
 // tracking id for google analytics
 // GA3 calls this 'tracking id'
@@ -77,7 +77,7 @@ export function websiteAnalyticsScriptFile(
   project: ProjectContext,
 ) {
   // Find the ga tag
-  const siteMeta = project.config?.[kSite] as Metadata;
+  const siteMeta = project.config?.[kWebsite] as Metadata;
 
   // The google analytics metadata (either from the page or the site)
   // Deal with page and site options
@@ -120,7 +120,7 @@ export function websiteAnalyticsScriptFile(
 // Generate the dependencies for cookie consent
 // see: https://www.cookieconsent.com
 export function cookieConsentDependencies(project: ProjectContext) {
-  const siteMeta = project.config?.[kSite] as Metadata;
+  const siteMeta = project.config?.[kWebsite] as Metadata;
   if (siteMeta) {
     // The site title
     const title = siteMeta[kTitle] as string || "";
@@ -209,7 +209,7 @@ export function cookieConsentDependencies(project: ProjectContext) {
 
 // Whether or not cookie consent is enabled
 export function cookieConsentEnabled(project: ProjectContext) {
-  const siteMeta = project.config?.[kSite] as Metadata;
+  const siteMeta = project.config?.[kWebsite] as Metadata;
   if (siteMeta) {
     return !!siteMeta[kCookieConsent];
   } else {

@@ -6,19 +6,30 @@
 */
 import { join } from "path/mod.ts";
 import { outputVariable, sassVariable } from "../../core/sass.ts";
-import { kCodeOverflow } from "../../config/constants.ts";
+import { kCodeOverflow, kLinkExternalIcon } from "../../config/constants.ts";
 import { Format, FormatDependency } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
 
+// features that are enabled by default for 'html'. setting
+// all of these to false will yield the minimal html output
+// that quarto can produce (there is still some CSS we generate
+// to provide figure layout, etc.). you can also set the
+// 'minimal' option to do this in one shot
+export const kTabsets = "tabsets";
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
+export const kCitationsHover = "citations-hover";
+export const kFootnotesHover = "footnotes-hover";
+export const kFootnotesMargin = "footnotes-margin";
+
+// turn off optional html features as well as all themes
+export const kMinimal = "minimal";
+
 export const kPageLayout = "page-layout";
 export const kPageLayoutArticle = "article";
 export const kPageLayoutCustom = "custom";
 export const kPageLayoutNone = "none";
-export const kHoverCitations = "hover-citations";
-export const kHoverFootnotes = "hover-footnotes";
 export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
@@ -42,6 +53,24 @@ export const quartoRules = () =>
   Deno.readTextFileSync(formatResourcePath(
     "html",
     "_quarto-rules.scss",
+  ));
+
+export const quartoCopyCodeRules = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-rules-copy-code.scss",
+  ));
+
+export const quartoLinkExternalRules = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-rules-link-external.scss",
+  ));
+
+export const quartoTabbyRules = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-rules-tabby.scss",
   ));
 
 export const quartoGlobalCssVariableRules = () => {
@@ -73,7 +102,22 @@ export const quartoBootstrapFunctions = () =>
     join("bootstrap", "_bootstrap-functions.scss"),
   ));
 
-export const quartoBaseLayer = (format: Format) => {
+export const quartoBaseLayer = (
+  format: Format,
+  codeCopy = false,
+  tabby = false,
+) => {
+  const rules: string[] = [quartoRules()];
+  if (codeCopy) {
+    rules.push(quartoCopyCodeRules());
+  }
+  if (tabby) {
+    rules.push(quartoTabbyRules());
+  }
+  if (format.render[kLinkExternalIcon]) {
+    rules.push(quartoLinkExternalRules());
+  }
+
   return {
     use: ["sass:color", "sass:map", "sass:math"],
     defaults: [
@@ -81,7 +125,7 @@ export const quartoBaseLayer = (format: Format) => {
     ].join("\n"),
     functions: quartoFunctions(),
     mixins: "",
-    rules: quartoRules(),
+    rules: rules.join("\n"),
   };
 };
 
@@ -99,7 +143,7 @@ export const quartoDefaults = (format: Format) => {
         "code-copy-selector",
         format.metadata[kCodeCopy] === undefined ||
           format.metadata[kCodeCopy] === "hover"
-          ? '"pre.sourceCode code:hover > "'
+          ? '"pre.sourceCode:hover > "'
           : '""',
       ),
     ),

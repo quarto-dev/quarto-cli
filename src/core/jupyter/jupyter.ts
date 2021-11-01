@@ -76,10 +76,12 @@ import {
   kCellColabType,
   kCellColbOutputId,
   kCellCollapsed,
+  kCellColumn,
   kCellDeletable,
   kCellFigAlign,
   kCellFigAlt,
   kCellFigCap,
+  kCellFigCapLoc,
   kCellFigEnv,
   kCellFigLink,
   kCellFigPos,
@@ -97,6 +99,8 @@ import {
   kCellOutWidth,
   kCellPanel,
   kCellRawMimeType,
+  kCellSlideshow,
+  kCellSlideshowSlideType,
   kCellTags,
   kCodeFold,
   kCodeLineNumbers,
@@ -112,6 +116,7 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
+  kSlideLevel,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -164,8 +169,15 @@ export interface JupyterCellMetadata {
   // used to preserve line spacing
   [kCellLinesToNext]?: number;
 
+  // slideshow
+  [kCellSlideshow]?: JupyterCellSlideshow;
+
   // anything else
   [key: string]: unknown;
+}
+
+export interface JupyterCellSlideshow {
+  [kCellSlideshowSlideType]: string;
 }
 
 export interface JupyterCellWithOptions extends JupyterCell {
@@ -194,10 +206,12 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellLabel]?: string;
   [kCellFigCap]?: string | string[];
   [kCellFigSubCap]?: string[];
+  [kCellFigCapLoc]?: string;
   [kCellLstLabel]?: string;
   [kCellLstCap]?: string;
   [kCellClasses]?: string;
   [kCellPanel]?: string;
+  [kCellColumn]?: string;
   [kCodeFold]?: string;
   [kCodeLineNumbers]?: boolean | string;
   [kCodeSummary]?: string;
@@ -231,9 +245,11 @@ export const kJupyterCellInternalOptionKeys = [
   kCellLabel,
   kCellClasses,
   kCellPanel,
+  kCellColumn,
   kCellFigCap,
   kCellFigSubCap,
   kCellFigScap,
+  kCellFigCapLoc,
   kCellFigLink,
   kCellFigAlign,
   kCellFigAlt,
@@ -646,12 +662,14 @@ export interface JupyterToMarkdownOptions {
   toLatex?: boolean;
   toMarkdown?: boolean;
   toIpynb?: boolean;
+  toPresentation?: boolean;
   figFormat?: string;
   figDpi?: number;
 }
 
 export interface JupyterToMarkdownResult {
   markdown: string;
+  metadata?: Metadata;
   dependencies?: JupyterWidgetDependencies;
   htmlPreserve?: Record<string, string>;
 }
@@ -667,6 +685,9 @@ export function jupyterToMarkdown(
     ? extractJupyterWidgetDependencies(nb)
     : undefined;
   const htmlPreserve = isHtml ? removeAndPreserveHtml(nb) : undefined;
+
+  // extra metadata
+  const metadata: Metadata = {};
 
   // generate markdown
   const md: string[] = [];
@@ -687,6 +708,27 @@ export function jupyterToMarkdown(
     // validate unique cell labels
     validateCellLabel(cell);
 
+    // interpret cell slide_type for presentation output
+    const slideType = options.toPresentation
+      ? cell.metadata[kCellSlideshow]?.[kCellSlideshowSlideType]
+      : undefined;
+    if (slideType) {
+      // this automatically puts us into slide-level 0 mode
+      // (i.e. manual mode, slide delimeters are "---")
+      metadata[kSlideLevel] = 0;
+
+      // write any implied delimeter (or skip entirely)
+      if (slideType === "skip") {
+        continue;
+      } else if (slideType == "slide" || slideType === "subslide") {
+        md.push("\n---\n\n");
+      } else if (slideType == "fragment") {
+        md.push("\n. . .\n\n");
+      } else if (slideType == "notes") {
+        md.push("\n:::::::::: notes\n\n");
+      }
+    }
+
     // markdown from cell
     switch (cell.cell_type) {
       case "markdown":
@@ -701,6 +743,13 @@ export function jupyterToMarkdown(
       default:
         throw new Error("Unexpected cell type " + cell.cell_type);
     }
+
+    // terminate slide notes
+    if (slideType === "notes") {
+      md.push("\n::::::::::\n");
+    }
+
+    // newline
     md.push("\n");
   }
 
@@ -724,6 +773,7 @@ export function jupyterToMarkdown(
   // return markdown and any widget requirements
   return {
     markdown: md.join(""),
+    metadata,
     dependencies,
     htmlPreserve,
   };
@@ -972,6 +1022,12 @@ function mdFromCodeCell(
     const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
     if (typeof cell.options[kCellPanel] === "string") {
       classes.push(`panel-${cell.options[kCellPanel]}`);
+    }
+    if (typeof cell.options[kCellColumn] === "string") {
+      classes.push(`column-${cell.options[kCellColumn]}`);
+    }
+    if (typeof cell.options[kCellFigCapLoc] === "string") {
+      classes.push(`caption-${cell.options[kCellFigCapLoc]}`);
     }
     const classText = classes
       .map((clz: string) => {

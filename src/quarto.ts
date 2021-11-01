@@ -24,7 +24,7 @@ import {
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
-import { binaryPath } from "./core/resources.ts";
+import { pandocBinaryPath } from "./core/resources.ts";
 
 import { parse } from "flags/mod.ts";
 
@@ -35,7 +35,7 @@ export async function quarto(
   // passthrough to pandoc
   if (args[0] === "pandoc") {
     return (await execProcess({
-      cmd: [binaryPath("pandoc"), ...args.slice(1)],
+      cmd: [pandocBinaryPath(), ...args.slice(1)],
     })).code;
   }
 

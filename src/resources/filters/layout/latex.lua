@@ -1,6 +1,6 @@
 -- latex.lua
 -- Copyright (C) 2020 by RStudio, PBC
-
+kSideCaptionEnv = 'sidecaption'
 
 function latexPanel(divEl, layout, caption)
   
@@ -44,8 +44,7 @@ function latexPanel(divEl, layout, caption)
   
   -- surround caption w/ appropriate latex (and end the panel)
   if caption then
-    markupLatexCaption(divEl, caption.content)
-    panel.content:insert(caption)
+    insertLatexCaption(divEl, panel.content, caption.content)
   end
   
   -- end latex env
@@ -63,33 +62,32 @@ end
 function latexPanelEnv(divEl, layout)
   
   -- defaults
-  local env = "figure"
+  local env = latexFigureEnv(divEl)
   local pos = nil
   
   -- explicit figure panel
   if hasFigureRef(divEl) then
-    env = attribute(divEl, kFigEnv, env)
     pos = attribute(divEl, kFigPos, pos)
   -- explicit table panel
   elseif hasTableRef(divEl) then
-    env = "table"
+    env = latexTableEnv(divEl)
   -- if there are embedded tables then we need to use table
   else 
     local haveTables = layout:find_if(function(row)
       return row:find_if(hasTableRef)
     end)
     if haveTables then
-      env = "table"
+      env = latexTableEnv(divEl)
     end
   end
-  
+
   return env, pos
   
 end
 
 -- conjoin paragraphs (allows % to work correctly between minipages or subfloats)
 function latexJoinParas(content)
-  local blocks = pandoc.List:new()
+  local blocks = pandoc.List()
   for i,block in ipairs(content) do
     if block.t == "Para" and #blocks > 0 and blocks[#blocks].t == "Para" then
       tappend(blocks[#blocks].content, block.content)
@@ -101,6 +99,7 @@ function latexJoinParas(content)
 end
 
 function latexImageFigure(image)
+
   return renderLatexFigure(image, function(figure)
     
     -- make a copy of the caption and clear it
@@ -154,9 +153,9 @@ function renderLatexFigure(el, render)
   
   -- create container
   local figure = pandoc.Div({})
-  
+
   -- begin the figure
-  local figEnv = attribute(el, kFigEnv, "figure")
+  local figEnv = latexFigureEnv(el)
   local figPos = attribute(el, kFigPos, nil)
   figure.content:insert(latexBeginEnv(figEnv, figPos))
   
@@ -165,8 +164,7 @@ function renderLatexFigure(el, render)
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and inlinesToString(captionInlines) ~= "" then
-    markupLatexCaption(el, captionInlines)
-    figure.content:insert(pandoc.Para(captionInlines))
+    insertLatexCaption(el, figure.content, captionInlines)
   end
   
   -- end figure
@@ -177,12 +175,54 @@ function renderLatexFigure(el, render)
   
 end
 
+function latexCaptionEnv(el) 
+  if el.attr.classes:includes(kSideCaptionClass) then
+    return kSideCaptionEnv
+  else
+    return 'caption'
+  end
+end
 
-function markupLatexCaption(el, caption)
+function insertLatexCaption(divEl, content, captionInlines) 
+  local captionEnv = latexCaptionEnv(divEl)
+  markupLatexCaption(divEl, captionInlines, captionEnv)
+  if captionEnv == kSideCaptionEnv then
+    if #content > 1 then
+      content:insert(2, pandoc.Para(captionInlines))
+    else
+      content:insert(#content, pandoc.Para(captionInlines))
+    end
+  else 
+    content:insert(pandoc.Para(captionInlines))
+  end
+end
+
+function latexWrapSignalPostProcessor(el, token) 
+  -- this is a table div not in a panel note any caption environment
+  tprepend(el.content, {pandoc.RawBlock('latex', '%quartopost-' .. token)});
+  tappend(el.content, {pandoc.RawBlock('latex', '%/quartopost-' .. token)});
+end
+
+function latexMarkupCaptionEnv(el) 
+  local captionEnv = latexCaptionEnv(el)
+  if captionEnv == 'sidecaption' then
+    latexWrapSignalPostProcessor(el, 'sidecaption-206BE349');
+  end
+end
+
+        
+function markupLatexCaption(el, caption, captionEnv)
+
+  -- by default, just use the caption env
+  if captionEnv == nil then
+    captionEnv = 'caption'
+  end
+
+  local captionEnv = latexCaptionEnv(el)
   
   -- caption prefix (includes \\caption macro + optional [subcap] + {)
-  local captionPrefix = pandoc.List:new({
-    pandoc.RawInline("latex", "\\caption")
+  local captionPrefix = pandoc.List({
+    pandoc.RawInline("latex", "\\" .. captionEnv)
   })
   local figScap = attribute(el, kFigScap, nil)
   if figScap then
@@ -197,6 +237,25 @@ function markupLatexCaption(el, caption)
   caption:insert(pandoc.RawInline("latex", "}"))
 end
 
+function latexBeginSidenote() 
+  return pandoc.RawBlock('latex', '\\begin{footnotesize}\\marginnote{')
+end
+
+function latexEndSidenote(el)
+  local offset = ''
+  if el.attr ~= nil then
+    local offsetValue = el.attr.attributes['offset']
+    if offsetValue ~= nil then
+      offset = '[' .. offsetValue .. ']'
+    end  
+  end
+  return pandoc.RawBlock('latex', '}' .. offset .. '\\end{footnotesize}')
+end
+
+function latexWrapEnvironment(el, env) 
+  tprepend(el.content, {latexBeginEnv(env)})
+  tappend(el.content, {latexEndEnv(env)})
+end
 
 function latexBeginAlign(align)
   if align == "center" then
@@ -249,15 +308,15 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local width = cell.attr.attributes["width"]
   
   -- derive prefix, content, and suffix
-  local prefix = pandoc.List:new()
-  local content = pandoc.List:new()
-  local suffix = pandoc.List:new()
+  local prefix = pandoc.List()
+  local content = pandoc.List()
+  local suffix = pandoc.List()
 
   -- sub-captioned always uses \subfloat
   if isSubRef then
     
     -- lift the caption out it it's current location and onto the \subfloat
-    local caption = pandoc.List:new()
+    local caption = pandoc.List()
     
     -- see if it's a captioned figure
     if image and #image.caption > 0 then
@@ -361,7 +420,7 @@ function latexTabular(tbl, vAlign)
   tbl = pandoc.utils.to_simple_table(tbl)
   
   -- list of inlines
-  local tabular = pandoc.List:new()
+  local tabular = pandoc.List()
   
   -- vertically align the minipage
   local tabularVAlign = latexMinipageValign(vAlign)
@@ -400,7 +459,7 @@ function latexTabular(tbl, vAlign)
 end
 
 function latexTabularRow(row)
-  local cells = pandoc.List:new()
+  local cells = pandoc.List()
   for _,cell in ipairs(row) do
     cells:insert(pandoc.utils.blocks_to_inlines(cell))
   end
@@ -458,6 +517,69 @@ function latexRemoveTableDelims(el)
       end
     end
   })
+end
+
+
+
+function latexFigureEnv(el) 
+ -- Check whether the user has specified a figure environment
+  local figEnv = attribute(el, kFigEnv, nil)
+  if figEnv ~= nil then
+    -- the user specified figure environment
+    return figEnv
+  else
+    -- if not user specified, look for other classes which might determine environment
+    local classes = el.classes
+    for i,class in ipairs(classes) do
+
+      -- a gutter figure or aside
+      if isMarginEnv(class) then 
+        noteHasColumns()
+        return "marginfigure"
+      end
+
+      -- any column that resolves to full width
+      if isStarEnv(class) then
+        noteHasColumns()
+        return "figure*"
+      end
+    end  
+
+    -- the default figure environment
+    return "figure"
+  end
+end
+
+function latexTableEnv(el)
+ 
+  local classes = el.classes
+  for i,class in ipairs(classes) do
+
+    -- a gutter figure or aside
+    if isMarginEnv(class) then 
+      noteHasColumns()
+      return "margintable"
+    end
+
+    -- any column that resolves to full width
+    if isStarEnv(class) then
+      noteHasColumns()
+      return "table*"
+    end
+  end  
+
+  -- the default figure environment
+  return "table"
+end
+
+
+function isStarEnv(clz) 
+  local match = clz:match('^column%-screen') 
+  return clz:match('^column%-screen') or clz:match('^column%-page')
+end
+
+function isMarginEnv(clz) 
+  return clz == 'column-gutter' or clz == 'aside'
 end
 
 function latexMinipageValign(vAlign) 

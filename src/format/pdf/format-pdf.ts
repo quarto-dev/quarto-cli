@@ -33,6 +33,10 @@ import { RenderedFile } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
+import { readLines } from "io/bufio.ts";
+import { sessionTempFile } from "../../core/temp.ts";
+import { kFootnotesMargin } from "../html/format-html-shared.ts";
+
 export function pdfFormat(): Format {
   return mergeConfigs(
     createPdfFormat(),
@@ -86,6 +90,9 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
       formatExtras: (_input: string, flags: PandocFlags, format: Format) => {
         const extras: FormatExtras = {};
 
+        // Post processed for dealing with latex output
+        extras.postprocessors = [pdfLatexPostProcessor(format)];
+
         // default to KOMA article class. we do this here rather than
         // above so that projectExtras can override us
         if (koma) {
@@ -136,3 +143,81 @@ const pdfBookExtension: BookExtension = {
     }
   },
 };
+
+function pdfLatexPostProcessor(format: Format) {
+  return async (output: string) => {
+    const outputProcessed = sessionTempFile({ suffix: ".tex" });
+    const file = await Deno.open(output);
+    try {
+      const lineProcessors = [
+        sidecaptionLineProcessor(),
+      ];
+
+      // If enabled, switch to sidenote footnotes
+      if (format.metadata?.[kFootnotesMargin]) {
+        lineProcessors.push(sideNoteLineProcessor());
+      }
+      for await (const line of readLines(file)) {
+        let processedLine: string | undefined = line;
+        for (const processor of lineProcessors) {
+          if (line !== undefined) {
+            processedLine = processor(line);
+          }
+        }
+        if (processedLine !== undefined) {
+          Deno.writeTextFileSync(outputProcessed, processedLine + "\n", {
+            append: true,
+          });
+        }
+      }
+    } finally {
+      file.close();
+      Deno.copyFileSync(outputProcessed, output);
+    }
+  };
+}
+
+const kBeginScanRegex = /^%quartopost-sidecaption-206BE349/;
+const kEndScanRegex = /^%\/quartopost-sidecaption-206BE349/;
+
+const sidecaptionLineProcessor = () => {
+  let state: "scanning" | "replacing" = "scanning";
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "scanning":
+        if (line.match(kBeginScanRegex)) {
+          state = "replacing";
+          return kbeginLongTablesideCap;
+        } else {
+          return line;
+        }
+
+      case "replacing":
+        if (line.match(kEndScanRegex)) {
+          state = "scanning";
+          return kEndLongTableSideCap;
+        } else {
+          return line;
+        }
+    }
+  };
+};
+
+const sideNoteLineProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replace(/\\footnote{/, "\\sidenote{");
+  };
+};
+
+const kbeginLongTablesideCap = `{
+\\makeatletter
+\\def\\LT@makecaption#1#2#3{%
+  \\noalign{\\smash{\\hbox{\\kern\\textwidth\\rlap{\\kern\\marginparsep
+  \\parbox[t]{\\marginparwidth}{%
+    \\footnotesize{%
+      \\vspace{(1.1\\baselineskip)}
+    #1{#2: }\\ignorespaces #3}}}}}}%
+    }
+\\makeatother`;
+
+const kEndLongTableSideCap = "}";

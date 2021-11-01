@@ -18,7 +18,7 @@ function tables()
             caption = pandoc.Para(noCaption())
             el.content:insert(caption)
           end
-          local captionClone = caption:clone()
+          local captionClone = caption:clone().content
           local label = el.attr.identifier
           local order = indexNextOrder("tbl")
           prependTitlePrefix(caption, label, order)
@@ -194,7 +194,7 @@ function processRawTable(divEl)
           local parent = divEl.attr.attributes[kRefParent]
           if (parent) then
             order = nextSubrefOrder()
-            local subref = pandoc.List:new()
+            local subref = pandoc.List()
             prependSubrefNumber(subref, order)
             prefix = inlinesToString(subref)
           else

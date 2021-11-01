@@ -252,7 +252,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   });
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
-    '[class^="column-"], [class*=" column-"], aside'
+    '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"]'
   );
 
   // Filter all the possibly conflicting elements into ones
@@ -275,6 +275,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return true;
     }
 
+    const hasGutterCaption = Array.from(el.classList).find((className) => {
+      return className == "caption-gutter";
+    });
+    if (hasGutterCaption) {
+      return true;
+    }
+
     return Array.from(el.classList).find((className) => {
       return className.startsWith("column-") && !className.endsWith("left");
     });
@@ -282,9 +289,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   function toRegions(els) {
     return els.map((el) => {
+      const top =
+        el.getBoundingClientRect().top + document.documentElement.scrollTop;
       return {
-        top: el.offsetTop,
-        bottom: el.offsetTop + el.offsetHeight,
+        top,
+        bottom: top + el.offsetHeight,
       };
     });
   }
@@ -355,6 +364,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       hideOverlappedSidebars();
     }, 10)
   );
+  hideOverlappedSidebars();
 });
 
 // TODO: Create shared throttle js function (see quarto-nav.js)

@@ -24,16 +24,17 @@ import { Metadata } from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
 
 import {
-  kSite,
   kSiteFooter,
   kSiteNavbar,
   kSiteSidebar,
+  kWebsite,
 } from "../../project/types/website/website-config.ts";
 import {
   kBootstrapDependencyName,
   quartoBootstrapFunctions,
   quartoBootstrapMixins,
   quartoBootstrapRules,
+  quartoCopyCodeRules,
   quartoDefaults,
   quartoFunctions,
   quartoGlobalCssVariableRules,
@@ -85,6 +86,7 @@ function layerQuartoScss(
       mixins: quartoBootstrapMixins(),
       rules: [
         quartoRules(),
+        quartoCopyCodeRules(),
         quartoBootstrapRules(),
         quartoGlobalCssVariableRules(),
       ].join("\n"),
@@ -294,7 +296,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   );
   const variables = [Deno.readTextFileSync(varFilePath)];
 
-  const navbar = (metadata[kSite] as Metadata)?.[kSiteNavbar];
+  const navbar = (metadata[kWebsite] as Metadata)?.[kSiteNavbar];
   if (navbar && typeof (navbar) === "object") {
     // Forward navbar background color
     const navbarBackground = (navbar as Record<string, unknown>)[kBackground];
@@ -329,7 +331,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     }
   }
 
-  const sidebars = (metadata[kSite] as Metadata)?.[kSiteSidebar];
+  const sidebars = (metadata[kWebsite] as Metadata)?.[kSiteSidebar];
   const sidebar = Array.isArray(sidebars)
     ? sidebars[0]
     : typeof (sidebars) === "object"
@@ -376,7 +378,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     }
   }
 
-  const footer = (metadata[kSite] as Metadata)?.[kSiteFooter] as Metadata;
+  const footer = (metadata[kWebsite] as Metadata)?.[kSiteFooter] as Metadata;
   if (footer !== undefined && typeof (footer) === "object") {
     // Forward footer color
     const footerBg = footer[kBackground];

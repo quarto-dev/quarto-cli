@@ -33,7 +33,6 @@ import {
   kContents,
   kImage,
   kOpenGraph,
-  kSite,
   kSiteFooter,
   kSiteNavbar,
   kSitePageNavigation,
@@ -46,6 +45,7 @@ import {
   kSiteTitle,
   kSiteUrl,
   kTwitterCard,
+  kWebsite,
   websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";
@@ -92,8 +92,8 @@ export async function bookProjectConfig(
   config = await websiteProjectConfig(projectDir, config, forceHtml);
 
   // ensure we have a site
-  const site = (config[kSite] || {}) as Record<string, unknown>;
-  config[kSite] = site;
+  const site = (config[kWebsite] || {}) as Record<string, unknown>;
+  config[kWebsite] = site;
 
   // copy some book config into site
   const book = config[kBook] as Record<string, unknown>;

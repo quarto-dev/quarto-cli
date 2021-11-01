@@ -39,6 +39,7 @@ import {
   kBootstrapDependencyName,
   kDocumentCss,
   kFootnoteSectionTitle,
+  kFootnotesMargin,
   kPageLayout,
   kPageLayoutArticle,
   kPageLayoutCustom,
@@ -183,11 +184,164 @@ function bootstrapHtmlPostprocessor(format: Format) {
       title.classList.add("display-7");
     }
 
-    // Process col classes into our grid system
+    // If margin footnotes are enabled move them
+    if (format.metadata?.[kFootnotesMargin]) {
+      // This is a little complicated because if there are multiple footnotes
+      // in a single block, we want to wrap them in a container so they
+      // all can appear adjacent to the block (otherwise only the first would appear)
+      // next to the block, and subsequent ones would appear below the block
+
+      // Find all the footnote links
+      const footnoteEls = doc.querySelectorAll(".footnote-ref");
+
+      let currentParent: Element | null = null;
+      let pendingFootnotes: Element[] = [];
+
+      const appendFootnotes = (parent: Element, footnotes: Element[]) => {
+        if (footnotes.length === 1) {
+          footnotes[0].classList.add("footnote-gutter");
+          parent.appendChild(footnotes[0]);
+        } else {
+          const containerEl = doc.createElement("div");
+          containerEl.classList.add("footnote-gutter");
+          for (const footnote of footnotes) {
+            containerEl.appendChild(footnote);
+          }
+          parent.appendChild(containerEl);
+        }
+      };
+
+      footnoteEls.forEach((footnoteEl) => {
+        const footNoteLink = footnoteEl as Element;
+        if (footNoteLink.hasAttribute("href")) {
+          const target = footNoteLink.getAttribute("href");
+          if (target) {
+            const footnoteContentsEl = doc.getElementById(target.slice(1));
+            if (footnoteContentsEl) {
+              if (
+                currentParent !== null &&
+                currentParent !== footnoteEl.parentElement
+              ) {
+                appendFootnotes(currentParent, pendingFootnotes);
+                pendingFootnotes = [];
+              }
+
+              currentParent = footnoteEl.parentElement;
+
+              // Create a new footnote div and move the contents into it
+              const footnoteDiv = doc.createElement("div");
+              footnoteDiv.id = footnoteContentsEl?.id;
+              footnoteDiv.setAttribute(
+                "role",
+                footnoteContentsEl.getAttribute("role"),
+              );
+              Array.from(footnoteContentsEl.children).forEach((child) => {
+                // Remove the backlink since this is in the gutter
+                const backLinkEl = child.querySelector(".footnote-back");
+                if (backLinkEl) {
+                  backLinkEl.remove();
+                }
+
+                // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
+                child.insertBefore(
+                  doc.createTextNode("\u00A0"),
+                  child.firstChild,
+                );
+                child.insertBefore(
+                  footNoteLink.firstChild.cloneNode(true),
+                  child.firstChild,
+                );
+                footnoteDiv.appendChild(child);
+              });
+
+              pendingFootnotes.push(footnoteDiv);
+
+              // Remove the old footnote
+              footnoteContentsEl.remove();
+            }
+          }
+        }
+      });
+
+      if (currentParent && pendingFootnotes) {
+        appendFootnotes(currentParent, pendingFootnotes);
+      }
+    }
+
+    // Forward caption class from parents to the child fig caps
+    const gutterCaptions = doc.querySelectorAll(".caption-gutter");
+    gutterCaptions.forEach((captionContainerNode) => {
+      const captionContainer = (captionContainerNode as Element);
+
+      const moveClassToCaption = (container: Element, sel: string) => {
+        const target = container.querySelector(sel);
+        if (target) {
+          target.classList.add("caption-gutter");
+          return true;
+        } else {
+          return false;
+        }
+      };
+
+      const removeCaptionClass = (el: Element) => {
+        // Remove this since it will place the contents in the gutter if it remains present
+        el.classList.remove("caption-gutter");
+      };
+
+      // Deal with layout panels (we will only handle the main caption not the internals)
+      const isLayoutPanel = captionContainer.classList.contains(
+        "quarto-layout-panel",
+      );
+      if (isLayoutPanel) {
+        const figure = captionContainer.querySelector("figure");
+        if (figure) {
+          // It is a figure panel, find a direct child caption of the outer figure.
+          for (const child of figure.children) {
+            if (child.tagName === "FIGCAPTION") {
+              child.classList.add("caption-gutter");
+              removeCaptionClass(captionContainer);
+              break;
+            }
+          }
+        } else {
+          // it is not a figure panel, find the panel caption
+          const caption = captionContainer.querySelector(".panel-caption");
+          if (caption) {
+            caption.classList.add("caption-gutter");
+            removeCaptionClass(captionContainer);
+          }
+        }
+      } else {
+        // First try finding a fig caption
+        const foundCaption = moveClassToCaption(captionContainer, "figcaption");
+        if (!foundCaption) {
+          // find a table caption and copy the contents into a div with style figure-caption
+          // note that for tables, our grid inception approach isn't going to work, so
+          // we make a copy of the caption contents and place that in the same container as the
+          // table and bind it to the grid
+          const captionEl = captionContainer.querySelector("caption");
+          if (captionEl) {
+            const parentDivEl = captionEl?.parentElement?.parentElement;
+            if (parentDivEl) {
+              captionEl.classList.add("hidden");
+
+              const divCopy = doc.createElement("div");
+              divCopy.classList.add("figure-caption");
+              divCopy.classList.add("caption-gutter");
+              divCopy.innerHTML = captionEl.innerHTML;
+              parentDivEl.appendChild(divCopy);
+              removeCaptionClass(captionContainer);
+            }
+          }
+        } else {
+          removeCaptionClass(captionContainer);
+        }
+      }
+    });
 
     // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
-      '[class^="column-"], [class*=" column-"], aside',
+      '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"]',
     );
     // If there are any of these elements, we need to be sure that their
     // parents have acess to the grid system, so make the parent full screen width
@@ -332,17 +486,19 @@ function bootstrapHtmlPostprocessor(format: Format) {
       }
     }
 
-    // provide heading for footnotes
-    const footnotes = doc.querySelector('section[role="doc-endnotes"]');
-    if (footnotes) {
+    // provide heading for footnotes (but only if there is one section, there could
+    // be multiple if they used reference-location: block/section)
+    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+    if (footnotes.length === 1 && !format.metadata?.[kFootnotesMargin]) {
+      const footnotesEl = footnotes.item(0) as Element;
       const h2 = doc.createElement("h2");
       const title =
         (format.metadata[kFootnoteSectionTitle] || "Footnotes") as string;
       if (typeof (title) == "string" && title !== "none") {
         h2.innerHTML = title;
       }
-      footnotes.insertBefore(h2, footnotes.firstChild);
-      const hr = footnotes.querySelector("hr");
+      footnotesEl.insertBefore(h2, footnotesEl.firstChild);
+      const hr = footnotesEl.querySelector("hr");
       if (hr) {
         hr.remove();
       }

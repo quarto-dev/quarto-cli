@@ -53,51 +53,43 @@ export async function revealTheme(format: Format, libDir: string) {
   // target revealDir
   const revealDir = join(libDir, "revealjs");
 
-  // copy local version of reveal if we aren't using a remote version
+  // revealurl (optional)
   const revealJsUrl = format.metadata[kRevealJsUrl] as string | undefined;
-  const localReveal = (revealJsUrl === undefined) || isFileRef(revealJsUrl);
-  if (localReveal) {
-    // copy reveal dir
-    const revealSrcDir = revealJsUrl ||
-      formatResourcePath("revealjs", "reveal");
-    copyMinimal(revealSrcDir, revealDir);
-    metadata[kRevealJsUrl] = pathWithForwardSlashes(
-      revealDir,
-    );
-  }
 
-  // are we using a reveal base theme? if we are then just return
-  // as-is with highlighting mode detected
-  const defaultTheme = (format.metadata?.[kTheme] === undefined ||
-    format.metadata?.[kTheme] === "default");
-  const revealBaseTheme = (!defaultTheme &&
-    kRevealThemes.includes(format.metadata?.[kTheme] as string)) ||
-    (defaultTheme && !localReveal);
-  if (revealBaseTheme) {
-    return {
-      revealDir: localReveal ? revealDir : undefined,
-      metadata,
-      [kTextHighlightingMode]: revealBaseThemeHighlightingMode(
-        format.metadata?.[kTheme],
-      ),
-    };
-  }
-
-  // quarto/custom reveal theme -- first verify we have local reveal
-  // (required for sass compilation)
-  if (!localReveal) {
+  // we don't support remote versions b/c we need to compile the scss
+  if (revealJsUrl && !isFileRef(revealJsUrl)) {
     throw new Error(
-      "Only built-in reveal themes can be used with a remote revealjs-url",
+      "Invalid revealjs-url: " + revealJsUrl +
+        " (remote urls are not supported)",
     );
   }
 
-  // theme is either user provided scss or quarto built-in scss
+  // copy reveal dir
+  const revealSrcDir = revealJsUrl ||
+    formatResourcePath("revealjs", "reveal");
+  ["dist", "plugin"].forEach((dir) => {
+    copyMinimal(join(revealSrcDir, dir), join(revealDir, dir));
+  });
+  metadata[kRevealJsUrl] = pathWithForwardSlashes(
+    revealDir,
+  );
+
+  // theme is either user provided scss or something in our 'themes' dir
+  // (note that standard reveal scss themes must be converted to quarto
+  // theme format so they can participate in the pipeline)
   const themeConfig =
     (format.metadata?.[kTheme] as string | string[] | undefined) || "default";
   const themeLayers = (Array.isArray(themeConfig) ? themeConfig : [themeConfig])
     .map(
       (theme) => {
         if (!existsSync(theme)) {
+          // alias revealjs theme names
+          if (theme === "white") {
+            theme = "default";
+          } else if (theme === "black") {
+            theme = "dark";
+          }
+          // read theme
           theme = formatResourcePath(
             "revealjs",
             join("themes", `${theme}.scss`),
@@ -115,7 +107,7 @@ export async function revealTheme(format: Format, libDir: string) {
     rules: "",
   };
 
-  const cssThemeDir = join(revealDir, "css", "theme");
+  const cssThemeDir = join(revealSrcDir, "css", "theme");
   const loadPaths = [
     join(cssThemeDir, "source"),
     join(cssThemeDir, "template"),
@@ -125,8 +117,8 @@ export async function revealTheme(format: Format, libDir: string) {
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
     user: mergeLayers(yamlLayer, ...themeLayers),
-    quarto: mergeLayers(quartoBaseLayer(format), quartoLayer()),
-    framework: revealFrameworkLayer(revealDir),
+    quarto: mergeLayers(quartoBaseLayer(format, true, true), quartoLayer()),
+    framework: revealFrameworkLayer(revealSrcDir),
     loadPaths,
   };
 
@@ -147,17 +139,6 @@ export async function revealTheme(format: Format, libDir: string) {
     metadata,
     [kTextHighlightingMode]: highlightingMode,
   };
-}
-
-function revealBaseThemeHighlightingMode(theme?: unknown) {
-  if (theme) {
-    const dark = typeof (theme) === "string" &&
-      kRevealDarkThemes.includes(theme);
-    const highlightingMode: "light" | "dark" = dark ? "dark" : "light";
-    return highlightingMode;
-  } else {
-    return "dark";
-  }
 }
 
 function revealFrameworkLayer(revealDir: string): SassLayer {

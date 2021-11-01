@@ -12,10 +12,16 @@ import { Command, EnumType } from "cliffy/command/mod.ts";
 import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
-import { projectTypes } from "../../project/types/project-types.ts";
+import {
+  projectTypeAliases,
+  projectTypes,
+} from "../../project/types/project-types.ts";
 import { kMarkdownEngine } from "../../execute/types.ts";
 
 const kProjectTypes = projectTypes();
+const kProjectTypeAliases = projectTypeAliases();
+const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
+
 const kExecutionEngines = executionEngines().reverse();
 
 const editorType = new EnumType(["visual", "source"]);
@@ -34,7 +40,7 @@ export const createProjectCommand = new Command()
     `Project type (${kProjectTypes.join(", ")})`,
     {
       value: (value: string): string => {
-        if (kProjectTypes.indexOf(value || "default") === -1) {
+        if (kProjectTypesAndAliases.indexOf(value || "default") === -1) {
           throw new Error(
             `Project type must be one of ${
               kProjectTypes.join(", ")
@@ -87,7 +93,7 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create a website project",
-    "quarto create-project mysite --type site",
+    "quarto create-project mysite --type website",
   )
   .example(
     "Create a book project",
@@ -95,11 +101,11 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create a website project with jupyter",
-    "quarto create-project mysite --type site --engine jupyter",
+    "quarto create-project mysite --type website --engine jupyter",
   )
   .example(
     "Create a website project with jupyter + kernel",
-    "quarto create-project mysite --type site --engine jupyter:python3",
+    "quarto create-project mysite --type website --engine jupyter:python3",
   )
   .example(
     "Create a book project with knitr",
@@ -107,11 +113,11 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create jupyter project with venv ",
-    "quarto create-project--engine jupyter --with-venv",
+    "quarto create-project myproject --engine jupyter --with-venv",
   )
   .example(
     "Create jupyter project with venv + packages",
-    "quarto create-project--engine jupyter --with-venv pandas,matplotlib",
+    "quarto create-project myproject --engine jupyter --with-venv pandas,matplotlib",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {

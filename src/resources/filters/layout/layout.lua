@@ -8,7 +8,9 @@ PANDOC_VERSION:must_be_at_least '2.13'
 text = require 'text'
 
 -- global layout state
-layoutState = {}
+layoutState = {
+  hasColumns = false,
+}
 
 -- [import]
 function import(script)
@@ -25,6 +27,8 @@ import("odt.lua")
 import("pptx.lua")
 import("table.lua")
 import("figures.lua")
+import("columns.lua")
+import("columns-preprocess.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/validate.lua")
@@ -32,6 +36,7 @@ import("../common/format.lua")
 import("../common/refs.lua")
 import("../common/layout.lua")
 import("../common/figures.lua")
+import("../common/options.lua")
 import("../common/params.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -44,7 +49,7 @@ function layoutPanels()
 
   return {
     Div = function(el)
-      if shouldLayoutDiv(el) then
+      if requiresPanelLayout(el) then
         
         -- partition
         local preamble, cells, caption = partitionCells(el)
@@ -89,7 +94,7 @@ function layoutPanels()
 end
 
 
-function shouldLayoutDiv(divEl)
+function requiresPanelLayout(divEl)
   
   if hasLayoutAttributes(divEl) then
     return true
@@ -105,8 +110,8 @@ end
 
 function partitionCells(divEl)
   
-  local preamble = pandoc.List:new()
-  local cells = pandoc.List:new()
+  local preamble = pandoc.List()
+  local cells = pandoc.List()
   local caption = nil
   
   -- extract caption if it's a table or figure div
@@ -167,7 +172,7 @@ end
 function layoutCells(divEl, cells)
   
   -- layout to return (list of rows)
-  local rows = pandoc.List:new()
+  local rows = pandoc.List()
   
   -- note any figure layout attributes
   local layoutRows = tonumber(attribute(divEl, kLayoutNrow, nil))
@@ -188,7 +193,7 @@ function layoutCells(divEl, cells)
   if layoutCols ~= nil then
     for i,cell in ipairs(cells) do
       if math.fmod(i-1, layoutCols) == 0 then
-        rows:insert(pandoc.List:new())
+        rows:insert(pandoc.List())
       end
       rows[#rows]:insert(cell)
     end
@@ -231,7 +236,7 @@ function layoutCells(divEl, cells)
       if cellIndex > #cells then
         break
       end
-      rows:insert(pandoc.List:new())
+      rows:insert(pandoc.List())
       for _,width in ipairs(item) do
         layoutNextCell(width)
       end
@@ -276,6 +281,8 @@ initParams()
 
 -- chain of filters
 return {
+  columnsPreprocess(),
+  columns(),
   layoutPanels(),
   extendedFigures(),
   layoutMetaInject()

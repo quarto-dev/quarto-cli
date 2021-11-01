@@ -1,0 +1,53 @@
+/*-- scss:defaults --*/
+
+@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,700,300italic,700italic);
+
+// fonts
+$font-family-sans-serif: Ubuntu, sans-serif !default;
+
+// colors
+$body-bg: #222 !default;
+$body-color: #eee !default;
+$link-color: #a23 !default;
+$selection-bg: $link-color !default;
+$selection-color: #fff !default;
+
+// headings
+$presentation-heading-font: Ubuntu, sans-serif !default;
+$presentation-heading-font-weight: 700 !default;
+$presentation-heading-text-shadow: 2px 2px 2px $body-bg !default;
+$presentation-h1-font-size: 3.77em !default;
+$presentation-h1-text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
+  0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0, 0, 0, 0.1),
+  0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3),
+  0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25),
+  0 20px 20px rgba(0, 0, 0, 0.15);
+$presentation-heading-text-transform: uppercase !default;
+
+/*-- scss:rules --*/
+
+.reveal p {
+  font-weight: 300;
+  text-shadow: 1px 1px $body-bg;
+}
+
+.reveal p code {
+  display: inline-block;
+  border-radius: 7px;
+}
+
+.reveal small code {
+  vertical-align: baseline;
+}
+
+@include light-bg-text-color(#222);
+
+section.has-light-background {
+  p,
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-shadow: none;
+  }
+}

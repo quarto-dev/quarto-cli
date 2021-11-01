@@ -13,6 +13,7 @@ import { ProjectConfig, ProjectContext } from "../types.ts";
 
 export interface ProjectType {
   type: string;
+  typeAliases?: string[];
   inheritsType?: string;
   create: (title: string) => ProjectCreate;
   config?: (

@@ -39,7 +39,7 @@ function tablePanel(divEl, layout, caption, options)
       end
     end)
 
-    local cells = pandoc.List:new()
+    local cells = pandoc.List()
     for _, cell in ipairs(row) do
       local align = cell.attr.attributes[kLayoutAlign]
       cells:insert(tableCellContent(cell, align, options))
@@ -47,10 +47,10 @@ function tablePanel(divEl, layout, caption, options)
     
     -- make the table
     local panelTable = pandoc.SimpleTable(
-      pandoc.List:new(), -- caption
+      pandoc.List(), -- caption
       aligns,
       widths,
-      pandoc.List:new(), -- headers
+      pandoc.List(), -- headers
       { cells }
     )
     

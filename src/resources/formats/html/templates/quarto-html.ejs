@@ -117,6 +117,15 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
+  <% if (tabby) {  %>
+
+  const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+  tabsets.forEach(function(tabset) {
+    const tabby = new Tabby('#' + tabset.id);
+  });
+
+  <% } %>
+
   <% if (anchors) { %>
 
   const icon = "<%= anchors === true ? '' : anchors %>";

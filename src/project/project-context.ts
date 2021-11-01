@@ -48,6 +48,7 @@ import { gitignoreEntries } from "./project-gitignore.ts";
 
 import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
+import { kSite, kWebsite } from "./types/website/website-config.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -94,6 +95,9 @@ export async function projectContext(
       projectConfig = mergeConfigs(projectConfig, metadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
+
+      // migrate any legacy config
+      projectConfig = migrateProjectConfig(projectConfig);
 
       // read vars and merge into the project
       const varsFile = projectVarsFile(dir);
@@ -191,6 +195,20 @@ export async function projectContext(
   }
 }
 
+function migrateProjectConfig(projectConfig: ProjectConfig) {
+  projectConfig = ld.cloneDeep(projectConfig);
+
+  // migrate 'site' to 'website'
+  if (projectConfig.project[kProjectType] === kSite) {
+    projectConfig.project[kProjectType] = kWebsite;
+  }
+  if (projectConfig[kSite]) {
+    projectConfig[kWebsite] = ld.cloneDeep(projectConfig[kSite]);
+    delete projectConfig[kSite];
+  }
+  return projectConfig;
+}
+
 // read project context (if there is no project config file then still create
 // a context (i.e. implicitly treat directory as a project)
 export function projectContextForDirectory(
@@ -203,7 +221,7 @@ export function projectContextForDirectory(
 export function projectIsWebsite(context?: ProjectContext): boolean {
   if (context) {
     const projType = projectType(context.config?.project?.[kProjectType]);
-    return projType.type === "site" || projType.inheritsType === "site";
+    return projType.type === kWebsite || projType.inheritsType === kWebsite;
   } else {
     return false;
   }

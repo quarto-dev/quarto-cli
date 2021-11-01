@@ -4,7 +4,7 @@
 function ojs()
 
   local uid = 0
-  local cells = pandoc.List:new()
+  local cells = pandoc.List()
 
   function uniqueId()
     uid = uid + 1

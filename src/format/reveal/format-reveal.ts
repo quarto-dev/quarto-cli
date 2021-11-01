@@ -5,11 +5,13 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kFrom,
+  kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
+  kSlideLevel,
 } from "../../config/constants.ts";
 
 import {
@@ -27,6 +29,10 @@ import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
 import { revealPluginExtras } from "./format-reveal-plugin.ts";
 import { revealTheme } from "./format-reveal-theme.ts";
+import {
+  revealMuliplexPreviewFile,
+  revealMultiplexExtras,
+} from "./format-reveal-multiplex.ts";
 
 const kRevealOptions = [
   "controls",
@@ -104,7 +110,15 @@ export function revealjsFormat() {
   return mergeConfigs(
     createHtmlPresentationFormat(9, 5),
     {
+      pandoc: {
+        [kHtmlMathMethod]: {
+          method: "mathjax",
+          url:
+            "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML-full",
+        },
+      },
       metadataFilter: revealMetadataFilter,
+      formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
         _input: string,
         _flags: PandocFlags,
@@ -115,6 +129,8 @@ export function revealjsFormat() {
         let extras = mergeConfigs(
           // extras for all html formats
           htmlFormatExtras(format, {
+            tabby: true,
+            anchors: false,
             copyCode: true,
             hoverCitations: true,
             hoverFootnotes: true,
@@ -140,7 +156,7 @@ export function revealjsFormat() {
             html: {
               [kTemplatePatches]: [revealRequireJsPatch],
               [kHtmlPostprocessors]: [
-                revealInitializeHtmlPostprocessor(format),
+                revealHtmlPostprocessor(format),
               ],
             },
           },
@@ -160,6 +176,12 @@ export function revealjsFormat() {
             extras,
             revealPluginExtras(format, theme.revealDir),
           );
+        }
+
+        // add multiplex if we have it
+        const multiplexExtras = revealMultiplexExtras(format);
+        if (multiplexExtras) {
+          extras = mergeConfigs(extras, multiplexExtras);
         }
 
         // provide alternate defaults unless the user requests revealjs defaults
@@ -246,7 +268,7 @@ function revealMetadataFilter(metadata: Metadata) {
   return filtered;
 }
 
-function revealInitializeHtmlPostprocessor(format: Format) {
+function revealHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
     // find reveal initializatio and perform fixups
     const scripts = doc.querySelectorAll("script");
@@ -263,6 +285,23 @@ function revealInitializeHtmlPostprocessor(format: Format) {
         );
       }
     }
+
+    // remove all attributes from slide headings (pandoc has already moved
+    // them to the enclosing section)
+    const slideLevel = parseInt(format.metadata[kSlideLevel] as string, 10) ||
+      2;
+    const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
+      "H" + (i + 1)
+    );
+    const slideHeadings = doc.querySelectorAll("section.slide > :first-child");
+    slideHeadings.forEach((slideHeading) => {
+      const slideHeadingEl = slideHeading as Element;
+      if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
+        for (const attrib of slideHeadingEl.getAttributeNames()) {
+          slideHeadingEl.removeAttribute(attrib);
+        }
+      }
+    });
 
     // center title slide if requested
     // note that disabling title slide centering when the rest of the
@@ -301,9 +340,9 @@ function revealInitializeHtmlPostprocessor(format: Format) {
     const referencesDiv = doc.createElement("div");
     referencesDiv.classList.add("reveal-references");
     doc.body.appendChild(referencesDiv);
-    const endnotes = doc.querySelector('section[role="doc-endnotes"]');
-    if (endnotes) {
-      referencesDiv.appendChild(endnotes);
+    const endnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+    for (const endnoteSection of endnotes) {
+      referencesDiv.appendChild(endnoteSection);
     }
     const refs = doc.querySelector("#refs");
     if (refs) {
