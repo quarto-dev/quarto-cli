@@ -53,11 +53,11 @@ import {
   clipboardDependency,
   kAnchorSections,
   kBootstrapDependencyName,
+  kCitationsHover,
   kCodeCopy,
   kComments,
   kDocumentCss,
-  kHoverCitations,
-  kHoverFootnotes,
+  kFootnotesHover,
   kHypothesis,
   kMinimal,
   kTabsets,
@@ -187,14 +187,14 @@ export function htmlFormatExtras(
     options.anchors = format.metadata[kAnchorSections] || false;
   }
   if (featureDefaults.hoverCitations) {
-    options.hoverCitations = format.metadata[kHoverCitations] !== false;
+    options.hoverCitations = format.metadata[kCitationsHover] !== false;
   } else {
-    options.hoverCitations = format.metadata[kHoverCitations] || false;
+    options.hoverCitations = format.metadata[kCitationsHover] || false;
   }
   if (featureDefaults.hoverFootnotes) {
-    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
+    options.hoverFootnotes = format.metadata[kFootnotesHover] !== false;
   } else {
-    options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
+    options.hoverFootnotes = format.metadata[kFootnotesHover] || false;
   }
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);

@@ -14,7 +14,7 @@ function preprocess()
     Pandoc = function(doc)
       
       -- initialize autolabels table
-      crossref.autolabels = pandoc.List:new()
+      crossref.autolabels = pandoc.List()
       
       local walkRefs
       walkRefs = function(parentId)

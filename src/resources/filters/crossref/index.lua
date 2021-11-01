@@ -5,8 +5,8 @@
 function initIndex()
      
   -- compute section offsets
-  local sectionOffsets = pandoc.List:new({0,0,0,0,0,0,0})
-  local numberOffset = pandoc.List:new(param("number-offset", {}))
+  local sectionOffsets = pandoc.List({0,0,0,0,0,0,0})
+  local numberOffset = pandoc.List(param("number-offset", {}))
   for i=1,#sectionOffsets do
     if i > #numberOffset then
       break
@@ -22,7 +22,7 @@ function initIndex()
     sectionOffsets = sectionOffsets:clone(),
     numberOffset = sectionOffsets:clone(),
     entries = {},
-    headings = pandoc.List:new()
+    headings = pandoc.List()
   }
   
 end
@@ -62,7 +62,7 @@ end
 -- add an entry to the index
 function indexAddEntry(label, parent, order, caption)
   if caption ~= nil then
-    caption = pandoc.List:new(caption)
+    caption = pandoc.List(caption)
   end
   crossref.index.entries[label] = {
     parent = parent,
@@ -102,7 +102,7 @@ end
 
 function writeKeysIndex(indexFile)
   local index = {
-    entries = pandoc.List:new(),
+    entries = pandoc.List(),
   }
   for k,v in pairs(crossref.index.entries) do
     -- create entry 
@@ -129,7 +129,7 @@ end
 function writeFullIndex(indexFile)
   -- create an index data structure to serialize for this file 
   local index = {
-    entries = pandoc.List:new(),
+    entries = pandoc.List(),
     headings = crossref.index.headings:clone()
   }
 

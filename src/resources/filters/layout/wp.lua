@@ -31,17 +31,17 @@ function wpDivFigure(div)
   local align = figAlignAttribute(div)
   
   -- create the row/cell for the figure
-  local row = pandoc.List:new()
+  local row = pandoc.List()
   local cell = div:clone()
   transferImageWidthToCell(div, cell)
   row:insert(tableCellContent(cell, align, options))
   
   -- make the table
   local figureTable = pandoc.SimpleTable(
-    pandoc.List:new(), -- caption
+    pandoc.List(), -- caption
     { layoutTableAlign(align) },  
     {   1   },         -- full width
-    pandoc.List:new(), -- no headers
+    pandoc.List(), -- no headers
     { row }            -- figure
   )
   

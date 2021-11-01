@@ -38,7 +38,7 @@ function engineLang(lang)
   end
 end
 
-local kHighlightClasses = pandoc.List:new({
+local kHighlightClasses = pandoc.List({
   "abc",
   "actionscript",
   "ada",

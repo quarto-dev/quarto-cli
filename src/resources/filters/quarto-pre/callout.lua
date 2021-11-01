@@ -11,7 +11,7 @@ function callout()
       if isDocxOutput() then
         local lastWasCallout = false
         local lastWasTable = false
-        local newBlocks = pandoc.List:new()
+        local newBlocks = pandoc.List()
         for i,el in ipairs(blocks) do 
           -- determine what this block is
           local isCallout = el.t == "Div" and el.attr.classes:find_if(isDocxCallout)
@@ -110,7 +110,7 @@ function calloutDiv(div)
   -- Make an outer card div and transfer classes
   local calloutDiv = pandoc.Div({})
   calloutDiv.attr.classes = div.attr.classes:clone()
-  div.attr.classes = pandoc.List:new() 
+  div.attr.classes = pandoc.List() 
   div.attr.classes:insert("callout-body-container")
 
   -- add card attribute
@@ -280,7 +280,7 @@ function latexCalloutBoxDefault(caption, type, icon)
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- Add the captions and contents
-  local calloutContents = pandoc.List:new({});
+  local calloutContents = pandoc.List({});
 
   -- the inlines
   return { 
@@ -332,7 +332,7 @@ function latexCalloutBoxSimple(caption, type, icon)
   end
 
   -- Add the captions and contents
-  local calloutContents = pandoc.List:new({});
+  local calloutContents = pandoc.List({});
   if caption ~= nil then 
     tprepend(caption, {pandoc.RawInline('latex', '\\textbf{')})
     tappend(caption, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
@@ -442,7 +442,7 @@ function calloutDocxDefault(div, type, hasIcon)
           </w:tcMar>
         </w:tcPr>
   ]]
-  local calloutContents = pandoc.List:new({
+  local calloutContents = pandoc.List({
     pandoc.RawBlock("openxml", tablePrefix:gsub('$background', backgroundColor):gsub('$color', color)),
   })
 
@@ -502,7 +502,7 @@ function calloutDocxDefault(div, type, hasIcon)
   tappend(calloutContents, contents)
 
   -- close the table
-  local suffix = pandoc.List:new({pandoc.RawBlock("openxml", [[
+  local suffix = pandoc.List({pandoc.RawBlock("openxml", [[
     </w:tc>
     </w:tr>
   </w:tbl>
@@ -541,7 +541,7 @@ function calloutDocxSimple(div, type, hasIcon)
       <w:tc>
   ]]
 
-  local prefix = pandoc.List:new({
+  local prefix = pandoc.List({
     pandoc.RawBlock("openxml", tablePrefix:gsub('$color', color)),
   })
 
@@ -556,13 +556,13 @@ function calloutDocxSimple(div, type, hasIcon)
     prefix:insert(pandoc.RawBlock("openxml", '<w:tcPr><w:tcMar><w:left w:w="144" w:type="dxa" /></w:tcMar></w:tcPr>'))
   end
 
-  local suffix = pandoc.List:new({pandoc.RawBlock("openxml", [[
+  local suffix = pandoc.List({pandoc.RawBlock("openxml", [[
     </w:tc>
     </w:tr>
   </w:tbl>
   ]])})
 
-  local calloutContents = pandoc.List:new({});
+  local calloutContents = pandoc.List({});
   tappend(calloutContents, prefix)
 
   -- deal with the caption, if present
@@ -659,7 +659,7 @@ function resolveCalloutContents(div, requireCaption)
   div.attr.attributes["icon"] = nil
   div.attr.attributes["collapse"] = nil
 
-  local contents = pandoc.List:new({});
+  local contents = pandoc.List({});
     
   -- Add the captions and contents
   -- classname 

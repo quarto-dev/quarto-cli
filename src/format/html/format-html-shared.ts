@@ -19,8 +19,8 @@ import { formatResourcePath } from "../../core/resources.ts";
 export const kTabsets = "tabsets";
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
-export const kHoverCitations = "hover-citations";
-export const kHoverFootnotes = "hover-footnotes";
+export const kCitationsHover = "citations-hover";
+export const kFootnotesHover = "footnotes-hover";
 
 // turn off optional html features as well as all themes
 export const kMinimal = "minimal";
