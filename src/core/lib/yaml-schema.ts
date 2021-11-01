@@ -41,7 +41,6 @@ let ajv: any = undefined;
 */
 export function setupAjv(_ajv: any)
 {
-  debugger;
   ajv = _ajv;
 }
 
@@ -74,6 +73,16 @@ export interface LocalizedError {
   violatingObject: AnnotatedParse;
   instancePath: string;
   message: string;
+  messageNoLocation?: string;
+  start?: {
+    line: number,
+    column: number
+  },
+  end?: {
+    line: number,
+    column: number,
+  },
+  error?: any; // upstream error
 };
 
 function navigate(
@@ -84,7 +93,7 @@ function navigate(
   if (pathIndex >= path.length) {
     return annotation;
   }
-  if (annotation.kind === "mapping") {
+  if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
     const { components } = annotation;
     const searchKey = path[pathIndex];
     for (let i = 0; i < components.length; i += 2) {
@@ -94,7 +103,7 @@ function navigate(
       }
     }
     throw new Error("Internal error: searchKey not found in mapping object");
-  } else if (annotation.kind === "sequence") {
+  } else if (annotation.kind === "sequence" || annotation.kind === "block_sequence") {
     const searchKey = Number(path[pathIndex]);
     return navigate(path, annotation.components[searchKey], pathIndex + 1);
   } else {
@@ -123,6 +132,9 @@ function navigateSchema(
     const key = Number(path[pathIndex + 1]);
     const subSchema = schema.oneOf[key];
     return navigateSchema(path, subSchema, pathIndex + 2);
+  } else if (pathVal === "items") {
+    const subSchema = schema.items;
+    return navigateSchema(path, subSchema, pathIndex + 1);
   } else {
     console.log({path});
     throw new Error("Internal error: Failed to navigate schema path");
@@ -180,13 +192,18 @@ function localizeAndPruneErrors(
       `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`
       : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`);
 
-    message = `${locStr}: Expected field ${instancePath} to ${innerSchema.description}`;
+    const messageNoLocation = `Expected field ${instancePath} to ${innerSchema.description}`;
+    message = `${locStr}: ${messageNoLocation}`;
     
     result.push({
       instancePath,
       violatingObject,
       message,
-      source
+      messageNoLocation,
+      source,
+      start,
+      end,
+      error // we include the full error to allow downstream fine-tuning
     });
   }
   result.sort((a, b) => a.violatingObject.start - b.violatingObject.start);

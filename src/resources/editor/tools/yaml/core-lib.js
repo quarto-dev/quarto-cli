@@ -681,14 +681,13 @@
   // yaml-schema.ts
   var ajv = void 0;
   function setupAjv(_ajv) {
-    debugger;
     ajv = _ajv;
   }
   function navigate(path, annotation, pathIndex = 0) {
     if (pathIndex >= path.length) {
       return annotation;
     }
-    if (annotation.kind === "mapping") {
+    if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
       const { components } = annotation;
       const searchKey = path[pathIndex];
       for (let i = 0; i < components.length; i += 2) {
@@ -698,7 +697,7 @@
         }
       }
       throw new Error("Internal error: searchKey not found in mapping object");
-    } else if (annotation.kind === "sequence") {
+    } else if (annotation.kind === "sequence" || annotation.kind === "block_sequence") {
       const searchKey = Number(path[pathIndex]);
       return navigate(path, annotation.components[searchKey], pathIndex + 1);
     } else {
@@ -722,6 +721,9 @@
       const key = Number(path[pathIndex + 1]);
       const subSchema = schema.oneOf[key];
       return navigateSchema(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "items") {
+      const subSchema = schema.items;
+      return navigateSchema(path, subSchema, pathIndex + 1);
     } else {
       console.log({ path });
       throw new Error("Internal error: Failed to navigate schema path");
@@ -749,12 +751,17 @@
       const start = locF(violatingObject.start);
       const end = locF(violatingObject.end);
       const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
-      message = `${locStr}: Expected field ${instancePath} to ${innerSchema.description}`;
+      const messageNoLocation = `Expected field ${instancePath} to ${innerSchema.description}`;
+      message = `${locStr}: ${messageNoLocation}`;
       result2.push({
         instancePath,
         violatingObject,
         message,
-        source
+        messageNoLocation,
+        source,
+        start,
+        end,
+        error
       });
     }
     result2.sort((a, b) => a.violatingObject.start - b.violatingObject.start);

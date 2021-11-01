@@ -185,9 +185,12 @@ export function objectSchema(params: {
       result.completions = uniqueValues(result.completions);
     }
 
-    if (additionalProperties) {
+    if (additionalProperties !== undefined) {
       // FIXME Review. This is likely to be confusing, but I think
       // it's the correct semantics for subclassing
+      if (result.additionalProperties === false) {
+        throw new Error("Internal Error: don't know how to subclass object schema with additionalProperties === false");
+      }
       if (result.additionalProperties) {
         result.additionalProperties = allOfSchema(
           result.additionalProperties,
@@ -220,11 +223,14 @@ export function objectSchema(params: {
     
     // this is useful to characterize Record<string, foo> types: use
     // objectSchema({}, [], foo)
-    if (additionalProperties) {
+    //
+    // additionalProperties can be either a schema or "false", so
+    // we need to check for undefined instead of a simple truthy check
+    if (additionalProperties !== undefined) {
       result.additionalProperties = additionalProperties;
     }
   }
-
+ 
   return result;  
 }
 

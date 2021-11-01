@@ -14,12 +14,12 @@ export async function validationFromGoodParseYAML(context)
   if (code.value === undefined) {
     throw new Error("Internal error: Expected a MappedString");
   }
-  debugger;
 
   return await withValidator(context, async (validator) => {
     const parser = await getTreeSitter();
     
     for (const parseResult of attemptParsesAtLine(context, parser)) {
+      const lints = [];
       const {
         parse: tree,
         code: mappedCode,
@@ -34,11 +34,21 @@ export async function validationFromGoodParseYAML(context)
         continue;
       }
       const validationResult = validator.validateParse(code, annotation);
-      debugger;
-      return false;
+
+      for (const error of validationResult.errors) {
+        debugger;
+        lints.push({
+          "start.row": error.start.line,
+          "start.column": error.start.column,
+          "end.row": error.end.line,
+          "end.column": error.end.column,
+          "text": error.messageNoLocation,
+          "type": "error"
+        });
+      }
+      return lints;  
     }
     
-    return false;  
   });
 }
 
@@ -525,7 +535,6 @@ async function getAutomation(kind, context)
     schemaName
   });
   
-  console.log({kind, context, result});
   return result || null;
 }
 

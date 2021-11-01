@@ -32,7 +32,8 @@ const sidebarEntrySchema = objectS({
     text: "entry description",
     href: "URL of the link",
     icon: "font-awesome icon id"
-  }
+  },
+  additionalProperties: false
 });
 
 const sectionSchema = withId(
@@ -42,7 +43,9 @@ const sectionSchema = withId(
            properties: {
              section: StringS,
              contents: arrayS(refS("/schemas/section", "be a section object"))
-           }
+           },
+           additionalProperties: false,
+           required: ["section", "contents"]
          })),
   "/schemas/section");
 

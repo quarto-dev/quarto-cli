@@ -30,12 +30,16 @@ export async function withValidator(context, fun)
   }
   const queue = validatorQueues[schemaName];
    
-  return await queue.enqueue(async () => {
+  const result = await queue.enqueue(async () => {
     const validator = getValidator(context);
     try {
-      return await fun(validator);
-    } finally {
+      const result = await fun(validator);
+      return result;
+    } catch (e) {
+      console.error("Error in validator queue", e);
       return undefined;
     }
   });
+
+  return result;
 }

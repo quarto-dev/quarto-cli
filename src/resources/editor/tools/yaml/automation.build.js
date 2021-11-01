@@ -23,14 +23,17 @@
       validatorQueues[schemaName] = new core.PromiseQueue();
     }
     const queue = validatorQueues[schemaName];
-    return await queue.enqueue(async () => {
+    const result = await queue.enqueue(async () => {
       const validator = getValidator(context);
       try {
-        return await fun(validator);
-      } finally {
+        const result2 = await fun(validator);
+        return result2;
+      } catch (e) {
+        console.error("Error in validator queue", e);
         return void 0;
       }
     });
+    return result;
   }
 
   // tree-sitter-annotated-yaml.js
@@ -427,10 +430,10 @@
     if (code.value === void 0) {
       throw new Error("Internal error: Expected a MappedString");
     }
-    debugger;
     return await withValidator(context, async (validator) => {
       const parser = await getTreeSitter();
       for (const parseResult of attemptParsesAtLine(context, parser)) {
+        const lints = [];
         const {
           parse: tree,
           code: mappedCode,
@@ -441,10 +444,19 @@
           continue;
         }
         const validationResult = validator.validateParse(code, annotation);
-        debugger;
-        return false;
+        for (const error of validationResult.errors) {
+          debugger;
+          lints.push({
+            "start.row": error.start.line,
+            "start.column": error.start.column,
+            "end.row": error.end.line,
+            "end.column": error.end.column,
+            "text": error.messageNoLocation,
+            "type": "error"
+          });
+        }
+        return lints;
       }
-      return false;
     });
   }
   async function automationFromGoodParseYAML(kind, context) {

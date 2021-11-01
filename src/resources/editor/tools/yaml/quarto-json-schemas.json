@@ -1221,7 +1221,8 @@
                             "description": "font-awesome icon id",
                             "suggest_on_accept": false
                           }
-                        ]
+                        ],
+                        "additionalProperties": false
                       }
                     ],
                     "description": "be exactly one of: a string, an object"
@@ -1349,7 +1350,8 @@
                               "description": "font-awesome icon id",
                               "suggest_on_accept": false
                             }
-                          ]
+                          ],
+                          "additionalProperties": false
                         },
                         {
                           "type": "object",
@@ -1368,6 +1370,10 @@
                               }
                             }
                           },
+                          "required": [
+                            "section",
+                            "contents"
+                          ],
                           "completions": [
                             {
                               "type": "key",
@@ -1383,7 +1389,8 @@
                               "description": "",
                               "suggest_on_accept": true
                             }
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       ],
                       "description": "be exactly one of: a string, an object, an object",
