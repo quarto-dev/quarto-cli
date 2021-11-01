@@ -113,19 +113,17 @@ export async function serveProject(
     : await serveFiles(project);
 
   // render in the main directory
-  const renderFlags = {
-    ...flags,
-    ...(render && options.render !== kRenderDefault)
-      ? { to: options.render }
-      : {},
-  };
-
   const renderResult = await renderProject(
     project,
     {
       progress: true,
       useFreezer: !render,
-      flags: renderFlags,
+      flags: {
+        ...flags,
+        ...(render && options.render !== kRenderDefault)
+          ? { to: options.render }
+          : {},
+      },
       pandocArgs,
     },
     files,
@@ -205,7 +203,7 @@ export async function serveProject(
                 {
                   useFreezer: true,
                   devServerReload: true,
-                  flags: { ...renderFlags, quiet: true },
+                  flags: { quiet: true },
                   pandocArgs,
                 },
                 [inputFile!],
