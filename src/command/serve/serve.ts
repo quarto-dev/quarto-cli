@@ -7,7 +7,7 @@
 
 import { error, info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
@@ -40,9 +40,15 @@ import {
 import { websitePath } from "../../project/types/website/website-config.ts";
 
 import { renderProject } from "../render/project.ts";
-import { renderResultUrlPath } from "../render/render.ts";
+import {
+  renderResultFinalOutput,
+  renderResultUrlPath,
+} from "../render/render.ts";
 
-import { httpFileRequestHandler } from "../../core/http.ts";
+import {
+  httpFileRequestHandler,
+  HttpFileRequestOptions,
+} from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
 import { watchProject } from "./watch.ts";
@@ -58,6 +64,12 @@ import { resourcesFromMetadata } from "../render/resources.ts";
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { RenderFlags, RenderResult } from "../render/types.ts";
 import { initDenoDom } from "../../core/html.ts";
+import {
+  kPdfJsInitialPath,
+  pdfJsBaseDir,
+  pdfJsFileHandler,
+} from "../../core/pdfjs.ts";
+import { isPdfOutput } from "../../config/format.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -105,12 +117,23 @@ export async function serveProject(
     info("Preparing to preview");
   }
 
+  // determines files to render and resourceFiles to monitor
   // if we are in render 'none' mode then only render files whose output
   // isn't up to date. for those files we aren't rendering, compute their
   // resource files so we can watch them for changes
-  const { files, resourceFiles } = render
-    ? { files: undefined, resourceFiles: new Array<string>() }
-    : await serveFiles(project);
+  let files: string[] | undefined;
+  let resourceFiles: string[] = [];
+  if (!render) {
+    // if this is pdf output then we need to render all of the files
+    // so that the latex compiler can build the entire book
+    if (isPdfOutput(flags.to || "")) {
+      files = project.files.input;
+    } else {
+      const srvFiles = await serveFiles(project);
+      files = srvFiles.files;
+      resourceFiles = srvFiles.resourceFiles;
+    }
+  }
 
   // render in the main directory
   const renderFlags = {
@@ -157,9 +180,10 @@ export async function serveProject(
   // create a promise queue so we only do one renderProject at a time
   const renderQueue = new PromiseQueue<RenderResult>();
 
-  // file request handler
+  // serve output dir
   const serveOutputDir = projectOutputDir(serveProject);
-  const handler = httpFileRequestHandler({
+
+  const handlerOptions: HttpFileRequestOptions = {
     //  base dir
     baseDir: serveOutputDir,
 
@@ -263,7 +287,7 @@ export async function serveProject(
         body,
       };
     },
-  });
+  };
 
   // serve project
   const server = serve({ port: options.port, hostname: options.host });
@@ -277,10 +301,16 @@ export async function serveProject(
   }
   printBrowsePreviewMessage(siteUrl);
 
+  // determine final output
+  const finalOutput = renderResultFinalOutput(renderResult);
+  const pdfOutput = finalOutput && extname(finalOutput) === ".pdf";
+
   // open browser if requested
-  if (options.browse) {
+  if (options.browse && finalOutput) {
     const targetPath = typeof (options.browse) === "string"
       ? options.browse
+      : pdfOutput
+      ? kPdfJsInitialPath
       : renderResultUrlPath(renderResult);
     if (targetPath) {
       openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
@@ -289,7 +319,35 @@ export async function serveProject(
     }
   }
 
+  // TODO: the reload that occurs on file change targets the wrong URL (not web/index.html)
+  // TODO: the reload that occurs doesn't cause a re-render (perhaps the file change should
+  // cause the re-render? not sure how clean that would be)
+  // TODO: confirm that save -> render works as well as as straight render
+  // TODO: test with --render pdf
+  // TODO: how will pdf-only configs work
+
+  // if this is a pdf then we tweak the options to correctly handle pdfjs
+  if (finalOutput && pdfOutput) {
+    // change the baseDir to the pdfjs directory
+    handlerOptions.baseDir = pdfJsBaseDir();
+
+    // install custom handler for pdfjs
+    handlerOptions.onFile = pdfJsFileHandler(
+      finalOutput,
+      async (file: string) => {
+        // inject watcher client for html
+        if (isHtmlContent(file)) {
+          const fileContents = await Deno.readFile(file);
+          return watcher.injectClient(fileContents);
+        } else {
+          return undefined;
+        }
+      },
+    );
+  }
+
   // wait for requests
+  const handler = httpFileRequestHandler(handlerOptions);
   for await (const req of server) {
     handler(req);
   }

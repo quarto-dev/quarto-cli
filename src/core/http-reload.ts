@@ -23,8 +23,8 @@ export interface HttpReloader {
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (
     file: Uint8Array,
-    inputFile: string,
-    format: Format,
+    inputFile?: string,
+    format?: Format,
   ) => Uint8Array;
   reloadClients: (reloadTarget?: string) => Promise<void>;
 }
@@ -58,7 +58,7 @@ export function httpReloader(
         maybeDisplaySocketError(e);
       }
     },
-    injectClient: (file: Uint8Array, inputFile: string, format: Format) => {
+    injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
       const scriptContents = new TextEncoder().encode(
         "\n" + devServerClientScript(port, inputFile, format, isPresentation),
       );
@@ -99,8 +99,8 @@ export function httpReloader(
 
 function devServerClientScript(
   port: number,
-  inputFile: string,
-  format: Format,
+  inputFile?: string,
+  format?: Format,
   isPresentation?: boolean,
 ): string {
   // reload devserver
@@ -110,7 +110,7 @@ function devServerClientScript(
       port,
     }),
   ];
-  if (isPresentation && isRevealjsOutput(format.pandoc)) {
+  if (isPresentation && format && isRevealjsOutput(format.pandoc)) {
     // revealjs devserver
     if (isRevealjsOutput(format.pandoc)) {
       devserver.push(
@@ -121,7 +121,7 @@ function devServerClientScript(
     // viewer devserver
     devserver.push(
       renderEjs(resourcePath("editor/devserver/devserver-viewer.html"), {
-        inputFile,
+        inputFile: inputFile || "",
       }),
     );
   }

@@ -15,8 +15,8 @@ export interface ProjectWatcher {
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (
     file: Uint8Array,
-    inputFile: string,
-    format: Format,
+    inputFile?: string,
+    format?: Format,
   ) => Uint8Array;
   serveProject: () => ProjectContext;
   refreshProject: () => Promise<ProjectContext>;
