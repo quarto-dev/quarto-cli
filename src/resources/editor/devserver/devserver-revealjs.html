@@ -62,13 +62,17 @@
       const slides = Reveal.getSlides().map(slideInfo);
       postInit(slides);
 
-      // fire slidechanged for initial load
-      postSlideChanged();
+      // once we are signaled back that the caller is ready,
+      // send the initial slideChanged and hashChange events
+      onMessage("reveal-ready", function(){
+        // fire slidechanged for initial load
+        postSlideChanged();
 
-      // forward window hashchange
-      postHashChange();
-      window.addEventListener('hashchange', postHashChange);
-
+        // fire hashchnge for initial load (and listen for subsequent changes)
+        postHashChange();
+        window.addEventListener('hashchange', postHashChange);
+      });
+      
       // trigger automatic print (using same test/logic as reveal)
       if ((/print-pdf/gi).test(window.location.search)) {
 
