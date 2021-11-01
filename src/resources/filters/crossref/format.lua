@@ -50,13 +50,13 @@ function refPrefix(type, upper)
   local opt = type .. "-prefix"
   local prefix = crossrefOption(opt, {pandoc.Str(type), pandoc.Str(".")})
   if upper then
-    local el = pandoc.Plain:new(prefix)
+    local el = pandoc.Plain(prefix)
     local firstStr = true
     el = pandoc.walk_block(el, {
       Str = function(str)
         if firstStr then
           local strText = text.upper(text.sub(str.text, 1, 1)) .. text.sub(str.text, 2, -1)
-          str = pandoc.Str:new(strText)
+          str = pandoc.Str(strText)
           firstStr = false
         end
         return str

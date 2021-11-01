@@ -20,7 +20,7 @@ function processEquations(blockEl)
   end
 
   local mathInlines = nil
-  local targetInlines = pandoc.List:new()
+  local targetInlines = pandoc.List()
 
   for i, el in ipairs(inlines) do
 
@@ -65,7 +65,7 @@ function processEquations(blockEl)
     -- process the inline unless it was already taken care of above
     if processInline then
       if isDisplayMath(el) then
-          mathInlines = pandoc.List:new()
+          mathInlines = pandoc.List()
           mathInlines:insert(el)
         else
           targetInlines:insert(el)

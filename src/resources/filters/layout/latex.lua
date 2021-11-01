@@ -87,7 +87,7 @@ end
 
 -- conjoin paragraphs (allows % to work correctly between minipages or subfloats)
 function latexJoinParas(content)
-  local blocks = pandoc.List:new()
+  local blocks = pandoc.List()
   for i,block in ipairs(content) do
     if block.t == "Para" and #blocks > 0 and blocks[#blocks].t == "Para" then
       tappend(blocks[#blocks].content, block.content)
@@ -221,7 +221,7 @@ function markupLatexCaption(el, caption, captionEnv)
   local captionEnv = latexCaptionEnv(el)
   
   -- caption prefix (includes \\caption macro + optional [subcap] + {)
-  local captionPrefix = pandoc.List:new({
+  local captionPrefix = pandoc.List({
     pandoc.RawInline("latex", "\\" .. captionEnv)
   })
   local figScap = attribute(el, kFigScap, nil)
@@ -308,15 +308,15 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local width = cell.attr.attributes["width"]
   
   -- derive prefix, content, and suffix
-  local prefix = pandoc.List:new()
-  local content = pandoc.List:new()
-  local suffix = pandoc.List:new()
+  local prefix = pandoc.List()
+  local content = pandoc.List()
+  local suffix = pandoc.List()
 
   -- sub-captioned always uses \subfloat
   if isSubRef then
     
     -- lift the caption out it it's current location and onto the \subfloat
-    local caption = pandoc.List:new()
+    local caption = pandoc.List()
     
     -- see if it's a captioned figure
     if image and #image.caption > 0 then
@@ -420,7 +420,7 @@ function latexTabular(tbl, vAlign)
   tbl = pandoc.utils.to_simple_table(tbl)
   
   -- list of inlines
-  local tabular = pandoc.List:new()
+  local tabular = pandoc.List()
   
   -- vertically align the minipage
   local tabularVAlign = latexMinipageValign(vAlign)
@@ -459,7 +459,7 @@ function latexTabular(tbl, vAlign)
 end
 
 function latexTabularRow(row)
-  local cells = pandoc.List:new()
+  local cells = pandoc.List()
   for _,cell in ipairs(row) do
     cells:insert(pandoc.utils.blocks_to_inlines(cell))
   end

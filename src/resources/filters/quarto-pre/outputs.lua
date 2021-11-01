@@ -15,7 +15,7 @@ function outputs()
           end
   
           -- unroll blocks contained in divs
-          local blocks = pandoc.List:new()
+          local blocks = pandoc.List()
           for _, childBlock in ipairs(div.content) do
             if childBlock.t == "Div" then
               tappend(blocks, childBlock.content)

@@ -12,7 +12,7 @@ function foldCode()
             block.attr.attributes["code-fold"] = nil
             block.attr.attributes["code-summary"] = nil
             if fold ~= "none" then 
-              local blocks = pandoc.List:new()
+              local blocks = pandoc.List()
               postState.codeFoldingCss = true
               local open = ""
               if fold == "show" then

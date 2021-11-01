@@ -83,7 +83,7 @@ end
 -- finds blocks that only contain a shortcode and processes them
 function transformShortcodeBlocks(blocks) 
   local transformed = false
-  local scannedBlocks = pandoc.List:new()
+  local scannedBlocks = pandoc.List()
   
   for i,block in ipairs(blocks) do 
     -- inspect para and plain blocks for shortcodes
@@ -124,8 +124,8 @@ end
 -- scans through a list of inlines, finds shortcodes, and processes them
 function transformShortcodeInlines(inlines) 
   local transformed = false
-  local outputInlines = pandoc.List:new()
-  local shortcodeInlines = pandoc.List:new()
+  local outputInlines = pandoc.List()
+  local shortcodeInlines = pandoc.List()
   local accum = outputInlines
   
   -- iterate through any inlines and process any shortcodes
@@ -192,7 +192,7 @@ function transformShortcodeInlines(inlines)
         end   
 
         -- clear the accumulated shortcode inlines
-        shortcodeInlines = pandoc.List:new()        
+        shortcodeInlines = pandoc.List()        
       else 
         -- not a shortcode, accumulate
         accum:insert(el)
@@ -230,7 +230,7 @@ function processShortCode(inlines)
 
   local kSep = "="
   local shortCode = nil
-  local args = pandoc.List:new()
+  local args = pandoc.List()
 
   -- slice off the open and close tags
   inlines = tslice(inlines, 2, #inlines - 1)
