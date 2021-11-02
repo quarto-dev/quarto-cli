@@ -4,7 +4,13 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { ensureDir, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
+import {
+  copySync,
+  ensureDir,
+  ensureDirSync,
+  existsSync,
+  moveSync,
+} from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { dirname, join } from "path/mod.ts";
 import { lines } from "../../../src/core/text.ts";
@@ -88,6 +94,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         clipboardJs,
       );
     },
+    "v",
   );
   cleanSourceMap(clipboardJs);
 
@@ -132,6 +139,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         fuseJs,
       );
     },
+    "v",
   );
   cleanSourceMap(fuseJs);
 
@@ -139,7 +147,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
   const revealJs = join(
     config.directoryInfo.src,
     "resources",
-    "format",
+    "formats",
     "revealjs",
     "reveal",
   );
@@ -150,11 +158,19 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "REVEAL_JS",
     workingDir,
     (dir: string, version: string) => {
-      // Copy the js file
-      ensureDirSync(dirname(fuseJs));
-      Deno.copyFileSync(
-        join(dir, `Fuse-${version}`, "dist", "fuse.min.js"),
-        fuseJs,
+      // Copy the desired resource files
+      if (existsSync(revealJs)) {
+        Deno.removeSync(dirname(revealJs), { recursive: true });
+      }
+      ensureDirSync(dirname(revealJs));
+      copySync(join(dir, `reveal.js-${version}`, "css"), join(revealJs, "css"));
+      copySync(
+        join(dir, `reveal.js-${version}`, "dist"),
+        join(revealJs, "dist"),
+      );
+      copySync(
+        join(dir, `reveal.js-${version}`, "plugin"),
+        join(revealJs, "plugin"),
       );
     },
   );
@@ -507,13 +523,14 @@ async function updateGithubSourceCodeDependency(
   versionEnvVar: string,
   working: string,
   onDownload: (dir: string, version: string) => void,
+  tagPrefix?: string,
 ) {
   info(`Updating ${name}...`);
   const version = Deno.env.get(versionEnvVar);
   if (version) {
+    const tag = tagPrefix ? tagPrefix.concat(version) : version;
     const fileName = `${name}.zip`;
-    const distUrl =
-      `https://github.com/${repo}/archive/refs/tags/v${version}.zip`;
+    const distUrl = `https://github.com/${repo}/archive/refs/tags/${tag}.zip`;
     const zipFile = join(working, fileName);
 
     // Download and unzip the release
