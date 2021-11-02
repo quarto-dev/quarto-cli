@@ -547,9 +547,7 @@ async function updateGithubSourceCodeDependency(
       `https://github.com/${repo}/archive`,
       type === "tag" ? `refs/tags/v${version}.zip` : `${version}.zip`,
     );
-    info(`Url: ${distUrl}`);
     const zipFile = join(working, fileName);
-    info(`ZIP: ${zipFile}`);
 
     // Download and unzip the release
     info(`Downloading ${distUrl}`);
