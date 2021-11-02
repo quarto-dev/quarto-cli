@@ -8,10 +8,36 @@ function columnsPreprocess()
         -- for code chunks that arne't layout panels, forward the column classes to the output
         -- figures or tables (otherwise, the column class should be used to layout the whole panel)
         forwardColumnClasses(el)
+      else
+        forwardGlobalColumn(el)
       end      
       return el      
     end,
+
+    Para = function(el)
+      local figure = discoverFigure(el)
+      if figure then
+        forwardGlobalColumn(figure)
+      end
+      return el
+    end  
   }
+end
+
+function forwardGlobalColumn(el) 
+  if not hasRefParent(el) then
+    if hasFigureRef(el) then
+      local columnClass = figColumnClass()
+      if columnClass ~= nil then
+        tappend(el.attr.classes, {columnClass})
+      end
+    elseif hasTableRef(el) then
+      local columnClass = tblColumnClass()
+      if columnClass ~= nil then
+        tappend(el.attr.classes, {columnClass})
+      end
+    end
+  end
 end
 
 -- forwwards column classes from code chunks onto their display / outputs

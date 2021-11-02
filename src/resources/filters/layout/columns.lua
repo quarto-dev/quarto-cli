@@ -106,6 +106,30 @@ function resolveColumnClasses(el)
   return el.attr.classes:filter(isColumnClass)
 end
 
+function tblColumnClass() 
+  local clz = option('tbl-column', nil);
+  if clz == nil then
+    clz = option('column',  nil)
+  end
+  return columnToClass(clz)
+end
+
+function figColumnClass()
+  local clz = option('fig-column', nil);
+  if clz == nil then
+    clz = option('column',  nil)
+  end
+  return columnToClass(clz)
+end
+
+function columnToClass(column)
+  if column ~= nil then
+    return 'column-' .. column[1].text
+  else
+    return nil
+  end
+end
+
 function removeColumnClasses(el)
   for i, clz in ipairs(el.attr.classes) do 
     if isColumnClass(clz) then
