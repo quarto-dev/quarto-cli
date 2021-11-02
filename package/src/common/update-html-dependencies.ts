@@ -12,7 +12,7 @@ import {
   moveSync,
 } from "fs/mod.ts";
 import { info } from "log/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, extname, join } from "path/mod.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
 import { Repo, withRepo } from "../util/git.ts";
@@ -160,9 +160,9 @@ export async function updateHtmlDepedencies(config: Configuration) {
     (dir: string, version: string) => {
       // Copy the desired resource files
       if (existsSync(revealJs)) {
-        Deno.removeSync(dirname(revealJs), { recursive: true });
+        Deno.removeSync(revealJs, { recursive: true });
       }
-      ensureDirSync(dirname(revealJs));
+      ensureDirSync(revealJs);
       copySync(join(dir, `reveal.js-${version}`, "css"), join(revealJs, "css"));
       copySync(
         join(dir, `reveal.js-${version}`, "dist"),
@@ -172,6 +172,16 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `reveal.js-${version}`, "plugin"),
         join(revealJs, "plugin"),
       );
+      // remove unneeded CSS files
+      for (
+        const fileEntry of Deno.readDirSync(
+          join(dir, `reveal.js-${version}`, "dist"),
+        )
+      ) {
+        if (fileEntry.isFile && extname(fileEntry.name) === "css") {
+          Deno.removeSync(fileEntry.name);
+        }
+      }
     },
   );
 
