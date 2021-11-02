@@ -425,7 +425,7 @@ function pdfFileRequestHandler(
 
   // pdf customizations
   pdfOptions.baseDir = pdfJsBaseDir();
-  pdfOptions.onFile = pdfJsFileHandler(pdfFile, pdfOptions.onFile);
+  pdfOptions.onFile = pdfJsFileHandler(() => pdfFile, pdfOptions.onFile);
 
   return httpFileRequestHandler(pdfOptions);
 }

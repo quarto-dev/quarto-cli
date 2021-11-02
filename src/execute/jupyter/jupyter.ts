@@ -274,10 +274,6 @@ export const jupyterEngine: ExecutionEngine = {
 
   executeTargetSkipped: cleanupNotebook,
 
-  devServerRenderOnChange: (input: string) => {
-    return Promise.resolve(isJupyterNotebook(input));
-  },
-
   dependencies: (options: DependenciesOptions) => {
     const includes: PandocIncludes = {};
     if (options.dependencies) {

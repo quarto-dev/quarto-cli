@@ -18,6 +18,9 @@ const kPdfJsViewerToolbarButtonSelector = `.toolbarButton,
 .secondaryToolbarButton,
 .overlayButton {`;
 
+const kPdfJsViewerSidebarTransitionDurationPattern =
+  /(--sidebar-transition-duration: )(\d+ms)/;
+
 // NOTE: pdfjs uses the \pdftrailerid{} (if defined, and this macro only works for pdflatex)
 // as the context for persisting user prefs. this is read in the "fingerprint" method of
 // PDFDocument (on ~ line 12100 of pdf.worker.js). if we want to preserve the user's prefs
@@ -32,7 +35,7 @@ export function pdfJsBaseDir() {
 }
 
 export function pdfJsFileHandler(
-  pdfFile: string,
+  pdfFile: () => string,
   htmlHandler?: (
     file: string,
     req: ServerRequest,
@@ -56,7 +59,7 @@ export function pdfJsFileHandler(
       let viewerJs = Deno.readTextFileSync(file)
         .replace(
           kPdfJsDefaultFile,
-          basename(pdfFile),
+          basename(pdfFile()),
         );
       // always hide the sidebar in the viewer pane
       const referrer = req.headers.get("Referer");
@@ -74,6 +77,10 @@ export function pdfJsFileHandler(
         .replace(
           kPdfJsViewerToolbarButtonSelector,
           kPdfJsViewerToolbarButtonSelector + "\n  z-index: 199;",
+        )
+        .replace(
+          kPdfJsViewerSidebarTransitionDurationPattern,
+          "$1 0",
         );
       return new TextEncoder().encode(viewerCss);
 
@@ -81,15 +88,15 @@ export function pdfJsFileHandler(
       // (preserve user viewer prefs across reloads)
     } else if (file === previewPath("build", "pdf.worker.js")) {
       const filePathHash = "quarto-preview-pdf-" +
-        md5Hash(pdfFile);
+        md5Hash(pdfFile());
       const workerJs = Deno.readTextFileSync(file).replace(
         /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
         `$1return "${filePathHash}"; $2`,
       );
       return new TextEncoder().encode(workerJs);
     } // read requests for our pdf for the pdfFile
-    else if (file === previewPath("web", basename(pdfFile))) {
-      return Deno.readFileSync(pdfFile);
+    else if (file === previewPath("web", basename(pdfFile()))) {
+      return Deno.readFileSync(pdfFile());
     }
   };
 }

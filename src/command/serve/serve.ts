@@ -70,6 +70,7 @@ import {
   pdfJsFileHandler,
 } from "../../core/pdfjs.ts";
 import { isPdfOutput } from "../../config/format.ts";
+import { bookOutputStem } from "../../project/types/book/book-config.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -110,8 +111,8 @@ export async function serveProject(
   };
 
   // are we rendering?
-  const render = options.render !== kRenderNone;
-  if (render) {
+  const renderBefore = options.render !== kRenderNone;
+  if (renderBefore) {
     info("Rendering:");
   } else {
     info("Preparing to preview");
@@ -123,7 +124,7 @@ export async function serveProject(
   // resource files so we can watch them for changes
   let files: string[] | undefined;
   let resourceFiles: string[] = [];
-  if (!render) {
+  if (!renderBefore) {
     // if this is pdf output then we need to render all of the files
     // so that the latex compiler can build the entire book
     if (isPdfOutput(flags.to || "")) {
@@ -138,7 +139,7 @@ export async function serveProject(
   // render in the main directory
   const renderFlags = {
     ...flags,
-    ...(render && options.render !== kRenderDefault)
+    ...(renderBefore && options.render !== kRenderDefault)
       ? { to: options.render }
       : {},
   };
@@ -147,7 +148,7 @@ export async function serveProject(
     project,
     {
       progress: true,
-      useFreezer: !render,
+      useFreezer: !renderBefore,
       flags: renderFlags,
       pandocArgs,
     },
@@ -160,7 +161,7 @@ export async function serveProject(
   }
 
   const finalOutput = renderResultFinalOutput(renderResult);
-  const pdfOutput = finalOutput && extname(finalOutput) === ".pdf";
+  const pdfOutput = !!finalOutput && extname(finalOutput) === ".pdf";
 
   // create mirror of project for serving
   const serveDir = copyProjectForServe(project, true);
@@ -171,20 +172,20 @@ export async function serveProject(
     renderResult.files.flatMap((file) => file.resourceFiles),
   ) as string[]);
 
-  // create project watcher
+  // create a promise queue so we only do one renderProject at a time
+  const renderQueue = new PromiseQueue<RenderResult>();
+
+  // create project watcher. later we'll figure out if it should provide renderOutput
   const watcher = await watchProject(
     project,
     serveProject,
     resourceFiles,
     flags,
-    {
-      ...options,
-      navigate: !!options.navigate && !pdfOutput,
-    },
+    pandocArgs,
+    options,
+    !pdfOutput, // we don't render on reload for pdf output
+    renderQueue,
   );
-
-  // create a promise queue so we only do one renderProject at a time
-  const renderQueue = new PromiseQueue<RenderResult>();
 
   // serve output dir
   const serveOutputDir = projectOutputDir(serveProject);
@@ -307,7 +308,7 @@ export async function serveProject(
   }
 
   // open browser if requested
-  if (options.browse && finalOutput) {
+  if (options.browse) {
     const targetPath = typeof (options.browse) === "string"
       ? options.browse
       : pdfOutput
@@ -320,11 +321,6 @@ export async function serveProject(
     openUrl(browseUrl);
   }
 
-  // TODO: the reload that occurs doesn't cause a re-render (perhaps the file change should
-  // cause the re-render? not sure how clean that would be)
-  // TODO: debouncing for pdf-latex file modifications (see preview)
-  // TODO: how will pdf-only configs work
-
   // if this is a pdf then we tweak the options to correctly handle pdfjs
   if (finalOutput && pdfOutput) {
     // change the baseDir to the pdfjs directory
@@ -332,7 +328,13 @@ export async function serveProject(
 
     // install custom handler for pdfjs
     handlerOptions.onFile = pdfJsFileHandler(
-      finalOutput,
+      () => {
+        const project = watcher.project();
+        return join(
+          dirname(finalOutput),
+          bookOutputStem(project.dir, project.config) + ".pdf",
+        );
+      },
       async (file: string) => {
         // inject watcher client for html
         if (isHtmlContent(file)) {

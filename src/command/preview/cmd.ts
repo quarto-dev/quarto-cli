@@ -29,20 +29,19 @@ export const previewCommand = new Command()
     "Hostname to bind to (defaults to 127.0.0.1)",
   )
   .option(
-    "--render [to:string]",
+    "--render [format:string]",
     "Render to the specified format(s) before previewing",
     {
       default: kRenderNone,
-      hidden: true,
     },
   )
   .option(
     "--no-watch",
-    "Do not udpate preview when source files change.",
+    "Do not re-render input files when they change.",
   )
   .option(
     "--no-render",
-    "Do not update preview when source files change.",
+    "Do not re-render input files when they change.",
     {
       hidden: true,
     },

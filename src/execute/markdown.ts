@@ -69,6 +69,4 @@ export const markdownEngine: ExecutionEngine = {
   postprocess: (_options: PostProcessOptions) => Promise.resolve(),
 
   canFreeze: false,
-
-  devServerRenderOnChange: () => Promise.resolve(true),
 };
