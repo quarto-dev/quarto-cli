@@ -36,10 +36,6 @@ export const previewCommand = new Command()
     },
   )
   .option(
-    "--no-watch",
-    "Do not re-render input files when they change.",
-  )
-  .option(
     "--no-render",
     "Do not re-render input files when they change.",
     {
@@ -68,6 +64,10 @@ export const previewCommand = new Command()
       hidden: true,
     },
   )
+  .option(
+    "--no-watch-inputs",
+    "Do not re-render input files when they change.",
+  )
   .arguments("[file:string] [...args:string]")
   .description(
     "Render and preview a Quarto document or website project. Automatically reloads the browser when\n" +
@@ -88,8 +88,8 @@ export const previewCommand = new Command()
     "quarto preview doc.qmd --toc",
   )
   .example(
-    "Preview document (don't watch for source changes)",
-    "quarto preview doc.qmd --no-watch",
+    "Preview document (don't watch for input changes)",
+    "quarto preview doc.qmd --no-watch-inputs",
   )
   .example(
     "Preview website with most recent execution results",
@@ -153,7 +153,7 @@ export const previewCommand = new Command()
       options.browser = false;
       args.splice(noBrowserPos, 1);
     }
-    const noWatchPos = args.indexOf("--no-watch");
+    const noWatchPos = args.indexOf("--no-watch-inputs");
     if (noWatchPos !== -1) {
       options.watch = false;
       args.splice(noWatchPos, 1);

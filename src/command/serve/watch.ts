@@ -289,15 +289,11 @@ export function watchProject(
   // return watcher interface
   return Promise.resolve({
     handle: (req: ServerRequest) => {
-      return !!options.watch && reloader.handle(req);
+      return reloader.handle(req);
     },
     connect: reloader.connect,
     injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
-      if (options.watch) {
-        return reloader.injectClient(file, inputFile, format);
-      } else {
-        return file;
-      }
+      return reloader.injectClient(file, inputFile, format);
     },
     project: () => project,
     serveProject: () => serveProject,

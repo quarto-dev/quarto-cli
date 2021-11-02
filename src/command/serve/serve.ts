@@ -313,9 +313,7 @@ export async function serveProject(
   const siteUrl = `http://localhost:${options.port}/`;
 
   // print status
-  if (options.watch) {
-    printWatchingForChangesMessage();
-  }
+  printWatchingForChangesMessage();
 
   // compute browse url
   const targetPath = typeof (options.browse) === "string"
