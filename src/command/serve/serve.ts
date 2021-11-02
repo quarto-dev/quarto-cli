@@ -317,17 +317,20 @@ export async function serveProject(
     printWatchingForChangesMessage();
   }
 
-  // open browser if requested
+  // compute browse url
+  const targetPath = typeof (options.browse) === "string"
+    ? options.browse
+    : pdfOutput
+    ? kPdfJsInitialPath
+    : renderResultUrlPath(renderResult);
+  const browseUrl = targetPath
+    ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
+    : siteUrl;
+
+  // print browse url and open browser if requested
+  printBrowsePreviewMessage(browseUrl);
+
   if (options.browse) {
-    const targetPath = typeof (options.browse) === "string"
-      ? options.browse
-      : pdfOutput
-      ? kPdfJsInitialPath
-      : renderResultUrlPath(renderResult);
-    const browseUrl = targetPath
-      ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
-      : siteUrl;
-    printBrowsePreviewMessage(browseUrl);
     openUrl(browseUrl);
   }
 
