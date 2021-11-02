@@ -94,7 +94,6 @@ export async function updateHtmlDepedencies(config: Configuration) {
         clipboardJs,
       );
     },
-    "v",
   );
   cleanSourceMap(clipboardJs);
 
@@ -139,7 +138,6 @@ export async function updateHtmlDepedencies(config: Configuration) {
         fuseJs,
       );
     },
-    "v",
   );
   cleanSourceMap(fuseJs);
 
@@ -184,6 +182,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(revealJs, "plugin"),
       );
     },
+    "commit",
   );
 
   // Autocomplete
@@ -538,15 +537,19 @@ async function updateGithubSourceCodeDependency(
   versionEnvVar: string,
   working: string,
   onDownload: (dir: string, version: string) => void,
-  tagPrefix?: string,
+  type = "tag", // set to commit to download repo from commit working dir
 ) {
   info(`Updating ${name}...`);
   const version = Deno.env.get(versionEnvVar);
   if (version) {
-    const tag = tagPrefix ? tagPrefix.concat(version) : version;
     const fileName = `${name}.zip`;
-    const distUrl = `https://github.com/${repo}/archive/refs/tags/${tag}.zip`;
+    const distUrl = join(
+      `https://github.com/${repo}/archive`,
+      type === "tag" ? `refs/tags/v${version}.zip` : `${version}.zip`,
+    );
+    info(`Url: ${distUrl}`);
     const zipFile = join(working, fileName);
+    info(`ZIP: ${zipFile}`);
 
     // Download and unzip the release
     info(`Downloading ${distUrl}`);
