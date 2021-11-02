@@ -16,6 +16,9 @@ function tdump (tbl, indent)
   if tbl.t then
     print(string.rep("  ", indent) .. tbl.t)
   end
+  if #tbl == 0 then
+    print("{}")
+  end
   for k, v in pairs(tbl) do
     formatting = string.rep("  ", indent) .. k .. ": "
     if type(v) == "table" then
