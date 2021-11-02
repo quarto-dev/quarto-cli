@@ -35,6 +35,15 @@ function tisarray(t)
   return true
 end
 
+-- map elements of a table
+function tmap(tbl, f)
+  local t = {}
+  for k,v in pairs(tbl) do
+      t[k] = f(v)
+  end
+  return t
+end
+
 -- does the table contain a value
 function tcontains(t,value)
   if t and type(t)=="table" and value then
