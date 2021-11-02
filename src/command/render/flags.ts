@@ -18,6 +18,7 @@ import {
   kListings,
   kNumberOffset,
   kNumberSections,
+  kReferenceLocation,
   kSelfContained,
   kShiftHeadingLevelBy,
   kTableOfContents,
@@ -279,6 +280,13 @@ export function parseRenderFlags(args: string[]) {
             const metadata = readYamlFromMarkdownFile(arg);
             flags.metadata = { ...flags.metadata, ...metadata };
           }
+        }
+        break;
+
+      case "--reference-location":
+        arg = argsStack.shift();
+        if (arg) {
+          flags[kReferenceLocation] = arg;
         }
         break;
 

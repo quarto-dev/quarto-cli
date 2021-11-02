@@ -170,6 +170,7 @@ export const kToc = "toc";
 export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
 export const kEPubCoverImage = "epub-cover-image";
+export const kReferenceLocation = "reference-location";
 export const kQuartoVarsKey = "_quarto-vars";
 
 // command line flags
@@ -285,7 +286,7 @@ export const kPandocDefaultsKeys = [
   "epub-chapter-level",
   kEPubCoverImage,
   "reference-links",
-  "reference-location",
+  kReferenceLocation,
   kAtxHeaders,
   kMarkdownHeadings,
   "track-changes",

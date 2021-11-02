@@ -19,10 +19,10 @@ function layoutMetaInject()
 
       
       -- check if global options are enabled (e.g. footnotes-margin)
-      local footnotesMargin = readOption(meta, 'footnotes-margin');
+      local referenceLocation = param('reference-location', 'document')
 
       -- enable column layout (packages and adjust geometry)
-      if (layoutState.hasColumns or footnotesMargin) and isLatexOutput() then
+      if (layoutState.hasColumns or referenceLocation == 'gutter') and isLatexOutput() then
         -- inject sidenotes package
         metaInjectLatex(meta, function(inject)
           inject(

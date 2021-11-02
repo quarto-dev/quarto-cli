@@ -19,6 +19,7 @@ import {
   kKeepHidden,
   kMergeIncludes,
   kOutputDivs,
+  kReferenceLocation,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import { Format, FormatPandoc } from "../../config/types.ts";
@@ -58,9 +59,13 @@ export function filterParamsJson(
     )
     : {};
 
+  // Extract any column params
+  const quartoColumnParams = extractColumnParams(args, defaults);
+
   const params: Metadata = {
     ...includes,
     ...projectFilterParams(options),
+    ...quartoColumnParams,
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
@@ -132,8 +137,7 @@ function extractIncludeParams(
   removeArgs.set(kIncludeInHeader, true);
   removeArgs.set(kIncludeBeforeBody, true);
   removeArgs.set(kIncludeAfterBody, true);
-  removePandocArgs(args, removeArgs);
-
+  removePandocArgsInPlace(args, removeArgs);
   return {
     ...includes,
     [kIncludeInHeader]: inHeaderFiles.map(pandocMetadataPath),
@@ -160,6 +164,53 @@ function extractIncludeVariables(obj: { [key: string]: unknown }) {
     [kIncludeBefore]: extractVariable(kIncludeBefore),
     [kIncludeAfter]: extractVariable(kIncludeAfter),
   };
+}
+
+export function extractColumnParams(
+  args: string[],
+  defaults?: FormatPandoc,
+) {
+  const quartoColumnParams: Metadata = {};
+  if (
+    defaults?.[kReferenceLocation] === "gutter" ||
+    referenceLocationArg(args) === "gutter"
+  ) {
+    // Forward the values to our params
+    quartoColumnParams[kReferenceLocation] = "gutter";
+
+    // Remove from flags
+    const removeArgs = new Map<string, boolean>();
+    removeArgs.set(`--${kReferenceLocation}`, true);
+    removePandocArgsInPlace(args, removeArgs);
+    // Remove from pandoc defaults
+    if (defaults) {
+      delete defaults[kReferenceLocation];
+    }
+  }
+  return quartoColumnParams;
+}
+
+function removePandocArgsInPlace(
+  args: string[],
+  removeArgs: Map<string, boolean>,
+) {
+  const cleanedArgs = removePandocArgs(args, removeArgs);
+  if (cleanedArgs.length !== args.length) {
+    args.splice(0, args.length);
+    args.push(...cleanedArgs);
+  }
+}
+
+function referenceLocationArg(args: string[]) {
+  const argIndex = args.findIndex((arg) => {
+    return arg === `--${kReferenceLocation}`;
+  });
+  if (argIndex > -1 && args.length > argIndex + 1) {
+    const referenceLocation = args[argIndex + 1];
+    return referenceLocation;
+  } else {
+    return undefined;
+  }
 }
 
 function projectFilterParams(options: PandocOptions) {
