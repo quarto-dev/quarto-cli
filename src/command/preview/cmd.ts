@@ -153,20 +153,27 @@ export const previewCommand = new Command()
       options.browser = false;
       args.splice(noBrowserPos, 1);
     }
-    const noWatchPos = args.indexOf("--no-watch-inputs");
-    if (noWatchPos !== -1) {
-      options.watchInputs = false;
-      args.splice(noWatchPos, 1);
-    }
-    const noRenderPos = args.indexOf("--no-render");
-    if (noRenderPos !== -1) {
-      options.watchInputs = false;
-      args.splice(noRenderPos, 1);
-    }
     const noNavigatePos = args.indexOf("--no-navigate");
     if (noNavigatePos !== -1) {
       options.navigate = false;
       args.splice(noNavigatePos, 1);
+    }
+    const noWatchInputsPos = args.indexOf("--no-watch-inputs");
+    if (noWatchInputsPos !== -1) {
+      options.watchInputs = false;
+      args.splice(noWatchInputsPos, 1);
+    }
+    // alias for --no-watch-inputs (used by older versions of quarto r package)
+    const noWatchPos = args.indexOf("--no-watch");
+    if (noWatchPos !== -1) {
+      options.watchInputs = false;
+      args.splice(noWatchPos, 1);
+    }
+    // alias for --no-watch-inputs (used by older versions of rstudio)
+    const noRenderPos = args.indexOf("--no-render");
+    if (noRenderPos !== -1) {
+      options.watchInputs = false;
+      args.splice(noRenderPos, 1);
     }
 
     // default host if not specified
