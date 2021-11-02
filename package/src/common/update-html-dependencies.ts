@@ -182,7 +182,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(revealJs, "plugin"),
       );
     },
-    "commit",
+    true,
   );
 
   // Autocomplete
@@ -537,7 +537,7 @@ async function updateGithubSourceCodeDependency(
   versionEnvVar: string,
   working: string,
   onDownload: (dir: string, version: string) => void,
-  type = "tag", // set to commit to download repo from commit working dir
+  commit = false, // set to true when commit is used instead of a tag
 ) {
   info(`Updating ${name}...`);
   const version = Deno.env.get(versionEnvVar);
@@ -545,7 +545,7 @@ async function updateGithubSourceCodeDependency(
     const fileName = `${name}.zip`;
     const distUrl = join(
       `https://github.com/${repo}/archive`,
-      type === "tag" ? `refs/tags/v${version}.zip` : `${version}.zip`,
+      commit ? `${version}.zip` : `refs/tags/v${version}.zip`,
     );
     const zipFile = join(working, fileName);
 
