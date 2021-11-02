@@ -135,6 +135,30 @@ export async function updateHtmlDepedencies(config: Configuration) {
   );
   cleanSourceMap(fuseJs);
 
+  // reveal.js
+  const revealJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "format",
+    "revealjs",
+    "reveal",
+  );
+
+  await updateGithubSourceCodeDependency(
+    "reveal.js",
+    "hakimel/reveal.js",
+    "REVEAL_JS",
+    workingDir,
+    (dir: string, version: string) => {
+      // Copy the js file
+      ensureDirSync(dirname(fuseJs));
+      Deno.copyFileSync(
+        join(dir, `Fuse-${version}`, "dist", "fuse.min.js"),
+        fuseJs,
+      );
+    },
+  );
+
   // Autocomplete
   const autocompleteJs = join(
     config.directoryInfo.src,
@@ -207,6 +231,8 @@ export async function updateHtmlDepedencies(config: Configuration) {
 
   // Update Pandoc themes
   await updatePandocHighlighting(config);
+
+  //
 
   // Clean up the temp dir
   Deno.removeSync(workingDir, { recursive: true });
