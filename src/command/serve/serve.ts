@@ -7,7 +7,7 @@
 
 import { error, info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
@@ -136,6 +136,9 @@ export async function serveProject(
     }
   }
 
+  // are we targeting pdf output?
+  const pdfOutput = isPdfOutput(flags.to || "");
+
   // determines files to render and resourceFiles to monitor
   // if we are in render 'none' mode then only render files whose output
   // isn't up to date. for those files we aren't rendering, compute their
@@ -145,7 +148,7 @@ export async function serveProject(
   if (!renderBefore) {
     // if this is pdf output then we need to render all of the files
     // so that the latex compiler can build the entire book
-    if (isPdfOutput(flags.to || "")) {
+    if (pdfOutput) {
       files = project.files.input;
     } else {
       const srvFiles = await serveFiles(project);
@@ -171,7 +174,6 @@ export async function serveProject(
   }
 
   const finalOutput = renderResultFinalOutput(renderResult);
-  const pdfOutput = !!finalOutput && extname(finalOutput) === ".pdf";
 
   // create mirror of project for serving
   const serveDir = copyProjectForServe(project, true);
