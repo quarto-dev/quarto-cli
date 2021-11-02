@@ -135,6 +135,20 @@ export const renderCommand = new Command()
       args = args.slice(firstPandocArg);
     }
 
+    // normalize args (to deal with args like --foo=bar)
+    const normalizedArgs = [];
+    for (const arg of args) {
+      const equalSignIndex = arg.indexOf("=");
+      if (equalSignIndex > 0) {
+        // Split the arg at the first equal sign
+        normalizedArgs.push(arg.slice(0, equalSignIndex));
+        normalizedArgs.push(arg.slice(equalSignIndex + 1));
+      } else {
+        normalizedArgs.push(arg);
+      }
+    }
+    args = normalizedArgs;
+
     // extract pandoc flag values we know/care about, then fixup args as
     // necessary (remove our flags that pandoc doesn't know about)
     const flags = parseRenderFlags(args);

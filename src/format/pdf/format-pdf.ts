@@ -21,6 +21,7 @@ import {
   kKeepTex,
   kNumberSections,
   kPaperSize,
+  kReferenceLocation,
   kShiftHeadingLevelBy,
   kTopLevelDivision,
   kWarning,
@@ -90,7 +91,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         const extras: FormatExtras = {};
 
         // Post processed for dealing with latex output
-        extras.postprocessors = [pdfLatexPostProcessor];
+        extras.postprocessors = [pdfLatexPostProcessor(flags, format)];
 
         // default to KOMA article class. we do this here rather than
         // above so that projectExtras can override us
@@ -143,29 +144,41 @@ const pdfBookExtension: BookExtension = {
   },
 };
 
-const pdfLatexPostProcessor = async (output: string) => {
-  const outputProcessed = sessionTempFile({ suffix: ".tex" });
-  const file = await Deno.open(output);
-  try {
-    const lineProcessors = [sidecaptionLineProcessor()];
-    for await (const line of readLines(file)) {
-      let processedLine: string | undefined = line;
-      for (const processor of lineProcessors) {
-        if (line !== undefined) {
-          processedLine = processor(line);
+function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
+  return async (output: string) => {
+    const outputProcessed = sessionTempFile({ suffix: ".tex" });
+    const file = await Deno.open(output);
+    try {
+      const lineProcessors = [
+        sidecaptionLineProcessor(),
+      ];
+
+      // If enabled, switch to sidenote footnotes
+      if (
+        format.pandoc[kReferenceLocation] === "gutter" ||
+        flags[kReferenceLocation] === "gutter"
+      ) {
+        lineProcessors.push(sideNoteLineProcessor());
+      }
+      for await (const line of readLines(file)) {
+        let processedLine: string | undefined = line;
+        for (const processor of lineProcessors) {
+          if (line !== undefined) {
+            processedLine = processor(line);
+          }
+        }
+        if (processedLine !== undefined) {
+          Deno.writeTextFileSync(outputProcessed, processedLine + "\n", {
+            append: true,
+          });
         }
       }
-      if (processedLine !== undefined) {
-        Deno.writeTextFileSync(outputProcessed, processedLine + "\n", {
-          append: true,
-        });
-      }
+    } finally {
+      file.close();
+      Deno.copyFileSync(outputProcessed, output);
     }
-  } finally {
-    file.close();
-    Deno.copyFileSync(outputProcessed, output);
-  }
-};
+  };
+}
 
 const kBeginScanRegex = /^%quartopost-sidecaption-206BE349/;
 const kEndScanRegex = /^%\/quartopost-sidecaption-206BE349/;
@@ -190,6 +203,12 @@ const sidecaptionLineProcessor = () => {
           return line;
         }
     }
+  };
+};
+
+const sideNoteLineProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replace(/\\footnote{/, "\\sidenote{");
   };
 };
 

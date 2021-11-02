@@ -252,7 +252,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   });
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
-    '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"]'
+    '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"], [class*="footnote-gutter"], [class*=" footnote-gutter"]'
   );
 
   // Filter all the possibly conflicting elements into ones

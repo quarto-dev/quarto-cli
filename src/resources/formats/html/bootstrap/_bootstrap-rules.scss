@@ -213,13 +213,13 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-up(lg) {
+  .footnote-gutter,
   .caption-gutter,
   div.aside,
   aside,
   .column-gutter {
     grid-column: body-end / page-end !important;
     z-index: $zindex-content;
-    font-size: 0.775em;
   }
 
   .column-screen {
@@ -230,13 +230,13 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(lg) {
+  .footnote-gutter,
   .caption-gutter,
   div.aside,
   aside,
   .column-gutter {
     grid-column: body-end / page-end !important;
     z-index: $zindex-content;
-    font-size: 0.775em;
   }
 
   .column-screen {
@@ -247,6 +247,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(md) {
+  .footnote-gutter,
   .caption-gutter,
   div.aside,
   aside,
@@ -264,7 +265,6 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 // Rest of rules
-
 body {
   @if variable-exists(margin-top) {
     margin-top: $margin-top;
@@ -315,6 +315,17 @@ caption,
   @include body-secondary;
   font-size: 1rem;
 }
+
+.footnote-gutter,
+.caption-gutter,
+div.aside,
+aside,
+.column-gutter {
+  @include body-secondary;
+  font-size: 0.775em;
+}
+
+// Caption and footnotes
 
 // sort out font size
 $code-block-font-size: $small-font-size !default;
