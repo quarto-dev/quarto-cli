@@ -122,12 +122,18 @@ function removeColumnClasses(el)
   end
 end
 
+function resolveCaptionClasses(el)
+  return el.attr.classes:filter(isCaptionClass)
+end
+
+function isCaptionClass(clz)
+  return clz == kSideCaptionClass
+end
+
 function isColumnClass(clz) 
   if clz == undefined then
     return false
   elseif clz == 'aside' then
-    return true
-  elseif clz == kSideCaptionClass then
     return true
   else
     return clz:match('^column%-')

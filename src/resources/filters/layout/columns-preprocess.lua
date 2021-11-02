@@ -37,15 +37,16 @@ function resolveColumnClassesForEl(el)
   end
 end
 
--- forwwards column classes from code chunks onto their display / outputs
+-- forward column classes from code chunks onto their display / outputs
 function resolveColumnClassesForCodeCell(el) 
 
   -- read the classes that should be forwarded
   local figClasses = computeClassesForScopedColumns(el, 'fig')
   local tblClasses = computeClassesForScopedColumns(el, 'tbl')
+  local captionClasses = resolveCaptionClasses(el)
+  dump(captionClasses)
 
-
-  if #tblClasses > 0 or #figClasses > 0 then 
+  if #tblClasses > 0 or #figClasses > 0 or #captionClasses > 0 then 
     noteHasColumns()
     
     if hasLayoutAttributes(el) then
@@ -63,7 +64,10 @@ function resolveColumnClassesForCodeCell(el)
             -- forward to figure divs
             if figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
               if #figClasses > 0 then
-                applyClasses(figOrTableEl, figClasses, 'fig')
+                applyColumnClasses(figOrTableEl, figClasses, 'fig')
+              end
+              if #captionClasses > 0 then
+                tappend(figOrTableEl.attr.classes, captionClasses)
               end
             end
 
@@ -71,20 +75,26 @@ function resolveColumnClassesForCodeCell(el)
             local figure = discoverFigure(figOrTableEl, true)
             if figure ~= nil then
               if #figClasses > 0 then
-                applyClasses(figure, figClasses, 'fig')
+                applyColumnClasses(figure, figClasses, 'fig')
+              end
+              if #captionClasses > 0 then
+                tappend(figure.attr.classes, captionClasses)
               end
             end
 
             -- forward to table divs
             if figOrTableEl.t == 'Table' or (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
               if #tblClasses > 0 then
-                applyClasses(figOrTableEl, tblClasses, 'tbl')
+                applyColumnClasses(figOrTableEl, tblClasses, 'tbl')
               end
+              if #captionClasses > 0 then
+                tappend(figOrTableEl.attr.classes, captionClasses)
+              end
+
             end
           end
         end
       end
-
     end
   end         
 end
@@ -92,11 +102,11 @@ end
 function resolveElementForScopedColumns(el, scope) 
   local classes = computeClassesForScopedColumns(el, scope)
   if #classes > 0 then
-    applyClasses(el, classes, scope)
+    applyColumnClasses(el, classes, scope)
   end
 end
 
-function applyClasses(el, classes, scope) 
+function applyColumnClasses(el, classes, scope) 
   -- note that we applied a column class
   noteHasColumns()
 
