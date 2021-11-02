@@ -262,7 +262,11 @@ export async function updateHtmlDepedencies(config: Configuration) {
   //
 
   // Clean up the temp dir
-  Deno.removeSync(workingDir, { recursive: true });
+  try {
+    Deno.removeSync(workingDir, { recursive: true });
+  } catch (_err) {
+    info(`Folder not deleted - Remove manually: ${workingDir}`);
+  }
   info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
