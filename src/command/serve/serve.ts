@@ -22,6 +22,7 @@ import { PromiseQueue } from "../../core/promise.ts";
 
 import {
   kProject404File,
+  kProjectDefaultFormat,
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
@@ -118,6 +119,23 @@ export async function serveProject(
     info("Preparing to preview");
   }
 
+  // get 'to' from --render
+  flags = {
+    ...flags,
+    ...(renderBefore && options.render !== kRenderDefault)
+      ? { to: options.render }
+      : {},
+  };
+
+  // if there is sto;; no flags 'to' then set 'to' to the default format
+  if (flags.to === undefined) {
+    const defaultFormat = project.config?.project?.[kProjectDefaultFormat];
+    if (defaultFormat) {
+      flags.to = defaultFormat;
+      pandocArgs.push("--to", defaultFormat);
+    }
+  }
+
   // determines files to render and resourceFiles to monitor
   // if we are in render 'none' mode then only render files whose output
   // isn't up to date. for those files we aren't rendering, compute their
@@ -136,20 +154,12 @@ export async function serveProject(
     }
   }
 
-  // render in the main directory
-  const renderFlags = {
-    ...flags,
-    ...(renderBefore && options.render !== kRenderDefault)
-      ? { to: options.render }
-      : {},
-  };
-
   const renderResult = await renderProject(
     project,
     {
       progress: true,
       useFreezer: !renderBefore,
-      flags: renderFlags,
+      flags,
       pandocArgs,
     },
     files,
@@ -236,7 +246,7 @@ export async function serveProject(
                 {
                   useFreezer: true,
                   devServerReload: true,
-                  flags: { ...renderFlags, quiet: true },
+                  flags: { ...flags, quiet: true },
                   pandocArgs,
                 },
                 [inputFile!],
