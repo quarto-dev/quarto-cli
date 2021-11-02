@@ -163,25 +163,26 @@ export async function updateHtmlDepedencies(config: Configuration) {
         Deno.removeSync(revealJs, { recursive: true });
       }
       ensureDirSync(revealJs);
+
       copySync(join(dir, `reveal.js-${version}`, "css"), join(revealJs, "css"));
-      copySync(
-        join(dir, `reveal.js-${version}`, "dist"),
-        join(revealJs, "dist"),
-      );
+
+      const dist = join(revealJs, "dist");
+      copySync(join(dir, `reveal.js-${version}`, "dist"), dist);
+      // remove unneeded CSS files
+      const theme = join(dist, "theme");
+      for (const fileEntry of Deno.readDirSync(theme)) {
+        info(`Looking at ${fileEntry.name}`);
+        info(`extensions is ${extname(fileEntry.name)}`);
+        if (fileEntry.isFile && extname(fileEntry.name) === ".css") {
+          info(`remove ${join(theme, fileEntry.name)}`);
+          Deno.removeSync(join(theme, fileEntry.name));
+        }
+      }
+
       copySync(
         join(dir, `reveal.js-${version}`, "plugin"),
         join(revealJs, "plugin"),
       );
-      // remove unneeded CSS files
-      for (
-        const fileEntry of Deno.readDirSync(
-          join(dir, `reveal.js-${version}`, "dist"),
-        )
-      ) {
-        if (fileEntry.isFile && extname(fileEntry.name) === "css") {
-          Deno.removeSync(fileEntry.name);
-        }
-      }
     },
   );
 
