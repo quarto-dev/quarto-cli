@@ -41,12 +41,11 @@ end
 function resolveColumnClassesForCodeCell(el) 
 
   -- read the classes that should be forwarded
-  local columnClasses = resolveColumnClasses(el)
-  local tblClasses = resolveScopedColumnClasses(el, 'tbl')
-  local figClasses = resolveScopedColumnClasses(el, 'fig')  
+  local figClasses = computeClassesForScopedColumns(el, 'fig')
+  local tblClasses = computeClassesForScopedColumns(el, 'tbl')
 
 
-  if #columnClasses > 0 or #tblClasses > 0 or #figClasses > 0 then 
+  if #tblClasses > 0 or #figClasses > 0 then 
     noteHasColumns()
     
     if hasLayoutAttributes(el) then
@@ -64,12 +63,7 @@ function resolveColumnClassesForCodeCell(el)
             -- forward to figure divs
             if figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
               if #figClasses > 0 then
-                removeColumnClasses(figure)
-                tappend(figure.attr.classes, figClasses)
-                removeScopedColumnClasses(el, 'fig')
-              else
-                tappend(figure.attr.classes, classes)
-                removeColumnClasses(el)
+                applyClasses(figOrTableEl, figClasses, 'fig')
               end
             end
 
@@ -77,24 +71,14 @@ function resolveColumnClassesForCodeCell(el)
             local figure = discoverFigure(figOrTableEl, true)
             if figure ~= nil then
               if #figClasses > 0 then
-                removeColumnClasses(figure)
-                tappend(figure.attr.classes, figClasses)
-                removeScopedColumnClasses(el, 'fig')
-              else
-                tappend(figure.attr.classes, classes)
-                removeColumnClasses(el)
+                applyClasses(figure, figClasses, 'fig')
               end
             end
 
             -- forward to table divs
             if figOrTableEl.t == 'Table' or (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
               if #tblClasses > 0 then
-                removeColumnClasses(figOrTableEl)
-                tappend(figOrTableEl.attr.classes, tblClasses)
-                removeScopedColumnClasses(el, 'tbl')
-              else
-                tappend(figOrTableEl.attr.classes, columnClasses)
-                removeColumnClasses(el)
+                applyClasses(figOrTableEl, tblClasses, 'tbl')
               end
             end
           end
@@ -105,29 +89,67 @@ function resolveColumnClassesForCodeCell(el)
   end         
 end
 
--- processes an element and resolves column classes for a
--- given scope
 function resolveElementForScopedColumns(el, scope) 
-  -- tables
-  local classes = resolveScopedColumnClasses(el, scope)
+  local classes = computeClassesForScopedColumns(el, scope)
   if #classes > 0 then
-    noteHasColumns()
-    removeScopedColumnClasses(el, scope)
-    tappend(el.attr.classes, classes)
+    applyClasses(el, classes, scope)
   end
+end
+
+function applyClasses(el, classes, scope) 
+  -- note that we applied a column class
+  noteHasColumns()
+
+  -- clear existing columns
+  removeColumnClasses(el)
+  removeScopedColumnClasses(el, scope)
+
+  -- write the resolve scopes
+  tappend(el.attr.classes, classes)
+end
+
+-- Computes the classes for a given element, given its scope
+function computeClassesForScopedColumns(el, scope) 
+  local columnGlobalClasses = columnOption('column')
+  local scopedGlobalClasses = columnOption(scope .. '-column')
+  local columnElClasses = resolveColumnClasses(el)
+  local scopedElClasses = resolveScopedColumnClasses(el, scope)
+  local orderedClasses = {scopedElClasses, scopedGlobalClasses, columnElClasses, columnGlobalClasses}
+  for i, classes in ipairs(orderedClasses) do 
+    if #classes > 0 then
+      return classes
+    end
+  end
+  return {}
+end
+
+-- reads a column option key and returns the value
+-- as a table of strings 
+function columnOption(key) 
+  local value = option(key,  nil)
+  if value == nil or #value < 1 then
+    return {}
+  else
+    return {'column-' .. inlinesToString(value[1])}
+  end
+end
+
+function mergedScopedColumnClasses(el, scope)
+  local scopedClasses = resolveScopedColumnClasses(el, scope)
+  if #scopedClasses == 0 then
+    scopedClasses = scopedColumnClassesOption(scope)
+  end
+  return scopedClasses
 end
 
 function resolveScopedColumnClasses(el, scope)
   local filtered = el.attr.classes:filter(function(clz)
     return clz:match('^' .. scope .. '%-column%-')
   end)
-  if #filtered > 0 then
-    return tmap(filtered, function(clz)
-      return clz:sub(5)
-    end)
-  else
-    return scopedColumnClassesOption(scope)
-  end
+
+  return tmap(filtered, function(clz)
+    return clz:sub(5)
+  end)
 end
 
 function removeScopedColumnClasses(el, scope) 
