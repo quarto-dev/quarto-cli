@@ -28,6 +28,6 @@ export type ServeOptions = {
   host: string;
   render: string;
   browse?: boolean | string;
-  watch?: boolean;
+  watchInputs?: boolean;
   navigate?: boolean;
 };

@@ -106,7 +106,7 @@ export async function serveProject(
   // provide defaults
   options = {
     browse: true,
-    watch: true,
+    watchInputs: true,
     navigate: true,
     ...options,
   };

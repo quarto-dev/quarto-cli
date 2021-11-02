@@ -45,8 +45,6 @@ export function watchProject(
   renderingOnReload: boolean,
   renderQueue: PromiseQueue<RenderResult>,
 ): Promise<ProjectWatcher> {
-  // track inputs
-
   // helper to refresh project config
   const refreshProjectConfig = async () => {
     // get project and temporary serve project
@@ -126,7 +124,7 @@ export function watchProject(
 
         // render changed input files (if we are watching). then return false
         // as another set of events will come in to trigger the reload
-        if (options.watch) {
+        if (options.watchInputs) {
           // get inputs (filter by whether the last time we rendered
           // this input had the exact same content hash)
           const inputs = paths.filter(isInputFile).filter((input) => {

@@ -155,12 +155,12 @@ export const previewCommand = new Command()
     }
     const noWatchPos = args.indexOf("--no-watch-inputs");
     if (noWatchPos !== -1) {
-      options.watch = false;
+      options.watchInputs = false;
       args.splice(noWatchPos, 1);
     }
     const noRenderPos = args.indexOf("--no-render");
     if (noRenderPos !== -1) {
-      options.watch = false;
+      options.watchInputs = false;
       args.splice(noRenderPos, 1);
     }
     const noNavigatePos = args.indexOf("--no-navigate");
@@ -192,7 +192,7 @@ export const previewCommand = new Command()
         host: options.host,
         render: options.render,
         browse: !!(options.browser && options.browse),
-        watch: options.watch,
+        watchInputs: options.watchInputs,
         navigate: options.navigate,
       });
     } else {
@@ -209,7 +209,7 @@ export const previewCommand = new Command()
         host: options.host,
         browse: !!(options.browser && options.browse),
         presentation: options.presentation,
-        watch: !!options.watch,
+        watchInputs: !!options.watchInputs,
       });
     }
   });

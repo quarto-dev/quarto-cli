@@ -58,7 +58,7 @@ interface PreviewOptions {
   host: string;
   browse: boolean;
   presentation: boolean;
-  watch: boolean;
+  watchInputs: boolean;
 }
 
 export async function preview(
@@ -83,7 +83,7 @@ export async function preview(
         host: options.host,
         render: kRenderNone,
         browse: options.browse ? targetPath || true : false,
-        watch: options.watch,
+        watchInputs: options.watchInputs,
         navigate: true,
       });
       return;
@@ -108,7 +108,7 @@ export async function preview(
     result,
     reloader,
     render,
-    options.watch,
+    options.watchInputs,
   );
 
   // create file request handler (hook clients up to reloader, provide
