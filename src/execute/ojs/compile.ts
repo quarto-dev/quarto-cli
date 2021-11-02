@@ -19,12 +19,14 @@ import {
   kCellFigAlign,
   kCellFigAlt,
   kCellFigCapLoc,
+  kCellFigColumn,
   kCellFigEnv,
   kCellFigLink,
   kCellFigPos,
   kCellFigScap,
   kCellLabel,
   kCellPanel,
+  kCellTblColumn,
   kCodeSummary,
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -397,6 +399,8 @@ export async function ojsCompile(
         kCellFigSubCap,
         kCellFigScap,
         kCellFigCapLoc,
+        kCellFigColumn,
+        kCellTblColumn,
         kCellFigLink,
         kCellFigAlign,
         kCellFigEnv,
@@ -452,6 +456,12 @@ export async function ojsCompile(
       }
       if (typeof cell.options?.[kCellFigCapLoc] === "string") {
         classes.push(`caption-${cell.options?.[kCellFigCapLoc]}`);
+      }
+      if (typeof cell.options?.[kCellFigColumn] === "string") {
+        classes.push(`fig-caption-${cell.options?.[kCellFigColumn]}`);
+      }
+      if (typeof cell.options?.[kCellTblColumn] === "string") {
+        classes.push(`fig-caption-${cell.options?.[kCellTblColumn]}`);
       }
 
       const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??

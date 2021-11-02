@@ -82,6 +82,7 @@ import {
   kCellFigAlt,
   kCellFigCap,
   kCellFigCapLoc,
+  kCellFigColumn,
   kCellFigEnv,
   kCellFigLink,
   kCellFigPos,
@@ -102,6 +103,7 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTags,
+  kCellTblColumn,
   kCodeFold,
   kCodeLineNumbers,
   kCodeOverflow,
@@ -207,6 +209,8 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellFigCap]?: string | string[];
   [kCellFigSubCap]?: string[];
   [kCellFigCapLoc]?: string;
+  [kCellFigColumn]?: string;
+  [kCellTblColumn]?: string;
   [kCellLstLabel]?: string;
   [kCellLstCap]?: string;
   [kCellClasses]?: string;
@@ -250,6 +254,8 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigSubCap,
   kCellFigScap,
   kCellFigCapLoc,
+  kCellFigColumn,
+  kCellTblColumn,
   kCellFigLink,
   kCellFigAlign,
   kCellFigAlt,
@@ -1025,6 +1031,12 @@ function mdFromCodeCell(
     }
     if (typeof cell.options[kCellColumn] === "string") {
       classes.push(`column-${cell.options[kCellColumn]}`);
+    }
+    if (typeof cell.options[kCellFigColumn] === "string") {
+      classes.push(`fig-column-${cell.options[kCellFigColumn]}`);
+    }
+    if (typeof cell.options[kCellTblColumn] === "string") {
+      classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
     }
     if (typeof cell.options[kCellFigCapLoc] === "string") {
       classes.push(`caption-${cell.options[kCellFigCapLoc]}`);
