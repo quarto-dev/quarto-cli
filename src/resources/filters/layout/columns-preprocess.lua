@@ -43,10 +43,10 @@ function resolveColumnClassesForCodeCell(el)
   -- read the classes that should be forwarded
   local figClasses = computeClassesForScopedColumns(el, 'fig')
   local tblClasses = computeClassesForScopedColumns(el, 'tbl')
-  local captionClasses = resolveCaptionClasses(el)
-  dump(captionClasses)
+  local figCaptionClasses = computeClassesForScopedCaption(el, 'fig')
+  local tblCaptionClasses = computeClassesForScopedCaption(el, 'tbl')
 
-  if #tblClasses > 0 or #figClasses > 0 or #captionClasses > 0 then 
+  if #tblClasses > 0 or #figClasses > 0 or #figCaptionClasses > 0 or #tblCaptionClasses > 0 then 
     noteHasColumns()
     
     if hasLayoutAttributes(el) then
@@ -66,8 +66,8 @@ function resolveColumnClassesForCodeCell(el)
               if #figClasses > 0 then
                 applyColumnClasses(figOrTableEl, figClasses, 'fig')
               end
-              if #captionClasses > 0 then
-                tappend(figOrTableEl.attr.classes, captionClasses)
+              if #figCaptionClasses > 0 then
+                applyCaptionClasses(figOrTableEl, figCaptionClasses, 'fig')
               end
             end
 
@@ -77,8 +77,8 @@ function resolveColumnClassesForCodeCell(el)
               if #figClasses > 0 then
                 applyColumnClasses(figure, figClasses, 'fig')
               end
-              if #captionClasses > 0 then
-                tappend(figure.attr.classes, captionClasses)
+              if #figCaptionClasses > 0 then
+                applyCaptionClasses(figure, figCaptionClasses, 'fig')
               end
             end
 
@@ -87,8 +87,8 @@ function resolveColumnClassesForCodeCell(el)
               if #tblClasses > 0 then
                 applyColumnClasses(figOrTableEl, tblClasses, 'tbl')
               end
-              if #captionClasses > 0 then
-                tappend(figOrTableEl.attr.classes, captionClasses)
+              if #tblCaptionClasses > 0 then
+                applyCaptionClasses(figOrTableEl, tblCaptionClasses, 'tbl')
               end
 
             end
@@ -104,6 +104,23 @@ function resolveElementForScopedColumns(el, scope)
   if #classes > 0 then
     applyColumnClasses(el, classes, scope)
   end
+
+  local captionClasses = computeClassesForScopedCaption(el, scope)
+  if #captionClasses > 0 then
+    applyCaptionClasses(el, captionClasses, scope)
+  end
+end
+
+function applyCaptionClasses(el, classes, scope)
+  -- note that we applied a column class
+  noteHasColumns()
+
+  -- clear existing columns
+  removeCaptionClasses(el)
+  removeScopedCaptionClasses(el, scope)
+
+  -- write the resolve scopes
+  tappend(el.attr.classes, classes)
 end
 
 function applyColumnClasses(el, classes, scope) 
@@ -116,6 +133,20 @@ function applyColumnClasses(el, classes, scope)
 
   -- write the resolve scopes
   tappend(el.attr.classes, classes)
+end
+
+function computeClassesForScopedCaption(el, scope)
+  local globalCaptionClasses = captionOption('caption-location')
+  local scopedCaptionClasses = captionOption(scope .. '-cap-location')
+  local elCaptionClasses = resolveCaptionClasses(el)
+  local elScopedCaptionClasses = resolveScopedCaptionClasses(el, scope)
+  local orderedCaptionClasses = {elScopedCaptionClasses, scopedCaptionClasses, elCaptionClasses, globalCaptionClasses}
+  for i, classes in ipairs(orderedCaptionClasses) do 
+    if #classes > 0 then
+      return classes
+    end
+  end
+  return {}
 end
 
 -- Computes the classes for a given element, given its scope
@@ -144,6 +175,15 @@ function columnOption(key)
   end
 end
 
+function captionOption(key)
+  local value = option(key,  nil)
+  if value == nil or #value < 1 then
+    return {}
+  else
+    return {'caption-' .. inlinesToString(value[1])}
+  end
+end
+
 function mergedScopedColumnClasses(el, scope)
   local scopedClasses = resolveScopedColumnClasses(el, scope)
   if #scopedClasses == 0 then
@@ -162,12 +202,30 @@ function resolveScopedColumnClasses(el, scope)
   end)
 end
 
+function resolveScopedCaptionClasses(el, scope)
+  local filtered = el.attr.classes:filter(function(clz)
+    return clz:match('^' .. scope .. '%-cap-location%-')
+  end)
+
+  return tmap(filtered, function(clz)
+    return clz:sub(18)
+  end)
+end
+
 function removeScopedColumnClasses(el, scope) 
   for i, clz in ipairs(el.attr.classes) do 
     if clz:match('^' .. scope .. '%-column%-') then
       el.attr.classes:remove(i)
     end
   end
+end
+
+function removeScopedCaptionClasses(el, scope)
+  for i, clz in ipairs(el.attr.classes) do 
+    if clz:match('^' .. scope .. '%-cap%-location%-') then
+      el.attr.classes:remove(i)
+    end
+  end  
 end
 
 function scopedColumnClassesOption(scope) 

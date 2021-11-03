@@ -122,6 +122,14 @@ function removeColumnClasses(el)
   end
 end
 
+function removeCaptionClasses(el)
+  for i, clz in ipairs(el.attr.classes) do 
+    if isCaptionClass(clz) then
+      el.attr.classes:remove(i)
+    end
+  end
+end
+
 function resolveCaptionClasses(el)
   return el.attr.classes:filter(isCaptionClass)
 end

@@ -71,6 +71,7 @@ import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
 import {
   kCellAutoscroll,
+  kCellCapLoc,
   kCellClasses,
   kCellColab,
   kCellColabType,
@@ -103,6 +104,7 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTags,
+  kCellTblCapLoc,
   kCellTblColumn,
   kCodeFold,
   kCodeLineNumbers,
@@ -209,6 +211,8 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellFigCap]?: string | string[];
   [kCellFigSubCap]?: string[];
   [kCellFigCapLoc]?: string;
+  [kCellTblCapLoc]?: string;
+  [kCellCapLoc]?: string;
   [kCellFigColumn]?: string;
   [kCellTblColumn]?: string;
   [kCellLstLabel]?: string;
@@ -254,6 +258,8 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigSubCap,
   kCellFigScap,
   kCellFigCapLoc,
+  kCellTblCapLoc,
+  kCellCapLoc,
   kCellFigColumn,
   kCellTblColumn,
   kCellFigLink,
@@ -1038,9 +1044,16 @@ function mdFromCodeCell(
     if (typeof cell.options[kCellTblColumn] === "string") {
       classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
     }
-    if (typeof cell.options[kCellFigCapLoc] === "string") {
+    if (typeof cell.options[kCellCapLoc] === "string") {
       classes.push(`caption-${cell.options[kCellFigCapLoc]}`);
     }
+    if (typeof cell.options[kCellFigCapLoc] === "string") {
+      classes.push(`fig-caption-${cell.options[kCellFigCapLoc]}`);
+    }
+    if (typeof cell.options[kCellTblCapLoc] === "string") {
+      classes.push(`tbl-caption-${cell.options[kCellTblCapLoc]}`);
+    }
+
     const classText = classes
       .map((clz: string) => {
         clz = ld.toString(clz) as string;

@@ -255,7 +255,8 @@ knitr_hooks <- function(format, resourceDir) {
     knitr_default_opts <- names(knitr::opts_chunk$get())
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
-                     "lst-label", "classes", "panel", "column", "fig.column", "tbl.column", "fig.cap-location", "code-fold", "code-summary", "code-overflow",
+                     "lst-label", "classes", "panel", "column", "fig.column", "tbl.column", "fig.cap-location", 
+                     "tbl-cap-location", "caption-location", "code-fold", "code-summary", "code-overflow",
                      "code-line-numbers",
                      "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
@@ -293,9 +294,14 @@ knitr_hooks <- function(format, resourceDir) {
       classes <- c(classes, paste0("fig-column-", options[["fig.column"]]))
      if (is.character(options[["tbl-column"]]))
       classes <- c(classes, paste0("tbl-column-", options[["tbl-column"]]))
-     if (is.character(options[["fig.cap-location"]])) {
-      classes <- c(classes, paste0("caption-", options[["fig.cap-location"]]))      
-     }
+     if (is.character(options[["caption-location"]])) 
+      classes <- c(classes, paste0("caption-", options[["caption-location"]]))      
+     if (is.character(options[["fig.cap-location"]])) 
+      classes <- c(classes, paste0("fig-caption-", options[["fig.cap-location"]]))      
+     if (is.character(options[["tbl-cap-location"]])) 
+      classes <- c(classes, paste0("tbl-caption-", options[["tbl-cap-location"]]))      
+
+
     if (isTRUE(options[["include.hidden"]])) {
       classes <- c(classes, "hidden")
     }

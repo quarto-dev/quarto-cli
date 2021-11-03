@@ -14,6 +14,7 @@ import { parseModule } from "observablehq/parser";
 import { Format, kDependencies } from "../../config/types.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
+  kCellCapLoc,
   kCellClasses,
   kCellColumn,
   kCellFigAlign,
@@ -26,6 +27,7 @@ import {
   kCellFigScap,
   kCellLabel,
   kCellPanel,
+  kCellTblCapLoc,
   kCellTblColumn,
   kCodeSummary,
   kIncludeAfterBody,
@@ -398,7 +400,9 @@ export async function ojsCompile(
         kCellFigCap,
         kCellFigSubCap,
         kCellFigScap,
+        kCellCapLoc,
         kCellFigCapLoc,
+        kCellTblCapLoc,
         kCellFigColumn,
         kCellTblColumn,
         kCellFigLink,
@@ -454,8 +458,14 @@ export async function ojsCompile(
       if (typeof cell.options?.column === "string") {
         classes.push(`column-${cell.options?.column}`);
       }
+      if (typeof cell.options?.[kCellCapLoc] === "string") {
+        classes.push(`caption-${cell.options?.[kCellCapLoc]}`);
+      }
       if (typeof cell.options?.[kCellFigCapLoc] === "string") {
-        classes.push(`caption-${cell.options?.[kCellFigCapLoc]}`);
+        classes.push(`fig-caption-${cell.options?.[kCellFigCapLoc]}`);
+      }
+      if (typeof cell.options?.[kCellTblCapLoc] === "string") {
+        classes.push(`tbl-caption-${cell.options?.[kCellTblCapLoc]}`);
       }
       if (typeof cell.options?.[kCellFigColumn] === "string") {
         classes.push(`fig-caption-${cell.options?.[kCellFigColumn]}`);
