@@ -8,6 +8,15 @@
 import { kPreferHtml } from "../config/constants.ts";
 import { Format, FormatPandoc } from "./types.ts";
 
+export function isPdfOutput(format: string): boolean;
+export function isPdfOutput(format: FormatPandoc): boolean;
+export function isPdfOutput(format: string | FormatPandoc): boolean {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
+  return format === "pdf" || format === "beamer";
+}
+
 export function isLatexOutput(format: FormatPandoc) {
   return ["pdf", "latex", "beamer"].includes(format.to || "");
 }

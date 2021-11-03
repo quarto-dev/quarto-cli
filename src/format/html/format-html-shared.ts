@@ -21,7 +21,6 @@ export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
 export const kCitationsHover = "citations-hover";
 export const kFootnotesHover = "footnotes-hover";
-export const kFootnotesMargin = "footnotes-margin";
 
 // turn off optional html features as well as all themes
 export const kMinimal = "minimal";

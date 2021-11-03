@@ -29,20 +29,15 @@ export const previewCommand = new Command()
     "Hostname to bind to (defaults to 127.0.0.1)",
   )
   .option(
-    "--render [to:string]",
+    "--render [format:string]",
     "Render to the specified format(s) before previewing",
     {
       default: kRenderNone,
-      hidden: true,
     },
   )
   .option(
-    "--no-watch",
-    "Do not udpate preview when source files change.",
-  )
-  .option(
     "--no-render",
-    "Do not update preview when source files change.",
+    "Do not re-render input files when they change.",
     {
       hidden: true,
     },
@@ -69,6 +64,10 @@ export const previewCommand = new Command()
       hidden: true,
     },
   )
+  .option(
+    "--no-watch-inputs",
+    "Do not re-render input files when they change.",
+  )
   .arguments("[file:string] [...args:string]")
   .description(
     "Render and preview a Quarto document or website project. Automatically reloads the browser when\n" +
@@ -89,8 +88,8 @@ export const previewCommand = new Command()
     "quarto preview doc.qmd --toc",
   )
   .example(
-    "Preview document (don't watch for source changes)",
-    "quarto preview doc.qmd --no-watch",
+    "Preview document (don't watch for input changes)",
+    "quarto preview doc.qmd --no-watch-inputs",
   )
   .example(
     "Preview website with most recent execution results",
@@ -154,20 +153,27 @@ export const previewCommand = new Command()
       options.browser = false;
       args.splice(noBrowserPos, 1);
     }
-    const noWatchPos = args.indexOf("--no-watch");
-    if (noWatchPos !== -1) {
-      options.watch = false;
-      args.splice(noWatchPos, 1);
-    }
-    const noRenderPos = args.indexOf("--no-render");
-    if (noRenderPos !== -1) {
-      options.watch = false;
-      args.splice(noRenderPos, 1);
-    }
     const noNavigatePos = args.indexOf("--no-navigate");
     if (noNavigatePos !== -1) {
       options.navigate = false;
       args.splice(noNavigatePos, 1);
+    }
+    const noWatchInputsPos = args.indexOf("--no-watch-inputs");
+    if (noWatchInputsPos !== -1) {
+      options.watchInputs = false;
+      args.splice(noWatchInputsPos, 1);
+    }
+    // alias for --no-watch-inputs (used by older versions of quarto r package)
+    const noWatchPos = args.indexOf("--no-watch");
+    if (noWatchPos !== -1) {
+      options.watchInputs = false;
+      args.splice(noWatchPos, 1);
+    }
+    // alias for --no-watch-inputs (used by older versions of rstudio)
+    const noRenderPos = args.indexOf("--no-render");
+    if (noRenderPos !== -1) {
+      options.watchInputs = false;
+      args.splice(noRenderPos, 1);
     }
 
     // default host if not specified
@@ -193,7 +199,7 @@ export const previewCommand = new Command()
         host: options.host,
         render: options.render,
         browse: !!(options.browser && options.browse),
-        watch: options.watch,
+        watchInputs: options.watchInputs,
         navigate: options.navigate,
       });
     } else {
@@ -210,7 +216,7 @@ export const previewCommand = new Command()
         host: options.host,
         browse: !!(options.browser && options.browse),
         presentation: options.presentation,
-        watch: !!options.watch,
+        watchInputs: !!options.watchInputs,
       });
     }
   });

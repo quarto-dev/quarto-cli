@@ -21,6 +21,7 @@ import {
   kKeepTex,
   kNumberSections,
   kPaperSize,
+  kReferenceLocation,
   kShiftHeadingLevelBy,
   kTopLevelDivision,
   kWarning,
@@ -35,7 +36,6 @@ import { BookExtension } from "../../project/types/book/book-shared.ts";
 
 import { readLines } from "io/bufio.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { kFootnotesMargin } from "../html/format-html-shared.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -91,7 +91,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         const extras: FormatExtras = {};
 
         // Post processed for dealing with latex output
-        extras.postprocessors = [pdfLatexPostProcessor(format)];
+        extras.postprocessors = [pdfLatexPostProcessor(flags, format)];
 
         // default to KOMA article class. we do this here rather than
         // above so that projectExtras can override us
@@ -144,7 +144,7 @@ const pdfBookExtension: BookExtension = {
   },
 };
 
-function pdfLatexPostProcessor(format: Format) {
+function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
   return async (output: string) => {
     const outputProcessed = sessionTempFile({ suffix: ".tex" });
     const file = await Deno.open(output);
@@ -154,7 +154,10 @@ function pdfLatexPostProcessor(format: Format) {
       ];
 
       // If enabled, switch to sidenote footnotes
-      if (format.metadata?.[kFootnotesMargin]) {
+      if (
+        format.pandoc[kReferenceLocation] === "gutter" ||
+        flags[kReferenceLocation] === "gutter"
+      ) {
         lineProcessors.push(sideNoteLineProcessor());
       }
       for await (const line of readLines(file)) {

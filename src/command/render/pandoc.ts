@@ -361,8 +361,9 @@ export async function runPandoc(
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
+  let pandocArgs = args;
   const paramsJson = filterParamsJson(
-    args,
+    pandocArgs,
     options,
     allDefaults,
     formatFilterParams,
@@ -371,7 +372,6 @@ export async function runPandoc(
   // remove selected args and defaults if we are handling some things on behalf of pandoc
   // (e.g. handling section numbering). note that section numbering is handled by the
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
-  let pandocArgs = args;
   if (!isLatexOutput(options.format.pandoc) && crossrefFilterActive(options)) {
     delete allDefaults[kNumberSections];
     delete allDefaults[kNumberOffset];

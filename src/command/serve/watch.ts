@@ -13,56 +13,44 @@ import { existsSync } from "fs/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
+import { md5Hash } from "../../core/hash.ts";
 
 import { logError } from "../../core/log.ts";
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 
-import {
-  inputFileForOutputFile,
-  resolveInputTarget,
-} from "../../project/project-index.ts";
-
-import { fileExecutionEngine } from "../../execute/engine.ts";
-
 import { copyProjectForServe } from "./serve-shared.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpReloader } from "../../core/http-reload.ts";
 import { Format } from "../../config/types.ts";
-import { RenderFlags } from "../render/types.ts";
+import { RenderFlags, RenderResult } from "../render/types.ts";
+import { renderProject } from "../render/project.ts";
+import { PromiseQueue } from "../../core/promise.ts";
+import { render } from "../render/render-shared.ts";
 
-export async function watchProject(
+interface WatchChanges {
+  config?: boolean;
+  output?: boolean;
+}
+
+export function watchProject(
   project: ProjectContext,
   serveProject: ProjectContext,
   resourceFiles: string[],
   flags: RenderFlags,
+  pandocArgs: string[],
   options: ServeOptions,
+  renderingOnReload: boolean,
+  renderQueue: PromiseQueue<RenderResult>,
 ): Promise<ProjectWatcher> {
-  // track renderOnChange inputs
-  const renderOnChangeInputs: string[] = [];
-  const updateRenderOnChangeInputs = async () => {
-    // track render on change inputs
-    renderOnChangeInputs.splice(0, renderOnChangeInputs.length);
-    for (const inputFile of project.files.input) {
-      const engine = fileExecutionEngine(inputFile);
-      if (engine?.devServerRenderOnChange) {
-        if (await engine.devServerRenderOnChange(inputFile, project)) {
-          renderOnChangeInputs.push(inputFile);
-        }
-      }
-    }
-  };
-  await updateRenderOnChangeInputs();
-
   // helper to refresh project config
   const refreshProjectConfig = async () => {
     // get project and temporary serve project
     project = (await projectContext(project.dir, flags, false, true))!;
     serveProject =
       (await projectContext(serveProject.dir, flags, false, true))!;
-    await updateRenderOnChangeInputs();
   };
 
   // proj dir
@@ -106,31 +94,83 @@ export async function watchProject(
     }
   };
 
-  // is this a renderOnChange input file?
-  const isRenderOnChangeInput = (path: string) => {
-    return renderOnChangeInputs.includes(path) && existsSync(path);
+  // is this an input file?
+  const isInputFile = (path: string) => {
+    return project.files.input.includes(path);
   };
 
   // track every path that has been modified since the last reload
   const modified: string[] = [];
 
+  // track rendered inputs so we don't double render if the file notifications are chatty
+  const rendered = new Map<string, string>();
+
   // handle a watch event (return true if a reload should occur)
-  const handleWatchEvent = (event: Deno.FsEvent): boolean | "config" => {
+  const handleWatchEvent = async (
+    event: Deno.FsEvent,
+  ): Promise<WatchChanges | undefined> => {
     try {
       // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
       const paths = ld.uniq(
         event.paths.filter((path) => !path.startsWith(projDirHidden)),
       );
       if (paths.length === 0) {
-        return false;
+        return;
       }
 
       if (["modify", "create"].includes(event.kind)) {
         // note modified
         modified.push(...paths);
 
+        // render changed input files (if we are watching). then return false
+        // as another set of events will come in to trigger the reload
+        if (options.watchInputs) {
+          // get inputs (filter by whether the last time we rendered
+          // this input had the exact same content hash)
+          const inputs = paths.filter(isInputFile).filter((input) => {
+            return !rendered.has(input) ||
+              rendered.get(input) !== md5Hash(Deno.readTextFileSync(input));
+          });
+          if (inputs.length) {
+            // record rendered time
+            for (const input of inputs) {
+              rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
+            }
+            // render
+            const result = await renderQueue.enqueue(() => {
+              if (inputs.length > 1) {
+                return renderProject(
+                  project!,
+                  {
+                    progress: true,
+                    flags,
+                    pandocArgs,
+                  },
+                  inputs,
+                );
+              } else {
+                return render(inputs[0], {
+                  flags,
+                  pandocArgs: pandocArgs,
+                });
+              }
+            });
+
+            if (result.error) {
+              logError(result.error);
+            }
+            return {
+              config: false,
+              output: true,
+            };
+          }
+        }
+
         const configFile = paths.some((path) =>
           (project.files.config || []).includes(path)
+        );
+        const inputFileRemoved = project.files.input.some((file) =>
+          !existsSync(file)
         );
         const configResourceFile = paths.some((path) =>
           (project.files.configResources || []).includes(path)
@@ -139,30 +179,23 @@ export async function watchProject(
 
         const outputDirFile = paths.some(inOutputDir);
 
-        const renderOnChangeInput = paths.some(isRenderOnChangeInput);
-
-        const inputFileRemoved = project.files.input.some((file) =>
-          !existsSync(file)
-        );
-
         const reload = configFile || configResourceFile || resourceFile ||
-          outputDirFile || renderOnChangeInput || inputFileRemoved;
+          outputDirFile || inputFileRemoved;
 
         if (reload) {
-          if (configFile || inputFileRemoved) {
-            return "config";
-          } else {
-            return true;
-          }
+          return {
+            config: configFile || inputFileRemoved,
+            output: outputDirFile,
+          };
         } else {
-          return false;
+          return;
         }
       } else {
-        return false;
+        return;
       }
     } catch (e) {
       logError(e);
-      return false;
+      return;
     }
   };
 
@@ -172,16 +205,34 @@ export async function watchProject(
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
-  let lastRenderOnChangeInput: string | undefined;
-  const reloadClients = ld.debounce(async (refreshProject: boolean) => {
+  const reloadClients = ld.debounce(async (changes: WatchChanges) => {
     try {
+      // render project for non-output changes if we aren't aleady rendering on reload
+      if (!changes.output && !renderingOnReload) {
+        await refreshProjectConfig();
+        const result = await renderQueue.enqueue(() =>
+          renderProject(
+            project,
+            {
+              useFreezer: true,
+              devServerReload: true,
+              flags,
+              pandocArgs,
+            },
+          )
+        );
+        if (result.error) {
+          logError(result.error);
+        }
+      }
+
       // copy the project (refresh if requested)
-      if (refreshProject) {
+      if (changes.config) {
         // remove input files
         serveProject.files.input.forEach(removeIfExists);
       }
-      copyProjectForServe(project, false, serveProject.dir);
-      if (refreshProject) {
+      copyProjectForServe(project, !renderingOnReload, serveProject.dir);
+      if (changes.config) {
         await refreshProjectConfig();
       }
 
@@ -189,24 +240,6 @@ export async function watchProject(
       const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
         return extname(file) === ".html";
       });
-
-      // don't reload based on changes to html files generated from the last
-      // reloadOnChange refresh (as we've already reloaded)
-      if (lastHtmlFile) {
-        const outputDir = projectOutputDir(project);
-        const filePathRelative = relative(outputDir, lastHtmlFile);
-        const inputFile = await inputFileForOutputFile(
-          project,
-          filePathRelative,
-        );
-        if (inputFile && (inputFile === lastRenderOnChangeInput)) {
-          // clear out modified list
-          lastRenderOnChangeInput = undefined;
-          modified.splice(0, modified.length);
-          // return (nothing more to do)
-          return;
-        }
-      }
 
       let reloadTarget = "";
       if (lastHtmlFile && options.navigate) {
@@ -219,21 +252,6 @@ export async function watchProject(
           reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
         } else {
           reloadTarget = "";
-        }
-      }
-      // if we don't have a reload target based on html output, see if we can
-      // get one from a reloadOnChange input
-      if (!reloadTarget) {
-        const input = modified.find(isRenderOnChangeInput);
-        if (input) {
-          lastRenderOnChangeInput = input;
-          const target = await resolveInputTarget(
-            project,
-            relative(project.dir, input),
-          );
-          if (target) {
-            reloadTarget = target.outputHref;
-          }
         }
       }
 
@@ -253,9 +271,9 @@ export async function watchProject(
     for await (const event of watcher) {
       try {
         // see if we need to handle this
-        const result = handleWatchEvent(event);
+        const result = await handleWatchEvent(event);
         if (result) {
-          await reloadClients(result === "config");
+          await reloadClients(result);
         }
       } catch (e) {
         logError(e);
@@ -267,22 +285,19 @@ export async function watchProject(
   watchForChanges();
 
   // return watcher interface
-  return {
+  return Promise.resolve({
     handle: (req: ServerRequest) => {
-      return !!options.watch && reloader.handle(req);
+      return reloader.handle(req);
     },
     connect: reloader.connect,
-    injectClient: (file: Uint8Array, inputFile: string, format: Format) => {
-      if (options.watch) {
-        return reloader.injectClient(file, inputFile, format);
-      } else {
-        return file;
-      }
+    injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
+      return reloader.injectClient(file, inputFile, format);
     },
+    project: () => project,
     serveProject: () => serveProject,
     refreshProject: async () => {
       await refreshProjectConfig();
       return serveProject;
     },
-  };
+  });
 }

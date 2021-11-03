@@ -22,6 +22,7 @@ import { PromiseQueue } from "../../core/promise.ts";
 
 import {
   kProject404File,
+  kProjectDefaultFormat,
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
@@ -40,9 +41,15 @@ import {
 import { websitePath } from "../../project/types/website/website-config.ts";
 
 import { renderProject } from "../render/project.ts";
-import { renderResultUrlPath } from "../render/render.ts";
+import {
+  renderResultFinalOutput,
+  renderResultUrlPath,
+} from "../render/render.ts";
 
-import { httpFileRequestHandler } from "../../core/http.ts";
+import {
+  httpFileRequestHandler,
+  HttpFileRequestOptions,
+} from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
 import { watchProject } from "./watch.ts";
@@ -58,6 +65,13 @@ import { resourcesFromMetadata } from "../render/resources.ts";
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { RenderFlags, RenderResult } from "../render/types.ts";
 import { initDenoDom } from "../../core/html.ts";
+import {
+  kPdfJsInitialPath,
+  pdfJsBaseDir,
+  pdfJsFileHandler,
+} from "../../core/pdfjs.ts";
+import { isPdfOutput } from "../../config/format.ts";
+import { bookOutputStem } from "../../project/types/book/book-config.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -92,38 +106,63 @@ export async function serveProject(
   // provide defaults
   options = {
     browse: true,
-    watch: true,
+    watchInputs: true,
     navigate: true,
     ...options,
   };
 
   // are we rendering?
-  const render = options.render !== kRenderNone;
-  if (render) {
+  const renderBefore = options.render !== kRenderNone;
+  if (renderBefore) {
     info("Rendering:");
   } else {
     info("Preparing to preview");
   }
 
+  // get 'to' from --render
+  flags = {
+    ...flags,
+    ...(renderBefore && options.render !== kRenderDefault)
+      ? { to: options.render }
+      : {},
+  };
+
+  // if there is sto;; no flags 'to' then set 'to' to the default format
+  if (flags.to === undefined) {
+    const defaultFormat = project.config?.project?.[kProjectDefaultFormat];
+    if (defaultFormat) {
+      flags.to = defaultFormat;
+      pandocArgs.push("--to", defaultFormat);
+    }
+  }
+
+  // are we targeting pdf output?
+  const pdfOutput = isPdfOutput(flags.to || "");
+
+  // determines files to render and resourceFiles to monitor
   // if we are in render 'none' mode then only render files whose output
   // isn't up to date. for those files we aren't rendering, compute their
   // resource files so we can watch them for changes
-  const { files, resourceFiles } = render
-    ? { files: undefined, resourceFiles: new Array<string>() }
-    : await serveFiles(project);
+  let files: string[] | undefined;
+  let resourceFiles: string[] = [];
+  if (!renderBefore) {
+    // if this is pdf output then we need to render all of the files
+    // so that the latex compiler can build the entire book
+    if (pdfOutput) {
+      files = project.files.input;
+    } else {
+      const srvFiles = await serveFiles(project);
+      files = srvFiles.files;
+      resourceFiles = srvFiles.resourceFiles;
+    }
+  }
 
-  // render in the main directory
   const renderResult = await renderProject(
     project,
     {
       progress: true,
-      useFreezer: !render,
-      flags: {
-        ...flags,
-        ...(render && options.render !== kRenderDefault)
-          ? { to: options.render }
-          : {},
-      },
+      useFreezer: !renderBefore,
+      flags,
       pandocArgs,
     },
     files,
@@ -134,6 +173,8 @@ export async function serveProject(
     throw error;
   }
 
+  const finalOutput = renderResultFinalOutput(renderResult);
+
   // create mirror of project for serving
   const serveDir = copyProjectForServe(project, true);
   const serveProject = (await projectContext(serveDir, flags, false, true))!;
@@ -143,21 +184,25 @@ export async function serveProject(
     renderResult.files.flatMap((file) => file.resourceFiles),
   ) as string[]);
 
-  // create project watcher
+  // create a promise queue so we only do one renderProject at a time
+  const renderQueue = new PromiseQueue<RenderResult>();
+
+  // create project watcher. later we'll figure out if it should provide renderOutput
   const watcher = await watchProject(
     project,
     serveProject,
     resourceFiles,
     flags,
+    pandocArgs,
     options,
+    !pdfOutput, // we don't render on reload for pdf output
+    renderQueue,
   );
 
-  // create a promise queue so we only do one renderProject at a time
-  const renderQueue = new PromiseQueue<RenderResult>();
-
-  // file request handler
+  // serve output dir
   const serveOutputDir = projectOutputDir(serveProject);
-  const handler = httpFileRequestHandler({
+
+  const handlerOptions: HttpFileRequestOptions = {
     //  base dir
     baseDir: serveOutputDir,
 
@@ -203,7 +248,7 @@ export async function serveProject(
                 {
                   useFreezer: true,
                   devServerReload: true,
-                  flags: { quiet: true },
+                  flags: { ...flags, quiet: true },
                   pandocArgs,
                 },
                 [inputFile!],
@@ -261,7 +306,7 @@ export async function serveProject(
         body,
       };
     },
-  });
+  };
 
   // serve project
   const server = serve({ port: options.port, hostname: options.host });
@@ -270,24 +315,53 @@ export async function serveProject(
   const siteUrl = `http://localhost:${options.port}/`;
 
   // print status
-  if (options.watch) {
-    printWatchingForChangesMessage();
-  }
-  printBrowsePreviewMessage(siteUrl);
+  printWatchingForChangesMessage();
 
-  // open browser if requested
+  // compute browse url
+  const targetPath = typeof (options.browse) === "string"
+    ? options.browse
+    : pdfOutput
+    ? kPdfJsInitialPath
+    : renderResultUrlPath(renderResult);
+  const browseUrl = targetPath
+    ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
+    : siteUrl;
+
+  // print browse url and open browser if requested
+  printBrowsePreviewMessage(browseUrl);
+
   if (options.browse) {
-    const targetPath = typeof (options.browse) === "string"
-      ? options.browse
-      : renderResultUrlPath(renderResult);
-    if (targetPath) {
-      openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
-    } else {
-      openUrl(siteUrl);
-    }
+    openUrl(browseUrl);
+  }
+
+  // if this is a pdf then we tweak the options to correctly handle pdfjs
+  if (finalOutput && pdfOutput) {
+    // change the baseDir to the pdfjs directory
+    handlerOptions.baseDir = pdfJsBaseDir();
+
+    // install custom handler for pdfjs
+    handlerOptions.onFile = pdfJsFileHandler(
+      () => {
+        const project = watcher.project();
+        return join(
+          dirname(finalOutput),
+          bookOutputStem(project.dir, project.config) + ".pdf",
+        );
+      },
+      async (file: string) => {
+        // inject watcher client for html
+        if (isHtmlContent(file)) {
+          const fileContents = await Deno.readFile(file);
+          return watcher.injectClient(fileContents);
+        } else {
+          return undefined;
+        }
+      },
+    );
   }
 
   // wait for requests
+  const handler = httpFileRequestHandler(handlerOptions);
   for await (const req of server) {
     handler(req);
   }

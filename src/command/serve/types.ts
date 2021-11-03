@@ -15,9 +15,10 @@ export interface ProjectWatcher {
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (
     file: Uint8Array,
-    inputFile: string,
-    format: Format,
+    inputFile?: string,
+    format?: Format,
   ) => Uint8Array;
+  project: () => ProjectContext;
   serveProject: () => ProjectContext;
   refreshProject: () => Promise<ProjectContext>;
 }
@@ -27,6 +28,6 @@ export type ServeOptions = {
   host: string;
   render: string;
   browse?: boolean | string;
-  watch?: boolean;
+  watchInputs?: boolean;
   navigate?: boolean;
 };

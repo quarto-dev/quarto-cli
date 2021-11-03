@@ -46,8 +46,8 @@ export const serveCommand = new Command()
     "Don't open a browser to preview the site.",
   )
   .option(
-    "--no-watch",
-    "Don't watch for changes and automatically reload.",
+    "--no-watch-inputs",
+    "Do not re-render input files when they change",
   )
   .option(
     "--no-navigate",
@@ -99,7 +99,7 @@ export const serveCommand = new Command()
       host: options.host,
       render: options.render,
       browse: options.browse,
-      watch: options.watch,
+      watchInputs: options.watchInputs,
       navigate: options.navigate,
     });
   });

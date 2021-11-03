@@ -71,6 +71,7 @@ import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
 import {
   kCellAutoscroll,
+  kCellCapLoc,
   kCellClasses,
   kCellColab,
   kCellColabType,
@@ -82,6 +83,7 @@ import {
   kCellFigAlt,
   kCellFigCap,
   kCellFigCapLoc,
+  kCellFigColumn,
   kCellFigEnv,
   kCellFigLink,
   kCellFigPos,
@@ -102,6 +104,8 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTags,
+  kCellTblCapLoc,
+  kCellTblColumn,
   kCodeFold,
   kCodeLineNumbers,
   kCodeOverflow,
@@ -207,6 +211,10 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellFigCap]?: string | string[];
   [kCellFigSubCap]?: string[];
   [kCellFigCapLoc]?: string;
+  [kCellTblCapLoc]?: string;
+  [kCellCapLoc]?: string;
+  [kCellFigColumn]?: string;
+  [kCellTblColumn]?: string;
   [kCellLstLabel]?: string;
   [kCellLstCap]?: string;
   [kCellClasses]?: string;
@@ -250,6 +258,10 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigSubCap,
   kCellFigScap,
   kCellFigCapLoc,
+  kCellTblCapLoc,
+  kCellCapLoc,
+  kCellFigColumn,
+  kCellTblColumn,
   kCellFigLink,
   kCellFigAlign,
   kCellFigAlt,
@@ -1026,9 +1038,22 @@ function mdFromCodeCell(
     if (typeof cell.options[kCellColumn] === "string") {
       classes.push(`column-${cell.options[kCellColumn]}`);
     }
-    if (typeof cell.options[kCellFigCapLoc] === "string") {
+    if (typeof cell.options[kCellFigColumn] === "string") {
+      classes.push(`fig-column-${cell.options[kCellFigColumn]}`);
+    }
+    if (typeof cell.options[kCellTblColumn] === "string") {
+      classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
+    }
+    if (typeof cell.options[kCellCapLoc] === "string") {
       classes.push(`caption-${cell.options[kCellFigCapLoc]}`);
     }
+    if (typeof cell.options[kCellFigCapLoc] === "string") {
+      classes.push(`fig-caption-${cell.options[kCellFigCapLoc]}`);
+    }
+    if (typeof cell.options[kCellTblCapLoc] === "string") {
+      classes.push(`tbl-caption-${cell.options[kCellTblCapLoc]}`);
+    }
+
     const classText = classes
       .map((clz: string) => {
         clz = ld.toString(clz) as string;

@@ -67,6 +67,7 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
   kPreferHtml,
+  kReferenceLocation,
   kSectionDivs,
   kSelfContained,
   kSelfContainedMath,
@@ -279,6 +280,7 @@ export interface FormatPandoc {
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kIncludeInHeader]?: string[];
+  [kReferenceLocation]?: string;
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;
   [kFilters]?: string[];
@@ -320,6 +322,7 @@ export interface PandocFlags {
   [kIncludeInHeader]?: string;
   [kIncludeBeforeBody]?: string;
   [kIncludeAfterBody]?: string;
+  [kReferenceLocation]?: string;
   [kMathjax]?: boolean;
   [kKatex]?: boolean;
   [kMathml]?: boolean;

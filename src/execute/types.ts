@@ -12,7 +12,6 @@ import {
 import { Format, Metadata } from "../config/types.ts";
 
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
-import { ProjectContext } from "../project/types.ts";
 import { RenderOptions } from "../command/render/types.ts";
 
 export const kQmdExtensions = [".qmd"];
@@ -47,10 +46,6 @@ export interface ExecutionEngine {
   canKeepSource?: (target: ExecutionTarget) => boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreDirs?: () => string[] | undefined;
-  devServerRenderOnChange?: (
-    input: string,
-    context: ProjectContext,
-  ) => Promise<boolean>;
   run?: (options: RunOptions) => Promise<void>;
 }
 

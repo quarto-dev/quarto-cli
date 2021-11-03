@@ -170,6 +170,7 @@ export const kToc = "toc";
 export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
 export const kEPubCoverImage = "epub-cover-image";
+export const kReferenceLocation = "reference-location";
 export const kQuartoVarsKey = "_quarto-vars";
 
 // command line flags
@@ -285,7 +286,7 @@ export const kPandocDefaultsKeys = [
   "epub-chapter-level",
   kEPubCoverImage,
   "reference-links",
-  "reference-location",
+  kReferenceLocation,
   kAtxHeaders,
   kMarkdownHeadings,
   "track-changes",
@@ -316,7 +317,11 @@ export const kCellLabel = "label";
 export const kCellFigCap = "fig-cap";
 export const kCellFigSubCap = "fig-subcap";
 export const kCellFigScap = "fig-scap";
+export const kCellCapLoc = "cap-location";
 export const kCellFigCapLoc = "fig-cap-location";
+export const kCellTblCapLoc = "tbl-cap-location";
+export const kCellFigColumn = "fig-column";
+export const kCellTblColumn = "tbl-column";
 export const kCellFigLink = "fig-link";
 export const kCellFigAlign = "fig-align";
 export const kCellFigEnv = "fig-env";

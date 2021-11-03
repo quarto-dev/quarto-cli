@@ -14,6 +14,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import {
   kHtmlMathMethod,
   kLinkCitations,
+  kReferenceLocation,
   kSectionDivs,
   kTheme,
   kTocTitle,
@@ -39,7 +40,6 @@ import {
   kBootstrapDependencyName,
   kDocumentCss,
   kFootnoteSectionTitle,
-  kFootnotesMargin,
   kPageLayout,
   kPageLayoutArticle,
   kPageLayoutCustom,
@@ -170,13 +170,13 @@ export function boostrapExtras(
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        bootstrapHtmlPostprocessor(format),
+        bootstrapHtmlPostprocessor(flags, format),
       ],
     },
   };
 }
 
-function bootstrapHtmlPostprocessor(format: Format) {
+function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
   return (doc: Document): Promise<string[]> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
@@ -184,8 +184,10 @@ function bootstrapHtmlPostprocessor(format: Format) {
       title.classList.add("display-7");
     }
 
+    const marginNotes = format.pandoc[kReferenceLocation] === "gutter" ||
+      flags[kReferenceLocation] === "gutter";
     // If margin footnotes are enabled move them
-    if (format.metadata?.[kFootnotesMargin]) {
+    if (marginNotes) {
       // This is a little complicated because if there are multiple footnotes
       // in a single block, we want to wrap them in a container so they
       // all can appear adjacent to the block (otherwise only the first would appear)
@@ -194,20 +196,31 @@ function bootstrapHtmlPostprocessor(format: Format) {
       // Find all the footnote links
       const footnoteEls = doc.querySelectorAll(".footnote-ref");
 
-      let currentParent: Element | null = null;
+      let footnoteBlock: Element | null = null;
       let pendingFootnotes: Element[] = [];
 
-      const appendFootnotes = (parent: Element, footnotes: Element[]) => {
-        if (footnotes.length === 1) {
-          footnotes[0].classList.add("footnote-gutter");
-          parent.appendChild(footnotes[0]);
-        } else {
-          const containerEl = doc.createElement("div");
-          containerEl.classList.add("footnote-gutter");
-          for (const footnote of footnotes) {
-            containerEl.appendChild(footnote);
+      const appendFootnotes = (
+        footnotBlockEl: Element,
+        footnotes: Element[],
+      ) => {
+        if (footnotBlockEl !== null) {
+          if (footnotes.length === 1) {
+            footnotes[0].classList.add("footnote-gutter");
+            footnotBlockEl.parentElement?.insertBefore(
+              footnotes[0],
+              footnotBlockEl.nextElementSibling,
+            );
+          } else {
+            const containerEl = doc.createElement("div");
+            containerEl.classList.add("footnote-gutter");
+            for (const footnote of footnotes) {
+              containerEl.appendChild(footnote);
+            }
+            footnotBlockEl.parentElement?.insertBefore(
+              containerEl,
+              footnotBlockEl.nextElementSibling,
+            );
           }
-          parent.appendChild(containerEl);
         }
       };
 
@@ -219,14 +232,15 @@ function bootstrapHtmlPostprocessor(format: Format) {
             const footnoteContentsEl = doc.getElementById(target.slice(1));
             if (footnoteContentsEl) {
               if (
-                currentParent !== null &&
-                currentParent !== footnoteEl.parentElement
+                footnoteBlock !== null &&
+                footnoteBlock !== footnoteEl.parentElement
               ) {
-                appendFootnotes(currentParent, pendingFootnotes);
+                appendFootnotes(footnoteBlock, pendingFootnotes);
                 pendingFootnotes = [];
               }
 
-              currentParent = footnoteEl.parentElement;
+              // block containing the footnote
+              footnoteBlock = footnoteEl.parentElement || null;
 
               // Create a new footnote div and move the contents into it
               const footnoteDiv = doc.createElement("div");
@@ -235,6 +249,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
                 "role",
                 footnoteContentsEl.getAttribute("role"),
               );
+
               Array.from(footnoteContentsEl.children).forEach((child) => {
                 // Remove the backlink since this is in the gutter
                 const backLinkEl = child.querySelector(".footnote-back");
@@ -263,8 +278,8 @@ function bootstrapHtmlPostprocessor(format: Format) {
         }
       });
 
-      if (currentParent && pendingFootnotes) {
-        appendFootnotes(currentParent, pendingFootnotes);
+      if (footnoteBlock && pendingFootnotes) {
+        appendFootnotes(footnoteBlock, pendingFootnotes);
       }
     }
 
@@ -341,7 +356,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
 
     // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
-      '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"]',
+      '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"], [class*="footnote-gutter"], [class*=" footnote-gutter"]',
     );
     // If there are any of these elements, we need to be sure that their
     // parents have acess to the grid system, so make the parent full screen width
@@ -489,7 +504,12 @@ function bootstrapHtmlPostprocessor(format: Format) {
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)
     const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-    if (footnotes.length === 1 && !format.metadata?.[kFootnotesMargin]) {
+    if (marginNotes) {
+      const footNoteSectionEl = doc.querySelector("section.footnotes");
+      if (footNoteSectionEl) {
+        footNoteSectionEl.remove();
+      }
+    } else if (footnotes.length === 1) {
       const footnotesEl = footnotes.item(0) as Element;
       const h2 = doc.createElement("h2");
       const title =
