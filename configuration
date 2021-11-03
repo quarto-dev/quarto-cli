@@ -25,6 +25,7 @@ export POPPER_JS=2.9.1
 export CLIPBOARD_JS=2.0.8
 export TIPPY_JS=6.3.0
 export PDF_JS=2.8.335
+export REVEAL_JS=92a0d472372fbbc7a2b11ab9375cd87519d379e7
 
 # javascript search dependencies
 export AUTOCOMPLETE_JS=1.4.0
