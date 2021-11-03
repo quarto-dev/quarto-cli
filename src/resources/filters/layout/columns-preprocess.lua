@@ -60,49 +60,34 @@ function resolveColumnClassesForCodeCell(el)
 
           -- look through the children for any figures or tables
           for j, figOrTableEl in ipairs(childEl.content) do
-
-            -- forward to figure divs
-            if figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
-              if #figClasses > 0 then
-                applyColumnClasses(childEl, figClasses, 'fig')
-                clearColumnClasses(el, 'fig')
-              end
-              if #figCaptionClasses > 0 then
-                applyCaptionClasses(figOrTableEl, figCaptionClasses, 'fig')
-                clearCaptionClasses(el, 'fig')
-              end
-            end
-
-            -- forward to figures
             local figure = discoverFigure(figOrTableEl, true)
             if figure ~= nil then
-              if #figClasses > 0 then
-                applyColumnClasses(childEl, figClasses, 'fig')
-                clearColumnClasses(el, 'fig')
-              end
-              if #figCaptionClasses > 0 then
-                applyCaptionClasses(figure, figCaptionClasses, 'fig')
-                clearCaptionClasses(el, 'fig')
-              end
+              -- forward to figures
+              applyClasses(figClasses, figCaptionClasses, el, childEl, figure, 'fig')
+            elseif figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
+              -- forward to figure divs
+              applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
+            elseif figOrTableEl.t == 'Table' or (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
+              applyClasses(tblClasses, tblCaptionClasses, el, childEl, figOrTableEl, 'tbl')
             end
 
-            -- forward to table divs
-            if figOrTableEl.t == 'Table' or (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
-              if #tblClasses > 0 then
-                applyColumnClasses(childEl, tblClasses, 'tbl')
-                clearColumnClasses(el, 'tbl')
-              end
-              if #tblCaptionClasses > 0 then
-                applyCaptionClasses(figOrTableEl, tblCaptionClasses, 'tbl')
-                clearCaptionClasses(el, 'tbl')
-              end
-
-            end
           end
         end
       end
     end
   end         
+end
+
+function applyClasses(colClasses, captionClasses, containerEl, colEl, captionEl, scope)
+  if #colClasses > 0 then
+    applyColumnClasses(colEl, colClasses, scope)
+    clearColumnClasses(containerEl, scope)
+  end
+  if #captionClasses > 0 then
+    applyCaptionClasses(captionEl, captionClasses, scope)
+    clearCaptionClasses(containerEl, scope)
+  end
+
 end
 
 function resolveElementForScopedColumns(el, scope) 

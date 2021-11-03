@@ -75,14 +75,15 @@ function renderDivColumn(el)
 
         for j, figOrTableEl in ipairs(el.content) do
 
-          -- forward to figures
+          -- wrap figures
           local figure = discoverFigure(figOrTableEl, true)
           if figure ~= nil then
             latexWrapEnvironment(figOrTableEl, latexFigureEnv(el), true)
           elseif figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl) then
-            -- forward to tables
+            -- wrap table divs
             latexWrapEnvironment(figOrTableEl, latexTableEnv(el), false)
           elseif figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
+            -- wrap figure divs
             latexWrapEnvironment(figOrTableEl, latexFigureEnv(el), false)
           end
         end
