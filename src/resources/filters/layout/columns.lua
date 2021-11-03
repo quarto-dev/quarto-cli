@@ -71,23 +71,45 @@ function renderDivColumn(el)
     if #columnClasses > 0 then
       noteHasColumns() 
       
-      if #el.content > 0 then
-
-        for j, figOrTableEl in ipairs(el.content) do
+      if el.attr.classes:includes('cell-output-display') and #el.content > 0 then
+        -- this could be a code-display-cell
+        local figOrTable = false
+        for j, contentEl in ipairs(el.content) do
 
           -- wrap figures
-          local figure = discoverFigure(figOrTableEl, true)
+          local figure = discoverFigure(contentEl, true)
           if figure ~= nil then
-            latexWrapEnvironment(figOrTableEl, latexFigureEnv(el), true)
-          elseif figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl) then
+            latexWrapEnvironment(contentEl, latexFigureEnv(el), true)
+            figOrTable = true
+          elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
             -- wrap table divs
-            latexWrapEnvironment(figOrTableEl, latexTableEnv(el), false)
-          elseif figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
+            latexWrapEnvironment(contentEl, latexTableEnv(el), false)
+            figOrTable = true
+          elseif contentEl.attr ~= undefined and hasFigureRef(contentEl) then
             -- wrap figure divs
-            latexWrapEnvironment(figOrTableEl, latexFigureEnv(el), false)
+            latexWrapEnvironment(contentEl, latexFigureEnv(el), false)
+            figOrTable = true
+          end 
+        end
+
+        if not figOrTable then
+          -- other things (margin notes)
+          tprepend(el.content, {latexBeginSidenote()});
+          tappend(el.content, {latexEndSidenote(el)})
+        end
+      else
+        -- this is not a code cell so process it
+        if el.attr ~= undefined then
+          if hasTableRef(el) then
+            latexWrapEnvironment(el, latexTableEnv(el), false)
+          elseif hasFigureRef(el) then
+            latexWrapEnvironment(el, latexFigureEnv(el), false)
+          else
+            -- other things (margin notes)
+            tprepend(el.content, {latexBeginSidenote()});
+            tappend(el.content, {latexEndSidenote(el)})
           end
         end
-        
       end   
     else 
        -- Markup any captions for the post processor
