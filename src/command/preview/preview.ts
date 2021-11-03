@@ -39,25 +39,26 @@ import {
   renderResultUrlPath,
 } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
-import { formatResourcePath } from "../../core/resources.ts";
 import {
   projectContext,
   projectIsWebsite,
 } from "../../project/project-context.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
-import { normalizeNewlines } from "../../core/text.ts";
-import { md5Hash } from "../../core/hash.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 import { renderProject } from "../render/project.ts";
 import { kRenderNone, serveProject } from "../serve/serve.ts";
 import { Format } from "../../config/types.ts";
+import {
+  kPdfJsInitialPath,
+  pdfJsBaseDir,
+  pdfJsFileHandler,
+} from "../../core/pdfjs.ts";
 
 interface PreviewOptions {
   port: number;
   host: string;
   browse: boolean;
   presentation: boolean;
-  watch: boolean;
+  watchInputs: boolean;
 }
 
 export async function preview(
@@ -82,7 +83,7 @@ export async function preview(
         host: options.host,
         render: kRenderNone,
         browse: options.browse ? targetPath || true : false,
-        watch: options.watch,
+        watchInputs: options.watchInputs,
         navigate: true,
       });
       return;
@@ -107,7 +108,7 @@ export async function preview(
     result,
     reloader,
     render,
-    options.watch,
+    options.watchInputs,
   );
 
   // create file request handler (hook clients up to reloader, provide
@@ -406,20 +407,6 @@ function htmlReloadFiles(result: RenderForPreviewResult) {
   return [result.outputFile].concat(result.resourceFiles);
 }
 
-const kPdfJsInitialPath = "web/viewer.html";
-const kPdfJsDefaultFile = "compressed.tracemonkey-pldi-09.pdf";
-const kPdfJsViewerToolbarButtonSelector = `.toolbarButton,
-.dropdownToolbarButton,
-.secondaryToolbarButton,
-.overlayButton {`;
-
-// NOTE: pdfjs uses the \pdftrailerid{} (if defined, and this macro only works for pdflatex)
-// as the context for persisting user prefs. this is read in the "fingerprint" method of
-// PDFDocument (on ~ line 12100 of pdf.worker.js). if we want to preserve the user's prefs
-// (e.g. zoom level, sidebar, etc.) we need to provide this either by injecting \pdftrailerid
-// into rendered pdfs or by patching PDFDocument to always return the same fingerprint
-// (which is what we do below)
-
 function pdfFileRequestHandler(
   pdfFile: string,
   inputFile: string,
@@ -436,65 +423,9 @@ function pdfFileRequestHandler(
     renderHandler,
   );
 
-  // change the baseDir to the pdfjs directory
-  pdfOptions.baseDir = formatResourcePath("pdf", "pdfjs");
-
-  // leave the default file alone for now (not currently relevant
-  // since we are currently sending users directly to web/viewer.html)
-
-  // tweak the file handler to substitute our pdf for the default one
-  const htmlOnFile = pdfOptions.onFile;
-  pdfOptions.onFile = async (file: string, req: ServerRequest) => {
-    // base behavior (injects the reloader into html files)
-    const contents = await htmlOnFile!(file, req);
-    if (contents) {
-      return contents;
-    }
-    const previewPath = (dir: string, file: string) => {
-      return pathWithForwardSlashes(join(pdfOptions.baseDir, dir, file));
-    };
-
-    // tweak viewer.js to point to our pdf and force the sidebar off
-    if (file === previewPath("web", "viewer.js")) {
-      let viewerJs = Deno.readTextFileSync(file)
-        .replace(
-          kPdfJsDefaultFile,
-          basename(pdfFile),
-        );
-      // always hide the sidebar in the viewer pane
-      const referrer = req.headers.get("Referer");
-      const isViewer = referrer && referrer.includes("viewer_pane=1");
-      if (isViewer) {
-        viewerJs = viewerJs.replace(
-          "sidebarView: sidebarView",
-          "sidebarView: _ui_utils.SidebarView.NONE",
-        );
-      }
-
-      return new TextEncoder().encode(viewerJs);
-    } else if (file == previewPath("web", "viewer.css")) {
-      const viewerCss = normalizeNewlines(Deno.readTextFileSync(file))
-        .replace(
-          kPdfJsViewerToolbarButtonSelector,
-          kPdfJsViewerToolbarButtonSelector + "\n  z-index: 199;",
-        );
-      return new TextEncoder().encode(viewerCss);
-
-      // tweak pdf.worker.js to always return the same fingerprint
-      // (preserve user viewer prefs across reloads)
-    } else if (file === previewPath("build", "pdf.worker.js")) {
-      const filePathHash = "quarto-preview-pdf-" +
-        md5Hash(pdfFile);
-      const workerJs = Deno.readTextFileSync(file).replace(
-        /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
-        `$1return "${filePathHash}"; $2`,
-      );
-      return new TextEncoder().encode(workerJs);
-    } // read requests for our pdf for the pdfFile
-    else if (file === previewPath("web", basename(pdfFile))) {
-      return Deno.readFileSync(pdfFile);
-    }
-  };
+  // pdf customizations
+  pdfOptions.baseDir = pdfJsBaseDir();
+  pdfOptions.onFile = pdfJsFileHandler(() => pdfFile, pdfOptions.onFile);
 
   return httpFileRequestHandler(pdfOptions);
 }

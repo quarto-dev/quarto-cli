@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kFrom,
   kHtmlMathMethod,
