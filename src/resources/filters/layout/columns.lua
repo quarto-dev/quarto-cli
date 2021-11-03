@@ -72,20 +72,21 @@ function renderDivColumn(el)
       noteHasColumns() 
       
       if #el.content > 0 then
-        
-        if hasFigureRef(el) then 
-          -- figures
-          latexWrapEnvironment(el, latexFigureEnv(el))
-        elseif hasTableRef(el) then
-          -- table divs that aren't sub tables
-          if not hasRefParent(el) then
-            latexWrapEnvironment(el, latexTableEnv(el))
+
+        for j, figOrTableEl in ipairs(el.content) do
+
+          -- forward to figures
+          local figure = discoverFigure(figOrTableEl, true)
+          if figure ~= nil then
+            latexWrapEnvironment(figOrTableEl, latexFigureEnv(el), true)
+          elseif figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl) then
+            -- forward to tables
+            latexWrapEnvironment(figOrTableEl, latexTableEnv(el), false)
+          elseif figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
+            latexWrapEnvironment(figOrTableEl, latexFigureEnv(el), false)
           end
-        else
-          -- other things (margin notes)
-          tprepend(el.content, {latexBeginSidenote()});
-          tappend(el.content, {latexEndSidenote(el)})
         end
+        
       end   
     else 
        -- Markup any captions for the post processor

@@ -252,9 +252,9 @@ function latexEndSidenote(el)
   return pandoc.RawBlock('latex', '}' .. offset .. '\\end{footnotesize}')
 end
 
-function latexWrapEnvironment(el, env) 
-  tprepend(el.content, {latexBeginEnv(env)})
-  tappend(el.content, {latexEndEnv(env)})
+function latexWrapEnvironment(el, env, inline) 
+  tprepend(el.content, {latexBeginEnv(env, nil, inline)})
+  tappend(el.content, {latexEndEnv(env, inline)})
 end
 
 function latexBeginAlign(align)
@@ -277,7 +277,7 @@ function latexEndAlign(align)
   end
 end
 
-function latexBeginEnv(env, pos)
+function latexBeginEnv(env, pos, inline)
   local beginEnv = "\\begin{" .. env .. "}"
   if pos then
     if not string.find(pos, "^%[{") then
@@ -285,11 +285,19 @@ function latexBeginEnv(env, pos)
     end
     beginEnv = beginEnv .. pos
   end
-  return pandoc.RawBlock("latex", beginEnv)
+  if inline then
+    return pandoc.RawInline("latex", beginEnv)
+  else
+    return pandoc.RawBlock("latex", beginEnv)
+  end
 end
 
-function latexEndEnv(env)
-  return pandoc.RawBlock("latex", "\\end{" .. env .. "}")
+function latexEndEnv(env, inline)
+  if inline then
+    return pandoc.RawInline("latex", "\\end{" .. env .. "}")
+  else
+    return pandoc.RawBlock("latex", "\\end{" .. env .. "}")
+  end
 end
 
 function latexCell(cell, vAlign, endOfRow, endOfTable)
