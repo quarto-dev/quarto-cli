@@ -71,20 +71,44 @@ function renderDivColumn(el)
     if #columnClasses > 0 then
       noteHasColumns() 
       
-      if #el.content > 0 then
-        
-        if hasFigureRef(el) then 
-          -- figures
-          latexWrapEnvironment(el, latexFigureEnv(el))
-        elseif hasTableRef(el) then
-          -- table divs that aren't sub tables
-          if not hasRefParent(el) then
-            latexWrapEnvironment(el, latexTableEnv(el))
-          end
-        else
+      if el.attr.classes:includes('cell-output-display') and #el.content > 0 then
+        -- this could be a code-display-cell
+        local figOrTable = false
+        for j, contentEl in ipairs(el.content) do
+
+          -- wrap figures
+          local figure = discoverFigure(contentEl, true)
+          if figure ~= nil then
+            latexWrapEnvironment(contentEl, latexFigureEnv(el), true)
+            figOrTable = true
+          elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
+            -- wrap table divs
+            latexWrapEnvironment(contentEl, latexTableEnv(el), false)
+            figOrTable = true
+          elseif contentEl.attr ~= undefined and hasFigureRef(contentEl) then
+            -- wrap figure divs
+            latexWrapEnvironment(contentEl, latexFigureEnv(el), false)
+            figOrTable = true
+          end 
+        end
+
+        if not figOrTable then
           -- other things (margin notes)
           tprepend(el.content, {latexBeginSidenote()});
           tappend(el.content, {latexEndSidenote(el)})
+        end
+      else
+        -- this is not a code cell so process it
+        if el.attr ~= undefined then
+          if hasTableRef(el) then
+            latexWrapEnvironment(el, latexTableEnv(el), false)
+          elseif hasFigureRef(el) then
+            latexWrapEnvironment(el, latexFigureEnv(el), false)
+          else
+            -- other things (margin notes)
+            tprepend(el.content, {latexBeginSidenote()});
+            tappend(el.content, {latexEndSidenote(el)})
+          end
         end
       end   
     else 
@@ -106,6 +130,14 @@ function resolveColumnClasses(el)
   return el.attr.classes:filter(isColumnClass)
 end
 
+function columnToClass(column)
+  if column ~= nil then
+    return 'column-' .. column[1].text
+  else
+    return nil
+  end
+end
+
 function removeColumnClasses(el)
   for i, clz in ipairs(el.attr.classes) do 
     if isColumnClass(clz) then
@@ -114,12 +146,26 @@ function removeColumnClasses(el)
   end
 end
 
+function removeCaptionClasses(el)
+  for i, clz in ipairs(el.attr.classes) do 
+    if isCaptionClass(clz) then
+      el.attr.classes:remove(i)
+    end
+  end
+end
+
+function resolveCaptionClasses(el)
+  return el.attr.classes:filter(isCaptionClass)
+end
+
+function isCaptionClass(clz)
+  return clz == kSideCaptionClass
+end
+
 function isColumnClass(clz) 
   if clz == undefined then
     return false
   elseif clz == 'aside' then
-    return true
-  elseif clz == kSideCaptionClass then
     return true
   else
     return clz:match('^column%-')

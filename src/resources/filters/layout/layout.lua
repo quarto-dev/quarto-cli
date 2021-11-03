@@ -28,6 +28,7 @@ import("pptx.lua")
 import("table.lua")
 import("figures.lua")
 import("columns.lua")
+import("options.lua")
 import("columns-preprocess.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
@@ -281,6 +282,7 @@ initParams()
 
 -- chain of filters
 return {
+  initOptions(),
   columnsPreprocess(),
   columns(),
   layoutPanels(),
