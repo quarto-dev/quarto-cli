@@ -64,10 +64,12 @@ function resolveColumnClassesForCodeCell(el)
             -- forward to figure divs
             if figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
               if #figClasses > 0 then
-                applyColumnClasses(figOrTableEl, figClasses, 'fig')
+                applyColumnClasses(childEl, figClasses, 'fig')
+                clearColumnClasses(el, 'fig')
               end
               if #figCaptionClasses > 0 then
                 applyCaptionClasses(figOrTableEl, figCaptionClasses, 'fig')
+                clearCaptionClasses(el, 'fig')
               end
             end
 
@@ -75,20 +77,24 @@ function resolveColumnClassesForCodeCell(el)
             local figure = discoverFigure(figOrTableEl, true)
             if figure ~= nil then
               if #figClasses > 0 then
-                applyColumnClasses(figure, figClasses, 'fig')
+                applyColumnClasses(childEl, figClasses, 'fig')
+                clearColumnClasses(el, 'fig')
               end
               if #figCaptionClasses > 0 then
                 applyCaptionClasses(figure, figCaptionClasses, 'fig')
+                clearCaptionClasses(el, 'fig')
               end
             end
 
             -- forward to table divs
             if figOrTableEl.t == 'Table' or (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
               if #tblClasses > 0 then
-                applyColumnClasses(figOrTableEl, tblClasses, 'tbl')
+                applyColumnClasses(childEl, tblClasses, 'tbl')
+                clearColumnClasses(el, 'tbl')
               end
               if #tblCaptionClasses > 0 then
                 applyCaptionClasses(figOrTableEl, tblCaptionClasses, 'tbl')
+                clearCaptionClasses(el, 'tbl')
               end
 
             end
@@ -109,6 +115,16 @@ function resolveElementForScopedColumns(el, scope)
   if #captionClasses > 0 then
     applyCaptionClasses(el, captionClasses, scope)
   end
+end
+
+function clearColumnClasses(el, scope)
+  removeColumnClasses(el)
+  removeScopedColumnClasses(el, scope)
+end
+
+function clearCaptionClasses(el, scope) 
+  removeCaptionClasses(el)
+  removeScopedCaptionClasses(el, scope)
 end
 
 function applyCaptionClasses(el, classes, scope)
