@@ -25,7 +25,11 @@ export async function withRepo(
     },
   };
   await fn(repo);
-  Deno.removeSync(repoPath, { recursive: true });
+  try {
+    Deno.removeSync(repoPath, { recursive: true });
+  } catch (_err) {
+    info(`Folder not deleted by deno: ${repoPath}`);
+  }
 }
 
 async function checkout(dir: string, commit: string) {

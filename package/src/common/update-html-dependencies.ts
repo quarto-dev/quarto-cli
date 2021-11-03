@@ -4,9 +4,15 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { ensureDir, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
+import {
+  copySync,
+  ensureDir,
+  ensureDirSync,
+  existsSync,
+  moveSync,
+} from "fs/mod.ts";
 import { info } from "log/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, extname, join } from "path/mod.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
 import { Repo, withRepo } from "../util/git.ts";
@@ -135,6 +141,50 @@ export async function updateHtmlDepedencies(config: Configuration) {
   );
   cleanSourceMap(fuseJs);
 
+  // reveal.js
+  const revealJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "revealjs",
+    "reveal",
+  );
+
+  await updateGithubSourceCodeDependency(
+    "reveal.js",
+    "hakimel/reveal.js",
+    "REVEAL_JS",
+    workingDir,
+    (dir: string, version: string) => {
+      // Copy the desired resource files
+      info("Copying reveal.js resources' directory");
+      if (existsSync(revealJs)) {
+        Deno.removeSync(revealJs, { recursive: true });
+      }
+      ensureDirSync(revealJs);
+
+      info("Copying css/");
+      copySync(join(dir, `reveal.js-${version}`, "css"), join(revealJs, "css"));
+      info("Copying dist/");
+      const dist = join(revealJs, "dist");
+      copySync(join(dir, `reveal.js-${version}`, "dist"), dist);
+      // remove unneeded CSS files
+      const theme = join(dist, "theme");
+      for (const fileEntry of Deno.readDirSync(theme)) {
+        if (fileEntry.isFile && extname(fileEntry.name) === ".css") {
+          info(`-> Removing unneeded ${fileEntry.name}.`);
+          Deno.removeSync(join(theme, fileEntry.name));
+        }
+      }
+      info("Copying plugin/");
+      copySync(
+        join(dir, `reveal.js-${version}`, "plugin"),
+        join(revealJs, "plugin"),
+      );
+    },
+    true,
+  );
+
   // Autocomplete
   const autocompleteJs = join(
     config.directoryInfo.src,
@@ -208,8 +258,14 @@ export async function updateHtmlDepedencies(config: Configuration) {
   // Update Pandoc themes
   await updatePandocHighlighting(config);
 
+  //
+
   // Clean up the temp dir
-  Deno.removeSync(workingDir, { recursive: true });
+  try {
+    Deno.removeSync(workingDir, { recursive: true });
+  } catch (_err) {
+    info(`Folder not deleted - Remove manually: ${workingDir}`);
+  }
   info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
@@ -481,13 +537,16 @@ async function updateGithubSourceCodeDependency(
   versionEnvVar: string,
   working: string,
   onDownload: (dir: string, version: string) => void,
+  commit = false, // set to true when commit is used instead of a tag
 ) {
   info(`Updating ${name}...`);
   const version = Deno.env.get(versionEnvVar);
   if (version) {
     const fileName = `${name}.zip`;
-    const distUrl =
-      `https://github.com/${repo}/archive/refs/tags/v${version}.zip`;
+    const distUrl = join(
+      `https://github.com/${repo}/archive`,
+      commit ? `${version}.zip` : `refs/tags/v${version}.zip`,
+    );
     const zipFile = join(working, fileName);
 
     // Download and unzip the release
