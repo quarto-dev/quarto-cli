@@ -30,11 +30,25 @@ export function lineOffsets(text: string) {
 export function indexToRowCol(text: string) {
   const offsets = lineOffsets(text);
   return function(offset: number) {
-    const startIndex = glb(offsets, offset);
+    if (offset === 0) {
+      return {
+        line: 0,
+        column: 0
+      };
+    }
     
-    return {
-      line: startIndex,
-      column: offset - offsets[startIndex]
+    const startIndex = glb(offsets, offset);
+
+    if (offset === offsets[startIndex]) {
+      return {
+        line: startIndex - 1,
+        column: offsets[startIndex] - offsets[startIndex - 1]
+      };
+    } else {
+      return {
+        line: startIndex,
+        column: offset - offsets[startIndex] - 1
+      };
     }
   }
 }

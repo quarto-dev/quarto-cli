@@ -88,6 +88,7 @@ export interface LocalizedError {
 function navigate(
   path: string[],
   annotation: AnnotatedParse,
+  returnKey = false, // if true, then return the *key* entry as the final result rather than the *value* entry.
   pathIndex = 0): AnnotatedParse
 {
   if (pathIndex >= path.length) {
@@ -99,13 +100,17 @@ function navigate(
     for (let i = 0; i < components.length; i += 2) {
       const key = components[i].result;
       if (key === searchKey) {
-        return navigate(path, components[i + 1], pathIndex + 1);
+        if (returnKey && pathIndex === path.length - 1) {
+          return navigate(path, components[i], returnKey, pathIndex + 1);
+        } else {
+          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+        }
       }
     }
     throw new Error("Internal error: searchKey not found in mapping object");
   } else if (annotation.kind === "sequence" || annotation.kind === "block_sequence") {
     const searchKey = Number(path[pathIndex]);
-    return navigate(path, annotation.components[searchKey], pathIndex + 1);
+    return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
   } else {
     throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
@@ -146,6 +151,21 @@ function isProperPrefix(a: string, b:string)
   return (b.length > a.length) && b.substring(0, a.length) === a;
 }
 
+/*
+ * This attempts to prune the large number of errors reported by avj.
+ * 
+ * We apply two general heuristics:
+ *
+ * 1. if there are errors in two instance paths, and one error is in a
+ *    prefix of another error, we only report the innermost error (the
+ *    principle here is that inner instances are smaller, and it's
+ *    easier to wrap your head around fixing an error in a smaller
+ *    instance than it is on a large one, and maybe fixing the smaller
+ *    error also fixes the larger error.)
+ *
+ * 2. For errors in the _same_ instance path, we always choose at most
+ *    one error to display.
+ */
 function localizeAndPruneErrors(
   annotation: AnnotatedParse,
   validationErrors: ErrorObject[],
@@ -155,57 +175,108 @@ function localizeAndPruneErrors(
   const result: LocalizedError[] = [];
   const locF = mappedIndexToRowCol(source);
 
-  for (const error of validationErrors) {
-    const instancePath = error.instancePath;
+  // group errors per instance in which they appear
+  interface NamedErrorList {
+    instancePath: string;
+    errors: ErrorObject[];
+  }
+  const errorsPerInstanceMap: Record<string, NamedErrorList> = {};
+  let errorsPerInstanceList: NamedErrorList[] = [];
+  for (let error of validationErrors) {
+    let { instancePath } = error;
     
-    const path = error.instancePath.split("/").slice(1);
-
-    // FIXME these are O(n^2) checks; maybe we can avoid the
-    // performance trouble by building the tree of instancePaths and
-    // the associated errors?
-
-    // we skip anyOf and oneOf errors that have other more localized errors inside them
-    if (["oneOf", "anyOf"].indexOf(error.keyword) !== -1 &&
-      validationErrors.filter(
-        otherError => isProperPrefix(
-          instancePath, otherError.instancePath)).length > 0) {
-      continue;
+    // transform additionalProperties errors into a custom error message
+    // only about the inner invalid property.
+    if (error.keyword === "additionalProperties") {
+      instancePath = `${instancePath}/${error.params.additionalProperty}`;
+      error = {
+        ...error,
+        instancePath,
+        keyword: "_custom_invalidProperty",
+        message: `property ${error.params.additionalProperty} not allowed in object`,
+        params: {
+          ...error.params,
+          originalError: error
+        },
+        schemaPath: error.schemaPath.slice(0, -21), // drop "/additionalProperties",
+      };
     }
+    
+    if (errorsPerInstanceMap[instancePath] === undefined) {
+      // NB the deliberate sharing of `lst` here
+      const errors: ErrorObject[] = [];
+      const namedError: NamedErrorList = {
+        instancePath,
+        errors,
+      };
+      errorsPerInstanceMap[instancePath] = namedError;
+      errorsPerInstanceList.push(namedError);
+    }
+    errorsPerInstanceMap[instancePath].errors.push(error);
+  }
+
+  // keep only the instancePaths that are not proper prefixes
+  errorsPerInstanceList = errorsPerInstanceList.filter(
+    ({ instancePath: pathA }) => errorsPerInstanceList.filter(
+      ({ instancePath: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
+
+  debugger;
+
+  // report at most one error 
+  for (let { instancePath, errors } of errorsPerInstanceList) {
+    const path = instancePath.split("/").slice(1);
 
     // we skip enums and types if there is a broader oneOf or anyOf which
     // matches our instancePath
-    if (["enum", "type"].indexOf(error.keyword) !== -1 &&
-      validationErrors.some(
-        (otherError => instancePath === otherError.instancePath &&
-          ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1))) {
-      continue;
-    }
-    const schemaPath = error.schemaPath.split("/").slice(1);
-    const violatingObject = navigate(path, annotation);
-    const innerSchema = navigateSchema(schemaPath, schema);
-    let message = "";
+    errors = errors.filter(error => {
+      if (["enum", "type"].indexOf(error.keyword) === -1) {
+        return true;
+      }
 
-    const start = locF(violatingObject.start);
-    const end = locF(violatingObject.end);
-    
-    const locStr = (start.line === end.line ?
-      `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`
-      : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`);
-
-    const messageNoLocation = `Expected field ${instancePath} to ${innerSchema.description}`;
-    message = `${locStr}: ${messageNoLocation}`;
-    
-    result.push({
-      instancePath,
-      violatingObject,
-      message,
-      messageNoLocation,
-      source,
-      start,
-      end,
-      error // we include the full error to allow downstream fine-tuning
+      return !errors.some(otherError => 
+        ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1);
     });
+
+    // we skip the generaly reporting of "oneOf" and "anyOf" errors
+    errors = errors.filter(error =>
+      ["oneOf", "anyOf"].indexOf(error.keyword) === -1);
+    
+    for (const error of errors) {
+      const returnKey = error.keyword === "_custom_invalidProperty";
+      const violatingObject = navigate(path, annotation, returnKey);
+      const schemaPath = error.schemaPath.split("/").slice(1);
+      const innerSchema = navigateSchema(schemaPath, schema);
+      let message = "";
+
+      const start = locF(violatingObject.start);
+      const end = locF(violatingObject.end);
+
+      const locStr = (start.line === end.line ?
+        `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`
+        : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`);
+
+      let messageNoLocation;
+      // in the case of customized errors, use message we prepared earlier
+      if (error.keyword === "_custom_invalidProperty") {
+        messageNoLocation = error.message;
+      } else {
+        messageNoLocation = `Expected field ${instancePath} to ${innerSchema.description}`;
+      }
+      message = `${locStr}: ${messageNoLocation}`;
+      
+      result.push({
+        instancePath,
+        violatingObject,
+        message,
+        messageNoLocation,
+        source,
+        start,
+        end,
+        error // we include the full error to allow downstream fine-tuning
+      });
+    }
   }
+    
   result.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
   return result;
 }

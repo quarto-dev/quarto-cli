@@ -35,8 +35,16 @@ export async function validationFromGoodParseYAML(context)
       }
       const validationResult = validator.validateParse(code, annotation);
 
+      // return [{
+      //   "start.row": 1,
+      //   "start.column": 1,
+      //   "end.row": 2,
+      //   "end.column": 0,
+      //   "text": "test!",
+      //   "type": "error"
+      // }];
+
       for (const error of validationResult.errors) {
-        debugger;
         lints.push({
           "start.row": error.start.line,
           "start.column": error.start.column,
@@ -266,7 +274,6 @@ function completions(obj)
     indent,
     commentPrefix
   } = obj;
-  const noCompletions = new Promise(function(r, _) { r(null); });
   const matchingSchemas = navigateSchema(schema, path);
 
   // indent mappings and sequences automatically
@@ -298,10 +305,6 @@ function completions(obj)
     });
   }).flat().filter(c => c.value.startsWith(word));
   
-  if (completions.length === 0) {
-    return noCompletions;
-  }
-
   return completionsPromise({
     completions,
     word
@@ -541,12 +544,10 @@ async function getAutomation(kind, context)
 window.QuartoYamlEditorTools = {
 
   getCompletions: async function(context) {
-    debugger;
     return getAutomation("completions", context);
   },
 
   getLint: async function(context) {
-    debugger;
     core.setupAjv(window.ajv);
     return getAutomation("validation", context);
   }

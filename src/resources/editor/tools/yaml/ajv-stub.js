@@ -1,1 +1,1 @@
-window.ajv = new window.ajv7({ allErrors: false });
+window.ajv = new window.ajv7({ allErrors: true });

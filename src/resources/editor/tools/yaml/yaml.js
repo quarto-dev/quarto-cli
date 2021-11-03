@@ -6995,7 +6995,7 @@ Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function () {
 
 },{"./compile/codegen":2,"./compile/validate":15,"./core":18,"./refs/json-schema-draft-07.json":20,"./vocabularies/discriminator":45,"./vocabularies/draft7":47}]},{},[])("ajv")
 });
-window.ajv = new window.ajv7({ allErrors: false });
+window.ajv = new window.ajv7({ allErrors: true });
 (() => {
   // binary-search.ts
   function glb(array, value, compare) {
@@ -7055,11 +7055,24 @@ window.ajv = new window.ajv7({ allErrors: false });
   function indexToRowCol(text) {
     const offsets = lineOffsets(text);
     return function(offset) {
+      if (offset === 0) {
+        return {
+          line: 0,
+          column: 0
+        };
+      }
       const startIndex = glb(offsets, offset);
-      return {
-        line: startIndex,
-        column: offset - offsets[startIndex]
-      };
+      if (offset === offsets[startIndex]) {
+        return {
+          line: startIndex - 1,
+          column: offsets[startIndex] - offsets[startIndex - 1]
+        };
+      } else {
+        return {
+          line: startIndex,
+          column: offset - offsets[startIndex] - 1
+        };
+      }
     };
   }
   function rowColToIndex(text) {
@@ -7681,7 +7694,7 @@ window.ajv = new window.ajv7({ allErrors: false });
   function setupAjv(_ajv) {
     ajv = _ajv;
   }
-  function navigate(path, annotation, pathIndex = 0) {
+  function navigate(path, annotation, returnKey = false, pathIndex = 0) {
     if (pathIndex >= path.length) {
       return annotation;
     }
@@ -7691,13 +7704,17 @@ window.ajv = new window.ajv7({ allErrors: false });
       for (let i = 0; i < components.length; i += 2) {
         const key = components[i].result;
         if (key === searchKey) {
-          return navigate(path, components[i + 1], pathIndex + 1);
+          if (returnKey && pathIndex === path.length - 1) {
+            return navigate(path, components[i], returnKey, pathIndex + 1);
+          } else {
+            return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+          }
         }
       }
       throw new Error("Internal error: searchKey not found in mapping object");
     } else if (annotation.kind === "sequence" || annotation.kind === "block_sequence") {
       const searchKey = Number(path[pathIndex]);
-      return navigate(path, annotation.components[searchKey], pathIndex + 1);
+      return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
     } else {
       throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
     }
@@ -7733,34 +7750,73 @@ window.ajv = new window.ajv7({ allErrors: false });
   function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
     const result2 = [];
     const locF = mappedIndexToRowCol(source);
-    for (const error of validationErrors) {
-      const instancePath = error.instancePath;
-      const path = error.instancePath.split("/").slice(1);
-      if (["oneOf", "anyOf"].indexOf(error.keyword) !== -1 && validationErrors.filter((otherError) => isProperPrefix(instancePath, otherError.instancePath)).length > 0) {
-        continue;
+    const errorsPerInstanceMap = {};
+    let errorsPerInstanceList = [];
+    for (let error of validationErrors) {
+      let { instancePath } = error;
+      if (error.keyword === "additionalProperties") {
+        instancePath = `${instancePath}/${error.params.additionalProperty}`;
+        error = {
+          ...error,
+          instancePath,
+          keyword: "_custom_invalidProperty",
+          message: `property ${error.params.additionalProperty} not allowed in object`,
+          params: {
+            ...error.params,
+            originalError: error
+          },
+          schemaPath: error.schemaPath.slice(0, -21)
+        };
       }
-      if (["enum", "type"].indexOf(error.keyword) !== -1 && validationErrors.some((otherError) => instancePath === otherError.instancePath && ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1)) {
-        continue;
+      if (errorsPerInstanceMap[instancePath] === void 0) {
+        const errors = [];
+        const namedError = {
+          instancePath,
+          errors
+        };
+        errorsPerInstanceMap[instancePath] = namedError;
+        errorsPerInstanceList.push(namedError);
       }
-      const schemaPath = error.schemaPath.split("/").slice(1);
-      const violatingObject = navigate(path, annotation);
-      const innerSchema = navigateSchema(schemaPath, schema);
-      let message = "";
-      const start = locF(violatingObject.start);
-      const end = locF(violatingObject.end);
-      const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
-      const messageNoLocation = `Expected field ${instancePath} to ${innerSchema.description}`;
-      message = `${locStr}: ${messageNoLocation}`;
-      result2.push({
-        instancePath,
-        violatingObject,
-        message,
-        messageNoLocation,
-        source,
-        start,
-        end,
-        error
+      errorsPerInstanceMap[instancePath].errors.push(error);
+    }
+    errorsPerInstanceList = errorsPerInstanceList.filter(({ instancePath: pathA }) => errorsPerInstanceList.filter(({ instancePath: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
+    debugger;
+    for (let { instancePath, errors } of errorsPerInstanceList) {
+      const path = instancePath.split("/").slice(1);
+      errors = errors.filter((error) => {
+        if (["enum", "type"].indexOf(error.keyword) === -1) {
+          return true;
+        }
+        return !errors.some((otherError) => ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1);
       });
+      errors = errors.filter((error) => ["oneOf", "anyOf"].indexOf(error.keyword) === -1);
+      for (const error of errors) {
+        const returnKey = error.keyword === "_custom_invalidProperty";
+        const violatingObject = navigate(path, annotation, returnKey);
+        const schemaPath = error.schemaPath.split("/").slice(1);
+        const innerSchema = navigateSchema(schemaPath, schema);
+        let message = "";
+        const start = locF(violatingObject.start);
+        const end = locF(violatingObject.end);
+        const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
+        let messageNoLocation;
+        if (error.keyword === "_custom_invalidProperty") {
+          messageNoLocation = error.message;
+        } else {
+          messageNoLocation = `Expected field ${instancePath} to ${innerSchema.description}`;
+        }
+        message = `${locStr}: ${messageNoLocation}`;
+        result2.push({
+          instancePath,
+          violatingObject,
+          message,
+          messageNoLocation,
+          source,
+          start,
+          end,
+          error
+        });
+      }
     }
     result2.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
     return result2;
@@ -13177,7 +13233,6 @@ if (typeof exports === 'object') {
         }
         const validationResult = validator.validateParse(code, annotation);
         for (const error of validationResult.errors) {
-          debugger;
           lints.push({
             "start.row": error.start.line,
             "start.column": error.start.column,
@@ -13331,9 +13386,6 @@ if (typeof exports === 'object') {
       indent,
       commentPrefix
     } = obj;
-    const noCompletions = new Promise(function(r, _) {
-      r(null);
-    });
     const matchingSchemas = navigateSchema(schema, path);
     const completions2 = matchingSchemas.map((schema2) => {
       const result = core4.schemaCompletions(schema2);
@@ -13358,9 +13410,6 @@ if (typeof exports === 'object') {
         }
       });
     }).flat().filter((c) => c.value.startsWith(word));
-    if (completions2.length === 0) {
-      return noCompletions;
-    }
     return completionsPromise({
       completions: completions2,
       word
@@ -13504,16 +13553,13 @@ if (typeof exports === 'object') {
       schema,
       schemaName
     });
-    console.log({ kind, context, result });
     return result || null;
   }
   window.QuartoYamlEditorTools = {
     getCompletions: async function(context) {
-      debugger;
       return getAutomation("completions", context);
     },
     getLint: async function(context) {
-      debugger;
       core4.setupAjv(window.ajv);
       return getAutomation("validation", context);
     }

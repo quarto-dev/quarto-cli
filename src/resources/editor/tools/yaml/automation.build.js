@@ -445,7 +445,6 @@
         }
         const validationResult = validator.validateParse(code, annotation);
         for (const error of validationResult.errors) {
-          debugger;
           lints.push({
             "start.row": error.start.line,
             "start.column": error.start.column,
@@ -599,9 +598,6 @@
       indent,
       commentPrefix
     } = obj;
-    const noCompletions = new Promise(function(r, _) {
-      r(null);
-    });
     const matchingSchemas = navigateSchema(schema, path);
     const completions2 = matchingSchemas.map((schema2) => {
       const result = core4.schemaCompletions(schema2);
@@ -626,9 +622,6 @@
         }
       });
     }).flat().filter((c) => c.value.startsWith(word));
-    if (completions2.length === 0) {
-      return noCompletions;
-    }
     return completionsPromise({
       completions: completions2,
       word
@@ -772,16 +765,13 @@
       schema,
       schemaName
     });
-    console.log({ kind, context, result });
     return result || null;
   }
   window.QuartoYamlEditorTools = {
     getCompletions: async function(context) {
-      debugger;
       return getAutomation("completions", context);
     },
     getLint: async function(context) {
-      debugger;
       core4.setupAjv(window.ajv);
       return getAutomation("validation", context);
     }
