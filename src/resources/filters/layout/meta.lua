@@ -84,11 +84,93 @@ function columnGeometry(meta)
     meta.geometry = pandoc.MetaList({})
   end  
   if #meta.geometry == 0 then
-    meta.geometry:insert('left=1in')
-    meta.geometry:insert('marginparwidth=2.15in')
-    meta.geometry:insert('textwidth=4.35in')
-    meta.geometry:insert('marginparsep=.3in')
+    meta.geometry = geometryForPaper(meta.papersize)
   end
-
 end
+
+-- We will automatically compute a geometry for a papersize that we know about
+function geometryForPaper(paperSize)
+  local width = nil
+  if paperSize ~= nil then
+    local paperSizeStr = paperSize[1].text
+    local width = kPaperWidthsIn[paperSizeStr]
+    if width ~= nil then
+      return geometryFromPaperWidth(width)
+    else
+      return pandoc.MetaList({})
+    end
+  else 
+    return pandoc.MetaList({})
+  end
+end
+
+function geometryFromPaperWidth(paperWidth) 
+  local geometry = pandoc.MetaList({})
+  geometry:insert('left=' .. left(paperWidth) .. 'in')
+  geometry:insert('marginparwidth=' .. marginParWidth(paperWidth) .. 'in')
+  geometry:insert('textwidth=' .. textWidth(paperWidth) .. 'in')
+  geometry:insert('marginparsep=' .. marginParSep(paperWidth) .. 'in')
+  geometry:insert('showframe')
+  return geometry
+end
+
+-- We will only provide custom geometries for paper widths that we are 
+-- aware of and that would work well for wide margins. Some sizes get
+-- so small that there just isn't a good way to represent the margin layout
+-- so we just throw up our hands and take the default geometry
+kPaperWidthsIn = {
+  a0 = 33.11,
+  a1 = 23.39,
+  a2 = 16.54,
+  a3 = 11.69,
+  a4 = 8.3,
+  a5 = 5.83,
+  a6 = 4.13,
+  a7 = 2.91,
+  a8 = 2.05,
+  b0 = 39.37,
+  b1 = 27.83,
+  b2 = 19.69,
+  b3 = 13.90,
+  b4 = 9.84,
+  b5 = 6.93,
+  b6 = 4.92,
+  b7 = 3.46,
+  b8 = 2.44,
+  b9 = 1.73,
+  b10 = 1.22,
+  letter = 8.5,
+  legal = 8.5,
+  ledger =  11,
+  tabloid = 17,
+  executive = 7.25
+}
+
+local kLeft = 1
+local kMarginParSep = .3
+
+function left(width)
+  if width >= kPaperWidthsIn.a4 then
+    return kLeft
+  else
+    return kLeft * width / kPaperWidthsIn.a4
+  end
+end
+
+function marginParSep(width)
+  if width >= kPaperWidthsIn.a6 then
+    return kMarginParSep
+  else
+    return kMarginParSep * width / kPaperWidthsIn.a4
+  end
+end
+
+function marginParWidth(width) 
+  return (width - 2*left(width) - marginParSep(width)) / 3
+end
+
+function textWidth(width)
+  return ((width - 2*left(width) - marginParSep(width)) * 2) / 3
+end
+
 
