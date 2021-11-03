@@ -158,12 +158,33 @@ body.docked {
   grid-column: body-content-start / page-end-inset;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  figcaption {
+    text-align: right;
+  }
 }
 
 .column-page-outset-left {
   grid-column: page-start-inset / body-content-end;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+}
+
+.column-page-right {
+  grid-column: body-start / page-end;
+  figcaption {
+    text-align: right;
+  }
+}
+
+.column-page-left {
+  grid-column: page-start / body-end;
+}
+
+.column-page-left {
+  grid-column: page-start / page-end;
+  figcaption {
+    text-align: center;
+  }
 }
 
 .column-body-outset {
@@ -316,13 +337,14 @@ caption,
   font-size: 1rem;
 }
 
+.column-gutter figcaption,
 .footnote-gutter,
 .caption-gutter,
 div.aside,
 aside,
 .column-gutter {
   @include body-secondary;
-  font-size: 0.775em;
+  font-size: 0.825rem;
 }
 
 // Caption and footnotes

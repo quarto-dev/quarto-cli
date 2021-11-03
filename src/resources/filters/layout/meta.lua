@@ -110,7 +110,7 @@ function geometryFromPaperWidth(paperWidth)
   geometry:insert('marginparwidth=' .. marginParWidth(paperWidth) .. 'in')
   geometry:insert('textwidth=' .. textWidth(paperWidth) .. 'in')
   geometry:insert('marginparsep=' .. marginParSep(paperWidth) .. 'in')
-  geometry:insert('showframe')
+  --geometry:insert('showframe')
   return geometry
 end
 
