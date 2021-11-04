@@ -238,7 +238,7 @@ function markupLatexCaption(el, caption, captionEnv)
 end
 
 function latexBeginSidenote() 
-  return pandoc.RawBlock('latex', '\\begin{footnotesize}\\marginnote{')
+  return pandoc.RawBlock('latex', '\\marginnote{\\begin{footnotesize}')
 end
 
 function latexEndSidenote(el)
@@ -249,7 +249,7 @@ function latexEndSidenote(el)
       offset = '[' .. offsetValue .. ']'
     end  
   end
-  return pandoc.RawBlock('latex', '}' .. offset .. '\\end{footnotesize}')
+  return pandoc.RawBlock('latex', '\\end{footnotesize}}' .. offset)
 end
 
 function latexWrapEnvironment(el, env, inline) 
