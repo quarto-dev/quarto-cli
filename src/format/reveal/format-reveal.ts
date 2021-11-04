@@ -188,8 +188,9 @@ export function revealjsFormat() {
         if (format.metadata[kRevealJsConfig] !== "default") {
           // detect whether we are using vertical slides
           const navigationMode = format.metadata["navigationMode"];
+          const slideLevel = format.pandoc[kSlideLevel];
           const verticalSlides = navigationMode === "default" ||
-            navigationMode === "grid";
+            navigationMode === "grid" || slideLevel === 2;
 
           // if the user set slideNumber to true then provide
           // linear slides (if they havne't specified vertical slides)
@@ -205,7 +206,7 @@ export function revealjsFormat() {
               height: 700,
               margin: 0.1,
               center: false,
-              navigationMode: "linear",
+              navigationMode: verticalSlides ? "default" : "linear",
               controls: verticalSlides,
               controlsTutorial: false,
               hash: true,
@@ -270,7 +271,7 @@ function revealMetadataFilter(metadata: Metadata) {
 
 function revealHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
-    // find reveal initializatio and perform fixups
+    // find reveal initialization and perform fixups
     const scripts = doc.querySelectorAll("script");
     for (const script of scripts) {
       const scriptEl = script as Element;
