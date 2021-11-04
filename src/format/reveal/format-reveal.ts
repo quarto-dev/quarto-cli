@@ -116,6 +116,7 @@ export function revealjsFormat() {
           url:
             "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML-full",
         },
+        [kSlideLevel]: 2,
       },
       metadataFilter: revealMetadataFilter,
       formatPreviewFile: revealMuliplexPreviewFile,
@@ -188,9 +189,8 @@ export function revealjsFormat() {
         if (format.metadata[kRevealJsConfig] !== "default") {
           // detect whether we are using vertical slides
           const navigationMode = format.metadata["navigationMode"];
-          const slideLevel = format.pandoc[kSlideLevel];
           const verticalSlides = navigationMode === "default" ||
-            navigationMode === "grid" || slideLevel === 2;
+            navigationMode === "grid";
 
           // if the user set slideNumber to true then provide
           // linear slides (if they havne't specified vertical slides)
@@ -206,7 +206,7 @@ export function revealjsFormat() {
               height: 700,
               margin: 0.1,
               center: false,
-              navigationMode: verticalSlides ? "default" : "linear",
+              navigationMode: "linear",
               controls: verticalSlides,
               controlsTutorial: false,
               hash: true,
