@@ -11,6 +11,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kCiteMethod,
   kClassOption,
   kDocumentClass,
   kEcho,
@@ -159,12 +160,21 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
         flags[kReferenceLocation] === "gutter"
       ) {
         lineProcessors.push(sideNoteLineProcessor());
+
+        if (format.pandoc[kCiteMethod] === "biblatex") {
+          lineProcessors.push(suppressBibLatexBibliographyLineProcessor());
+          lineProcessors.push(bibLatexCiteLineProcessor());
+        } else if (format.pandoc[kCiteMethod] === "natbib") {
+          lineProcessors.push(suppressNatbibBibliographyLineProcessor());
+          lineProcessors.push(natbibCiteLineProcessor());
+        }
       }
+
       for await (const line of readLines(file)) {
         let processedLine: string | undefined = line;
         for (const processor of lineProcessors) {
-          if (line !== undefined) {
-            processedLine = processor(line);
+          if (processedLine !== undefined) {
+            processedLine = processor(processedLine);
           }
         }
         if (processedLine !== undefined) {
@@ -203,6 +213,46 @@ const sidecaptionLineProcessor = () => {
           return line;
         }
     }
+  };
+};
+
+// Removes the biblatex \printbibiliography command
+const suppressBibLatexBibliographyLineProcessor = () => {
+  return (line: string): string | undefined => {
+    if (line.match(/^\\printbibliography$/)) {
+      return "";
+    }
+    return line;
+  };
+};
+
+// Replaces the natbib bibligography declaration with a version
+// that will not be printed in the PDF
+const suppressNatbibBibliographyLineProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replace(/^\s*\\bibliography{(.*)}$/, (_match, bib) => {
+      return `\\newsavebox\\mytempbib
+\\savebox\\mytempbib{\\parbox{\\textwidth}{\\bibliography{${bib}}}}`;
+    });
+  };
+};
+
+// {?quarto-cite:(id)}
+const kQuartoCiteRegex = /{\?quarto-cite:(.*)}/;
+
+const bibLatexCiteLineProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replace(kQuartoCiteRegex, (_match, citeKey) => {
+      return `\\fullcite{${citeKey}}`;
+    });
+  };
+};
+
+const natbibCiteLineProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replace(kQuartoCiteRegex, (_match, citeKey) => {
+      return `\\bibentry{${citeKey}}`;
+    });
   };
 };
 

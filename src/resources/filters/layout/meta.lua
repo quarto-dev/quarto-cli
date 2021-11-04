@@ -20,6 +20,7 @@ function layoutMetaInject()
       
       -- check if global options are enabled (e.g. footnotes-margin)
       local referenceLocation = param('reference-location', 'document')
+      local citeMethod = param('cite-method', 'citeproc')
 
       -- enable column layout (packages and adjust geometry)
       if (layoutState.hasColumns or referenceLocation == 'gutter') and isLatexOutput() then
@@ -32,6 +33,32 @@ function layoutMetaInject()
             usePackage("marginnote")
           )
         end)
+
+
+        if referenceLocation == 'gutter' and meta.bibliography ~= undefined then 
+          if citeMethod == 'natbib' then
+            metaInjectLatex(meta, function(inject)
+              inject(
+                usePackage("bibentry")
+              )  
+            end)
+            metaInjectLatex(meta, function(inject)
+              inject(
+                '\\nobibliography*'
+              )
+            end)
+  
+
+          elseif citeMethod == 'biblatex' then
+            metaInjectLatex(meta, function(inject)
+              inject(
+                usePackage("biblatex")
+              )  
+            end)
+          end
+
+
+        end
 
         -- add layout configuration based upon the document class
         -- we will customize any koma templates that have no custom geometries 

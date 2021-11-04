@@ -27,6 +27,7 @@ import("odt.lua")
 import("pptx.lua")
 import("table.lua")
 import("figures.lua")
+import("cites.lua")
 import("columns.lua")
 import("options.lua")
 import("columns-preprocess.lua")
@@ -285,6 +286,7 @@ return {
   initOptions(),
   columnsPreprocess(),
   columns(),
+  cites(),
   layoutPanels(),
   extendedFigures(),
   layoutMetaInject()

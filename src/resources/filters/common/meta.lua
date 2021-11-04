@@ -42,6 +42,24 @@ function metaInjectLatex(meta, func)
   end
 end
 
+function metaInjectLatexBefore(meta, func)
+  metaInjectRawLatex(meta, kIncludeBefore, func)
+end
+
+function metaInjectLatexAfter(meta, func)
+  metaInjectRawLatex(meta, kIncludeAfter, func)
+end
+
+function metaInjectRawLatex(meta, include, func)
+  if isLatexOutput() then
+    function inject(tex)
+      addInclude(meta, "tex", include, tex)
+    end
+    func(inject)
+  end
+end
+
+
 function metaInjectHtml(meta, func)
   if isHtmlOutput() then
     function inject(html)

@@ -6,6 +6,7 @@
 */
 import {
   kBibliography,
+  kCiteMethod,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
@@ -187,6 +188,12 @@ export function extractColumnParams(
       delete defaults[kReferenceLocation];
     }
   }
+
+  // Foreward the cite method as well
+  if (defaults?.[kCiteMethod]) {
+    quartoColumnParams[kCiteMethod] = defaults[kCiteMethod];
+  }
+
   return quartoColumnParams;
 }
 
