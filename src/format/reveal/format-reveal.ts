@@ -289,8 +289,7 @@ function revealHtmlPostprocessor(format: Format) {
 
     // remove all attributes from slide headings (pandoc has already moved
     // them to the enclosing section)
-    const slideLevel = parseInt(format.metadata[kSlideLevel] as string, 10) ||
-      2;
+    const slideLevel = format.pandoc[kSlideLevel] || 2;
     const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
       "H" + (i + 1)
     );
