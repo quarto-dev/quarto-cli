@@ -258,7 +258,7 @@ const natbibCiteLineProcessor = () => {
 
 const sideNoteLineProcessor = () => {
   return (line: string): string | undefined => {
-    return line.replace(/\\footnote{/, "\\sidenote{");
+    return line.replace(/\\footnote{/, "\\sidenote{\\footnotesize ");
   };
 };
 
