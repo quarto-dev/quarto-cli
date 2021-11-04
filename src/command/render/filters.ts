@@ -44,11 +44,14 @@ const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
 
+const kResultsFile = "results-file";
+
 export function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
   filterParams: Record<string, unknown>,
+  resultsFile: string,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
@@ -70,6 +73,7 @@ export function filterParamsJson(
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...filterParams,
+    [kResultsFile]: pandocMetadataPath(resultsFile),
   };
 
   return JSON.stringify(params);

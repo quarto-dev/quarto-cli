@@ -18,11 +18,13 @@ preState = {
   fileSectionIds = {}
 }
 
+
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
+import("results.lua")
 import("includes.lua")
 import("options.lua")
 import("shortcodes.lua")
@@ -31,6 +33,7 @@ import("outputs.lua")
 import("figures.lua")
 import("theorems.lua")
 import("resourcerefs.lua")
+import("resourcefiles.lua")
 import("book-numbering.lua")
 import("book-links.lua")
 import("meta.lua")
@@ -76,6 +79,7 @@ return {
     indexBookFileTargets(),
     bookNumbering(),
     resourceRefs(),
+    resourceFiles(),
     figures(),
     theorems(),
     callout(),
@@ -91,6 +95,7 @@ return {
     resolveBookFileTargets(),
   }),
   quartoPreMetaInject(),
+  writeResults()
 }
 
 
