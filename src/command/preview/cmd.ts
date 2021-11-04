@@ -15,6 +15,7 @@ import { findOpenPort, kLocalhost } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import { preview } from "./preview.ts";
 import { kRenderDefault, kRenderNone, serveProject } from "../serve/serve.ts";
+import { isRStudio } from "../../core/platform.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -63,6 +64,10 @@ export const previewCommand = new Command()
     {
       hidden: true,
     },
+  )
+  .option(
+    "--watch-inputs",
+    "Re-render input files when they change.",
   )
   .option(
     "--no-watch-inputs",
@@ -158,6 +163,11 @@ export const previewCommand = new Command()
       options.navigate = false;
       args.splice(noNavigatePos, 1);
     }
+    const watchInputsPos = args.indexOf("--watch-inputs");
+    if (watchInputsPos !== -1) {
+      options.watchInputs = true;
+      args.splice(watchInputsPos, 1);
+    }
     const noWatchInputsPos = args.indexOf("--no-watch-inputs");
     if (noWatchInputsPos !== -1) {
       options.watchInputs = false;
@@ -174,6 +184,11 @@ export const previewCommand = new Command()
     if (noRenderPos !== -1) {
       options.watchInputs = false;
       args.splice(noRenderPos, 1);
+    }
+
+    // default watch-inputs if not specified
+    if (options.watchInputs === undefined) {
+      options.watchInputs = !isRStudio();
     }
 
     // default host if not specified
