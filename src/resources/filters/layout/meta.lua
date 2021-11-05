@@ -34,13 +34,16 @@ function layoutMetaInject()
           )
         end)
 
-
         if referenceLocation == 'gutter' and meta.bibliography ~= undefined then 
           if citeMethod == 'natbib' then
             metaInjectLatex(meta, function(inject)
               inject(
                 usePackage("bibentry")
               )  
+              inject(
+                usePackage("marginfix")
+              )  
+
             end)
             metaInjectLatex(meta, function(inject)
               inject(
@@ -48,7 +51,6 @@ function layoutMetaInject()
               )
             end)
   
-
           elseif citeMethod == 'biblatex' then
             metaInjectLatex(meta, function(inject)
               inject(
