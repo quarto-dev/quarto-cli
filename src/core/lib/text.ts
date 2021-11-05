@@ -77,7 +77,7 @@ export function formatLineRange(
   const result = [];
   for (let i = firstLine; i <= lastLine; ++i)
   {
-    const numberStr = `${pad}${i + 1}`.slice(-lineWidth);
+    const numberStr = `${pad}${i + 1}: `.slice(-(lineWidth + 2));
     const lineStr = ls[i];
     result.push({
       lineNumber: i,

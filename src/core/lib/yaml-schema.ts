@@ -66,6 +66,9 @@ export interface ErrorObject {
   parentSchema?: object; // the schema containing the keyword.
   // deno-lint-ignore no-explicit-any
   data?: any // the data validated by the keyword.
+
+  // a flag required by our internal processing to keep track of whether an error has been transformed
+  hasBeenTransformed?: boolean;
 }
 
 export interface LocalizedError {
@@ -151,6 +154,57 @@ function isProperPrefix(a: string, b:string)
   return (b.length > a.length) && b.substring(0, a.length) === a;
 }
 
+function groupBy<A>(lst: A[], f: (v: A) => string): { key: string, values: A[] }[]
+{
+  const record: Record<string, A[]> = {};
+  const result: { key: string, values: A[] }[] = [];
+  for (const el of lst) {
+    const key = f(el);
+    if (record[key] === undefined) {
+      const lst: A[] = [];
+      const entry = {
+        key,
+        values: lst
+      };
+      record[key] = lst;
+      result.push(entry);
+      // NB the deliberate sharing of `lst` here
+    }
+    record[key].push(el);
+  }
+  return result;
+}
+
+function groupByEntries<A>(entries: { key: string, values: A[] }[]): A[]
+{
+  const result = [];
+  for (const { values } of entries) {
+    result.push(...values);
+  }
+  return result;
+}
+
+function narrowOneOfError(
+  oneOf: ErrorObject, suberrors: ErrorObject[]): ErrorObject[]
+{
+  let subschemaErrors = groupBy(
+    suberrors.filter(error => error.schemaPath !== oneOf.schemaPath),
+    error => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
+
+  // if we find a subschema that has only "additionalProperties" errors
+  // narrow only to those.
+  let onlyAdditionalProperties = subschemaErrors.filter(
+    ({ values }) => values.every(v => v.keyword === "additionalProperties"));
+  if (onlyAdditionalProperties.length) {
+    return onlyAdditionalProperties[0].values;
+  }
+
+  // otherwise, filter to one (arbitrarily chosen) of the subschema
+  // with the smallest number of errors, and report those.
+  let fewestErrors = Math.min(...subschemaErrors.map((v) => v.values.length));
+  return subschemaErrors.filter(v => v.values.length === fewestErrors)[0].values;
+}
+
 /*
  * This attempts to prune the large number of errors reported by avj.
  * 
@@ -179,73 +233,95 @@ function localizeAndPruneErrors(
   // as a result, here we use indexToRowCol instead of mappedIndexToRowCol
   const locF = indexToRowCol(source.originalString);
 
-  // group errors per instance in which they appear
-  interface NamedErrorList {
-    instancePath: string;
-    errors: ErrorObject[];
-  }
-  const errorsPerInstanceMap: Record<string, NamedErrorList> = {};
-  let errorsPerInstanceList: NamedErrorList[] = [];
+  /////// Error pruning
+  //
+  // there are a number of things which interact with one another delicately here.
+  // 
+  // 1. because we're trying to report
+  // only the innermost errors, we need to prune proper prefixes in instancePaths.
+  //
+  // 2. because we're trying to _localize_ errors, we transform errors about invalid additionalProperties by
+  // making them _more specific_. This makes them deeper, and more likely to stick
+  // around after filtering. In particular, if step 1 prunes an error, it should prune all
+  // the "transformed" errors that come from the proper prefixes as well.
+  //
+  // 3. Some of the additionalProperties errors come from "internal" schemas. For example,
+  // we have a schema that says a field can be one of:
+  // - a) an object with "section" and "contents" keys and no other keys
+  // - b) an object with "href" and "text" keys but no other keys
+  // - c) a string
+  //
+  // If this schema fails because of a bad property, then "text" and
+  // "href" are considered bad properties as well because they fail
+  // schema a)
+  //
+  // We can't escape this error report because we need "allErrors" to be reported
+  // to create good lints.
 
-  const recordErrorInMaps = (instancePath: string, error: ErrorObject) => {
-    if (errorsPerInstanceMap[instancePath] === undefined) {
-      // NB the deliberate sharing of `lst` here
-      const errors: ErrorObject[] = [];
-      const namedError: NamedErrorList = {
-        instancePath,
-        errors,
-      };
-      errorsPerInstanceMap[instancePath] = namedError;
-      errorsPerInstanceList.push(namedError);
-    }
-    errorsPerInstanceMap[instancePath].errors.push(error);
-  }
+  let errorsPerInstanceList = groupBy(validationErrors, (error) => error.instancePath);
   
-  for (let error of validationErrors) {
-    let { instancePath } = error;
+  do {
+    const newErrors: ErrorObject[] = [];
     
-    recordErrorInMaps(instancePath, error);
-    
-    // transform additionalProperties errors into a custom error message
-    // only about the inner invalid property.
-    if (error.keyword === "additionalProperties") {
-      instancePath = `${instancePath}/${error.params.additionalProperty}`;
-      recordErrorInMaps(instancePath, {
-        ...error,
-        instancePath,
-        keyword: "_custom_invalidProperty",
-        message: `property ${error.params.additionalProperty} not allowed in object`,
-        params: {
-          ...error.params,
-          originalError: error
-        },
-        schemaPath: error.schemaPath.slice(0, -21), // drop "/additionalProperties",
-      });
+    // prune proper prefixes of instancePaths
+    errorsPerInstanceList = errorsPerInstanceList.filter(
+      ({ key: pathA }) => errorsPerInstanceList.filter(
+        ({ key: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
+
+    for (let { key: instancePath, values: errors } of errorsPerInstanceList) {
+      // Find the broadest schemaPath errors
+      let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
+      errorsPerSchemaList = errorsPerSchemaList.filter(
+        ({ key: pathA }) => errorsPerSchemaList.filter(
+          ({ key: pathB }) => isProperPrefix(pathB, pathA)).length === 0);
+
+      for (const error of groupByEntries(errorsPerSchemaList)) {
+        if (error.hasBeenTransformed) {
+          continue;
+        }
+        if (error.keyword === "oneOf") {
+          error.hasBeenTransformed = true;
+          newErrors.push(...narrowOneOfError(error, errors));
+        } else if (error.keyword === "additionalProperties") {
+          error.hasBeenTransformed = true;
+          instancePath = `${instancePath}/${error.params.additionalProperty}`;
+          newErrors.push({
+            ...error,
+            instancePath,
+            keyword: "_custom_invalidProperty",
+            message: `property ${error.params.additionalProperty} not allowed in object`,
+            params: {
+              ...error.params,
+              originalError: error
+            },
+            schemaPath: error.schemaPath.slice(0, -21), // drop "/additionalProperties",
+          });
+        }
+      }
     }
-  }
-
-  // keep only the errors with _instancePaths_ that are not proper prefixes of others
-  // keep only "innermost errors": the most _specific_
-  errorsPerInstanceList = errorsPerInstanceList.filter(
-    ({ instancePath: pathA }) => errorsPerInstanceList.filter(
-      ({ instancePath: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
-
-  for (let { instancePath, errors: allErrors } of errorsPerInstanceList) {
+    
+    if (newErrors.length) {
+      errorsPerInstanceList.push(...groupBy(newErrors, (error) => error.instancePath));
+    } else {
+      break;
+    }
+  } while (true);
+  
+  for (let { key: instancePath, values: allErrors } of errorsPerInstanceList) {
     const path = instancePath.split("/").slice(1);
 
     // now, we keep only the errors with _schemaPaths_ that are the most _general_
     // ie, we filter out those that have other proper prefixes
 
-    debugger;
-
     const errors = allErrors.filter(({ schemaPath: pathA }) =>
       !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
+
+    debugger;
     
     for (const error of errors) {
       const returnKey = error.keyword === "_custom_invalidProperty";
       const violatingObject = navigate(path, annotation, returnKey);
       const schemaPath = error.schemaPath.split("/").slice(1);
-      const innerSchema = navigateSchema(schemaPath, schema);
 
       const start = locF(violatingObject.start);
       const end = locF(violatingObject.end);
@@ -259,6 +335,7 @@ function localizeAndPruneErrors(
       if (error.keyword.startsWith("_custom_")) {
         messageNoLocation = error.message;
       } else {
+        const innerSchema = navigateSchema(schemaPath, schema);
         messageNoLocation = `Field ${instancePath} must ${innerSchema.description}`;
       }
       const message = `${locStr}: ${messageNoLocation}`;

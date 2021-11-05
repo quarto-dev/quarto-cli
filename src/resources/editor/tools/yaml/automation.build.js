@@ -4,7 +4,6 @@
   var yamlValidators = {};
   var validatorQueues = {};
   function getValidator(context) {
-    debugger;
     const {
       schema,
       schemaName
@@ -17,7 +16,6 @@
     return validator;
   }
   async function withValidator(context, fun) {
-    debugger;
     const {
       schemaName
     } = context;
@@ -244,7 +242,7 @@
       };
     }
     const codeLines = core2.rangedLines(code.value);
-    if (position.row >= codeLines.length) {
+    if (position.row >= codeLines.length || position.row < 0) {
       return;
     }
     const currentLine = codeLines[position.row].substring;
@@ -293,7 +291,11 @@
       const line = lines[i];
       const lineIndent = getIndent(line);
       indents.push(lineIndent);
-      if (line.trim().length === 0) {
+      if (lineIndent > indentation) {
+        predecessor[i] = prevPredecessor;
+        prevPredecessor = i;
+        indentation = lineIndent;
+      } else if (line.trim().length === 0) {
         predecessor[i] = predecessor[prevPredecessor];
       } else if (lineIndent === indentation) {
         predecessor[i] = predecessor[prevPredecessor];
@@ -307,9 +309,7 @@
         prevPredecessor = i;
         indentation = lineIndent;
       } else {
-        predecessor[i] = prevPredecessor;
-        prevPredecessor = i;
-        indentation = lineIndent;
+        throw new Error("Internal error, should never have arrived here");
       }
     }
     return {
@@ -445,9 +445,10 @@
           deletions
         } = parseResult;
         const annotation = buildAnnotated(tree, mappedCode);
-        debugger;
         const endOfMappedCode = mappedCode.map(mappedCode.value.length - 1);
-        if (annotation.end !== endOfMappedCode) {
+        const startOfMappedCode = mappedCode.map(0);
+        const lossage = (annotation.end - annotation.start) / (endOfMappedCode - startOfMappedCode);
+        if (lossage < 0.95) {
           continue;
         }
         const validationResult = validator.validateParse(code, annotation);
@@ -793,6 +794,7 @@
   }
   window.QuartoYamlEditorTools = {
     getCompletions: async function(context) {
+      debugger;
       return getAutomation("completions", context);
     },
     getLint: async function(context) {

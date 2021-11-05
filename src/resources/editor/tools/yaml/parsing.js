@@ -47,7 +47,7 @@ export function* attemptParsesAtLine(context, parser)
   // in markdown files, we are passed chunks of text one at a time, and
   // sometimes the cursor lies outside those chunks. In that case, we cannot
   // attempt to fix the parse by deleting character, and so we simply bail.
-  if (position.row >= codeLines.length) {
+  if (position.row >= codeLines.length || position.row < 0) {
     return;
   }
 
@@ -106,7 +106,11 @@ export function getYamlIndentTree(code)
     const lineIndent = getIndent(line);
     indents.push(lineIndent);
 
-    if (line.trim().length === 0) {
+    if (lineIndent > indentation) {
+      predecessor[i] = prevPredecessor;
+      prevPredecessor = i;
+      indentation = lineIndent;
+    } else if (line.trim().length === 0) {
       predecessor[i] = predecessor[prevPredecessor];
     } else if (lineIndent === indentation) {
       predecessor[i] = predecessor[prevPredecessor];
@@ -121,10 +125,7 @@ export function getYamlIndentTree(code)
       prevPredecessor = i;
       indentation = lineIndent;
     } else {
-      // pre: lineIndent > indentation
-      predecessor[i] = prevPredecessor;
-      prevPredecessor = i;
-      indentation = lineIndent;
+      throw new Error("Internal error, should never have arrived here");
     }
   }
   return {

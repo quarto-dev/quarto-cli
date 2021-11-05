@@ -31,12 +31,23 @@ export async function validationFromGoodParseYAML(context)
       // tree-sitter doesn't consume the entire string, since this is
       // symptomatic of a bad object. When this happens, bail on the
       // current parse.
-
-      debugger;
+      //
+      // There's an added complication in that it seems that sometimes
+      // treesitter consumes line breaks at the end of the file, and sometimes
+      // it doesn't. So exact checks don't quite work. We're then resigned
+      // to a heuristic that is bound to fail. That heuristic is, roughly,
+      // that we consider something a failed parse if it misses more than 5% of
+      // the characters in the original string span.
+      //
+      // This is, clearly, a terrible hack.
+      //
+      // I really ought to consider rebuilding this whole infrastructure
       const endOfMappedCode = mappedCode.map(mappedCode.value.length - 1);
-      
-      if (annotation.end !== endOfMappedCode) {
-        
+      const startOfMappedCode = mappedCode.map(0);
+
+      const lossage = (annotation.end - annotation.start) / (endOfMappedCode - startOfMappedCode);
+
+      if (lossage < 0.95) {
         continue;
       }
       const validationResult = validator.validateParse(code, annotation);
@@ -575,6 +586,7 @@ async function getAutomation(kind, context)
 window.QuartoYamlEditorTools = {
 
   getCompletions: async function(context) {
+    debugger;
     return getAutomation("completions", context);
   },
 

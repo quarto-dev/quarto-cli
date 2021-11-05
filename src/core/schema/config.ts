@@ -22,6 +22,10 @@ import {
   completeSchema as complete,
 } from "./common.ts";
 
+import {
+  frontMatterFormatSchema
+} from "./front-matter.ts";
+
 const sidebarEntrySchema = objectS({
   properties: {
     text: StringS,
@@ -115,7 +119,8 @@ export const configSchema = objectS({
     }),
     site: siteSchema,
     "bibliography": StringS,
-    "filters": arrayS(StringS)
+    "filters": arrayS(StringS),
+    "format": frontMatterFormatSchema
   }
 });
 

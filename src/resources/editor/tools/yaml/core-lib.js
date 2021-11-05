@@ -89,7 +89,7 @@
     const ls = lines(text);
     const result2 = [];
     for (let i = firstLine; i <= lastLine; ++i) {
-      const numberStr = `${pad}${i + 1}`.slice(-lineWidth);
+      const numberStr = `${pad}${i + 1}: `.slice(-(lineWidth + 2));
       const lineStr = ls[i];
       result2.push({
         lineNumber: i,
@@ -771,51 +771,88 @@
   function isProperPrefix(a, b) {
     return b.length > a.length && b.substring(0, a.length) === a;
   }
+  function groupBy(lst, f) {
+    const record = {};
+    const result2 = [];
+    for (const el of lst) {
+      const key = f(el);
+      if (record[key] === void 0) {
+        const lst2 = [];
+        const entry = {
+          key,
+          values: lst2
+        };
+        record[key] = lst2;
+        result2.push(entry);
+      }
+      record[key].push(el);
+    }
+    return result2;
+  }
+  function groupByEntries(entries) {
+    const result2 = [];
+    for (const { values } of entries) {
+      result2.push(...values);
+    }
+    return result2;
+  }
+  function narrowOneOfError(oneOf, suberrors) {
+    let subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
+    let onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
+    if (onlyAdditionalProperties.length) {
+      return onlyAdditionalProperties[0].values;
+    }
+    let fewestErrors = Math.min(...subschemaErrors.map((v) => v.values.length));
+    return subschemaErrors.filter((v) => v.values.length === fewestErrors)[0].values;
+  }
   function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
     const result2 = [];
     const locF = indexToRowCol(source.originalString);
-    const errorsPerInstanceMap = {};
-    let errorsPerInstanceList = [];
-    const recordErrorInMaps = (instancePath, error) => {
-      if (errorsPerInstanceMap[instancePath] === void 0) {
-        const errors = [];
-        const namedError = {
-          instancePath,
-          errors
-        };
-        errorsPerInstanceMap[instancePath] = namedError;
-        errorsPerInstanceList.push(namedError);
+    let errorsPerInstanceList = groupBy(validationErrors, (error) => error.instancePath);
+    do {
+      const newErrors = [];
+      errorsPerInstanceList = errorsPerInstanceList.filter(({ key: pathA }) => errorsPerInstanceList.filter(({ key: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
+      for (let { key: instancePath, values: errors } of errorsPerInstanceList) {
+        let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
+        errorsPerSchemaList = errorsPerSchemaList.filter(({ key: pathA }) => errorsPerSchemaList.filter(({ key: pathB }) => isProperPrefix(pathB, pathA)).length === 0);
+        for (const error of groupByEntries(errorsPerSchemaList)) {
+          if (error.hasBeenTransformed) {
+            continue;
+          }
+          if (error.keyword === "oneOf") {
+            error.hasBeenTransformed = true;
+            newErrors.push(...narrowOneOfError(error, errors));
+          } else if (error.keyword === "additionalProperties") {
+            error.hasBeenTransformed = true;
+            instancePath = `${instancePath}/${error.params.additionalProperty}`;
+            newErrors.push({
+              ...error,
+              instancePath,
+              keyword: "_custom_invalidProperty",
+              message: `property ${error.params.additionalProperty} not allowed in object`,
+              params: {
+                ...error.params,
+                originalError: error
+              },
+              schemaPath: error.schemaPath.slice(0, -21)
+            });
+          }
+        }
       }
-      errorsPerInstanceMap[instancePath].errors.push(error);
-    };
-    for (let error of validationErrors) {
-      let { instancePath } = error;
-      recordErrorInMaps(instancePath, error);
-      if (error.keyword === "additionalProperties") {
-        instancePath = `${instancePath}/${error.params.additionalProperty}`;
-        recordErrorInMaps(instancePath, {
-          ...error,
-          instancePath,
-          keyword: "_custom_invalidProperty",
-          message: `property ${error.params.additionalProperty} not allowed in object`,
-          params: {
-            ...error.params,
-            originalError: error
-          },
-          schemaPath: error.schemaPath.slice(0, -21)
-        });
+      if (newErrors.length) {
+        errorsPerInstanceList.push(...groupBy(newErrors, (error) => error.instancePath));
+      } else {
+        break;
       }
-    }
-    errorsPerInstanceList = errorsPerInstanceList.filter(({ instancePath: pathA }) => errorsPerInstanceList.filter(({ instancePath: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
-    for (let { instancePath, errors: allErrors } of errorsPerInstanceList) {
+    } while (true);
+    for (let { key: instancePath, values: allErrors } of errorsPerInstanceList) {
       const path = instancePath.split("/").slice(1);
-      debugger;
       const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
+      debugger;
       for (const error of errors) {
         const returnKey = error.keyword === "_custom_invalidProperty";
         const violatingObject = navigate(path, annotation, returnKey);
         const schemaPath = error.schemaPath.split("/").slice(1);
-        const innerSchema = navigateSchema(schemaPath, schema);
         const start = locF(violatingObject.start);
         const end = locF(violatingObject.end);
         const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
@@ -823,6 +860,7 @@
         if (error.keyword.startsWith("_custom_")) {
           messageNoLocation = error.message;
         } else {
+          const innerSchema = navigateSchema(schemaPath, schema);
           messageNoLocation = `Field ${instancePath} must ${innerSchema.description}`;
         }
         const message = `${locStr}: ${messageNoLocation}`;
