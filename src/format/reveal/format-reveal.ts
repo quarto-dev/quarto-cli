@@ -155,7 +155,17 @@ export function revealjsFormat() {
             metadataOverride: {} as Metadata,
             [kIncludeInHeader]: [formatResourcePath("revealjs", "styles.html")],
             html: {
-              [kTemplatePatches]: [revealRequireJsPatch],
+              [kTemplatePatches]: [
+                revealRequireJsPatch,
+                /* TODO: Remove when the fix is available in Pandoc https://github.com/jgm/pandoc/pull/7670 */
+                (template: string) => {
+                  template = template.replace(
+                    /(disableLayout: )false/,
+                    "$1$disableLayout$",
+                  );
+                  return template;
+                },
+              ],
               [kHtmlPostprocessors]: [
                 revealHtmlPostprocessor(format),
               ],
