@@ -26,11 +26,17 @@ export async function validationFromGoodParseYAML(context)
         deletions
       } = parseResult;
       const annotation = buildAnnotated(tree, mappedCode);
-      if (annotation.end !== mappedCode.value.length) {
-        // some tree-sitter "error-tolerant parses" are particularly bad for us
-        // here, we guard against "partial" parses where tree-sitter doesn't consume the entire string.
+      // some tree-sitter "error-tolerant parses" are particularly bad
+      // for us here. We must guard against "partial" parses where
+      // tree-sitter doesn't consume the entire string, since this is
+      // symptomatic of a bad object. When this happens, bail on the
+      // current parse.
+
+      debugger;
+      const endOfMappedCode = mappedCode.map(mappedCode.value.length - 1);
+      
+      if (annotation.end !== endOfMappedCode) {
         
-        // this is symptomatic of a bad object. When this happens, bail on the current parse.
         continue;
       }
       const validationResult = validator.validateParse(code, annotation);
@@ -63,9 +69,8 @@ export async function validationFromGoodParseYAML(context)
 async function automationFromGoodParseYAML(kind, context)
 {
   let {
-    line,      // editing line up to the cursor
     code,      // full contents of the buffer
-    position,  // row/column of cursor (0-based)
+    position,  // row/column of cursor (0-based), only needed when kind === "completions"
     schema,    // schema of yaml object
 
     // if this is a yaml inside a language chunk, it will have a comment prefix which we need to know about in order to autocomplete linebreaks correctly.
@@ -73,7 +78,7 @@ async function automationFromGoodParseYAML(kind, context)
   } = context;
 
   commentPrefix = commentPrefix || "";
-  
+
   // RStudio sends us here in Visual Editor mode for the YAML front matter
   // but includes the --- delimiters, so we trim those.
   if (code.value.startsWith("---")) {
@@ -81,7 +86,7 @@ async function automationFromGoodParseYAML(kind, context)
       // user asked for autocomplete on "---": report none
       return false;
     }
-    code = core.mappedString(code, [{ begin: 0, end: 3 }]);
+    code = core.mappedString(code, [{ start: 3, end: code.value.length }]);
     // NB we don't need to update position here because we're leaving
     // the newlines alone
     context = {
@@ -90,14 +95,15 @@ async function automationFromGoodParseYAML(kind, context)
     };
   }
   
-  if (code.value.endsWith("---")) {
-    const codeLines = core.mappedLines(code);
-    if (kind === "completions" &&
-        position.row === codeLines.length - 1) {
+  // sometimes we get something that ends with ---, sometimes with ---\n
+  // we must handle both gracefully.
+  if (code.value.trimEnd().endsWith("---")) {
+    const codeLines = core.lines(code.value);
+    if (kind === "completions" && position.row === codeLines.length - 1) {
       // user asked for autocomplete on "---": report none
       return false;
     }
-    code = core.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
+    code = core.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
     context = {
       ...context, code
     };
@@ -131,7 +137,7 @@ async function completionsFromGoodParseYAML(context)
       // user asked for autocomplete on "---": report none
       return false;
     }
-    code = core.mappedString(code, [{ begin: 0, end: 3 }]);
+    code = core.mappedString(code, [{ start: 3, end: code.value.length }]);
     // NB we don't need to update position here because we're leaving
     // the newlines alone
     context = {
@@ -139,14 +145,17 @@ async function completionsFromGoodParseYAML(context)
       code
     };
   }
-  
-  if (code.value.endsWith("---")) {
-    const codeLines = core.mappedLines(code);
+
+  // sometimes we get something that ends with ---, sometimes with ---\n
+  // we must handle both gracefully.
+  if (code.value.trimEnd().endsWith("---")) {
+    const codeLines = core.lines(code.value);
     if (position.row === codeLines.length - 1) {
       // user asked for autocomplete on "---": report none
       return false;
     }
-    code = core.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
+
+    code = core.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
     context = { ...context, code };
   }
 
@@ -320,16 +329,21 @@ async function automationFromGoodParseMarkdown(kind, context)
   } = context;
  
   const result = core.breakQuartoMd(code);
+
+  const adjustedCellSize = (cell) => {
+    let size = core.lines(cell.source.value).length;
+    if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
+      // language cells don't bring starting and ending triple backticks, we must compensate here
+      size += 2;
+    }
+    return size;
+  };
     
   if (kind === "completions") {
     let linesSoFar = 0;
     let foundCell = undefined;
     for (const cell of result.cells) {
-      let size = core.lines(cell.source.value).length;
-      if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
-        // language cells don't bring starting and ending triple backticks, we must compensate here
-        size += 2;
-      }
+      let size = adjustedCellSize(cell);
       if (size + linesSoFar > position.row) {
         foundCell = cell;
         break;
@@ -367,21 +381,36 @@ async function automationFromGoodParseMarkdown(kind, context)
       throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
     }
   } else {
+    // FIXME the logic here is pretty similar to the one in completions, but
+    // just different enough to make refactoring annoying.
+    let linesSoFar = 0;
     const lints = [];
-    
     for (const cell of result.cells) {
       if (cell.cell_type === "raw") {
-        lints.push(...validationFromGoodParseYAML({
+        const innerLints = await automationFromGoodParseYAML(kind, {
+          filetype: "yaml",
           code: cell.source,
-          schema: (await getSchemas()).schemas["front-matter"]
-        }));
+          schema: (await getSchemas()).schemas["front-matter"],
+          schemaName: "front-matter",
+          line,
+          position, // we don't need to adjust position because front matter only shows up at start of file.
+        });
+        lints.push(...innerLints);
       } else if (cell.cell_type.language) {
-        lints.push(...automationFromGoodParseScript(kind, {
+        const innerLints = await automationFromGoodParseScript(kind, {
+          filetype: "script",
           code: cell.source,
           language: cell.cell_type.language,
           line,
-        }));
+          position: {
+            ...position,
+            row: position.row - (linesSoFar + 1)
+          },
+        });
+        lints.push(...innerLints);
       }
+      
+      linesSoFar += adjustedCellSize(cell);
     }
     return lints;
   }
@@ -420,7 +449,8 @@ async function completionsFromGoodParseMarkdown(context)
       line,
       code: foundCell.source,
       position,
-      schema
+      schema,
+      schemaName: "front-matter",
     });
   } else if (foundCell.cell_type.language) {
     return automationFromGoodParseScript("completions", {
@@ -499,6 +529,7 @@ async function automationFromGoodParseScript(kind, context)
       column: context.position.column - commentPrefix.length
     },
     schema,
+    schemaName: language
   });
 }
 

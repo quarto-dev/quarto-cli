@@ -4,6 +4,7 @@
   var yamlValidators = {};
   var validatorQueues = {};
   function getValidator(context) {
+    debugger;
     const {
       schema,
       schemaName
@@ -16,6 +17,7 @@
     return validator;
   }
   async function withValidator(context, fun) {
+    debugger;
     const {
       schemaName
     } = context;
@@ -242,6 +244,9 @@
       };
     }
     const codeLines = core2.rangedLines(code.value);
+    if (position.row >= codeLines.length) {
+      return;
+    }
     const currentLine = codeLines[position.row].substring;
     let currentColumn = position.column;
     let deletions = 0;
@@ -440,7 +445,9 @@
           deletions
         } = parseResult;
         const annotation = buildAnnotated(tree, mappedCode);
-        if (annotation.end !== mappedCode.value.length) {
+        debugger;
+        const endOfMappedCode = mappedCode.map(mappedCode.value.length - 1);
+        if (annotation.end !== endOfMappedCode) {
           continue;
         }
         const validationResult = validator.validateParse(code, annotation);
@@ -460,7 +467,6 @@
   }
   async function automationFromGoodParseYAML(kind, context) {
     let {
-      line,
       code,
       position,
       schema,
@@ -471,18 +477,18 @@
       if (kind === "completions" && position.row === 0) {
         return false;
       }
-      code = core4.mappedString(code, [{ begin: 0, end: 3 }]);
+      code = core4.mappedString(code, [{ start: 3, end: code.value.length }]);
       context = {
         ...context,
         code
       };
     }
-    if (code.value.endsWith("---")) {
-      const codeLines = core4.mappedLines(code);
+    if (code.value.trimEnd().endsWith("---")) {
+      const codeLines = core4.lines(code.value);
       if (kind === "completions" && position.row === codeLines.length - 1) {
         return false;
       }
-      code = core4.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
+      code = core4.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
       context = {
         ...context,
         code
@@ -504,18 +510,18 @@
       if (position.row === 0) {
         return false;
       }
-      code = core4.mappedString(code, [{ begin: 0, end: 3 }]);
+      code = core4.mappedString(code, [{ start: 3, end: code.value.length }]);
       context = {
         ...context,
         code
       };
     }
-    if (code.value.endsWith("---")) {
-      const codeLines = core4.mappedLines(code);
+    if (code.value.trimEnd().endsWith("---")) {
+      const codeLines = core4.lines(code.value);
       if (position.row === codeLines.length - 1) {
         return false;
       }
-      code = core4.mappedString(code, [{ begin: 0, end: code.value.length - 3 }]);
+      code = core4.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
       context = { ...context, code };
     }
     const parser = await getTreeSitter();
@@ -634,14 +640,18 @@
       line
     } = context;
     const result = core4.breakQuartoMd(code);
+    const adjustedCellSize = (cell) => {
+      let size = core4.lines(cell.source.value).length;
+      if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
+        size += 2;
+      }
+      return size;
+    };
     if (kind === "completions") {
       let linesSoFar = 0;
       let foundCell = void 0;
       for (const cell of result.cells) {
-        let size = core4.lines(cell.source.value).length;
-        if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
-          size += 2;
-        }
+        let size = adjustedCellSize(cell);
         if (size + linesSoFar > position.row) {
           foundCell = cell;
           break;
@@ -676,20 +686,33 @@
         throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
       }
     } else {
+      let linesSoFar = 0;
       const lints = [];
       for (const cell of result.cells) {
         if (cell.cell_type === "raw") {
-          lints.push(...validationFromGoodParseYAML({
+          const innerLints = await automationFromGoodParseYAML(kind, {
+            filetype: "yaml",
             code: cell.source,
-            schema: (await getSchemas()).schemas["front-matter"]
-          }));
+            schema: (await getSchemas()).schemas["front-matter"],
+            schemaName: "front-matter",
+            line,
+            position
+          });
+          lints.push(...innerLints);
         } else if (cell.cell_type.language) {
-          lints.push(...automationFromGoodParseScript(kind, {
+          const innerLints = await automationFromGoodParseScript(kind, {
+            filetype: "script",
             code: cell.source,
             language: cell.cell_type.language,
-            line
-          }));
+            line,
+            position: {
+              ...position,
+              row: position.row - (linesSoFar + 1)
+            }
+          });
+          lints.push(...innerLints);
         }
+        linesSoFar += adjustedCellSize(cell);
       }
       return lints;
     }
@@ -731,7 +754,8 @@
         row: context.position.row - codeStartLine,
         column: context.position.column - commentPrefix.length
       },
-      schema
+      schema,
+      schemaName: language
     });
   }
   async function automationFileTypeDispatch(filetype, kind, context) {

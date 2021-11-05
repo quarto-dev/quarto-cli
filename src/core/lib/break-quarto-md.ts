@@ -71,9 +71,8 @@ export function breakQuartoMd(
       const mappedChunks: (string | Range)[] = [];
       for (const line of lineBuffer) {
         mappedChunks.push(line.range);
-        mappedChunks.push("\n");
       }
-      mappedChunks.pop();
+
       const source = mappedString(src, mappedChunks);
       
       // const sourceLines = lineBuffer.map((line, index) => {
@@ -135,7 +134,7 @@ export function breakQuartoMd(
     inMathBlock = false,
     inCodeCell = false,
     inCode = false;
-  for (const line of rangedLines(src.value)) {
+  for (const line of rangedLines(src.value, true)) {
     // yaml front matter
     if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
       if (inYaml) {

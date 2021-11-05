@@ -123,28 +123,52 @@
     }
     return result2;
   }
-  function rangedLines(text) {
+  function rangedLines(text, includeNewLines = false) {
     const regex = /\r?\n/g;
     const result2 = [];
     let startOffset = 0;
-    for (const r of matchAll(text, regex)) {
+    if (!includeNewLines) {
+      for (const r of matchAll(text, regex)) {
+        result2.push({
+          substring: text.substring(startOffset, r.index),
+          range: {
+            start: startOffset,
+            end: r.index
+          }
+        });
+        startOffset = r.index + r[0].length;
+      }
       result2.push({
-        substring: text.substring(startOffset, r.index),
+        substring: text.substring(startOffset, text.length),
         range: {
           start: startOffset,
-          end: r.index
+          end: text.length
         }
       });
-      startOffset = r.index + r[0].length;
-    }
-    result2.push({
-      substring: text.substring(startOffset, text.length),
-      range: {
-        start: startOffset,
-        end: text.length
+      return result2;
+    } else {
+      const matches = matchAll(text, regex);
+      let prevOffset = 0;
+      for (const r of matches) {
+        let stringEnd = r.index + 1;
+        result2.push({
+          substring: text.substring(prevOffset, stringEnd),
+          range: {
+            start: prevOffset,
+            end: stringEnd
+          }
+        });
+        prevOffset = stringEnd;
       }
-    });
-    return result2;
+      result2.push({
+        substring: text.substring(prevOffset, text.length),
+        range: {
+          start: prevOffset,
+          end: text.length
+        }
+      });
+      return result2;
+    }
   }
 
   // mapped-text.ts
@@ -428,9 +452,7 @@
         const mappedChunks = [];
         for (const line of lineBuffer) {
           mappedChunks.push(line.range);
-          mappedChunks.push("\n");
         }
-        mappedChunks.pop();
         const source = mappedString(src, mappedChunks);
         const cell = {
           cell_type: cell_type === "code" ? { language } : cell_type,
@@ -468,7 +490,7 @@
       }
     };
     let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
-    for (const line of rangedLines(src.value)) {
+    for (const line of rangedLines(src.value, true)) {
       if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
         if (inYaml) {
           lineBuffer.push(line);
@@ -751,25 +773,10 @@
   }
   function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
     const result2 = [];
-    const locF = mappedIndexToRowCol(source);
+    const locF = indexToRowCol(source.originalString);
     const errorsPerInstanceMap = {};
     let errorsPerInstanceList = [];
-    for (let error of validationErrors) {
-      let { instancePath } = error;
-      if (error.keyword === "additionalProperties") {
-        instancePath = `${instancePath}/${error.params.additionalProperty}`;
-        error = {
-          ...error,
-          instancePath,
-          keyword: "_custom_invalidProperty",
-          message: `property ${error.params.additionalProperty} not allowed in object`,
-          params: {
-            ...error.params,
-            originalError: error
-          },
-          schemaPath: error.schemaPath.slice(0, -21)
-        };
-      }
+    const recordErrorInMaps = (instancePath, error) => {
       if (errorsPerInstanceMap[instancePath] === void 0) {
         const errors = [];
         const namedError = {
@@ -780,34 +787,45 @@
         errorsPerInstanceList.push(namedError);
       }
       errorsPerInstanceMap[instancePath].errors.push(error);
+    };
+    for (let error of validationErrors) {
+      let { instancePath } = error;
+      recordErrorInMaps(instancePath, error);
+      if (error.keyword === "additionalProperties") {
+        instancePath = `${instancePath}/${error.params.additionalProperty}`;
+        recordErrorInMaps(instancePath, {
+          ...error,
+          instancePath,
+          keyword: "_custom_invalidProperty",
+          message: `property ${error.params.additionalProperty} not allowed in object`,
+          params: {
+            ...error.params,
+            originalError: error
+          },
+          schemaPath: error.schemaPath.slice(0, -21)
+        });
+      }
     }
     errorsPerInstanceList = errorsPerInstanceList.filter(({ instancePath: pathA }) => errorsPerInstanceList.filter(({ instancePath: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
-    debugger;
-    for (let { instancePath, errors } of errorsPerInstanceList) {
+    for (let { instancePath, errors: allErrors } of errorsPerInstanceList) {
       const path = instancePath.split("/").slice(1);
-      errors = errors.filter((error) => {
-        if (["enum", "type"].indexOf(error.keyword) === -1) {
-          return true;
-        }
-        return !errors.some((otherError) => ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1);
-      });
-      errors = errors.filter((error) => ["oneOf", "anyOf"].indexOf(error.keyword) === -1);
+      debugger;
+      const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
       for (const error of errors) {
         const returnKey = error.keyword === "_custom_invalidProperty";
         const violatingObject = navigate(path, annotation, returnKey);
         const schemaPath = error.schemaPath.split("/").slice(1);
         const innerSchema = navigateSchema(schemaPath, schema);
-        let message = "";
         const start = locF(violatingObject.start);
         const end = locF(violatingObject.end);
         const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
         let messageNoLocation;
-        if (error.keyword === "_custom_invalidProperty") {
+        if (error.keyword.startsWith("_custom_")) {
           messageNoLocation = error.message;
         } else {
-          messageNoLocation = `Expected field ${instancePath} to ${innerSchema.description}`;
+          messageNoLocation = `Field ${instancePath} must ${innerSchema.description}`;
         }
-        message = `${locStr}: ${messageNoLocation}`;
+        const message = `${locStr}: ${messageNoLocation}`;
         result2.push({
           instancePath,
           violatingObject,

@@ -10,7 +10,7 @@
 
 import { Range } from "../ranged-text.ts";
 import { MappedString, mappedIndexToRowCol } from "./mapped-text.ts";
-import { formatLineRange, lines } from "./text.ts";
+import { formatLineRange, lines, indexToRowCol } from "./text.ts";
 import { normalizeSchema } from "./schema.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +173,11 @@ function localizeAndPruneErrors(
   schema: JSONSchema
 ) {
   const result: LocalizedError[] = [];
-  const locF = mappedIndexToRowCol(source);
+  
+  // since the annotated object returns mapped values, we need to call them
+  // on the coordinate system of the original string (since they're mapped)
+  // as a result, here we use indexToRowCol instead of mappedIndexToRowCol
+  const locF = indexToRowCol(source.originalString);
 
   // group errors per instance in which they appear
   interface NamedErrorList {
@@ -182,26 +186,8 @@ function localizeAndPruneErrors(
   }
   const errorsPerInstanceMap: Record<string, NamedErrorList> = {};
   let errorsPerInstanceList: NamedErrorList[] = [];
-  for (let error of validationErrors) {
-    let { instancePath } = error;
-    
-    // transform additionalProperties errors into a custom error message
-    // only about the inner invalid property.
-    if (error.keyword === "additionalProperties") {
-      instancePath = `${instancePath}/${error.params.additionalProperty}`;
-      error = {
-        ...error,
-        instancePath,
-        keyword: "_custom_invalidProperty",
-        message: `property ${error.params.additionalProperty} not allowed in object`,
-        params: {
-          ...error.params,
-          originalError: error
-        },
-        schemaPath: error.schemaPath.slice(0, -21), // drop "/additionalProperties",
-      };
-    }
-    
+
+  const recordErrorInMaps = (instancePath: string, error: ErrorObject) => {
     if (errorsPerInstanceMap[instancePath] === undefined) {
       // NB the deliberate sharing of `lst` here
       const errors: ErrorObject[] = [];
@@ -214,39 +200,52 @@ function localizeAndPruneErrors(
     }
     errorsPerInstanceMap[instancePath].errors.push(error);
   }
+  
+  for (let error of validationErrors) {
+    let { instancePath } = error;
+    
+    recordErrorInMaps(instancePath, error);
+    
+    // transform additionalProperties errors into a custom error message
+    // only about the inner invalid property.
+    if (error.keyword === "additionalProperties") {
+      instancePath = `${instancePath}/${error.params.additionalProperty}`;
+      recordErrorInMaps(instancePath, {
+        ...error,
+        instancePath,
+        keyword: "_custom_invalidProperty",
+        message: `property ${error.params.additionalProperty} not allowed in object`,
+        params: {
+          ...error.params,
+          originalError: error
+        },
+        schemaPath: error.schemaPath.slice(0, -21), // drop "/additionalProperties",
+      });
+    }
+  }
 
-  // keep only the instancePaths that are not proper prefixes
+  // keep only the errors with _instancePaths_ that are not proper prefixes of others
+  // keep only "innermost errors": the most _specific_
   errorsPerInstanceList = errorsPerInstanceList.filter(
     ({ instancePath: pathA }) => errorsPerInstanceList.filter(
       ({ instancePath: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
 
-  debugger;
-
-  // report at most one error 
-  for (let { instancePath, errors } of errorsPerInstanceList) {
+  for (let { instancePath, errors: allErrors } of errorsPerInstanceList) {
     const path = instancePath.split("/").slice(1);
 
-    // we skip enums and types if there is a broader oneOf or anyOf which
-    // matches our instancePath
-    errors = errors.filter(error => {
-      if (["enum", "type"].indexOf(error.keyword) === -1) {
-        return true;
-      }
+    // now, we keep only the errors with _schemaPaths_ that are the most _general_
+    // ie, we filter out those that have other proper prefixes
 
-      return !errors.some(otherError => 
-        ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1);
-    });
+    debugger;
 
-    // we skip the generaly reporting of "oneOf" and "anyOf" errors
-    errors = errors.filter(error =>
-      ["oneOf", "anyOf"].indexOf(error.keyword) === -1);
+    const errors = allErrors.filter(({ schemaPath: pathA }) =>
+      !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
     
     for (const error of errors) {
       const returnKey = error.keyword === "_custom_invalidProperty";
       const violatingObject = navigate(path, annotation, returnKey);
       const schemaPath = error.schemaPath.split("/").slice(1);
       const innerSchema = navigateSchema(schemaPath, schema);
-      let message = "";
 
       const start = locF(violatingObject.start);
       const end = locF(violatingObject.end);
@@ -257,12 +256,12 @@ function localizeAndPruneErrors(
 
       let messageNoLocation;
       // in the case of customized errors, use message we prepared earlier
-      if (error.keyword === "_custom_invalidProperty") {
+      if (error.keyword.startsWith("_custom_")) {
         messageNoLocation = error.message;
       } else {
-        messageNoLocation = `Expected field ${instancePath} to ${innerSchema.description}`;
+        messageNoLocation = `Field ${instancePath} must ${innerSchema.description}`;
       }
-      message = `${locStr}: ${messageNoLocation}`;
+      const message = `${locStr}: ${messageNoLocation}`;
       
       result.push({
         instancePath,

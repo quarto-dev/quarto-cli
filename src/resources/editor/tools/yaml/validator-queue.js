@@ -4,6 +4,7 @@ const validatorQueues = {};
 
 function getValidator(context)
 {
+  debugger;
   const {
     schema,     // schema of yaml object
     schemaName, // name of schema so we can look it up on the validator cache
@@ -21,6 +22,7 @@ function getValidator(context)
 
 export async function withValidator(context, fun)
 {
+  debugger;
   const {
     schemaName, // name of schema so we can look it up on the validator cache
   } = context;

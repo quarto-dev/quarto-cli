@@ -16,7 +16,7 @@
 
 import { glb } from "./binary-search.ts";
 import { breakQuartoMd } from "./break-quarto-md.ts";
-import { mappedString, asMappedString, mappedConcat, mappedIndexToRowCol } from "./mapped-text.ts";
+import { mappedString, asMappedString, mappedConcat, mappedIndexToRowCol, mappedLines } from "./mapped-text.ts";
 import { partitionCellOptionsMapped, kLangCommentChars } from "./partition-cell-options.ts";
 import { PromiseQueue } from "./promise.ts";
 import { rangedSubstring, rangedLines } from "./ranged-text.ts";

@@ -44,6 +44,13 @@ export function* attemptParsesAtLine(context, parser)
 
   const codeLines = core.rangedLines(code.value);
 
+  // in markdown files, we are passed chunks of text one at a time, and
+  // sometimes the cursor lies outside those chunks. In that case, we cannot
+  // attempt to fix the parse by deleting character, and so we simply bail.
+  if (position.row >= codeLines.length) {
+    return;
+  }
+
   const currentLine = codeLines[position.row].substring;
   let currentColumn = position.column;
   let deletions = 0;
