@@ -238,11 +238,11 @@ const suppressNatbibBibliographyLineProcessor = () => {
 };
 
 // {?quarto-cite:(id)}
-const kQuartoCiteRegex = /{\?quarto-cite:(.*)}/;
+const kQuartoCiteRegex = /{\?quarto-cite:(.*?)}/g;
 
 const bibLatexCiteLineProcessor = () => {
   return (line: string): string | undefined => {
-    return line.replace(kQuartoCiteRegex, (_match, citeKey) => {
+    return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
       return `\\fullcite{${citeKey}}`;
     });
   };
@@ -250,7 +250,7 @@ const bibLatexCiteLineProcessor = () => {
 
 const natbibCiteLineProcessor = () => {
   return (line: string): string | undefined => {
-    return line.replace(kQuartoCiteRegex, (_match, citeKey) => {
+    return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
       return `\\bibentry{${citeKey}}`;
     });
   };
@@ -258,7 +258,7 @@ const natbibCiteLineProcessor = () => {
 
 const sideNoteLineProcessor = () => {
   return (line: string): string | undefined => {
-    return line.replace(/\\footnote{/, "\\sidenote{\\footnotesize ");
+    return line.replaceAll(/\\footnote{/g, "\\sidenote{\\footnotesize ");
   };
 };
 
