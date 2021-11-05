@@ -118,6 +118,14 @@ function renderDivColumn(el)
   end
 end
 
+function hasGutterColumn(el)
+  if el.attr ~= nil and el.attr.classes ~= nil then
+    return tcontains(el.attr.classes, 'column-gutter')
+  else
+    return false
+  end
+end
+
 function noteHasColumns() 
   layoutState.hasColumns = true
 end

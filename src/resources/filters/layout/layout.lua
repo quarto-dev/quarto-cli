@@ -286,6 +286,7 @@ return {
   initOptions(),
   columnsPreprocess(),
   columns(),
+  citesPreprocess(),
   cites(),
   layoutPanels(),
   extendedFigures(),
