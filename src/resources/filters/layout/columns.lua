@@ -120,7 +120,7 @@ end
 
 function hasGutterColumn(el)
   if el.attr ~= nil and el.attr.classes ~= nil then
-    return tcontains(el.attr.classes, 'column-gutter')
+    return tcontains(el.attr.classes, 'column-gutter') or tcontains(el.attr.classes, 'aside')
   else
     return false
   end

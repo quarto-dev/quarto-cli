@@ -2,20 +2,14 @@
 -- Copyright (C) 2021 by RStudio, PBC
   
 
-        -- Div w/figure ref, table ref
+        -- Div w/figure ref
         -- Para that has a figure
-        -- Note
 
 -- Concept
   -- Walk blocks that could be in gutter
   -- Note
   -- Div w/column classes
   -- Div w/fig or table
-  -- Para with Image (.e.g discover figure)
--- ISSUE: This is happening after the inlines are processed - does this need to be a first pass
--- where we mark the cite as resolve or something and then skip them in the inlines?
--- when already in a gutter element, just append:
--- \vspace{.1in}{?quarto-cite:<id>}
 
 
 
@@ -24,7 +18,6 @@ function citesPreprocess()
   return {
     
     Note = function(note) 
-      
       if isLatexOutput() and refsInGutter then
         return pandoc.walk_inline(note, {
           Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
@@ -57,28 +50,31 @@ function citesPreprocess()
     end,
 
     Div = function(div)
-      if isLatexOutput() and hasTableRef(div) then 
-        if #div.content > 0 and hasGutterColumn(div) or refsInGutter then
-
+      if isLatexOutput() and hasGutterColumn(div) or refsInGutter then
+        if hasTableRef(div) then 
           -- inspect the table caption for refs and just mark them as resolved
-          local table = div.content[1]
-          if table ~= undefined and table.caption.long ~= undefined then
-            local citeEls = pandoc.List()
-
-            local captionContent = table.caption.long[1].content
-            for i,inline in ipairs(captionContent) do
-              if inline.t == 'Cite' then
-                for j, citation in ipairs(inline.citations) do
-                  -- Tables can't handle citations in captions well at all
-                  -- Just mark them resolved and eat them if they're going to 
-                  -- appear in the gutter
-                  setResolved(citation)
-                end
-              end
+          local table = discoverTable(div)
+          if table ~= nil and table.caption ~= undefined and table.caption.long ~= undefined then
+            local cites = false
+            -- go through any captions and resolve citations into latex
+            for i, caption in ipairs(table.caption.long) do
+              cites = resolveCaptionCitations(caption.content, hasGutterColumn(div)) or cites
             end
-          end
-        end
-      end 
+            if cites then
+              return div
+            end
+          end  
+        else
+          return pandoc.walk_block(div, {
+            Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
+              if hasGutterColumn(div) then
+                appendAtEnd(citePlaceholderInline(citation))
+              end
+            end)
+          })
+        end 
+
+      end
     end
     
   }
@@ -116,8 +112,6 @@ function walkUnresolvedCitations(func)
                 function(inlineToAppendAtEnd)
                   if inlineToAppendAtEnd ~= nil then
                     inlines:insert(#inlines + 1, inlineToAppendAtEnd)
-
-                    dump(inlines)
                     modified = true
                     setResolved(citation)
                   end
@@ -131,6 +125,29 @@ function walkUnresolvedCitations(func)
     if modified then
       return inlines  
     end    
+  end
+end
+
+function resolveCaptionCitations(captionContentInlines, inGutter)
+  local citeEls = pandoc.List()
+  for i,inline in ipairs(captionContentInlines) do
+    if inline.t == 'Cite' then
+      for j, citation in ipairs(inline.citations) do
+        if inGutter then
+          citeEls:insert(citePlaceholderInlineWithProtection(citation))
+        else
+          citeEls:insert(marginCitePlaceholderWithProtection(citation))
+        end
+        setResolved(citation)
+      end
+    end
+  end
+
+  if #citeEls > 0 then
+    tappend(captionContentInlines, citeEls)
+    return true
+  else
+    return false
   end
 end
 
@@ -166,4 +183,13 @@ end
 
 function isResolved(citation)
   return resolvedCites[keyForCite(citation)] == true
+end
+
+function discoverTable(div) 
+  local tbl = div.content[1]
+  if tbl.t == 'Table' then
+    return tbl
+  else
+    return nil
+  end
 end
