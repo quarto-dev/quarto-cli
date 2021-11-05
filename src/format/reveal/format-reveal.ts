@@ -257,7 +257,7 @@ function revealRequireJsPatch(template: string) {
     "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
   );
   template = template.replace(
-    /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
+    /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>(?:\r?\n|\r)\$endif\$)/,
     "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
   );
   return template;
