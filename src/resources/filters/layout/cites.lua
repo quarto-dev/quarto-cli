@@ -20,11 +20,12 @@
 
 
 function citesPreprocess() 
-  
+  local refsInGutter = param('reference-location', 'document') == 'gutter'
   return {
+    
     Note = function(note) 
-      local referenceLocation = param('reference-location', 'document')
-      if isLatexOutput() and referenceLocation == 'gutter'  then
+      
+      if isLatexOutput() and refsInGutter then
         return pandoc.walk_inline(note, {
           Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
             appendAtEnd(citePlaceholderInline(citation))
@@ -34,15 +35,52 @@ function citesPreprocess()
     end,
 
     Image = function(img)
-      if isLatexOutput() and hasGutterColumn(img) and hasFigureRef(img) then
-        return pandoc.walk_inline(img, {
+      if isLatexOutput() and hasFigureRef(img) then
+        if hasGutterColumn(img) then
+          -- This is a figure in the gutter itself, we need to append citations at the end of the caption
+          -- without any floating
+          return pandoc.walk_inline(img, {
+              Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
+                appendAtEnd(citePlaceholderInlineWithProtection(citation))
+              end)
+            })
+        elseif refsInGutter then
+          -- This is a figure is in the body, but the citation should be in the margin. Use 
+          -- protection to shift any citations over
+          return pandoc.walk_inline(img, {
             Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
-              appendAtEnd(citePlaceholderInlineWithProtection(citation))
+              appendInline(marginCitePlaceholderWithProtection(citation))
             end)
           })
-        
+        end   
       end
     end,
+
+    Div = function(div)
+      if isLatexOutput() and hasTableRef(div) then 
+        if #div.content > 0 and hasGutterColumn(div) or refsInGutter then
+
+          -- inspect the table caption for refs and just mark them as resolved
+          local table = div.content[1]
+          if table ~= undefined and table.caption.long ~= undefined then
+            local citeEls = pandoc.List()
+
+            local captionContent = table.caption.long[1].content
+            for i,inline in ipairs(captionContent) do
+              if inline.t == 'Cite' then
+                for j, citation in ipairs(inline.citations) do
+                  -- Tables can't handle citations in captions well at all
+                  -- Just mark them resolved and eat them if they're going to 
+                  -- appear in the gutter
+                  setResolved(citation)
+                end
+              end
+            end
+          end
+        end
+      end 
+    end
+    
   }
 end
 
@@ -97,15 +135,19 @@ function walkUnresolvedCitations(func)
 end
 
 function marginCitePlaceholderInline(citation)
-  return pandoc.RawInline('latex', '\\marginpar{\\begin{footnotesize}{?quarto-cite:'.. citation.id .. '}\\par\\vspace{.1in}\\end{footnotesize}}')
+  return pandoc.RawInline('latex', '\\marginpar{\\begin{footnotesize}{?quarto-cite:'.. citation.id .. '}\\vspace{2mm}\\par\\end{footnotesize}}')
 end
 
 function citePlaceholderInline(citation)
-  return pandoc.RawInline('latex', '\\linebreak\\linebreak{?quarto-cite:'.. citation.id .. '}\\vspace{.1in}')
+  return pandoc.RawInline('latex', '\\linebreak\\linebreak{?quarto-cite:'.. citation.id .. '}\\linebreak')
 end
 
 function citePlaceholderInlineWithProtection(citation)
-  return pandoc.RawInline('latex', '\\linebreak\\linebreak\\protect{?quarto-cite:'.. citation.id .. '}\\vspace{.1in}')
+  return pandoc.RawInline('latex', '\\linebreak\\linebreak\\protect{?quarto-cite:'.. citation.id .. '}\\linebreak')
+end
+
+function marginCitePlaceholderWithProtection(citation)
+  return pandoc.RawInline('latex', '\\protect\\marginnote{\\begin{footnotesize}\\protect{?quarto-cite:'.. citation.id .. '}\\linebreak\\end{footnotesize}}')
 end
 
 local resolvedCites = {}
