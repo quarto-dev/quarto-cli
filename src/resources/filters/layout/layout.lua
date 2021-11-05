@@ -285,8 +285,8 @@ initParams()
 return {
   initOptions(),
   columnsPreprocess(),
-  columns(),
   citesPreprocess(),
+  columns(),
   cites(),
   layoutPanels(),
   extendedFigures(),
