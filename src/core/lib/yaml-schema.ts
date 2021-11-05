@@ -199,10 +199,9 @@ function narrowOneOfError(
     return onlyAdditionalProperties[0].values;
   }
 
-  // otherwise, filter to one (arbitrarily chosen) of the subschema
-  // with the smallest number of errors, and report those.
-  let fewestErrors = Math.min(...subschemaErrors.map((v) => v.values.length));
-  return subschemaErrors.filter(v => v.values.length === fewestErrors)[0].values;
+  // otherwise, we give up, and don't report anything; this has the
+  // effect of not narrowing the error.
+  return [];
 }
 
 /*

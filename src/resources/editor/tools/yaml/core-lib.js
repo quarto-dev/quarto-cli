@@ -802,8 +802,7 @@
     if (onlyAdditionalProperties.length) {
       return onlyAdditionalProperties[0].values;
     }
-    let fewestErrors = Math.min(...subschemaErrors.map((v) => v.values.length));
-    return subschemaErrors.filter((v) => v.values.length === fewestErrors)[0].values;
+    return [];
   }
   function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
     const result2 = [];
