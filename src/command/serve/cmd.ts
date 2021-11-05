@@ -6,6 +6,7 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
+import { isRStudio } from "../../core/platform.ts";
 
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 
@@ -44,6 +45,10 @@ export const serveCommand = new Command()
   .option(
     "--no-browse",
     "Don't open a browser to preview the site.",
+  )
+  .option(
+    "--watch-inputs",
+    "Re-render input files when they change",
   )
   .option(
     "--no-watch-inputs",
@@ -86,6 +91,11 @@ export const serveCommand = new Command()
 
     // default host if needed
     options.host = options.host || kLocalhost;
+
+    // default watch inputs
+    if (options.watchInputs === undefined) {
+      options.watchInputs = !isRStudio();
+    }
 
     // select a port
     if (!options.port) {

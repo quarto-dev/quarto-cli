@@ -116,6 +116,7 @@ export function revealjsFormat() {
           url:
             "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML-full",
         },
+        [kSlideLevel]: 2,
       },
       metadataFilter: revealMetadataFilter,
       formatPreviewFile: revealMuliplexPreviewFile,
@@ -154,7 +155,17 @@ export function revealjsFormat() {
             metadataOverride: {} as Metadata,
             [kIncludeInHeader]: [formatResourcePath("revealjs", "styles.html")],
             html: {
-              [kTemplatePatches]: [revealRequireJsPatch],
+              [kTemplatePatches]: [
+                revealRequireJsPatch,
+                /* TODO: Remove when the fix is available in Pandoc https://github.com/jgm/pandoc/pull/7670 */
+                (template: string) => {
+                  template = template.replace(
+                    /(disableLayout: )false/,
+                    "$1$disableLayout$",
+                  );
+                  return template;
+                },
+              ],
               [kHtmlPostprocessors]: [
                 revealHtmlPostprocessor(format),
               ],
@@ -246,7 +257,7 @@ function revealRequireJsPatch(template: string) {
     "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
   );
   template = template.replace(
-    /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
+    /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>(?:\r?\n|\r)\$endif\$)/,
     "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
   );
   return template;
@@ -270,7 +281,7 @@ function revealMetadataFilter(metadata: Metadata) {
 
 function revealHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
-    // find reveal initializatio and perform fixups
+    // find reveal initialization and perform fixups
     const scripts = doc.querySelectorAll("script");
     for (const script of scripts) {
       const scriptEl = script as Element;
@@ -288,8 +299,7 @@ function revealHtmlPostprocessor(format: Format) {
 
     // remove all attributes from slide headings (pandoc has already moved
     // them to the enclosing section)
-    const slideLevel = parseInt(format.metadata[kSlideLevel] as string, 10) ||
-      2;
+    const slideLevel = format.pandoc[kSlideLevel] || 2;
     const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
       "H" + (i + 1)
     );
