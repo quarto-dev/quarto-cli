@@ -1,17 +1,6 @@
--- columns.lua
+-- cites.lua
 -- Copyright (C) 2021 by RStudio, PBC
   
-
-        -- Div w/figure ref
-        -- Para that has a figure
-
--- Concept
-  -- Walk blocks that could be in gutter
-  -- Note
-  -- Div w/column classes
-  -- Div w/fig or table
-
-
 
 function citesPreprocess() 
   local refsInGutter = param('reference-location', 'document') == 'gutter'
