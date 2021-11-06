@@ -16,11 +16,13 @@ import {
   kLinkCitations,
   kReferenceLocation,
   kSectionDivs,
+  kSectionTitleFootnotes,
   kTheme,
 } from "../../config/constants.ts";
 import {
   Format,
   FormatExtras,
+  FormatLanguage,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
@@ -35,7 +37,6 @@ import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
   kBootstrapDependencyName,
   kDocumentCss,
-  kFootnoteSectionTitle,
   kPageLayout,
   kPageLayoutArticle,
   kPageLayoutCustom,
@@ -169,7 +170,7 @@ export function boostrapExtras(
 }
 
 function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
-  return (doc: Document): Promise<string[]> => {
+  return (doc: Document, language: FormatLanguage): Promise<string[]> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
@@ -504,8 +505,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     } else if (footnotes.length === 1) {
       const footnotesEl = footnotes.item(0) as Element;
       const h2 = doc.createElement("h2");
-      const title =
-        (format.metadata[kFootnoteSectionTitle] || "Footnotes") as string;
+      const title = language[kSectionTitleFootnotes];
       if (typeof (title) == "string" && title !== "none") {
         h2.innerHTML = title;
       }

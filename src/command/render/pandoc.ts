@@ -25,6 +25,7 @@ import {
   DependencyFile,
   Format,
   FormatExtras,
+  FormatLanguage,
   FormatPandoc,
   kBodyEnvelope,
   kDependencies,
@@ -173,7 +174,9 @@ export async function runPandoc(
 
   // see if there are extras
   const postprocessors: Array<(output: string) => Promise<void>> = [];
-  const htmlPostprocessors: Array<(doc: Document) => Promise<string[]>> = [];
+  const htmlPostprocessors: Array<
+    (doc: Document, language: FormatLanguage) => Promise<string[]>
+  > = [];
   const htmlRenderAfterBody: string[] = [];
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
@@ -549,6 +552,7 @@ export async function runPandoc(
   if (result.success) {
     return {
       resources,
+      language: options.format.language,
       postprocessors,
       htmlPostprocessors: isHtmlOutput(options.format.pandoc)
         ? htmlPostprocessors

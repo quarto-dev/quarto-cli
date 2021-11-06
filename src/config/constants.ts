@@ -135,6 +135,7 @@ export const kCalloutNoteCaption = "callout-note-caption";
 export const kCalloutWarningCaption = "callout-warning-caption";
 export const kCalloutImportantCaption = "callout-important-caption";
 export const kCalloutDangerCaption = "callout-danger-caption";
+export const kSectionTitleFootnotes = "section-title-footnotes";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -144,6 +145,7 @@ export const kLanguageDefaultsKeys = [
   kCalloutWarningCaption,
   kCalloutImportantCaption,
   kCalloutDangerCaption,
+  kSectionTitleFootnotes,
 ];
 
 // 'defaults' fields

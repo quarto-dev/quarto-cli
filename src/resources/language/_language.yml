@@ -6,3 +6,5 @@ callout-note-caption: "Note"
 callout-warning-caption: "Warning"
 callout-important-caption: "Important"
 callout-danger-caption: "Danger"
+
+section-title-footnotes: "Footnotes"

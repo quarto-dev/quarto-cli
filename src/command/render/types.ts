@@ -7,7 +7,7 @@
 
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 
-import { Format, PandocFlags } from "../../config/types.ts";
+import { Format, FormatLanguage, PandocFlags } from "../../config/types.ts";
 import {
   ExecuteResult,
   ExecutionEngine,
@@ -40,8 +40,11 @@ export interface RenderContext {
 
 export interface RunPandocResult {
   resources: string[];
+  language: FormatLanguage;
   postprocessors?: Array<(output: string) => Promise<void>>;
-  htmlPostprocessors: Array<(doc: Document) => Promise<string[]>>;
+  htmlPostprocessors: Array<
+    (doc: Document, language: FormatLanguage) => Promise<string[]>
+  >;
 }
 
 export interface RenderResourceFiles {

@@ -74,6 +74,7 @@ import {
   kPreferHtml,
   kReferenceLocation,
   kSectionDivs,
+  kSectionTitleFootnotes,
   kSelfContained,
   kSelfContainedMath,
   kShiftHeadingLevelBy,
@@ -185,7 +186,9 @@ export interface FormatExtras {
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
     [kTemplatePatches]?: Array<(template: string) => string>;
-    [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
+    [kHtmlPostprocessors]?: Array<
+      (doc: Document, language: FormatLanguage) => Promise<string[]>
+    >;
     [kTextHighlightingMode]?: "light" | "dark" | "none" | undefined;
     [kQuartoCssVariables]?: string[];
     [kMarkdownAfterBody]?: string[];
@@ -355,6 +358,8 @@ export interface FormatLanguage {
   [kCalloutWarningCaption]?: string;
   [kCalloutImportantCaption]?: string;
   [kCalloutDangerCaption]?: string;
+  [kSectionTitleFootnotes]?: string;
+
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;
 }
