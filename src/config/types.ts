@@ -77,6 +77,7 @@ import {
   kSelfContained,
   kSelfContainedMath,
   kShiftHeadingLevelBy,
+  kSlideLevel,
   kTableOfContents,
   kTemplate,
   kTitlePrefix,
@@ -306,6 +307,7 @@ export interface FormatPandoc {
   [kTopLevelDivision]?: string;
   [kShiftHeadingLevelBy]?: number;
   [kTitlePrefix]?: string;
+  [kSlideLevel]?: number;
 }
 
 export interface PandocFlags {
