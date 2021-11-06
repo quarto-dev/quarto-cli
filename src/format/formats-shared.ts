@@ -187,6 +187,7 @@ function defaultFormat(): Format {
       [kLinkExternalNewwindow]: false,
     },
     pandoc: {},
+    language: {},
     metadata: {},
   };
 }

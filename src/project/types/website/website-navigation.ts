@@ -30,11 +30,7 @@ import {
   PandocFlags,
   SassBundle,
 } from "../../../config/types.ts";
-import {
-  hasTableOfContents,
-  hasTableOfContentsTitle,
-  kTocFloat,
-} from "../../../config/toc.ts";
+import { hasTableOfContents } from "../../../config/toc.ts";
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import {
@@ -95,7 +91,6 @@ import {
 import {
   kIncludeInHeader,
   kNumberSections,
-  kTocTitle,
 } from "../../../config/constants.ts";
 import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
 import {
@@ -245,10 +240,6 @@ export async function websiteNavigationExtras(
   // return extras with bodyEnvelope
   return {
     [kIncludeInHeader]: includeInHeader,
-    [kTocTitle]: !hasTableOfContentsTitle(flags, format) &&
-        format.metadata[kTocFloat] !== false
-      ? "On this page"
-      : undefined,
     html: {
       [kSassBundles]: sassBundles,
       [kDependencies]: dependencies,

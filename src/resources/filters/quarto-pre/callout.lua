@@ -807,7 +807,7 @@ function isBuiltInType(type)
   return icon ~= nil
 end
 
-function displayName(str)
-    -- capitalize the type and use that as the caption if none was provided
-    return str:sub(1,1):upper()..str:sub(2)
+function displayName(type)
+  local defaultName = type:sub(1,1):upper()..type:sub(2)
+  return param("callout-" .. type .. "-caption", defaultName)
 end

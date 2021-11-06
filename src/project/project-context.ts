@@ -28,6 +28,7 @@ import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 import { includedMetadata } from "../config/metadata.ts";
 import {
   kHtmlMathMethod,
+  kLanguageDefaults,
   kMetadataFile,
   kMetadataFiles,
   kQuartoVarsKey,
@@ -36,6 +37,10 @@ import {
 import { projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
+import {
+  readLanguageTranslations,
+  resolveLanguageMetadata,
+} from "../core/language.ts";
 
 import {
   engineIgnoreGlobs,
@@ -110,6 +115,9 @@ export async function projectContext(
           vars,
         );
       }
+
+      // resolve translations
+      resolveLanguageTranslations(projectConfig, dir);
 
       if (projectConfig?.project) {
         // provide output-dir from command line if specfified
@@ -213,6 +221,21 @@ function migrateProjectConfig(projectConfig: ProjectConfig) {
     delete projectConfig[kSite];
   }
   return projectConfig;
+}
+
+function resolveLanguageTranslations(
+  projectConfig: ProjectConfig,
+  dir: string,
+) {
+  // read any language file pointed to by the project
+  resolveLanguageMetadata(projectConfig, dir);
+
+  // read _language.yml and merge into the project
+  const language = readLanguageTranslations(join(dir, "_language.yml"));
+  projectConfig[kLanguageDefaults] = mergeConfigs(
+    language,
+    projectConfig[kLanguageDefaults],
+  );
 }
 
 // read project context (if there is no project config file then still create

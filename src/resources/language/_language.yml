@@ -1,0 +1,8 @@
+toc-title-document: "Table of contents"
+toc-title-website: "On this page"
+
+callout-tip-caption: "Tip"
+callout-note-caption: "Note"
+callout-warning-caption: "Warning"
+callout-important-caption: "Important"
+callout-danger-caption: "Danger"

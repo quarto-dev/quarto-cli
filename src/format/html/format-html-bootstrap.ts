@@ -17,7 +17,6 @@ import {
   kReferenceLocation,
   kSectionDivs,
   kTheme,
-  kTocTitle,
 } from "../../config/constants.ts";
 import {
   Format,
@@ -30,10 +29,7 @@ import {
 } from "../../config/types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { PandocFlags } from "../../config/types.ts";
-import {
-  hasTableOfContents,
-  hasTableOfContentsTitle,
-} from "../../config/toc.ts";
+import { hasTableOfContents } from "../../config/toc.ts";
 
 import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
@@ -161,10 +157,6 @@ export function boostrapExtras(
       [kDocumentCss]: false,
       [kLinkCitations]: true,
     },
-    [kTocTitle]: !hasTableOfContentsTitle(flags, format)
-      ? "Table of contents"
-      : undefined,
-
     html: {
       [kSassBundles]: resolveBootstrapScss(input, format),
       [kDependencies]: [bootstrapFormatDependency()],

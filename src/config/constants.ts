@@ -10,6 +10,7 @@ export const kMetadataFormat = "format";
 export const kRenderDefaults = "render";
 export const kExecuteDefaults = "execute";
 export const kPandocDefaults = "pandoc";
+export const kLanguageDefaults = "language";
 export const kPandocMetadata = "metadata";
 
 export const kFigWidth = "fig.width";
@@ -126,6 +127,25 @@ export const kRenderDefaultsKeys = [
   kLinkExternalNewwindow,
 ];
 
+// language fields
+export const kTocTitleDocument = "toc-title-document";
+export const kTocTitleWebsite = "toc-title-website";
+export const kCalloutTipCaption = "callout-tip-caption";
+export const kCalloutNoteCaption = "callout-note-caption";
+export const kCalloutWarningCaption = "callout-warning-caption";
+export const kCalloutImportantCaption = "callout-important-caption";
+export const kCalloutDangerCaption = "callout-danger-caption";
+
+export const kLanguageDefaultsKeys = [
+  kTocTitleDocument,
+  kTocTitleWebsite,
+  kCalloutTipCaption,
+  kCalloutNoteCaption,
+  kCalloutWarningCaption,
+  kCalloutImportantCaption,
+  kCalloutDangerCaption,
+];
+
 // 'defaults' fields
 export const kTo = "to";
 export const kFrom = "from";
@@ -188,6 +208,8 @@ export const kDate = "date";
 export const kDoi = "doi";
 export const kAbstract = "abstract";
 export const kDescription = "description";
+export const kTocTitle = "toc-title";
+export const kLang = "lang";
 
 export const kServer = "server";
 
@@ -199,7 +221,6 @@ export const kBibliography = "bibliography";
 export const kHeaderIncludes = "header-includes";
 export const kIncludeBefore = "include-before";
 export const kIncludeAfter = "include-after";
-export const kTocTitle = "toc-title";
 export const kLinkCitations = "link-citations";
 export const kDocumentClass = "documentclass";
 export const kClassOption = "classoption";

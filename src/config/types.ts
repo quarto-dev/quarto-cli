@@ -9,6 +9,11 @@ import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kAtxHeaders,
   kCache,
+  kCalloutDangerCaption,
+  kCalloutImportantCaption,
+  kCalloutNoteCaption,
+  kCalloutTipCaption,
+  kCalloutWarningCaption,
   kCiteMethod,
   kCiteproc,
   kCodeFold,
@@ -76,7 +81,8 @@ import {
   kTemplate,
   kTitlePrefix,
   kToc,
-  kTocTitle,
+  kTocTitleDocument,
+  kTocTitleWebsite,
   kTopLevelDivision,
   kVariables,
   kVariant,
@@ -164,7 +170,6 @@ export interface FormatExtras {
   pandoc?: FormatPandoc;
   metadata?: Metadata;
   metadataOverride?: Metadata;
-  [kTocTitle]?: string;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
@@ -191,6 +196,7 @@ export interface Format {
   render: FormatRender;
   execute: FormatExecute;
   pandoc: FormatPandoc;
+  language: FormatLanguage;
   metadata: Metadata;
   metadataFilter?: (metadata: Metadata) => Metadata;
   formatExtras?: (
@@ -313,7 +319,6 @@ export interface PandocFlags {
   natbib?: boolean;
   biblatex?: boolean;
   [kToc]?: boolean;
-  [kTocTitle]?: string;
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
@@ -338,4 +343,16 @@ export interface PdfEngine {
   indexEngine?: string;
   indexEngineOpts?: string[];
   tlmgrOpts?: string[];
+}
+
+export interface FormatLanguage {
+  [kTocTitleDocument]?: string;
+  [kTocTitleWebsite]?: string;
+  [kCalloutTipCaption]?: string;
+  [kCalloutNoteCaption]?: string;
+  [kCalloutWarningCaption]?: string;
+  [kCalloutImportantCaption]?: string;
+  [kCalloutDangerCaption]?: string;
+  // langauge variations e.g. eg, fr, etc.
+  [key: string]: unknown;
 }

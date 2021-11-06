@@ -23,7 +23,6 @@ import {
   kShiftHeadingLevelBy,
   kTableOfContents,
   kToc,
-  kTocTitle,
   kTopLevelDivision,
 } from "../../config/constants.ts";
 import { isQuartoMetadata } from "../../config/metadata.ts";
@@ -109,13 +108,6 @@ export function parseRenderFlags(args: string[]) {
       case `--${kTableOfContents}`:
         arg = argsStack.shift();
         flags.toc = true;
-        break;
-
-      case kTocTitle:
-        arg = argsStack.shift();
-        if (arg) {
-          flags[kTocTitle] = arg;
-        }
         break;
 
       case "--listings":

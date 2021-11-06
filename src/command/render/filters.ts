@@ -6,6 +6,11 @@
 */
 import {
   kBibliography,
+  kCalloutDangerCaption,
+  kCalloutImportantCaption,
+  kCalloutNoteCaption,
+  kCalloutTipCaption,
+  kCalloutWarningCaption,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
@@ -22,7 +27,7 @@ import {
   kReferenceLocation,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
-import { Format, FormatPandoc } from "../../config/types.ts";
+import { Format, FormatLanguage, FormatPandoc } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
@@ -72,6 +77,7 @@ export function filterParamsJson(
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
+    ...languageFilterParams(options.format.language),
     ...filterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
   };
@@ -215,6 +221,17 @@ function referenceLocationArg(args: string[]) {
   } else {
     return undefined;
   }
+}
+
+function languageFilterParams(language: FormatLanguage) {
+  const params: Metadata = {
+    [kCalloutTipCaption]: language[kCalloutTipCaption],
+    [kCalloutNoteCaption]: language[kCalloutNoteCaption],
+    [kCalloutImportantCaption]: language[kCalloutImportantCaption],
+    [kCalloutWarningCaption]: language[kCalloutWarningCaption],
+    [kCalloutDangerCaption]: language[kCalloutDangerCaption],
+  };
+  return params;
 }
 
 function projectFilterParams(options: PandocOptions) {
