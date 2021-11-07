@@ -318,7 +318,15 @@ const indexAndSuppressPandocBibliography = (
       const matches = line.match(/pre{\\hypertarget{ref\-(.*?)}{}}\%/);
       if (matches && matches[1]) {
         currentCiteKey = matches[1];
-        renderedCites[currentCiteKey] = [line];
+
+        // protect the hypertarget command and the save this line
+        // protect is useful if the reference appears in a caption
+        renderedCites[currentCiteKey] = [
+          line.replace(
+            "pre{\\hypertarget{ref",
+            "pre{\\protect\\hypertarget{ref",
+          ),
+        ];
       } else if (line.length === 0) {
         currentCiteKey = undefined;
       } else if (currentCiteKey) {
