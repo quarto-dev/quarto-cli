@@ -160,7 +160,7 @@ export async function websiteNavigationExtras(
   if (searchDep) {
     dependencies.push(...searchDep);
     sassBundles.push(websiteSearchSassBundle());
-    includeInHeader.push(websiteSearchIncludeInHeader(project));
+    includeInHeader.push(websiteSearchIncludeInHeader(project, format));
   }
 
   // Check to see whether the navbar or sidebar have been disabled on this page

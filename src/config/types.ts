@@ -78,6 +78,12 @@ import {
   kPdfEngineOpts,
   kPreferHtml,
   kReferenceLocation,
+  kSearchCopyLinkTitle,
+  kSearchHideMatchesText,
+  kSearchInThisDocumentText,
+  kSearchMatchingDocumentsText,
+  kSearchMoreMatchText,
+  kSearchNoResultsText,
   kSectionDivs,
   kSectionTitleFootnotes,
   kSelfContained,
@@ -369,6 +375,13 @@ export interface FormatLanguage {
   [kCodeToolsHideAllCode]?: string;
   [kCodeToolsViewSource]?: string;
   [kCodeToolsSourceCode]?: string;
+  [kSearchNoResultsText]?: string;
+  [kSearchMatchingDocumentsText]?: string;
+  [kSearchCopyLinkTitle]?: string;
+  [kSearchHideMatchesText]?: string;
+  [kSearchMoreMatchText]?: string;
+  [kSearchHideMatchesText]?: string;
+  [kSearchInThisDocumentText]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

@@ -140,6 +140,13 @@ export const kCodeToolsShowAllCode = "code-tools-show-all-code";
 export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
 export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
+export const kSearchNoResultsText = "search-no-results-text";
+export const kSearchMatchingDocumentsText = "search-matching-documents-text";
+export const kSearchCopyLinkTitle = "search-copy-link-title";
+export const kSearchHideMatchesText = "search-hide-matches-text";
+export const kSearchMoreMatchText = "search-more-match-text";
+export const kSearchMoreMatchesText = "search-more-matches-text";
+export const kSearchInThisDocumentText = "search-in-this-document-text";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -156,6 +163,13 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsHideAllCode,
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
+  kSearchNoResultsText,
+  kSearchMatchingDocumentsText,
+  kSearchCopyLinkTitle,
+  kSearchHideMatchesText,
+  kSearchMoreMatchText,
+  kSearchMoreMatchesText,
+  kSearchInThisDocumentText,
 ];
 
 // 'defaults' fields

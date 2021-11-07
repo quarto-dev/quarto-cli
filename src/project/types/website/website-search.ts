@@ -17,7 +17,11 @@ import { DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
-import { FormatDependency } from "../../../config/types.ts";
+import {
+  Format,
+  FormatDependency,
+  FormatLanguage,
+} from "../../../config/types.ts";
 import { ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
@@ -37,6 +41,16 @@ import {
   cookieConsentEnabled,
   scriptTagWithConsent,
 } from "./website-analytics.ts";
+import {
+  kLanguageDefaults,
+  kSearchMatchingDocumentsText,
+  kSearchMoreMatchesText,
+  kSearchNoResultsText,
+} from "../../../config/constants.ts";
+import { kSearchCopyLinkTitle } from "../../../config/constants.ts";
+import { kSearchHideMatchesText } from "../../../config/constants.ts";
+import { kSearchMoreMatchText } from "../../../config/constants.ts";
+import { kSearchInThisDocumentText } from "../../../config/constants.ts";
 
 // The main search key
 const kSearch = "search";
@@ -71,6 +85,7 @@ interface SearchOptions {
   [kPanelPlacement]: "start" | "end" | "full-width" | "input-wrapper-width";
   [kLimit]?: number;
   [kAlgolia]?: SearchOptionsAlgolia;
+  [kLanguageDefaults]?: FormatLanguage;
 }
 
 const kSearchOnlyApiKey = "search-only-api-key";
@@ -333,7 +348,7 @@ function algoliaOptions(searchConfig: Record<string, unknown>) {
   }
 }
 
-function searchInputLocation(
+export function searchInputLocation(
   project: ProjectContext,
 ): SearchInputLocation {
   const searchConfig = websiteConfig(kSearch, project.config);
@@ -372,25 +387,36 @@ export function websiteSearchSassBundle() {
   };
 }
 
-export function websiteSearchIncludeInHeader(project: ProjectContext) {
+export function websiteSearchIncludeInHeader(
+  project: ProjectContext,
+  format: Format,
+) {
   // Generates a script tag that contains the options for configuring search
   // which is ready in quarto-search.js
   const websiteSearchScript = sessionTempFile({ suffix: "html" });
-  const options = searchOptions(project);
+  const options = searchOptions(project) || {} as SearchOptions;
+  options[kLanguageDefaults] = {
+    [kSearchNoResultsText]: format.language[kSearchNoResultsText],
+    [kSearchMatchingDocumentsText]:
+      format.language[kSearchMatchingDocumentsText],
+    [kSearchCopyLinkTitle]: format.language[kSearchCopyLinkTitle],
+    [kSearchHideMatchesText]: format.language[kSearchHideMatchesText],
+    [kSearchMoreMatchText]: format.language[kSearchMoreMatchText],
+    [kSearchMoreMatchesText]: format.language[kSearchMoreMatchesText],
+    [kSearchInThisDocumentText]: format.language[kSearchInThisDocumentText],
+  };
+
   const searchOptionsJson = JSON.stringify(options, null, 2);
   const searchOptionsScript =
     `<script id="quarto-search-options" type="application/json">${searchOptionsJson}</script>`;
   const includes = [searchOptionsScript];
 
-  if (options) {
-    const algoliaOpts = options[kAlgolia];
-    if (algoliaOpts) {
-      includes.push(kAlogioSearchApiScript);
-      if (algoliaOpts[kAnalyticsEvents]) {
-        const cookieConsent = cookieConsentEnabled(project);
-        includes.push(algoliaSearchInsightsScript(cookieConsent));
-        includes.push(autocompleteInsightsPluginScript(cookieConsent));
-      }
+  if (options[kAlgolia]) {
+    includes.push(kAlogioSearchApiScript);
+    if (options[kAlgolia]?.[kAnalyticsEvents]) {
+      const cookieConsent = cookieConsentEnabled(project);
+      includes.push(algoliaSearchInsightsScript(cookieConsent));
+      includes.push(autocompleteInsightsPluginScript(cookieConsent));
     }
   }
 

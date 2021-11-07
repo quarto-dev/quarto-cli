@@ -16,6 +16,12 @@ code-tools-show-all-code: "Show All Code"
 code-tools-hide-all-code: "Hide All Code"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
-# "Home"
-# Search UI
+
+search-no-results-text: "No results"
+search-matching-documents-text: "matching documents"
+search-copy-link-title: "Copy link to search"
+search-hide-matches-text: "Hide additional matches"
+search-more-match-text: "more match"
+search-more-matches-text: "more matches"
+search-in-this-document-text: "in this document"
 # crossrefs
