@@ -50,7 +50,6 @@ export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
 export const kCodeFold = "code-fold";
 export const kCodeLineNumbers = "code-line-numbers";
-export const kCodeSummary = "code-summary";
 export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";
@@ -110,7 +109,6 @@ export const kRenderDefaultsKeys = [
   kCodeFold,
   kCodeLink,
   kCodeLineNumbers,
-  kCodeSummary,
   kCodeOverflow,
   kCodeTools,
   kSelfContainedMath,
@@ -136,6 +134,7 @@ export const kCalloutWarningCaption = "callout-warning-caption";
 export const kCalloutImportantCaption = "callout-important-caption";
 export const kCalloutDangerCaption = "callout-danger-caption";
 export const kSectionTitleFootnotes = "section-title-footnotes";
+export const kCodeSummary = "code-summary";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
 export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
@@ -151,6 +150,7 @@ export const kLanguageDefaultsKeys = [
   kCalloutImportantCaption,
   kCalloutDangerCaption,
   kSectionTitleFootnotes,
+  kCodeSummary,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
   kCodeToolsHideAllCode,

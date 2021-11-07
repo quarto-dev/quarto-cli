@@ -233,7 +233,6 @@ export interface FormatRender {
   [kPageWidth]?: number;
   [kFigAlign]?: "left" | "right" | "center" | "default";
   [kCodeFold]?: "none" | "show" | "hide" | boolean;
-  [kCodeSummary]?: string;
   [kCodeOverflow]?: "wrap" | "scroll";
   [kCodeLink]?: boolean;
   [kCodeLineNumbers]?: boolean;
@@ -364,6 +363,7 @@ export interface FormatLanguage {
   [kCalloutImportantCaption]?: string;
   [kCalloutDangerCaption]?: string;
   [kSectionTitleFootnotes]?: string;
+  [kCodeSummary]?: string;
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;
   [kCodeToolsHideAllCode]?: string;

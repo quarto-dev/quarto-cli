@@ -225,6 +225,7 @@ function referenceLocationArg(args: string[]) {
 
 function languageFilterParams(language: FormatLanguage) {
   const params: Metadata = {
+    [kCodeSummary]: language[kCodeSummary],
     [kCalloutTipCaption]: language[kCalloutTipCaption],
     [kCalloutNoteCaption]: language[kCalloutNoteCaption],
     [kCalloutImportantCaption]: language[kCalloutImportantCaption],
@@ -264,10 +265,6 @@ function quartoFilterParams(format: Format) {
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;
-  }
-  const foldSummary = format.render[kCodeSummary];
-  if (foldSummary) {
-    params[kCodeSummary] = foldSummary;
   }
   const lineNumbers = format.render[kCodeLineNumbers];
   if (lineNumbers) {
