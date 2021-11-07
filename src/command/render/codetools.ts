@@ -9,7 +9,15 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { kMarkdownBlockSeparator } from "./types.ts";
 import { Format } from "../../config/types.ts";
-import { kCodeTools, kKeepSource } from "../../config/constants.ts";
+import {
+  kCodeTools,
+  kCodeToolsHideAllCode,
+  kCodeToolsMenuCaption,
+  kCodeToolsShowAllCode,
+  kCodeToolsSourceCode,
+  kCodeToolsViewSource,
+  kKeepSource,
+} from "../../config/constants.ts";
 import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 
 import { isHtmlOutput } from "../../config/format.ts";
@@ -168,11 +176,20 @@ export function codeToolsPostprocessor(format: Format) {
               li.appendChild(hr);
               ul.appendChild(li);
             };
-            addListItem(kShowAllCodeLinkId, "Show All Code");
-            addListItem(kHideAllCodeLinkId, "Hide All Code");
+            addListItem(
+              kShowAllCodeLinkId,
+              format.language[kCodeToolsShowAllCode]!,
+            );
+            addListItem(
+              kHideAllCodeLinkId,
+              format.language[kCodeToolsHideAllCode]!,
+            );
             if (codeTools.source) {
               addDivider();
-              const vsLi = addListItem(kViewSourceLinkId, "View Source");
+              const vsLi = addListItem(
+                kViewSourceLinkId,
+                format.language[kCodeToolsViewSource]!,
+              );
               if (typeof (codeTools.source) === "string") {
                 (vsLi.firstChild as Element).setAttribute(
                   kDataQuartoSourceUrl,
@@ -214,12 +231,13 @@ export function codeToolsPostprocessor(format: Format) {
             const h5 = doc.createElement("h5");
             h5.classList.add("modal-title");
             h5.setAttribute("id", kEmbeddedSourceModalLabelId);
-            h5.appendChild(doc.createTextNode("Source Code"));
+            h5.appendChild(
+              doc.createTextNode(format.language[kCodeToolsSourceCode]!),
+            );
             modalDialogHeader.appendChild(h5);
             const button = doc.createElement("button");
             button.classList.add("btn-close");
             button.setAttribute("data-bs-dismiss", "modal");
-            button.setAttribute("aria-label", "Close");
             modalDialogHeader.appendChild(button);
             modalContentDiv.appendChild(modalDialogHeader);
             const modalBody = doc.createElement("div");
@@ -249,7 +267,7 @@ interface CodeTools {
 
 function resolveCodeTools(format: Format, doc: Document): CodeTools {
   // determine user prefs
-  const kCodeCaption = "Code";
+  const kCodeCaption = format.language[kCodeToolsMenuCaption]!;
   const codeTools = format?.render[kCodeTools];
   const codeToolsResolved = {
     source: typeof (codeTools) === "boolean"

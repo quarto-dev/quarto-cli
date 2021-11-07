@@ -10,6 +10,7 @@ export const kMetadataFormat = "format";
 export const kRenderDefaults = "render";
 export const kExecuteDefaults = "execute";
 export const kPandocDefaults = "pandoc";
+export const kLanguageDefaults = "language";
 export const kPandocMetadata = "metadata";
 
 export const kFigWidth = "fig.width";
@@ -49,7 +50,6 @@ export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
 export const kCodeFold = "code-fold";
 export const kCodeLineNumbers = "code-line-numbers";
-export const kCodeSummary = "code-summary";
 export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";
@@ -109,7 +109,6 @@ export const kRenderDefaultsKeys = [
   kCodeFold,
   kCodeLink,
   kCodeLineNumbers,
-  kCodeSummary,
   kCodeOverflow,
   kCodeTools,
   kSelfContainedMath,
@@ -124,6 +123,60 @@ export const kRenderDefaultsKeys = [
   kLatexOutputDir,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+];
+
+// language fields
+export const kTocTitleDocument = "toc-title-document";
+export const kTocTitleWebsite = "toc-title-website";
+export const kCalloutTipCaption = "callout-tip-caption";
+export const kCalloutNoteCaption = "callout-note-caption";
+export const kCalloutWarningCaption = "callout-warning-caption";
+export const kCalloutImportantCaption = "callout-important-caption";
+export const kCalloutDangerCaption = "callout-danger-caption";
+export const kSectionTitleFootnotes = "section-title-footnotes";
+export const kCodeSummary = "code-summary";
+export const kCodeToolsMenuCaption = "code-tools-menu-caption";
+export const kCodeToolsShowAllCode = "code-tools-show-all-code";
+export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
+export const kCodeToolsViewSource = "code-tools-view-source";
+export const kCodeToolsSourceCode = "code-tools-source-code";
+export const kSearchNoResultsText = "search-no-results-text";
+export const kSearchMatchingDocumentsText = "search-matching-documents-text";
+export const kSearchCopyLinkTitle = "search-copy-link-title";
+export const kSearchHideMatchesText = "search-hide-matches-text";
+export const kSearchMoreMatchText = "search-more-match-text";
+export const kSearchMoreMatchesText = "search-more-matches-text";
+export const kSearchInThisDocumentText = "search-in-this-document-text";
+export const kSearchClearButtonTitle = "search-clear-button-title";
+export const kSearchDetatchedCancelButtonTitle =
+  "search-detached-cancel-button-title";
+export const kSearchSubmitButtonTitle = "search-submit-button-title";
+
+export const kLanguageDefaultsKeys = [
+  kTocTitleDocument,
+  kTocTitleWebsite,
+  kCalloutTipCaption,
+  kCalloutNoteCaption,
+  kCalloutWarningCaption,
+  kCalloutImportantCaption,
+  kCalloutDangerCaption,
+  kSectionTitleFootnotes,
+  kCodeSummary,
+  kCodeToolsMenuCaption,
+  kCodeToolsShowAllCode,
+  kCodeToolsHideAllCode,
+  kCodeToolsViewSource,
+  kCodeToolsSourceCode,
+  kSearchNoResultsText,
+  kSearchMatchingDocumentsText,
+  kSearchCopyLinkTitle,
+  kSearchHideMatchesText,
+  kSearchMoreMatchText,
+  kSearchMoreMatchesText,
+  kSearchInThisDocumentText,
+  kSearchClearButtonTitle,
+  kSearchDetatchedCancelButtonTitle,
+  kSearchSubmitButtonTitle,
 ];
 
 // 'defaults' fields
@@ -188,6 +241,8 @@ export const kDate = "date";
 export const kDoi = "doi";
 export const kAbstract = "abstract";
 export const kDescription = "description";
+export const kTocTitle = "toc-title";
+export const kLang = "lang";
 
 export const kServer = "server";
 
@@ -199,7 +254,6 @@ export const kBibliography = "bibliography";
 export const kHeaderIncludes = "header-includes";
 export const kIncludeBefore = "include-before";
 export const kIncludeAfter = "include-after";
-export const kTocTitle = "toc-title";
 export const kLinkCitations = "link-citations";
 export const kDocumentClass = "documentclass";
 export const kClassOption = "classoption";

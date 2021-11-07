@@ -122,6 +122,7 @@ import {
 import { Metadata } from "../../config/types.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
 import { initDenoDom } from "../../core/html.ts";
+import { resolveLanguageMetadata } from "../../core/language.ts";
 
 export async function renderFiles(
   files: string[],
@@ -777,6 +778,9 @@ export function resolveFormatsFromMetadata(
     flags?.metadata || {},
   );
 
+  // resolve any language file references
+  resolveLanguageMetadata(allMetadata, includeDir);
+
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
 
@@ -876,7 +880,9 @@ export function filesDirLibDir(input: string) {
 
 async function runHtmlPostprocessors(
   options: PandocOptions,
-  htmlPostprocessors: Array<(doc: Document) => Promise<string[]>>,
+  htmlPostprocessors: Array<
+    (doc: Document) => Promise<string[]>
+  >,
 ): Promise<string[]> {
   const resourceRefs: string[] = [];
   if (htmlPostprocessors.length > 0) {

@@ -16,8 +16,8 @@ import {
   kLinkCitations,
   kReferenceLocation,
   kSectionDivs,
+  kSectionTitleFootnotes,
   kTheme,
-  kTocTitle,
 } from "../../config/constants.ts";
 import {
   Format,
@@ -30,16 +30,12 @@ import {
 } from "../../config/types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { PandocFlags } from "../../config/types.ts";
-import {
-  hasTableOfContents,
-  hasTableOfContentsTitle,
-} from "../../config/toc.ts";
+import { hasTableOfContents } from "../../config/toc.ts";
 
 import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
   kBootstrapDependencyName,
   kDocumentCss,
-  kFootnoteSectionTitle,
   kPageLayout,
   kPageLayoutArticle,
   kPageLayoutCustom,
@@ -161,10 +157,6 @@ export function boostrapExtras(
       [kDocumentCss]: false,
       [kLinkCitations]: true,
     },
-    [kTocTitle]: !hasTableOfContentsTitle(flags, format)
-      ? "Table of contents"
-      : undefined,
-
     html: {
       [kSassBundles]: resolveBootstrapScss(input, format),
       [kDependencies]: [bootstrapFormatDependency()],
@@ -512,8 +504,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     } else if (footnotes.length === 1) {
       const footnotesEl = footnotes.item(0) as Element;
       const h2 = doc.createElement("h2");
-      const title =
-        (format.metadata[kFootnoteSectionTitle] || "Footnotes") as string;
+      const title = format.language[kSectionTitleFootnotes];
       if (typeof (title) == "string" && title !== "none") {
         h2.innerHTML = title;
       }

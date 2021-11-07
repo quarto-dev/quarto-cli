@@ -28,6 +28,7 @@ import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 import { includedMetadata } from "../config/metadata.ts";
 import {
   kHtmlMathMethod,
+  kLanguageDefaults,
   kMetadataFile,
   kMetadataFiles,
   kQuartoVarsKey,
@@ -36,6 +37,10 @@ import {
 import { projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
+import {
+  readLanguageTranslations,
+  resolveLanguageMetadata,
+} from "../core/language.ts";
 
 import {
   engineIgnoreGlobs,
@@ -89,11 +94,14 @@ export async function projectContext(
   while (true) {
     const configFile = projectConfigFile(dir);
     if (configFile) {
+      // config files are the main file + any subfiles read
+      const configFiles = [configFile];
+
       let projectConfig: ProjectConfig = readYaml(configFile) as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
       const includedMeta = includedMetadata(dir, projectConfig);
       const metadata = includedMeta.metadata;
-      const metadataFileRefs = includedMeta.files;
+      configFiles.push(...includedMeta.files);
       projectConfig = mergeConfigs(projectConfig, metadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
@@ -104,12 +112,17 @@ export async function projectContext(
       // read vars and merge into the project
       const varsFile = projectVarsFile(dir);
       if (varsFile) {
+        configFiles.push(varsFile);
         const vars = readYaml(varsFile) as Metadata;
         projectConfig[kQuartoVarsKey] = mergeConfigs(
           projectConfig[kQuartoVarsKey] || {},
           vars,
         );
       }
+
+      // resolve translations
+      const translationFiles = resolveLanguageTranslations(projectConfig, dir);
+      configFiles.push(...translationFiles);
 
       if (projectConfig?.project) {
         // provide output-dir from command line if specfified
@@ -150,8 +163,8 @@ export async function projectContext(
           files: {
             input: files,
             resources: projectResourceFiles(dir, projectConfig),
-            config: [configFile].concat(metadataFileRefs),
-            configResources: projectConfigResources(dir, type, projectConfig),
+            config: configFiles,
+            configResources: projectConfigResources(dir, projectConfig, type),
           },
           config: projectConfig,
           formatExtras: type.formatExtras,
@@ -164,6 +177,9 @@ export async function projectContext(
           config: projectConfig,
           files: {
             input: files,
+            resources: projectResourceFiles(dir, projectConfig),
+            config: configFiles,
+            configResources: projectConfigResources(dir, projectConfig),
           },
         };
       }
@@ -213,6 +229,25 @@ function migrateProjectConfig(projectConfig: ProjectConfig) {
     delete projectConfig[kSite];
   }
   return projectConfig;
+}
+
+function resolveLanguageTranslations(
+  projectConfig: ProjectConfig,
+  dir: string,
+) {
+  const files: string[] = [];
+
+  // read any language file pointed to by the project
+  files.push(...resolveLanguageMetadata(projectConfig, dir));
+
+  // read _language.yml and merge into the project
+  const translations = readLanguageTranslations(join(dir, "_language.yml"));
+  projectConfig[kLanguageDefaults] = mergeConfigs(
+    translations.language,
+    projectConfig[kLanguageDefaults],
+  );
+  files.push(...translations.files);
+  return files;
 }
 
 // read project context (if there is no project config file then still create
@@ -396,12 +431,14 @@ function projectInputFiles(
 
 function projectConfigResources(
   dir: string,
-  type: ProjectType,
   metadata: Metadata,
+  type?: ProjectType,
 ) {
-  const resourceIgnoreFields = ["project"].concat(
-    type.resourceIgnoreFields ? type.resourceIgnoreFields() : [],
-  );
+  const resourceIgnoreFields = type
+    ? ["project"].concat(
+      type.resourceIgnoreFields ? type.resourceIgnoreFields() : [],
+    )
+    : [];
   const resources: string[] = [];
   const findResources = (
     collection: Array<unknown> | Record<string, unknown>,

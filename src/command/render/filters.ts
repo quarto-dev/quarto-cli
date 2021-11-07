@@ -7,6 +7,11 @@
 import {
   kBibliography,
   kCiteMethod,
+  kCalloutDangerCaption,
+  kCalloutImportantCaption,
+  kCalloutNoteCaption,
+  kCalloutTipCaption,
+  kCalloutWarningCaption,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
@@ -23,7 +28,7 @@ import {
   kReferenceLocation,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
-import { Format, FormatPandoc } from "../../config/types.ts";
+import { Format, FormatLanguage, FormatPandoc } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
@@ -73,6 +78,7 @@ export function filterParamsJson(
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
+    ...languageFilterParams(options.format.language),
     ...filterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
   };
@@ -224,6 +230,18 @@ function referenceLocationArg(args: string[]) {
   }
 }
 
+function languageFilterParams(language: FormatLanguage) {
+  const params: Metadata = {
+    [kCodeSummary]: language[kCodeSummary],
+    [kCalloutTipCaption]: language[kCalloutTipCaption],
+    [kCalloutNoteCaption]: language[kCalloutNoteCaption],
+    [kCalloutImportantCaption]: language[kCalloutImportantCaption],
+    [kCalloutWarningCaption]: language[kCalloutWarningCaption],
+    [kCalloutDangerCaption]: language[kCalloutDangerCaption],
+  };
+  return params;
+}
+
 function projectFilterParams(options: PandocOptions) {
   // see if the project wants to provide any filter params
   const projType = projectType(
@@ -254,10 +272,6 @@ function quartoFilterParams(format: Format) {
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;
-  }
-  const foldSummary = format.render[kCodeSummary];
-  if (foldSummary) {
-    params[kCodeSummary] = foldSummary;
   }
   const lineNumbers = format.render[kCodeLineNumbers];
   if (lineNumbers) {
