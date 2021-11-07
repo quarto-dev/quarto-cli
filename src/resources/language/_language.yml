@@ -8,3 +8,13 @@ callout-important-caption: "Important"
 callout-danger-caption: "Danger"
 
 section-title-footnotes: "Footnotes"
+
+code-tools-menu-caption: "Code"
+code-tools-show-all-code: "Show All Code"
+code-tools-hide-all-code: "Hide All Code"
+code-tools-view-source: "View Source"
+code-tools-source-code: "Source Code"
+# Code (folding)
+# "Home"
+# Search UI
+# crossrefs

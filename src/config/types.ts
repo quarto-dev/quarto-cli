@@ -22,6 +22,11 @@ import {
   kCodeOverflow,
   kCodeSummary,
   kCodeTools,
+  kCodeToolsHideAllCode,
+  kCodeToolsMenuCaption,
+  kCodeToolsShowAllCode,
+  kCodeToolsSourceCode,
+  kCodeToolsViewSource,
   kCss,
   kEcho,
   kEngine,
@@ -359,6 +364,11 @@ export interface FormatLanguage {
   [kCalloutImportantCaption]?: string;
   [kCalloutDangerCaption]?: string;
   [kSectionTitleFootnotes]?: string;
+  [kCodeToolsMenuCaption]?: string;
+  [kCodeToolsShowAllCode]?: string;
+  [kCodeToolsHideAllCode]?: string;
+  [kCodeToolsViewSource]?: string;
+  [kCodeToolsSourceCode]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

@@ -136,6 +136,11 @@ export const kCalloutWarningCaption = "callout-warning-caption";
 export const kCalloutImportantCaption = "callout-important-caption";
 export const kCalloutDangerCaption = "callout-danger-caption";
 export const kSectionTitleFootnotes = "section-title-footnotes";
+export const kCodeToolsMenuCaption = "code-tools-menu-caption";
+export const kCodeToolsShowAllCode = "code-tools-show-all-code";
+export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
+export const kCodeToolsViewSource = "code-tools-view-source";
+export const kCodeToolsSourceCode = "code-tools-source-code";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -146,6 +151,11 @@ export const kLanguageDefaultsKeys = [
   kCalloutImportantCaption,
   kCalloutDangerCaption,
   kSectionTitleFootnotes,
+  kCodeToolsMenuCaption,
+  kCodeToolsShowAllCode,
+  kCodeToolsHideAllCode,
+  kCodeToolsViewSource,
+  kCodeToolsSourceCode,
 ];
 
 // 'defaults' fields
