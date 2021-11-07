@@ -21,10 +21,12 @@ import { mergeConfigs } from "./config.ts";
 export function readLanguageTranslations(
   translationFile: string,
   lang?: string,
-): FormatLanguage {
-  // read and parse yaml if it exists
+): { language: FormatLanguage; files: string[] } {
+  // read and parse yaml if it exists (track files read)
+  const files: string[] = [];
   const maybeReadYaml = (file: string) => {
     if (existsSync(file)) {
+      files.push(Deno.realPathSync(file));
       return readYaml(file) as FormatLanguage;
     } else {
       return {} as FormatLanguage;
@@ -86,7 +88,7 @@ export function readLanguageTranslations(
     });
   }
 
-  return language;
+  return { language, files };
 }
 
 export function readDefaultLanguageTranslations(lang: string) {
@@ -104,11 +106,14 @@ export function resolveLanguageMetadata(metadata: Metadata, dir: string) {
         "Specified 'language' file does not exist: " + translationsFile,
       );
     }
-    metadata[kLanguageDefaults] = readLanguageTranslations(
-      translationsFile,
-    );
+    const translations = readLanguageTranslations(translationsFile);
+    metadata[kLanguageDefaults] = translations.language;
+    return translations.files;
   } else if (typeof (metadata[kLanguageDefaults]) !== "object") {
     metadata[kLanguageDefaults] = {};
+    return [];
+  } else {
+    return [];
   }
 }
 
