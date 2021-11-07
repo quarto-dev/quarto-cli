@@ -41,16 +41,7 @@ import {
   cookieConsentEnabled,
   scriptTagWithConsent,
 } from "./website-analytics.ts";
-import {
-  kLanguageDefaults,
-  kSearchMatchingDocumentsText,
-  kSearchMoreMatchesText,
-  kSearchNoResultsText,
-} from "../../../config/constants.ts";
-import { kSearchCopyLinkTitle } from "../../../config/constants.ts";
-import { kSearchHideMatchesText } from "../../../config/constants.ts";
-import { kSearchMoreMatchText } from "../../../config/constants.ts";
-import { kSearchInThisDocumentText } from "../../../config/constants.ts";
+import { kLanguageDefaults } from "../../../config/constants.ts";
 
 // The main search key
 const kSearch = "search";
@@ -395,16 +386,12 @@ export function websiteSearchIncludeInHeader(
   // which is ready in quarto-search.js
   const websiteSearchScript = sessionTempFile({ suffix: "html" });
   const options = searchOptions(project) || {} as SearchOptions;
-  options[kLanguageDefaults] = {
-    [kSearchNoResultsText]: format.language[kSearchNoResultsText],
-    [kSearchMatchingDocumentsText]:
-      format.language[kSearchMatchingDocumentsText],
-    [kSearchCopyLinkTitle]: format.language[kSearchCopyLinkTitle],
-    [kSearchHideMatchesText]: format.language[kSearchHideMatchesText],
-    [kSearchMoreMatchText]: format.language[kSearchMoreMatchText],
-    [kSearchMoreMatchesText]: format.language[kSearchMoreMatchesText],
-    [kSearchInThisDocumentText]: format.language[kSearchInThisDocumentText],
-  };
+  options[kLanguageDefaults] = {} as FormatLanguage;
+  Object.keys(format.language).forEach((key) => {
+    if (key.startsWith("search-")) {
+      options[kLanguageDefaults]![key] = format.language[key];
+    }
+  });
 
   const searchOptionsJson = JSON.stringify(options, null, 2);
   const searchOptionsScript =

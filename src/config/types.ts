@@ -78,12 +78,15 @@ import {
   kPdfEngineOpts,
   kPreferHtml,
   kReferenceLocation,
+  kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
+  kSearchDetatchedCancelButtonTitle,
   kSearchHideMatchesText,
   kSearchInThisDocumentText,
   kSearchMatchingDocumentsText,
   kSearchMoreMatchText,
   kSearchNoResultsText,
+  kSearchSubmitButtonTitle,
   kSectionDivs,
   kSectionTitleFootnotes,
   kSelfContained,
@@ -382,6 +385,9 @@ export interface FormatLanguage {
   [kSearchMoreMatchText]?: string;
   [kSearchHideMatchesText]?: string;
   [kSearchInThisDocumentText]?: string;
+  [kSearchClearButtonTitle]?: string;
+  [kSearchDetatchedCancelButtonTitle]?: string;
+  [kSearchSubmitButtonTitle]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

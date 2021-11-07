@@ -101,6 +101,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     classNames: {
       form: "d-flex",
     },
+    translations: {
+      clearButtonTitle: language["search-clear-button-title"],
+      detachedCancelButtonText: language["search-detached-cancel-button-title"],
+      submitButtonTitle: language["search-submit-button-title"],
+    },
     initialState: {
       query,
     },
