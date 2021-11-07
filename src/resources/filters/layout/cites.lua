@@ -16,24 +16,27 @@ function citesPreprocess()
       end
     end,
 
-    Image = function(img)
-      if isLatexOutput() and hasFigureRef(img) then
-        if hasGutterColumn(img) then
+    Para = function(para)
+      local figure = discoverFigure(para)
+      if figure and isLatexOutput() and hasFigureRef(figure) then
+        if hasGutterColumn(figure) then
           -- This is a figure in the gutter itself, we need to append citations at the end of the caption
           -- without any floating
-          return pandoc.walk_inline(img, {
+          para.content[1] = pandoc.walk_inline(figure, {
               Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
                 appendAtEnd(citePlaceholderInlineWithProtection(citation))
               end)
             })
+          return para
         elseif refsInGutter then
           -- This is a figure is in the body, but the citation should be in the margin. Use 
           -- protection to shift any citations over
-          return pandoc.walk_inline(img, {
+          para.content[1] = pandoc.walk_inline(figure, {
             Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
               appendInline(marginCitePlaceholderWithProtection(citation))
             end)
           })
+          return para
         end   
       end
     end,
