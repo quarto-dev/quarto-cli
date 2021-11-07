@@ -558,6 +558,22 @@ function latexFigureEnv(el)
   end
 end
 
+function latexOtherEnv(el)
+    -- if not user specified, look for other classes which might determine environment
+    local classes = el.classes
+    if classes ~= nil then
+      for i,class in ipairs(classes) do
+
+        -- any column that resolves to full width
+        if isStarEnv(class) then
+          noteHasColumns()
+          return "figure*"
+        end
+      end  
+    end
+    return nil
+end
+
 function latexTableEnv(el)
  
   local classes = el.classes

@@ -76,6 +76,7 @@ function renderDivColumn(el)
         local figOrTable = false
         for j, contentEl in ipairs(el.content) do
 
+
           -- wrap figures
           local figure = discoverFigure(contentEl, true)
           if figure ~= nil then
@@ -93,9 +94,7 @@ function renderDivColumn(el)
         end
 
         if not figOrTable then
-          -- other things (margin notes)
-          tprepend(el.content, {latexBeginSidenote()});
-          tappend(el.content, {latexEndSidenote(el)})
+          processOtherContent(el.content)
         end
       else
         -- this is not a code cell so process it
@@ -105,9 +104,7 @@ function renderDivColumn(el)
           elseif hasFigureRef(el) then
             latexWrapEnvironment(el, latexFigureEnv(el), false)
           else
-            -- other things (margin notes)
-            tprepend(el.content, {latexBeginSidenote()});
-            tappend(el.content, {latexEndSidenote(el)})
+            processOtherContent(el)
           end
         end
       end   
@@ -116,6 +113,23 @@ function renderDivColumn(el)
       latexMarkupCaptionEnv(el);
     end
   end
+end
+
+function processOtherContent(el)
+  if hasGutterColumn(el) then
+    -- (margin notes)
+    noteHasColumns()
+    tprepend(el.content, {latexBeginSidenote()});
+    tappend(el.content, {latexEndSidenote(el)})
+  else 
+    -- column classes, but not a table or figure, so 
+    -- handle appropriately
+    local otherEnv = latexOtherEnv(el)
+    if otherEnv ~= nil then
+      latexWrapEnvironment(el, otherEnv, false)
+    end
+  end
+  removeColumnClasses(el)
 end
 
 function hasGutterColumn(el)
@@ -147,10 +161,12 @@ function columnToClass(column)
 end
 
 function removeColumnClasses(el)
-  for i, clz in ipairs(el.attr.classes) do 
-    if isColumnClass(clz) then
-      el.attr.classes:remove(i)
-    end
+  if el.attr and el.attr.classes then
+    for i, clz in ipairs(el.attr.classes) do 
+      if isColumnClass(clz) then
+        el.attr.classes:remove(i)
+      end
+    end  
   end
 end
 
