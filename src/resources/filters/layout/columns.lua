@@ -80,7 +80,9 @@ function renderDivColumn(el)
           -- wrap figures
           local figure = discoverFigure(contentEl, true)
           if figure ~= nil then
-            latexWrapEnvironment(contentEl, latexFigureEnv(el), true)
+            -- just ensure the classes are - they will be resolved
+            -- when the latex figure is rendered
+            addColumnClasses(columnClasses, figure)
             figOrTable = true
           elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
             -- wrap table divs
@@ -168,6 +170,15 @@ function removeColumnClasses(el)
       end
     end  
   end
+end
+
+function addColumnClasses(classes, toEl) 
+  removeColumnClasses(toEl)
+  for i, clz in ipairs(classes) do 
+    if isColumnClass(clz) then
+      toEl.attr.classes:insert(clz)
+    end
+  end  
 end
 
 function removeCaptionClasses(el)
