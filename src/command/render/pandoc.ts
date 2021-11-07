@@ -25,7 +25,6 @@ import {
   DependencyFile,
   Format,
   FormatExtras,
-  FormatLanguage,
   FormatPandoc,
   kBodyEnvelope,
   kDependencies,
@@ -172,10 +171,35 @@ export async function runPandoc(
     sysFilters = sysFilters.filter((filter) => filter !== kOJSFilter);
   }
 
+  // now that 'lang' is resolved we can determine our actual language values
+
+  // start with system defaults for the current language
+  const langCode = (options.format.metadata[kLang] as string | undefined) ||
+    "en";
+  const language = readDefaultLanguageTranslations(langCode);
+  // merge any user provided language w/ the defaults
+  options.format.language = mergeConfigs(
+    language,
+    options.format.language || {},
+  );
+
+  // now select the correct variations based on the lang code and translations
+  options.format.language = translationsForLang(
+    options.format.language,
+    langCode,
+  );
+
+  // if there is no toc title then provide the appropirate default
+  if (!options.format.metadata[kTocTitle]) {
+    options.format.metadata[kTocTitle] = options.format.language[
+      projectIsWebsite(options.project) ? kTocTitleWebsite : kTocTitleDocument
+    ];
+  }
+
   // see if there are extras
   const postprocessors: Array<(output: string) => Promise<void>> = [];
   const htmlPostprocessors: Array<
-    (doc: Document, language: FormatLanguage) => Promise<string[]>
+    (doc: Document) => Promise<string[]>
   > = [];
   const htmlRenderAfterBody: string[] = [];
   if (
@@ -336,31 +360,6 @@ export async function runPandoc(
         formatFilterParams[key] = filterParams[key];
       });
     }
-  }
-
-  // now that 'lang' is resolved we can determine our actual language values
-
-  // start with system defaults for the current language
-  const langCode = (options.format.metadata[kLang] as string | undefined) ||
-    "en";
-  const language = readDefaultLanguageTranslations(langCode);
-  // merge any user provided language w/ the defaults
-  options.format.language = mergeConfigs(
-    language,
-    options.format.language || {},
-  );
-
-  // now select the correct variations based on the lang code and translations
-  options.format.language = translationsForLang(
-    options.format.language,
-    langCode,
-  );
-
-  // if there is no toc title then provide the appropirate default
-  if (!options.format.metadata[kTocTitle]) {
-    options.format.metadata[kTocTitle] = options.format.language[
-      projectIsWebsite(options.project) ? kTocTitleWebsite : kTocTitleDocument
-    ];
   }
 
   // resolve some title variables
@@ -552,7 +551,6 @@ export async function runPandoc(
   if (result.success) {
     return {
       resources,
-      language: options.format.language,
       postprocessors,
       htmlPostprocessors: isHtmlOutput(options.format.pandoc)
         ? htmlPostprocessors

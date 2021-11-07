@@ -64,7 +64,7 @@ import {
   kServer,
   kTheme,
 } from "../../config/constants.ts";
-import { Format, FormatLanguage, FormatPandoc } from "../../config/types.ts";
+import { Format, FormatPandoc } from "../../config/types.ts";
 import {
   executionEngineKeepMd,
   fileExecutionEngine,
@@ -529,7 +529,6 @@ export async function renderPandoc(
   // run html postprocessors if we have them
   const resourceRefs = await runHtmlPostprocessors(
     pandocOptions,
-    pandocResult.language,
     pandocResult.htmlPostprocessors,
   );
 
@@ -881,9 +880,8 @@ export function filesDirLibDir(input: string) {
 
 async function runHtmlPostprocessors(
   options: PandocOptions,
-  language: FormatLanguage,
   htmlPostprocessors: Array<
-    (doc: Document, language: FormatLanguage) => Promise<string[]>
+    (doc: Document) => Promise<string[]>
   >,
 ): Promise<string[]> {
   const resourceRefs: string[] = [];
@@ -896,7 +894,7 @@ async function runHtmlPostprocessors(
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
     for (let i = 0; i < htmlPostprocessors.length; i++) {
       const postprocessor = htmlPostprocessors[i];
-      resourceRefs.push(...(await postprocessor(doc, language)));
+      resourceRefs.push(...(await postprocessor(doc)));
     }
     const htmlOutput = (doctypeMatch ? doctypeMatch[0] + "\n" : "") +
       doc.documentElement?.outerHTML!;

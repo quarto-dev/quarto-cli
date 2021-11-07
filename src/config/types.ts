@@ -187,7 +187,7 @@ export interface FormatExtras {
     [kBodyEnvelope]?: BodyEnvelope;
     [kTemplatePatches]?: Array<(template: string) => string>;
     [kHtmlPostprocessors]?: Array<
-      (doc: Document, language: FormatLanguage) => Promise<string[]>
+      (doc: Document) => Promise<string[]>
     >;
     [kTextHighlightingMode]?: "light" | "dark" | "none" | undefined;
     [kQuartoCssVariables]?: string[];
