@@ -42,7 +42,7 @@ export function* attemptParsesAtLine(context, parser)
     };
   }
 
-  const codeLines = core.rangedLines(code.value);
+  const codeLines = core.rangedLines(code.value, true);
 
   // in markdown files, we are passed chunks of text one at a time, and
   // sometimes the cursor lies outside those chunks. In that case, we cannot
@@ -54,22 +54,32 @@ export function* attemptParsesAtLine(context, parser)
   const currentLine = codeLines[position.row].substring;
   let currentColumn = position.column;
   let deletions = 0;
+  const locF = core.rowColToIndex(code.value);
 
   while (currentColumn > 0) {
     currentColumn--;
     deletions++;
-
+    
     let chunks = [];
     if (position.row > 0) {
       chunks.push({
         start: 0,
         end: codeLines[position.row - 1].range.end
       });
-      chunks.push("\n");
     }
-    chunks.push(`${currentLine.substring(0, currentColumn)}`);
+
+    if (position.column > deletions) {
+      chunks.push({
+        start: locF({ row: position.row, column: 0 }),
+        end: locF({ row: position.row, column: position.column - deletions })
+      });
+    }
+
     if (position.row + 1 < codeLines.length) {
-      chunks.push("\n");
+      chunks.push({
+        start: locF({ row: position.row, column: currentLine.length - 1 }),
+        end: locF({ row: position.row + 1, column: 0 })
+      });
       chunks.push({
         start: codeLines[position.row + 1].range.start,
         end: codeLines[codeLines.length - 1].range.end

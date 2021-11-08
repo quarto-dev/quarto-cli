@@ -7048,7 +7048,7 @@ window.ajv = new window.ajv7({ allErrors: true });
     const re = /\r?\n/g;
     let match;
     while ((match = re.exec(text)) != null) {
-      offsets.push(match.index);
+      offsets.push(match.index + match[0].length);
     }
     return offsets;
   }
@@ -7062,17 +7062,10 @@ window.ajv = new window.ajv7({ allErrors: true });
         };
       }
       const startIndex = glb(offsets, offset);
-      if (offset === offsets[startIndex]) {
-        return {
-          line: startIndex - 1,
-          column: offsets[startIndex] - offsets[startIndex - 1]
-        };
-      } else {
-        return {
-          line: startIndex,
-          column: offset - offsets[startIndex] - 1
-        };
-      }
+      return {
+        line: startIndex,
+        column: offset - offsets[startIndex]
+      };
     };
   }
   function rowColToIndex(text) {
@@ -7219,6 +7212,7 @@ window.ajv = new window.ajv7({ allErrors: true });
       let offset = 0;
       const resultList = pieces.map((piece) => {
         if (typeof piece === "string") {
+          debugger;
           offsetInfo.push({
             fromSource: false,
             length: piece.length,
@@ -7335,9 +7329,7 @@ window.ajv = new window.ajv7({ allErrors: true });
     const params = [];
     for (const { range } of substrs) {
       params.push(range);
-      params.push("\n");
     }
-    params.pop();
     return mappedString(source, params);
   }
   function partitionCellOptionsMapped(language, source, validate = false) {
@@ -7347,7 +7339,7 @@ window.ajv = new window.ajv7({ allErrors: true });
     const optionsSource = [];
     const yamlLines = [];
     let endOfYaml = 0;
-    for (const line of rangedLines(source.value)) {
+    for (const line of rangedLines(source.value, true)) {
       if (line.substring.startsWith(optionPrefix)) {
         if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
           let yamlOption = line.substring.substring(optionPrefix.length);
@@ -7488,7 +7480,8 @@ window.ajv = new window.ajv7({ allErrors: true });
       }
     };
     let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
-    for (const line of rangedLines(src.value, true)) {
+    const srcLines = rangedLines(src.value, true);
+    for (const line of srcLines) {
       if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
         if (inYaml) {
           lineBuffer.push(line);
@@ -13090,13 +13083,14 @@ if (typeof exports === 'object') {
         deletions: 0
       };
     }
-    const codeLines = core2.rangedLines(code.value);
+    const codeLines = core2.rangedLines(code.value, true);
     if (position.row >= codeLines.length || position.row < 0) {
       return;
     }
     const currentLine = codeLines[position.row].substring;
     let currentColumn = position.column;
     let deletions = 0;
+    const locF = core2.rowColToIndex(code.value);
     while (currentColumn > 0) {
       currentColumn--;
       deletions++;
@@ -13106,11 +13100,18 @@ if (typeof exports === 'object') {
           start: 0,
           end: codeLines[position.row - 1].range.end
         });
-        chunks.push("\n");
       }
-      chunks.push(`${currentLine.substring(0, currentColumn)}`);
+      if (position.column > deletions) {
+        chunks.push({
+          start: locF({ row: position.row, column: 0 }),
+          end: locF({ row: position.row, column: position.column - deletions })
+        });
+      }
       if (position.row + 1 < codeLines.length) {
-        chunks.push("\n");
+        chunks.push({
+          start: locF({ row: position.row, column: currentLine.length - 1 }),
+          end: locF({ row: position.row + 1, column: 0 })
+        });
         chunks.push({
           start: codeLines[position.row + 1].range.start,
           end: codeLines[codeLines.length - 1].range.end
@@ -13487,7 +13488,11 @@ if (typeof exports === 'object') {
     } = context;
     const result = core4.breakQuartoMd(code);
     const adjustedCellSize = (cell) => {
-      let size = core4.lines(cell.source.value).length;
+      let cellLines = core4.lines(cell.source.value);
+      let size = cellLines.length;
+      if (cellLines[size - 1].trim().length === 0) {
+        size -= 1;
+      }
       if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
         size += 2;
       }

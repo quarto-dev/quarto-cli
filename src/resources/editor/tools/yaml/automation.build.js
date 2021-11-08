@@ -248,13 +248,14 @@
         deletions: 0
       };
     }
-    const codeLines = core2.rangedLines(code.value);
+    const codeLines = core2.rangedLines(code.value, true);
     if (position.row >= codeLines.length || position.row < 0) {
       return;
     }
     const currentLine = codeLines[position.row].substring;
     let currentColumn = position.column;
     let deletions = 0;
+    const locF = core2.rowColToIndex(code.value);
     while (currentColumn > 0) {
       currentColumn--;
       deletions++;
@@ -264,11 +265,18 @@
           start: 0,
           end: codeLines[position.row - 1].range.end
         });
-        chunks.push("\n");
       }
-      chunks.push(`${currentLine.substring(0, currentColumn)}`);
+      if (position.column > deletions) {
+        chunks.push({
+          start: locF({ row: position.row, column: 0 }),
+          end: locF({ row: position.row, column: position.column - deletions })
+        });
+      }
       if (position.row + 1 < codeLines.length) {
-        chunks.push("\n");
+        chunks.push({
+          start: locF({ row: position.row, column: currentLine.length - 1 }),
+          end: locF({ row: position.row + 1, column: 0 })
+        });
         chunks.push({
           start: codeLines[position.row + 1].range.start,
           end: codeLines[codeLines.length - 1].range.end
@@ -645,7 +653,11 @@
     } = context;
     const result = core4.breakQuartoMd(code);
     const adjustedCellSize = (cell) => {
-      let size = core4.lines(cell.source.value).length;
+      let cellLines = core4.lines(cell.source.value);
+      let size = cellLines.length;
+      if (cellLines[size - 1].trim().length === 0) {
+        size -= 1;
+      }
       if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
         size += 2;
       }

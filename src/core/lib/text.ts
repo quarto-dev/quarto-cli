@@ -22,7 +22,7 @@ export function lineOffsets(text: string) {
   const re = /\r?\n/g;
   let match;
   while ((match = re.exec(text)) != null) {
-    offsets.push(match.index);
+    offsets.push(match.index + match[0].length);
   }
   return offsets;
 }
@@ -30,6 +30,7 @@ export function lineOffsets(text: string) {
 export function indexToRowCol(text: string) {
   const offsets = lineOffsets(text);
   return function(offset: number) {
+
     if (offset === 0) {
       return {
         line: 0,
@@ -38,24 +39,29 @@ export function indexToRowCol(text: string) {
     }
     
     const startIndex = glb(offsets, offset);
+    return {
+      line: startIndex,
+      column: offset - offsets[startIndex]
+    };
 
-    if (offset === offsets[startIndex]) {
-      return {
-        line: startIndex - 1,
-        column: offsets[startIndex] - offsets[startIndex - 1]
-      };
-    } else {
-      return {
-        line: startIndex,
-        column: offset - offsets[startIndex] - 1
-      };
-    }
+    // if (offset === offsets[startIndex]) {
+    //   return {
+    //     line: startIndex - 1,
+    //     column: offsets[startIndex] - offsets[startIndex - 1]
+    //   };
+    // } else {
+    //   return {
+    //     line: startIndex,
+    //     column: offset - offsets[startIndex] - 1
+    //   };
+    // }
   }
 }
 
 export function rowColToIndex(text: string) {
   const offsets = lineOffsets(text);
   return function(position: { row: number, column: number }) {
+    
     return offsets[position.row] + position.column;
   }
 }

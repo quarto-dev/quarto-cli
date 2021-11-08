@@ -66,6 +66,7 @@ export function mappedString(
 
     const resultList = pieces.map(piece => {
       if (typeof piece === "string") {
+        debugger;
         offsetInfo.push({
           fromSource: false,
           length: piece.length,

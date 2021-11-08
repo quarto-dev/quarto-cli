@@ -320,7 +320,13 @@ async function automationFromGoodParseMarkdown(kind, context)
   const result = core.breakQuartoMd(code);
 
   const adjustedCellSize = (cell) => {
-    let size = core.lines(cell.source.value).length;
+    let cellLines = core.lines(cell.source.value);
+    let size = cellLines.length;
+    if (cellLines[size-1].trim().length === 0) {
+      // if the last line was empty, for the purposes of line
+      // location (what we use this for), that line shouldn't count.
+      size -= 1;
+    }
     if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
       // language cells don't bring starting and ending triple backticks, we must compensate here
       size += 2;

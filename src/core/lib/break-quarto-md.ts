@@ -133,8 +133,10 @@ export function breakQuartoMd(
   let inYaml = false,
     inMathBlock = false,
     inCodeCell = false,
-    inCode = false;
-  for (const line of rangedLines(src.value, true)) {
+  inCode = false;
+
+  const srcLines = rangedLines(src.value, true);
+  for (const line of srcLines) {
     // yaml front matter
     if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
       if (inYaml) {

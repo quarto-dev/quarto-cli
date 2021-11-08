@@ -15,9 +15,7 @@ function mappedSource(source: MappedString | string, substrs: RangedSubstring[])
   const params: (Range | string)[] = [];
   for (const { range } of substrs) {
     params.push(range);
-    params.push("\n");
   }
-  params.pop(); // pop the last "\n"; easier than checking for last iteration
   return mappedString(source, params);
 }
 
@@ -37,7 +35,7 @@ export function partitionCellOptionsMapped(
   const yamlLines: RangedSubstring[] = []; // strips comments
 
   let endOfYaml = 0;
-  for (const line of rangedLines(source.value)) {
+  for (const line of rangedLines(source.value, true)) {
     if (line.substring.startsWith(optionPrefix)) {
       if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
         let yamlOption = line.substring.substring(optionPrefix.length);
@@ -63,7 +61,7 @@ export function partitionCellOptionsMapped(
     }
     break;
   }
-
+  
   let mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : undefined;
 
   return {
