@@ -141,6 +141,7 @@ export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
 export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
+export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kSearchMatchingDocumentsText = "search-matching-documents-text";
 export const kSearchCopyLinkTitle = "search-copy-link-title";
 export const kSearchHideMatchesText = "search-hide-matches-text";
@@ -195,6 +196,7 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
   kSearchNoResultsText,
+  kCopyButtonTooltip,
   kSearchMatchingDocumentsText,
   kSearchCopyLinkTitle,
   kSearchHideMatchesText,

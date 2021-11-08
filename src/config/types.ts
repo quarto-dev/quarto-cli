@@ -27,6 +27,7 @@ import {
   kCodeToolsShowAllCode,
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
+  kCopyButtonTooltip,
   kCrossrefCnjPrefix,
   kCrossrefCnjTitle,
   kCrossrefCorPrefix,
@@ -406,6 +407,7 @@ export interface FormatLanguage {
   [kCodeToolsViewSource]?: string;
   [kCodeToolsSourceCode]?: string;
   [kSearchNoResultsText]?: string;
+  [kCopyButtonTooltip]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchHideMatchesText]?: string;

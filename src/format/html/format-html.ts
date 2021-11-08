@@ -17,6 +17,7 @@ import { asCssSize } from "../../core/css.ts";
 
 import {
   kCodeLink,
+  kCopyButtonTooltip,
   kDoi,
   kFilterParams,
   kHeaderIncludes,
@@ -438,7 +439,7 @@ function htmlFormatPostprocessor(
       if (codeCopy) {
         code.classList.add("code-with-copy");
         const copyButton = doc.createElement("button");
-        const title = "Copy to Clipboard";
+        const title = format.language[kCopyButtonTooltip]!;
         copyButton.setAttribute("title", title);
         copyButton.classList
           .add("code-copy-button");

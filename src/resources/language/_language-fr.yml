@@ -17,6 +17,8 @@ code-tools-hide-all-code: "Cacher tous les codes"
 code-tools-view-source: "Voir les sources"
 code-tools-source-code: "Code source"
 
+copy-button-tooltip: "Copier vers le presse-papier"
+
 search-no-results-text: "Pas de résultats"
 search-matching-documents-text: "documents trouvés"
 search-copy-link-title: "Copier le lien vers la recherche"
