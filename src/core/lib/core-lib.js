@@ -847,7 +847,6 @@
     for (let { key: instancePath, values: allErrors } of errorsPerInstanceList) {
       const path = instancePath.split("/").slice(1);
       const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
-      debugger;
       for (const error of errors) {
         const returnKey = error.keyword === "_custom_invalidProperty";
         const violatingObject = navigate(path, annotation, returnKey);

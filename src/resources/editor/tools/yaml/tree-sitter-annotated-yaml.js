@@ -149,9 +149,36 @@ export function buildAnnotated(tree, mappedSource)
       }, [key, value]);
     }
   };
+
+  const result = buildNode(tree.rootNode);
+
+
+  // some tree-sitter "error-tolerant parses" are particularly bad
+  // for us here. We must guard against "partial" parses where
+  // tree-sitter doesn't consume the entire string, since this is
+  // symptomatic of a bad object. When this happens, bail on the
+  // current parse.
+  //
+  // There's an added complication in that it seems that sometimes
+  // treesitter consumes line breaks at the end of the file, and sometimes
+  // it doesn't. So exact checks don't quite work. We're then resigned
+  // to a heuristic that is bound to fail. That heuristic is, roughly,
+  // that we consider something a failed parse if it misses more than 5% of
+  // the characters in the original string span.
+  //
+  // This is, clearly, a terrible hack.
+  //
+  // I really ought to consider rebuilding this whole infrastructure
+  const endOfMappedCode = mappedSource.map(mappedSource.value.length - 1);
+  const startOfMappedCode = mappedSource.map(0);
+
+  const lossage = (result.end - result.start) / (endOfMappedCode - startOfMappedCode);
+
+  if (lossage < 0.95) {
+    return null;
+  }
   
-  return buildNode(tree.rootNode);
-  
+  return result;
 }
 
 

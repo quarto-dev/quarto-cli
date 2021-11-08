@@ -7845,7 +7845,6 @@ window.ajv = new window.ajv7({ allErrors: true });
     for (let { key: instancePath, values: allErrors } of errorsPerInstanceList) {
       const path = instancePath.split("/").slice(1);
       const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
-      debugger;
       for (const error of errors) {
         const returnKey = error.keyword === "_custom_invalidProperty";
         const violatingObject = navigate(path, annotation, returnKey);
@@ -12903,11 +12902,11 @@ if (typeof exports === 'object') {
         components: []
       };
     };
-    const annotate = (node, result, components) => {
+    const annotate = (node, result2, components) => {
       return {
         start: mappedSource.mapClosest(node.startIndex),
         end: mappedSource.mapClosest(node.endIndex),
-        result,
+        result: result2,
         kind: node.type,
         components
       };
@@ -12918,7 +12917,7 @@ if (typeof exports === 'object') {
       "block_node": singletonBuild,
       "flow_node": singletonBuild,
       "block_sequence": (node) => {
-        const result = [], components = [];
+        const result2 = [], components = [];
         for (let i = 0; i < node.childCount; ++i) {
           const child = node.child(i);
           if (child.type !== "block_sequence_item") {
@@ -12926,9 +12925,9 @@ if (typeof exports === 'object') {
           }
           const component = buildNode(child);
           components.push(component);
-          result.push(component.result);
+          result2.push(component.result);
         }
-        return annotate(node, result, components);
+        return annotate(node, result2, components);
       },
       "block_sequence_item": (node) => {
         if (node.childCount < 2) {
@@ -12952,7 +12951,7 @@ if (typeof exports === 'object') {
         return annotate(node, v, []);
       },
       "flow_sequence": (node) => {
-        const result = [], components = [];
+        const result2 = [], components = [];
         for (let i = 0; i < node.childCount; ++i) {
           const child = node.child(i);
           if (child.type !== "flow_node") {
@@ -12960,17 +12959,17 @@ if (typeof exports === 'object') {
           }
           const component = buildNode(child);
           components.push(component);
-          result.push(component.result);
+          result2.push(component.result);
         }
-        return annotate(node, result, components);
+        return annotate(node, result2, components);
       },
       "block_mapping": (node) => {
-        const result = {}, components = [];
+        const result2 = {}, components = [];
         for (let i = 0; i < node.childCount; ++i) {
           const child = node.child(i);
           let component;
           if (child.type === "ERROR") {
-            result[child.text] = "<<ERROR>>";
+            result2[child.text] = "<<ERROR>>";
             const key2 = annotate(child, child.text, []);
             const value2 = annotateEmpty(child.endIndex);
             component = annotate(child, {
@@ -12983,10 +12982,10 @@ if (typeof exports === 'object') {
             component = buildNode(child);
           }
           const { key, value } = component.result;
-          result[key] = value;
+          result2[key] = value;
           components.push(...component.components);
         }
-        return annotate(node, result, components);
+        return annotate(node, result2, components);
       },
       "block_mapping_pair": (node) => {
         let key, value;
@@ -13006,7 +13005,14 @@ if (typeof exports === 'object') {
         }, [key, value]);
       }
     };
-    return buildNode(tree.rootNode);
+    const result = buildNode(tree.rootNode);
+    const endOfMappedCode = mappedSource.map(mappedSource.value.length - 1);
+    const startOfMappedCode = mappedSource.map(0);
+    const lossage = (result.end - result.start) / (endOfMappedCode - startOfMappedCode);
+    if (lossage < 0.95) {
+      return null;
+    }
+    return result;
   }
   function locateCursor(annotation, position) {
     let failedLast = false;
@@ -13288,10 +13294,7 @@ if (typeof exports === 'object') {
           deletions
         } = parseResult;
         const annotation = buildAnnotated(tree, mappedCode);
-        const endOfMappedCode = mappedCode.map(mappedCode.value.length - 1);
-        const startOfMappedCode = mappedCode.map(0);
-        const lossage = (annotation.end - annotation.start) / (endOfMappedCode - startOfMappedCode);
-        if (lossage < 0.95) {
+        if (annotation === null) {
           continue;
         }
         const validationResult = validator.validateParse(code, annotation);
@@ -13403,7 +13406,7 @@ if (typeof exports === 'object') {
         return rawCompletions;
       } else {
         const doc = buildAnnotated(tree, mappedCode);
-        if (doc.end !== mappedCode.value.length) {
+        if (doc === null) {
           continue;
         }
         const index = core4.rowColToIndex(mappedCode.value)({
@@ -13412,8 +13415,18 @@ if (typeof exports === 'object') {
         });
         const { withError: locateFailed, value: path } = locateCursor(doc, index);
         if (locateFailed) {
-          if (position.column >= line.length && line.indexOf(":") !== -1) {
-            path.push(line.trim().split(":")[0]);
+          if (line.indexOf(":") === -1) {
+            const lines = core4.lines(mappedCode.value);
+            if (position.row > 0 && lines.length > position.row - 1) {
+              const prevLine = lines[position.row - 1].trim().split(":");
+              if (prevLine.length > 0) {
+                path.push(prevLine[0]);
+              }
+            }
+          } else {
+            if (position.column >= line.length) {
+              path.push(line.trim().split(":")[0]);
+            }
           }
         }
         let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
@@ -13424,21 +13437,6 @@ if (typeof exports === 'object') {
       }
     }
     return false;
-  }
-  function completionsPromise(opts) {
-    let {
-      completions: completions2,
-      word
-    } = opts;
-    completions2 = completions2.slice();
-    completions2.sort((a, b) => a.value.localeCompare(b.value));
-    return new Promise(function(resolve, reject) {
-      resolve({
-        token: word,
-        completions: completions2,
-        cacheable: true
-      });
-    });
   }
   function completions(obj) {
     const {
@@ -13472,9 +13470,13 @@ if (typeof exports === 'object') {
         }
       });
     }).flat().filter((c) => c.value.startsWith(word));
-    return completionsPromise({
-      completions: completions2,
-      word
+    completions2.sort((a, b) => a.value.localeCompare(b.value));
+    return new Promise(function(resolve, reject) {
+      resolve({
+        token: word,
+        completions: completions2,
+        cacheable: true
+      });
     });
   }
   async function automationFromGoodParseMarkdown(kind, context) {

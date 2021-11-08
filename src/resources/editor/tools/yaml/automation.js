@@ -26,28 +26,7 @@ export async function validationFromGoodParseYAML(context)
         deletions
       } = parseResult;
       const annotation = buildAnnotated(tree, mappedCode);
-      // some tree-sitter "error-tolerant parses" are particularly bad
-      // for us here. We must guard against "partial" parses where
-      // tree-sitter doesn't consume the entire string, since this is
-      // symptomatic of a bad object. When this happens, bail on the
-      // current parse.
-      //
-      // There's an added complication in that it seems that sometimes
-      // treesitter consumes line breaks at the end of the file, and sometimes
-      // it doesn't. So exact checks don't quite work. We're then resigned
-      // to a heuristic that is bound to fail. That heuristic is, roughly,
-      // that we consider something a failed parse if it misses more than 5% of
-      // the characters in the original string span.
-      //
-      // This is, clearly, a terrible hack.
-      //
-      // I really ought to consider rebuilding this whole infrastructure
-      const endOfMappedCode = mappedCode.map(mappedCode.value.length - 1);
-      const startOfMappedCode = mappedCode.map(0);
-
-      const lossage = (annotation.end - annotation.start) / (endOfMappedCode - startOfMappedCode);
-
-      if (lossage < 0.95) {
+      if (annotation === null) {
         continue;
       }
       const validationResult = validator.validateParse(code, annotation);
@@ -175,6 +154,7 @@ async function completionsFromGoodParseYAML(context)
   if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
     word = "";
   } else {
+    // take the last word after spaces
     word = line.split(" ").slice(-1)[0];
   }
 
@@ -214,11 +194,7 @@ async function completionsFromGoodParseYAML(context)
       return rawCompletions;
     } else {
       const doc = buildAnnotated(tree, mappedCode);
-      if (doc.end !== mappedCode.value.length) {
-        // some tree-sitter "error-tolerant parses" are particularly bad for us
-        // here, we guard against "partial" parses where tree-sitter doesn't consume the entire string.
-        
-        // this is symptomatic of a bad object. When this happens, bail on the current parse.
+      if (doc === null) {
         continue;
       }
       const index = core.rowColToIndex(mappedCode.value)({
@@ -226,11 +202,27 @@ async function completionsFromGoodParseYAML(context)
         column: position.column - deletions
       });
       const { withError: locateFailed, value: path } = locateCursor(doc, index);
+      // if cursor is at the end of line and it's an object mapping,
+      // we can fix the failed location.
       if (locateFailed) {
-        // if cursor is at the end of line and it's an object mapping,
-        // we can fix the failed location.
-        if (position.column >= line.length && line.indexOf(":") !== -1) {
-          path.push(line.trim().split(":")[0]);
+        if (line.indexOf(":") === -1) {
+          // we are inside a line that has no colon, but inside an object mapping (because
+          // locateFailed only returns true inside object mappings).
+          // 
+          // we guess here, then that we have an error-tolerant parse
+          // and we're inside a string key. Add previous line as key
+          // to the path assuming all operations succeed.
+          const lines = core.lines(mappedCode.value);
+          if (position.row > 0 && lines.length > (position.row - 1)) {
+            const prevLine = lines[position.row - 1].trim().split(":");
+            if (prevLine.length > 0) {
+              path.push(prevLine[0]);
+            }
+          }
+        } else {
+          if (position.column >= line.length) {
+            path.push(line.trim().split(":")[0]);
+          }
         }
       }
       let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
@@ -258,32 +250,6 @@ async function completionsFromGoodParseYAML(context)
   
   return false;
 };
-
-function completionsPromise(opts)
-{
-  let {
-    completions,
-    word
-  } = opts;
-  completions = completions.slice();
-  completions.sort((a, b) => a.value.localeCompare(b.value));
-  
-  return new Promise(function(resolve, reject) {
-    // resolve completions
-    resolve({
-
-      // token to replace
-      token: word,
-
-      // array of completions
-      completions,
-
-      // is this cacheable for subsequent results that add to the token
-      // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
-      cacheable: true,
-    });
-  });
-}
 
 function completions(obj)
 {
@@ -324,10 +290,22 @@ function completions(obj)
       }
     });
   }).flat().filter(c => c.value.startsWith(word));
+  completions.sort((a, b) => a.value.localeCompare(b.value));
   
-  return completionsPromise({
-    completions,
-    word
+  return new Promise(function(resolve, reject) {
+    // resolve completions
+    resolve({
+
+      // token to replace
+      token: word,
+
+      // array of completions
+      completions,
+
+      // is this cacheable for subsequent results that add to the token
+      // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
+      cacheable: true,
+    });
   });
 }
 
