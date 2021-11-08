@@ -17,6 +17,12 @@ code-tools-hide-all-code: "Hide All Code"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
+copy-button-tooltip: "Copy to Clipboard"
+
+repo-action-links-edit: "Edit this page"
+repo-action-links-source: "View source"
+repo-action-links-issue: "Report an issue"
+
 search-no-results-text: "No results"
 search-matching-documents-text: "matching documents"
 search-copy-link-title: "Copy link to search"
