@@ -347,23 +347,6 @@ function latexCalloutBoxSimple(caption, type, icon)
   }
 end
 
-
--- generates a set of options for a tColorBox
-function tColorOptions(options) 
-
-  local optionStr = ""
-  local prepend = false
-  for k, v in pairs(options) do
-    if (prepend) then 
-      optionStr = optionStr .. ', '
-    end
-    optionStr = optionStr .. k .. '=' .. v
-    prepend = true
-  end
-  return optionStr
-
-end
-
 function processCalloutDiv(div) 
 
   local icon = div.attr.attributes["icon"]

@@ -30,6 +30,9 @@ function usePackage(pkg)
   return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage{" .. pkg .. "}}"
 end
 
+function usePackageWithOption(pkg, option)
+  return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage[" .. option .. "]{" .. pkg .. "}}"
+end
 
 function metaInjectLatex(meta, func)
   if isLatexOutput() then
