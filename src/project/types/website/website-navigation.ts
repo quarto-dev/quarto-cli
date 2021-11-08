@@ -92,9 +92,9 @@ import {
 import {
   kIncludeInHeader,
   kNumberSections,
-  krepoActionLinksEdit,
-  krepoActionLinksIssue,
-  krepoActionLinksSource,
+  kRepoActionLinksEdit,
+  kRepoActionLinksIssue,
+  kRepoActionLinksSource,
 } from "../../../config/constants.ts";
 import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
 import {
@@ -505,17 +505,17 @@ function repoActionLinks(
     switch (action) {
       case "edit":
         return {
-          text: language[krepoActionLinksEdit],
+          text: language[kRepoActionLinksEdit],
           url: `${repoUrl}edit/${branch}/${source}`,
         };
       case "source":
         return {
-          text: language[krepoActionLinksSource],
+          text: language[kRepoActionLinksSource],
           url: `${repoUrl}blob/${branch}/${source}`,
         };
       case "issue":
         return {
-          text: language[krepoActionLinksIssue],
+          text: language[kRepoActionLinksIssue],
           url: `${repoUrl}issues/new`,
         };
 

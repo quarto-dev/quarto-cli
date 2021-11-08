@@ -106,9 +106,9 @@ import {
   kPdfEngineOpts,
   kPreferHtml,
   kReferenceLocation,
-  krepoActionLinksEdit,
-  krepoActionLinksIssue,
-  krepoActionLinksSource,
+  kRepoActionLinksEdit,
+  kRepoActionLinksIssue,
+  kRepoActionLinksSource,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
@@ -409,9 +409,9 @@ export interface FormatLanguage {
   [kCodeToolsHideAllCode]?: string;
   [kCodeToolsViewSource]?: string;
   [kCodeToolsSourceCode]?: string;
-  [krepoActionLinksEdit]?: string;
-  [krepoActionLinksSource]?: string;
-  [krepoActionLinksIssue]?: string;
+  [kRepoActionLinksEdit]?: string;
+  [kRepoActionLinksSource]?: string;
+  [kRepoActionLinksIssue]?: string;
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
   [kSearchMatchingDocumentsText]?: string;
