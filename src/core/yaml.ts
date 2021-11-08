@@ -46,11 +46,11 @@ export function readYamlFromMarkdown(
 
       // exclude yaml blocks that start with a blank line, start with
       // a yaml delimiter (can occur if two "---" stack together) or
-      // are entirely empty
-      // (that's not valid for pandoc yaml blocks)
+      // are entirely empty (that's not valid for pandoc yaml blocks)
+      // Account for Windows / Linux / Mac end of line
       if (
-        !yamlBlock.startsWith("\n\n") &&
-        !yamlBlock.startsWith("\n---") &&
+        !/^(?:\r?\n|\r)(?:\r?\n|\r)/.test(yamlBlock) &&
+        !/^(?:\r?\n|\r)---/.test(yamlBlock) &&
         (yamlBlock.trim().length > 0)
       ) {
         // surface errors immediately for invalid yaml

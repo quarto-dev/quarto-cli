@@ -61,6 +61,6 @@ function listOfTitle(type, default)
   if title then
     return pandoc.utils.stringify(title)
   else
-    return default
+    return param("crossref-" .. type .. "-title", default)
   end
 end
