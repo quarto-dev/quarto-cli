@@ -234,7 +234,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-up(lg) {
-  .footnote-gutter,
+  .ref-gutter,
   .caption-gutter,
   div.aside,
   aside,
@@ -251,7 +251,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(lg) {
-  .footnote-gutter,
+  .ref-gutter,
   .caption-gutter,
   div.aside,
   aside,
@@ -268,7 +268,7 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(md) {
-  .footnote-gutter,
+  .ref-gutter,
   .caption-gutter,
   div.aside,
   aside,
@@ -338,13 +338,17 @@ caption,
 }
 
 .column-gutter figcaption,
-.footnote-gutter,
+.ref-gutter,
 .caption-gutter,
 div.aside,
 aside,
 .column-gutter {
   @include body-secondary;
   font-size: 0.825rem;
+}
+
+.ref-gutter-item {
+  padding-bottom: 1em;
 }
 
 // Caption and footnotes
