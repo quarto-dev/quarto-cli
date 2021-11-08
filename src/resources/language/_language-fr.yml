@@ -19,6 +19,10 @@ code-tools-source-code: "Code source"
 
 copy-button-tooltip: "Copier vers le presse-papier"
 
+repo-action-links-edit: "Editer cette page"
+repo-action-links-edit: "Voir la source"
+repo-action-links-edit: "Faire part d'un problème"
+
 search-no-results-text: "Pas de résultats"
 search-matching-documents-text: "documents trouvés"
 search-copy-link-title: "Copier le lien vers la recherche"

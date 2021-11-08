@@ -22,6 +22,7 @@ import {
   Format,
   FormatDependency,
   FormatExtras,
+  FormatLanguage,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
@@ -91,6 +92,9 @@ import {
 import {
   kIncludeInHeader,
   kNumberSections,
+  krepoActionLinksEdit,
+  krepoActionLinksIssue,
+  krepoActionLinksSource,
 } from "../../../config/constants.ts";
 import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
 import {
@@ -245,7 +249,12 @@ export async function websiteNavigationExtras(
       [kDependencies]: dependencies,
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        navigationHtmlPostprocessor(project, source, markdownPipeline),
+        navigationHtmlPostprocessor(
+          project,
+          source,
+          markdownPipeline,
+          format.language,
+        ),
       ],
       [kMarkdownAfterBody]: [
         markdownPipeline.markdownAfterBody(),
@@ -283,6 +292,7 @@ function navigationHtmlPostprocessor(
   project: ProjectContext,
   source: string,
   markdownPipeline: MarkdownPipeline,
+  language: FormatLanguage,
 ) {
   const sourceRelative = relative(project.dir, source);
   const offset = projectOffset(project, source);
@@ -378,7 +388,7 @@ function navigationHtmlPostprocessor(
     }
 
     // handle repo links
-    handleRepoLinks(doc, sourceRelative, project.config);
+    handleRepoLinks(doc, sourceRelative, language, project.config);
 
     // remove section numbers from sidebar if they have been turned off in the project file
     const numberSections =
@@ -416,6 +426,7 @@ export function removeChapterNumber(item: Element) {
 function handleRepoLinks(
   doc: Document,
   source: string,
+  language: FormatLanguage,
   config?: ProjectConfig,
 ) {
   const repoActions = websiteConfigActions(
@@ -442,6 +453,7 @@ function handleRepoLinks(
               repoUrl,
               websiteRepoBranch(config),
               source,
+              language,
             );
             const actionsDiv = doc.createElement("div");
             actionsDiv.classList.add("toc-actions");
@@ -487,22 +499,23 @@ function repoActionLinks(
   repoUrl: string,
   branch: string,
   source: string,
+  language: FormatLanguage,
 ): Array<{ text: string; url: string }> {
   return actions.map((action) => {
     switch (action) {
       case "edit":
         return {
-          text: "Edit this page",
+          text: language[krepoActionLinksEdit],
           url: `${repoUrl}edit/${branch}/${source}`,
         };
       case "source":
         return {
-          text: "View source",
+          text: language[krepoActionLinksSource],
           url: `${repoUrl}blob/${branch}/${source}`,
         };
       case "issue":
         return {
-          text: "Report an issue",
+          text: language[krepoActionLinksIssue],
           url: `${repoUrl}issues/new`,
         };
 

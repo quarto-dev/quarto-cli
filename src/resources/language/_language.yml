@@ -19,6 +19,10 @@ code-tools-source-code: "Source Code"
 
 copy-button-tooltip: "Copy to Clipboard"
 
+repo-action-links-edit: "Edit this page"
+repo-action-links-edit: "View source"
+repo-action-links-edit: "Report an issue"
+
 search-no-results-text: "No results"
 search-matching-documents-text: "matching documents"
 search-copy-link-title: "Copy link to search"

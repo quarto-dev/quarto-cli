@@ -142,6 +142,9 @@ export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
 export const kCopyButtonTooltip = "copy-button-tooltip";
+export const krepoActionLinksEdit = "repo-action-links-edit";
+export const krepoActionLinksSource = "repo-action-links-source";
+export const krepoActionLinksIssue = "repo-action-links-issue";
 export const kSearchMatchingDocumentsText = "search-matching-documents-text";
 export const kSearchCopyLinkTitle = "search-copy-link-title";
 export const kSearchHideMatchesText = "search-hide-matches-text";
@@ -197,6 +200,9 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsSourceCode,
   kSearchNoResultsText,
   kCopyButtonTooltip,
+  krepoActionLinksEdit,
+  krepoActionLinksSource,
+  krepoActionLinksIssue,
   kSearchMatchingDocumentsText,
   kSearchCopyLinkTitle,
   kSearchHideMatchesText,
