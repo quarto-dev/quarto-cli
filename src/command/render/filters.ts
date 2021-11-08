@@ -226,12 +226,12 @@ function referenceLocationArg(args: string[]) {
 function languageFilterParams(language: FormatLanguage) {
   const params: Metadata = {
     [kCodeSummary]: language[kCodeSummary],
-    [kCalloutTipCaption]: language[kCalloutTipCaption],
-    [kCalloutNoteCaption]: language[kCalloutNoteCaption],
-    [kCalloutImportantCaption]: language[kCalloutImportantCaption],
-    [kCalloutWarningCaption]: language[kCalloutWarningCaption],
-    [kCalloutDangerCaption]: language[kCalloutDangerCaption],
   };
+  Object.keys(language).forEach((key) => {
+    if (key.startsWith("callout-") || key.startsWith("crossref-")) {
+      params[key] = language[key];
+    }
+  });
   return params;
 }
 

@@ -53,5 +53,5 @@ end
 
 
 function figureTitlePrefix(order)
-  return titlePrefix("fig", "Figure", order)
+  return titlePrefix("fig", param("crossref-fig-title", "Figure"), order)
 end

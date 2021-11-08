@@ -151,6 +151,33 @@ export const kSearchClearButtonTitle = "search-clear-button-title";
 export const kSearchDetatchedCancelButtonTitle =
   "search-detached-cancel-button-title";
 export const kSearchSubmitButtonTitle = "search-submit-button-title";
+export const kCrossrefFigTitle = "crossref-fig-title";
+export const kCrossrefTblTitle = "crossref-tbl-title";
+export const kCrossrefLstTitle = "crossref-lst-title";
+export const kCrossrefThmTitle = "crossref-thm-title";
+export const kCrossrefLemTitle = "crossref-lem-title";
+export const kCrossrefCorTitle = "crossref-cor-title";
+export const kCrossrefPrfTitle = "crossref-prp-title";
+export const kCrossrefCnjTitle = "crossref-cnj-title";
+export const kCrossrefDefTitle = "crossref-def-title";
+export const kCrossrefExmTitle = "crossref-exm-title";
+export const kCrossrefExrTitle = "crossref-exr-title";
+export const kCrossrefFigPrefix = "crossref-fig-prefix";
+export const kCrossrefTblPrefix = "crossref-tbl-prefix";
+export const kCrossrefLstPrefix = "crossref-lst-prefix";
+export const kCrossrefSecPrefix = "crossref-sec-prefix";
+export const kCrossrefEqPrefix = "crossref-eq-prefix";
+export const kCrossrefThmPrefix = "crossref-thm-prefix";
+export const kCrossrefLemPrefix = "crossref-lem-prefix";
+export const kCrossrefCorPrefix = "crossref-cor-prefix";
+export const kCrossrefPrpPrefix = "crossref-prp-prefix";
+export const kCrossrefCnjPrefix = "crossref-cnj-prefix";
+export const kCrossrefDefPrefix = "crossref-def-prefix";
+export const kCrossrefExmPrefix = "crossref-exm-prefix";
+export const kCrossrefExrPrefix = "crossref-exr-prefix";
+export const kCrossrefLofTitle = "crossref-lof-title";
+export const kCrossrefLotTitle = "crossref-lot-title";
+export const kCrossrefLolTitle = "crossref-lol-title";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -177,6 +204,33 @@ export const kLanguageDefaultsKeys = [
   kSearchClearButtonTitle,
   kSearchDetatchedCancelButtonTitle,
   kSearchSubmitButtonTitle,
+  kCrossrefFigTitle,
+  kCrossrefTblTitle,
+  kCrossrefLstTitle,
+  kCrossrefThmTitle,
+  kCrossrefLemTitle,
+  kCrossrefCorTitle,
+  kCrossrefPrfTitle,
+  kCrossrefCnjTitle,
+  kCrossrefDefTitle,
+  kCrossrefExmTitle,
+  kCrossrefExrTitle,
+  kCrossrefFigPrefix,
+  kCrossrefTblPrefix,
+  kCrossrefLstPrefix,
+  kCrossrefSecPrefix,
+  kCrossrefEqPrefix,
+  kCrossrefThmPrefix,
+  kCrossrefLemPrefix,
+  kCrossrefCorPrefix,
+  kCrossrefPrpPrefix,
+  kCrossrefCnjPrefix,
+  kCrossrefDefPrefix,
+  kCrossrefExmPrefix,
+  kCrossrefExrPrefix,
+  kCrossrefLofTitle,
+  kCrossrefLotTitle,
+  kCrossrefLolTitle,
 ];
 
 // 'defaults' fields
