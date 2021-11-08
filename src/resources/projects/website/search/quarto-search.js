@@ -174,7 +174,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
               const remainingCount = value.length - collapseCount;
 
-              const inThisDocument = language["search-in-this-document-text"];
               for (let i = 1; i < value.length; i++) {
                 if (collapseMatches && i === collapseCount) {
                   reshapedItems.push({
@@ -182,8 +181,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                     title: isExpanded
                       ? language["search-hide-matches-text"]
                       : remainingCount === 1
-                      ? `${remainingCount} ${language["search-more-match-text"]} ${inThisDocument}`
-                      : `${remainingCount} ${language["search-more-matches-text"]} ${inThisDocument}`,
+                      ? `${remainingCount} ${language["search-more-match-text"]}`
+                      : `${remainingCount} ${language["search-more-matches-text"]}`,
                     type: kItemTypeMore,
                     href: kItemTypeMoreHref,
                   });

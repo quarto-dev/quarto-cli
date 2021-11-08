@@ -27,6 +27,7 @@ import {
   kCodeToolsShowAllCode,
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
+  kCopyButtonTooltip,
   kCrossrefCnjPrefix,
   kCrossrefCnjTitle,
   kCrossrefCorPrefix,
@@ -105,11 +106,13 @@ import {
   kPdfEngineOpts,
   kPreferHtml,
   kReferenceLocation,
+  kRepoActionLinksEdit,
+  kRepoActionLinksIssue,
+  kRepoActionLinksSource,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
   kSearchHideMatchesText,
-  kSearchInThisDocumentText,
   kSearchMatchingDocumentsText,
   kSearchMoreMatchText,
   kSearchNoResultsText,
@@ -405,13 +408,16 @@ export interface FormatLanguage {
   [kCodeToolsHideAllCode]?: string;
   [kCodeToolsViewSource]?: string;
   [kCodeToolsSourceCode]?: string;
+  [kRepoActionLinksEdit]?: string;
+  [kRepoActionLinksSource]?: string;
+  [kRepoActionLinksIssue]?: string;
   [kSearchNoResultsText]?: string;
+  [kCopyButtonTooltip]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchHideMatchesText]?: string;
   [kSearchMoreMatchText]?: string;
   [kSearchHideMatchesText]?: string;
-  [kSearchInThisDocumentText]?: string;
   [kSearchClearButtonTitle]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;
