@@ -32,8 +32,28 @@ function layoutMetaInject()
           inject(
             usePackage("marginnote")
           )
+          inject(
+            usePackageWithOption("tcolorbox", "most")
+          )
         end)
 
+        -- set color options for code blocks ('Shaded')
+        -- shadecolor is defined by pandoc
+        local options = {
+          ['interior hidden'] = "",
+          boxrule = '0pt',
+          ['frame hidden'] = "",
+          ['sharp corners'] = "",
+          enhanced = "",
+          ['borderline west'] = '{4pt}{0pt}{shadecolor}'
+        }
+        
+        -- redefined the 'Shaded' environment that pandoc uses for fenced 
+        -- code blocks
+        metaInjectLatexBefore(meta, function(inject)
+          inject("\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}")
+        end)
+        
         if referenceLocation == 'margin' and meta.bibliography ~= undefined then 
           if citeMethod == 'natbib' then
             metaInjectLatex(meta, function(inject)
