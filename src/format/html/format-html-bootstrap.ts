@@ -196,20 +196,36 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
         }
       };
 
+      const isAlreadyInGutter = (el: Element): boolean => {
+        const elInGutter = el.classList.contains("column-gutter") ||
+          el.classList.contains("aside");
+        if (elInGutter) {
+          return true;
+        } else if (el.parentElement !== null) {
+          return isAlreadyInGutter(el.parentElement);
+        } else {
+          return false;
+        }
+      };
+
       const appendRefs = (
         footnotBlockEl: Element,
         footnotes: Element[],
       ) => {
         if (footnotBlockEl !== null) {
           if (footnotes.length === 1) {
-            footnotes[0].classList.add("ref-gutter");
+            if (!isAlreadyInGutter(footnotBlockEl)) {
+              footnotes[0].classList.add("ref-gutter");
+            }
             footnotBlockEl.parentElement?.insertBefore(
               footnotes[0],
               footnotBlockEl.nextElementSibling,
             );
           } else {
             const containerEl = doc.createElement("div");
-            containerEl.classList.add("ref-gutter");
+            if (!isAlreadyInGutter(footnotBlockEl)) {
+              containerEl.classList.add("ref-gutter");
+            }
             for (const footnote of footnotes) {
               containerEl.appendChild(footnote);
             }
@@ -254,7 +270,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
                 "role",
                 refContentsEl.getAttribute("role"),
               );
-              refDiv.classList.add("ref-gutter-item");
+              refDiv.classList.add("gutter-padding");
 
               Array.from(refContentsEl.childNodes).forEach((child) => {
                 if (refLink.classList.contains(".footnote-ref")) {
@@ -287,8 +303,6 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
           }
         }
       });
-
-      // remove the bibliography
 
       if (refBlock && pendingRefs) {
         appendRefs(refBlock, pendingRefs);
