@@ -23,7 +23,7 @@ function layoutMetaInject()
       local citeMethod = param('cite-method', 'citeproc')
 
       -- enable column layout (packages and adjust geometry)
-      if (layoutState.hasColumns or referenceLocation == 'gutter') and isLatexOutput() then
+      if (layoutState.hasColumns or referenceLocation == 'margin') and isLatexOutput() then
         -- inject sidenotes package
         metaInjectLatex(meta, function(inject)
           inject(
@@ -34,7 +34,7 @@ function layoutMetaInject()
           )
         end)
 
-        if referenceLocation == 'gutter' and meta.bibliography ~= undefined then 
+        if referenceLocation == 'margin' and meta.bibliography ~= undefined then 
           if citeMethod == 'natbib' then
             metaInjectLatex(meta, function(inject)
               inject(

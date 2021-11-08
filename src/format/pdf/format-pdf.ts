@@ -154,7 +154,7 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
 
     const renderedCites = {};
     // If enabled, switch to sidenote footnotes
-    if (gutterRefs(flags, format)) {
+    if (marginRefs(flags, format)) {
       // Replace notes with side notes
       lineProcessors.push(sideNoteLineProcessor());
 
@@ -189,9 +189,9 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
   };
 }
 
-function gutterRefs(flags: PandocFlags, format: Format) {
-  return format.pandoc[kReferenceLocation] === "gutter" ||
-    flags[kReferenceLocation] === "gutter";
+function marginRefs(flags: PandocFlags, format: Format) {
+  return format.pandoc[kReferenceLocation] === "margin" ||
+    flags[kReferenceLocation] === "margin";
 }
 
 // Processes the lines of an input file, processing each line

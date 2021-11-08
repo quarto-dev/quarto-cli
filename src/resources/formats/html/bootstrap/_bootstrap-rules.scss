@@ -234,11 +234,11 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-up(lg) {
-  .ref-gutter,
-  .caption-gutter,
+  .margin-ref,
+  .margin-caption,
   div.aside,
   aside,
-  .column-gutter {
+  .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-content;
   }
@@ -251,11 +251,11 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(lg) {
-  .ref-gutter,
-  .caption-gutter,
+  .margin-ref,
+  .caption-margin,
   div.aside,
   aside,
-  .column-gutter {
+  .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-content;
   }
@@ -268,11 +268,11 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(md) {
-  .ref-gutter,
-  .caption-gutter,
+  .margin-ref,
+  .caption-margin,
   div.aside,
   aside,
-  .column-gutter {
+  .column-margin {
     grid-column: body-content-start / body-content-end !important;
     z-index: $zindex-content;
     transform: translate3d(0, 0, 0);
@@ -337,17 +337,17 @@ caption,
   font-size: 1rem;
 }
 
-.column-gutter figcaption,
-.ref-gutter,
-.caption-gutter,
+.column-margin figcaption,
+.margin-ref,
+.caption-margin,
 div.aside,
 aside,
-.column-gutter {
+.column-margin {
   @include body-secondary;
   font-size: 0.825rem;
 }
 
-.gutter-padding {
+.margin-item-padding {
   padding-bottom: 1em;
 }
 

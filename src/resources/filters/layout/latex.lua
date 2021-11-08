@@ -540,7 +540,7 @@ function latexFigureEnv(el)
     local classes = el.classes
     for i,class in ipairs(classes) do
 
-      -- a gutter figure or aside
+      -- a margin figure or aside
       if isMarginEnv(class) then 
         noteHasColumns()
         return "marginfigure"
@@ -579,7 +579,7 @@ function latexTableEnv(el)
   local classes = el.classes
   for i,class in ipairs(classes) do
 
-    -- a gutter figure or aside
+    -- a margin figure or aside
     if isMarginEnv(class) then 
       noteHasColumns()
       return "margintable"
@@ -603,7 +603,7 @@ function isStarEnv(clz)
 end
 
 function isMarginEnv(clz) 
-  return clz == 'column-gutter' or clz == 'aside'
+  return clz == 'column-margin' or clz == 'aside'
 end
 
 function latexMinipageValign(vAlign) 

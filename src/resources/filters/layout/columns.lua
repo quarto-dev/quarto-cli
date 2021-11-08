@@ -2,9 +2,7 @@
 -- Copyright (C) 2021 by RStudio, PBC
 
 
-kSideCaptionClass = 'caption-gutter'
-
-
+kSideCaptionClass = 'margin-caption'
 
 function columns() 
   
@@ -118,7 +116,7 @@ function renderDivColumn(el)
 end
 
 function processOtherContent(el)
-  if hasGutterColumn(el) then
+  if hasMarginColumn(el) then
     -- (margin notes)
     noteHasColumns()
     tprepend(el.content, {latexBeginSidenote()});
@@ -134,9 +132,9 @@ function processOtherContent(el)
   removeColumnClasses(el)
 end
 
-function hasGutterColumn(el)
+function hasMarginColumn(el)
   if el.attr ~= nil and el.attr.classes ~= nil then
-    return tcontains(el.attr.classes, 'column-gutter') or tcontains(el.attr.classes, 'aside')
+    return tcontains(el.attr.classes, 'column-margin') or tcontains(el.attr.classes, 'aside')
   else
     return false
   end

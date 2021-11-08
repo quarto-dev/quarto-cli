@@ -176,10 +176,10 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       title.classList.add("display-7");
     }
 
-    const refsInGutter = format.pandoc[kReferenceLocation] === "gutter" ||
-      flags[kReferenceLocation] === "gutter";
+    const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
+      flags[kReferenceLocation] === "margin";
     // If margin footnotes are enabled move them
-    if (refsInGutter) {
+    if (refsInMargin) {
       // This is a little complicated because if there are multiple footnotes
       // in a single block, we want to wrap them in a container so they
       // all can appear adjacent to the block (otherwise only the first would appear)
@@ -196,13 +196,13 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
         }
       };
 
-      const isAlreadyInGutter = (el: Element): boolean => {
-        const elInGutter = el.classList.contains("column-gutter") ||
+      const isAlreadyInMargin = (el: Element): boolean => {
+        const elInMargin = el.classList.contains("column-margin") ||
           el.classList.contains("aside");
-        if (elInGutter) {
+        if (elInMargin) {
           return true;
         } else if (el.parentElement !== null) {
-          return isAlreadyInGutter(el.parentElement);
+          return isAlreadyInMargin(el.parentElement);
         } else {
           return false;
         }
@@ -214,8 +214,8 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       ) => {
         if (footnotBlockEl !== null) {
           if (footnotes.length === 1) {
-            if (!isAlreadyInGutter(footnotBlockEl)) {
-              footnotes[0].classList.add("ref-gutter");
+            if (!isAlreadyInMargin(footnotBlockEl)) {
+              footnotes[0].classList.add("margin-ref");
             }
             footnotBlockEl.parentElement?.insertBefore(
               footnotes[0],
@@ -223,8 +223,8 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
             );
           } else {
             const containerEl = doc.createElement("div");
-            if (!isAlreadyInGutter(footnotBlockEl)) {
-              containerEl.classList.add("ref-gutter");
+            if (!isAlreadyInMargin(footnotBlockEl)) {
+              containerEl.classList.add("margin-ref");
             }
             for (const footnote of footnotes) {
               containerEl.appendChild(footnote);
@@ -270,11 +270,11 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
                 "role",
                 refContentsEl.getAttribute("role"),
               );
-              refDiv.classList.add("gutter-padding");
+              refDiv.classList.add("margin-item-padding");
 
               Array.from(refContentsEl.childNodes).forEach((child) => {
                 if (refLink.classList.contains(".footnote-ref")) {
-                  // Remove the backlink since this is in the gutter
+                  // Remove the backlink since this is in the margin
                   const footnoteEl = child as Element;
                   const backLinkEl = footnoteEl.querySelector(".footnote-back");
                   if (backLinkEl) {
@@ -310,14 +310,14 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     }
 
     // Forward caption class from parents to the child fig caps
-    const gutterCaptions = doc.querySelectorAll(".caption-gutter");
-    gutterCaptions.forEach((captionContainerNode) => {
+    const marginCaptions = doc.querySelectorAll(".margin-caption");
+    marginCaptions.forEach((captionContainerNode) => {
       const captionContainer = (captionContainerNode as Element);
 
       const moveClassToCaption = (container: Element, sel: string) => {
         const target = container.querySelector(sel);
         if (target) {
-          target.classList.add("caption-gutter");
+          target.classList.add("margin-caption");
           return true;
         } else {
           return false;
@@ -325,8 +325,8 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       };
 
       const removeCaptionClass = (el: Element) => {
-        // Remove this since it will place the contents in the gutter if it remains present
-        el.classList.remove("caption-gutter");
+        // Remove this since it will place the contents in the margin if it remains present
+        el.classList.remove("margin-caption");
       };
 
       // Deal with layout panels (we will only handle the main caption not the internals)
@@ -339,7 +339,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
           // It is a figure panel, find a direct child caption of the outer figure.
           for (const child of figure.children) {
             if (child.tagName === "FIGCAPTION") {
-              child.classList.add("caption-gutter");
+              child.classList.add("margin-caption");
               removeCaptionClass(captionContainer);
               break;
             }
@@ -348,7 +348,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
           // it is not a figure panel, find the panel caption
           const caption = captionContainer.querySelector(".panel-caption");
           if (caption) {
-            caption.classList.add("caption-gutter");
+            caption.classList.add("margin-caption");
             removeCaptionClass(captionContainer);
           }
         }
@@ -368,7 +368,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
 
               const divCopy = doc.createElement("div");
               divCopy.classList.add("figure-caption");
-              divCopy.classList.add("caption-gutter");
+              divCopy.classList.add("margin-caption");
               divCopy.innerHTML = captionEl.innerHTML;
               parentDivEl.appendChild(divCopy);
               removeCaptionClass(captionContainer);
@@ -382,7 +382,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
 
     // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
-      '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"], [class*="ref-gutter"], [class*=" ref-gutter"]',
+      '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
     );
     // If there are any of these elements, we need to be sure that their
     // parents have acess to the grid system, so make the parent full screen width
@@ -530,7 +530,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)
     const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-    if (refsInGutter) {
+    if (refsInMargin) {
       const footNoteSectionEl = doc.querySelector("section.footnotes");
       if (footNoteSectionEl) {
         footNoteSectionEl.remove();

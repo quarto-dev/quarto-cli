@@ -3,11 +3,11 @@
   
 
 function citesPreprocess() 
-  local refsInGutter = param('reference-location', 'document') == 'gutter'
+  local refsInMargin = param('reference-location', 'document') == 'margin'
   return {
     
     Note = function(note) 
-      if isLatexOutput() and refsInGutter then
+      if isLatexOutput() and refsInMargin then
         return pandoc.walk_inline(note, {
           Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
             appendAtEnd(citePlaceholderInline(citation))
@@ -19,8 +19,8 @@ function citesPreprocess()
     Para = function(para)
       local figure = discoverFigure(para)
       if figure and isLatexOutput() and hasFigureRef(figure) then
-        if hasGutterColumn(figure) then
-          -- This is a figure in the gutter itself, we need to append citations at the end of the caption
+        if hasMarginColumn(figure) then
+          -- This is a figure in the margin itself, we need to append citations at the end of the caption
           -- without any floating
           para.content[1] = pandoc.walk_inline(figure, {
               Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
@@ -28,7 +28,7 @@ function citesPreprocess()
               end)
             })
           return para
-        elseif refsInGutter then
+        elseif refsInMargin then
           -- This is a figure is in the body, but the citation should be in the margin. Use 
           -- protection to shift any citations over
           para.content[1] = pandoc.walk_inline(figure, {
@@ -42,7 +42,7 @@ function citesPreprocess()
     end,
 
     Div = function(div)
-      if isLatexOutput() and hasGutterColumn(div) or refsInGutter then
+      if isLatexOutput() and hasMarginColumn(div) or refsInMargin then
         if hasTableRef(div) then 
           -- inspect the table caption for refs and just mark them as resolved
           local table = discoverTable(div)
@@ -50,7 +50,7 @@ function citesPreprocess()
             local cites = false
             -- go through any captions and resolve citations into latex
             for i, caption in ipairs(table.caption.long) do
-              cites = resolveCaptionCitations(caption.content, hasGutterColumn(div)) or cites
+              cites = resolveCaptionCitations(caption.content, hasMarginColumn(div)) or cites
             end
             if cites then
               return div
@@ -59,7 +59,7 @@ function citesPreprocess()
         else
           return pandoc.walk_block(div, {
             Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
-              if hasGutterColumn(div) then
+              if hasMarginColumn(div) then
                 appendAtEnd(citePlaceholderInline(citation))
               end
             end)
@@ -85,7 +85,7 @@ function walkUnresolvedCitations(func)
   return function(inlines)
     local referenceLocation = param('reference-location', 'document')
     local modified = false
-    if isLatexOutput() and referenceLocation == 'gutter'  then
+    if isLatexOutput() and referenceLocation == 'margin'  then
       for i,inline in ipairs(inlines) do
         if inline.t == 'Cite' then
           for j, citation in ipairs(inline.citations) do
@@ -120,12 +120,12 @@ function walkUnresolvedCitations(func)
   end
 end
 
-function resolveCaptionCitations(captionContentInlines, inGutter)
+function resolveCaptionCitations(captionContentInlines, inMargin)
   local citeEls = pandoc.List()
   for i,inline in ipairs(captionContentInlines) do
     if inline.t == 'Cite' then
       for j, citation in ipairs(inline.citations) do
-        if inGutter then
+        if inMargin then
           citeEls:insert(citePlaceholderInlineWithProtection(citation))
         else
           citeEls:insert(marginCitePlaceholderWithProtection(citation))

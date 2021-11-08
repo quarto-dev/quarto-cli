@@ -6,12 +6,12 @@
 */
 import {
   kBibliography,
-  kCiteMethod,
   kCalloutDangerCaption,
   kCalloutImportantCaption,
   kCalloutNoteCaption,
   kCalloutTipCaption,
   kCalloutWarningCaption,
+  kCiteMethod,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
@@ -183,11 +183,11 @@ export function extractColumnParams(
 ) {
   const quartoColumnParams: Metadata = {};
   if (
-    defaults?.[kReferenceLocation] === "gutter" ||
-    referenceLocationArg(args) === "gutter"
+    defaults?.[kReferenceLocation] === "margin" ||
+    referenceLocationArg(args) === "margin"
   ) {
     // Forward the values to our params
-    quartoColumnParams[kReferenceLocation] = "gutter";
+    quartoColumnParams[kReferenceLocation] = "margin";
 
     // Remove from flags
     const removeArgs = new Map<string, boolean>();
