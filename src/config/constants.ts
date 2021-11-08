@@ -150,7 +150,6 @@ export const kSearchCopyLinkTitle = "search-copy-link-title";
 export const kSearchHideMatchesText = "search-hide-matches-text";
 export const kSearchMoreMatchText = "search-more-match-text";
 export const kSearchMoreMatchesText = "search-more-matches-text";
-export const kSearchInThisDocumentText = "search-in-this-document-text";
 export const kSearchClearButtonTitle = "search-clear-button-title";
 export const kSearchDetatchedCancelButtonTitle =
   "search-detached-cancel-button-title";
@@ -208,7 +207,6 @@ export const kLanguageDefaultsKeys = [
   kSearchHideMatchesText,
   kSearchMoreMatchText,
   kSearchMoreMatchesText,
-  kSearchInThisDocumentText,
   kSearchClearButtonTitle,
   kSearchDetatchedCancelButtonTitle,
   kSearchSubmitButtonTitle,

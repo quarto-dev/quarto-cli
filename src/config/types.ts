@@ -113,7 +113,6 @@ import {
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
   kSearchHideMatchesText,
-  kSearchInThisDocumentText,
   kSearchMatchingDocumentsText,
   kSearchMoreMatchText,
   kSearchNoResultsText,
@@ -419,7 +418,6 @@ export interface FormatLanguage {
   [kSearchHideMatchesText]?: string;
   [kSearchMoreMatchText]?: string;
   [kSearchHideMatchesText]?: string;
-  [kSearchInThisDocumentText]?: string;
   [kSearchClearButtonTitle]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;
