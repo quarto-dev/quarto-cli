@@ -20,8 +20,8 @@ code-tools-source-code: "Source Code"
 copy-button-tooltip: "Copy to Clipboard"
 
 repo-action-links-edit: "Edit this page"
-repo-action-links-edit: "View source"
-repo-action-links-edit: "Report an issue"
+repo-action-links-source: "View source"
+repo-action-links-issue: "Report an issue"
 
 search-no-results-text: "No results"
 search-matching-documents-text: "matching documents"
