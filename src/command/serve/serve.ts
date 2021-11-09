@@ -187,6 +187,17 @@ export async function serveProject(
   // create a promise queue so we only do one renderProject at a time
   const renderQueue = new PromiseQueue<RenderResult>();
 
+  // function that can return the current target pdf output file
+  const pdfOutputFile = (finalOutput && pdfOutput)
+    ? (): string => {
+      const project = watcher.project();
+      return join(
+        dirname(finalOutput),
+        bookOutputStem(project.dir, project.config) + ".pdf",
+      );
+    }
+    : undefined;
+
   // create project watcher. later we'll figure out if it should provide renderOutput
   const watcher = await watchProject(
     project,
@@ -197,6 +208,7 @@ export async function serveProject(
     options,
     !pdfOutput, // we don't render on reload for pdf output
     renderQueue,
+    pdfOutputFile,
   );
 
   // serve output dir
@@ -341,13 +353,7 @@ export async function serveProject(
 
     // install custom handler for pdfjs
     handlerOptions.onFile = pdfJsFileHandler(
-      () => {
-        const project = watcher.project();
-        return join(
-          dirname(finalOutput),
-          bookOutputStem(project.dir, project.config) + ".pdf",
-        );
-      },
+      pdfOutputFile!,
       async (file: string) => {
         // inject watcher client for html
         if (isHtmlContent(file)) {

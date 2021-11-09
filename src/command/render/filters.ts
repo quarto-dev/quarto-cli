@@ -6,6 +6,12 @@
 */
 import {
   kBibliography,
+  kCalloutDangerCaption,
+  kCalloutImportantCaption,
+  kCalloutNoteCaption,
+  kCalloutTipCaption,
+  kCalloutWarningCaption,
+  kCiteMethod,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
@@ -22,7 +28,7 @@ import {
   kReferenceLocation,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
-import { Format, FormatPandoc } from "../../config/types.ts";
+import { Format, FormatLanguage, FormatPandoc } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
@@ -44,11 +50,14 @@ const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
 
+const kResultsFile = "results-file";
+
 export function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
   filterParams: Record<string, unknown>,
+  resultsFile: string,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
@@ -69,7 +78,9 @@ export function filterParamsJson(
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
+    ...languageFilterParams(options.format.language),
     ...filterParams,
+    [kResultsFile]: pandocMetadataPath(resultsFile),
   };
 
   return JSON.stringify(params);
@@ -172,11 +183,11 @@ export function extractColumnParams(
 ) {
   const quartoColumnParams: Metadata = {};
   if (
-    defaults?.[kReferenceLocation] === "gutter" ||
-    referenceLocationArg(args) === "gutter"
+    defaults?.[kReferenceLocation] === "margin" ||
+    referenceLocationArg(args) === "margin"
   ) {
     // Forward the values to our params
-    quartoColumnParams[kReferenceLocation] = "gutter";
+    quartoColumnParams[kReferenceLocation] = "margin";
 
     // Remove from flags
     const removeArgs = new Map<string, boolean>();
@@ -187,6 +198,12 @@ export function extractColumnParams(
       delete defaults[kReferenceLocation];
     }
   }
+
+  // Foreward the cite method as well
+  if (defaults?.[kCiteMethod]) {
+    quartoColumnParams[kCiteMethod] = defaults[kCiteMethod];
+  }
+
   return quartoColumnParams;
 }
 
@@ -211,6 +228,18 @@ function referenceLocationArg(args: string[]) {
   } else {
     return undefined;
   }
+}
+
+function languageFilterParams(language: FormatLanguage) {
+  const params: Metadata = {
+    [kCodeSummary]: language[kCodeSummary],
+  };
+  Object.keys(language).forEach((key) => {
+    if (key.startsWith("callout-") || key.startsWith("crossref-")) {
+      params[key] = language[key];
+    }
+  });
+  return params;
 }
 
 function projectFilterParams(options: PandocOptions) {
@@ -243,10 +272,6 @@ function quartoFilterParams(format: Format) {
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;
-  }
-  const foldSummary = format.render[kCodeSummary];
-  if (foldSummary) {
-    params[kCodeSummary] = foldSummary;
   }
   const lineNumbers = format.render[kCodeLineNumbers];
   if (lineNumbers) {

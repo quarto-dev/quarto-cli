@@ -20,6 +20,8 @@ import {
   kExecuteEnabled,
   kKeepMd,
   kKeepTex,
+  kLanguageDefaults,
+  kLanguageDefaultsKeys,
   kMetadataFile,
   kMetadataFiles,
   kMetadataFormat,
@@ -78,6 +80,7 @@ export function formatFromMetadata(
     render: {},
     execute: {},
     pandoc: {},
+    language: {},
     metadata: {},
   };
   // deno-lint-ignore no-explicit-any
@@ -113,7 +116,8 @@ export function formatFromMetadata(
 export function isQuartoMetadata(key: string) {
   return kRenderDefaultsKeys.includes(key) ||
     kExecuteDefaultsKeys.includes(key) ||
-    kPandocDefaultsKeys.includes(key);
+    kPandocDefaultsKeys.includes(key) ||
+    kLanguageDefaultsKeys.includes(key);
 }
 
 export function metadataAsFormat(metadata: Metadata): Format {
@@ -121,6 +125,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
     render: {},
     execute: {},
     pandoc: {},
+    language: {},
     metadata: {},
   };
   // deno-lint-ignore no-explicit-any
@@ -132,14 +137,17 @@ export function metadataAsFormat(metadata: Metadata): Format {
         kRenderDefaults,
         kExecuteDefaults,
         kPandocDefaults,
+        kLanguageDefaults,
         kPandocMetadata,
       ]
         .includes(key)
     ) {
       // special case for 'execute' as boolean
       if (typeof (metadata[key]) == "boolean") {
-        format[key] = format[key] || {};
-        format[kExecuteDefaults][kExecuteEnabled] = metadata[key];
+        if (key === kExecuteDefaults) {
+          format[key] = format[key] || {};
+          format[kExecuteDefaults][kExecuteEnabled] = metadata[key];
+        }
       } else {
         format[key] = { ...format[key], ...(metadata[key] as Metadata) };
       }
@@ -151,6 +159,8 @@ export function metadataAsFormat(metadata: Metadata): Format {
         format.execute[key] = metadata[key];
       } else if (kPandocDefaultsKeys.includes(key)) {
         format.pandoc[key] = metadata[key];
+      } else if (kLanguageDefaultsKeys.includes(key)) {
+        format.language[key] = metadata[key];
       } else {
         format.metadata[key] = metadata[key];
       }

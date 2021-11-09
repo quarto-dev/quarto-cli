@@ -2,9 +2,7 @@
 -- Copyright (C) 2021 by RStudio, PBC
 
 
-kSideCaptionClass = 'caption-gutter'
-
-
+kSideCaptionClass = 'margin-caption'
 
 function columns() 
   
@@ -76,10 +74,13 @@ function renderDivColumn(el)
         local figOrTable = false
         for j, contentEl in ipairs(el.content) do
 
+
           -- wrap figures
           local figure = discoverFigure(contentEl, true)
           if figure ~= nil then
-            latexWrapEnvironment(contentEl, latexFigureEnv(el), true)
+            -- just ensure the classes are - they will be resolved
+            -- when the latex figure is rendered
+            addColumnClasses(columnClasses, figure)
             figOrTable = true
           elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
             -- wrap table divs
@@ -93,9 +94,7 @@ function renderDivColumn(el)
         end
 
         if not figOrTable then
-          -- other things (margin notes)
-          tprepend(el.content, {latexBeginSidenote()});
-          tappend(el.content, {latexEndSidenote(el)})
+          processOtherContent(el.content)
         end
       else
         -- this is not a code cell so process it
@@ -105,9 +104,7 @@ function renderDivColumn(el)
           elseif hasFigureRef(el) then
             latexWrapEnvironment(el, latexFigureEnv(el), false)
           else
-            -- other things (margin notes)
-            tprepend(el.content, {latexBeginSidenote()});
-            tappend(el.content, {latexEndSidenote(el)})
+            processOtherContent(el)
           end
         end
       end   
@@ -115,6 +112,31 @@ function renderDivColumn(el)
        -- Markup any captions for the post processor
       latexMarkupCaptionEnv(el);
     end
+  end
+end
+
+function processOtherContent(el)
+  if hasMarginColumn(el) then
+    -- (margin notes)
+    noteHasColumns()
+    tprepend(el.content, {latexBeginSidenote()});
+    tappend(el.content, {latexEndSidenote(el)})
+  else 
+    -- column classes, but not a table or figure, so 
+    -- handle appropriately
+    local otherEnv = latexOtherEnv(el)
+    if otherEnv ~= nil then
+      latexWrapEnvironment(el, otherEnv, false)
+    end
+  end
+  removeColumnClasses(el)
+end
+
+function hasMarginColumn(el)
+  if el.attr ~= nil and el.attr.classes ~= nil then
+    return tcontains(el.attr.classes, 'column-margin') or tcontains(el.attr.classes, 'aside')
+  else
+    return false
   end
 end
 
@@ -139,11 +161,22 @@ function columnToClass(column)
 end
 
 function removeColumnClasses(el)
-  for i, clz in ipairs(el.attr.classes) do 
-    if isColumnClass(clz) then
-      el.attr.classes:remove(i)
-    end
+  if el.attr and el.attr.classes then
+    for i, clz in ipairs(el.attr.classes) do 
+      if isColumnClass(clz) then
+        el.attr.classes:remove(i)
+      end
+    end  
   end
+end
+
+function addColumnClasses(classes, toEl) 
+  removeColumnClasses(toEl)
+  for i, clz in ipairs(classes) do 
+    if isColumnClass(clz) then
+      toEl.attr.classes:insert(clz)
+    end
+  end  
 end
 
 function removeCaptionClasses(el)

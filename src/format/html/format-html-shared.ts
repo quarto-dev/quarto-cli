@@ -33,8 +33,6 @@ export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
 
-export const kFootnoteSectionTitle = "footnote-section-title";
-
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
 

@@ -9,6 +9,11 @@ import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kAtxHeaders,
   kCache,
+  kCalloutDangerCaption,
+  kCalloutImportantCaption,
+  kCalloutNoteCaption,
+  kCalloutTipCaption,
+  kCalloutWarningCaption,
   kCiteMethod,
   kCiteproc,
   kCodeFold,
@@ -17,6 +22,39 @@ import {
   kCodeOverflow,
   kCodeSummary,
   kCodeTools,
+  kCodeToolsHideAllCode,
+  kCodeToolsMenuCaption,
+  kCodeToolsShowAllCode,
+  kCodeToolsSourceCode,
+  kCodeToolsViewSource,
+  kCopyButtonTooltip,
+  kCrossrefCnjPrefix,
+  kCrossrefCnjTitle,
+  kCrossrefCorPrefix,
+  kCrossrefCorTitle,
+  kCrossrefDefPrefix,
+  kCrossrefDefTitle,
+  kCrossrefEqPrefix,
+  kCrossrefExmPrefix,
+  kCrossrefExmTitle,
+  kCrossrefExrPrefix,
+  kCrossrefExrTitle,
+  kCrossrefFigPrefix,
+  kCrossrefFigTitle,
+  kCrossrefLemPrefix,
+  kCrossrefLemTitle,
+  kCrossrefLofTitle,
+  kCrossrefLolTitle,
+  kCrossrefLotTitle,
+  kCrossrefLstPrefix,
+  kCrossrefLstTitle,
+  kCrossrefPrfTitle,
+  kCrossrefPrpPrefix,
+  kCrossrefSecPrefix,
+  kCrossrefTblPrefix,
+  kCrossrefTblTitle,
+  kCrossrefThmPrefix,
+  kCrossrefThmTitle,
   kCss,
   kEcho,
   kEngine,
@@ -68,15 +106,29 @@ import {
   kPdfEngineOpts,
   kPreferHtml,
   kReferenceLocation,
+  kRepoActionLinksEdit,
+  kRepoActionLinksIssue,
+  kRepoActionLinksSource,
+  kSearchClearButtonTitle,
+  kSearchCopyLinkTitle,
+  kSearchDetatchedCancelButtonTitle,
+  kSearchHideMatchesText,
+  kSearchMatchingDocumentsText,
+  kSearchMoreMatchText,
+  kSearchNoResultsText,
+  kSearchSubmitButtonTitle,
   kSectionDivs,
+  kSectionTitleFootnotes,
   kSelfContained,
   kSelfContainedMath,
   kShiftHeadingLevelBy,
+  kSlideLevel,
   kTableOfContents,
   kTemplate,
   kTitlePrefix,
   kToc,
-  kTocTitle,
+  kTocTitleDocument,
+  kTocTitleWebsite,
   kTopLevelDivision,
   kVariables,
   kVariant,
@@ -164,7 +216,6 @@ export interface FormatExtras {
   pandoc?: FormatPandoc;
   metadata?: Metadata;
   metadataOverride?: Metadata;
-  [kTocTitle]?: string;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
@@ -179,7 +230,9 @@ export interface FormatExtras {
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
     [kTemplatePatches]?: Array<(template: string) => string>;
-    [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
+    [kHtmlPostprocessors]?: Array<
+      (doc: Document) => Promise<string[]>
+    >;
     [kTextHighlightingMode]?: "light" | "dark" | "none" | undefined;
     [kQuartoCssVariables]?: string[];
     [kMarkdownAfterBody]?: string[];
@@ -191,6 +244,7 @@ export interface Format {
   render: FormatRender;
   execute: FormatExecute;
   pandoc: FormatPandoc;
+  language: FormatLanguage;
   metadata: Metadata;
   metadataFilter?: (metadata: Metadata) => Metadata;
   formatExtras?: (
@@ -218,7 +272,6 @@ export interface FormatRender {
   [kPageWidth]?: number;
   [kFigAlign]?: "left" | "right" | "center" | "default";
   [kCodeFold]?: "none" | "show" | "hide" | boolean;
-  [kCodeSummary]?: string;
   [kCodeOverflow]?: "wrap" | "scroll";
   [kCodeLink]?: boolean;
   [kCodeLineNumbers]?: boolean;
@@ -300,6 +353,7 @@ export interface FormatPandoc {
   [kTopLevelDivision]?: string;
   [kShiftHeadingLevelBy]?: number;
   [kTitlePrefix]?: string;
+  [kSlideLevel]?: number;
 }
 
 export interface PandocFlags {
@@ -313,7 +367,6 @@ export interface PandocFlags {
   natbib?: boolean;
   biblatex?: boolean;
   [kToc]?: boolean;
-  [kTocTitle]?: string;
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
@@ -338,4 +391,64 @@ export interface PdfEngine {
   indexEngine?: string;
   indexEngineOpts?: string[];
   tlmgrOpts?: string[];
+}
+
+export interface FormatLanguage {
+  [kTocTitleDocument]?: string;
+  [kTocTitleWebsite]?: string;
+  [kCalloutTipCaption]?: string;
+  [kCalloutNoteCaption]?: string;
+  [kCalloutWarningCaption]?: string;
+  [kCalloutImportantCaption]?: string;
+  [kCalloutDangerCaption]?: string;
+  [kSectionTitleFootnotes]?: string;
+  [kCodeSummary]?: string;
+  [kCodeToolsMenuCaption]?: string;
+  [kCodeToolsShowAllCode]?: string;
+  [kCodeToolsHideAllCode]?: string;
+  [kCodeToolsViewSource]?: string;
+  [kCodeToolsSourceCode]?: string;
+  [kRepoActionLinksEdit]?: string;
+  [kRepoActionLinksSource]?: string;
+  [kRepoActionLinksIssue]?: string;
+  [kSearchNoResultsText]?: string;
+  [kCopyButtonTooltip]?: string;
+  [kSearchMatchingDocumentsText]?: string;
+  [kSearchCopyLinkTitle]?: string;
+  [kSearchHideMatchesText]?: string;
+  [kSearchMoreMatchText]?: string;
+  [kSearchHideMatchesText]?: string;
+  [kSearchClearButtonTitle]?: string;
+  [kSearchDetatchedCancelButtonTitle]?: string;
+  [kSearchSubmitButtonTitle]?: string;
+  [kCrossrefFigTitle]?: string;
+  [kCrossrefTblTitle]?: string;
+  [kCrossrefLstTitle]?: string;
+  [kCrossrefThmTitle]?: string;
+  [kCrossrefLemTitle]?: string;
+  [kCrossrefCorTitle]?: string;
+  [kCrossrefPrfTitle]?: string;
+  [kCrossrefCnjTitle]?: string;
+  [kCrossrefDefTitle]?: string;
+  [kCrossrefExmTitle]?: string;
+  [kCrossrefExrTitle]?: string;
+  [kCrossrefFigPrefix]?: string;
+  [kCrossrefTblPrefix]?: string;
+  [kCrossrefLstPrefix]?: string;
+  [kCrossrefSecPrefix]?: string;
+  [kCrossrefEqPrefix]?: string;
+  [kCrossrefThmPrefix]?: string;
+  [kCrossrefLemPrefix]?: string;
+  [kCrossrefCorPrefix]?: string;
+  [kCrossrefPrpPrefix]?: string;
+  [kCrossrefCnjPrefix]?: string;
+  [kCrossrefDefPrefix]?: string;
+  [kCrossrefExmPrefix]?: string;
+  [kCrossrefExrPrefix]?: string;
+  [kCrossrefLofTitle]?: string;
+  [kCrossrefLotTitle]?: string;
+  [kCrossrefLolTitle]?: string;
+
+  // langauge variations e.g. eg, fr, etc.
+  [key: string]: unknown;
 }

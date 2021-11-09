@@ -33,7 +33,6 @@ function ipynb()
             end
             headerDiv.content:insert(para)
           end
-          dump(headerDiv)
           tprepend(doc.blocks, { headerDiv })
           return doc
         end

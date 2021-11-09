@@ -17,12 +17,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const { autocomplete } = window["@algolia/autocomplete-js"];
 
   let quartoSearchOptions = {};
+  let language = {};
   const searchOptionEl = window.document.getElementById(
     "quarto-search-options"
   );
   if (searchOptionEl) {
     const jsonStr = searchOptionEl.textContent;
     quartoSearchOptions = JSON.parse(jsonStr);
+    language = quartoSearchOptions.language;
   }
 
   // note the search mode
@@ -99,6 +101,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     classNames: {
       form: "d-flex",
     },
+    translations: {
+      clearButtonTitle: language["search-clear-button-title"],
+      detachedCancelButtonText: language["search-detached-cancel-button-title"],
+      submitButtonTitle: language["search-submit-button-title"],
+    },
     initialState: {
       query,
     },
@@ -172,10 +179,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                   reshapedItems.push({
                     target,
                     title: isExpanded
-                      ? `Hide additional matches`
+                      ? language["search-hide-matches-text"]
                       : remainingCount === 1
-                      ? `${remainingCount} more match in this document`
-                      : `${remainingCount} more matches in this document`,
+                      ? `${remainingCount} ${language["search-more-match-text"]}`
+                      : `${remainingCount} ${language["search-more-matches-text"]}`,
                     type: kItemTypeMore,
                     href: kItemTypeMoreHref,
                   });
@@ -287,7 +294,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               return createElement(
                 "div",
                 { class: "quarto-search-no-results" },
-                "No results."
+                language["search-no-results-text"]
               );
             },
             header({ items, createElement }) {
@@ -300,7 +307,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 return createElement(
                   "div",
                   { class: "search-result-header" },
-                  `${count} matching documents.`
+                  `${count} ${language["search-matching-documents-text"]}`
                 );
               } else {
                 return createElement(
@@ -485,6 +492,7 @@ function validateItems(items) {
 
 let lastQuery = null;
 function showCopyLink(query, options) {
+  const language = options.language;
   lastQuery = query;
   // Insert share icon
   const inputSuffixEl = window.document.body.querySelector(
@@ -500,7 +508,7 @@ function showCopyLink(query, options) {
       copyButtonEl = window.document.createElement("button");
       copyButtonEl.setAttribute("class", "aa-CopyButton");
       copyButtonEl.setAttribute("type", "button");
-      copyButtonEl.setAttribute("title", "Copy link to search");
+      copyButtonEl.setAttribute("title", language["search-copy-link-title"]);
       copyButtonEl.onmousedown = (e) => {
         e.preventDefault();
         e.stopPropagation();

@@ -16,8 +16,8 @@ import {
   kLinkCitations,
   kReferenceLocation,
   kSectionDivs,
+  kSectionTitleFootnotes,
   kTheme,
-  kTocTitle,
 } from "../../config/constants.ts";
 import {
   Format,
@@ -30,16 +30,12 @@ import {
 } from "../../config/types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { PandocFlags } from "../../config/types.ts";
-import {
-  hasTableOfContents,
-  hasTableOfContentsTitle,
-} from "../../config/toc.ts";
+import { hasTableOfContents } from "../../config/toc.ts";
 
 import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
   kBootstrapDependencyName,
   kDocumentCss,
-  kFootnoteSectionTitle,
   kPageLayout,
   kPageLayoutArticle,
   kPageLayoutCustom,
@@ -161,10 +157,6 @@ export function boostrapExtras(
       [kDocumentCss]: false,
       [kLinkCitations]: true,
     },
-    [kTocTitle]: !hasTableOfContentsTitle(flags, format)
-      ? "Table of contents"
-      : undefined,
-
     html: {
       [kSassBundles]: resolveBootstrapScss(input, format),
       [kDependencies]: [bootstrapFormatDependency()],
@@ -184,35 +176,56 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       title.classList.add("display-7");
     }
 
-    const marginNotes = format.pandoc[kReferenceLocation] === "gutter" ||
-      flags[kReferenceLocation] === "gutter";
+    const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
+      flags[kReferenceLocation] === "margin";
     // If margin footnotes are enabled move them
-    if (marginNotes) {
+    if (refsInMargin) {
       // This is a little complicated because if there are multiple footnotes
       // in a single block, we want to wrap them in a container so they
       // all can appear adjacent to the block (otherwise only the first would appear)
       // next to the block, and subsequent ones would appear below the block
 
-      // Find all the footnote links
-      const footnoteEls = doc.querySelectorAll(".footnote-ref");
+      let refBlock: Element | null = null;
+      let pendingRefs: Element[] = [];
 
-      let footnoteBlock: Element | null = null;
-      let pendingFootnotes: Element[] = [];
+      const findRefParent = (el: Element) => {
+        if (el.getAttribute("role") === "doc-biblioref") {
+          return el.parentElement?.parentElement;
+        } else {
+          return el.parentElement;
+        }
+      };
 
-      const appendFootnotes = (
+      const isAlreadyInMargin = (el: Element): boolean => {
+        const elInMargin = el.classList.contains("column-margin") ||
+          el.classList.contains("aside");
+        if (elInMargin) {
+          return true;
+        } else if (el.parentElement !== null) {
+          return isAlreadyInMargin(el.parentElement);
+        } else {
+          return false;
+        }
+      };
+
+      const appendRefs = (
         footnotBlockEl: Element,
         footnotes: Element[],
       ) => {
         if (footnotBlockEl !== null) {
           if (footnotes.length === 1) {
-            footnotes[0].classList.add("footnote-gutter");
+            if (!isAlreadyInMargin(footnotBlockEl)) {
+              footnotes[0].classList.add("margin-ref");
+            }
             footnotBlockEl.parentElement?.insertBefore(
               footnotes[0],
               footnotBlockEl.nextElementSibling,
             );
           } else {
             const containerEl = doc.createElement("div");
-            containerEl.classList.add("footnote-gutter");
+            if (!isAlreadyInMargin(footnotBlockEl)) {
+              containerEl.classList.add("margin-ref");
+            }
             for (const footnote of footnotes) {
               containerEl.appendChild(footnote);
             }
@@ -224,74 +237,87 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
         }
       };
 
-      footnoteEls.forEach((footnoteEl) => {
-        const footNoteLink = footnoteEl as Element;
-        if (footNoteLink.hasAttribute("href")) {
-          const target = footNoteLink.getAttribute("href");
+      // Find all the reference (footnote, bibliography) links
+      const refEls = doc.querySelectorAll(
+        ".footnote-ref, a[role='doc-biblioref']",
+      );
+      refEls.forEach((refEl) => {
+        const refLink = refEl as Element;
+        if (refLink.hasAttribute("href")) {
+          const target = refLink.getAttribute("href");
           if (target) {
-            const footnoteContentsEl = doc.getElementById(target.slice(1));
-            if (footnoteContentsEl) {
+            // First try to grab a citation.
+            const refId = target.slice(1);
+            const refParentEl = findRefParent(refLink);
+            const refContentsEl = doc.getElementById(refId);
+
+            if (refContentsEl) {
               if (
-                footnoteBlock !== null &&
-                footnoteBlock !== footnoteEl.parentElement
+                refBlock !== null &&
+                refBlock !== refParentEl
               ) {
-                appendFootnotes(footnoteBlock, pendingFootnotes);
-                pendingFootnotes = [];
+                appendRefs(refBlock, pendingRefs);
+                pendingRefs = [];
               }
 
-              // block containing the footnote
-              footnoteBlock = footnoteEl.parentElement || null;
+              // block containing the reference
+              refBlock = refParentEl || null;
 
-              // Create a new footnote div and move the contents into it
-              const footnoteDiv = doc.createElement("div");
-              footnoteDiv.id = footnoteContentsEl?.id;
-              footnoteDiv.setAttribute(
+              // Create a new ref div and move the contents into it
+              const refDiv = doc.createElement("div");
+              refDiv.id = refContentsEl?.id;
+              refDiv.setAttribute(
                 "role",
-                footnoteContentsEl.getAttribute("role"),
+                refContentsEl.getAttribute("role"),
               );
+              refDiv.classList.add("margin-item-padding");
 
-              Array.from(footnoteContentsEl.children).forEach((child) => {
-                // Remove the backlink since this is in the gutter
-                const backLinkEl = child.querySelector(".footnote-back");
-                if (backLinkEl) {
-                  backLinkEl.remove();
+              Array.from(refContentsEl.childNodes).forEach((child) => {
+                if (refLink.classList.contains(".footnote-ref")) {
+                  // Remove the backlink since this is in the margin
+                  const footnoteEl = child as Element;
+                  const backLinkEl = footnoteEl.querySelector(".footnote-back");
+                  if (backLinkEl) {
+                    backLinkEl.remove();
+                  }
+
+                  // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
+                  child.insertBefore(
+                    doc.createTextNode("\u00A0"),
+                    child.firstChild,
+                  );
+
+                  child.insertBefore(
+                    refLink.firstChild.cloneNode(true),
+                    child.firstChild,
+                  );
                 }
 
-                // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
-                child.insertBefore(
-                  doc.createTextNode("\u00A0"),
-                  child.firstChild,
-                );
-                child.insertBefore(
-                  footNoteLink.firstChild.cloneNode(true),
-                  child.firstChild,
-                );
-                footnoteDiv.appendChild(child);
+                refDiv.appendChild(child);
               });
-
-              pendingFootnotes.push(footnoteDiv);
+              pendingRefs.push(refDiv);
 
               // Remove the old footnote
-              footnoteContentsEl.remove();
+              refContentsEl.remove();
             }
           }
         }
       });
 
-      if (footnoteBlock && pendingFootnotes) {
-        appendFootnotes(footnoteBlock, pendingFootnotes);
+      if (refBlock && pendingRefs) {
+        appendRefs(refBlock, pendingRefs);
       }
     }
 
     // Forward caption class from parents to the child fig caps
-    const gutterCaptions = doc.querySelectorAll(".caption-gutter");
-    gutterCaptions.forEach((captionContainerNode) => {
+    const marginCaptions = doc.querySelectorAll(".margin-caption");
+    marginCaptions.forEach((captionContainerNode) => {
       const captionContainer = (captionContainerNode as Element);
 
       const moveClassToCaption = (container: Element, sel: string) => {
         const target = container.querySelector(sel);
         if (target) {
-          target.classList.add("caption-gutter");
+          target.classList.add("margin-caption");
           return true;
         } else {
           return false;
@@ -299,8 +325,8 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       };
 
       const removeCaptionClass = (el: Element) => {
-        // Remove this since it will place the contents in the gutter if it remains present
-        el.classList.remove("caption-gutter");
+        // Remove this since it will place the contents in the margin if it remains present
+        el.classList.remove("margin-caption");
       };
 
       // Deal with layout panels (we will only handle the main caption not the internals)
@@ -313,7 +339,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
           // It is a figure panel, find a direct child caption of the outer figure.
           for (const child of figure.children) {
             if (child.tagName === "FIGCAPTION") {
-              child.classList.add("caption-gutter");
+              child.classList.add("margin-caption");
               removeCaptionClass(captionContainer);
               break;
             }
@@ -322,7 +348,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
           // it is not a figure panel, find the panel caption
           const caption = captionContainer.querySelector(".panel-caption");
           if (caption) {
-            caption.classList.add("caption-gutter");
+            caption.classList.add("margin-caption");
             removeCaptionClass(captionContainer);
           }
         }
@@ -342,7 +368,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
 
               const divCopy = doc.createElement("div");
               divCopy.classList.add("figure-caption");
-              divCopy.classList.add("caption-gutter");
+              divCopy.classList.add("margin-caption");
               divCopy.innerHTML = captionEl.innerHTML;
               parentDivEl.appendChild(divCopy);
               removeCaptionClass(captionContainer);
@@ -356,7 +382,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
 
     // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
-      '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"], [class*="footnote-gutter"], [class*=" footnote-gutter"]',
+      '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
     );
     // If there are any of these elements, we need to be sure that their
     // parents have acess to the grid system, so make the parent full screen width
@@ -504,7 +530,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)
     const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-    if (marginNotes) {
+    if (refsInMargin) {
       const footNoteSectionEl = doc.querySelector("section.footnotes");
       if (footNoteSectionEl) {
         footNoteSectionEl.remove();
@@ -512,8 +538,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     } else if (footnotes.length === 1) {
       const footnotesEl = footnotes.item(0) as Element;
       const h2 = doc.createElement("h2");
-      const title =
-        (format.metadata[kFootnoteSectionTitle] || "Footnotes") as string;
+      const title = format.language[kSectionTitleFootnotes];
       if (typeof (title) == "string" && title !== "none") {
         h2.innerHTML = title;
       }

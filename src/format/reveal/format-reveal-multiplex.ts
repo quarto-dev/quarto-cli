@@ -23,10 +23,13 @@ export function revealMultiplexPlugin(format: Format): string | undefined {
   }
 }
 
-export function revealMuliplexPreviewFile(file: string, format: Format) {
-  if (format.metadata[kRevealJsMultiplex]) {
-    const speakerFile = revealSpeakerOutput(file);
-    if (existsSync(speakerFile)) {
+export function revealMuliplexPreviewFile(file: string) {
+  const speakerFile = revealSpeakerOutput(file);
+  if (existsSync(speakerFile) && existsSync(file)) {
+    // return speaker file if it's >= mod time of file
+    const modTime = Deno.statSync(file).mtime;
+    const speakerModTime = Deno.statSync(speakerFile).mtime;
+    if (modTime && speakerModTime && (speakerModTime > modTime)) {
       return speakerFile;
     }
   }
@@ -48,21 +51,23 @@ export function revealMultiplexExtras(
         // read file
         const content = await Deno.readTextFile(output);
 
-        // apply token
+        // generate speaker content
         const speakerContent = withMultiplexToken(content, token);
 
-        // write speaker version
-        const speakerOutput = revealSpeakerOutput(output);
-        await Deno.writeTextFile(speakerOutput, speakerContent);
-
-        // remove the secret and the speaker notes from the client version
+        // generate client content (remove the secret and the speaker notes)
         token.secret = null;
         const clientContent = withMultiplexToken(content, token)
           .replace(
             /(\/\/ reveal\.js plugins\n\s*plugins: \[[^\[]+?)(RevealNotes,)([^\[]+?\])/,
             "$1$3",
           );
+
+        // write client version
         await Deno.writeTextFile(output, clientContent);
+
+        // write speaker version
+        const speakerOutput = revealSpeakerOutput(output);
+        await Deno.writeTextFile(speakerOutput, speakerContent);
       }],
     };
   } else {

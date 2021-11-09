@@ -2,6 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 function title(type, default)
+  default = param("crossref-" .. type .. "-title", default)
   return crossrefOption(type .. "-title", stringToInlines(default))
 end
 
@@ -48,7 +49,8 @@ end
 
 function refPrefix(type, upper)
   local opt = type .. "-prefix"
-  local prefix = crossrefOption(opt, {pandoc.Str(type), pandoc.Str(".")})
+  local default = stringToInlines(param("crossref-" .. type .. "-prefix", type .. "."))
+  local prefix = crossrefOption(opt, default)
   if upper then
     local el = pandoc.Plain(prefix)
     local firstStr = true

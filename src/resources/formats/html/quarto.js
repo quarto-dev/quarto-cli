@@ -252,7 +252,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   });
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
-    '[class^="column-"], [class*=" column-"], aside, [class*="caption-gutter"], [class*=" caption-gutter"], [class*="footnote-gutter"], [class*=" footnote-gutter"]'
+    '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]'
   );
 
   // Filter all the possibly conflicting elements into ones
@@ -266,7 +266,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return (
         className.startsWith("column-") &&
         !className.endsWith("right") &&
-        className !== "column-gutter"
+        className !== "column-margin"
       );
     });
   });
@@ -275,10 +275,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return true;
     }
 
-    const hasGutterCaption = Array.from(el.classList).find((className) => {
-      return className == "caption-gutter";
+    const hasMarginCaption = Array.from(el.classList).find((className) => {
+      return className == "margin-caption";
     });
-    if (hasGutterCaption) {
+    if (hasMarginCaption) {
       return true;
     }
 

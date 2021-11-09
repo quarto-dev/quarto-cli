@@ -347,23 +347,6 @@ function latexCalloutBoxSimple(caption, type, icon)
   }
 end
 
-
--- generates a set of options for a tColorBox
-function tColorOptions(options) 
-
-  local optionStr = ""
-  local prepend = false
-  for k, v in pairs(options) do
-    if (prepend) then 
-      optionStr = optionStr .. ', '
-    end
-    optionStr = optionStr .. k .. '=' .. v
-    prepend = true
-  end
-  return optionStr
-
-end
-
 function processCalloutDiv(div) 
 
   local icon = div.attr.attributes["icon"]
@@ -807,7 +790,7 @@ function isBuiltInType(type)
   return icon ~= nil
 end
 
-function displayName(str)
-    -- capitalize the type and use that as the caption if none was provided
-    return str:sub(1,1):upper()..str:sub(2)
+function displayName(type)
+  local defaultName = type:sub(1,1):upper()..type:sub(2)
+  return param("callout-" .. type .. "-caption", defaultName)
 end

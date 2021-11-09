@@ -11,6 +11,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kCiteMethod,
   kClassOption,
   kDocumentClass,
   kEcho,
@@ -143,41 +144,89 @@ const pdfBookExtension: BookExtension = {
     }
   },
 };
+type LineProcessor = (line: string) => string | undefined;
 
 function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
   return async (output: string) => {
-    const outputProcessed = sessionTempFile({ suffix: ".tex" });
-    const file = await Deno.open(output);
-    try {
-      const lineProcessors = [
-        sidecaptionLineProcessor(),
-      ];
+    const lineProcessors: LineProcessor[] = [
+      sidecaptionLineProcessor(),
+    ];
 
-      // If enabled, switch to sidenote footnotes
-      if (
-        format.pandoc[kReferenceLocation] === "gutter" ||
-        flags[kReferenceLocation] === "gutter"
-      ) {
-        lineProcessors.push(sideNoteLineProcessor());
+    const renderedCites = {};
+    // If enabled, switch to sidenote footnotes
+    if (marginRefs(flags, format)) {
+      // Replace notes with side notes
+      lineProcessors.push(sideNoteLineProcessor());
+
+      // Based upon the cite method, post process the file to
+      // process unresolved citations
+      if (format.pandoc[kCiteMethod] === "biblatex") {
+        lineProcessors.push(suppressBibLatexBibliographyLineProcessor());
+        lineProcessors.push(bibLatexCiteLineProcessor());
+      } else if (format.pandoc[kCiteMethod] === "natbib") {
+        lineProcessors.push(suppressNatbibBibliographyLineProcessor());
+        lineProcessors.push(natbibCiteLineProcessor());
+      } else {
+        // If this is using the pandoc default citeproc, we need to
+        // do a more complex processing, since it is generating raw latex
+        // for the citations (not running a tool in the pdf chain to
+        // generate the bibliography). As a result, we first read the
+        // rendered bibliography, indexing the entring and removing it
+        // from the latex, then we run a second pass where we use that index
+        // to replace cites with the rendered versions.
+        lineProcessors.push(
+          indexAndSuppressPandocBibliography(renderedCites),
+        );
       }
-      for await (const line of readLines(file)) {
-        let processedLine: string | undefined = line;
-        for (const processor of lineProcessors) {
-          if (line !== undefined) {
-            processedLine = processor(line);
-          }
-        }
-        if (processedLine !== undefined) {
-          Deno.writeTextFileSync(outputProcessed, processedLine + "\n", {
-            append: true,
-          });
-        }
-      }
-    } finally {
-      file.close();
-      Deno.copyFileSync(outputProcessed, output);
+    }
+
+    await processLines(output, lineProcessors);
+    if (Object.keys(renderedCites).length > 0) {
+      await processLines(output, [
+        placePandocBibliographyEntries(renderedCites),
+      ]);
     }
   };
+}
+
+function marginRefs(flags: PandocFlags, format: Format) {
+  return format.pandoc[kReferenceLocation] === "margin" ||
+    flags[kReferenceLocation] === "margin";
+}
+
+// Processes the lines of an input file, processing each line
+// and replacing the input file with the processed output file
+async function processLines(
+  inputFile: string,
+  lineProcessors: LineProcessor[],
+) {
+  // The temp file we generate into
+  const outputFile = sessionTempFile({ suffix: ".tex" });
+  const file = await Deno.open(inputFile);
+  try {
+    for await (const line of readLines(file)) {
+      let processedLine: string | undefined = line;
+      // Give each processor a shot at the line
+      for (const processor of lineProcessors) {
+        if (processedLine !== undefined) {
+          processedLine = processor(processedLine);
+        }
+      }
+
+      // skip lines that a processor has 'eaten'
+      if (processedLine !== undefined) {
+        Deno.writeTextFileSync(outputFile, processedLine + "\n", {
+          append: true,
+        });
+      }
+    }
+  } finally {
+    file.close();
+
+    // Always overwrite the input file with an incompletely processed file
+    // which should make debugging the error easier (I hope)
+    Deno.copyFileSync(outputFile, inputFile);
+  }
 }
 
 const kBeginScanRegex = /^%quartopost-sidecaption-206BE349/;
@@ -206,9 +255,105 @@ const sidecaptionLineProcessor = () => {
   };
 };
 
+// Removes the biblatex \printbibiliography command
+const suppressBibLatexBibliographyLineProcessor = () => {
+  return (line: string): string | undefined => {
+    if (line.match(/^\\printbibliography$/)) {
+      return "";
+    }
+    return line;
+  };
+};
+
+// Replaces the natbib bibligography declaration with a version
+// that will not be printed in the PDF
+const suppressNatbibBibliographyLineProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replace(/^\s*\\bibliography{(.*)}$/, (_match, bib) => {
+      return `\\newsavebox\\mytempbib
+\\savebox\\mytempbib{\\parbox{\\textwidth}{\\bibliography{${bib}}}}`;
+    });
+  };
+};
+
+// {?quarto-cite:(id)}
+const kQuartoCiteRegex = /{\?quarto-cite:(.*?)}/g;
+
+const bibLatexCiteLineProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
+      return `\\fullcite{${citeKey}}`;
+    });
+  };
+};
+
+const natbibCiteLineProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
+      return `\\bibentry{${citeKey}}`;
+    });
+  };
+};
+
 const sideNoteLineProcessor = () => {
   return (line: string): string | undefined => {
-    return line.replace(/\\footnote{/, "\\sidenote{");
+    return line.replaceAll(/\\footnote{/g, "\\sidenote{\\footnotesize ");
+  };
+};
+
+const indexAndSuppressPandocBibliography = (
+  renderedCites: Record<string, string[]>,
+) => {
+  let consuming = false;
+  let currentCiteKey: string | undefined = undefined;
+
+  return (line: string): string | undefined => {
+    if (!consuming && line.match(/^\\hypertarget{refs}{}$/)) {
+      consuming = true;
+      return undefined;
+    } else if (consuming && line.match(/^\\end{CSLReferences}$/)) {
+      consuming = false;
+      return undefined;
+    } else if (consuming) {
+      const matches = line.match(/pre{\\hypertarget{ref\-(.*?)}{}}\%/);
+      if (matches && matches[1]) {
+        currentCiteKey = matches[1];
+
+        // protect the hypertarget command and the save this line
+        // protect is useful if the reference appears in a caption
+        renderedCites[currentCiteKey] = [
+          line.replace(
+            "pre{\\hypertarget{ref",
+            "pre{\\protect\\hypertarget{ref",
+          ),
+        ];
+      } else if (line.length === 0) {
+        currentCiteKey = undefined;
+      } else if (currentCiteKey) {
+        renderedCites[currentCiteKey].push(line);
+      }
+    }
+
+    if (consuming) {
+      return undefined;
+    } else {
+      return line;
+    }
+  };
+};
+
+const placePandocBibliographyEntries = (
+  renderedCites: Record<string, string[]>,
+) => {
+  return (line: string): string | undefined => {
+    return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
+      const citeLines = renderedCites[citeKey];
+      if (citeLines) {
+        return citeLines.join("\n");
+      } else {
+        return citeKey;
+      }
+    });
   };
 };
 

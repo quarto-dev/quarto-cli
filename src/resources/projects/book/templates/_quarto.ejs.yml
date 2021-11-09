@@ -18,7 +18,5 @@ format:
     theme: cosmo
   pdf:
     documentclass: scrreport
-  epub:
-    cover-image: cover.png
 
 <% if(editor){ %>editor: <%= editor %><% } %>

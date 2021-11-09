@@ -186,12 +186,20 @@ async function initialCompileLatex(
         continue;
       } else {
         // We failed to install packages (but there are missing packages), give up
-        displayError(response.log, response.result);
+        displayError(
+          "missing packages (automatic installation failed)",
+          response.log,
+          response.result,
+        );
         return Promise.reject();
       }
     } else {
       // Failed, but no auto-installation, just display the error
-      displayError(response.log, response.result);
+      displayError(
+        "missing packages (automatic installed disabled)",
+        response.log,
+        response.result,
+      );
       return Promise.reject();
     }
 
@@ -200,18 +208,18 @@ async function initialCompileLatex(
   }
 }
 
-function displayError(log: string, result: ProcessResult) {
+function displayError(title: string, log: string, result: ProcessResult) {
   if (existsSync(log)) {
     // There is a log file, so read that and try to find the error
     const logText = Deno.readTextFileSync(log);
     writeError(
-      "missing packages",
+      title,
       findLatexError(logText, result.stderr),
       log,
     );
   } else {
     // There is no log file, just display an unknown error
-    writeError("unknown error");
+    writeError(title);
   }
 }
 
@@ -478,16 +486,23 @@ async function recompileLatexUntilComplete(
       pkgMgr,
       quiet,
     );
-    runCount = runCount + 1;
-    // If we haven't reached the minimum or the bibliography still needs to be rerun
-    // go again.
-    if (
-      existsSync(result.log) && needsRecompilation(result.log) ||
-      runCount < minRuns
-    ) {
-      continue;
+
+    if (!result.result.success) {
+      // Failed
+      displayError("Error compiling latex", result.log, result.result);
+      return Promise.reject();
+    } else {
+      runCount = runCount + 1;
+      // If we haven't reached the minimum or the bibliography still needs to be rerun
+      // go again.
+      if (
+        existsSync(result.log) && needsRecompilation(result.log) ||
+        runCount < minRuns
+      ) {
+        continue;
+      }
+      break;
     }
-    break;
   }
 }
 

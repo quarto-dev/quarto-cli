@@ -27,10 +27,12 @@ import("odt.lua")
 import("pptx.lua")
 import("table.lua")
 import("figures.lua")
+import("cites.lua")
 import("columns.lua")
 import("options.lua")
 import("columns-preprocess.lua")
 import("../common/json.lua")
+import("../common/latex.lua")
 import("../common/pandoc.lua")
 import("../common/validate.lua")
 import("../common/format.lua")
@@ -285,6 +287,8 @@ return {
   initOptions(),
   columnsPreprocess(),
   columns(),
+  citesPreprocess(),
+  cites(),
   layoutPanels(),
   extendedFigures(),
   layoutMetaInject()

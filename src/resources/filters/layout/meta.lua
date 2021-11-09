@@ -20,9 +20,10 @@ function layoutMetaInject()
       
       -- check if global options are enabled (e.g. footnotes-margin)
       local referenceLocation = param('reference-location', 'document')
+      local citeMethod = param('cite-method', 'citeproc')
 
       -- enable column layout (packages and adjust geometry)
-      if (layoutState.hasColumns or referenceLocation == 'gutter') and isLatexOutput() then
+      if (layoutState.hasColumns or referenceLocation == 'margin') and isLatexOutput() then
         -- inject sidenotes package
         metaInjectLatex(meta, function(inject)
           inject(
@@ -31,7 +32,55 @@ function layoutMetaInject()
           inject(
             usePackage("marginnote")
           )
+          inject(
+            usePackageWithOption("tcolorbox", "most")
+          )
         end)
+
+        -- set color options for code blocks ('Shaded')
+        -- shadecolor is defined by pandoc
+        local options = {
+          ['interior hidden'] = "",
+          boxrule = '0pt',
+          ['frame hidden'] = "",
+          ['sharp corners'] = "",
+          enhanced = "",
+          ['borderline west'] = '{4pt}{0pt}{shadecolor}'
+        }
+        
+        -- redefined the 'Shaded' environment that pandoc uses for fenced 
+        -- code blocks
+        metaInjectLatexBefore(meta, function(inject)
+          inject("\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}")
+        end)
+        
+        if referenceLocation == 'margin' and meta.bibliography ~= undefined then 
+          if citeMethod == 'natbib' then
+            metaInjectLatex(meta, function(inject)
+              inject(
+                usePackage("bibentry")
+              )  
+              inject(
+                usePackage("marginfix")
+              )  
+
+            end)
+            metaInjectLatex(meta, function(inject)
+              inject(
+                '\\nobibliography*'
+              )
+            end)
+  
+          elseif citeMethod == 'biblatex' then
+            metaInjectLatex(meta, function(inject)
+              inject(
+                usePackage("biblatex")
+              )  
+            end)
+          end
+
+
+        end
 
         -- add layout configuration based upon the document class
         -- we will customize any koma templates that have no custom geometries 

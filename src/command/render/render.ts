@@ -122,6 +122,7 @@ import {
 import { Metadata } from "../../config/types.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
 import { initDenoDom } from "../../core/html.ts";
+import { resolveLanguageMetadata } from "../../core/language.ts";
 
 import { validateYAMLFrontMatter } from "../../core/schema/front-matter.ts";
 
@@ -788,6 +789,9 @@ export function resolveFormatsFromMetadata(
     flags?.metadata || {},
   );
 
+  // resolve any language file references
+  resolveLanguageMetadata(allMetadata, includeDir);
+
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
 
@@ -795,25 +799,19 @@ export function resolveFormatsFromMetadata(
     formats = formatKeys(allMetadata);
   }
 
-  // provide html if there was no format info
+  // provide a default format
   if (formats.length === 0) {
-    formats.push("html");
+    formats.push(baseFormat.pandoc.to || baseFormat.pandoc.writer || "html");
   }
 
   // determine render formats
   const renderFormats: string[] = [];
-  if (flags?.to) {
-    if (flags.to === "all") {
-      renderFormats.push(...formats);
-    } else {
-      renderFormats.push(...flags.to.split(","));
-    }
-  } else if (formats.length > 0) {
+  if (flags?.to === undefined || flags?.to === "all") {
+    renderFormats.push(...formats);
+  } else if (flags?.to === "default") {
     renderFormats.push(formats[0]);
   } else {
-    renderFormats.push(
-      baseFormat.pandoc.to || baseFormat.pandoc.writer || "html",
-    );
+    renderFormats.push(...flags.to.split(","));
   }
 
   const resolved: Record<string, Format> = {};
@@ -887,7 +885,9 @@ export function filesDirLibDir(input: string) {
 
 async function runHtmlPostprocessors(
   options: PandocOptions,
-  htmlPostprocessors: Array<(doc: Document) => Promise<string[]>>,
+  htmlPostprocessors: Array<
+    (doc: Document) => Promise<string[]>
+  >,
 ): Promise<string[]> {
   const resourceRefs: string[] = [];
   if (htmlPostprocessors.length > 0) {

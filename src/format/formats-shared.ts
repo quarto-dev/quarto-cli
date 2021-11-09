@@ -13,7 +13,6 @@ import {
   kCodeLineNumbers,
   kCodeLink,
   kCodeOverflow,
-  kCodeSummary,
   kCodeTools,
   kEcho,
   kError,
@@ -167,7 +166,6 @@ function defaultFormat(): Format {
       [kOutputExt]: "html",
       [kFigAlign]: "default",
       [kCodeFold]: "none",
-      [kCodeSummary]: "Code",
       [kCodeOverflow]: "scroll",
       [kCodeLink]: false,
       [kCodeLineNumbers]: false,
@@ -187,6 +185,7 @@ function defaultFormat(): Format {
       [kLinkExternalNewwindow]: false,
     },
     pandoc: {},
+    language: {},
     metadata: {},
   };
 }

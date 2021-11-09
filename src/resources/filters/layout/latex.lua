@@ -238,7 +238,7 @@ function markupLatexCaption(el, caption, captionEnv)
 end
 
 function latexBeginSidenote() 
-  return pandoc.RawBlock('latex', '\\begin{footnotesize}\\marginnote{')
+  return pandoc.RawBlock('latex', '\\marginnote{\\begin{footnotesize}')
 end
 
 function latexEndSidenote(el)
@@ -249,7 +249,7 @@ function latexEndSidenote(el)
       offset = '[' .. offsetValue .. ']'
     end  
   end
-  return pandoc.RawBlock('latex', '}' .. offset .. '\\end{footnotesize}')
+  return pandoc.RawBlock('latex', '\\end{footnotesize}}' .. offset)
 end
 
 function latexWrapEnvironment(el, env, inline) 
@@ -540,7 +540,7 @@ function latexFigureEnv(el)
     local classes = el.classes
     for i,class in ipairs(classes) do
 
-      -- a gutter figure or aside
+      -- a margin figure or aside
       if isMarginEnv(class) then 
         noteHasColumns()
         return "marginfigure"
@@ -558,12 +558,28 @@ function latexFigureEnv(el)
   end
 end
 
+function latexOtherEnv(el)
+    -- if not user specified, look for other classes which might determine environment
+    local classes = el.classes
+    if classes ~= nil then
+      for i,class in ipairs(classes) do
+
+        -- any column that resolves to full width
+        if isStarEnv(class) then
+          noteHasColumns()
+          return "figure*"
+        end
+      end  
+    end
+    return nil
+end
+
 function latexTableEnv(el)
  
   local classes = el.classes
   for i,class in ipairs(classes) do
 
-    -- a gutter figure or aside
+    -- a margin figure or aside
     if isMarginEnv(class) then 
       noteHasColumns()
       return "margintable"
@@ -587,7 +603,7 @@ function isStarEnv(clz)
 end
 
 function isMarginEnv(clz) 
-  return clz == 'column-gutter' or clz == 'aside'
+  return clz == 'column-margin' or clz == 'aside'
 end
 
 function latexMinipageValign(vAlign) 

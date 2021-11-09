@@ -30,6 +30,9 @@ function usePackage(pkg)
   return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage{" .. pkg .. "}}"
 end
 
+function usePackageWithOption(pkg, option)
+  return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage[" .. option .. "]{" .. pkg .. "}}"
+end
 
 function metaInjectLatex(meta, func)
   if isLatexOutput() then
@@ -41,6 +44,24 @@ function metaInjectLatex(meta, func)
     inject("\\makeatother")
   end
 end
+
+function metaInjectLatexBefore(meta, func)
+  metaInjectRawLatex(meta, kIncludeBefore, func)
+end
+
+function metaInjectLatexAfter(meta, func)
+  metaInjectRawLatex(meta, kIncludeAfter, func)
+end
+
+function metaInjectRawLatex(meta, include, func)
+  if isLatexOutput() then
+    function inject(tex)
+      addInclude(meta, "tex", include, tex)
+    end
+    func(inject)
+  end
+end
+
 
 function metaInjectHtml(meta, func)
   if isHtmlOutput() then
