@@ -1,5 +1,5 @@
 toc-title-document: "目录"
-toc-title-website: "在该页面"
+toc-title-website: "该页面内容"
 
 section-title-footnotes: "脚注"
 
@@ -14,7 +14,7 @@ code-summary: "代码"
 code-tools-menu-caption: "代码"
 code-tools-show-all-code: "显示所有代码"
 code-tools-hide-all-code: "隐藏所有代码"
-code-tools-view-source: "查看代码"
+code-tools-view-source: "查看源代码"
 code-tools-source-code: "源代码"
 
 copy-button-tooltip: "复制到剪贴板"
