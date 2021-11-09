@@ -170,7 +170,7 @@ body.docked {
 }
 
 .column-page-right {
-  grid-column: body-start / page-end;
+  grid-column: body-content-start / page-end;
   figcaption {
     text-align: right;
   }
