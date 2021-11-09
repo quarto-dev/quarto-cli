@@ -767,7 +767,7 @@ export function isStandaloneFormat(format: Format) {
 export function resolveFormatsFromMetadata(
   metadata: Metadata,
   includeDir: string,
-  formats?: string[],
+  formats: string[],
   flags?: RenderFlags,
 ): Record<string, Format> {
   // Read any included metadata files and merge in and metadata from the command
@@ -913,11 +913,27 @@ async function resolveFormats(
 
   // determine order of formats
   const projType = projectType(project?.config?.project?.[kProjectType]);
-  const formats = projType.projectFormatsOnly
+  let formats = projType.projectFormatsOnly
     ? formatKeys(projMetadata)
     : ld.uniq(
       formatKeys(inputMetadata).concat(formatKeys(projMetadata)),
-    );
+    ) as string[];
+
+  // filter out formats that have 'false' or 'null'
+  const formatIsDisabled = (format: string, metadata: Metadata) => {
+    const inputFormats = metadata[kMetadataFormat];
+    if (typeof (inputFormats) === "object") {
+      // deno-lint-ignore no-explicit-any
+      const inputFormat = (inputFormats as any)[format];
+      return inputFormat === null || inputFormat === false;
+    } else {
+      return false;
+    }
+  };
+  formats = formats.filter((format) => {
+    return !formatIsDisabled(format, projMetadata) &&
+      !formatIsDisabled(format, inputMetadata);
+  });
 
   // resolve formats for proj and input
   const projFormats = resolveFormatsFromMetadata(
