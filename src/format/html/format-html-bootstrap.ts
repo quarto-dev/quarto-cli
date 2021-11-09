@@ -273,7 +273,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
               refDiv.classList.add("margin-item-padding");
 
               Array.from(refContentsEl.childNodes).forEach((child) => {
-                if (refLink.classList.contains(".footnote-ref")) {
+                if (refLink.classList.contains("footnote-ref")) {
                   // Remove the backlink since this is in the margin
                   const footnoteEl = child as Element;
                   const backLinkEl = footnoteEl.querySelector(".footnote-back");
