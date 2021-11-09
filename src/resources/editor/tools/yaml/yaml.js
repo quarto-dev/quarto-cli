@@ -13075,13 +13075,18 @@ if (typeof exports === 'object') {
     if (code.value === void 0) {
       code = core2.asMappedString(code);
     }
-    const tree = parser.parse(code.value);
-    if (tree.rootNode.type !== "ERROR") {
-      yield {
-        parse: tree,
-        code,
-        deletions: 0
-      };
+    try {
+      const tree = parser.parse(code.value);
+      if (tree.rootNode.type !== "ERROR") {
+        yield {
+          parse: tree,
+          code,
+          deletions: 0
+        };
+      }
+    } catch (e) {
+      debugger;
+      return;
     }
     const codeLines = core2.rangedLines(code.value, true);
     if (position.row >= codeLines.length || position.row < 0) {
@@ -13118,10 +13123,10 @@ if (typeof exports === 'object') {
         });
       }
       const newCode = core2.mappedString(code, chunks);
-      const tree2 = parser.parse(newCode.value);
-      if (tree2.rootNode.type !== "ERROR") {
+      const tree = parser.parse(newCode.value);
+      if (tree.rootNode.type !== "ERROR") {
         yield {
-          parse: tree2,
+          parse: tree,
           code: newCode,
           deletions
         };
@@ -13311,6 +13316,7 @@ if (typeof exports === 'object') {
         }
         return lints;
       }
+      return [];
     });
   }
   async function automationFromGoodParseYAML(kind, context) {
@@ -13490,11 +13496,10 @@ if (typeof exports === 'object') {
     const adjustedCellSize = (cell) => {
       let cellLines = core4.lines(cell.source.value);
       let size = cellLines.length;
-      if (cellLines[size - 1].trim().length === 0) {
-        size -= 1;
-      }
       if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
         size += 2;
+      } else if (cellLines[size - 1].trim().length === 0) {
+        size -= 1;
       }
       return size;
     };
@@ -13644,12 +13649,22 @@ if (typeof exports === 'object') {
   }
   window.QuartoYamlEditorTools = {
     getCompletions: async function(context) {
-      return getAutomation("completions", context);
+      try {
+        return getAutomation("completions", context);
+      } catch (e) {
+        console.log("Error found during autocomplete", e);
+        return null;
+      }
     },
     getLint: async function(context) {
       debugger;
-      core4.setupAjv(window.ajv);
-      return getAutomation("validation", context);
+      try {
+        core4.setupAjv(window.ajv);
+        return getAutomation("validation", context);
+      } catch (e) {
+        console.log("Error found during linting", e);
+        return null;
+      }
     }
   };
 })();

@@ -52,7 +52,9 @@ export async function validationFromGoodParseYAML(context)
       }
       return lints;  
     }
-    
+
+    // no parses were possible, don't attempt to lint.
+    return [];
   });
 }
 
@@ -322,15 +324,16 @@ async function automationFromGoodParseMarkdown(kind, context)
   const adjustedCellSize = (cell) => {
     let cellLines = core.lines(cell.source.value);
     let size = cellLines.length;
-    if (cellLines[size-1].trim().length === 0) {
-      // if the last line was empty, for the purposes of line
-      // location (what we use this for), that line shouldn't count.
-      size -= 1;
-    }
     if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
       // language cells don't bring starting and ending triple backticks, we must compensate here
       size += 2;
+    } else if (cellLines[size-1].trim().length === 0) {
+      // if we're not a language cell and the last line was empty, for
+      // the purposes of line location (what we use this for), that
+      // line shouldn't count.
+      size -= 1;
     }
+
     return size;
   };
     
@@ -570,12 +573,22 @@ async function getAutomation(kind, context)
 window.QuartoYamlEditorTools = {
 
   getCompletions: async function(context) {
-    return getAutomation("completions", context);
+    try {
+      return getAutomation("completions", context);
+    } catch (e) {
+      console.log("Error found during autocomplete", e);
+      return null;
+    }
   },
 
   getLint: async function(context) {
     debugger;
-    core.setupAjv(window.ajv);
-    return getAutomation("validation", context);
+    try {
+      core.setupAjv(window.ajv);
+      return getAutomation("validation", context);
+    } catch (e) {
+      console.log("Error found during linting", e);
+      return null;
+    }
   }
 };

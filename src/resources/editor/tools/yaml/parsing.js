@@ -32,14 +32,19 @@ export function* attemptParsesAtLine(context, parser)
   if (code.value === undefined) {
     code = core.asMappedString(code);
   }
-  
-  const tree = parser.parse(code.value);
-  if (tree.rootNode.type !== 'ERROR') {
-    yield {
-      parse: tree,
-      code,
-      deletions: 0
-    };
+
+  try {
+    const tree = parser.parse(code.value);
+    if (tree.rootNode.type !== 'ERROR') {
+      yield {
+        parse: tree,
+        code,
+        deletions: 0
+      };
+    }
+  } catch (e) {
+    debugger;
+    return;
   }
 
   const codeLines = core.rangedLines(code.value, true);
