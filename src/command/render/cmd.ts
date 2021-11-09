@@ -139,7 +139,7 @@ export const renderCommand = new Command()
     const normalizedArgs = [];
     for (const arg of args) {
       const equalSignIndex = arg.indexOf("=");
-      if (equalSignIndex > 0) {
+      if (equalSignIndex > 0 && arg.startsWith("-")) {
         // Split the arg at the first equal sign
         normalizedArgs.push(arg.slice(0, equalSignIndex));
         normalizedArgs.push(arg.slice(equalSignIndex + 1));
