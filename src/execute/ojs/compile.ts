@@ -462,10 +462,10 @@ export async function ojsCompile(
         classes.push(`caption-${cell.options?.[kCellCapLoc]}`);
       }
       if (typeof cell.options?.[kCellFigCapLoc] === "string") {
-        classes.push(`fig-caption-${cell.options?.[kCellFigCapLoc]}`);
+        classes.push(`fig-cap-location-${cell.options?.[kCellFigCapLoc]}`);
       }
       if (typeof cell.options?.[kCellTblCapLoc] === "string") {
-        classes.push(`tbl-caption-${cell.options?.[kCellTblCapLoc]}`);
+        classes.push(`tbl-cap-location-${cell.options?.[kCellTblCapLoc]}`);
       }
       if (typeof cell.options?.[kCellFigColumn] === "string") {
         classes.push(`fig-caption-${cell.options?.[kCellFigColumn]}`);

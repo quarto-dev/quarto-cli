@@ -297,9 +297,9 @@ knitr_hooks <- function(format, resourceDir) {
      if (is.character(options[["caption-location"]])) 
       classes <- c(classes, paste0("caption-", options[["caption-location"]]))      
      if (is.character(options[["fig.cap-location"]])) 
-      classes <- c(classes, paste0("fig-caption-", options[["fig.cap-location"]]))      
+      classes <- c(classes, paste0("fig-cap-location-", options[["fig.cap-location"]]))      
      if (is.character(options[["tbl-cap-location"]])) 
-      classes <- c(classes, paste0("tbl-caption-", options[["tbl-cap-location"]]))      
+      classes <- c(classes, paste0("tbl-cap-location-", options[["tbl-cap-location"]]))      
 
 
     if (isTRUE(options[["include.hidden"]])) {

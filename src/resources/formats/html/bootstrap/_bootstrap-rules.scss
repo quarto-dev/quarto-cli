@@ -252,7 +252,7 @@ img.img-fluid.column-screen-inset-shaded {
 
 @include media-breakpoint-down(lg) {
   .margin-ref,
-  .caption-margin,
+  .margin-caption,
   div.aside,
   aside,
   .column-margin {
@@ -269,7 +269,7 @@ img.img-fluid.column-screen-inset-shaded {
 
 @include media-breakpoint-down(md) {
   .margin-ref,
-  .caption-margin,
+  .margin-caption,
   div.aside,
   aside,
   .column-margin {
@@ -339,7 +339,7 @@ caption,
 
 .column-margin figcaption,
 .margin-ref,
-.caption-margin,
+.margin-caption,
 div.aside,
 aside,
 .column-margin {
