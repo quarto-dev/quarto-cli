@@ -13644,10 +13644,10 @@ if (typeof exports === 'object') {
   }
   window.QuartoYamlEditorTools = {
     getCompletions: async function(context) {
-      debugger;
       return getAutomation("completions", context);
     },
     getLint: async function(context) {
+      debugger;
       core4.setupAjv(window.ajv);
       return getAutomation("validation", context);
     }

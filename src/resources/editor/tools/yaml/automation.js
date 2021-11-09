@@ -570,11 +570,11 @@ async function getAutomation(kind, context)
 window.QuartoYamlEditorTools = {
 
   getCompletions: async function(context) {
-    debugger;
     return getAutomation("completions", context);
   },
 
   getLint: async function(context) {
+    debugger;
     core.setupAjv(window.ajv);
     return getAutomation("validation", context);
   }

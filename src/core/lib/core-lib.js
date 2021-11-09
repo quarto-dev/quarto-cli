@@ -50,7 +50,7 @@
     const re = /\r?\n/g;
     let match;
     while ((match = re.exec(text)) != null) {
-      offsets.push(match.index);
+      offsets.push(match.index + match[0].length);
     }
     return offsets;
   }
@@ -64,17 +64,10 @@
         };
       }
       const startIndex = glb(offsets, offset);
-      if (offset === offsets[startIndex]) {
-        return {
-          line: startIndex - 1,
-          column: offsets[startIndex] - offsets[startIndex - 1]
-        };
-      } else {
-        return {
-          line: startIndex,
-          column: offset - offsets[startIndex] - 1
-        };
-      }
+      return {
+        line: startIndex,
+        column: offset - offsets[startIndex]
+      };
     };
   }
   function rowColToIndex(text) {
@@ -221,6 +214,7 @@
       let offset = 0;
       const resultList = pieces.map((piece) => {
         if (typeof piece === "string") {
+          debugger;
           offsetInfo.push({
             fromSource: false,
             length: piece.length,
@@ -337,9 +331,7 @@
     const params = [];
     for (const { range } of substrs) {
       params.push(range);
-      params.push("\n");
     }
-    params.pop();
     return mappedString(source, params);
   }
   function partitionCellOptionsMapped(language, source, validate = false) {
@@ -349,7 +341,7 @@
     const optionsSource = [];
     const yamlLines = [];
     let endOfYaml = 0;
-    for (const line of rangedLines(source.value)) {
+    for (const line of rangedLines(source.value, true)) {
       if (line.substring.startsWith(optionPrefix)) {
         if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
           let yamlOption = line.substring.substring(optionPrefix.length);
@@ -490,7 +482,8 @@
       }
     };
     let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
-    for (const line of rangedLines(src.value, true)) {
+    const srcLines = rangedLines(src.value, true);
+    for (const line of srcLines) {
       if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
         if (inYaml) {
           lineBuffer.push(line);
