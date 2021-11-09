@@ -8,7 +8,7 @@
 import { existsSync } from "fs/exists.ts";
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
-import { lines } from "./text.ts";
+import { lines, normalizeNewlines } from "./text.ts";
 
 const kRegExBeginYAML = /^---[ \t]*$/;
 const kRegExEndYAML = /^(?:---|\.\.\.)([ \t]*)$/;
@@ -37,6 +37,9 @@ export function readYamlFromMarkdown(
   markdown: string,
 ): { [key: string]: unknown } {
   if (markdown) {
+    // normalize newlines
+    markdown = normalizeNewlines(markdown);
+
     // remove html comments and fenced code regions
     markdown = markdown.replaceAll(kRegxHTMLComment, "");
     markdown = markdown.replaceAll(kRegexFencedCode, "");
@@ -50,11 +53,11 @@ export function readYamlFromMarkdown(
 
       // exclude yaml blocks that start with a blank line, start with
       // a yaml delimiter (can occur if two "---" stack together) or
-      // are entirely empty (that's not valid for pandoc yaml blocks)
-      // Account for Windows / Linux / Mac end of line
+      // are entirely empty
+      // (that's not valid for pandoc yaml blocks)
       if (
-        !/^(?:\r?\n|\r)(?:\r?\n|\r)/.test(yamlBlock) &&
-        !/^(?:\r?\n|\r)---/.test(yamlBlock) &&
+        !yamlBlock.startsWith("\n\n") &&
+        !yamlBlock.startsWith("\n---") &&
         (yamlBlock.trim().length > 0)
       ) {
         // surface errors immediately for invalid yaml
