@@ -265,12 +265,17 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
 
               // Create a new ref div and move the contents into it
               const refDiv = doc.createElement("div");
-              refDiv.id = refContentsEl?.id;
+
+              // preserve the id and role
+              if (refContentsEl?.id) {
+                refDiv.setAttribute("id", refContentsEl.id);
+              }
               refDiv.setAttribute(
                 "role",
                 refContentsEl.getAttribute("role"),
               );
               refDiv.classList.add("margin-item-padding");
+              console.log(refDiv);
 
               Array.from(refContentsEl.childNodes).forEach((child) => {
                 if (refLink.classList.contains("footnote-ref")) {
