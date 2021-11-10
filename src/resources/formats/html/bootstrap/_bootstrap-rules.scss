@@ -233,6 +233,11 @@ img.img-fluid.column-screen-inset-shaded {
   width: 100%;
 }
 
+.no-row-height {
+  height: 1em;
+  overflow: visible;
+}
+
 @include media-breakpoint-up(lg) {
   .margin-ref,
   .margin-caption,
