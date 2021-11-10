@@ -172,10 +172,12 @@ export async function runPandoc(
   }
 
   // now that 'lang' is resolved we can determine our actual language values
-
   // start with system defaults for the current language
-  const langCode = (options.format.metadata[kLang] as string | undefined) ||
-    "en";
+  const langCode = (
+    options.flags?.pandocMetadata?.[kLang] ||
+    options.format.metadata[kLang] ||
+    "en"
+  ) as string;
   const language = readDefaultLanguageTranslations(langCode).language;
   // merge any user provided language w/ the defaults
   options.format.language = mergeConfigs(

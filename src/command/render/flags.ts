@@ -255,11 +255,14 @@ export function parseRenderFlags(args: string[]) {
         if (arg) {
           const metadata = parseMetadataFlagValue(arg);
           if (metadata) {
-            if (
-              isQuartoMetadata(metadata.name) && metadata.value !== undefined
-            ) {
-              flags.metadata = flags.metadata || {};
-              flags.metadata[metadata.name] = metadata.value;
+            if (metadata.value !== undefined) {
+              if (isQuartoMetadata(metadata.name)) {
+                flags.metadata = flags.metadata || {};
+                flags.metadata[metadata.name] = metadata.value;
+              } else {
+                flags.pandocMetadata = flags.pandocMetadata || {};
+                flags.pandocMetadata[metadata.name] = metadata.value;
+              }
             }
           }
         }
