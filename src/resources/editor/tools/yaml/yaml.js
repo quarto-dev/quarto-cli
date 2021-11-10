@@ -6996,6 +6996,7 @@ Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function () {
 },{"./compile/codegen":2,"./compile/validate":15,"./core":18,"./refs/json-schema-draft-07.json":20,"./vocabularies/discriminator":45,"./vocabularies/draft7":47}]},{},[])("ajv")
 });
 window.ajv = new window.ajv7({ allErrors: true });
+// deno-lint-ignore-file
 (() => {
   // binary-search.ts
   function glb(array, value, compare) {
@@ -7014,7 +7015,7 @@ window.ajv = new window.ajv7({ allErrors: true });
     }
     let left = 0;
     let right = array.length - 1;
-    let vLeft = array[left], vRight = array[right];
+    const vLeft = array[left], vRight = array[right];
     if (compare(value, vRight) >= 0) {
       return right;
     }
@@ -7141,7 +7142,7 @@ window.ajv = new window.ajv7({ allErrors: true });
       const matches = matchAll(text, regex);
       let prevOffset = 0;
       for (const r of matches) {
-        let stringEnd = r.index + 1;
+        const stringEnd = r.index + 1;
         result2.push({
           substring: text.substring(prevOffset, stringEnd),
           range: {
@@ -7164,9 +7165,35 @@ window.ajv = new window.ajv7({ allErrors: true });
 
   // mapped-text.ts
   function mappedString(source, pieces) {
-    ;
     if (typeof source === "string") {
-      let map = function(targetOffset) {
+      const offsetInfo = [];
+      let offset = 0;
+      const resultList = pieces.map((piece) => {
+        if (typeof piece === "string") {
+          offsetInfo.push({
+            fromSource: false,
+            length: piece.length,
+            offset
+          });
+          offset += piece.length;
+          return piece;
+        } else {
+          const resultPiece = source.substring(piece.start, piece.end);
+          offsetInfo.push({
+            fromSource: true,
+            length: resultPiece.length,
+            offset,
+            range: {
+              start: piece.start,
+              end: piece.end
+            }
+          });
+          offset += resultPiece.length;
+          return resultPiece;
+        }
+      });
+      const value = resultList.join("");
+      const map = (targetOffset) => {
         const ix = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
         if (ix < 0) {
           return void 0;
@@ -7180,7 +7207,8 @@ window.ajv = new window.ajv7({ allErrors: true });
           return void 0;
         }
         return info.range.start + localOffset;
-      }, mapClosest = function(targetOffset) {
+      };
+      const mapClosest = (targetOffset) => {
         if (offsetInfo.length === 0 || targetOffset < 0) {
           return void 0;
         }
@@ -7208,34 +7236,6 @@ window.ajv = new window.ajv7({ allErrors: true });
           return smallestSourceInfo.range.start;
         }
       };
-      const offsetInfo = [];
-      let offset = 0;
-      const resultList = pieces.map((piece) => {
-        if (typeof piece === "string") {
-          debugger;
-          offsetInfo.push({
-            fromSource: false,
-            length: piece.length,
-            offset
-          });
-          offset += piece.length;
-          return piece;
-        } else {
-          const resultPiece = source.substring(piece.start, piece.end);
-          offsetInfo.push({
-            fromSource: true,
-            length: resultPiece.length,
-            offset,
-            range: {
-              start: piece.start,
-              end: piece.end
-            }
-          });
-          offset += resultPiece.length;
-          return resultPiece;
-        }
-      });
-      const value = resultList.join("");
       return {
         value,
         originalString: source,
@@ -7243,19 +7243,6 @@ window.ajv = new window.ajv7({ allErrors: true });
         mapClosest
       };
     } else {
-      let composeMap = function(offset) {
-        const v = nextMap(offset);
-        if (v === void 0) {
-          return v;
-        }
-        return previousMap(v);
-      }, composeMapClosest = function(offset) {
-        const v = nextMapClosest(offset);
-        if (v === void 0) {
-          return v;
-        }
-        return previousMapClosest(v);
-      };
       const {
         value,
         originalString,
@@ -7267,6 +7254,20 @@ window.ajv = new window.ajv7({ allErrors: true });
         map: nextMap,
         mapClosest: nextMapClosest
       } = mappedString(value, pieces);
+      const composeMap = (offset) => {
+        const v = nextMap(offset);
+        if (v === void 0) {
+          return v;
+        }
+        return previousMap(v);
+      };
+      const composeMapClosest = (offset) => {
+        const v = nextMapClosest(offset);
+        if (v === void 0) {
+          return v;
+        }
+        return previousMapClosest(v);
+      };
       return {
         value: resultValue,
         originalString,
@@ -7332,7 +7333,7 @@ window.ajv = new window.ajv7({ allErrors: true });
     }
     return mappedString(source, params);
   }
-  function partitionCellOptionsMapped(language, source, validate = false) {
+  function partitionCellOptionsMapped(language, source, _validate = false) {
     const commentChars = langCommentChars(language);
     const optionPrefix = optionCommentPrefix(commentChars[0]);
     const optionSuffix = commentChars[1] || "";
@@ -7362,11 +7363,14 @@ window.ajv = new window.ajv7({ allErrors: true });
       }
       break;
     }
-    let mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
+    const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
     return {
       mappedYaml,
       optionsSource,
-      source: mappedString(source, [{ start: endOfYaml, end: source.value.length }]),
+      source: mappedString(source, [{
+        start: endOfYaml,
+        end: source.value.length
+      }]),
       sourceStartLine: yamlLines.length
     };
   }
@@ -7526,23 +7530,23 @@ window.ajv = new window.ajv7({ allErrors: true });
     flushLineBuffer("markdown");
     return nb;
   }
-  function mdTrimEmptyLines(lines3) {
-    const firstNonEmpty = lines3.findIndex((line) => line.trim().length > 0);
+  function mdTrimEmptyLines(lines2) {
+    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
     if (firstNonEmpty === -1) {
       return [];
     }
-    lines3 = lines3.slice(firstNonEmpty);
+    lines2 = lines2.slice(firstNonEmpty);
     let lastNonEmpty = -1;
-    for (let i = lines3.length - 1; i >= 0; i--) {
-      if (lines3[i].trim().length > 0) {
+    for (let i = lines2.length - 1; i >= 0; i--) {
+      if (lines2[i].trim().length > 0) {
         lastNonEmpty = i;
         break;
       }
     }
     if (lastNonEmpty > -1) {
-      lines3 = lines3.slice(0, lastNonEmpty + 1);
+      lines2 = lines2.slice(0, lastNonEmpty + 1);
     }
-    return lines3;
+    return lines2;
   }
 
   // promise.ts
@@ -7595,8 +7599,9 @@ window.ajv = new window.ajv7({ allErrors: true });
   // schema.ts
   function schemaType(schema) {
     const t = schema.type;
-    if (t)
+    if (t) {
       return t;
+    }
     if (schema.anyOf) {
       return "anyOf";
     }
@@ -7613,7 +7618,7 @@ window.ajv = new window.ajv7({ allErrors: true });
   }
   function schemaCompletions(schema) {
     const normalize = (completions) => {
-      const result2 = (schema.completions || []).map((c) => {
+      const result2 = (completions || []).map((c) => {
         if (typeof c === "string") {
           return {
             type: "value",
@@ -7658,7 +7663,6 @@ window.ajv = new window.ajv7({ allErrors: true });
         if (schema.items) {
           walkSchema(schema.items, f);
         }
-        ;
         break;
       case "anyOf":
         for (const s of schema.anyOf) {
@@ -7788,8 +7792,8 @@ window.ajv = new window.ajv7({ allErrors: true });
     return result2;
   }
   function narrowOneOfError(oneOf, suberrors) {
-    let subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
-    let onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
+    const subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
+    const onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
     if (onlyAdditionalProperties.length) {
       return onlyAdditionalProperties[0].values;
     }
@@ -7835,7 +7839,7 @@ window.ajv = new window.ajv7({ allErrors: true });
         break;
       }
     } while (true);
-    for (let { key: instancePath, values: allErrors } of errorsPerInstanceList) {
+    for (const { key: instancePath, values: allErrors } of errorsPerInstanceList) {
       const path = instancePath.split("/").slice(1);
       const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
       for (const error of errors) {
@@ -7907,9 +7911,9 @@ window.ajv = new window.ajv7({ allErrors: true });
           const end = locF(endO);
           const {
             prefixWidth,
-            lines: lines3
+            lines: lines2
           } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
-          for (const { lineNumber, content, rawLine } of lines3) {
+          for (const { lineNumber, content, rawLine } of lines2) {
             console.log(content);
             if (lineNumber >= start.line && lineNumber <= end.line) {
               const startColumn = lineNumber > start.line ? 0 : start.column;
