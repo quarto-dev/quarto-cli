@@ -145,6 +145,7 @@ export interface RenderFlags extends PandocFlags {
   executeDaemonRestart?: boolean;
   executeDebug?: boolean;
   metadata?: { [key: string]: unknown };
+  pandocMetadata?: { [key: string]: unknown };
   params?: { [key: string]: unknown };
   paramsFile?: string;
   debug?: boolean;
