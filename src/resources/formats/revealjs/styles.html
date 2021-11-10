@@ -13,6 +13,19 @@
     text-indent: -1em;
   }
 
+  .reveal .slide {
+    height: 100%;
+    <% if (scrollable) { %>overflow-y: auto;<% } %>
+  }
+
+  .reveal .slide.scrollable {
+    overflow-y: auto;
+  }
+
+  .reveal .slide .absolute {
+    position: absolute;
+    display: block;
+  }
 
   .reveal .tippy-content>* {
     margin-top: 0.2em;
