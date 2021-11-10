@@ -5,13 +5,14 @@ export async function getSchemas() {
   if (_schemas) {
     return _schemas;
   }
-  const response = await fetch('/quarto/resources/editor/tools/yaml/quarto-json-schemas.json');
+  const response = await fetch(
+    "/quarto/resources/editor/tools/yaml/quarto-json-schemas.json",
+  );
   _schemas = response.json();
   return _schemas;
 }
 
-export function navigateSchema(schema, path)
-{
+export function navigateSchema(schema, path) {
   const refs = {};
   function inner(subSchema, index) {
     if (subSchema.$id) {
@@ -19,7 +20,9 @@ export function navigateSchema(schema, path)
     }
     if (subSchema.$ref) {
       if (refs[subSchema.$ref] === undefined) {
-        throw new Error(`Internal error: schema reference ${subSchema.$ref} undefined`);
+        throw new Error(
+          `Internal error: schema reference ${subSchema.$ref} undefined`,
+        );
       }
       subSchema = refs[subSchema.$ref];
     }
@@ -35,8 +38,10 @@ export function navigateSchema(schema, path)
         if (index !== path.length - 1) {
           return [];
         }
-        const completions = Object.getOwnPropertyNames(subSchema.properties).filter(
-          name => name.startsWith(key));
+        const completions = Object.getOwnPropertyNames(subSchema.properties)
+          .filter(
+            (name) => name.startsWith(key),
+          );
         if (completions.length === 0) {
           return [];
         }
@@ -51,12 +56,16 @@ export function navigateSchema(schema, path)
       }
       return inner(subSchema.items, index + 1);
     } else if (st === "anyOf") {
-      return subSchema.anyOf.map(ss => inner(ss, index));
+      return subSchema.anyOf.map((ss) => inner(ss, index));
     } else if (st === "allOf") {
       // FIXME
-      throw new Error("Internal error: don't know how to navigate allOf schema :(");
+      throw new Error(
+        "Internal error: don't know how to navigate allOf schema :(",
+      );
     } else if (st === "oneOf") {
-      const result = subSchema.oneOf.map(ss => inner(ss, index)).flat(Infinity);
+      const result = subSchema.oneOf.map((ss) => inner(ss, index)).flat(
+        Infinity,
+      );
       if (result.length !== 1) {
         return [];
       } else {
@@ -68,6 +77,6 @@ export function navigateSchema(schema, path)
       // schema to complete on.
       return [];
     }
-  };
+  }
   return inner(schema, 0).flat(Infinity);
 }

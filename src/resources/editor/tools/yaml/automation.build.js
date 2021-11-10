@@ -101,7 +101,7 @@
         function getV() {
           try {
             return JSON.parse(node.text);
-          } catch (e) {
+          } catch (_e) {
             return node.text;
           }
         }
@@ -232,8 +232,6 @@
   }
   function* attemptParsesAtLine(context, parser) {
     let {
-      filetype,
-      line,
       code,
       position
     } = context;
@@ -249,8 +247,8 @@
           deletions: 0
         };
       }
-    } catch (e) {
-      debugger;
+    } catch (_e) {
+      console.log("Internal Error: tree-sitter raised exception. assuming no valid parses");
       return;
     }
     const codeLines = core2.rangedLines(code.value, true);
@@ -264,7 +262,7 @@
     while (currentColumn > 0) {
       currentColumn--;
       deletions++;
-      let chunks = [];
+      const chunks = [];
       if (position.row > 0) {
         chunks.push({
           start: 0,
@@ -350,7 +348,7 @@
     const lines = core2.lines(code);
     let lineNo = position.row;
     const path = [];
-    let lineIndent = getIndent(line);
+    const lineIndent = getIndent(line);
     while (lineNo !== -1) {
       const trimmed = lines[lineNo].trim();
       if (trimmed.length === 0) {
@@ -442,7 +440,6 @@
         return [];
       }
     }
-    ;
     return inner(schema, 0).flat(Infinity);
   }
 
@@ -462,13 +459,13 @@
     } = context;
     if (code.value.startsWith("---")) {
       code = core4.mappedString(code, [{ start: 3, end: code.value.length }]);
-      context = {
-        ...context,
-        code
-      };
+      context = { ...context, code };
     }
     if (code.value.trimEnd().endsWith("---")) {
-      code = core4.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
+      code = core4.mappedString(code, [{
+        start: 0,
+        end: code.value.lastIndexOf("---")
+      }]);
       context = { ...context, code };
     }
     return context;
@@ -486,8 +483,7 @@
         const lints = [];
         const {
           parse: tree,
-          code: mappedCode,
-          deletions
+          code: mappedCode
         } = parseResult;
         const annotation = buildAnnotated(tree, mappedCode);
         if (annotation === null) {
@@ -511,23 +507,16 @@
     return result;
   }
   async function automationFromGoodParseYAML(kind, context) {
-    let {
-      code,
-      position,
-      schema
-    } = context;
     if (kind === "completions" && positionInTicks(context)) {
       return false;
     }
     context = trimTicks(context);
-    code = context.code;
     const func = kind === "completions" ? completionsFromGoodParseYAML : validationFromGoodParseYAML;
     return func(context);
   }
   async function completionsFromGoodParseYAML(context) {
     let {
       line,
-      code,
       position,
       schema,
       commentPrefix
@@ -543,7 +532,13 @@
     if (line.trim().length === 0) {
       const path = locateFromIndentation(context);
       const indent2 = line.length;
-      let rawCompletions = await completions({ schema, path, word, indent: indent2, commentPrefix });
+      const rawCompletions = await completions({
+        schema,
+        path,
+        word,
+        indent: indent2,
+        commentPrefix
+      });
       rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "key");
       return rawCompletions;
     }
@@ -563,7 +558,13 @@
             column: position.column - deletions
           }
         });
-        let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+        const rawCompletions = await completions({
+          schema,
+          path,
+          word,
+          indent,
+          commentPrefix
+        });
         rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "key");
         return rawCompletions;
       } else {
@@ -591,7 +592,13 @@
             }
           }
         }
-        let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+        const rawCompletions = await completions({
+          schema,
+          path,
+          word,
+          indent,
+          commentPrefix
+        });
         if (line.indexOf(":") !== -1) {
           rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "value");
         }
@@ -633,7 +640,7 @@
       });
     }).flat().filter((c) => c.value.startsWith(word));
     completions2.sort((a, b) => a.value.localeCompare(b.value));
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve, _reject) {
       resolve({
         token: word,
         completions: completions2,
@@ -648,7 +655,7 @@
     } = context;
     const result = core4.breakQuartoMd(context.code);
     const adjustedCellSize = (cell) => {
-      let cellLines = core4.lines(cell.source.value);
+      const cellLines = core4.lines(cell.source.value);
       let size = cellLines.length;
       if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
         size += 2;
@@ -661,7 +668,7 @@
       let linesSoFar = 0;
       let foundCell = void 0;
       for (const cell of result.cells) {
-        let size = adjustedCellSize(cell);
+        const size = adjustedCellSize(cell);
         if (size + linesSoFar > position.row) {
           foundCell = cell;
           break;
@@ -754,7 +761,7 @@
       start: codeLines[codeStartLine].range.start,
       end: codeLines[codeLines.length - 1].range.end
     }]);
-    let {
+    const {
       mappedYaml
     } = core4.partitionCellOptionsMapped(language, mappedCode);
     const schemas = (await getSchemas()).schemas;

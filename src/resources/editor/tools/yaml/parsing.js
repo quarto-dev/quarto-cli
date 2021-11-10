@@ -1,32 +1,30 @@
-let core = window._quartoCoreLib;
+const core = window._quartoCoreLib;
 let _parser;
 
-export async function getTreeSitter()
-{
+export async function getTreeSitter() {
   if (_parser) {
     return _parser;
   }
-  
+
   const Parser = window.TreeSitter;
-  
+
   await Parser.init();
-  
-  _parser = new Parser;
-  
+
+  _parser = new Parser();
+
   // FIXME check if this shouldn't be parameterized somehow.
-  const YAML = await Parser.Language.load('/quarto/resources/editor/tools/yaml/tree-sitter-yaml.wasm'); 
-  
+  const YAML = await Parser.Language.load(
+    "/quarto/resources/editor/tools/yaml/tree-sitter-yaml.wasm",
+  );
+
   _parser.setLanguage(YAML);
   return _parser;
-};
+}
 
-export function* attemptParsesAtLine(context, parser)
-{ 
+export function* attemptParsesAtLine(context, parser) {
   let {
-    filetype,  // "yaml" | "script" | "markdown"
-    line,      // editing line up to the cursor
-    code,      // full contents of the buffer
-    position   // row/column of cursor (0-based)
+    code, // full contents of the buffer
+    position, // row/column of cursor (0-based)
   } = context;
 
   if (code.value === undefined) {
@@ -35,15 +33,17 @@ export function* attemptParsesAtLine(context, parser)
 
   try {
     const tree = parser.parse(code.value);
-    if (tree.rootNode.type !== 'ERROR') {
+    if (tree.rootNode.type !== "ERROR") {
       yield {
         parse: tree,
         code,
-        deletions: 0
+        deletions: 0,
       };
     }
-  } catch (e) {
-    debugger;
+  } catch (_e) {
+    console.log(
+      "Internal Error: tree-sitter raised exception. assuming no valid parses",
+    );
     return;
   }
 
@@ -64,52 +64,50 @@ export function* attemptParsesAtLine(context, parser)
   while (currentColumn > 0) {
     currentColumn--;
     deletions++;
-    
-    let chunks = [];
+
+    const chunks = [];
     if (position.row > 0) {
       chunks.push({
         start: 0,
-        end: codeLines[position.row - 1].range.end
+        end: codeLines[position.row - 1].range.end,
       });
     }
 
     if (position.column > deletions) {
       chunks.push({
         start: locF({ row: position.row, column: 0 }),
-        end: locF({ row: position.row, column: position.column - deletions })
+        end: locF({ row: position.row, column: position.column - deletions }),
       });
     }
 
     if (position.row + 1 < codeLines.length) {
       chunks.push({
         start: locF({ row: position.row, column: currentLine.length - 1 }),
-        end: locF({ row: position.row + 1, column: 0 })
+        end: locF({ row: position.row + 1, column: 0 }),
       });
       chunks.push({
         start: codeLines[position.row + 1].range.start,
-        end: codeLines[codeLines.length - 1].range.end
+        end: codeLines[codeLines.length - 1].range.end,
       });
     }
     const newCode = core.mappedString(code, chunks);
-    
+
     const tree = parser.parse(newCode.value);
-    if (tree.rootNode.type !== 'ERROR') {
+    if (tree.rootNode.type !== "ERROR") {
       yield {
         parse: tree,
         code: newCode,
-        deletions
+        deletions,
       };
     }
   }
-};
+}
 
-function getIndent(l)
-{
+function getIndent(l) {
   return l.length - l.trimStart().length;
 }
 
-export function getYamlIndentTree(code)
-{
+export function getYamlIndentTree(code) {
   const lines = core.lines(code);
   const predecessor = [];
   const indents = [];
@@ -145,16 +143,15 @@ export function getYamlIndentTree(code)
   }
   return {
     predecessor,
-    indentation: indents
+    indentation: indents,
   };
 }
 
-export function locateFromIndentation(context)
-{
+export function locateFromIndentation(context) {
   let {
-    line,      // editing line up to the cursor
-    code,      // full contents of the buffer
-    position   // row/column of cursor (0-based)
+    line, // editing line up to the cursor
+    code, // full contents of the buffer
+    position, // row/column of cursor (0-based)
   } = context;
 
   // currently we don't need mappedstrings here, so we cast to string
@@ -167,7 +164,7 @@ export function locateFromIndentation(context)
   const lines = core.lines(code);
   let lineNo = position.row;
   const path = [];
-  let lineIndent = getIndent(line);
+  const lineIndent = getIndent(line);
   while (lineNo !== -1) {
     const trimmed = lines[lineNo].trim();
 

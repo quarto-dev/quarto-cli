@@ -1,53 +1,57 @@
 import { withValidator } from "./validator-queue.js";
-import { navigate, buildAnnotated, locateCursor } from "./tree-sitter-annotated-yaml.js";
-import { getTreeSitter, attemptParsesAtLine, locateFromIndentation } from "./parsing.js";
+import {
+  buildAnnotated,
+  locateCursor
+} from "./tree-sitter-annotated-yaml.js";
+import {
+  attemptParsesAtLine,
+  getTreeSitter,
+  locateFromIndentation,
+} from "./parsing.js";
 import { getSchemas, navigateSchema } from "./schemas.js";
 
 const core = window._quartoCoreLib;
 
-function positionInTicks(context)
-{
+function positionInTicks(context) {
   const {
     code,
-    position
+    position,
   } = context;
   const codeLines = core.lines(code.value);
   return (code.value.startsWith("---") &&
-          (position.row === 0)) ||
+    (position.row === 0)) ||
     (code.value.trimEnd().endsWith("---") &&
-     (position.row === codeLines.length - 1));
+      (position.row === codeLines.length - 1));
 }
 
 // trims "---" from start and end of code field in context
-function trimTicks(context)
-{
+function trimTicks(context) {
   let {
-    code
+    code,
   } = context;
-  
+
   if (code.value.startsWith("---")) {
     code = core.mappedString(code, [{ start: 3, end: code.value.length }]);
     // NB we don't need to update position here because we're leaving
     // the newlines alone
-    context = {
-      ...context,
-      code
-    };
+    context = { ...context, code };
   }
 
   // sometimes we get something that ends with ---, sometimes with ---\n
   // we must handle both gracefully.
   if (code.value.trimEnd().endsWith("---")) {
-    code = core.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
+    code = core.mappedString(code, [{
+      start: 0,
+      end: code.value.lastIndexOf("---"),
+    }]);
     context = { ...context, code };
   }
   return context;
 }
 
-export async function validationFromGoodParseYAML(context)
-{
+export async function validationFromGoodParseYAML(context) {
   const {
-    code,       // full contents of the buffer
+    code, // full contents of the buffer
   } = context;
 
   if (code.value === undefined) {
@@ -56,13 +60,12 @@ export async function validationFromGoodParseYAML(context)
 
   const result = await withValidator(context, async (validator) => {
     const parser = await getTreeSitter();
-    
+
     for (const parseResult of attemptParsesAtLine(context, parser)) {
       const lints = [];
       const {
         parse: tree,
-        code: mappedCode,
-        deletions
+        code: mappedCode
       } = parseResult;
       const annotation = buildAnnotated(tree, mappedCode);
       if (annotation === null) {
@@ -77,27 +80,22 @@ export async function validationFromGoodParseYAML(context)
           "end.row": error.end.line,
           "end.column": error.end.column,
           "text": error.messageNoLocation,
-          "type": "error"
+          "type": "error",
         });
       }
-      return lints;  
+      return lints;
     }
 
-    // no parses were possible, don't attempt to lint.
+    // no parses were found, can't lint.
     return [];
   });
-  
+
   return result;
 }
 
-async function automationFromGoodParseYAML(kind, context)
-{
-  let {
-    code,      // full contents of the buffer
-    position,  // row/column of cursor (0-based), only needed when kind === "completions"
-    schema,    // schema of yaml object
-  } = context;
-
+// NB we keep this async for consistency with other functions.
+// deno-lint-ignore require-await
+async function automationFromGoodParseYAML(kind, context) {
   // user asked for autocomplete on "---": report none
   if ((kind === "completions") && positionInTicks(context)) {
     return false;
@@ -106,27 +104,25 @@ async function automationFromGoodParseYAML(kind, context)
   // RStudio sends us here in Visual Editor mode for the YAML front matter
   // but includes the --- delimiters, so we trim those.
   context = trimTicks(context);
-  code = context.code;
 
   const func = (
-    kind === "completions" ?
-      completionsFromGoodParseYAML :
-      validationFromGoodParseYAML);
+    kind === "completions"
+      ? completionsFromGoodParseYAML
+      : validationFromGoodParseYAML
+  );
   return func(context);
 }
 
-async function completionsFromGoodParseYAML(context)
-{
+async function completionsFromGoodParseYAML(context) {
   let {
-    line,      // editing line up to the cursor
-    code,      // full contents of the buffer
-    position,  // row/column of cursor (0-based)
-    schema,    // schema of yaml object
+    line, // editing line up to the cursor
+    position, // row/column of cursor (0-based)
+    schema, // schema of yaml object
 
     // if this is a yaml inside a language chunk, it will have a
     // comment prefix which we need to know about in order to
     // autocomplete linebreaks correctly.
-    commentPrefix
+    commentPrefix,
   } = context;
 
   commentPrefix = commentPrefix || "";
@@ -144,18 +140,25 @@ async function completionsFromGoodParseYAML(context)
     // we're in a pure-whitespace line, we should locate entirely based on indentation
     const path = locateFromIndentation(context);
     const indent = line.length;
-    let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+    const rawCompletions = await completions({
+      schema,
+      path,
+      word,
+      indent,
+      commentPrefix,
+    });
     rawCompletions.completions = rawCompletions.completions.filter(
-      completion => completion.type === "key");
+      (completion) => completion.type === "key",
+    );
     return rawCompletions;
   }
   const indent = line.trimEnd().length - line.trim().length;
-  
+
   for (const parseResult of attemptParsesAtLine(context, parser)) {
     const {
       parse: tree,
       code: mappedCode,
-      deletions
+      deletions,
     } = parseResult;
 
     if (line.substring(0, line.length - deletions).trim().length === 0) {
@@ -166,13 +169,20 @@ async function completionsFromGoodParseYAML(context)
         code: mappedCode.value,
         position: {
           row: position.row,
-          column: position.column - deletions
-        }
+          column: position.column - deletions,
+        },
       });
       // we're in an empty line, so the only valid completions are object keys
-      let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+      const rawCompletions = await completions({
+        schema,
+        path,
+        word,
+        indent,
+        commentPrefix,
+      });
       rawCompletions.completions = rawCompletions.completions.filter(
-        completion => completion.type === "key");
+        (completion) => completion.type === "key",
+      );
       return rawCompletions;
     } else {
       const doc = buildAnnotated(tree, mappedCode);
@@ -181,7 +191,7 @@ async function completionsFromGoodParseYAML(context)
       }
       const index = core.rowColToIndex(mappedCode.value)({
         row: position.row,
-        column: position.column - deletions
+        column: position.column - deletions,
       });
       const { withError: locateFailed, value: path } = locateCursor(doc, index);
       // if cursor is at the end of line and it's an object mapping,
@@ -190,7 +200,7 @@ async function completionsFromGoodParseYAML(context)
         if (line.indexOf(":") === -1) {
           // we are inside a line that has no colon, but inside an object mapping (because
           // locateFailed only returns true inside object mappings).
-          // 
+          //
           // we guess here, then that we have an error-tolerant parse
           // and we're inside a string key. Add previous line as key
           // to the path assuming all operations succeed.
@@ -207,77 +217,86 @@ async function completionsFromGoodParseYAML(context)
           }
         }
       }
-      let rawCompletions = await completions({ schema, path, word, indent, commentPrefix });
+      const rawCompletions = await completions({
+        schema,
+        path,
+        word,
+        indent,
+        commentPrefix,
+      });
 
       // filter raw completions depending on cursor context. We use "_" to denote
       // the cursor position. We need to handle:
-      // 
+      //
       // 1. "     _": empty line, complete only on keys
       // 2. "     foo: _": completion on value position of object
       // 3. "     - _": completion on array sequence
       // 4. "     - foo: ": completion on value position of object inside array sequence
-      // 
+      //
       // case 1 was handled upstream of this, so we don't need to handle it here
       // cases 2 and 4 take only value completions
       // case 3 takes all completions
-      
+
       // this picks up only cases 2 and 4
       if (line.indexOf(":") !== -1) {
         rawCompletions.completions = rawCompletions.completions.filter(
-          completion => completion.type === "value");
+          (completion) => completion.type === "value",
+        );
       }
       return rawCompletions;
     }
   }
-  
-  return false;
-};
 
-function completions(obj)
-{
+  return false;
+}
+
+function completions(obj) {
   const {
     schema,
     path,
     word,
     indent,
-    commentPrefix
+    commentPrefix,
   } = obj;
   const matchingSchemas = navigateSchema(schema, path);
 
   // indent mappings and sequences automatically
-  const completions = matchingSchemas.map(schema => {
+  const completions = matchingSchemas.map((schema) => {
     const result = core.schemaCompletions(schema);
-    return result.map(completion => {
+    return result.map((completion) => {
       // we only change indentation on keys
-      if (!completion.suggest_on_accept ||
-          completion.type === "value" || 
-          core.schemaType(completion.schema) !== "object") {
+      if (
+        !completion.suggest_on_accept ||
+        completion.type === "value" ||
+        core.schemaType(completion.schema) !== "object"
+      ) {
         return completion;
       }
-      
+
       const key = completion.value.split(":")[0];
       const subSchema = completion.schema.properties[key];
       if (core.schemaType(subSchema) === "object") {
         return {
           ...completion,
-          value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2)
+          value: completion.value + "\n" + commentPrefix +
+            " ".repeat(indent + 2),
         };
       } else if (core.schemaType(subSchema) === "array") {
         return {
           ...completion,
-          value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2) + "- "
+          value: completion.value + "\n" + commentPrefix +
+            " ".repeat(indent + 2) + "- ",
         };
       } else {
         return completion;
       }
     });
-  }).flat().filter(c => c.value.startsWith(word));
+  }).flat().filter((c) => c.value.startsWith(word));
   completions.sort((a, b) => a.value.localeCompare(b.value));
-  
-  return new Promise(function(resolve, reject) {
+
+  return new Promise(function (resolve, _reject) {
     // resolve completions
     resolve({
-
       // token to replace
       token: word,
 
@@ -291,22 +310,21 @@ function completions(obj)
   });
 }
 
-async function automationFromGoodParseMarkdown(kind, context)
-{
+async function automationFromGoodParseMarkdown(kind, context) {
   const {
     position,
-    line
+    line,
   } = context;
- 
+
   const result = core.breakQuartoMd(context.code);
 
   const adjustedCellSize = (cell) => {
-    let cellLines = core.lines(cell.source.value);
+    const cellLines = core.lines(cell.source.value);
     let size = cellLines.length;
     if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
       // language cells don't bring starting and ending triple backticks, we must compensate here
       size += 2;
-    } else if (cellLines[size-1].trim().length === 0) {
+    } else if (cellLines[size - 1].trim().length === 0) {
       // if we're not a language cell and the last line was empty, for
       // the purposes of line location (what we use this for), that
       // line shouldn't count.
@@ -315,12 +333,12 @@ async function automationFromGoodParseMarkdown(kind, context)
 
     return size;
   };
-    
+
   if (kind === "completions") {
     let linesSoFar = 0;
     let foundCell = undefined;
     for (const cell of result.cells) {
-      let size = adjustedCellSize(cell);
+      const size = adjustedCellSize(cell);
       if (size + linesSoFar > position.row) {
         foundCell = cell;
         break;
@@ -338,14 +356,14 @@ async function automationFromGoodParseMarkdown(kind, context)
         position,
         schema,
         code: foundCell.source,
-        schemaName: "front-matter"
+        schemaName: "front-matter",
       };
       // user asked for autocomplete on "---": report none
       if (positionInTicks(context)) {
         return false;
       }
       context = trimTicks(context);
-      
+
       return automationFromGoodParseYAML(kind, context);
     } else if (foundCell.cell_type.language) {
       return automationFromGoodParseScript(kind, {
@@ -353,16 +371,18 @@ async function automationFromGoodParseMarkdown(kind, context)
         code: foundCell.source,
         position: {
           row: position.row - (linesSoFar + 1),
-          column: position.column
+          column: position.column,
         },
-        line
+        line,
       });
       // complete the yaml inside a chunk
     } else if (foundCell.cell_type === "markdown") {
       // we're inside a markdown, no completions
       return false;
     } else {
-      throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+      throw new Error(
+        `internal error, don't know how to complete cell of type ${foundCell.cell_type}`,
+      );
     }
   } else {
     // FIXME the logic here is pretty similar to the one in completions, but
@@ -371,14 +391,17 @@ async function automationFromGoodParseMarkdown(kind, context)
     const lints = [];
     for (const cell of result.cells) {
       if (cell.cell_type === "raw") {
-        const innerLints = await automationFromGoodParseYAML(kind, trimTicks({
-          filetype: "yaml",
-          code: cell.source,
-          schema: (await getSchemas()).schemas["front-matter"],
-          schemaName: "front-matter",
-          line,
-          position, // we don't need to adjust position because front matter only shows up at start of file.
-        }));
+        const innerLints = await automationFromGoodParseYAML(
+          kind,
+          trimTicks({
+            filetype: "yaml",
+            code: cell.source,
+            schema: (await getSchemas()).schemas["front-matter"],
+            schemaName: "front-matter",
+            line,
+            position, // we don't need to adjust position because front matter only shows up at start of file.
+          }),
+        );
         lints.push(...innerLints);
       } else if (cell.cell_type.language) {
         const innerLints = await automationFromGoodParseScript(kind, {
@@ -388,86 +411,23 @@ async function automationFromGoodParseMarkdown(kind, context)
           line,
           position: {
             ...position,
-            row: position.row - (linesSoFar + 1)
+            row: position.row - (linesSoFar + 1),
           },
         });
         lints.push(...innerLints);
       }
-      
+
       linesSoFar += adjustedCellSize(cell);
     }
     return lints;
   }
 }
 
-async function completionsFromGoodParseMarkdown(context)
-{
-  const {
-    code,
-    position,
-    line
-  } = context;
-  const result = core.breakQuartoMd(core.asMappedString(code));
-  
-  let linesSoFar = 0;
-  let foundCell = undefined;
-  for (const cell of result.cells) {
-    let size = core.lines(cell.source.value).length;
-    if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
-      // language cells don't bring starting and ending triple backticks, we must compensate here
-      size += 2;
-    }
-    if (size + linesSoFar > position.row) {
-      foundCell = cell;
-      break;
-    }
-    linesSoFar += size;
-  }
-  if (foundCell === undefined) {
-    return false;
-  }
-  if (foundCell.cell_type === "raw") {
-    const schema = (await getSchemas()).schemas["front-matter"];
-    let innerContext = {
-      line,
-      code: foundCell.source,
-      position,
-      schema,
-      schemaName: "front-matter",
-    };
-    if (positionInTicks(innerContext)) {
-      return false;
-    }
-    innerContext = trimTicks(innerContext);
-
-    return completionsFromGoodParseYAML(innerContext);
-  } else if (foundCell.cell_type.language) {
-    return automationFromGoodParseScript("completions", {
-      language: foundCell.cell_type.language,
-      code: foundCell.source,
-      position: {
-        row: position.row - (linesSoFar + 1),
-        column: position.column
-      },
-      line
-    });
-    // complete the yaml inside a chunk
-  } else if (foundCell.cell_type === "markdown") {
-    // we're inside a markdown, no completions
-    return false;
-  } else {
-    throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
-  }
-  
-  return false;
-}
-
-async function automationFromGoodParseScript(kind, context)
-{
+async function automationFromGoodParseScript(kind, context) {
   const codeLines = core.rangedLines(context.code.value);
   let language;
   let codeStartLine;
-  
+
   if (!context.language) {
     if (codeLines.length < 2) {
       // need both language and code to autocomplete. length < 2 implies
@@ -488,13 +448,16 @@ async function automationFromGoodParseScript(kind, context)
 
   const mappedCode = core.mappedString(
     context.code,
-    [{ start: codeLines[codeStartLine].range.start,
-       end: codeLines[codeLines.length-1].range.end }]);
+    [{
+      start: codeLines[codeStartLine].range.start,
+      end: codeLines[codeLines.length - 1].range.end,
+    }],
+  );
 
-  let {
-    mappedYaml
+  const {
+    mappedYaml,
   } = core.partitionCellOptionsMapped(language, mappedCode);
-  
+
   const schemas = (await getSchemas()).schemas;
   const schema = schemas.languages[language].schema;
   const commentPrefix = core.kLangCommentChars[language] + "| ";
@@ -510,10 +473,10 @@ async function automationFromGoodParseScript(kind, context)
       // -1 subtract the "{language}" line if necessary
       row: context.position.row - codeStartLine,
       // subtract the "#| " entry
-      column: context.position.column - commentPrefix.length
+      column: context.position.column - commentPrefix.length,
     },
     schema,
-    schemaName: language
+    schemaName: language,
   };
 
   if (kind === "completions") {
@@ -526,54 +489,53 @@ async function automationFromGoodParseScript(kind, context)
     context = trimTicks(context);
     return completionsFromGoodParseYAML(context);
   } else {
-    
     context = trimTicks(context);
     return validationFromGoodParseYAML(context);
   }
 }
 
-async function automationFileTypeDispatch(filetype, kind, context)
-{
+// NB we keep this async for consistency
+// deno-lint-ignore require-await
+async function automationFileTypeDispatch(filetype, kind, context) {
   switch (filetype) {
-  case "markdown":
-    return automationFromGoodParseMarkdown(kind, context);
-  case "yaml":
-    return automationFromGoodParseYAML(kind, context);
-  case "script":
-    return automationFromGoodParseScript(kind, context);
-  default:
-    return null;
+    case "markdown":
+      return automationFromGoodParseMarkdown(kind, context);
+    case "yaml":
+      return automationFromGoodParseYAML(kind, context);
+    case "script":
+      return automationFromGoodParseScript(kind, context);
+    default:
+      return null;
   }
 }
 
-async function getAutomation(kind, context)
-{
+async function getAutomation(kind, context) {
   const extension = context.path.split(".").pop() || "";
   const schemas = (await getSchemas()).schemas;
   const schema = ({
     "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
     "markdown": null, // can't be known ahead of time
-    "script": null
+    "script": null,
   })[context.filetype];
   const schemaName = ({
     "yaml": extension === "qmd" ? "front-matter" : "config",
     "markdown": null, // can't be known ahead of time
-    "script": null
+    "script": null,
   })[context.filetype];
 
   const result = await automationFileTypeDispatch(context.filetype, kind, {
     ...context,
     code: core.asMappedString(context.code),
     schema,
-    schemaName
+    schemaName,
   });
-  
+
   return result || null;
 }
 
 window.QuartoYamlEditorTools = {
-
-  getCompletions: async function(context) {
+  // deno-lint-ignore require-await
+  getCompletions: async function (context) {
     try {
       return getAutomation("completions", context);
     } catch (e) {
@@ -582,7 +544,8 @@ window.QuartoYamlEditorTools = {
     }
   },
 
-  getLint: async function(context) {
+  // deno-lint-ignore require-await
+  getLint: async function (context) {
     try {
       core.setupAjv(window.ajv);
       return getAutomation("validation", context);
@@ -590,5 +553,5 @@ window.QuartoYamlEditorTools = {
       console.log("Error found during linting", e);
       return null;
     }
-  }
+  },
 };

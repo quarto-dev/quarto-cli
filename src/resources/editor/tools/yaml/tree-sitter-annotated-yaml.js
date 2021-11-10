@@ -80,7 +80,7 @@ export function buildAnnotated(tree, mappedSource)
       function getV() {
         try {
           return JSON.parse(node.text); // this catches things like numbers, which YAML wants to convert to actual numbers
-        } catch (e) {
+        } catch (_e) {
           return node.text; // if that fails, return the actual string value.
         }
       }
