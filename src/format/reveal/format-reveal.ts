@@ -9,6 +9,7 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kFrom,
   kHtmlMathMethod,
+  kIncludeAfterBody,
   kIncludeInHeader,
   kLinkCitations,
   kSlideLevel,
@@ -89,6 +90,7 @@ const kRevealOptions = [
   "minScale",
   "maxScale",
   "mathjax",
+  "pdfSeparateFragments",
 ];
 
 const kRevealKebabOptions = kRevealOptions.reduce(
@@ -108,6 +110,7 @@ export const kRevealJsConfig = "revealjs-config";
 export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
+export const kPdfSeparateFragments = "pdfSeparateFragments";
 
 export function revealjsFormat() {
   return mergeConfigs(
@@ -137,6 +140,14 @@ export function revealjsFormat() {
         );
         Deno.writeTextFileSync(stylesFile, styles);
 
+        // additional options not supported by pandoc
+        const optionsFile = sessionTempFile({ suffix: ".html" });
+        const options = renderEjs(
+          formatResourcePath("revealjs", "options.html"),
+          { [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments] },
+        );
+        Deno.writeTextFileSync(optionsFile, options);
+
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
@@ -165,6 +176,7 @@ export function revealjsFormat() {
             } as Metadata,
             metadataOverride: {} as Metadata,
             [kIncludeInHeader]: [stylesFile],
+            [kIncludeAfterBody]: [optionsFile],
             html: {
               [kTemplatePatches]: [
                 revealRequireJsPatch,
@@ -235,6 +247,7 @@ export function revealjsFormat() {
               fragmentInURL: false,
               transition: "none",
               backgroundTransition: "none",
+              pdfSeparateFragments: false,
             }),
           };
         }

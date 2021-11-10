@@ -7,6 +7,7 @@
 
 import { info } from "log/mod.ts";
 import { basename, dirname, join } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
@@ -67,29 +68,6 @@ export async function preview(
   pandocArgs: string[],
   options: PreviewOptions,
 ) {
-  // see if this is in a project that should be previewed w/ serve
-  const project = await projectContext(file, flags, false, true);
-  if (project && projectIsWebsite(project)) {
-    if (isProjectInputFile(file, project)) {
-      const result = await renderProject(project, { flags, pandocArgs }, [
-        file,
-      ]);
-      if (result.error) {
-        throw result.error;
-      }
-      const targetPath = renderResultUrlPath(result);
-      await serveProject(project, flags, pandocArgs, {
-        port: options.port,
-        host: options.host,
-        render: kRenderNone,
-        browse: options.browse ? targetPath || true : false,
-        watchInputs: options.watchInputs,
-        navigate: true,
-      });
-      return;
-    }
-  }
-
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
   await resolvePreviewFormat(file, flags, pandocArgs);
@@ -307,7 +285,7 @@ function previewWatcher(watches: Watch[]): Watcher {
   watches = watches.map((watch) => {
     return {
       ...watch,
-      files: watch.files.map((file) => {
+      files: watch.files.filter(existsSync).map((file) => {
         return Deno.realPathSync(file);
       }),
     };
