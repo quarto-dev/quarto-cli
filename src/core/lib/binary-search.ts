@@ -5,8 +5,11 @@
 *
 */
 
-export function glb<T, U>(array: T[], value: U, compare?: (a: U, b: T) => number)
-{
+export function glb<T, U>(
+  array: T[],
+  value: U,
+  compare?: (a: U, b: T) => number,
+) {
   if (compare === undefined) {
     compare = (a: unknown, b: unknown) => (a as number) - (b as number);
   }
@@ -20,11 +23,11 @@ export function glb<T, U>(array: T[], value: U, compare?: (a: U, b: T) => number
       return 0;
     }
   }
-  
+
   let left = 0;
   let right = array.length - 1;
-  let vLeft = array[left], vRight = array[right];
-  
+  const vLeft = array[left], vRight = array[right];
+
   if (compare(value, vRight) >= 0) {
     // pre: value >= vRight
     return right;
@@ -37,11 +40,11 @@ export function glb<T, U>(array: T[], value: U, compare?: (a: U, b: T) => number
   // pre: compare(value, vRight) === -1 => value < vRight
   // pre: compare(value, vLeft) === {0, 1} => compare(vLeft, value) === {-1, 0} => vLeft <= value
   // pre: vLeft <= value < vRight
-  
+
   while (right - left > 1) {
     // pre: right - left > 1 => ((right - left) >> 1) > 0
     // pre: vLeft <= value < vRight (from before while start and end of while loop)
-    
+
     const center = left + ((right - left) >> 1);
     const vCenter = array[center];
     const cmp = compare(value, vCenter);

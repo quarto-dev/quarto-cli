@@ -16,13 +16,27 @@
 
 import { glb } from "./binary-search.ts";
 import { breakQuartoMd } from "./break-quarto-md.ts";
-import { mappedString, asMappedString, mappedConcat, mappedIndexToRowCol } from "./mapped-text.ts";
-import { partitionCellOptionsMapped, kLangCommentChars } from "./partition-cell-options.ts";
+import {
+  asMappedString,
+  mappedConcat,
+  mappedIndexToRowCol,
+  mappedString,
+} from "./mapped-text.ts";
+import {
+  kLangCommentChars,
+  partitionCellOptionsMapped,
+} from "./partition-cell-options.ts";
 import { PromiseQueue } from "./promise.ts";
-import { rangedSubstring, rangedLines } from "./ranged-text.ts";
-import { lineOffsets, lines, normalizeNewlines, indexToRowCol, rowColToIndex } from "./text.ts";
-import { schemaType, schemaCompletions } from "./schema.ts";
-import { YAMLSchema, setupAjv } from "./yaml-schema.ts";
+import { rangedLines, rangedSubstring } from "./ranged-text.ts";
+import {
+  indexToRowCol,
+  lineOffsets,
+  lines,
+  normalizeNewlines,
+  rowColToIndex,
+} from "./text.ts";
+import { schemaCompletions, schemaType } from "./schema.ts";
+import { setupAjv, YAMLSchema } from "./yaml-schema.ts";
 
 const result = {
   glb,
@@ -52,7 +66,7 @@ const result = {
   schemaCompletions,
 
   YAMLSchema,
-  setupAjv
+  setupAjv,
 };
 
 if (window) {

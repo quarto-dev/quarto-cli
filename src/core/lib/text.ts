@@ -29,19 +29,18 @@ export function lineOffsets(text: string) {
 
 export function indexToRowCol(text: string) {
   const offsets = lineOffsets(text);
-  return function(offset: number) {
-
+  return function (offset: number) {
     if (offset === 0) {
       return {
         line: 0,
-        column: 0
+        column: 0,
       };
     }
-    
+
     const startIndex = glb(offsets, offset);
     return {
       line: startIndex,
-      column: offset - offsets[startIndex]
+      column: offset - offsets[startIndex],
     };
 
     // if (offset === offsets[startIndex]) {
@@ -55,44 +54,43 @@ export function indexToRowCol(text: string) {
     //     column: offset - offsets[startIndex] - 1
     //   };
     // }
-  }
+  };
 }
 
 export function rowColToIndex(text: string) {
   const offsets = lineOffsets(text);
-  return function(position: { row: number, column: number }) {
-    
+  return function (position: { row: number; column: number }) {
     return offsets[position.row] + position.column;
-  }
+  };
 }
-
 
 // just like the version on core/text.ts, but without colors or the
 // sprintf dependency
 export function formatLineRange(
-  text: string, firstLine: number, lastLine: number
-)
-{
+  text: string,
+  firstLine: number,
+  lastLine: number,
+) {
   const lineWidth = Math.max(
     String(firstLine + 1).length,
-    String(lastLine + 1).length);
+    String(lastLine + 1).length,
+  );
   const pad = " ".repeat(lineWidth);
 
   const ls = lines(text);
-  
+
   const result = [];
-  for (let i = firstLine; i <= lastLine; ++i)
-  {
+  for (let i = firstLine; i <= lastLine; ++i) {
     const numberStr = `${pad}${i + 1}: `.slice(-(lineWidth + 2));
     const lineStr = ls[i];
     result.push({
       lineNumber: i,
       content: numberStr + lineStr,
-      rawLine: ls[i]
+      rawLine: ls[i],
     });
   }
   return {
     prefixWidth: lineWidth + 2,
-    lines: result
+    lines: result,
   };
 }

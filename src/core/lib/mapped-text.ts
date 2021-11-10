@@ -9,19 +9,19 @@
 */
 
 import { glb } from "./binary-search.ts";
-import { Range, rangedLines } from "./ranged-text.ts";
-import { lines, indexToRowCol } from "./text.ts";
+import { Range } from "./ranged-text.ts";
+import { indexToRowCol } from "./text.ts";
 
 export interface MappedString {
-  value: string,
-  originalString: string,
-  map: (a: number) => number | undefined,
-  mapClosest: (a: number) => number | undefined
-};
+  value: string;
+  originalString: string;
+  map: (a: number) => number | undefined;
+  mapClosest: (a: number) => number | undefined;
+}
 
 export type StringChunk = string | Range;
 
-/** 
+/**
 mappedString provides a mechanism for maintaining offset information
 through substrings. This comes up often in quarto, where we often pull
 a part of a larger string, send that to an interpreter, compiler or
@@ -30,7 +30,7 @@ line information in the first string.
 
 You construct a mappedString from a list of substring ranges of an
 original string (or unmappable "new" substrings), which are
-concatenated into the result in the field `value`. 
+concatenated into the result in the field `value`.
 
 In the field `originalString`, we keep the "original string"
 
@@ -50,27 +50,26 @@ string (which will be stored in `originalString`).
 This provides a natural composition for mapped strings.
 */
 export function mappedString(
-  source: string | MappedString, pieces: StringChunk[]
-): MappedString
-{
+  source: string | MappedString,
+  pieces: StringChunk[],
+): MappedString {
   interface OffsetInfo {
     fromSource: boolean;
     length: number;
     offset: number;
-    range?: Range
-  };
-  
+    range?: Range;
+  }
+
   if (typeof source === "string") {
     const offsetInfo: OffsetInfo[] = [];
     let offset = 0;
 
-    const resultList = pieces.map(piece => {
+    const resultList = pieces.map((piece) => {
       if (typeof piece === "string") {
-        debugger;
         offsetInfo.push({
           fromSource: false,
           length: piece.length,
-          offset
+          offset,
         });
         offset += piece.length;
         return piece;
@@ -82,8 +81,8 @@ export function mappedString(
           offset,
           range: {
             start: piece.start,
-            end: piece.end
-          }
+            end: piece.end,
+          },
         });
         offset += resultPiece.length;
         return resultPiece;
@@ -92,12 +91,13 @@ export function mappedString(
 
     const value = resultList.join("");
 
-    function map(targetOffset: number) {
+    const map = (targetOffset: number) => {
       const ix = glb(
         offsetInfo,
         { offset: targetOffset },
         // deno-lint-ignore no-explicit-any
-        (a: any, b: any) => a.offset - b.offset);
+        (a: any, b: any) => a.offset - b.offset,
+      );
       if (ix < 0) {
         return undefined;
       }
@@ -106,12 +106,12 @@ export function mappedString(
         return undefined;
       }
       const localOffset = targetOffset - info.offset;
-      
+
       if (localOffset >= info.length) {
         return undefined;
       }
       return info.range!.start + localOffset;
-    }
+    };
 
     // This is a version of map() that returns the closest point (on
     // the left, "'price is right' rules") in the source, in case we
@@ -120,7 +120,7 @@ export function mappedString(
     // replace them with our own, making it easy for errors to include
     // "inner" substrings that have no mapping back to the original
     // source.
-    function mapClosest(targetOffset: number) {
+    const mapClosest = (targetOffset: number) => {
       if (offsetInfo.length === 0 || targetOffset < 0) {
         return undefined;
       }
@@ -128,7 +128,8 @@ export function mappedString(
         offsetInfo,
         { offset: targetOffset },
         // deno-lint-ignore no-explicit-any
-        (a: any, b: any) => a.offset - b.offset);
+        (a: any, b: any) => a.offset - b.offset,
+      );
 
       let ix = firstIx;
       let smallestSourceInfo: undefined | OffsetInfo = undefined;
@@ -141,7 +142,7 @@ export function mappedString(
         smallestSourceInfo = info;
         if (ix === firstIx) {
           const localOffset = targetOffset - info.offset;
-      
+
           if (localOffset < info.length) {
             return info.range!.start + localOffset;
           }
@@ -153,14 +154,14 @@ export function mappedString(
       } else {
         return (smallestSourceInfo as OffsetInfo).range!.start;
       }
-    }
-    
+    };
+
     return {
       value,
       originalString: source,
       map,
-      mapClosest
-    }
+      mapClosest,
+    };
   } else {
     const {
       value,
@@ -172,48 +173,46 @@ export function mappedString(
     const {
       value: resultValue,
       map: nextMap,
-      mapClosest: nextMapClosest
+      mapClosest: nextMapClosest,
     } = mappedString(value, pieces);
 
-    function composeMap(offset: number) {
+    const composeMap = (offset: number) => {
       const v = nextMap(offset);
       if (v === undefined) {
         return v;
       }
       return previousMap(v);
-    }
+    };
 
-    function composeMapClosest(offset: number) {
+    const composeMapClosest = (offset: number) => {
       const v = nextMapClosest(offset);
       if (v === undefined) {
         return v;
       }
       return previousMapClosest(v);
-    }
-    
+    };
+
     return {
       value: resultValue,
       originalString,
       map: composeMap,
-      mapClosest: composeMapClosest
+      mapClosest: composeMapClosest,
     };
   }
 }
 
-export function asMappedString(str: string)
-{
+export function asMappedString(str: string) {
   return {
     value: str,
     originalString: str,
     map: (x: number) => x,
-    mapClosest: (x: number) => x
+    mapClosest: (x: number) => x,
   };
 }
 
 // This assumes all originalString fields in the MappedString
 // parameters to be the same
-export function mappedConcat(strings: MappedString[]): MappedString
-{
+export function mappedConcat(strings: MappedString[]): MappedString {
   if (strings.length === 0) {
     throw new Error("strings must be non-empty");
   }
@@ -223,7 +222,7 @@ export function mappedConcat(strings: MappedString[]): MappedString
     currentOffset += s.value.length;
     offsets.push(currentOffset);
   }
-  const value = "".concat(...strings.map(s => s.value));
+  const value = "".concat(...strings.map((s) => s.value));
   return {
     value,
     originalString: strings[0].originalString,
@@ -240,18 +239,18 @@ export function mappedConcat(strings: MappedString[]): MappedString
       }
       const ix = glb(offsets, offset);
       return strings[ix].mapClosest(offset - offsets[ix]);
-    }
+    },
   };
 }
 
 export function mappedIndexToRowCol(text: MappedString) {
   const f = indexToRowCol(text.originalString);
-  
-  return function(offset: number) {
+
+  return function (offset: number) {
     const n = text.mapClosest(offset);
     if (n === undefined) {
       throw new Error("Internal Error: bad offset in mappedIndexRowCol");
     }
     return f(n);
-  }
+  };
 }

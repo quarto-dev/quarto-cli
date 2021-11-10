@@ -7,25 +7,27 @@
 *
 */
 
+// deno-lint-ignore no-explicit-any
 export type Schema = any;
 
 export interface Completion {
-  display: string,
-  type: "key" | "value",
-  value: string,
-  description: string,
-  suggest_on_accept: boolean,
-  
+  display: string;
+  type: "key" | "value";
+  value: string;
+  description: string;
+  // deno-lint-ignore camelcase
+  suggest_on_accept: boolean;
+
   // `schema` stores the concrete schema that yielded the completion.
   // We need to carry it explicitly because of combinators like oneOf
-  schema?: Schema
-};
+  schema?: Schema;
+}
 
-export function schemaType(schema: Schema)
-{
+export function schemaType(schema: Schema) {
   const t = schema.type;
-  if (t)
+  if (t) {
     return t;
+  }
   if (schema.anyOf) {
     return "anyOf";
   }
@@ -41,8 +43,7 @@ export function schemaType(schema: Schema)
   return "any";
 }
 
-export function schemaExhaustiveCompletions(schema: Schema)
-{
+export function schemaExhaustiveCompletions(schema: Schema) {
   switch (schemaType(schema)) {
     case "anyOf":
       return schema.anyOf.every(schemaExhaustiveCompletions);
@@ -59,15 +60,14 @@ export function schemaExhaustiveCompletions(schema: Schema)
   }
 }
 
-export function schemaCompletions(schema: Schema): Completion[]
-{
+export function schemaCompletions(schema: Schema): Completion[] {
   // FIXME this is slightly inefficient since recursions call
   // normalize() multiple times
-  
+
   // deno-lint-ignore no-explicit-any
   const normalize = (completions: any) => {
     // deno-lint-ignore no-explicit-any
-    const result = (schema.completions || []).map((c: any) => {
+    const result = (completions || []).map((c: any) => {
       if (typeof c === "string") {
         return {
           type: "value",
@@ -75,21 +75,21 @@ export function schemaCompletions(schema: Schema): Completion[]
           value: c,
           description: "",
           suggest_on_accept: false,
-          schema
+          schema,
         };
       }
       return {
         ...c,
-        schema
+        schema,
       };
     });
     return result;
-  }
-  
+  };
+
   if (schema.completions && schema.completions.length) {
     return normalize(schema.completions);
   }
-  
+
   switch (schemaType(schema)) {
     case "array":
       if (schema.items) {
@@ -108,15 +108,14 @@ export function schemaCompletions(schema: Schema): Completion[]
   }
 }
 
-export function walkSchema<T>(schema: Schema, f: (a: Schema) => T)
-{
+export function walkSchema<T>(schema: Schema, f: (a: Schema) => T) {
   f(schema);
-  
+
   switch (schemaType(schema)) {
     case "array":
       if (schema.items) {
         walkSchema(schema.items, f);
-      };
+      }
       break;
     case "anyOf":
       for (const s of schema.anyOf) {
@@ -153,11 +152,10 @@ export function walkSchema<T>(schema: Schema, f: (a: Schema) => T)
 * object that passes ajv's strict mode.
 */
 
-export function normalizeSchema(schema: Schema): Schema
-{
+export function normalizeSchema(schema: Schema): Schema {
   // FIXME this deep copy can probably be made more efficient
   const result = JSON.parse(JSON.stringify(schema));
-  
+
   walkSchema(result, (schema) => {
     if (schema.completions) {
       delete schema.completions;

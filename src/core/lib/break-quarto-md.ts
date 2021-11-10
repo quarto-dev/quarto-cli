@@ -9,8 +9,8 @@
 */
 
 import { lineOffsets, lines } from "./text.ts";
-import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./ranged-text.ts";
-import { mappedString, MappedString, mappedConcat } from "./mapped-text.ts";
+import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
+import { MappedString, mappedString } from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
@@ -25,8 +25,8 @@ export interface QuartoMdCell {
   cell_type: CodeCellType | "markdown" | "raw" | "math";
   options?: MappedString;
 
-  source: MappedString,
-  sourceVerbatim: MappedString,
+  source: MappedString;
+  sourceVerbatim: MappedString;
 
   sourceOffset: number; // FIXME these might be unnecessary now. Check back
   sourceStartLine: number;
@@ -38,7 +38,7 @@ export interface QuartoMdChunks {
 
 export function breakQuartoMd(
   src: MappedString,
-  validate = false
+  validate = false,
 ) {
   // notebook to return
   const nb: QuartoMdChunks = {
@@ -74,7 +74,7 @@ export function breakQuartoMd(
       }
 
       const source = mappedString(src, mappedChunks);
-      
+
       // const sourceLines = lineBuffer.map((line, index) => {
       //   return mappedString(line + (index < (lineBuffer.length - 1) ? "\n" : "");
       // });
@@ -93,7 +93,7 @@ export function breakQuartoMd(
         const { yaml, source, sourceStartLine } = partitionCellOptionsMapped(
           language,
           cell.source,
-          validate
+          validate,
         );
         // FIXME I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
@@ -101,7 +101,8 @@ export function breakQuartoMd(
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
           if (breaks.length) {
-            const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
+            const lastBreak =
+              breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
             // const pos = lastBreak.index + lastBreak[0].length;
             strUpToLastBreak = cell.source.value.substring(0, lastBreak);
           } else {
@@ -110,11 +111,13 @@ export function breakQuartoMd(
         }
         cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
         cell.sourceVerbatim = mappedString(
-          cell.sourceVerbatim, [
+          cell.sourceVerbatim,
+          [
             "```{ojs}\n",
             { start: 0, end: cell.sourceVerbatim.value.length },
-            "\n```"
-          ]);
+            "\n```",
+          ],
+        );
         cell.source = source;
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
@@ -133,12 +136,14 @@ export function breakQuartoMd(
   let inYaml = false,
     inMathBlock = false,
     inCodeCell = false,
-  inCode = false;
+    inCode = false;
 
   const srcLines = rangedLines(src.value, true);
   for (const line of srcLines) {
     // yaml front matter
-    if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
+    if (
+      yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock
+    ) {
       if (inYaml) {
         lineBuffer.push(line);
         flushLineBuffer("raw");

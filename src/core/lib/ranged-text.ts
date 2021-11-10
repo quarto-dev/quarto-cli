@@ -6,9 +6,9 @@
 */
 
 export interface Range {
-  start: number,
-  end: number
-};
+  start: number;
+  end: number;
+}
 
 // A ranged substring is simply a substring of some string plus the
 // positional information. It's used to carry positional information of
@@ -21,25 +21,25 @@ export interface Range {
 export interface RangedSubstring {
   substring: string;
   range: Range;
-};
+}
 
 export function rangedSubstring(
-  src: string, start: number, end = -1
-): RangedSubstring
-{
+  src: string,
+  start: number,
+  end = -1,
+): RangedSubstring {
   if (end === -1) {
     end = src.length;
   }
-  
+
   const substring = src.substring(start, end);
   return {
     substring,
-    range: { start, end }
+    range: { start, end },
   };
-};
+}
 
-function matchAll(str: string, regex: RegExp)
-{
+function matchAll(str: string, regex: RegExp) {
   let match;
   regex = new RegExp(regex); // create new to guarantee freshness wrt exec
   const result = [];
@@ -53,9 +53,8 @@ function matchAll(str: string, regex: RegExp)
 // carry newlines with it, since that's sometimes useful
 export function rangedLines(
   text: string,
-  includeNewLines = false
-): RangedSubstring[]
-{
+  includeNewLines = false,
+): RangedSubstring[] {
   const regex = /\r?\n/g;
   const result: RangedSubstring[] = [];
 
@@ -70,8 +69,8 @@ export function rangedLines(
         substring: text.substring(startOffset, r.index!),
         range: {
           start: startOffset,
-          end: r.index!
-        }
+          end: r.index!,
+        },
       });
       startOffset = r.index! + r[0].length;
     }
@@ -79,21 +78,21 @@ export function rangedLines(
       substring: text.substring(startOffset, text.length),
       range: {
         start: startOffset,
-        end: text.length
-      }
+        end: text.length,
+      },
     });
     return result;
   } else {
     const matches = matchAll(text, regex);
     let prevOffset = 0;
     for (const r of matches) {
-      let stringEnd = r.index! + 1;
+      const stringEnd = r.index! + 1;
       result.push({
         substring: text.substring(prevOffset, stringEnd),
         range: {
           start: prevOffset,
-          end: stringEnd
-        }
+          end: stringEnd,
+        },
       });
       prevOffset = stringEnd;
     }
@@ -101,8 +100,8 @@ export function rangedLines(
       substring: text.substring(prevOffset, text.length),
       range: {
         start: prevOffset,
-        end: text.length
-      }
+        end: text.length,
+      },
     });
     return result;
   }

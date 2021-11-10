@@ -7,11 +7,13 @@
 *
 */
 
-import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./ranged-text.ts";
-import { mappedString, MappedString } from "./mapped-text.ts";
+import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
+import { MappedString, mappedString } from "./mapped-text.ts";
 
-function mappedSource(source: MappedString | string, substrs: RangedSubstring[])
-{
+function mappedSource(
+  source: MappedString | string,
+  substrs: RangedSubstring[],
+) {
   const params: (Range | string)[] = [];
   for (const { range } of substrs) {
     params.push(range);
@@ -24,7 +26,7 @@ function mappedSource(source: MappedString | string, substrs: RangedSubstring[])
 export function partitionCellOptionsMapped(
   language: string,
   source: MappedString,
-  validate = false
+  _validate = false,
 ) {
   const commentChars = langCommentChars(language);
   const optionPrefix = optionCommentPrefix(commentChars[0]);
@@ -46,14 +48,15 @@ export function partitionCellOptionsMapped(
             yamlOption.length - optionSuffix.length,
           );
         }
-        endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
+        endOfYaml = line.range.start + optionPrefix.length + yamlOption.length -
+          optionSuffix.length;
         const rangedYamlOption = {
           substring: yamlOption,
           range: {
             start: line.range.start + optionPrefix.length,
-            end: endOfYaml
-          }
-        }
+            end: endOfYaml,
+          },
+        };
         yamlLines.push(rangedYamlOption);
         optionsSource.push(line);
         continue;
@@ -61,15 +64,20 @@ export function partitionCellOptionsMapped(
     }
     break;
   }
-  
-  let mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : undefined;
+
+  const mappedYaml = yamlLines.length
+    ? mappedSource(source, yamlLines)
+    : undefined;
 
   return {
     // yaml: yaml as Record<string, unknown> | undefined,
     // yamlValidationErrors,
     mappedYaml,
     optionsSource,
-    source: mappedString(source, [{ start: endOfYaml, end: source.value.length }]), // .slice(yamlLines.length),
+    source: mappedString(source, [{
+      start: endOfYaml,
+      end: source.value.length,
+    }]), // .slice(yamlLines.length),
     sourceStartLine: yamlLines.length,
   };
 }
@@ -127,5 +135,5 @@ export const kLangCommentChars: Record<string, string | string[]> = {
   asy: "//",
   haskell: "--",
   dot: "//",
-  ojs: "//"
+  ojs: "//",
 };
