@@ -24,6 +24,8 @@ import {
 } from "../../config/types.ts";
 import { camelToKebab, kebabToCamel, mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
+import { renderEjs } from "../../core/ejs.ts";
+import { sessionTempFile } from "../../core/temp.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
@@ -104,6 +106,7 @@ export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
 
 export const kHashType = "hash-type";
+export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
 
 export function revealjsFormat() {
@@ -126,6 +129,14 @@ export function revealjsFormat() {
         format: Format,
         libDir: string,
       ) => {
+        // render styles template based on options
+        const stylesFile = sessionTempFile({ suffix: ".html" });
+        const styles = renderEjs(
+          formatResourcePath("revealjs", "styles.html"),
+          { [kScrollable]: format.metadata[kScrollable] },
+        );
+        Deno.writeTextFileSync(stylesFile, styles);
+
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
@@ -153,7 +164,7 @@ export function revealjsFormat() {
               [kLinkCitations]: true,
             } as Metadata,
             metadataOverride: {} as Metadata,
-            [kIncludeInHeader]: [formatResourcePath("revealjs", "styles.html")],
+            [kIncludeInHeader]: [stylesFile],
             html: {
               [kTemplatePatches]: [
                 revealRequireJsPatch,

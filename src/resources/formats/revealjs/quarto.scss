@@ -150,15 +150,6 @@ $selectionColor: $selection-color !default;
   text-align: $reveal-slide-text-align;
 }
 
-.reveal .slide {
-  height: 100%;
-}
-
-.reveal .slide .absolute {
-  position: absolute;
-  display: block;
-}
-
 .reveal pre {
   width: 95%;
   box-shadow: none;
