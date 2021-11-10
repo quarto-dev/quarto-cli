@@ -5,6 +5,45 @@ import { getSchemas, navigateSchema } from "./schemas.js";
 
 const core = window._quartoCoreLib;
 
+function positionInTicks(context)
+{
+  const {
+    code,
+    position
+  } = context;
+  const codeLines = core.lines(code.value);
+  return (code.value.startsWith("---") &&
+          (position.row === 0)) ||
+    (code.value.trimEnd().endsWith("---") &&
+     (position.row === codeLines.length - 1));
+}
+
+// trims "---" from start and end of code field in context
+function trimTicks(context)
+{
+  let {
+    code
+  } = context;
+  
+  if (code.value.startsWith("---")) {
+    code = core.mappedString(code, [{ start: 3, end: code.value.length }]);
+    // NB we don't need to update position here because we're leaving
+    // the newlines alone
+    context = {
+      ...context,
+      code
+    };
+  }
+
+  // sometimes we get something that ends with ---, sometimes with ---\n
+  // we must handle both gracefully.
+  if (code.value.trimEnd().endsWith("---")) {
+    code = core.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
+    context = { ...context, code };
+  }
+  return context;
+}
+
 export async function validationFromGoodParseYAML(context)
 {
   const {
@@ -15,7 +54,7 @@ export async function validationFromGoodParseYAML(context)
     throw new Error("Internal error: Expected a MappedString");
   }
 
-  return await withValidator(context, async (validator) => {
+  const result = await withValidator(context, async (validator) => {
     const parser = await getTreeSitter();
     
     for (const parseResult of attemptParsesAtLine(context, parser)) {
@@ -30,15 +69,6 @@ export async function validationFromGoodParseYAML(context)
         continue;
       }
       const validationResult = validator.validateParse(code, annotation);
-
-      // return [{
-      //   "start.row": 1,
-      //   "start.column": 1,
-      //   "end.row": 2,
-      //   "end.column": 0,
-      //   "text": "test!",
-      //   "type": "error"
-      // }];
 
       for (const error of validationResult.errors) {
         lints.push({
@@ -56,6 +86,8 @@ export async function validationFromGoodParseYAML(context)
     // no parses were possible, don't attempt to lint.
     return [];
   });
+  
+  return result;
 }
 
 async function automationFromGoodParseYAML(kind, context)
@@ -64,42 +96,17 @@ async function automationFromGoodParseYAML(kind, context)
     code,      // full contents of the buffer
     position,  // row/column of cursor (0-based), only needed when kind === "completions"
     schema,    // schema of yaml object
-
-    // if this is a yaml inside a language chunk, it will have a comment prefix which we need to know about in order to autocomplete linebreaks correctly.
-    commentPrefix
   } = context;
 
-  commentPrefix = commentPrefix || "";
+  // user asked for autocomplete on "---": report none
+  if ((kind === "completions") && positionInTicks(context)) {
+    return false;
+  }
 
   // RStudio sends us here in Visual Editor mode for the YAML front matter
   // but includes the --- delimiters, so we trim those.
-  if (code.value.startsWith("---")) {
-    if (kind === "completions" && position.row === 0) {
-      // user asked for autocomplete on "---": report none
-      return false;
-    }
-    code = core.mappedString(code, [{ start: 3, end: code.value.length }]);
-    // NB we don't need to update position here because we're leaving
-    // the newlines alone
-    context = {
-      ...context,
-      code
-    };
-  }
-  
-  // sometimes we get something that ends with ---, sometimes with ---\n
-  // we must handle both gracefully.
-  if (code.value.trimEnd().endsWith("---")) {
-    const codeLines = core.lines(code.value);
-    if (kind === "completions" && position.row === codeLines.length - 1) {
-      // user asked for autocomplete on "---": report none
-      return false;
-    }
-    code = core.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
-    context = {
-      ...context, code
-    };
-  }
+  context = trimTicks(context);
+  code = context.code;
 
   const func = (
     kind === "completions" ?
@@ -116,40 +123,13 @@ async function completionsFromGoodParseYAML(context)
     position,  // row/column of cursor (0-based)
     schema,    // schema of yaml object
 
-    // if this is a yaml inside a language chunk, it will have a comment prefix which we need to know about in order to autocomplete linebreaks correctly.
+    // if this is a yaml inside a language chunk, it will have a
+    // comment prefix which we need to know about in order to
+    // autocomplete linebreaks correctly.
     commentPrefix
   } = context;
 
   commentPrefix = commentPrefix || "";
-  
-  // RStudio sends us here in Visual Editor mode for the YAML front matter
-  // but includes the --- delimiters, so we trim those.
-  if (code.value.startsWith("---")) {
-    if (position.row === 0) {
-      // user asked for autocomplete on "---": report none
-      return false;
-    }
-    code = core.mappedString(code, [{ start: 3, end: code.value.length }]);
-    // NB we don't need to update position here because we're leaving
-    // the newlines alone
-    context = {
-      ...context,
-      code
-    };
-  }
-
-  // sometimes we get something that ends with ---, sometimes with ---\n
-  // we must handle both gracefully.
-  if (code.value.trimEnd().endsWith("---")) {
-    const codeLines = core.lines(code.value);
-    if (position.row === codeLines.length - 1) {
-      // user asked for autocomplete on "---": report none
-      return false;
-    }
-
-    code = core.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
-    context = { ...context, code };
-  }
 
   const parser = await getTreeSitter();
   let word;
@@ -314,12 +294,11 @@ function completions(obj)
 async function automationFromGoodParseMarkdown(kind, context)
 {
   const {
-    code,
     position,
     line
   } = context;
  
-  const result = core.breakQuartoMd(code);
+  const result = core.breakQuartoMd(context.code);
 
   const adjustedCellSize = (cell) => {
     let cellLines = core.lines(cell.source.value);
@@ -354,13 +333,20 @@ async function automationFromGoodParseMarkdown(kind, context)
     if (foundCell.cell_type === "raw") {
       const schema = (await getSchemas()).schemas["front-matter"];
       // complete the yaml front matter
-      return automationFromGoodParseYAML(kind, {
+      context = {
         line,
         position,
         schema,
         code: foundCell.source,
         schemaName: "front-matter"
-      });
+      };
+      // user asked for autocomplete on "---": report none
+      if (positionInTicks(context)) {
+        return false;
+      }
+      context = trimTicks(context);
+      
+      return automationFromGoodParseYAML(kind, context);
     } else if (foundCell.cell_type.language) {
       return automationFromGoodParseScript(kind, {
         language: foundCell.cell_type.language,
@@ -385,14 +371,14 @@ async function automationFromGoodParseMarkdown(kind, context)
     const lints = [];
     for (const cell of result.cells) {
       if (cell.cell_type === "raw") {
-        const innerLints = await automationFromGoodParseYAML(kind, {
+        const innerLints = await automationFromGoodParseYAML(kind, trimTicks({
           filetype: "yaml",
           code: cell.source,
           schema: (await getSchemas()).schemas["front-matter"],
           schemaName: "front-matter",
           line,
           position, // we don't need to adjust position because front matter only shows up at start of file.
-        });
+        }));
         lints.push(...innerLints);
       } else if (cell.cell_type.language) {
         const innerLints = await automationFromGoodParseScript(kind, {
@@ -442,14 +428,19 @@ async function completionsFromGoodParseMarkdown(context)
   }
   if (foundCell.cell_type === "raw") {
     const schema = (await getSchemas()).schemas["front-matter"];
-    // complete the yaml front matter
-    return completionsFromGoodParseYAML({
+    let innerContext = {
       line,
       code: foundCell.source,
       position,
       schema,
       schemaName: "front-matter",
-    });
+    };
+    if (positionInTicks(innerContext)) {
+      return false;
+    }
+    innerContext = trimTicks(innerContext);
+
+    return completionsFromGoodParseYAML(innerContext);
   } else if (foundCell.cell_type.language) {
     return automationFromGoodParseScript("completions", {
       language: foundCell.cell_type.language,
@@ -508,12 +499,7 @@ async function automationFromGoodParseScript(kind, context)
   const schema = schemas.languages[language].schema;
   const commentPrefix = core.kLangCommentChars[language] + "| ";
 
-  const func = (
-    kind === "completions" ?
-      completionsFromGoodParseYAML :
-      validationFromGoodParseYAML);
-  
-  return func({
+  context = {
     line: context.line.slice(commentPrefix.length),
     code: mappedYaml,
     commentPrefix,
@@ -528,7 +514,22 @@ async function automationFromGoodParseScript(kind, context)
     },
     schema,
     schemaName: language
-  });
+  };
+
+  if (kind === "completions") {
+    // user asked for autocomplete on "---": report none
+    if (positionInTicks(context)) {
+      return false;
+    }
+    // RStudio sends us here in Visual Editor mode for the YAML front
+    // matter but includes the --- delimiters, so we trim those.
+    context = trimTicks(context);
+    return completionsFromGoodParseYAML(context);
+  } else {
+    
+    context = trimTicks(context);
+    return validationFromGoodParseYAML(context);
+  }
 }
 
 async function automationFileTypeDispatch(filetype, kind, context)
@@ -582,7 +583,6 @@ window.QuartoYamlEditorTools = {
   },
 
   getLint: async function(context) {
-    debugger;
     try {
       core.setupAjv(window.ajv);
       return getAutomation("validation", context);

@@ -448,6 +448,31 @@
 
   // automation.js
   var core4 = window._quartoCoreLib;
+  function positionInTicks(context) {
+    const {
+      code,
+      position
+    } = context;
+    const codeLines = core4.lines(code.value);
+    return code.value.startsWith("---") && position.row === 0 || code.value.trimEnd().endsWith("---") && position.row === codeLines.length - 1;
+  }
+  function trimTicks(context) {
+    let {
+      code
+    } = context;
+    if (code.value.startsWith("---")) {
+      code = core4.mappedString(code, [{ start: 3, end: code.value.length }]);
+      context = {
+        ...context,
+        code
+      };
+    }
+    if (code.value.trimEnd().endsWith("---")) {
+      code = core4.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
+      context = { ...context, code };
+    }
+    return context;
+  }
   async function validationFromGoodParseYAML(context) {
     const {
       code
@@ -455,7 +480,7 @@
     if (code.value === void 0) {
       throw new Error("Internal error: Expected a MappedString");
     }
-    return await withValidator(context, async (validator) => {
+    const result = await withValidator(context, async (validator) => {
       const parser = await getTreeSitter();
       for (const parseResult of attemptParsesAtLine(context, parser)) {
         const lints = [];
@@ -483,36 +508,19 @@
       }
       return [];
     });
+    return result;
   }
   async function automationFromGoodParseYAML(kind, context) {
     let {
       code,
       position,
-      schema,
-      commentPrefix
+      schema
     } = context;
-    commentPrefix = commentPrefix || "";
-    if (code.value.startsWith("---")) {
-      if (kind === "completions" && position.row === 0) {
-        return false;
-      }
-      code = core4.mappedString(code, [{ start: 3, end: code.value.length }]);
-      context = {
-        ...context,
-        code
-      };
+    if (kind === "completions" && positionInTicks(context)) {
+      return false;
     }
-    if (code.value.trimEnd().endsWith("---")) {
-      const codeLines = core4.lines(code.value);
-      if (kind === "completions" && position.row === codeLines.length - 1) {
-        return false;
-      }
-      code = core4.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
-      context = {
-        ...context,
-        code
-      };
-    }
+    context = trimTicks(context);
+    code = context.code;
     const func = kind === "completions" ? completionsFromGoodParseYAML : validationFromGoodParseYAML;
     return func(context);
   }
@@ -525,24 +533,6 @@
       commentPrefix
     } = context;
     commentPrefix = commentPrefix || "";
-    if (code.value.startsWith("---")) {
-      if (position.row === 0) {
-        return false;
-      }
-      code = core4.mappedString(code, [{ start: 3, end: code.value.length }]);
-      context = {
-        ...context,
-        code
-      };
-    }
-    if (code.value.trimEnd().endsWith("---")) {
-      const codeLines = core4.lines(code.value);
-      if (position.row === codeLines.length - 1) {
-        return false;
-      }
-      code = core4.mappedString(code, [{ start: 0, end: code.value.lastIndexOf("---") }]);
-      context = { ...context, code };
-    }
     const parser = await getTreeSitter();
     let word;
     if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
@@ -653,11 +643,10 @@
   }
   async function automationFromGoodParseMarkdown(kind, context) {
     const {
-      code,
       position,
       line
     } = context;
-    const result = core4.breakQuartoMd(code);
+    const result = core4.breakQuartoMd(context.code);
     const adjustedCellSize = (cell) => {
       let cellLines = core4.lines(cell.source.value);
       let size = cellLines.length;
@@ -684,13 +673,18 @@
       }
       if (foundCell.cell_type === "raw") {
         const schema = (await getSchemas()).schemas["front-matter"];
-        return automationFromGoodParseYAML(kind, {
+        context = {
           line,
           position,
           schema,
           code: foundCell.source,
           schemaName: "front-matter"
-        });
+        };
+        if (positionInTicks(context)) {
+          return false;
+        }
+        context = trimTicks(context);
+        return automationFromGoodParseYAML(kind, context);
       } else if (foundCell.cell_type.language) {
         return automationFromGoodParseScript(kind, {
           language: foundCell.cell_type.language,
@@ -711,14 +705,14 @@
       const lints = [];
       for (const cell of result.cells) {
         if (cell.cell_type === "raw") {
-          const innerLints = await automationFromGoodParseYAML(kind, {
+          const innerLints = await automationFromGoodParseYAML(kind, trimTicks({
             filetype: "yaml",
             code: cell.source,
             schema: (await getSchemas()).schemas["front-matter"],
             schemaName: "front-matter",
             line,
             position
-          });
+          }));
           lints.push(...innerLints);
         } else if (cell.cell_type.language) {
           const innerLints = await automationFromGoodParseScript(kind, {
@@ -766,8 +760,7 @@
     const schemas = (await getSchemas()).schemas;
     const schema = schemas.languages[language].schema;
     const commentPrefix = core4.kLangCommentChars[language] + "| ";
-    const func = kind === "completions" ? completionsFromGoodParseYAML : validationFromGoodParseYAML;
-    return func({
+    context = {
       line: context.line.slice(commentPrefix.length),
       code: mappedYaml,
       commentPrefix,
@@ -777,7 +770,17 @@
       },
       schema,
       schemaName: language
-    });
+    };
+    if (kind === "completions") {
+      if (positionInTicks(context)) {
+        return false;
+      }
+      context = trimTicks(context);
+      return completionsFromGoodParseYAML(context);
+    } else {
+      context = trimTicks(context);
+      return validationFromGoodParseYAML(context);
+    }
   }
   async function automationFileTypeDispatch(filetype, kind, context) {
     switch (filetype) {
@@ -822,7 +825,6 @@
       }
     },
     getLint: async function(context) {
-      debugger;
       try {
         core4.setupAjv(window.ajv);
         return getAutomation("validation", context);
