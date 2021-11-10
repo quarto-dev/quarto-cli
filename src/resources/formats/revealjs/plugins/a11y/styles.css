@@ -12,6 +12,10 @@
 .reveal .slides.staticPage > section {
   display: block !important;
 }
+.reveal.overview .slides section > .accessibilityWrapper {
+  display: block !important;
+  visibility: visible !important;
+}
 
 :focus {
   outline: none;
