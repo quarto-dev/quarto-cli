@@ -239,7 +239,6 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-up(lg) {
-  .margin-ref,
   .margin-caption,
   div.aside,
   aside,
@@ -256,7 +255,6 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(lg) {
-  .margin-ref,
   .margin-caption,
   div.aside,
   aside,
@@ -273,7 +271,6 @@ img.img-fluid.column-screen-inset-shaded {
 }
 
 @include media-breakpoint-down(md) {
-  .margin-ref,
   .margin-caption,
   div.aside,
   aside,
@@ -343,7 +340,6 @@ caption,
 }
 
 .column-margin figcaption,
-.margin-ref,
 .margin-caption,
 div.aside,
 aside,
