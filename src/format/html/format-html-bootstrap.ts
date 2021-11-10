@@ -208,6 +208,44 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
         }
       };
 
+      // Group margin elements by their parents and wrap them in a container
+      const marginEls = doc.querySelectorAll(".column-margin");
+      let marginParentEl: Element | null;
+      let containedEls: Element[] = [];
+
+      const emitContainer = () => {
+        if (marginParentEl != null && containedEls.length > 0) {
+          const containerDiv = doc.createElement("div");
+          const classes = ["column-margin", "no-row-height"];
+          classes.forEach((clz) => containerDiv.classList.add(clz));
+          containedEls.forEach((el) => {
+            classes.forEach((clz) => {
+              el.classList.remove(clz);
+            });
+            containerDiv.appendChild(el);
+          });
+
+          marginParentEl.parentElement?.insertBefore(
+            containerDiv,
+            marginParentEl.nextElementSibling,
+          );
+        }
+        marginParentEl = null;
+        containedEls = [];
+      };
+
+      marginEls.forEach((marginEl) => {
+        const currentParent = marginEl.parentElement;
+        if (currentParent != marginParentEl) {
+          emitContainer();
+        }
+        containedEls.push(marginEl as Element);
+        marginParentEl = marginEl.parentElement;
+      });
+      emitContainer();
+
+      // Generalize this to wrap a container div around multiple elements
+      // apply the margin-no-height class as well
       const appendRefs = (
         footnotBlockEl: Element,
         footnotes: Element[],
@@ -216,6 +254,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
           if (footnotes.length === 1) {
             if (!isAlreadyInMargin(footnotBlockEl)) {
               footnotes[0].classList.add("margin-ref");
+              footnotes[0].classList.add("no-row-height");
             }
             footnotBlockEl.parentElement?.insertBefore(
               footnotes[0],
@@ -225,6 +264,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
             const containerEl = doc.createElement("div");
             if (!isAlreadyInMargin(footnotBlockEl)) {
               containerEl.classList.add("margin-ref");
+              containerEl.classList.add("no-row-height");
             }
             for (const footnote of footnotes) {
               containerEl.appendChild(footnote);
@@ -265,15 +305,20 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
 
               // Create a new ref div and move the contents into it
               const refDiv = doc.createElement("div");
-              refDiv.id = refContentsEl?.id;
+
+              // preserve the id and role
+              if (refContentsEl?.id) {
+                refDiv.setAttribute("id", refContentsEl.id);
+              }
               refDiv.setAttribute(
                 "role",
                 refContentsEl.getAttribute("role"),
               );
               refDiv.classList.add("margin-item-padding");
+              console.log(refDiv);
 
               Array.from(refContentsEl.childNodes).forEach((child) => {
-                if (refLink.classList.contains(".footnote-ref")) {
+                if (refLink.classList.contains("footnote-ref")) {
                   // Remove the backlink since this is in the margin
                   const footnoteEl = child as Element;
                   const backLinkEl = footnoteEl.querySelector(".footnote-back");

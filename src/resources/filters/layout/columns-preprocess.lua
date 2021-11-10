@@ -142,6 +142,7 @@ function computeClassesForScopedCaption(el, scope)
   local elCaptionClasses = resolveCaptionClasses(el)
   local elScopedCaptionClasses = resolveScopedCaptionClasses(el, scope)
   local orderedCaptionClasses = {elScopedCaptionClasses, scopedCaptionClasses, elCaptionClasses, globalCaptionClasses}
+
   for i, classes in ipairs(orderedCaptionClasses) do 
     if #classes > 0 then
       return classes
@@ -178,10 +179,12 @@ end
 
 function captionOption(key)
   local value = option(key,  nil)
-  if value == nil or #value < 1 then
-    return {}
+  if value ~= nil then
+  end
+  if value ~= nil and value[1].text == 'margin' then
+    return {'margin-caption'}
   else
-    return {'caption-' .. inlinesToString(value[1])}
+    return {}
   end
 end
 
@@ -205,12 +208,18 @@ end
 
 function resolveScopedCaptionClasses(el, scope)
   local filtered = el.attr.classes:filter(function(clz)
-    return clz:match('^' .. scope .. '%-cap-location%-')
+    return clz:match('^' .. scope .. '%-cap%-location%-')
   end)
 
-  return tmap(filtered, function(clz)
+  local mapped = tmap(filtered, function(clz)
     return clz:sub(18)
   end)
+  
+  if tcontains(mapped, 'margin') then
+    return {'margin-caption'}
+  else 
+    return {}
+  end
 end
 
 function removeScopedColumnClasses(el, scope) 

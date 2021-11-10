@@ -188,11 +188,16 @@ function removeCaptionClasses(el)
 end
 
 function resolveCaptionClasses(el)
-  return el.attr.classes:filter(isCaptionClass)
+  local filtered = el.attr.classes:filter(isCaptionClass)
+  if #filtered > 0 then
+    return {'margin-caption'}
+  else
+    return {}
+  end
 end
 
 function isCaptionClass(clz)
-  return clz == kSideCaptionClass
+  return clz == 'caption-margin'
 end
 
 function isColumnClass(clz) 

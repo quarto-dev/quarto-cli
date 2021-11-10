@@ -9,6 +9,7 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kFrom,
   kHtmlMathMethod,
+  kIncludeAfterBody,
   kIncludeInHeader,
   kLinkCitations,
   kSlideLevel,
@@ -24,6 +25,8 @@ import {
 } from "../../config/types.ts";
 import { camelToKebab, kebabToCamel, mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
+import { renderEjs } from "../../core/ejs.ts";
+import { sessionTempFile } from "../../core/temp.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
@@ -87,6 +90,7 @@ const kRevealOptions = [
   "minScale",
   "maxScale",
   "mathjax",
+  "pdfSeparateFragments",
 ];
 
 const kRevealKebabOptions = kRevealOptions.reduce(
@@ -104,7 +108,9 @@ export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
 
 export const kHashType = "hash-type";
+export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
+export const kPdfSeparateFragments = "pdfSeparateFragments";
 
 export function revealjsFormat() {
   return mergeConfigs(
@@ -126,6 +132,22 @@ export function revealjsFormat() {
         format: Format,
         libDir: string,
       ) => {
+        // render styles template based on options
+        const stylesFile = sessionTempFile({ suffix: ".html" });
+        const styles = renderEjs(
+          formatResourcePath("revealjs", "styles.html"),
+          { [kScrollable]: format.metadata[kScrollable] },
+        );
+        Deno.writeTextFileSync(stylesFile, styles);
+
+        // additional options not supported by pandoc
+        const optionsFile = sessionTempFile({ suffix: ".html" });
+        const options = renderEjs(
+          formatResourcePath("revealjs", "options.html"),
+          { [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments] },
+        );
+        Deno.writeTextFileSync(optionsFile, options);
+
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
@@ -153,7 +175,8 @@ export function revealjsFormat() {
               [kLinkCitations]: true,
             } as Metadata,
             metadataOverride: {} as Metadata,
-            [kIncludeInHeader]: [formatResourcePath("revealjs", "styles.html")],
+            [kIncludeInHeader]: [stylesFile],
+            [kIncludeAfterBody]: [optionsFile],
             html: {
               [kTemplatePatches]: [
                 revealRequireJsPatch,
@@ -224,6 +247,7 @@ export function revealjsFormat() {
               fragmentInURL: false,
               transition: "none",
               backgroundTransition: "none",
+              pdfSeparateFragments: false,
             }),
           };
         }

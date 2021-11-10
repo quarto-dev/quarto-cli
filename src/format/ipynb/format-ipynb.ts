@@ -20,7 +20,6 @@ export function ipynbFormat(): Format {
   return createFormat("ipynb", {
     pandoc: {
       standalone: true,
-      "ipynb-output": "all",
     },
     formatExtras: () => {
       return {

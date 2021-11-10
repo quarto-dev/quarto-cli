@@ -21,6 +21,7 @@ import("foldcode.lua")
 import("book-cleanup.lua")
 import("ipynb.lua")
 import("ojs.lua")
+import("reveal.lua")
 import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
@@ -38,7 +39,8 @@ return {
     latexDiv(),
     foldCode(),
     bootstrap(),
-    ipynb()
+    ipynb(),
+    reveal()
   }),
   ojs()
 }

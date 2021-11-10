@@ -170,7 +170,7 @@ body.docked {
 }
 
 .column-page-right {
-  grid-column: body-start / page-end;
+  grid-column: body-content-start / page-end;
   figcaption {
     text-align: right;
   }
@@ -233,6 +233,11 @@ img.img-fluid.column-screen-inset-shaded {
   width: 100%;
 }
 
+.no-row-height {
+  height: 1em;
+  overflow: visible;
+}
+
 @include media-breakpoint-up(lg) {
   .margin-ref,
   .margin-caption,
@@ -252,7 +257,7 @@ img.img-fluid.column-screen-inset-shaded {
 
 @include media-breakpoint-down(lg) {
   .margin-ref,
-  .caption-margin,
+  .margin-caption,
   div.aside,
   aside,
   .column-margin {
@@ -269,7 +274,7 @@ img.img-fluid.column-screen-inset-shaded {
 
 @include media-breakpoint-down(md) {
   .margin-ref,
-  .caption-margin,
+  .margin-caption,
   div.aside,
   aside,
   .column-margin {
@@ -339,7 +344,7 @@ caption,
 
 .column-margin figcaption,
 .margin-ref,
-.caption-margin,
+.margin-caption,
 div.aside,
 aside,
 .column-margin {
