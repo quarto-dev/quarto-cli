@@ -399,29 +399,21 @@ export function removePandocToArg(args: string[]) {
 }
 
 function removeQuartoMetadataFlags(pandocArgs: string[]) {
-  let metadataFlag: string | undefined = undefined;
-  return pandocArgs.reduce((args, arg) => {
-    // If this is a metadata flag, capture it and continue to read its value
-    // we can determine whether to remove it
+  const args: string[] = [];
+  for (let i = 0; i < pandocArgs.length; i++) {
+    const arg = pandocArgs[i];
     if (arg === "--metadata" || arg === "-M") {
-      metadataFlag = arg;
-    } else if (metadataFlag === undefined) {
+      const flagValue = parseMetadataFlagValue(pandocArgs[i + 1] || "");
+      if (flagValue !== undefined && isQuartoMetadata(flagValue.name)) {
+        i++;
+      } else {
+        args.push(arg);
+      }
+    } else {
       args.push(arg);
     }
-
-    // We're reading the value of the metadata flag
-    if (metadataFlag) {
-      const flagValue = parseMetadataFlagValue(arg);
-      if (flagValue !== undefined) {
-        if (!isQuartoMetadata(flagValue.name)) {
-          // Allow this value through since it isn't Quarto specific
-          args.push(metadataFlag);
-          args.push(arg);
-        }
-      }
-    }
-    return args;
-  }, new Array<string>());
+  }
+  return args;
 }
 
 function parseMetadataFlagValue(
