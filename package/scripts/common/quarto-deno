@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# This runs the version of deno that ships with quarto, using the same
+# importmaps, etc. It's possible that I didn't need it
+
 # Determine the path to this script (we'll use this to figure out relative positions of other files)
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -46,4 +49,3 @@ DENO_ACTION=$1
 shift
 
 deno ${DENO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $*
-# ${SCRIPT_PATH}/deno ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $*
