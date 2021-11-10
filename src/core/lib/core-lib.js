@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 (() => {
   // binary-search.ts
   function glb(array, value, compare) {
@@ -16,7 +17,7 @@
     }
     let left = 0;
     let right = array.length - 1;
-    let vLeft = array[left], vRight = array[right];
+    const vLeft = array[left], vRight = array[right];
     if (compare(value, vRight) >= 0) {
       return right;
     }
@@ -56,28 +57,31 @@
   }
   function indexToRowCol(text) {
     const offsets = lineOffsets(text);
-    return function(offset) {
+    return function (offset) {
       if (offset === 0) {
         return {
           line: 0,
-          column: 0
+          column: 0,
         };
       }
       const startIndex = glb(offsets, offset);
       return {
         line: startIndex,
-        column: offset - offsets[startIndex]
+        column: offset - offsets[startIndex],
       };
     };
   }
   function rowColToIndex(text) {
     const offsets = lineOffsets(text);
-    return function(position) {
+    return function (position) {
       return offsets[position.row] + position.column;
     };
   }
   function formatLineRange(text, firstLine, lastLine) {
-    const lineWidth = Math.max(String(firstLine + 1).length, String(lastLine + 1).length);
+    const lineWidth = Math.max(
+      String(firstLine + 1).length,
+      String(lastLine + 1).length,
+    );
     const pad = " ".repeat(lineWidth);
     const ls = lines(text);
     const result2 = [];
@@ -87,12 +91,12 @@
       result2.push({
         lineNumber: i,
         content: numberStr + lineStr,
-        rawLine: ls[i]
+        rawLine: ls[i],
       });
     }
     return {
       prefixWidth: lineWidth + 2,
-      lines: result2
+      lines: result2,
     };
   }
 
@@ -104,7 +108,7 @@
     const substring = src.substring(start, end);
     return {
       substring,
-      range: { start, end }
+      range: { start, end },
     };
   }
   function matchAll(str, regex) {
@@ -126,8 +130,8 @@
           substring: text.substring(startOffset, r.index),
           range: {
             start: startOffset,
-            end: r.index
-          }
+            end: r.index,
+          },
         });
         startOffset = r.index + r[0].length;
       }
@@ -135,21 +139,21 @@
         substring: text.substring(startOffset, text.length),
         range: {
           start: startOffset,
-          end: text.length
-        }
+          end: text.length,
+        },
       });
       return result2;
     } else {
       const matches = matchAll(text, regex);
       let prevOffset = 0;
       for (const r of matches) {
-        let stringEnd = r.index + 1;
+        const stringEnd = r.index + 1;
         result2.push({
           substring: text.substring(prevOffset, stringEnd),
           range: {
             start: prevOffset,
-            end: stringEnd
-          }
+            end: stringEnd,
+          },
         });
         prevOffset = stringEnd;
       }
@@ -157,8 +161,8 @@
         substring: text.substring(prevOffset, text.length),
         range: {
           start: prevOffset,
-          end: text.length
-        }
+          end: text.length,
+        },
       });
       return result2;
     }
@@ -166,10 +170,40 @@
 
   // mapped-text.ts
   function mappedString(source, pieces) {
-    ;
     if (typeof source === "string") {
-      let map = function(targetOffset) {
-        const ix = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
+      const offsetInfo = [];
+      let offset = 0;
+      const resultList = pieces.map((piece) => {
+        if (typeof piece === "string") {
+          offsetInfo.push({
+            fromSource: false,
+            length: piece.length,
+            offset,
+          });
+          offset += piece.length;
+          return piece;
+        } else {
+          const resultPiece = source.substring(piece.start, piece.end);
+          offsetInfo.push({
+            fromSource: true,
+            length: resultPiece.length,
+            offset,
+            range: {
+              start: piece.start,
+              end: piece.end,
+            },
+          });
+          offset += resultPiece.length;
+          return resultPiece;
+        }
+      });
+      const value = resultList.join("");
+      const map = (targetOffset) => {
+        const ix = glb(
+          offsetInfo,
+          { offset: targetOffset },
+          (a, b) => a.offset - b.offset,
+        );
         if (ix < 0) {
           return void 0;
         }
@@ -182,11 +216,16 @@
           return void 0;
         }
         return info.range.start + localOffset;
-      }, mapClosest = function(targetOffset) {
+      };
+      const mapClosest = (targetOffset) => {
         if (offsetInfo.length === 0 || targetOffset < 0) {
           return void 0;
         }
-        const firstIx = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
+        const firstIx = glb(
+          offsetInfo,
+          { offset: targetOffset },
+          (a, b) => a.offset - b.offset,
+        );
         let ix = firstIx;
         let smallestSourceInfo = void 0;
         while (ix >= 0) {
@@ -210,70 +249,43 @@
           return smallestSourceInfo.range.start;
         }
       };
-      const offsetInfo = [];
-      let offset = 0;
-      const resultList = pieces.map((piece) => {
-        if (typeof piece === "string") {
-          debugger;
-          offsetInfo.push({
-            fromSource: false,
-            length: piece.length,
-            offset
-          });
-          offset += piece.length;
-          return piece;
-        } else {
-          const resultPiece = source.substring(piece.start, piece.end);
-          offsetInfo.push({
-            fromSource: true,
-            length: resultPiece.length,
-            offset,
-            range: {
-              start: piece.start,
-              end: piece.end
-            }
-          });
-          offset += resultPiece.length;
-          return resultPiece;
-        }
-      });
-      const value = resultList.join("");
       return {
         value,
         originalString: source,
         map,
-        mapClosest
+        mapClosest,
       };
     } else {
-      let composeMap = function(offset) {
+      const {
+        value,
+        originalString,
+        map: previousMap,
+        mapClosest: previousMapClosest,
+      } = source;
+      const {
+        value: resultValue,
+        map: nextMap,
+        mapClosest: nextMapClosest,
+      } = mappedString(value, pieces);
+      const composeMap = (offset) => {
         const v = nextMap(offset);
         if (v === void 0) {
           return v;
         }
         return previousMap(v);
-      }, composeMapClosest = function(offset) {
+      };
+      const composeMapClosest = (offset) => {
         const v = nextMapClosest(offset);
         if (v === void 0) {
           return v;
         }
         return previousMapClosest(v);
       };
-      const {
-        value,
-        originalString,
-        map: previousMap,
-        mapClosest: previousMapClosest
-      } = source;
-      const {
-        value: resultValue,
-        map: nextMap,
-        mapClosest: nextMapClosest
-      } = mappedString(value, pieces);
       return {
         value: resultValue,
         originalString,
         map: composeMap,
-        mapClosest: composeMapClosest
+        mapClosest: composeMapClosest,
       };
     }
   }
@@ -282,7 +294,7 @@
       value: str,
       originalString: str,
       map: (x) => x,
-      mapClosest: (x) => x
+      mapClosest: (x) => x,
     };
   }
   function mappedConcat(strings) {
@@ -312,12 +324,12 @@
         }
         const ix = glb(offsets, offset);
         return strings[ix].mapClosest(offset - offsets[ix]);
-      }
+      },
     };
   }
   function mappedIndexToRowCol(text) {
     const f = indexToRowCol(text.originalString);
-    return function(offset) {
+    return function (offset) {
       const n = text.mapClosest(offset);
       if (n === void 0) {
         throw new Error("Internal Error: bad offset in mappedIndexRowCol");
@@ -334,7 +346,7 @@
     }
     return mappedString(source, params);
   }
-  function partitionCellOptionsMapped(language, source, validate = false) {
+  function partitionCellOptionsMapped(language, source, _validate = false) {
     const commentChars = langCommentChars(language);
     const optionPrefix = optionCommentPrefix(commentChars[0]);
     const optionSuffix = commentChars[1] || "";
@@ -343,19 +355,25 @@
     let endOfYaml = 0;
     for (const line of rangedLines(source.value, true)) {
       if (line.substring.startsWith(optionPrefix)) {
-        if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
+        if (
+          !optionSuffix || line.substring.trimRight().endsWith(optionSuffix)
+        ) {
           let yamlOption = line.substring.substring(optionPrefix.length);
           if (optionSuffix) {
             yamlOption = yamlOption.trimRight();
-            yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
+            yamlOption = yamlOption.substring(
+              0,
+              yamlOption.length - optionSuffix.length,
+            );
           }
-          endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
+          endOfYaml = line.range.start + optionPrefix.length +
+            yamlOption.length - optionSuffix.length;
           const rangedYamlOption = {
             substring: yamlOption,
             range: {
               start: line.range.start + optionPrefix.length,
-              end: endOfYaml
-            }
+              end: endOfYaml,
+            },
           };
           yamlLines.push(rangedYamlOption);
           optionsSource.push(line);
@@ -364,12 +382,17 @@
       }
       break;
     }
-    let mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
+    const mappedYaml = yamlLines.length
+      ? mappedSource(source, yamlLines)
+      : void 0;
     return {
       mappedYaml,
       optionsSource,
-      source: mappedString(source, [{ start: endOfYaml, end: source.value.length }]),
-      sourceStartLine: yamlLines.length
+      source: mappedString(source, [{
+        start: endOfYaml,
+        end: source.value.length,
+      }]),
+      sourceStartLine: yamlLines.length,
     };
   }
   function langCommentChars(lang) {
@@ -424,16 +447,18 @@
     asy: "//",
     haskell: "--",
     dot: "//",
-    ojs: "//"
+    ojs: "//",
   };
 
   // break-quarto-md.ts
   function breakQuartoMd(src, validate = false) {
     const nb = {
-      cells: []
+      cells: [],
     };
     const yamlRegEx = /^---\s*$/;
-    const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
+    const startCodeCellRegEx = new RegExp(
+      "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
+    );
     const startCodeRegEx = /^```/;
     const endCodeRegEx = /^```\s*$/;
     const delimitMathBlockRegEx = /^\$\$/;
@@ -451,15 +476,19 @@
           source,
           sourceOffset: 0,
           sourceStartLine: 0,
-          sourceVerbatim: source
+          sourceVerbatim: source,
         };
-        if (cell_type === "code" && (language === "ojs" || language === "dot")) {
-          const { yaml, source: source2, sourceStartLine } = partitionCellOptionsMapped(language, cell.source, validate);
+        if (
+          cell_type === "code" && (language === "ojs" || language === "dot")
+        ) {
+          const { yaml, source: source2, sourceStartLine } =
+            partitionCellOptionsMapped(language, cell.source, validate);
           const breaks = lineOffsets(cell.source.value).slice(1);
           let strUpToLastBreak = "";
           if (sourceStartLine > 0) {
             if (breaks.length) {
-              const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
+              const lastBreak =
+                breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
               strUpToLastBreak = cell.source.value.substring(0, lastBreak);
             } else {
               strUpToLastBreak = cell.source.value;
@@ -469,7 +498,7 @@
           cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
             "```{ojs}\n",
             { start: 0, end: cell.sourceVerbatim.value.length },
-            "\n```"
+            "\n```",
           ]);
           cell.source = source2;
           cell.options = yaml;
@@ -484,7 +513,9 @@
     let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
     const srcLines = rangedLines(src.value, true);
     for (const line of srcLines) {
-      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
+      if (
+        yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock
+      ) {
         if (inYaml) {
           lineBuffer.push(line);
           flushLineBuffer("raw");
@@ -528,23 +559,23 @@
     flushLineBuffer("markdown");
     return nb;
   }
-  function mdTrimEmptyLines(lines3) {
-    const firstNonEmpty = lines3.findIndex((line) => line.trim().length > 0);
+  function mdTrimEmptyLines(lines2) {
+    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
     if (firstNonEmpty === -1) {
       return [];
     }
-    lines3 = lines3.slice(firstNonEmpty);
+    lines2 = lines2.slice(firstNonEmpty);
     let lastNonEmpty = -1;
-    for (let i = lines3.length - 1; i >= 0; i--) {
-      if (lines3[i].trim().length > 0) {
+    for (let i = lines2.length - 1; i >= 0; i--) {
+      if (lines2[i].trim().length > 0) {
         lastNonEmpty = i;
         break;
       }
     }
     if (lastNonEmpty > -1) {
-      lines3 = lines3.slice(0, lastNonEmpty + 1);
+      lines2 = lines2.slice(0, lastNonEmpty + 1);
     }
-    return lines3;
+    return lines2;
   }
 
   // promise.ts
@@ -561,7 +592,7 @@
         this.queue.push({
           promise,
           resolve,
-          reject
+          reject,
         });
         this.dequeue();
       });
@@ -597,8 +628,9 @@
   // schema.ts
   function schemaType(schema) {
     const t = schema.type;
-    if (t)
+    if (t) {
       return t;
+    }
     if (schema.anyOf) {
       return "anyOf";
     }
@@ -615,7 +647,7 @@
   }
   function schemaCompletions(schema) {
     const normalize = (completions) => {
-      const result2 = (schema.completions || []).map((c) => {
+      const result2 = (completions || []).map((c) => {
         if (typeof c === "string") {
           return {
             type: "value",
@@ -623,12 +655,12 @@
             value: c,
             description: "",
             suggest_on_accept: false,
-            schema
+            schema,
           };
         }
         return {
           ...c,
-          schema
+          schema,
         };
       });
       return result2;
@@ -660,7 +692,6 @@
         if (schema.items) {
           walkSchema(schema.items, f);
         }
-        ;
         break;
       case "anyOf":
         for (const s of schema.anyOf) {
@@ -729,9 +760,16 @@
         }
       }
       throw new Error("Internal error: searchKey not found in mapping object");
-    } else if (annotation.kind === "sequence" || annotation.kind === "block_sequence") {
+    } else if (
+      annotation.kind === "sequence" || annotation.kind === "block_sequence"
+    ) {
       const searchKey = Number(path[pathIndex]);
-      return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
+      return navigate(
+        path,
+        annotation.components[searchKey],
+        returnKey,
+        pathIndex + 1,
+      );
     } else {
       throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
     }
@@ -773,7 +811,7 @@
         const lst2 = [];
         const entry = {
           key,
-          values: lst2
+          values: lst2,
         };
         record[key] = lst2;
         result2.push(entry);
@@ -790,23 +828,45 @@
     return result2;
   }
   function narrowOneOfError(oneOf, suberrors) {
-    let subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
-    let onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
+    const subschemaErrors = groupBy(
+      suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath),
+      (error) =>
+        error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")),
+    );
+    const onlyAdditionalProperties = subschemaErrors.filter(({ values }) =>
+      values.every((v) => v.keyword === "additionalProperties")
+    );
     if (onlyAdditionalProperties.length) {
       return onlyAdditionalProperties[0].values;
     }
     return [];
   }
-  function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
+  function localizeAndPruneErrors(
+    annotation,
+    validationErrors,
+    source,
+    schema,
+  ) {
     const result2 = [];
     const locF = indexToRowCol(source.originalString);
-    let errorsPerInstanceList = groupBy(validationErrors, (error) => error.instancePath);
+    let errorsPerInstanceList = groupBy(
+      validationErrors,
+      (error) => error.instancePath,
+    );
     do {
       const newErrors = [];
-      errorsPerInstanceList = errorsPerInstanceList.filter(({ key: pathA }) => errorsPerInstanceList.filter(({ key: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
+      errorsPerInstanceList = errorsPerInstanceList.filter(({ key: pathA }) =>
+        errorsPerInstanceList.filter(({ key: pathB }) =>
+          isProperPrefix(pathA, pathB)
+        ).length === 0
+      );
       for (let { key: instancePath, values: errors } of errorsPerInstanceList) {
         let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
-        errorsPerSchemaList = errorsPerSchemaList.filter(({ key: pathA }) => errorsPerSchemaList.filter(({ key: pathB }) => isProperPrefix(pathB, pathA)).length === 0);
+        errorsPerSchemaList = errorsPerSchemaList.filter(({ key: pathA }) =>
+          errorsPerSchemaList.filter(({ key: pathB }) =>
+            isProperPrefix(pathB, pathA)
+          ).length === 0
+        );
         for (const error of groupByEntries(errorsPerSchemaList)) {
           if (error.hasBeenTransformed) {
             continue;
@@ -821,38 +881,52 @@
               ...error,
               instancePath,
               keyword: "_custom_invalidProperty",
-              message: `property ${error.params.additionalProperty} not allowed in object`,
+              message:
+                `property ${error.params.additionalProperty} not allowed in object`,
               params: {
                 ...error.params,
-                originalError: error
+                originalError: error,
               },
-              schemaPath: error.schemaPath.slice(0, -21)
+              schemaPath: error.schemaPath.slice(0, -21),
             });
           }
         }
       }
       if (newErrors.length) {
-        errorsPerInstanceList.push(...groupBy(newErrors, (error) => error.instancePath));
+        errorsPerInstanceList.push(
+          ...groupBy(newErrors, (error) => error.instancePath),
+        );
       } else {
         break;
       }
     } while (true);
-    for (let { key: instancePath, values: allErrors } of errorsPerInstanceList) {
+    for (
+      const { key: instancePath, values: allErrors } of errorsPerInstanceList
+    ) {
       const path = instancePath.split("/").slice(1);
-      const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
+      const errors = allErrors.filter(({ schemaPath: pathA }) =>
+        !(allErrors.filter(({ schemaPath: pathB }) =>
+          isProperPrefix(pathB, pathA)
+        ).length > 0)
+      );
       for (const error of errors) {
         const returnKey = error.keyword === "_custom_invalidProperty";
         const violatingObject = navigate(path, annotation, returnKey);
         const schemaPath = error.schemaPath.split("/").slice(1);
         const start = locF(violatingObject.start);
         const end = locF(violatingObject.end);
-        const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
+        const locStr = start.line === end.line
+          ? `(line ${start.line + 1}, columns ${start.column +
+            1}--${end.column + 1})`
+          : `(line ${start.line + 1}, column ${start.column +
+            1} through line ${end.line + 1}, column ${end.column + 1})`;
         let messageNoLocation;
         if (error.keyword.startsWith("_custom_")) {
           messageNoLocation = error.message;
         } else {
           const innerSchema = navigateSchema(schemaPath, schema);
-          messageNoLocation = `Field ${instancePath} must ${innerSchema.description}`;
+          messageNoLocation =
+            `Field ${instancePath} must ${innerSchema.description}`;
         }
         const message = `${locStr}: ${messageNoLocation}`;
         result2.push({
@@ -863,7 +937,7 @@
           source,
           start,
           end,
-          error
+          error,
         });
       }
     }
@@ -878,15 +952,20 @@
     validateParse(src, annotation) {
       let errors = [];
       if (!this.validate(annotation.result)) {
-        errors = localizeAndPruneErrors(annotation, this.validate.errors, src, this.schema);
+        errors = localizeAndPruneErrors(
+          annotation,
+          this.validate.errors,
+          src,
+          this.schema,
+        );
         return {
           result: annotation.result,
-          errors
+          errors,
         };
       } else {
         return {
           result: annotation.result,
-          errors: []
+          errors: [],
         };
       }
     }
@@ -899,24 +978,39 @@
           console.log(err.message);
           let startO = err.violatingObject.start;
           let endO = err.violatingObject.end;
-          while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
+          while (
+            src.mapClosest(startO) < src.originalString.length - 1 &&
+            src.originalString[src.mapClosest(startO)].match(/\s/)
+          ) {
             startO++;
           }
-          while (src.mapClosest(endO) > src.mapClosest(startO) && src.originalString[src.mapClosest(endO)].match(/\s/)) {
+          while (
+            src.mapClosest(endO) > src.mapClosest(startO) &&
+            src.originalString[src.mapClosest(endO)].match(/\s/)
+          ) {
             endO--;
           }
           const start = locF(startO);
           const end = locF(endO);
           const {
             prefixWidth,
-            lines: lines3
-          } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
-          for (const { lineNumber, content, rawLine } of lines3) {
+            lines: lines2,
+          } = formatLineRange(
+            src.originalString,
+            Math.max(0, start.line - 1),
+            Math.min(end.line + 1, nLines - 1),
+          );
+          for (const { lineNumber, content, rawLine } of lines2) {
             console.log(content);
             if (lineNumber >= start.line && lineNumber <= end.line) {
               const startColumn = lineNumber > start.line ? 0 : start.column;
-              const endColumn = lineNumber < end.line ? rawLine.length : end.column;
-              console.log(" ".repeat(prefixWidth + startColumn) + "^".repeat(endColumn - startColumn + 1));
+              const endColumn = lineNumber < end.line
+                ? rawLine.length
+                : end.column;
+              console.log(
+                " ".repeat(prefixWidth + startColumn) +
+                  "^".repeat(endColumn - startColumn + 1),
+              );
             }
           }
         }
@@ -951,7 +1045,7 @@
     schemaType,
     schemaCompletions,
     YAMLSchema,
-    setupAjv
+    setupAjv,
   };
   if (window) {
     window._quartoCoreLib = result;
