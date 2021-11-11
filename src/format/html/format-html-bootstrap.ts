@@ -178,6 +178,10 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
 
     const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
       flags[kReferenceLocation] === "margin";
+
+    // Process captions that may appear in the margin
+    processMarginCaptions(doc);
+
     // If margin footnotes are enabled move them
     if (refsInMargin) {
       // This is a little complicated because if there are multiple footnotes
@@ -186,62 +190,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       // next to the block, and subsequent ones would appear below the block
 
       // Find all the reference (footnote, bibliography) links
-      const refEls = doc.querySelectorAll(
-        ".footnote-ref, a[role='doc-biblioref']",
-      );
-      refEls.forEach((refEl) => {
-        const refLink = refEl as Element;
-        if (refLink.hasAttribute("href")) {
-          const target = refLink.getAttribute("href");
-          if (target) {
-            // Rewrite this to just look where it wants to insert
-            // the container and if there is a container there, insert (use it  )
-
-            // First try to grab a citation.
-            const refId = target.slice(1);
-            const refParentEl = findRefParent(refLink);
-            const refContentsEl = doc.getElementById(refId);
-
-            if (refContentsEl && refParentEl) {
-              // Create a new ref div and move the contents into it
-              // preserve the id and role
-              const refDiv = doc.createElement("div");
-              if (refContentsEl?.id) {
-                refDiv.setAttribute("id", refContentsEl.id);
-              }
-              refDiv.setAttribute(
-                "role",
-                refContentsEl.getAttribute("role"),
-              );
-              refDiv.classList.add("margin-item-padding");
-
-              Array.from(refContentsEl.childNodes).forEach((child) => {
-                if (refLink.classList.contains("footnote-ref")) {
-                  // Remove the backlink since this is in the margin
-                  const footnoteEl = child as Element;
-                  const backLinkEl = footnoteEl.querySelector(".footnote-back");
-                  if (backLinkEl) {
-                    backLinkEl.remove();
-                  }
-
-                  // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
-                  child.insertBefore(
-                    doc.createTextNode("\u00A0"),
-                    child.firstChild,
-                  );
-
-                  child.insertBefore(
-                    refLink.firstChild.cloneNode(true),
-                    child.firstChild,
-                  );
-                }
-                refDiv.appendChild(child);
-              });
-              addRefToBlockMargin(refParentEl, refDiv, doc);
-            }
-          }
-        }
-      });
+      processMarginRefs(doc);
     }
 
     // Group margin elements by their parents and wrap them in a container
@@ -253,77 +202,6 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     marginNodes.forEach((marginNode) => {
       const marginEl = marginNode as Element;
       addToBlockMargin(marginEl, doc);
-    });
-
-    // Forward caption class from parents to the child fig caps
-    const marginCaptions = doc.querySelectorAll(".margin-caption");
-    marginCaptions.forEach((captionContainerNode) => {
-      const captionContainer = (captionContainerNode as Element);
-
-      const moveClassToCaption = (container: Element, sel: string) => {
-        const target = container.querySelector(sel);
-        if (target) {
-          target.classList.add("margin-caption");
-          return true;
-        } else {
-          return false;
-        }
-      };
-
-      const removeCaptionClass = (el: Element) => {
-        // Remove this since it will place the contents in the margin if it remains present
-        el.classList.remove("margin-caption");
-      };
-
-      // Deal with layout panels (we will only handle the main caption not the internals)
-      const isLayoutPanel = captionContainer.classList.contains(
-        "quarto-layout-panel",
-      );
-      if (isLayoutPanel) {
-        const figure = captionContainer.querySelector("figure");
-        if (figure) {
-          // It is a figure panel, find a direct child caption of the outer figure.
-          for (const child of figure.children) {
-            if (child.tagName === "FIGCAPTION") {
-              child.classList.add("margin-caption");
-              removeCaptionClass(captionContainer);
-              break;
-            }
-          }
-        } else {
-          // it is not a figure panel, find the panel caption
-          const caption = captionContainer.querySelector(".panel-caption");
-          if (caption) {
-            caption.classList.add("margin-caption");
-            removeCaptionClass(captionContainer);
-          }
-        }
-      } else {
-        // First try finding a fig caption
-        const foundCaption = moveClassToCaption(captionContainer, "figcaption");
-        if (!foundCaption) {
-          // find a table caption and copy the contents into a div with style figure-caption
-          // note that for tables, our grid inception approach isn't going to work, so
-          // we make a copy of the caption contents and place that in the same container as the
-          // table and bind it to the grid
-          const captionEl = captionContainer.querySelector("caption");
-          if (captionEl) {
-            const parentDivEl = captionEl?.parentElement?.parentElement;
-            if (parentDivEl) {
-              captionEl.classList.add("hidden");
-
-              const divCopy = doc.createElement("div");
-              divCopy.classList.add("figure-caption");
-              divCopy.classList.add("margin-caption");
-              divCopy.innerHTML = captionEl.innerHTML;
-              parentDivEl.appendChild(divCopy);
-              removeCaptionClass(captionContainer);
-            }
-          }
-        } else {
-          removeCaptionClass(captionContainer);
-        }
-      }
     });
 
     // Find any elements that are using fancy layouts (columns)
@@ -499,6 +377,139 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     return Promise.resolve([]);
   };
 }
+
+const processMarginRefs = (doc: Document) => {
+  const refEls = doc.querySelectorAll(
+    ".footnote-ref, a[role='doc-biblioref']",
+  );
+  refEls.forEach((refEl) => {
+    const refLink = refEl as Element;
+    if (refLink.hasAttribute("href")) {
+      const target = refLink.getAttribute("href");
+      if (target) {
+        // First try to grab a the citation or footnote.
+        const refId = target.slice(1);
+        const refParentEl = findRefParent(refLink);
+        const refContentsEl = doc.getElementById(refId);
+
+        if (refContentsEl && refParentEl) {
+          // Create a new ref div and move the contents into it
+          // preserve the id and role
+          // TODO Place in function to cleanup
+          const refDiv = doc.createElement("div");
+          if (refContentsEl?.id) {
+            refDiv.setAttribute("id", refContentsEl.id);
+          }
+          refDiv.setAttribute(
+            "role",
+            refContentsEl.getAttribute("role"),
+          );
+          refDiv.classList.add("margin-item-padding");
+
+          Array.from(refContentsEl.childNodes).forEach((child) => {
+            // TODO Place in function to cleanup
+            if (refLink.classList.contains("footnote-ref")) {
+              // Remove the backlink since this is in the margin
+              const footnoteEl = child as Element;
+              const backLinkEl = footnoteEl.querySelector(".footnote-back");
+              if (backLinkEl) {
+                backLinkEl.remove();
+              }
+
+              // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
+              child.insertBefore(
+                doc.createTextNode("\u00A0"),
+                child.firstChild,
+              );
+
+              child.insertBefore(
+                refLink.firstChild.cloneNode(true),
+                child.firstChild,
+              );
+            }
+            refDiv.appendChild(child);
+          });
+          addRefToBlockMargin(refParentEl, refDiv, doc);
+        }
+      }
+    }
+  });
+};
+
+// Process any captions that appear in margins
+const processMarginCaptions = (doc: Document) => {
+  // Forward caption class from parents to the child fig caps
+  const marginCaptions = doc.querySelectorAll(".margin-caption");
+  marginCaptions.forEach((captionContainerNode) => {
+    const captionContainer = (captionContainerNode as Element);
+
+    const moveClassToCaption = (container: Element, sel: string) => {
+      const target = container.querySelector(sel);
+      if (target) {
+        target.classList.add("margin-caption");
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    const removeCaptionClass = (el: Element) => {
+      // Remove this since it will place the contents in the margin if it remains present
+      el.classList.remove("margin-caption");
+    };
+
+    // Deal with layout panels (we will only handle the main caption not the internals)
+    const isLayoutPanel = captionContainer.classList.contains(
+      "quarto-layout-panel",
+    );
+    if (isLayoutPanel) {
+      const figure = captionContainer.querySelector("figure");
+      if (figure) {
+        // It is a figure panel, find a direct child caption of the outer figure.
+        for (const child of figure.children) {
+          if (child.tagName === "FIGCAPTION") {
+            child.classList.add("margin-caption");
+            removeCaptionClass(captionContainer);
+            break;
+          }
+        }
+      } else {
+        // it is not a figure panel, find the panel caption
+        const caption = captionContainer.querySelector(".panel-caption");
+        if (caption) {
+          caption.classList.add("margin-caption");
+          removeCaptionClass(captionContainer);
+        }
+      }
+    } else {
+      // First try finding a fig caption
+      const foundCaption = moveClassToCaption(captionContainer, "figcaption");
+      if (!foundCaption) {
+        // find a table caption and copy the contents into a div with style figure-caption
+        // note that for tables, our grid inception approach isn't going to work, so
+        // we make a copy of the caption contents and place that in the same container as the
+        // table and bind it to the grid
+        const captionEl = captionContainer.querySelector("caption");
+        if (captionEl) {
+          const parentDivEl = captionEl?.parentElement?.parentElement;
+          if (parentDivEl) {
+            captionEl.classList.add("hidden");
+
+            const divCopy = doc.createElement("div");
+            divCopy.classList.add("figure-caption");
+            divCopy.classList.add("margin-caption");
+            divCopy.innerHTML = captionEl.innerHTML;
+            parentDivEl.appendChild(divCopy);
+            removeCaptionClass(captionContainer);
+          }
+        }
+      } else {
+        removeCaptionClass(captionContainer);
+      }
+    }
+  });
+};
+
 // Tests whether element is a margin container
 const isContainer = (el: Element | null) => {
   return (
@@ -511,7 +522,7 @@ const isContainer = (el: Element | null) => {
 
 const isAlreadyInMargin = (el: Element): boolean => {
   const elInMargin = el.classList.contains("column-margin") ||
-    el.classList.contains("aside");
+    el.classList.contains("aside") || el.classList.contains("margin-caption");
   if (elInMargin) {
     return true;
   } else if (el.parentElement !== null) {

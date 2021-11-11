@@ -233,11 +233,6 @@ img.img-fluid.column-screen-inset-shaded {
   width: 100%;
 }
 
-.no-row-height {
-  height: 1em;
-  overflow: visible;
-}
-
 @include media-breakpoint-up(lg) {
   .margin-caption,
   div.aside,
@@ -251,6 +246,11 @@ img.img-fluid.column-screen-inset-shaded {
     grid-column: screen-start / screen-end;
     z-index: $zindex-content;
     transform: translate3d(0, 0, 0);
+  }
+
+  .no-row-height {
+    height: 1em;
+    overflow: visible;
   }
 }
 
@@ -284,6 +284,11 @@ img.img-fluid.column-screen-inset-shaded {
     grid-column: body-content-start / body-content-end;
     z-index: $zindex-content;
     transform: translate3d(0, 0, 0);
+  }
+
+  .no-row-height {
+    height: initial;
+    overflow: initial;
   }
 }
 
@@ -349,7 +354,8 @@ aside,
 }
 
 .margin-item-padding {
-  padding-bottom: 1em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
 }
 
 // Caption and footnotes
