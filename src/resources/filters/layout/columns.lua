@@ -74,9 +74,8 @@ function renderDivColumn(el)
         local figOrTable = false
         for j, contentEl in ipairs(el.content) do
 
-
           -- wrap figures
-          local figure = discoverFigure(contentEl, true)
+          local figure = discoverFigure(contentEl, false)
           if figure ~= nil then
             -- just ensure the classes are - they will be resolved
             -- when the latex figure is rendered

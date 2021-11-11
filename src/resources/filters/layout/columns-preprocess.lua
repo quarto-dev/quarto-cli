@@ -16,7 +16,7 @@ function columnsPreprocess()
     end,
 
     Para = function(el)
-      local figure = discoverFigure(el)
+      local figure = discoverFigure(el, false)
       if figure then
         resolveColumnClassesForEl(figure)
       end
@@ -60,7 +60,7 @@ function resolveColumnClassesForCodeCell(el)
 
           -- look through the children for any figures or tables
           for j, figOrTableEl in ipairs(childEl.content) do
-            local figure = discoverFigure(figOrTableEl, true)
+            local figure = discoverFigure(figOrTableEl, false)
             if figure ~= nil then
               -- forward to figures
               applyClasses(figClasses, figCaptionClasses, el, childEl, figure, 'fig')
