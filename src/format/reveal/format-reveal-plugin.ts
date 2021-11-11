@@ -27,6 +27,7 @@ import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 const kRevealjsPlugins = "revealjs-plugins";
 
 const kRevealSlideTone = "slide-tone";
+const kRevealMenu = "menu";
 
 interface RevealPluginBundle {
   plugin: string;
@@ -65,6 +66,12 @@ export function revealPluginExtras(format: Format, revealDir: string) {
     },
     { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
   ];
+
+  // menu plugin (enabled by default)
+  const menuPlugin = revealMenuPlugin(format);
+  if (menuPlugin) {
+    pluginBundles.push(menuPlugin);
+  }
 
   // tone plugin (optional)
   const tonePlugin = revealTonePlugin(format);
@@ -203,6 +210,14 @@ export function injectRevealConfig(
     );
   }
   return template;
+}
+
+function revealMenuPlugin(format: Format) {
+  if (format.metadata[kRevealMenu] !== false) {
+    return { plugin: formatResourcePath("revealjs", join("plugins", "menu")) };
+  } else {
+    return undefined;
+  }
 }
 
 function revealTonePlugin(format: Format) {
