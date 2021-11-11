@@ -93,16 +93,7 @@ const kRevealOptions = [
   "pdfSeparateFragments",
 ];
 
-const kRevealKebabOptions = kRevealOptions.reduce(
-  (options: string[], option: string) => {
-    const kebab = camelToKebab(option);
-    if (kebab !== option) {
-      options.push(kebab);
-    }
-    return options;
-  },
-  [],
-);
+const kRevealKebabOptions = optionsToKebab(kRevealOptions);
 
 export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
@@ -111,6 +102,38 @@ export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
 export const kPdfSeparateFragments = "pdfSeparateFragments";
+
+export function optionsToKebab(options: string[]) {
+  return options.reduce(
+    (options: string[], option: string) => {
+      const kebab = camelToKebab(option);
+      if (kebab !== option) {
+        options.push(kebab);
+      }
+      return options;
+    },
+    [],
+  );
+}
+
+export function revealMetadataFilter(
+  metadata: Metadata,
+  kebabOptions = kRevealKebabOptions,
+) {
+  // convert kebab case to camel case for reveal options
+  const filtered: Metadata = {};
+  Object.keys(metadata).forEach((key) => {
+    const value = metadata[key];
+    if (
+      kebabOptions.includes(key)
+    ) {
+      filtered[kebabToCamel(key)] = value;
+    } else {
+      filtered[key] = value;
+    }
+  });
+  return filtered;
+}
 
 export function revealjsFormat() {
   return mergeConfigs(
@@ -207,8 +230,8 @@ export function revealjsFormat() {
         // if this is local then add plugins
         if (theme.revealDir) {
           extras = mergeConfigs(
-            extras,
             revealPluginExtras(format, theme.revealDir),
+            extras,
           );
         }
 
@@ -285,22 +308,6 @@ function revealRequireJsPatch(template: string) {
     "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
   );
   return template;
-}
-
-function revealMetadataFilter(metadata: Metadata) {
-  // convert kebab case to camel case for reveal options
-  const filtered: Metadata = {};
-  Object.keys(metadata).forEach((key) => {
-    const value = metadata[key];
-    if (
-      kRevealKebabOptions.includes(key)
-    ) {
-      filtered[kebabToCamel(key)] = value;
-    } else {
-      filtered[key] = value;
-    }
-  });
-  return filtered;
 }
 
 function revealHtmlPostprocessor(format: Format) {

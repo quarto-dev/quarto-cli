@@ -22,11 +22,38 @@ import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { readYaml } from "../../core/yaml.ts";
+import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
 const kRevealSlideTone = "slide-tone";
+const kRevealMenu = "menu";
+
+const kRevealPluginOptions = [
+  // reveal.js-menu
+  "side",
+  "width",
+  "numbers",
+  "titleSelector",
+  "useTextContentForMissingTitles",
+  "hideMissingTitles",
+  "markers",
+  "custom",
+  "themes",
+  "themesPath",
+  "transitions",
+  "openButton",
+  "openSlideNumber",
+  "keyboard",
+  "sticky",
+  "autoOpen",
+  "delayInit",
+  "openOnInit",
+  "loadIcons",
+];
+
+const kRevealPluginKebabOptions = optionsToKebab(kRevealPluginOptions);
 
 interface RevealPluginBundle {
   plugin: string;
@@ -65,6 +92,12 @@ export function revealPluginExtras(format: Format, revealDir: string) {
     },
     { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
   ];
+
+  // menu plugin (enabled by default)
+  const menuPlugin = revealMenuPlugin(format);
+  if (menuPlugin) {
+    pluginBundles.push(menuPlugin);
+  }
 
   // tone plugin (optional)
   const tonePlugin = revealTonePlugin(format);
@@ -127,11 +160,22 @@ export function revealPluginExtras(format: Format, revealDir: string) {
     // add to config
     if (plugin.config) {
       for (const key of Object.keys(plugin.config)) {
-        config[key] = plugin.config[key];
+        if (typeof (plugin.config[key]) === "object") {
+          config[key] = plugin.config[key];
 
-        // see if the user has yaml to merge
-        if (typeof (format.metadata[key]) === "object") {
-          config[key] = mergeConfigs(config[key], format.metadata[key]);
+          // see if the user has yaml to merge
+          if (typeof (format.metadata[key]) === "object") {
+            config[key] = mergeConfigs(
+              revealMetadataFilter(
+                config[key] as Metadata,
+                kRevealPluginKebabOptions,
+              ),
+              revealMetadataFilter(
+                format.metadata[key] as Metadata,
+                kRevealPluginKebabOptions,
+              ),
+            );
+          }
         }
       }
     }
@@ -203,6 +247,14 @@ export function injectRevealConfig(
     );
   }
   return template;
+}
+
+function revealMenuPlugin(format: Format) {
+  if (format.metadata[kRevealMenu] !== false) {
+    return { plugin: formatResourcePath("revealjs", join("plugins", "menu")) };
+  } else {
+    return undefined;
+  }
 }
 
 function revealTonePlugin(format: Format) {
