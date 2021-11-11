@@ -268,6 +268,11 @@ img.img-fluid.column-screen-inset-shaded {
     z-index: $zindex-content;
     transform: translate3d(0, 0, 0);
   }
+
+  .no-row-height {
+    height: 1em;
+    overflow: visible;
+  }
 }
 
 @include media-breakpoint-down(md) {
