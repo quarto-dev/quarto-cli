@@ -176,13 +176,12 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       title.classList.add("display-7");
     }
 
-    const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
-      flags[kReferenceLocation] === "margin";
-
     // Process captions that may appear in the margin
     processMarginCaptions(doc);
 
     // If margin footnotes are enabled move them
+    const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
+      flags[kReferenceLocation] === "margin";
     if (refsInMargin) {
       // This is a little complicated because if there are multiple footnotes
       // in a single block, we want to wrap them in a container so they
@@ -196,13 +195,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     // Group margin elements by their parents and wrap them in a container
     // Be sure to ignore containers which are already processed
     // and should be left alone
-    const marginNodes = doc.querySelectorAll(
-      ".column-margin:not(.column-container)",
-    );
-    marginNodes.forEach((marginNode) => {
-      const marginEl = marginNode as Element;
-      addToBlockMargin(marginEl, doc);
-    });
+    processMarginElements(doc);
 
     // Find any elements that are using fancy layouts (columns)
     const columnLayouts = doc.querySelectorAll(
@@ -436,6 +429,16 @@ const processMarginRefs = (doc: Document) => {
   });
 };
 
+const processMarginElements = (doc: Document) => {
+  const marginNodes = doc.querySelectorAll(
+    ".column-margin:not(.column-container)",
+  );
+  marginNodes.forEach((marginNode) => {
+    const marginEl = marginNode as Element;
+    addToBlockMargin(marginEl, doc);
+  });
+};
+
 // Process any captions that appear in margins
 const processMarginCaptions = (doc: Document) => {
   // Forward caption class from parents to the child fig caps
@@ -551,10 +554,28 @@ const addToBlockMargin = (el: Element, doc: Document) => {
     // If not, see if the previous element is a container and use that
     sibling.appendChild(el);
   } else {
-    // Create a container and use it, store with block for future use
-    const container = createMarginContainer(doc);
-    container.appendChild(el.cloneNode(true));
-    el.parentNode?.replaceChild(container, el);
+    const parentEl = el.parentNode as Element;
+    if (parentEl) {
+      // The container for thise margin element
+      const container = createMarginContainer(doc);
+      container.appendChild(el.cloneNode(true));
+
+      // list of tags that can only contain inline elements
+      // (so the container can't be placed inside of these)
+      const cantContainBlockTags = ["P"];
+      if (cantContainBlockTags.includes(parentEl.tagName)) {
+        // If the parent node can't contain anything but inlines
+        // we need to replace it with a div and place both the parent and
+        // this element in the div
+        const wrapper = doc.createElement("div");
+        wrapper.appendChild(parentEl.cloneNode(true));
+        wrapper.appendChild(container);
+        parentEl.replaceWith(wrapper);
+      } else {
+        // Replace the child with the container
+        el.parentNode?.replaceChild(container, el);
+      }
+    }
   }
 };
 
