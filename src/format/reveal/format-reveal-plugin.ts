@@ -251,10 +251,56 @@ export function injectRevealConfig(
 
 function revealMenuPlugin(format: Format) {
   if (format.metadata[kRevealMenu] !== false) {
-    return { plugin: formatResourcePath("revealjs", join("plugins", "menu")) };
+    return {
+      plugin: formatResourcePath("revealjs", join("plugins", "menu")),
+      config: {
+        menu: {
+          custom: [{
+            title: "Tools",
+            icon: "",
+            content: revealMenuTools(format),
+          }],
+        },
+      },
+    };
   } else {
     return undefined;
   }
+}
+
+function revealMenuTools(_format: Format) {
+  const tools = [
+    {
+      title: "Fullscreen",
+      key: "f",
+      handler: "fullscreen",
+    },
+    {
+      title: "Speaker View",
+      key: "s",
+      handler: "speakerMode",
+    },
+    {
+      title: "Slide Overview",
+      key: "o",
+      handler: "overview",
+    },
+    {
+      title: "Keyboard Help",
+      key: "?",
+      handler: "keyboardHelp",
+    },
+  ];
+  const lines = ['<ul class="slide-menu-items">'];
+  lines.push(...tools.map((tool, index) => {
+    return `<li class="slide-tool-item${
+      index === 0 ? " active" : ""
+    }" data-item="${index}"><a href="#" onclick="RevealMenuToolHandlers.${tool.handler}(event)"><kbd>${tool
+      .key || " "}</kbd> ${tool.title}</a></li>`;
+  }));
+
+  lines.push("</ul>");
+  return lines.join("\n");
 }
 
 function revealTonePlugin(format: Format) {

@@ -1,0 +1,22 @@
+.slide-menu-wrapper .slide-tool-item {
+  display: block;
+  text-align: left;
+  padding: 10px 18px;
+  color: #aaa;
+  cursor: pointer;
+  border-top: solid 1px #555;
+}
+
+.slide-menu-wrapper .slide-tool-item a {
+  text-decoration: none;
+}
+
+.slide-menu-wrapper .slide-tool-item kbd {
+  font-family: monospace;
+  margin-right: 10px;
+  padding: 3px 8px;
+  color: inherit;
+  border: 1px solid;
+  border-radius: 5px;
+  border-color: #555;
+}
