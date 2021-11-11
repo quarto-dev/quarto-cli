@@ -45,7 +45,7 @@ function layoutMetaInject()
           ['frame hidden'] = "",
           ['sharp corners'] = "",
           enhanced = "",
-          ['borderline west'] = '{4pt}{0pt}{shadecolor}'
+          ['borderline west'] = '{3pt}{0pt}{shadecolor}'
         }
         
         -- redefined the 'Shaded' environment that pandoc uses for fenced 

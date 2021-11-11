@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element, Node } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
@@ -185,98 +185,6 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       // all can appear adjacent to the block (otherwise only the first would appear)
       // next to the block, and subsequent ones would appear below the block
 
-      let refBlock: Element | null = null;
-      let pendingRefs: Element[] = [];
-
-      const findRefParent = (el: Element) => {
-        if (el.getAttribute("role") === "doc-biblioref") {
-          return el.parentElement?.parentElement;
-        } else {
-          return el.parentElement;
-        }
-      };
-
-      const isAlreadyInMargin = (el: Element): boolean => {
-        const elInMargin = el.classList.contains("column-margin") ||
-          el.classList.contains("aside");
-        if (elInMargin) {
-          return true;
-        } else if (el.parentElement !== null) {
-          return isAlreadyInMargin(el.parentElement);
-        } else {
-          return false;
-        }
-      };
-
-      // Group margin elements by their parents and wrap them in a container
-      const marginEls = doc.querySelectorAll(".column-margin");
-      let marginParentEl: Element | null;
-      let containedEls: Element[] = [];
-
-      const emitContainer = () => {
-        if (marginParentEl != null && containedEls.length > 0) {
-          const containerDiv = doc.createElement("div");
-          const classes = ["column-margin", "no-row-height"];
-          classes.forEach((clz) => containerDiv.classList.add(clz));
-          containedEls.forEach((el) => {
-            classes.forEach((clz) => {
-              el.classList.remove(clz);
-            });
-            containerDiv.appendChild(el);
-          });
-
-          marginParentEl.parentElement?.insertBefore(
-            containerDiv,
-            marginParentEl.nextElementSibling,
-          );
-        }
-        marginParentEl = null;
-        containedEls = [];
-      };
-
-      marginEls.forEach((marginEl) => {
-        const currentParent = marginEl.parentElement;
-        if (currentParent != marginParentEl) {
-          emitContainer();
-        }
-        containedEls.push(marginEl as Element);
-        marginParentEl = marginEl.parentElement;
-      });
-      emitContainer();
-
-      // Generalize this to wrap a container div around multiple elements
-      // apply the margin-no-height class as well
-      const appendRefs = (
-        footnotBlockEl: Element,
-        footnotes: Element[],
-      ) => {
-        if (footnotBlockEl !== null) {
-          if (footnotes.length === 1) {
-            if (!isAlreadyInMargin(footnotBlockEl)) {
-              footnotes[0].classList.add("margin-ref");
-              footnotes[0].classList.add("no-row-height");
-            }
-            footnotBlockEl.parentElement?.insertBefore(
-              footnotes[0],
-              footnotBlockEl.nextElementSibling,
-            );
-          } else {
-            const containerEl = doc.createElement("div");
-            if (!isAlreadyInMargin(footnotBlockEl)) {
-              containerEl.classList.add("margin-ref");
-              containerEl.classList.add("no-row-height");
-            }
-            for (const footnote of footnotes) {
-              containerEl.appendChild(footnote);
-            }
-            footnotBlockEl.parentElement?.insertBefore(
-              containerEl,
-              footnotBlockEl.nextElementSibling,
-            );
-          }
-        }
-      };
-
       // Find all the reference (footnote, bibliography) links
       const refEls = doc.querySelectorAll(
         ".footnote-ref, a[role='doc-biblioref']",
@@ -286,27 +194,18 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
         if (refLink.hasAttribute("href")) {
           const target = refLink.getAttribute("href");
           if (target) {
+            // Rewrite this to just look where it wants to insert
+            // the container and if there is a container there, insert (use it  )
+
             // First try to grab a citation.
             const refId = target.slice(1);
             const refParentEl = findRefParent(refLink);
             const refContentsEl = doc.getElementById(refId);
 
-            if (refContentsEl) {
-              if (
-                refBlock !== null &&
-                refBlock !== refParentEl
-              ) {
-                appendRefs(refBlock, pendingRefs);
-                pendingRefs = [];
-              }
-
-              // block containing the reference
-              refBlock = refParentEl || null;
-
+            if (refContentsEl && refParentEl) {
               // Create a new ref div and move the contents into it
-              const refDiv = doc.createElement("div");
-
               // preserve the id and role
+              const refDiv = doc.createElement("div");
               if (refContentsEl?.id) {
                 refDiv.setAttribute("id", refContentsEl.id);
               }
@@ -315,7 +214,6 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
                 refContentsEl.getAttribute("role"),
               );
               refDiv.classList.add("margin-item-padding");
-              console.log(refDiv);
 
               Array.from(refContentsEl.childNodes).forEach((child) => {
                 if (refLink.classList.contains("footnote-ref")) {
@@ -337,22 +235,25 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
                     child.firstChild,
                   );
                 }
-
                 refDiv.appendChild(child);
               });
-              pendingRefs.push(refDiv);
-
-              // Remove the old footnote
-              refContentsEl.remove();
+              addRefToBlockMargin(refParentEl, refDiv, doc);
             }
           }
         }
       });
-
-      if (refBlock && pendingRefs) {
-        appendRefs(refBlock, pendingRefs);
-      }
     }
+
+    // Group margin elements by their parents and wrap them in a container
+    // Be sure to ignore containers which are already processed
+    // and should be left alone
+    const marginNodes = doc.querySelectorAll(
+      ".column-margin:not(.column-container)",
+    );
+    marginNodes.forEach((marginNode) => {
+      const marginEl = marginNode as Element;
+      addToBlockMargin(marginEl, doc);
+    });
 
     // Forward caption class from parents to the child fig caps
     const marginCaptions = doc.querySelectorAll(".margin-caption");
@@ -598,3 +499,80 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     return Promise.resolve([]);
   };
 }
+// Tests whether element is a margin container
+const isContainer = (el: Element | null) => {
+  return (
+    el &&
+    el.tagName === "DIV" &&
+    el.classList.contains("column-container") &&
+    el.classList.contains("column-margin")
+  );
+};
+
+const isAlreadyInMargin = (el: Element): boolean => {
+  const elInMargin = el.classList.contains("column-margin") ||
+    el.classList.contains("aside");
+  if (elInMargin) {
+    return true;
+  } else if (el.parentElement !== null) {
+    return isAlreadyInMargin(el.parentElement);
+  } else {
+    return false;
+  }
+};
+
+// Creates a margin container
+const createMarginContainer = (doc: Document) => {
+  const container = doc.createElement("div");
+  container.classList.add("no-row-height");
+  container.classList.add("column-margin");
+  container.classList.add("column-container");
+  return container;
+};
+
+// Adds an element to the margin block (it will either find a
+// margin container and append itself, or will create a new container)
+const addToBlockMargin = (el: Element, doc: Document) => {
+  (el as Element).classList.remove("column-margin");
+  const sibling = el.previousElementSibling;
+  // See if there is a container for this block
+  if (sibling && isContainer(sibling as Element)) {
+    // If not, see if the previous element is a container and use that
+    sibling.appendChild(el);
+  } else {
+    // Create a container and use it, store with block for future use
+    const container = createMarginContainer(doc);
+    container.appendChild(el.cloneNode(true));
+    el.parentNode?.replaceChild(container, el);
+  }
+};
+
+const addRefToBlockMargin = (
+  refParentEl: Element,
+  refEl: Element,
+  doc: Document,
+) => {
+  if (isAlreadyInMargin(refParentEl)) {
+    refParentEl.appendChild(refEl);
+  } else if (
+    refParentEl.nextElementSibling &&
+    isContainer(refParentEl.nextElementSibling)
+  ) {
+    refParentEl.nextElementSibling.appendChild(refEl);
+  } else {
+    const container = createMarginContainer(doc);
+    container.appendChild(refEl);
+    refParentEl.parentElement?.insertBefore(
+      container,
+      refParentEl.nextElementSibling,
+    );
+  }
+};
+
+const findRefParent = (el: Element) => {
+  if (el.getAttribute("role") === "doc-biblioref") {
+    return el.parentElement?.parentElement;
+  } else {
+    return el.parentElement;
+  }
+};
