@@ -250,22 +250,19 @@ export function injectRevealConfig(
 }
 
 function revealMenuPlugin(format: Format) {
-  if (format.metadata[kRevealMenu] !== false) {
-    return {
-      plugin: formatResourcePath("revealjs", join("plugins", "menu")),
-      config: {
-        menu: {
-          custom: [{
-            title: "Tools",
-            icon: "",
-            content: revealMenuTools(format),
-          }],
-        },
+  return {
+    plugin: formatResourcePath("revealjs", join("plugins", "menu")),
+    config: {
+      menu: {
+        custom: [{
+          title: "Tools",
+          icon: '<i class="fas fa-gear"></i>',
+          content: revealMenuTools(format),
+        }],
+        openButton: format.metadata[kRevealMenu] !== false,
       },
-    };
-  } else {
-    return undefined;
-  }
+    },
+  };
 }
 
 function revealMenuTools(_format: Format) {

@@ -5,5 +5,5 @@ config:
   menu:
     side: "left"
     useTextContentForMissingTitles: true
-    openButton: false
+    markers: false
     loadIcons: false
