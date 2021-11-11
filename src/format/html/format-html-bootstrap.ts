@@ -542,7 +542,6 @@ const addToBlockMargin = (el: Element, doc: Document) => {
   } else {
     // Create a container and use it, store with block for future use
     const container = createMarginContainer(doc);
-    console.log(isContainer(container));
     container.appendChild(el.cloneNode(true));
     el.parentNode?.replaceChild(container, el);
   }
