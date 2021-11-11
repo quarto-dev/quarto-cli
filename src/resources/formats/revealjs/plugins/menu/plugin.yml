@@ -1,3 +1,9 @@
 name: RevealMenu
 script: menu.js
 stylesheet: menu.css
+config:
+  menu:
+    side: "left"
+    useTextContentForMissingTitles: true
+    openButton: false
+    loadIcons: false
