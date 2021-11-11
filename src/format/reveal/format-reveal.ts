@@ -207,8 +207,8 @@ export function revealjsFormat() {
         // if this is local then add plugins
         if (theme.revealDir) {
           extras = mergeConfigs(
-            extras,
             revealPluginExtras(format, theme.revealDir),
+            extras,
           );
         }
 
