@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, SEP } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
@@ -71,7 +71,8 @@ export async function configure(
       try {
         // for the last path, try even creating a directory as a last ditch effort
         if (i === symlinkPaths.length - 1) {
-          ensureDirSync(dirname(symlinkPath));
+          // append path separator to resolve the dir name (in case it's a symlink)
+          ensureDirSync(dirname(symlinkPath) + SEP);
         }
         Deno.symlinkSync(
           join(config.directoryInfo.bin, "quarto"),
