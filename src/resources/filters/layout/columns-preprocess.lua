@@ -67,10 +67,13 @@ function resolveColumnClassesForCodeCell(el)
             elseif figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
               -- forward to figure divs
               applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
-            elseif figOrTableEl.t == 'Table' or (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
+            elseif (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
+              -- for a table div, apply the classes to the figOrTableEl itself
               applyClasses(tblClasses, tblCaptionClasses, el, childEl, figOrTableEl, 'tbl')
+            elseif figOrTableEl.t == 'Table' then
+              -- the figOrTableEl is a table, just apply the classes to the div around it
+              applyClasses(tblClasses, tblCaptionClasses, el, childEl, childEl, 'tbl')
             end
-
           end
         end
       end
