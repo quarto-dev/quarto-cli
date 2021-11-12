@@ -13,6 +13,7 @@ import {
 } from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
+import { copyMinimal } from "../../../src/core/path.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
 import { Repo, withRepo } from "../util/git.ts";
@@ -216,20 +217,33 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `reveal.js-menu-${version}`, "menu.css"),
         join(revealJsMenu, "menu.css"),
       );
-
-      /*
-      // write the plugin.yml file
-      Deno.writeTextFileSync(
-        join(revealJsMenu, "plugin.yml"),
-        `name: RevealMenu
-script: menu.js
-stylesheet: menu.css
-`,
-      );
-      */
     },
     false, // not a commit
     false, // no v prefix
+  );
+
+  // revealjs-chalkboard
+  const revealJsChalkboard = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "revealjs",
+    "plugins",
+    "chalkboard",
+  );
+  await updateGithubSourceCodeDependency(
+    "reveal.js-chalkboard",
+    "rajgoel/reveal.js-plugins",
+    "REVEAL_JS_CHALKBOARD",
+    workingDir,
+    (dir: string, version: string) => {
+      ensureDirSync(dirname(revealJsChalkboard));
+      copyMinimal(
+        join(dir, `reveal.js-plugins-${version}`, "chalkboard"),
+        revealJsChalkboard,
+      );
+    },
+    true, // not a commit
   );
 
   // Autocomplete
