@@ -4,5 +4,5 @@
 #   the keyboard, and to automatically focus the first focusable element
 #   on slide change
 name: QuartoA11y
-script: plugin.js
-stylesheet: styles.css
+script: a11y.js
+stylesheet: a11y.css
