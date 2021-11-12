@@ -1,0 +1,19 @@
+<script type="application/javascript">
+Reveal.configure({
+  pdfSeparateFragments: <%= pdfSeparateFragments ? 'true' : 'false' %>
+});
+</script>
+
+<% if (slideLogo) { %>
+<img id="quarto-slide-logo" src="<%- slideLogo %>"/>
+<% if (slideNumber) { %>
+<style type="text/css">
+.reveal .slide-number {
+  bottom: initial;
+  top: 10px;
+  font-size: 16px;
+}
+</style>
+<% } %>
+<% } %>
+

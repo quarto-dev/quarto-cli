@@ -1,0 +1,4 @@
+name: QuartoFooter
+script: footer.js
+stylesheet: footer.css
+metadata: ["slide-logo", "slide-footer"]

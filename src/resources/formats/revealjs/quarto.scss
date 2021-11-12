@@ -215,11 +215,11 @@ $selectionColor: $selection-color !default;
   }
 
   .reveal .controls[data-controls-layout="edges"] .navigate-up {
-    top: $arrow-spacing;
+    top: $arrow-spacing * 2;
   }
 
   .reveal .controls[data-controls-layout="edges"] .navigate-down {
-    bottom: $arrow-spacing - $control-arrow-spacing + 0.3em;
+    bottom: $arrow-spacing - $control-arrow-spacing + 3.5em;
   }
 }
 

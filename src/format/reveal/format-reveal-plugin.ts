@@ -67,6 +67,7 @@ interface RevealPlugin {
   script?: RevealPluginScript[];
   stylesheet?: string[];
   config?: Metadata;
+  metadata?: string[];
 }
 
 interface RevealPluginScript {
@@ -83,6 +84,7 @@ export function revealPluginExtras(format: Format, revealDir: string) {
   const scripts: RevealPluginScript[] = [];
   const stylesheets: string[] = [];
   const config: Metadata = {};
+  const metadata: string[] = [];
   const dependencies: FormatDependency[] = [];
 
   // built-in plugins
@@ -91,6 +93,7 @@ export function revealPluginExtras(format: Format, revealDir: string) {
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
     { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
+    { plugin: formatResourcePath("revealjs", join("plugins", "footer")) },
   ];
 
   // menu plugin (enabled by default)
@@ -179,6 +182,11 @@ export function revealPluginExtras(format: Format, revealDir: string) {
         }
       }
     }
+
+    // note metadata we should forward into reveal config
+    if (plugin.metadata) {
+      metadata.push(...plugin.metadata);
+    }
   }
 
   // inject them into extras
@@ -219,6 +227,13 @@ export function revealPluginExtras(format: Format, revealDir: string) {
       );
     }
 
+    // inject top level options used by plugins into config
+    metadata.forEach((option) => {
+      if (format.metadata[option] !== undefined) {
+        config[option] = format.metadata[option];
+      }
+    });
+
     // plugin config
     template = injectRevealConfig(config, template);
 
@@ -237,7 +252,7 @@ export function injectRevealConfig(
   // plugin config
   const configJs: string[] = [];
   Object.keys(config).forEach((key) => {
-    configJs.push(`${key}: ${JSON.stringify(config[key])}`);
+    configJs.push(`'${key}': ${JSON.stringify(config[key])}`);
   });
   if (configJs.length > 0) {
     const kRevealInitialize = "Reveal.initialize({";
@@ -361,6 +376,11 @@ function pluginFromBundle(bundle: RevealPluginBundle): RevealPlugin {
       plugin.config || {} as Metadata,
       bundle.config || {} as Metadata,
     );
+  }
+
+  // ensure that metadata is an array
+  if (typeof (plugin.metadata) === "string") {
+    plugin.metadata = [plugin.metadata];
   }
 
   // return plugin
