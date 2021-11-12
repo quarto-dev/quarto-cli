@@ -2,22 +2,21 @@ window.QuartoFooter = function () {
   return {
     id: "quarto-footer",
     init: function (deck) {
-      const config = deck.getConfig();
-      const logo = config["slide-logo"];
-      /*
-      if (logo) {
-        const revealParent = deck.getRevealElement().parentElement;
-        const logoImg = document.getElementById("quarto-slide-logo");
-        if (logoImg) {
-          console.log(config);
-          if (config.slideNumber) {
-            logoImg.classList.add("slide-number-offset");
-          }
-          revealParent.appendChild(logoImg);
-        }
+      // const config = deck.getConfig();
+      const revealParent = deck.getRevealElement();
+      const logoImg = document.querySelector(".slide-logo");
+      if (logoImg) {
+        logoImg.setAttribute("src", logoImg.getAttribute("data-src"));
+        revealParent.appendChild(logoImg);
+        revealParent.classList.add("has-logo");
       }
-      */
-      console.log(deck.getConfig());
+      const footerSpan = document.querySelector(".slide-footer");
+      if (footerSpan) {
+        const footerDiv = document.createElement("div");
+        footerDiv.classList.add("slide-footer-container");
+        footerDiv.appendChild(footerSpan);
+        revealParent.appendChild(footerDiv);
+      }
     },
   };
 };
