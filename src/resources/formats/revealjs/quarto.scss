@@ -12,7 +12,7 @@ $presentation-line-height: 1.3 !default;
 // main colors
 $body-bg: #fff !default;
 $body-color: #222 !default;
-$text-muted: lighten($body-color, 60%) !default;
+$text-muted: lighten($body-color, 50%) !default;
 
 // link colors
 $link-color: #2a76dd !default;
@@ -200,6 +200,10 @@ $selectionColor: $selection-color !default;
 .reveal .slide-number {
   color: $link-color;
   background-color: $body-bg;
+}
+
+.reveal .slide-footer-container {
+  color: $text-muted;
 }
 
 @media screen and (min-width: 500px) {

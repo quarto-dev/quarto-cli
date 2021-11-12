@@ -18,6 +18,7 @@ import {
 import {
   Format,
   kHtmlPostprocessors,
+  kMarkdownAfterBody,
   kTemplatePatches,
   kTextHighlightingMode,
   Metadata,
@@ -98,7 +99,8 @@ const kRevealKebabOptions = optionsToKebab(kRevealOptions);
 export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
 
-export const kSlideLogo = "slide-logo";
+export const kSlideLogo = "logo";
+export const kSlideFooter = "footer";
 export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
@@ -169,8 +171,6 @@ export function revealjsFormat() {
         const extrasHtml = renderEjs(
           formatResourcePath("revealjs", "extras.html"),
           {
-            slideLogo: format.metadata[kSlideLogo],
-            slideNumber: format.metadata["slideNumber"],
             [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
           },
         );
@@ -220,6 +220,7 @@ export function revealjsFormat() {
               [kHtmlPostprocessors]: [
                 revealHtmlPostprocessor(format),
               ],
+              [kMarkdownAfterBody]: [revealMarkdownAfterBody(format)],
             },
           },
         );
@@ -314,6 +315,18 @@ function revealRequireJsPatch(template: string) {
     "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
   );
   return template;
+}
+
+function revealMarkdownAfterBody(format: Format) {
+  const lines: string[] = [];
+  if (format.metadata[kSlideLogo]) {
+    lines.push(`![](${format.metadata[kSlideLogo]}){.slide-logo}`);
+  }
+  if (format.metadata[kSlideFooter]) {
+    lines.push(`[${format.metadata[kSlideFooter]}]{.slide-footer}`);
+  }
+
+  return lines.join("\n");
 }
 
 function revealHtmlPostprocessor(format: Format) {
