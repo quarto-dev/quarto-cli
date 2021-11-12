@@ -98,6 +98,7 @@ const kRevealKebabOptions = optionsToKebab(kRevealOptions);
 export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
 
+export const kSlideLogo = "slide-logo";
 export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
@@ -164,12 +165,16 @@ export function revealjsFormat() {
         Deno.writeTextFileSync(stylesFile, styles);
 
         // additional options not supported by pandoc
-        const optionsFile = sessionTempFile({ suffix: ".html" });
-        const options = renderEjs(
-          formatResourcePath("revealjs", "options.html"),
-          { [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments] },
+        const extrasFile = sessionTempFile({ suffix: ".html" });
+        const extrasHtml = renderEjs(
+          formatResourcePath("revealjs", "extras.html"),
+          {
+            slideLogo: format.metadata[kSlideLogo],
+            slideNumber: format.metadata["slideNumber"],
+            [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
+          },
         );
-        Deno.writeTextFileSync(optionsFile, options);
+        Deno.writeTextFileSync(extrasFile, extrasHtml);
 
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
@@ -199,7 +204,7 @@ export function revealjsFormat() {
             } as Metadata,
             metadataOverride: {} as Metadata,
             [kIncludeInHeader]: [stylesFile],
-            [kIncludeAfterBody]: [optionsFile],
+            [kIncludeAfterBody]: [extrasFile],
             html: {
               [kTemplatePatches]: [
                 revealRequireJsPatch,

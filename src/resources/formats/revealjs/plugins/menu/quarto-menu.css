@@ -33,12 +33,18 @@
 .reveal .slide-menu-button .fas::before,
 .slide-menu-wrapper .slide-menu-toolbar .fas::before {
   display: inline-block;
-  height: 1.7rem;
-  width: 1.7rem;
+  height: 2.2rem;
+  width: 2.2rem;
   content: "";
   vertical-align: -0.125em;
   background-repeat: no-repeat;
-  background-size: 1.7rem 1.7rem;
+  background-size: 2.2rem 2.2rem;
+}
+
+.slide-menu-wrapper .slide-menu-toolbar .fas::before {
+  height: 1.8rem;
+  width: 1.8rem;
+  background-size: 1.8rem 1.8rem;
 }
 
 .slide-menu-wrapper .slide-menu-toolbar .fa-images::before {
