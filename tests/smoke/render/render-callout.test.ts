@@ -32,7 +32,7 @@ const teXOutput = outputForInput(input, "latex");
 testRender(input, "latex", true, [
   ensureFileRegexMatches(teXOutput.outputPath, [
     requireLatexPackage("fontawesome"),
-    requireLatexPackage("tcolorbox", "most"),
+    requireLatexPackage("tcolorbox", "many"),
     /quarto-callout-warning/,
     /quarto-callout-important/,
     /quarto-callout-note/,
