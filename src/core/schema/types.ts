@@ -100,229 +100,229 @@ import {
 } from "../../config/constants.ts";
 
 import {
-  NumberSchema as Number_,
-  BooleanSchema as Boolean_,
-  NullSchema as Null_,
-  StringSchema as String_,
-  enumSchema as enum_,
-  oneOfSchema as oneOf_,
-  objectSchema as object_,
-  arraySchema as array_,
+  NumberSchema as NumberS,
+  BooleanSchema as BooleanS,
+  NullSchema as NullS,
+  StringSchema as StringS,
+  enumSchema as enumS,
+  oneOfSchema as oneOfS,
+  objectSchema as objectS,
+  arraySchema as arrayS,
 } from "./common.ts";
 
-export const metadataSchema = object_();
+export const metadataSchema = objectS();
 
-export const dependencyFileSchema = object_({
+export const dependencyFileSchema = objectS({
   properties: {
-    name: String_,
-    path: String_,
-    attribs: object_()
+    name: StringS,
+    path: StringS,
+    attribs: objectS()
   },
   required: ["name", "path"]
 });
   
-export const formatDependencySchema = object_({
+export const formatDependencySchema = objectS({
   properties: {
-    name: String_,
-    version: String_,
-    meta: object_(),
-    links: array_(object_({
-      properties: { rel: String_, href: String_ },
+    name: StringS,
+    version: StringS,
+    meta: objectS(),
+    links: arrayS(objectS({
+      properties: { rel: StringS, href: StringS },
       description: "be an object with 'rel' and 'href' keys with string values"
     })),
-    scripts: array_(dependencyFileSchema),
-    stylesheets: array_(dependencyFileSchema),
-    resources: array_(dependencyFileSchema)
+    scripts: arrayS(dependencyFileSchema),
+    stylesheets: arrayS(dependencyFileSchema),
+    resources: arrayS(dependencyFileSchema)
   },
   required: ["name"]
 });
 
-export const bodyEnvelopeSchema = object_({
+export const bodyEnvelopeSchema = objectS({
   properties: {
-    header: String_,
-    before: String_,
-    after: String_
+    header: StringS,
+    before: StringS,
+    after: StringS
   }
 });
 
-export const sassLayerSchema = object_({
+export const sassLayerSchema = objectS({
   properties: {
-    use: array_(String_),
-    defaults: String_,
-    functions: String_,
-    mixins: String_,
-    rules: String_
+    use: arrayS(StringS),
+    defaults: StringS,
+    functions: StringS,
+    mixins: StringS,
+    rules: StringS
   },
   required: ["defaults", "functions", "mixins", "rules"]
 });
 
-export const sassBundleSchema = object_({
+export const sassBundleSchema = objectS({
   properties: {
-    key: String_,
-    dependency: String_,
+    key: StringS,
+    dependency: StringS,
     user: sassLayerSchema,
     quarto: sassLayerSchema,
     framework: sassLayerSchema,
-    loadPath: String_,
-    dark: object_({
+    loadPath: StringS,
+    dark: objectS({
       properties: {
         user: sassLayerSchema,
         quarto: sassLayerSchema,
         framework: sassLayerSchema,
-        "default": Boolean_
+        "default": BooleanS
       }
     }),
-    attribs: object_({
-      additionalProperties: String_
+    attribs: objectS({
+      additionalProperties: StringS
     })
   },
   required: ["key", "dependency"]
 });
 
 export const formatRenderOptionsSchema =
-  object_({
+  objectS({
     properties: {
-      [kKeepTex]: Boolean_,
-      [kKeepYaml]: Boolean_,
-      [kKeepSource]: Boolean_,
-      [kKeepHidden]: Boolean_,
-      [kPreferHtml]: Boolean_,
-      [kOutputDivs]: Boolean_,
-      [kVariant]: String_,
-      [kOutputExt]: String_,
-      [kPageWidth]: Number_,
-      [kFigAlign]: enum_("left", "right", "center", "default"),
-      [kCodeFold]: oneOf_(enum_("none", "show", "hide"), Boolean_),
-      [kCodeSummary]: String_,
-      [kCodeOverflow]: enum_("wrap", "scroll"),
-      [kCodeLink]: Boolean_,
-      [kCodeTools]: oneOf_(Boolean_, object_({
+      [kKeepTex]: BooleanS,
+      [kKeepYaml]: BooleanS,
+      [kKeepSource]: BooleanS,
+      [kKeepHidden]: BooleanS,
+      [kPreferHtml]: BooleanS,
+      [kOutputDivs]: BooleanS,
+      [kVariant]: StringS,
+      [kOutputExt]: StringS,
+      [kPageWidth]: NumberS,
+      [kFigAlign]: enumS("left", "right", "center", "default"),
+      [kCodeFold]: oneOfS(enumS("none", "show", "hide"), BooleanS),
+      [kCodeSummary]: StringS,
+      [kCodeOverflow]: enumS("wrap", "scroll"),
+      [kCodeLink]: BooleanS,
+      [kCodeTools]: oneOfS(BooleanS, objectS({
         properties: {
-          source: Boolean_,
-          toggle: Boolean_,
-          caption: String_,
+          source: BooleanS,
+          toggle: BooleanS,
+          caption: StringS,
         }
       })),
-      [kMergeIncludes]: Boolean_,
-      [kSelfContainedMath]: Boolean_,
-      [kLatexAutoMk]: Boolean_,
-      [kLatexAutoInstall]: Boolean_,
-      [kLatexMinRuns]: Number_,
-      [kLatexMaxRuns]: Number_,
-      [kLatexClean]: Boolean_,
-      [kLatexMakeIndex]: String_,
-      [kLatexMakeIndexOpts]: array_(String_),
-      [kLatexTlmgrOpts]: array_(String_),
-      [kLatexOutputDir]: oneOf_(String_, Null_),
-      [kLinkExternalIcon]: oneOf_(String_, Boolean_),
-      [kLinkExternalNewwindow]: Boolean_,
+      [kMergeIncludes]: BooleanS,
+      [kSelfContainedMath]: BooleanS,
+      [kLatexAutoMk]: BooleanS,
+      [kLatexAutoInstall]: BooleanS,
+      [kLatexMinRuns]: NumberS,
+      [kLatexMaxRuns]: NumberS,
+      [kLatexClean]: BooleanS,
+      [kLatexMakeIndex]: StringS,
+      [kLatexMakeIndexOpts]: arrayS(StringS),
+      [kLatexTlmgrOpts]: arrayS(StringS),
+      [kLatexOutputDir]: oneOfS(StringS, NullS),
+      [kLinkExternalIcon]: oneOfS(StringS, BooleanS),
+      [kLinkExternalNewwindow]: BooleanS,
     }
   });
 
 export const formatExecuteOptionsSchema =
-  object_({
+  objectS({
     properties: {
-      [kFigWidth]: Number_, // FIXME Minimum? other validation?
-      [kFigHeight]: Number_, // FIXME Minimum? other validation?
-      [kFigFormat]: enum_("retina", "png", "jpeg", "svg", "pdf"),
-      [kFigDpi]: Number_, // FIXME Minimum? other validation?
-      [kCache]: oneOf_(Boolean_, Null_, enum_("refresh")),
-      [kFreeze]: oneOf_(Boolean_, enum_("auto")),
-      [kExecuteEnabled]: oneOf_(Boolean_, Null_),
-      [kExecuteIpynb]: oneOf_(Boolean_, Null_),
-      [kExecuteDaemon]: oneOf_(Number_, Boolean_, Null_),
-      [kExecuteDaemonRestart]: Boolean_,
-      [kExecuteDebug]: Boolean_,
-      [kEngine]: String_,
-      [kEval]: oneOf_(Boolean_, Null_),
-      [kError]: Boolean_,
-      [kEcho]: oneOf_(Boolean_, enum_("fenced")),
-      [kOutput]: oneOf_(Boolean_, enum_("all", "asis")),
-      [kWarning]: Boolean_,
-      [kInclude]: Boolean_,
-      [kKeepMd]: Boolean_,
-      [kKeepIpynb]: Boolean_
+      [kFigWidth]: NumberS, // FIXME Minimum? other validation?
+      [kFigHeight]: NumberS, // FIXME Minimum? other validation?
+      [kFigFormat]: enumS("retina", "png", "jpeg", "svg", "pdf"),
+      [kFigDpi]: NumberS, // FIXME Minimum? other validation?
+      [kCache]: oneOfS(BooleanS, NullS, enumS("refresh")),
+      [kFreeze]: oneOfS(BooleanS, enumS("auto")),
+      [kExecuteEnabled]: oneOfS(BooleanS, NullS),
+      [kExecuteIpynb]: oneOfS(BooleanS, NullS),
+      [kExecuteDaemon]: oneOfS(NumberS, BooleanS, NullS),
+      [kExecuteDaemonRestart]: BooleanS,
+      [kExecuteDebug]: BooleanS,
+      [kEngine]: StringS,
+      [kEval]: oneOfS(BooleanS, NullS),
+      [kError]: BooleanS,
+      [kEcho]: oneOfS(BooleanS, enumS("fenced")),
+      [kOutput]: oneOfS(BooleanS, enumS("all", "asis")),
+      [kWarning]: BooleanS,
+      [kInclude]: BooleanS,
+      [kKeepMd]: BooleanS,
+      [kKeepIpynb]: BooleanS
     }
   });
 
 export const formatPandocOptionsSchema =
-  object_({
+  objectS({
     properties: {
-      "from": String_,
-      "to": String_,
-      "writer": String_,
-      [kTemplate]: String_,
-      [kOutputFile]: String_,
-      "standalone": Boolean_,
-      [kSelfContained]: Boolean_,
-      [kVariables]: object_(),
-      [kAtxHeaders]: Boolean_,
-      [kMarkdownHeadings]: Boolean_,
-      [kIncludeBeforeBody]: array_(String_),
-      [kIncludeAfterBody]: array_(String_),
-      [kIncludeInHeader]: array_(String_),
-      [kCiteproc]: Boolean_,
-      [kCiteMethod]: String_,
-      [kFilters]: array_(String_),
-      [kPdfEngine]: String_,
-      [kPdfEngineOpts]: array_(String_),
-      [kPdfEngineOpt]: String_,
-      [kEPubCoverImage]: String_,
-      [kCss]: oneOf_(String_, array_(String_)),
-      [kToc]: Boolean_,
-      [kTableOfContents]: Boolean_,
-      [kListings]: Boolean_,
-      [kNumberSections]: Boolean_,
-      [kNumberOffset]: array_(Number_),
-      [kHighlightStyle]: String_,
-      [kSectionDivs]: Boolean_,
-      [kHtmlMathMethod]: oneOf_(String_, object_({
-        properties: { method: String_, url: String_ },
+      "from": StringS,
+      "to": StringS,
+      "writer": StringS,
+      [kTemplate]: StringS,
+      [kOutputFile]: StringS,
+      "standalone": BooleanS,
+      [kSelfContained]: BooleanS,
+      [kVariables]: objectS(),
+      [kAtxHeaders]: BooleanS,
+      [kMarkdownHeadings]: BooleanS,
+      [kIncludeBeforeBody]: arrayS(StringS),
+      [kIncludeAfterBody]: arrayS(StringS),
+      [kIncludeInHeader]: arrayS(StringS),
+      [kCiteproc]: BooleanS,
+      [kCiteMethod]: StringS,
+      [kFilters]: arrayS(StringS),
+      [kPdfEngine]: StringS,
+      [kPdfEngineOpts]: arrayS(StringS),
+      [kPdfEngineOpt]: StringS,
+      [kEPubCoverImage]: StringS,
+      [kCss]: oneOfS(StringS, arrayS(StringS)),
+      [kToc]: BooleanS,
+      [kTableOfContents]: BooleanS,
+      [kListings]: BooleanS,
+      [kNumberSections]: BooleanS,
+      [kNumberOffset]: arrayS(NumberS),
+      [kHighlightStyle]: StringS,
+      [kSectionDivs]: BooleanS,
+      [kHtmlMathMethod]: oneOfS(StringS, objectS({
+        properties: { method: StringS, url: StringS },
         required: ["method", "url"]
       })),
-      [kTopLevelDivision]: String_,
-      [kShiftHeadingLevelBy]: Number_,
-      [kTitlePrefix]: String_,
+      [kTopLevelDivision]: StringS,
+      [kShiftHeadingLevelBy]: NumberS,
+      [kTitlePrefix]: StringS,
     }
   });
 
-export const pandocFlagsSchema = object_({
+export const pandocFlagsSchema = objectS({
   properties: {
-    to: String_,
-    output: String_,
-    [kSelfContained]: Boolean_,
-    pdfEngine: String_,
-    pdfEngineOpts: array_(String_),
-    makeIndexOpts: array_(String_),
-    tlmgrOpts: array_(String_),
-    natbib: Boolean_,
-    biblatex: Boolean_,
-    [kToc]: Boolean_,
-    [kTocTitle]: String_,
-    [kListings]: Boolean_,
-    [kNumberSections]: Boolean_,
-    [kNumberOffset]: array_(Number_),
-    [kTopLevelDivision]: String_,
-    [kShiftHeadingLevelBy]: String_,
-    [kIncludeInHeader]: String_,
-    [kIncludeBeforeBody]: String_,
-    [kIncludeAfterBody]: String_,
-    [kMathjax]: Boolean_,
-    [kKatex]: Boolean_,
-    [kMathml]: Boolean_,
-    [kGladtex]: Boolean_,
-    [kWebtex]: Boolean_,
+    to: StringS,
+    output: StringS,
+    [kSelfContained]: BooleanS,
+    pdfEngine: StringS,
+    pdfEngineOpts: arrayS(StringS),
+    makeIndexOpts: arrayS(StringS),
+    tlmgrOpts: arrayS(StringS),
+    natbib: BooleanS,
+    biblatex: BooleanS,
+    [kToc]: BooleanS,
+    [kTocTitle]: StringS,
+    [kListings]: BooleanS,
+    [kNumberSections]: BooleanS,
+    [kNumberOffset]: arrayS(NumberS),
+    [kTopLevelDivision]: StringS,
+    [kShiftHeadingLevelBy]: StringS,
+    [kIncludeInHeader]: StringS,
+    [kIncludeBeforeBody]: StringS,
+    [kIncludeAfterBody]: StringS,
+    [kMathjax]: BooleanS,
+    [kKatex]: BooleanS,
+    [kMathml]: BooleanS,
+    [kGladtex]: BooleanS,
+    [kWebtex]: BooleanS,
   }
 });
 
-export const pdfEngineSchema = object_({
+export const pdfEngineSchema = objectS({
   properties: {
-    pdfEngine: String_,
-    pdfEngineOpts: array_(String_),
-    bibEngine: enum_("natbib", "biblatex"),
-    indexEngine: String_,
-    indexEngineOpts: array_(String_),
-    tlmgrOpts: array_(String_),
+    pdfEngine: StringS,
+    pdfEngineOpts: arrayS(StringS),
+    bibEngine: enumS("natbib", "biblatex"),
+    indexEngine: StringS,
+    indexEngineOpts: arrayS(StringS),
+    tlmgrOpts: arrayS(StringS),
   },
   required: ["pdfEngine"]
 });
