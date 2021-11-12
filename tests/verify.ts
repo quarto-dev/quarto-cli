@@ -213,8 +213,12 @@ export const ensureDocxRegexMatches = (
   };
 };
 
-export function requireLatexPackage(pkg: string): RegExp {
-  return RegExp(`\\\\usepackage{${pkg}}`, "g");
+export function requireLatexPackage(pkg: string, opts?: string): RegExp {
+  if (opts) {
+    return RegExp(`\\\\usepackage\\[${opts}\\]{${pkg}}`, "g");
+  } else {
+    return RegExp(`\\\\usepackage{${pkg}}`, "g");
+  }
 }
 
 export const noSupportingFiles = (input: string, to: string): Verify => {

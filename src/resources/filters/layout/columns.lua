@@ -139,6 +139,14 @@ function hasMarginColumn(el)
   end
 end
 
+function hasMarginCaption(el)
+  if el.attr ~= nil and el.attr.classes ~= nil then
+    return tcontains(el.attr.classes, 'margin-caption')
+  else
+    return false
+  end
+end
+
 function noteHasColumns() 
   layoutState.hasColumns = true
 end
