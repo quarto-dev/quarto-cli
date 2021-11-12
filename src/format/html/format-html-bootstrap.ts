@@ -185,7 +185,6 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     const marginProcessors: MarginNodeProcessor[] = [
       simpleMarginProcessor,
     ];
-
     // If margin footnotes are enabled move them
     const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
       flags[kReferenceLocation] === "margin";
@@ -377,89 +376,6 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
   };
 }
 
-interface MarginNodeProcessor {
-  selector: string;
-  canProcess(el: Element): boolean;
-  process(el: Element, doc: Document): void;
-}
-
-const simpleMarginProcessor: MarginNodeProcessor = {
-  selector: ".column-margin:not(.column-container)",
-  canProcess(el: Element) {
-    return el.classList.contains("column-margin") &&
-      !el.classList.contains("column-container");
-  },
-  process(el: Element, doc: Document) {
-    el.classList.remove("column-margin");
-    addContentToMarginContainerForEl(el, el, doc);
-  },
-};
-
-const footnoteMarginProcessor: MarginNodeProcessor = {
-  selector: ".footnote-ref",
-  canProcess(el: Element) {
-    return el.classList.contains("footnote-ref");
-  },
-  process(el: Element, doc: Document) {
-    if (el.hasAttribute("href")) {
-      const target = el.getAttribute("href");
-      if (target) {
-        // First try to grab a the citation or footnote.
-        const refId = target.slice(1);
-        const refContentsEl = doc.getElementById(refId);
-        if (refContentsEl) {
-          Array.from(refContentsEl.childNodes).forEach((child) => {
-            // Process footnotes specially
-            // Remove the backlink since this is in the margin
-            const footnoteEl = child as Element;
-            const backLinkEl = footnoteEl.querySelector(".footnote-back");
-            if (backLinkEl) {
-              backLinkEl.remove();
-            }
-
-            // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
-            child.insertBefore(
-              doc.createTextNode("\u00A0"),
-              child.firstChild,
-            );
-
-            child.insertBefore(
-              el.firstChild.cloneNode(true),
-              child.firstChild,
-            );
-          });
-          addContentToMarginContainerForEl(el, refContentsEl, doc);
-        }
-      }
-    }
-  },
-};
-
-const referenceMarginProcessor: MarginNodeProcessor = {
-  selector: "a[role='doc-biblioref']",
-  canProcess(el: Element) {
-    return el.hasAttribute("role") &&
-      el.getAttribute("role") === "doc-biblioref";
-  },
-  process(el: Element, doc: Document) {
-    if (el.hasAttribute("href")) {
-      const target = el.getAttribute("href");
-      if (target) {
-        // First try to grab a the citation or footnote.
-        const refId = target.slice(1);
-        const refContentsEl = doc.getElementById(refId);
-        if (refContentsEl && el.parentElement) {
-          addContentToMarginContainerForEl(
-            el.parentElement,
-            refContentsEl.cloneNode(true),
-            doc,
-          );
-        }
-      }
-    }
-  },
-};
-
 const processMarginNodes = (
   doc: Document,
   processors: MarginNodeProcessor[],
@@ -552,6 +468,89 @@ const processMarginCaptions = (doc: Document) => {
       }
     }
   });
+};
+
+interface MarginNodeProcessor {
+  selector: string;
+  canProcess(el: Element): boolean;
+  process(el: Element, doc: Document): void;
+}
+
+const simpleMarginProcessor: MarginNodeProcessor = {
+  selector: ".column-margin:not(.column-container)",
+  canProcess(el: Element) {
+    return el.classList.contains("column-margin") &&
+      !el.classList.contains("column-container");
+  },
+  process(el: Element, doc: Document) {
+    el.classList.remove("column-margin");
+    addContentToMarginContainerForEl(el, el, doc);
+  },
+};
+
+const footnoteMarginProcessor: MarginNodeProcessor = {
+  selector: ".footnote-ref",
+  canProcess(el: Element) {
+    return el.classList.contains("footnote-ref");
+  },
+  process(el: Element, doc: Document) {
+    if (el.hasAttribute("href")) {
+      const target = el.getAttribute("href");
+      if (target) {
+        // First try to grab a the citation or footnote.
+        const refId = target.slice(1);
+        const refContentsEl = doc.getElementById(refId);
+        if (refContentsEl) {
+          Array.from(refContentsEl.childNodes).forEach((child) => {
+            // Process footnotes specially
+            // Remove the backlink since this is in the margin
+            const footnoteEl = child as Element;
+            const backLinkEl = footnoteEl.querySelector(".footnote-back");
+            if (backLinkEl) {
+              backLinkEl.remove();
+            }
+
+            // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
+            child.insertBefore(
+              doc.createTextNode("\u00A0"),
+              child.firstChild,
+            );
+
+            child.insertBefore(
+              el.firstChild.cloneNode(true),
+              child.firstChild,
+            );
+          });
+          addContentToMarginContainerForEl(el, refContentsEl, doc);
+        }
+      }
+    }
+  },
+};
+
+const referenceMarginProcessor: MarginNodeProcessor = {
+  selector: "a[role='doc-biblioref']",
+  canProcess(el: Element) {
+    return el.hasAttribute("role") &&
+      el.getAttribute("role") === "doc-biblioref";
+  },
+  process(el: Element, doc: Document) {
+    if (el.hasAttribute("href")) {
+      const target = el.getAttribute("href");
+      if (target) {
+        // First try to grab a the citation or footnote.
+        const refId = target.slice(1);
+        const refContentsEl = doc.getElementById(refId);
+        if (refContentsEl && el.parentElement) {
+          addContentToMarginContainerForEl(
+            el.parentElement,
+            refContentsEl.cloneNode(true),
+            doc,
+          );
+        }
+      }
+    }
+  },
 };
 
 // Tests whether element is a margin container
