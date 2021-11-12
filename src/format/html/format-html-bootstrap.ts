@@ -206,6 +206,28 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     // and apply the grid system to it (now the child 'column-' element can be positioned
     // anywhere in the grid system)
     if (columnLayouts && columnLayouts.length > 0) {
+      const ensureInGrid = (el: Element, setLayout: boolean) => {
+        // Add the grid system. Children of the grid system
+        // are placed into the body-content column by default
+        // (CSS implements this)
+        if (!el.classList.contains("page-columns")) {
+          el.classList.add("page-columns");
+        }
+
+        // Mark full width
+        if (setLayout && !el.classList.contains("page-full")) {
+          el.classList.add("page-full");
+        }
+
+        // Process parents up to the main tag
+        if (el.tagName !== "MAIN") {
+          const parent = el.parentElement;
+          if (parent) {
+            ensureInGrid(parent, true);
+          }
+        }
+      };
+
       columnLayouts.forEach((node) => {
         const el = node as Element;
         if (el.parentElement) {
@@ -491,28 +513,6 @@ const processMarginCaptions = (doc: Document) => {
   });
 };
 
-const ensureInGrid = (el: Element, setLayout: boolean) => {
-  // Add the grid system. Children of the grid system
-  // are placed into the body-content column by default
-  // (CSS implements this)
-  if (!el.classList.contains("page-columns")) {
-    el.classList.add("page-columns");
-  }
-
-  // Mark full width
-  if (setLayout && !el.classList.contains("page-full")) {
-    el.classList.add("page-full");
-  }
-
-  // Process parents up to the main tag
-  if (el.tagName !== "MAIN") {
-    const parent = el.parentElement;
-    if (parent) {
-      ensureInGrid(parent, true);
-    }
-  }
-};
-
 // Tests whether element is a margin container
 const isContainer = (el: Element | null) => {
   return (
@@ -563,7 +563,6 @@ const addToBlockMargin = (el: Element, doc: Document) => {
       // list of tags that can only contain inline elements
       // (so the container can't be placed inside of these)
       const cantContainBlockTags = ["P"];
-      const requireParentParentWrappingTags = ["LI"];
       if (cantContainBlockTags.includes(parentEl.tagName)) {
         // If the parent node can't contain anything but inlines
         // we need to replace it with a div and place both the parent and
@@ -572,17 +571,6 @@ const addToBlockMargin = (el: Element, doc: Document) => {
         wrapper.appendChild(parentEl.cloneNode(true));
         wrapper.appendChild(container);
         parentEl.replaceWith(wrapper);
-      } else if (requireParentParentWrappingTags.includes(parentEl.tagName)) {
-        // Sometimes, a tag like OL will have an intrinsic padding that causes
-        // the grid to be offset. In this case, we actually need to wrap the OL
-        // (the parent element's parent) in a div that can host the grid.
-        const parentParentEl = parentEl.parentElement;
-        if (parentParentEl) {
-          const wrapper = doc.createElement("div");
-          wrapper.appendChild(parentParentEl.cloneNode(true));
-          wrapper.appendChild(container);
-          parentParentEl.replaceWith(wrapper);
-        }
       } else {
         // Replace the child with the container
         el.parentNode?.replaceChild(container, el);
