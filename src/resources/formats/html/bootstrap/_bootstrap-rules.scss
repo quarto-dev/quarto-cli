@@ -358,7 +358,13 @@ aside,
   font-size: 0.825rem;
 }
 
-.margin-item-padding {
+.column-margin.column-container > * {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  display: block;
+}
+
+.margin-caption > * {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
 }
