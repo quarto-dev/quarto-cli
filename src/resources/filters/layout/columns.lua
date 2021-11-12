@@ -14,6 +14,15 @@ function columns()
       return el      
     end,
 
+    Span = function(el)
+      -- a span that should be placed in the margin
+      if isLatexOutput() and hasMarginColumn(el) then 
+        tprepend(el.content, {latexBeginSidenote(false)})
+        tappend(el.content, {latexEndSidenote(el, false)})
+        return el
+      end
+    end,
+
     RawBlock = function(el) 
       -- Implements support for raw <aside> tags and replaces them with
       -- our raw latex representation
