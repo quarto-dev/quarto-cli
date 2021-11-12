@@ -24,7 +24,7 @@ testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true);
 // Package installation tests
 testRender(docs("latexmk/all.Rmd"), "pdf", true, [], {
   setup: async () => {
-    await ensurePackageRemoved("fontawesome");
+    await ensurePackageRemoved("fontawesome5");
     await ensurePackageRemoved("makeindex");
     await ensurePackageRemoved("sansmath");
     await ensurePackageRemoved("xindy");
@@ -58,7 +58,7 @@ testRender(docs("latexmk/estopdf.Rmd"), "pdf", true, [], {
 
 testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true, [], {
   setup: async () => {
-    await ensurePackageRemoved("fontawesome");
+    await ensurePackageRemoved("fontawesome5");
     Deno.copyFileSync(
       docs("latexmk/missfont.txt"),
       docs("latexmk/missfont.log"),

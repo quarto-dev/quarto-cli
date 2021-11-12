@@ -237,11 +237,17 @@ function markupLatexCaption(el, caption, captionEnv)
   caption:insert(pandoc.RawInline("latex", "}"))
 end
 
-function latexBeginSidenote() 
-  return pandoc.RawBlock('latex', '\\marginnote{\\begin{footnotesize}')
+local kBeginSideNote = '\\marginnote{\\begin{footnotesize}'
+function latexBeginSidenote(block) 
+  if block == nil or block then
+    return pandoc.RawBlock('latex', kBeginSideNote)
+  else
+    return pandoc.RawInline('latex', kBeginSideNote)
+  end
 end
 
-function latexEndSidenote(el)
+local kEndSideNote = '\\end{footnotesize}}'
+function latexEndSidenote(el, block)
   local offset = ''
   if el.attr ~= nil then
     local offsetValue = el.attr.attributes['offset']
@@ -249,7 +255,11 @@ function latexEndSidenote(el)
       offset = '[' .. offsetValue .. ']'
     end  
   end
-  return pandoc.RawBlock('latex', '\\end{footnotesize}}' .. offset)
+  if block == nil or block then
+    return pandoc.RawBlock('latex', kEndSideNote .. offset)
+  else
+    return pandoc.RawInline('latex', kEndSideNote .. offset)
+  end
 end
 
 function latexWrapEnvironment(el, env, inline) 

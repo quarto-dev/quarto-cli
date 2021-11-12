@@ -33,7 +33,7 @@ function layoutMetaInject()
             usePackage("marginnote")
           )
           inject(
-            usePackageWithOption("tcolorbox", "most")
+            usePackageWithOption("tcolorbox", "many")
           )
         end)
 
@@ -45,13 +45,13 @@ function layoutMetaInject()
           ['frame hidden'] = "",
           ['sharp corners'] = "",
           enhanced = "",
-          ['borderline west'] = '{4pt}{0pt}{shadecolor}'
+          ['borderline west'] = '{3pt}{0pt}{shadecolor}'
         }
         
         -- redefined the 'Shaded' environment that pandoc uses for fenced 
         -- code blocks
         metaInjectLatexBefore(meta, function(inject)
-          inject("\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}")
+          inject("\\ifdefined\\Shaded\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}\\fi")
         end)
         
         if referenceLocation == 'margin' and meta.bibliography ~= undefined then 

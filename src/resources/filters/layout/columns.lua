@@ -14,6 +14,15 @@ function columns()
       return el      
     end,
 
+    Span = function(el)
+      -- a span that should be placed in the margin
+      if isLatexOutput() and hasMarginColumn(el) then 
+        tprepend(el.content, {latexBeginSidenote(false)})
+        tappend(el.content, {latexEndSidenote(el, false)})
+        return el
+      end
+    end,
+
     RawBlock = function(el) 
       -- Implements support for raw <aside> tags and replaces them with
       -- our raw latex representation
@@ -74,9 +83,8 @@ function renderDivColumn(el)
         local figOrTable = false
         for j, contentEl in ipairs(el.content) do
 
-
           -- wrap figures
-          local figure = discoverFigure(contentEl, true)
+          local figure = discoverFigure(contentEl, false)
           if figure ~= nil then
             -- just ensure the classes are - they will be resolved
             -- when the latex figure is rendered
@@ -135,6 +143,14 @@ end
 function hasMarginColumn(el)
   if el.attr ~= nil and el.attr.classes ~= nil then
     return tcontains(el.attr.classes, 'column-margin') or tcontains(el.attr.classes, 'aside')
+  else
+    return false
+  end
+end
+
+function hasMarginCaption(el)
+  if el.attr ~= nil and el.attr.classes ~= nil then
+    return tcontains(el.attr.classes, 'margin-caption')
   else
     return false
   end

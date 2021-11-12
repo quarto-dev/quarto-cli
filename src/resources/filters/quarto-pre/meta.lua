@@ -10,10 +10,10 @@ function quartoPreMetaInject()
       if preState.hasCallouts and isLatexOutput() then
         metaInjectLatex(meta, function(inject)
           inject(
-            usePackage("tcolorbox")
+            usePackageWithOption("tcolorbox", "many")
           )
           inject(
-            usePackage("fontawesome")
+            usePackage("fontawesome5")
           )
           inject(
             "\\definecolor{quarto-callout-color}{HTML}{" .. kColorUnknown .. "}\n" ..

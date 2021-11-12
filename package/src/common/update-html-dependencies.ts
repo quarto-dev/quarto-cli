@@ -185,6 +185,53 @@ export async function updateHtmlDepedencies(config: Configuration) {
     true,
   );
 
+  // revealjs-menu
+  const revealJsMenu = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "revealjs",
+    "plugins",
+    "menu",
+  );
+  await updateGithubSourceCodeDependency(
+    "reveal.js-menu",
+    "denehyg/reveal.js-menu",
+    "REVEAL_JS_MENU",
+    workingDir,
+    (dir: string, version: string) => {
+      // Copy the js file (modify to disable loadResource)
+      ensureDirSync(revealJsMenu);
+      const menuJs = Deno.readTextFileSync(
+        join(dir, `reveal.js-menu-${version}`, "menu.js"),
+      )
+        .replace(
+          /function P\(e,t,n\).*?function M/,
+          "function P(e,t,n){n.call()}function M",
+        );
+      Deno.writeTextFileSync(join(revealJsMenu, "menu.js"), menuJs);
+
+      // copy the css file
+      Deno.copyFileSync(
+        join(dir, `reveal.js-menu-${version}`, "menu.css"),
+        join(revealJsMenu, "menu.css"),
+      );
+
+      /*
+      // write the plugin.yml file
+      Deno.writeTextFileSync(
+        join(revealJsMenu, "plugin.yml"),
+        `name: RevealMenu
+script: menu.js
+stylesheet: menu.css
+`,
+      );
+      */
+    },
+    false, // not a commit
+    false, // no v prefix
+  );
+
   // Autocomplete
   const autocompleteJs = join(
     config.directoryInfo.src,
@@ -538,6 +585,7 @@ async function updateGithubSourceCodeDependency(
   working: string,
   onDownload: (dir: string, version: string) => void,
   commit = false, // set to true when commit is used instead of a tag
+  vPrefix = true, // set to false if github tags don't use a v prefix
 ) {
   info(`Updating ${name}...`);
   const version = Deno.env.get(versionEnvVar);
@@ -545,7 +593,9 @@ async function updateGithubSourceCodeDependency(
     const fileName = `${name}.zip`;
     const distUrl = join(
       `https://github.com/${repo}/archive`,
-      commit ? `${version}.zip` : `refs/tags/v${version}.zip`,
+      commit
+        ? `${version}.zip`
+        : `refs/tags/${vPrefix ? "v" : ""}${version}.zip`,
     );
     const zipFile = join(working, fileName);
 

@@ -22,11 +22,38 @@ import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { readYaml } from "../../core/yaml.ts";
+import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
 const kRevealSlideTone = "slide-tone";
+const kRevealMenu = "menu";
+
+const kRevealPluginOptions = [
+  // reveal.js-menu
+  "side",
+  "width",
+  "numbers",
+  "titleSelector",
+  "useTextContentForMissingTitles",
+  "hideMissingTitles",
+  "markers",
+  "custom",
+  "themes",
+  "themesPath",
+  "transitions",
+  "openButton",
+  "openSlideNumber",
+  "keyboard",
+  "sticky",
+  "autoOpen",
+  "delayInit",
+  "openOnInit",
+  "loadIcons",
+];
+
+const kRevealPluginKebabOptions = optionsToKebab(kRevealPluginOptions);
 
 interface RevealPluginBundle {
   plugin: string;
@@ -40,6 +67,7 @@ interface RevealPlugin {
   script?: RevealPluginScript[];
   stylesheet?: string[];
   config?: Metadata;
+  metadata?: string[];
 }
 
 interface RevealPluginScript {
@@ -56,6 +84,7 @@ export function revealPluginExtras(format: Format, revealDir: string) {
   const scripts: RevealPluginScript[] = [];
   const stylesheets: string[] = [];
   const config: Metadata = {};
+  const metadata: string[] = [];
   const dependencies: FormatDependency[] = [];
 
   // built-in plugins
@@ -64,7 +93,14 @@ export function revealPluginExtras(format: Format, revealDir: string) {
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
     { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
+    { plugin: formatResourcePath("revealjs", join("plugins", "footer")) },
   ];
+
+  // menu plugin (enabled by default)
+  const menuPlugin = revealMenuPlugin(format);
+  if (menuPlugin) {
+    pluginBundles.push(menuPlugin);
+  }
 
   // tone plugin (optional)
   const tonePlugin = revealTonePlugin(format);
@@ -127,13 +163,29 @@ export function revealPluginExtras(format: Format, revealDir: string) {
     // add to config
     if (plugin.config) {
       for (const key of Object.keys(plugin.config)) {
-        config[key] = plugin.config[key];
+        if (typeof (plugin.config[key]) === "object") {
+          config[key] = plugin.config[key];
 
-        // see if the user has yaml to merge
-        if (typeof (format.metadata[key]) === "object") {
-          config[key] = mergeConfigs(config[key], format.metadata[key]);
+          // see if the user has yaml to merge
+          if (typeof (format.metadata[key]) === "object") {
+            config[key] = mergeConfigs(
+              revealMetadataFilter(
+                config[key] as Metadata,
+                kRevealPluginKebabOptions,
+              ),
+              revealMetadataFilter(
+                format.metadata[key] as Metadata,
+                kRevealPluginKebabOptions,
+              ),
+            );
+          }
         }
       }
+    }
+
+    // note metadata we should forward into reveal config
+    if (plugin.metadata) {
+      metadata.push(...plugin.metadata);
     }
   }
 
@@ -175,6 +227,13 @@ export function revealPluginExtras(format: Format, revealDir: string) {
       );
     }
 
+    // inject top level options used by plugins into config
+    metadata.forEach((option) => {
+      if (format.metadata[option] !== undefined) {
+        config[option] = format.metadata[option];
+      }
+    });
+
     // plugin config
     template = injectRevealConfig(config, template);
 
@@ -193,7 +252,7 @@ export function injectRevealConfig(
   // plugin config
   const configJs: string[] = [];
   Object.keys(config).forEach((key) => {
-    configJs.push(`${key}: ${JSON.stringify(config[key])}`);
+    configJs.push(`'${key}': ${JSON.stringify(config[key])}`);
   });
   if (configJs.length > 0) {
     const kRevealInitialize = "Reveal.initialize({";
@@ -203,6 +262,57 @@ export function injectRevealConfig(
     );
   }
   return template;
+}
+
+function revealMenuPlugin(format: Format) {
+  return {
+    plugin: formatResourcePath("revealjs", join("plugins", "menu")),
+    config: {
+      menu: {
+        custom: [{
+          title: "Tools",
+          icon: '<i class="fas fa-gear"></i>',
+          content: revealMenuTools(format),
+        }],
+        openButton: format.metadata[kRevealMenu] !== false,
+      },
+    },
+  };
+}
+
+function revealMenuTools(_format: Format) {
+  const tools = [
+    {
+      title: "Fullscreen",
+      key: "f",
+      handler: "fullscreen",
+    },
+    {
+      title: "Speaker View",
+      key: "s",
+      handler: "speakerMode",
+    },
+    {
+      title: "Slide Overview",
+      key: "o",
+      handler: "overview",
+    },
+    {
+      title: "Keyboard Help",
+      key: "?",
+      handler: "keyboardHelp",
+    },
+  ];
+  const lines = ['<ul class="slide-menu-items">'];
+  lines.push(...tools.map((tool, index) => {
+    return `<li class="slide-tool-item${
+      index === 0 ? " active" : ""
+    }" data-item="${index}"><a href="#" onclick="RevealMenuToolHandlers.${tool.handler}(event)"><kbd>${tool
+      .key || " "}</kbd> ${tool.title}</a></li>`;
+  }));
+
+  lines.push("</ul>");
+  return lines.join("\n");
 }
 
 function revealTonePlugin(format: Format) {
@@ -266,6 +376,11 @@ function pluginFromBundle(bundle: RevealPluginBundle): RevealPlugin {
       plugin.config || {} as Metadata,
       bundle.config || {} as Metadata,
     );
+  }
+
+  // ensure that metadata is an array
+  if (typeof (plugin.metadata) === "string") {
+    plugin.metadata = [plugin.metadata];
   }
 
   // return plugin

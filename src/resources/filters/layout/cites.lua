@@ -17,9 +17,9 @@ function citesPreprocess()
     end,
 
     Para = function(para)
-      local figure = discoverFigure(para)
+      local figure = discoverFigure(para, true)
       if figure and isLatexOutput() and hasFigureRef(figure) then
-        if hasMarginColumn(figure) then
+        if hasMarginColumn(figure) or hasMarginCaption(figure) then
           -- This is a figure in the margin itself, we need to append citations at the end of the caption
           -- without any floating
           para.content[1] = pandoc.walk_inline(figure, {

@@ -1,0 +1,40 @@
+.reveal .slide-logo {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  right: 10px;
+  max-height: 2.2rem;
+  width: auto;
+}
+
+.reveal .slide-footer-container {
+  display: block;
+  position: absolute;
+  bottom: 18px;
+  width: 100%;
+  margin: 0 auto;
+  font-size: 18px;
+}
+
+.reveal .slide-footer {
+  position: relative;
+  display: block;
+  bottom: 0;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.reveal .slide-number {
+  bottom: 10px;
+  right: 10px;
+  font-size: 16px;
+}
+
+.reveal.has-logo .slide-number {
+  bottom: initial;
+  top: 10px;
+}
+
+.reveal .slide-number .slide-number-delimiter {
+  margin: 0;
+}

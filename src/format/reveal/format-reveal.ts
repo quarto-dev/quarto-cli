@@ -18,6 +18,7 @@ import {
 import {
   Format,
   kHtmlPostprocessors,
+  kMarkdownAfterBody,
   kTemplatePatches,
   kTextHighlightingMode,
   Metadata,
@@ -93,24 +94,49 @@ const kRevealOptions = [
   "pdfSeparateFragments",
 ];
 
-const kRevealKebabOptions = kRevealOptions.reduce(
-  (options: string[], option: string) => {
-    const kebab = camelToKebab(option);
-    if (kebab !== option) {
-      options.push(kebab);
-    }
-    return options;
-  },
-  [],
-);
+const kRevealKebabOptions = optionsToKebab(kRevealOptions);
 
 export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
 
+export const kSlideLogo = "logo";
+export const kSlideFooter = "footer";
 export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
 export const kPdfSeparateFragments = "pdfSeparateFragments";
+
+export function optionsToKebab(options: string[]) {
+  return options.reduce(
+    (options: string[], option: string) => {
+      const kebab = camelToKebab(option);
+      if (kebab !== option) {
+        options.push(kebab);
+      }
+      return options;
+    },
+    [],
+  );
+}
+
+export function revealMetadataFilter(
+  metadata: Metadata,
+  kebabOptions = kRevealKebabOptions,
+) {
+  // convert kebab case to camel case for reveal options
+  const filtered: Metadata = {};
+  Object.keys(metadata).forEach((key) => {
+    const value = metadata[key];
+    if (
+      kebabOptions.includes(key)
+    ) {
+      filtered[kebabToCamel(key)] = value;
+    } else {
+      filtered[key] = value;
+    }
+  });
+  return filtered;
+}
 
 export function revealjsFormat() {
   return mergeConfigs(
@@ -141,12 +167,14 @@ export function revealjsFormat() {
         Deno.writeTextFileSync(stylesFile, styles);
 
         // additional options not supported by pandoc
-        const optionsFile = sessionTempFile({ suffix: ".html" });
-        const options = renderEjs(
-          formatResourcePath("revealjs", "options.html"),
-          { [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments] },
+        const extrasFile = sessionTempFile({ suffix: ".html" });
+        const extrasHtml = renderEjs(
+          formatResourcePath("revealjs", "extras.html"),
+          {
+            [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
+          },
         );
-        Deno.writeTextFileSync(optionsFile, options);
+        Deno.writeTextFileSync(extrasFile, extrasHtml);
 
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
@@ -176,7 +204,7 @@ export function revealjsFormat() {
             } as Metadata,
             metadataOverride: {} as Metadata,
             [kIncludeInHeader]: [stylesFile],
-            [kIncludeAfterBody]: [optionsFile],
+            [kIncludeAfterBody]: [extrasFile],
             html: {
               [kTemplatePatches]: [
                 revealRequireJsPatch,
@@ -192,6 +220,7 @@ export function revealjsFormat() {
               [kHtmlPostprocessors]: [
                 revealHtmlPostprocessor(format),
               ],
+              [kMarkdownAfterBody]: [revealMarkdownAfterBody(format)],
             },
           },
         );
@@ -207,8 +236,8 @@ export function revealjsFormat() {
         // if this is local then add plugins
         if (theme.revealDir) {
           extras = mergeConfigs(
-            extras,
             revealPluginExtras(format, theme.revealDir),
+            extras,
           );
         }
 
@@ -241,6 +270,7 @@ export function revealjsFormat() {
               center: false,
               navigationMode: "linear",
               controls: verticalSlides,
+              controlsLayout: "edges",
               controlsTutorial: false,
               hash: true,
               hashOneBasedIndex: false,
@@ -287,20 +317,16 @@ function revealRequireJsPatch(template: string) {
   return template;
 }
 
-function revealMetadataFilter(metadata: Metadata) {
-  // convert kebab case to camel case for reveal options
-  const filtered: Metadata = {};
-  Object.keys(metadata).forEach((key) => {
-    const value = metadata[key];
-    if (
-      kRevealKebabOptions.includes(key)
-    ) {
-      filtered[kebabToCamel(key)] = value;
-    } else {
-      filtered[key] = value;
-    }
-  });
-  return filtered;
+function revealMarkdownAfterBody(format: Format) {
+  const lines: string[] = [];
+  if (format.metadata[kSlideLogo]) {
+    lines.push(`![](${format.metadata[kSlideLogo]}){.slide-logo}`);
+  }
+  if (format.metadata[kSlideFooter]) {
+    lines.push(`[${format.metadata[kSlideFooter]}]{.slide-footer}`);
+  }
+
+  return lines.join("\n");
 }
 
 function revealHtmlPostprocessor(format: Format) {
