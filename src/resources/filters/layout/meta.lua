@@ -51,7 +51,7 @@ function layoutMetaInject()
         -- redefined the 'Shaded' environment that pandoc uses for fenced 
         -- code blocks
         metaInjectLatexBefore(meta, function(inject)
-          inject("\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}")
+          inject("\\ifdefined\\Shaded\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}\\fi")
         end)
         
         if referenceLocation == 'margin' and meta.bibliography ~= undefined then 
