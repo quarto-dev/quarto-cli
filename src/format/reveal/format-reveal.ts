@@ -264,6 +264,7 @@ export function revealjsFormat() {
               center: false,
               navigationMode: "linear",
               controls: verticalSlides,
+              controlsLayout: "edges",
               controlsTutorial: false,
               hash: true,
               hashOneBasedIndex: false,

@@ -202,6 +202,27 @@ $selectionColor: $selection-color !default;
   background-color: $body-bg;
 }
 
+@media screen and (min-width: 500px) {
+  $arrow-spacing: 0.2em;
+  $control-arrow-spacing: 1.4em;
+
+  .reveal .controls[data-controls-layout="edges"] .navigate-left {
+    left: $arrow-spacing;
+  }
+
+  .reveal .controls[data-controls-layout="edges"] .navigate-right {
+    right: $arrow-spacing;
+  }
+
+  .reveal .controls[data-controls-layout="edges"] .navigate-up {
+    top: $arrow-spacing;
+  }
+
+  .reveal .controls[data-controls-layout="edges"] .navigate-down {
+    bottom: $arrow-spacing - $control-arrow-spacing + 0.3em;
+  }
+}
+
 .tippy-box[data-theme~="quarto-reveal"] {
   background-color: $backgroundColor;
   color: $mainColor;

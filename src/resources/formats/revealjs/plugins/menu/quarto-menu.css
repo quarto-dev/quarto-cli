@@ -26,19 +26,19 @@
 }
 
 .reveal .slide-menu-button {
-  left: 15px;
-  bottom: 15px;
+  left: 8px;
+  bottom: 8px;
 }
 
 .reveal .slide-menu-button .fas::before,
 .slide-menu-wrapper .slide-menu-toolbar .fas::before {
   display: inline-block;
-  height: 1.5rem;
-  width: 1.5rem;
+  height: 1.7rem;
+  width: 1.7rem;
   content: "";
   vertical-align: -0.125em;
   background-repeat: no-repeat;
-  background-size: 1.5rem 1.5rem;
+  background-size: 1.7rem 1.7rem;
 }
 
 .slide-menu-wrapper .slide-menu-toolbar .fa-images::before {
