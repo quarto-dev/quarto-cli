@@ -33,7 +33,7 @@ function layoutMetaInject()
             usePackage("marginnote")
           )
           inject(
-            usePackageWithOption("tcolorbox", "most")
+            usePackageWithOption("tcolorbox", "many")
           )
         end)
 
