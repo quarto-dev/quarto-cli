@@ -1,6 +1,6 @@
 .reveal .slide-logo {
   display: block;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   right: 10px;
   max-height: 2.2rem;
@@ -9,7 +9,7 @@
 
 .reveal .slide-footer-container {
   display: block;
-  position: absolute;
+  position: fixed;
   bottom: 18px;
   width: 100%;
   margin: 0 auto;
