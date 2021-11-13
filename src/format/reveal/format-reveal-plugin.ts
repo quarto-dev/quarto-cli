@@ -346,7 +346,7 @@ function revealMenuTools(format: Format) {
       handler: "speakerMode",
     },
     {
-      title: "Slide Overview",
+      title: "Toggle Overview",
       key: "o",
       handler: "overview",
     },
