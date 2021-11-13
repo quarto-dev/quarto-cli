@@ -7,7 +7,7 @@
 
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { kIncludeInHeader } from "../../config/constants.ts";
+import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
 import {
   Format,
@@ -16,6 +16,7 @@ import {
   kDependencies,
   kTemplatePatches,
   Metadata,
+  PandocFlags,
 } from "../../config/types.ts";
 import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
@@ -24,6 +25,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { readYaml } from "../../core/yaml.ts";
 import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
+import { isSelfContained } from "../../command/render/render.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -69,6 +71,7 @@ interface RevealPlugin {
   stylesheet?: string[];
   config?: Metadata;
   metadata?: string[];
+  [kSelfContained]?: boolean;
 }
 
 interface RevealPluginScript {
@@ -76,7 +79,11 @@ interface RevealPluginScript {
   async?: boolean;
 }
 
-export function revealPluginExtras(format: Format, revealDir: string) {
+export function revealPluginExtras(
+  format: Format,
+  flags: PandocFlags,
+  revealDir: string,
+) {
   // directory to copy plugins into
   const pluginsDir = join(revealDir, "plugin");
 
@@ -141,6 +148,16 @@ export function revealPluginExtras(format: Format, revealDir: string) {
 
     // read from bundle
     const plugin = pluginFromBundle(bundle);
+
+    // check for self-contained incompatibility
+    if (isSelfContained(flags, format)) {
+      if (plugin[kSelfContained] === false) {
+        throw new Error(
+          "Reveal plugin '" + plugin.name +
+            " is not compatible with self-contained output",
+        );
+      }
+    }
 
     // note name
     if (plugin.register !== false) {

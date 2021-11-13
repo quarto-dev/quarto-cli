@@ -186,6 +186,30 @@ export async function updateHtmlDepedencies(config: Configuration) {
     true,
   );
 
+  // revealjs-chalkboard
+  const revealJsChalkboard = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "revealjs",
+    "plugins",
+    "chalkboard",
+  );
+  await updateGithubSourceCodeDependency(
+    "reveal.js-chalkboard",
+    "rajgoel/reveal.js-plugins",
+    "REVEAL_JS_CHALKBOARD",
+    workingDir,
+    (dir: string, version: string) => {
+      ensureDirSync(dirname(revealJsChalkboard));
+      copyMinimal(
+        join(dir, `reveal.js-plugins-${version}`, "chalkboard"),
+        revealJsChalkboard,
+      );
+    },
+    true, // not a commit
+  );
+
   // revealjs-menu
   const revealJsMenu = join(
     config.directoryInfo.src,
@@ -217,33 +241,15 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `reveal.js-menu-${version}`, "menu.css"),
         join(revealJsMenu, "menu.css"),
       );
+
+      // copy font-awesome to chalkboard
+      copyMinimal(
+        join(dir, `reveal.js-menu-${version}`, "font-awesome"),
+        join(revealJsChalkboard, "font-awesome"),
+      );
     },
     false, // not a commit
     false, // no v prefix
-  );
-
-  // revealjs-chalkboard
-  const revealJsChalkboard = join(
-    config.directoryInfo.src,
-    "resources",
-    "formats",
-    "revealjs",
-    "plugins",
-    "chalkboard",
-  );
-  await updateGithubSourceCodeDependency(
-    "reveal.js-chalkboard",
-    "rajgoel/reveal.js-plugins",
-    "REVEAL_JS_CHALKBOARD",
-    workingDir,
-    (dir: string, version: string) => {
-      ensureDirSync(dirname(revealJsChalkboard));
-      copyMinimal(
-        join(dir, `reveal.js-plugins-${version}`, "chalkboard"),
-        revealJsChalkboard,
-      );
-    },
-    true, // not a commit
   );
 
   // Autocomplete

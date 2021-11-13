@@ -1,3 +1,4 @@
 name: RevealChalkboard
 script: plugin.js
-stylesheet: style.css
+stylesheet: ["font-awesome/css/all.css", "style.css"]
+self-contained: false

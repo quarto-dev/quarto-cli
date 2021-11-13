@@ -154,7 +154,7 @@ export function revealjsFormat() {
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
         _input: string,
-        _flags: PandocFlags,
+        flags: PandocFlags,
         format: Format,
         libDir: string,
       ) => {
@@ -236,7 +236,7 @@ export function revealjsFormat() {
         // if this is local then add plugins
         if (theme.revealDir) {
           extras = mergeConfigs(
-            revealPluginExtras(format, theme.revealDir),
+            revealPluginExtras(format, flags, theme.revealDir),
             extras,
           );
         }
