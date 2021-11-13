@@ -57,6 +57,41 @@
 }
 
 .reveal .slide-chalkboard-buttons > span {
-  margin-right: 13px;
+  margin-right: 14px;
   cursor: pointer;
+}
+
+@media screen and (max-width: 800px) {
+  .reveal .slide-logo {
+    max-height: 1.1rem;
+    bottom: -2px;
+  }
+  .reveal .slide-footer-container {
+    font-size: 14px;
+    bottom: 12px;
+  }
+  .reveal .slide-number {
+    font-size: 12px;
+    bottom: 7px;
+  }
+  .reveal .slide-menu-button .fas::before {
+    height: 1.3rem;
+    width: 1.3rem;
+    vertical-align: -0.125em;
+    background-size: 1.3rem 1.3rem;
+  }
+
+  .reveal .slide-chalkboard-buttons .fas::before {
+    height: 0.95rem;
+    width: 0.95rem;
+    background-size: 0.95rem 0.95rem;
+    vertical-align: -0em;
+  }
+
+  .reveal .slide-chalkboard-buttons.slide-menu-offset {
+    left: 36px;
+  }
+  .reveal .slide-chalkboard-buttons > span {
+    margin-right: 9px;
+  }
 }
