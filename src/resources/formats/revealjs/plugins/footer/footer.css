@@ -28,6 +28,7 @@
   bottom: 10px;
   right: 10px;
   font-size: 16px;
+  background-color: transparent;
 }
 
 .reveal.has-logo .slide-number {
