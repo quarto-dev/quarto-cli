@@ -54,6 +54,21 @@ const kRevealPluginOptions = [
   "delayInit",
   "openOnInit",
   "loadIcons",
+  // reveal.js-chalkboard
+  "boardmarkerWidth",
+  "chalkWidth",
+  "chalkEffect",
+  "storage",
+  "src",
+  "readOnly",
+  "transition",
+  "theme",
+  "background",
+  "grid",
+  "eraser",
+  "boardmarkers",
+  "chalks",
+  "rememberColor",
 ];
 
 const kRevealPluginKebabOptions = optionsToKebab(kRevealPluginOptions);
