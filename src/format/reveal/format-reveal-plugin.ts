@@ -101,7 +101,6 @@ export function revealPluginExtras(
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
     { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
-    { plugin: formatResourcePath("revealjs", join("plugins", "footer")) },
   ];
 
   // menu plugin (enabled by default)
@@ -136,6 +135,11 @@ export function revealPluginExtras(
       >),
     );
   }
+
+  // add footer plugin
+  pluginBundles.push(
+    { plugin: formatResourcePath("revealjs", join("plugins", "footer")) },
+  );
 
   // read plugins
   for (let bundle of pluginBundles) {
@@ -314,7 +318,7 @@ function revealChalkboardPlugin(format: Format) {
   }
 }
 
-function revealMenuTools(_format: Format) {
+function revealMenuTools(format: Format) {
   const tools = [
     {
       title: "Fullscreen",
@@ -331,12 +335,31 @@ function revealMenuTools(_format: Format) {
       key: "o",
       handler: "overview",
     },
-    {
-      title: "Keyboard Help",
-      key: "?",
-      handler: "keyboardHelp",
-    },
   ];
+  if (format.metadata[kRevealChalkboard]) {
+    tools.push(
+      {
+        title: "Toggle Chalkboard",
+        key: "b",
+        handler: "toggleChalkboard",
+      },
+      {
+        title: "Toggle Notes Canvas",
+        key: "c",
+        handler: "toggleNotesCanvas",
+      },
+      {
+        title: "Download Drawings",
+        key: "d",
+        handler: "downloadDrawings",
+      },
+    );
+  }
+  tools.push({
+    title: "Keyboard Help",
+    key: "?",
+    handler: "keyboardHelp",
+  });
   const lines = ['<ul class="slide-menu-items">'];
   lines.push(...tools.map((tool, index) => {
     return `<li class="slide-tool-item${

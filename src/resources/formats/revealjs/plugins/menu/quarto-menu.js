@@ -28,4 +28,13 @@ window.RevealMenuToolHandlers = {
   overview: revealMenuToolHandler(function () {
     Reveal.toggleOverview(true);
   }),
+  toggleChalkboard: revealMenuToolHandler(function () {
+    RevealChalkboard.toggleChalkboard();
+  }),
+  toggleNotesCanvas: revealMenuToolHandler(function () {
+    RevealChalkboard.toggleNotesCanvas();
+  }),
+  downloadDrawings: revealMenuToolHandler(function () {
+    RevealChalkboard.download();
+  }),
 };

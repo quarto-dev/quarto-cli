@@ -38,3 +38,25 @@
 .reveal .slide-number .slide-number-delimiter {
   margin: 0;
 }
+
+.reveal .slide-menu-button {
+  left: 8px;
+  bottom: 8px;
+}
+
+.reveal .slide-chalkboard-buttons {
+  position: fixed;
+  left: 12px;
+  bottom: 8px;
+  z-index: 30;
+  font-size: 24px;
+}
+
+.reveal .slide-chalkboard-buttons.slide-menu-offset {
+  left: 54px;
+}
+
+.reveal .slide-chalkboard-buttons > span {
+  margin-right: 13px;
+  cursor: pointer;
+}
