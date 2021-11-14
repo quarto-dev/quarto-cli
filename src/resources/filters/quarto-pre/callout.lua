@@ -779,7 +779,7 @@ function iconForType(type)
   elseif type == "caution" then
     return "faFire"
   elseif type == "tip" then 
-    return "faLightbulbO"
+    return "faLightbulb"
   else
     return nil
   end
