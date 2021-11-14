@@ -69,6 +69,8 @@ const kRevealPluginOptions = [
   "boardmarkers",
   "chalks",
   "rememberColor",
+  // reveal-pdfexport
+  "pdfExportShortcut",
 ];
 
 const kRevealPluginKebabOptions = optionsToKebab(kRevealPluginOptions);
@@ -116,6 +118,7 @@ export function revealPluginExtras(
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
     { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
+    { plugin: formatResourcePath("revealjs", join("plugins", "pdfexport")) },
   ];
 
   // menu plugin (enabled by default)
@@ -210,14 +213,15 @@ export function revealPluginExtras(
           config[key] = plugin.config[key];
 
           // see if the user has yaml to merge
-          if (typeof (format.metadata[key]) === "object") {
+          const kebabKey = camelToKebab(key);
+          if (typeof (format.metadata[kebabKey]) === "object") {
             config[key] = mergeConfigs(
               revealMetadataFilter(
                 config[key] as Metadata,
                 kRevealPluginKebabOptions,
               ),
               revealMetadataFilter(
-                format.metadata[key] as Metadata,
+                format.metadata[kebabKey] as Metadata,
                 kRevealPluginKebabOptions,
               ),
             );
@@ -346,8 +350,13 @@ function revealMenuTools(format: Format) {
       handler: "speakerMode",
     },
     {
-      title: "Toggle Overview",
+      title: "Slide Overview",
       key: "o",
+      handler: "overview",
+    },
+    {
+      title: "PDF Export Mode",
+      key: "e",
       handler: "overview",
     },
   ];

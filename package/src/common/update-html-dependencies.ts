@@ -252,6 +252,31 @@ export async function updateHtmlDepedencies(config: Configuration) {
     false, // no v prefix
   );
 
+  // reveal-pdfexport
+  const revealJsPdfExport = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "revealjs",
+    "plugins",
+    "pdfexport",
+  );
+  await updateGithubSourceCodeDependency(
+    "reveal-pdfexport",
+    "McShelby/reveal-pdfexport",
+    "REVEAL_JS_PDFEXPORT",
+    workingDir,
+    (dir: string, version: string) => {
+      ensureDirSync(revealJsPdfExport);
+      Deno.copyFileSync(
+        join(dir, `reveal-pdfexport-${version}`, "pdfexport.js"),
+        join(revealJsPdfExport, "pdfexport.js"),
+      );
+    },
+    false, // not a commit
+    false, // no v prefix
+  );
+
   // Autocomplete
   const autocompleteJs = join(
     config.directoryInfo.src,
