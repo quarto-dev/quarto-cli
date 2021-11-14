@@ -263,6 +263,12 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
 
     // move the toc if there is a sidebar
     const toc = doc.querySelector('nav[role="doc-toc"]');
+
+    // If there is a TOC, mark the body with this info
+    if (!toc) {
+      doc.body.classList.add("no-toc");
+    }
+
     const tocSidebar = doc.getElementById("quarto-toc-sidebar");
     if (toc && tocSidebar) {
       // add nav-link class to the TOC links

@@ -104,19 +104,20 @@
     [screen-end];
 }
 
-// Docked Grid Definitions
+// Plain Grid Definitions
 @mixin page-columns-plain-wide {
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
-    [screen-start-inset page-start page-start-inset] 50px
-    [body-start-outset] 50px
+    [screen-start-inset] 5fr
+    [page-start page-start-inset] 35px
+    [body-start-outset] 35px
     [body-start] 1em
     [body-content-start] minmax(auto, calc(800px - 2em))
     [body-content-end] 1em
-    [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(75px, 115px)
+    [body-end] 35px
+    [body-end-outset] 35px
+    [page-end-inset] minmax(75px, 145px)
     [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
@@ -125,13 +126,14 @@
 @mixin page-columns-plain-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start screen-start-inset page-start page-start-inset body-start-outset] 1.5em
+    [screen-start] 1.5em
+    [screen-start-inset page-start page-start-inset body-start-outset] 5fr
     [body-start] 1em
     [body-content-start] minmax(auto, calc(750px - 2em))
     [body-content-end] 1em
-    [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(125px, 150px)
+    [body-end] 35px
+    [body-end-outset] 35px
+    [page-end-inset] minmax(75px, 45px)
     [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
@@ -140,8 +142,41 @@
 @mixin page-columns-plain-narrow {
   @include page-columns();
   grid-template-columns:
-    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] calc(100vw - 2em)
+    [screen-start] 1em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] calc(
+      100vw - 2em
+    )
     [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
+    [screen-end];
+}
+
+// No TOC Grid Definitions
+@mixin page-columns-plain-notoc-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start page-start-inset] 35px
+    [body-start-outset] 35px
+    [body-start] 1em
+    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-end] 1em
+    [body-end] 35px
+    [body-end-outset] 35px
+    [page-end-inset page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-plain-notoc-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset page-start page-start-inset body-start-outset] 5fr
+    [body-start] 1em
+    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-end] 1em
+    [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] 1.5em
     [screen-end];
 }
