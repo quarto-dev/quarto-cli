@@ -6,7 +6,6 @@ window.QuartoFooter = function () {
       const revealParent = deck.getRevealElement();
       const logoImg = document.querySelector(".slide-logo");
       if (logoImg) {
-        logoImg.setAttribute("src", logoImg.getAttribute("data-src"));
         revealParent.appendChild(logoImg);
         revealParent.classList.add("has-logo");
       }

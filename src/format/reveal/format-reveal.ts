@@ -320,10 +320,14 @@ function revealRequireJsPatch(template: string) {
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
   if (format.metadata[kSlideLogo]) {
-    lines.push(`![](${format.metadata[kSlideLogo]}){.slide-logo}`);
+    lines.push(
+      `<img src="${format.metadata[kSlideLogo]}" class="slide-logo" />`,
+    );
+    lines.push("\n");
   }
   if (format.metadata[kSlideFooter]) {
     lines.push(`[${format.metadata[kSlideFooter]}]{.slide-footer}`);
+    lines.push("\n");
   }
 
   return lines.join("\n");
