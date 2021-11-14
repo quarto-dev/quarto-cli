@@ -2,7 +2,7 @@
   display: block;
   position: fixed;
   bottom: 0;
-  right: 10px;
+  right: 12px;
   max-height: 2.2rem;
   width: auto;
 }
@@ -66,6 +66,7 @@
   .reveal .slide-logo {
     max-height: 1.1rem;
     bottom: -2px;
+    right: 10px;
   }
   .reveal .slide-footer-container {
     font-size: 14px;
