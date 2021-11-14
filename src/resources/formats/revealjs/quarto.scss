@@ -206,6 +206,10 @@ $selectionColor: $selection-color !default;
   color: $text-muted;
 }
 
+.reveal .slide-number {
+  color: $text-muted;
+}
+
 @media screen and (min-width: 500px) {
   $arrow-spacing: 0.2em;
   $control-arrow-spacing: 1.4em;

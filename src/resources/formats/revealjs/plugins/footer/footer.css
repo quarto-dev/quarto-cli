@@ -33,7 +33,8 @@
 
 .reveal.has-logo .slide-number {
   bottom: initial;
-  top: 10px;
+  top: 8px;
+  right: 8px;
 }
 
 .reveal .slide-number .slide-number-delimiter {
