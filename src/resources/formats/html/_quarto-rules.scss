@@ -164,6 +164,12 @@ h6:hover > .anchorjs-link,
   }
 }
 
+// Tables
+// (Remove bottom margin from paragraphs in table headers)
+tr.header > th > p:last-of-type {
+  margin-bottom: 0px;
+}
+
 // utterances
 .utterances {
   max-width: none;
