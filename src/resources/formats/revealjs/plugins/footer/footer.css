@@ -97,3 +97,8 @@
     margin-right: 9px;
   }
 }
+
+html.print-pdf .reveal .slide-menu-button,
+html.print-pdf .reveal .slide-chalkboard-buttons {
+  display: none;
+}
