@@ -640,7 +640,6 @@ li code:not(.sourceCode) {
 .sidebar {
   will-change: top;
   transition: top 200ms linear;
-  background-color: $body-bg;
   position: sticky;
   overflow-y: auto;
   padding-top: 1.2em;
