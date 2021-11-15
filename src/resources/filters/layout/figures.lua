@@ -6,7 +6,7 @@ function extendedFigures()
   return {
     
     Para = function(el)
-      local image = discoverFigure(el, true)
+      local image = discoverFigure(el, false)
       if image and shouldHandleExtended(image) then
         if isHtmlOutput() then
           return htmlImageFigure(image)
@@ -38,5 +38,23 @@ function preventExtendedFigure(el)
 end
 
 function shouldHandleExtended(el)
-  return el.attr.attributes[kFigExtended] ~= "false"
+  if el.attr.attributes[kFigExtended] == "false" then
+    return false
+  end
+
+  -- handle extended if there is a caption 
+  if #el.caption > 0 then
+    return true
+  end
+
+  -- handle extended there are fig- attributes
+  local keys = tkeys(el.attr.attributes)
+  for _,k in pairs(keys) do
+    if isFigAttribute(k) then
+      return true
+    end
+  end
+
+  return false
+
 end
