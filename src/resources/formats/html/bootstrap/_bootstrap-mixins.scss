@@ -112,9 +112,9 @@
     [screen-start-inset] 5fr
     [page-start page-start-inset] 35px
     [body-start-outset] 35px
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(800px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset] minmax(75px, 145px)
@@ -128,9 +128,9 @@
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(750px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset] minmax(75px, 145px)
@@ -152,9 +152,9 @@
     [screen-start-inset] 5fr
     [page-start page-start-inset] 35px
     [body-start-outset] 35px
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(800px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset page-end] 5fr
@@ -167,9 +167,9 @@
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(750px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end body-end-outset page-end-inset page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
@@ -183,9 +183,9 @@
     [screen-start-inset] 5fr
     [page-start page-start-inset] 35px
     [body-start-outset] 35px
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(750px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset] minmax(75px, 195px)
@@ -199,9 +199,9 @@
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(750px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset] minmax(75px, 145px)
