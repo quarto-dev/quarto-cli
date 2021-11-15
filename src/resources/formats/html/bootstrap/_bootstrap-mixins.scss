@@ -43,6 +43,22 @@
     [screen-end];
 }
 
+@mixin page-columns-float-fullcontent-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start] minmax(50px, 150px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(400px, calc(800px - 2em))
+    [body-content-end] 1.5em
+    [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
 // medium 976 down
 @mixin page-columns-float-mid {
   @include page-columns();
@@ -81,6 +97,21 @@
     [body-end-outset] 50px
     [page-end-inset] minmax(0px, 100px)
     [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-docked-fullcontent-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset page-start] minmax(50px, 100px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-end] 1.5em
+    [body-end body-end-outset page-end-inset page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
 }
