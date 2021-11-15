@@ -43,7 +43,7 @@ function shouldHandleExtended(el)
   end
 
   -- handle extended if there is a caption 
-  if #el.caption > 0 then
+  if el.caption and #el.caption > 0 then
     return true
   end
 
