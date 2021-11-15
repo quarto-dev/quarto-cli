@@ -33,12 +33,16 @@ export function findMissingFontsAndPackages(
 export function needsRecompilation(log: string) {
   if (existsSync(log)) {
     const logContents = Deno.readTextFileSync(log);
-    return logContents.match(
-      /(Rerun to get |Please \(re\)run | Rerun LaTeX\.)/,
-    ) !== null;
+    return logMatchers.some((matcher) => {
+      return logContents.match(matcher);
+    });
   }
   return false;
 }
+const logMatchers = [
+  /(Rerun to get |Please \(re\)run | Rerun LaTeX\.)/, // explicitly request recompile
+  /xpos seems to be \\@mn@currxpos/, // this is using a margin type layout and elements still haven't gotten final positions
+];
 
 // Finds missing hyphenation files (these appear as warnings in the log file)
 export function findMissingHyphenationFiles(logText: string) {

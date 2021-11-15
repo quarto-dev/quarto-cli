@@ -37,9 +37,14 @@ function preventExtendedFigure(el)
   el.attr.attributes[kFigExtended] = "false"
 end
 
+function forceExtendedFigure(el) 
+  el.attr.attributes[kFigExtended] = "true"
+end
+
 function shouldHandleExtended(el)
-  if el.attr.attributes[kFigExtended] == "false" then
-    return false
+  -- first check whether this has been explicitely enabled or disabled
+  if el.attr.attributes[kFigExtended] ~= nil then
+    return el.attr.attributes[kFigExtended]
   end
 
   -- handle extended if there is a caption 
@@ -54,6 +59,7 @@ function shouldHandleExtended(el)
       return true
     end
   end
+  
 
   return false
 
