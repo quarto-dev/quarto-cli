@@ -237,7 +237,7 @@ function markupLatexCaption(el, caption, captionEnv)
   caption:insert(pandoc.RawInline("latex", "}"))
 end
 
-local kBeginSideNote = '\\marginpar{\\begin{footnotesize}'
+local kBeginSideNote = '\\marginnote{\\begin{footnotesize}'
 function latexBeginSidenote(block) 
   if block == nil or block then
     return pandoc.RawBlock('latex', kBeginSideNote)
