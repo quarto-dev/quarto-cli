@@ -6,7 +6,7 @@ function extendedFigures()
   return {
     
     Para = function(el)
-      local image = discoverFigure(el, false)
+      local image = discoverFigure(el, true)
       if image and shouldHandleExtended(image) then
         if isHtmlOutput() then
           return htmlImageFigure(image)
