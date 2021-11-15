@@ -90,6 +90,18 @@ body {
     }
   }
 
+  body.docked.fullcontent {
+    .page-columns {
+      @include page-columns-docked-fullcontent-mid();
+    }
+  }
+
+  body.floating.fullcontent {
+    .page-columns {
+      @include page-columns-float-fullcontent-mid();
+    }
+  }
+
   body.docked.slimcontent {
     .page-columns {
       @include page-columns-docked-slimcontent-mid();
