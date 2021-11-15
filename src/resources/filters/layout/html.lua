@@ -155,11 +155,10 @@ function renderHtmlFigure(el, render)
   end
   
   -- create figure div
-  local figureDiv = pandoc.Div({}, el.attr:clone())
+  local figureDiv = pandoc.Div({}, pandoc.Attr(el.attr.identifier))
   
-  -- remove identifier and classes from target (they are now on the div)
+  -- remove identifier (it is now on the div)
   el.attr.identifier = ""
-  tclear(el.attr.classes)
           
   -- apply standalone figure css
   figureDiv.attr.classes:insert("quarto-figure")
