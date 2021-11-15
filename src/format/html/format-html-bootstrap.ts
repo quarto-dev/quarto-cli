@@ -264,11 +264,6 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     // move the toc if there is a sidebar
     const toc = doc.querySelector('nav[role="doc-toc"]');
 
-    // If there is a TOC, mark the body with this info
-    if (!toc) {
-      doc.body.classList.add("no-toc");
-    }
-
     const tocSidebar = doc.getElementById("quarto-toc-sidebar");
     if (toc && tocSidebar) {
       // add nav-link class to the TOC links
@@ -375,6 +370,17 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       if (bibliographyDiv) {
         bibliographyDiv.remove();
       }
+    }
+
+    // Note whether we need a narrow or wide margin layout
+    if (columnLayouts.length > 0) {
+      doc.body.classList.add("slimcontent");
+      // wide margin b/c there are margin elements
+    } else if (toc) {
+      // there is a toc, default layout
+    } else {
+      // no toc, narrow
+      doc.body.classList.add("fullcontent");
     }
 
     // no resource refs

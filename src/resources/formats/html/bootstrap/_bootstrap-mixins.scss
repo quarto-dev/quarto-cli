@@ -13,6 +13,16 @@
   gap: 0;
 }
 
+@mixin grid-template-columns-narrow {
+  grid-template-columns:
+    [screen-start] 1em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] calc(
+      100vw - 2em
+    )
+    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
+    [screen-end];
+}
+
 // Floating Grid Definitions
 @mixin page-columns-float-wide {
   @include page-columns();
@@ -53,13 +63,7 @@
 //small 768 down
 @mixin page-columns-float-narrow {
   @include page-columns();
-  grid-template-columns:
-    [screen-start] 1em
-    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] calc(
-      100vw - 2em
-    )
-    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
-    [screen-end];
+  @include grid-template-columns-narrow();
 }
 
 // Docked Grid Definitions
@@ -97,15 +101,11 @@
 
 @mixin page-columns-docked-narrow {
   @include page-columns();
-  grid-template-columns:
-    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] calc(100vw - 2em)
-    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
-    [screen-end];
+  @include grid-template-columns-narrow();
 }
 
 // Plain Grid Definitions
-@mixin page-columns-plain-wide {
+@mixin page-columns-default-wide {
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
@@ -123,7 +123,7 @@
     [screen-end];
 }
 
-@mixin page-columns-plain-mid {
+@mixin page-columns-default-mid {
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
@@ -139,19 +139,13 @@
     [screen-end];
 }
 
-@mixin page-columns-plain-narrow {
+@mixin page-columns-default-narrow {
   @include page-columns();
-  grid-template-columns:
-    [screen-start] 1em
-    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] calc(
-      100vw - 2em
-    )
-    [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] 1em
-    [screen-end];
+  @include grid-template-columns-narrow();
 }
 
-// No TOC Grid Definitions
-@mixin page-columns-plain-notoc-wide {
+// Full content grid definitions
+@mixin page-columns-fullcontent-wide {
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
@@ -168,7 +162,7 @@
     [screen-end];
 }
 
-@mixin page-columns-plain-notoc-mid {
+@mixin page-columns-fullcontent-mid {
   @include page-columns();
   grid-template-columns:
     [screen-start] 1.5em
@@ -177,6 +171,41 @@
     [body-content-start] minmax(auto, calc(750px - 2em))
     [body-content-end] 1em
     [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+// Slim content grid definitions
+@mixin page-columns-slimcontent-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start page-start-inset] 35px
+    [body-start-outset] 35px
+    [body-start] 1em
+    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-end] 1em
+    [body-end] 35px
+    [body-end-outset] 35px
+    [page-end-inset] minmax(75px, 195px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-slimcontent-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset page-start page-start-inset body-start-outset] 5fr
+    [body-start] 1em
+    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-end] 1em
+    [body-end] 35px
+    [body-end-outset] 35px
+    [page-end-inset] minmax(75px, 145px)
+    [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
 }
