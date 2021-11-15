@@ -20,19 +20,17 @@ footer.footer .nav-footer,
   padding-top: $content-padding-top;
 }
 
-@include media-breakpoint-up(lg) {
-  #quarto-content > * {
-    padding-top: $content-padding-top;
-  }
-}
-
 @include media-breakpoint-down(lg) {
-  #quarto-content {
+  #quarto-content > * {
     padding-top: 0;
   }
 
   #quarto-content .subtitle {
     padding-top: $content-padding-top;
+  }
+
+  #quarto-content section:first-of-type h2:first-of-type {
+    margin-top: 0px;
   }
 }
 
