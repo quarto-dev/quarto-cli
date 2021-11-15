@@ -89,6 +89,9 @@ function renderDivColumn(el)
             -- just ensure the classes are - they will be resolved
             -- when the latex figure is rendered
             addColumnClasses(columnClasses, figure)
+
+            -- ensure that extended figures will render this
+            forceExtendedFigure(figure)
             figOrTable = true
           elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
             -- wrap table divs
