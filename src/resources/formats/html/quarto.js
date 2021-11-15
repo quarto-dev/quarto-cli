@@ -278,6 +278,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return (
         className.startsWith("column-") &&
         !className.endsWith("right") &&
+        !className.endsWith("container") &&
         className !== "column-margin"
       );
     });

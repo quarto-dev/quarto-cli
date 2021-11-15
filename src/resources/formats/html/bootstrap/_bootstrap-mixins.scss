@@ -88,8 +88,11 @@
 @mixin page-columns-docked-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1.25em
-    [body-content-start] minmax(auto, calc(750px - 2em))
+    [screen-start] 1.25em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] minmax(
+      auto,
+      calc(750px - 2em)
+    )
     [body-content-end] 1.5em
     [body-end] 50px
     [body-end-outset] 50px
