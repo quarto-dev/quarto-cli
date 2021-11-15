@@ -402,77 +402,101 @@ const processMarginNodes = (
   });
 };
 
+const findQuartoFigure = (el: Element): Element | undefined => {
+  if (el.classList.contains("quarto-figure")) {
+    return el;
+  } else if (el.parentElement) {
+    return findQuartoFigure(el.parentElement);
+  } else {
+    return undefined;
+  }
+};
+
+const moveClassToCaption = (container: Element, sel: string) => {
+  const target = container.querySelector(sel);
+  if (target) {
+    target.classList.add("margin-caption");
+    return true;
+  } else {
+    return false;
+  }
+};
+
+const removeCaptionClass = (el: Element) => {
+  // Remove this since it will place the contents in the margin if it remains present
+  el.classList.remove("margin-caption");
+};
+
+const processLayoutPanelMarginCaption = (captionContainer: Element) => {
+  const figure = captionContainer.querySelector("figure");
+  if (figure) {
+    // It is a figure panel, find a direct child caption of the outer figure.
+    for (const child of figure.children) {
+      if (child.tagName === "FIGCAPTION") {
+        child.classList.add("margin-caption");
+        removeCaptionClass(captionContainer);
+        break;
+      }
+    }
+  } else {
+    // it is not a figure panel, find the panel caption
+    const caption = captionContainer.querySelector(".panel-caption");
+    if (caption) {
+      caption.classList.add("margin-caption");
+      removeCaptionClass(captionContainer);
+    }
+  }
+};
+
+const processFigureMarginCaption = (
+  captionContainer: Element,
+  doc: Document,
+) => {
+  // First try finding a fig caption
+  const foundCaption = moveClassToCaption(captionContainer, "figcaption");
+  if (!foundCaption) {
+    // find a table caption and copy the contents into a div with style figure-caption
+    // note that for tables, our grid inception approach isn't going to work, so
+    // we make a copy of the caption contents and place that in the same container as the
+    // table and bind it to the grid
+    const captionEl = captionContainer.querySelector("caption");
+    if (captionEl) {
+      const parentDivEl = captionEl?.parentElement?.parentElement;
+      if (parentDivEl) {
+        captionEl.classList.add("hidden");
+
+        const divCopy = doc.createElement("div");
+        divCopy.classList.add("figure-caption");
+        divCopy.classList.add("margin-caption");
+        divCopy.innerHTML = captionEl.innerHTML;
+        parentDivEl.appendChild(divCopy);
+        removeCaptionClass(captionContainer);
+      }
+    }
+  } else {
+    removeCaptionClass(captionContainer);
+  }
+};
+
 // Process any captions that appear in margins
 const processMarginCaptions = (doc: Document) => {
   // Forward caption class from parents to the child fig caps
   const marginCaptions = doc.querySelectorAll(".margin-caption");
-  marginCaptions.forEach((captionContainerNode) => {
-    const captionContainer = (captionContainerNode as Element);
-
-    const moveClassToCaption = (container: Element, sel: string) => {
-      const target = container.querySelector(sel);
-      if (target) {
-        target.classList.add("margin-caption");
-        return true;
+  marginCaptions.forEach((node) => {
+    const figureEl = node as Element;
+    const captionContainer = findQuartoFigure(figureEl);
+    if (captionContainer) {
+      // Deal with layout panels (we will only handle the main caption not the internals)
+      const isLayoutPanel = captionContainer.classList.contains(
+        "quarto-layout-panel",
+      );
+      if (isLayoutPanel) {
+        processLayoutPanelMarginCaption(captionContainer);
       } else {
-        return false;
-      }
-    };
-
-    const removeCaptionClass = (el: Element) => {
-      // Remove this since it will place the contents in the margin if it remains present
-      el.classList.remove("margin-caption");
-    };
-
-    // Deal with layout panels (we will only handle the main caption not the internals)
-    const isLayoutPanel = captionContainer.classList.contains(
-      "quarto-layout-panel",
-    );
-    if (isLayoutPanel) {
-      const figure = captionContainer.querySelector("figure");
-      if (figure) {
-        // It is a figure panel, find a direct child caption of the outer figure.
-        for (const child of figure.children) {
-          if (child.tagName === "FIGCAPTION") {
-            child.classList.add("margin-caption");
-            removeCaptionClass(captionContainer);
-            break;
-          }
-        }
-      } else {
-        // it is not a figure panel, find the panel caption
-        const caption = captionContainer.querySelector(".panel-caption");
-        if (caption) {
-          caption.classList.add("margin-caption");
-          removeCaptionClass(captionContainer);
-        }
-      }
-    } else {
-      // First try finding a fig caption
-      const foundCaption = moveClassToCaption(captionContainer, "figcaption");
-      if (!foundCaption) {
-        // find a table caption and copy the contents into a div with style figure-caption
-        // note that for tables, our grid inception approach isn't going to work, so
-        // we make a copy of the caption contents and place that in the same container as the
-        // table and bind it to the grid
-        const captionEl = captionContainer.querySelector("caption");
-        if (captionEl) {
-          const parentDivEl = captionEl?.parentElement?.parentElement;
-          if (parentDivEl) {
-            captionEl.classList.add("hidden");
-
-            const divCopy = doc.createElement("div");
-            divCopy.classList.add("figure-caption");
-            divCopy.classList.add("margin-caption");
-            divCopy.innerHTML = captionEl.innerHTML;
-            parentDivEl.appendChild(divCopy);
-            removeCaptionClass(captionContainer);
-          }
-        }
-      } else {
-        removeCaptionClass(captionContainer);
+        processFigureMarginCaption(captionContainer, doc);
       }
     }
+    removeCaptionClass(figureEl);
   });
 };
 
