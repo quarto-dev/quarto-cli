@@ -45,6 +45,18 @@ body {
       @include page-columns-float-fullcontent-wide();
     }
   }
+
+  body.docked.slimcontent {
+    .page-columns {
+      @include page-columns-docked-slimcontent-wide();
+    }
+  }
+
+  body.floating.slimcontent {
+    .page-columns {
+      @include page-columns-float-slimcontent-wide();
+    }
+  }
 }
 
 @include media-breakpoint-down(lg) {
@@ -77,35 +89,30 @@ body {
       @include page-columns-docked-mid();
     }
   }
+
+  body.docked.slimcontent {
+    .page-columns {
+      @include page-columns-docked-slimcontent-mid();
+    }
+  }
+
+  body.floating.slimcontent {
+    .page-columns {
+      @include page-columns-float-slimcontent-mid();
+    }
+  }
 }
 
 @include media-breakpoint-down(md) {
-  body {
-    .page-columns {
-      @include page-columns-default-narrow();
-    }
-  }
-  body.fullcontent:not(.floating):not(.docked) {
-    .page-columns {
-      @include page-columns-default-narrow();
-    }
-  }
-
-  body.slimcontent:not(.floating):not(.docked) {
-    .page-columns {
-      @include page-columns-default-narrow();
-    }
-  }
-
-  body.floating {
+  body,
+  body.fullcontent:not(.floating):not(.docked),
+  body.slimcontent:not(.floating):not(.docked),
+  body.docked,
+  body.docked.slimcontent,
+  body.floating,
+  body.floating.slimcontent {
     .page-columns {
       @include page-columns-float-narrow();
-    }
-  }
-
-  body.docked {
-    .page-columns {
-      @include page-columns-docked-narrow();
     }
   }
 
