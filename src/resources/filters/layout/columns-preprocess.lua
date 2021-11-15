@@ -18,7 +18,7 @@ function columnsPreprocess()
     Para = function(el)
       local figure = discoverFigure(el, false)
       if figure then
-        resolveColumnClassesForEl(figure)
+        resolveElementForScopedColumns(figure, 'fig')
       end
       return el
     end  
