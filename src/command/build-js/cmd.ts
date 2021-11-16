@@ -23,7 +23,7 @@ async function buildCoreLib(resourceDir: string) {
     ["index.ts"],
     "esm",
   );
-  return Deno.writeTextFile(join(resourceDir, "build/core-lib.js"), src!);
+  await Deno.writeTextFileSync(join(resourceDir, "build/core-lib.js"), src!);
 }
 
 async function buildQuartoOJS(resourceDir: string) {
@@ -55,7 +55,6 @@ async function buildYAMLJS(resourceDir: string) {
   );
 
   const files = [
-    "core-lib.js",
     "tree-sitter.js",
     "external/ajv7.bundle.js",
     "ajv-stub.js",
