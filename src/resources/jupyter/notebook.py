@@ -136,10 +136,11 @@ def notebook_execute(options, status):
             client, 
             cell, 
             index, 
-            current_code_cell - 1,
+            current_code_cell,
             eval,
             index > 0 # add_to_history
-      )
+         )
+         cell.execution_count = current_code_cell
 
       # if this was the setup cell, see if we need to exit b/c dependencies are out of date
       if index == 0:
