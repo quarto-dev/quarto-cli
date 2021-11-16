@@ -333,7 +333,7 @@ export async function renderProject(
     projResults.error = fileResults.error;
 
     // call post-render
-    if (projType.postRender) {
+    if (!projResults.error && projType.postRender) {
       await projType.postRender(
         context,
         incremental,
