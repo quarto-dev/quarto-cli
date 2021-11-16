@@ -4,7 +4,12 @@
 function htmlPanel(divEl, layout, caption)
   
   -- outer panel to contain css and figure panel
-  local panel = pandoc.Div({}, pandoc.Attr(divEl.attr.id, divEl.attr.classes))
+  local divId = divEl.attr.id
+  if divId == nil then
+    divId = ''
+  end
+
+  local panel = pandoc.Div({}, pandoc.Attr(divId, divEl.attr.classes))
   panel.attr.classes:insert("quarto-layout-panel")
   
   -- enclose in figure if it's a figureRef
