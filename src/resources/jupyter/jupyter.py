@@ -69,6 +69,7 @@ class ExecuteHandler(StreamRequestHandler):
          self.server.request_exit()
       except Exception as e:
          self.message("error", "\n\n" + str(e))
+         self.server.request_exit()
 
    # write a message back to the client      
    def message(self, type, data = ""):
