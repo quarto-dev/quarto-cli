@@ -394,7 +394,11 @@ interface ValidatedParseResult {
   errors: LocalizedError[];
 }
 
-// FIXME YAMLSchema is not reentrant because ajv isn't (!)
+// NB: YAMLSchema is not reentrant because ajv isn't - see the use of
+// the "errors" field in the validate closure (!). We work around this in
+// automation.js by using a request queue that serializes validation
+// requests over any one schema.
+
 export class YAMLSchema {
   schema: JSONSchema; // FIXME: I haven't found typescript typings for JSON Schema
   // deno-lint-ignore no-explicit-any
