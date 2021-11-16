@@ -27,6 +27,8 @@ export TIPPY_JS=6.3.0
 export PDF_JS=2.8.335
 export REVEAL_JS=92a0d472372fbbc7a2b11ab9375cd87519d379e7
 export REVEAL_JS_MENU=2.1.0
+export REVEAL_JS_CHALKBOARD=a88c134e2cf3c7780448db003e7329c3cbd8cfb4
+export REVEAL_JS_PDFEXPORT=2.0.1
 
 # javascript search dependencies
 export AUTOCOMPLETE_JS=1.4.0

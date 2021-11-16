@@ -19,14 +19,14 @@ function panelLayout()
           elseif center then
             tappend(div.attr.classes, {
               "g-col-24",
-              "g-col-lg-12",
+              "g-col-lg-20",
               "mx-auto"
             })
           end
           -- return wrapped in a raw
           return pandoc.Div({ div }, pandoc.Attr("", { 
             layoutClass,
-            "row"
+            "grid"
           }))
         end
       end

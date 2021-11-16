@@ -13,6 +13,7 @@ import {
 } from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
+import { copyMinimal } from "../../../src/core/path.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
 import { Repo, withRepo } from "../util/git.ts";
@@ -185,6 +186,30 @@ export async function updateHtmlDepedencies(config: Configuration) {
     true,
   );
 
+  // revealjs-chalkboard
+  const revealJsChalkboard = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "revealjs",
+    "plugins",
+    "chalkboard",
+  );
+  await updateGithubSourceCodeDependency(
+    "reveal.js-chalkboard",
+    "rajgoel/reveal.js-plugins",
+    "REVEAL_JS_CHALKBOARD",
+    workingDir,
+    (dir: string, version: string) => {
+      ensureDirSync(dirname(revealJsChalkboard));
+      copyMinimal(
+        join(dir, `reveal.js-plugins-${version}`, "chalkboard"),
+        revealJsChalkboard,
+      );
+    },
+    true, // not a commit
+  );
+
   // revealjs-menu
   const revealJsMenu = join(
     config.directoryInfo.src,
@@ -217,16 +242,36 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(revealJsMenu, "menu.css"),
       );
 
-      /*
-      // write the plugin.yml file
-      Deno.writeTextFileSync(
-        join(revealJsMenu, "plugin.yml"),
-        `name: RevealMenu
-script: menu.js
-stylesheet: menu.css
-`,
+      // copy font-awesome to chalkboard
+      copyMinimal(
+        join(dir, `reveal.js-menu-${version}`, "font-awesome"),
+        join(revealJsChalkboard, "font-awesome"),
       );
-      */
+    },
+    false, // not a commit
+    false, // no v prefix
+  );
+
+  // reveal-pdfexport
+  const revealJsPdfExport = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "revealjs",
+    "plugins",
+    "pdfexport",
+  );
+  await updateGithubSourceCodeDependency(
+    "reveal-pdfexport",
+    "McShelby/reveal-pdfexport",
+    "REVEAL_JS_PDFEXPORT",
+    workingDir,
+    (dir: string, version: string) => {
+      ensureDirSync(revealJsPdfExport);
+      Deno.copyFileSync(
+        join(dir, `reveal-pdfexport-${version}`, "pdfexport.js"),
+        join(revealJsPdfExport, "pdfexport.js"),
+      );
     },
     false, // not a commit
     false, // no v prefix

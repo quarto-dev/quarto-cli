@@ -1,15 +1,15 @@
 .reveal .slide-logo {
   display: block;
-  position: absolute;
+  position: fixed;
   bottom: 0;
-  right: 10px;
+  right: 12px;
   max-height: 2.2rem;
   width: auto;
 }
 
 .reveal .slide-footer-container {
   display: block;
-  position: absolute;
+  position: fixed;
   bottom: 18px;
   width: 100%;
   margin: 0 auto;
@@ -28,13 +28,78 @@
   bottom: 10px;
   right: 10px;
   font-size: 16px;
+  background-color: transparent;
 }
 
 .reveal.has-logo .slide-number {
   bottom: initial;
-  top: 10px;
+  top: 8px;
+  right: 8px;
 }
 
 .reveal .slide-number .slide-number-delimiter {
   margin: 0;
+}
+
+.reveal .slide-menu-button {
+  left: 8px;
+  bottom: 8px;
+}
+
+.reveal .slide-chalkboard-buttons {
+  position: fixed;
+  left: 12px;
+  bottom: 8px;
+  z-index: 30;
+  font-size: 24px;
+}
+
+.reveal .slide-chalkboard-buttons.slide-menu-offset {
+  left: 54px;
+}
+
+.reveal .slide-chalkboard-buttons > span {
+  margin-right: 14px;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 800px) {
+  .reveal .slide-logo {
+    max-height: 1.1rem;
+    bottom: -2px;
+    right: 10px;
+  }
+  .reveal .slide-footer-container {
+    font-size: 14px;
+    bottom: 12px;
+  }
+  .reveal .slide-number {
+    font-size: 12px;
+    bottom: 7px;
+  }
+  .reveal .slide-menu-button .fas::before {
+    height: 1.3rem;
+    width: 1.3rem;
+    vertical-align: -0.125em;
+    background-size: 1.3rem 1.3rem;
+  }
+
+  .reveal .slide-chalkboard-buttons .fas::before {
+    height: 0.95rem;
+    width: 0.95rem;
+    background-size: 0.95rem 0.95rem;
+    vertical-align: -0em;
+  }
+
+  .reveal .slide-chalkboard-buttons.slide-menu-offset {
+    left: 36px;
+  }
+  .reveal .slide-chalkboard-buttons > span {
+    margin-right: 9px;
+  }
+}
+
+html.print-pdf .reveal .slide-menu-button,
+html.print-pdf .reveal .slide-chalkboard-buttons {
+  display: none;
 }

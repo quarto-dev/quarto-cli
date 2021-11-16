@@ -4,7 +4,12 @@
 function htmlPanel(divEl, layout, caption)
   
   -- outer panel to contain css and figure panel
-  local panel = pandoc.Div({}, pandoc.Attr(divEl.attr.id, divEl.attr.classes))
+  local divId = divEl.attr.id
+  if divId == nil then
+    divId = ''
+  end
+
+  local panel = pandoc.Div({}, pandoc.Attr(divId, divEl.attr.classes))
   panel.attr.classes:insert("quarto-layout-panel")
   
   -- enclose in figure if it's a figureRef
@@ -155,11 +160,10 @@ function renderHtmlFigure(el, render)
   end
   
   -- create figure div
-  local figureDiv = pandoc.Div({}, el.attr:clone())
+  local figureDiv = pandoc.Div({}, pandoc.Attr(el.attr.identifier))
   
-  -- remove identifier and classes from target (they are now on the div)
+  -- remove identifier (it is now on the div)
   el.attr.identifier = ""
-  tclear(el.attr.classes)
           
   -- apply standalone figure css
   figureDiv.attr.classes:insert("quarto-figure")

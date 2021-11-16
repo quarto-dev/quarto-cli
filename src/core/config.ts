@@ -53,7 +53,7 @@ export function camelToKebab(camel: string) {
   const kebab: string[] = [];
   for (let i = 0; i < camel.length; i++) {
     const ch = camel.charAt(i);
-    if (ch === ch.toUpperCase()) {
+    if (ch === ch.toUpperCase() && !/^\d+/.test(ch)) {
       if (i > 0) {
         kebab.push("-");
       }

@@ -18,7 +18,7 @@ function columnsPreprocess()
     Para = function(el)
       local figure = discoverFigure(el, false)
       if figure then
-        resolveColumnClassesForEl(figure)
+        resolveElementForScopedColumns(figure, 'fig')
       end
       return el
     end  
@@ -59,17 +59,34 @@ function resolveColumnClassesForCodeCell(el)
         if childEl.attr ~= undefined and childEl.attr.classes:includes('cell-output-display') then
 
           -- look through the children for any figures or tables
+          local forwarded = false
           for j, figOrTableEl in ipairs(childEl.content) do
             local figure = discoverFigure(figOrTableEl, false)
             if figure ~= nil then
               -- forward to figures
               applyClasses(figClasses, figCaptionClasses, el, childEl, figure, 'fig')
+              forwarded = true
             elseif figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
               -- forward to figure divs
               applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
-            elseif figOrTableEl.t == 'Table' or (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
+              forwarded = true
+            elseif (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
+              -- for a table div, apply the classes to the figOrTableEl itself
               applyClasses(tblClasses, tblCaptionClasses, el, childEl, figOrTableEl, 'tbl')
+              forwarded = true
+            elseif figOrTableEl.t == 'Table' then
+              -- the figOrTableEl is a table, just apply the classes to the div around it
+              applyClasses(tblClasses, tblCaptionClasses, el, childEl, childEl, 'tbl')
+              forwarded = true
             end
+          end
+
+          -- no known children were discovered, apply the column classes to the cell output display itself
+          if not forwarded then 
+            
+            local colClasses = computeClassesForScopedColumns(el)
+            local capClasses = computeClassesForScopedCaption(el)
+            applyClasses(colClasses, capClasses, el, childEl, childEl)
 
           end
         end
@@ -87,7 +104,6 @@ function applyClasses(colClasses, captionClasses, containerEl, colEl, captionEl,
     applyCaptionClasses(captionEl, captionClasses, scope)
     clearCaptionClasses(containerEl, scope)
   end
-
 end
 
 function resolveElementForScopedColumns(el, scope) 
@@ -104,12 +120,16 @@ end
 
 function clearColumnClasses(el, scope)
   removeColumnClasses(el)
-  removeScopedColumnClasses(el, scope)
+  if scope ~= nil then
+    removeScopedColumnClasses(el, scope)
+  end
 end
 
 function clearCaptionClasses(el, scope) 
   removeCaptionClasses(el)
-  removeScopedCaptionClasses(el, scope)
+  if scope ~= nil then
+    removeScopedCaptionClasses(el, scope)
+  end
 end
 
 function applyCaptionClasses(el, classes, scope)
@@ -118,7 +138,9 @@ function applyCaptionClasses(el, classes, scope)
 
   -- clear existing columns
   removeCaptionClasses(el)
-  removeScopedCaptionClasses(el, scope)
+  if scope ~= nil then
+    removeScopedCaptionClasses(el, scope)
+  end
 
   -- write the resolve scopes
   tappend(el.attr.classes, classes)
@@ -130,7 +152,9 @@ function applyColumnClasses(el, classes, scope)
 
   -- clear existing columns
   removeColumnClasses(el)
-  removeScopedColumnClasses(el, scope)
+  if scope ~= nil then
+    removeScopedColumnClasses(el, scope)
+  end
 
   -- write the resolve scopes
   tappend(el.attr.classes, classes)
@@ -138,10 +162,15 @@ end
 
 function computeClassesForScopedCaption(el, scope)
   local globalCaptionClasses = captionOption('caption-location')
-  local scopedCaptionClasses = captionOption(scope .. '-cap-location')
   local elCaptionClasses = resolveCaptionClasses(el)
-  local elScopedCaptionClasses = resolveScopedCaptionClasses(el, scope)
-  local orderedCaptionClasses = {elScopedCaptionClasses, scopedCaptionClasses, elCaptionClasses, globalCaptionClasses}
+  local orderedCaptionClasses = {elCaptionClasses, globalCaptionClasses}
+
+  -- if a scope has been provided, include that
+  if scope ~= nil then
+    local elScopedCaptionClasses = resolveScopedCaptionClasses(el, scope)
+    local scopedCaptionClasses = captionOption(scope .. '-cap-location')
+    tprepend(orderedCaptionClasses, {elScopedCaptionClasses, scopedCaptionClasses})
+  end
 
   for i, classes in ipairs(orderedCaptionClasses) do 
     if #classes > 0 then
@@ -154,10 +183,16 @@ end
 -- Computes the classes for a given element, given its scope
 function computeClassesForScopedColumns(el, scope) 
   local columnGlobalClasses = columnOption('column')
-  local scopedGlobalClasses = columnOption(scope .. '-column')
   local columnElClasses = resolveColumnClasses(el)
-  local scopedElClasses = resolveScopedColumnClasses(el, scope)
-  local orderedClasses = {scopedElClasses, scopedGlobalClasses, columnElClasses, columnGlobalClasses}
+  local orderedClasses = {columnElClasses, columnGlobalClasses}
+
+  -- if a scope has been provided, include that
+  if scope ~= nil then
+    local scopedGlobalClasses = columnOption(scope .. '-column')
+    local scopedElClasses = resolveScopedColumnClasses(el, scope)
+    tprepend(orderedClasses, {scopedElClasses, scopedGlobalClasses})
+  end
+  
   for i, classes in ipairs(orderedClasses) do 
     if #classes > 0 then
       return classes

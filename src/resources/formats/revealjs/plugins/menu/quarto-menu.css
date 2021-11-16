@@ -31,6 +31,7 @@
 }
 
 .reveal .slide-menu-button .fas::before,
+.reveal .slide-chalkboard-buttons .fas::before,
 .slide-menu-wrapper .slide-menu-toolbar .fas::before {
   display: inline-block;
   height: 2.2rem;
@@ -39,6 +40,13 @@
   vertical-align: -0.125em;
   background-repeat: no-repeat;
   background-size: 2.2rem 2.2rem;
+}
+
+.reveal .slide-chalkboard-buttons .fas::before {
+  height: 1.45rem;
+  width: 1.45rem;
+  background-size: 1.45rem 1.45rem;
+  vertical-align: 0.1em;
 }
 
 .slide-menu-wrapper .slide-menu-toolbar .fas::before {

@@ -25,7 +25,7 @@ function panelSidebar()
         -- there are sidebars so we need to build a new list that folds together
         -- the sidebars with their adjacent layout blocks
         local rowClasses = {
-          "row", 
+          "grid", 
           "layout-sidebar",
           "ms-md-0"
         }

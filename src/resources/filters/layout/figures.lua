@@ -37,6 +37,30 @@ function preventExtendedFigure(el)
   el.attr.attributes[kFigExtended] = "false"
 end
 
+function forceExtendedFigure(el) 
+  el.attr.attributes[kFigExtended] = "true"
+end
+
 function shouldHandleExtended(el)
-  return el.attr.attributes[kFigExtended] ~= "false"
+  -- first check whether this has been explicitely enabled or disabled
+  if el.attr.attributes[kFigExtended] ~= nil then
+    return el.attr.attributes[kFigExtended]
+  end
+
+  -- handle extended if there is a caption 
+  if el.caption and #el.caption > 0 then
+    return true
+  end
+
+  -- handle extended there are fig- attributes
+  local keys = tkeys(el.attr.attributes)
+  for _,k in pairs(keys) do
+    if isFigAttribute(k) then
+      return true
+    end
+  end
+  
+
+  return false
+
 end

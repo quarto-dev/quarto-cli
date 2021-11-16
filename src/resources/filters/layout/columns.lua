@@ -89,12 +89,15 @@ function renderDivColumn(el)
             -- just ensure the classes are - they will be resolved
             -- when the latex figure is rendered
             addColumnClasses(columnClasses, figure)
+
+            -- ensure that extended figures will render this
+            forceExtendedFigure(figure)
             figOrTable = true
           elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
             -- wrap table divs
             latexWrapEnvironment(contentEl, latexTableEnv(el), false)
             figOrTable = true
-          elseif contentEl.attr ~= undefined and hasFigureRef(contentEl) then
+          elseif contentEl.attr ~= nil and hasFigureRef(contentEl) then
             -- wrap figure divs
             latexWrapEnvironment(contentEl, latexFigureEnv(el), false)
             figOrTable = true
@@ -105,8 +108,9 @@ function renderDivColumn(el)
           processOtherContent(el.content)
         end
       else
+
         -- this is not a code cell so process it
-        if el.attr ~= undefined then
+        if el.attr ~= nil then
           if hasTableRef(el) then
             latexWrapEnvironment(el, latexTableEnv(el), false)
           elseif hasFigureRef(el) then

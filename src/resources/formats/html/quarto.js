@@ -207,6 +207,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               }
             };
 
+            const positionToggle = () => {
+              // position the element (top left of parent, same width as parent)
+              const elRect = el.getBoundingClientRect();
+              toggleContainer.style.left = `${elRect.left}px`;
+              toggleContainer.style.top = `${elRect.top}px`;
+              toggleContainer.style.width = `${elRect.width}px`;
+            };
+
             // Get rid of any expanded toggle if the user scrolls
             window.document.addEventListener(
               "scroll",
@@ -214,6 +222,16 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 closeToggle();
               }, 100)
             );
+
+            // Handle positioning of the toggle
+            window.addEventListener(
+              "resize",
+              throttle(() => {
+                console.log("yo");
+                positionToggle();
+              }, 100)
+            );
+            positionToggle();
 
             // Process the click
             clickEl.onclick = () => {
@@ -225,12 +243,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 closeToggle();
               }
             };
-
-            // position the element (top left of parent, same width as parent)
-            const elRect = el.getBoundingClientRect();
-            toggleContainer.style.left = `${elRect.left}px`;
-            toggleContainer.style.top = `${elRect.top}px`;
-            toggleContainer.style.width = `${elRect.width}px`;
 
             isVisible = false;
           }
@@ -266,6 +278,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return (
         className.startsWith("column-") &&
         !className.endsWith("right") &&
+        !className.endsWith("container") &&
         className !== "column-margin"
       );
     });
@@ -293,7 +306,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         el.getBoundingClientRect().top + document.documentElement.scrollTop;
       return {
         top,
-        bottom: top + el.offsetHeight,
+        bottom: top + el.scrollHeight,
       };
     });
   }

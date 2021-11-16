@@ -94,7 +94,7 @@ def notebook_execute(options, status):
             cached_nb.cells.pop(0)
             nb_write(cached_nb, input)
             status("(Notebook read from cache)\n\n")
-            return
+            return True # can persist kernel
    else:
       nb_cache = None
       
@@ -136,10 +136,11 @@ def notebook_execute(options, status):
             client, 
             cell, 
             index, 
-            current_code_cell - 1,
+            current_code_cell,
             eval,
             index > 0 # add_to_history
-      )
+         )
+         cell.execution_count = current_code_cell
 
       # if this was the setup cell, see if we need to exit b/c dependencies are out of date
       if index == 0:
@@ -177,8 +178,11 @@ def notebook_execute(options, status):
       nb_write(client.nb, input)
       nb_cache.cache_notebook_file(path = Path(input), overwrite = True)
 
-   # remove setup cell
+   # remove setup cell (then renumber execution_Count)
    client.nb.cells.pop(0)
+   for index, cell in enumerate(client.nb.cells):
+      if cell.cell_type == 'code':
+         cell.execution_count = cell.execution_count - 1
 
    # re-write without setup cell
    nb_write(client.nb, input)

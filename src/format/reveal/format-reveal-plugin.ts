@@ -7,7 +7,7 @@
 
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { kIncludeInHeader } from "../../config/constants.ts";
+import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
 import {
   Format,
@@ -16,6 +16,7 @@ import {
   kDependencies,
   kTemplatePatches,
   Metadata,
+  PandocFlags,
 } from "../../config/types.ts";
 import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
@@ -24,11 +25,13 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { readYaml } from "../../core/yaml.ts";
 import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
+import { isSelfContained } from "../../command/render/render.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
 const kRevealSlideTone = "slide-tone";
 const kRevealMenu = "menu";
+const kRevealChalkboard = "chalkboard";
 
 const kRevealPluginOptions = [
   // reveal.js-menu
@@ -51,6 +54,23 @@ const kRevealPluginOptions = [
   "delayInit",
   "openOnInit",
   "loadIcons",
+  // reveal.js-chalkboard
+  "boardmarkerWidth",
+  "chalkWidth",
+  "chalkEffect",
+  "storage",
+  "src",
+  "readOnly",
+  "transition",
+  "theme",
+  "background",
+  "grid",
+  "eraser",
+  "boardmarkers",
+  "chalks",
+  "rememberColor",
+  // reveal-pdfexport
+  "pdfExportShortcut",
 ];
 
 const kRevealPluginKebabOptions = optionsToKebab(kRevealPluginOptions);
@@ -68,6 +88,7 @@ interface RevealPlugin {
   stylesheet?: string[];
   config?: Metadata;
   metadata?: string[];
+  [kSelfContained]?: boolean;
 }
 
 interface RevealPluginScript {
@@ -75,7 +96,11 @@ interface RevealPluginScript {
   async?: boolean;
 }
 
-export function revealPluginExtras(format: Format, revealDir: string) {
+export function revealPluginExtras(
+  format: Format,
+  flags: PandocFlags,
+  revealDir: string,
+) {
   // directory to copy plugins into
   const pluginsDir = join(revealDir, "plugin");
 
@@ -93,13 +118,19 @@ export function revealPluginExtras(format: Format, revealDir: string) {
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
     { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
-    { plugin: formatResourcePath("revealjs", join("plugins", "footer")) },
+    { plugin: formatResourcePath("revealjs", join("plugins", "pdfexport")) },
   ];
 
   // menu plugin (enabled by default)
   const menuPlugin = revealMenuPlugin(format);
   if (menuPlugin) {
     pluginBundles.push(menuPlugin);
+  }
+
+  // chalkboard plugin (optional)
+  const chalkboardPlugiln = revealChalkboardPlugin(format);
+  if (chalkboardPlugiln) {
+    pluginBundles.push(chalkboardPlugiln);
   }
 
   // tone plugin (optional)
@@ -123,6 +154,11 @@ export function revealPluginExtras(format: Format, revealDir: string) {
     );
   }
 
+  // add footer plugin
+  pluginBundles.push(
+    { plugin: formatResourcePath("revealjs", join("plugins", "footer")) },
+  );
+
   // read plugins
   for (let bundle of pluginBundles) {
     // convert string to plugin
@@ -134,6 +170,16 @@ export function revealPluginExtras(format: Format, revealDir: string) {
 
     // read from bundle
     const plugin = pluginFromBundle(bundle);
+
+    // check for self-contained incompatibility
+    if (isSelfContained(flags, format)) {
+      if (plugin[kSelfContained] === false) {
+        throw new Error(
+          "Reveal plugin '" + plugin.name +
+            " is not compatible with self-contained output",
+        );
+      }
+    }
 
     // note name
     if (plugin.register !== false) {
@@ -167,14 +213,15 @@ export function revealPluginExtras(format: Format, revealDir: string) {
           config[key] = plugin.config[key];
 
           // see if the user has yaml to merge
-          if (typeof (format.metadata[key]) === "object") {
+          const kebabKey = camelToKebab(key);
+          if (typeof (format.metadata[kebabKey]) === "object") {
             config[key] = mergeConfigs(
               revealMetadataFilter(
                 config[key] as Metadata,
                 kRevealPluginKebabOptions,
               ),
               revealMetadataFilter(
-                format.metadata[key] as Metadata,
+                format.metadata[kebabKey] as Metadata,
                 kRevealPluginKebabOptions,
               ),
             );
@@ -280,7 +327,17 @@ function revealMenuPlugin(format: Format) {
   };
 }
 
-function revealMenuTools(_format: Format) {
+function revealChalkboardPlugin(format: Format) {
+  if (format.metadata[kRevealChalkboard]) {
+    return {
+      plugin: formatResourcePath("revealjs", join("plugins", "chalkboard")),
+    };
+  } else {
+    return undefined;
+  }
+}
+
+function revealMenuTools(format: Format) {
   const tools = [
     {
       title: "Fullscreen",
@@ -298,11 +355,35 @@ function revealMenuTools(_format: Format) {
       handler: "overview",
     },
     {
-      title: "Keyboard Help",
-      key: "?",
-      handler: "keyboardHelp",
+      title: "PDF Export Mode",
+      key: "e",
+      handler: "overview",
     },
   ];
+  if (format.metadata[kRevealChalkboard]) {
+    tools.push(
+      {
+        title: "Toggle Chalkboard",
+        key: "b",
+        handler: "toggleChalkboard",
+      },
+      {
+        title: "Toggle Notes Canvas",
+        key: "c",
+        handler: "toggleNotesCanvas",
+      },
+      {
+        title: "Download Drawings",
+        key: "d",
+        handler: "downloadDrawings",
+      },
+    );
+  }
+  tools.push({
+    title: "Keyboard Help",
+    key: "?",
+    handler: "keyboardHelp",
+  });
   const lines = ['<ul class="slide-menu-items">'];
   lines.push(...tools.map((tool, index) => {
     return `<li class="slide-tool-item${
