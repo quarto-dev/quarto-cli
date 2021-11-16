@@ -26,7 +26,7 @@ function panelLayout()
           -- return wrapped in a raw
           return pandoc.Div({ div }, pandoc.Attr("", { 
             layoutClass,
-            "row"
+            "grid"
           }))
         end
       end
