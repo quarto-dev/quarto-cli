@@ -282,7 +282,7 @@ body.docked {
 }
 
 .column-screen-right {
-  grid-column: body-content-start / screen-end;
+  grid-column: body-start / screen-end;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
 }
