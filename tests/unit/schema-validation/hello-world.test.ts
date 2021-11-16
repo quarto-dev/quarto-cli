@@ -1,5 +1,7 @@
 import { unitTest } from "../../test.ts";
 import { YAMLSchema } from "../../../src/core/schema/yaml-schema.ts";
+import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
+import { asMappedString } from "../../../src/core/mapped-text.ts";
 
 unitTest("schema-validation-hello-world", () => {
 
@@ -26,5 +28,9 @@ what:
     }
   });
 
-  yamlSchema.parseAndValidate(src);
+  // deno-lint-ignore no-explicit-any
+  const fromPlainString = (schema: any, src: string) =>
+    schema.validateParse(asMappedString(src), readAnnotatedYamlFromString(src));
+
+  fromPlainString(yamlSchema, src);
 });
