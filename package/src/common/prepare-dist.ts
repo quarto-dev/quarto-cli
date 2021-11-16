@@ -21,19 +21,21 @@ export async function prepareDist(
   // copy from resources dir to the 'share' dir (which is resources)
   //   config.directoryInfo.share
 
-  info("\nBuilding JS assets");
-  await buildAssets();
-  info("");
-
-  const buildAssetFiles = [
-    "formats/html/ojs/esbuild-bundle.js",
-    "editor/tools/yaml/quarto-json-schemas.json",
-    "editor/tools/yaml/yaml.js"];
-  // - build/core-lib.js, quarto-ojs.js,
-  for (const file of buildAssetFiles) {
-    copySync(join(config.directoryInfo.src, "resources", file),
-             join(config.directoryInfo.share, file))
-  }
+  // FIXME holding off on prepareDist building assets until we fix
+  // this issue: https://github.com/quarto-dev/quarto-cli/runs/4229822735?check_suite_focus=true
+  //
+  // info("\nBuilding JS assets");
+  // await buildAssets();
+  // info("");
+  // const buildAssetFiles = [
+  //   "formats/html/ojs/esbuild-bundle.js",
+  //   "editor/tools/yaml/quarto-json-schemas.json",
+  //   "editor/tools/yaml/yaml.js"];
+  // // - build/core-lib.js, quarto-ojs.js,
+  // for (const file of buildAssetFiles) {
+  //   copySync(join(config.directoryInfo.src, "resources", file),
+  //            join(config.directoryInfo.share, file))
+  // }
 
   // Move the supporting files into place
   info("\nMoving supporting files");

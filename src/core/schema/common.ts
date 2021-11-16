@@ -82,15 +82,10 @@ export function enumSchema(...args: string[])
 
 export function oneOfSchema(...args: Schema[])
 {
-  try {
-    return {
-      "oneOf": args,
-      "description": `be exactly one of: ${args.map(x => x.description.slice(3, )).join(", ")}`
-    };
-  } catch (e) {
-    console.log(args);
-    throw e;
-  }
+  return {
+    "oneOf": args,
+    "description": `be exactly one of: ${args.map(x => x.description.slice(3, )).join(", ")}`
+  };
 }
 
 export function anyOfSchema(...args: Schema[])

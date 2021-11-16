@@ -78,17 +78,8 @@ export function readAnnotatedYamlFromString(yml: string)
     }
   }
 
-  try {
-    const parsed = parse(yml, { listener });
-  } catch (e) {
-    if (e instanceof YAMLError) {
-      // FIXME handle this correctly by taking advantage of mark informationq
-      console.log("YAML Parse error!");
-      console.log(yml);
-    }
-    throw e;
-  }
-  
+  parse(yml, { listener });
+
   if (results.length === 0) {
     return {
       start: 0,

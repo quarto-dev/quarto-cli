@@ -1,953 +1,968 @@
 {
   "schemas": {
     "front-matter": {
-      "type": "object",
-      "description": "be a Quarto YAML front matter object",
-      "properties": {
-        "title": {
-          "type": "string",
-          "description": "be a string"
+      "oneOf": [
+        {
+          "type": "null",
+          "description": "be the null value",
+          "completions": [
+            "null"
+          ],
+          "exhaustiveCompletions": true
         },
-        "execute": {
+        {
           "type": "object",
-          "description": "be an object",
+          "description": "be a Quarto YAML front matter object",
           "properties": {
-            "fig-width": {
-              "type": "number",
-              "description": "be a number"
-            },
-            "fig-height": {
-              "type": "number",
-              "description": "be a number"
-            },
-            "fig-format": {
-              "enum": [
-                "retina",
-                "png",
-                "jpeg",
-                "svg",
-                "pdf"
-              ],
-              "description": "be one of: 'retina', 'png', 'jpeg', 'svg', 'pdf'",
-              "completions": [
-                "retina",
-                "png",
-                "jpeg",
-                "svg",
-                "pdf"
-              ],
-              "exhaustiveCompletions": true
-            },
-            "fig-dpi": {
-              "type": "number",
-              "description": "be a number"
-            },
-            "cache": {
-              "oneOf": [
-                {
-                  "type": "boolean",
-                  "description": "be a boolean value",
-                  "completions": [
-                    "true",
-                    "false"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "type": "null",
-                  "description": "be the null value",
-                  "completions": [
-                    "null"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "enum": [
-                    "refresh"
-                  ],
-                  "description": "be 'refresh'",
-                  "completions": [
-                    "refresh"
-                  ],
-                  "exhaustiveCompletions": true
-                }
-              ],
-              "description": "be exactly one of: a boolean value, the null value, 'refresh'"
-            },
-            "freeze": {
-              "oneOf": [
-                {
-                  "type": "boolean",
-                  "description": "be a boolean value",
-                  "completions": [
-                    "true",
-                    "false"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "enum": [
-                    "auto"
-                  ],
-                  "description": "be 'auto'",
-                  "completions": [
-                    "auto"
-                  ],
-                  "exhaustiveCompletions": true
-                }
-              ],
-              "description": "be exactly one of: a boolean value, 'auto'"
-            },
-            "enabled": {
-              "oneOf": [
-                {
-                  "type": "boolean",
-                  "description": "be a boolean value",
-                  "completions": [
-                    "true",
-                    "false"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "type": "null",
-                  "description": "be the null value",
-                  "completions": [
-                    "null"
-                  ],
-                  "exhaustiveCompletions": true
-                }
-              ],
-              "description": "be exactly one of: a boolean value, the null value"
-            },
-            "ipynb": {
-              "oneOf": [
-                {
-                  "type": "boolean",
-                  "description": "be a boolean value",
-                  "completions": [
-                    "true",
-                    "false"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "type": "null",
-                  "description": "be the null value",
-                  "completions": [
-                    "null"
-                  ],
-                  "exhaustiveCompletions": true
-                }
-              ],
-              "description": "be exactly one of: a boolean value, the null value"
-            },
-            "daemon": {
-              "oneOf": [
-                {
-                  "type": "number",
-                  "description": "be a number"
-                },
-                {
-                  "type": "boolean",
-                  "description": "be a boolean value",
-                  "completions": [
-                    "true",
-                    "false"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "type": "null",
-                  "description": "be the null value",
-                  "completions": [
-                    "null"
-                  ],
-                  "exhaustiveCompletions": true
-                }
-              ],
-              "description": "be exactly one of: a number, a boolean value, the null value"
-            },
-            "daemon-restart": {
-              "type": "boolean",
-              "description": "be a boolean value",
-              "completions": [
-                "true",
-                "false"
-              ],
-              "exhaustiveCompletions": true
-            },
-            "debug": {
-              "type": "boolean",
-              "description": "be a boolean value",
-              "completions": [
-                "true",
-                "false"
-              ],
-              "exhaustiveCompletions": true
-            },
-            "engine": {
+            "title": {
               "type": "string",
               "description": "be a string"
             },
-            "eval": {
-              "oneOf": [
-                {
-                  "type": "boolean",
-                  "description": "be a boolean value",
-                  "completions": [
-                    "true",
-                    "false"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "type": "null",
-                  "description": "be the null value",
-                  "completions": [
-                    "null"
-                  ],
-                  "exhaustiveCompletions": true
-                }
-              ],
-              "description": "be exactly one of: a boolean value, the null value"
-            },
-            "error": {
-              "type": "boolean",
-              "description": "be a boolean value",
-              "completions": [
-                "true",
-                "false"
-              ],
-              "exhaustiveCompletions": true
-            },
-            "echo": {
-              "oneOf": [
-                {
-                  "type": "boolean",
-                  "description": "be a boolean value",
-                  "completions": [
-                    "true",
-                    "false"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "enum": [
-                    "fenced"
-                  ],
-                  "description": "be 'fenced'",
-                  "completions": [
-                    "fenced"
-                  ],
-                  "exhaustiveCompletions": true
-                }
-              ],
-              "description": "be exactly one of: a boolean value, 'fenced'"
-            },
-            "output": {
-              "oneOf": [
-                {
-                  "type": "boolean",
-                  "description": "be a boolean value",
-                  "completions": [
-                    "true",
-                    "false"
-                  ],
-                  "exhaustiveCompletions": true
-                },
-                {
-                  "enum": [
-                    "all",
-                    "asis"
-                  ],
-                  "description": "be one of: 'all', 'asis'",
-                  "completions": [
-                    "all",
-                    "asis"
-                  ],
-                  "exhaustiveCompletions": true
-                }
-              ],
-              "description": "be exactly one of: a boolean value, one of: 'all', 'asis'"
-            },
-            "warning": {
-              "type": "boolean",
-              "description": "be a boolean value",
-              "completions": [
-                "true",
-                "false"
-              ],
-              "exhaustiveCompletions": true
-            },
-            "include": {
-              "type": "boolean",
-              "description": "be a boolean value",
-              "completions": [
-                "true",
-                "false"
-              ],
-              "exhaustiveCompletions": true
-            },
-            "keep-md": {
-              "type": "boolean",
-              "description": "be a boolean value",
-              "completions": [
-                "true",
-                "false"
-              ],
-              "exhaustiveCompletions": true
-            },
-            "keep-ipynb": {
-              "type": "boolean",
-              "description": "be a boolean value",
-              "completions": [
-                "true",
-                "false"
-              ],
-              "exhaustiveCompletions": true
-            }
-          },
-          "completions": [
-            {
-              "type": "key",
-              "display": "fig-width",
-              "value": "fig-width: ",
-              "description": "",
-              "suggest_on_accept": false
-            },
-            {
-              "type": "key",
-              "display": "fig-height",
-              "value": "fig-height: ",
-              "description": "",
-              "suggest_on_accept": false
-            },
-            {
-              "type": "key",
-              "display": "fig-format",
-              "value": "fig-format: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "fig-dpi",
-              "value": "fig-dpi: ",
-              "description": "",
-              "suggest_on_accept": false
-            },
-            {
-              "type": "key",
-              "display": "cache",
-              "value": "cache: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "freeze",
-              "value": "freeze: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "enabled",
-              "value": "enabled: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "ipynb",
-              "value": "ipynb: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "daemon",
-              "value": "daemon: ",
-              "description": "",
-              "suggest_on_accept": false
-            },
-            {
-              "type": "key",
-              "display": "daemon-restart",
-              "value": "daemon-restart: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "debug",
-              "value": "debug: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "engine",
-              "value": "engine: ",
-              "description": "",
-              "suggest_on_accept": false
-            },
-            {
-              "type": "key",
-              "display": "eval",
-              "value": "eval: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "error",
-              "value": "error: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "echo",
-              "value": "echo: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "output",
-              "value": "output: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "warning",
-              "value": "warning: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "include",
-              "value": "include: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "keep-md",
-              "value": "keep-md: ",
-              "description": "",
-              "suggest_on_accept": true
-            },
-            {
-              "type": "key",
-              "display": "keep-ipynb",
-              "value": "keep-ipynb: ",
-              "description": "",
-              "suggest_on_accept": true
-            }
-          ]
-        },
-        "format": {
-          "oneOf": [
-            {
-              "enum": [
-                "html"
-              ],
-              "description": "be 'html'",
-              "completions": [
-                "html"
-              ],
-              "exhaustiveCompletions": true
-            },
-            {
+            "execute": {
               "type": "object",
-              "description": "be an HTML format object",
+              "description": "be an object",
               "properties": {
-                "html": {
-                  "type": "object",
-                  "description": "be an object",
-                  "properties": {
-                    "fig-width": {
-                      "type": "number",
-                      "description": "be a number"
-                    },
-                    "fig-height": {
-                      "type": "number",
-                      "description": "be a number"
-                    },
-                    "fig-format": {
-                      "enum": [
-                        "retina",
-                        "png",
-                        "jpeg",
-                        "svg",
-                        "pdf"
-                      ],
-                      "description": "be one of: 'retina', 'png', 'jpeg', 'svg', 'pdf'",
-                      "completions": [
-                        "retina",
-                        "png",
-                        "jpeg",
-                        "svg",
-                        "pdf"
-                      ],
-                      "exhaustiveCompletions": true
-                    },
-                    "fig-dpi": {
-                      "type": "number",
-                      "description": "be a number"
-                    },
-                    "cache": {
-                      "oneOf": [
-                        {
-                          "type": "boolean",
-                          "description": "be a boolean value",
-                          "completions": [
-                            "true",
-                            "false"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "type": "null",
-                          "description": "be the null value",
-                          "completions": [
-                            "null"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "enum": [
-                            "refresh"
-                          ],
-                          "description": "be 'refresh'",
-                          "completions": [
-                            "refresh"
-                          ],
-                          "exhaustiveCompletions": true
-                        }
-                      ],
-                      "description": "be exactly one of: a boolean value, the null value, 'refresh'"
-                    },
-                    "freeze": {
-                      "oneOf": [
-                        {
-                          "type": "boolean",
-                          "description": "be a boolean value",
-                          "completions": [
-                            "true",
-                            "false"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "enum": [
-                            "auto"
-                          ],
-                          "description": "be 'auto'",
-                          "completions": [
-                            "auto"
-                          ],
-                          "exhaustiveCompletions": true
-                        }
-                      ],
-                      "description": "be exactly one of: a boolean value, 'auto'"
-                    },
-                    "enabled": {
-                      "oneOf": [
-                        {
-                          "type": "boolean",
-                          "description": "be a boolean value",
-                          "completions": [
-                            "true",
-                            "false"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "type": "null",
-                          "description": "be the null value",
-                          "completions": [
-                            "null"
-                          ],
-                          "exhaustiveCompletions": true
-                        }
-                      ],
-                      "description": "be exactly one of: a boolean value, the null value"
-                    },
-                    "ipynb": {
-                      "oneOf": [
-                        {
-                          "type": "boolean",
-                          "description": "be a boolean value",
-                          "completions": [
-                            "true",
-                            "false"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "type": "null",
-                          "description": "be the null value",
-                          "completions": [
-                            "null"
-                          ],
-                          "exhaustiveCompletions": true
-                        }
-                      ],
-                      "description": "be exactly one of: a boolean value, the null value"
-                    },
-                    "daemon": {
-                      "oneOf": [
-                        {
-                          "type": "number",
-                          "description": "be a number"
-                        },
-                        {
-                          "type": "boolean",
-                          "description": "be a boolean value",
-                          "completions": [
-                            "true",
-                            "false"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "type": "null",
-                          "description": "be the null value",
-                          "completions": [
-                            "null"
-                          ],
-                          "exhaustiveCompletions": true
-                        }
-                      ],
-                      "description": "be exactly one of: a number, a boolean value, the null value"
-                    },
-                    "daemon-restart": {
-                      "type": "boolean",
-                      "description": "be a boolean value",
-                      "completions": [
-                        "true",
-                        "false"
-                      ],
-                      "exhaustiveCompletions": true
-                    },
-                    "debug": {
-                      "type": "boolean",
-                      "description": "be a boolean value",
-                      "completions": [
-                        "true",
-                        "false"
-                      ],
-                      "exhaustiveCompletions": true
-                    },
-                    "engine": {
-                      "type": "string",
-                      "description": "be a string"
-                    },
-                    "eval": {
-                      "oneOf": [
-                        {
-                          "type": "boolean",
-                          "description": "be a boolean value",
-                          "completions": [
-                            "true",
-                            "false"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "type": "null",
-                          "description": "be the null value",
-                          "completions": [
-                            "null"
-                          ],
-                          "exhaustiveCompletions": true
-                        }
-                      ],
-                      "description": "be exactly one of: a boolean value, the null value"
-                    },
-                    "error": {
-                      "type": "boolean",
-                      "description": "be a boolean value",
-                      "completions": [
-                        "true",
-                        "false"
-                      ],
-                      "exhaustiveCompletions": true
-                    },
-                    "echo": {
-                      "oneOf": [
-                        {
-                          "type": "boolean",
-                          "description": "be a boolean value",
-                          "completions": [
-                            "true",
-                            "false"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "enum": [
-                            "fenced"
-                          ],
-                          "description": "be 'fenced'",
-                          "completions": [
-                            "fenced"
-                          ],
-                          "exhaustiveCompletions": true
-                        }
-                      ],
-                      "description": "be exactly one of: a boolean value, 'fenced'"
-                    },
-                    "output": {
-                      "oneOf": [
-                        {
-                          "type": "boolean",
-                          "description": "be a boolean value",
-                          "completions": [
-                            "true",
-                            "false"
-                          ],
-                          "exhaustiveCompletions": true
-                        },
-                        {
-                          "enum": [
-                            "all",
-                            "asis"
-                          ],
-                          "description": "be one of: 'all', 'asis'",
-                          "completions": [
-                            "all",
-                            "asis"
-                          ],
-                          "exhaustiveCompletions": true
-                        }
-                      ],
-                      "description": "be exactly one of: a boolean value, one of: 'all', 'asis'"
-                    },
-                    "warning": {
-                      "type": "boolean",
-                      "description": "be a boolean value",
-                      "completions": [
-                        "true",
-                        "false"
-                      ],
-                      "exhaustiveCompletions": true
-                    },
-                    "include": {
-                      "type": "boolean",
-                      "description": "be a boolean value",
-                      "completions": [
-                        "true",
-                        "false"
-                      ],
-                      "exhaustiveCompletions": true
-                    },
-                    "keep-md": {
-                      "type": "boolean",
-                      "description": "be a boolean value",
-                      "completions": [
-                        "true",
-                        "false"
-                      ],
-                      "exhaustiveCompletions": true
-                    },
-                    "keep-ipynb": {
-                      "type": "boolean",
-                      "description": "be a boolean value",
-                      "completions": [
-                        "true",
-                        "false"
-                      ],
-                      "exhaustiveCompletions": true
-                    }
-                  },
+                "fig-width": {
+                  "type": "number",
+                  "description": "be a number"
+                },
+                "fig-height": {
+                  "type": "number",
+                  "description": "be a number"
+                },
+                "fig-format": {
+                  "enum": [
+                    "retina",
+                    "png",
+                    "jpeg",
+                    "svg",
+                    "pdf"
+                  ],
+                  "description": "be one of: 'retina', 'png', 'jpeg', 'svg', 'pdf'",
                   "completions": [
+                    "retina",
+                    "png",
+                    "jpeg",
+                    "svg",
+                    "pdf"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                "fig-dpi": {
+                  "type": "number",
+                  "description": "be a number"
+                },
+                "cache": {
+                  "oneOf": [
                     {
-                      "type": "key",
-                      "display": "fig-width",
-                      "value": "fig-width: ",
-                      "description": "",
-                      "suggest_on_accept": false
+                      "type": "boolean",
+                      "description": "be a boolean value",
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     {
-                      "type": "key",
-                      "display": "fig-height",
-                      "value": "fig-height: ",
-                      "description": "",
-                      "suggest_on_accept": false
+                      "type": "null",
+                      "description": "be the null value",
+                      "completions": [
+                        "null"
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     {
-                      "type": "key",
-                      "display": "fig-format",
-                      "value": "fig-format: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "fig-dpi",
-                      "value": "fig-dpi: ",
-                      "description": "",
-                      "suggest_on_accept": false
-                    },
-                    {
-                      "type": "key",
-                      "display": "cache",
-                      "value": "cache: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "freeze",
-                      "value": "freeze: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "enabled",
-                      "value": "enabled: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "ipynb",
-                      "value": "ipynb: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "daemon",
-                      "value": "daemon: ",
-                      "description": "",
-                      "suggest_on_accept": false
-                    },
-                    {
-                      "type": "key",
-                      "display": "daemon-restart",
-                      "value": "daemon-restart: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "debug",
-                      "value": "debug: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "engine",
-                      "value": "engine: ",
-                      "description": "",
-                      "suggest_on_accept": false
-                    },
-                    {
-                      "type": "key",
-                      "display": "eval",
-                      "value": "eval: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "error",
-                      "value": "error: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "echo",
-                      "value": "echo: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "output",
-                      "value": "output: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "warning",
-                      "value": "warning: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "include",
-                      "value": "include: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "keep-md",
-                      "value": "keep-md: ",
-                      "description": "",
-                      "suggest_on_accept": true
-                    },
-                    {
-                      "type": "key",
-                      "display": "keep-ipynb",
-                      "value": "keep-ipynb: ",
-                      "description": "",
-                      "suggest_on_accept": true
+                      "enum": [
+                        "refresh"
+                      ],
+                      "description": "be 'refresh'",
+                      "completions": [
+                        "refresh"
+                      ],
+                      "exhaustiveCompletions": true
                     }
-                  ]
+                  ],
+                  "description": "be exactly one of: a boolean value, the null value, 'refresh'"
+                },
+                "freeze": {
+                  "oneOf": [
+                    {
+                      "type": "boolean",
+                      "description": "be a boolean value",
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
+                      "exhaustiveCompletions": true
+                    },
+                    {
+                      "enum": [
+                        "auto"
+                      ],
+                      "description": "be 'auto'",
+                      "completions": [
+                        "auto"
+                      ],
+                      "exhaustiveCompletions": true
+                    }
+                  ],
+                  "description": "be exactly one of: a boolean value, 'auto'"
+                },
+                "enabled": {
+                  "oneOf": [
+                    {
+                      "type": "boolean",
+                      "description": "be a boolean value",
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
+                      "exhaustiveCompletions": true
+                    },
+                    {
+                      "type": "null",
+                      "description": "be the null value",
+                      "completions": [
+                        "null"
+                      ],
+                      "exhaustiveCompletions": true
+                    }
+                  ],
+                  "description": "be exactly one of: a boolean value, the null value"
+                },
+                "ipynb": {
+                  "oneOf": [
+                    {
+                      "type": "boolean",
+                      "description": "be a boolean value",
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
+                      "exhaustiveCompletions": true
+                    },
+                    {
+                      "type": "null",
+                      "description": "be the null value",
+                      "completions": [
+                        "null"
+                      ],
+                      "exhaustiveCompletions": true
+                    }
+                  ],
+                  "description": "be exactly one of: a boolean value, the null value"
+                },
+                "daemon": {
+                  "oneOf": [
+                    {
+                      "type": "number",
+                      "description": "be a number"
+                    },
+                    {
+                      "type": "boolean",
+                      "description": "be a boolean value",
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
+                      "exhaustiveCompletions": true
+                    },
+                    {
+                      "type": "null",
+                      "description": "be the null value",
+                      "completions": [
+                        "null"
+                      ],
+                      "exhaustiveCompletions": true
+                    }
+                  ],
+                  "description": "be exactly one of: a number, a boolean value, the null value"
+                },
+                "daemon-restart": {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                "debug": {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                "engine": {
+                  "type": "string",
+                  "description": "be a string"
+                },
+                "eval": {
+                  "oneOf": [
+                    {
+                      "type": "boolean",
+                      "description": "be a boolean value",
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
+                      "exhaustiveCompletions": true
+                    },
+                    {
+                      "type": "null",
+                      "description": "be the null value",
+                      "completions": [
+                        "null"
+                      ],
+                      "exhaustiveCompletions": true
+                    }
+                  ],
+                  "description": "be exactly one of: a boolean value, the null value"
+                },
+                "error": {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                "echo": {
+                  "oneOf": [
+                    {
+                      "type": "boolean",
+                      "description": "be a boolean value",
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
+                      "exhaustiveCompletions": true
+                    },
+                    {
+                      "enum": [
+                        "fenced"
+                      ],
+                      "description": "be 'fenced'",
+                      "completions": [
+                        "fenced"
+                      ],
+                      "exhaustiveCompletions": true
+                    }
+                  ],
+                  "description": "be exactly one of: a boolean value, 'fenced'"
+                },
+                "output": {
+                  "oneOf": [
+                    {
+                      "type": "boolean",
+                      "description": "be a boolean value",
+                      "completions": [
+                        "true",
+                        "false"
+                      ],
+                      "exhaustiveCompletions": true
+                    },
+                    {
+                      "enum": [
+                        "all",
+                        "asis"
+                      ],
+                      "description": "be one of: 'all', 'asis'",
+                      "completions": [
+                        "all",
+                        "asis"
+                      ],
+                      "exhaustiveCompletions": true
+                    }
+                  ],
+                  "description": "be exactly one of: a boolean value, one of: 'all', 'asis'"
+                },
+                "warning": {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                "include": {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                "keep-md": {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                "keep-ipynb": {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
                 }
               },
               "completions": [
                 {
                   "type": "key",
-                  "display": "html",
-                  "value": "html: ",
+                  "display": "fig-width",
+                  "value": "fig-width: ",
+                  "description": "",
+                  "suggest_on_accept": false
+                },
+                {
+                  "type": "key",
+                  "display": "fig-height",
+                  "value": "fig-height: ",
+                  "description": "",
+                  "suggest_on_accept": false
+                },
+                {
+                  "type": "key",
+                  "display": "fig-format",
+                  "value": "fig-format: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "fig-dpi",
+                  "value": "fig-dpi: ",
+                  "description": "",
+                  "suggest_on_accept": false
+                },
+                {
+                  "type": "key",
+                  "display": "cache",
+                  "value": "cache: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "freeze",
+                  "value": "freeze: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "enabled",
+                  "value": "enabled: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "ipynb",
+                  "value": "ipynb: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "daemon",
+                  "value": "daemon: ",
+                  "description": "",
+                  "suggest_on_accept": false
+                },
+                {
+                  "type": "key",
+                  "display": "daemon-restart",
+                  "value": "daemon-restart: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "debug",
+                  "value": "debug: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "engine",
+                  "value": "engine: ",
+                  "description": "",
+                  "suggest_on_accept": false
+                },
+                {
+                  "type": "key",
+                  "display": "eval",
+                  "value": "eval: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "error",
+                  "value": "error: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "echo",
+                  "value": "echo: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "output",
+                  "value": "output: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "warning",
+                  "value": "warning: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "include",
+                  "value": "include: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "keep-md",
+                  "value": "keep-md: ",
+                  "description": "",
+                  "suggest_on_accept": true
+                },
+                {
+                  "type": "key",
+                  "display": "keep-ipynb",
+                  "value": "keep-ipynb: ",
                   "description": "",
                   "suggest_on_accept": true
                 }
               ]
+            },
+            "format": {
+              "oneOf": [
+                {
+                  "enum": [
+                    "html",
+                    "pdf"
+                  ],
+                  "description": "be one of: 'html', 'pdf'",
+                  "completions": [
+                    "html",
+                    "pdf"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                {
+                  "type": "object",
+                  "description": "be an HTML format object",
+                  "properties": {
+                    "html": {
+                      "type": "object",
+                      "description": "be an object",
+                      "properties": {
+                        "fig-width": {
+                          "type": "number",
+                          "description": "be a number"
+                        },
+                        "fig-height": {
+                          "type": "number",
+                          "description": "be a number"
+                        },
+                        "fig-format": {
+                          "enum": [
+                            "retina",
+                            "png",
+                            "jpeg",
+                            "svg",
+                            "pdf"
+                          ],
+                          "description": "be one of: 'retina', 'png', 'jpeg', 'svg', 'pdf'",
+                          "completions": [
+                            "retina",
+                            "png",
+                            "jpeg",
+                            "svg",
+                            "pdf"
+                          ],
+                          "exhaustiveCompletions": true
+                        },
+                        "fig-dpi": {
+                          "type": "number",
+                          "description": "be a number"
+                        },
+                        "cache": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "be a boolean value",
+                              "completions": [
+                                "true",
+                                "false"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "type": "null",
+                              "description": "be the null value",
+                              "completions": [
+                                "null"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "enum": [
+                                "refresh"
+                              ],
+                              "description": "be 'refresh'",
+                              "completions": [
+                                "refresh"
+                              ],
+                              "exhaustiveCompletions": true
+                            }
+                          ],
+                          "description": "be exactly one of: a boolean value, the null value, 'refresh'"
+                        },
+                        "freeze": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "be a boolean value",
+                              "completions": [
+                                "true",
+                                "false"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "enum": [
+                                "auto"
+                              ],
+                              "description": "be 'auto'",
+                              "completions": [
+                                "auto"
+                              ],
+                              "exhaustiveCompletions": true
+                            }
+                          ],
+                          "description": "be exactly one of: a boolean value, 'auto'"
+                        },
+                        "enabled": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "be a boolean value",
+                              "completions": [
+                                "true",
+                                "false"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "type": "null",
+                              "description": "be the null value",
+                              "completions": [
+                                "null"
+                              ],
+                              "exhaustiveCompletions": true
+                            }
+                          ],
+                          "description": "be exactly one of: a boolean value, the null value"
+                        },
+                        "ipynb": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "be a boolean value",
+                              "completions": [
+                                "true",
+                                "false"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "type": "null",
+                              "description": "be the null value",
+                              "completions": [
+                                "null"
+                              ],
+                              "exhaustiveCompletions": true
+                            }
+                          ],
+                          "description": "be exactly one of: a boolean value, the null value"
+                        },
+                        "daemon": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "description": "be a number"
+                            },
+                            {
+                              "type": "boolean",
+                              "description": "be a boolean value",
+                              "completions": [
+                                "true",
+                                "false"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "type": "null",
+                              "description": "be the null value",
+                              "completions": [
+                                "null"
+                              ],
+                              "exhaustiveCompletions": true
+                            }
+                          ],
+                          "description": "be exactly one of: a number, a boolean value, the null value"
+                        },
+                        "daemon-restart": {
+                          "type": "boolean",
+                          "description": "be a boolean value",
+                          "completions": [
+                            "true",
+                            "false"
+                          ],
+                          "exhaustiveCompletions": true
+                        },
+                        "debug": {
+                          "type": "boolean",
+                          "description": "be a boolean value",
+                          "completions": [
+                            "true",
+                            "false"
+                          ],
+                          "exhaustiveCompletions": true
+                        },
+                        "engine": {
+                          "type": "string",
+                          "description": "be a string"
+                        },
+                        "eval": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "be a boolean value",
+                              "completions": [
+                                "true",
+                                "false"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "type": "null",
+                              "description": "be the null value",
+                              "completions": [
+                                "null"
+                              ],
+                              "exhaustiveCompletions": true
+                            }
+                          ],
+                          "description": "be exactly one of: a boolean value, the null value"
+                        },
+                        "error": {
+                          "type": "boolean",
+                          "description": "be a boolean value",
+                          "completions": [
+                            "true",
+                            "false"
+                          ],
+                          "exhaustiveCompletions": true
+                        },
+                        "echo": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "be a boolean value",
+                              "completions": [
+                                "true",
+                                "false"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "enum": [
+                                "fenced"
+                              ],
+                              "description": "be 'fenced'",
+                              "completions": [
+                                "fenced"
+                              ],
+                              "exhaustiveCompletions": true
+                            }
+                          ],
+                          "description": "be exactly one of: a boolean value, 'fenced'"
+                        },
+                        "output": {
+                          "oneOf": [
+                            {
+                              "type": "boolean",
+                              "description": "be a boolean value",
+                              "completions": [
+                                "true",
+                                "false"
+                              ],
+                              "exhaustiveCompletions": true
+                            },
+                            {
+                              "enum": [
+                                "all",
+                                "asis"
+                              ],
+                              "description": "be one of: 'all', 'asis'",
+                              "completions": [
+                                "all",
+                                "asis"
+                              ],
+                              "exhaustiveCompletions": true
+                            }
+                          ],
+                          "description": "be exactly one of: a boolean value, one of: 'all', 'asis'"
+                        },
+                        "warning": {
+                          "type": "boolean",
+                          "description": "be a boolean value",
+                          "completions": [
+                            "true",
+                            "false"
+                          ],
+                          "exhaustiveCompletions": true
+                        },
+                        "include": {
+                          "type": "boolean",
+                          "description": "be a boolean value",
+                          "completions": [
+                            "true",
+                            "false"
+                          ],
+                          "exhaustiveCompletions": true
+                        },
+                        "keep-md": {
+                          "type": "boolean",
+                          "description": "be a boolean value",
+                          "completions": [
+                            "true",
+                            "false"
+                          ],
+                          "exhaustiveCompletions": true
+                        },
+                        "keep-ipynb": {
+                          "type": "boolean",
+                          "description": "be a boolean value",
+                          "completions": [
+                            "true",
+                            "false"
+                          ],
+                          "exhaustiveCompletions": true
+                        }
+                      },
+                      "completions": [
+                        {
+                          "type": "key",
+                          "display": "fig-width",
+                          "value": "fig-width: ",
+                          "description": "",
+                          "suggest_on_accept": false
+                        },
+                        {
+                          "type": "key",
+                          "display": "fig-height",
+                          "value": "fig-height: ",
+                          "description": "",
+                          "suggest_on_accept": false
+                        },
+                        {
+                          "type": "key",
+                          "display": "fig-format",
+                          "value": "fig-format: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "fig-dpi",
+                          "value": "fig-dpi: ",
+                          "description": "",
+                          "suggest_on_accept": false
+                        },
+                        {
+                          "type": "key",
+                          "display": "cache",
+                          "value": "cache: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "freeze",
+                          "value": "freeze: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "enabled",
+                          "value": "enabled: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "ipynb",
+                          "value": "ipynb: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "daemon",
+                          "value": "daemon: ",
+                          "description": "",
+                          "suggest_on_accept": false
+                        },
+                        {
+                          "type": "key",
+                          "display": "daemon-restart",
+                          "value": "daemon-restart: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "debug",
+                          "value": "debug: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "engine",
+                          "value": "engine: ",
+                          "description": "",
+                          "suggest_on_accept": false
+                        },
+                        {
+                          "type": "key",
+                          "display": "eval",
+                          "value": "eval: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "error",
+                          "value": "error: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "echo",
+                          "value": "echo: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "output",
+                          "value": "output: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "warning",
+                          "value": "warning: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "include",
+                          "value": "include: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "keep-md",
+                          "value": "keep-md: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        },
+                        {
+                          "type": "key",
+                          "display": "keep-ipynb",
+                          "value": "keep-ipynb: ",
+                          "description": "",
+                          "suggest_on_accept": true
+                        }
+                      ]
+                    }
+                  },
+                  "completions": [
+                    {
+                      "type": "key",
+                      "display": "html",
+                      "value": "html: ",
+                      "description": "",
+                      "suggest_on_accept": true
+                    }
+                  ]
+                }
+              ],
+              "description": "be exactly one of: one of: 'html', 'pdf', an HTML format object"
             }
-          ],
-          "description": "be exactly one of: 'html', an HTML format object"
+          },
+          "completions": [
+            {
+              "type": "key",
+              "display": "title",
+              "value": "title: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "type": "key",
+              "display": "execute",
+              "value": "execute: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "type": "key",
+              "display": "format",
+              "value": "format: ",
+              "description": "",
+              "suggest_on_accept": true
+            }
+          ]
         }
-      },
-      "completions": [
-        {
-          "type": "key",
-          "display": "title",
-          "value": "title: ",
-          "description": "",
-          "suggest_on_accept": false
-        },
-        {
-          "type": "key",
-          "display": "execute",
-          "value": "execute: ",
-          "description": "",
-          "suggest_on_accept": true
-        },
-        {
-          "type": "key",
-          "display": "format",
-          "value": "format: ",
-          "description": "",
-          "suggest_on_accept": true
-        }
-      ]
+      ],
+      "description": "be exactly one of: the null value, a Quarto YAML front matter object"
     },
     "config": {
       "type": "object",
@@ -1548,11 +1563,13 @@
           "oneOf": [
             {
               "enum": [
-                "html"
+                "html",
+                "pdf"
               ],
-              "description": "be 'html'",
+              "description": "be one of: 'html', 'pdf'",
               "completions": [
-                "html"
+                "html",
+                "pdf"
               ],
               "exhaustiveCompletions": true
             },
@@ -2015,7 +2032,7 @@
               ]
             }
           ],
-          "description": "be exactly one of: 'html', an HTML format object"
+          "description": "be exactly one of: one of: 'html', 'pdf', an HTML format object"
         }
       },
       "completions": [

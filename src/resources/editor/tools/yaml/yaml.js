@@ -12574,8 +12574,7 @@ window.ajv = new window.ajv7({ allErrors: true });
       const subSchema = schema.items;
       return navigateSchema(path, subSchema, pathIndex + 1);
     } else {
-      console.log({ path });
-      throw new Error("Internal error: Failed to navigate schema path");
+      throw new Error(`Internal error: Failed to navigate schema path ${path}`);
     }
   }
   function isProperPrefix(a, b) {
@@ -12707,13 +12706,13 @@ window.ajv = new window.ajv7({ allErrors: true });
         };
       }
     }
-    reportErrorsInSource(result, src, message, error) {
+    reportErrorsInSource(result, src, message, error, log) {
       if (result.errors.length) {
         const locF = mappedIndexToRowCol(src);
         const nLines = lines(src.originalString).length;
         error(message);
         for (const err of result.errors) {
-          console.log(err.message);
+          log(err.message);
           let startO = err.violatingObject.start;
           let endO = err.violatingObject.end;
           while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
@@ -12729,20 +12728,20 @@ window.ajv = new window.ajv7({ allErrors: true });
             lines: lines2
           } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
           for (const { lineNumber, content, rawLine } of lines2) {
-            console.log(content);
+            log(content);
             if (lineNumber >= start.line && lineNumber <= end.line) {
               const startColumn = lineNumber > start.line ? 0 : start.column;
               const endColumn = lineNumber < end.line ? rawLine.length : end.column;
-              console.log(" ".repeat(prefixWidth + startColumn) + "^".repeat(endColumn - startColumn + 1));
+              log(" ".repeat(prefixWidth + startColumn) + "^".repeat(endColumn - startColumn + 1));
             }
           }
         }
       }
       return result;
     }
-    validateParseWithErrors(src, annotation, message, error) {
+    validateParseWithErrors(src, annotation, message, error, log) {
       const result = this.validateParse(src, annotation);
-      this.reportErrorsInSource(result, src, message, error);
+      this.reportErrorsInSource(result, src, message, error, log);
       return result;
     }
   };
