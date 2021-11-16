@@ -10,9 +10,7 @@ export function glb<T, U>(
   value: U,
   compare?: (a: U, b: T) => number,
 ) {
-  if (compare === undefined) {
-    compare = (a: unknown, b: unknown) => (a as number) - (b as number);
-  }
+  compare = compare ?? ((a: unknown, b: unknown) => (a as number) - (b as number));
   if (array.length === 0) {
     return -1;
   }

@@ -14,9 +14,7 @@ export async function esbuildCompile(
   args?: string[],
   format?: "esm" | "iife",
 ): Promise<string | undefined> {
-  if (format === undefined) {
-    format = "esm";
-  }
+  format = format ?? "esm";
   const fullArgs = [
     "--bundle",
     `--format=${format}`,
