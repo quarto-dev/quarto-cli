@@ -12,6 +12,7 @@ import {
   oneOfSchema as oneOfS,
   anySchema as anyS,
   objectSchema as objectS,
+  NullSchema as nullS,
   enumSchema as enumS,
 } from "./common.ts";
 
@@ -42,7 +43,7 @@ import {
 } from "./yaml-schema.ts";
 
 import {
-  error
+  error, info
 } from "log/mod.ts";
 
 import {
@@ -63,31 +64,38 @@ export const htmlFormatSchema = objectS({
 });
 
 export const frontMatterFormatSchema = oneOfS(
-  enumS("html"),
-  htmlFormatSchema
+  enumS("html", "pdf"),
+  htmlFormatSchema,
 );
 
-export const frontMatterSchema = objectS({
-  properties: {
-    title: StringS,
-    execute,
-    format: frontMatterFormatSchema
-  },
-  description: "be a Quarto YAML front matter object"
-});
+// for empty front matter, we return `null`, so we need to allow that
+// as well.
+export const frontMatterSchema = oneOfS(
+  nullS,
+  objectS({
+    properties: {
+      title: StringS,
+      execute,
+      format: frontMatterFormatSchema
+    },
+    description: "be a Quarto YAML front matter object"
+  })
+);
 
 const frontMatter = new YAMLSchema(frontMatterSchema);
 
 export function validateYAMLFrontMatter(context: RenderContext)
 {
-  const source = asMappedString(Deno.readTextFileSync(context.target.source));
+  const source = asMappedString(context.target.markdown);
   const nb = breakQuartoMd(source);
   if (nb.cells.length < 1) {
     throw new Error("Couldn't find YAML front matter");
   }
   const firstCell = nb.cells[0];
   if (!firstCell.source.value.startsWith("---")) {
-    throw new Error("Expected front matter to start with '---'");
+    // we consider this document to not have a front matter
+    // so we return an empty "valid" result
+    return null;
   }
   if (!firstCell.source.value.endsWith("---")) {
     throw new Error("Expected front matter to end with '---'");
@@ -100,5 +108,5 @@ export function validateYAMLFrontMatter(context: RenderContext)
 
   const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
   return frontMatter.validateParseWithErrors(
-    frontMatterText, annotation, "Validation of YAML front matter failed.", error);
+    frontMatterText, annotation, "Validation of YAML front matter failed.", error, info);
 }

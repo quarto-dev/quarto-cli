@@ -88,6 +88,16 @@ export function readAnnotatedYamlFromString(yml: string)
     }
     throw e;
   }
+  
+  if (results.length === 0) {
+    return {
+      start: 0,
+      end: 0,
+      result: null,
+      kind: "null",
+      components: []
+    }
+  }
   if (results.length !== 1) {
     throw new Error(`Internal Error - expected a single result, got ${results.length} instead`);
   }

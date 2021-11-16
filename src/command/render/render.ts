@@ -191,9 +191,11 @@ export async function renderFiles(
         );
 
         // validate the YAML front matter in the document
-        const validationResult = validateYAMLFrontMatter(context);
-        if (validationResult.errors.length > 0) {
-          throw new Error("Front matter validation failed - exiting.");
+        if (context.target.markdown !== "") {
+          const validationResult = validateYAMLFrontMatter(context);
+          if (validationResult !== null && validationResult.errors.length > 0) {
+            throw new Error("Front matter validation failed - exiting.");
+          }
         }
 
         // FIXME it should be possible to infer this directly now

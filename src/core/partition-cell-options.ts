@@ -6,7 +6,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { error } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 
 import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./lib/ranged-text.ts";
 import { asMappedString, mappedString, MappedString } from "./lib/mapped-text.ts";
@@ -134,7 +134,8 @@ export function partitionCellOptionsMapped(
         errors: yamlValidationErrors
       }, mappedYaml!,
       `Validation of YAML ${language} chunk options failed`,
-      error
+      error,
+      info
     );
   }
   

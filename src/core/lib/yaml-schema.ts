@@ -155,8 +155,7 @@ function navigateSchema(
     const subSchema = schema.items;
     return navigateSchema(path, subSchema, pathIndex + 1);
   } else {
-    console.log({ path });
-    throw new Error("Internal error: Failed to navigate schema path");
+    throw new Error(`Internal error: Failed to navigate schema path ${path}`);
   }
 }
 
@@ -433,19 +432,24 @@ export class YAMLSchema {
     }
   }
 
+  // NB this needs explicit params for "error" and "log" because it might
+  // get called from the IDE, where we lack quarto's "error" and "log"
+  // infra
   reportErrorsInSource(
     result: ValidatedParseResult,
     src: MappedString,
     message: string,
     // deno-lint-ignore no-explicit-any
     error: (a: string) => any,
+    // deno-lint-ignore no-explicit-any
+    log: (a: string) => any
   ) {
     if (result.errors.length) {
       const locF = mappedIndexToRowCol(src);
       const nLines = lines(src.originalString).length;
       error(message);
       for (const err of result.errors) {
-        console.log(err.message);
+        log(err.message);
         // attempt to trim whitespace from error report
         let startO = err.violatingObject.start;
         let endO = err.violatingObject.end;
@@ -461,12 +465,6 @@ export class YAMLSchema {
         ) {
           endO--;
         }
-        // FIXME figure out why we're off by one at the end of subM here.
-        // console.log({
-        //   startO, endO, originalString: src.originalString, char: src.originalString[startO],
-        //   sub: src.originalString.substring(startO, endO),
-        //   subM: src.originalString.substring(src.mapClosest(startO)!, src.mapClosest(endO)!)
-        // });
         const start = locF(startO);
         const end = locF(endO);
         const {
@@ -478,13 +476,13 @@ export class YAMLSchema {
           Math.min(end.line + 1, nLines - 1),
         );
         for (const { lineNumber, content, rawLine } of lines) {
-          console.log(content);
+          log(content);
           if (lineNumber >= start.line && lineNumber <= end.line) {
             const startColumn = (lineNumber > start.line ? 0 : start.column);
             const endColumn = (lineNumber < end.line
               ? rawLine.length
               : end.column);
-            console.log(
+            log(
               " ".repeat(prefixWidth + startColumn) +
                 "^".repeat(endColumn - startColumn + 1),
             );
@@ -495,15 +493,20 @@ export class YAMLSchema {
     return result;
   }
 
+  // NB this needs explicit params for "error" and "log" because it might
+  // get called from the IDE, where we lack quarto's "error" and "log"
+  // infra
   validateParseWithErrors(
     src: MappedString,
     annotation: AnnotatedParse,
     message: string,
     // deno-lint-ignore no-explicit-any
     error: (a: string) => any,
+    // deno-lint-ignore no-explicit-any
+    log: (a: string) => any
   ) {
     const result = this.validateParse(src, annotation);
-    this.reportErrorsInSource(result, src, message, error);
+    this.reportErrorsInSource(result, src, message, error, log);
     return result;
   }
 }
