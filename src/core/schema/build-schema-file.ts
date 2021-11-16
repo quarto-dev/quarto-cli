@@ -8,9 +8,9 @@
 *
 */
 
-import { frontMatterSchema } from "../../core/schema/front-matter.ts";
-import { configSchema } from "../../core/schema/config.ts";
-import { languageOptionsValidators } from "../../core/schema/chunk-metadata.ts";
+import { frontMatterSchema } from "./front-matter.ts";
+import { configSchema } from "./config.ts";
+import { languageOptionsValidators } from "./chunk-metadata.ts";
 import { join } from "path/mod.ts";
 
 const obj = {

@@ -12,9 +12,7 @@ import { copy } from "fs/mod.ts";
 import { lines } from "../../core/text.ts";
 import { execProcess } from "../../core/process.ts";
 import { esbuildCompile } from "../../core/esbuild.ts";
-
-// FIXME this should be moved to a better place now that it's an actual TS module rather than a script
-import { buildSchemaFile } from "../../resources/build/build-schema-file.ts";
+import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
 
 async function buildCoreLib(resourceDir: string) {
   const src = await esbuildCompile(
@@ -63,7 +61,7 @@ async function buildYAMLJS(resourceDir: string) {
   return Deno.writeTextFile(join(path, "yaml.js"), files.join(""));
 }
 
-async function buildAssets() {
+export async function buildAssets() {
   const result = await execProcess({
     cmd: ["quarto", "--paths"],
     stdout: "piped",
