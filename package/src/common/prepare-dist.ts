@@ -12,10 +12,29 @@ import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { info } from "log/mod.ts";
+import { buildAssets } from "../../../src/command/build-js/cmd.ts";
 
 export async function prepareDist(
   config: Configuration,
 ) {
+  // run esbuild
+  // copy from resources dir to the 'share' dir (which is resources)
+  //   config.directoryInfo.share
+
+  info("\nBuilding JS assets");
+  await buildAssets();
+  info("");
+
+  const buildAssetFiles = [
+    "formats/html/ojs/esbuild-bundle.js",
+    "editor/tools/yaml/quarto-json-schemas.json",
+    "editor/tools/yaml/yaml.js"];
+  // - build/core-lib.js, quarto-ojs.js,
+  for (const file of buildAssetFiles) {
+    copySync(join(config.directoryInfo.src, "resources", file),
+             join(config.directoryInfo.share, file))
+  }
+
   // Move the supporting files into place
   info("\nMoving supporting files");
   supportingFiles(config);

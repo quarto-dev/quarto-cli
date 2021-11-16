@@ -11876,7 +11876,7 @@ window.ajv = new window.ajv7({ allErrors: true });
 (() => {
   // ../../../build/core-lib.js
   function glb(array, value, compare) {
-    compare = compare ?? ((a, b) => a - b);
+    compare = compare || ((a, b) => a - b);
     if (array.length === 0) {
       return -1;
     }
@@ -12963,6 +12963,17 @@ window.ajv = new window.ajv7({ allErrors: true });
     };
   }
 
+  // paths.js
+  var mainPath;
+  function setMainPath(path) {
+    mainPath = path;
+  }
+  function getLocalPath(filename) {
+    const result = new window.URL(mainPath);
+    result.pathname = [...result.pathname.split("/").slice(0, -1), filename].join("/");
+    return result.toString();
+  }
+
   // parsing.js
   var _parser;
   async function getTreeSitter() {
@@ -12972,7 +12983,7 @@ window.ajv = new window.ajv7({ allErrors: true });
     const Parser = window.TreeSitter;
     await Parser.init();
     _parser = new Parser();
-    const YAML = await Parser.Language.load("/quarto/resources/editor/tools/yaml/tree-sitter-yaml.wasm");
+    const YAML = await Parser.Language.load(getLocalPath("tree-sitter-yaml.wasm"));
     _parser.setLanguage(YAML);
     return _parser;
   }
@@ -13132,7 +13143,7 @@ window.ajv = new window.ajv7({ allErrors: true });
     if (_schemas) {
       return _schemas;
     }
-    const response = await fetch("/quarto/resources/editor/tools/yaml/quarto-json-schemas.json");
+    const response = await fetch(getLocalPath("quarto-json-schemas.json"));
     _schemas = response.json();
     return _schemas;
   }
@@ -13567,16 +13578,18 @@ window.ajv = new window.ajv7({ allErrors: true });
     return result || null;
   }
   window.QuartoYamlEditorTools = {
-    getCompletions: async function(context) {
+    getCompletions: async function(context, path) {
       try {
+        setMainPath(path);
         return getAutomation("completions", context);
       } catch (e) {
         console.log("Error found during autocomplete", e);
         return null;
       }
     },
-    getLint: async function(context) {
+    getLint: async function(context, path) {
       try {
+        setMainPath(path);
         setupAjv(window.ajv);
         return getAutomation("validation", context);
       } catch (e) {
