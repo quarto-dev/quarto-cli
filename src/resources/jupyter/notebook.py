@@ -178,8 +178,11 @@ def notebook_execute(options, status):
       nb_write(client.nb, input)
       nb_cache.cache_notebook_file(path = Path(input), overwrite = True)
 
-   # remove setup cell
+   # remove setup cell (then renumber execution_Count)
    client.nb.cells.pop(0)
+   for index, cell in enumerate(client.nb.cells):
+      if cell.cell_type == 'code':
+         cell.execution_count = cell.execution_count - 1
 
    # re-write without setup cell
    nb_write(client.nb, input)
