@@ -405,15 +405,6 @@ export class YAMLSchema {
     this.validate = ajv.compile(normalizeSchema(schema));
   }
 
-  // FIXME this is the old method before YAMLSchema was used in both IDE and Deno
-  // envs
-  //
-  // parseAndValidate(src: MappedString)
-  // {
-  //   const annotation = readAnnotatedYamlFromMappedString(src);
-  //   return this.validateParse(src, annotation);
-  // }
-
   validateParse(
     src: MappedString,
     annotation: AnnotatedParse,
