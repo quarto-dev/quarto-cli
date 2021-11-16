@@ -5,7 +5,10 @@
 *
 */
 
-import { readYamlFromMarkdownFile } from "../core/yaml.ts";
+import {
+  readYamlFromMarkdown,
+  readYamlFromMarkdownFile,
+} from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { Metadata } from "../config/types.ts";
@@ -40,10 +43,12 @@ export const markdownEngine: ExecutionEngine = {
   },
 
   target: (file: string) => {
+    const markdown = Deno.readTextFileSync(file);
     return Promise.resolve({
       source: file,
       input: file,
-      metadata: readYamlFromMarkdownFile(file) as Metadata,
+      markdown,
+      metadata: readYamlFromMarkdown(markdown),
     });
   },
 

@@ -11,7 +11,10 @@ import * as colors from "fmt/colors.ts";
 
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
-import { readYamlFromMarkdownFile } from "../core/yaml.ts";
+import {
+  readYamlFromMarkdown,
+  readYamlFromMarkdownFile,
+} from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { kCodeLink } from "../config/constants.ts";
@@ -61,10 +64,12 @@ export const knitrEngine: ExecutionEngine = {
   },
 
   target: (file: string, _quiet?: boolean) => {
+    const markdown = Deno.readTextFileSync(file);
     return Promise.resolve({
       source: file,
       input: file,
-      metadata: readYamlFromMarkdownFile(file),
+      markdown,
+      metadata: readYamlFromMarkdown(markdown),
     });
   },
 

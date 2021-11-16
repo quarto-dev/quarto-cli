@@ -195,7 +195,7 @@ export async function renderFiles(
         if (validationResult.errors.length > 0) {
           throw new Error("Front matter validation failed - exiting.");
         }
-        
+
         // FIXME it should be possible to infer this directly now
         // based on the information in the mapped strings.
         //
