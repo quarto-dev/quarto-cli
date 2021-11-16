@@ -10,7 +10,7 @@ import {
 } from "./parsing.js";
 import { getSchemas, navigateSchema } from "./schemas.js";
 
-const core = window._quartoCoreLib;
+import * as core from "../../../build/core-lib.js";
 
 function positionInTicks(context) {
   const {
