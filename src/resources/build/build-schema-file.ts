@@ -11,6 +11,7 @@
 import { frontMatterSchema } from "../../core/schema/front-matter.ts";
 import { configSchema } from "../../core/schema/config.ts";
 import { languageOptionsValidators } from "../../core/schema/chunk-metadata.ts";
+import { join } from "path/mod.ts";
 
 const obj = {
   schemas: {
@@ -20,6 +21,11 @@ const obj = {
   }
 };
 
-const str = JSON.stringify(obj, null, 2);
+export async function buildSchemaFile(resourceDir: string)
+{
+  const str = JSON.stringify(obj, null, 2);
+  const path = join(resourceDir, "/editor/tools/yaml/quarto-json-schemas.json");
 
-Deno.writeTextFileSync("../editor/tools/yaml/quarto-json-schemas.json", str);
+  Deno.writeTextFile(path, str);
+}
+
