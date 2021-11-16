@@ -733,13 +733,10 @@ export async function ojsCompile(
     } else if (cell.cell_type?.language === "ojs") {
       handleOJSCell(cell);
     } else {
-      // FIXME I think this was just wrong anyway, but must review before merge.
-      throw new Error("internal error: should never have arrived here.");
-      // ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
-      // ls.push(
-      //   cell.source.map((s) => inlineInterpolation(s, errorVal)).join(""),
-      // );
-      // ls.push("```");
+      // we just echo these cells while break-quarto-md doesn't know better.
+      ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
+      ls.push(cell.source.value);
+      ls.push("```");
     }
   }
 
