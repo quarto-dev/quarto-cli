@@ -43,6 +43,41 @@
     [screen-end];
 }
 
+@mixin page-columns-float-slimcontent-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start] minmax(50px, 150px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(400px, calc(750px - 2em))
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0, 225px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-float-fullcontent-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start] minmax(50px, 150px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(400px, calc(800px - 2em))
+    [body-content-end] 1.5em
+    [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
 // medium 976 down
 @mixin page-columns-float-mid {
   @include page-columns();
@@ -56,6 +91,35 @@
     [body-end-outset] 25px
     [page-end-inset] minmax(50px, 150px)
     [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-float-slimcontent-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-end] 1.5em
+    [body-end] 35px
+    [body-end-outset] 35px
+    [page-end-inset] minmax(75px, 145px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-float-fullcontent-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset] 5fr
+    [page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-end] 1.5em
+    [body-end body-end-outset page-end-inset page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
 }
@@ -85,16 +149,83 @@
     [screen-end];
 }
 
+@mixin page-columns-docked-slimcontent-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset page-start] minmax(50px, 100px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 200px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-docked-fullcontent-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.5em
+    [screen-start-inset page-start] minmax(50px, 100px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-end] 1.5em
+    [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
 @mixin page-columns-docked-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start screen-start-inset page-start page-start-inset body-start-outset body-start] 1.25em
-    [body-content-start] minmax(auto, calc(750px - 2em))
+    [screen-start] 1.25em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] minmax(
+      auto,
+      calc(750px - 2em)
+    )
     [body-content-end] 1.5em
     [body-end] 50px
     [body-end-outset] 50px
     [page-end-inset] minmax(25px, 50px)
     [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-docked-slimcontent-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.25em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] minmax(
+      auto,
+      calc(750px - 2em)
+    )
+    [body-content-end] 1.5em
+    [body-end] 35px
+    [body-end-outset] 35px
+    [page-end-inset] minmax(75px, 145px)
+    [page-end] 5fr
+    [screen-end-inset] 1.5em
+    [screen-end];
+}
+
+@mixin page-columns-docked-fullcontent-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] 1.25em
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] minmax(
+      auto,
+      calc(800px - 2em)
+    )
+    [body-content-end] 1.5em
+    [body-end body-end-outset page-end-inset page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
 }
@@ -112,9 +243,9 @@
     [screen-start-inset] 5fr
     [page-start page-start-inset] 35px
     [body-start-outset] 35px
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(800px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset] minmax(75px, 145px)
@@ -128,9 +259,9 @@
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(750px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset] minmax(75px, 145px)
@@ -152,9 +283,9 @@
     [screen-start-inset] 5fr
     [page-start page-start-inset] 35px
     [body-start-outset] 35px
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(800px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset page-end] 5fr
@@ -167,9 +298,9 @@
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(750px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end body-end-outset page-end-inset page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
@@ -183,12 +314,12 @@
     [screen-start-inset] 5fr
     [page-start page-start-inset] 35px
     [body-start-outset] 35px
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(750px - 2em))
-    [body-content-end] 1em
-    [body-end] 35px
-    [body-end-outset] 35px
-    [page-end-inset] minmax(75px, 195px)
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 200px)
     [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
@@ -199,9 +330,9 @@
   grid-template-columns:
     [screen-start] 1.5em
     [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1em
+    [body-start] 1.5em
     [body-content-start] minmax(auto, calc(750px - 2em))
-    [body-content-end] 1em
+    [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
     [page-end-inset] minmax(75px, 145px)
