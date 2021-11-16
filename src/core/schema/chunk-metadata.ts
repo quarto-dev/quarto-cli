@@ -32,6 +32,7 @@ import {
   enumSchema as enumS,
   numericSchema as numericS,
   objectSchema as objectS,
+  oneOfSchema as oneOfS,
   
   BooleanSchema as BooleanS,
   StringSchema as StringS,
@@ -91,7 +92,7 @@ const commonCellOptionsSchema = objectS({
     [kCellLstCap]: StringS,
     [kCellClasses]: StringS,
     [kCellPanel]: StringS,
-    [kCodeFold]: StringS,
+    [kCodeFold]: oneOfS(StringS, BooleanS), // FIXME tighten code-fold strings
     [kCodeSummary]: StringS,
     [kCodeOverflow]: StringS, // FIXME should this be enumS("wrap", "scroll")?
     
