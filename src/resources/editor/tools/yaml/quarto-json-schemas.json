@@ -12,15 +12,15 @@
           "type": "object",
           "description": "be an object",
           "properties": {
-            "fig.width": {
+            "fig-width": {
               "type": "number",
               "description": "be a number"
             },
-            "fig.height": {
+            "fig-height": {
               "type": "number",
               "description": "be a number"
             },
-            "fig.format": {
+            "fig-format": {
               "enum": [
                 "retina",
                 "png",
@@ -38,7 +38,7 @@
               ],
               "exhaustiveCompletions": true
             },
-            "fig.dpi": {
+            "fig-dpi": {
               "type": "number",
               "description": "be a number"
             },
@@ -311,29 +311,29 @@
           "completions": [
             {
               "type": "key",
-              "display": "fig.width",
-              "value": "fig.width: ",
+              "display": "fig-width",
+              "value": "fig-width: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
               "type": "key",
-              "display": "fig.height",
-              "value": "fig.height: ",
+              "display": "fig-height",
+              "value": "fig-height: ",
               "description": "",
               "suggest_on_accept": false
             },
             {
               "type": "key",
-              "display": "fig.format",
-              "value": "fig.format: ",
+              "display": "fig-format",
+              "value": "fig-format: ",
               "description": "",
               "suggest_on_accept": true
             },
             {
               "type": "key",
-              "display": "fig.dpi",
-              "value": "fig.dpi: ",
+              "display": "fig-dpi",
+              "value": "fig-dpi: ",
               "description": "",
               "suggest_on_accept": false
             },
@@ -471,15 +471,15 @@
                   "type": "object",
                   "description": "be an object",
                   "properties": {
-                    "fig.width": {
+                    "fig-width": {
                       "type": "number",
                       "description": "be a number"
                     },
-                    "fig.height": {
+                    "fig-height": {
                       "type": "number",
                       "description": "be a number"
                     },
-                    "fig.format": {
+                    "fig-format": {
                       "enum": [
                         "retina",
                         "png",
@@ -497,7 +497,7 @@
                       ],
                       "exhaustiveCompletions": true
                     },
-                    "fig.dpi": {
+                    "fig-dpi": {
                       "type": "number",
                       "description": "be a number"
                     },
@@ -770,29 +770,29 @@
                   "completions": [
                     {
                       "type": "key",
-                      "display": "fig.width",
-                      "value": "fig.width: ",
+                      "display": "fig-width",
+                      "value": "fig-width: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
                       "type": "key",
-                      "display": "fig.height",
-                      "value": "fig.height: ",
+                      "display": "fig-height",
+                      "value": "fig-height: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
                       "type": "key",
-                      "display": "fig.format",
-                      "value": "fig.format: ",
+                      "display": "fig-format",
+                      "value": "fig-format: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
                       "type": "key",
-                      "display": "fig.dpi",
-                      "value": "fig.dpi: ",
+                      "display": "fig-dpi",
+                      "value": "fig-dpi: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
@@ -1564,15 +1564,15 @@
                   "type": "object",
                   "description": "be an object",
                   "properties": {
-                    "fig.width": {
+                    "fig-width": {
                       "type": "number",
                       "description": "be a number"
                     },
-                    "fig.height": {
+                    "fig-height": {
                       "type": "number",
                       "description": "be a number"
                     },
-                    "fig.format": {
+                    "fig-format": {
                       "enum": [
                         "retina",
                         "png",
@@ -1590,7 +1590,7 @@
                       ],
                       "exhaustiveCompletions": true
                     },
-                    "fig.dpi": {
+                    "fig-dpi": {
                       "type": "number",
                       "description": "be a number"
                     },
@@ -1863,29 +1863,29 @@
                   "completions": [
                     {
                       "type": "key",
-                      "display": "fig.width",
-                      "value": "fig.width: ",
+                      "display": "fig-width",
+                      "value": "fig-width: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
                       "type": "key",
-                      "display": "fig.height",
-                      "value": "fig.height: ",
+                      "display": "fig-height",
+                      "value": "fig-height: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
                     {
                       "type": "key",
-                      "display": "fig.format",
-                      "value": "fig.format: ",
+                      "display": "fig-format",
+                      "value": "fig-format: ",
                       "description": "",
                       "suggest_on_accept": true
                     },
                     {
                       "type": "key",
-                      "display": "fig.dpi",
-                      "value": "fig.dpi: ",
+                      "display": "fig-dpi",
+                      "value": "fig-dpi: ",
                       "description": "",
                       "suggest_on_accept": false
                     },
