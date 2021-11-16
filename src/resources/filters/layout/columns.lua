@@ -20,6 +20,15 @@ function columns()
         tprepend(el.content, {latexBeginSidenote(false)})
         tappend(el.content, {latexEndSidenote(el, false)})
         return el
+      else 
+        -- convert the aside class to a column-margin class
+        if el.attr.classes and tcontains(el.attr.classes, 'aside') then
+          el.attr.classes = el.attr.classes:filter(function(attr) 
+            return attr ~= aside
+          end)
+          tappend(el.attr.classes, {'column-margin'})
+          return el
+        end
       end
     end,
 
