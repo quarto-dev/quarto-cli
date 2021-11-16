@@ -1,966 +1,3 @@
-// deno-lint-ignore-file
-(() => {
-  // binary-search.ts
-  function glb(array, value, compare) {
-    if (compare === void 0) {
-      compare = (a, b) => a - b;
-    }
-    if (array.length === 0) {
-      return -1;
-    }
-    if (array.length === 1) {
-      if (compare(value, array[0]) < 0) {
-        return -1;
-      } else {
-        return 0;
-      }
-    }
-    let left = 0;
-    let right = array.length - 1;
-    const vLeft = array[left], vRight = array[right];
-    if (compare(value, vRight) >= 0) {
-      return right;
-    }
-    if (compare(value, vLeft) < 0) {
-      return -1;
-    }
-    while (right - left > 1) {
-      const center = left + (right - left >> 1);
-      const vCenter = array[center];
-      const cmp = compare(value, vCenter);
-      if (cmp < 0) {
-        right = center;
-      } else if (cmp === 0) {
-        left = center;
-      } else {
-        left = center;
-      }
-    }
-    return left;
-  }
-
-  // text.ts
-  function lines(text) {
-    return text.split(/\r?\n/);
-  }
-  function normalizeNewlines(text) {
-    return lines(text).join("\n");
-  }
-  function lineOffsets(text) {
-    const offsets = [0];
-    const re = /\r?\n/g;
-    let match;
-    while ((match = re.exec(text)) != null) {
-      offsets.push(match.index + match[0].length);
-    }
-    return offsets;
-  }
-  function indexToRowCol(text) {
-    const offsets = lineOffsets(text);
-    return function(offset) {
-      if (offset === 0) {
-        return {
-          line: 0,
-          column: 0
-        };
-      }
-      const startIndex = glb(offsets, offset);
-      return {
-        line: startIndex,
-        column: offset - offsets[startIndex]
-      };
-    };
-  }
-  function rowColToIndex(text) {
-    const offsets = lineOffsets(text);
-    return function(position) {
-      return offsets[position.row] + position.column;
-    };
-  }
-  function formatLineRange(text, firstLine, lastLine) {
-    const lineWidth = Math.max(String(firstLine + 1).length, String(lastLine + 1).length);
-    const pad = " ".repeat(lineWidth);
-    const ls = lines(text);
-    const result2 = [];
-    for (let i = firstLine; i <= lastLine; ++i) {
-      const numberStr = `${pad}${i + 1}: `.slice(-(lineWidth + 2));
-      const lineStr = ls[i];
-      result2.push({
-        lineNumber: i,
-        content: numberStr + lineStr,
-        rawLine: ls[i]
-      });
-    }
-    return {
-      prefixWidth: lineWidth + 2,
-      lines: result2
-    };
-  }
-
-  // ranged-text.ts
-  function rangedSubstring(src, start, end = -1) {
-    if (end === -1) {
-      end = src.length;
-    }
-    const substring = src.substring(start, end);
-    return {
-      substring,
-      range: { start, end }
-    };
-  }
-  function matchAll(str, regex) {
-    let match;
-    regex = new RegExp(regex);
-    const result2 = [];
-    while ((match = regex.exec(str)) != null) {
-      result2.push(match);
-    }
-    return result2;
-  }
-  function rangedLines(text, includeNewLines = false) {
-    const regex = /\r?\n/g;
-    const result2 = [];
-    let startOffset = 0;
-    if (!includeNewLines) {
-      for (const r of matchAll(text, regex)) {
-        result2.push({
-          substring: text.substring(startOffset, r.index),
-          range: {
-            start: startOffset,
-            end: r.index
-          }
-        });
-        startOffset = r.index + r[0].length;
-      }
-      result2.push({
-        substring: text.substring(startOffset, text.length),
-        range: {
-          start: startOffset,
-          end: text.length
-        }
-      });
-      return result2;
-    } else {
-      const matches = matchAll(text, regex);
-      let prevOffset = 0;
-      for (const r of matches) {
-        const stringEnd = r.index + 1;
-        result2.push({
-          substring: text.substring(prevOffset, stringEnd),
-          range: {
-            start: prevOffset,
-            end: stringEnd
-          }
-        });
-        prevOffset = stringEnd;
-      }
-      result2.push({
-        substring: text.substring(prevOffset, text.length),
-        range: {
-          start: prevOffset,
-          end: text.length
-        }
-      });
-      return result2;
-    }
-  }
-
-  // mapped-text.ts
-  function mappedString(source, pieces) {
-    if (typeof source === "string") {
-      const offsetInfo = [];
-      let offset = 0;
-      const resultList = pieces.map((piece) => {
-        if (typeof piece === "string") {
-          offsetInfo.push({
-            fromSource: false,
-            length: piece.length,
-            offset
-          });
-          offset += piece.length;
-          return piece;
-        } else {
-          const resultPiece = source.substring(piece.start, piece.end);
-          offsetInfo.push({
-            fromSource: true,
-            length: resultPiece.length,
-            offset,
-            range: {
-              start: piece.start,
-              end: piece.end
-            }
-          });
-          offset += resultPiece.length;
-          return resultPiece;
-        }
-      });
-      const value = resultList.join("");
-      const map = (targetOffset) => {
-        const ix = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
-        if (ix < 0) {
-          return void 0;
-        }
-        const info = offsetInfo[ix];
-        if (!info.fromSource) {
-          return void 0;
-        }
-        const localOffset = targetOffset - info.offset;
-        if (localOffset >= info.length) {
-          return void 0;
-        }
-        return info.range.start + localOffset;
-      };
-      const mapClosest = (targetOffset) => {
-        if (offsetInfo.length === 0 || targetOffset < 0) {
-          return void 0;
-        }
-        const firstIx = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
-        let ix = firstIx;
-        let smallestSourceInfo = void 0;
-        while (ix >= 0) {
-          const info = offsetInfo[ix];
-          if (!info.fromSource) {
-            ix--;
-            continue;
-          }
-          smallestSourceInfo = info;
-          if (ix === firstIx) {
-            const localOffset = targetOffset - info.offset;
-            if (localOffset < info.length) {
-              return info.range.start + localOffset;
-            }
-          }
-          return info.range.end - 1;
-        }
-        if (smallestSourceInfo === void 0) {
-          return void 0;
-        } else {
-          return smallestSourceInfo.range.start;
-        }
-      };
-      return {
-        value,
-        originalString: source,
-        map,
-        mapClosest
-      };
-    } else {
-      const {
-        value,
-        originalString,
-        map: previousMap,
-        mapClosest: previousMapClosest
-      } = source;
-      const {
-        value: resultValue,
-        map: nextMap,
-        mapClosest: nextMapClosest
-      } = mappedString(value, pieces);
-      const composeMap = (offset) => {
-        const v = nextMap(offset);
-        if (v === void 0) {
-          return v;
-        }
-        return previousMap(v);
-      };
-      const composeMapClosest = (offset) => {
-        const v = nextMapClosest(offset);
-        if (v === void 0) {
-          return v;
-        }
-        return previousMapClosest(v);
-      };
-      return {
-        value: resultValue,
-        originalString,
-        map: composeMap,
-        mapClosest: composeMapClosest
-      };
-    }
-  }
-  function asMappedString(str) {
-    return {
-      value: str,
-      originalString: str,
-      map: (x) => x,
-      mapClosest: (x) => x
-    };
-  }
-  function mappedConcat(strings) {
-    if (strings.length === 0) {
-      throw new Error("strings must be non-empty");
-    }
-    let currentOffset = 0;
-    const offsets = [];
-    for (const s of strings) {
-      currentOffset += s.value.length;
-      offsets.push(currentOffset);
-    }
-    const value = "".concat(...strings.map((s) => s.value));
-    return {
-      value,
-      originalString: strings[0].originalString,
-      map(offset) {
-        if (offset < 0 || offset >= value.length) {
-          return void 0;
-        }
-        const ix = glb(offsets, offset);
-        return strings[ix].map(offset - offsets[ix]);
-      },
-      mapClosest(offset) {
-        if (offset < 0 || offset >= value.length) {
-          return void 0;
-        }
-        const ix = glb(offsets, offset);
-        return strings[ix].mapClosest(offset - offsets[ix]);
-      }
-    };
-  }
-  function mappedIndexToRowCol(text) {
-    const f = indexToRowCol(text.originalString);
-    return function(offset) {
-      const n = text.mapClosest(offset);
-      if (n === void 0) {
-        throw new Error("Internal Error: bad offset in mappedIndexRowCol");
-      }
-      return f(n);
-    };
-  }
-
-  // partition-cell-options.ts
-  function mappedSource(source, substrs) {
-    const params = [];
-    for (const { range } of substrs) {
-      params.push(range);
-    }
-    return mappedString(source, params);
-  }
-  function partitionCellOptionsMapped(language, source, _validate = false) {
-    const commentChars = langCommentChars(language);
-    const optionPrefix = optionCommentPrefix(commentChars[0]);
-    const optionSuffix = commentChars[1] || "";
-    const optionsSource = [];
-    const yamlLines = [];
-    let endOfYaml = 0;
-    for (const line of rangedLines(source.value, true)) {
-      if (line.substring.startsWith(optionPrefix)) {
-        if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
-          let yamlOption = line.substring.substring(optionPrefix.length);
-          if (optionSuffix) {
-            yamlOption = yamlOption.trimRight();
-            yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
-          }
-          endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
-          const rangedYamlOption = {
-            substring: yamlOption,
-            range: {
-              start: line.range.start + optionPrefix.length,
-              end: endOfYaml
-            }
-          };
-          yamlLines.push(rangedYamlOption);
-          optionsSource.push(line);
-          continue;
-        }
-      }
-      break;
-    }
-    const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
-    return {
-      mappedYaml,
-      optionsSource,
-      source: mappedString(source, [{
-        start: endOfYaml,
-        end: source.value.length
-      }]),
-      sourceStartLine: yamlLines.length
-    };
-  }
-  function langCommentChars(lang) {
-    const chars = kLangCommentChars[lang] || "#";
-    if (!Array.isArray(chars)) {
-      return [chars];
-    } else {
-      return chars;
-    }
-  }
-  function optionCommentPrefix(comment) {
-    return comment + "| ";
-  }
-  var kLangCommentChars = {
-    r: "#",
-    python: "#",
-    julia: "#",
-    scala: "//",
-    matlab: "%",
-    csharp: "//",
-    fsharp: "//",
-    c: ["/*", "*/"],
-    css: ["/*", "*/"],
-    sas: ["*", ";"],
-    powershell: "#",
-    bash: "#",
-    sql: "--",
-    mysql: "--",
-    psql: "--",
-    lua: "--",
-    cpp: "//",
-    cc: "//",
-    stan: "#",
-    octave: "#",
-    fortran: "!",
-    fortran95: "!",
-    awk: "#",
-    gawk: "#",
-    stata: "*",
-    java: "//",
-    groovy: "//",
-    sed: "#",
-    perl: "#",
-    ruby: "#",
-    tikz: "%",
-    js: "//",
-    d3: "//",
-    node: "//",
-    sass: "//",
-    coffee: "#",
-    go: "//",
-    asy: "//",
-    haskell: "--",
-    dot: "//",
-    ojs: "//"
-  };
-
-  // break-quarto-md.ts
-  function breakQuartoMd(src, validate = false) {
-    const nb = {
-      cells: []
-    };
-    const yamlRegEx = /^---\s*$/;
-    const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
-    const startCodeRegEx = /^```/;
-    const endCodeRegEx = /^```\s*$/;
-    const delimitMathBlockRegEx = /^\$\$/;
-    let language = "";
-    const lineBuffer = [];
-    const flushLineBuffer = (cell_type) => {
-      if (lineBuffer.length) {
-        const mappedChunks = [];
-        for (const line of lineBuffer) {
-          mappedChunks.push(line.range);
-        }
-        const source = mappedString(src, mappedChunks);
-        const cell = {
-          cell_type: cell_type === "code" ? { language } : cell_type,
-          source,
-          sourceOffset: 0,
-          sourceStartLine: 0,
-          sourceVerbatim: source
-        };
-        if (cell_type === "code" && (language === "ojs" || language === "dot")) {
-          const { yaml, source: source2, sourceStartLine } = partitionCellOptionsMapped(language, cell.source, validate);
-          const breaks = lineOffsets(cell.source.value).slice(1);
-          let strUpToLastBreak = "";
-          if (sourceStartLine > 0) {
-            if (breaks.length) {
-              const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
-              strUpToLastBreak = cell.source.value.substring(0, lastBreak);
-            } else {
-              strUpToLastBreak = cell.source.value;
-            }
-          }
-          cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
-          cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
-            "```{ojs}\n",
-            { start: 0, end: cell.sourceVerbatim.value.length },
-            "\n```"
-          ]);
-          cell.source = source2;
-          cell.options = yaml;
-          cell.sourceStartLine = sourceStartLine;
-        }
-        if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
-          nb.cells.push(cell);
-        }
-        lineBuffer.splice(0, lineBuffer.length);
-      }
-    };
-    let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
-    const srcLines = rangedLines(src.value, true);
-    for (const line of srcLines) {
-      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
-        if (inYaml) {
-          lineBuffer.push(line);
-          flushLineBuffer("raw");
-          inYaml = false;
-        } else {
-          flushLineBuffer("markdown");
-          lineBuffer.push(line);
-          inYaml = true;
-        }
-      } else if (startCodeCellRegEx.test(line.substring)) {
-        const m = line.substring.match(startCodeCellRegEx);
-        language = m[1];
-        flushLineBuffer("markdown");
-        inCodeCell = true;
-      } else if (endCodeRegEx.test(line.substring)) {
-        if (inCodeCell) {
-          inCodeCell = false;
-          flushLineBuffer("code");
-        } else {
-          inCode = !inCode;
-          lineBuffer.push(line);
-        }
-      } else if (startCodeRegEx.test(line.substring)) {
-        inCode = true;
-        lineBuffer.push(line);
-      } else if (delimitMathBlockRegEx.test(line.substring)) {
-        if (inMathBlock) {
-          flushLineBuffer("math");
-        } else {
-          if (inYaml || inCode || inCodeCell) {
-          } else {
-            flushLineBuffer("markdown");
-          }
-        }
-        inMathBlock = !inMathBlock;
-        lineBuffer.push(line);
-      } else {
-        lineBuffer.push(line);
-      }
-    }
-    flushLineBuffer("markdown");
-    return nb;
-  }
-  function mdTrimEmptyLines(lines2) {
-    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines2 = lines2.slice(firstNonEmpty);
-    let lastNonEmpty = -1;
-    for (let i = lines2.length - 1; i >= 0; i--) {
-      if (lines2[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines2 = lines2.slice(0, lastNonEmpty + 1);
-    }
-    return lines2;
-  }
-
-  // promise.ts
-  var PromiseQueue = class {
-    constructor() {
-      this.queue = new Array();
-      this.running = false;
-    }
-    enqueue(promise, clearPending = false) {
-      return new Promise((resolve, reject) => {
-        if (clearPending) {
-          this.queue.splice(0, this.queue.length);
-        }
-        this.queue.push({
-          promise,
-          resolve,
-          reject
-        });
-        this.dequeue();
-      });
-    }
-    dequeue() {
-      if (this.running) {
-        return false;
-      }
-      const item = this.queue.shift();
-      if (!item) {
-        return false;
-      }
-      try {
-        this.running = true;
-        item.promise().then((value) => {
-          this.running = false;
-          item.resolve(value);
-          this.dequeue();
-        }).catch((err) => {
-          this.running = false;
-          item.reject(err);
-          this.dequeue();
-        });
-      } catch (err) {
-        this.running = false;
-        item.reject(err);
-        this.dequeue();
-      }
-      return true;
-    }
-  };
-
-  // schema.ts
-  function schemaType(schema) {
-    const t = schema.type;
-    if (t) {
-      return t;
-    }
-    if (schema.anyOf) {
-      return "anyOf";
-    }
-    if (schema.oneOf) {
-      return "oneOf";
-    }
-    if (schema.allOf) {
-      return "allOf";
-    }
-    if (schema.enum) {
-      return "enum";
-    }
-    return "any";
-  }
-  function schemaCompletions(schema) {
-    const normalize = (completions) => {
-      const result2 = (completions || []).map((c) => {
-        if (typeof c === "string") {
-          return {
-            type: "value",
-            display: c,
-            value: c,
-            description: "",
-            suggest_on_accept: false,
-            schema
-          };
-        }
-        return {
-          ...c,
-          schema
-        };
-      });
-      return result2;
-    };
-    if (schema.completions && schema.completions.length) {
-      return normalize(schema.completions);
-    }
-    switch (schemaType(schema)) {
-      case "array":
-        if (schema.items) {
-          return schemaCompletions(schema.items);
-        } else {
-          return [];
-        }
-      case "anyOf":
-        return schema.anyOf.map(schemaCompletions).flat();
-      case "oneOf":
-        return schema.oneOf.map(schemaCompletions).flat();
-      case "allOf":
-        return schema.allOf.map(schemaCompletions).flat();
-      default:
-        return [];
-    }
-  }
-  function walkSchema(schema, f) {
-    f(schema);
-    switch (schemaType(schema)) {
-      case "array":
-        if (schema.items) {
-          walkSchema(schema.items, f);
-        }
-        break;
-      case "anyOf":
-        for (const s of schema.anyOf) {
-          walkSchema(s, f);
-        }
-        break;
-      case "oneOf":
-        for (const s of schema.oneOf) {
-          walkSchema(s, f);
-        }
-        break;
-      case "allOf":
-        for (const s of schema.allOf) {
-          walkSchema(s, f);
-        }
-        break;
-      case "object":
-        if (schema.properties) {
-          for (const key of Object.getOwnPropertyNames(schema.properties)) {
-            const s = schema.properties[key];
-            walkSchema(s, f);
-          }
-        }
-        if (schema.additionalProperties) {
-          walkSchema(schema.additionalProperties, f);
-        }
-        break;
-    }
-  }
-  function normalizeSchema(schema) {
-    const result2 = JSON.parse(JSON.stringify(schema));
-    walkSchema(result2, (schema2) => {
-      if (schema2.completions) {
-        delete schema2.completions;
-      }
-      if (schema2.exhaustiveCompletions) {
-        delete schema2.exhaustiveCompletions;
-      }
-      if (schema2.documentation) {
-        delete schema2.documentation;
-      }
-    });
-    return result2;
-  }
-
-  // yaml-schema.ts
-  var ajv = void 0;
-  function setupAjv(_ajv) {
-    ajv = _ajv;
-  }
-  function navigate(path, annotation, returnKey = false, pathIndex = 0) {
-    if (pathIndex >= path.length) {
-      return annotation;
-    }
-    if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
-      const { components } = annotation;
-      const searchKey = path[pathIndex];
-      for (let i = 0; i < components.length; i += 2) {
-        const key = components[i].result;
-        if (key === searchKey) {
-          if (returnKey && pathIndex === path.length - 1) {
-            return navigate(path, components[i], returnKey, pathIndex + 1);
-          } else {
-            return navigate(path, components[i + 1], returnKey, pathIndex + 1);
-          }
-        }
-      }
-      throw new Error("Internal error: searchKey not found in mapping object");
-    } else if (annotation.kind === "sequence" || annotation.kind === "block_sequence") {
-      const searchKey = Number(path[pathIndex]);
-      return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
-    } else {
-      throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
-    }
-  }
-  function navigateSchema(path, schema, pathIndex = 0) {
-    if (pathIndex >= path.length - 1) {
-      return schema;
-    }
-    const pathVal = path[pathIndex];
-    if (pathVal === "properties") {
-      const key = path[pathIndex + 1];
-      const subSchema = schema.properties[key];
-      return navigateSchema(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "anyOf") {
-      const key = Number(path[pathIndex + 1]);
-      const subSchema = schema.anyOf[key];
-      return navigateSchema(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "oneOf") {
-      const key = Number(path[pathIndex + 1]);
-      const subSchema = schema.oneOf[key];
-      return navigateSchema(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "items") {
-      const subSchema = schema.items;
-      return navigateSchema(path, subSchema, pathIndex + 1);
-    } else {
-      console.log({ path });
-      throw new Error("Internal error: Failed to navigate schema path");
-    }
-  }
-  function isProperPrefix(a, b) {
-    return b.length > a.length && b.substring(0, a.length) === a;
-  }
-  function groupBy(lst, f) {
-    const record = {};
-    const result2 = [];
-    for (const el of lst) {
-      const key = f(el);
-      if (record[key] === void 0) {
-        const lst2 = [];
-        const entry = {
-          key,
-          values: lst2
-        };
-        record[key] = lst2;
-        result2.push(entry);
-      }
-      record[key].push(el);
-    }
-    return result2;
-  }
-  function groupByEntries(entries) {
-    const result2 = [];
-    for (const { values } of entries) {
-      result2.push(...values);
-    }
-    return result2;
-  }
-  function narrowOneOfError(oneOf, suberrors) {
-    const subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
-    const onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
-    if (onlyAdditionalProperties.length) {
-      return onlyAdditionalProperties[0].values;
-    }
-    return [];
-  }
-  function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
-    const result2 = [];
-    const locF = indexToRowCol(source.originalString);
-    let errorsPerInstanceList = groupBy(validationErrors, (error) => error.instancePath);
-    do {
-      const newErrors = [];
-      errorsPerInstanceList = errorsPerInstanceList.filter(({ key: pathA }) => errorsPerInstanceList.filter(({ key: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
-      for (let { key: instancePath, values: errors } of errorsPerInstanceList) {
-        let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
-        errorsPerSchemaList = errorsPerSchemaList.filter(({ key: pathA }) => errorsPerSchemaList.filter(({ key: pathB }) => isProperPrefix(pathB, pathA)).length === 0);
-        for (const error of groupByEntries(errorsPerSchemaList)) {
-          if (error.hasBeenTransformed) {
-            continue;
-          }
-          if (error.keyword === "oneOf") {
-            error.hasBeenTransformed = true;
-            newErrors.push(...narrowOneOfError(error, errors));
-          } else if (error.keyword === "additionalProperties") {
-            error.hasBeenTransformed = true;
-            instancePath = `${instancePath}/${error.params.additionalProperty}`;
-            newErrors.push({
-              ...error,
-              instancePath,
-              keyword: "_custom_invalidProperty",
-              message: `property ${error.params.additionalProperty} not allowed in object`,
-              params: {
-                ...error.params,
-                originalError: error
-              },
-              schemaPath: error.schemaPath.slice(0, -21)
-            });
-          }
-        }
-      }
-      if (newErrors.length) {
-        errorsPerInstanceList.push(...groupBy(newErrors, (error) => error.instancePath));
-      } else {
-        break;
-      }
-    } while (true);
-    for (const { key: instancePath, values: allErrors } of errorsPerInstanceList) {
-      const path = instancePath.split("/").slice(1);
-      const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
-      for (const error of errors) {
-        const returnKey = error.keyword === "_custom_invalidProperty";
-        const violatingObject = navigate(path, annotation, returnKey);
-        const schemaPath = error.schemaPath.split("/").slice(1);
-        const start = locF(violatingObject.start);
-        const end = locF(violatingObject.end);
-        const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
-        let messageNoLocation;
-        if (error.keyword.startsWith("_custom_")) {
-          messageNoLocation = error.message;
-        } else {
-          const innerSchema = navigateSchema(schemaPath, schema);
-          messageNoLocation = `Field ${instancePath} must ${innerSchema.description}`;
-        }
-        const message = `${locStr}: ${messageNoLocation}`;
-        result2.push({
-          instancePath,
-          violatingObject,
-          message,
-          messageNoLocation,
-          source,
-          start,
-          end,
-          error
-        });
-      }
-    }
-    result2.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
-    return result2;
-  }
-  var YAMLSchema = class {
-    constructor(schema) {
-      this.schema = schema;
-      this.validate = ajv.compile(normalizeSchema(schema));
-    }
-    validateParse(src, annotation) {
-      let errors = [];
-      if (!this.validate(annotation.result)) {
-        errors = localizeAndPruneErrors(annotation, this.validate.errors, src, this.schema);
-        return {
-          result: annotation.result,
-          errors
-        };
-      } else {
-        return {
-          result: annotation.result,
-          errors: []
-        };
-      }
-    }
-    reportErrorsInSource(result2, src, message, error) {
-      if (result2.errors.length) {
-        const locF = mappedIndexToRowCol(src);
-        const nLines = lines(src.originalString).length;
-        error(message);
-        for (const err of result2.errors) {
-          console.log(err.message);
-          let startO = err.violatingObject.start;
-          let endO = err.violatingObject.end;
-          while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
-            startO++;
-          }
-          while (src.mapClosest(endO) > src.mapClosest(startO) && src.originalString[src.mapClosest(endO)].match(/\s/)) {
-            endO--;
-          }
-          const start = locF(startO);
-          const end = locF(endO);
-          const {
-            prefixWidth,
-            lines: lines2
-          } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
-          for (const { lineNumber, content, rawLine } of lines2) {
-            console.log(content);
-            if (lineNumber >= start.line && lineNumber <= end.line) {
-              const startColumn = lineNumber > start.line ? 0 : start.column;
-              const endColumn = lineNumber < end.line ? rawLine.length : end.column;
-              console.log(" ".repeat(prefixWidth + startColumn) + "^".repeat(endColumn - startColumn + 1));
-            }
-          }
-        }
-      }
-      return result2;
-    }
-    validateParseWithErrors(src, annotation, message, error) {
-      const result2 = this.validateParse(src, annotation);
-      this.reportErrorsInSource(result2, src, message, error);
-      return result2;
-    }
-  };
-
-  // index.ts
-  var result = {
-    glb,
-    breakQuartoMd,
-    mappedString,
-    asMappedString,
-    mappedConcat,
-    mappedIndexToRowCol,
-    partitionCellOptionsMapped,
-    kLangCommentChars,
-    PromiseQueue,
-    rangedSubstring,
-    rangedLines,
-    lineOffsets,
-    lines,
-    normalizeNewlines,
-    indexToRowCol,
-    rowColToIndex,
-    schemaType,
-    schemaCompletions,
-    YAMLSchema,
-    setupAjv
-  };
-  if (window) {
-    window._quartoCoreLib = result;
-  }
-})();
 
 
 // The Module object: Our interface to the outside world. We import
@@ -12837,450 +11874,6 @@ Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function () {
 });
 window.ajv = new window.ajv7({ allErrors: true });
 (() => {
-  // validator-queue.js
-  var core = window._quartoCoreLib;
-  var yamlValidators = {};
-  var validatorQueues = {};
-  function getValidator(context) {
-    const {
-      schema,
-      schemaName
-    } = context;
-    if (yamlValidators[schemaName]) {
-      return yamlValidators[schemaName];
-    }
-    const validator = new core.YAMLSchema(schema);
-    yamlValidators[schemaName] = validator;
-    return validator;
-  }
-  async function withValidator(context, fun) {
-    const {
-      schemaName
-    } = context;
-    if (validatorQueues[schemaName] === void 0) {
-      validatorQueues[schemaName] = new core.PromiseQueue();
-    }
-    const queue = validatorQueues[schemaName];
-    const result = await queue.enqueue(async () => {
-      const validator = getValidator(context);
-      try {
-        const result2 = await fun(validator);
-        return result2;
-      } catch (e) {
-        console.error("Error in validator queue", e);
-        return void 0;
-      }
-    });
-    return result;
-  }
-
-  // tree-sitter-annotated-yaml.js
-  function buildAnnotated(tree, mappedSource2) {
-    const singletonBuild = (node) => {
-      return buildNode(node.firstChild);
-    };
-    const buildNode = (node) => {
-      if (node === null) {
-        return null;
-      }
-      if (dispatch[node.type] === void 0) {
-        throw new Error(`Internal error: don't know how to build node of type ${node.type}`);
-      }
-      return dispatch[node.type](node);
-    };
-    const annotateEmpty = (position) => {
-      const mappedPos = mappedSource2.mapClosest(position);
-      return {
-        start: mappedPos,
-        end: mappedPos,
-        result: null,
-        kind: "<<EMPTY>>",
-        components: []
-      };
-    };
-    const annotate = (node, result2, components) => {
-      return {
-        start: mappedSource2.mapClosest(node.startIndex),
-        end: mappedSource2.mapClosest(node.endIndex),
-        result: result2,
-        kind: node.type,
-        components
-      };
-    };
-    const dispatch = {
-      "stream": singletonBuild,
-      "document": singletonBuild,
-      "block_node": singletonBuild,
-      "flow_node": singletonBuild,
-      "block_sequence": (node) => {
-        const result2 = [], components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
-          if (child.type !== "block_sequence_item") {
-            continue;
-          }
-          const component = buildNode(child);
-          components.push(component);
-          result2.push(component.result);
-        }
-        return annotate(node, result2, components);
-      },
-      "block_sequence_item": (node) => {
-        if (node.childCount < 2) {
-          return annotateEmpty(node.endIndex);
-        } else {
-          return buildNode(node.child(1));
-        }
-      },
-      "double_quote_scalar": (node) => {
-        return annotate(node, JSON.parse(node.text), []);
-      },
-      "plain_scalar": (node) => {
-        function getV() {
-          try {
-            return JSON.parse(node.text);
-          } catch (_e) {
-            return node.text;
-          }
-        }
-        const v = getV();
-        return annotate(node, v, []);
-      },
-      "flow_sequence": (node) => {
-        const result2 = [], components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
-          if (child.type !== "flow_node") {
-            continue;
-          }
-          const component = buildNode(child);
-          components.push(component);
-          result2.push(component.result);
-        }
-        return annotate(node, result2, components);
-      },
-      "block_mapping": (node) => {
-        const result2 = {}, components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
-          let component;
-          if (child.type === "ERROR") {
-            result2[child.text] = "<<ERROR>>";
-            const key2 = annotate(child, child.text, []);
-            const value2 = annotateEmpty(child.endIndex);
-            component = annotate(child, {
-              key: key2.result,
-              value: value2.result
-            }, [key2, value2]);
-          } else if (child.type !== "block_mapping_pair") {
-            throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
-          } else {
-            component = buildNode(child);
-          }
-          const { key, value } = component.result;
-          result2[key] = value;
-          components.push(...component.components);
-        }
-        return annotate(node, result2, components);
-      },
-      "block_mapping_pair": (node) => {
-        let key, value;
-        if (node.childCount === 3) {
-          key = annotate(node.child(0), node.child(0).text, []);
-          value = buildNode(node.child(2));
-        } else if (node.childCount === 2) {
-          key = annotate(node.child(0), node.child(0).text, []);
-          value = annotateEmpty(node.endIndex);
-        } else {
-          key = annotateEmpty(node.endIndex);
-          value = annotateEmpty(node.endIndex);
-        }
-        return annotate(node, {
-          key: key.result,
-          value: value.result
-        }, [key, value]);
-      }
-    };
-    const result = buildNode(tree.rootNode);
-    const endOfMappedCode = mappedSource2.map(mappedSource2.value.length - 1);
-    const startOfMappedCode = mappedSource2.map(0);
-    const lossage = (result.end - result.start) / (endOfMappedCode - startOfMappedCode);
-    if (lossage < 0.95) {
-      return null;
-    }
-    return result;
-  }
-  function locateCursor(annotation, position) {
-    let failedLast = false;
-    function locate(node, pathSoFar) {
-      if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
-        for (let i = 0; i < node.components.length; i += 2) {
-          const keyC = node.components[i], valueC = node.components[i + 1];
-          if (keyC.start <= position && position <= keyC.end) {
-            return [keyC.result, pathSoFar];
-          } else if (valueC.start <= position && position <= valueC.end) {
-            return locate(valueC, [keyC.result, pathSoFar]);
-          }
-        }
-        failedLast = true;
-        return pathSoFar;
-      } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
-        for (let i = 0; i < node.components.length; ++i) {
-          const valueC = node.components[i];
-          if (valueC.start <= position && position <= valueC.end) {
-            return locate(valueC, [i, pathSoFar]);
-          }
-          if (valueC.start > position) {
-            if (i === 0) {
-              return pathSoFar;
-            } else {
-              return [i - 1, pathSoFar];
-            }
-          }
-        }
-        throw new Error("Internal error: cursor outside bounds in sequence locate?");
-      } else {
-        if (node.kind !== "<<EMPTY>>") {
-          return [node.result, pathSoFar];
-        } else {
-          return pathSoFar;
-        }
-      }
-    }
-    const value = locate(annotation, []).flat(Infinity).reverse();
-    return {
-      withError: failedLast,
-      value
-    };
-  }
-
-  // parsing.js
-  var core2 = window._quartoCoreLib;
-  var _parser;
-  async function getTreeSitter() {
-    if (_parser) {
-      return _parser;
-    }
-    const Parser = window.TreeSitter;
-    await Parser.init();
-    _parser = new Parser();
-    const YAML = await Parser.Language.load("/quarto/resources/editor/tools/yaml/tree-sitter-yaml.wasm");
-    _parser.setLanguage(YAML);
-    return _parser;
-  }
-  function* attemptParsesAtLine(context, parser) {
-    let {
-      code,
-      position
-    } = context;
-    if (code.value === void 0) {
-      code = core2.asMappedString(code);
-    }
-    try {
-      const tree = parser.parse(code.value);
-      if (tree.rootNode.type !== "ERROR") {
-        yield {
-          parse: tree,
-          code,
-          deletions: 0
-        };
-      }
-    } catch (_e) {
-      console.log("Internal Error: tree-sitter raised exception. assuming no valid parses");
-      return;
-    }
-    const codeLines = core2.rangedLines(code.value, true);
-    if (position.row >= codeLines.length || position.row < 0) {
-      return;
-    }
-    const currentLine = codeLines[position.row].substring;
-    let currentColumn = position.column;
-    let deletions = 0;
-    const locF = core2.rowColToIndex(code.value);
-    while (currentColumn > 0) {
-      currentColumn--;
-      deletions++;
-      const chunks = [];
-      if (position.row > 0) {
-        chunks.push({
-          start: 0,
-          end: codeLines[position.row - 1].range.end
-        });
-      }
-      if (position.column > deletions) {
-        chunks.push({
-          start: locF({ row: position.row, column: 0 }),
-          end: locF({ row: position.row, column: position.column - deletions })
-        });
-      }
-      if (position.row + 1 < codeLines.length) {
-        chunks.push({
-          start: locF({ row: position.row, column: currentLine.length - 1 }),
-          end: locF({ row: position.row + 1, column: 0 })
-        });
-        chunks.push({
-          start: codeLines[position.row + 1].range.start,
-          end: codeLines[codeLines.length - 1].range.end
-        });
-      }
-      const newCode = core2.mappedString(code, chunks);
-      const tree = parser.parse(newCode.value);
-      if (tree.rootNode.type !== "ERROR") {
-        yield {
-          parse: tree,
-          code: newCode,
-          deletions
-        };
-      }
-    }
-  }
-  function getIndent(l) {
-    return l.length - l.trimStart().length;
-  }
-  function getYamlIndentTree(code) {
-    const lines2 = core2.lines(code);
-    const predecessor = [];
-    const indents = [];
-    let indentation = -1;
-    let prevPredecessor = -1;
-    for (let i = 0; i < lines2.length; ++i) {
-      const line = lines2[i];
-      const lineIndent = getIndent(line);
-      indents.push(lineIndent);
-      if (lineIndent > indentation) {
-        predecessor[i] = prevPredecessor;
-        prevPredecessor = i;
-        indentation = lineIndent;
-      } else if (line.trim().length === 0) {
-        predecessor[i] = predecessor[prevPredecessor];
-      } else if (lineIndent === indentation) {
-        predecessor[i] = predecessor[prevPredecessor];
-        prevPredecessor = i;
-      } else if (lineIndent < indentation) {
-        let v = prevPredecessor;
-        while (v >= 0 && indents[v] >= lineIndent) {
-          v = predecessor[v];
-        }
-        predecessor[i] = v;
-        prevPredecessor = i;
-        indentation = lineIndent;
-      } else {
-        throw new Error("Internal error, should never have arrived here");
-      }
-    }
-    return {
-      predecessor,
-      indentation: indents
-    };
-  }
-  function locateFromIndentation(context) {
-    let {
-      line,
-      code,
-      position
-    } = context;
-    if (code.value !== void 0) {
-      code = code.value;
-    }
-    const { predecessor, indentation } = getYamlIndentTree(code);
-    const lines2 = core2.lines(code);
-    let lineNo = position.row;
-    const path = [];
-    const lineIndent = getIndent(line);
-    while (lineNo !== -1) {
-      const trimmed = lines2[lineNo].trim();
-      if (trimmed.length === 0) {
-        let prev = lineNo;
-        while (prev >= 0 && lines2[prev].trim().length === 0) {
-          prev--;
-        }
-        if (prev === -1) {
-          break;
-        }
-        const prevIndent = getIndent(lines2[prev]);
-        if (prevIndent < lineIndent) {
-          lineNo = prev;
-          continue;
-        }
-      }
-      if (lineIndent >= indentation[lineNo]) {
-        if (trimmed.startsWith("-")) {
-          path.push(0);
-        } else if (trimmed.endsWith(":")) {
-          path.push(trimmed.substring(0, trimmed.length - 1));
-        } else if (trimmed.length !== 0) {
-          return void 0;
-        }
-      }
-      lineNo = predecessor[lineNo];
-    }
-    path.reverse();
-    return path;
-  }
-
-  // schemas.js
-  var core3 = window._quartoCoreLib;
-  var _schemas;
-  async function getSchemas() {
-    if (_schemas) {
-      return _schemas;
-    }
-    const response = await fetch("/quarto/resources/editor/tools/yaml/quarto-json-schemas.json");
-    _schemas = response.json();
-    return _schemas;
-  }
-  function navigateSchema(schema, path) {
-    const refs = {};
-    function inner(subSchema, index) {
-      if (subSchema.$id) {
-        refs[subSchema.$id] = subSchema;
-      }
-      if (subSchema.$ref) {
-        if (refs[subSchema.$ref] === void 0) {
-          throw new Error(`Internal error: schema reference ${subSchema.$ref} undefined`);
-        }
-        subSchema = refs[subSchema.$ref];
-      }
-      if (index === path.length) {
-        return [subSchema];
-      }
-      const st = core3.schemaType(subSchema);
-      if (st === "object") {
-        const key = path[index];
-        if (subSchema.properties[key] === void 0) {
-          if (index !== path.length - 1) {
-            return [];
-          }
-          const completions2 = Object.getOwnPropertyNames(subSchema.properties).filter((name) => name.startsWith(key));
-          if (completions2.length === 0) {
-            return [];
-          }
-          return [subSchema];
-        }
-        return inner(subSchema.properties[key], index + 1);
-      } else if (st === "array") {
-        if (subSchema.items === void 0) {
-          return [];
-        }
-        return inner(subSchema.items, index + 1);
-      } else if (st === "anyOf") {
-        return subSchema.anyOf.map((ss) => inner(ss, index));
-      } else if (st === "allOf") {
-        throw new Error("Internal error: don't know how to navigate allOf schema :(");
-      } else if (st === "oneOf") {
-        const result = subSchema.oneOf.map((ss) => inner(ss, index)).flat(Infinity);
-        if (result.length !== 1) {
-          return [];
-        } else {
-          return result;
-        }
-      } else {
-        return [];
-      }
-    }
-    return inner(schema, 0).flat(Infinity);
-  }
-
   // ../../../build/core-lib.js
   function glb(array, value, compare) {
     if (compare === void 0) {
@@ -13331,10 +11924,45 @@ window.ajv = new window.ajv7({ allErrors: true });
     }
     return offsets;
   }
+  function indexToRowCol(text) {
+    const offsets = lineOffsets(text);
+    return function(offset) {
+      if (offset === 0) {
+        return {
+          line: 0,
+          column: 0
+        };
+      }
+      const startIndex = glb(offsets, offset);
+      return {
+        line: startIndex,
+        column: offset - offsets[startIndex]
+      };
+    };
+  }
   function rowColToIndex(text) {
     const offsets = lineOffsets(text);
     return function(position) {
       return offsets[position.row] + position.column;
+    };
+  }
+  function formatLineRange(text, firstLine, lastLine) {
+    const lineWidth = Math.max(String(firstLine + 1).length, String(lastLine + 1).length);
+    const pad = " ".repeat(lineWidth);
+    const ls = lines(text);
+    const result = [];
+    for (let i = firstLine; i <= lastLine; ++i) {
+      const numberStr = `${pad}${i + 1}: `.slice(-(lineWidth + 2));
+      const lineStr = ls[i];
+      result.push({
+        lineNumber: i,
+        content: numberStr + lineStr,
+        rawLine: ls[i]
+      });
+    }
+    return {
+      prefixWidth: lineWidth + 2,
+      lines: result
     };
   }
   function matchAll(str, regex) {
@@ -13511,6 +12139,16 @@ window.ajv = new window.ajv7({ allErrors: true });
       originalString: str,
       map: (x) => x,
       mapClosest: (x) => x
+    };
+  }
+  function mappedIndexToRowCol(text) {
+    const f = indexToRowCol(text.originalString);
+    return function(offset) {
+      const n = text.mapClosest(offset);
+      if (n === void 0) {
+        throw new Error("Internal Error: bad offset in mappedIndexRowCol");
+      }
+      return f(n);
     };
   }
   function mappedSource(source, substrs) {
@@ -13733,6 +12371,51 @@ window.ajv = new window.ajv7({ allErrors: true });
     }
     return lines2;
   }
+  var PromiseQueue = class {
+    constructor() {
+      this.queue = new Array();
+      this.running = false;
+    }
+    enqueue(promise, clearPending = false) {
+      return new Promise((resolve, reject) => {
+        if (clearPending) {
+          this.queue.splice(0, this.queue.length);
+        }
+        this.queue.push({
+          promise,
+          resolve,
+          reject
+        });
+        this.dequeue();
+      });
+    }
+    dequeue() {
+      if (this.running) {
+        return false;
+      }
+      const item = this.queue.shift();
+      if (!item) {
+        return false;
+      }
+      try {
+        this.running = true;
+        item.promise().then((value) => {
+          this.running = false;
+          item.resolve(value);
+          this.dequeue();
+        }).catch((err) => {
+          this.running = false;
+          item.reject(err);
+          this.dequeue();
+        });
+      } catch (err) {
+        this.running = false;
+        item.reject(err);
+        this.dequeue();
+      }
+      return true;
+    }
+  };
   function schemaType(schema) {
     const t = schema.type;
     if (t) {
@@ -13792,9 +12475,719 @@ window.ajv = new window.ajv7({ allErrors: true });
         return [];
     }
   }
+  function walkSchema(schema, f) {
+    f(schema);
+    switch (schemaType(schema)) {
+      case "array":
+        if (schema.items) {
+          walkSchema(schema.items, f);
+        }
+        break;
+      case "anyOf":
+        for (const s of schema.anyOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "oneOf":
+        for (const s of schema.oneOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "allOf":
+        for (const s of schema.allOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "object":
+        if (schema.properties) {
+          for (const key of Object.getOwnPropertyNames(schema.properties)) {
+            const s = schema.properties[key];
+            walkSchema(s, f);
+          }
+        }
+        if (schema.additionalProperties) {
+          walkSchema(schema.additionalProperties, f);
+        }
+        break;
+    }
+  }
+  function normalizeSchema(schema) {
+    const result = JSON.parse(JSON.stringify(schema));
+    walkSchema(result, (schema2) => {
+      if (schema2.completions) {
+        delete schema2.completions;
+      }
+      if (schema2.exhaustiveCompletions) {
+        delete schema2.exhaustiveCompletions;
+      }
+      if (schema2.documentation) {
+        delete schema2.documentation;
+      }
+    });
+    return result;
+  }
   var ajv = void 0;
   function setupAjv(_ajv) {
     ajv = _ajv;
+  }
+  function navigate(path, annotation, returnKey = false, pathIndex = 0) {
+    if (pathIndex >= path.length) {
+      return annotation;
+    }
+    if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
+      const { components } = annotation;
+      const searchKey = path[pathIndex];
+      for (let i = 0; i < components.length; i += 2) {
+        const key = components[i].result;
+        if (key === searchKey) {
+          if (returnKey && pathIndex === path.length - 1) {
+            return navigate(path, components[i], returnKey, pathIndex + 1);
+          } else {
+            return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+          }
+        }
+      }
+      throw new Error("Internal error: searchKey not found in mapping object");
+    } else if (annotation.kind === "sequence" || annotation.kind === "block_sequence") {
+      const searchKey = Number(path[pathIndex]);
+      return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
+    } else {
+      throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
+    }
+  }
+  function navigateSchema(path, schema, pathIndex = 0) {
+    if (pathIndex >= path.length - 1) {
+      return schema;
+    }
+    const pathVal = path[pathIndex];
+    if (pathVal === "properties") {
+      const key = path[pathIndex + 1];
+      const subSchema = schema.properties[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "anyOf") {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.anyOf[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "oneOf") {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.oneOf[key];
+      return navigateSchema(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "items") {
+      const subSchema = schema.items;
+      return navigateSchema(path, subSchema, pathIndex + 1);
+    } else {
+      console.log({ path });
+      throw new Error("Internal error: Failed to navigate schema path");
+    }
+  }
+  function isProperPrefix(a, b) {
+    return b.length > a.length && b.substring(0, a.length) === a;
+  }
+  function groupBy(lst, f) {
+    const record = {};
+    const result = [];
+    for (const el of lst) {
+      const key = f(el);
+      if (record[key] === void 0) {
+        const lst2 = [];
+        const entry = {
+          key,
+          values: lst2
+        };
+        record[key] = lst2;
+        result.push(entry);
+      }
+      record[key].push(el);
+    }
+    return result;
+  }
+  function groupByEntries(entries) {
+    const result = [];
+    for (const { values } of entries) {
+      result.push(...values);
+    }
+    return result;
+  }
+  function narrowOneOfError(oneOf, suberrors) {
+    const subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
+    const onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
+    if (onlyAdditionalProperties.length) {
+      return onlyAdditionalProperties[0].values;
+    }
+    return [];
+  }
+  function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
+    const result = [];
+    const locF = indexToRowCol(source.originalString);
+    let errorsPerInstanceList = groupBy(validationErrors, (error) => error.instancePath);
+    do {
+      const newErrors = [];
+      errorsPerInstanceList = errorsPerInstanceList.filter(({ key: pathA }) => errorsPerInstanceList.filter(({ key: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
+      for (let { key: instancePath, values: errors } of errorsPerInstanceList) {
+        let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
+        errorsPerSchemaList = errorsPerSchemaList.filter(({ key: pathA }) => errorsPerSchemaList.filter(({ key: pathB }) => isProperPrefix(pathB, pathA)).length === 0);
+        for (const error of groupByEntries(errorsPerSchemaList)) {
+          if (error.hasBeenTransformed) {
+            continue;
+          }
+          if (error.keyword === "oneOf") {
+            error.hasBeenTransformed = true;
+            newErrors.push(...narrowOneOfError(error, errors));
+          } else if (error.keyword === "additionalProperties") {
+            error.hasBeenTransformed = true;
+            instancePath = `${instancePath}/${error.params.additionalProperty}`;
+            newErrors.push({
+              ...error,
+              instancePath,
+              keyword: "_custom_invalidProperty",
+              message: `property ${error.params.additionalProperty} not allowed in object`,
+              params: {
+                ...error.params,
+                originalError: error
+              },
+              schemaPath: error.schemaPath.slice(0, -21)
+            });
+          }
+        }
+      }
+      if (newErrors.length) {
+        errorsPerInstanceList.push(...groupBy(newErrors, (error) => error.instancePath));
+      } else {
+        break;
+      }
+    } while (true);
+    for (const { key: instancePath, values: allErrors } of errorsPerInstanceList) {
+      const path = instancePath.split("/").slice(1);
+      const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
+      for (const error of errors) {
+        const returnKey = error.keyword === "_custom_invalidProperty";
+        const violatingObject = navigate(path, annotation, returnKey);
+        const schemaPath = error.schemaPath.split("/").slice(1);
+        const start = locF(violatingObject.start);
+        const end = locF(violatingObject.end);
+        const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
+        let messageNoLocation;
+        if (error.keyword.startsWith("_custom_")) {
+          messageNoLocation = error.message;
+        } else {
+          const innerSchema = navigateSchema(schemaPath, schema);
+          messageNoLocation = `Field ${instancePath} must ${innerSchema.description}`;
+        }
+        const message = `${locStr}: ${messageNoLocation}`;
+        result.push({
+          instancePath,
+          violatingObject,
+          message,
+          messageNoLocation,
+          source,
+          start,
+          end,
+          error
+        });
+      }
+    }
+    result.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
+    return result;
+  }
+  var YAMLSchema = class {
+    constructor(schema) {
+      this.schema = schema;
+      this.validate = ajv.compile(normalizeSchema(schema));
+    }
+    validateParse(src, annotation) {
+      let errors = [];
+      if (!this.validate(annotation.result)) {
+        errors = localizeAndPruneErrors(annotation, this.validate.errors, src, this.schema);
+        return {
+          result: annotation.result,
+          errors
+        };
+      } else {
+        return {
+          result: annotation.result,
+          errors: []
+        };
+      }
+    }
+    reportErrorsInSource(result, src, message, error) {
+      if (result.errors.length) {
+        const locF = mappedIndexToRowCol(src);
+        const nLines = lines(src.originalString).length;
+        error(message);
+        for (const err of result.errors) {
+          console.log(err.message);
+          let startO = err.violatingObject.start;
+          let endO = err.violatingObject.end;
+          while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
+            startO++;
+          }
+          while (src.mapClosest(endO) > src.mapClosest(startO) && src.originalString[src.mapClosest(endO)].match(/\s/)) {
+            endO--;
+          }
+          const start = locF(startO);
+          const end = locF(endO);
+          const {
+            prefixWidth,
+            lines: lines2
+          } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+          for (const { lineNumber, content, rawLine } of lines2) {
+            console.log(content);
+            if (lineNumber >= start.line && lineNumber <= end.line) {
+              const startColumn = lineNumber > start.line ? 0 : start.column;
+              const endColumn = lineNumber < end.line ? rawLine.length : end.column;
+              console.log(" ".repeat(prefixWidth + startColumn) + "^".repeat(endColumn - startColumn + 1));
+            }
+          }
+        }
+      }
+      return result;
+    }
+    validateParseWithErrors(src, annotation, message, error) {
+      const result = this.validateParse(src, annotation);
+      this.reportErrorsInSource(result, src, message, error);
+      return result;
+    }
+  };
+
+  // validator-queue.js
+  var yamlValidators = {};
+  var validatorQueues = {};
+  function getValidator(context) {
+    const {
+      schema,
+      schemaName
+    } = context;
+    if (yamlValidators[schemaName]) {
+      return yamlValidators[schemaName];
+    }
+    const validator = new YAMLSchema(schema);
+    yamlValidators[schemaName] = validator;
+    return validator;
+  }
+  async function withValidator(context, fun) {
+    const {
+      schemaName
+    } = context;
+    if (validatorQueues[schemaName] === void 0) {
+      validatorQueues[schemaName] = new PromiseQueue();
+    }
+    const queue = validatorQueues[schemaName];
+    const result = await queue.enqueue(async () => {
+      const validator = getValidator(context);
+      try {
+        const result2 = await fun(validator);
+        return result2;
+      } catch (e) {
+        console.error("Error in validator queue", e);
+        return void 0;
+      }
+    });
+    return result;
+  }
+
+  // tree-sitter-annotated-yaml.js
+  function buildAnnotated(tree, mappedSource2) {
+    const singletonBuild = (node) => {
+      return buildNode(node.firstChild);
+    };
+    const buildNode = (node) => {
+      if (node === null) {
+        return null;
+      }
+      if (dispatch[node.type] === void 0) {
+        throw new Error(`Internal error: don't know how to build node of type ${node.type}`);
+      }
+      return dispatch[node.type](node);
+    };
+    const annotateEmpty = (position) => {
+      const mappedPos = mappedSource2.mapClosest(position);
+      return {
+        start: mappedPos,
+        end: mappedPos,
+        result: null,
+        kind: "<<EMPTY>>",
+        components: []
+      };
+    };
+    const annotate = (node, result2, components) => {
+      return {
+        start: mappedSource2.mapClosest(node.startIndex),
+        end: mappedSource2.mapClosest(node.endIndex),
+        result: result2,
+        kind: node.type,
+        components
+      };
+    };
+    const dispatch = {
+      "stream": singletonBuild,
+      "document": singletonBuild,
+      "block_node": singletonBuild,
+      "flow_node": singletonBuild,
+      "block_sequence": (node) => {
+        const result2 = [], components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          if (child.type !== "block_sequence_item") {
+            continue;
+          }
+          const component = buildNode(child);
+          components.push(component);
+          result2.push(component.result);
+        }
+        return annotate(node, result2, components);
+      },
+      "block_sequence_item": (node) => {
+        if (node.childCount < 2) {
+          return annotateEmpty(node.endIndex);
+        } else {
+          return buildNode(node.child(1));
+        }
+      },
+      "double_quote_scalar": (node) => {
+        return annotate(node, JSON.parse(node.text), []);
+      },
+      "plain_scalar": (node) => {
+        function getV() {
+          try {
+            return JSON.parse(node.text);
+          } catch (_e) {
+            return node.text;
+          }
+        }
+        const v = getV();
+        return annotate(node, v, []);
+      },
+      "flow_sequence": (node) => {
+        const result2 = [], components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          if (child.type !== "flow_node") {
+            continue;
+          }
+          const component = buildNode(child);
+          components.push(component);
+          result2.push(component.result);
+        }
+        return annotate(node, result2, components);
+      },
+      "block_mapping": (node) => {
+        const result2 = {}, components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          let component;
+          if (child.type === "ERROR") {
+            result2[child.text] = "<<ERROR>>";
+            const key2 = annotate(child, child.text, []);
+            const value2 = annotateEmpty(child.endIndex);
+            component = annotate(child, {
+              key: key2.result,
+              value: value2.result
+            }, [key2, value2]);
+          } else if (child.type !== "block_mapping_pair") {
+            throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
+          } else {
+            component = buildNode(child);
+          }
+          const { key, value } = component.result;
+          result2[key] = value;
+          components.push(...component.components);
+        }
+        return annotate(node, result2, components);
+      },
+      "block_mapping_pair": (node) => {
+        let key, value;
+        if (node.childCount === 3) {
+          key = annotate(node.child(0), node.child(0).text, []);
+          value = buildNode(node.child(2));
+        } else if (node.childCount === 2) {
+          key = annotate(node.child(0), node.child(0).text, []);
+          value = annotateEmpty(node.endIndex);
+        } else {
+          key = annotateEmpty(node.endIndex);
+          value = annotateEmpty(node.endIndex);
+        }
+        return annotate(node, {
+          key: key.result,
+          value: value.result
+        }, [key, value]);
+      }
+    };
+    const result = buildNode(tree.rootNode);
+    const endOfMappedCode = mappedSource2.map(mappedSource2.value.length - 1);
+    const startOfMappedCode = mappedSource2.map(0);
+    const lossage = (result.end - result.start) / (endOfMappedCode - startOfMappedCode);
+    if (lossage < 0.95) {
+      return null;
+    }
+    return result;
+  }
+  function locateCursor(annotation, position) {
+    let failedLast = false;
+    function locate(node, pathSoFar) {
+      if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
+        for (let i = 0; i < node.components.length; i += 2) {
+          const keyC = node.components[i], valueC = node.components[i + 1];
+          if (keyC.start <= position && position <= keyC.end) {
+            return [keyC.result, pathSoFar];
+          } else if (valueC.start <= position && position <= valueC.end) {
+            return locate(valueC, [keyC.result, pathSoFar]);
+          }
+        }
+        failedLast = true;
+        return pathSoFar;
+      } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
+        for (let i = 0; i < node.components.length; ++i) {
+          const valueC = node.components[i];
+          if (valueC.start <= position && position <= valueC.end) {
+            return locate(valueC, [i, pathSoFar]);
+          }
+          if (valueC.start > position) {
+            if (i === 0) {
+              return pathSoFar;
+            } else {
+              return [i - 1, pathSoFar];
+            }
+          }
+        }
+        throw new Error("Internal error: cursor outside bounds in sequence locate?");
+      } else {
+        if (node.kind !== "<<EMPTY>>") {
+          return [node.result, pathSoFar];
+        } else {
+          return pathSoFar;
+        }
+      }
+    }
+    const value = locate(annotation, []).flat(Infinity).reverse();
+    return {
+      withError: failedLast,
+      value
+    };
+  }
+
+  // parsing.js
+  var _parser;
+  async function getTreeSitter() {
+    if (_parser) {
+      return _parser;
+    }
+    const Parser = window.TreeSitter;
+    await Parser.init();
+    _parser = new Parser();
+    const YAML = await Parser.Language.load("/quarto/resources/editor/tools/yaml/tree-sitter-yaml.wasm");
+    _parser.setLanguage(YAML);
+    return _parser;
+  }
+  function* attemptParsesAtLine(context, parser) {
+    let {
+      code,
+      position
+    } = context;
+    if (code.value === void 0) {
+      code = asMappedString(code);
+    }
+    try {
+      const tree = parser.parse(code.value);
+      if (tree.rootNode.type !== "ERROR") {
+        yield {
+          parse: tree,
+          code,
+          deletions: 0
+        };
+      }
+    } catch (_e) {
+      console.log("Internal Error: tree-sitter raised exception. assuming no valid parses");
+      return;
+    }
+    const codeLines = rangedLines(code.value, true);
+    if (position.row >= codeLines.length || position.row < 0) {
+      return;
+    }
+    const currentLine = codeLines[position.row].substring;
+    let currentColumn = position.column;
+    let deletions = 0;
+    const locF = rowColToIndex(code.value);
+    while (currentColumn > 0) {
+      currentColumn--;
+      deletions++;
+      const chunks = [];
+      if (position.row > 0) {
+        chunks.push({
+          start: 0,
+          end: codeLines[position.row - 1].range.end
+        });
+      }
+      if (position.column > deletions) {
+        chunks.push({
+          start: locF({ row: position.row, column: 0 }),
+          end: locF({ row: position.row, column: position.column - deletions })
+        });
+      }
+      if (position.row + 1 < codeLines.length) {
+        chunks.push({
+          start: locF({ row: position.row, column: currentLine.length - 1 }),
+          end: locF({ row: position.row + 1, column: 0 })
+        });
+        chunks.push({
+          start: codeLines[position.row + 1].range.start,
+          end: codeLines[codeLines.length - 1].range.end
+        });
+      }
+      const newCode = mappedString(code, chunks);
+      const tree = parser.parse(newCode.value);
+      if (tree.rootNode.type !== "ERROR") {
+        yield {
+          parse: tree,
+          code: newCode,
+          deletions
+        };
+      }
+    }
+  }
+  function getIndent(l) {
+    return l.length - l.trimStart().length;
+  }
+  function getYamlIndentTree(code) {
+    const lines2 = lines(code);
+    const predecessor = [];
+    const indents = [];
+    let indentation = -1;
+    let prevPredecessor = -1;
+    for (let i = 0; i < lines2.length; ++i) {
+      const line = lines2[i];
+      const lineIndent = getIndent(line);
+      indents.push(lineIndent);
+      if (lineIndent > indentation) {
+        predecessor[i] = prevPredecessor;
+        prevPredecessor = i;
+        indentation = lineIndent;
+      } else if (line.trim().length === 0) {
+        predecessor[i] = predecessor[prevPredecessor];
+      } else if (lineIndent === indentation) {
+        predecessor[i] = predecessor[prevPredecessor];
+        prevPredecessor = i;
+      } else if (lineIndent < indentation) {
+        let v = prevPredecessor;
+        while (v >= 0 && indents[v] >= lineIndent) {
+          v = predecessor[v];
+        }
+        predecessor[i] = v;
+        prevPredecessor = i;
+        indentation = lineIndent;
+      } else {
+        throw new Error("Internal error, should never have arrived here");
+      }
+    }
+    return {
+      predecessor,
+      indentation: indents
+    };
+  }
+  function locateFromIndentation(context) {
+    let {
+      line,
+      code,
+      position
+    } = context;
+    if (code.value !== void 0) {
+      code = code.value;
+    }
+    const { predecessor, indentation } = getYamlIndentTree(code);
+    const lines2 = lines(code);
+    let lineNo = position.row;
+    const path = [];
+    const lineIndent = getIndent(line);
+    while (lineNo !== -1) {
+      const trimmed = lines2[lineNo].trim();
+      if (trimmed.length === 0) {
+        let prev = lineNo;
+        while (prev >= 0 && lines2[prev].trim().length === 0) {
+          prev--;
+        }
+        if (prev === -1) {
+          break;
+        }
+        const prevIndent = getIndent(lines2[prev]);
+        if (prevIndent < lineIndent) {
+          lineNo = prev;
+          continue;
+        }
+      }
+      if (lineIndent >= indentation[lineNo]) {
+        if (trimmed.startsWith("-")) {
+          path.push(0);
+        } else if (trimmed.endsWith(":")) {
+          path.push(trimmed.substring(0, trimmed.length - 1));
+        } else if (trimmed.length !== 0) {
+          return void 0;
+        }
+      }
+      lineNo = predecessor[lineNo];
+    }
+    path.reverse();
+    return path;
+  }
+
+  // schemas.js
+  var _schemas;
+  async function getSchemas() {
+    if (_schemas) {
+      return _schemas;
+    }
+    const response = await fetch("/quarto/resources/editor/tools/yaml/quarto-json-schemas.json");
+    _schemas = response.json();
+    return _schemas;
+  }
+  function navigateSchema2(schema, path) {
+    const refs = {};
+    function inner(subSchema, index) {
+      if (subSchema.$id) {
+        refs[subSchema.$id] = subSchema;
+      }
+      if (subSchema.$ref) {
+        if (refs[subSchema.$ref] === void 0) {
+          throw new Error(`Internal error: schema reference ${subSchema.$ref} undefined`);
+        }
+        subSchema = refs[subSchema.$ref];
+      }
+      if (index === path.length) {
+        return [subSchema];
+      }
+      const st = schemaType(subSchema);
+      if (st === "object") {
+        const key = path[index];
+        if (subSchema.properties[key] === void 0) {
+          if (index !== path.length - 1) {
+            return [];
+          }
+          const completions2 = Object.getOwnPropertyNames(subSchema.properties).filter((name) => name.startsWith(key));
+          if (completions2.length === 0) {
+            return [];
+          }
+          return [subSchema];
+        }
+        return inner(subSchema.properties[key], index + 1);
+      } else if (st === "array") {
+        if (subSchema.items === void 0) {
+          return [];
+        }
+        return inner(subSchema.items, index + 1);
+      } else if (st === "anyOf") {
+        return subSchema.anyOf.map((ss) => inner(ss, index));
+      } else if (st === "allOf") {
+        throw new Error("Internal error: don't know how to navigate allOf schema :(");
+      } else if (st === "oneOf") {
+        const result = subSchema.oneOf.map((ss) => inner(ss, index)).flat(Infinity);
+        if (result.length !== 1) {
+          return [];
+        } else {
+          return result;
+        }
+      } else {
+        return [];
+      }
+    }
+    return inner(schema, 0).flat(Infinity);
   }
 
   // automation.js
@@ -13968,7 +13361,7 @@ window.ajv = new window.ajv7({ allErrors: true });
       indent,
       commentPrefix
     } = obj;
-    const matchingSchemas = navigateSchema(schema, path);
+    const matchingSchemas = navigateSchema2(schema, path);
     const completions2 = matchingSchemas.map((schema2) => {
       const result = schemaCompletions(schema2);
       return result.map((completion) => {

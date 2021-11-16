@@ -1,4 +1,4 @@
-const core = window._quartoCoreLib;
+import * as core from "../../../build/core-lib.js";
 let _schemas;
 
 export async function getSchemas() {
