@@ -20,10 +20,16 @@ together with `esbuild`.
 We use `esbuild` to create esbuild-bundle.js, a single JS module which
 combines all of the necessary local JS into a single file. Although this
 should be eventually automated, it currently isn't. As a result, every time
-you change JavaScript code, you need to run the following:
+you change JavaScript code, the following needs to run:
 
     $ esbuild --bundle quarto-ojs.js --outfile=esbuild-bundle.js --format=esm
+
+Note that you're likely going to want to simply call
+
+    $ quarto build-js
     
+Which will rebuild this --- and all of other Quarto's --- JS build assets.
+
 ## Organization
 
 The important files are:
