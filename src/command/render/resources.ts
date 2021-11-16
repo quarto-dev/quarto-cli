@@ -40,7 +40,11 @@ export function resolveFileResources(
   const resources = resolvePathGlobs(fileDir, globs, ignore);
   if (markdown.length > 0) {
     resources.include.push(
-      ...extractResolvedResourceFilenamesFromQmd(asMappedString(markdown), fileDir, rootDir),
+      ...extractResolvedResourceFilenamesFromQmd(
+        asMappedString(markdown),
+        fileDir,
+        rootDir,
+      ),
     );
   }
   return resources;
