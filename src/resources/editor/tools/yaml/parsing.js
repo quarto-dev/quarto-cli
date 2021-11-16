@@ -1,4 +1,6 @@
 import * as core from "../../../build/core-lib.js";
+import { getLocalPath } from "./paths.js";
+
 let _parser;
 
 export async function getTreeSitter() {
@@ -14,7 +16,7 @@ export async function getTreeSitter() {
 
   // FIXME check if this shouldn't be parameterized somehow.
   const YAML = await Parser.Language.load(
-    "/quarto/resources/editor/tools/yaml/tree-sitter-yaml.wasm",
+    getLocalPath("tree-sitter-yaml.wasm")
   );
 
   _parser.setLanguage(YAML);

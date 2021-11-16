@@ -9,6 +9,7 @@ import {
   locateFromIndentation,
 } from "./parsing.js";
 import { getSchemas, navigateSchema } from "./schemas.js";
+import { setMainPath } from "./paths.js";
 
 import * as core from "../../../build/core-lib.js";
 
@@ -535,8 +536,9 @@ async function getAutomation(kind, context) {
 
 window.QuartoYamlEditorTools = {
   // deno-lint-ignore require-await
-  getCompletions: async function (context) {
+  getCompletions: async function (context, path) {
     try {
+      setMainPath(path);
       return getAutomation("completions", context);
     } catch (e) {
       console.log("Error found during autocomplete", e);
@@ -545,8 +547,9 @@ window.QuartoYamlEditorTools = {
   },
 
   // deno-lint-ignore require-await
-  getLint: async function (context) {
+  getLint: async function (context, path) {
     try {
+      setMainPath(path);
       core.setupAjv(window.ajv);
       return getAutomation("validation", context);
     } catch (e) {

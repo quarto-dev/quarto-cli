@@ -1,13 +1,13 @@
 import * as core from "../../../build/core-lib.js";
+import { getLocalPath } from "./paths.js";
+
 let _schemas;
 
 export async function getSchemas() {
   if (_schemas) {
     return _schemas;
   }
-  const response = await fetch(
-    "/quarto/resources/editor/tools/yaml/quarto-json-schemas.json",
-  );
+  const response = await fetch(getLocalPath("quarto-json-schemas.json"));
   _schemas = response.json();
   return _schemas;
 }
