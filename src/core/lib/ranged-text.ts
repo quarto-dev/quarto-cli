@@ -19,8 +19,8 @@ export interface Range {
 // const rangedSub = rangedSubstring(src, start, end);
 // assert(rangedSub === src.substring(rangedSub.range.start, rangedSub.range.end));
 export interface RangedSubstring {
-  substring: string;
-  range: Range;
+  readonly substring: string;
+  readonly range: Range;
 }
 
 export function rangedSubstring(

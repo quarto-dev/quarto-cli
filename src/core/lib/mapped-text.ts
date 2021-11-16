@@ -13,8 +13,8 @@ import { Range } from "./ranged-text.ts";
 import { indexToRowCol } from "./text.ts";
 
 export interface MappedString {
-  value: string;
-  originalString: string;
+  readonly value: string;
+  readonly originalString: string;
   map: (a: number) => number | undefined;
   mapClosest: (a: number) => number | undefined;
 }
