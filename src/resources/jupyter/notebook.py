@@ -94,7 +94,7 @@ def notebook_execute(options, status):
             cached_nb.cells.pop(0)
             nb_write(cached_nb, input)
             status("(Notebook read from cache)\n\n")
-            return
+            return True # can persist kernel
    else:
       nb_cache = None
       
