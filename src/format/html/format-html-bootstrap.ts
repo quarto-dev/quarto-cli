@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element, Node } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
@@ -540,22 +540,24 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
           Array.from(refContentsEl.childNodes).forEach((child) => {
             // Process footnotes specially
             // Remove the backlink since this is in the margin
-            const footnoteEl = child as Element;
-            const backLinkEl = footnoteEl.querySelector(".footnote-back");
-            if (backLinkEl) {
-              backLinkEl.remove();
+            if (child.nodeType === NodeType.ELEMENT_NODE) {
+              const footnoteEl = child as Element;
+              const backLinkEl = footnoteEl.querySelector(".footnote-back");
+              if (backLinkEl) {
+                backLinkEl.remove();
+              }
+
+              // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
+              child.insertBefore(
+                doc.createTextNode("\u00A0"),
+                child.firstChild,
+              );
+
+              child.insertBefore(
+                el.firstChild.cloneNode(true),
+                child.firstChild,
+              );
             }
-
-            // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
-            child.insertBefore(
-              doc.createTextNode("\u00A0"),
-              child.firstChild,
-            );
-
-            child.insertBefore(
-              el.firstChild.cloneNode(true),
-              child.firstChild,
-            );
           });
           addContentToMarginContainerForEl(el, refContentsEl, doc);
         }
