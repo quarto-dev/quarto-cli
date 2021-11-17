@@ -15,6 +15,8 @@ import {
 } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
+import { warning } from "log/mod.ts";
+
 import { ld } from "lodash/mod.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
@@ -198,7 +200,18 @@ export function pruneProjectFreezerDir(
   hidden: boolean,
 ) {
   const freezerDir = projectFreezerDir(project.dir, hidden);
-  files.map((file) => removeIfExists(join(freezerDir, dir, file)));
+  // on some network drives removeSync w/ recursive: true doesn't seem to work
+  // (see https://github.com/quarto-dev/quarto-cli/issues/188)
+  // TODO: this prevents the error but we will want to eventually
+  // find a way to do force this
+  files.map((file) => {
+    const filePath = join(freezerDir, dir, file);
+    try {
+      removeIfExists(filePath);
+    } catch {
+      warning(`Unable to remove file ${filePath}`);
+    }
+  });
   removeIfEmptyDir(join(freezerDir, dir));
 }
 
