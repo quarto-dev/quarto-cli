@@ -11,6 +11,7 @@ import {
   kCalloutNoteCaption,
   kCalloutTipCaption,
   kCalloutWarningCaption,
+  kCitationLocation,
   kCiteMethod,
   kCodeFold,
   kCodeLineNumbers,
@@ -69,7 +70,11 @@ export function filterParamsJson(
     : {};
 
   // Extract any column params
-  const quartoColumnParams = extractColumnParams(args, defaults);
+  const quartoColumnParams = extractColumnParams(
+    args,
+    options.format.metadata,
+    defaults,
+  );
 
   const params: Metadata = {
     ...includes,
@@ -179,6 +184,7 @@ function extractIncludeVariables(obj: { [key: string]: unknown }) {
 
 export function extractColumnParams(
   args: string[],
+  metadata: Metadata,
   defaults?: FormatPandoc,
 ) {
   const quartoColumnParams: Metadata = {};
@@ -198,10 +204,13 @@ export function extractColumnParams(
       delete defaults[kReferenceLocation];
     }
   }
-
   // Foreward the cite method as well
   if (defaults?.[kCiteMethod]) {
     quartoColumnParams[kCiteMethod] = defaults[kCiteMethod];
+  }
+  // Forward citation location
+  if (metadata[kCitationLocation]) {
+    quartoColumnParams[kCitationLocation] = metadata[kCitationLocation];
   }
 
   return quartoColumnParams;

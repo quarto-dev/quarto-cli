@@ -12,6 +12,7 @@ import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
 import {
+  kCitationLocation,
   kHtmlMathMethod,
   kLinkCitations,
   kReferenceLocation,
@@ -190,6 +191,11 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       flags[kReferenceLocation] === "margin";
     if (refsInMargin) {
       marginProcessors.push(footnoteMarginProcessor);
+    }
+
+    // If margin cites are enabled, move them
+    const citesInMargin = format.metadata[kCitationLocation] === "margin";
+    if (citesInMargin) {
       marginProcessors.push(referenceMarginProcessor);
     }
     processMarginNodes(doc, marginProcessors);
@@ -365,7 +371,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     }
 
     // Purge the bibliography if we're using refs in margin
-    if (refsInMargin) {
+    if (citesInMargin) {
       const bibliographyDiv = doc.querySelector("div#refs");
       if (bibliographyDiv) {
         bibliographyDiv.remove();

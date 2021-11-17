@@ -17,13 +17,8 @@ function layoutMetaInject()
         end
       end)
 
-      
-      -- check if global options are enabled (e.g. footnotes-margin)
-      local referenceLocation = param('reference-location', 'document')
-      local citeMethod = param('cite-method', 'citeproc')
-
       -- enable column layout (packages and adjust geometry)
-      if (layoutState.hasColumns or referenceLocation == 'margin') and isLatexOutput() then
+      if (layoutState.hasColumns or marginReferences() or marginCitations()) and isLatexOutput() then
         -- inject sidenotes package
         metaInjectLatex(meta, function(inject)
           inject(
@@ -54,7 +49,8 @@ function layoutMetaInject()
           inject("\\ifdefined\\Shaded\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}\\fi")
         end)
         
-        if referenceLocation == 'margin' and meta.bibliography ~= undefined then 
+        if marginCitations() and meta.bibliography ~= undefined then 
+          local citeMethod = param('cite-method', 'citeproc')
           if citeMethod == 'natbib' then
             metaInjectLatex(meta, function(inject)
               inject(
@@ -101,6 +97,14 @@ function layoutMetaInject()
       return meta
     end
   }
+end
+
+function marginReferences() 
+  return param('reference-location', 'document') == 'margin'
+end 
+
+function marginCitations()
+  return param('citation-location', 'document') == 'margin'
 end
 
 function twoSidedColumnLayout(meta)

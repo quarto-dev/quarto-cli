@@ -11,6 +11,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kCitationLocation,
   kCiteMethod,
   kClassOption,
   kDocumentClass,
@@ -152,12 +153,9 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
       sidecaptionLineProcessor(),
     ];
 
+    const marginCites = format.metadata[kCitationLocation];
     const renderedCites = {};
-    // If enabled, switch to sidenote footnotes
-    if (marginRefs(flags, format)) {
-      // Replace notes with side notes
-      lineProcessors.push(sideNoteLineProcessor());
-
+    if (marginCites) {
       // Based upon the cite method, post process the file to
       // process unresolved citations
       if (format.pandoc[kCiteMethod] === "biblatex") {
@@ -178,6 +176,12 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
           indexAndSuppressPandocBibliography(renderedCites),
         );
       }
+    }
+
+    // If enabled, switch to sidenote footnotes
+    if (marginRefs(flags, format)) {
+      // Replace notes with side notes
+      lineProcessors.push(sideNoteLineProcessor());
     }
 
     await processLines(output, lineProcessors);

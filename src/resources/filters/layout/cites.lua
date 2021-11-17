@@ -3,11 +3,10 @@
   
 
 function citesPreprocess() 
-  local refsInMargin = param('reference-location', 'document') == 'margin'
   return {
     
     Note = function(note) 
-      if isLatexOutput() and refsInMargin then
+      if isLatexOutput() and marginCitations() then
         return pandoc.walk_inline(note, {
           Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
             appendAtEnd(citePlaceholderInline(citation))
@@ -28,7 +27,7 @@ function citesPreprocess()
               end)
             })
           return para
-        elseif refsInMargin then
+        elseif marginCitations() then
           -- This is a figure is in the body, but the citation should be in the margin. Use 
           -- protection to shift any citations over
           para.content[1] = pandoc.walk_inline(figure, {
@@ -42,7 +41,7 @@ function citesPreprocess()
     end,
 
     Div = function(div)
-      if isLatexOutput() and hasMarginColumn(div) or refsInMargin then
+      if isLatexOutput() and hasMarginColumn(div) or marginCitations() then
         if hasTableRef(div) then 
           -- inspect the table caption for refs and just mark them as resolved
           local table = discoverTable(div)
@@ -83,9 +82,8 @@ end
 
 function walkUnresolvedCitations(func)
   return function(inlines)
-    local referenceLocation = param('reference-location', 'document')
     local modified = false
-    if isLatexOutput() and referenceLocation == 'margin'  then
+    if isLatexOutput() and marginCitations() then
       for i,inline in ipairs(inlines) do
         if inline.t == 'Cite' then
           for j, citation in ipairs(inline.citations) do
