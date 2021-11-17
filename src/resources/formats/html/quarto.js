@@ -136,6 +136,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               placeholderEl.remove();
             }
 
+            el.classList.remove("rollup");
             isVisible = true;
           }
         } else {
@@ -145,6 +146,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             const elBackground = window
               .getComputedStyle(el, null)
               .getPropertyValue("background");
+            el.classList.add("rollup");
 
             for (const child of el.children) {
               child.style.opacity = 0;
@@ -276,6 +278,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
     return Array.from(el.classList).find((className) => {
       return (
+        className !== "column-body" &&
         className.startsWith("column-") &&
         !className.endsWith("right") &&
         !className.endsWith("container") &&
@@ -296,17 +299,25 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
 
     return Array.from(el.classList).find((className) => {
-      return className.startsWith("column-") && !className.endsWith("left");
+      return (
+        className !== "column-body" &&
+        !className.endsWith("container") &&
+        className.startsWith("column-") &&
+        !className.endsWith("left")
+      );
     });
   });
 
+  const kOverlapPaddingSize = 10;
   function toRegions(els) {
     return els.map((el) => {
       const top =
-        el.getBoundingClientRect().top + document.documentElement.scrollTop;
+        el.getBoundingClientRect().top +
+        document.documentElement.scrollTop -
+        kOverlapPaddingSize;
       return {
         top,
-        bottom: top + el.scrollHeight,
+        bottom: top + el.scrollHeight + 2 * kOverlapPaddingSize,
       };
     });
   }
