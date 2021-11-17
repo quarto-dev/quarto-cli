@@ -1194,7 +1194,7 @@ $callouts: (
 
 #quarto-sidebar > *,
 #TOC > * {
-  transition: opacity 0.15s ease;
+  transition: opacity 0.1s ease, border 0.1s ease;
 }
 
 .quarto-color-scheme-toggle:not(.alternate).top-right .bi::before {
