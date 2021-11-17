@@ -216,30 +216,35 @@ body.docked {
   grid-column: body-start-outset / body-end-outset;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-body-outset-left {
   grid-column: body-start-outset / body-content-end;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-body-outset-right {
   grid-column: body-content-start / body-end-outset;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-page {
   grid-column: page-start-inset / page-end-inset;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-page-left {
   grid-column: page-start-inset / body-content-end;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-page-right {
@@ -248,6 +253,7 @@ body.docked {
   transform: translate3d(0, 0, 0);
   figcaption {
     text-align: right;
+    @include column-spanning-element();
   }
 }
 
@@ -255,36 +261,42 @@ body.docked {
   grid-column: screen-start-inset / screen-end-inset;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-screen-inset-left {
   grid-column: screen-start-inset / body-content-end;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-screen-inset-right {
   grid-column: body-content-start / screen-end-inset;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-screen {
   grid-column: screen-start / screen-end;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-screen-left {
   grid-column: screen-start / body-content-end;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-screen-right {
   grid-column: body-start / screen-end;
   z-index: $zindex-content;
   transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
 }
 
 .column-screen-inset-shaded {

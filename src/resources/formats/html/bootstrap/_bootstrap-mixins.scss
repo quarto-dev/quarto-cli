@@ -13,6 +13,10 @@
   gap: 0;
 }
 
+@mixin column-spanning-element {
+  background: $body-bg;
+}
+
 @mixin grid-template-columns-narrow {
   grid-template-columns:
     [screen-start] 1em
