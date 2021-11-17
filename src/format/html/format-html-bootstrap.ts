@@ -537,28 +537,26 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
         const refId = target.slice(1);
         const refContentsEl = doc.getElementById(refId);
         if (refContentsEl) {
-          Array.from(refContentsEl.childNodes).forEach((child) => {
-            // Process footnotes specially
-            // Remove the backlink since this is in the margin
-            if (child.nodeType === NodeType.ELEMENT_NODE) {
-              const footnoteEl = child as Element;
-              const backLinkEl = footnoteEl.querySelector(".footnote-back");
-              if (backLinkEl) {
-                backLinkEl.remove();
-              }
+          // Find and remove the backlink
+          const backLinkEl = refContentsEl.querySelector(".footnote-back");
+          if (backLinkEl) {
+            backLinkEl.remove();
+          }
 
-              // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
-              child.insertBefore(
-                doc.createTextNode("\u00A0"),
-                child.firstChild,
-              );
+          // Prepend the footnote mark
+          if (refContentsEl.childNodes.length > 0) {
+            const firstChild = refContentsEl.childNodes[0];
+            // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
+            firstChild.insertBefore(
+              doc.createTextNode("\u00A0"),
+              firstChild.firstChild,
+            );
 
-              child.insertBefore(
-                el.firstChild.cloneNode(true),
-                child.firstChild,
-              );
-            }
-          });
+            firstChild.insertBefore(
+              el.firstChild.cloneNode(true),
+              firstChild.firstChild,
+            );
+          }
           addContentToMarginContainerForEl(el, refContentsEl, doc);
         }
       }
