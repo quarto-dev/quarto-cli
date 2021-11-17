@@ -23,8 +23,10 @@ function tdump (tbl, indent)
       tdump(v, indent+1)
     elseif type(v) == 'boolean' then
       print(formatting .. tostring(v))
-    else
-      print(formatting .. v)
+    elseif (v ~= nil) then 
+      print(formatting .. tostring(v))
+    else 
+      print(formatting .. 'nil')
     end
   end
 end

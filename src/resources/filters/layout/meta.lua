@@ -127,13 +127,25 @@ function oneSidedColumnLayout(meta)
 
 end
 
-function columnGeometry(meta) 
+function columnGeometry(meta)
   -- customize the geometry
   if not meta.geometry then
     meta.geometry = pandoc.MetaList({})
   end  
-  if #meta.geometry == 0 then
-    meta.geometry = geometryForPaper(meta.papersize)
+  local userDefinedGeometry = #meta.geometry ~= 0
+
+  -- if only 'showframe' is passed, we can still modify the geometry
+  if #meta.geometry == 1 then
+    if #meta.geometry[1] == 1 then
+      local val = meta.geometry[1][1]
+      if val.t == 'Str' and val.text == 'showframe' then
+        userDefinedGeometry = false
+      end
+    end
+  end 
+  
+  if not userDefinedGeometry then
+    tappend(meta.geometry, geometryForPaper(meta.papersize))
   end
 end
 
@@ -154,14 +166,18 @@ function geometryForPaper(paperSize)
 end
 
 function geometryFromPaperWidth(paperWidth) 
-  local geometry = pandoc.MetaList({})
-  geometry:insert('left=' .. left(paperWidth) .. 'in')
-  geometry:insert('marginparwidth=' .. marginParWidth(paperWidth) .. 'in')
-  geometry:insert('textwidth=' .. textWidth(paperWidth) .. 'in')
-  geometry:insert('marginparsep=' .. marginParSep(paperWidth) .. 'in')
-  --geometry:insert('showframe')
+  local geometry = pandoc.List({})
+  geometry:insert(metaInlineStr('left=' .. left(paperWidth) .. 'in'))
+  geometry:insert(metaInlineStr('marginparwidth=' .. marginParWidth(paperWidth) .. 'in'))
+  geometry:insert(metaInlineStr('textwidth=' .. textWidth(paperWidth) .. 'in'))
+  geometry:insert(metaInlineStr('marginparsep=' .. marginParSep(paperWidth) .. 'in'))
   return geometry
 end
+
+function metaInlineStr(str) 
+  return pandoc.MetaInlines({pandoc.Str(str)})
+end
+
 
 -- We will only provide custom geometries for paper widths that we are 
 -- aware of and that would work well for wide margins. Some sizes get
