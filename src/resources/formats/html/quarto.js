@@ -222,16 +222,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               "scroll",
               throttle(() => {
                 closeToggle();
-              }, 100)
+              }, 50)
             );
 
             // Handle positioning of the toggle
             window.addEventListener(
               "resize",
               throttle(() => {
-                console.log("yo");
                 positionToggle();
-              }, 100)
+              }, 50)
             );
             positionToggle();
 
@@ -380,7 +379,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         walk(tocEl, 0);
       }
       hideOverlappedSidebars();
-    }, 10)
+    }, 5)
   );
   window.addEventListener(
     "resize",
@@ -391,23 +390,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   hideOverlappedSidebars();
 });
 
-// TODO: Create shared throttle js function (see quarto-nav.js)
 function throttle(func, wait) {
-  var timeout;
+  var waiting = false;
   return function () {
-    const context = this;
-    const args = arguments;
-    const later = function () {
-      clearTimeout(timeout);
-      timeout = null;
-      func.apply(context, args);
-    };
-
-    if (!timeout) {
-      timeout = setTimeout(later, wait);
+    if (!waiting) {
+      func.apply(this, arguments);
+      waiting = true;
+      setTimeout(function () {
+        waiting = false;
+      }, wait);
     }
   };
 }
-
-// Find the side element or toc element with the highest Y position
-// Find the highest full width element in the document that is full width
