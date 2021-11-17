@@ -90,7 +90,8 @@ function renderDivColumn(el)
       if el.attr.classes:includes('cell-output-display') and #el.content > 0 then
         -- this could be a code-display-cell
         local figOrTable = false
-        for j, contentEl in ipairs(el.content) do
+        for j=1,#el.content do
+          local contentEl = el.content[j]
 
           -- wrap figures
           local figure = discoverFigure(contentEl, false)
@@ -109,6 +110,12 @@ function renderDivColumn(el)
           elseif contentEl.attr ~= nil and hasFigureRef(contentEl) then
             -- wrap figure divs
             latexWrapEnvironment(contentEl, latexFigureEnv(el), false)
+            figOrTable = true
+          elseif contentEl.t == 'Table' then
+            -- wrap the table in a div and wrap the table environment around it
+            local tableDiv = pandoc.Div({contentEl})
+            latexWrapEnvironment(tableDiv, latexTableEnv(el), false)
+            el.content[j] = tableDiv
             figOrTable = true
           end 
         end
