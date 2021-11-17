@@ -635,8 +635,8 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     return el.previousElementSibling;
   }
 
-  // Check for a list
-  const list = findOutermostParentElOfType(el, ["OL", "UL"]);
+  // Check for a list or table
+  const list = findOutermostParentElOfType(el, ["OL", "UL", "TABLE"]);
   if (list) {
     if (list.nextElementSibling && isContainer(list.nextElementSibling)) {
       return list.nextElementSibling;
