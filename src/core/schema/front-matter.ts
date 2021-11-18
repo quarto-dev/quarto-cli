@@ -19,7 +19,7 @@ import { YAMLSchema } from "./yaml-schema.ts";
 
 import { formatExecuteOptionsSchema as execute } from "./types.ts";
 
-export const htmlOptionsSchema = execute;
+export const htmlOptionsSchema = oneOfS(execute, enumS("default"));
 
 export const htmlFormatSchema = objectS({
   properties: {
