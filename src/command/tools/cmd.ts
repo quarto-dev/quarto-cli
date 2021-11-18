@@ -14,6 +14,7 @@ import { formatLine, withSpinner } from "../../core/console.ts";
 import {
   installableTools,
   installTool,
+  printToolInfo,
   toolSummary,
   ToolSummaryData,
   uninstallTool,
@@ -59,6 +60,11 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, command: string, tool?: string) => {
     switch (command) {
+      case "info":
+        if (tool) {
+          await printToolInfo(tool);
+        }
+        break;
       case "install":
         if (tool) {
           await installTool(tool);
