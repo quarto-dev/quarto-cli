@@ -78,23 +78,33 @@ window.QuartoSupport = function () {
     // check if leaflet is used
     if (window.L) {
       L.Map.addInitHook(function () {
-        const slides = deck.getSlidesElement();
-        const scale = deck.getScale();
+        function unScale(slides, scale) {
+          console.log(this);
+          const container = this.getContainer();
 
-        const container = this.getContainer();
+          // Cancel revealjs scaling on map container by doing the opposite of what it sets
+          // * zoom will be used for scale > 1
+          // * transform will be used for scale < 1
+          // As we change on every resize, we remove other value if it was previously set
+          if (slides.style.zoom) {
+            if (slides.style.transform) slides.style.transform = null;
+            container.style.zoom = 1 / scale;
+          } else if (slides.style.transform) {
+            // reveal.js use transform: scale(..)
+            if (slides.style.zoom) slides.style.zoom = null;
+            container.style.transform = "scale(" + 1 / scale + ")";
+          }
 
-        // Cancel revealjs scaling on map container by doing the opposite of what it sets
-        // zoom will be used for scale > 1
-        // transform will be used for scale < 1
-        if (slides.style.zoom) {
-          container.style.zoom = 1 / scale;
-        } else if (slides.style.transform) {
-          // reveal.js use transform: scale(..)
-          container.style.transform = "scale(" + 1 / scale + ")";
+          // Checks if the map container size changed and updates the map
+          this.invalidateSize();
         }
 
-        // Update the map on container size changed
-        this.invalidateSize();
+        const unScale2 = unScale.bind(this);
+
+        // We run the unscaling each time the presentation is resize
+        Reveal.on("resize", function (ev) {
+          unScale2(deck.getSlidesElement(), ev.scale);
+        });
       });
     }
   }
