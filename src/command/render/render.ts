@@ -124,7 +124,7 @@ import { isHtmlCompatible } from "../../config/format.ts";
 import { initDenoDom } from "../../core/html.ts";
 import { resolveLanguageMetadata } from "../../core/language.ts";
 
-import { validateYAMLFrontMatter } from "../../core/schema/front-matter.ts";
+import { validateDocument } from "../../core/schema/validate-document.ts";
 
 export async function renderFiles(
   files: string[],
@@ -190,12 +190,9 @@ export async function renderFiles(
           pandocRenderer.onBeforeExecute(recipe.format),
         );
 
-        // validate the YAML front matter in the document
-        if (context.target.markdown !== "") {
-          const validationResult = validateYAMLFrontMatter(context);
-          if (validationResult !== null && validationResult.errors.length > 0) {
-            throw new Error("Front matter validation failed - exiting.");
-          }
+        const validationResult = validateDocument(context);
+        if (validationResult.length) {
+          throw new Error("YAML validation failed - exiting.");
         }
 
         // FIXME it should be possible to infer this directly now
