@@ -14,7 +14,9 @@
 }
 
 @mixin column-spanning-element {
-  background: $body-bg;
+  table {
+    background: $body-bg;
+  }
 }
 
 @mixin grid-template-columns-narrow {
