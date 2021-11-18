@@ -73,6 +73,32 @@ window.QuartoSupport = function () {
     }
   }
 
+  // Patch leaflet for compatibility with revealjs
+  function patchLeaflet(deck) {
+    // check if leaflet is used
+    if (window.L) {
+      L.Map.addInitHook(function () {
+        const slides = deck.getSlidesElement();
+        const scale = deck.getScale();
+
+        const container = this.getContainer();
+
+        // Cancel revealjs scaling on map container by doing the opposite of what it sets
+        // zoom will be used for scale > 1
+        // transform will be used for scale < 1
+        if (slides.style.zoom) {
+          container.style.zoom = 1 / scale;
+        } else if (slides.style.transform) {
+          // reveal.js use transform: scale(..)
+          container.style.transform = "scale(" + 1 / scale + ")";
+        }
+
+        // Update the map on container size changed
+        this.invalidateSize();
+      });
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -80,6 +106,7 @@ window.QuartoSupport = function () {
       addLogoImage(deck);
       addFooterText(deck);
       addChalkboardButtons(deck);
+      patchLeaflet(deck);
     },
   };
 };
