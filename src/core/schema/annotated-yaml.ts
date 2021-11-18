@@ -22,18 +22,7 @@ export interface AnnotatedParse {
 }
 
 export function readAnnotatedYamlFromMappedString(yml: MappedString) {
-  const result = readAnnotatedYamlFromString(yml.value);
-
-  function walkAndFix(annotation: AnnotatedParse) {
-    annotation.start = yml.mapClosest(annotation.start)!;
-    annotation.end = yml.mapClosest(annotation.end)!;
-    for (const c of annotation.components) {
-      walkAndFix(c);
-    }
-  }
-
-  walkAndFix(result);
-  return result;
+  return readAnnotatedYamlFromString(yml.value);
 }
 
 export function readAnnotatedYamlFromString(yml: string) {
