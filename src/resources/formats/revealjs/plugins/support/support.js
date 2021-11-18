@@ -99,9 +99,13 @@ window.QuartoSupport = function () {
           this.invalidateSize();
         }
 
+        // bind the leaflet Map object to unscale
         const unScale2 = unScale.bind(this);
 
-        // We run the unscaling each time the presentation is resize
+        // Unscale at initialization
+        unScale2(deck.getSlidesElement(), deck.getScale());
+
+        // And unscale each time presentation is resized
         Reveal.on("resize", function (ev) {
           unScale2(deck.getSlidesElement(), ev.scale);
         });
