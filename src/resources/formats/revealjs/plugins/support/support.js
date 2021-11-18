@@ -73,6 +73,46 @@ window.QuartoSupport = function () {
     }
   }
 
+  // Patch leaflet for compatibility with revealjs
+  function patchLeaflet(deck) {
+    // check if leaflet is used
+    if (window.L) {
+      L.Map.addInitHook(function () {
+        function unScale(slides, scale) {
+          console.log(this);
+          const container = this.getContainer();
+
+          // Cancel revealjs scaling on map container by doing the opposite of what it sets
+          // * zoom will be used for scale > 1
+          // * transform will be used for scale < 1
+          // As we change on every resize, we remove other value if it was previously set
+          if (slides.style.zoom) {
+            if (slides.style.transform) slides.style.transform = null;
+            container.style.zoom = 1 / scale;
+          } else if (slides.style.transform) {
+            // reveal.js use transform: scale(..)
+            if (slides.style.zoom) slides.style.zoom = null;
+            container.style.transform = "scale(" + 1 / scale + ")";
+          }
+
+          // Checks if the map container size changed and updates the map
+          this.invalidateSize();
+        }
+
+        // bind the leaflet Map object to unscale
+        const unScale2 = unScale.bind(this);
+
+        // Unscale at initialization
+        unScale2(deck.getSlidesElement(), deck.getScale());
+
+        // And unscale each time presentation is resized
+        deck.on("resize", function (ev) {
+          unScale2(deck.getSlidesElement(), ev.scale);
+        });
+      });
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -80,6 +120,7 @@ window.QuartoSupport = function () {
       addLogoImage(deck);
       addFooterText(deck);
       addChalkboardButtons(deck);
+      patchLeaflet(deck);
     },
   };
 };
