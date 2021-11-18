@@ -34,9 +34,10 @@ export async function quarto(
 ) {
   // passthrough to pandoc
   if (args[0] === "pandoc") {
-    return (await execProcess({
+    const result = await execProcess({
       cmd: [pandocBinaryPath(), ...args.slice(1)],
-    })).code;
+    });
+    Deno.exit(result.code);
   }
 
   // inject implicit cwd arg for quarto preview/render whose

@@ -154,9 +154,9 @@ export function revealPluginExtras(
     );
   }
 
-  // add footer plugin
+  // add general support plugin (after others so it can rely on their init)
   pluginBundles.push(
-    { plugin: formatResourcePath("revealjs", join("plugins", "footer")) },
+    { plugin: formatResourcePath("revealjs", join("plugins", "support")) },
   );
 
   // read plugins
@@ -209,11 +209,11 @@ export function revealPluginExtras(
     // add to config
     if (plugin.config) {
       for (const key of Object.keys(plugin.config)) {
+        const kebabKey = camelToKebab(key);
         if (typeof (plugin.config[key]) === "object") {
           config[key] = plugin.config[key];
 
           // see if the user has yaml to merge
-          const kebabKey = camelToKebab(key);
           if (typeof (format.metadata[kebabKey]) === "object") {
             config[key] = mergeConfigs(
               revealMetadataFilter(
@@ -225,6 +225,11 @@ export function revealPluginExtras(
                 kRevealPluginKebabOptions,
               ),
             );
+          }
+        } else {
+          config[key] = plugin.config[key];
+          if (format.metadata[key] !== undefined) {
+            config[key] = format.metadata[key];
           }
         }
       }
