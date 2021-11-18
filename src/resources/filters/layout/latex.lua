@@ -608,8 +608,7 @@ end
 
 
 function isStarEnv(clz) 
-  local match = clz:match('^column%-screen') 
-  return clz:match('^column%-screen') or clz:match('^column%-page')
+  return (clz:match('^column%-screen') or clz:match('^column%-page')) and not clz:match('%-left$')
 end
 
 function isMarginEnv(clz) 
