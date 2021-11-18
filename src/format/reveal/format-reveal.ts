@@ -283,7 +283,7 @@ export function revealjsFormat() {
         }
 
         // hash-type: number (as shorthand for -auto_identifiers)
-        if (format.metadata[kHashType] !== "id") {
+        if (format.metadata[kHashType] === "number") {
           extras.pandoc = {
             ...extras.pandoc,
             from: pandocFormatWith(
