@@ -5,13 +5,14 @@
 *
 */
 
-import { Document, Element, Node } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
 import {
+  kCitationLocation,
   kHtmlMathMethod,
   kLinkCitations,
   kReferenceLocation,
@@ -190,6 +191,11 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       flags[kReferenceLocation] === "margin";
     if (refsInMargin) {
       marginProcessors.push(footnoteMarginProcessor);
+    }
+
+    // If margin cites are enabled, move them
+    const citesInMargin = format.metadata[kCitationLocation] === "margin";
+    if (citesInMargin) {
       marginProcessors.push(referenceMarginProcessor);
     }
     processMarginNodes(doc, marginProcessors);
@@ -365,7 +371,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     }
 
     // Purge the bibliography if we're using refs in margin
-    if (refsInMargin) {
+    if (citesInMargin) {
       const bibliographyDiv = doc.querySelector("div#refs");
       if (bibliographyDiv) {
         bibliographyDiv.remove();
@@ -537,26 +543,26 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
         const refId = target.slice(1);
         const refContentsEl = doc.getElementById(refId);
         if (refContentsEl) {
-          Array.from(refContentsEl.childNodes).forEach((child) => {
-            // Process footnotes specially
-            // Remove the backlink since this is in the margin
-            const footnoteEl = child as Element;
-            const backLinkEl = footnoteEl.querySelector(".footnote-back");
-            if (backLinkEl) {
-              backLinkEl.remove();
-            }
+          // Find and remove the backlink
+          const backLinkEl = refContentsEl.querySelector(".footnote-back");
+          if (backLinkEl) {
+            backLinkEl.remove();
+          }
 
+          // Prepend the footnote mark
+          if (refContentsEl.childNodes.length > 0) {
+            const firstChild = refContentsEl.childNodes[0];
             // Prepend the reference identified (e.g. <sup>1</sup> and a non breaking space)
-            child.insertBefore(
+            firstChild.insertBefore(
               doc.createTextNode("\u00A0"),
-              child.firstChild,
+              firstChild.firstChild,
             );
 
-            child.insertBefore(
+            firstChild.insertBefore(
               el.firstChild.cloneNode(true),
-              child.firstChild,
+              firstChild.firstChild,
             );
-          });
+          }
           addContentToMarginContainerForEl(el, refContentsEl, doc);
         }
       }
@@ -635,8 +641,8 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     return el.previousElementSibling;
   }
 
-  // Check for a list
-  const list = findOutermostParentElOfType(el, ["OL", "UL"]);
+  // Check for a list or table
+  const list = findOutermostParentElOfType(el, ["OL", "UL", "TABLE"]);
   if (list) {
     if (list.nextElementSibling && isContainer(list.nextElementSibling)) {
       return list.nextElementSibling;

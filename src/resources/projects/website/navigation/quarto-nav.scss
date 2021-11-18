@@ -304,7 +304,7 @@ nav.sidebar.sidebar-navigation {
   }
 }
 
-.sidebar.sidebar-navigation:not(.floating) {
+.sidebar.sidebar-navigation:not(.floating):not(.rollup) {
   border-right: 1px solid $table-border-color !important;
 }
 
