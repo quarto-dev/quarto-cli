@@ -3,12 +3,11 @@ title: "A Quarto Page Layout Example"
 subtitle: "Inspired by Tufte Handout, Using Quarto"
 date: "`r Sys.Date()`"
 format:
-    pdf: default
+    pdf: default  
 reference-location: margin
 citation-location: margin
 bibliography: skeleton.bib
 ---
-
 # Introduction
 
 This document demonstrates the use of a number of these page layout features to produce an attractive and usable document inspired by the Tufte handout style and the use of Tufte's styles in RMarkdown documents [@xie2018]. The Tufte handout style is a style that Edward Tufte uses in his books and handouts. Tufte's style is known for its extensive use of sidenotes, tight integration of graphics with text, and well-set typography. Quarto[^1] supports most of the layout techniques that are used in the Tufte handout style for both HTML and LaTeX/PDF output.
@@ -51,14 +50,7 @@ Images and graphics play an integral role in Tufte's work. To place figures in t
 #| fig-cap: "MPG vs horsepower, colored by transmission."
 #| column: margin
 #| message: false
-library(ggplot2)
-mtcars2 <- mtcars
-mtcars2$am <- factor(
-  mtcars$am, labels = c('automatic', 'manual')
-)
-ggplot(mtcars2, aes(hp, mpg, color = am)) +
-  geom_point() + geom_smooth() +
-  theme(legend.position = 'bottom')
+plot(mtcars)
 ```
 
 Note the use of the `fig-cap` chunk option to provide a figure caption. You can adjust the proportions of figures using the `fig-width` and `fig-height` chunk options. These are specified in inches, and will be automatically scaled down to fit within the handout margin.
@@ -84,8 +76,7 @@ You can arrange for figures to span across the entire page by using the chunk op
 #| fig-height: 3
 #| column: page-right
 #| warning: FALSE
-ggplot(diamonds, aes(carat, price)) + geom_smooth() +
-  facet_grid(~ cut)
+plot(cars)
 ```
 
 Other chunk options related to figures can still be used, such as `fig-width`, `fig-cap`, and so on. For full width figures, usually `fig-width` is large and `fig-height` is small. In the above example, the plot size is $11 \times 3$.
@@ -113,7 +104,7 @@ Besides margin and full width figures, you can of course also include figures co
 ```{r}
 #| label: fig-main
 #| fig-cap: "A figure in the main column."
-ggplot(diamonds, aes(cut, price)) + geom_boxplot()
+plot(cars)
 ```
 
 ## Margin Captions
@@ -124,7 +115,7 @@ When you include a figure constrained to the main column, you can choose to plac
 #| label: fig-main-margin-cap
 #| fig-cap: "A figure with a longer caption. The figure appears in the main column, but the caption is placed in the margin. Caption can even contain elements like a citation such as @xie2018."
 #| caption-location: margin
-ggplot(diamonds, aes(cut, price)) + geom_boxplot()
+plot(cars)
 ```
 
 # Sidenotes
@@ -166,10 +157,8 @@ The rest of this document consists of a few test cases to make sure everything s
 #| fig.show: hold
 #| warning: false
 #| caption-location: margin
-p <- ggplot(mtcars2, aes(hp, mpg, color = am)) +
-  geom_point()
-p
-p + geom_smooth()
+plot(cars)
+plot(iris)
 ```
 
 Then two plots in separate figure environments (the code is identical to the previous code chunk, but the chunk option is the default `fig.show = 'asis'` now):
@@ -190,8 +179,8 @@ Next we show multiple plots in margin figures. Similarly, two plots in the same 
 #| fig-show: hold
 #| column: margin
 #| warning: false
-p
-p + geom_smooth(method = 'lm')
+plot(cars)
+plot(iris)
 ```
 
 Then two plots from the same code chunk placed in different figure environments:
@@ -209,8 +198,8 @@ knitr::kable(head(iris[,c(1,2,3,4)], 15))
 #| column: margin
 #| warning: false
 #| echo: false
-p
-p + geom_smooth(method = 'lm')
+plot(cars)
+plot(iris)
 ```
 
 ```{r}
@@ -228,14 +217,13 @@ You do not have to assign captions to figures. We show three figures with no cap
 #| column: margin
 # a boxplot of weight vs transmission; this figure
 # will be placed in the margin
-ggplot(mtcars2, aes(am, wt)) + geom_boxplot() +
-  coord_flip()
+plot(cars)
 ```
 
 ```{r}
 #| warning: false
 # a figure in the main column
-p <- ggplot(mtcars, aes(wt, hp)) + geom_point()
+p <- plot(cars)
 p
 ```
 
@@ -245,7 +233,7 @@ p
 #| column: page-right
 #| warning: false
 # a fullwidth figure
-p + geom_smooth(method = 'lm') + facet_grid(~ gear)
+p
 ```
 
 # Some Notes on Page Layout
