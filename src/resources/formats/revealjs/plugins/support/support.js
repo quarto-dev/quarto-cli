@@ -106,7 +106,7 @@ window.QuartoSupport = function () {
         unScale2(deck.getSlidesElement(), deck.getScale());
 
         // And unscale each time presentation is resized
-        Reveal.on("resize", function (ev) {
+        deck.on("resize", function (ev) {
           unScale2(deck.getSlidesElement(), ev.scale);
         });
       });
