@@ -154,9 +154,9 @@ export function revealPluginExtras(
     );
   }
 
-  // add footer plugin
+  // add general support plugin (after others so it can rely on their init)
   pluginBundles.push(
-    { plugin: formatResourcePath("revealjs", join("plugins", "footer")) },
+    { plugin: formatResourcePath("revealjs", join("plugins", "support")) },
   );
 
   // read plugins
