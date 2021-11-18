@@ -32,7 +32,7 @@ export function readAnnotatedYamlFromMappedString(yml: MappedString) {
     }
   }
 
-  walkAndFix(result.result);
+  walkAndFix(result);
   return result;
 }
 
