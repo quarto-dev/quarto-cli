@@ -177,22 +177,27 @@ $selectionColor: $selection-color !default;
   line-height: $revealjs-line-height;
 }
 
+.reveal.smaller .slides section,
 .reveal .slides section.smaller {
   font-size: #{$presentation-font-smaller}em;
 }
 
+.reveal.smaller .slides h1,
 .reveal .slides section.smaller h1 {
   font-size: calc(#{$revealjs-h1-font-size} / #{$presentation-font-smaller});
 }
 
+.reveal.smaller .slides h2,
 .reveal .slides section.smaller h2 {
   font-size: calc(#{$revealjs-h2-font-size} / #{$presentation-font-smaller});
 }
 
+.reveal.smaller .slides h3,
 .reveal .slides section.smaller h3 {
   font-size: calc(#{$revealjs-h3-font-size} / #{$presentation-font-smaller});
 }
 
+.reveal.smaller .slides pre,
 .reveal .slides section.smaller pre {
   font-size: calc(#{$code-block-font-size} / #{$presentation-font-smaller});
 }

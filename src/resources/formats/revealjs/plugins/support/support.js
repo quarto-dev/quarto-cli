@@ -1,5 +1,13 @@
 // catch all plugin for various quarto features
 window.QuartoSupport = function () {
+  // apply styles
+  function applyGlobalStyles(deck) {
+    if (deck.getConfig()["smaller"] === true) {
+      const revealParent = deck.getRevealElement();
+      revealParent.classList.add("smaller");
+    }
+  }
+
   // add logo image
   function addLogoImage(deck) {
     const revealParent = deck.getRevealElement();
@@ -68,6 +76,7 @@ window.QuartoSupport = function () {
   return {
     id: "quarto-support",
     init: function (deck) {
+      applyGlobalStyles(deck);
       addLogoImage(deck);
       addFooterText(deck);
       addChalkboardButtons(deck);
