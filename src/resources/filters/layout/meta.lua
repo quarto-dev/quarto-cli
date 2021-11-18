@@ -60,7 +60,6 @@ function layoutMetaInject()
         -- If the user specifies 'code-block-border-left: false'
         -- then we should't give the code blocks this treatment
         local kCodeBlockBorderLeft = 'code-block-border-left'
-        dump(meta[kCodeBlockBorderLeft])
         if meta[kCodeBlockBorderLeft] == nil or meta[kCodeBlockBorderLeft] then
           metaInjectLatex(meta, function(inject)
             inject(

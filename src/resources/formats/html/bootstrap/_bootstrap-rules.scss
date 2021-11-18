@@ -3,6 +3,12 @@ body {
   margin: 0;
 }
 
+// If we're applying display: grid, we're losing our display: border-box
+// behavior, so we need to reset top margin
+main.page-columns > section:first-of-type > h2:first-of-type {
+  margin-top: 0.5rem;
+}
+
 @include media-breakpoint-up(lg) {
   body {
     .page-columns {
