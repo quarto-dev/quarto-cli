@@ -14,7 +14,9 @@
 }
 
 @mixin column-spanning-element {
-  background: $body-bg;
+  table {
+    background: $body-bg;
+  }
 }
 
 @mixin grid-template-columns-narrow {
@@ -89,11 +91,11 @@
     [screen-start] 1.5em
     [screen-start-inset] 5fr
     [page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-start] minmax(400px, calc(650px - 2em))
     [body-content-end] 1.5em
     [body-end] 50px
     [body-end-outset] 25px
-    [page-end-inset] minmax(50px, 150px)
+    [page-end-inset] minmax(75px, 150px)
     [page-end] 5fr
     [screen-end-inset] 1.5em
     [screen-end];
@@ -105,7 +107,7 @@
     [screen-start] 1.5em
     [screen-start-inset] 5fr
     [page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] minmax(auto, calc(750px - 2em))
+    [body-content-start] minmax(400px, calc(650px - 2em))
     [body-content-end] 1.5em
     [body-end] 35px
     [body-end-outset] 35px
@@ -121,7 +123,7 @@
     [screen-start] 1.5em
     [screen-start-inset] 5fr
     [page-start page-start-inset body-start-outset body-start] 1em
-    [body-content-start] minmax(auto, calc(800px - 2em))
+    [body-content-start] minmax(400px, calc(800px - 2em))
     [body-content-end] 1.5em
     [body-end body-end-outset page-end-inset page-end] 5fr
     [screen-end-inset] 1.5em
