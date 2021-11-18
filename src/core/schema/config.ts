@@ -8,50 +8,49 @@
 */
 
 import {
-  IntegerSchema as IntegerS,
-  BooleanSchema as BooleanS,
-  StringSchema as StringS,
-  anySchema as anyS,
   arraySchema as arrayS,
+  BooleanSchema as BooleanS,
+  documentSchema as doc,
   enumSchema as enumS,
   idSchema as withId,
+  IntegerSchema as IntegerS,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
   refSchema as refS,
-  documentSchema as doc,
-  completeSchema as complete,
+  StringSchema as StringS,
 } from "./common.ts";
 
-import {
-  frontMatterFormatSchema
-} from "./front-matter.ts";
+import { frontMatterFormatSchema } from "./front-matter.ts";
 
 const sidebarEntrySchema = objectS({
   properties: {
     text: StringS,
     href: StringS,
-    icon: StringS
+    icon: StringS,
   },
   completions: {
     text: "entry description",
     href: "URL of the link",
-    icon: "font-awesome icon id"
+    icon: "font-awesome icon id",
   },
-  additionalProperties: false
+  additionalProperties: false,
 });
 
 const sectionSchema = withId(
-  oneOfS(StringS,
-         sidebarEntrySchema,
-         objectS({
-           properties: {
-             section: StringS,
-             contents: arrayS(refS("/schemas/section", "be a section object"))
-           },
-           additionalProperties: false,
-           required: ["section", "contents"]
-         })),
-  "/schemas/section");
+  oneOfS(
+    StringS,
+    sidebarEntrySchema,
+    objectS({
+      properties: {
+        section: StringS,
+        contents: arrayS(refS("/schemas/section", "be a section object")),
+      },
+      additionalProperties: false,
+      required: ["section", "contents"],
+    }),
+  ),
+  "/schemas/section",
+);
 
 const sidebarItemSchema = objectS({
   properties: {
@@ -60,9 +59,9 @@ const sidebarItemSchema = objectS({
     sytle: StringS,
     "collapse-level": IntegerS,
     align: StringS,
-    contents: arrayS(sectionSchema)
+    contents: arrayS(sectionSchema),
   },
-  exhaustive: true
+  exhaustive: true,
 });
 
 const siteSchema = objectS({
@@ -74,7 +73,10 @@ const siteSchema = objectS({
     "twitter-card": BooleanS,
     "site-url": doc(StringS, "URL where site will be published"),
     "repo-url": doc(StringS, "URL where site source is hosted"),
-    "repo-actions": doc(arrayS(enumS("edit", "issue")), "which github action links to enable"),
+    "repo-actions": doc(
+      arrayS(enumS("edit", "issue")),
+      "which github action links to enable",
+    ),
     "page-navigation": BooleanS,
     search: objectS({
       properties: {
@@ -83,12 +85,12 @@ const siteSchema = objectS({
             "index-name": StringS,
             "application-id": StringS,
             "search-only-api-key": StringS,
-            "analytics-events": BooleanS
+            "analytics-events": BooleanS,
           },
-          exhaustive: true
-        })
+          exhaustive: true,
+        }),
       },
-      exhaustive: true
+      exhaustive: true,
     }),
     "navbar": objectS({
       properties: {
@@ -99,14 +101,14 @@ const siteSchema = objectS({
         "sidebar-menus": BooleanS,
         "right": arrayS(oneOfS(
           StringS,
-          sidebarEntrySchema
+          sidebarEntrySchema,
         )),
       },
-      exhaustive: true
+      exhaustive: true,
     }),
     "sidebar": arrayS(sidebarItemSchema),
   },
-  exhaustive: true
+  exhaustive: true,
 });
 
 export const configSchema = objectS({
@@ -114,13 +116,12 @@ export const configSchema = objectS({
     project: objectS({
       properties: {
         type: doc(enumS("site"), "type of quarto project"),
-        "output-dir": doc(StringS, "output directory for the project")
-      }
+        "output-dir": doc(StringS, "output directory for the project"),
+      },
     }),
     site: siteSchema,
     "bibliography": StringS,
     "filters": arrayS(StringS),
-    "format": frontMatterFormatSchema
-  }
+    "format": frontMatterFormatSchema,
+  },
 });
-

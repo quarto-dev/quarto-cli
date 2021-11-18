@@ -3,7 +3,7 @@
 *
 * Collects the existing schemas and builds a single JSON file with
 * their description
-* 
+*
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
@@ -17,15 +17,13 @@ const obj = {
   schemas: {
     "front-matter": frontMatterSchema,
     "config": configSchema,
-    "languages": languageOptionsValidators
-  }
+    "languages": languageOptionsValidators,
+  },
 };
 
-export async function buildSchemaFile(resourceDir: string)
-{
+export function buildSchemaFile(resourceDir: string) {
   const str = JSON.stringify(obj, null, 2);
   const path = join(resourceDir, "/editor/tools/yaml/quarto-json-schemas.json");
 
-  Deno.writeTextFile(path, str);
+  return Deno.writeTextFile(path, str);
 }
-

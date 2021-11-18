@@ -31,8 +31,6 @@ import {
   kExecuteEnabled,
   kExecuteIpynb,
   kFigAlign,
-  kFigDpi,
-  kFilterParams,
   kFilters,
   kFreeze,
   kGladtex,
@@ -88,9 +86,6 @@ import {
 
 import {
   kError,
-  kFigFormat,
-  kFigHeight,
-  kFigWidth,
   kKeepMd,
   kKeepSource,
   kKeepTex,
