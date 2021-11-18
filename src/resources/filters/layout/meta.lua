@@ -17,6 +17,7 @@ function layoutMetaInject()
         end
       end)
 
+
       -- enable column layout (packages and adjust geometry)
       if (layoutState.hasColumns or marginReferences() or marginCitations()) and isLatexOutput() then
         -- inject sidenotes package
@@ -27,26 +28,6 @@ function layoutMetaInject()
           inject(
             usePackage("marginnote")
           )
-          inject(
-            usePackageWithOption("tcolorbox", "many")
-          )
-        end)
-
-        -- set color options for code blocks ('Shaded')
-        -- shadecolor is defined by pandoc
-        local options = {
-          ['interior hidden'] = "",
-          boxrule = '0pt',
-          ['frame hidden'] = "",
-          ['sharp corners'] = "",
-          enhanced = "",
-          ['borderline west'] = '{3pt}{0pt}{shadecolor}'
-        }
-        
-        -- redefined the 'Shaded' environment that pandoc uses for fenced 
-        -- code blocks
-        metaInjectLatexBefore(meta, function(inject)
-          inject("\\ifdefined\\Shaded\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}\\fi")
         end)
         
         if marginCitations() and meta.bibliography ~= undefined then 
@@ -75,6 +56,33 @@ function layoutMetaInject()
             end)
           end
 
+          -- If the user specifies 'code-block-border-left: false'
+          -- then we should't give the code blocks this treatment
+          local kCodeBlockBorderLeft = 'code-block-border-left'
+          if meta[kCodeBlockBorderLeft] == nil or meta[kCodeBlockBorderLeft] then
+            metaInjectLatex(meta, function(inject)
+              inject(
+                usePackageWithOption("tcolorbox", "many")
+              )
+            end)
+
+            -- set color options for code blocks ('Shaded')
+            -- shadecolor is defined by pandoc
+            local options = {
+              ['interior hidden'] = "",
+              boxrule = '0pt',
+              ['frame hidden'] = "",
+              ['sharp corners'] = "",
+              enhanced = "",
+              ['borderline west'] = '{3pt}{0pt}{shadecolor}'
+            }
+            
+            -- redefined the 'Shaded' environment that pandoc uses for fenced 
+            -- code blocks
+            metaInjectLatexBefore(meta, function(inject)
+              inject("\\ifdefined\\Shaded\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}\\fi")
+            end)
+          end
 
         end
 
