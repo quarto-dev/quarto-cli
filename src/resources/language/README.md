@@ -8,6 +8,7 @@ This directory includes a set of built-in translations, including:
 |--------------------|-------------------|
 | `_language.yml`    | English (default) |
 | `_language-zh.yml` | Chinese           |
+| `_language-es.yml` | Spanish           |
 | `_language-fr.yml` | French            |
 | `_language-de.yml` | German            |
 | `_language-pt.yml` | Portuguese        |
