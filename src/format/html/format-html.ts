@@ -77,9 +77,6 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
-      execute: {
-        [kFigResponsive]: true,
-      },
       executeFilter: (execute: FormatExecute, metadata: Metadata) => {
         if (
           hasBootstrapTheme(metadata) &&
