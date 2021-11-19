@@ -252,10 +252,7 @@ function localizeAndPruneErrors(
 ) {
   const result: LocalizedError[] = [];
 
-  // since the annotated object returns mapped values, we need to call them
-  // on the coordinate system of the original string (since they're mapped)
-  // as a result, here we use indexToRowCol instead of mappedIndexToRowCol
-  const locF = indexToRowCol(source.originalString);
+  const locF = mappedIndexToRowCol(source);
 
   /////// Error pruning
   //
@@ -362,16 +359,14 @@ function localizeAndPruneErrors(
       const violatingObject = navigate(path, annotation, returnKey);
       const schemaPath = error.schemaPath.split("/").slice(1);
 
-      // const start = locF(source.map(violatingObject.start)!);
-      // const end = locF(source.map(violatingObject.end - 1)!);
       const start = locF(violatingObject.start);
       const end = locF(violatingObject.end);
 
       const locStr = (start.line === end.line
-        ? `(line ${start.line + 1}, columns ${start.column + 2}--${end.column +
+        ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column +
           1})`
         : `(line ${start.line + 1}, column ${start.column +
-          2} through line ${end.line + 1}, column ${end.column + 1})`);
+          1} through line ${end.line + 1}, column ${end.column + 1})`);
 
       let messageNoLocation;
       // in the case of customized errors, use message we prepared earlier

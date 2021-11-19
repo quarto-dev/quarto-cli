@@ -12,14 +12,18 @@ import { parse } from "encoding/yaml.ts";
 
 import { MappedString } from "../mapped-text.ts";
 
-export interface AnnotatedParse {
-  start: number;
-  end: number;
-  // deno-lint-ignore no-explicit-any
-  result: any;
-  kind: string;
-  components: AnnotatedParse[];
-}
+import { AnnotatedParse } from "../lib/yaml-schema.ts";
+
+export type { AnnotatedParse } from "../lib/yaml-schema.ts";
+
+// export interface AnnotatedParse {
+//   start: number;
+//   end: number;
+//   // deno-lint-ignore no-explicit-any
+//   result: any;
+//   kind: string;
+//   components: AnnotatedParse[];
+// }
 
 export function readAnnotatedYamlFromMappedString(yml: MappedString) {
   return readAnnotatedYamlFromString(yml.value);
@@ -54,9 +58,14 @@ export function readAnnotatedYamlFromString(yml: string) {
         components.push(results.pop());
       }
       components.reverse();
+
+      const rawRange = yml.substring(openPosition, position);
+      // trim spaces if needed
+      const leftTrim = rawRange.length - rawRange.trimLeft().length;
+      const rightTrim = rawRange.length - rawRange.trimRight().length;
       results.push({
-        start: openPosition,
-        end: position,
+        start: openPosition + leftTrim,
+        end: position - rightTrim,
         result: result,
         components,
         kind,

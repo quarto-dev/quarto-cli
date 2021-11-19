@@ -6,37 +6,26 @@
 */
 
 import { RenderContext } from "../../command/render/types.ts";
-
 import { breakQuartoMd } from "../break-quarto-md.ts";
-
 import { asMappedString, mappedString } from "../mapped-text.ts";
-
 import { rangedLines } from "../ranged-text.ts";
-
 import { frontMatterValidator } from "./front-matter.ts";
-
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
-
 import { error, info } from "log/mod.ts";
-
 import { LocalizedError } from "../lib/yaml-schema.ts";
-
 import { languageOptionsValidators } from "./chunk-metadata.ts";
-
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 
-export function validateDocument(context: RenderContext): LocalizedError[] {
+export function validateDocumentFromSource(
+  src: string,
+  error: (msg: string) => any,
+  info: (msg: string) => any): LocalizedError[]
+{
   const result: LocalizedError[] = [];
-  if (context.target.markdown === "") {
-    // no markdown -> no validation.
-    return result;
-  }
-
-  const source = asMappedString(context.target.markdown);
-  const nb = breakQuartoMd(source);
+  const nb = breakQuartoMd(asMappedString(src));
   if (nb.cells.length < 1) {
     // no cells -> no validation
-    throw result;
+    return [];
   }
   const firstCell = nb.cells[0];
   let firstContentCellIndex;
@@ -94,4 +83,13 @@ export function validateDocument(context: RenderContext): LocalizedError[] {
     result.push(...chunkResult.yamlValidationErrors);
   }
   return result;
+}
+
+export function validateDocument(context: RenderContext): LocalizedError[] {
+  if (context.target.markdown === "") {
+    // no markdown -> no validation.
+    return [];
+  }
+
+  return validateDocumentFromSource(context.target.markdown, error, info);
 }

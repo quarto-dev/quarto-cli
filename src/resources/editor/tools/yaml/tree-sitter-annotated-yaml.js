@@ -27,10 +27,9 @@ export function buildAnnotated(tree, mappedSource)
   };
 
   const annotateEmpty = (position) => {
-    const mappedPos = mappedSource.mapClosest(position);
     return {
-      start: mappedPos,
-      end: mappedPos,
+      start: position,
+      end: position,
       result: null,
       kind: "<<EMPTY>>",
       components: []
@@ -39,10 +38,12 @@ export function buildAnnotated(tree, mappedSource)
   
   const annotate = (node, result, components) => {
     return {
-      start: mappedSource.mapClosest(node.startIndex),
-      end: mappedSource.mapClosest(node.endIndex),
+      start: node.startIndex,
+      end: node.endIndex,
       result,
-      kind: node.type, // FIXME this is almost certainly wrong because it doesn't match js-yaml.
+      kind: node.type, // NB this doesn't match js-yaml, so you need
+                       // to make sure your annotated walkers know
+                       // about tree-sitter and js-yaml.
       components
     };
   };
@@ -160,11 +161,12 @@ export function buildAnnotated(tree, mappedSource)
   // current parse.
   //
   // There's an added complication in that it seems that sometimes
-  // treesitter consumes line breaks at the end of the file, and sometimes
-  // it doesn't. So exact checks don't quite work. We're then resigned
-  // to a heuristic that is bound to fail. That heuristic is, roughly,
-  // that we consider something a failed parse if it misses more than 5% of
-  // the characters in the original string span.
+  // treesitter consumes line breaks at the end of the file, and
+  // sometimes it doesn't. So exact checks don't quite work. We're
+  // then resigned to a heuristic that is bound to sometimes
+  // fail. That heuristic is, roughly, that we consider something a
+  // failed parse if it misses more than 5% of the characters in the
+  // original string span.
   //
   // This is, clearly, a terrible hack.
   //
