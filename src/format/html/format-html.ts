@@ -76,7 +76,7 @@ export function htmlFormat(
     createHtmlFormat(figwidth, figheight),
     {
       metadataFilter: (metadata: Metadata) => {
-        if (!metadata[kMinimal]) {
+        if (metadata[kMinimal] === true) {
           return mergeConfigs(metadata, {
             [kFigResponsive]: false,
             theme: metadata[kTheme] === undefined ? "none" : metadata[kTheme],
