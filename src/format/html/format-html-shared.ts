@@ -70,6 +70,15 @@ export const quartoTabbyRules = () =>
     "_quarto-rules-tabby.scss",
   ));
 
+export const quartoFigResponsiveRules = () => {
+  return [
+    ".img-fluid {",
+    "  max-width: 100%;",
+    "  height: auto;",
+    "}",
+  ].join("\n");
+};
+
 export const quartoGlobalCssVariableRules = () => {
   return `
   $font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
@@ -103,6 +112,7 @@ export const quartoBaseLayer = (
   format: Format,
   codeCopy = false,
   tabby = false,
+  figResponsive = false,
 ) => {
   const rules: string[] = [quartoRules()];
   if (codeCopy) {
@@ -110,6 +120,9 @@ export const quartoBaseLayer = (
   }
   if (tabby) {
     rules.push(quartoTabbyRules());
+  }
+  if (figResponsive) {
+    rules.push(quartoFigResponsiveRules());
   }
   if (format.render[kLinkExternalIcon]) {
     rules.push(quartoLinkExternalRules());

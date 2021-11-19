@@ -110,6 +110,7 @@ export interface HtmlFormatFeatureDefaults {
   anchors?: boolean;
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
+  figResponsive?: boolean;
 }
 
 export interface HtmlFormatTippyOptions {
@@ -197,6 +198,11 @@ export function htmlFormatExtras(
     options.hoverFootnotes = format.metadata[kFootnotesHover] !== false;
   } else {
     options.hoverFootnotes = format.metadata[kFootnotesHover] || false;
+  }
+  if (featureDefaults.figResponsive) {
+    options.figResponsive = format.metadata[kFigResponsive] !== false;
+  } else {
+    options.figResponsive = format.metadata[kFigResponsive] || false;
   }
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
@@ -290,7 +296,12 @@ export function htmlFormatExtras(
       sassBundles.push({
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
-        quarto: quartoBaseLayer(format, !!options.copyCode, !!options.tabby),
+        quarto: quartoBaseLayer(
+          format,
+          !!options.copyCode,
+          !!options.tabby,
+          !!options.figResponsive,
+        ),
       });
     }
     if (scssOptions.quartoCssVars) {
@@ -400,6 +411,7 @@ function htmlFormatFeatureDefaults(
     anchors: !minimal,
     hoverCitations: !minimal,
     hoverFootnotes: !minimal,
+    figResponsive: !minimal,
   };
 }
 

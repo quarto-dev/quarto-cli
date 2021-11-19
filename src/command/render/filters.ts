@@ -6,17 +6,13 @@
 */
 import {
   kBibliography,
-  kCalloutDangerCaption,
-  kCalloutImportantCaption,
-  kCalloutNoteCaption,
-  kCalloutTipCaption,
-  kCalloutWarningCaption,
   kCitationLocation,
   kCiteMethod,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
   kFigAlign,
+  kFigResponsive,
   kHeaderIncludes,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -281,6 +277,10 @@ function quartoFilterParams(format: Format) {
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;
+  }
+  const figResponsive = format.metadata[kFigResponsive] === true;
+  if (figResponsive) {
+    params[kFigResponsive] = figResponsive;
   }
   const lineNumbers = format.render[kCodeLineNumbers];
   if (lineNumbers) {

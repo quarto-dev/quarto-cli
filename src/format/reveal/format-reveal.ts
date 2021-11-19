@@ -185,6 +185,7 @@ export function revealjsFormat() {
             copyCode: true,
             hoverCitations: true,
             hoverFootnotes: true,
+            figResponsive: false,
           }, // tippy options
           {
             theme: "quarto-reveal",
