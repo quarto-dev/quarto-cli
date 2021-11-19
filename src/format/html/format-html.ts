@@ -75,14 +75,14 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
-      metadataFilter: (metadata: Metadata) => {
-        if (metadata[kMinimal] === true) {
-          return mergeConfigs(metadata, {
-            [kFigResponsive]: false,
-            theme: metadata[kTheme] === undefined ? "none" : metadata[kTheme],
-          });
-        } else {
-          return metadata;
+      resolveFormat: (format: Format) => {
+        if (format.metadata[kMinimal] === true) {
+          if (format.metadata[kFigResponsive] === undefined) {
+            format.metadata[kFigResponsive] = false;
+          }
+          if (format.metadata[kTheme] === undefined) {
+            format.metadata[kTheme] = "none";
+          }
         }
       },
       formatExtras: (input: string, flags: PandocFlags, format: Format) => {

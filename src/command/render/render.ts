@@ -828,9 +828,9 @@ export function resolveFormatsFromMetadata(
     const config = mergeConfigs(baseFormat, format);
 
     // apply any metadata filter
-    const metadataFilter = defaultWriterFormat(to).metadataFilter;
-    if (metadataFilter) {
-      config.metadata = metadataFilter(ld.cloneDeep(config.metadata));
+    const resolveFormat = defaultWriterFormat(to).resolveFormat;
+    if (resolveFormat) {
+      resolveFormat(config);
     }
 
     // apply command line arguments

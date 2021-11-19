@@ -246,7 +246,7 @@ export interface Format {
   pandoc: FormatPandoc;
   language: FormatLanguage;
   metadata: Metadata;
-  metadataFilter?: (metadata: Metadata) => Metadata;
+  resolveFormat?: (format: Format) => void;
   formatExtras?: (
     input: string,
     flags: PandocFlags,
