@@ -52,6 +52,9 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # fixup options for cache
   knitr <- knitr_options_with_cache(input, format, knitr)
 
+  # Apply patches to current R environments (like modifying function in packages' namespace)
+  apply_responsive_patch(format)
+
   post_knit <- function(...) {
     # provide ojs integration for shiny prerendered
     if (is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime"))) {
@@ -303,7 +306,7 @@ pandoc_includes <- function(input, format, output, files_dir, knit_meta, tempDir
 }
 
 # get dependencies implied by the result of render (e.g. html dependencies)
-dependencies_from_render <-function(input, files_dir, knit_meta) {
+dependencies_from_render <- function(input, files_dir, knit_meta) {
 
   # check for runtime
   front_matter <- rmarkdown::yaml_front_matter(input)
@@ -489,6 +492,34 @@ apply_slides_patch <- function(includes) {
 '
   includes$after_body <- paste0(includes$after_body, slides_js)
   includes
+}
+
+
+apply_responsive_patch <- function(format) {
+  if (isTRUE(format$metadata[["fig-responsive"]])) {
+
+    # tweak sizing for htmlwidget figures (use 100% to be responsive)
+    if (requireNamespace("htmlwidgets", quietly = TRUE)) {
+      htmlwidgets_resolveSizing <- htmlwidgets:::resolveSizing 
+      resolveSizing <- function(x, sp, standalone, knitrOptions = NULL) {
+          # default sizing resolution
+          sizing <- htmlwidgets_resolveSizing(x, sp, standalone, knitrOptions)
+            
+          # if this is a knitr figure then set width to 100% and height
+          # to an appropriately proportioned value based on the assumption
+          # that the display width will be ~650px
+          if (isTRUE(sp$knitr$figure) && is.numeric(sizing$height) && is.numeric(sizing$width)) {
+            sizing$height <- paste0(as.integer(sizing$height / sizing$width * 650), "px")
+            sizing$width <- "100%"
+          }
+          
+          # return sizing
+          sizing
+        }
+
+      assignInNamespace("resolveSizing", resolveSizing, ns = "htmlwidgets")
+    }
+  }
 }
 
 # utility functions
