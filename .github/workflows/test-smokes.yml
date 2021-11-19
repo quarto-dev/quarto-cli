@@ -1,6 +1,6 @@
 # Tests a broad set of Quarto functionality that users are likely to encounter.
 # A failure indicates some signficant portion of functionality is likely to be broken.
-name: Test Smokes
+name: Smoke Tests
 on:
   workflow_dispatch:
   pull_request:
