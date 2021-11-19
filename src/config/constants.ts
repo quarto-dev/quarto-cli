@@ -16,6 +16,7 @@ export const kPandocMetadata = "metadata";
 export const kFigWidth = "fig.width";
 export const kFigHeight = "fig.height";
 export const kFigFormat = "fig.format";
+export const kFigResponsive = "fig-responsive";
 export const kFigDpi = "fig.dpi";
 
 export const kCache = "cache";
@@ -76,6 +77,7 @@ export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,
   kFigFormat,
+  kFigResponsive,
   kFigDpi,
   kError,
   kEval,

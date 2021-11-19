@@ -833,6 +833,15 @@ export function resolveFormatsFromMetadata(
       config.metadata = metadataFilter(ld.cloneDeep(config.metadata));
     }
 
+    // apply any execute filter
+    const executeFilter = defaultWriterFormat(to).executeFilter;
+    if (executeFilter) {
+      config.execute = executeFilter(
+        ld.cloneDeep(config.execute),
+        ld.cloneDeep(config.metadata),
+      );
+    }
+
     // apply command line arguments
 
     // --no-execute-code

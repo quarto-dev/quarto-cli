@@ -19,6 +19,7 @@ import {
   kCodeLink,
   kCopyButtonTooltip,
   kDoi,
+  kFigResponsive,
   kFilterParams,
   kHeaderIncludes,
   kIncludeAfterBody,
@@ -30,6 +31,7 @@ import {
   DependencyFile,
   Format,
   FormatDependency,
+  FormatExecute,
   FormatExtras,
   kDependencies,
   kHtmlPostprocessors,
@@ -74,6 +76,25 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
+      execute: {
+        [kFigResponsive]: true,
+      },
+      executeFilter: (execute: FormatExecute, metadata: Metadata) => {
+        const theme = metadata[kTheme];
+        if (
+          // is bootstrap html
+          (theme !== "none" && theme !== "pandoc") &&
+          // do not change if config is set by user
+          execute[kFigResponsive] === undefined
+        ) {
+          return {
+            ...execute,
+            [kFigResponsive]: true,
+          };
+        } else {
+          return execute;
+        }
+      },
       metadataFilter: (metadata: Metadata) => {
         if (!!metadata[kMinimal] && metadata[kTheme] === undefined) {
           return {
