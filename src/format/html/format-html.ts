@@ -50,6 +50,7 @@ import {
   boostrapExtras,
   formatDarkMode,
   formatHasBootstrap,
+  hasBootstrapTheme,
 } from "./format-html-bootstrap.ts";
 
 import {
@@ -80,10 +81,8 @@ export function htmlFormat(
         [kFigResponsive]: true,
       },
       executeFilter: (execute: FormatExecute, metadata: Metadata) => {
-        const theme = metadata[kTheme];
         if (
-          // is bootstrap html
-          (theme !== "none" && theme !== "pandoc") &&
+          hasBootstrapTheme(metadata) &&
           // do not change if config is set by user
           execute[kFigResponsive] === undefined
         ) {
