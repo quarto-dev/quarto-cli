@@ -34,19 +34,9 @@ import {
   render,
 } from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
-import {
-  renderFormats,
-  renderResultFinalOutput,
-  renderResultUrlPath,
-} from "../render/render.ts";
+import { renderFormats, renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
-import {
-  projectContext,
-  projectIsWebsite,
-} from "../../project/project-context.ts";
-import { isProjectInputFile } from "../../project/project-shared.ts";
-import { renderProject } from "../render/project.ts";
-import { kRenderNone, serveProject } from "../serve/serve.ts";
+
 import { Format } from "../../config/types.ts";
 import {
   kPdfJsInitialPath,

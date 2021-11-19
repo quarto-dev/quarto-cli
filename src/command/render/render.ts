@@ -482,8 +482,19 @@ export async function renderPandoc(
       format.pandoc || {},
       executeResult.includes,
     );
-  } // run the dependencies step if we didn't do it during execute
-  else if (executeResult.engineDependencies) {
+  }
+  if (executeResult.pandoc) {
+    format.pandoc = mergeConfigs(
+      format.pandoc || {},
+      executeResult.pandoc,
+    );
+  }
+
+  // run the dependencies step if we didn't do it during execute
+  if (
+    executeResult.engineDependencies &&
+    executeResult.engineDependencies.length > 0
+  ) {
     const dependenciesResult = await context.engine.dependencies({
       target: context.target,
       format,

@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
@@ -45,11 +45,15 @@ import {
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
-    const theme = format.metadata[kTheme];
-    return theme !== "none" && theme !== "pandoc";
+    return hasBootstrapTheme(format.metadata);
   } else {
     return false;
   }
+}
+
+export function hasBootstrapTheme(metadata: Metadata) {
+  const theme = metadata[kTheme];
+  return theme !== "none" && theme !== "pandoc";
 }
 
 // Returns a boolean indicating whether dark mode is requested

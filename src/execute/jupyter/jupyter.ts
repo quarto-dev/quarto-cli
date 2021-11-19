@@ -269,7 +269,7 @@ export const jupyterEngine: ExecutionEngine = {
       markdown: result.markdown,
       supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],
-      metadata: result.metadata,
+      pandoc: result.pandoc,
       includes,
       engineDependencies,
       preserve: result.htmlPreserve,
