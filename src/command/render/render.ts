@@ -190,9 +190,12 @@ export async function renderFiles(
           pandocRenderer.onBeforeExecute(recipe.format),
         );
 
-        const validationResult = validateDocument(context);
-        if (validationResult.length) {
-          throw new Error("YAML validation failed - exiting.");
+        const validate = context.format.metadata?.["validate-yaml"];
+        if (validate !== false) {
+          const validationResult = validateDocument(context);
+          if (validationResult.length) {
+            throw new Error("YAML validation failed - exiting.");
+          }
         }
 
         // FIXME it should be possible to infer this directly now
