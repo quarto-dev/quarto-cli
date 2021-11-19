@@ -120,7 +120,6 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
-  kSlideLevel,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -699,9 +698,6 @@ export function jupyterToMarkdown(
     : undefined;
   const htmlPreserve = isHtml ? removeAndPreserveHtml(nb) : undefined;
 
-  // extra pandoc settings
-  const pandoc: FormatPandoc = {};
-
   // generate markdown
   const md: string[] = [];
 
@@ -726,10 +722,6 @@ export function jupyterToMarkdown(
       ? cell.metadata[kCellSlideshow]?.[kCellSlideshowSlideType]
       : undefined;
     if (slideType) {
-      // this automatically puts us into slide-level 0 mode
-      // (i.e. manual mode, slide delimeters are "---")
-      pandoc[kSlideLevel] = 0;
-
       // write any implied delimeter (or skip entirely)
       if (slideType === "skip") {
         continue;
@@ -786,7 +778,6 @@ export function jupyterToMarkdown(
   // return markdown and any widget requirements
   return {
     markdown: md.join(""),
-    pandoc,
     dependencies,
     htmlPreserve,
   };
