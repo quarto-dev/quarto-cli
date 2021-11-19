@@ -501,18 +501,17 @@ apply_responsive_patch <- function(format) {
     # tweak sizing for htmlwidget figures (use 100% to be responsive)
     if (requireNamespace("htmlwidgets", quietly = TRUE)) {
       htmlwidgets_resolveSizing <- htmlwidgets:::resolveSizing
-
+      size_options <- c("fig.height", "fig.width")
+      default_knitr_options <-  knitr::opts_chunk$get()[size_options]
+      
       resolveSizing <- function(x, sp, standalone, knitrOptions = NULL) {
           # default sizing resolution
           sizing <- htmlwidgets_resolveSizing(x, sp, standalone, knitrOptions)
           
           # Do not alter if user has change fig.height or fig.width option
-          size_options <- c("fig.height", "fig.width")
-          default_knitr_options <-  knitr::opts_chunk$get()[size_options]
           if (!is.null(knitrOptions) && !identical(default_knitr_options, knitrOptions[size_options])) {
             return(sizing)
           }
-          
           
           # if this is a knitr figure then set width to 100% and height
           # to an appropriately proportioned value based on the assumption
