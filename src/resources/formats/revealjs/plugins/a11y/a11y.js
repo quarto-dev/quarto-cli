@@ -38,14 +38,16 @@ window.QuartoA11y = function () {
 
       // slide change focuses first focusable element
       deck.on("slidechanged", function (event) {
-        setTimeout(function () {
-          const wrapper = event.currentSlide.querySelector(
-            ".accessibilityWrapper"
-          );
-          if (wrapper) {
-            wrapper.focus();
-          }
-        }, 100);
+        if (window.document.hasFocus()) {
+          setTimeout(function () {
+            const wrapper = event.currentSlide.querySelector(
+              ".accessibilityWrapper"
+            );
+            if (wrapper) {
+              wrapper.focus();
+            }
+          }, 100);
+        }
       });
 
       // wrap slide content in an .accessibilityWrapper so that it has display: none
