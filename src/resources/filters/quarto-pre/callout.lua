@@ -233,8 +233,8 @@ function calloutLatex(div)
     tprepend(calloutContents[1].content, beginEnvironment)
     tappend(calloutContents[#calloutContents].content, endEnvironment)
   else
-    tprepend(calloutContents, pandoc.Para(beginEnvironment))
-    tappend(calloutContents, pandoc.Para(endEnvironment))
+    tprepend(calloutContents, { pandoc.Para(beginEnvironment) })
+    tappend(calloutContents, { pandoc.Para(endEnvironment) })
   end
 
 
