@@ -67,7 +67,6 @@ import {
   kExecuteIpynb,
   kFigAlign,
   kFigDpi,
-  kFigResponsive,
   kFilterParams,
   kFilters,
   kFreeze,
@@ -247,7 +246,6 @@ export interface Format {
   pandoc: FormatPandoc;
   language: FormatLanguage;
   metadata: Metadata;
-  executeFilter?: (execute: FormatExecute, metadata: Metadata) => FormatExecute;
   metadataFilter?: (metadata: Metadata) => Metadata;
   formatExtras?: (
     input: string,
@@ -302,7 +300,6 @@ export interface FormatExecute {
   [kFigWidth]?: number;
   [kFigHeight]?: number;
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
-  [kFigResponsive]?: boolean;
   [kFigDpi]?: number;
   [kCache]?: true | false | "refresh" | null;
   [kFreeze]?: true | false | "auto";

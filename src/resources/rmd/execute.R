@@ -496,7 +496,7 @@ apply_slides_patch <- function(includes) {
 
 
 apply_responsive_patch <- function(format) {
-  if (isTRUE(format$execute[["fig-responsive"]])) {
+  if (isTRUE(format$metadata[["fig-responsive"]])) {
     # tweak sizing for htmlwidget figures (use 100% to be responsive)
     if (requireNamespace("htmlwidgets", quietly = TRUE)) {
       htmlwidgets_resolveSizing <- htmlwidgets:::resolveSizing

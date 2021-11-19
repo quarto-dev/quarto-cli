@@ -16,7 +16,6 @@ export const kPandocMetadata = "metadata";
 export const kFigWidth = "fig.width";
 export const kFigHeight = "fig.height";
 export const kFigFormat = "fig.format";
-export const kFigResponsive = "fig-responsive";
 export const kFigDpi = "fig.dpi";
 
 export const kCache = "cache";
@@ -77,7 +76,6 @@ export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,
   kFigFormat,
-  kFigResponsive,
   kFigDpi,
   kError,
   kEval,
@@ -330,6 +328,8 @@ export const kCrossrefAppendixTitle = "appendix-title";
 export const kCrossrefAppendixDelim = "appendix-delim";
 export const kCrossrefChaptersAlpha = "chapters-alpha";
 export const kCrossrefChapterId = "chapter-id";
+
+export const kFigResponsive = "fig-responsive";
 
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca

@@ -31,7 +31,6 @@ import {
   DependencyFile,
   Format,
   FormatDependency,
-  FormatExecute,
   FormatExtras,
   kDependencies,
   kHtmlPostprocessors,
@@ -50,7 +49,6 @@ import {
   boostrapExtras,
   formatDarkMode,
   formatHasBootstrap,
-  hasBootstrapTheme,
 } from "./format-html-bootstrap.ts";
 
 import {
@@ -77,26 +75,12 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
-      executeFilter: (execute: FormatExecute, metadata: Metadata) => {
-        if (
-          hasBootstrapTheme(metadata) &&
-          // do not change if config is set by user
-          execute[kFigResponsive] === undefined
-        ) {
-          return {
-            ...execute,
-            [kFigResponsive]: true,
-          };
-        } else {
-          return execute;
-        }
-      },
       metadataFilter: (metadata: Metadata) => {
-        if (!!metadata[kMinimal] && metadata[kTheme] === undefined) {
-          return {
-            ...metadata,
-            theme: "none",
-          };
+        if (!metadata[kMinimal]) {
+          return mergeConfigs(metadata, {
+            [kFigResponsive]: false,
+            theme: metadata[kTheme] === undefined ? "none" : metadata[kTheme],
+          });
         } else {
           return metadata;
         }

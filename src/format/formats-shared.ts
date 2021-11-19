@@ -26,6 +26,7 @@ import {
   kFigDpi,
   kFigFormat,
   kFigHeight,
+  kFigResponsive,
   kFigWidth,
   kFreeze,
   kInclude,
@@ -78,6 +79,9 @@ export function createHtmlFormat(
   figheight: number,
 ) {
   return createFormat("html", {
+    metadata: {
+      [kFigResponsive]: true,
+    },
     execute: {
       [kFigFormat]: "retina",
       [kFigWidth]: figwidth,
@@ -96,6 +100,9 @@ export function createHtmlPresentationFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
+      metadata: {
+        [kFigResponsive]: false,
+      },
       execute: {
         [kEcho]: false,
         [kWarning]: false,
