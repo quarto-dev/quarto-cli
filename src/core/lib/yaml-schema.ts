@@ -350,14 +350,14 @@ function localizeAndPruneErrors(
       const violatingObject = navigate(path, annotation, returnKey);
       const schemaPath = error.schemaPath.split("/").slice(1);
 
-      const start = locF(violatingObject.start);
-      const end = locF(violatingObject.end);
+      const start = locF(source.map(violatingObject.start)!);
+      const end = locF(source.map(violatingObject.end - 1)!);
 
       const locStr = (start.line === end.line
-        ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column +
+        ? `(line ${start.line + 1}, columns ${start.column + 2}--${end.column +
           1})`
         : `(line ${start.line + 1}, column ${start.column +
-          1} through line ${end.line + 1}, column ${end.column + 1})`);
+          2} through line ${end.line + 1}, column ${end.column + 1})`);
 
       let messageNoLocation;
       // in the case of customized errors, use message we prepared earlier
