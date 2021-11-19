@@ -104,7 +104,19 @@ function navigate(
   if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
     const { components } = annotation;
     const searchKey = path[pathIndex];
-    for (let i = 0; i < components.length; i += 2) {
+    // this loop is inverted to provide better error messages in the
+    // case of repeated keys. This is a parse error in any case, but
+    // the parsing by the validation infrastructure reports the last
+    // entry of a given key in the mapping as the one that counts
+    // (instead of the first, which would be what we'd get if running
+    // the loop forward).
+    // 
+    // In that case, the validation errors will also point to the last
+    // entry. In order for the errors to be at least somewhat sensible,
+    // we then loop backwards
+    const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
+    for (let i = lastKeyIndex; i >= 0; i -= 2) {
+    // for (let i = 0; i < components.length; i += 2) {
       const key = components[i].result;
       if (key === searchKey) {
         if (returnKey && pathIndex === path.length - 1) {
@@ -350,8 +362,10 @@ function localizeAndPruneErrors(
       const violatingObject = navigate(path, annotation, returnKey);
       const schemaPath = error.schemaPath.split("/").slice(1);
 
-      const start = locF(source.map(violatingObject.start)!);
-      const end = locF(source.map(violatingObject.end - 1)!);
+      // const start = locF(source.map(violatingObject.start)!);
+      // const end = locF(source.map(violatingObject.end - 1)!);
+      const start = locF(violatingObject.start);
+      const end = locF(violatingObject.end);
 
       const locStr = (start.line === end.line
         ? `(line ${start.line + 1}, columns ${start.column + 2}--${end.column +
