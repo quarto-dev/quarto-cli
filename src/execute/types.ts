@@ -9,7 +9,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../config/constants.ts";
-import { Format, Metadata } from "../config/types.ts";
+import { Format, FormatPandoc, Metadata } from "../config/types.ts";
 
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { RenderOptions } from "../command/render/types.ts";
@@ -76,6 +76,7 @@ export interface ExecuteResult {
   supporting: string[];
   filters: string[];
   metadata?: Metadata;
+  pandoc?: FormatPandoc;
   includes?: PandocIncludes;
   engineDependencies?: Array<unknown>;
   preserve?: Record<string, string>;

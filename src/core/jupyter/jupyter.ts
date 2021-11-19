@@ -66,7 +66,7 @@ import {
   JupyterWidgetDependencies,
 } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
-import { FormatExecute } from "../../config/types.ts";
+import { FormatExecute, FormatPandoc } from "../../config/types.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
 import {
@@ -682,6 +682,7 @@ export interface JupyterToMarkdownOptions {
 export interface JupyterToMarkdownResult {
   markdown: string;
   metadata?: Metadata;
+  pandoc?: FormatPandoc;
   dependencies?: JupyterWidgetDependencies;
   htmlPreserve?: Record<string, string>;
 }
@@ -698,8 +699,8 @@ export function jupyterToMarkdown(
     : undefined;
   const htmlPreserve = isHtml ? removeAndPreserveHtml(nb) : undefined;
 
-  // extra metadata
-  const metadata: Metadata = {};
+  // extra pandoc settings
+  const pandoc: FormatPandoc = {};
 
   // generate markdown
   const md: string[] = [];
@@ -727,7 +728,7 @@ export function jupyterToMarkdown(
     if (slideType) {
       // this automatically puts us into slide-level 0 mode
       // (i.e. manual mode, slide delimeters are "---")
-      metadata[kSlideLevel] = 0;
+      pandoc[kSlideLevel] = 0;
 
       // write any implied delimeter (or skip entirely)
       if (slideType === "skip") {
@@ -785,7 +786,7 @@ export function jupyterToMarkdown(
   // return markdown and any widget requirements
   return {
     markdown: md.join(""),
-    metadata,
+    pandoc,
     dependencies,
     htmlPreserve,
   };
