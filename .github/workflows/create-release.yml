@@ -68,9 +68,11 @@ jobs:
 
     - name: Make Tarball
       run: |
-        pushd package/dist/
-        tar -cvf  ../quarto-${{needs.configure.outputs.version}}-linux-amd64.tar .
-        gzip ../quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
+        pushd package/
+        mv dist quarto-${{needs.configure.outputs.version}}
+        tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
+        gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
+        mv quarto-${{needs.configure.outputs.version}} dist
         popd
 
     - name: Upload Artifact 
