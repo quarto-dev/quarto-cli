@@ -1,4 +1,4 @@
-name: Create Release
+name: Build Installers
 on:
   schedule:
      - cron: "0 4 * * *"
