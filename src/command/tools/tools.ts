@@ -21,6 +21,7 @@ export interface InstallableTool {
   name: string;
   prereqs: InstallPreReq[];
   installed: () => Promise<boolean>;
+  installDir: () => Promise<string | undefined>;
   installedVersion: () => Promise<string | undefined>;
   latestRelease: () => Promise<RemotePackageInfo>;
   preparePackage: (ctx: InstallContext) => Promise<PackageInfo>;
@@ -83,6 +84,21 @@ export function installableTools(): string[] {
     tools.push(tool.name.toLowerCase());
   });
   return tools;
+}
+
+export async function printToolInfo(name: string) {
+  name = name || "";
+  // Run the install
+  const installableTool = kInstallableTools[name.toLowerCase()];
+  if (installableTool) {
+    const response = {
+      name: installableTool.name,
+      installed: await installableTool.installed(),
+      version: await installableTool.installedVersion(),
+      directory: await installableTool.installDir(),
+    };
+    info(JSON.stringify(response, null, 2));
+  }
 }
 
 export async function installTool(name: string) {

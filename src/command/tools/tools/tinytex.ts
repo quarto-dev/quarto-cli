@@ -76,6 +76,7 @@ export const tinyTexInstallable: InstallableTool = {
       "This platform doesn't support installation at this time. Please install manually instead.",
   }],
   installed,
+  installDir,
   installedVersion,
   latestRelease: remotePackageInfo,
   preparePackage,
@@ -90,6 +91,14 @@ async function installed() {
     return await isTinyTex();
   } else {
     return Promise.resolve(false);
+  }
+}
+
+function installDir() {
+  if (installed()) {
+    return Promise.resolve(tinyTexInstallDir());
+  } else {
+    return Promise.resolve(undefined);
   }
 }
 
