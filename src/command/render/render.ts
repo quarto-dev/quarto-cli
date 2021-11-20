@@ -87,6 +87,7 @@ import {
 import { projectOffset } from "../../project/project-shared.ts";
 import {
   deleteProjectMetadata,
+  directoryMetadataForInputFile,
   projectMetadataForInputFile,
 } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -918,12 +919,25 @@ async function resolveFormats(
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
-  const projMetadata = await projectMetadataForInputFile(
+  const projMetadataForInput = await projectMetadataForInputFile(
     target.input,
     options.flags,
     project,
   );
   const inputMetadata = target.metadata;
+
+  // look for directory level metadata and merge that into the project
+  // metadata (this will still allow document level metadata to overwrite it)
+  const directoryMetadataForInput = project?.dir
+    ? directoryMetadataForInputFile(
+      project.dir,
+      dirname(target.input),
+    )
+    : {};
+  const projMetadata = mergeConfigs(
+    projMetadataForInput,
+    directoryMetadataForInput,
+  );
 
   // determine formats
   let formats: string[] = [];
