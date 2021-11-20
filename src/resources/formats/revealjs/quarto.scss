@@ -150,6 +150,14 @@ $selectionColor: $selection-color !default;
   text-align: $reveal-slide-text-align;
 }
 
+.reveal .title-slide h1 {
+  font-size: $revealjs-h2-font-size;
+}
+
+.reveal[data-navigation-mode="linear"] .title-slide h1 {
+  font-size: $revealjs-h1-font-size;
+}
+
 .reveal pre {
   width: 95%;
   box-shadow: none;
