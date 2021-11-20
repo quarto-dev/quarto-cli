@@ -72,6 +72,7 @@ import {
 } from "../../core/pdfjs.ts";
 import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-config.ts";
+import { removePandocToArg } from "../render/flags.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -253,6 +254,10 @@ export async function serveProject(
         }
         let result: RenderResult | undefined;
         if (inputFile) {
+          // remove 'to' argument to allow the file to be rendered in it's default format
+          const renderFlags = { ...flags, quiet: true };
+          delete renderFlags?.to;
+          const renderPandocArgs = removePandocToArg(pandocArgs);
           try {
             result = await renderQueue.enqueue(() =>
               renderProject(
@@ -260,8 +265,8 @@ export async function serveProject(
                 {
                   useFreezer: true,
                   devServerReload: true,
-                  flags: { ...flags, quiet: true },
-                  pandocArgs,
+                  flags: renderFlags,
+                  pandocArgs: renderPandocArgs,
                 },
                 [inputFile!],
               )
