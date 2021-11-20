@@ -5,7 +5,7 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { kTheme } from "../../config/constants.ts";
@@ -46,7 +46,11 @@ export const kRevealDarkThemes = [
 
 export const kRevealThemes = [...kRevealLightThemes, ...kRevealDarkThemes];
 
-export async function revealTheme(format: Format, libDir: string) {
+export async function revealTheme(
+  format: Format,
+  input: string,
+  libDir: string,
+) {
   // metadata override to return
   const metadata: Metadata = {};
 
@@ -64,15 +68,17 @@ export async function revealTheme(format: Format, libDir: string) {
     );
   }
 
+  // compute reveal url
+  const revealUrl = pathWithForwardSlashes(revealDir);
+  metadata[kRevealJsUrl] = revealUrl;
+
   // copy reveal dir
   const revealSrcDir = revealJsUrl ||
     formatResourcePath("revealjs", "reveal");
+  const revealDestDir = join(dirname(input), libDir, "revealjs");
   ["dist", "plugin"].forEach((dir) => {
-    copyMinimal(join(revealSrcDir, dir), join(revealDir, dir));
+    copyMinimal(join(revealSrcDir, dir), join(revealDestDir, dir));
   });
-  metadata[kRevealJsUrl] = pathWithForwardSlashes(
-    revealDir,
-  );
 
   // theme is either user provided scss or something in our 'themes' dir
   // (note that standard reveal scss themes must be converted to quarto
@@ -129,7 +135,7 @@ export async function revealTheme(format: Format, libDir: string) {
   const css = await compileSass([bundleLayers]);
   Deno.copyFileSync(
     css,
-    join(revealDir, "dist", "theme", "quarto.css"),
+    join(revealDestDir, "dist", "theme", "quarto.css"),
   );
   metadata[kTheme] = "quarto";
 
@@ -138,7 +144,8 @@ export async function revealTheme(format: Format, libDir: string) {
 
   // return
   return {
-    revealDir,
+    revealUrl,
+    revealDestDir,
     metadata,
     [kTextHighlightingMode]: highlightingMode,
   };

@@ -99,10 +99,12 @@ interface RevealPluginScript {
 export function revealPluginExtras(
   format: Format,
   flags: PandocFlags,
-  revealDir: string,
+  revealUrl: string,
+  revealDestDir: string,
 ) {
   // directory to copy plugins into
-  const pluginsDir = join(revealDir, "plugin");
+
+  const pluginsDestDir = join(revealDestDir, "plugin");
 
   // accumlate content to inject
   const register: string[] = [];
@@ -187,13 +189,16 @@ export function revealPluginExtras(
     }
 
     // copy plugin (plugin dir uses a kebab-case version of name)
-    const pluginDir = join(pluginsDir, camelToKebab(plugin.name));
+    const pluginUrl = pathWithForwardSlashes(
+      join(revealUrl, "plugin", camelToKebab(plugin.name)),
+    );
+    const pluginDir = join(pluginsDestDir, camelToKebab(plugin.name));
     copyMinimal(bundle.plugin, pluginDir);
 
     // note scripts
     if (plugin.script) {
       for (const script of plugin.script) {
-        script.path = join(pluginDir, script.path);
+        script.path = pathWithForwardSlashes(join(pluginUrl, script.path));
         scripts.push(script);
       }
     }
@@ -201,7 +206,9 @@ export function revealPluginExtras(
     // note stylesheet
     if (plugin.stylesheet) {
       for (const stylesheet of plugin.stylesheet) {
-        const pluginStylesheet = join(pluginDir, stylesheet);
+        const pluginStylesheet = pathWithForwardSlashes(
+          join(pluginUrl, stylesheet),
+        );
         stylesheets.push(pathWithForwardSlashes(pluginStylesheet));
       }
     }
