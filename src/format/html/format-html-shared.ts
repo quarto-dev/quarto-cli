@@ -5,7 +5,7 @@
 *
 */
 import { join } from "path/mod.ts";
-import { outputVariable, sassVariable } from "../../core/sass.ts";
+import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
 import { kCodeOverflow, kLinkExternalIcon } from "../../config/constants.ts";
 import { Format, FormatDependency } from "../../config/types.ts";
 
@@ -88,6 +88,13 @@ export const quartoGlobalCssVariableRules = () => {
   }
   /*! quarto-variables-end */
   `;
+};
+export const quartoBootstrapCustomizationLayer = () => {
+  const path = formatResourcePath(
+    "html",
+    join("bootstrap", "_bootstrap-customize.scss"),
+  );
+  return sassLayer(path);
 };
 
 export const quartoBootstrapRules = () =>

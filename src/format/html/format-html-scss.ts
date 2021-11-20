@@ -31,6 +31,7 @@ import {
 } from "../../project/types/website/website-config.ts";
 import {
   kBootstrapDependencyName,
+  quartoBootstrapCustomizationLayer,
   quartoBootstrapFunctions,
   quartoBootstrapMixins,
   quartoBootstrapRules,
@@ -153,13 +154,20 @@ function layerTheme(
   themes: string[],
   quartoThemesDir: string,
 ): SassLayer[] {
-  return themes.map((theme) => {
+  let injectedCustomization = false;
+  const layers = themes.flatMap((theme) => {
     // The directory for this theme
     const resolvedThemePath = join(quartoThemesDir, `${theme}.scss`);
     // Read the sass layers
     if (existsSync(resolvedThemePath)) {
       // The theme appears to be a built in theme
-      return sassLayer(resolvedThemePath);
+
+      // The theme layer from a built in theme
+      const themeLayer = sassLayer(resolvedThemePath);
+
+      // Inject customization of the theme (this should go just after the theme)
+      injectedCustomization = true;
+      return [themeLayer, quartoBootstrapCustomizationLayer()];
     } else {
       const themePath = join(dirname(input), theme);
       if (existsSync(themePath)) {
@@ -174,6 +182,12 @@ function layerTheme(
       }
     }
   });
+
+  // If no themes were provided, we still should inject our customization
+  if (!injectedCustomization) {
+    layers.unshift(quartoBootstrapCustomizationLayer());
+  }
+  return layers;
 }
 
 // Resolve the themes into a ThemeSassLayer
