@@ -151,7 +151,10 @@ export function mergeLayers(...layers: SassLayer[]) {
       themeUse.push(...theme.use);
     }
     if (theme.defaults) {
-      themeDefaults.push(theme.defaults);
+      // We need to reverse the order of defaults
+      // since defaults override one another by being
+      // set first
+      themeDefaults.unshift(theme.defaults);
     }
 
     if (theme.rules) {
