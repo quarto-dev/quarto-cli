@@ -119,6 +119,15 @@ export function optionsToKebab(options: string[]) {
   );
 }
 
+export function revealResolveFormat(format: Format) {
+  format.metadata = revealMetadataFilter(format.metadata);
+
+  // map "vertical" navigation mode to "default"
+  if (format.metadata["navigationMode"] === "vertical") {
+    format.metadata["navigationMode"] = "default";
+  }
+}
+
 export function revealMetadataFilter(
   metadata: Metadata,
   kebabOptions = kRevealKebabOptions,
@@ -150,7 +159,7 @@ export function revealjsFormat() {
         },
         [kSlideLevel]: 2,
       },
-      metadataFilter: revealMetadataFilter,
+      resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
         _input: string,
@@ -257,8 +266,10 @@ export function revealjsFormat() {
 
           // if the user set slideNumber to true then provide
           // linear slides (if they havne't specified vertical slides)
-          if (format.metadata["slideNumber"] === true && !verticalSlides) {
-            extras.metadataOverride!["slideNumber"] = "c/t";
+          if (format.metadata["slideNumber"] === true) {
+            extras.metadataOverride!["slideNumber"] = verticalSlides
+              ? "h.v"
+              : "c/t";
           }
 
           // opinionated version of reveal config defaults
