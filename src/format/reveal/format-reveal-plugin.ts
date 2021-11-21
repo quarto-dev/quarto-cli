@@ -119,7 +119,6 @@ export function revealPluginExtras(
     {
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
-    { plugin: formatResourcePath("revealjs", join("plugins", "a11y")) },
     { plugin: formatResourcePath("revealjs", join("plugins", "pdfexport")) },
   ];
 
