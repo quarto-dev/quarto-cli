@@ -22,7 +22,6 @@ import { PromiseQueue } from "../../core/promise.ts";
 
 import {
   kProject404File,
-  kProjectDefaultFormat,
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
@@ -128,13 +127,9 @@ export async function serveProject(
       : {},
   };
 
-  // if there is sto;; no flags 'to' then set 'to' to the default format
+  // if there is no flags 'to' then set 'to' to the default format
   if (flags.to === undefined) {
-    const defaultFormat = project.config?.project?.[kProjectDefaultFormat];
-    if (defaultFormat) {
-      flags.to = defaultFormat;
-      pandocArgs.push("--to", defaultFormat);
-    }
+    flags.to = kRenderDefault;
   }
 
   // are we targeting pdf output?

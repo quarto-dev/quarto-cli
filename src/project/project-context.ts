@@ -12,7 +12,6 @@ import { ld } from "lodash/mod.ts";
 import { ProjectType } from "./types/types.ts";
 import { Metadata } from "../config/types.ts";
 import {
-  kProjectDefaultFormat,
   kProjectLibDir,
   kProjectOutputDir,
   kProjectRender,
@@ -55,7 +54,6 @@ import { gitignoreEntries } from "./project-gitignore.ts";
 import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { kSite, kWebsite } from "./types/website/website-config.ts";
-import { formatKeys } from "../command/render/render.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -129,10 +127,6 @@ export async function projectContext(
         if (flags?.outputDir) {
           projectConfig.project[kProjectOutputDir] = flags.outputDir;
         }
-
-        // determine the default output format and set it
-        projectConfig.project[kProjectDefaultFormat] =
-          formatKeys(projectConfig)[0];
 
         // get project config and type
         const type = projectType(projectConfig.project?.[kProjectType]);
