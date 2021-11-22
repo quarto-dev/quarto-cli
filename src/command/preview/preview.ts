@@ -6,7 +6,7 @@
 */
 
 import { info } from "log/mod.ts";
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
@@ -43,6 +43,10 @@ import {
   pdfJsBaseDir,
   pdfJsFileHandler,
 } from "../../core/pdfjs.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { projectContext } from "../../project/project-context.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 interface PreviewOptions {
   port: number;
@@ -68,6 +72,9 @@ export async function preview(
   };
   const result = await render();
 
+  // see if this is project file
+  const project = await projectContext(file);
+
   // create client reloader
   const reloader = httpReloader(options.port, options.presentation);
 
@@ -89,6 +96,14 @@ export async function preview(
       reloader,
       changeHandler.render,
     )
+    : project
+    ? projectHtmlFileRequestHandler(
+      project,
+      Deno.realPathSync(file),
+      result.format,
+      reloader,
+      changeHandler.render,
+    )
     : htmlFileRequestHandler(
       result.outputFile,
       Deno.realPathSync(file),
@@ -101,7 +116,13 @@ export async function preview(
   const server = serve({ port: options.port, hostname: options.host });
 
   // open browser if requested
-  const initialPath = isPdfContent(result.outputFile) ? kPdfJsInitialPath : "";
+  const initialPath = isPdfContent(result.outputFile)
+    ? kPdfJsInitialPath
+    : project
+    ? pathWithForwardSlashes(
+      relative(projectOutputDir(project), result.outputFile),
+    )
+    : "";
   const url = `http://localhost:${options.port}/${initialPath}`;
   if (options.browse) {
     openUrl(url);
@@ -317,6 +338,25 @@ function previewWatcher(watches: Watch[]): Watcher {
   };
 }
 
+function projectHtmlFileRequestHandler(
+  context: ProjectContext,
+  inputFile: string,
+  format: Format,
+  reloader: HttpReloader,
+  renderHandler: () => Promise<void>,
+) {
+  return httpFileRequestHandler(
+    htmlFileRequestHandlerOptions(
+      projectOutputDir(context),
+      "index.html",
+      inputFile,
+      format,
+      reloader,
+      renderHandler,
+    ),
+  );
+}
+
 function htmlFileRequestHandler(
   htmlFile: string,
   inputFile: string,
@@ -326,7 +366,8 @@ function htmlFileRequestHandler(
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
-      htmlFile,
+      dirname(htmlFile),
+      basename(htmlFile),
       inputFile,
       format,
       reloader,
@@ -336,15 +377,16 @@ function htmlFileRequestHandler(
 }
 
 function htmlFileRequestHandlerOptions(
-  htmlFile: string,
+  baseDir: string,
+  defaultFile: string,
   inputFile: string,
   format: Format,
   reloader: HttpReloader,
   renderHandler: () => Promise<void>,
 ): HttpFileRequestOptions {
   return {
-    baseDir: dirname(htmlFile),
-    defaultFile: basename(htmlFile),
+    baseDir,
+    defaultFile,
     printUrls: "404",
     onRequest: async (req: ServerRequest) => {
       if (reloader.handle(req)) {
@@ -384,7 +426,8 @@ function pdfFileRequestHandler(
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
   const pdfOptions = htmlFileRequestHandlerOptions(
-    pdfFile,
+    dirname(pdfFile),
+    basename(pdfFile),
     inputFile,
     format,
     reloader,

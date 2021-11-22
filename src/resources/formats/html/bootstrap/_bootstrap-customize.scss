@@ -1,0 +1,25 @@
+/*-- scss:defaults --*/
+
+// Heading font size customization
+$h1-font-size: 2.2rem !default;
+$h2-font-size: 1.75rem !default;
+$h3-font-size: 1.5rem !default;
+$h4-font-size: 1.25rem !default;
+$h5-font-size: 1.1rem !default;
+
+$kbd-padding-y: 0.4rem !default;
+$kbd-padding-x: 0.4rem !default;
+
+// Speed up the default transition for the navbar
+$transition-collapse: height 0.2s ease !default;
+
+// Adjust the base font size up a little
+$font-size-root: 18px !default;
+
+// Disable smooth scrolling
+$enable-smooth-scroll: false !default;
+
+// The Cosmo theme sets defaults for hover. Clear the defaults to allow
+// our coloring system to handle this
+$navbar-dark-hover-color: null;
+$navbar-light-hover-color: null;

@@ -162,7 +162,7 @@ export function revealjsFormat() {
       resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
-        _input: string,
+        input: string,
         flags: PandocFlags,
         format: Format,
         libDir: string,
@@ -236,20 +236,23 @@ export function revealjsFormat() {
         );
 
         // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, libDir);
+        const theme = await revealTheme(format, input, libDir);
         extras.metadataOverride = {
           ...extras.metadataOverride,
           ...theme.metadata,
         };
         extras.html![kTextHighlightingMode] = theme[kTextHighlightingMode];
 
-        // if this is local then add plugins
-        if (theme.revealDir) {
-          extras = mergeConfigs(
-            revealPluginExtras(format, flags, theme.revealDir),
-            extras,
-          );
-        }
+        // add plugins
+        extras = mergeConfigs(
+          revealPluginExtras(
+            format,
+            flags,
+            theme.revealUrl,
+            theme.revealDestDir,
+          ),
+          extras,
+        );
 
         // add multiplex if we have it
         const multiplexExtras = revealMultiplexExtras(format);
