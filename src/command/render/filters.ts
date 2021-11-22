@@ -308,7 +308,9 @@ export function resolveFilters(filters: string[], options: PandocOptions) {
   quartoFilters.push(quartoPostFilter());
 
   // if 'quarto' is in the filters, inject our filters at that spot,
-  // otherwise inject them at the end (they will be followed by citeproc)
+  // otherwise inject them at the beginning so user filters can take
+  // advantage of e.g. resourceeRef resolution (note that citeproc
+  // will in all cases run last)
   const quartoLoc = filters.findIndex((filter) => filter === "quarto");
   if (quartoLoc !== -1) {
     filters = [
@@ -317,7 +319,7 @@ export function resolveFilters(filters: string[], options: PandocOptions) {
       ...filters.slice(quartoLoc + 1),
     ];
   } else {
-    filters.push(...quartoFilters);
+    filters.unshift(...quartoFilters);
   }
 
   // citeproc at the very end so all other filters can interact with citations
