@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kFrom,
   kHtmlMathMethod,
@@ -377,8 +377,36 @@ function revealHtmlPostprocessor(format: Format) {
     slideHeadings.forEach((slideHeading) => {
       const slideHeadingEl = slideHeading as Element;
       if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
+        // remove attributes
         for (const attrib of slideHeadingEl.getAttributeNames()) {
           slideHeadingEl.removeAttribute(attrib);
+          // if it's auto-animate then do some special handling
+          if (attrib === "data-auto-animate") {
+            // link slide titles for animation
+            slideHeadingEl.setAttribute("data-id", "quarto-animate-title");
+            // add animation id to code blocks
+            const codeBlocks = slideHeadingEl.parentElement?.querySelectorAll(
+              "div.sourceCode > pre > code",
+            );
+            if (codeBlocks?.length === 1) {
+              const codeEl = codeBlocks.item(0) as Element;
+              const preEl = codeEl.parentElement!;
+              preEl.setAttribute(
+                "data-id",
+                "quarto-animate-code",
+              );
+              codeEl.classList.add("hljs");
+              let lineNumber = 1;
+              codeEl.childNodes.forEach((spanNode) => {
+                if (spanNode.nodeType === NodeType.ELEMENT_NODE) {
+                  const spanEl = spanNode as Element;
+                  spanEl.classList.add("hljs-ln-code");
+                  spanEl.classList.add("hljs-ln-line");
+                  spanEl.setAttribute("data-line-number", lineNumber++ + "");
+                }
+              });
+            }
+          }
         }
       }
     });
