@@ -288,6 +288,7 @@ export function revealjsFormat() {
               controlsLayout: "edges",
               controlsTutorial: false,
               hash: true,
+              history: true,
               hashOneBasedIndex: false,
               fragmentInURL: false,
               transition: "none",
