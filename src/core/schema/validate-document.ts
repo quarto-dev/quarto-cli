@@ -25,6 +25,7 @@ export async function validateDocumentFromSource(
 {
   const result: LocalizedError[] = [];
   const nb = await breakQuartoMd(asMappedString(src));
+
   if (nb.cells.length < 1) {
     // no cells -> no validation
     return [];

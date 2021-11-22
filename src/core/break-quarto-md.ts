@@ -136,6 +136,7 @@ export async function breakQuartoMd(
     inMathBlock = false,
     inCodeCell = false,
     inCode = false;
+
   for (const line of rangedLines(src.value)) {
     // yaml front matter
     if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {

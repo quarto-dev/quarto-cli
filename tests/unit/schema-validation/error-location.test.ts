@@ -14,14 +14,14 @@ import { schemaTestFile } from "./utils.ts";
 import { cleanoutput } from "../../smoke/render/render.ts";
 import { validateDocumentFromSource } from "../../../src/core/schema/validate-document.ts";
 
-unitTest("schema-validation-error-location", () => {
+unitTest("schema-validation-error-location", async () => {
   const {
     input
   } = schemaTestFile("good-validation-fail.qmd", "html");
 
   const src = Deno.readTextFileSync(input);
   const ignore = (_foo: string) => {};
-  const errors = validateDocumentFromSource(src, ignore, ignore);
+  const errors = await validateDocumentFromSource(src, ignore, ignore);
 
   // check that it found all bad instances
   const badInstancesGroundTruth = ["/format/html/echo", "/echo"];

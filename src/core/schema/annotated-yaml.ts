@@ -129,10 +129,6 @@ export async function readAndValidateYAML(
       };
     }
   });
-
-  if (result.yamlValidationErrors.length) {
-    throw new Error(errorMessage);
-  }
   
   return result;
 }

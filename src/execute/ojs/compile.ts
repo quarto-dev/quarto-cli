@@ -122,7 +122,7 @@ export async function ojsCompile(
     "gfm",
     "commonmark",
   ]);
-  
+
   const output = await breakQuartoMd(markdown, true);
   
   let ojsCellID = 0;

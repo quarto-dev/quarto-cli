@@ -72,10 +72,6 @@ export function mappedString(
     range?: Range;
   }
 
-  if (pieces.length === 0) {
-    return asMappedString(source);
-  }
-
   if (typeof source === "string") {
     const offsetInfo: OffsetInfo[] = [];
     let offset = 0;
