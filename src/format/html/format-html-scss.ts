@@ -24,7 +24,7 @@ import { Metadata } from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
 
 import {
-  kSiteFooter,
+  kPageFooter,
   kSiteNavbar,
   kSiteSidebar,
   kWebsite,
@@ -392,7 +392,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     }
   }
 
-  const footer = (metadata[kWebsite] as Metadata)?.[kSiteFooter] as Metadata;
+  const footer = (metadata[kWebsite] as Metadata)?.[kPageFooter] as Metadata;
   if (footer !== undefined && typeof (footer) === "object") {
     // Forward footer color
     const footerBg = footer[kBackground];
