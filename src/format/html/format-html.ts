@@ -19,6 +19,7 @@ import {
   kCodeLink,
   kCopyButtonTooltip,
   kDoi,
+  kFigResponsive,
   kFilterParams,
   kHeaderIncludes,
   kIncludeAfterBody,
@@ -74,14 +75,14 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
-      metadataFilter: (metadata: Metadata) => {
-        if (!!metadata[kMinimal] && metadata[kTheme] === undefined) {
-          return {
-            ...metadata,
-            theme: "none",
-          };
-        } else {
-          return metadata;
+      resolveFormat: (format: Format) => {
+        if (format.metadata[kMinimal] === true) {
+          if (format.metadata[kFigResponsive] === undefined) {
+            format.metadata[kFigResponsive] = false;
+          }
+          if (format.metadata[kTheme] === undefined) {
+            format.metadata[kTheme] = "none";
+          }
         }
       },
       formatExtras: (input: string, flags: PandocFlags, format: Format) => {
@@ -109,6 +110,7 @@ export interface HtmlFormatFeatureDefaults {
   anchors?: boolean;
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
+  figResponsive?: boolean;
 }
 
 export interface HtmlFormatTippyOptions {
@@ -196,6 +198,11 @@ export function htmlFormatExtras(
     options.hoverFootnotes = format.metadata[kFootnotesHover] !== false;
   } else {
     options.hoverFootnotes = format.metadata[kFootnotesHover] || false;
+  }
+  if (featureDefaults.figResponsive) {
+    options.figResponsive = format.metadata[kFigResponsive] !== false;
+  } else {
+    options.figResponsive = format.metadata[kFigResponsive] || false;
   }
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
@@ -289,7 +296,12 @@ export function htmlFormatExtras(
       sassBundles.push({
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
-        quarto: quartoBaseLayer(format, !!options.copyCode, !!options.tabby),
+        quarto: quartoBaseLayer(
+          format,
+          !!options.copyCode,
+          !!options.tabby,
+          !!options.figResponsive,
+        ),
       });
     }
     if (scssOptions.quartoCssVars) {
@@ -399,6 +411,7 @@ function htmlFormatFeatureDefaults(
     anchors: !minimal,
     hoverCitations: !minimal,
     hoverFootnotes: !minimal,
+    figResponsive: !minimal,
   };
 }
 

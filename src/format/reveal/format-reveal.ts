@@ -119,6 +119,15 @@ export function optionsToKebab(options: string[]) {
   );
 }
 
+export function revealResolveFormat(format: Format) {
+  format.metadata = revealMetadataFilter(format.metadata);
+
+  // map "vertical" navigation mode to "default"
+  if (format.metadata["navigationMode"] === "vertical") {
+    format.metadata["navigationMode"] = "default";
+  }
+}
+
 export function revealMetadataFilter(
   metadata: Metadata,
   kebabOptions = kRevealKebabOptions,
@@ -150,10 +159,10 @@ export function revealjsFormat() {
         },
         [kSlideLevel]: 2,
       },
-      metadataFilter: revealMetadataFilter,
+      resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
-        _input: string,
+        input: string,
         flags: PandocFlags,
         format: Format,
         libDir: string,
@@ -185,6 +194,7 @@ export function revealjsFormat() {
             copyCode: true,
             hoverCitations: true,
             hoverFootnotes: true,
+            figResponsive: false,
           }, // tippy options
           {
             theme: "quarto-reveal",
@@ -226,20 +236,23 @@ export function revealjsFormat() {
         );
 
         // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, libDir);
+        const theme = await revealTheme(format, input, libDir);
         extras.metadataOverride = {
           ...extras.metadataOverride,
           ...theme.metadata,
         };
         extras.html![kTextHighlightingMode] = theme[kTextHighlightingMode];
 
-        // if this is local then add plugins
-        if (theme.revealDir) {
-          extras = mergeConfigs(
-            revealPluginExtras(format, flags, theme.revealDir),
-            extras,
-          );
-        }
+        // add plugins
+        extras = mergeConfigs(
+          revealPluginExtras(
+            format,
+            flags,
+            theme.revealUrl,
+            theme.revealDestDir,
+          ),
+          extras,
+        );
 
         // add multiplex if we have it
         const multiplexExtras = revealMultiplexExtras(format);
@@ -256,8 +269,10 @@ export function revealjsFormat() {
 
           // if the user set slideNumber to true then provide
           // linear slides (if they havne't specified vertical slides)
-          if (format.metadata["slideNumber"] === true && !verticalSlides) {
-            extras.metadataOverride!["slideNumber"] = "c/t";
+          if (format.metadata["slideNumber"] === true) {
+            extras.metadataOverride!["slideNumber"] = verticalSlides
+              ? "h.v"
+              : "c/t";
           }
 
           // opinionated version of reveal config defaults

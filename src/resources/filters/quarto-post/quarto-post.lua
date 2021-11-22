@@ -15,7 +15,7 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
-import("bootstrap.lua")
+import("responsive.lua")
 import("latexdiv.lua")
 import("foldcode.lua")
 import("book-cleanup.lua")
@@ -38,7 +38,7 @@ return {
   combineFilters({
     latexDiv(),
     foldCode(),
-    bootstrap(),
+    responsive(),
     ipynb(),
     reveal()
   }),

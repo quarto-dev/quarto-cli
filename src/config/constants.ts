@@ -329,6 +329,8 @@ export const kCrossrefAppendixDelim = "appendix-delim";
 export const kCrossrefChaptersAlpha = "chapters-alpha";
 export const kCrossrefChapterId = "chapter-id";
 
+export const kFigResponsive = "fig-responsive";
+
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca
 // they are known to be valid in metadata. this includes:

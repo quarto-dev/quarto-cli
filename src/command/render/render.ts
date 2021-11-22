@@ -87,6 +87,7 @@ import {
 import { projectOffset } from "../../project/project-shared.ts";
 import {
   deleteProjectMetadata,
+  directoryMetadataForInputFile,
   projectMetadataForInputFile,
 } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -841,9 +842,9 @@ export function resolveFormatsFromMetadata(
     const config = mergeConfigs(baseFormat, format);
 
     // apply any metadata filter
-    const metadataFilter = defaultWriterFormat(to).metadataFilter;
-    if (metadataFilter) {
-      config.metadata = metadataFilter(ld.cloneDeep(config.metadata));
+    const resolveFormat = defaultWriterFormat(to).resolveFormat;
+    if (resolveFormat) {
+      resolveFormat(config);
     }
 
     // apply command line arguments
@@ -930,13 +931,24 @@ async function resolveFormats(
   options: RenderOptions,
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
-  // merge input metadata into project metadata
+  // directory level metadata
+  const directoryMetadata = project?.dir
+    ? directoryMetadataForInputFile(
+      project.dir,
+      dirname(target.input),
+    )
+    : {};
+
+  // establish input level metadata (read and merge into dir metadata,
+  // which allows documents to override dir level metadata
+  const inputMetadata = mergeConfigs(directoryMetadata, target.metadata);
+
+  // project metadata
   const projMetadata = await projectMetadataForInputFile(
     target.input,
     options.flags,
     project,
   );
-  const inputMetadata = target.metadata;
 
   // determine formats
   let formats: string[] = [];

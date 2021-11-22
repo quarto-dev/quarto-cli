@@ -5,14 +5,20 @@
 *
 */
 
-import { dirname, globToRegExp, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  dirname,
+  globToRegExp,
+  isAbsolute,
+  join,
+  relative,
+  SEP_PATTERN,
+} from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { ProjectType } from "./types/types.ts";
 import { Metadata } from "../config/types.ts";
 import {
-  kProjectDefaultFormat,
   kProjectLibDir,
   kProjectOutputDir,
   kProjectRender,
@@ -55,7 +61,6 @@ import { gitignoreEntries } from "./project-gitignore.ts";
 import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { kSite, kWebsite } from "./types/website/website-config.ts";
-import { formatKeys } from "../command/render/render.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -129,10 +134,6 @@ export async function projectContext(
         if (flags?.outputDir) {
           projectConfig.project[kProjectOutputDir] = flags.outputDir;
         }
-
-        // determine the default output format and set it
-        projectConfig.project[kProjectDefaultFormat] =
-          formatKeys(projectConfig)[0];
 
         // get project config and type
         const type = projectType(projectConfig.project?.[kProjectType]);
@@ -295,55 +296,111 @@ export async function projectMetadataForInputFile(
     project = await projectContext(input, flags);
   }
 
-  const projConfig = project?.config || {};
+  if (project?.dir && project?.config) {
+    // If there is directory and configuration information
+    // process paths
+    return toInputRelativePaths(
+      project.dir,
+      dirname(input),
+      project.config,
+    ) as Metadata;
+  } else {
+    // Just return the config or empty metadata
+    return project?.config || {};
+  }
+}
 
-  const fixupPaths = (
-    collection: Array<unknown> | Record<string, unknown>,
-    parentKey?: unknown,
-  ) => {
-    ld.forEach(
-      collection,
-      (
-        value: unknown,
-        index: unknown,
-        collection: Array<unknown> | Record<string, unknown>,
-      ) => {
-        const assign = (value: unknown) => {
-          if (typeof (index) === "number") {
-            (collection as Array<unknown>)[index] = value;
-          } else if (typeof (index) === "string") {
-            (collection as Record<string, unknown>)[index] = value;
-          }
-        };
-
-        if (parentKey === kHtmlMathMethod && index === "method") {
-          // don't fixup html-math-method
-        } else if (Array.isArray(value)) {
-          assign(fixupPaths(value));
-        } else if (typeof (value) === "object") {
-          assign(fixupPaths(value as Record<string, unknown>, index));
-        } else if (typeof (value) === "string") {
-          if (!isAbsolute(value)) {
-            // if this is a valid file, then transform it to be relative to the input path
-            const projectPath = join(project!.dir, value);
-
-            // Paths could be invalid paths (e.g. with colons or other weird characters)
-            try {
-              if (existsSync(projectPath)) {
-                const offset = relative(dirname(input), project!.dir);
-                assign(pathWithForwardSlashes(join(offset, value)));
-              }
-            } catch {
-              // Just ignore this error as the path must not be a local file path
-            }
-          }
-        }
-      },
-    );
-    return collection;
+export function directoryMetadataForInputFile(
+  projectDir: string,
+  inputDir: string,
+) {
+  // Finds a metadata file in a directory
+  const metadataFile = (dir: string) => {
+    return ["_metadata.yml", "_metadata.yaml"]
+      .map((file) => join(dir, file))
+      .find(existsSync);
   };
 
-  return fixupPaths(projConfig) as Metadata;
+  // The path from the project dir to the input dir
+  const relativePath = relative(projectDir, inputDir);
+  const dirs = relativePath.split(SEP_PATTERN);
+
+  // The config we'll ultimately return
+  let config = {};
+
+  // Walk through each directory (starting from the project and
+  // walking deeper to the input)
+  let currentDir = projectDir;
+  dirs.forEach((dir) => {
+    currentDir = join(currentDir, dir);
+    const file = metadataFile(currentDir);
+    if (file) {
+      // There is a metadata file, read it and merge it
+      // Note that we need to convert paths that are relative
+      // to the metadata file to be relative to input
+      const yaml = readYaml(file) as Record<string, unknown>;
+      config = mergeConfigs(
+        config,
+        toInputRelativePaths(currentDir, inputDir, yaml),
+      );
+    }
+  });
+  return config;
+}
+
+export function toInputRelativePaths(
+  baseDir: string,
+  inputDir: string,
+  collection: Array<unknown> | Record<string, unknown>,
+  parentKey?: unknown,
+) {
+  ld.forEach(
+    collection,
+    (
+      value: unknown,
+      index: unknown,
+      collection: Array<unknown> | Record<string, unknown>,
+    ) => {
+      const assign = (value: unknown) => {
+        if (typeof (index) === "number") {
+          (collection as Array<unknown>)[index] = value;
+        } else if (typeof (index) === "string") {
+          (collection as Record<string, unknown>)[index] = value;
+        }
+      };
+
+      if (parentKey === kHtmlMathMethod && index === "method") {
+        // don't fixup html-math-method
+      } else if (Array.isArray(value)) {
+        assign(toInputRelativePaths(baseDir, inputDir, value));
+      } else if (typeof (value) === "object") {
+        assign(
+          toInputRelativePaths(
+            baseDir,
+            inputDir,
+            value as Record<string, unknown>,
+            index,
+          ),
+        );
+      } else if (typeof (value) === "string") {
+        if (!isAbsolute(value)) {
+          // if this is a valid file, then transform it to be relative to the input path
+          const projectPath = join(baseDir, value);
+
+          // Paths could be invalid paths (e.g. with colons or other weird characters)
+          try {
+            if (existsSync(projectPath)) {
+              const offset = relative(inputDir, baseDir);
+              assign(pathWithForwardSlashes(join(offset, value)));
+            }
+          } catch {
+            // Just ignore this error as the path must not be a local file path
+          }
+        }
+      }
+    },
+  );
+  return collection;
 }
 
 function projectInputFiles(
