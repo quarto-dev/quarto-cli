@@ -1139,19 +1139,9 @@ $callouts: (
   font-size: 0.775em;
 }
 
-#quarto-content.page-navbar {
+#quarto-content {
   .quarto-sidebar-toggle {
-    background: $navbar-bg;
-  }
-
-  .quarto-sidebar-toggle-title {
-    color: $navbar-fg;
-  }
-}
-
-#quarto-content:not(.page-navbar) {
-  .quarto-sidebar-toggle {
-    background: $body-bg;
+    background: theme-dim($body-bg, 2%);
   }
 
   .quarto-sidebar-toggle-title {
