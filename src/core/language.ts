@@ -27,6 +27,7 @@ export function readLanguageTranslations(
   const maybeReadYaml = (file: string) => {
     if (existsSync(file)) {
       files.push(Deno.realPathSync(file));
+      // TODO: yaml validation (FormatLanguage, all values string or object)
       return readYaml(file) as FormatLanguage;
     } else {
       return {} as FormatLanguage;

@@ -78,23 +78,12 @@ export function readYamlFromMarkdown(
   }
 }
 
+// TODO: yaml validation (front-matter)
 export function readYamlFromMarkdownFile(
   file: string,
 ): { [key: string]: unknown } {
   const markdown = Deno.readTextFileSync(file);
   return readYamlFromMarkdown(markdown);
-}
-
-export function readYamlFrontMatterFromMarkdownFile(
-  file: string,
-) {
-  const markdown = Deno.readTextFileSync(file);
-  const result = partitionYamlFrontMatter(markdown);
-  if (result) {
-    return readYamlFromMarkdown(result.yaml);
-  } else {
-    return null;
-  }
 }
 
 export function partitionYamlFrontMatter(

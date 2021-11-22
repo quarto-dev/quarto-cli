@@ -239,7 +239,7 @@ export async function renderContexts(
   options = ld.cloneDeep(options) as RenderOptions;
 
   // determine the computation engine and any alternate input file
-  const engine = await fileExecutionEngine(file);
+  const engine = fileExecutionEngine(file);
   if (!engine) {
     throw new Error("Unable to render " + file);
   }
