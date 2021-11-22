@@ -302,12 +302,18 @@ export async function projectMetadataForInputFile(
     project = await projectContext(input, flags);
   }
 
-  const projConfig = project?.config || {};
-  return toInputRelativePaths(
-    project!.dir,
-    dirname(input),
-    projConfig,
-  ) as Metadata;
+  if (project?.dir && project?.config) {
+    // If there is directory and configuration information
+    // process paths
+    return toInputRelativePaths(
+      project.dir,
+      dirname(input),
+      project.config,
+    ) as Metadata;
+  } else {
+    // Just return the config or empty metadata
+    return project?.config || {};
+  }
 }
 
 export function directoryMetadataForInputFile(
