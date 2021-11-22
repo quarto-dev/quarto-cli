@@ -38,7 +38,7 @@ export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";
 export const kSiteSidebarStyle = "style";
 export const kSitePageNavigation = "page-navigation";
-export const kSiteFooter = "footer";
+export const kPageFooter = "page-footer";
 
 export const kContents = "contents";
 
@@ -64,7 +64,7 @@ export interface WebsiteConfig {
   [kSiteNavbar]?: string;
   [kSiteSidebar]?: string;
   [kSitePageNavigation]?: boolean;
-  [kSiteFooter]?: string;
+  [kPageFooter]?: string;
   [kOpenGraph]?: boolean | OpenGraphConfig;
   [kTwitterCard]?: boolean | TwitterCardConfig;
 }
@@ -101,7 +101,7 @@ export function websiteConfig(
     | "navbar"
     | "sidebar"
     | "page-navigation"
-    | "footer"
+    | "page-footer"
     | "search",
   project?: ProjectConfig,
 ) {

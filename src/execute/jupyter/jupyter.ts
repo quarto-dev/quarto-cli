@@ -9,7 +9,10 @@ import { extname, join } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
-import { readYamlFromMarkdown } from "../../core/yaml.ts";
+import {
+  readYamlFromMarkdown,
+  readYamlFromMarkdownFile,
+} from "../../core/yaml.ts";
 import { isInteractiveSession } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
@@ -330,7 +333,7 @@ async function metadataFromInputFile(file: string) {
   if (isJupyterNotebook(file)) {
     return readYamlFromMarkdown(await markdownFromNotebook(file));
   } else {
-    return readYamlFromMarkdown(Deno.readTextFileSync(file));
+    return readYamlFromMarkdownFile(file);
   }
 }
 

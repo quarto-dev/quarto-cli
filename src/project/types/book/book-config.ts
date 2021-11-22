@@ -33,7 +33,7 @@ import {
   kContents,
   kImage,
   kOpenGraph,
-  kSiteFooter,
+  kPageFooter,
   kSiteNavbar,
   kSitePageNavigation,
   kSitePath,
@@ -113,8 +113,8 @@ export async function bookProjectConfig(
     site[kBookSearch] = book[kBookSearch];
 
     // If there is an explicitly set footer use that
-    if (book[kSiteFooter]) {
-      site[kSiteFooter] = book[kSiteFooter];
+    if (book[kPageFooter]) {
+      site[kPageFooter] = book[kPageFooter];
     }
   }
 

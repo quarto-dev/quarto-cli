@@ -102,6 +102,7 @@ export async function projectContext(
       // config files are the main file + any subfiles read
       const configFiles = [configFile];
 
+      // TODO: yaml validation (_quarto.yml)
       let projectConfig: ProjectConfig = readYaml(configFile) as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
       const includedMeta = includedMetadata(dir, projectConfig);
@@ -338,6 +339,7 @@ export function directoryMetadataForInputFile(
       // There is a metadata file, read it and merge it
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
+      // TODO: yaml validation (front matter)
       const yaml = readYaml(file) as Record<string, unknown>;
       config = mergeConfigs(
         config,
