@@ -183,7 +183,8 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(revealJs, "plugin"),
       );
     },
-    true,
+    false,
+    false,
   );
 
   // revealjs-chalkboard
