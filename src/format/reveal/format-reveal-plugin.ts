@@ -435,6 +435,7 @@ function pluginFromBundle(bundle: RevealPluginBundle): RevealPlugin {
     );
   }
   // read the plugin definition (and provide the path)
+  // TODO: yaml validation (RevealPlugin)
   const plugin = readYaml(join(bundle.plugin, "plugin.yml")) as RevealPlugin;
   plugin.path = bundle.plugin;
 

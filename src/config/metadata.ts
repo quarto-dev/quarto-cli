@@ -53,6 +53,7 @@ export function includedMetadata(
   const filesMetadata = yamlFiles.map((yamlFile) => {
     if (exists(yamlFile)) {
       try {
+        // TODO: yaml validation (_quarto.yml)
         return readYaml(yamlFile);
       } catch (e) {
         error("\nError reading metadata file from " + yamlFile + "\n");
