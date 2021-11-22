@@ -14,7 +14,7 @@ import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { ProjectContext } from "../../types.ts";
 import { Navbar, NavItem, Sidebar, SidebarItem } from "../../project-config.ts";
 import {
-  kSiteFooter,
+  kPageFooter,
   kSiteNavbar,
   kSitePageNavigation,
   kSiteSidebar,
@@ -125,7 +125,7 @@ export function websiteNavigationConfig(project: ProjectContext) {
   };
 
   const footer: NavigationFooter = {};
-  const footerConfig = websiteConfig(kSiteFooter, project.config);
+  const footerConfig = websiteConfig(kPageFooter, project.config);
   if (typeof (footerConfig) === "string") {
     // place the markdown in the center
     footer.center = footerConfig;
