@@ -1,3 +1,10 @@
+/*
+* validator-queue.js
+* 
+* Copyright (C) 2021 by RStudio, PBC
+*
+*/
+
 import * as core from "../../../build/core-lib.js";
 const yamlValidators = {};
 const validatorQueues = {};

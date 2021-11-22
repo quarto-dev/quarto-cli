@@ -1,3 +1,10 @@
+/*
+* paths.js
+* 
+* Copyright (C) 2021 by RStudio, PBC
+*
+*/
+
 let mainPath;
 
 export function setMainPath(path)

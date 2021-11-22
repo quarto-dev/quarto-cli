@@ -1,3 +1,12 @@
+/*
+* automation.js
+*
+* Entry point for YAML automation in the IDE.
+* 
+* Copyright (C) 2021 by RStudio, PBC
+*
+*/
+
 import { withValidator } from "./validator-queue.js";
 import {
   buildAnnotated,

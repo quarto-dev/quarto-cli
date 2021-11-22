@@ -1,3 +1,10 @@
+/*
+* parsing.js
+* 
+* Copyright (C) 2021 by RStudio, PBC
+*
+*/
+
 import * as core from "../../../build/core-lib.js";
 import { getLocalPath } from "./paths.js";
 
