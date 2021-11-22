@@ -11,7 +11,7 @@ import {
   isAbsolute,
   join,
   relative,
-  SEP,
+  SEP_PATTERN,
 } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 import { ld } from "lodash/mod.ts";
@@ -323,7 +323,7 @@ export function directoryMetadataForInputFile(
 
   // The path from the project dir to the input dir
   const relativePath = relative(projectDir, inputDir);
-  const dirs = relativePath.split(SEP);
+  const dirs = relativePath.split(SEP_PATTERN);
 
   // The config we'll ultimately return
   let config = {};

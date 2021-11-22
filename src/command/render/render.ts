@@ -918,25 +918,23 @@ async function resolveFormats(
   options: RenderOptions,
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
-  // merge input metadata into project metadata
-  const projMetadataForInput = await projectMetadataForInputFile(
-    target.input,
-    options.flags,
-    project,
-  );
-  const inputMetadata = target.metadata;
-
-  // look for directory level metadata and merge that into the project
-  // metadata (this will still allow document level metadata to overwrite it)
-  const directoryMetadataForInput = project?.dir
+  // directory level metadata
+  const directoryMetadata = project?.dir
     ? directoryMetadataForInputFile(
       project.dir,
       dirname(target.input),
     )
     : {};
-  const projMetadata = mergeConfigs(
-    projMetadataForInput,
-    directoryMetadataForInput,
+
+  // establish input level metadata (read and merge into dir metadata,
+  // which allows documents to override dir level metadata
+  const inputMetadata = mergeConfigs(directoryMetadata, target.metadata);
+
+  // project metadata
+  const projMetadata = await projectMetadataForInputFile(
+    target.input,
+    options.flags,
+    project,
   );
 
   // determine formats
