@@ -57,7 +57,7 @@ export async function breakQuartoMd(
 
   // line buffer
   const lineBuffer: RangedSubstring[] = [];
-  const flushLineBuffer = (
+  const flushLineBuffer = async (
     cell_type: "markdown" | "code" | "raw" | "math",
   ) => {
     if (lineBuffer.length) {
@@ -146,10 +146,10 @@ export async function breakQuartoMd(
     ) {
       if (inYaml) {
         lineBuffer.push(line);
-        flushLineBuffer("raw");
+        await flushLineBuffer("raw");
         inYaml = false;
       } else {
-        flushLineBuffer("markdown");
+        await flushLineBuffer("markdown");
         lineBuffer.push(line);
         inYaml = true;
       }
@@ -157,7 +157,7 @@ export async function breakQuartoMd(
     else if (startCodeCellRegEx.test(line.substring)) {
       const m = line.substring.match(startCodeCellRegEx);
       language = (m as string[])[1];
-      flushLineBuffer("markdown");
+      await flushLineBuffer("markdown");
       inCodeCell = true;
 
       // end code block: ^``` (tolerate trailing ws)
@@ -165,7 +165,7 @@ export async function breakQuartoMd(
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
-        flushLineBuffer("code");
+        await flushLineBuffer("code");
 
         // otherwise this flips the state of in-code
       } else {
@@ -179,13 +179,13 @@ export async function breakQuartoMd(
       lineBuffer.push(line);
     } else if (delimitMathBlockRegEx.test(line.substring)) {
       if (inMathBlock) {
-        flushLineBuffer("math");
+        await flushLineBuffer("math");
       } else {
         if (inYaml || inCode || inCodeCell) {
           // FIXME: signal a parse error?
           // for now, we just skip.
         } else {
-          flushLineBuffer("markdown");
+          await flushLineBuffer("markdown");
         }
       }
       inMathBlock = !inMathBlock;
@@ -196,7 +196,7 @@ export async function breakQuartoMd(
   }
 
   // if there is still a line buffer then make it a markdown cell
-  flushLineBuffer("markdown");
+  await flushLineBuffer("markdown");
 
   return nb;
 }
