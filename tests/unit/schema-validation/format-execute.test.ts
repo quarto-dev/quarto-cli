@@ -1,5 +1,5 @@
 import { unitTest } from "../../test.ts";
-import { YAMLSchema } from "../../../src/core/schema/yaml-schema.ts";
+import { YAMLSchema, ensureAjv } from "../../../src/core/schema/yaml-schema.ts";
 import { frontMatterSchema as fm } from "../../../src/core/schema/front-matter.ts";
 import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
 import { asMappedString } from "../../../src/core/mapped-text.ts";
@@ -16,6 +16,7 @@ execute:
 title: A bad quarto document
 execute: [1, 2, "foo"] 
 `;
+  ensureAjv();
   
   const fmSchema = new YAMLSchema(fm);
 

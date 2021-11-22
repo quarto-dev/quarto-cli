@@ -9,20 +9,22 @@ import { RenderContext } from "../../command/render/types.ts";
 import { breakQuartoMd } from "../break-quarto-md.ts";
 import { asMappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
-import { frontMatterValidator } from "./front-matter.ts";
+import { frontMatterSchema } from "./front-matter.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error, info } from "log/mod.ts";
+import { ensureAjv } from "./yaml-schema.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
-import { languageOptionsValidators } from "./chunk-metadata.ts";
+import { languageOptionsSchema } from "./chunk-metadata.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
+import { withValidator } from "../lib/validator-queue.ts";
 
-export function validateDocumentFromSource(
+export async function validateDocumentFromSource(
   src: string,
   error: (msg: string) => any,
-  info: (msg: string) => any): LocalizedError[]
+  info: (msg: string) => any): Promise<LocalizedError[]>
 {
   const result: LocalizedError[] = [];
-  const nb = breakQuartoMd(asMappedString(src));
+  const nb = await breakQuartoMd(asMappedString(src));
   if (nb.cells.length < 1) {
     // no cells -> no validation
     return [];
@@ -47,16 +49,20 @@ export function validateDocumentFromSource(
       }],
     );
     const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
-    const fmValidation = frontMatterValidator.validateParseWithErrors(
-      frontMatterText,
-      annotation,
-      "Validation of YAML front matter failed.",
-      error,
-      info,
-    );
-    if (fmValidation && fmValidation.errors.length) {
-      result.push(...fmValidation.errors);
-    }
+
+    ensureAjv();
+    await withValidator(frontMatterSchema, (frontMatterValidator) => {
+      const fmValidation = frontMatterValidator.validateParseWithErrors(
+        frontMatterText,
+        annotation,
+        "Validation of YAML front matter failed.",
+        error,
+        info,
+      );
+      if (fmValidation && fmValidation.errors.length) {
+        result.push(...fmValidation.errors);
+      }
+    });
   } else {
     firstContentCellIndex = 0;
   }
@@ -72,20 +78,20 @@ export function validateDocumentFromSource(
     }
 
     const lang = cell.cell_type.language;
-    const validator = languageOptionsValidators[lang];
-    if (validator === undefined) {
-      // not a language with validators
+    const schema = languageOptionsSchema[lang];
+    if (schema === undefined) {
+      // not a language with schemas
       continue;
     }
-
-    const chunkResult = partitionCellOptionsMapped(lang, cell.source, true);
+    
+    const chunkResult = await partitionCellOptionsMapped(lang, cell.source, true);
 
     result.push(...chunkResult.yamlValidationErrors);
   }
   return result;
 }
 
-export function validateDocument(context: RenderContext): LocalizedError[] {
+export async function validateDocument(context: RenderContext): Promise<LocalizedError[]> {
   if (context.target.markdown === "") {
     // no markdown -> no validation.
     return [];

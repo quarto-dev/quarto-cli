@@ -28,23 +28,23 @@ export function resourcesFromMetadata(resourcesMetadata?: unknown) {
 
 // FIXME markdown should come as a MappedString but we don't want to port
 // over the entirety of quarto just yet.
-export function resolveFileResources(
+export async function resolveFileResources(
   rootDir: string,
   fileDir: string,
   markdown: string,
   globs: string[],
-): ResolvedPathGlobs {
+): Promise<ResolvedPathGlobs> {
   const ignore = engineIgnoreGlobs()
     .concat(kQuartoScratch + "/")
     .concat(["**/.*", "**/.*/**"]); // hidden (dot prefix))
   const resources = resolvePathGlobs(fileDir, globs, ignore);
   if (markdown.length > 0) {
     resources.include.push(
-      ...extractResolvedResourceFilenamesFromQmd(
+      ...(await extractResolvedResourceFilenamesFromQmd(
         asMappedString(markdown),
         fileDir,
         rootDir,
-      ),
+      )),
     );
   }
   return resources;

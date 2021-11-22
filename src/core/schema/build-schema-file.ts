@@ -10,14 +10,14 @@
 
 import { frontMatterSchema } from "./front-matter.ts";
 import { configSchema } from "./config.ts";
-import { languageOptionsValidators } from "./chunk-metadata.ts";
+import { languageOptionsSchema } from "./chunk-metadata.ts";
 import { join } from "path/mod.ts";
 
 const obj = {
   schemas: {
     "front-matter": frontMatterSchema,
     "config": configSchema,
-    "languages": languageOptionsValidators,
+    "languages": languageOptionsSchema,
   },
 };
 

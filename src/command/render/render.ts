@@ -193,7 +193,7 @@ export async function renderFiles(
 
         const validate = context.format.metadata?.["validate-yaml"];
         if (validate !== false) {
-          const validationResult = validateDocument(context);
+          const validationResult = await validateDocument(context);
           if (validationResult.length) {
             throw new Error("YAML validation failed - exiting.");
           }

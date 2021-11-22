@@ -17,6 +17,7 @@ import {
 
 import * as mt from "./lib/mapped-text.ts";
 
+export type EitherString = mt.EitherString;
 export type MappedString = mt.MappedString;
 export type StringChunk = mt.StringChunk;
 
@@ -25,6 +26,10 @@ export {
   asMappedString,
   mappedConcat,
   mappedIndexToRowCol,
+  mappedNormalizeNewlines,
+  
+  skipRegexpAll,
+  skipRegexp,
 } from "./lib/mapped-text.ts";
 
 // uses a diff algorithm to map on a line-by-line basis target lines

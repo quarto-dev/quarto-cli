@@ -13,6 +13,7 @@ import {
   objectSchema as objectS,
   oneOfSchema as oneOfS,
   StringSchema as StringS,
+  idSchema as withId,
 } from "./common.ts";
 
 import { YAMLSchema } from "./yaml-schema.ts";
@@ -35,7 +36,7 @@ export const frontMatterFormatSchema = oneOfS(
 
 // for empty front matter, we return `null`, so we need to allow that
 // as well.
-export const frontMatterSchema = oneOfS(
+export const frontMatterSchema = withId(oneOfS(
   nullS,
   objectS({
     properties: {
@@ -45,6 +46,4 @@ export const frontMatterSchema = oneOfS(
     },
     description: "be a Quarto YAML front matter object",
   }),
-);
-
-export const frontMatterValidator = new YAMLSchema(frontMatterSchema);
+), "front-matter");

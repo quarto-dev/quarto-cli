@@ -77,12 +77,12 @@ interface DirectDependency {
 }
 
 // Extracts the direct dependencies from a single js, ojs or qmd file
-function directDependencies(
+async function directDependencies(
   source: MappedString,
   fileDir: string,
   language: "js" | "ojs" | "qmd",
   projectRoot?: string,
-): DirectDependency[] {
+): Promise<DirectDependency[]> {
   interface ResolvedES6Path {
     pathType: "root-relative" | "relative";
     resolvedImportPath: string;
@@ -175,7 +175,7 @@ function directDependencies(
     }
   } else {
     // language === "qmd"
-    const ojsCellsSrc = breakQuartoMd(source)
+    const ojsCellsSrc = (await breakQuartoMd(source))
       .cells
       .filter((cell) =>
         cell.cell_type !== "markdown" &&
@@ -184,7 +184,7 @@ function directDependencies(
         cell.cell_type?.language === "ojs"
       )
       .flatMap((v) => v.source); // (concat)
-    return directDependencies(mappedConcat(ojsCellsSrc), fileDir, "ojs", projectRoot);
+    return await directDependencies(mappedConcat(ojsCellsSrc), fileDir, "ojs", projectRoot);
   }
 
   return localImports(ast).map((importPath) => {
@@ -201,25 +201,25 @@ function directDependencies(
   });
 }
 
-export function extractResolvedResourceFilenamesFromQmd(
+export async function extractResolvedResourceFilenamesFromQmd(
   markdown: MappedString,
   mdDir: string,
   projectRoot: string,
 ) {
   const pageResources = [];
 
-  for (const cell of breakQuartoMd(markdown).cells) {
+  for (const cell of (await breakQuartoMd(markdown)).cells) {
     if (
       cell.cell_type !== "markdown" &&
       cell.cell_type !== "raw" &&
       cell.cell_type !== "math" &&
       cell.cell_type?.language === "ojs"
     ) {
-      pageResources.push(...extractResourceDescriptionsFromOJSChunk(
+      pageResources.push(...(await extractResourceDescriptionsFromOJSChunk(
         cell.source,
         mdDir,
         projectRoot,
-      ));
+      )));
     }
   }
 
@@ -233,7 +233,7 @@ export function extractResolvedResourceFilenamesFromQmd(
   return Array.from(result);
 }
 
-export function extractResourceDescriptionsFromOJSChunk(
+export async function extractResourceDescriptionsFromOJSChunk(
   ojsSource: MappedString,
   mdDir: string,
   projectRoot?: string,
@@ -277,7 +277,7 @@ export function extractResourceDescriptionsFromOJSChunk(
 
   // we're assuming that we always start in an {ojs} block.
   for (
-    const { resolvedImportPath, pathType, importPath } of directDependencies(
+    const { resolvedImportPath, pathType, importPath } of await directDependencies(
       ojsSource,
       mdDir,
       "ojs",
@@ -331,7 +331,7 @@ export function extractResourceDescriptionsFromOJSChunk(
     }
 
     for (
-      const { resolvedImportPath, pathType, importPath } of directDependencies(
+      const { resolvedImportPath, pathType, importPath } of await directDependencies(
         asMappedString(source),
         dirname(thisResolvedImportPath),
         language as ("js" | "ojs" | "qmd"),

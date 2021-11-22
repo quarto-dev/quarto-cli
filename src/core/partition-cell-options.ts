@@ -18,11 +18,13 @@ import {
 } from "./lib/partition-cell-options.ts";
 
 import { readYamlFromString } from "./yaml.ts";
-import { readAnnotatedYamlFromMappedString } from "./schema/annotated-yaml.ts";
+import { readAndValidateYAML, readAnnotatedYamlFromMappedString } from "./schema/annotated-yaml.ts";
 import { warnOnce } from "./log.ts";
 
-import { LocalizedError } from "./lib/yaml-schema.ts";
-import { languageOptionsValidators } from "./schema/chunk-metadata.ts";
+import { languageOptionsSchema } from "./schema/chunk-metadata.ts";
+
+// force ajv initialization. Yes, this is ugly.
+import { ensureAjv } from "./schema/yaml-schema.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -73,7 +75,7 @@ export function partitionCellOptions(
   };
 }
 
-export function parseAndValidateCellOptions(
+export async function parseAndValidateCellOptions(
   mappedYaml: MappedString,
   language: string,
   validate = false
@@ -85,30 +87,25 @@ export function parseAndValidateCellOptions(
     };
   }
 
-  let yamlValidationErrors: LocalizedError[] = [];
-  
-  const validator = languageOptionsValidators[language];
-  let yaml = undefined;
-  if (validator === undefined || !validate) {
-    yaml = readAnnotatedYamlFromMappedString(mappedYaml);
-  } else {
-    const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
-    const valResult = validator.validateParse(mappedYaml, annotation);
-    if (valResult.errors.length > 0) {
-      yamlValidationErrors = valResult.errors;
-    } else {
-      yaml = valResult.result;
+  const schema = languageOptionsSchema[language];
+  const schemaName = language;
+
+  if (schema === undefined) {
+    return {
+      yaml: readAnnotatedYamlFromMappedString(mappedYaml),
+      yamlValidationErrors: []
     }
   }
-  return {
-    yaml,
-    yamlValidationErrors
-  };
+
+  return readAndValidateYAML(
+    schema, mappedYaml,
+    `Validation of YAML ${language} chunk options failed`
+  );
 }
 
 /** NB: this version _does_ parse and validate the YAML source!
  */
-export function partitionCellOptionsMapped(
+export async function partitionCellOptionsMapped(
   language: string,
   outerSource: MappedString,
   validate = false
@@ -118,27 +115,14 @@ export function partitionCellOptionsMapped(
     optionsSource,
     source,
     sourceStartLine
-  } = libPartitionCellOptionsMapped(language, outerSource);
+  } = await libPartitionCellOptionsMapped(language, outerSource);
 
   const {
     yaml,
     yamlValidationErrors
-  } = parseAndValidateCellOptions(
+  } = await parseAndValidateCellOptions(
     mappedYaml ?? asMappedString(""), language, validate);
-
-  if (yamlValidationErrors.length) {
-    const validator = languageOptionsValidators[language];
-    validator.reportErrorsInSource(
-      {
-        result: yaml,
-        errors: yamlValidationErrors
-      }, mappedYaml!,
-      `Validation of YAML ${language} chunk options failed`,
-      error,
-      info
-    );
-  }
-  
+   
   return {
     yaml: yaml as Record<string, unknown> | undefined,
     yamlValidationErrors,

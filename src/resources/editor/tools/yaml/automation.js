@@ -7,7 +7,7 @@
 *
 */
 
-import { withValidator } from "./validator-queue.js";
+// import { withValidator } from "./validator-queue.js";
 import {
   buildAnnotated,
   locateCursor
@@ -68,7 +68,7 @@ export async function validationFromGoodParseYAML(context) {
     throw new Error("Internal error: Expected a MappedString");
   }
 
-  const result = await withValidator(context, async (validator) => {
+  const result = await core.withValidator(context, async (validator) => {
     const parser = await getTreeSitter();
 
     for (const parseResult of attemptParsesAtLine(context, parser)) {
@@ -469,7 +469,7 @@ async function automationFromGoodParseScript(kind, context) {
   } = core.partitionCellOptionsMapped(language, mappedCode);
 
   const schemas = (await getSchemas()).schemas;
-  const schema = schemas.languages[language].schema;
+  const schema = schemas.languages[language];
   const commentPrefix = core.kLangCommentChars[language] + "| ";
 
   context = {

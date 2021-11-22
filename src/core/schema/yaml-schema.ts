@@ -12,7 +12,13 @@ export { YAMLSchema } from "../lib/yaml-schema.ts";
 import { MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 
-setupAjv(new Ajv({ allErrors: true }));
+let ajvInit = false;
+export function ensureAjv() {
+  if (!ajvInit) {
+    setupAjv(new Ajv({ allErrors: true }));
+    ajvInit = true;
+  }
+}
 
 // This function isn't in YAMLSchema because
 // readAnnotatedYamlFromMappedString depends on a yaml library we do

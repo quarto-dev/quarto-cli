@@ -21,9 +21,11 @@ function mappedSource(
   return mappedString(source, params);
 }
 
-/** NB: this version does not validate or parse the YAML source!
+/** NB: this version does not validate or parse the YAML source
+ * 
+ * also, it's async to match the core version type, although the async bit is only required inthe core versio
  */
-export function partitionCellOptionsMapped(
+export async function partitionCellOptionsMapped(
   language: string,
   source: MappedString,
   _validate = false,

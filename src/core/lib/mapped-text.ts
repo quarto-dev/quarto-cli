@@ -8,9 +8,19 @@
 *
 */
 
-import { glb } from "./binary-search.ts";
-import { Range } from "./ranged-text.ts";
-import { indexToRowCol } from "./text.ts";
+import {
+  glb
+} from "./binary-search.ts";
+
+import {
+  Range
+} from "./ranged-text.ts";
+
+import {
+  indexToRowCol as unmappedIndexToRowCol,
+  lineBreakPositions,
+  matchAll
+} from "./text.ts";
 
 export interface MappedString {
   readonly value: string;
@@ -19,6 +29,7 @@ export interface MappedString {
   mapClosest: (a: number) => number | undefined;
 }
 
+export type EitherString = string | MappedString;
 export type StringChunk = string | Range;
 
 /**
@@ -49,8 +60,9 @@ string (which will be stored in `originalString`).
 
 This provides a natural composition for mapped strings.
 */
+
 export function mappedString(
-  source: string | MappedString,
+  source: EitherString,
   pieces: StringChunk[],
 ): MappedString {
   interface OffsetInfo {
@@ -60,11 +72,17 @@ export function mappedString(
     range?: Range;
   }
 
+  if (pieces.length === 0) {
+    return asMappedString(source);
+  }
+
   if (typeof source === "string") {
     const offsetInfo: OffsetInfo[] = [];
     let offset = 0;
 
-    const resultList = pieces.map((piece) => {
+    const resultList = pieces.filter(
+      (piece) => (typeof piece === "string") || (piece.start !== piece.end)
+    ).map((piece) => {
       if (typeof piece === "string") {
         offsetInfo.push({
           fromSource: false,
@@ -201,13 +219,17 @@ export function mappedString(
   }
 }
 
-export function asMappedString(str: string) {
-  return {
-    value: str,
-    originalString: str,
-    map: (x: number) => x,
-    mapClosest: (x: number) => x,
-  };
+export function asMappedString(str: EitherString): MappedString {
+  if (typeof str === "string") {
+    return {
+      value: str,
+      originalString: str,
+      map: (x: number) => x,
+      mapClosest: (x: number) => x,
+    };
+  } else {
+    return str;
+  }
 }
 
 // This assumes all originalString fields in the MappedString
@@ -243,8 +265,11 @@ export function mappedConcat(strings: MappedString[]): MappedString {
   };
 }
 
-export function mappedIndexToRowCol(text: MappedString) {
-  const f = indexToRowCol(text.originalString);
+// mapped version of text.ts:indexToRowCol
+export function mappedIndexToRowCol(eitherText: EitherString) {
+  const text = asMappedString(eitherText);
+  
+  const f = unmappedIndexToRowCol(text.originalString);
 
   return function (offset: number) {
     const n = text.mapClosest(offset);
@@ -254,3 +279,64 @@ export function mappedIndexToRowCol(text: MappedString) {
     return f(n);
   };
 }
+
+// mapped version of text.ts:normalizeNewlines
+export function mappedNormalizeNewlines(eitherText: EitherString): MappedString
+{
+  const text = asMappedString(eitherText);
+  
+  // here we search for \r\n, and skip the \r's. that's slightly
+  // different from the other implementation but the observable
+  // behavior on .value is the same.
+
+  let start = 0;
+  const chunks: Range[] = [];
+  for (const offset of lineBreakPositions(text.value)) {
+    if (text.value[offset] !== '\r') {
+      continue;
+    }
+    
+    // we know this is an \r\n, so we handle it
+    chunks.push({ start, end: offset });                 // string contents
+    chunks.push({ start: offset + 1, end: offset + 2 }); // \n part of \r\n
+    start = offset + 2;
+  }
+  if (start !== text.value.length) {
+    chunks.push({ start, end: text.value.length });
+  }
+  return mappedString(text, chunks);
+}
+
+// skipRegexpAll(s, r) is a mapped version of s.replaceAll(r, "")
+export function skipRegexpAll(eitherText: EitherString, re: RegExp): MappedString
+{
+  const text = asMappedString(eitherText);
+  
+  let start = 0;
+  const chunks: Range[] = [];
+  for (const match of matchAll(text.value, re)) {
+    chunks.push({ start, end: match.index });
+    start = match[0].length + match.index;
+  }
+  if (start !== text.value.length) {
+    chunks.push({ start, end: text.value.length });
+  }
+  return mappedString(text, chunks);
+}
+
+// skipRegexp(s, r) is a mapped version of s.replace(r, "")
+export function skipRegexp(eitherText: EitherString, re: RegExp): MappedString
+{
+  const text = asMappedString(eitherText);
+  const m = text.value.match(re);
+
+  if (m) {
+    return mappedString(text, [
+      { start: 0, end: m.index! },
+      { start: m.index! + m[0].length, end: text.value.length }
+    ]);
+  } else {
+    return text;
+  }
+}
+

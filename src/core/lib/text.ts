@@ -15,20 +15,33 @@ export function normalizeNewlines(text: string) {
   return lines(text).join("\n");
 }
 
-// we can't use matchAll here because we need to support old Chromium
-// in the IDE
-export function lineOffsets(text: string) {
-  const offsets = [0];
-  const re = /\r?\n/g;
+// NB we can't use actual matchAll here because we need to support old
+// Chromium in the IDE
+// 
+// NB this mutates the regexp.
+export function* matchAll(text: string, regexp: RegExp)
+{
   let match;
-  while ((match = re.exec(text)) != null) {
-    offsets.push(match.index + match[0].length);
+  while ((match = regexp.exec(text)) !== null) {
+    yield match;
   }
-  return offsets;
+}
+
+export function* lineOffsets(text: string) {
+  yield 0;
+  for (const match of matchAll(text, /\r?\n/g)) {
+    yield match.index + match[0].length;
+  }
+}
+
+export function* lineBreakPositions(text: string) {
+  for (const match of matchAll(text, /\r?\n/g)) {
+    yield match.index;
+  }
 }
 
 export function indexToRowCol(text: string) {
-  const offsets = lineOffsets(text);
+  const offsets = Array.from(lineOffsets(text));
   return function (offset: number) {
     if (offset === 0) {
       return {
@@ -42,23 +55,11 @@ export function indexToRowCol(text: string) {
       line: startIndex,
       column: offset - offsets[startIndex],
     };
-
-    // if (offset === offsets[startIndex]) {
-    //   return {
-    //     line: startIndex - 1,
-    //     column: offsets[startIndex] - offsets[startIndex - 1]
-    //   };
-    // } else {
-    //   return {
-    //     line: startIndex,
-    //     column: offset - offsets[startIndex] - 1
-    //   };
-    // }
   };
 }
 
 export function rowColToIndex(text: string) {
-  const offsets = lineOffsets(text);
+  const offsets = Array.from(lineOffsets(text));
   return function (position: { row: number; column: number }) {
     return offsets[position.row] + position.column;
   };

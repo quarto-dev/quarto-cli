@@ -123,7 +123,7 @@ export async function ojsCompile(
     "commonmark",
   ]);
   
-  const output = breakQuartoMd(markdown, true);
+  const output = await breakQuartoMd(markdown, true);
   
   let ojsCellID = 0;
   let ojsBlockIndex = 0; // this is different from ojsCellID because of inline cells.
@@ -197,7 +197,7 @@ export async function ojsCompile(
     const errorVal =
       (cell.options?.[kError] ?? options.format.execute?.[kError] ??
         false) as boolean;
-    const handleOJSCell = (
+    const handleOJSCell = async (
       cell: QuartoMdCell,
       mdClassList?: string[],
     ) => {
@@ -358,11 +358,11 @@ export async function ojsCompile(
         }
       }
 
-      pageResources.push(...extractResourceDescriptionsFromOJSChunk(
+      pageResources.push(...(await extractResourceDescriptionsFromOJSChunk(
         cellSrcStr,
         dirname(options.source),
         projDir,
-      ));
+      )));
 
       const hasManyRowsCols = () => {
         // FIXME figure out runtime type validation. This should check
@@ -729,9 +729,9 @@ export async function ojsCompile(
         },
         source: mappedString(cell.source, ["dot`\n", { start: 0, end: cell.source.value.length }, "\n`"]),
       };
-      handleOJSCell(newCell, ["dot", "cell-code"]);
+      await handleOJSCell(newCell, ["dot", "cell-code"]);
     } else if (cell.cell_type?.language === "ojs") {
-      handleOJSCell(cell);
+      await handleOJSCell(cell);
     } else {
       // we just echo these cells while break-quarto-md doesn't know better.
       ls.push(`\n\`\`\`{${cell.cell_type.language}}`);

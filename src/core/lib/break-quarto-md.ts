@@ -36,7 +36,7 @@ export interface QuartoMdChunks {
   cells: QuartoMdCell[];
 }
 
-export function breakQuartoMd(
+export async function breakQuartoMd(
   src: MappedString,
   validate = false,
 ) {
@@ -90,7 +90,7 @@ export function breakQuartoMd(
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source, sourceStartLine } = partitionCellOptionsMapped(
+        const { yaml, source, sourceStartLine } = await partitionCellOptionsMapped(
           language,
           cell.source,
           validate,
