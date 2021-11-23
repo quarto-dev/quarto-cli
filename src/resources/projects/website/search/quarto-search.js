@@ -460,13 +460,13 @@ function validateItems(items) {
   if (items.length > 0) {
     const item = items[0];
     const missingFields = [];
-    if (!item.href) {
+    if (item.href == undefined) {
       missingFields.push("href");
     }
-    if (!item.title) {
+    if (!item.title == undefined) {
       missingFields.push("title");
     }
-    if (!item.text) {
+    if (!item.text == undefined) {
       missingFields.push("text");
     }
 
