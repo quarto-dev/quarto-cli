@@ -7,6 +7,7 @@
 
 import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
+  kCodeLineNumbers,
   kFrom,
   kHtmlMathMethod,
   kIncludeAfterBody,
@@ -158,6 +159,9 @@ export function revealjsFormat() {
             "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML-full",
         },
         [kSlideLevel]: 2,
+      },
+      render: {
+        [kCodeLineNumbers]: true,
       },
       resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
@@ -395,14 +399,13 @@ function revealHtmlPostprocessor(format: Format) {
                 "data-id",
                 "quarto-animate-code",
               );
+              // markup with highlightjs classes so that are sucessfully targeted by
+              // autoanimate.js
               codeEl.classList.add("hljs");
-              let lineNumber = 1;
               codeEl.childNodes.forEach((spanNode) => {
                 if (spanNode.nodeType === NodeType.ELEMENT_NODE) {
                   const spanEl = spanNode as Element;
                   spanEl.classList.add("hljs-ln-code");
-                  spanEl.classList.add("hljs-ln-line");
-                  spanEl.setAttribute("data-line-number", lineNumber++ + "");
                 }
               });
             }
