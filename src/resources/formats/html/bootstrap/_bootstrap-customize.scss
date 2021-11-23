@@ -18,8 +18,3 @@ $font-size-root: 18px !default;
 
 // Disable smooth scrolling
 $enable-smooth-scroll: false !default;
-
-// The Cosmo theme sets defaults for hover. Clear the defaults to allow
-// our coloring system to handle this
-$navbar-dark-hover-color: null;
-$navbar-light-hover-color: null;

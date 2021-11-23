@@ -53,6 +53,89 @@
   }
 }
 
+@function theme-override-value($theme, $varname, $default) {
+  $theme-overrides: (
+    litera: (
+      navbar-bg: $white,
+    ),
+    cyborg: (
+      navbar-bg: if(variable-exists(body-bg), $body-bg, #000),
+    ),
+    cerulean: (
+      navbar-fg: $white,
+    ),
+    minty: (
+      navbar-fg: $white,
+    ),
+    morph: (
+      navbar-bg: if(variable-exists(body-bg), $body-bg, #000),
+    ),
+    sandstone: (
+      navbar-bg: if(variable-exists(dark), $dark, #000),
+    ),
+    solar: (
+      navbar-bg: if(variable-exists(dark), $dark, #000),
+    ),
+    spacelab: (
+      navbar-bg: if(variable-exists(light), $light, #bbb),
+    ),
+    superhero: (
+      navbar-bg: if(variable-exists(dark), $dark, #000),
+    ),
+  );
+
+  $val: null;
+  @if ($theme != null) {
+    $theme-vals: map.get($theme-overrides, $theme);
+    @if ($theme-vals != null) {
+      $val: map.get($theme-vals, $varname);
+    }
+  }
+
+  @if ($val != null) {
+    @return $val;
+  } @else {
+    @return $default;
+  }
+}
+
+@function theme-navbar-bg($theme, $primary) {
+  $white: rgb(255, 255, 255) !default;
+
+  // These will be defined in bootstrap, but creating values here
+  // That will make this function accessible to callers prior to bootstrap variables
+  // being set
+  $theme-bgs: (
+    litera: $white,
+    cyborg: if(variable-exists(body-bg), $body-bg, #000),
+  );
+
+  $bg: map.get($theme-bgs, $theme);
+  @if ($bg != null) {
+    @return $bg;
+  } @else {
+    @return if(variable-exists(primary), $primary, #fff);
+  }
+}
+
+@function theme-navbar-fg($theme, $primary) {
+  $white: rgb(255, 255, 255) !default;
+
+  // These will be defined in bootstrap, but creating values here
+  // That will make this function accessible to callers prior to bootstrap variables
+  // being set
+  $theme-fgs: (
+    cerulean: $white,
+  );
+
+  $bg: map.get($theme-bgs, $theme);
+  @if ($bg != null) {
+    @return $bg;
+  } @else {
+    @return if(variable-exists(primary), $primary, #fff);
+  }
+}
+
 @function repeat-chars($chars, $n) {
   $final: "";
   @for $i from 1 through $n {
