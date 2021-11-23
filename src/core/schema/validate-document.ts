@@ -102,7 +102,8 @@ export async function validateDocumentFromSource(
   return result;
 }
 
-export function validateDocument(
+// deno-lint-ignore require-await
+export async function validateDocument(
   context: RenderContext,
 ): Promise<LocalizedError[]> {
   if (context.target.markdown === "") {

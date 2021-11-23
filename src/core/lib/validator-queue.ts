@@ -50,7 +50,8 @@ export async function withValidator<T>(
   // FIXME should we rethrow instead?
   let result: T | undefined;
   let error;
-  await queue.enqueue(() => {
+  // deno-lint-ignore require-await
+  await queue.enqueue(async () => {
     const validator = getValidator(schema);
     try {
       result = fun(validator);
