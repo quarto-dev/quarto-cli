@@ -50,7 +50,7 @@ export function readYamlFromMarkdown(
     let match = kRegExYAML.exec(markdown);
     while (match != null) {
       const yamlBlock = removeYamlDelimiters(match[2]);
-
+      
       // exclude yaml blocks that start with a blank line, start with
       // a yaml delimiter (can occur if two "---" stack together) or
       // are entirely empty
@@ -61,9 +61,13 @@ export function readYamlFromMarkdown(
         (yamlBlock.trim().length > 0)
       ) {
         // surface errors immediately for invalid yaml
-        parse(yamlBlock, { json: true, schema: JSON_SCHEMA });
-        // add it
-        yaml += yamlBlock;
+        try {
+          parse(yamlBlock, { json: true, schema: JSON_SCHEMA });
+          // add it
+          yaml += yamlBlock;
+        } catch (error) {
+          throw new Error(`Can't parse YAML block:\n${yamlBlock}`);
+        }
       }
 
       match = kRegExYAML.exec(markdown);
