@@ -31,14 +31,20 @@ $callout-margin-top: 1.25rem !default;
 $callout-margin-bottom: 1.25rem !default;
 
 // Navbar
-$navbar-bg: theme-override-value($theme, "navbar-bg", $primary) !default;
+$theme-name: if(variable-exists(theme), $theme, "");
+$navbar-default: if(variable-exists(primary), $primary, #517699);
+$navbar-bg: theme-override-value(
+  $theme-name,
+  "navbar-bg",
+  $navbar-default
+) !default;
 $navbar-fg: theme-override-value(
-  $theme,
+  $theme-name,
   "navbar-fg",
   theme-contrast($navbar-bg)
 ) !default;
 $navbar-hl: theme-override-value(
-  $theme,
+  $theme-name,
   "navbar-hl",
   if(
     variable-exists(link-color),
