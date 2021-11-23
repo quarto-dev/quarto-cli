@@ -345,10 +345,14 @@ function revealMarkdownAfterBody(format: Format) {
     );
     lines.push("\n");
   }
+  lines.push("::: {.footer .footer-default}");
   if (format.metadata[kSlideFooter]) {
-    lines.push(`[${format.metadata[kSlideFooter]}]{.slide-footer}`);
-    lines.push("\n");
+    lines.push(String(format.metadata[kSlideFooter]));
+  } else {
+    lines.push("");
   }
+  lines.push(":::");
+  lines.push("\n");
 
   return lines.join("\n");
 }

@@ -19,14 +19,28 @@ window.QuartoSupport = function () {
   }
 
   // add footer text
-  function addFooterText(deck) {
+  function addFooter(deck) {
     const revealParent = deck.getRevealElement();
-    const footerSpan = document.querySelector(".slide-footer");
-    if (footerSpan) {
-      const footerDiv = document.createElement("div");
-      footerDiv.classList.add("slide-footer-container");
-      footerDiv.appendChild(footerSpan);
-      revealParent.appendChild(footerDiv);
+    const defaultFooterDiv = document.querySelector(".footer-default");
+    if (defaultFooterDiv) {
+      revealParent.appendChild(defaultFooterDiv);
+      deck.on("slidechanged", function (ev) {
+        const prevSlideFooter = document.querySelector(
+          ".reveal > .footer:not(.footer-default)"
+        );
+        if (prevSlideFooter) {
+          prevSlideFooter.remove();
+        }
+        const currentSlideFooter = ev.currentSlide.querySelector(".footer");
+        if (currentSlideFooter) {
+          defaultFooterDiv.style.display = "none";
+          deck
+            .getRevealElement()
+            .appendChild(currentSlideFooter.cloneNode(true));
+        } else {
+          defaultFooterDiv.style.display = "block";
+        }
+      });
     }
   }
 
@@ -118,7 +132,7 @@ window.QuartoSupport = function () {
     init: function (deck) {
       applyGlobalStyles(deck);
       addLogoImage(deck);
-      addFooterText(deck);
+      addFooter(deck);
       addChalkboardButtons(deck);
       patchLeaflet(deck);
     },

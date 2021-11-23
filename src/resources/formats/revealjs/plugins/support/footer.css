@@ -7,21 +7,19 @@
   width: auto;
 }
 
-.reveal .slide-footer-container {
+.reveal .footer {
   display: block;
   position: fixed;
-  bottom: 18px;
+  bottom: 0;
   width: 100%;
   margin: 0 auto;
+  text-align: center;
   font-size: 18px;
+  z-index: 2;
 }
 
-.reveal .slide-footer {
-  position: relative;
-  display: block;
-  bottom: 0;
-  text-align: center;
-  margin: 0 auto;
+.reveal .slide .footer {
+  display: none;
 }
 
 .reveal .slide-number {
@@ -69,7 +67,7 @@
     bottom: -2px;
     right: 10px;
   }
-  .reveal .slide-footer-container {
+  .reveal .footer {
     font-size: 14px;
     bottom: 12px;
   }

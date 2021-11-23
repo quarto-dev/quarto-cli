@@ -16,7 +16,7 @@ $text-muted: lighten($body-color, 50%) !default;
 
 // link colors
 $link-color: #2a76dd !default;
-$link-color-hover: lighten($link-color, 15%) !default;
+$link-color-hover: lighten($link-color, 10%) !default;
 
 // selection colors
 $selection-bg: lighten($link-color, 25%) !default;
@@ -258,8 +258,12 @@ section.has-dark-background {
   background-color: $body-bg;
 }
 
-.reveal .slide-footer-container {
+.reveal .footer {
   color: $text-muted;
+}
+
+.reveal .footer a {
+  color: $link-color-hover;
 }
 
 .reveal .slide-number {
