@@ -9,17 +9,11 @@
 */
 
 import { error, info } from "log/mod.ts";
-
 import { parse } from "encoding/yaml.ts";
-
 import { MappedString } from "../mapped-text.ts";
-
 import { AnnotatedParse, LocalizedError } from "../lib/yaml-schema.ts";
-import { withValidator } from "../lib/validator-queue.ts";
 
 export type { AnnotatedParse } from "../lib/yaml-schema.ts";
-
-import { ensureAjv } from "./yaml-schema.ts";
 
 export function readAnnotatedYamlFromMappedString(yml: MappedString) {
   return readAnnotatedYamlFromString(yml.value);
@@ -90,45 +84,3 @@ export function readAnnotatedYamlFromString(yml: string) {
   return results[0];
 }
 
-export async function readAndValidateYAML(
-  schema: any,
-  mappedYaml: MappedString,
-  errorMessage: string): Promise<{
-    yaml: { [key: string]: unknown },
-    yamlValidationErrors: LocalizedError[]
-  }>
-{
-  ensureAjv();
-  
-  const result = await withValidator(schema, (validator) => {
-    const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
-    const validateYaml = !(annotation.result?.["validate-yaml"] === false);
-
-    const yaml = annotation.result;
-    if (validateYaml) {
-      const valResult = validator.validateParse(mappedYaml, annotation);
-      if (valResult.errors.length) {
-        validator.reportErrorsInSource(
-          {
-            result: yaml,
-            errors: valResult.errors
-          }, mappedYaml!,
-          errorMessage,
-          error,
-          info
-        );
-      }
-      return {
-        yaml: yaml as { [key: string]: unknown },
-        yamlValidationErrors: valResult.errors
-      };
-    } else {
-      return {
-        yaml: yaml as { [key: string]: unknown },
-        yamlValidationErrors: []
-      };
-    }
-  });
-  
-  return result;
-}

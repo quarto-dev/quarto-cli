@@ -18,7 +18,8 @@ import {
 } from "./lib/partition-cell-options.ts";
 
 import { readYamlFromString } from "./yaml.ts";
-import { readAndValidateYAML, readAnnotatedYamlFromMappedString } from "./schema/annotated-yaml.ts";
+import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
+import { readAnnotatedYamlFromMappedString } from "./schema/annotated-yaml.ts";
 import { warnOnce } from "./log.ts";
 
 import { languageOptionsSchema } from "./schema/chunk-metadata.ts";
@@ -90,15 +91,15 @@ export async function parseAndValidateCellOptions(
   const schema = languageOptionsSchema[language];
   const schemaName = language;
 
-  if (schema === undefined) {
+  if (schema === undefined || !validate) {
     return {
-      yaml: readAnnotatedYamlFromMappedString(mappedYaml),
+      yaml: readYamlFromString(mappedYaml.value),
       yamlValidationErrors: []
     }
   }
 
-  return readAndValidateYAML(
-    schema, mappedYaml,
+  return readAndValidateYamlFromMappedString(
+    mappedYaml, schema, 
     `Validation of YAML ${language} chunk options failed`
   );
 }

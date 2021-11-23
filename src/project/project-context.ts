@@ -64,7 +64,7 @@ import { kSite, kWebsite } from "./types/website/website-config.ts";
 
 import { asMappedString } from "../core/mapped-text.ts";
 
-import { readAndValidateYAML } from "../core/schema/annotated-yaml.ts";
+import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 
 import { configSchema } from "../core/schema/config.ts";
 import { frontMatterSchema } from "../core/schema/front-matter.ts";
@@ -110,15 +110,7 @@ export async function projectContext(
       const configFiles = [configFile];
 
       const errMsg = "Project _quarto.yml validation failed.";
-      const mappedStr = asMappedString(Deno.readTextFileSync(configFile));
-      const {
-        yaml,
-        yamlValidationErrors
-      } = await readAndValidateYAML(configSchema, mappedStr, errMsg);
-      if (yamlValidationErrors.length) {
-        throw new Error(errMsg);
-      }
-      let projectConfig: ProjectConfig = yaml as ProjectConfig;
+      let projectConfig = (await readAndValidateYamlFromFile(configFile, configSchema, errMsg)) as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
       const includedMeta = await includedMetadata(dir, projectConfig);
       const metadata = includedMeta.metadata;
@@ -142,7 +134,7 @@ export async function projectContext(
       }
 
       // resolve translations
-      const translationFiles = resolveLanguageTranslations(projectConfig, dir);
+      const translationFiles = await resolveLanguageTranslations(projectConfig, dir);
       configFiles.push(...translationFiles);
 
       if (projectConfig?.project) {
@@ -248,17 +240,17 @@ function migrateProjectConfig(projectConfig: ProjectConfig) {
   return projectConfig;
 }
 
-function resolveLanguageTranslations(
+async function resolveLanguageTranslations(
   projectConfig: ProjectConfig,
   dir: string,
 ) {
   const files: string[] = [];
 
   // read any language file pointed to by the project
-  files.push(...resolveLanguageMetadata(projectConfig, dir));
+  files.push(...(await resolveLanguageMetadata(projectConfig, dir)));
 
   // read _language.yml and merge into the project
-  const translations = readLanguageTranslations(join(dir, "_language.yml"));
+  const translations = await readLanguageTranslations(join(dir, "_language.yml"));
   projectConfig[kLanguageDefaults] = mergeConfigs(
     translations.language,
     projectConfig[kLanguageDefaults],
@@ -355,14 +347,7 @@ export async function directoryMetadataForInputFile(
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
       const errMsg = "Directory metadata validation failed.";
-      const mappedStr = asMappedString(Deno.readTextFileSync(file));
-      const {
-        yaml,
-        yamlValidationErrors
-      } = await readAndValidateYAML(frontMatterSchema, mappedStr, errMsg);
-      if (yamlValidationErrors.length) {
-        throw new Error(errMsg);
-      }
+      const yaml = (await readAndValidateYamlFromFile(frontMatterSchema, file, errMsg)) as Record<string, unknown>;
       config = mergeConfigs(
         config,
         toInputRelativePaths(

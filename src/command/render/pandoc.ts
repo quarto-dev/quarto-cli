@@ -178,7 +178,7 @@ export async function runPandoc(
     options.format.metadata[kLang] ||
     "en"
   ) as string;
-  const language = readDefaultLanguageTranslations(langCode).language;
+  const language = (await readDefaultLanguageTranslations(langCode)).language;
   // merge any user provided language w/ the defaults
   options.format.language = mergeConfigs(
     language,

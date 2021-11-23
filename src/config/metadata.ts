@@ -11,7 +11,7 @@ import { exists } from "fs/exists.ts";
 import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
-import { readAndValidateYAML } from "../core/schema/annotated-yaml.ts";
+import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { frontMatterSchema } from "../core/schema/front-matter.ts";
 
@@ -55,14 +55,8 @@ export async function includedMetadata(
     if (exists(yamlFile)) {
       try {
         // FIXME: Confirm. I think this is front-matter, not project config implied by the prev comment (_quarto.yml)
-        const {
-          yaml,
-          yamlValidationErrors
-        } = await readAndValidateYAML(yamlFile, frontMatterSchema, `Validation of metadata file ${yamlFile} failed.`);
-        
-        if (yamlValidationErrors.length) {
-          throw new Error(`Validation of metadata file ${yamlFile} failed.`);
-        }
+        const yaml = await readAndValidateYamlFromFile(
+          yamlFile, frontMatterSchema, `Validation of metadata file ${yamlFile} failed.`);
         return yaml;
       } catch (e) {
         error("\nError reading metadata file from " + yamlFile + "\n");

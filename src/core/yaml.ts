@@ -22,7 +22,7 @@ import {
   skipRegexpAll,
 } from "./mapped-text.ts";
 
-import { readAndValidateYAML, readAnnotatedYamlFromMappedString } from "./schema/annotated-yaml.ts";
+import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
 
 
 
@@ -140,9 +140,9 @@ export async function readAndValidateYamlFromMarkdown(
 
   if (metadata?.["validate-yaml"] as (boolean | undefined) === false) {
     // we must validate it, so we go the slow route
-    return readAndValidateYAML(
-      frontMatterSchema,
+    return readAndValidateYamlFromMappedString(
       mappedYaml,
+      frontMatterSchema,
       "YAML front matter validation failed");
   }
   return metadata;

@@ -415,9 +415,9 @@ export interface FormatLanguage {
   [kCopyButtonTooltip]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
-  [kSearchHideMatchesText]?: string;
+  [kSearchHideMatchesText]?: string; // FIXME duplicate?
   [kSearchMoreMatchText]?: string;
-  [kSearchHideMatchesText]?: string;
+  [kSearchHideMatchesText]?: string; // FIXME duplicate?
   [kSearchClearButtonTitle]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;
