@@ -62,6 +62,13 @@ import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { kSite, kWebsite } from "./types/website/website-config.ts";
 
+import { asMappedString } from "../core/mapped-text.ts";
+
+import { readAndValidateYAML } from "../core/schema/annotated-yaml.ts";
+
+import { configSchema } from "../core/schema/config.ts";
+import { frontMatterSchema } from "../core/schema/front-matter.ts";
+
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
   const projType = projectType(
@@ -102,10 +109,18 @@ export async function projectContext(
       // config files are the main file + any subfiles read
       const configFiles = [configFile];
 
-      // TODO: yaml validation (_quarto.yml)
-      let projectConfig: ProjectConfig = readYaml(configFile) as ProjectConfig;
+      const errMsg = "Project _quarto.yml validation failed.";
+      const mappedStr = asMappedString(Deno.readTextFileSync(configFile));
+      const {
+        yaml,
+        yamlValidationErrors
+      } = await readAndValidateYAML(configSchema, mappedStr, errMsg);
+      if (yamlValidationErrors.length) {
+        throw new Error(errMsg);
+      }
+      let projectConfig: ProjectConfig = yaml as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
-      const includedMeta = includedMetadata(dir, projectConfig);
+      const includedMeta = await includedMetadata(dir, projectConfig);
       const metadata = includedMeta.metadata;
       configFiles.push(...includedMeta.files);
       projectConfig = mergeConfigs(projectConfig, metadata);
@@ -311,7 +326,7 @@ export async function projectMetadataForInputFile(
   }
 }
 
-export function directoryMetadataForInputFile(
+export async function directoryMetadataForInputFile(
   projectDir: string,
   inputDir: string,
 ) {
@@ -332,21 +347,30 @@ export function directoryMetadataForInputFile(
   // Walk through each directory (starting from the project and
   // walking deeper to the input)
   let currentDir = projectDir;
-  dirs.forEach((dir) => {
+  await Promise.all(dirs.map(async (dir) => {
     currentDir = join(currentDir, dir);
     const file = metadataFile(currentDir);
     if (file) {
       // There is a metadata file, read it and merge it
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
-      // TODO: yaml validation (front matter)
-      const yaml = readYaml(file) as Record<string, unknown>;
+      const errMsg = "Directory metadata validation failed.";
+      const mappedStr = asMappedString(Deno.readTextFileSync(file));
+      const {
+        yaml,
+        yamlValidationErrors
+      } = await readAndValidateYAML(frontMatterSchema, mappedStr, errMsg);
+      if (yamlValidationErrors.length) {
+        throw new Error(errMsg);
+      }
       config = mergeConfigs(
         config,
-        toInputRelativePaths(currentDir, inputDir, yaml),
+        toInputRelativePaths(
+          currentDir, inputDir, yaml as Record<string, unknown>
+        ),
       );
     }
-  });
+  }));
   return config;
 }
 

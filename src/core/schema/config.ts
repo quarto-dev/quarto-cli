@@ -111,11 +111,11 @@ const siteSchema = objectS({
   exhaustive: true,
 });
 
-export const configSchema = objectS({
+export const configSchema = withId(objectS({
   properties: {
     project: objectS({
       properties: {
-        type: doc(enumS("site"), "type of quarto project"),
+        type: doc(enumS("site", "book", "website"), "type of quarto project"),
         "output-dir": doc(StringS, "output directory for the project"),
       },
     }),
@@ -124,4 +124,4 @@ export const configSchema = objectS({
     "filters": arrayS(StringS),
     "format": frontMatterFormatSchema,
   },
-});
+}), "config");

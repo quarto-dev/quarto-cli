@@ -148,7 +148,6 @@ export async function readAndValidateYamlFromMarkdown(
   return metadata;
 }
 
-// TODO: yaml validation (front-matter)
 export async function readYamlFromMarkdownFile(
   file: string,
 ): Promise<{ [key: string]: unknown }> {

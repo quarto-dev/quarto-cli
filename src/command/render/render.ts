@@ -789,14 +789,14 @@ export function isStandaloneFormat(format: Format) {
   return kStandaloneExtensionNames.includes(format.render[kOutputExt] || "");
 }
 
-export function resolveFormatsFromMetadata(
+export async function resolveFormatsFromMetadata(
   metadata: Metadata,
   includeDir: string,
   formats: string[],
   flags?: RenderFlags,
-): Record<string, Format> {
+): Promise<Record<string, Format>> {
   // Read any included metadata files and merge in and metadata from the command
-  const included = includedMetadata(includeDir, metadata);
+  const included = await includedMetadata(includeDir, metadata);
   const allMetadata = mergeQuartoConfigs(
     metadata,
     included.metadata,
@@ -969,14 +969,14 @@ async function resolveFormats(
   }
 
   // resolve formats for proj and input
-  const projFormats = resolveFormatsFromMetadata(
+  const projFormats = await resolveFormatsFromMetadata(
     projMetadata,
     dirname(target.input),
     formats,
     options.flags,
   );
 
-  const inputFormats = resolveFormatsFromMetadata(
+  const inputFormats = await resolveFormatsFromMetadata(
     inputMetadata,
     dirname(target.input),
     formats,
