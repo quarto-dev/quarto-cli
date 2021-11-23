@@ -22,10 +22,19 @@ import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { readYaml } from "../../core/yaml.ts";
+
 import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
+
+import {
+  objectSchema as objectS,
+  StringSchema as StringS,
+  BooleanSchema as BooleanS,
+  arraySchema as arrayS
+} from "../../core/schema/common.ts";
+
+import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -96,7 +105,28 @@ interface RevealPluginScript {
   async?: boolean;
 }
 
-export function revealPluginExtras(
+const revealPluginSchema = objectS({
+  properties: {
+    path: StringS,
+    name: StringS,
+    register: BooleanS,
+    script: arrayS(objectS({
+      properties: {
+        path: StringS,
+        "async": BooleanS
+      },
+      required: ["path"]
+      // FIXME is this an exhaustive schema?
+    })),
+    stylesheet: arrayS(StringS),
+    // FIXME what's the schema for metadata?
+    [kSelfContained]: BooleanS
+  },
+  required: ["path", "name"],
+  // FIXME is this an exhaustive schema?
+});
+
+export async function revealPluginExtras(
   format: Format,
   flags: PandocFlags,
   revealUrl: string,
@@ -170,7 +200,7 @@ export function revealPluginExtras(
     }
 
     // read from bundle
-    const plugin = pluginFromBundle(bundle);
+    const plugin = await pluginFromBundle(bundle);
 
     // check for self-contained incompatibility
     if (isSelfContained(flags, format)) {
@@ -426,7 +456,7 @@ function toneDependency() {
   return dependency;
 }
 
-function pluginFromBundle(bundle: RevealPluginBundle): RevealPlugin {
+async function pluginFromBundle(bundle: RevealPluginBundle): Promise<RevealPlugin> {
   // confirm it's a directory
   if (!existsSync(bundle.plugin) || !Deno.statSync(bundle.plugin).isDirectory) {
     throw new Error(
@@ -435,8 +465,10 @@ function pluginFromBundle(bundle: RevealPluginBundle): RevealPlugin {
     );
   }
   // read the plugin definition (and provide the path)
-  // TODO: yaml validation (RevealPlugin)
-  const plugin = readYaml(join(bundle.plugin, "plugin.yml")) as RevealPlugin;
+  const plugin = (await readAndValidateYamlFromFile(
+    join(bundle.plugin, "plugin.yml"),
+    revealPluginSchema,
+    "Validation of reveal plugin object failed.")) as RevealPlugin;
   plugin.path = bundle.plugin;
 
   // convert script and stylesheet to arrays
