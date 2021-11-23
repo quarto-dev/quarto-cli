@@ -127,6 +127,18 @@ window.QuartoSupport = function () {
     }
   }
 
+  function handleTabbyClicks() {
+    const tabs = document.querySelectorAll(".panel-tabset-tabby > li > a");
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = tabs[i];
+      tab.onclick = function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        return false;
+      };
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -135,6 +147,7 @@ window.QuartoSupport = function () {
       addFooter(deck);
       addChalkboardButtons(deck);
       patchLeaflet(deck);
+      handleTabbyClicks();
     },
   };
 };
