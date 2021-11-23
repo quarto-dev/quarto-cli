@@ -174,7 +174,7 @@ async function completionsFromGoodParseYAML(context) {
       // the valid parse we found puts us in a pure-whitespace line, so we should locate
       // entirely on indentation.
       const path = locateFromIndentation({
-        line: line.substring(0, deletions),
+        line: line.slice(0, -deletions),
         code: mappedCode.value,
         position: {
           row: position.row,
@@ -547,6 +547,7 @@ window.QuartoYamlEditorTools = {
   getCompletions: async function (context, path) {
     try {
       setMainPath(path);
+      debugger;
       return getAutomation("completions", context);
     } catch (e) {
       console.log("Error found during autocomplete", e);
