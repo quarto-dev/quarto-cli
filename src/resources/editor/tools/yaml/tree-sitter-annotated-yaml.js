@@ -5,6 +5,8 @@
 *
 */
 
+import * as core from "../../../build/core-lib.js";
+
 /**
  * given a tree from tree-sitter-yaml and the mappedString
  * corresponding to the source, returns an AnnotatedParse (cf
@@ -53,6 +55,19 @@ export function buildAnnotated(tree, mappedSource)
     "document": singletonBuild,
     "block_node": singletonBuild,
     "flow_node": singletonBuild,
+    "block_scalar": (node) => {
+      debugger;
+      if (!node.text.startsWith("|")) {
+        throw new Error(`Internal error: can only build block_scalar if content starts with | (got "${node.text[0]}" instead)`);
+      }
+      const lines = core.lines(node.text);
+      if (lines.length < 2) {
+        throw new Error(`Internal error: can only handle block_scalar of multiline strings`);
+      }
+      const indent = lines[1].length - lines[1].trimStart().length;
+      const result = lines.slice(1).map(l => l.slice(indent)).join("\n");
+      return annotate(node, result, []);
+    },
     "block_sequence": (node) => {
       const result = [], components = [];
       for (let i = 0; i < node.childCount; ++i) {
