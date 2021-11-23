@@ -7,6 +7,7 @@
 *
 */
 
+import { existsSync } from "fs/exists.ts";
 import { error, info } from "log/mod.ts";
 import { Schema } from "../lib/schema.ts";
 import { asMappedString, MappedString } from "../mapped-text.ts";
@@ -15,31 +16,37 @@ import { ensureAjv } from "./yaml-schema.ts";
 import { withValidator } from "../lib/validator-queue.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
 
+// https://stackoverflow.com/a/41429145
+export class ValidationError extends Error
+{
+  validationErrors: LocalizedError[];
+  
+  constructor(msg: string, validationErrors: LocalizedError[])
+  {
+    super(msg);
+
+    Object.setPrototypeOf(this, ValidationError.prototype);
+    this.validationErrors = validationErrors;
+  }
+};
+
 export async function readAndValidateYamlFromFile(
   file: string,
   schema: Schema,
-  errorMsg: string): Promise<unknown>
+  errorMessage: string): Promise<unknown>
 {
-  const contents = asMappedString(Deno.readTextFileSync(file));
-  const {
-    yaml,
-    yamlValidationErrors
-  } = await readAndValidateYamlFromMappedString(contents, schema, errorMsg);
-  
-  if (yamlValidationErrors.length === 0) {
-    return yaml;
-  } else {
-    throw new Error(errorMsg);
+  if (!existsSync(file)) {
+    throw new Error(`YAML file ${file} not found.`);
   }
+
+  const contents = asMappedString(Deno.readTextFileSync(file));
+  return readAndValidateYamlFromMappedString(contents, schema, errorMessage);
 }
-    
+
 export async function readAndValidateYamlFromMappedString(
   mappedYaml: MappedString,
-  schema: any,
-  errorMessage: string): Promise<{
-    yaml: { [key: string]: unknown },
-    yamlValidationErrors: LocalizedError[]
-  }>
+  schema: Schema,
+  errorMessage: string): Promise<{ [key: string]: unknown }>
 {
   ensureAjv();
   
@@ -72,6 +79,10 @@ export async function readAndValidateYamlFromMappedString(
       };
     }
   });
+
+  if (result.yamlValidationErrors.length > 0) {
+    throw new ValidationError(errorMessage, result.yamlValidationErrors);
+  }
   
-  return result;
+  return result.yaml;
 }

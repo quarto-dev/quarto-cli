@@ -17,6 +17,7 @@ import { LocalizedError } from "../lib/yaml-schema.ts";
 import { languageOptionsSchema } from "./chunk-metadata.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/validator-queue.ts";
+import { ValidationError } from "./validated-yaml.ts";
 
 export async function validateDocumentFromSource(
   src: string,
@@ -84,10 +85,16 @@ export async function validateDocumentFromSource(
       // not a language with schemas
       continue;
     }
-    
-    const chunkResult = await partitionCellOptionsMapped(lang, cell.source, true);
 
-    result.push(...chunkResult.yamlValidationErrors);
+    try {
+      await partitionCellOptionsMapped(lang, cell.source, true);
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        result.push(...e.validationErrors);        
+      } else {
+        throw e;
+      }
+    }
   }
   return result;
 }

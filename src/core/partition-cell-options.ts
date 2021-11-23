@@ -82,20 +82,14 @@ export async function parseAndValidateCellOptions(
   validate = false
 ) {
   if (mappedYaml.value.trim().length === 0) {
-    return {
-      yaml: undefined,
-      yamlValidationErrors: []
-    };
+    return undefined;
   }
 
   const schema = languageOptionsSchema[language];
   const schemaName = language;
 
   if (schema === undefined || !validate) {
-    return {
-      yaml: readYamlFromString(mappedYaml.value),
-      yamlValidationErrors: []
-    }
+    return readYamlFromString(mappedYaml.value);
   }
 
   return readAndValidateYamlFromMappedString(
@@ -118,29 +112,13 @@ export async function partitionCellOptionsMapped(
     sourceStartLine
   } = await libPartitionCellOptionsMapped(language, outerSource);
 
-  const {
-    yaml,
-    yamlValidationErrors
-  } = await parseAndValidateCellOptions(
+  const yaml = await parseAndValidateCellOptions(
     mappedYaml ?? asMappedString(""), language, validate);
    
   return {
     yaml: yaml as Record<string, unknown> | undefined,
-    yamlValidationErrors,
     optionsSource,
     source,
     sourceStartLine
   };
 }
-
-function mappedSource(source: MappedString | string, substrs: RangedSubstring[])
-{
-  const params: (Range | string)[] = [];
-  for (const { range } of substrs) {
-    params.push(range);
-    params.push("\n");
-  }
-  params.pop(); // pop the last "\n"; easier than checking for last iteration
-  return mappedString(source, params);
-}
-
