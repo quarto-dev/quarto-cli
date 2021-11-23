@@ -7,7 +7,6 @@
 *
 */
 
-// import { withValidator } from "./validator-queue.js";
 import {
   buildAnnotated,
   locateCursor
@@ -68,7 +67,7 @@ export async function validationFromGoodParseYAML(context) {
     throw new Error("Internal error: Expected a MappedString");
   }
 
-  const result = await core.withValidator(context, async (validator) => {
+  const result = await core.withValidator(context.schema, async (validator) => {
     const parser = await getTreeSitter();
 
     for (const parseResult of attemptParsesAtLine(context, parser)) {
