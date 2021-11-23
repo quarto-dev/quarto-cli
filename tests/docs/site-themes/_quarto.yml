@@ -1,0 +1,19 @@
+project:
+  type: site
+
+website:
+  title: "site-themes"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: none
+    css: styles.css
+    toc: true
+
+
+
