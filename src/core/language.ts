@@ -29,7 +29,6 @@ export async function readLanguageTranslations(
     if (existsSync(file)) {
       files.push(Deno.realPathSync(file));
       const errMsg = "Validation of format language object failed.";
-      // TODO: yaml validation (FormatLanguage, all values string or object)
       const result = await readAndValidateYamlFromFile(file, formatLanguageSchema, errMsg);
       return result as FormatLanguage;
     } else {
