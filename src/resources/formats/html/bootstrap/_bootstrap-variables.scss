@@ -31,32 +31,56 @@ $callout-margin-top: 1.25rem !default;
 $callout-margin-bottom: 1.25rem !default;
 
 // Navbar
-$navbar-bg: if(variable-exists(primary), $primary, #fff) !default;
-$navbar-fg: theme-contrast($navbar-bg) !default;
-$navbar-hl: if(
-  variable-exists(link-color),
-  color.mix($navbar-bg, $link-color, 80%),
-  $navbar-fg
+$theme-name: if(variable-exists(theme), $theme, "");
+$navbar-default: if(variable-exists(primary), $primary, #517699);
+$navbar-bg: theme-override-value(
+  $theme-name,
+  "navbar-bg",
+  $navbar-default
+) !default;
+$navbar-fg: theme-override-value(
+  $theme-name,
+  "navbar-fg",
+  theme-contrast($navbar-bg)
+) !default;
+$navbar-hl: theme-override-value(
+  $theme-name,
+  "navbar-hl",
+  if(
+    variable-exists(link-color),
+    color.mix($navbar-bg, $link-color, 80%),
+    $navbar-fg
+  )
 ) !default;
 
-$navbar-dark-color: $navbar-fg !default;
-$navbar-dark-hover-color: rgba($navbar-hl, 0.8) !default;
-$navbar-dark-active-color: $navbar-hl !default;
-$navbar-dark-disabled-color: rgba($navbar-fg, 0.75) !default;
-$navbar-dark-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>") !default;
-$navbar-dark-toggler-border-color: rgba($navbar-fg, 0.4) !default;
+$navbar-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>");
+$navbar-togger-border-color: rgba($navbar-fg, 0.4);
+$navbar-hover-color: rgba($navbar-hl, 0.8);
+$navbar-disabled-color: rgba($navbar-fg, 0.75);
 
-$navbar-light-color: $navbar-fg !default;
-$navbar-light-hover-color: rgba($navbar-hl, 0.8) !default;
-$navbar-light-active-color: $navbar-hl !default;
-$navbar-light-disabled-color: rgba($navbar-fg, 0.75) !default;
-$navbar-light-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>") !default;
-$navbar-light-toggler-border-color: rgba($navbar-fg, 0.4) !default;
+// We omit the !default here b/c the dark and light variants
+// are not meaningful in our usage of bootstrap. Instead, we will explicitly
+// manage these using the above documented variables
+$navbar-dark-bg: $navbar-bg;
+$navbar-dark-color: $navbar-fg;
+$navbar-dark-hover-color: $navbar-hover-color;
+$navbar-dark-active-color: $navbar-hl;
+$navbar-dark-disabled-color: $navbar-disabled-color;
+$navbar-dark-toggler-icon-bg: $navbar-toggler-icon-bg;
+$navbar-dark-toggler-border-color: $navbar-togger-border-color;
 
-$navbar-light-brand-color: $navbar-hl !default;
-$navbar-light-brand-hover-color: $navbar-hl !default;
-$navbar-dark-brand-color: $navbar-hl !default;
-$navbar-dark-brand-hover-color: $navbar-hl !default;
+$navbar-light-bg: $navbar-bg;
+$navbar-light-color: $navbar-fg;
+$navbar-light-hover-color: $navbar-hover-color;
+$navbar-light-active-color: $navbar-hl;
+$navbar-light-disabled-color: $navbar-disabled-color;
+$navbar-light-toggler-icon-bg: $navbar-toggler-icon-bg;
+$navbar-light-toggler-border-color: $navbar-togger-border-color;
+
+$navbar-light-brand-color: $navbar-hl;
+$navbar-light-brand-hover-color: $navbar-hl;
+$navbar-dark-brand-color: $navbar-hl;
+$navbar-dark-brand-hover-color: $navbar-hl;
 
 // Sidebar coloring
 $sidebar-bg: if(variable-exists(light), $light, #fff) !default;

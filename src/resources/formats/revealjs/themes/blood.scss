@@ -40,8 +40,6 @@ $presentation-heading-text-transform: uppercase !default;
   vertical-align: baseline;
 }
 
-@include light-bg-text-color(#222);
-
 section.has-light-background {
   p,
   h1,

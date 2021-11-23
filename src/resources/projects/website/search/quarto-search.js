@@ -460,13 +460,13 @@ function validateItems(items) {
   if (items.length > 0) {
     const item = items[0];
     const missingFields = [];
-    if (!item.href) {
+    if (item.href == undefined) {
       missingFields.push("href");
     }
-    if (!item.title) {
+    if (!item.title == undefined) {
       missingFields.push("title");
     }
-    if (!item.text) {
+    if (!item.text == undefined) {
       missingFields.push("text");
     }
 
@@ -840,8 +840,10 @@ function highlightMatch(query, text) {
         text.slice(end);
       const clipStart = Math.max(start - 50, 0);
       const clipEnd = clipStart + 200;
+
       text = text.slice(clipStart, clipEnd);
-      return text.slice(text.indexOf(" ") + 1);
+
+      return text;
     } else {
       return text;
     }

@@ -53,6 +53,95 @@
   }
 }
 
+@function theme-override-value($theme, $varname, $default) {
+  // These will be defined in bootstrap, but creating values here
+  // That will make this function accessible to callers prior to bootstrap variables
+  // being set
+  $black: rgb(0, 0, 0) !default;
+  $white: rgb(255, 255, 255) !default;
+
+  $theme-overrides: (
+    litera: (
+      navbar-bg: $white,
+    ),
+    cyborg: (
+      navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
+    ),
+    cerulean: (
+      navbar-fg: $white,
+    ),
+    minty: (
+      navbar-fg: $white,
+    ),
+    morph: (
+      navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
+    ),
+    sandstone: (
+      navbar-bg: if(variable-exists(dark), $dark, $black),
+    ),
+    solar: (
+      navbar-bg: if(variable-exists(dark), $dark, $black),
+    ),
+    spacelab: (
+      navbar-bg: if(variable-exists(light), $light, #bbb),
+    ),
+    superhero: (
+      navbar-bg: if(variable-exists(dark), $dark, $black),
+    ),
+  );
+
+  $val: null;
+  @if ($theme != null) {
+    $theme-vals: map.get($theme-overrides, $theme);
+    @if ($theme-vals != null) {
+      $val: map.get($theme-vals, $varname);
+    }
+  }
+
+  @if ($val != null) {
+    @return $val;
+  } @else {
+    @return $default;
+  }
+}
+
+@function theme-navbar-bg($theme, $primary) {
+  $white: rgb(255, 255, 255) !default;
+
+  // These will be defined in bootstrap, but creating values here
+  // That will make this function accessible to callers prior to bootstrap variables
+  // being set
+  $theme-bgs: (
+    litera: $white,
+    cyborg: if(variable-exists(body-bg), $body-bg, #000),
+  );
+
+  $bg: map.get($theme-bgs, $theme);
+  @if ($bg != null) {
+    @return $bg;
+  } @else {
+    @return if(variable-exists(primary), $primary, #fff);
+  }
+}
+
+@function theme-navbar-fg($theme, $primary) {
+  $white: rgb(255, 255, 255) !default;
+
+  // These will be defined in bootstrap, but creating values here
+  // That will make this function accessible to callers prior to bootstrap variables
+  // being set
+  $theme-fgs: (
+    cerulean: $white,
+  );
+
+  $bg: map.get($theme-bgs, $theme);
+  @if ($bg != null) {
+    @return $bg;
+  } @else {
+    @return if(variable-exists(primary), $primary, #fff);
+  }
+}
+
 @function repeat-chars($chars, $n) {
   $final: "";
   @for $i from 1 through $n {

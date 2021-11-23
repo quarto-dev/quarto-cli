@@ -16,7 +16,7 @@ $text-muted: lighten($body-color, 50%) !default;
 
 // link colors
 $link-color: #2a76dd !default;
-$link-color-hover: lighten($link-color, 15%) !default;
+$link-color-hover: lighten($link-color, 10%) !default;
 
 // selection colors
 $selection-bg: lighten($link-color, 25%) !default;
@@ -61,6 +61,14 @@ $code-bg: transparent !default;
 
 // tabset
 $tabset-border-color: $code-block-border-color !default;
+
+// alternate colors for when the background changes
+$light-bg-text-color: #222 !default;
+$dark-bg-text-color: #fff !default;
+$light-bg-link-color: #2a76dd !default;
+$dark-bg-link-color: #42affa !default;
+$light-bg-code-color: #4758ab !default;
+$dark-bg-code-color: #ffa07a !default;
 
 // --- derive reveal versions of presentation variables for finer-grained override ---
 
@@ -139,8 +147,43 @@ $selectionColor: $selection-color !default;
 
 /*-- scss:rules --*/
 
-// Change text colors against dark slide backgrounds
-@include dark-bg-text-color(#fff);
+section.has-light-background {
+  &,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: $light-bg-text-color;
+  }
+  a,
+  a:hover {
+    color: $light-bg-link-color;
+  }
+  code {
+    color: $light-bg-code-color;
+  }
+}
+
+section.has-dark-background {
+  &,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: $dark-bg-text-color;
+  }
+  a,
+  a:hover {
+    color: $dark-bg-link-color;
+  }
+  code {
+    color: $dark-bg-code-color;
+  }
+}
 
 #title-slide {
   text-align: $presentation-title-slide-text-align;
@@ -215,8 +258,12 @@ $selectionColor: $selection-color !default;
   background-color: $body-bg;
 }
 
-.reveal .slide-footer-container {
+.reveal .footer {
   color: $text-muted;
+}
+
+.reveal .footer a {
+  color: $link-color-hover;
 }
 
 .reveal .slide-number {

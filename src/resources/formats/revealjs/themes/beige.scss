@@ -30,7 +30,3 @@ $code-block-bg: transparent !default;
 @mixin bodyBackground() {
   @include radial-gradient(rgba(247, 242, 211, 1), rgba(255, 255, 255, 1));
 }
-
-/*-- scss:rules --*/
-
-@include dark-bg-text-color(#fff);
