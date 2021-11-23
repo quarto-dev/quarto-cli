@@ -464,7 +464,7 @@ async function automationFromGoodParseScript(kind, context) {
   );
 
   const {
-    mappedYaml,
+    yaml,
   } = core.partitionCellOptionsMapped(language, mappedCode);
 
   const schemas = (await getSchemas()).schemas;
@@ -473,7 +473,7 @@ async function automationFromGoodParseScript(kind, context) {
 
   context = {
     line: context.line.slice(commentPrefix.length),
-    code: mappedYaml,
+    code: yaml,
     commentPrefix,
     // NB we get lucky here that the "inverse mapping" of the cursor
     // position is easy enough to compute explicitly. This might not

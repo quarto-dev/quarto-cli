@@ -74,7 +74,7 @@ export async function partitionCellOptionsMapped(
   return {
     // yaml: yaml as Record<string, unknown> | undefined,
     // yamlValidationErrors,
-    mappedYaml,
+    yaml: mappedYaml,
     optionsSource,
     source: mappedString(source, [{
       start: endOfYaml,
