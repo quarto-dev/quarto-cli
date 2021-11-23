@@ -92,6 +92,7 @@ import {
   kLatexTlmgrOpts,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kLinkExternalTest,
   kListings,
   kMarkdownHeadings,
   kMathjax,
@@ -293,6 +294,7 @@ export interface FormatRender {
   [kLatexOutputDir]?: string | null;
   [kLinkExternalIcon]?: string | boolean;
   [kLinkExternalNewwindow]?: boolean;
+  [kLinkExternalTest]?: string;
 }
 
 export interface FormatExecute {

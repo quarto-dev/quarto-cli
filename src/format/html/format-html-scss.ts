@@ -39,6 +39,7 @@ import {
   quartoDefaults,
   quartoFunctions,
   quartoGlobalCssVariableRules,
+  quartoLinkExternalRules,
   quartoRules,
 } from "./format-html-shared.ts";
 
@@ -90,6 +91,7 @@ function layerQuartoScss(
         quartoCopyCodeRules(),
         quartoBootstrapRules(),
         quartoGlobalCssVariableRules(),
+        quartoLinkExternalRules(),
       ].join("\n"),
     },
     framework: {

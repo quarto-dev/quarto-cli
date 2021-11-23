@@ -71,6 +71,7 @@ export const kLatexOutputDir = "latex-output-dir";
 
 export const kLinkExternalIcon = "link-external-icon";
 export const kLinkExternalNewwindow = "link-external-newwindow";
+export const kLinkExternalTest = "link-external-test";
 
 export const kExecuteDefaultsKeys = [
   kFigWidth,
@@ -123,6 +124,7 @@ export const kRenderDefaultsKeys = [
   kLatexOutputDir,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kLinkExternalTest,
 ];
 
 // language fields

@@ -286,7 +286,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
   <% if (linkExternalIcon || linkExternalNewwindow) { %>
-  var isInternal = new RegExp('/' + window.location.host + '/');
+    
+  
+  <% if (linkExternalTest) { %>
+    <%- `var isInternal = new RegExp(/${linkExternalTest}/);` %>
+  <% } else { %>
+    var isInternal = new RegExp('/' + window.location.host + '/');
+  <% } %>
   // Inspect non-navigation links and adorn them if external
   var links = window.document.querySelectorAll('a:not(.nav-link):not(.toc-action)');
   for (var i=0; i<links.length; i++) {
@@ -297,6 +303,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         link.setAttribute("target", "_blank");
       <% } %>
 
+      
       <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
         // external icon, if provided
         var extIcon = window.document.createElement('i');

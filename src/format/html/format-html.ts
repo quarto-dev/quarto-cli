@@ -26,6 +26,7 @@ import {
   kIncludeInHeader,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kLinkExternalTest,
 } from "../../config/constants.ts";
 import {
   DependencyFile,
@@ -208,6 +209,7 @@ export function htmlFormatExtras(
   options.darkMode = formatDarkMode(format);
   options.linkExternalIcon = format.render[kLinkExternalIcon];
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
+  options.linkExternalTest = format.render[kLinkExternalTest];
 
   // quarto.js helpers
   if (bootstrap) {
