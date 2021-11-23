@@ -399,14 +399,13 @@ function revealHtmlPostprocessor(format: Format) {
                 "data-id",
                 "quarto-animate-code",
               );
+              // markup with highlightjs classes so that are sucessfully targeted by
+              // autoanimate.js
               codeEl.classList.add("hljs");
-              let lineNumber = 1;
               codeEl.childNodes.forEach((spanNode) => {
                 if (spanNode.nodeType === NodeType.ELEMENT_NODE) {
                   const spanEl = spanNode as Element;
                   spanEl.classList.add("hljs-ln-code");
-                  spanEl.classList.add("hljs-ln-line");
-                  spanEl.setAttribute("data-line-number", lineNumber++ + "");
                 }
               });
             }
