@@ -7,8 +7,6 @@
 *
 */
 
-import { YAMLSchema } from "./yaml-schema.ts";
-
 import { Schema } from "../lib/schema.ts";
 
 import {
@@ -16,12 +14,12 @@ import {
   arraySchema as arrayS,
   BooleanSchema as BooleanS,
   enumSchema as enumS,
+  idSchema as withId,
   NullSchema as NullS,
   numericSchema as numericS,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
   StringSchema as StringS,
-  idSchema as withId
 } from "./common.ts";
 
 import {
@@ -89,22 +87,28 @@ const commonCellOptionsSchema = objectS({
   },
 });
 
-export const ojsCellOptionsSchema = withId(objectS({
-  baseSchema: commonCellOptionsSchema,
-  properties: {
-    classes: arrayS(StringS),
-  },
-  description: "be an OJS cell options object",
-}), "ojs");
+export const ojsCellOptionsSchema = withId(
+  objectS({
+    baseSchema: commonCellOptionsSchema,
+    properties: {
+      classes: arrayS(StringS),
+    },
+    description: "be an OJS cell options object",
+  }),
+  "ojs",
+);
 
-export const jupyterCellOptionsSchema = withId(objectS({
-  baseSchema: commonCellOptionsSchema,
-  properties: {
-    [kCellMdIndent]: StringS,
-    [kWarning]: BooleanS,
-  },
-  description: "be a Jupyter cell options object",
-}), "python");
+export const jupyterCellOptionsSchema = withId(
+  objectS({
+    baseSchema: commonCellOptionsSchema,
+    properties: {
+      [kCellMdIndent]: StringS,
+      [kWarning]: BooleanS,
+    },
+    description: "be a Jupyter cell options object",
+  }),
+  "python",
+);
 
 export const rCellOptionsSchema = withId(commonCellOptionsSchema, "r");
 
@@ -112,4 +116,4 @@ export const languageOptionsSchema: Record<string, Schema> = {
   "ojs": ojsCellOptionsSchema,
   "python": jupyterCellOptionsSchema,
   "r": rCellOptionsSchema,
-}
+};

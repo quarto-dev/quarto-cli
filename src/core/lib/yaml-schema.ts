@@ -9,7 +9,7 @@
 */
 
 import { mappedIndexToRowCol, MappedString } from "./mapped-text.ts";
-import { formatLineRange, indexToRowCol, lines } from "./text.ts";
+import { formatLineRange, lines } from "./text.ts";
 import { normalizeSchema } from "./schema.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -110,13 +110,13 @@ function navigate(
     // entry of a given key in the mapping as the one that counts
     // (instead of the first, which would be what we'd get if running
     // the loop forward).
-    // 
+    //
     // In that case, the validation errors will also point to the last
     // entry. In order for the errors to be at least somewhat sensible,
     // we then loop backwards
     const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
     for (let i = lastKeyIndex; i >= 0; i -= 2) {
-    // for (let i = 0; i < components.length; i += 2) {
+      // for (let i = 0; i < components.length; i += 2) {
       const key = components[i].result;
       if (key === searchKey) {
         if (returnKey && pathIndex === path.length - 1) {
@@ -451,7 +451,7 @@ export class YAMLSchema {
     // deno-lint-ignore no-explicit-any
     error: (a: string) => any,
     // deno-lint-ignore no-explicit-any
-    log: (a: string) => any
+    log: (a: string) => any,
   ) {
     if (result.errors.length) {
       const locF = mappedIndexToRowCol(src);
@@ -512,7 +512,7 @@ export class YAMLSchema {
     // deno-lint-ignore no-explicit-any
     error: (a: string) => any,
     // deno-lint-ignore no-explicit-any
-    log: (a: string) => any
+    log: (a: string) => any,
   ) {
     const result = this.validateParse(src, annotation);
     this.reportErrorsInSource(result, src, message, error, log);

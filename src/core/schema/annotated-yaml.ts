@@ -8,10 +8,9 @@
 *
 */
 
-import { error, info } from "log/mod.ts";
 import { parse } from "encoding/yaml.ts";
 import { MappedString } from "../mapped-text.ts";
-import { AnnotatedParse, LocalizedError } from "../lib/yaml-schema.ts";
+import { AnnotatedParse } from "../lib/yaml-schema.ts";
 
 export type { AnnotatedParse } from "../lib/yaml-schema.ts";
 
@@ -83,4 +82,3 @@ export function readAnnotatedYamlFromString(yml: string) {
   }
   return results[0];
 }
-

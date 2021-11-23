@@ -100,7 +100,7 @@ export function pandocMetadataPath(path: string) {
   return pathWithForwardSlashes(path);
 }
 
-export async function resourceFilesFromRenderedFile(
+export function resourceFilesFromRenderedFile(
   baseDir: string,
   renderedFile: RenderedFile,
   partitioned?: PartitionedMarkdown,

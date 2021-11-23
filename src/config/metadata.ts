@@ -37,7 +37,7 @@ import { Format, Metadata } from "./types.ts";
 export async function includedMetadata(
   dir: string,
   baseMetadata: Metadata,
-  schema: Schema
+  schema: Schema,
 ): Promise<{ metadata: Metadata; files: string[] }> {
   // Read any metadata files that are defined in the metadata itself
   const yamlFiles: string[] = [];
@@ -56,7 +56,10 @@ export async function includedMetadata(
     if (exists(yamlFile)) {
       try {
         const yaml = await readAndValidateYamlFromFile(
-          yamlFile, schema, `Validation of metadata file ${yamlFile} failed.`);
+          yamlFile,
+          schema,
+          `Validation of metadata file ${yamlFile} failed.`,
+        );
         return yaml;
       } catch (e) {
         error("\nError reading metadata file from " + yamlFile + "\n");

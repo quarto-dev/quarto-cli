@@ -29,7 +29,11 @@ export async function readLanguageTranslations(
     if (existsSync(file)) {
       files.push(Deno.realPathSync(file));
       const errMsg = "Validation of format language object failed.";
-      const result = await readAndValidateYamlFromFile(file, formatLanguageSchema, errMsg);
+      const result = await readAndValidateYamlFromFile(
+        file,
+        formatLanguageSchema,
+        errMsg,
+      );
       return result as FormatLanguage;
     } else {
       return {} as FormatLanguage;
@@ -94,7 +98,7 @@ export async function readLanguageTranslations(
   return { language, files };
 }
 
-export async function readDefaultLanguageTranslations(lang: string) {
+export function readDefaultLanguageTranslations(lang: string) {
   return readLanguageTranslations(
     resourcePath(join("language", "_language.yml")),
     lang,

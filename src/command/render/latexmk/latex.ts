@@ -178,7 +178,7 @@ async function runLatexCommand(
   try {
     // Try running the command
     return await runCmd();
-  } catch (e) {
+  } catch (_e) {
     // First confirm that there is a TeX installation available
     const tex = await hasLatexDistribution();
     if (!tex) {

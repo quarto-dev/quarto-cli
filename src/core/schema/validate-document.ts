@@ -19,11 +19,14 @@ import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
 
+
 export async function validateDocumentFromSource(
   src: string,
+  // deno-lint-ignore no-explicit-any
   error: (msg: string) => any,
-  info: (msg: string) => any): Promise<LocalizedError[]>
-{
+  // deno-lint-ignore no-explicit-any
+  info: (msg: string) => any,
+): Promise<LocalizedError[]> {
   const result: LocalizedError[] = [];
   const nb = await breakQuartoMd(asMappedString(src));
 
@@ -90,7 +93,7 @@ export async function validateDocumentFromSource(
       await partitionCellOptionsMapped(lang, cell.source, true);
     } catch (e) {
       if (e instanceof ValidationError) {
-        result.push(...e.validationErrors);        
+        result.push(...e.validationErrors);
       } else {
         throw e;
       }
@@ -99,7 +102,9 @@ export async function validateDocumentFromSource(
   return result;
 }
 
-export async function validateDocument(context: RenderContext): Promise<LocalizedError[]> {
+export function validateDocument(
+  context: RenderContext,
+): Promise<LocalizedError[]> {
   if (context.target.markdown === "") {
     // no markdown -> no validation.
     return [];

@@ -111,17 +111,20 @@ const siteSchema = objectS({
   exhaustive: true,
 });
 
-export const configSchema = withId(objectS({
-  properties: {
-    project: objectS({
-      properties: {
-        type: doc(enumS("site", "book", "website"), "type of quarto project"),
-        "output-dir": doc(StringS, "output directory for the project"),
-      },
-    }),
-    site: siteSchema,
-    "bibliography": StringS,
-    "filters": arrayS(StringS),
-    "format": frontMatterFormatSchema,
-  },
-}), "config");
+export const configSchema = withId(
+  objectS({
+    properties: {
+      project: objectS({
+        properties: {
+          type: doc(enumS("site", "book", "website"), "type of quarto project"),
+          "output-dir": doc(StringS, "output directory for the project"),
+        },
+      }),
+      site: siteSchema,
+      "bibliography": StringS,
+      "filters": arrayS(StringS),
+      "format": frontMatterFormatSchema,
+    },
+  }),
+  "config",
+);

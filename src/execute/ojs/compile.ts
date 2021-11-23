@@ -79,7 +79,12 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/break-quarto-md.ts";
 
-import { MappedString, mappedString, asMappedString, mappedDiff } from "../../core/mapped-text.ts";
+import {
+  asMappedString,
+  mappedDiff,
+  MappedString,
+  mappedString,
+} from "../../core/mapped-text.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -124,7 +129,7 @@ export async function ojsCompile(
   ]);
 
   const output = await breakQuartoMd(markdown, true);
-  
+
   let ojsCellID = 0;
   let ojsBlockIndex = 0; // this is different from ojsCellID because of inline cells.
   const userIds: Set<string> = new Set();
@@ -162,31 +167,17 @@ export async function ojsCompile(
       methodName,
       cellName: `ojs-${inlineStr}cell-${ojsCellID}`,
       inline,
-      
+
       // FIXME This here is the big problem now. We'd like to send
       // jsSrc as is,
-      // 
+      //
       // but moduleContents needs to be JSON-serializable in order for
       // the runtime to interpret it. But that gives problems with
-      // respect to our ability to compute offsets etc. 
+      // respect to our ability to compute offsets etc.
       source: jsSrc.value,
     });
   }
 
-  const inlineOJSInterpRE = /\$\{([^}]+)\}([^$])/g;
-  // FIXME: all inline interpolation is the business of the Lua filters.
-  // 
-  // function inlineInterpolation(str: string, lenient: boolean) {
-  //   return str.replaceAll(inlineOJSInterpRE, function (_m, g1, g2) {
-  //     ojsCellID += 1;
-  //     const result = [
-  //       `<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
-  //       g2,
-  //     ];
-  //     interpret([g1], true, lenient);
-  //     return result.join("");
-  //   });
-  // }
   const ls: string[] = [];
   const resourceFiles: string[] = [];
   const pageResources: ResourceDescription[] = [];
@@ -358,11 +349,13 @@ export async function ojsCompile(
         }
       }
 
-      pageResources.push(...(await extractResourceDescriptionsFromOJSChunk(
-        cellSrcStr,
-        dirname(options.source),
-        projDir,
-      )));
+      pageResources.push(
+        ...(await extractResourceDescriptionsFromOJSChunk(
+          cellSrcStr,
+          dirname(options.source),
+          projDir,
+        )),
+      );
 
       const hasManyRowsCols = () => {
         // FIXME figure out runtime type validation. This should check
@@ -616,7 +609,8 @@ export async function ojsCompile(
             const ourAttrs = srcConfig.attrs.slice();
             // compute offset from cell start to div start
             const linesSkipped =
-              cellSrcStr.value.substring(0, innerInfo[0].start).split("\n").length;
+              cellSrcStr.value.substring(0, innerInfo[0].start).split("\n")
+                .length;
 
             ourAttrs.push(
               `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
@@ -678,7 +672,8 @@ export async function ojsCompile(
           const ourAttrs = srcConfig.attrs.slice();
           // compute offset from cell start to div start
           const linesSkipped =
-            cellSrcStr.value.substring(0, innerInfo[0].start).split("\n").length;
+            cellSrcStr.value.substring(0, innerInfo[0].start).split("\n")
+              .length;
           ourAttrs.push(
             `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
               linesSkipped}"`,
@@ -691,7 +686,10 @@ export async function ojsCompile(
             });
             srcDiv.push(
               pandocRawStr(
-                cellSrcStr.value.substring(innerInfo[0].start, innerInfo[0].end),
+                cellSrcStr.value.substring(
+                  innerInfo[0].start,
+                  innerInfo[0].end,
+                ),
               ),
             );
             div.push(srcDiv);
@@ -727,7 +725,10 @@ export async function ojsCompile(
         "cell_type": {
           language: "ojs",
         },
-        source: mappedString(cell.source, ["dot`\n", { start: 0, end: cell.source.value.length }, "\n`"]),
+        source: mappedString(cell.source, ["dot`\n", {
+          start: 0,
+          end: cell.source.value.length,
+        }, "\n`"]),
       };
       await handleOJSCell(newCell, ["dot", "cell-code"]);
     } else if (cell.cell_type?.language === "ojs") {
@@ -916,9 +917,12 @@ export async function ojsExecuteResult(
   executeResult = ld.cloneDeep(executeResult);
 
   const source = Deno.readTextFileSync(context.target.source);
-  
-  const mappedMarkdown = mappedDiff(asMappedString(source), executeResult.markdown);
-  
+
+  const mappedMarkdown = mappedDiff(
+    asMappedString(source),
+    executeResult.markdown,
+  );
+
   // evaluate ojs chunks
   const { markdown, includes, filters, resourceFiles } = await ojsCompile({
     source: context.target.source,

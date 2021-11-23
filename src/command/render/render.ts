@@ -797,7 +797,11 @@ export async function resolveFormatsFromMetadata(
   flags?: RenderFlags,
 ): Promise<Record<string, Format>> {
   // Read any included metadata files and merge in and metadata from the command
-  const included = await includedMetadata(includeDir, metadata, frontMatterSchema);
+  const included = await includedMetadata(
+    includeDir,
+    metadata,
+    frontMatterSchema,
+  );
   const allMetadata = mergeQuartoConfigs(
     metadata,
     included.metadata,

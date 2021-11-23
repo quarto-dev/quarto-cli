@@ -1,6 +1,6 @@
 /*
 * validator-queue.js
-* 
+*
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
@@ -12,8 +12,7 @@ import { Schema } from "./schema.ts";
 const yamlValidators: Record<string, YAMLSchema> = {};
 const validatorQueues: Record<string, PromiseQueue<void>> = {};
 
-function getSchemaName(schema: any): string
-{
+function getSchemaName(schema: Schema): string {
   const schemaName = schema["$id"];
   if (schemaName === undefined) {
     throw new Error("Expected schema to be named");
@@ -25,7 +24,7 @@ function getSchemaName(schema: any): string
 // don't have clashing names for simplicity of implementation
 //
 // Ideally, this would be checked by TypeScript.
-function getValidator(schema: any): YAMLSchema {
+function getValidator(schema: Schema): YAMLSchema {
   const schemaName = getSchemaName(schema);
   if (yamlValidators[schemaName]) {
     return yamlValidators[schemaName];
@@ -39,7 +38,8 @@ function getValidator(schema: any): YAMLSchema {
 
 export async function withValidator<T>(
   schema: Schema,
-  fun: (validator: YAMLSchema) => T): Promise<T> {
+  fun: (validator: YAMLSchema) => T,
+): Promise<T> {
   const schemaName = getSchemaName(schema);
 
   if (validatorQueues[schemaName] === undefined) {
@@ -50,7 +50,7 @@ export async function withValidator<T>(
   // FIXME should we rethrow instead?
   let result: T | undefined;
   let error;
-  await queue.enqueue(async () => {
+  await queue.enqueue(() => {
     const validator = getValidator(schema);
     try {
       result = fun(validator);
@@ -66,4 +66,3 @@ export async function withValidator<T>(
 
   return result!;
 }
-

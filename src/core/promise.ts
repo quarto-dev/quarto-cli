@@ -6,4 +6,3 @@
 */
 
 export { PromiseQueue } from "./lib/promise.ts";
-

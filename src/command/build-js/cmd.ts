@@ -6,7 +6,6 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
-import * as dirs from "../../core/appdirs.ts";
 import { join } from "path/mod.ts";
 import { copy } from "fs/mod.ts";
 import { lines } from "../../core/text.ts";
@@ -86,15 +85,6 @@ export const buildJsCommand = new Command()
     "Builds all the javascript assets necessary for IDE support.\n\n",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, path: string) => {
-    // defaults
-    // const projDir = path || Deno.cwd();
-    // console.log({ projDir });
-    // console.log({
-    //   quartoDataDir: dirs.quartoDataDir(),
-    //   quartoConfigDir: dirs.quartoConfigDir(),
-    //   quartoCacheDir: dirs.quartoCacheDir(),
-    //   quartoRuntimeDir: dirs.quartoRuntimeDir(),
-    // });
+  .action(async (_options: any, _path: string) => {
     await buildAssets();
   });

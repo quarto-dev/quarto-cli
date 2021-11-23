@@ -8,18 +8,14 @@
 *
 */
 
-import {
-  glb
-} from "./binary-search.ts";
+import { glb } from "./binary-search.ts";
 
-import {
-  Range
-} from "./ranged-text.ts";
+import { Range } from "./ranged-text.ts";
 
 import {
   indexToRowCol as unmappedIndexToRowCol,
   lineBreakPositions,
-  matchAll
+  matchAll,
 } from "./text.ts";
 
 export interface MappedString {
@@ -77,7 +73,7 @@ export function mappedString(
     let offset = 0;
 
     const resultList = pieces.filter(
-      (piece) => (typeof piece === "string") || (piece.start !== piece.end)
+      (piece) => (typeof piece === "string") || (piece.start !== piece.end),
     ).map((piece) => {
       if (typeof piece === "string") {
         offsetInfo.push({
@@ -264,7 +260,7 @@ export function mappedConcat(strings: MappedString[]): MappedString {
 // mapped version of text.ts:indexToRowCol
 export function mappedIndexToRowCol(eitherText: EitherString) {
   const text = asMappedString(eitherText);
-  
+
   const f = unmappedIndexToRowCol(text.originalString);
 
   return function (offset: number) {
@@ -277,10 +273,11 @@ export function mappedIndexToRowCol(eitherText: EitherString) {
 }
 
 // mapped version of text.ts:normalizeNewlines
-export function mappedNormalizeNewlines(eitherText: EitherString): MappedString
-{
+export function mappedNormalizeNewlines(
+  eitherText: EitherString,
+): MappedString {
   const text = asMappedString(eitherText);
-  
+
   // here we search for \r\n, and skip the \r's. that's slightly
   // different from the other implementation but the observable
   // behavior on .value is the same.
@@ -288,12 +285,12 @@ export function mappedNormalizeNewlines(eitherText: EitherString): MappedString
   let start = 0;
   const chunks: Range[] = [];
   for (const offset of lineBreakPositions(text.value)) {
-    if (text.value[offset] !== '\r') {
+    if (text.value[offset] !== "\r") {
       continue;
     }
-    
+
     // we know this is an \r\n, so we handle it
-    chunks.push({ start, end: offset });                 // string contents
+    chunks.push({ start, end: offset }); // string contents
     chunks.push({ start: offset + 1, end: offset + 2 }); // \n part of \r\n
     start = offset + 2;
   }
@@ -304,10 +301,12 @@ export function mappedNormalizeNewlines(eitherText: EitherString): MappedString
 }
 
 // skipRegexpAll(s, r) is a mapped version of s.replaceAll(r, "")
-export function skipRegexpAll(eitherText: EitherString, re: RegExp): MappedString
-{
+export function skipRegexpAll(
+  eitherText: EitherString,
+  re: RegExp,
+): MappedString {
   const text = asMappedString(eitherText);
-  
+
   let start = 0;
   const chunks: Range[] = [];
   for (const match of matchAll(text.value, re)) {
@@ -321,18 +320,16 @@ export function skipRegexpAll(eitherText: EitherString, re: RegExp): MappedStrin
 }
 
 // skipRegexp(s, r) is a mapped version of s.replace(r, "")
-export function skipRegexp(eitherText: EitherString, re: RegExp): MappedString
-{
+export function skipRegexp(eitherText: EitherString, re: RegExp): MappedString {
   const text = asMappedString(eitherText);
   const m = text.value.match(re);
 
   if (m) {
     return mappedString(text, [
       { start: 0, end: m.index! },
-      { start: m.index! + m[0].length, end: text.value.length }
+      { start: m.index! + m[0].length, end: text.value.length },
     ]);
   } else {
     return text;
   }
 }
-

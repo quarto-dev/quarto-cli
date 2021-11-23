@@ -17,10 +17,9 @@ export function normalizeNewlines(text: string) {
 
 // NB we can't use actual matchAll here because we need to support old
 // Chromium in the IDE
-// 
+//
 // NB this mutates the regexp.
-export function* matchAll(text: string, regexp: RegExp)
-{
+export function* matchAll(text: string, regexp: RegExp) {
   let match;
   while ((match = regexp.exec(text)) !== null) {
     yield match;

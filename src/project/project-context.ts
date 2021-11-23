@@ -62,8 +62,6 @@ import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { kSite, kWebsite } from "./types/website/website-config.ts";
 
-import { asMappedString } from "../core/mapped-text.ts";
-
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 
 import { configSchema } from "../core/schema/config.ts";
@@ -110,9 +108,17 @@ export async function projectContext(
       const configFiles = [configFile];
 
       const errMsg = "Project _quarto.yml validation failed.";
-      let projectConfig = (await readAndValidateYamlFromFile(configFile, configSchema, errMsg)) as ProjectConfig;
+      let projectConfig = (await readAndValidateYamlFromFile(
+        configFile,
+        configSchema,
+        errMsg,
+      )) as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
-      const includedMeta = await includedMetadata(dir, projectConfig, configSchema);
+      const includedMeta = await includedMetadata(
+        dir,
+        projectConfig,
+        configSchema,
+      );
       const metadata = includedMeta.metadata;
       configFiles.push(...includedMeta.files);
       projectConfig = mergeConfigs(projectConfig, metadata);
@@ -134,7 +140,10 @@ export async function projectContext(
       }
 
       // resolve translations
-      const translationFiles = await resolveLanguageTranslations(projectConfig, dir);
+      const translationFiles = await resolveLanguageTranslations(
+        projectConfig,
+        dir,
+      );
       configFiles.push(...translationFiles);
 
       if (projectConfig?.project) {
@@ -250,7 +259,9 @@ async function resolveLanguageTranslations(
   files.push(...(await resolveLanguageMetadata(projectConfig, dir)));
 
   // read _language.yml and merge into the project
-  const translations = await readLanguageTranslations(join(dir, "_language.yml"));
+  const translations = await readLanguageTranslations(
+    join(dir, "_language.yml"),
+  );
   projectConfig[kLanguageDefaults] = mergeConfigs(
     translations.language,
     projectConfig[kLanguageDefaults],
@@ -347,11 +358,17 @@ export async function directoryMetadataForInputFile(
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
       const errMsg = "Directory metadata validation failed.";
-      const yaml = (await readAndValidateYamlFromFile(frontMatterSchema, file, errMsg)) as Record<string, unknown>;
+      const yaml = (await readAndValidateYamlFromFile(
+        frontMatterSchema,
+        file,
+        errMsg,
+      )) as Record<string, unknown>;
       config = mergeConfigs(
         config,
         toInputRelativePaths(
-          currentDir, inputDir, yaml as Record<string, unknown>
+          currentDir,
+          inputDir,
+          yaml as Record<string, unknown>,
         ),
       );
     }

@@ -11,7 +11,6 @@ import { existsSync } from "fs/mod.ts";
 
 import {
   readYamlFromMarkdown,
-  readYamlFromMarkdownFile,
 } from "../../core/yaml.ts";
 import { isInteractiveSession } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
@@ -327,14 +326,6 @@ export const jupyterEngine: ExecutionEngine = {
 function isQmdFile(file: string) {
   const ext = extname(file);
   return kQmdExtensions.includes(ext);
-}
-
-async function metadataFromInputFile(file: string) {
-  if (isJupyterNotebook(file)) {
-    return readYamlFromMarkdown(await markdownFromNotebook(file));
-  } else {
-    return readYamlFromMarkdownFile(file);
-  }
 }
 
 async function createNotebookforTarget(target: ExecutionTarget) {

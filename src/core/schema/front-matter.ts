@@ -9,14 +9,12 @@
 
 import {
   enumSchema as enumS,
+  idSchema as withId,
   NullSchema as nullS,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
   StringSchema as StringS,
-  idSchema as withId,
 } from "./common.ts";
-
-import { YAMLSchema } from "./yaml-schema.ts";
 
 import { formatExecuteOptionsSchema as execute } from "./types.ts";
 
@@ -36,14 +34,17 @@ export const frontMatterFormatSchema = oneOfS(
 
 // for empty front matter, we return `null`, so we need to allow that
 // as well.
-export const frontMatterSchema = withId(oneOfS(
-  nullS,
-  objectS({
-    properties: {
-      title: StringS,
-      execute,
-      format: frontMatterFormatSchema,
-    },
-    description: "be a Quarto YAML front matter object",
-  }),
-), "front-matter");
+export const frontMatterSchema = withId(
+  oneOfS(
+    nullS,
+    objectS({
+      properties: {
+        title: StringS,
+        execute,
+        format: frontMatterFormatSchema,
+      },
+      description: "be a Quarto YAML front matter object",
+    }),
+  ),
+  "front-matter",
+);

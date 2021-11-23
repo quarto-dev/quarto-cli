@@ -12,19 +12,16 @@ import { lines, matchAll, normalizeNewlines } from "./text.ts";
 import { frontMatterSchema } from "./schema/front-matter.ts";
 
 import {
-  EitherString,
-  MappedString,
-
   asMappedString,
+  EitherString,
   mappedConcat,
   mappedNormalizeNewlines,
+  MappedString,
   skipRegexp,
   skipRegexpAll,
 } from "./mapped-text.ts";
 
 import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
-
-
 
 const kRegExBeginYAML = /^---[ \t]*$/;
 const kRegExEndYAML = /^(?:---|\.\.\.)([ \t]*)$/;
@@ -94,7 +91,7 @@ export function readYamlFromMarkdown(
   }
 }
 
-export async function readAndValidateYamlFromMarkdown(
+export function readAndValidateYamlFromMarkdown(
   eitherMarkdown: EitherString,
 ): Promise<{ [key: string]: unknown }> {
   let markdown = asMappedString(eitherMarkdown);
@@ -108,22 +105,22 @@ export async function readAndValidateYamlFromMarkdown(
   markdown = skipRegexpAll(markdown, kRegxHTMLComment);
   markdown = skipRegexpAll(markdown, kRegexFencedCode);
 
-  let yaml = [];
+  const yaml = [];
 
   // capture all yaml blocks as a single yaml doc
   kRegExYAML.lastIndex = 0;
   for (const match of matchAll(markdown.value, kRegExYAML)) {
     const yamlBlock = removeYamlDelimitersMapped(match[2]);
     const yamlBlockValue = yamlBlock.value;
-    
+
     // exclude yaml blocks that start with a blank line, start with
     // a yaml delimiter (can occur if two "---" stack together) or
     // are entirely empty
     // (that's not valid for pandoc yaml blocks)
     if (
       !yamlBlockValue.startsWith("\n\n") &&
-        !yamlBlockValue.startsWith("\n---") &&
-        (yamlBlockValue.trim().length > 0)
+      !yamlBlockValue.startsWith("\n---") &&
+      (yamlBlockValue.trim().length > 0)
     ) {
       // surface errors immediately for invalid yaml
       parse(yamlBlockValue, { json: true, schema: JSON_SCHEMA });
@@ -133,17 +130,21 @@ export async function readAndValidateYamlFromMarkdown(
   }
   kRegExYAML.lastIndex = 0;
 
-  let mappedYaml = mappedConcat(yaml);
+  const mappedYaml = mappedConcat(yaml);
 
   // parse the yaml
-  const metadata = parse(mappedYaml.value, { json: true, schema: JSON_SCHEMA }) as { [key: string]: unknown };
+  const metadata = parse(mappedYaml.value, {
+    json: true,
+    schema: JSON_SCHEMA,
+  }) as { [key: string]: unknown };
 
   if (metadata?.["validate-yaml"] as (boolean | undefined) === false) {
     // we must validate it, so we go the slow route
     return readAndValidateYamlFromMappedString(
       mappedYaml,
       frontMatterSchema,
-      "YAML front matter validation failed");
+      "YAML front matter validation failed",
+    );
   }
   return metadata;
 }
@@ -190,7 +191,9 @@ export function removeYamlDelimiters(yaml: string) {
     .replace(/---\s*$/, "");
 }
 
-export function removeYamlDelimitersMapped(eitherYaml: EitherString): MappedString {
+export function removeYamlDelimitersMapped(
+  eitherYaml: EitherString,
+): MappedString {
   let yaml = asMappedString(eitherYaml);
   yaml = skipRegexp(yaml, /^---/);
   yaml = skipRegexp(yaml, /---\s*$/);

@@ -90,11 +90,12 @@ export async function breakQuartoMd(
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source, sourceStartLine } = await partitionCellOptionsMapped(
-          language,
-          cell.source,
-          validate,
-        );
+        const { yaml, source, sourceStartLine } =
+          await partitionCellOptionsMapped(
+            language,
+            cell.source,
+            validate,
+          );
         // FIXME I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
         const breaks = lineOffsets(cell.source.value).slice(1);

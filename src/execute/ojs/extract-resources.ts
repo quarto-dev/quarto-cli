@@ -15,9 +15,12 @@ import { parse as parseES6 } from "acorn/acorn";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
-import { jsParseError, ojsParseError } from "./errors.ts";
 import { ojsSimpleWalker } from "./ojs-tools.ts";
-import { MappedString, mappedConcat, asMappedString } from "../../core/mapped-text.ts";
+import {
+  asMappedString,
+  mappedConcat,
+  MappedString,
+} from "../../core/mapped-text.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -156,18 +159,11 @@ async function directDependencies(
       return [];
     }
   } else if (language === "ojs") {
-    // console.log("WE ARE HERE");
-    // console.log(source.value);
-    // console.log("======");
-    // console.log(source.originalString);
-    // console.log("======");
     try {
       ast = parseModule(source.value);
     } catch (e) {
       // we don't chase dependencies if there are parse errors.
       // we also don't report errors, because that would have happened elsewhere.
-      // ojsParseError(e, source);
-      // throw new Error();
       if (!(e instanceof SyntaxError)) {
         throw e;
       }
@@ -184,7 +180,12 @@ async function directDependencies(
         cell.cell_type?.language === "ojs"
       )
       .flatMap((v) => v.source); // (concat)
-    return await directDependencies(mappedConcat(ojsCellsSrc), fileDir, "ojs", projectRoot);
+    return await directDependencies(
+      mappedConcat(ojsCellsSrc),
+      fileDir,
+      "ojs",
+      projectRoot,
+    );
   }
 
   return localImports(ast).map((importPath) => {
@@ -215,11 +216,13 @@ export async function extractResolvedResourceFilenamesFromQmd(
       cell.cell_type !== "math" &&
       cell.cell_type?.language === "ojs"
     ) {
-      pageResources.push(...(await extractResourceDescriptionsFromOJSChunk(
-        cell.source,
-        mdDir,
-        projectRoot,
-      )));
+      pageResources.push(
+        ...(await extractResourceDescriptionsFromOJSChunk(
+          cell.source,
+          mdDir,
+          projectRoot,
+        )),
+      );
     }
   }
 
@@ -277,12 +280,13 @@ export async function extractResourceDescriptionsFromOJSChunk(
 
   // we're assuming that we always start in an {ojs} block.
   for (
-    const { resolvedImportPath, pathType, importPath } of await directDependencies(
-      ojsSource,
-      mdDir,
-      "ojs",
-      projectRoot,
-    )
+    const { resolvedImportPath, pathType, importPath }
+      of await directDependencies(
+        ojsSource,
+        mdDir,
+        "ojs",
+        projectRoot,
+      )
   ) {
     if (!imports.has(resolvedImportPath)) {
       const v: ResourceDescription = {
@@ -331,12 +335,13 @@ export async function extractResourceDescriptionsFromOJSChunk(
     }
 
     for (
-      const { resolvedImportPath, pathType, importPath } of await directDependencies(
-        asMappedString(source),
-        dirname(thisResolvedImportPath),
-        language as ("js" | "ojs" | "qmd"),
-        projectRoot,
-      )
+      const { resolvedImportPath, pathType, importPath }
+        of await directDependencies(
+          asMappedString(source),
+          dirname(thisResolvedImportPath),
+          language as ("js" | "ojs" | "qmd"),
+          projectRoot,
+        )
     ) {
       if (!imports.has(resolvedImportPath)) {
         const v: ResourceDescription = {

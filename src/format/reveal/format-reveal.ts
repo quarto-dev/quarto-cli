@@ -253,7 +253,7 @@ export function revealjsFormat() {
           theme.revealUrl,
           theme.revealDestDir,
         );
-        
+
         // add plugins
         extras = mergeConfigs(
           revealPluginExtrasConfig,

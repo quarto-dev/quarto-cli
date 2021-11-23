@@ -9,8 +9,12 @@
 */
 
 import { lines } from "./lib/text.ts";
-import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./lib/ranged-text.ts";
-import { mappedString, MappedString, mappedConcat } from "./lib/mapped-text.ts";
+import {
+  Range,
+  rangedLines,
+  RangedSubstring,
+} from "./lib/ranged-text.ts";
+import { MappedString, mappedString } from "./lib/mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
@@ -25,8 +29,8 @@ export interface QuartoMdCell {
   cell_type: CodeCellType | "markdown" | "raw" | "math";
   options?: Record<string, unknown>;
 
-  source: MappedString,
-  sourceVerbatim: MappedString,
+  source: MappedString;
+  sourceVerbatim: MappedString;
 
   sourceOffset: number; // FIXME these might be unnecessary now. Check back
   sourceStartLine: number;
@@ -38,7 +42,7 @@ export interface QuartoMdChunks {
 
 export async function breakQuartoMd(
   src: MappedString,
-  validate = false
+  validate = false,
 ) {
   // notebook to return
   const nb: QuartoMdChunks = {
@@ -72,7 +76,7 @@ export async function breakQuartoMd(
       }
       mappedChunks.pop();
       const source = mappedString(src, mappedChunks);
-      
+
       // const sourceLines = lineBuffer.map((line, index) => {
       //   return mappedString(line + (index < (lineBuffer.length - 1) ? "\n" : "");
       // });
@@ -88,11 +92,12 @@ export async function breakQuartoMd(
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source, sourceStartLine } = await partitionCellOptionsMapped(
-          language,
-          cell.source,
-          validate
-        );
+        const { yaml, source, sourceStartLine } =
+          await partitionCellOptionsMapped(
+            language,
+            cell.source,
+            validate,
+          );
         // FIXME I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
         const breaks = Array.from(cell.source.value.matchAll(/\r?\n/g));
@@ -101,8 +106,9 @@ export async function breakQuartoMd(
           if (breaks.length) {
             // FIXME matchAll apparently breaks typechecking?
             // "error: TS2538 [ERROR]: Type 'RegExpMatchArray' cannot be used as an index type.
+            const lastBreak =
             // deno-lint-ignore no-explicit-any
-            const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)] as any;
+              breaks[Math.min(sourceStartLine - 1, breaks.length - 1)] as any;
             const pos = lastBreak.index + lastBreak[0].length;
             strUpToLastBreak = cell.source.value.substring(0, pos);
           } else {
@@ -111,11 +117,13 @@ export async function breakQuartoMd(
         }
         cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
         cell.sourceVerbatim = mappedString(
-          cell.sourceVerbatim, [
+          cell.sourceVerbatim,
+          [
             "```{ojs}\n",
             { start: 0, end: cell.sourceVerbatim.value.length },
-            "\n```"
-          ]);
+            "\n```",
+          ],
+        );
         cell.source = source;
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
@@ -139,7 +147,9 @@ export async function breakQuartoMd(
 
   for (const line of rangedLines(src.value)) {
     // yaml front matter
-    if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
+    if (
+      yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock
+    ) {
       if (inYaml) {
         lineBuffer.push(line);
         await flushLineBuffer("raw");

@@ -6,26 +6,21 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { error, info } from "log/mod.ts";
-
-import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./lib/ranged-text.ts";
-import { asMappedString, mappedString, MappedString } from "./lib/mapped-text.ts";
 import {
-  partitionCellOptionsMapped as libPartitionCellOptionsMapped,
+  asMappedString,
+  MappedString,
+} from "./lib/mapped-text.ts";
+import {
   langCommentChars,
   optionCommentPrefix,
-  kLangCommentChars
+  partitionCellOptionsMapped as libPartitionCellOptionsMapped,
 } from "./lib/partition-cell-options.ts";
 
 import { readYamlFromString } from "./yaml.ts";
 import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
-import { readAnnotatedYamlFromMappedString } from "./schema/annotated-yaml.ts";
 import { warnOnce } from "./log.ts";
 
 import { languageOptionsSchema } from "./schema/chunk-metadata.ts";
-
-// force ajv initialization. Yes, this is ugly.
-import { ensureAjv } from "./schema/yaml-schema.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -63,7 +58,8 @@ export function partitionCellOptions(
 
   // check that we got what we expected
   if (
-    yaml !== undefined && (typeof (yaml) !== "object" || Array.isArray(yaml))  ) {
+    yaml !== undefined && (typeof (yaml) !== "object" || Array.isArray(yaml))
+  ) {
     warnOnce("Invalid YAML option format in cell:\n" + yamlLines.join("\n"));
     yaml = undefined;
   }
@@ -76,25 +72,25 @@ export function partitionCellOptions(
   };
 }
 
-export async function parseAndValidateCellOptions(
+export function parseAndValidateCellOptions(
   mappedYaml: MappedString,
   language: string,
-  validate = false
+  validate = false,
 ) {
   if (mappedYaml.value.trim().length === 0) {
     return undefined;
   }
 
   const schema = languageOptionsSchema[language];
-  const schemaName = language;
 
   if (schema === undefined || !validate) {
     return readYamlFromString(mappedYaml.value);
   }
 
   return readAndValidateYamlFromMappedString(
-    mappedYaml, schema, 
-    `Validation of YAML ${language} chunk options failed`
+    mappedYaml,
+    schema,
+    `Validation of YAML ${language} chunk options failed`,
   );
 }
 
@@ -103,22 +99,25 @@ export async function parseAndValidateCellOptions(
 export async function partitionCellOptionsMapped(
   language: string,
   outerSource: MappedString,
-  validate = false
+  validate = false,
 ) {
   const {
     yaml: mappedYaml,
     optionsSource,
     source,
-    sourceStartLine
+    sourceStartLine,
   } = await libPartitionCellOptionsMapped(language, outerSource);
 
   const yaml = await parseAndValidateCellOptions(
-    mappedYaml ?? asMappedString(""), language, validate);
-   
+    mappedYaml ?? asMappedString(""),
+    language,
+    validate,
+  );
+
   return {
     yaml: yaml as Record<string, unknown> | undefined,
     optionsSource,
     source,
-    sourceStartLine
+    sourceStartLine,
   };
 }

@@ -13,7 +13,6 @@ import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
 import {
   readYamlFromMarkdown,
-  readYamlFromMarkdownFile,
 } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 

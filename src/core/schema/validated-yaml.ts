@@ -17,24 +17,22 @@ import { withValidator } from "../lib/validator-queue.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
 
 // https://stackoverflow.com/a/41429145
-export class ValidationError extends Error
-{
+export class ValidationError extends Error {
   validationErrors: LocalizedError[];
-  
-  constructor(msg: string, validationErrors: LocalizedError[])
-  {
+
+  constructor(msg: string, validationErrors: LocalizedError[]) {
     super(msg);
 
     Object.setPrototypeOf(this, ValidationError.prototype);
     this.validationErrors = validationErrors;
   }
-};
+}
 
-export async function readAndValidateYamlFromFile(
+export function readAndValidateYamlFromFile(
   file: string,
   schema: Schema,
-  errorMessage: string): Promise<unknown>
-{
+  errorMessage: string,
+): Promise<unknown> {
   if (!existsSync(file)) {
     throw new Error(`YAML file ${file} not found.`);
   }
@@ -46,10 +44,10 @@ export async function readAndValidateYamlFromFile(
 export async function readAndValidateYamlFromMappedString(
   mappedYaml: MappedString,
   schema: Schema,
-  errorMessage: string): Promise<{ [key: string]: unknown }>
-{
+  errorMessage: string,
+): Promise<{ [key: string]: unknown }> {
   ensureAjv();
-  
+
   const result = await withValidator(schema, (validator) => {
     const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
     const validateYaml = !(annotation.result?.["validate-yaml"] === false);
@@ -61,21 +59,22 @@ export async function readAndValidateYamlFromMappedString(
         validator.reportErrorsInSource(
           {
             result: yaml,
-            errors: valResult.errors
-          }, mappedYaml!,
+            errors: valResult.errors,
+          },
+          mappedYaml!,
           errorMessage,
           error,
-          info
+          info,
         );
       }
       return {
         yaml: yaml as { [key: string]: unknown },
-        yamlValidationErrors: valResult.errors
+        yamlValidationErrors: valResult.errors,
       };
     } else {
       return {
         yaml: yaml as { [key: string]: unknown },
-        yamlValidationErrors: []
+        yamlValidationErrors: [],
       };
     }
   });
@@ -83,6 +82,6 @@ export async function readAndValidateYamlFromMappedString(
   if (result.yamlValidationErrors.length > 0) {
     throw new ValidationError(errorMessage, result.yamlValidationErrors);
   }
-  
+
   return result.yaml;
 }

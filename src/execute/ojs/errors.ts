@@ -23,11 +23,11 @@ export function ojsParseError(
   //   ojsSource,
   //   pos: acornError.pos
   // });
-  
+
   const { line, column } = indexToRowCol(
-    ojsSource.originalString
+    ojsSource.originalString,
   )(ojsSource.mapClosest(acornError.pos) as number);
-  
+
   const errMsg = `OJS parsing failed on line ${line + 1}, column ${column + 1}`;
   error(errMsg);
   error(acornMsg);

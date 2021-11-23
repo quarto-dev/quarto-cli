@@ -147,7 +147,12 @@ async function resolveResources(
   markdown: string,
   globs: string[],
 ): Promise<string[]> {
-  const resolved = await resolveFileResources(rootDir, fileDir, markdown, globs);
+  const resolved = await resolveFileResources(
+    rootDir,
+    fileDir,
+    markdown,
+    globs,
+  );
   const resources = ld.difference(
     resolved.include,
     resolved.exclude,

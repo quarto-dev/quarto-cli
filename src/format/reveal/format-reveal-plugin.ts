@@ -28,10 +28,10 @@ import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
 
 import {
+  arraySchema as arrayS,
+  BooleanSchema as BooleanS,
   objectSchema as objectS,
   StringSchema as StringS,
-  BooleanSchema as BooleanS,
-  arraySchema as arrayS
 } from "../../core/schema/common.ts";
 
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
@@ -113,14 +113,14 @@ const revealPluginSchema = objectS({
     script: arrayS(objectS({
       properties: {
         path: StringS,
-        "async": BooleanS
+        "async": BooleanS,
       },
-      required: ["path"]
+      required: ["path"],
       // FIXME is this an exhaustive schema?
     })),
     stylesheet: arrayS(StringS),
     // FIXME what's the schema for metadata?
-    [kSelfContained]: BooleanS
+    [kSelfContained]: BooleanS,
   },
   required: ["path", "name"],
   // FIXME is this an exhaustive schema?
@@ -456,7 +456,9 @@ function toneDependency() {
   return dependency;
 }
 
-async function pluginFromBundle(bundle: RevealPluginBundle): Promise<RevealPlugin> {
+async function pluginFromBundle(
+  bundle: RevealPluginBundle,
+): Promise<RevealPlugin> {
   // confirm it's a directory
   if (!existsSync(bundle.plugin) || !Deno.statSync(bundle.plugin).isDirectory) {
     throw new Error(
@@ -468,7 +470,8 @@ async function pluginFromBundle(bundle: RevealPluginBundle): Promise<RevealPlugi
   const plugin = (await readAndValidateYamlFromFile(
     join(bundle.plugin, "plugin.yml"),
     revealPluginSchema,
-    "Validation of reveal plugin object failed.")) as RevealPlugin;
+    "Validation of reveal plugin object failed.",
+  )) as RevealPlugin;
   plugin.path = bundle.plugin;
 
   // convert script and stylesheet to arrays
