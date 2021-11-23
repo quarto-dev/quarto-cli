@@ -207,26 +207,34 @@ export function updateSearchIndex(
           if (h2 && section.id) {
             const sectionTitle = h2.textContent;
             const hrefWithAnchor = `${href}#${section.id}`;
+            const sectionText = section.textContent.trim();
             h2.remove();
-            updateDoc({
-              objectID: hrefWithAnchor,
-              href: hrefWithAnchor,
-              title,
-              section: sectionTitle,
-              text: section.textContent.trim(),
-            });
+            if (sectionText) {
+              // Don't index empty sections
+              updateDoc({
+                objectID: hrefWithAnchor,
+                href: hrefWithAnchor,
+                title,
+                section: sectionTitle,
+                text: sectionText,
+              });
+            }
           }
         }
       } else { // otherwise a single doc
         const main = doc.querySelector("main");
         if (main) {
-          updateDoc({
-            objectID: href,
-            href,
-            title,
-            section: "",
-            text: main.textContent.trim(),
-          });
+          const mainText = main.textContent.trim();
+          if (mainText) {
+            // Don't index empty documents
+            updateDoc({
+              objectID: href,
+              href,
+              title,
+              section: "",
+              text: mainText,
+            });
+          }
         }
       }
 

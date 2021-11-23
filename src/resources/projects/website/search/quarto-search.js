@@ -840,8 +840,10 @@ function highlightMatch(query, text) {
         text.slice(end);
       const clipStart = Math.max(start - 50, 0);
       const clipEnd = clipStart + 200;
+
       text = text.slice(clipStart, clipEnd);
-      return text.slice(text.indexOf(" ") + 1);
+
+      return text;
     } else {
       return text;
     }
