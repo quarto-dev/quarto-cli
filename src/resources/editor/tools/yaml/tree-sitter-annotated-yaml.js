@@ -56,7 +56,6 @@ export function buildAnnotated(tree, mappedSource)
     "block_node": singletonBuild,
     "flow_node": singletonBuild,
     "block_scalar": (node) => {
-      debugger;
       if (!node.text.startsWith("|")) {
         throw new Error(`Internal error: can only build block_scalar if content starts with | (got "${node.text[0]}" instead)`);
       }
