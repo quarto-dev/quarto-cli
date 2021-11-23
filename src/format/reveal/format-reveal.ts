@@ -7,6 +7,7 @@
 
 import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
+  kCodeLineNumbers,
   kFrom,
   kHtmlMathMethod,
   kIncludeAfterBody,
@@ -158,6 +159,9 @@ export function revealjsFormat() {
             "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML-full",
         },
         [kSlideLevel]: 2,
+      },
+      render: {
+        [kCodeLineNumbers]: true,
       },
       resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
