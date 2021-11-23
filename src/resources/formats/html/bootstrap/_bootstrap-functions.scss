@@ -54,12 +54,18 @@
 }
 
 @function theme-override-value($theme, $varname, $default) {
+  // These will be defined in bootstrap, but creating values here
+  // That will make this function accessible to callers prior to bootstrap variables
+  // being set
+  $black: rgb(0, 0, 0) !default;
+  $white: rgb(255, 255, 255) !default;
+
   $theme-overrides: (
     litera: (
       navbar-bg: $white,
     ),
     cyborg: (
-      navbar-bg: if(variable-exists(body-bg), $body-bg, #000),
+      navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
     ),
     cerulean: (
       navbar-fg: $white,
@@ -68,19 +74,19 @@
       navbar-fg: $white,
     ),
     morph: (
-      navbar-bg: if(variable-exists(body-bg), $body-bg, #000),
+      navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
     ),
     sandstone: (
-      navbar-bg: if(variable-exists(dark), $dark, #000),
+      navbar-bg: if(variable-exists(dark), $dark, $black),
     ),
     solar: (
-      navbar-bg: if(variable-exists(dark), $dark, #000),
+      navbar-bg: if(variable-exists(dark), $dark, $black),
     ),
     spacelab: (
       navbar-bg: if(variable-exists(light), $light, #bbb),
     ),
     superhero: (
-      navbar-bg: if(variable-exists(dark), $dark, #000),
+      navbar-bg: if(variable-exists(dark), $dark, $black),
     ),
   );
 
