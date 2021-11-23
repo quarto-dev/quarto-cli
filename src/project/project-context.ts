@@ -112,7 +112,7 @@ export async function projectContext(
       const errMsg = "Project _quarto.yml validation failed.";
       let projectConfig = (await readAndValidateYamlFromFile(configFile, configSchema, errMsg)) as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
-      const includedMeta = await includedMetadata(dir, projectConfig);
+      const includedMeta = await includedMetadata(dir, projectConfig, configSchema);
       const metadata = includedMeta.metadata;
       configFiles.push(...includedMeta.files);
       projectConfig = mergeConfigs(projectConfig, metadata);

@@ -126,6 +126,7 @@ import { initDenoDom } from "../../core/html.ts";
 import { resolveLanguageMetadata } from "../../core/language.ts";
 
 import { validateDocument } from "../../core/schema/validate-document.ts";
+import { frontMatterSchema } from "../../core/schema/front-matter.ts";
 
 export async function renderFiles(
   files: string[],
@@ -796,7 +797,7 @@ export async function resolveFormatsFromMetadata(
   flags?: RenderFlags,
 ): Promise<Record<string, Format>> {
   // Read any included metadata files and merge in and metadata from the command
-  const included = await includedMetadata(includeDir, metadata);
+  const included = await includedMetadata(includeDir, metadata, frontMatterSchema);
   const allMetadata = mergeQuartoConfigs(
     metadata,
     included.metadata,

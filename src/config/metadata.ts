@@ -13,7 +13,7 @@ import { error } from "log/mod.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { frontMatterSchema } from "../core/schema/front-matter.ts";
+import { Schema } from "../core/lib/schema.ts";
 
 import {
   kExecuteDefaults,
@@ -37,6 +37,7 @@ import { Format, Metadata } from "./types.ts";
 export async function includedMetadata(
   dir: string,
   baseMetadata: Metadata,
+  schema: Schema
 ): Promise<{ metadata: Metadata; files: string[] }> {
   // Read any metadata files that are defined in the metadata itself
   const yamlFiles: string[] = [];
@@ -54,9 +55,8 @@ export async function includedMetadata(
   const filesMetadata = await Promise.all(yamlFiles.map(async (yamlFile) => {
     if (exists(yamlFile)) {
       try {
-        // FIXME: Confirm. I think this is front-matter, not project config implied by the prev comment (_quarto.yml)
         const yaml = await readAndValidateYamlFromFile(
-          yamlFile, frontMatterSchema, `Validation of metadata file ${yamlFile} failed.`);
+          yamlFile, schema, `Validation of metadata file ${yamlFile} failed.`);
         return yaml;
       } catch (e) {
         error("\nError reading metadata file from " + yamlFile + "\n");
