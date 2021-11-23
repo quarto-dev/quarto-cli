@@ -106,7 +106,7 @@ export async function partitionCellOptionsMapped(
   validate = false
 ) {
   const {
-    yaml,
+    yaml: mappedYaml,
     optionsSource,
     source,
     sourceStartLine
