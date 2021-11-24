@@ -547,7 +547,6 @@ window.QuartoYamlEditorTools = {
   getCompletions: async function (context, path) {
     try {
       setMainPath(path);
-      debugger;
       return getAutomation("completions", context);
     } catch (e) {
       console.log("Error found during autocomplete", e);
