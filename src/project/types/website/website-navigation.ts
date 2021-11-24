@@ -111,9 +111,10 @@ export const kSidebarLogo = "logo";
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // read config
-  const { navbar, sidebars, pageNavigation, footer } = websiteNavigationConfig(
-    project,
-  );
+  const { navbar, sidebars, pageNavigation, footer, pageMargin } =
+    websiteNavigationConfig(
+      project,
+    );
   if (!navbar && !sidebars && !pageNavigation) {
     return;
   }
@@ -138,6 +139,8 @@ export async function initWebsiteNavigation(project: ProjectContext) {
 
   navigation.pageNavigation = pageNavigation;
   navigation.footer = await resolveFooter(project, footer);
+
+  navigation.pageMargin = pageMargin;
 }
 
 export async function websiteNavigationExtras(
@@ -214,7 +217,6 @@ export async function websiteNavigationExtras(
   if (navigation.footer) {
     nav.footer = navigation.footer;
   }
-
   // determine whether to show the dark toggle
   const darkMode = formatDarkMode(format);
   if (darkMode !== undefined && nav.navbar) {
@@ -800,7 +802,6 @@ async function navbarEjsData(
   const collapse = navbar.collapse !== undefined ? !!navbar.collapse : true;
 
   const searchOpts = searchOptions(project);
-
   const data: Navbar = {
     ...navbar,
     search: searchOpts && searchOpts.location === "navbar"

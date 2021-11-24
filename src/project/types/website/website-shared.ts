@@ -14,12 +14,17 @@ import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { ProjectContext } from "../../types.ts";
 import { Navbar, NavItem, Sidebar, SidebarItem } from "../../project-config.ts";
 import {
+  kMarginFooter,
+  kMarginHeader,
   kPageFooter,
   kSiteNavbar,
   kSitePageNavigation,
   kSiteSidebar,
   kWebsite,
   websiteConfig,
+  websiteConfigArray,
+  websiteConfigMetadata,
+  websiteConfigString,
 } from "./website-config.ts";
 import { cookieConsentEnabled } from "./website-analytics.ts";
 import { Format, FormatExtras } from "../../../config/types.ts";
@@ -30,6 +35,7 @@ export interface Navigation {
   sidebars: Sidebar[];
   pageNavigation?: boolean;
   footer?: NavigationFooter;
+  pageMargin?: PageMargin;
 }
 
 export interface NavigationFooter {
@@ -43,6 +49,11 @@ export interface NavigationFooter {
 export interface NavigationPagination {
   nextPage?: SidebarItem;
   prevPage?: SidebarItem;
+}
+
+export interface PageMargin {
+  header?: string[];
+  footer?: string[];
 }
 
 export function computePageTitle(
@@ -79,7 +90,9 @@ export function inputFileHref(href: string) {
 
 export function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
-  let navbar = websiteConfig(kSiteNavbar, project.config) as Navbar | undefined;
+  let navbar = websiteConfigMetadata(kSiteNavbar, project.config) as
+    | Navbar
+    | undefined;
   if (typeof (navbar) !== "object") {
     navbar = undefined;
   }
@@ -109,7 +122,10 @@ export function websiteNavigationConfig(project: ProjectContext) {
   }
 
   // read the page navigation
-  const pageNavigation = !!websiteConfig(kSitePageNavigation, project.config);
+  const pageNavigation = !!websiteConfigString(
+    kSitePageNavigation,
+    project.config,
+  );
 
   // read any footer
   const footerValue = (
@@ -129,7 +145,7 @@ export function websiteNavigationConfig(project: ProjectContext) {
   if (typeof (footerConfig) === "string") {
     // place the markdown in the center
     footer.center = footerConfig;
-  } else {
+  } else if (!Array.isArray(footerConfig)) {
     // Map left center and right to the footer
     footer.left = footerValue(footerConfig?.left);
     footer.center = footerValue(footerConfig?.center);
@@ -141,8 +157,18 @@ export function websiteNavigationConfig(project: ProjectContext) {
     footer.center = " ";
   }
 
+  const pageMargin: PageMargin = {};
+  const headerVal = websiteConfigArray(kMarginHeader, project.config);
+  if (headerVal) {
+    pageMargin.header = headerVal;
+  }
+  const footerVal = websiteConfigArray(kMarginFooter, project.config);
+  if (footerVal) {
+    pageMargin.footer = footerVal;
+  }
+
   // return
-  return { navbar, sidebars, pageNavigation, footer };
+  return { navbar, sidebars, pageNavigation, footer, pageMargin };
 }
 
 export function flattenItems(

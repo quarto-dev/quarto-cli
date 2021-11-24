@@ -5,6 +5,7 @@
 *
 */
 
+import { existsSync } from "fs/mod.ts";
 import { ld } from "lodash/mod.ts";
 import { formatKeys } from "../../../command/render/render.ts";
 
@@ -39,6 +40,9 @@ export const kSiteSidebar = "sidebar";
 export const kSiteSidebarStyle = "style";
 export const kSitePageNavigation = "page-navigation";
 export const kPageFooter = "page-footer";
+
+export const kMarginHeader = "margin-header";
+export const kMarginFooter = "margin-footer";
 
 export const kContents = "contents";
 
@@ -90,19 +94,59 @@ export interface OpenGraphConfig {
   [kSiteName]?: string;
 }
 
+type WebsiteConfigKey =
+  | "title"
+  | "site-url"
+  | "site-path"
+  | "repo-url"
+  | "repo-branch"
+  | "repo-actions"
+  | "navbar"
+  | "sidebar"
+  | "page-navigation"
+  | "page-footer"
+  | "margin-header"
+  | "margin-footer"
+  | "search";
+
+export function websiteConfigString(
+  name: WebsiteConfigKey,
+  project?: ProjectConfig,
+) {
+  const config = websiteConfig(name, project);
+  if (typeof (config) === "string") {
+    return config;
+  } else {
+    return undefined;
+  }
+}
+
+export function websiteConfigMetadata(
+  name: WebsiteConfigKey,
+  project?: ProjectConfig,
+) {
+  const config = websiteConfig(name, project);
+  if (typeof (config) === "object" && !Array.isArray(config)) {
+    return config;
+  } else {
+    return undefined;
+  }
+}
+
+export function websiteConfigArray(
+  name: WebsiteConfigKey,
+  project?: ProjectConfig,
+) {
+  const config = websiteConfig(name, project);
+  if (Array.isArray(config)) {
+    return config;
+  } else {
+    return undefined;
+  }
+}
+
 export function websiteConfig(
-  name:
-    | "title"
-    | "site-url"
-    | "site-path"
-    | "repo-url"
-    | "repo-branch"
-    | "repo-actions"
-    | "navbar"
-    | "sidebar"
-    | "page-navigation"
-    | "page-footer"
-    | "search",
+  name: WebsiteConfigKey,
   project?: ProjectConfig,
 ) {
   const site = project?.[kWebsite] as
@@ -110,22 +154,26 @@ export function websiteConfig(
     | undefined;
 
   if (site) {
-    return site[name] as Record<string, unknown> | string | undefined;
+    return site[name] as
+      | Record<string, unknown>
+      | string
+      | Array<string>
+      | undefined;
   } else {
     return undefined;
   }
 }
 
 export function websiteTitle(project?: ProjectConfig): string | undefined {
-  return websiteConfig(kSiteTitle, project) as string | undefined;
+  return websiteConfigString(kSiteTitle, project);
 }
 
 export function websiteBaseurl(project?: ProjectConfig): string | undefined {
-  return websiteConfig(kSiteUrl, project) as string | undefined;
+  return websiteConfigString(kSiteUrl, project);
 }
 
 export function websitePath(project?: ProjectConfig): string {
-  let path = websiteConfig(kSitePath, project) as string | undefined;
+  let path = websiteConfigString(kSitePath, project);
   if (path) {
     if (!path.endsWith("/")) {
       path = path + "/";
@@ -151,7 +199,7 @@ export function websitePath(project?: ProjectConfig): string {
 }
 
 export function websiteRepoUrl(project?: ProjectConfig): string | undefined {
-  const repoUrl = websiteConfig(kSiteRepoUrl, project) as string | undefined;
+  const repoUrl = websiteConfigString(kSiteRepoUrl, project);
   if (repoUrl) {
     if (!repoUrl.endsWith("/")) {
       return repoUrl + "/";
@@ -164,8 +212,7 @@ export function websiteRepoUrl(project?: ProjectConfig): string | undefined {
 }
 
 export function websiteRepoBranch(project?: ProjectConfig): string {
-  return websiteConfig(kSiteRepoBranch, project) as string | undefined ||
-    "main";
+  return websiteConfigString(kSiteRepoBranch, project) || "main";
 }
 
 export function websiteMetadataFields(): Array<string | RegExp> {
@@ -244,6 +291,24 @@ export function websiteProjectConfig(
   } else {
     config[kMetadataFormat] = "html";
   }
+
+  // Resolve elements that could be paths to markdown and
+  // ensure they are arrays so they can be merged
+  const siteMeta = (config[kWebsite] || {}) as Metadata;
+  if (siteMeta[kMarginHeader]) {
+    siteMeta[kMarginHeader] = expandMarkdown(
+      kMarginHeader,
+      siteMeta[kMarginHeader],
+    );
+  }
+  if (siteMeta[kMarginFooter]) {
+    siteMeta[kMarginFooter] = expandMarkdown(
+      kMarginFooter,
+      siteMeta[kMarginFooter],
+    );
+  }
+  config[kSite] = siteMeta;
+
   return Promise.resolve(config);
 }
 
@@ -252,4 +317,25 @@ export function websiteHtmlFormat(project: ProjectContext): Format {
   const baseFormat = metadataAsFormat(projConfig);
   const format = formatFromMetadata(baseFormat, formatKeys(projConfig)[0]);
   return mergeConfigs(baseFormat, format);
+}
+
+function expandMarkdown(name: string, val: unknown): String[] {
+  if (Array.isArray(val)) {
+    return val.map((pathOrMarkdown) => {
+      return expandMarkdownFilePath(pathOrMarkdown);
+    });
+  } else if (typeof (val) == "string") {
+    return [expandMarkdownFilePath(val)];
+  } else {
+    throw Error(`Invalid value for ${name}:\n${val}`);
+  }
+}
+
+function expandMarkdownFilePath(val: string): string {
+  if (existsSync(val)) {
+    const fileContents = Deno.readTextFileSync(val);
+    return fileContents;
+  } else {
+    return val;
+  }
 }

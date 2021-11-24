@@ -16,6 +16,7 @@ import {
   flattenItems,
   Navigation,
   NavigationPagination,
+  PageMargin,
 } from "./website-shared.ts";
 import { removeChapterNumber } from "./website-navigation.ts";
 import { MarkdownPipelineHandler } from "./website-pipeline-md.ts";
@@ -31,6 +32,7 @@ export interface NavigationPipelineContext {
   format: Format;
   sidebar?: Sidebar;
   navigation?: Navigation;
+  pageMargin?: PageMargin;
   pageNavigation: NavigationPagination;
 }
 
@@ -43,6 +45,7 @@ export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
     sidebarContentsHandler(context),
     navbarContentsHandler(context),
     footerHandler(context),
+    marginHeaderFooterHandler(context),
   ];
 }
 
@@ -265,6 +268,62 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
           }
         }
       });
+    },
+  };
+};
+
+// Render and place the margin and header and footer, if specified
+const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
+  const kMarginHeader = "margin-header";
+  const kMarginFooter = "margin-footer";
+
+  const toMarkdown = (prefix: string, content: string[]) => {
+    return content.reduce(
+      (previousValue, currentValue) => {
+        return `${previousValue}\n:::{.${prefix}-item\n${currentValue}\n:::\n`;
+      },
+      "",
+    );
+  };
+
+  const toContainer = (doc: Document, prefix: string, contentEl: Element) => {
+    const containerEl = doc.createElement("div");
+    containerEl.classList.add(`quarto-${prefix}`);
+    for (const child of contentEl.children) {
+      containerEl.appendChild(child);
+    }
+    return containerEl;
+  };
+
+  return {
+    getUnrendered() {
+      const result: Record<string, string> = {};
+      if (context.navigation?.pageMargin) {
+        const headers = context.navigation.pageMargin.header;
+        if (headers && headers.length > 0) {
+          result[kMarginHeader] = toMarkdown(kMarginHeader, headers);
+        }
+        const footers = context.navigation.pageMargin.footer;
+        if (footers && footers.length > 0) {
+          result[kMarginFooter] = toMarkdown(kMarginFooter, footers);
+        }
+      }
+      return result;
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      var tocEl = doc.getElementById("TOC");
+      if (tocEl) {
+        const renderedHeaderEl = rendered[kMarginHeader];
+        if (renderedHeaderEl) {
+          const headerEl = toContainer(doc, kMarginHeader, renderedHeaderEl);
+          tocEl.insertBefore(headerEl, tocEl.firstChild);
+        }
+        const renderedFooterEl = rendered[kMarginFooter];
+        if (renderedFooterEl) {
+          const footerEl = toContainer(doc, kMarginFooter, renderedFooterEl);
+          tocEl.appendChild(footerEl);
+        }
+      }
     },
   };
 };

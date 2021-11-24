@@ -72,7 +72,7 @@ export function processMarkdownRenderEnvelope(
 const markdownEnvelopeWriter = (envelopeId: string) => {
   const renderList: string[] = [];
   const hiddenSpan = (id: string, contents: string) => {
-    return `[${contents}]{.hidden render-id="${id}"}`;
+    return `\n:::{.hidden render-id="${id}"}\n${contents}\n:::\n`;
   };
 
   return {
@@ -90,7 +90,7 @@ const readEnvelope = (doc: Document, envelopeId: string) => {
   const envelope = doc.getElementById(envelopeId);
   const contents: Record<string, Element> = {};
   if (envelope) {
-    const nodes = envelope.querySelectorAll("span[data-render-id]");
+    const nodes = envelope.querySelectorAll("div[data-render-id]");
     nodes.forEach((node) => {
       const el = node as Element;
       const id = el.getAttribute("data-render-id");
