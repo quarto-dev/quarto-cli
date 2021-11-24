@@ -374,8 +374,12 @@ function localizeAndPruneErrors(
         messageNoLocation = error.message;
       } else {
         const innerSchema = navigateSchema(schemaPath, schema);
-        messageNoLocation =
-          `Field ${instancePath} must ${innerSchema.description}`;
+        if (instancePath === "") {
+          messageNoLocation = `(top-level error) ${error.message}`;
+        } else {
+          messageNoLocation =
+            `Field ${instancePath} must ${innerSchema.description}`;
+        }
       }
       const message = `${locStr}: ${messageNoLocation}`;
 
