@@ -90,6 +90,7 @@ import {
   kLatexMinRuns,
   kLatexOutputDir,
   kLatexTlmgrOpts,
+  kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kListings,
@@ -293,6 +294,7 @@ export interface FormatRender {
   [kLatexOutputDir]?: string | null;
   [kLinkExternalIcon]?: string | boolean;
   [kLinkExternalNewwindow]?: boolean;
+  [kLinkExternalFilter]?: string;
 }
 
 export interface FormatExecute {

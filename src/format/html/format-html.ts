@@ -24,6 +24,7 @@ import {
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeInHeader,
+  kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
 } from "../../config/constants.ts";
@@ -67,6 +68,7 @@ import {
   quartoBaseLayer,
   quartoGlobalCssVariableRules,
 } from "./format-html-shared.ts";
+import { kSite, kSiteUrl } from "../../project/types/website/website-config.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -208,6 +210,17 @@ export function htmlFormatExtras(
   options.darkMode = formatDarkMode(format);
   options.linkExternalIcon = format.render[kLinkExternalIcon];
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
+  options.linkExternalFilter = format.render[kLinkExternalFilter];
+
+  // If there is a site URL, we can use that as the default filter
+  const siteMetadata = format.metadata[kSite] as Metadata;
+  if (!options.linkExternalFilter && siteMetadata) {
+    const siteUrl = siteMetadata[kSiteUrl] as string;
+    options.linkExternalFilter = siteUrl.replaceAll(".", "\\.").replaceAll(
+      "/",
+      "\\/",
+    );
+  }
 
   // quarto.js helpers
   if (bootstrap) {
