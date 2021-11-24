@@ -28,6 +28,7 @@ import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
 
 import {
+  oneOfSchema as oneOfS,
   arraySchema as arrayS,
   BooleanSchema as BooleanS,
   objectSchema as objectS,
@@ -106,20 +107,24 @@ interface RevealPluginScript {
   async?: boolean;
 }
 
+const scriptSchema = oneOfS(
+  StringS,
+  objectS({
+    properties: {
+      path: StringS,
+      "async": BooleanS,
+    },
+    required: ["path"],
+    // FIXME is this an exhaustive schema?
+  }));
+
 const revealPluginSchema = withId(objectS({
   properties: {
     path: StringS,
     name: StringS,
     register: BooleanS,
-    script: arrayS(objectS({
-      properties: {
-        path: StringS,
-        "async": BooleanS,
-      },
-      required: ["path"],
-      // FIXME is this an exhaustive schema?
-    })),
-    stylesheet: arrayS(StringS),
+    script: oneOfS(scriptSchema, arrayS(scriptSchema)),
+    stylesheet: oneOfS(StringS, arrayS(StringS)),
     // FIXME what's the schema for metadata?
     [kSelfContained]: BooleanS,
   },
