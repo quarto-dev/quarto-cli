@@ -153,6 +153,18 @@ export async function inputFileForOutputFile(
   }
 }
 
+export async function inputTargetIndexForOutputFile(
+  project: ProjectContext,
+  outputRelative: string,
+) {
+  const input = await inputFileForOutputFile(project, outputRelative);
+  if (input) {
+    return await inputTargetIndex(project, relative(project.dir, input));
+  } else {
+    return undefined;
+  }
+}
+
 function inputTargetIndexFile(projectDir: string, input: string): string {
   return indexPath(projectDir, `${input}.json`);
 }
