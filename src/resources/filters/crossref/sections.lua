@@ -42,12 +42,15 @@ function sections()
         local order = indexNextOrder("sec")
         indexAddEntry(el.attr.identifier, nil, order, el.content)
       end
+
+      -- if the number sections option is enabled then emulate pandoc numbering
+      local section = sectionNumber(crossref.index.section, level)
+      if numberSectionsOptionEnabled() and level <= numberDepth() then
+        el.attr.attributes["number"] = section
+      end
       
       -- number the section if required
       if (numberSections() and level <= numberDepth()) then
-        local section = sectionNumber(crossref.index.section, level)
-        el.attr.attributes["number"] = section
-
         local appendix = (level == 1) and currentFileMetadataState().appendix
         if appendix then
           el.content:insert(1, pandoc.Space())
@@ -88,7 +91,11 @@ function currentSectionLevel()
 end
 
 function numberSections()
-  return not isLatexOutput() and param("number-sections", false)
+  return not isLatexOutput() and numberSectionsOptionEnabled()
+end
+
+function numberSectionsOptionEnabled()
+  return param("number-sections", false)
 end
 
 function numberDepth() 
