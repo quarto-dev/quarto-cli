@@ -325,7 +325,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
     line,
   } = context;
 
-  const result = core.breakQuartoMd(context.code);
+  const result = await core.breakQuartoMd(context.code);
 
   const adjustedCellSize = (cell) => {
     const cellLines = core.lines(cell.source.value);
