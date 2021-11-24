@@ -43,32 +43,29 @@ function sections()
         indexAddEntry(el.attr.identifier, nil, order, el.content)
       end
       
-
       -- number the section if required
-      if (level <= numberDepth()) then
-        -- add the section number to the ast (useful for downstream filters)
+      if (numberSections() and level <= numberDepth()) then
         local section = sectionNumber(crossref.index.section, level)
         el.attr.attributes["number"] = section
 
-        if (numberSections()) then
-          local appendix = (level == 1) and currentFileMetadataState().appendix
-          if appendix then
-            el.content:insert(1, pandoc.Space())
-            tprepend(el.content, crossrefOption("appendix-delim", stringToInlines(" —")))
-          else
-            el.content:insert(1, pandoc.Space())
-          end
-
-          el.content:insert(1, pandoc.Span(
-            stringToInlines(section),
-            pandoc.Attr("", { "header-section-number"})
-          ))
-
-          if appendix then
-            el.content:insert(1, pandoc.Space())
-            tprepend(el.content, crossrefOption("appendix-title", stringToInlines("Appendix")))
-          end
+        local appendix = (level == 1) and currentFileMetadataState().appendix
+        if appendix then
+          el.content:insert(1, pandoc.Space())
+          tprepend(el.content, crossrefOption("appendix-delim", stringToInlines(" —")))
+        else
+          el.content:insert(1, pandoc.Space())
         end
+
+        el.content:insert(1, pandoc.Span(
+          stringToInlines(section),
+          pandoc.Attr("", { "header-section-number"})
+        ))
+
+        if appendix then
+          el.content:insert(1, pandoc.Space())
+          tprepend(el.content, crossrefOption("appendix-title", stringToInlines("Appendix")))
+        end
+
       end
       
       -- return 
