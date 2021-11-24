@@ -9,6 +9,8 @@ import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
+import { error } from "log/mod.ts";
+
 import {
   Format,
   FormatDependency,
@@ -472,14 +474,21 @@ async function pluginFromBundle(
         "' does not exist.",
     );
   }
-  
-  // read the plugin definition (and provide the path)
-  const plugin = (await readAndValidateYamlFromFile(
-    join(bundle.plugin, "plugin.yml"),
-    revealPluginSchema,
-    "Validation of reveal plugin object failed.",
-  )) as RevealPlugin;
-  plugin.path = bundle.plugin;
+
+  let plugin;
+
+  try {
+    // read the plugin definition (and provide the path)
+    plugin = (await readAndValidateYamlFromFile(
+      join(bundle.plugin, "plugin.yml"),
+      revealPluginSchema,
+      "Validation of reveal plugin object failed.",
+    )) as RevealPlugin;
+    plugin.path = bundle.plugin;
+  } catch (e) {
+    error(`Validation of plugin configuration ${join(bundle.plugin, "plugin.yml")} failed.`);
+    throw e;
+  }
 
   // convert script and stylesheet to arrays
   if (plugin.script && !Array.isArray(plugin.script)) {
