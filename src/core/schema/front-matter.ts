@@ -28,7 +28,7 @@ export const htmlFormatSchema = objectS({
 });
 
 export const frontMatterFormatSchema = oneOfS(
-  enumS("html", "pdf"),
+  enumS("html", "revealjs", "pdf"),
   htmlFormatSchema,
 );
 
