@@ -83,9 +83,11 @@
   <% partial('sidebar.ejs', { sidebar: nav.sidebar, navbar: !!nav.navbar }) %>
 <% } %>
 
-<!-- toc -->
+<!-- margin-sidebar -->
 <% if (nav.layout === "article" && nav.toc) { %>
-    <div id="quarto-toc-sidebar" class="sidebar sidebar-toc"></div>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+      <div id="quarto-toc-target"></div>
+    </div>
 <% } %>
 
 <!-- main -->

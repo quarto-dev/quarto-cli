@@ -6,10 +6,9 @@ const sectionChanged = new CustomEvent("quarto-sectionChanged", {
 });
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
-  // get table of contents and sidebar (bail if we don't have at least one)
   var tocEl = window.document.getElementById("TOC");
   var sidebarEl = window.document.getElementById("quarto-sidebar");
-  if (!tocEl && !sidebarEl) return;
+  var marginSidebarEl = window.document.getElementById("quarto-margin-sidebar");
 
   // function to determine whether the element has a previous sibling that is active
   const prevSiblingIsActiveLink = (el) => {
@@ -22,6 +21,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   };
 
   // Track scrolling and mark TOC links as active
+  // get table of contents and sidebar (bail if we don't have at least one)
   const tocLinks = tocEl
     ? [...tocEl.querySelectorAll("a[data-scroll-target]")]
     : [];
@@ -59,6 +59,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     const target = link.getAttribute("data-scroll-target");
     return window.document.querySelector(`${target}`);
   });
+
   const sectionMargin = 200;
   let currentActive = 0;
   // track whether we've initialized state the first time
@@ -144,7 +145,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           // and insert a placeholder toggle
           if (inHiddenRegion(elTop, elBottom, hiddenRegions)) {
             const elBackground = window
-              .getComputedStyle(el, null)
+              .getComputedStyle(window.document.body, null)
               .getPropertyValue("background");
             el.classList.add("rollup");
 
@@ -253,7 +254,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   };
 
   // Manage the visibility of the toc and the sidebar
-  const tocScrollVisibility = manageSidebarVisiblity(tocEl, {
+  const marginScrollVisibility = manageSidebarVisiblity(marginSidebarEl, {
     id: "quarto-toc-toggle",
     titleSelector: "#toc-title",
     dismissOnClick: true,
@@ -322,7 +323,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   }
 
   const hideOverlappedSidebars = () => {
-    tocScrollVisibility(toRegions(rightSideConflictEls));
+    marginScrollVisibility(toRegions(rightSideConflictEls));
     sidebarScrollVisiblity(toRegions(leftSideConflictEls));
   };
 

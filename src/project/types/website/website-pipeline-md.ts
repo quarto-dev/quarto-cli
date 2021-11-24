@@ -78,7 +78,7 @@ export function createMarkdownRenderEnvelope(
   }
   if (pipelineMarkdown.blocks) {
     for (const key of Object.keys(pipelineMarkdown.blocks)) {
-      envelope.addInline(key, pipelineMarkdown.blocks[key]);
+      envelope.addBlock(key, pipelineMarkdown.blocks[key]);
     }
   }
   return envelope.toMarkdown();

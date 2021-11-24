@@ -292,7 +292,7 @@ const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
   const toMarkdown = (prefix: string, content: string[]) => {
     return content.reduce(
       (previousValue, currentValue) => {
-        return `${previousValue}\n:::{.${prefix}-item\n${currentValue}\n:::\n`;
+        return `${previousValue}\n:::{.${prefix}-item}\n${currentValue}\n:::\n`;
       },
       "",
     );
@@ -323,7 +323,7 @@ const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
       return { blocks: result };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
-      var tocEl = doc.getElementById("TOC");
+      var tocEl = doc.getElementById("quarto-margin-sidebar");
       if (tocEl) {
         const renderedHeaderEl = rendered[kMarginHeader];
         if (renderedHeaderEl) {
