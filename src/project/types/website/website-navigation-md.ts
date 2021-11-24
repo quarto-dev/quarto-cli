@@ -72,13 +72,17 @@ const sidebarTitleHandler = (
     getUnrendered() {
       if (context.sidebar?.title) {
         return {
-          [kSidebarTitleId]: context.sidebar.title,
+          inlines: {
+            [kSidebarTitleId]: context.sidebar.title,
+          },
         };
       } else {
         const mainTitle = title(context.format);
         if (mainTitle) {
           return {
-            [kSidebarTitleId]: mainTitle,
+            inlines: {
+              [kSidebarTitleId]: mainTitle,
+            },
           };
         }
       }
@@ -101,12 +105,16 @@ const navbarTitleHandler = (context: NavigationPipelineContext) => {
   return {
     getUnrendered() {
       if (context.navigation?.navbar?.title) {
-        return { [kNavbarTitleId]: context.navigation.navbar.title };
+        return {
+          inlines: { [kNavbarTitleId]: context.navigation.navbar.title },
+        };
       } else {
         const mainTitle = title(context.format);
         if (mainTitle) {
           return {
-            [kNavbarTitleId]: mainTitle,
+            inlines: {
+              [kNavbarTitleId]: mainTitle,
+            },
           };
         }
       }
@@ -129,7 +137,9 @@ const nextPageTitleHandler = (context: NavigationPipelineContext) => {
   return {
     getUnrendered() {
       if (context.pageNavigation.nextPage?.text) {
-        return { [kNavNextId]: context.pageNavigation.nextPage.text };
+        return {
+          inlines: { [kNavNextId]: context.pageNavigation.nextPage.text },
+        };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
@@ -150,7 +160,9 @@ const prevPageTitleHandler = (context: NavigationPipelineContext) => {
   return {
     getUnrendered() {
       if (context.pageNavigation.prevPage?.text) {
-        return { [kNavPrevId]: context.pageNavigation.prevPage.text };
+        return {
+          inlines: { [kNavPrevId]: context.pageNavigation.prevPage.text },
+        };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
@@ -182,7 +194,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
               item.text;
           }
         });
-        return markdown;
+        return { inlines: markdown };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
@@ -195,7 +207,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
         const sidebarText =
           rendered[`${kSidebarIdPrefix}${href || link.innerText}`];
         if (sidebarText) {
-          link.innerHTML = sidebarText?.innerHTML;
+          link.innerHTML = sidebarText.innerHTML;
         }
       }
 
@@ -212,7 +224,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
           if (id) {
             const sectionText = rendered[`${kSidebarIdPrefix}${id}`];
             if (sectionText) {
-              div.innerHTML = sectionText?.innerHTML;
+              div.innerHTML = sectionText.innerHTML;
             }
           }
         }
@@ -245,7 +257,7 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
         entries.forEach((entry) => {
           addEntry(entry);
         });
-        return markdown;
+        return { inlines: markdown };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
@@ -308,7 +320,7 @@ const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
           result[kMarginFooter] = toMarkdown(kMarginFooter, footers);
         }
       }
-      return result;
+      return { blocks: result };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       var tocEl = doc.getElementById("TOC");
@@ -363,7 +375,7 @@ const footerHandler = (context: NavigationPipelineContext) => {
           addEntry("right", context.navigation.footer.right);
         }
 
-        return markdown;
+        return { inlines: markdown };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {

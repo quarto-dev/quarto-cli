@@ -402,7 +402,7 @@ function metaMarkdownPipeline(format: Format) {
     getUnrendered() {
       const resolvedTitle = computePageTitle(format);
       if (resolvedTitle !== undefined) {
-        return { [kMetaTitleId]: resolvedTitle };
+        return { inlines: { [kMetaTitleId]: resolvedTitle } };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
@@ -432,7 +432,7 @@ function metaMarkdownPipeline(format: Format) {
     getUnrendered() {
       const siteMeta = format.metadata[kWebsite] as Metadata;
       if (siteMeta && siteMeta[kTitle]) {
-        return { [kMetaSideNameId]: siteMeta[kTitle] as string };
+        return { inlines: { [kMetaSideNameId]: siteMeta[kTitle] as string } };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
