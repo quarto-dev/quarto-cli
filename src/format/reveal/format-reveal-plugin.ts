@@ -472,7 +472,7 @@ async function pluginFromBundle(
         "' does not exist.",
     );
   }
-  debugger;
+  
   // read the plugin definition (and provide the path)
   const plugin = (await readAndValidateYamlFromFile(
     join(bundle.plugin, "plugin.yml"),
