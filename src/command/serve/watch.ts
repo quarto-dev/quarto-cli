@@ -16,6 +16,8 @@ import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
 import { md5Hash } from "../../core/hash.ts";
 
 import { logError } from "../../core/log.ts";
+import { isRevealjsOutput } from "../../config/format.ts";
+
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
@@ -29,6 +31,8 @@ import { RenderFlags, RenderResult } from "../render/types.ts";
 import { renderProject } from "../render/project.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { render } from "../render/render-shared.ts";
+import { isRStudio } from "../../core/platform.ts";
+import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
 
 interface WatchChanges {
   config?: boolean;
@@ -242,25 +246,28 @@ export function watchProject(
         return extname(file) === ".html";
       });
 
-      let reloadTarget = "";
-      if (lastHtmlFile && options.navigate) {
-        if (lastHtmlFile.startsWith(outputDir)) {
-          reloadTarget = relative(outputDir, lastHtmlFile);
-        } else {
-          reloadTarget = relative(projDir, lastHtmlFile);
-        }
-        if (existsSync(join(outputDir, reloadTarget))) {
-          reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
-        } else {
-          reloadTarget = "";
-        }
-      }
-
       // clear out the modified list
       modified.splice(0, modified.length);
 
-      // reload clients
-      reloader.reloadClients(reloadTarget);
+      // verify that its okay to reload this file
+      if (await shouldReloadHtmlFile(project, lastHtmlFile, options)) {
+        let reloadTarget = "";
+        if (lastHtmlFile && options.navigate) {
+          if (lastHtmlFile.startsWith(outputDir)) {
+            reloadTarget = relative(outputDir, lastHtmlFile);
+          } else {
+            reloadTarget = relative(projDir, lastHtmlFile);
+          }
+          if (existsSync(join(outputDir, reloadTarget))) {
+            reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
+          } else {
+            reloadTarget = "";
+          }
+        }
+
+        // reload clients
+        reloader.reloadClients(reloadTarget);
+      }
     } catch (e) {
       logError(e);
     }
@@ -325,4 +332,25 @@ export function watchProject(
       return serveProject;
     },
   });
+}
+
+async function shouldReloadHtmlFile(
+  project: ProjectContext,
+  lastHtmlFile: string,
+  options: ServeOptions,
+) {
+  // if we are in rstudio with watchInputs off then we are using rstudio tooling
+  // for the site preview -- in this case presentations are going to be handled
+  // separately by the presentation pane
+  if (isRStudio() && !options.watchInputs) {
+    const index = await inputTargetIndexForOutputFile(
+      project,
+      relative(projectOutputDir(project), lastHtmlFile),
+    );
+    if (index) {
+      return !isRevealjsOutput(Object.keys(index.formats)[0]);
+    }
+  }
+
+  return true;
 }

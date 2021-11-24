@@ -81,8 +81,14 @@ export function isPresentationOutput(format: FormatPandoc) {
   }
 }
 
-export function isRevealjsOutput(format: FormatPandoc) {
-  return !!format.to && format.to.startsWith("revealjs");
+export function isRevealjsOutput(format: string): boolean;
+export function isRevealjsOutput(format: FormatPandoc): boolean;
+export function isRevealjsOutput(format?: string | FormatPandoc) {
+  if (typeof (format) !== "string") {
+    format = format?.to;
+  }
+  format = format || "html";
+  return format.startsWith("revealjs");
 }
 
 export function isIpynbOutput(format: FormatPandoc) {

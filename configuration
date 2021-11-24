@@ -9,7 +9,7 @@
 
 # Binary dependencies
 export DENO=v1.13.2
-export PANDOC=2.16.1
+export PANDOC=2.16.2
 export DARTSASS=1.32.8
 export ESBUILD=0.12.10
 
