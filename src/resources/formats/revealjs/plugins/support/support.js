@@ -93,7 +93,6 @@ window.QuartoSupport = function () {
     if (window.L) {
       L.Map.addInitHook(function () {
         function unScale(slides, scale) {
-          console.log(this);
           const container = this.getContainer();
 
           // Cancel revealjs scaling on map container by doing the opposite of what it sets
