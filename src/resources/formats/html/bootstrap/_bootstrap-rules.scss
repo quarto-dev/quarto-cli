@@ -710,7 +710,8 @@ li code:not(.sourceCode) {
 }
 
 .sidebar.margin-sidebar {
-  margin-top: 1em;
+  top: 0px;
+  padding-top: 1em;
 }
 
 .sidebar nav#TOC > h2 {
