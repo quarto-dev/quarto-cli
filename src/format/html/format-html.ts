@@ -216,10 +216,12 @@ export function htmlFormatExtras(
   const siteMetadata = format.metadata[kSite] as Metadata;
   if (!options.linkExternalFilter && siteMetadata) {
     const siteUrl = siteMetadata[kSiteUrl] as string;
-    options.linkExternalFilter = siteUrl.replaceAll(".", "\\.").replaceAll(
-      "/",
-      "\\/",
-    );
+    if (siteUrl) {
+      options.linkExternalFilter = siteUrl.replaceAll(".", "\\.").replaceAll(
+        "/",
+        "\\/",
+      );
+    }
   }
 
   // quarto.js helpers
