@@ -128,7 +128,7 @@ const revealPluginSchema = withId(objectS({
     // FIXME what's the schema for metadata?
     [kSelfContained]: BooleanS,
   },
-  required: ["path", "name"],
+  required: ["name"],
   // FIXME is this an exhaustive schema?
 }), "plugin-reveal");
 
@@ -472,6 +472,7 @@ async function pluginFromBundle(
         "' does not exist.",
     );
   }
+  debugger;
   // read the plugin definition (and provide the path)
   const plugin = (await readAndValidateYamlFromFile(
     join(bundle.plugin, "plugin.yml"),
