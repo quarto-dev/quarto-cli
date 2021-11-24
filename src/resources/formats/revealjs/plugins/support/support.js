@@ -54,36 +54,58 @@ window.QuartoSupport = function () {
       if (document.querySelector(".slide-menu-button")) {
         chalkboardDiv.classList.add("slide-menu-offset");
       }
-      // add buttons if requested
+      // add buttons
+      const buttons = [
+        {
+          icon: "easel2",
+          title: "Toggle Chalkboard (b)",
+          onclick: chalkboard.toggleChalkboard,
+        },
+        {
+          icon: "brush",
+          title: "Toggle Notes Canvas (c)",
+          onclick: chalkboard.toggleNotesCanvas,
+        },
+      ];
+      buttons.forEach(function (button) {
+        const span = document.createElement("span");
+        span.title = button.title;
+        const icon = document.createElement("i");
+        icon.classList.add("fas");
+        icon.classList.add("fa-" + button.icon);
+        span.appendChild(icon);
+        span.onclick = function (event) {
+          event.preventDefault();
+          button.onclick();
+        };
+        chalkboardDiv.appendChild(span);
+      });
+      revealParent.appendChild(chalkboardDiv);
       const config = deck.getConfig();
-      if (config.chalkboard.buttons) {
-        const buttons = [
-          {
-            icon: "easel2",
-            title: "Toggle Chalkboard (b)",
-            onclick: chalkboard.toggleChalkboard,
-          },
-          {
-            icon: "brush",
-            title: "Toggle Notes Canvas (c)",
-            onclick: chalkboard.toggleNotesCanvas,
-          },
-        ];
-        buttons.forEach(function (button) {
-          const span = document.createElement("span");
-          span.title = button.title;
-          const icon = document.createElement("i");
-          icon.classList.add("fas");
-          icon.classList.add("fa-" + button.icon);
-          span.appendChild(icon);
-          span.onclick = function (event) {
-            event.preventDefault();
-            button.onclick();
-          };
-          chalkboardDiv.appendChild(span);
-        });
-        revealParent.appendChild(chalkboardDiv);
+      if (!config.chalkboard.buttons) {
+        chalkboardDiv.classList.add("hidden");
       }
+
+      // show and hide chalkboard buttons on slidechange
+      deck.on("slidechanged", function (ev) {
+        const config = deck.getConfig();
+        let buttons = !!config.chalkboard.buttons;
+        const slideButtons = ev.currentSlide.getAttribute(
+          "data-chalkboard-buttons"
+        );
+        if (slideButtons) {
+          if (slideButtons === "true" || slideButtons === "1") {
+            buttons = true;
+          } else if (slideButtons === "false" || slideButtons === "0") {
+            buttons = false;
+          }
+        }
+        if (buttons) {
+          chalkboardDiv.classList.remove("hidden");
+        } else {
+          chalkboardDiv.classList.add("hidden");
+        }
+      });
     }
   }
 
