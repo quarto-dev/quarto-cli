@@ -139,9 +139,25 @@ window.QuartoSupport = function () {
     }
   }
 
+  function fixupForPrint(deck) {
+    if (/print-pdf/gi.test(window.location.search)) {
+      const slides = deck.getSlides();
+      slides.forEach(function (slide) {
+        slide.removeAttribute("data-auto-animate");
+      });
+      window.document.querySelectorAll(".hljs").forEach(function (el) {
+        el.classList.remove("hljs");
+      });
+      window.document.querySelectorAll(".hljs-ln-code").forEach(function (el) {
+        el.classList.remove("hljs-ln-code");
+      });
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
+      fixupForPrint(deck);
       applyGlobalStyles(deck);
       addLogoImage(deck);
       addFooter(deck);
