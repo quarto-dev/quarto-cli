@@ -288,8 +288,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   <% if (linkExternalIcon || linkExternalNewwindow) { %>
     
   
-  <% if (linkExternalTest) { %>
-    <%- `var isInternal = new RegExp(/${linkExternalTest}/);` %>
+  <% if (linkExternalFilter) { %>
+    <%- `var isInternal = new RegExp(/${linkExternalFilter}/);` %>
   <% } else { %>
     var isInternal = new RegExp('/' + window.location.host + '/');
   <% } %>
