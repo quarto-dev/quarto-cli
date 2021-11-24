@@ -464,8 +464,8 @@ async function automationFromGoodParseScript(kind, context) {
   );
 
   const {
-    yaml,
-  } = core.partitionCellOptionsMapped(language, mappedCode);
+    yaml
+  } = await core.partitionCellOptionsMapped(language, mappedCode);
 
   const schemas = (await getSchemas()).schemas;
   const schema = schemas.languages[language];
