@@ -32,6 +32,7 @@ import {
   BooleanSchema as BooleanS,
   objectSchema as objectS,
   StringSchema as StringS,
+  idSchema as withId,
 } from "../../core/schema/common.ts";
 
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
@@ -105,7 +106,7 @@ interface RevealPluginScript {
   async?: boolean;
 }
 
-const revealPluginSchema = objectS({
+const revealPluginSchema = withId(objectS({
   properties: {
     path: StringS,
     name: StringS,
@@ -124,7 +125,7 @@ const revealPluginSchema = objectS({
   },
   required: ["path", "name"],
   // FIXME is this an exhaustive schema?
-});
+}), "plugin-reveal");
 
 export async function revealPluginExtras(
   format: Format,
