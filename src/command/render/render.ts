@@ -918,6 +918,9 @@ async function resolveFormats(
   options: RenderOptions,
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
+  // input level metadata
+  const inputMetadata = target.metadata;
+
   // directory level metadata
   const directoryMetadata = project?.dir
     ? directoryMetadataForInputFile(
@@ -926,21 +929,20 @@ async function resolveFormats(
     )
     : {};
 
-  // establish input level metadata (read and merge into dir metadata,
-  // which allows documents to override dir level metadata
-  const inputMetadata = mergeConfigs(directoryMetadata, target.metadata);
-
-  // project metadata
+  // project level metadata
   const projMetadata = await projectMetadataForInputFile(
     target.input,
     options.flags,
     project,
   );
 
-  // determine formats
+  // determine formats (treat dir format keys as part of 'input' format keys)
   let formats: string[] = [];
   const projFormatKeys = formatKeys(projMetadata);
-  const inputFormatKeys = formatKeys(inputMetadata);
+  const dirFormatKeys = formatKeys(directoryMetadata);
+  const inputFormatKeys = ld.uniq(
+    formatKeys(inputMetadata).concat(dirFormatKeys),
+  );
   const projType = projectType(project?.config?.project?.[kProjectType]);
   if (projType.projectFormatsOnly) {
     // if the project specifies that only project formats are
@@ -955,9 +957,16 @@ async function resolveFormats(
     formats = projFormatKeys;
   }
 
-  // resolve formats for proj and input
+  // resolve formats for each type of metadata
   const projFormats = resolveFormatsFromMetadata(
     projMetadata,
+    dirname(target.input),
+    formats,
+    options.flags,
+  );
+
+  const directoryFormats = resolveFormatsFromMetadata(
+    directoryMetadata,
     dirname(target.input),
     formats,
     options.flags,
@@ -972,26 +981,31 @@ async function resolveFormats(
 
   // merge the formats
   const targetFormats = ld.uniq(
-    Object.keys(projFormats).concat(Object.keys(inputFormats)),
+    Object.keys(projFormats).concat(Object.keys(directoryFormats)).concat(
+      Object.keys(inputFormats),
+    ),
   );
   const mergedFormats: Record<string, Format> = {};
   targetFormats.forEach((format: string) => {
     // alias formats
     const projFormat = projFormats[format];
+    const directoryFormat = directoryFormats[format];
     const inputFormat = inputFormats[format];
 
     // resolve theme (project-level bootstrap theme always wins)
     if (project && formatHasBootstrap(projFormat)) {
-      if (projFormat.metadata[kTheme] && formatHasBootstrap(inputFormat)) {
+      if (formatHasBootstrap(inputFormat)) {
         delete inputFormat.metadata[kTheme];
-      } else {
-        delete projFormat.metadata[kTheme];
+      }
+      if (formatHasBootstrap(directoryFormat)) {
+        delete directoryFormat.metadata[kTheme];
       }
     }
 
     // combine user formats
     const userFormat = mergeConfigs(
       projFormat || {},
+      directoryFormat || {},
       inputFormat || {},
     );
 
