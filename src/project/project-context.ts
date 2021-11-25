@@ -341,6 +341,25 @@ export function directoryMetadataForInputFile(
       // to the metadata file to be relative to input
       // TODO: yaml validation (front matter)
       const yaml = readYaml(file) as Record<string, unknown>;
+
+      // resolve format into expected structure
+      if (yaml.format) {
+        if (typeof (yaml.format) === "string") {
+          yaml.format = {
+            [yaml.format]: {},
+          };
+        } else if (typeof (yaml.format) === "object") {
+          const formats = Object.keys(yaml.format!);
+          for (const format of formats) {
+            if (
+              (yaml.format as Record<string, unknown>)[format] === "default"
+            ) {
+              (yaml.format as Record<string, unknown>)[format] = {};
+            }
+          }
+        }
+      }
+
       config = mergeConfigs(
         config,
         toInputRelativePaths(currentDir, inputDir, yaml),
