@@ -93,6 +93,9 @@ const kRevealOptions = [
   "maxScale",
   "mathjax",
   "pdfSeparateFragments",
+  "autoAnimateEasing",
+  "autoAnimateDuration",
+  "autoAnimateUnmatched",
 ];
 
 const kRevealKebabOptions = optionsToKebab(kRevealOptions);
@@ -106,6 +109,9 @@ export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
 export const kPdfSeparateFragments = "pdfSeparateFragments";
+export const kAutoAnimateEasing = "autoAnimateEasing";
+export const kAutoAnimateDuration = "autoAnimateDuration";
+export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
 
 export function optionsToKebab(options: string[]) {
   return options.reduce(
@@ -185,6 +191,13 @@ export function revealjsFormat() {
           formatResourcePath("revealjs", "extras.html"),
           {
             [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
+            [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
+            [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
+              1.0,
+            [kAutoAnimateUnmatched]:
+              format.metadata[kAutoAnimateUnmatched] !== undefined
+                ? format.metadata[kAutoAnimateUnmatched]
+                : true,
           },
         );
         Deno.writeTextFileSync(extrasFile, extrasHtml);

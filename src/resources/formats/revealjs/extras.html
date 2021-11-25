@@ -1,6 +1,9 @@
 <script type="application/javascript">
 Reveal.configure({
-  pdfSeparateFragments: <%= pdfSeparateFragments ? 'true' : 'false' %>
+  pdfSeparateFragments: <%= pdfSeparateFragments ? 'true' : 'false' %>,
+  autoAnimateEasing: "<%= autoAnimateEasing %>",
+  autoAnimateDuration:  <%= autoAnimateDuration %>,
+  autoAnimateUnmatched:  <%= autoAnimateUnmatched %>,
 });
 </script>
 
