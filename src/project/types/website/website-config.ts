@@ -216,7 +216,7 @@ export function websiteRepoBranch(project?: ProjectConfig): string {
 }
 
 export function websiteMetadataFields(): Array<string | RegExp> {
-  return [kWebsite];
+  return [kWebsite, kSite];
 }
 
 export function isGithubRepoUrl(url: string): boolean {

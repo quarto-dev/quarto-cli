@@ -99,7 +99,7 @@ export const websiteProjectType: ProjectType = {
 
   metadataFields: websiteMetadataFields,
 
-  resourceIgnoreFields: () => [kWebsite],
+  resourceIgnoreFields: () => [kWebsite, kSite],
 
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);
