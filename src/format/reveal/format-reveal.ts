@@ -10,7 +10,6 @@ import {
   kCodeLineNumbers,
   kFrom,
   kHtmlMathMethod,
-  kIncludeAfterBody,
   kIncludeInHeader,
   kLinkCitations,
   kSlideLevel,
