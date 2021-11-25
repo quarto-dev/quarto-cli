@@ -14,7 +14,7 @@ function reveal()
 end
 
 function applyPosition(el)
-  if el.attr.classes:includes("r-absolute") then
+  if el.attr.classes:includes("absolute") then
     -- translate position attributes into style
     local style = el.attr.attributes['style']
     if style == nil then
