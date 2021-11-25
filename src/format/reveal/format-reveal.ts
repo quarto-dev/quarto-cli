@@ -135,6 +135,25 @@ export function revealResolveFormat(format: Format) {
   }
 }
 
+export function injectRevealConfig(
+  config: Record<string, unknown>,
+  template: string,
+) {
+  // plugin config
+  const configJs: string[] = [];
+  Object.keys(config).forEach((key) => {
+    configJs.push(`'${key}': ${JSON.stringify(config[key])}`);
+  });
+  if (configJs.length > 0) {
+    const kRevealInitialize = "Reveal.initialize({";
+    template = template.replace(
+      kRevealInitialize,
+      kRevealInitialize + "\n" + configJs.join(",\n") + ",\n",
+    );
+  }
+  return template;
+}
+
 export function revealMetadataFilter(
   metadata: Metadata,
   kebabOptions = kRevealKebabOptions,
@@ -186,10 +205,8 @@ export function revealjsFormat() {
         Deno.writeTextFileSync(stylesFile, styles);
 
         // additional options not supported by pandoc
-        const extrasFile = sessionTempFile({ suffix: ".html" });
-        const extrasHtml = renderEjs(
-          formatResourcePath("revealjs", "extras.html"),
-          {
+        const extraConfigPatch = (template: string) => {
+          const extraConfig = {
             [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
             [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
             [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
@@ -198,9 +215,9 @@ export function revealjsFormat() {
               format.metadata[kAutoAnimateUnmatched] !== undefined
                 ? format.metadata[kAutoAnimateUnmatched]
                 : true,
-          },
-        );
-        Deno.writeTextFileSync(extrasFile, extrasHtml);
+          };
+          return injectRevealConfig(extraConfig, template);
+        };
 
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
@@ -231,9 +248,9 @@ export function revealjsFormat() {
             } as Metadata,
             metadataOverride: {} as Metadata,
             [kIncludeInHeader]: [stylesFile],
-            [kIncludeAfterBody]: [extrasFile],
             html: {
               [kTemplatePatches]: [
+                extraConfigPatch,
                 revealRequireJsPatch,
                 /* TODO: Remove when the fix is available in Pandoc https://github.com/jgm/pandoc/pull/7670 */
                 (template: string) => {

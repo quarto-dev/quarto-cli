@@ -1,5 +1,9 @@
 // catch all plugin for various quarto features
 window.QuartoSupport = function () {
+  function isPrintView() {
+    return /print-pdf/gi.test(window.location.search);
+  }
+
   // apply styles
   function applyGlobalStyles(deck) {
     if (deck.getConfig()["smaller"] === true) {
@@ -24,30 +28,32 @@ window.QuartoSupport = function () {
     const defaultFooterDiv = document.querySelector(".footer-default");
     if (defaultFooterDiv) {
       revealParent.appendChild(defaultFooterDiv);
-      deck.on("slidechanged", function (ev) {
-        const prevSlideFooter = document.querySelector(
-          ".reveal > .footer:not(.footer-default)"
-        );
-        if (prevSlideFooter) {
-          prevSlideFooter.remove();
-        }
-        const currentSlideFooter = ev.currentSlide.querySelector(".footer");
-        if (currentSlideFooter) {
-          defaultFooterDiv.style.display = "none";
-          deck
-            .getRevealElement()
-            .appendChild(currentSlideFooter.cloneNode(true));
-        } else {
-          defaultFooterDiv.style.display = "block";
-        }
-      });
+      if (!isPrintView()) {
+        deck.on("slidechanged", function (ev) {
+          const prevSlideFooter = document.querySelector(
+            ".reveal > .footer:not(.footer-default)"
+          );
+          if (prevSlideFooter) {
+            prevSlideFooter.remove();
+          }
+          const currentSlideFooter = ev.currentSlide.querySelector(".footer");
+          if (currentSlideFooter) {
+            defaultFooterDiv.style.display = "none";
+            deck
+              .getRevealElement()
+              .appendChild(currentSlideFooter.cloneNode(true));
+          } else {
+            defaultFooterDiv.style.display = "block";
+          }
+        });
+      }
     }
   }
 
   // add chalkboard buttons
   function addChalkboardButtons(deck) {
     const chalkboard = deck.getPlugin("RevealChalkboard");
-    if (chalkboard) {
+    if (chalkboard && !isPrintView()) {
       const revealParent = deck.getRevealElement();
       const chalkboardDiv = document.createElement("div");
       chalkboardDiv.classList.add("slide-chalkboard-buttons");
@@ -162,7 +168,7 @@ window.QuartoSupport = function () {
   }
 
   function fixupForPrint(deck) {
-    if (/print-pdf/gi.test(window.location.search)) {
+    if (isPrintView()) {
       const slides = deck.getSlides();
       slides.forEach(function (slide) {
         slide.removeAttribute("data-auto-animate");

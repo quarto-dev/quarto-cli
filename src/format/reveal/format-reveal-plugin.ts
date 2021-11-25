@@ -23,7 +23,11 @@ import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { readYaml } from "../../core/yaml.ts";
-import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
+import {
+  injectRevealConfig,
+  optionsToKebab,
+  revealMetadataFilter,
+} from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
 
@@ -301,25 +305,6 @@ export function revealPluginExtras(
 
   // return
   return extras;
-}
-
-export function injectRevealConfig(
-  config: Record<string, unknown>,
-  template: string,
-) {
-  // plugin config
-  const configJs: string[] = [];
-  Object.keys(config).forEach((key) => {
-    configJs.push(`'${key}': ${JSON.stringify(config[key])}`);
-  });
-  if (configJs.length > 0) {
-    const kRevealInitialize = "Reveal.initialize({";
-    template = template.replace(
-      kRevealInitialize,
-      kRevealInitialize + "\n" + configJs.join(",\n") + ",\n",
-    );
-  }
-  return template;
 }
 
 function revealMenuPlugin(format: Format) {

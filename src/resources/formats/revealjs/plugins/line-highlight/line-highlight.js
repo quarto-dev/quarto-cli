@@ -1,4 +1,8 @@
 window.QuartoLineHighlight = function () {
+  function isPrintView() {
+    return /print-pdf/gi.test(window.location.search);
+  }
+
   const delimiters = {
     step: "|",
     line: ",",
@@ -9,8 +13,18 @@ window.QuartoLineHighlight = function () {
     "^[\\d" + Object.values(delimiters).join("") + "]+$"
   );
 
-  function isLinesSelector(attr) {
-    return regex.test(attr);
+  function handleLinesSelector(deck, attr) {
+    // if we are in printview with pdfSeparateFragments: false
+    // then we'll also want to supress
+    if (regex.test(attr)) {
+      if (isPrintView() && deck.getConfig().pdfSeparateFragments !== true) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
   }
 
   const kCodeLineNumbersAttr = "data-code-line-numbers";
@@ -25,7 +39,7 @@ window.QuartoLineHighlight = function () {
       if (el.hasAttribute(kCodeLineNumbersAttr)) {
         const codeLineAttr = el.getAttribute(kCodeLineNumbersAttr);
         el.removeAttribute("data-code-line-numbers");
-        if (isLinesSelector(codeLineAttr)) {
+        if (handleLinesSelector(deck, codeLineAttr)) {
           // Only process if attr is a string to select lines to highlights
           // e.g "1|3,6|8-11"
           const codeBlock = el.querySelectorAll("pre code");
