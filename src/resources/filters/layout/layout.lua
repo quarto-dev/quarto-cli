@@ -77,6 +77,16 @@ function layoutPanels()
         else
           panel = tablePanel(el, layout, caption)
         end
+
+        -- transfer attributes from el to panel
+        panel.attr.identifier = el.attr.identifier
+        tappend(panel.attr.classes, el.attr.classes)
+        local keys = tkeys(el.attr.attributes)
+        for _,k in pairs(keys) do
+          if not isLayoutAttribute(k) then
+            panel.attr.attributes[k] = el.attr.attributes[k]
+          end
+        end
         
         if #preamble > 0 then
           local div = pandoc.Div({})

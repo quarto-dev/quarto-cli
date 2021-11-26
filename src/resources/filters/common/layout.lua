@@ -23,7 +23,11 @@ function hasLayoutAttributes(el)
          attribs:includes(kLayout)
 end
 
-
+function isLayoutAttribute(key)
+  return key == kLayoutNrow or
+         key == kLayoutNcol or
+         key == kLayout
+end
 
 -- locate an image in a layout cell
 function figureImageFromLayoutCell(cellDivEl)
