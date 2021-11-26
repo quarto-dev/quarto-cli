@@ -107,6 +107,7 @@ export const kSlideFooter = "footer";
 export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
+export const kControlsAuto = "controlsAuto";
 export const kPdfSeparateFragments = "pdfSeparateFragments";
 export const kAutoAnimateEasing = "autoAnimateEasing";
 export const kAutoAnimateDuration = "autoAnimateDuration";
@@ -203,9 +204,17 @@ export function revealjsFormat() {
         );
         Deno.writeTextFileSync(stylesFile, styles);
 
+        // specify controlsAuto if there is no boolean 'controls'
+        const metadataOverride: Metadata = {};
+        const controlsAuto = typeof (format.metadata["controls"]) !== "boolean";
+        if (controlsAuto) {
+          metadataOverride.controls = false;
+        }
+
         // additional options not supported by pandoc
         const extraConfigPatch = (template: string) => {
           const extraConfig = {
+            [kControlsAuto]: controlsAuto,
             [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
             [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
             [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
@@ -245,7 +254,7 @@ export function revealjsFormat() {
             metadata: {
               [kLinkCitations]: true,
             } as Metadata,
-            metadataOverride: {} as Metadata,
+            metadataOverride,
             [kIncludeInHeader]: [stylesFile],
             html: {
               [kTemplatePatches]: [
@@ -317,7 +326,6 @@ export function revealjsFormat() {
               margin: 0.1,
               center: false,
               navigationMode: "linear",
-              controls: verticalSlides,
               controlsLayout: "edges",
               controlsTutorial: false,
               hash: true,

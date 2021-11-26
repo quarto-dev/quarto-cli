@@ -4,6 +4,17 @@ window.QuartoSupport = function () {
     return /print-pdf/gi.test(window.location.search);
   }
 
+  // implement controlsAudo
+  function controlsAuto(deck) {
+    if (deck.getConfig().controlsAuto === true) {
+      deck.configure({
+        controls:
+          window.location !== window.parent.location ||
+          deck.hasVerticalSlides(),
+      });
+    }
+  }
+
   // apply styles
   function applyGlobalStyles(deck) {
     if (deck.getConfig()["smaller"] === true) {
@@ -184,6 +195,7 @@ window.QuartoSupport = function () {
   return {
     id: "quarto-support",
     init: function (deck) {
+      controlsAuto(deck);
       fixupForPrint(deck);
       applyGlobalStyles(deck);
       addLogoImage(deck);
