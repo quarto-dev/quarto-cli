@@ -224,6 +224,7 @@ section.has-dark-background {
   color: $body-color;
   background-color: $code-block-bg;
   padding: 6px 9px;
+  max-height: 500px;
 }
 
 .reveal p,
