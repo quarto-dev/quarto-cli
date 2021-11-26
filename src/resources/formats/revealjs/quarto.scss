@@ -201,13 +201,17 @@ section.has-dark-background {
   font-size: $revealjs-h1-font-size;
 }
 
-.reveal pre {
-  width: 95%;
-  box-shadow: none;
-  background-color: $code-block-bg;
+.reveal div.sourceCode {
   border: $border-width solid $code-block-border-color;
   border-radius: $border-radius;
-  margin: $blockMargin 0;
+}
+
+.reveal pre {
+  width: 100%;
+  box-shadow: none;
+  background-color: $code-block-bg;
+  border: none;
+  margin: 0;
   font-size: $code-block-font-size;
 }
 
