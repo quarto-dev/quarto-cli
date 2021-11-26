@@ -70,11 +70,14 @@ import {
 
 import {
   isGithubRepoUrl,
+  kMarginFooter,
+  kMarginHeader,
   kSiteNavbar,
   kSiteRepoActions,
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
+  websiteConfig,
   websiteConfigActions,
   websiteHtmlFormat,
   websiteRepoBranch,
@@ -180,8 +183,10 @@ export async function websiteNavigationExtras(
   const target = await resolveInputTarget(project, inputRelative);
   const href = target?.outputHref || inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href);
+
   const nav: Record<string, unknown> = {
-    toc: hasTableOfContents(flags, format),
+    needMargin: hasTableOfContents(flags, format) ||
+      navigation.pageMargin?.footer || navigation.pageMargin?.header,
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),

@@ -323,17 +323,17 @@ const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
       return { blocks: result };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
-      var tocEl = doc.getElementById("quarto-margin-sidebar");
-      if (tocEl) {
+      var sidebarEl = doc.getElementById("quarto-margin-sidebar");
+      if (sidebarEl) {
         const renderedHeaderEl = rendered[kMarginHeader];
         if (renderedHeaderEl) {
           const headerEl = toContainer(doc, kMarginHeader, renderedHeaderEl);
-          tocEl.insertBefore(headerEl, tocEl.firstChild);
+          sidebarEl.insertBefore(headerEl, sidebarEl.firstChild);
         }
         const renderedFooterEl = rendered[kMarginFooter];
         if (renderedFooterEl) {
           const footerEl = toContainer(doc, kMarginFooter, renderedFooterEl);
-          tocEl.appendChild(footerEl);
+          sidebarEl.appendChild(footerEl);
         }
       }
     },

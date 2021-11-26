@@ -380,7 +380,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     if (columnLayouts.length > 0) {
       doc.body.classList.add("slimcontent");
       // wide margin b/c there are margin elements
-    } else if (toc) {
+    } else if (doc.getElementById("quarto-margin-sidebar")) {
       // there is a toc, default layout
     } else {
       // no toc, narrow

@@ -714,6 +714,10 @@ li code:not(.sourceCode) {
   padding-top: 1em;
 }
 
+.sidebar.margin-sidebar > * {
+  padding-top: 1em;
+}
+
 .sidebar nav#TOC > h2 {
   font-size: $toc-font-size;
   font-weight: 400;
