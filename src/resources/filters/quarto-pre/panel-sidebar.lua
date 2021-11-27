@@ -16,11 +16,49 @@ function panelSidebar()
                   el.attr.classes:includes("panel-center") or
                   el.attr.classes:includes("panel-tabset"))
         end
+        function isQuartoHiddenDiv(el)
+          return el.t == "Div" and
+                 string.find(el.attr.identifier, "^quarto%-") and
+                 el.attr.classes:includes("hidden")
+        end
+        function isNotQuartoHiddenDiv(el)
+          return not isQuartoHiddenDiv(el)
+        end
 
         -- bail if there are no sidebars
-        if not blocks:find_if(isSidebar) then
+        local sidebar, sidebarIdx = blocks:find_if(isSidebar)
+        if not sidebar then
           return blocks
         end
+
+
+        -- if there are no container classes in the list then
+        -- implicitly create a panel-fill if the sidebar is at the
+        -- beginning or the end or the list
+        if not blocks:find_if(isContainer) and #blocks > 1 then
+          
+          -- filter out quarto hidden blocks (they'll get put back in after processing)
+          local quartoHiddenDivs = blocks:filter(isQuartoHiddenDiv)
+          local sidebarBlocks = blocks:filter(isNotQuartoHiddenDiv)
+          _, sidebarIdx = sidebarBlocks:find_if(isSidebar)
+        
+          -- slidebar at beginning
+          if sidebarIdx == 1 then
+            blocks = pandoc.List({ 
+              sidebar, 
+              pandoc.Div(tslice(sidebarBlocks, 2, #sidebarBlocks), pandoc.Attr("", { "panel-fill" }))
+            })
+            tappend(blocks, quartoHiddenDivs)
+          -- sidebar at end
+          elseif sidebarIdx == #sidebarBlocks then
+            blocks = pandoc.List(
+              { pandoc.Div(tslice(sidebarBlocks, 1, #sidebarBlocks-1), pandoc.Attr("", { "panel-fill" })), 
+              sidebar 
+            })
+            tappend(blocks, quartoHiddenDivs)
+          end
+        end
+
 
         -- there are sidebars so we need to build a new list that folds together
         -- the sidebars with their adjacent layout blocks
@@ -34,11 +72,11 @@ function panelSidebar()
           "bg-light",
           "p-2",
           "g-col-24",
-          "g-col-lg-6"
+          "g-col-lg-7"
         }
         local containerClasses = {
           "g-col-24",
-          "g-col-lg-18",
+          "g-col-lg-17",
           "pt-3",
           "pt-lg-0",
           "ps-0",
