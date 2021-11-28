@@ -62,6 +62,14 @@ $code-bg: transparent !default;
 // tabset
 $tabset-border-color: $code-block-border-color !default;
 
+// card
+$card-border-color: $code-block-border-color !default;
+$card-border-width: $border-width !default;
+$card-border-radius: $border-radius !default;
+
+// panels
+$panel-input-bg: rgba(248, 249, 250, 1) !default;
+
 // alternate colors for when the background changes
 $light-bg-text-color: #222 !default;
 $dark-bg-text-color: #fff !default;
@@ -225,6 +233,76 @@ section.has-dark-background {
   background-color: $code-block-bg;
   padding: 6px 9px;
   max-height: 500px;
+}
+
+.reveal .card {
+  border-color: $card-border-color;
+  border-width: $card-border-width;
+  border-radius: $card-border-radius;
+}
+
+$panel-sidebar-width: 250px;
+$panel-sidebar-padding: 10px;
+$panel-sidebar-content-offset: calc(
+  #{$panel-sidebar-width} + #{$panel-sidebar-padding} + #{$panel-sidebar-padding} +
+    #{$panel-sidebar-padding} + #{$panel-sidebar-padding}
+);
+
+.reveal .panel-input {
+  font-size: 0.5em;
+  padding: $panel-sidebar-padding;
+  background-color: $panel-input-bg;
+}
+
+.reveal .layout-sidebar {
+  position: relative;
+  width: 100%;
+}
+
+.reveal .layout-sidebar .panel-sidebar {
+  position: absolute;
+  top: 0;
+  width: $panel-sidebar-width;
+}
+
+.reveal .layout-sidebar-left .panel-sidebar {
+  left: 0;
+}
+
+.reveal .layout-sidebar-right .panel-sidebar {
+  right: 0;
+}
+
+.reveal .layout-sidebar .panel-fill,
+.reveal .layout-sidebar .panel-center,
+.reveal .layout-sidebar .panel-tabset {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.reveal .layout-sidebar-left .panel-fill,
+.reveal .layout-sidebar-left .panel-center,
+.reveal .layout-sidebar-left .panel-tabset {
+  left: $panel-sidebar-content-offset;
+  right: 0;
+}
+
+.reveal .layout-sidebar-right .panel-fill,
+.reveal .layout-sidebar-right .panel-center,
+.reveal .layout-sidebar-right .panel-tabset {
+  left: 0;
+  right: $panel-sidebar-content-offset;
+}
+
+.reveal .panel-input :first-child,
+.reveal .panel-fill :first-child {
+  margin-top: 0;
+}
+
+.reveal .panel-input :last-child,
+.reveal .panel-fill :last-child {
+  margin-bottom: 0;
 }
 
 .reveal p,

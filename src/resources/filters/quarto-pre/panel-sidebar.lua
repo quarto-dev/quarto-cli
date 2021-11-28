@@ -4,20 +4,24 @@
 function panelSidebar() 
   return {
     Blocks = function(blocks)
-      if hasBootstrap() then
+      if hasBootstrap() or isRevealJsOutput() then
 
         -- functions to determine if an element has a layout class
         function isSidebar(el)
-          return el.t == "Div" and el.attr.classes:includes("panel-sidebar")
+          return el ~= nil and el.t == "Div" and el.attr.classes:includes("panel-sidebar")
         end
         function isContainer(el)
-          return el.t == "Div" and 
+          return el ~= nil and
+                 el.t == "Div" and 
                  (el.attr.classes:includes("panel-fill") or 
                   el.attr.classes:includes("panel-center") or
                   el.attr.classes:includes("panel-tabset"))
         end
+        function isHeader(el)
+          return el ~= nil and el.t == "Header"
+        end
         function isQuartoHiddenDiv(el)
-          return el.t == "Div" and
+          return el ~= nil and el.t == "Div" and
                  string.find(el.attr.identifier, "^quarto%-") and
                  el.attr.classes:includes("hidden")
         end
@@ -31,86 +35,153 @@ function panelSidebar()
           return blocks
         end
 
-
-        -- if there are no container classes in the list then
-        -- implicitly create a panel-fill if the sidebar is at the
-        -- beginning or the end or the list
-        if not blocks:find_if(isContainer) and #blocks > 1 then
-          
-          -- filter out quarto hidden blocks (they'll get put back in after processing)
-          local quartoHiddenDivs = blocks:filter(isQuartoHiddenDiv)
-          local sidebarBlocks = blocks:filter(isNotQuartoHiddenDiv)
-          _, sidebarIdx = sidebarBlocks:find_if(isSidebar)
-        
-          -- slidebar at beginning
-          if sidebarIdx == 1 then
-            blocks = pandoc.List({ 
-              sidebar, 
-              pandoc.Div(tslice(sidebarBlocks, 2, #sidebarBlocks), pandoc.Attr("", { "panel-fill" }))
-            })
-            tappend(blocks, quartoHiddenDivs)
-          -- sidebar at end
-          elseif sidebarIdx == #sidebarBlocks then
-            blocks = pandoc.List(
-              { pandoc.Div(tslice(sidebarBlocks, 1, #sidebarBlocks-1), pandoc.Attr("", { "panel-fill" })), 
-              sidebar 
-            })
-            tappend(blocks, quartoHiddenDivs)
-          end
+        -- create sidebar handler and get attr
+        local sidebarHandler = bootstrapSidebar()
+        if isRevealJsOutput() then
+          sidebarHandler = revealSidebar()
         end
+        local sidebarAttr = sidebarHandler.sidebarAttr()
+        local containerAttr = sidebarHandler.containerAttr()
+    
+        -- filter out quarto hidden blocks (they'll get put back in after processing)
+        local quartoHiddenDivs = blocks:filter(isQuartoHiddenDiv)
+        blocks = blocks:filter(isNotQuartoHiddenDiv)
 
+        -- locate and arrange sidebars until there are none left
+        local sidebar, sidebarIdx = blocks:find_if(isSidebar)
+       
+        while sidebar ~= nil do
 
-        -- there are sidebars so we need to build a new list that folds together
-        -- the sidebars with their adjacent layout blocks
-        local rowClasses = {
-          "grid", 
-          "layout-sidebar",
-          "ms-md-0"
-        }
-        local sidebarClasses = {
-          "card",
-          "bg-light",
-          "p-2",
-          "g-col-24",
-          "g-col-lg-7"
-        }
-        local containerClasses = {
-          "g-col-24",
-          "g-col-lg-17",
-          "pt-3",
-          "pt-lg-0",
-          "ps-0",
-          "ps-lg-3"
-        }
-        local newBlocks = pandoc.List()
-        local pendingSidebar = nil
-        for i,el in ipairs(blocks) do 
-          if isSidebar(el) then
-            -- if the previous item is a container then wrap it up with the sidebar
-            if #newBlocks > 0 and isContainer(newBlocks[#newBlocks]) then
-              local container = newBlocks:remove(#newBlocks)
-              tappend(container.attr.classes, containerClasses)
-              tappend(el.attr.classes, sidebarClasses)
-              newBlocks:insert(pandoc.Div({ container, sidebar }, pandoc.Attr("", rowClasses)))
-            else 
-              pendingSidebar = el
-            end
-          elseif pendingSidebar ~= nil and isContainer(el) then
-            tappend(pendingSidebar.attr.classes, sidebarClasses)
-            tappend(el.attr.classes, containerClasses)
-            newBlocks:insert(pandoc.Div({ pendingSidebar, el }, pandoc.Attr("", rowClasses)))
-            pendingSidebar = nil
+          -- always transfer sidebar attributes to sidebar
+          transferAttr(sidebarAttr, sidebar.attr)
+
+          -- sidebar after container
+          if isContainer(blocks[sidebarIdx - 1]) then
+            blocks:remove(sidebarIdx)
+            local container = blocks:remove(sidebarIdx - 1)
+            transferAttr(containerAttr, container.attr)
+            blocks:insert(sidebarIdx - 1, 
+              pandoc.Div({ container, sidebar }, sidebarHandler.rowAttr({"layout-sidebar-right"}))
+            )
+          -- sidebar before container
+          elseif isContainer(blocks[sidebarIdx + 1]) then
+            local container = blocks:remove(sidebarIdx + 1)
+            transferAttr(containerAttr, container.attr)
+            blocks:remove(sidebarIdx)
+            blocks:insert(sidebarIdx, 
+              pandoc.Div({ sidebar, container }, sidebarHandler.rowAttr({"layout-sidebar-left"}))
+            )
           else
-            if pendingSidebar ~= nil then
-              newBlocks:insert(pendingSidebar)
-              pendingSidebar = nil
+            -- look forward for a header
+            local header, headerIdx = blocks:find_if(isHeader, sidebarIdx)
+            if header and (headerIdx ~= (sidebarIdx + 1)) then
+              local panelBlocks = pandoc.List()
+              for i = sidebarIdx + 1, headerIdx - 1, 1 do
+                panelBlocks:insert(blocks:remove(sidebarIdx + 1))
+              end
+              local panelFill = pandoc.Div(panelBlocks, pandoc.Attr("", { "panel-fill" }))
+              transferAttr(containerAttr, panelFill)
+              blocks:remove(sidebarIdx)
+              blocks:insert(sidebarIdx, 
+                pandoc.Div({ sidebar,  panelFill }, sidebarHandler.rowAttr({"layout-sidebar-left"}))
+              )
+            else
+              -- look backwards for a header 
+              headerIdx = nil
+              for i = sidebarIdx - 1, 1, -1 do
+                if isHeader(blocks[i]) then
+                  headerIdx = i
+                  break
+                end
+              end
+              -- if we have a header then collect up to it
+              if headerIdx ~= nil and (headerIdx ~= (sidebarIdx - 1)) then
+                local panelBlocks = pandoc.List()
+                for i = headerIdx + 1, sidebarIdx - 1, 1 do
+                  panelBlocks:insert(blocks:remove(headerIdx + 1))
+                end
+                local panelFill = pandoc.Div(panelBlocks,  pandoc.Attr("", { "panel-fill" }))
+                transferAttr(containerAttr, panelFill)
+                blocks:remove(headerIdx + 1)
+                blocks:insert(headerIdx + 1, 
+                  pandoc.Div({ panelFill, sidebar }, sidebarHandler.rowAttr({"layout-sidebar-right"}))
+                )
+              else
+                --  no implicit header containment found, strip the sidebar attribute
+                sidebar.attr.classes = sidebar.attr.classes:filter(
+                  function(clz) 
+                    return clz ~= "panel-sidebar" and clz ~= "panel-input"
+                  end
+                )
+              end
             end
-            newBlocks:insert(el)
           end
+
+          -- try to find another sidebar
+          sidebar, sidebarIdx = blocks:find_if(isSidebar)
         end
 
-        return newBlocks
+        -- restore hidden divs and return blocks
+        tappend(blocks, quartoHiddenDivs)
+        return blocks
       end
     end
   }
+end
+
+function bootstrapSidebar()
+  return {
+    rowAttr = function(classes)
+      local attr = pandoc.Attr("", {
+        "grid", 
+        "layout-sidebar",
+        "ms-md-0"
+      })
+      tappend(attr.classes, classes)
+      return attr
+    end,
+    sidebarAttr = function()
+      return pandoc.Attr("", {
+        "card",
+        "bg-light",
+        "p-2",
+        "g-col-24",
+        "g-col-lg-7"
+      })
+    end,
+    containerAttr = function()
+      return pandoc.Attr("", {
+        "g-col-24",
+        "g-col-lg-17",
+        "pt-3",
+        "pt-lg-0",
+        "ps-0",
+        "ps-lg-3"
+      })
+    end
+  }
+end
+
+function revealSidebar()
+  return {
+    rowAttr = function(classes) 
+      local attr = pandoc.Attr("", { "layout-sidebar" })
+      tappend(attr.classes, classes)
+      return attr
+    end,
+    sidebarAttr = function()
+      local attr = pandoc.Attr("", { "panel-input" })
+      return attr
+    end,
+    containerAttr = function()
+      return pandoc.Attr("")
+    end
+  }
+end
+
+function transferAttr(from, to)
+  tappend(to.classes, from.classes)
+  for k,v in pairs(from.attributes) do
+    to.attributes[k] = v
+  end
 end
