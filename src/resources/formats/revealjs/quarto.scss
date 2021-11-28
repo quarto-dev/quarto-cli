@@ -25,7 +25,7 @@ $selection-color: $body-bg !default;
 // border colors
 $border-color: lighten($body-color, 30%) !default;
 $border-width: 1px !default;
-$border-radius: 3px !default;
+$border-radius: 4px !default;
 
 // headings
 $presentation-heading-font: $font-family-sans-serif !default;
@@ -62,13 +62,11 @@ $code-bg: transparent !default;
 // tabset
 $tabset-border-color: $code-block-border-color !default;
 
-// card
-$card-border-color: $code-block-border-color !default;
-$card-border-width: $border-width !default;
-$card-border-radius: $border-radius !default;
-
-// panels
-$panel-input-bg: rgba(248, 249, 250, 1) !default;
+// input panel
+$input-panel-border-color: $code-block-border-color !default;
+$input-panel-border-width: $border-width !default;
+$input-panel-border-radius: $border-radius !default;
+$input-panel-bg: rgba(248, 249, 250, 1) !default;
 
 // alternate colors for when the background changes
 $light-bg-text-color: #222 !default;
@@ -235,19 +233,17 @@ section.has-dark-background {
   max-height: 500px;
 }
 
-.reveal .card {
-  border-color: $card-border-color;
-  border-width: $card-border-width;
-  border-radius: $card-border-radius;
-}
-
 $panel-sidebar-width: 250px;
 $panel-sidebar-padding: 0.5em;
 
 .reveal .panel-input {
   font-size: 0.5em;
   padding: $panel-sidebar-padding;
-  background-color: $panel-input-bg;
+  border-style: solid;
+  border-color: $input-panel-border-color;
+  border-width: $input-panel-border-width;
+  border-radius: $input-panel-border-radius;
+  background-color: $input-panel-bg;
 }
 
 .reveal .layout-sidebar {
