@@ -242,11 +242,7 @@ section.has-dark-background {
 }
 
 $panel-sidebar-width: 250px;
-$panel-sidebar-padding: 10px;
-$panel-sidebar-content-offset: calc(
-  #{$panel-sidebar-width} + #{$panel-sidebar-padding} + #{$panel-sidebar-padding} +
-    #{$panel-sidebar-padding} + #{$panel-sidebar-padding}
-);
+$panel-sidebar-padding: 0.5em;
 
 .reveal .panel-input {
   font-size: 0.5em;
@@ -255,44 +251,26 @@ $panel-sidebar-content-offset: calc(
 }
 
 .reveal .layout-sidebar {
-  position: relative;
+  display: flex;
   width: 100%;
 }
 
 .reveal .layout-sidebar .panel-sidebar {
-  position: absolute;
-  top: 0;
   width: $panel-sidebar-width;
 }
 
 .reveal .layout-sidebar-left .panel-sidebar {
-  left: 0;
+  margin-right: calc(#{$panel-sidebar-padding} * 2);
 }
 
 .reveal .layout-sidebar-right .panel-sidebar {
-  right: 0;
+  margin-left: calc(#{$panel-sidebar-padding} * 2);
 }
 
 .reveal .layout-sidebar .panel-fill,
 .reveal .layout-sidebar .panel-center,
 .reveal .layout-sidebar .panel-tabset {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
-
-.reveal .layout-sidebar-left .panel-fill,
-.reveal .layout-sidebar-left .panel-center,
-.reveal .layout-sidebar-left .panel-tabset {
-  left: $panel-sidebar-content-offset;
-  right: 0;
-}
-
-.reveal .layout-sidebar-right .panel-fill,
-.reveal .layout-sidebar-right .panel-center,
-.reveal .layout-sidebar-right .panel-tabset {
-  left: 0;
-  right: $panel-sidebar-content-offset;
+  flex: 1;
 }
 
 .reveal .panel-input :first-child,
