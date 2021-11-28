@@ -108,6 +108,7 @@ export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
 export const kControlsAuto = "controlsAuto";
+export const kPreviewLinksAuto = "previewLinksAuto";
 export const kPdfSeparateFragments = "pdfSeparateFragments";
 export const kAutoAnimateEasing = "autoAnimateEasing";
 export const kAutoAnimateDuration = "autoAnimateDuration";
@@ -211,10 +212,18 @@ export function revealjsFormat() {
           metadataOverride.controls = false;
         }
 
+        // specify previewLinksAuto if there is no boolean 'previewLinks'
+        const previewLinksAuto =
+          typeof (format.metadata["previewLinks"]) !== "boolean";
+        if (previewLinksAuto) {
+          metadataOverride.previewLinks = false;
+        }
+
         // additional options not supported by pandoc
         const extraConfigPatch = (template: string) => {
           const extraConfig = {
             [kControlsAuto]: controlsAuto,
+            [kPreviewLinksAuto]: previewLinksAuto,
             [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
             [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
             [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||

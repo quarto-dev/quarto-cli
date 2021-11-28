@@ -17,6 +17,37 @@ window.QuartoSupport = function () {
     }
   }
 
+  // helper to provide event handlers for all links in a container
+  function handleLinkClickEvents(deck, container) {
+    Array.from(container.querySelectorAll("a")).forEach((el) => {
+      const url = el.getAttribute("href");
+      if (/^(http|www)/gi.test(url)) {
+        el.addEventListener(
+          "click",
+          (ev) => {
+            const dataPreviewLink = el.getAttribute("data-preview-link");
+            const forceOn = dataPreviewLink === "true";
+            const forceOff = dataPreviewLink === "false";
+            const fullscreen = !!window.document.fullscreen;
+            if (forceOn || (fullscreen && !forceOff)) {
+              ev.preventDefault();
+              deck.showPreview(url);
+              return false;
+            }
+          },
+          false
+        );
+      }
+    });
+  }
+
+  // implement previewLinksAuto
+  function previewLinksAuto(deck) {
+    if (deck.getConfig().previewLinksAuto === true) {
+      handleLinkClickEvents(deck, deck.getRevealElement());
+    }
+  }
+
   // apply styles
   function applyGlobalStyles(deck) {
     if (deck.getConfig()["smaller"] === true) {
@@ -41,6 +72,9 @@ window.QuartoSupport = function () {
     const defaultFooterDiv = document.querySelector(".footer-default");
     if (defaultFooterDiv) {
       revealParent.appendChild(defaultFooterDiv);
+      if (deck.getConfig().previewLinksAuto === true) {
+        handleLinkClickEvents(deck, defaultFooterDiv);
+      }
       if (!isPrintView()) {
         deck.on("slidechanged", function (ev) {
           const prevSlideFooter = document.querySelector(
@@ -52,9 +86,11 @@ window.QuartoSupport = function () {
           const currentSlideFooter = ev.currentSlide.querySelector(".footer");
           if (currentSlideFooter) {
             defaultFooterDiv.style.display = "none";
-            deck
-              .getRevealElement()
-              .appendChild(currentSlideFooter.cloneNode(true));
+            const slideFooter = currentSlideFooter.cloneNode(true);
+            if (deck.getConfig().previewLinksAuto === true) {
+              handleLinkClickEvents(deck, slideFooter);
+            }
+            deck.getRevealElement().appendChild(slideFooter);
           } else {
             defaultFooterDiv.style.display = "block";
           }
@@ -198,6 +234,7 @@ window.QuartoSupport = function () {
     id: "quarto-support",
     init: function (deck) {
       controlsAuto(deck);
+      previewLinksAuto(deck);
       fixupForPrint(deck);
       applyGlobalStyles(deck);
       addLogoImage(deck);
