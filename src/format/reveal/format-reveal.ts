@@ -176,7 +176,7 @@ export function revealMetadataFilter(
 
 export function revealjsFormat() {
   return mergeConfigs(
-    createHtmlPresentationFormat(9, 5),
+    createHtmlPresentationFormat(10, 5),
     {
       pandoc: {
         [kHtmlMathMethod]: {
