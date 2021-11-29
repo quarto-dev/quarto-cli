@@ -233,11 +233,10 @@ section.has-dark-background {
   max-height: 500px;
 }
 
-$panel-sidebar-width: 250px;
+$panel-sidebar-width: 270px;
 $panel-sidebar-padding: 0.5em;
 
 .reveal .panel-input {
-  font-size: 0.5em;
   padding: $panel-sidebar-padding;
   border-style: solid;
   border-color: $input-panel-border-color;
@@ -249,6 +248,7 @@ $panel-sidebar-padding: 0.5em;
 .reveal .layout-sidebar {
   display: flex;
   width: 100%;
+  font-size: 0.5em;
 }
 
 .reveal .layout-sidebar .panel-sidebar {
