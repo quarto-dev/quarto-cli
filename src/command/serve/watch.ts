@@ -242,32 +242,38 @@ export function watchProject(
       }
 
       // see if there is a reload target (last html file modified)
-      const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
-        return extname(file) === ".html";
-      });
+      const lastHtmlFile = (ld.uniq(modified) as string[]).reverse().find(
+        (file) => {
+          return extname(file) === ".html";
+        },
+      );
 
       // clear out the modified list
       modified.splice(0, modified.length);
 
-      // verify that its okay to reload this file
-      if (await shouldReloadHtmlFile(project, lastHtmlFile, options)) {
-        let reloadTarget = "";
-        if (lastHtmlFile && options.navigate) {
-          if (lastHtmlFile.startsWith(outputDir)) {
-            reloadTarget = relative(outputDir, lastHtmlFile);
-          } else {
-            reloadTarget = relative(projDir, lastHtmlFile);
-          }
-          if (existsSync(join(outputDir, reloadTarget))) {
-            reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
-          } else {
-            reloadTarget = "";
-          }
-        }
-
-        // reload clients
-        reloader.reloadClients(reloadTarget);
+      // if this is a reveal presentation running inside rstudio then bail
+      // because rstudio is handling preview separately
+      if (lastHtmlFile && await preventReload(project, lastHtmlFile, options)) {
+        return;
       }
+
+      // verify that its okay to reload this file
+      let reloadTarget = "";
+      if (lastHtmlFile && options.navigate) {
+        if (lastHtmlFile.startsWith(outputDir)) {
+          reloadTarget = relative(outputDir, lastHtmlFile);
+        } else {
+          reloadTarget = relative(projDir, lastHtmlFile);
+        }
+        if (existsSync(join(outputDir, reloadTarget))) {
+          reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
+        } else {
+          reloadTarget = "";
+        }
+      }
+
+      // reload clients
+      reloader.reloadClients(reloadTarget);
     } catch (e) {
       logError(e);
     }
@@ -334,7 +340,7 @@ export function watchProject(
   });
 }
 
-async function shouldReloadHtmlFile(
+async function preventReload(
   project: ProjectContext,
   lastHtmlFile: string,
   options: ServeOptions,
@@ -348,9 +354,9 @@ async function shouldReloadHtmlFile(
       relative(projectOutputDir(project), lastHtmlFile),
     );
     if (index) {
-      return !isRevealjsOutput(Object.keys(index.formats)[0]);
+      return isRevealjsOutput(Object.keys(index.formats)[0]);
     }
   }
 
-  return true;
+  return false;
 }

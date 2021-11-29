@@ -739,21 +739,25 @@ function resolveBodyEnvelope(extras: FormatExtras) {
   if (envelope) {
     const writeBodyFile = (
       type: "include-in-header" | "include-before-body" | "include-after-body",
+      prepend: boolean,
       content?: string,
     ) => {
       if (content) {
         const file = sessionTempFile({ suffix: ".html" });
         Deno.writeTextFileSync(file, content);
-        if (type === kIncludeAfterBody) {
+        if (!prepend) {
           extras[type] = (extras[type] || []).concat(file);
         } else {
           extras[type] = [file].concat(extras[type] || []);
         }
       }
     };
-    writeBodyFile(kIncludeInHeader, envelope.header);
-    writeBodyFile(kIncludeBeforeBody, envelope.before);
-    writeBodyFile(kIncludeAfterBody, envelope.after);
+    writeBodyFile(kIncludeInHeader, true, envelope.header);
+    writeBodyFile(kIncludeBeforeBody, true, envelope.before);
+
+    // Process the after body preamble and postamble (include-after-body appears between these)
+    writeBodyFile(kIncludeAfterBody, true, envelope.afterPreamble);
+    writeBodyFile(kIncludeAfterBody, false, envelope.afterPostamble);
 
     delete extras.html?.[kBodyEnvelope];
   }
