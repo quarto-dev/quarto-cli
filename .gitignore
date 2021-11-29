@@ -9,6 +9,7 @@ package/dist/**
 /package/out
 /tests/cov_profile
 /tests/cov_profile.lcov
+*~
 # autogen js build assets
 src/resources/build/core-lib.js
 src/resources/editor/tools/yaml/quarto-json-schemas.json
