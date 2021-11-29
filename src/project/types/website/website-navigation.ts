@@ -70,14 +70,11 @@ import {
 
 import {
   isGithubRepoUrl,
-  kMarginFooter,
-  kMarginHeader,
   kSiteNavbar,
   kSiteRepoActions,
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
-  websiteConfig,
   websiteConfigActions,
   websiteHtmlFormat,
   websiteRepoBranch,

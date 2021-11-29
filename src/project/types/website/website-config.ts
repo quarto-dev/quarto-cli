@@ -21,6 +21,7 @@ import {
 } from "../../../config/metadata.ts";
 import { Format, Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
+import { Sidebar } from "../../project-config.ts";
 
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 
@@ -38,6 +39,8 @@ export const kSiteRepoActions = "repo-actions";
 export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";
 export const kSiteSidebarStyle = "style";
+export const kSiteSidebarHeader = "header";
+export const kSiteSidebarFooter = "footer";
 export const kSitePageNavigation = "page-navigation";
 export const kPageFooter = "page-footer";
 
@@ -309,6 +312,36 @@ export function websiteProjectConfig(
   }
   config[kSite] = siteMeta;
 
+  const sidebarRaw = siteMeta[kSiteSidebar];
+  const sidebars =
+    (Array.isArray(sidebarRaw)
+      ? sidebarRaw
+      : typeof (sidebarRaw) == "object"
+      ? [sidebarRaw]
+      : undefined) as Sidebar[] | undefined;
+
+  // Resolve any sidebar headers
+  sidebars?.forEach((sidebar) => {
+    const headerRaw = sidebar[kSiteSidebarHeader];
+    if (headerRaw) {
+      sidebar[kSiteSidebarHeader] = expandMarkdown(
+        kSiteSidebarHeader,
+        headerRaw,
+      );
+    }
+  });
+
+  // Resolve any sidebar footer
+  sidebars?.forEach((sidebar) => {
+    const footerRaw = sidebar[kSiteSidebarFooter];
+    if (footerRaw) {
+      sidebar[kSiteSidebarFooter] = expandMarkdown(
+        kSiteSidebarFooter,
+        footerRaw,
+      );
+    }
+  });
+
   return Promise.resolve(config);
 }
 
@@ -319,7 +352,7 @@ export function websiteHtmlFormat(project: ProjectContext): Format {
   return mergeConfigs(baseFormat, format);
 }
 
-function expandMarkdown(name: string, val: unknown): String[] {
+function expandMarkdown(name: string, val: unknown): string[] {
   if (Array.isArray(val)) {
     return val.map((pathOrMarkdown) => {
       return expandMarkdownFilePath(pathOrMarkdown);

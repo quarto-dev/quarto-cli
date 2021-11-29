@@ -43,6 +43,7 @@ export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
     nextPageTitleHandler(context),
     prevPageTitleHandler(context),
     sidebarContentsHandler(context),
+    sidebarHeaderFooterHandler(context),
     navbarContentsHandler(context),
     footerHandler(context),
     marginHeaderFooterHandler(context),
@@ -284,40 +285,101 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
   };
 };
 
+const toHeaderFooterMarkdown = (prefix: string, content: string[]) => {
+  return content.reduce(
+    (previousValue, currentValue) => {
+      return `${previousValue}\n:::{.${prefix}-item}\n${currentValue}\n:::\n`;
+    },
+    "",
+  );
+};
+
+const toHeaderFooterContainer = (
+  doc: Document,
+  prefix: string,
+  contentEl: Element,
+) => {
+  const containerEl = doc.createElement("div");
+  containerEl.classList.add(`quarto-${prefix}`);
+  for (const child of contentEl.children) {
+    containerEl.appendChild(child);
+  }
+  return containerEl;
+};
+
+const sidebarHeaderFooterHandler = (context: NavigationPipelineContext) => {
+  const kSidebarHeader = "sidebar-header";
+  const kSidebarFooter = "sidebar-footer";
+
+  return {
+    getUnrendered() {
+      const result: Record<string, string> = {};
+      if (context.sidebar?.header) {
+        if (context.sidebar?.header && context.sidebar?.header.length > 0) {
+          result[kSidebarHeader] = toHeaderFooterMarkdown(
+            kSidebarHeader,
+            context.sidebar.header as string[],
+          );
+        }
+      }
+      if (context.sidebar?.footer) {
+        if (context.sidebar?.footer && context.sidebar?.footer.length > 0) {
+          result[kSidebarFooter] = toHeaderFooterMarkdown(
+            kSidebarFooter,
+            context.sidebar.footer as string[],
+          );
+        }
+      }
+      return { blocks: result };
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      var sidebarEl = doc.getElementById("quarto-sidebar");
+      if (sidebarEl) {
+        const renderedHeaderEl = rendered[kSidebarHeader];
+        if (renderedHeaderEl) {
+          const headerEl = toHeaderFooterContainer(
+            doc,
+            kSidebarHeader,
+            renderedHeaderEl,
+          );
+          sidebarEl.insertBefore(headerEl, sidebarEl.firstChild);
+        }
+        const renderedFooterEl = rendered[kSidebarFooter];
+        if (renderedFooterEl) {
+          console.log(renderedFooterEl.outerHTML);
+          const footerEl = toHeaderFooterContainer(
+            doc,
+            kSidebarFooter,
+            renderedFooterEl,
+          );
+          sidebarEl.appendChild(footerEl);
+        }
+      }
+    },
+  };
+};
+
 // Render and place the margin and header and footer, if specified
 const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
   const kMarginHeader = "margin-header";
   const kMarginFooter = "margin-footer";
-
-  const toMarkdown = (prefix: string, content: string[]) => {
-    return content.reduce(
-      (previousValue, currentValue) => {
-        return `${previousValue}\n:::{.${prefix}-item}\n${currentValue}\n:::\n`;
-      },
-      "",
-    );
-  };
-
-  const toContainer = (doc: Document, prefix: string, contentEl: Element) => {
-    const containerEl = doc.createElement("div");
-    containerEl.classList.add(`quarto-${prefix}`);
-    for (const child of contentEl.children) {
-      containerEl.appendChild(child);
-    }
-    return containerEl;
-  };
-
   return {
     getUnrendered() {
       const result: Record<string, string> = {};
       if (context.navigation?.pageMargin) {
         const headers = context.navigation.pageMargin.header;
         if (headers && headers.length > 0) {
-          result[kMarginHeader] = toMarkdown(kMarginHeader, headers);
+          result[kMarginHeader] = toHeaderFooterMarkdown(
+            kMarginHeader,
+            headers,
+          );
         }
         const footers = context.navigation.pageMargin.footer;
         if (footers && footers.length > 0) {
-          result[kMarginFooter] = toMarkdown(kMarginFooter, footers);
+          result[kMarginFooter] = toHeaderFooterMarkdown(
+            kMarginFooter,
+            footers,
+          );
         }
       }
       return { blocks: result };
@@ -327,12 +389,20 @@ const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
       if (sidebarEl) {
         const renderedHeaderEl = rendered[kMarginHeader];
         if (renderedHeaderEl) {
-          const headerEl = toContainer(doc, kMarginHeader, renderedHeaderEl);
+          const headerEl = toHeaderFooterContainer(
+            doc,
+            kMarginHeader,
+            renderedHeaderEl,
+          );
           sidebarEl.insertBefore(headerEl, sidebarEl.firstChild);
         }
         const renderedFooterEl = rendered[kMarginFooter];
         if (renderedFooterEl) {
-          const footerEl = toContainer(doc, kMarginFooter, renderedFooterEl);
+          const footerEl = toHeaderFooterContainer(
+            doc,
+            kMarginFooter,
+            renderedFooterEl,
+          );
           sidebarEl.appendChild(footerEl);
         }
       }
