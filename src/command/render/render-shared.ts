@@ -77,8 +77,8 @@ export async function render(
 
   // return files
   return {
-    files: result.files.map((file) => {
-      const resourceFiles = resourceFilesFromRenderedFile(
+    files: await Promise.all(result.files.map(async (file) => {
+      const resourceFiles = await resourceFilesFromRenderedFile(
         dirname(path),
         file,
         partitioned,
@@ -91,7 +91,7 @@ export async function render(
         supporting: file.supporting,
         resourceFiles,
       };
-    }),
+    })),
     error: result.error,
   };
 }
@@ -115,7 +115,7 @@ export function resourceFilesFromRenderedFile(
   );
 }
 
-export function resourceFilesFromFile(
+export async function resourceFilesFromFile(
   baseDir: string,
   file: string,
   resources: RenderResourceFiles,
@@ -126,7 +126,7 @@ export function resourceFilesFromFile(
   const resourceDir = join(baseDir, dirname(file));
   const markdown = partitioned ? partitioned.markdown : "";
   const globs = resources.globs;
-  const fileResourceFiles = resolveFileResources(
+  const fileResourceFiles = await resolveFileResources(
     baseDir,
     resourceDir,
     markdown,

@@ -12,10 +12,18 @@ import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { info } from "log/mod.ts";
+import { buildAssets } from "../../../src/command/build-js/cmd.ts";
 
 export async function prepareDist(
   config: Configuration,
 ) {
+  // run esbuild
+  // copy from resources dir to the 'share' dir (which is resources)
+  //   config.directoryInfo.share
+
+  // FIXME holding off on prepareDist building assets until we fix
+  // this issue: https://github.com/quarto-dev/quarto-cli/runs/4229822735?check_suite_focus=true
+  
   // Move the supporting files into place
   info("\nMoving supporting files");
   supportingFiles(config);
@@ -45,6 +53,20 @@ export async function prepareDist(
     config.version,
   );
   info("");
+
+  info("\nBuilding JS assets");
+  await buildAssets();
+  const buildAssetFiles = [
+    "formats/html/ojs/esbuild-bundle.js",
+    "editor/tools/yaml/quarto-json-schemas.json",
+    "editor/tools/yaml/yaml.js"];
+  for (const file of buildAssetFiles) {
+    copySync(join(config.directoryInfo.src, "resources", file),
+             join(config.directoryInfo.share, file),
+             { overwrite: true });
+  }
+  info("");
+
 }
 
 function supportingFiles(config: Configuration) {

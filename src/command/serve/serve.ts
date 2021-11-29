@@ -418,14 +418,16 @@ async function serveFiles(
         }
 
         // compute resource refs and add them
-        resourceFiles.push(...resourceFilesFromFile(
-          project.dir,
-          projRelative,
-          { files, globs },
-          false, // selfContained,
-          [join(dirname(projRelative), inputFilesDir(projRelative))],
-          partitioned,
-        ));
+        resourceFiles.push(
+          ...(await resourceFilesFromFile(
+            project.dir,
+            projRelative,
+            { files, globs },
+            false, // selfContained,
+            [join(dirname(projRelative), inputFilesDir(projRelative))],
+            partitioned,
+          )),
+        );
       }
     } else {
       warning("Unabled to resolve output target for " + inputFile);

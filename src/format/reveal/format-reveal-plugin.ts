@@ -9,6 +9,8 @@ import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
+import { error } from "log/mod.ts";
+
 import {
   Format,
   FormatDependency,
@@ -22,7 +24,6 @@ import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { readYaml } from "../../core/yaml.ts";
 import {
   injectRevealConfig,
   optionsToKebab,
@@ -30,6 +31,17 @@ import {
 } from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
+
+import {
+  arraySchema as arrayS,
+  BooleanSchema as BooleanS,
+  idSchema as withId,
+  objectSchema as objectS,
+  oneOfSchema as oneOfS,
+  StringSchema as StringS,
+} from "../../core/schema/common.ts";
+
+import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -100,7 +112,36 @@ interface RevealPluginScript {
   async?: boolean;
 }
 
-export function revealPluginExtras(
+const scriptSchema = oneOfS(
+  StringS,
+  objectS({
+    properties: {
+      path: StringS,
+      "async": BooleanS,
+    },
+    required: ["path"],
+    // FIXME is this an exhaustive schema?
+  }),
+);
+
+const revealPluginSchema = withId(
+  objectS({
+    properties: {
+      path: StringS,
+      name: StringS,
+      register: BooleanS,
+      script: oneOfS(scriptSchema, arrayS(scriptSchema)),
+      stylesheet: oneOfS(StringS, arrayS(StringS)),
+      // FIXME what's the schema for metadata?
+      [kSelfContained]: BooleanS,
+    },
+    required: ["name"],
+    // FIXME is this an exhaustive schema?
+  }),
+  "plugin-reveal",
+);
+
+export async function revealPluginExtras(
   format: Format,
   flags: PandocFlags,
   revealUrl: string,
@@ -174,7 +215,7 @@ export function revealPluginExtras(
     }
 
     // read from bundle
-    const plugin = pluginFromBundle(bundle);
+    const plugin = await pluginFromBundle(bundle);
 
     // check for self-contained incompatibility
     if (isSelfContained(flags, format)) {
@@ -411,7 +452,9 @@ function toneDependency() {
   return dependency;
 }
 
-function pluginFromBundle(bundle: RevealPluginBundle): RevealPlugin {
+async function pluginFromBundle(
+  bundle: RevealPluginBundle,
+): Promise<RevealPlugin> {
   // confirm it's a directory
   if (!existsSync(bundle.plugin) || !Deno.statSync(bundle.plugin).isDirectory) {
     throw new Error(
@@ -419,10 +462,25 @@ function pluginFromBundle(bundle: RevealPluginBundle): RevealPlugin {
         "' does not exist.",
     );
   }
-  // read the plugin definition (and provide the path)
-  // TODO: yaml validation (RevealPlugin)
-  const plugin = readYaml(join(bundle.plugin, "plugin.yml")) as RevealPlugin;
-  plugin.path = bundle.plugin;
+
+  let plugin;
+
+  try {
+    // read the plugin definition (and provide the path)
+    plugin = (await readAndValidateYamlFromFile(
+      join(bundle.plugin, "plugin.yml"),
+      revealPluginSchema,
+      "Validation of reveal plugin object failed.",
+    )) as RevealPlugin;
+    plugin.path = bundle.plugin;
+  } catch (e) {
+    error(
+      `Validation of plugin configuration ${
+        join(bundle.plugin, "plugin.yml")
+      } failed.`,
+    );
+    throw e;
+  }
 
   // convert script and stylesheet to arrays
   if (plugin.script && !Array.isArray(plugin.script)) {

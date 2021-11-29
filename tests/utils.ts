@@ -30,3 +30,14 @@ export function outputForInput(input: string, to: string) {
 export function docs(path: string): string {
   return join("docs", path);
 }
+
+export function fileLoader(...path: string[]) {
+  return (file: string, to: string) => {
+    const input = docs(join(...path, file));
+    const output = outputForInput(input, to);
+    return {
+      input,
+      output
+    };
+  }
+}

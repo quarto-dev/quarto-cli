@@ -1,0 +1,16 @@
+---
+title: "Some bad breaks for YAML chunks"
+format:
+  html:
+    echo: badness
+---
+
+```{r}
+#| echo: badness
+```
+
+
+```{r}
+#| echo: false
+```
+

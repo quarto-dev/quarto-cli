@@ -15,8 +15,12 @@ import { parse as parseES6 } from "acorn/acorn";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
-import { jsParseError, ojsParseError } from "./errors.ts";
 import { ojsSimpleWalker } from "./ojs-tools.ts";
+import {
+  asMappedString,
+  mappedConcat,
+  MappedString,
+} from "../../core/mapped-text.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -76,12 +80,12 @@ interface DirectDependency {
 }
 
 // Extracts the direct dependencies from a single js, ojs or qmd file
-function directDependencies(
-  source: string,
+async function directDependencies(
+  source: MappedString,
   fileDir: string,
   language: "js" | "ojs" | "qmd",
   projectRoot?: string,
-): DirectDependency[] {
+): Promise<DirectDependency[]> {
   interface ResolvedES6Path {
     pathType: "root-relative" | "relative";
     resolvedImportPath: string;
@@ -144,24 +148,30 @@ function directDependencies(
   let ast;
   if (language === "js") {
     try {
-      ast = parseES6(source, {
+      ast = parseES6(source.value, {
         ecmaVersion: "2020",
         sourceType: "module",
       });
     } catch (e) {
-      jsParseError(source, e.message);
-      throw new Error();
+      if (!(e instanceof SyntaxError)) {
+        throw e;
+      }
+      return [];
     }
   } else if (language === "ojs") {
     try {
-      ast = parseModule(source);
+      ast = parseModule(source.value);
     } catch (e) {
-      ojsParseError(e, source);
-      throw new Error();
+      // we don't chase dependencies if there are parse errors.
+      // we also don't report errors, because that would have happened elsewhere.
+      if (!(e instanceof SyntaxError)) {
+        throw e;
+      }
+      return [];
     }
   } else {
     // language === "qmd"
-    const ojsCellsSrc = breakQuartoMd(source)
+    const ojsCellsSrc = (await breakQuartoMd(source))
       .cells
       .filter((cell) =>
         cell.cell_type !== "markdown" &&
@@ -169,9 +179,13 @@ function directDependencies(
         cell.cell_type !== "math" &&
         cell.cell_type?.language === "ojs"
       )
-      .flatMap((v) => v.source) // (concat)
-      .join("\n");
-    return directDependencies(ojsCellsSrc, fileDir, "ojs", projectRoot);
+      .flatMap((v) => v.source); // (concat)
+    return await directDependencies(
+      mappedConcat(ojsCellsSrc),
+      fileDir,
+      "ojs",
+      projectRoot,
+    );
   }
 
   return localImports(ast).map((importPath) => {
@@ -188,26 +202,27 @@ function directDependencies(
   });
 }
 
-export function extractResolvedResourceFilenamesFromQmd(
-  markdown: string,
+export async function extractResolvedResourceFilenamesFromQmd(
+  markdown: MappedString,
   mdDir: string,
   projectRoot: string,
 ) {
   const pageResources = [];
 
-  for (const cell of breakQuartoMd(markdown).cells) {
+  for (const cell of (await breakQuartoMd(markdown)).cells) {
     if (
       cell.cell_type !== "markdown" &&
       cell.cell_type !== "raw" &&
       cell.cell_type !== "math" &&
       cell.cell_type?.language === "ojs"
     ) {
-      const cellSrcStr = cell.source.join("");
-      pageResources.push(...extractResourceDescriptionsFromOJSChunk(
-        cellSrcStr,
-        mdDir,
-        projectRoot,
-      ));
+      pageResources.push(
+        ...(await extractResourceDescriptionsFromOJSChunk(
+          cell.source,
+          mdDir,
+          projectRoot,
+        )),
+      );
     }
   }
 
@@ -221,8 +236,8 @@ export function extractResolvedResourceFilenamesFromQmd(
   return Array.from(result);
 }
 
-export function extractResourceDescriptionsFromOJSChunk(
-  ojsSource: string,
+export async function extractResourceDescriptionsFromOJSChunk(
+  ojsSource: MappedString,
   mdDir: string,
   projectRoot?: string,
 ) {
@@ -265,12 +280,13 @@ export function extractResourceDescriptionsFromOJSChunk(
 
   // we're assuming that we always start in an {ojs} block.
   for (
-    const { resolvedImportPath, pathType, importPath } of directDependencies(
-      ojsSource,
-      mdDir,
-      "ojs",
-      projectRoot,
-    )
+    const { resolvedImportPath, pathType, importPath }
+      of await directDependencies(
+        ojsSource,
+        mdDir,
+        "ojs",
+        projectRoot,
+      )
   ) {
     if (!imports.has(resolvedImportPath)) {
       const v: ResourceDescription = {
@@ -319,12 +335,13 @@ export function extractResourceDescriptionsFromOJSChunk(
     }
 
     for (
-      const { resolvedImportPath, pathType, importPath } of directDependencies(
-        source,
-        dirname(thisResolvedImportPath),
-        language as ("js" | "ojs" | "qmd"),
-        projectRoot,
-      )
+      const { resolvedImportPath, pathType, importPath }
+        of await directDependencies(
+          asMappedString(source),
+          dirname(thisResolvedImportPath),
+          language as ("js" | "ojs" | "qmd"),
+          projectRoot,
+        )
     ) {
       if (!imports.has(resolvedImportPath)) {
         const v: ResourceDescription = {
@@ -343,22 +360,35 @@ export function extractResourceDescriptionsFromOJSChunk(
   const fileAttachments = [];
   for (const importFile of result) {
     if (importFile.filename.endsWith(".ojs")) {
-      const ast = parseModule(Deno.readTextFileSync(importFile.filename));
-      for (const attachment of literalFileAttachments(ast)) {
-        fileAttachments.push({
-          filename: attachment,
-          referent: importFile.filename,
-        });
+      try {
+        const ast = parseModule(Deno.readTextFileSync(importFile.filename));
+        for (const attachment of literalFileAttachments(ast)) {
+          fileAttachments.push({
+            filename: attachment,
+            referent: importFile.filename,
+          });
+        }
+      } catch (e) {
+        if (!(e instanceof SyntaxError)) {
+          throw e;
+        }
       }
     }
   }
   // also do it for the current .ojs chunk.
-  const ast = parseModule(ojsSource);
-  for (const attachment of literalFileAttachments(ast)) {
-    fileAttachments.push({
-      filename: attachment,
-      referent: rootReferent,
-    });
+  try {
+    const ast = parseModule(ojsSource.value);
+    for (const attachment of literalFileAttachments(ast)) {
+      fileAttachments.push({
+        filename: attachment,
+        referent: rootReferent,
+      });
+    }
+  } catch (e) {
+    // ignore parse errors
+    if (!(e instanceof SyntaxError)) {
+      throw e;
+    }
   }
 
   // while traversing the reference graph, we want to

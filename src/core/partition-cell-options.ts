@@ -6,8 +6,21 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import {
+  asMappedString,
+  MappedString,
+} from "./lib/mapped-text.ts";
+import {
+  langCommentChars,
+  optionCommentPrefix,
+  partitionCellOptionsMapped as libPartitionCellOptionsMapped,
+} from "./lib/partition-cell-options.ts";
+
 import { readYamlFromString } from "./yaml.ts";
+import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
 import { warnOnce } from "./log.ts";
+
+import { languageOptionsSchema } from "./schema/chunk-metadata.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -59,57 +72,52 @@ export function partitionCellOptions(
   };
 }
 
-function langCommentChars(lang: string): string[] {
-  const chars = kLangCommentChars[lang] || "#";
-  if (!Array.isArray(chars)) {
-    return [chars];
-  } else {
-    return chars;
+export function parseAndValidateCellOptions(
+  mappedYaml: MappedString,
+  language: string,
+  validate = false,
+) {
+  if (mappedYaml.value.trim().length === 0) {
+    return undefined;
   }
-}
-function optionCommentPrefix(comment: string) {
-  return comment + "| ";
+
+  const schema = languageOptionsSchema[language];
+
+  if (schema === undefined || !validate) {
+    return readYamlFromString(mappedYaml.value);
+  }
+
+  return readAndValidateYamlFromMappedString(
+    mappedYaml,
+    schema,
+    `Validation of YAML ${language} chunk options failed`,
+  );
 }
 
-const kLangCommentChars: Record<string, string | string[]> = {
-  r: "#",
-  python: "#",
-  julia: "#",
-  scala: "//",
-  matlab: "%",
-  csharp: "//",
-  fsharp: "//",
-  c: ["/*", "*/"],
-  css: ["/*", "*/"],
-  sas: ["*", ";"],
-  powershell: "#",
-  bash: "#",
-  sql: "--",
-  mysql: "--",
-  psql: "--",
-  lua: "--",
-  cpp: "//",
-  cc: "//",
-  stan: "#",
-  octave: "#",
-  fortran: "!",
-  fortran95: "!",
-  awk: "#",
-  gawk: "#",
-  stata: "*",
-  java: "//",
-  groovy: "//",
-  sed: "#",
-  perl: "#",
-  ruby: "#",
-  tikz: "%",
-  js: "//",
-  d3: "//",
-  node: "//",
-  sass: "//",
-  coffee: "#",
-  go: "//",
-  asy: "//",
-  haskell: "--",
-  dot: "//",
-};
+/** NB: this version _does_ parse and validate the YAML source!
+ */
+export async function partitionCellOptionsMapped(
+  language: string,
+  outerSource: MappedString,
+  validate = false,
+) {
+  const {
+    yaml: mappedYaml,
+    optionsSource,
+    source,
+    sourceStartLine,
+  } = await libPartitionCellOptionsMapped(language, outerSource);
+
+  const yaml = await parseAndValidateCellOptions(
+    mappedYaml ?? asMappedString(""),
+    language,
+    validate,
+  );
+
+  return {
+    yaml: yaml as Record<string, unknown> | undefined,
+    optionsSource,
+    source,
+    sourceStartLine,
+  };
+}

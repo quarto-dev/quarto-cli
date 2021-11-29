@@ -53,6 +53,7 @@ export interface ExecutionEngine {
 export interface ExecutionTarget {
   source: string;
   input: string;
+  markdown: string;
   metadata: Metadata;
   data?: unknown;
 }

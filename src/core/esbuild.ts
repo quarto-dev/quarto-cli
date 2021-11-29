@@ -12,10 +12,12 @@ export async function esbuildCompile(
   input: string,
   workingDir: string,
   args?: string[],
+  format?: "esm" | "iife",
 ): Promise<string | undefined> {
+  format = format ?? "esm";
   const fullArgs = [
     "--bundle",
-    "--format=esm",
+    `--format=${format}`,
     ...(args || []),
   ];
 

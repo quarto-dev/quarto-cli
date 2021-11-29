@@ -17,6 +17,7 @@ import { convertCommand } from "./convert/cmd.ts";
 import { capabilitiesCommand } from "./capabilities/cmd.ts";
 import { checkCommand } from "./check/cmd.ts";
 import { inspectCommand } from "./inspect/cmd.ts";
+import { buildJsCommand } from "./build-js/cmd.ts";
 
 export function commands(): Command[] {
   return [
@@ -30,5 +31,6 @@ export function commands(): Command[] {
     checkCommand,
     inspectCommand,
     toolsCommand,
+    buildJsCommand,
   ];
 }

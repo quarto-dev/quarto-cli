@@ -293,14 +293,16 @@ export function revealjsFormat() {
         };
         extras.html![kTextHighlightingMode] = theme[kTextHighlightingMode];
 
+        const revealPluginExtrasConfig = await revealPluginExtras(
+          format,
+          flags,
+          theme.revealUrl,
+          theme.revealDestDir,
+        );
+
         // add plugins
         extras = mergeConfigs(
-          revealPluginExtras(
-            format,
-            flags,
-            theme.revealUrl,
-            theme.revealDestDir,
-          ),
+          revealPluginExtrasConfig,
           extras,
         );
 
