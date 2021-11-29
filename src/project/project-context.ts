@@ -363,6 +363,25 @@ export async function directoryMetadataForInputFile(
         file,
         errMsg,
       )) as Record<string, unknown>;
+
+      // resolve format into expected structure
+      if (yaml.format) {
+        if (typeof (yaml.format) === "string") {
+          yaml.format = {
+            [yaml.format]: {},
+          };
+        } else if (typeof (yaml.format) === "object") {
+          const formats = Object.keys(yaml.format!);
+          for (const format of formats) {
+            if (
+              (yaml.format as Record<string, unknown>)[format] === "default"
+            ) {
+              (yaml.format as Record<string, unknown>)[format] = {};
+            }
+          }
+        }
+      }
+
       config = mergeConfigs(
         config,
         toInputRelativePaths(

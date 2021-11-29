@@ -66,6 +66,7 @@ import {
   kClassOption,
   kColorLinks,
   kDocumentClass,
+  kFigResponsive,
   kFilterParams,
   kHighlightStyle,
   kIncludeAfterBody,
@@ -150,6 +151,7 @@ export async function runPandoc(
   const cleanMetadataForPrinting = (metadata: Metadata) => {
     delete metadata.params;
     delete metadata[kQuartoVarsKey];
+    delete metadata[kFigResponsive];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
   };

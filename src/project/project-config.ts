@@ -86,6 +86,8 @@ export interface Sidebar {
   tools: SidebarTool[];
   style: "docked" | "floating";
   pinned?: boolean;
+  header?: Array<string> | string;
+  footer?: Array<string> | string;
 }
 
 export interface SidebarItem extends NavItem {

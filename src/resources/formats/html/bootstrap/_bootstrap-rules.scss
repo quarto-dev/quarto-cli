@@ -194,7 +194,7 @@ body.docked {
   }
 }
 
-.sidebar.sidebar-toc {
+.sidebar.margin-sidebar {
   grid-column: body-end / page-end;
   grid-row: content-top / page-bottom;
 }
@@ -372,6 +372,10 @@ img.img-fluid.column-screen-inset-shaded {
   .no-row-height {
     height: initial;
     overflow: initial;
+  }
+
+  #quarto-margin-sidebar {
+    display: none;
   }
 }
 
@@ -709,11 +713,16 @@ li code:not(.sourceCode) {
   max-height: 100vh;
 }
 
-.sidebar.sidebar-toc {
+.sidebar.margin-sidebar {
   top: 0px;
+  padding-top: 1em;
 }
 
-.sidebar-toc > h2 {
+.sidebar.margin-sidebar > * {
+  padding-top: 1em;
+}
+
+.sidebar nav#TOC > h2 {
   font-size: $toc-font-size;
   font-weight: 400;
   margin-bottom: 0.5rem;
@@ -721,22 +730,22 @@ li code:not(.sourceCode) {
   font-family: inherit;
   border-bottom: 0;
   padding-bottom: 0;
-  padding-top: 20px;
+  padding-top: 0px;
 }
 
-.sidebar-toc > ul a {
+.sidebar nav#TOC > ul a {
   border-left: 1px solid $gray-200;
   padding-left: 0.6rem;
 }
 
-.sidebar-toc ul {
+.sidebar nav#TOC ul {
   padding-left: 0;
   list-style: none;
   font-size: $toc-font-size;
   font-weight: 300;
 }
 
-.sidebar-toc > ul li a {
+.sidebar nav#TOC > ul li a {
   line-height: 1.1rem;
   padding-bottom: 0.2rem;
   padding-top: 0.2rem;
@@ -748,17 +757,17 @@ $indent: 1.2em;
 @for $i from 1 through $toc-indent-depth {
   $selector-depth: repeat-chars(" ul > li >", $i);
 
-  .sidebar-toc ul > li > #{$selector-depth} a {
+  .sidebar nav#TOC ul > li > #{$selector-depth} a {
     padding-left: #{$indent * $i};
   }
 }
 
-.sidebar-toc ul > li > ul > li > a.active {
+.sidebar nav#TOC ul > li > ul > li > a.active {
   border-left: 1px solid $link-color;
   color: $link-color !important;
 }
 
-.sidebar-toc ul > li > a.active {
+.sidebar nav#TOC ul > li > a.active {
   border-left: 1px solid $link-color;
   color: $link-color !important;
 }
@@ -1169,8 +1178,10 @@ $callouts: (
 }
 
 .quarto-sidebar-toggle-contents {
+  background-color: $body-bg;
   padding-right: 10px;
   padding-left: 10px;
+  margin-top: 0px !important;
   transition: max-height 0.5s ease;
 }
 

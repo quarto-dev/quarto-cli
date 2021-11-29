@@ -46,6 +46,7 @@ export const kHtmlResourceTags: Record<string, string[]> = {
   "link": ["href"],
   "script": ["src"],
   "embed": ["src"],
+  "iframe": ["src"],
   "section": ["data-background-image", "data-background-video"],
 };
 

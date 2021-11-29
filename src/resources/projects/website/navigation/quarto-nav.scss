@@ -537,21 +537,21 @@ nav.sidebar.sidebar-navigation {
   margin-left: 4px;
 }
 
-.sidebar-toc .toc-actions .bi {
+.sidebar nav#TOC .toc-actions .bi {
   margin-left: -4px;
   font-size: 0.7rem;
   color: $text-muted;
 }
 
-.sidebar-toc .toc-actions > div:first-of-type {
+.sidebar nav#TOC .toc-actions > div:first-of-type {
   margin-top: -3px;
 }
 
-.sidebar-toc .toc-actions p {
+.sidebar nav#TOC .toc-actions p {
   font-size: $toc-font-size;
 }
 
-.sidebar-toc .header-section-number {
+.sidebar nav#TOC .header-section-number {
   display: none;
 }
 

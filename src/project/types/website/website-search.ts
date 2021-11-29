@@ -33,7 +33,13 @@ import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
 
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
-import { websiteConfig, websitePath, websiteTitle } from "./website-config.ts";
+import {
+  websiteConfig,
+  websiteConfigMetadata,
+  websiteConfigString,
+  websitePath,
+  websiteTitle,
+} from "./website-config.ts";
 import { sassLayer } from "../../../core/sass.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
 import { warning } from "log/mod.ts";
@@ -255,39 +261,42 @@ export function updateSearchIndex(
 export function searchOptions(
   project: ProjectContext,
 ): SearchOptions | undefined {
-  const searchConfig = websiteConfig(kSearch, project.config);
+  const searchMetadata = websiteConfigMetadata(kSearch, project.config);
 
   // The location of the search input
   const location = searchInputLocation(project);
 
-  if (searchConfig && typeof (searchConfig) === "object") {
+  if (searchMetadata) {
     // Sort out collapsing (by default, show 2 sections per document)
     const collapseMatches: number | boolean =
-      typeof (searchConfig[kCollapseAfter]) === "number"
-        ? searchConfig[kCollapseAfter] as number
-        : searchConfig[kCollapseAfter] !== false
+      typeof (searchMetadata[kCollapseAfter]) === "number"
+        ? searchMetadata[kCollapseAfter] as number
+        : searchMetadata[kCollapseAfter] !== false
         ? 2
         : false;
 
     return {
       [kLocation]: location,
-      [kCopyButton]: searchConfig[kCopyButton] === true,
+      [kCopyButton]: searchMetadata[kCopyButton] === true,
       [kCollapseAfter]: collapseMatches,
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
-      [kType]: searchType(searchConfig[kType], location),
-      [kLimit]: searchInputLimit(searchConfig),
-      [kAlgolia]: algoliaOptions(searchConfig),
+      [kType]: searchType(searchMetadata[kType], location),
+      [kLimit]: searchInputLimit(searchMetadata),
+      [kAlgolia]: algoliaOptions(searchMetadata),
     };
-  } else if (searchConfig === undefined || !!searchConfig) {
-    // The default configuration if search is undefined or true
-    return {
-      [kLocation]: location,
-      [kCopyButton]: false,
-      [kCollapseAfter]: 2,
-      [kPanelPlacement]: location === "navbar" ? "end" : "start",
-      [kType]: searchType(undefined, location),
-      [kLimit]: searchInputLimit(undefined),
-    };
+  } else {
+    const searchRaw = websiteConfig(kSearch, project.config);
+    if (searchRaw === undefined || !!searchRaw) {
+      // The default configuration if search is undefined or true
+      return {
+        [kLocation]: location,
+        [kCopyButton]: false,
+        [kCollapseAfter]: 2,
+        [kPanelPlacement]: location === "navbar" ? "end" : "start",
+        [kType]: searchType(undefined, location),
+        [kLimit]: searchInputLimit(undefined),
+      };
+    }
   }
 }
 
@@ -350,11 +359,8 @@ function algoliaOptions(searchConfig: Record<string, unknown>) {
 export function searchInputLocation(
   project: ProjectContext,
 ): SearchInputLocation {
-  const searchConfig = websiteConfig(kSearch, project.config);
-  if (
-    searchConfig && typeof (searchConfig) === "object" &&
-    searchConfig[kLocation]
-  ) {
+  const searchConfig = websiteConfigMetadata(kSearch, project.config);
+  if (searchConfig && searchConfig[kLocation]) {
     switch (searchConfig[kLocation]) {
       case "sidebar":
         return "sidebar";

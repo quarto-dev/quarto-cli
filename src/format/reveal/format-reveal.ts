@@ -10,7 +10,6 @@ import {
   kCodeLineNumbers,
   kFrom,
   kHtmlMathMethod,
-  kIncludeAfterBody,
   kIncludeInHeader,
   kLinkCitations,
   kSlideLevel,
@@ -93,6 +92,9 @@ const kRevealOptions = [
   "maxScale",
   "mathjax",
   "pdfSeparateFragments",
+  "autoAnimateEasing",
+  "autoAnimateDuration",
+  "autoAnimateUnmatched",
 ];
 
 const kRevealKebabOptions = optionsToKebab(kRevealOptions);
@@ -105,7 +107,12 @@ export const kSlideFooter = "footer";
 export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kCenterTitleSlide = "center-title-slide";
+export const kControlsAuto = "controlsAuto";
+export const kPreviewLinksAuto = "previewLinksAuto";
 export const kPdfSeparateFragments = "pdfSeparateFragments";
+export const kAutoAnimateEasing = "autoAnimateEasing";
+export const kAutoAnimateDuration = "autoAnimateDuration";
+export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
 
 export function optionsToKebab(options: string[]) {
   return options.reduce(
@@ -129,6 +136,25 @@ export function revealResolveFormat(format: Format) {
   }
 }
 
+export function injectRevealConfig(
+  config: Record<string, unknown>,
+  template: string,
+) {
+  // plugin config
+  const configJs: string[] = [];
+  Object.keys(config).forEach((key) => {
+    configJs.push(`'${key}': ${JSON.stringify(config[key])}`);
+  });
+  if (configJs.length > 0) {
+    const kRevealInitialize = "Reveal.initialize({";
+    template = template.replace(
+      kRevealInitialize,
+      kRevealInitialize + "\n" + configJs.join(",\n") + ",\n",
+    );
+  }
+  return template;
+}
+
 export function revealMetadataFilter(
   metadata: Metadata,
   kebabOptions = kRevealKebabOptions,
@@ -150,7 +176,7 @@ export function revealMetadataFilter(
 
 export function revealjsFormat() {
   return mergeConfigs(
-    createHtmlPresentationFormat(9, 5),
+    createHtmlPresentationFormat(10, 5),
     {
       pandoc: {
         [kHtmlMathMethod]: {
@@ -179,15 +205,35 @@ export function revealjsFormat() {
         );
         Deno.writeTextFileSync(stylesFile, styles);
 
+        // specify controlsAuto if there is no boolean 'controls'
+        const metadataOverride: Metadata = {};
+        const controlsAuto = typeof (format.metadata["controls"]) !== "boolean";
+        if (controlsAuto) {
+          metadataOverride.controls = false;
+        }
+
+        // specify previewLinksAuto if there is no boolean 'previewLinks'
+        const previewLinksAuto = format.metadata["previewLinks"] === "auto";
+        if (previewLinksAuto) {
+          metadataOverride.previewLinks = false;
+        }
+
         // additional options not supported by pandoc
-        const extrasFile = sessionTempFile({ suffix: ".html" });
-        const extrasHtml = renderEjs(
-          formatResourcePath("revealjs", "extras.html"),
-          {
+        const extraConfigPatch = (template: string) => {
+          const extraConfig = {
+            [kControlsAuto]: controlsAuto,
+            [kPreviewLinksAuto]: previewLinksAuto,
             [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
-          },
-        );
-        Deno.writeTextFileSync(extrasFile, extrasHtml);
+            [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
+            [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
+              1.0,
+            [kAutoAnimateUnmatched]:
+              format.metadata[kAutoAnimateUnmatched] !== undefined
+                ? format.metadata[kAutoAnimateUnmatched]
+                : true,
+          };
+          return injectRevealConfig(extraConfig, template);
+        };
 
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
@@ -216,11 +262,11 @@ export function revealjsFormat() {
             metadata: {
               [kLinkCitations]: true,
             } as Metadata,
-            metadataOverride: {} as Metadata,
+            metadataOverride,
             [kIncludeInHeader]: [stylesFile],
-            [kIncludeAfterBody]: [extrasFile],
             html: {
               [kTemplatePatches]: [
+                extraConfigPatch,
                 revealRequireJsPatch,
                 /* TODO: Remove when the fix is available in Pandoc https://github.com/jgm/pandoc/pull/7670 */
                 (template: string) => {
@@ -290,7 +336,6 @@ export function revealjsFormat() {
               margin: 0.1,
               center: false,
               navigationMode: "linear",
-              controls: verticalSlides,
               controlsLayout: "edges",
               controlsTutorial: false,
               hash: true,

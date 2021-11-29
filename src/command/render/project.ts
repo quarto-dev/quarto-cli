@@ -36,7 +36,7 @@ import {
 } from "./freeze.ts";
 import { resourceFilesFromRenderedFile } from "./render-shared.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { removeIfEmptyDir } from "../../core/path.ts";
+import { copyMinimal, removeIfEmptyDir } from "../../core/path.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -265,11 +265,12 @@ export async function renderProject(
           if (libsIncremental) {
             for (const lib of Deno.readDirSync(libDirFull)) {
               if (lib.isDirectory) {
-                const srcDir = join(libDir, lib.name);
-                if (keepLibsDir) {
-                  copyDir(srcDir);
-                } else {
-                  moveDir(srcDir);
+                const copyDir = join(libDir, lib.name);
+                const srcDir = join(projDir, copyDir);
+                const targetDir = join(outputDirAbsolute, copyDir);
+                copyMinimal(srcDir, targetDir);
+                if (!keepLibsDir) {
+                  Deno.removeSync(srcDir, { recursive: true });
                 }
               }
             }

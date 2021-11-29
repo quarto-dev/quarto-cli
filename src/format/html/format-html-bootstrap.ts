@@ -274,8 +274,8 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     // move the toc if there is a sidebar
     const toc = doc.querySelector('nav[role="doc-toc"]');
 
-    const tocSidebar = doc.getElementById("quarto-toc-sidebar");
-    if (toc && tocSidebar) {
+    const tocTarget = doc.getElementById("quarto-toc-target");
+    if (toc && tocTarget) {
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
       for (let i = 0; i < tocLinks.length; i++) {
@@ -301,14 +301,8 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
         const ul = nestedUls[i] as Element;
         ul.classList.add("collapse");
       }
-
-      // Copy the classes over
-      tocSidebar.classList.forEach((className) => {
-        toc.classList.add(className);
-      });
-      // Replace the toc placeholder and move any classes
       toc.remove();
-      tocSidebar.replaceWith(toc);
+      tocTarget.replaceWith(toc);
     }
 
     // add .table class to pandoc tables
@@ -386,7 +380,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     if (columnLayouts.length > 0) {
       doc.body.classList.add("slimcontent");
       // wide margin b/c there are margin elements
-    } else if (toc) {
+    } else if (doc.getElementById("quarto-margin-sidebar")) {
       // there is a toc, default layout
     } else {
       // no toc, narrow

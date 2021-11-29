@@ -10,12 +10,17 @@
 .reveal .footer {
   display: block;
   position: fixed;
-  bottom: 0;
+  bottom: 18px;
   width: 100%;
   margin: 0 auto;
   text-align: center;
   font-size: 18px;
   z-index: 2;
+}
+
+.reveal .footer > * {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .reveal .slide .footer {

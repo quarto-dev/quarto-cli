@@ -24,18 +24,21 @@ import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-
-import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
+import {
+  injectRevealConfig,
+  optionsToKebab,
+  revealMetadataFilter,
+} from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
 
 import {
-  oneOfSchema as oneOfS,
   arraySchema as arrayS,
   BooleanSchema as BooleanS,
-  objectSchema as objectS,
-  StringSchema as StringS,
   idSchema as withId,
+  objectSchema as objectS,
+  oneOfSchema as oneOfS,
+  StringSchema as StringS,
 } from "../../core/schema/common.ts";
 
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
@@ -118,21 +121,25 @@ const scriptSchema = oneOfS(
     },
     required: ["path"],
     // FIXME is this an exhaustive schema?
-  }));
+  }),
+);
 
-const revealPluginSchema = withId(objectS({
-  properties: {
-    path: StringS,
-    name: StringS,
-    register: BooleanS,
-    script: oneOfS(scriptSchema, arrayS(scriptSchema)),
-    stylesheet: oneOfS(StringS, arrayS(StringS)),
-    // FIXME what's the schema for metadata?
-    [kSelfContained]: BooleanS,
-  },
-  required: ["name"],
-  // FIXME is this an exhaustive schema?
-}), "plugin-reveal");
+const revealPluginSchema = withId(
+  objectS({
+    properties: {
+      path: StringS,
+      name: StringS,
+      register: BooleanS,
+      script: oneOfS(scriptSchema, arrayS(scriptSchema)),
+      stylesheet: oneOfS(StringS, arrayS(StringS)),
+      // FIXME what's the schema for metadata?
+      [kSelfContained]: BooleanS,
+    },
+    required: ["name"],
+    // FIXME is this an exhaustive schema?
+  }),
+  "plugin-reveal",
+);
 
 export async function revealPluginExtras(
   format: Format,
@@ -341,25 +348,6 @@ export async function revealPluginExtras(
   return extras;
 }
 
-export function injectRevealConfig(
-  config: Record<string, unknown>,
-  template: string,
-) {
-  // plugin config
-  const configJs: string[] = [];
-  Object.keys(config).forEach((key) => {
-    configJs.push(`'${key}': ${JSON.stringify(config[key])}`);
-  });
-  if (configJs.length > 0) {
-    const kRevealInitialize = "Reveal.initialize({";
-    template = template.replace(
-      kRevealInitialize,
-      kRevealInitialize + "\n" + configJs.join(",\n") + ",\n",
-    );
-  }
-  return template;
-}
-
 function revealMenuPlugin(format: Format) {
   return {
     plugin: formatResourcePath("revealjs", join("plugins", "menu")),
@@ -486,7 +474,11 @@ async function pluginFromBundle(
     )) as RevealPlugin;
     plugin.path = bundle.plugin;
   } catch (e) {
-    error(`Validation of plugin configuration ${join(bundle.plugin, "plugin.yml")} failed.`);
+    error(
+      `Validation of plugin configuration ${
+        join(bundle.plugin, "plugin.yml")
+      } failed.`,
+    );
     throw e;
   }
 

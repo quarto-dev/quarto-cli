@@ -25,7 +25,7 @@ $selection-color: $body-bg !default;
 // border colors
 $border-color: lighten($body-color, 30%) !default;
 $border-width: 1px !default;
-$border-radius: 3px !default;
+$border-radius: 4px !default;
 
 // headings
 $presentation-heading-font: $font-family-sans-serif !default;
@@ -61,6 +61,12 @@ $code-bg: transparent !default;
 
 // tabset
 $tabset-border-color: $code-block-border-color !default;
+
+// input panel
+$input-panel-border-color: $code-block-border-color !default;
+$input-panel-border-width: $border-width !default;
+$input-panel-border-radius: $border-radius !default;
+$input-panel-bg: rgba(248, 249, 250, 1) !default;
 
 // alternate colors for when the background changes
 $light-bg-text-color: #222 !default;
@@ -201,13 +207,17 @@ section.has-dark-background {
   font-size: $revealjs-h1-font-size;
 }
 
-.reveal pre {
-  width: 95%;
-  box-shadow: none;
-  background-color: $code-block-bg;
+.reveal div.sourceCode {
   border: $border-width solid $code-block-border-color;
   border-radius: $border-radius;
-  margin: $blockMargin 0;
+}
+
+.reveal pre {
+  width: 100%;
+  box-shadow: none;
+  background-color: $code-block-bg;
+  border: none;
+  margin: 0;
   font-size: $code-block-font-size;
 }
 
@@ -220,6 +230,53 @@ section.has-dark-background {
   color: $body-color;
   background-color: $code-block-bg;
   padding: 6px 9px;
+  max-height: 500px;
+}
+
+$panel-sidebar-width: 270px;
+$panel-sidebar-padding: 0.5em;
+
+.reveal .panel-input {
+  padding: $panel-sidebar-padding;
+  border-style: solid;
+  border-color: $input-panel-border-color;
+  border-width: $input-panel-border-width;
+  border-radius: $input-panel-border-radius;
+  background-color: $input-panel-bg;
+}
+
+.reveal .layout-sidebar {
+  display: flex;
+  width: 100%;
+  font-size: 0.5em;
+}
+
+.reveal .layout-sidebar .panel-sidebar {
+  width: $panel-sidebar-width;
+}
+
+.reveal .layout-sidebar-left .panel-sidebar {
+  margin-right: calc(#{$panel-sidebar-padding} * 2);
+}
+
+.reveal .layout-sidebar-right .panel-sidebar {
+  margin-left: calc(#{$panel-sidebar-padding} * 2);
+}
+
+.reveal .layout-sidebar .panel-fill,
+.reveal .layout-sidebar .panel-center,
+.reveal .layout-sidebar .panel-tabset {
+  flex: 1;
+}
+
+.reveal .panel-input :first-child,
+.reveal .panel-fill :first-child {
+  margin-top: 0;
+}
+
+.reveal .panel-input :last-child,
+.reveal .panel-fill :last-child {
+  margin-bottom: 0;
 }
 
 .reveal p,

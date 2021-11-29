@@ -4,10 +4,20 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import {
+  Document,
+  Element,
+  Node,
+  NodeList,
+} from "deno_dom/deno-dom-wasm-noinit.ts";
+
+export interface PipelineMarkdown {
+  blocks?: Record<string, string>;
+  inlines?: Record<string, string>;
+}
 
 export interface MarkdownPipelineHandler {
-  getUnrendered: () => Record<string, string> | undefined;
+  getUnrendered: () => PipelineMarkdown | undefined;
   processRendered: (rendered: Record<string, Element>, doc: Document) => void;
 }
 
@@ -22,16 +32,27 @@ export const createMarkdownPipeline = (
 ): MarkdownPipeline => {
   return {
     markdownAfterBody() {
-      const markdownRecords: Record<string, string> = {};
+      const pipelineMarkdown: PipelineMarkdown = {};
       handlers.forEach((handler) => {
-        const handlerRecords = handler.getUnrendered();
-        if (handlerRecords) {
-          Object.keys(handlerRecords).forEach((key) => {
-            markdownRecords[key] = handlerRecords[key];
-          });
+        const handlerPipelineMarkdown = handler.getUnrendered();
+        if (handlerPipelineMarkdown) {
+          const inlines = handlerPipelineMarkdown.inlines;
+          if (inlines) {
+            pipelineMarkdown.inlines = pipelineMarkdown.inlines || {};
+            for (const key of Object.keys(inlines)) {
+              pipelineMarkdown.inlines[key] = inlines[key];
+            }
+          }
+          const blocks = handlerPipelineMarkdown.blocks;
+          if (blocks) {
+            pipelineMarkdown.blocks = pipelineMarkdown.blocks || {};
+            for (const key of Object.keys(blocks)) {
+              pipelineMarkdown.blocks[key] = blocks[key];
+            }
+          }
         }
       });
-      return createMarkdownRenderEnvelope(envelopeId, markdownRecords);
+      return createMarkdownRenderEnvelope(envelopeId, pipelineMarkdown);
     },
     processRenderedMarkdown(doc: Document) {
       processMarkdownRenderEnvelope(
@@ -47,12 +68,19 @@ export const createMarkdownPipeline = (
 
 export function createMarkdownRenderEnvelope(
   envelopeId: string,
-  records: Record<string, string>,
+  pipelineMarkdown: PipelineMarkdown,
 ) {
   const envelope = markdownEnvelopeWriter(envelopeId);
-  Object.keys(records).forEach((key) => {
-    envelope.add(key, records[key]);
-  });
+  if (pipelineMarkdown.inlines) {
+    for (const key of Object.keys(pipelineMarkdown.inlines)) {
+      envelope.addInline(key, pipelineMarkdown.inlines[key]);
+    }
+  }
+  if (pipelineMarkdown.blocks) {
+    for (const key of Object.keys(pipelineMarkdown.blocks)) {
+      envelope.addBlock(key, pipelineMarkdown.blocks[key]);
+    }
+  }
   return envelope.toMarkdown();
 }
 
@@ -75,8 +103,15 @@ const markdownEnvelopeWriter = (envelopeId: string) => {
     return `[${contents}]{.hidden render-id="${id}"}`;
   };
 
+  const hiddenDiv = (id: string, contents: string) => {
+    return `\n:::{.hidden render-id="${id}"}\n${contents}\n:::\n`;
+  };
+
   return {
-    add: (id: string, value: string) => {
+    addBlock: (id: string, value: string) => {
+      renderList.push(hiddenDiv(id, value));
+    },
+    addInline: (id: string, value: string) => {
       renderList.push(hiddenSpan(id, value));
     },
     toMarkdown: () => {
@@ -89,16 +124,27 @@ const markdownEnvelopeWriter = (envelopeId: string) => {
 const readEnvelope = (doc: Document, envelopeId: string) => {
   const envelope = doc.getElementById(envelopeId);
   const contents: Record<string, Element> = {};
+  const addContent = (node: Node) => {
+    const el = node as Element;
+    const id = el.getAttribute("data-render-id");
+    if (id) {
+      contents[id] = el;
+    }
+  };
+
   if (envelope) {
-    const nodes = envelope.querySelectorAll("span[data-render-id]");
-    nodes.forEach((node) => {
-      const el = node as Element;
-      const id = el.getAttribute("data-render-id");
-      if (id) {
-        contents[id] = el;
-      }
+    const blockNodes = envelope.querySelectorAll("div[data-render-id]");
+    blockNodes.forEach((blockNode) => {
+      addContent(blockNode);
     });
+
+    const inlineNodes = envelope.querySelectorAll("span[data-render-id]");
+    inlineNodes.forEach((inlineNode) => {
+      addContent(inlineNode);
+    });
+
     envelope.remove();
   }
+
   return contents;
 };
