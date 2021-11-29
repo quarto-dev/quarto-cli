@@ -121,7 +121,7 @@ import {
   PandocIncludes,
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
-import { isHtmlCompatible } from "../../config/format.ts";
+import { isHtmlCompatible, isHtmlOutput } from "../../config/format.ts";
 import { initDenoDom } from "../../core/html.ts";
 import { resolveLanguageMetadata } from "../../core/language.ts";
 
@@ -993,7 +993,9 @@ async function resolveFormats(
     const inputFormat = inputFormats[format];
 
     // resolve theme (project-level bootstrap theme always wins)
-    if (project && formatHasBootstrap(projFormat)) {
+    if (
+      project && isHtmlOutput(format, true) && formatHasBootstrap(projFormat)
+    ) {
       if (formatHasBootstrap(inputFormat)) {
         delete inputFormat.metadata[kTheme];
       }
