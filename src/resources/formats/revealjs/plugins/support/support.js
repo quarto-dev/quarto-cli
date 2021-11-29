@@ -25,15 +25,40 @@ window.QuartoSupport = function () {
         el.addEventListener(
           "click",
           (ev) => {
-            const dataPreviewLink = el.getAttribute("data-preview-link");
-            const forceOn = dataPreviewLink === "true";
-            const forceOff = dataPreviewLink === "false";
             const fullscreen = !!window.document.fullscreen;
-            if (forceOn || (fullscreen && !forceOff)) {
-              ev.preventDefault();
-              deck.showPreview(url);
-              return false;
+            const dataPreviewLink = el.getAttribute("data-preview-link");
+
+            // if there is a local specifcation then use that
+            if (dataPreviewLink) {
+              if (
+                dataPreviewLink === "true" ||
+                (dataPreviewLink === "auto" && fullscreen)
+              ) {
+                ev.preventDefault();
+                deck.showPreview(url);
+                return false;
+              }
+            } else {
+              const previewLinks = !!deck.getConfig().previewLinks;
+              const previewLinksAuto =
+                deck.getConfig().previewLinksAuto === true;
+              if (previewLinks == true || (previewLinksAuto && fullscreen)) {
+                ev.preventDefault();
+                deck.showPreview(url);
+                return false;
+              }
             }
+
+            // otherwise show it normally
+            ev.preventDefault();
+            ev.stopImmediatePropagation();
+            const target = el.getAttribute("target");
+            if (target) {
+              window.open(url, target);
+            } else {
+              window.location.href = url;
+            }
+            return false;
           },
           false
         );
@@ -43,9 +68,7 @@ window.QuartoSupport = function () {
 
   // implement previewLinksAuto
   function previewLinksAuto(deck) {
-    if (deck.getConfig().previewLinksAuto === true) {
-      handleLinkClickEvents(deck, deck.getRevealElement());
-    }
+    handleLinkClickEvents(deck, deck.getRevealElement());
   }
 
   // apply styles
@@ -72,9 +95,7 @@ window.QuartoSupport = function () {
     const defaultFooterDiv = document.querySelector(".footer-default");
     if (defaultFooterDiv) {
       revealParent.appendChild(defaultFooterDiv);
-      if (deck.getConfig().previewLinksAuto === true) {
-        handleLinkClickEvents(deck, defaultFooterDiv);
-      }
+      handleLinkClickEvents(deck, defaultFooterDiv);
       if (!isPrintView()) {
         deck.on("slidechanged", function (ev) {
           const prevSlideFooter = document.querySelector(
@@ -87,9 +108,7 @@ window.QuartoSupport = function () {
           if (currentSlideFooter) {
             defaultFooterDiv.style.display = "none";
             const slideFooter = currentSlideFooter.cloneNode(true);
-            if (deck.getConfig().previewLinksAuto === true) {
-              handleLinkClickEvents(deck, slideFooter);
-            }
+            handleLinkClickEvents(deck, slideFooter);
             deck.getRevealElement().appendChild(slideFooter);
           } else {
             defaultFooterDiv.style.display = "block";

@@ -213,8 +213,7 @@ export function revealjsFormat() {
         }
 
         // specify previewLinksAuto if there is no boolean 'previewLinks'
-        const previewLinksAuto =
-          typeof (format.metadata["previewLinks"]) !== "boolean";
+        const previewLinksAuto = format.metadata["previewLinks"] === "auto";
         if (previewLinksAuto) {
           metadataOverride.previewLinks = false;
         }
