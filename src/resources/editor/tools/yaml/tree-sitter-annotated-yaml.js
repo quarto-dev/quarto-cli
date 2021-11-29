@@ -185,10 +185,9 @@ export function buildAnnotated(tree, mappedSource)
   // This is, clearly, a terrible hack.
   //
   // I really ought to consider rebuilding this whole infrastructure
-  const endOfMappedCode = mappedSource.map(mappedSource.value.length - 1);
-  const startOfMappedCode = mappedSource.map(0);
-
-  const lossage = (result.end - result.start) / (endOfMappedCode - startOfMappedCode);
+  const parsedSize = tree.rootNode.text.trim().length;
+  const codeSize = mappedSource.value.trim().length;
+  const lossage = parsedSize / codeSize;
 
   if (lossage < 0.95) {
     return null;
