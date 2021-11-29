@@ -65,6 +65,17 @@ const makeDevhostErrorClickHandler = (line, column) => {
   };
 };
 
+// we cannot depend on Object.fromEntries because the IDE
+// doesn't support it. We minimally polyfill it
+function fromEntries(obj)
+{
+  const result = {};
+  for (const [key, value] of obj) {
+    result[key] = value;
+  }
+  return result;
+}
+
 /** create a callout block with the given opts, currently to be used
     to signal a runtime error in the observable runtime.
 */
@@ -512,7 +523,7 @@ export function createRuntime() {
   function transpose(df) {
     const keys = Object.keys(df);
     return df[keys[0]]
-      .map((v, i) => Object.fromEntries(keys.map(key => [key, df[key][i] || undefined])))
+      .map((v, i) => fromEntries(keys.map(key => [key, df[key][i] || undefined])))
       .filter(v => Object.values(v).every(e => e !== undefined));
   }
   lib.transpose = () => transpose;
@@ -564,7 +575,7 @@ export function createRuntime() {
   );
   function layoutWidth() {
     return lib.Generators.observe(function (change) {
-      const ourWidths = Object.fromEntries(
+      const ourWidths = fromEntries(
         layoutDivs.map((div) => [div.id, div.clientWidth]),
       );
       change(ourWidths);

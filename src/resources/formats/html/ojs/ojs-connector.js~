@@ -1,0 +1,197 @@
+/*global Shiny, $, DOMParser, MutationObserver, URL
+*
+* ojs-connector.js
+*
+* Copyright (C) 2021 RStudio, PBC
+*
+* NB: This should not have any local module imports, since that will break
+* the bundling provided by pandoc when building self-contained files.
+*
+* External imports (from eg skypack) are fine because the module
+* resolution rules still work there.
+*
+*/
+
+
+import {
+  Inspector,
+  Runtime,
+  RuntimeError,
+} from "https://cdn.skypack.dev/@observablehq/runtime";
+
+import {
+  FileAttachments, Library
+} from "./stdlib.js";
+
+class EmptyInspector {
+  pending() {
+  }
+  fulfilled(_value, _name) {
+  }
+  rejected(_error, _name) {
+    // FIXME we should probably communicate this upstream somehow.
+  }
+}
+
+export class OJSConnector {
+  constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
+    this.library = library || new Library();
+
+    // this map contains a mapping from resource names to data URLs
+    // that governs fileAttachment and import() resolutions in the
+    // case of self-contained files.
+    this.localResolverMap = new Map();
+    // Keeps track of variables that have been requested by ojs code, but do
+    // not exist (not in the module, not in the library, not on window).
+    // The keys are variable names, the values are {promise, resolve, reject}.
+    // This is intended to allow for a (hopefully brief) phase during startup
+    // in which, if an ojs code chunk references a variable that is not defined,
+    // instead of treating it as an "x is not defined" error we instead
+    // take a wait-and-see approach, in case the variable dynamically becomes
+    // defined later. When the phase ends, killPendingGlobals() must be called
+    // so any variables that are still missing do cause "x is not defined"
+    // errors.
+    this.pendingGlobals = {};
+    // When true, the mechanism described in the `this.pendingGlobals` comment
+    // is used. When false, the result of accessing undefined variables is just
+    // "x is not defined". This should be considered private, only settable via
+    // constructor or `killPendingGlobals`.
+    this.allowPendingGlobals = allowPendingGlobals;
+    // NB it looks like Runtime makes a local copy of the library object,
+    // such that mutating library after this is initializaed doesn't actually
+    // work.
+    this.runtime = new Runtime(this.library, (name) => this.global(name));
+    this.mainModule = this.runtime.module();
+    this.interpreter = new Interpreter({
+      module: this.mainModule,
+      resolveImportPath: importPathResolver(paths, this.localResolverMap),
+    });
+    this.inspectorClass = inspectorClass || Inspector;
+
+    // state to handle flash of unevaluated js because of async module imports
+    this.mainModuleHasImports = false;
+    this.mainModuleOutstandingImportCount = 0;
+    this.chunkPromises = [];
+  }
+
+  // Customizes the Runtime's behavior when an undefined variable is accessed.
+  // This is needed for cases where the ojs graph is not all present at the
+  // time of initialization; in particular, the case where a dependent cell
+  // starts executing before one or more of its dependencies have been defined.
+  // Without this customization, the user would see a flash of errors while the
+  // graph is constructed; with this customization, the dependents stay blank
+  // while they wait.
+  global(name) {
+    if (typeof window[name] !== "undefined") {
+      return window[name];
+    }
+    if (!this.allowPendingGlobals) {
+      return undefined;
+    }
+
+    // deno-lint-ignore no-prototype-builtins
+    if (!this.pendingGlobals.hasOwnProperty(name)) {
+      // This is a pending global we haven't seen before. Stash a new promise,
+      // along with its resolve/reject callbacks, in an object and remember it
+      // for later.
+      const info = {};
+      info.promise = new Promise((resolve, reject) => {
+        info.resolve = resolve;
+        info.reject = reject;
+      });
+      this.pendingGlobals[name] = info;
+    }
+    return this.pendingGlobals[name].promise;
+  }
+
+  // Signals the end of the "pending globals" phase. Any promises we've handed
+  // out from the global() method now are rejected. (We never resolve these
+  // promises to values; if these variables made an appearance, it would've
+  // been as variables on modules.)
+  killPendingGlobals() {
+    this.allowPendingGlobals = false;
+    for (const [name, { reject }] of Object.entries(this.pendingGlobals)) {
+      reject(new RuntimeError(`${name} is not defined`));
+    }
+  }
+
+  setLocalResolver(map) {
+    for (const [key, value] of Object.entries(map)) {
+      this.localResolverMap.set(key, value);
+    }
+  }
+
+  define(name, module = undefined) {
+    if (!module) {
+      module = this.mainModule;
+    }
+    let change;
+    const obs = this.library.Generators.observe((change_) => {
+      change = change_;
+      // FIXME: do something about destruction
+    });
+    module.variable().define(name, obs);
+    return change;
+  }
+
+  watch(name, k, module = undefined) {
+    if (!module) {
+      module = this.mainModule;
+    }
+    module.variable({
+      fulfilled: (x) => k(x, name),
+    }).define([name], (val) => val);
+  }
+
+  async value(val, module = undefined) {
+    if (!module) {
+      module = this.mainModule;
+    }
+    const result = await module.value(val);
+    return result;
+  }
+
+  finishInterpreting() {
+    return Promise.all(this.chunkPromises);
+  }
+  
+  interpretWithRunner(src, runner) {
+    try {
+      const parse = parseModule(src);
+      const chunkPromise = Promise.all(parse.cells.map(runner));
+      this.chunkPromises.push(chunkPromise);
+      return chunkPromise;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  waitOnImports(cell, promise) {
+    if (cell.body.type !== "ImportDeclaration") {
+      return promise;
+    } else {
+      this.mainModuleHasImports = true;
+      this.mainModuleOutstandingImportCount++;
+      return promise.then((result) => {
+        this.mainModuleOutstandingImportCount--;
+        if (this.mainModuleOutstandingImportCount === 0) {
+          this.clearImportModuleWait();
+        }
+        return result;
+      });
+    }
+  }
+
+  interpretQuiet(src) {
+    const runCell = (cell) => {
+      const cellSrc = src.slice(cell.start, cell.end);
+      const promise = this.interpreter.module(
+        cellSrc,
+        undefined,
+        (_name) => new EmptyInspector(),
+      );
+      return this.waitOnImports(cell, promise);
+    };
+    return this.interpretWithRunner(src, runCell);
+  }
+};
