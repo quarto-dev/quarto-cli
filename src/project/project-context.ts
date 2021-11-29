@@ -359,8 +359,8 @@ export async function directoryMetadataForInputFile(
       // to the metadata file to be relative to input
       const errMsg = "Directory metadata validation failed.";
       const yaml = (await readAndValidateYamlFromFile(
-        frontMatterSchema,
         file,
+        frontMatterSchema,
         errMsg,
       )) as Record<string, unknown>;
 
