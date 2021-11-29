@@ -373,6 +373,10 @@ img.img-fluid.column-screen-inset-shaded {
     height: initial;
     overflow: initial;
   }
+
+  #quarto-margin-sidebar {
+    display: none;
+  }
 }
 
 // Rest of rules
