@@ -235,6 +235,7 @@ class QuartoOJSConnector extends OJSConnector {
   }
 
   decorateSource(cellDiv, ojsDiv) {
+
     this.clearErrorPinpoints(cellDiv, ojsDiv);
     const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
     // sometimes the source code is not echoed.
@@ -384,7 +385,7 @@ class QuartoOJSConnector extends OJSConnector {
         const forceShowDeclarations = !(cellDiv && cellDiv.dataset.output !== "all");
         
         const config = { childList: true };
-        const callback = function(mutationsList, observer) {
+        const callback = function(mutationsList) {
           // we may fail to find a cell in inline settings; but
           // inline cells won't have inspectors, so in that case
           // we never hide
@@ -466,13 +467,11 @@ class QuartoOJSConnector extends OJSConnector {
             }
           }
         };
-        const observer = new MutationObserver(callback);
+        (new MutationObserver(callback)).observe(element, config);
         // 'element' is the outer div given to observable's runtime to insert their output
         // every quarto cell will have either one or two such divs.
         // The parent of these divs should always be a div corresponding to an ojs "cell"
         // (with ids "ojs-cell-*")
-        
-        observer.observe(element, config);
         
         element.classList.add(kQuartoModuleWaitClass);
 
@@ -700,17 +699,25 @@ export function createRuntime() {
         .catch(() => {});
     },
     interpret(src, targetElementId, inline) {
+      // we capture the result here so that the error handler doesn't
+      // grab a new id accidentally.
+      let targetElement;
       const getElement = () => {
-        let targetElement = document.getElementById(targetElementId);
+        console.log("getElement called");
+        targetElement = document.getElementById(targetElementId);
+        let subFigId;
         if (!targetElement) {
           // this is a subfigure
-          targetElement = document.getElementById(getSubfigId(targetElementId));
+          subFigId = getSubfigId(targetElementId);
+          targetElement = document.getElementById(subFigId);
           if (!targetElement) {
             console.error("Ran out of subfigures for element", targetElementId);
             console.error("This will fail.");
             throw new Error("Ran out of quarto subfigures.");
           }
         }
+        console.log("getElement will return", targetElement);
+        console.log("state: ", { targetElementId, subFigId });
         return targetElement;
       };
 
@@ -722,9 +729,40 @@ export function createRuntime() {
 
       return ojsConnector.interpret(src, getElement, makeElement)
         .catch((e) => {
-          const errorDiv = document.createElement("pre");
-          errorDiv.innerText = `${e.name}: ${e.message}`;
-          getElement().append(errorDiv);
+          // to the best of our knowledge, we only get here
+          // on import statement failures. So we report those
+          // in a callout
+          
+          let cellDiv = targetElement;
+          let cellOutputDisplay;
+          while (cellDiv !== null && !cellDiv.classList.contains("cell")) {
+            cellDiv = cellDiv.parentElement;
+            if (cellDiv && cellDiv.classList.contains("cell-output-display")) {
+              cellOutputDisplay = cellDiv;
+            }
+          }
+
+          const ojsDiv = targetElement.querySelector(".observablehq");
+          // because this is in an exception handler, we might need
+          // to clear some of the garbage that other pieces of code
+          // won't have the chance to
+          //
+          for (const div of ojsDiv.querySelectorAll(".callout")) {
+            div.remove();
+          }
+
+          const messagePre = document.createElement("pre");
+          messagePre.innerText = e.stack;
+
+          const callout = calloutBlock({
+            type: "important",
+            heading: `${e.name}: ${e.message}`,
+            message: messagePre,
+          });
+          ojsDiv.appendChild(callout);
+          ojsConnector.clearError(ojsDiv);
+          ojsConnector.clearErrorPinpoints(cellDiv, ojsDiv);
+
           return e;
         });
     },

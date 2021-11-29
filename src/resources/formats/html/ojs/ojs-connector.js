@@ -255,8 +255,15 @@ function importPathResolver(paths, localResolverMap) {
     }
 
     if (moduleType === "js") {
-      const m = await import(importPath);
-      return es6ImportAsObservableModule(m);
+      try {
+        const m = await import(importPath);
+        return es6ImportAsObservableModule(m);
+      } catch (e) {
+        // record the error on the browser console to make debugging
+        // slightly more convenient.
+        console.error(e);
+        throw e;
+      }
     } else if (moduleType === "ojs") {
       return importOjsFromURL(fetchPath);
     } else if (moduleType === "qmd") {

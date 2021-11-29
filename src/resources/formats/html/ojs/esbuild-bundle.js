@@ -1192,8 +1192,13 @@ function importPathResolver(paths, localResolverMap) {
       }
     }
     if (moduleType === "js") {
-      const m2 = await import(importPath);
-      return es6ImportAsObservableModule(m2);
+      try {
+        const m2 = await import(importPath);
+        return es6ImportAsObservableModule(m2);
+      } catch (e2) {
+        console.error(e2);
+        throw e2;
+      }
     } else if (moduleType === "ojs") {
       return importOjsFromURL(fetchPath);
     } else if (moduleType === "qmd") {
@@ -1599,7 +1604,7 @@ var QuartoOJSConnector = class extends OJSConnector {
         }
         const forceShowDeclarations = !(cellDiv && cellDiv.dataset.output !== "all");
         const config = { childList: true };
-        const callback = function(mutationsList, observer3) {
+        const callback = function(mutationsList) {
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
             if (!forceShowDeclarations) {
@@ -1643,8 +1648,7 @@ var QuartoOJSConnector = class extends OJSConnector {
             }
           }
         };
-        const observer2 = new MutationObserver(callback);
-        observer2.observe(element, config);
+        new MutationObserver(callback).observe(element, config);
         element.classList.add(kQuartoModuleWaitClass);
         return new this.inspectorClass(element, ojsAst);
       };
@@ -1808,25 +1812,50 @@ function createRuntime() {
       });
     },
     interpret(src, targetElementId, inline) {
+      let targetElement;
       const getElement = () => {
-        let targetElement = document.getElementById(targetElementId);
+        console.log("getElement called");
+        targetElement = document.getElementById(targetElementId);
+        let subFigId;
         if (!targetElement) {
-          targetElement = document.getElementById(getSubfigId(targetElementId));
+          subFigId = getSubfigId(targetElementId);
+          targetElement = document.getElementById(subFigId);
           if (!targetElement) {
             console.error("Ran out of subfigures for element", targetElementId);
             console.error("This will fail.");
             throw new Error("Ran out of quarto subfigures.");
           }
         }
+        console.log("getElement will return", targetElement);
+        console.log("state: ", { targetElementId, subFigId });
         return targetElement;
       };
       const makeElement = () => {
         return document.createElement(inline ? "span" : "div");
       };
       return ojsConnector.interpret(src, getElement, makeElement).catch((e2) => {
-        const errorDiv = document.createElement("pre");
-        errorDiv.innerText = `${e2.name}: ${e2.message}`;
-        getElement().append(errorDiv);
+        let cellDiv = targetElement;
+        let cellOutputDisplay;
+        while (cellDiv !== null && !cellDiv.classList.contains("cell")) {
+          cellDiv = cellDiv.parentElement;
+          if (cellDiv && cellDiv.classList.contains("cell-output-display")) {
+            cellOutputDisplay = cellDiv;
+          }
+        }
+        const ojsDiv = targetElement.querySelector(".observablehq");
+        for (const div of ojsDiv.querySelectorAll(".callout")) {
+          div.remove();
+        }
+        const messagePre = document.createElement("pre");
+        messagePre.innerText = e2.stack;
+        const callout = calloutBlock({
+          type: "important",
+          heading: `${e2.name}: ${e2.message}`,
+          message: messagePre
+        });
+        ojsDiv.appendChild(callout);
+        ojsConnector.clearError(ojsDiv);
+        ojsConnector.clearErrorPinpoints(cellDiv, ojsDiv);
         return e2;
       });
     },
