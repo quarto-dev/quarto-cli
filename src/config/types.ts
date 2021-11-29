@@ -182,7 +182,8 @@ export interface DependencyFile {
 export interface BodyEnvelope {
   header?: string;
   before?: string;
-  after?: string;
+  afterPreamble?: string;
+  afterPostamble?: string;
 }
 
 export interface SassLayer {

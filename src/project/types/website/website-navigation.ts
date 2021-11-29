@@ -231,7 +231,12 @@ export async function websiteNavigationExtras(
     resourcePath(`projects/website/templates/${template}`);
   const bodyEnvelope = {
     before: renderEjs(projTemplate("nav-before-body.ejs"), { nav }),
-    after: renderEjs(projTemplate("nav-after-body.ejs"), { nav }),
+    afterPreamble: renderEjs(projTemplate("nav-after-body-preamble.ejs"), {
+      nav,
+    }),
+    afterPostamble: renderEjs(projTemplate("nav-after-body-postamble.ejs"), {
+      nav,
+    }),
   };
 
   const pipelineHandlers = navigationMarkdownHandlers({

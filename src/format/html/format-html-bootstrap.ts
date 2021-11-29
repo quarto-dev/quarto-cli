@@ -144,12 +144,26 @@ export function boostrapExtras(
   const bodyEnvelope = formatHasArticlePageLayout(format)
     ? {
       before: renderTemplate("before-body-article.ejs", kPageLayoutArticle),
-      after: renderTemplate("after-body-article.ejs", kPageLayoutArticle),
+      afterPreamble: renderTemplate(
+        "after-body-article-preamble.ejs",
+        kPageLayoutArticle,
+      ),
+      afterPostamble: renderTemplate(
+        "after-body-article-postamble.ejs",
+        kPageLayoutArticle,
+      ),
     }
     : formatHasCustomPageLayout(format)
     ? {
       before: renderTemplate("before-body-custom.ejs", kPageLayoutCustom),
-      after: renderTemplate("after-body-custom.ejs", kPageLayoutCustom),
+      afterPreamble: renderTemplate(
+        "after-body-custom-preamble.ejs",
+        kPageLayoutCustom,
+      ),
+      afterPostamble: renderTemplate(
+        "after-body-custom-postamble.ejs",
+        kPageLayoutCustom,
+      ),
     }
     : undefined;
 
