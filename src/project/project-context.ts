@@ -62,6 +62,11 @@ import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { kSite, kWebsite } from "./types/website/website-config.ts";
 
+import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
+
+import { configSchema } from "../core/schema/config.ts";
+import { frontMatterSchema } from "../core/schema/front-matter.ts";
+
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
   const projType = projectType(
@@ -102,10 +107,18 @@ export async function projectContext(
       // config files are the main file + any subfiles read
       const configFiles = [configFile];
 
-      // TODO: yaml validation (_quarto.yml)
-      let projectConfig: ProjectConfig = readYaml(configFile) as ProjectConfig;
+      const errMsg = "Project _quarto.yml validation failed.";
+      let projectConfig = (await readAndValidateYamlFromFile(
+        configFile,
+        configSchema,
+        errMsg,
+      )) as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
-      const includedMeta = includedMetadata(dir, projectConfig);
+      const includedMeta = await includedMetadata(
+        dir,
+        projectConfig,
+        configSchema,
+      );
       const metadata = includedMeta.metadata;
       configFiles.push(...includedMeta.files);
       projectConfig = mergeConfigs(projectConfig, metadata);
@@ -127,7 +140,10 @@ export async function projectContext(
       }
 
       // resolve translations
-      const translationFiles = resolveLanguageTranslations(projectConfig, dir);
+      const translationFiles = await resolveLanguageTranslations(
+        projectConfig,
+        dir,
+      );
       configFiles.push(...translationFiles);
 
       if (projectConfig?.project) {
@@ -233,17 +249,19 @@ function migrateProjectConfig(projectConfig: ProjectConfig) {
   return projectConfig;
 }
 
-function resolveLanguageTranslations(
+async function resolveLanguageTranslations(
   projectConfig: ProjectConfig,
   dir: string,
 ) {
   const files: string[] = [];
 
   // read any language file pointed to by the project
-  files.push(...resolveLanguageMetadata(projectConfig, dir));
+  files.push(...(await resolveLanguageMetadata(projectConfig, dir)));
 
   // read _language.yml and merge into the project
-  const translations = readLanguageTranslations(join(dir, "_language.yml"));
+  const translations = await readLanguageTranslations(
+    join(dir, "_language.yml"),
+  );
   projectConfig[kLanguageDefaults] = mergeConfigs(
     translations.language,
     projectConfig[kLanguageDefaults],
@@ -311,7 +329,7 @@ export async function projectMetadataForInputFile(
   }
 }
 
-export function directoryMetadataForInputFile(
+export async function directoryMetadataForInputFile(
   projectDir: string,
   inputDir: string,
 ) {
@@ -332,15 +350,19 @@ export function directoryMetadataForInputFile(
   // Walk through each directory (starting from the project and
   // walking deeper to the input)
   let currentDir = projectDir;
-  dirs.forEach((dir) => {
+  await Promise.all(dirs.map(async (dir) => {
     currentDir = join(currentDir, dir);
     const file = metadataFile(currentDir);
     if (file) {
       // There is a metadata file, read it and merge it
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
-      // TODO: yaml validation (front matter)
-      const yaml = readYaml(file) as Record<string, unknown>;
+      const errMsg = "Directory metadata validation failed.";
+      const yaml = (await readAndValidateYamlFromFile(
+        file,
+        frontMatterSchema,
+        errMsg,
+      )) as Record<string, unknown>;
 
       // resolve format into expected structure
       if (yaml.format) {
@@ -362,10 +384,14 @@ export function directoryMetadataForInputFile(
 
       config = mergeConfigs(
         config,
-        toInputRelativePaths(currentDir, inputDir, yaml),
+        toInputRelativePaths(
+          currentDir,
+          inputDir,
+          yaml as Record<string, unknown>,
+        ),
       );
     }
-  });
+  }));
   return config;
 }
 

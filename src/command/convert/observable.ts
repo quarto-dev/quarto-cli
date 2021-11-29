@@ -43,7 +43,9 @@ export async function observableNotebookToMarkdown(
   const nb = JSON.parse(json);
 
   if (["isc", "mit", "bsd-3-clause", "apache-2.0"].indexOf(nb.license) === -1) {
-    throw new Error(`Convert ${url} failed: notebook doesn't have a permissive open-source license`);
+    throw new Error(
+      `Convert ${url} failed: notebook doesn't have a permissive open-source license`,
+    );
   }
 
   // see if we can determine a default file name

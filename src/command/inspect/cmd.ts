@@ -107,7 +107,7 @@ export const inspectCommand = new Command()
 
         const context = await projectContext(path);
         const fileDir = Deno.realPathSync(dirname(path));
-        const resources = resolveResources(
+        const resources = await resolveResources(
           context ? context.dir : fileDir,
           fileDir,
           partitioned.markdown,
@@ -141,13 +141,18 @@ export const inspectCommand = new Command()
     );
   });
 
-function resolveResources(
+async function resolveResources(
   rootDir: string,
   fileDir: string,
   markdown: string,
   globs: string[],
-): string[] {
-  const resolved = resolveFileResources(rootDir, fileDir, markdown, globs);
+): Promise<string[]> {
+  const resolved = await resolveFileResources(
+    rootDir,
+    fileDir,
+    markdown,
+    globs,
+  );
   const resources = ld.difference(
     resolved.include,
     resolved.exclude,

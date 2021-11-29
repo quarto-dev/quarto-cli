@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# This runs the version of deno that ships with quarto, using the same
+# importmaps, etc. It's possible that I didn't need it
+
+# Determine the path to this script (we'll use this to figure out relative positions of other files)
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+
+# Check if we are running 'Dev Mode' and if so, override values for devs
+QUARTO_SRC_DIR="`cd "$SCRIPT_PATH/../../../src" > /dev/null 2>&1 && pwd`"
+DEV_PATH=$QUARTO_SRC_DIR/quarto.ts
+if [ -f "$DEV_PATH" ]; then
+
+  # Local import map
+  QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/import_map.json
+
+  export QUARTO_BIN_PATH=$SCRIPT_PATH
+  export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../src/resources/";pwd`"
+  export QUARTO_DEBUG=true
+
+  if [ $1 == "--version" ]; then
+    echo "99.9.9"
+    exit 0
+  fi
+
+else
+
+  export QUARTO_BIN_PATH=$SCRIPT_PATH
+  export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
+
+  if [ $1 == "--version" ]; then
+    echo `cat "$QUARTO_SHARE_PATH/version"`
+    exit 0
+  fi
+
+fi
+
+QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"
+
+# FIXME when we figure out the right way to do this, we'll prob run from a diff path
+
+DENO_ACTION=$1
+shift
+
+deno ${DENO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $*

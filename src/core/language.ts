@@ -15,27 +15,33 @@ import {
 import { FormatLanguage, Metadata } from "../config/types.ts";
 import { dirAndStem } from "./path.ts";
 import { resourcePath } from "./resources.ts";
-import { readYaml } from "./yaml.ts";
 import { mergeConfigs } from "./config.ts";
+import { formatLanguageSchema } from "./schema/format-language.ts";
+import { readAndValidateYamlFromFile } from "./schema/validated-yaml.ts";
 
-export function readLanguageTranslations(
+export async function readLanguageTranslations(
   translationFile: string,
   lang?: string,
-): { language: FormatLanguage; files: string[] } {
+): Promise<{ language: FormatLanguage; files: string[] }> {
   // read and parse yaml if it exists (track files read)
   const files: string[] = [];
-  const maybeReadYaml = (file: string) => {
+  const maybeReadYaml = async (file: string) => {
     if (existsSync(file)) {
       files.push(Deno.realPathSync(file));
-      // TODO: yaml validation (FormatLanguage, all values string or object)
-      return readYaml(file) as FormatLanguage;
+      const errMsg = "Validation of format language object failed.";
+      const result = await readAndValidateYamlFromFile(
+        file,
+        formatLanguageSchema,
+        errMsg,
+      );
+      return result as FormatLanguage;
     } else {
       return {} as FormatLanguage;
     }
   };
 
   // read the original file
-  const language = maybeReadYaml(translationFile);
+  const language = await maybeReadYaml(translationFile);
 
   // determine additional variations to read
   const ext = extname(translationFile);
@@ -69,7 +75,7 @@ export function readLanguageTranslations(
 
   // read the variations
   for (const variation of variations) {
-    const translations = maybeReadYaml(
+    const translations = await maybeReadYaml(
       join(dir, stem + "-" + variation + ext),
     );
     Object.keys(translations).forEach((key) => {
@@ -99,7 +105,7 @@ export function readDefaultLanguageTranslations(lang: string) {
   );
 }
 
-export function resolveLanguageMetadata(metadata: Metadata, dir: string) {
+export async function resolveLanguageMetadata(metadata: Metadata, dir: string) {
   if (typeof (metadata[kLanguageDefaults]) === "string") {
     const translationsFile = join(dir, metadata[kLanguageDefaults] as string);
     if (!existsSync(translationsFile)) {
@@ -107,7 +113,7 @@ export function resolveLanguageMetadata(metadata: Metadata, dir: string) {
         "Specified 'language' file does not exist: " + translationsFile,
       );
     }
-    const translations = readLanguageTranslations(translationsFile);
+    const translations = await readLanguageTranslations(translationsFile);
     metadata[kLanguageDefaults] = translations.language;
     return translations.files;
   } else if (typeof (metadata[kLanguageDefaults]) !== "object") {

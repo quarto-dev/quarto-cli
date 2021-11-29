@@ -65,6 +65,19 @@ const makeDevhostErrorClickHandler = (line, column) => {
   };
 };
 
+// we cannot depend on Object.fromEntries because the IDE
+// doesn't support it. We minimally polyfill it
+if (Object.fromEntries === undefined) {
+  Object.fromEntries = function(obj)
+  {
+    const result = {};
+    for (const [key, value] of obj) {
+      result[key] = value;
+    }
+    return result;
+  };
+}
+
 /** create a callout block with the given opts, currently to be used
     to signal a runtime error in the observable runtime.
 */

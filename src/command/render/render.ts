@@ -125,6 +125,9 @@ import { isHtmlCompatible, isHtmlOutput } from "../../config/format.ts";
 import { initDenoDom } from "../../core/html.ts";
 import { resolveLanguageMetadata } from "../../core/language.ts";
 
+import { validateDocument } from "../../core/schema/validate-document.ts";
+import { frontMatterSchema } from "../../core/schema/front-matter.ts";
+
 export async function renderFiles(
   files: string[],
   options: RenderOptions,
@@ -189,7 +192,18 @@ export async function renderFiles(
           pandocRenderer.onBeforeExecute(recipe.format),
         );
 
-        // patch source file
+        const validate = context.format.metadata?.["validate-yaml"];
+        if (validate !== false) {
+          const validationResult = await validateDocument(context);
+          if (validationResult.length) {
+            throw new Error("YAML validation failed - exiting.");
+          }
+        }
+
+        // FIXME it should be possible to infer this directly now
+        // based on the information in the mapped strings.
+        //
+        // collect line numbers to facilitate runtime error reporting
         const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
 
         // execute
@@ -776,14 +790,18 @@ export function isStandaloneFormat(format: Format) {
   return kStandaloneExtensionNames.includes(format.render[kOutputExt] || "");
 }
 
-export function resolveFormatsFromMetadata(
+export async function resolveFormatsFromMetadata(
   metadata: Metadata,
   includeDir: string,
   formats: string[],
   flags?: RenderFlags,
-): Record<string, Format> {
+): Promise<Record<string, Format>> {
   // Read any included metadata files and merge in and metadata from the command
-  const included = includedMetadata(includeDir, metadata);
+  const included = await includedMetadata(
+    includeDir,
+    metadata,
+    frontMatterSchema,
+  );
   const allMetadata = mergeQuartoConfigs(
     metadata,
     included.metadata,
@@ -957,22 +975,22 @@ async function resolveFormats(
     formats = projFormatKeys;
   }
 
-  // resolve formats for each type of metadata
-  const projFormats = resolveFormatsFromMetadata(
+// resolve formats for each type of metadata
+  const projFormats = await resolveFormatsFromMetadata(
     projMetadata,
     dirname(target.input),
     formats,
     options.flags,
   );
 
-  const directoryFormats = resolveFormatsFromMetadata(
+  const directoryFormats = await resolveFormatsFromMetadata(
     directoryMetadata,
     dirname(target.input),
     formats,
     options.flags,
   );
 
-  const inputFormats = resolveFormatsFromMetadata(
+  const inputFormats = await resolveFormatsFromMetadata(
     inputMetadata,
     dirname(target.input),
     formats,
