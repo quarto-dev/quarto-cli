@@ -1352,12 +1352,14 @@ var makeDevhostErrorClickHandler = (line, column) => {
     return false;
   };
 };
-function fromEntries(obj) {
-  const result = {};
-  for (const [key, value] of obj) {
-    result[key] = value;
-  }
-  return result;
+if (Object.fromEntries === void 0) {
+  Object.fromEntries = function(obj) {
+    const result = {};
+    for (const [key, value] of obj) {
+      result[key] = value;
+    }
+    return result;
+  };
 }
 function calloutBlock(opts) {
   const {
@@ -1666,7 +1668,7 @@ function createRuntime() {
   }
   function transpose(df) {
     const keys = Object.keys(df);
-    return df[keys[0]].map((v2, i2) => fromEntries(keys.map((key) => [key, df[key][i2] || void 0]))).filter((v2) => Object.values(v2).every((e2) => e2 !== void 0));
+    return df[keys[0]].map((v2, i2) => Object.fromEntries(keys.map((key) => [key, df[key][i2] || void 0]))).filter((v2) => Object.values(v2).every((e2) => e2 !== void 0));
   }
   lib.transpose = () => transpose;
   const mainEl = document.querySelector("main");
@@ -1704,7 +1706,7 @@ function createRuntime() {
   const layoutDivs = Array.from(document.querySelectorAll("div.quarto-layout-panel div[id]"));
   function layoutWidth() {
     return lib.Generators.observe(function(change) {
-      const ourWidths = fromEntries(layoutDivs.map((div) => [div.id, div.clientWidth]));
+      const ourWidths = Object.fromEntries(layoutDivs.map((div) => [div.id, div.clientWidth]));
       change(ourWidths);
       function resized() {
         let changed = false;
