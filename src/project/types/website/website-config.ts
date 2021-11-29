@@ -6,6 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
+import { extname } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 import { formatKeys } from "../../../command/render/render.ts";
 
@@ -367,7 +368,14 @@ function expandMarkdown(name: string, val: unknown): string[] {
 function expandMarkdownFilePath(val: string): string {
   if (existsSync(val)) {
     const fileContents = Deno.readTextFileSync(val);
-    return fileContents;
+
+    // If we are reading raw HTML, provide raw block indicator
+    const ext = extname(val);
+    if (ext === ".html") {
+      return "```{=html}\n" + fileContents + "\n```";
+    } else {
+      return fileContents;
+    }
   } else {
     return val;
   }
