@@ -411,7 +411,9 @@ async function automationFromGoodParseMarkdown(kind, context) {
             position, // we don't need to adjust position because front matter only shows up at start of file.
           }),
         );
-        lints.push(...innerLints);
+        if (innerLints) {
+          lints.push(...innerLints);
+        }
       } else if (cell.cell_type.language) {
         const innerLints = await automationFromGoodParseScript(kind, {
           filetype: "script",
@@ -423,7 +425,9 @@ async function automationFromGoodParseMarkdown(kind, context) {
             row: position.row - (linesSoFar + 1),
           },
         });
-        lints.push(...innerLints);
+        if (innerLints) {
+          lints.push(...innerLints);
+        }
       }
 
       linesSoFar += adjustedCellSize(cell);
@@ -466,6 +470,10 @@ async function automationFromGoodParseScript(kind, context) {
   const {
     yaml
   } = await core.partitionCellOptionsMapped(language, mappedCode);
+  
+  if (yaml === undefined) {
+    return false;
+  }
 
   const schemas = (await getSchemas()).schemas;
   const schema = schemas.languages[language];
