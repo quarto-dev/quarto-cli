@@ -941,7 +941,7 @@ async function resolveFormats(
 
   // directory level metadata
   const directoryMetadata = project?.dir
-    ? directoryMetadataForInputFile(
+    ? await directoryMetadataForInputFile(
       project.dir,
       dirname(target.input),
     )
@@ -975,7 +975,7 @@ async function resolveFormats(
     formats = projFormatKeys;
   }
 
-// resolve formats for each type of metadata
+  // resolve formats for each type of metadata
   const projFormats = await resolveFormatsFromMetadata(
     projMetadata,
     dirname(target.input),
