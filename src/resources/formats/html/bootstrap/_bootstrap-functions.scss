@@ -59,6 +59,7 @@
   // being set
   $black: rgb(0, 0, 0) !default;
   $white: rgb(255, 255, 255) !default;
+  $gray-500: #adb5bd !default;
 
   $theme-overrides: (
     litera: (
@@ -69,6 +70,10 @@
     ),
     cerulean: (
       navbar-fg: $white,
+    ),
+    darkly: (
+      navbar-fg: $gray-500,
+      navbar-hl: $white,
     ),
     minty: (
       navbar-fg: $white,
