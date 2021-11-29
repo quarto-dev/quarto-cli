@@ -49,16 +49,21 @@ window.QuartoSupport = function () {
               }
             }
 
-            // otherwise show it normally
-            ev.preventDefault();
-            ev.stopImmediatePropagation();
-            const target = el.getAttribute("target");
-            if (target) {
-              window.open(url, target);
-            } else {
-              window.location.href = url;
+            // if the user has set data-preview-link to "auto" we need to handle the event
+            // (because reveal will interpret "auto" as true)
+            if (dataPreviewLink === "auto") {
+              ev.preventDefault();
+              ev.stopImmediatePropagation();
+              const target =
+                el.getAttribute("target") ||
+                (ev.ctrlKey || ev.metaKey ? "_blank" : "");
+              if (target) {
+                window.open(url, target);
+              } else {
+                window.location.href = url;
+              }
+              return false;
             }
-            return false;
           },
           false
         );
