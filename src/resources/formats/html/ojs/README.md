@@ -48,5 +48,7 @@ The important files are:
 * `stdlib.js`: A minimally-forked version of Observable's `stdlib.js`
   which includes from [our local patched version of
   `d3-require`](https://github.com/cscheid/d3-require), while [this
-  PR](https://github.com/d3/d3-require/pull/40) isn't merged.
+  PR](https://github.com/d3/d3-require/pull/40) isn't merged. Follow
+  the instructions [here](https://github.com/cscheid/stdlib) to build
+  this locally. *This is the ugliest part of the setup right now*.
 * `esbuild-bundle.js`: The resulting build product.

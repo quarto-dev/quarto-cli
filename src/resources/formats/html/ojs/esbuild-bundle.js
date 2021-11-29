@@ -158,7 +158,7 @@ function A(e2) {
   })), n2;
 }
 RequireError.prototype.name = RequireError.name;
-var O = N(async function(e2, t2) {
+var N = L(async function(e2, t2) {
   if (e2.startsWith(b) && (e2 = e2.substring(b.length)), /^(\w+:)|\/\//i.test(e2))
     return e2;
   if (/^[.]{0,2}\//i.test(e2))
@@ -183,7 +183,7 @@ var O = N(async function(e2, t2) {
     }
   }(r2) || "index.js"}`;
 });
-function N(e2) {
+function L(e2) {
   const t2 = new Map(), n2 = a2(null);
   let r2, o2 = 0;
   function i2(e3) {
@@ -208,13 +208,13 @@ function N(e2) {
     return (n3) => Promise.resolve(e2(n3, t3)).then(i2);
   }
   function s2(e3) {
-    return arguments.length > 1 ? Promise.all(v.call(arguments, n2)).then(L) : n2(e3);
+    return arguments.length > 1 ? Promise.all(v.call(arguments, n2)).then(O) : n2(e3);
   }
   return s2.alias = function(t3) {
-    return N((n3, r3) => n3 in t3 && (r3 = null, typeof (n3 = t3[n3]) != "string") ? n3 : e2(n3, r3));
+    return L((n3, r3) => n3 in t3 && (r3 = null, typeof (n3 = t3[n3]) != "string") ? n3 : e2(n3, r3));
   }, s2.resolve = e2, s2;
 }
-function L(e2) {
+function O(e2) {
   const t2 = {};
   for (const n2 of e2)
     for (const e3 in n2)
@@ -255,7 +255,13 @@ var Q = T("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
 var V = T("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
 var J = T("arquero", "4.8.4", "dist/arquero.min.js");
 var X = T("topojson-client", "3.1.0", "dist/topojson-client.min.js");
-async function Y(e2) {
+function Y(e2) {
+  const t2 = {};
+  for (const [n2, r2] of e2)
+    t2[n2] = r2;
+  return t2;
+}
+async function G(e2) {
   return (await e2(W.resolve()))({ locateFile: (e3) => W.resolve(`dist/${e3}`) });
 }
 var SQLiteDatabaseClient = class {
@@ -263,7 +269,7 @@ var SQLiteDatabaseClient = class {
     Object.defineProperties(this, { _db: { value: e2 } });
   }
   static async open(e2) {
-    const [t2, n2] = await Promise.all([Y(O), Promise.resolve(e2).then(G)]);
+    const [t2, n2] = await Promise.all([G(N), Promise.resolve(e2).then(K)]);
     return new SQLiteDatabaseClient(new t2.Database(n2));
   }
   async query(e2, t2) {
@@ -271,7 +277,7 @@ var SQLiteDatabaseClient = class {
       const [r2] = await e3.exec(t3, n2);
       if (!r2)
         return [];
-      const { columns: o2, values: i2 } = r2, a2 = i2.map((e4) => Object.fromEntries(e4.map((e5, t4) => [o2[t4], e5])));
+      const { columns: o2, values: i2 } = r2, a2 = i2.map((e4) => Y(e4.map((e5, t4) => [o2[t4], e5])));
       return a2.columns = o2, a2;
     }(this._db, e2, t2);
   }
@@ -279,20 +285,20 @@ var SQLiteDatabaseClient = class {
     return (await this.query(e2, t2))[0] || null;
   }
   async explain(e2, t2) {
-    return K("pre", { className: "observablehq--inspect" }, [ee((await this.query(`EXPLAIN QUERY PLAN ${e2}`, t2)).map((e3) => e3.detail).join("\n"))]);
+    return ee("pre", { className: "observablehq--inspect" }, [te((await this.query(`EXPLAIN QUERY PLAN ${e2}`, t2)).map((e3) => e3.detail).join("\n"))]);
   }
   async describe(e2) {
     const t2 = await (e2 === void 0 ? this.query("SELECT name FROM sqlite_master WHERE type = 'table'") : this.query("SELECT * FROM pragma_table_info(?)", [e2]));
     if (!t2.length)
       throw new Error("Not found");
     const { columns: n2 } = t2;
-    return K("table", { value: t2 }, [K("thead", [K("tr", n2.map((e3) => K("th", [ee(e3)])))]), K("tbody", t2.map((e3) => K("tr", n2.map((t3) => K("td", [ee(e3[t3])])))))]);
+    return ee("table", { value: t2 }, [ee("thead", [ee("tr", n2.map((e3) => ee("th", [te(e3)])))]), ee("tbody", t2.map((e3) => ee("tr", n2.map((t3) => ee("td", [te(e3[t3])])))))]);
   }
 };
-function G(e2) {
-  return typeof e2 == "string" ? fetch(e2).then(G) : e2 instanceof Response || e2 instanceof Blob ? e2.arrayBuffer().then(G) : e2 instanceof ArrayBuffer ? new Uint8Array(e2) : e2;
+function K(e2) {
+  return typeof e2 == "string" ? fetch(e2).then(K) : e2 instanceof Response || e2 instanceof Blob ? e2.arrayBuffer().then(K) : e2 instanceof ArrayBuffer ? new Uint8Array(e2) : e2;
 }
-function K(e2, t2, n2) {
+function ee(e2, t2, n2) {
   arguments.length === 2 && (n2 = t2, t2 = void 0);
   const r2 = document.createElement(e2);
   if (t2 !== void 0)
@@ -303,43 +309,43 @@ function K(e2, t2, n2) {
       r2.appendChild(e3);
   return r2;
 }
-function ee(e2) {
+function te(e2) {
   return document.createTextNode(e2);
 }
-async function te(e2) {
+async function ne(e2) {
   const t2 = await fetch(await e2.url());
   if (!t2.ok)
     throw new Error(`Unable to load file: ${e2.name}`);
   return t2;
 }
-async function ne(e2, t2, { array: n2 = false, typed: r2 = false } = {}) {
+async function re(e2, t2, { array: n2 = false, typed: r2 = false } = {}) {
   const o2 = await e2.text();
   return (t2 === "	" ? n2 ? d : f : n2 ? l : u)(o2, r2 && h);
 }
-var re = class {
+var oe = class {
   constructor(e2) {
     Object.defineProperty(this, "name", { value: e2, enumerable: true });
   }
   async blob() {
-    return (await te(this)).blob();
+    return (await ne(this)).blob();
   }
   async arrayBuffer() {
-    return (await te(this)).arrayBuffer();
+    return (await ne(this)).arrayBuffer();
   }
   async text() {
-    return (await te(this)).text();
+    return (await ne(this)).text();
   }
   async json() {
-    return (await te(this)).json();
+    return (await ne(this)).json();
   }
   async stream() {
-    return (await te(this)).body;
+    return (await ne(this)).body;
   }
   async csv(e2) {
-    return ne(this, ",", e2);
+    return re(this, ",", e2);
   }
   async tsv(e2) {
-    return ne(this, "	", e2);
+    return re(this, "	", e2);
   }
   async image() {
     const e2 = await this.url();
@@ -349,14 +355,14 @@ var re = class {
     });
   }
   async arrow() {
-    const [e2, t2] = await Promise.all([O(V.resolve()), te(this)]);
+    const [e2, t2] = await Promise.all([N(V.resolve()), ne(this)]);
     return e2.Table.from(t2);
   }
   async sqlite() {
-    return SQLiteDatabaseClient.open(te(this));
+    return SQLiteDatabaseClient.open(ne(this));
   }
   async zip() {
-    const [e2, t2] = await Promise.all([O(z.resolve()), this.arrayBuffer()]);
+    const [e2, t2] = await Promise.all([N(z.resolve()), this.arrayBuffer()]);
     return new ZipArchive(await e2.loadAsync(t2));
   }
   async xml(e2 = "application/xml") {
@@ -366,7 +372,7 @@ var re = class {
     return this.xml("text/html");
   }
 };
-var FileAttachment = class extends re {
+var FileAttachment = class extends oe {
   constructor(e2, t2) {
     super(t2), Object.defineProperty(this, "_url", { value: e2 });
   }
@@ -374,10 +380,10 @@ var FileAttachment = class extends re {
     return await this._url + "";
   }
 };
-function oe(e2) {
+function ie(e2) {
   throw new Error(`File not found: ${e2}`);
 }
-function ie(e2) {
+function ae(e2) {
   return Object.assign((t2) => {
     const n2 = e2(t2 += "");
     if (n2 == null)
@@ -396,7 +402,7 @@ var ZipArchive = class {
     return new ZipArchiveEntry(t2);
   }
 };
-var ZipArchiveEntry = class extends re {
+var ZipArchiveEntry = class extends oe {
   constructor(e2) {
     super(e2.name), Object.defineProperty(this, "_", { value: e2 }), Object.defineProperty(this, "_url", { writable: true });
   }
@@ -416,15 +422,15 @@ var ZipArchiveEntry = class extends re {
     return JSON.parse(await this.text());
   }
 };
-var ae = { math: "http://www.w3.org/1998/Math/MathML", svg: "http://www.w3.org/2000/svg", xhtml: "http://www.w3.org/1999/xhtml", xlink: "http://www.w3.org/1999/xlink", xml: "http://www.w3.org/XML/1998/namespace", xmlns: "http://www.w3.org/2000/xmlns/" };
-var se = 0;
-function ue(e2) {
+var se = { math: "http://www.w3.org/1998/Math/MathML", svg: "http://www.w3.org/2000/svg", xhtml: "http://www.w3.org/1999/xhtml", xlink: "http://www.w3.org/1999/xlink", xml: "http://www.w3.org/XML/1998/namespace", xmlns: "http://www.w3.org/2000/xmlns/" };
+var ue = 0;
+function le(e2) {
   this.id = e2, this.href = new URL(`#${e2}`, location) + "";
 }
-ue.prototype.toString = function() {
+le.prototype.toString = function() {
   return "url(" + this.href + ")";
 };
-var le = { canvas: function(e2, t2) {
+var ce = { canvas: function(e2, t2) {
   var n2 = document.createElement("canvas");
   return n2.width = e2, n2.height = t2, n2;
 }, context2d: function(e2, t2, n2) {
@@ -455,10 +461,10 @@ var le = { canvas: function(e2, t2) {
 }, element: function(e2, t2) {
   var n2, r2 = e2 += "", o2 = r2.indexOf(":");
   o2 >= 0 && (r2 = e2.slice(0, o2)) !== "xmlns" && (e2 = e2.slice(o2 + 1));
-  var i2 = ae.hasOwnProperty(r2) ? document.createElementNS(ae[r2], e2) : document.createElement(e2);
+  var i2 = se.hasOwnProperty(r2) ? document.createElementNS(se[r2], e2) : document.createElement(e2);
   if (t2)
     for (var a2 in t2)
-      o2 = (r2 = a2).indexOf(":"), n2 = t2[a2], o2 >= 0 && (r2 = a2.slice(0, o2)) !== "xmlns" && (a2 = a2.slice(o2 + 1)), ae.hasOwnProperty(r2) ? i2.setAttributeNS(ae[r2], a2, n2) : i2.setAttribute(a2, n2);
+      o2 = (r2 = a2).indexOf(":"), n2 = t2[a2], o2 >= 0 && (r2 = a2.slice(0, o2)) !== "xmlns" && (a2 = a2.slice(o2 + 1)), se.hasOwnProperty(r2) ? i2.setAttributeNS(se[r2], a2, n2) : i2.setAttribute(a2, n2);
   return i2;
 }, input: function(e2) {
   var t2 = document.createElement("input");
@@ -479,9 +485,9 @@ var le = { canvas: function(e2, t2) {
 }, text: function(e2) {
   return document.createTextNode(e2);
 }, uid: function(e2) {
-  return new ue("O-" + (e2 == null ? "" : e2 + "-") + ++se);
+  return new le("O-" + (e2 == null ? "" : e2 + "-") + ++ue);
 } };
-var ce = { buffer: function(e2) {
+var fe = { buffer: function(e2) {
   return new Promise(function(t2, n2) {
     var r2 = new FileReader();
     r2.onload = function() {
@@ -503,16 +509,16 @@ var ce = { buffer: function(e2) {
     }, r2.onerror = n2, r2.readAsDataURL(e2);
   });
 } };
-function fe() {
+function de() {
   return this;
 }
-function de(e2, t2) {
+function he(e2, t2) {
   let n2 = false;
   if (typeof t2 != "function")
     throw new Error("dispose is not a function");
-  return { [Symbol.iterator]: fe, next: () => n2 ? { done: true } : (n2 = true, { done: false, value: e2 }), return: () => (n2 = true, t2(e2), { done: true }), throw: () => ({ done: n2 = true }) };
+  return { [Symbol.iterator]: de, next: () => n2 ? { done: true } : (n2 = true, { done: false, value: e2 }), return: () => (n2 = true, t2(e2), { done: true }), throw: () => ({ done: n2 = true }) };
 }
-function he(e2) {
+function me(e2) {
   let t2, n2, r2 = false;
   const o2 = e2(function(e3) {
     n2 ? (n2(e3), n2 = null) : r2 = true;
@@ -520,11 +526,11 @@ function he(e2) {
   });
   if (o2 != null && typeof o2 != "function")
     throw new Error(typeof o2.then == "function" ? "async initializers are not supported" : "initializer returned something, but not a dispose function");
-  return { [Symbol.iterator]: fe, throw: () => ({ done: true }), return: () => (o2 != null && o2(), { done: true }), next: function() {
+  return { [Symbol.iterator]: de, throw: () => ({ done: true }), return: () => (o2 != null && o2(), { done: true }), next: function() {
     return { done: false, value: r2 ? (r2 = false, Promise.resolve(t2)) : new Promise((e3) => n2 = e3) };
   } };
 }
-function me(e2) {
+function pe(e2) {
   switch (e2.type) {
     case "range":
     case "number":
@@ -541,11 +547,11 @@ function me(e2) {
       return e2.value;
   }
 }
-var pe = { disposable: de, filter: function* (e2, t2) {
+var we = { disposable: he, filter: function* (e2, t2) {
   for (var n2, r2 = -1; !(n2 = e2.next()).done; )
     t2(n2.value, ++r2) && (yield n2.value);
 }, input: function(e2) {
-  return he(function(t2) {
+  return me(function(t2) {
     var n2 = function(e3) {
       switch (e3.type) {
         case "button":
@@ -557,9 +563,9 @@ var pe = { disposable: de, filter: function* (e2, t2) {
         default:
           return "input";
       }
-    }(e2), r2 = me(e2);
+    }(e2), r2 = pe(e2);
     function o2() {
-      t2(me(e2));
+      t2(pe(e2));
     }
     return e2.addEventListener(n2, o2), r2 !== void 0 && t2(r2), function() {
       e2.removeEventListener(n2, o2);
@@ -568,7 +574,7 @@ var pe = { disposable: de, filter: function* (e2, t2) {
 }, map: function* (e2, t2) {
   for (var n2, r2 = -1; !(n2 = e2.next()).done; )
     yield t2(n2.value, ++r2);
-}, observe: he, queue: function(e2) {
+}, observe: me, queue: function(e2) {
   let t2;
   const n2 = [], r2 = e2(function(e3) {
     n2.push(e3), t2 && (t2(n2.shift()), t2 = null);
@@ -576,7 +582,7 @@ var pe = { disposable: de, filter: function* (e2, t2) {
   });
   if (r2 != null && typeof r2 != "function")
     throw new Error(typeof r2.then == "function" ? "async initializers are not supported" : "initializer returned something, but not a dispose function");
-  return { [Symbol.iterator]: fe, throw: () => ({ done: true }), return: () => (r2 != null && r2(), { done: true }), next: function() {
+  return { [Symbol.iterator]: de, throw: () => ({ done: true }), return: () => (r2 != null && r2(), { done: true }), next: function() {
     return { done: false, value: n2.length ? Promise.resolve(n2.shift()) : new Promise((e3) => t2 = e3) };
   } };
 }, range: function* (e2, t2, n2) {
@@ -591,11 +597,11 @@ var pe = { disposable: de, filter: function* (e2, t2) {
   }
 }, worker: function(e2) {
   const t2 = URL.createObjectURL(new Blob([e2], { type: "text/javascript" })), n2 = new Worker(t2);
-  return de(n2, () => {
+  return he(n2, () => {
     n2.terminate(), URL.revokeObjectURL(t2);
   });
 } };
-function we(e2, t2) {
+function ve(e2, t2) {
   return function(n2) {
     var r2, o2, i2, a2, s2, u2, l2, c2, f2 = n2[0], d2 = [], h2 = null, m2 = -1;
     for (s2 = 1, u2 = arguments.length; s2 < u2; ++s2) {
@@ -618,28 +624,28 @@ function we(e2, t2) {
     return h2.childNodes.length === 1 ? h2.removeChild(h2.firstChild) : h2.nodeType === 11 ? ((o2 = t2()).appendChild(h2), o2) : h2;
   };
 }
-var ve = we(function(e2) {
+var ye = ve(function(e2) {
   var t2 = document.createElement("template");
   return t2.innerHTML = e2.trim(), document.importNode(t2.content, true);
 }, function() {
   return document.createElement("span");
 });
-function ye(e2) {
+function ge(e2) {
   let t2;
-  Object.defineProperties(this, { generator: { value: he((e3) => {
+  Object.defineProperties(this, { generator: { value: me((e3) => {
     t2 = e3;
   }) }, value: { get: () => e2, set: (n2) => t2(e2 = n2) } }), e2 !== void 0 && t2(e2);
 }
-function* ge() {
+function* be() {
   for (; ; )
     yield Date.now();
 }
-var be = new Map();
-function xe(e2, t2) {
+var xe = new Map();
+function je(e2, t2) {
   var n2;
-  return (n2 = be.get(e2 = +e2)) ? n2.then(() => t2) : (n2 = Date.now()) >= e2 ? Promise.resolve(t2) : function(e3, t3) {
+  return (n2 = xe.get(e2 = +e2)) ? n2.then(() => t2) : (n2 = Date.now()) >= e2 ? Promise.resolve(t2) : function(e3, t3) {
     var n3 = new Promise(function(n4) {
-      be.delete(t3);
+      xe.delete(t3);
       var r2 = t3 - e3;
       if (!(r2 > 0))
         throw new Error("invalid time");
@@ -647,19 +653,19 @@ function xe(e2, t2) {
         throw new Error("too long to wait");
       setTimeout(n4, r2);
     });
-    return be.set(t3, n3), n3;
+    return xe.set(t3, n3), n3;
   }(n2, e2).then(() => t2);
 }
-var je = { delay: function(e2, t2) {
+var Ee = { delay: function(e2, t2) {
   return new Promise(function(n2) {
     setTimeout(function() {
       n2(t2);
     }, e2);
   });
 }, tick: function(e2, t2) {
-  return xe(Math.ceil((Date.now() + 1) / e2) * e2, t2);
-}, when: xe };
-function Ee(e2, t2) {
+  return je(Math.ceil((Date.now() + 1) / e2) * e2, t2);
+}, when: je };
+function Pe(e2, t2) {
   if (/^(\w+:)|\/\//i.test(e2))
     return e2;
   if (/^[.]{0,2}\//i.test(e2))
@@ -668,18 +674,18 @@ function Ee(e2, t2) {
     throw new Error("illegal name");
   return "https://unpkg.com/" + e2;
 }
-function Pe(e2) {
-  return e2 == null ? O : N(e2);
+function Ce(e2) {
+  return e2 == null ? N : L(e2);
 }
-var Ce = we(function(e2) {
+var Ae = ve(function(e2) {
   var t2 = document.createElementNS("http://www.w3.org/2000/svg", "g");
   return t2.innerHTML = e2.trim(), t2;
 }, function() {
   return document.createElementNS("http://www.w3.org/2000/svg", "g");
 });
-var Ae = String.raw;
-function Oe() {
-  return he(function(e2) {
+var Ne = String.raw;
+function Le() {
+  return me(function(e2) {
     var t2 = e2(document.body.clientWidth);
     function n2() {
       var n3 = document.body.clientWidth;
@@ -690,12 +696,12 @@ function Oe() {
     };
   });
 }
-var Ne = Object.assign(function(e2) {
-  const t2 = Pe(e2);
+var Oe = Object.assign(function(e2) {
+  const t2 = Ce(e2);
   var n2;
-  Object.defineProperties(this, (n2 = { FileAttachment: () => oe, Arrow: () => t2(V.resolve()), Inputs: () => t2(q.resolve()), Mutable: () => ye, Plot: () => t2(M.resolve()), SQLite: () => Y(t2), SQLiteDatabaseClient: () => SQLiteDatabaseClient, _: () => t2(F.resolve()), aq: () => t2.alias({ "apache-arrow": V.resolve() })(J.resolve()), d3: () => t2(U.resolve()), dot: () => t2(S.resolve()), htl: () => t2(B.resolve()), html: () => ve, md: () => function(e3) {
+  Object.defineProperties(this, (n2 = { FileAttachment: () => ie, Arrow: () => t2(V.resolve()), Inputs: () => t2(q.resolve()), Mutable: () => ge, Plot: () => t2(M.resolve()), SQLite: () => G(t2), SQLiteDatabaseClient: () => SQLiteDatabaseClient, _: () => t2(F.resolve()), aq: () => t2.alias({ "apache-arrow": V.resolve() })(J.resolve()), d3: () => t2(U.resolve()), dot: () => t2(S.resolve()), htl: () => t2(B.resolve()), html: () => ye, md: () => function(e3) {
     return e3(H.resolve()).then(function(t3) {
-      return we(function(n3) {
+      return ve(function(n3) {
         var r2 = document.createElement("div");
         r2.innerHTML = t3(n3, { langPrefix: "" }).trim();
         var o2 = r2.querySelectorAll("pre code[class]");
@@ -716,7 +722,7 @@ var Ne = Object.assign(function(e2) {
         return document.createElement("div");
       });
     });
-  }(t2), now: ge, require: () => t2, resolve: () => Ee, svg: () => Ce, tex: () => function(e3) {
+  }(t2), now: be, require: () => t2, resolve: () => Pe, svg: () => Ae, tex: () => function(e3) {
     return Promise.all([e3(D.resolve()), (t3 = D.resolve("dist/katex.min.css"), new Promise(function(e4, n3) {
       var r2 = document.createElement("link");
       r2.rel = "stylesheet", r2.href = t3, r2.onerror = n3, r2.onload = e4, document.head.appendChild(r2);
@@ -725,7 +731,7 @@ var Ne = Object.assign(function(e2) {
       function r2(e5) {
         return function() {
           var n4 = document.createElement("div");
-          return t4.render(Ae.apply(String, arguments), n4, e5), n4.removeChild(n4.firstChild);
+          return t4.render(Ne.apply(String, arguments), n4, e5), n4.removeChild(n4.firstChild);
         };
       }
       return n3.options = r2, n3.block = r2({ displayMode: true }), n3;
@@ -734,9 +740,9 @@ var Ne = Object.assign(function(e2) {
   }(t2), topojson: () => t2(X.resolve()), vl: () => async function(e3) {
     const [t3, n3, r2] = await Promise.all([I, Z, Q].map((t4) => e3(t4.resolve())));
     return r2.register(t3, n3);
-  }(t2), width: Oe, DOM: le, Files: ce, Generators: pe, Promises: je }, Object.fromEntries(Object.entries(n2).map(Le))));
-}, { resolve: O.resolve });
-function Le([e2, t2]) {
+  }(t2), width: Le, DOM: ce, Files: fe, Generators: we, Promises: Ee }, Y(Object.entries(n2).map(Re))));
+}, { resolve: N.resolve });
+function Re([e2, t2]) {
   return [e2, { value: t2, writable: true, enumerable: true }];
 }
 
@@ -978,7 +984,7 @@ var ShinyInspector = class extends QuartoInspector {
     return super.fulfilled(value, name);
   }
 };
-var { Generators } = new Ne();
+var { Generators } = new Oe();
 var OjsButtonInput = class {
   find(_scope) {
     return document.querySelectorAll(".ojs-inputs-button");
@@ -1235,7 +1241,7 @@ async function importOjsFromURL(path) {
 }
 var OJSConnector = class {
   constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
-    this.library = library || new Ne();
+    this.library = library || new Oe();
     this.localResolverMap = new Map();
     this.pendingGlobals = {};
     this.allowPendingGlobals = allowPendingGlobals;
@@ -1662,7 +1668,7 @@ function createRuntime() {
     window._ojs.shinyElementRoot = span;
     document.body.appendChild(span);
   }
-  const lib = new Ne();
+  const lib = new Oe();
   if (isShiny) {
     extendObservableStdlib(lib);
   }
@@ -1743,7 +1749,7 @@ function createRuntime() {
       return n2;
     }
   }
-  lib.FileAttachment = () => ie(fileAttachmentPathResolver);
+  lib.FileAttachment = () => ae(fileAttachmentPathResolver);
   const ojsConnector = new QuartoOJSConnector({
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : QuartoInspector,
