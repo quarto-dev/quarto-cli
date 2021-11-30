@@ -49,6 +49,15 @@ window.QuartoSupport = function () {
               }
             }
 
+            // if the deck is in an iframe we want to open it externally
+            const iframe = window.location !== window.parent.location;
+            if (iframe) {
+              ev.preventDefault();
+              ev.stopImmediatePropagation();
+              window.open(url, "_blank");
+              return false;
+            }
+
             // if the user has set data-preview-link to "auto" we need to handle the event
             // (because reveal will interpret "auto" as true)
             if (dataPreviewLink === "auto") {
