@@ -1,0 +1,198 @@
+- name: from
+  alias: reader
+  schema: string
+  default: markdown
+  description: "Format to read from (e.g. markdown+emoji)"
+
+- name: to
+  alias: writer
+  schema: string
+  default: html5
+  hidden: true
+  description: "Format to write to (e.g. html5)"
+
+- name: output-file
+  schema:
+    oneOf:
+      - string
+      - "null":
+          hidden: true
+  default: "input name + output ext"
+  description: "Output file to write to"
+
+- name: input-file
+  schema: string
+  hidden: true
+  description: "Input file to read from"
+
+- name: input-files
+  schema:
+    arrayOf: string
+  hidden: true
+  description: "Input files to read from"
+
+- name: defaults
+  schema:
+    arrayOf: string
+  hidden: true
+  description: "Include options from the specified defaults files"
+
+- name: template
+  disabled: [pptx, docx]
+  description: "Use the specified file as a custom template for the generated document. Implies `standalone`"
+
+- name: standalone
+  schema: boolean
+  default: true
+  description: "Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)"
+
+- name: self-contained
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  schema: boolean
+  default: false
+  description: "Produce a standalone HTML file with no external dependencies"
+
+- name: variables
+  schema: object
+  hidden: true
+  description: "Pandoc metadata variables"
+
+- name: metadata
+  schema: object
+  hidden: true
+  description: "Pandoc metadata variables"
+
+- name: metadata-file
+  schema: string
+  description: "Include file with YAML metadata"
+
+- name: metadata-files
+  schema:
+    arrayOf: string
+  description: "Include files with YAML metadata"
+
+- name: include-before-body
+  disabled: [pptx, docx]
+  schema:
+    maybeArrayOf: string
+  description: |
+    Include contents of files, verbatim, at the beginning of the document body
+    (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command 
+    in LaTeX).
+
+- name: include-after-body
+  disabled: [pptx, docx]
+  schema:
+    maybeArrayOf: string
+  description: |
+    Include contents of files, verbatim, at the end of the document body (before
+    the `</body>` tag in HTML, or the `\end{document}` command in LaTeX).
+
+- name: include-in-header
+  disabled: [pptx, docx]
+  schema:
+    maybeArrayOf: string
+  description: |
+    Include contents of files, verbatim, at the end of the header. This can
+    be used, for example, to include special CSS or JavaScript in HTML 
+    documents.
+
+- name: resource-path
+  schema: string
+  default: "."
+  description: |
+    List of paths to search for images and other resources. The paths should
+    be separated by : on Linux, UNIX, and macOS systems, and by ; on Windows.
+
+- name: filters
+  schema:
+    arrayOf:
+      oneOf:
+        - string
+        - object:
+            properties:
+              type: string
+              path: string
+            required: [type, path]
+        - object:
+            properties:
+              type:
+                enum: citeproc
+            required: [type]
+  description: |
+    Specify executables or Lua scripts to be used as a filter transforming
+    the pandoc AST after the input is parsed and before the output is written.
+
+- name: verbosity
+  schema:
+    enum: [ERROR, WARNING, INFO]
+  default: WARNING
+  description: "Level of program output (provide INFO for diagnostics)"
+
+- name: number-offset
+  schema:
+    arrayOf: number
+  default: [0, 0, 0, 0, 0, 0]
+  description: |
+    Offset for section headings in output. Offsets are 0 by default. 
+    Implies `number-sections`
+
+- name: html-math-method
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      epub,
+      epub2,
+      epub3,
+    ]
+  schema:
+    oneOf:
+      enum:
+        id: math-methods
+        values: [plain, webtex, gladtex, mathml, mathjax, katex]
+      object:
+        properties:
+          method:
+            ref: math-methods
+          url: string
+        required: [method]
+
+- name: track-changes
+  enabled: [docx]
+  schema:
+    enum: [accept, reject, all]
+  default: accept
+  description:
+    short: |
+      Specifies what to do with insertions, deletions, and comments produced by 
+      the MS Word “Track Changes” feature.
+    long: |
+      Specifies what to do with insertions, deletions, and comments
+      produced by the MS Word "Track Changes" feature.  `accept` (the
+      default) processes all the insertions and deletions.
+      `reject` ignores them.  Both `accept` and `reject` ignore comments.
+      `all` includes all insertions, deletions, and comments, wrapped
+      in spans with `insertion`, `deletion`, `comment-start`, and
+      `comment-end` classes, respectively. The author and time of
+      change is included. `all` is useful for scripting: only
+      accepting changes from a certain reviewer, say, or before a
+      certain date. If a paragraph is inserted or deleted,
+      `track-changes=all` produces a span with the class
+      `paragraph-insertion`/`paragraph-deletion` before the
+      affected paragraph break. This option only affects the docx
+      reader.
+
+- name: request-headers
+  schema:
+    arrayOf:
+      arrayOf:
+        schema: string
+        length: 2
+  description: "Headers to include with HTTP requests by Pandoc"
