@@ -131,6 +131,10 @@ export async function readAndValidateYamlFromMarkdown(
   }
   kRegExYAML.lastIndex = 0;
 
+  if (yaml.length === 0) {
+    return {};
+  }
+  
   const mappedYaml = mappedConcat(yaml);
 
   // parse the yaml
