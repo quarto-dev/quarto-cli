@@ -236,15 +236,6 @@ section.has-dark-background {
 $panel-sidebar-width: 270px;
 $panel-sidebar-padding: 0.5em;
 
-.reveal .panel-input {
-  padding: $panel-sidebar-padding;
-  border-style: solid;
-  border-color: $input-panel-border-color;
-  border-width: $input-panel-border-width;
-  border-radius: $input-panel-border-radius;
-  background-color: $input-panel-bg;
-}
-
 .reveal .layout-sidebar {
   display: flex;
   width: 100%;
@@ -269,14 +260,31 @@ $panel-sidebar-padding: 0.5em;
   flex: 1;
 }
 
-.reveal .panel-input :first-child,
+.reveal .panel-input,
+.reveal .panel-sidebar {
+  font-size: 0.5em;
+  padding: $panel-sidebar-padding;
+  border-style: solid;
+  border-color: $input-panel-border-color;
+  border-width: $input-panel-border-width;
+  border-radius: $input-panel-border-radius;
+  background-color: $input-panel-bg;
+}
+
+.reveal .panel-sidebar :first-child,
 .reveal .panel-fill :first-child {
   margin-top: 0;
 }
 
-.reveal .panel-input :last-child,
+.reveal .panel-sidebar :last-child,
 .reveal .panel-fill :last-child {
   margin-bottom: 0;
+}
+
+.panel-input > div,
+.panel-input > div > div {
+  vertical-align: middle;
+  padding-right: 1em;
 }
 
 .reveal p,

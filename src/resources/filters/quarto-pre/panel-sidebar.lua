@@ -170,7 +170,7 @@ function revealSidebar()
       return attr
     end,
     sidebarAttr = function()
-      local attr = pandoc.Attr("", { "panel-input" })
+      local attr = pandoc.Attr("", {})
       return attr
     end,
     containerAttr = function()

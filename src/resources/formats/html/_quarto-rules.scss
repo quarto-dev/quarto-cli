@@ -278,3 +278,26 @@ code a:hover {
 .cell-output-display:not(.no-overflow-x) {
   overflow-x: auto;
 }
+
+.panel-input {
+  margin-bottom: 1em;
+}
+
+.panel-input > div,
+.panel-input > div > div {
+  display: inline-block;
+  vertical-align: top;
+  padding-right: 12px;
+}
+
+.panel-input > p:last-child {
+  margin-bottom: 0;
+}
+
+.layout-sidebar {
+  margin-bottom: 1em;
+}
+
+.layout-sidebar .tab-content {
+  border: none;
+}

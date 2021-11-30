@@ -490,18 +490,6 @@ $code-block-bg-color: color.adjust(
   margin-bottom: 1em;
 }
 
-.layout-sidebar .tab-content {
-  border: none;
-}
-
-.panel-input {
-  margin-bottom: 1em;
-}
-
-.layout-sidebar {
-  margin-bottom: 1em;
-}
-
 @include media-breakpoint-down(md) {
   .layout-sidebar {
     margin-left: 0;
@@ -520,17 +508,6 @@ $code-block-bg-color: color.adjust(
 .panel-sidebar .form-control,
 .panel-input .form-control {
   padding-top: 0.1rem;
-}
-
-.panel-input > div,
-.panel-input > div > div {
-  display: inline-block;
-  vertical-align: top;
-  padding-right: 12px;
-}
-
-.panel-input > p:last-child {
-  margin-bottom: 0;
 }
 
 .tab-pane div.sourceCode {
