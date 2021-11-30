@@ -1,0 +1,122 @@
+- name: title
+  schema: string
+  description: "Identifies the title of the document"
+
+- name: author
+  schema:
+    oneOf:
+      - string
+      - arrayOf: string
+  description: "Identifies the author or authors of the document"
+
+- name: date
+  schema: string
+  description: "Identifies the date of the document"
+
+- name: title-meta
+  schema: string
+  enabled: [latex, pdf, beamer]
+  description: "Sets the title metadata for the document"
+
+- name: description-meta
+  schema: string
+  enabled: [html, html4, html5]
+  description: "Sets the description metadata for the document"
+
+- name: author-meta
+  schema: string
+  enabled:
+    [
+      latex,
+      pdf,
+      beamer,
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+    ]
+  description: "Sets the author metadata for the document"
+
+- name: subtitle
+  schema: string
+  enabled:
+    [
+      latex,
+      pdf,
+      beamer,
+      context,
+      muse,
+      odt,
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      epub,
+      epub2,
+      epub3,
+    ]
+  description: "Identifies the subtitle of the document."
+
+- name: abstract
+  schema: string
+  enabled:
+    [
+      asciidoc,
+      asciidoctor,
+      jats_publishing,
+      jats_articleauthoring,
+      latex,
+      context,
+      pdf,
+      beamer,
+      ms,
+      odt,
+    ]
+  description: "Provides a summary of the document"
+
+- name: keywords
+  schema:
+    oneOf:
+      - string
+      - arrayOf: string
+  enabled:
+    [
+      asciidoc,
+      asciidoctor,
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      dzslides,
+      revealjs,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description: "List of keywords to be included in the document metadata."
+
+- name: subject
+  schema: string
+  enabled: [latex, pdf, beamer, docx, pptx]
+  description: "The document subject"
+
+- name: description
+  schema: string
+  enabled: [docx, pptx]
+  description: "The document description. Some applications show this as `Comments` metadata."
+
+- name: category
+  schema: string
+  enabled: [docx, pptx]
+  description: "The document category."
