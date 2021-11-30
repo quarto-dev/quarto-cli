@@ -120,3 +120,36 @@
   schema: string
   enabled: [docx, pptx]
   description: "The document category."
+
+- name: lang
+  schema: string
+  description:
+    short: Identifies the main language of the document (e.g. `en` or `en-GB`).
+    long: |
+      Identifies the main language of the document using IETF language tags 
+      (following the [BCP 47](https://www.rfc-editor.org/info/bcp47) standard), 
+      such as `en` or `en-GB`. The [Language subtag lookup](https://r12a.github.io/app-subtags/) 
+      tool can look up or verify these tags. 
+
+      This affects most formats, and controls hyphenation 
+      in PDF output when using LaTeX (through [`babel`](http://www.leliseron.org/annexes/LaTeX/babel.pdf) 
+      and [`polyglossia`](https://texdoc.org/serve/polyglossia/0)) or ConTeXt.
+
+- name: dir
+  schema:
+    enum: [rtl, ltr]
+  description:
+    short: The base script direction for the document.
+    long: |
+      The base script direction for the document.
+
+      For bidirectional documents, native pandoc `span`s and
+      `div`s with the `dir` attribute (value `rtl` or `ltr`) can
+      be used to override the base direction in some output
+      formats.  This may not always be necessary if the final
+      renderer (e.g. the browser, when generating HTML) supports
+      the [Unicode Bidirectional Algorithm].
+
+      When using LaTeX for bidirectional documents, only the
+      `xelatex` engine is fully supported (use
+      `--pdf-engine=xelatex`).

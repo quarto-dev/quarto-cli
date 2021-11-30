@@ -5,8 +5,6 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
-import { extname } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 import { formatKeys } from "../../../command/render/render.ts";
 
@@ -296,20 +294,21 @@ export function websiteProjectConfig(
     config[kMetadataFormat] = "html";
   }
 
-  // Resolve elements that could be paths to markdown and
-  // ensure they are arrays so they can be merged
+  // Resolve elements to be sure they're arrays, they will be resolve later
+  const ensureArray = (val: unknown) => {
+    if (Array.isArray(val)) {
+      return val;
+    } else if (typeof (val) === "string") {
+      return [val];
+    }
+  };
+
   const siteMeta = (config[kWebsite] || {}) as Metadata;
   if (siteMeta[kMarginHeader]) {
-    siteMeta[kMarginHeader] = expandMarkdown(
-      kMarginHeader,
-      siteMeta[kMarginHeader],
-    );
+    siteMeta[kMarginHeader] = ensureArray(siteMeta[kMarginHeader]);
   }
   if (siteMeta[kMarginFooter]) {
-    siteMeta[kMarginFooter] = expandMarkdown(
-      kMarginFooter,
-      siteMeta[kMarginFooter],
-    );
+    siteMeta[kMarginFooter] = ensureArray(siteMeta[kMarginFooter]);
   }
   config[kSite] = siteMeta;
 
@@ -325,10 +324,7 @@ export function websiteProjectConfig(
   sidebars?.forEach((sidebar) => {
     const headerRaw = sidebar[kSiteSidebarHeader];
     if (headerRaw) {
-      sidebar[kSiteSidebarHeader] = expandMarkdown(
-        kSiteSidebarHeader,
-        headerRaw,
-      );
+      sidebar[kSiteSidebarHeader] = ensureArray(sidebar[kSiteSidebarHeader]);
     }
   });
 
@@ -336,10 +332,7 @@ export function websiteProjectConfig(
   sidebars?.forEach((sidebar) => {
     const footerRaw = sidebar[kSiteSidebarFooter];
     if (footerRaw) {
-      sidebar[kSiteSidebarFooter] = expandMarkdown(
-        kSiteSidebarFooter,
-        footerRaw,
-      );
+      sidebar[kSiteSidebarFooter] = ensureArray(sidebar[kSiteSidebarFooter]);
     }
   });
 
@@ -351,32 +344,4 @@ export function websiteHtmlFormat(project: ProjectContext): Format {
   const baseFormat = metadataAsFormat(projConfig);
   const format = formatFromMetadata(baseFormat, formatKeys(projConfig)[0]);
   return mergeConfigs(baseFormat, format);
-}
-
-function expandMarkdown(name: string, val: unknown): string[] {
-  if (Array.isArray(val)) {
-    return val.map((pathOrMarkdown) => {
-      return expandMarkdownFilePath(pathOrMarkdown);
-    });
-  } else if (typeof (val) == "string") {
-    return [expandMarkdownFilePath(val)];
-  } else {
-    throw Error(`Invalid value for ${name}:\n${val}`);
-  }
-}
-
-function expandMarkdownFilePath(val: string): string {
-  if (existsSync(val)) {
-    const fileContents = Deno.readTextFileSync(val);
-
-    // If we are reading raw HTML, provide raw block indicator
-    const ext = extname(val);
-    if (ext === ".html") {
-      return "```{=html}\n" + fileContents + "\n```";
-    } else {
-      return fileContents;
-    }
-  } else {
-    return val;
-  }
 }
