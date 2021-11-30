@@ -4,7 +4,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-
+import { existsSync } from "fs/exists.ts";
+import { extname } from "path/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
@@ -286,7 +287,10 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
 };
 
 const toHeaderFooterMarkdown = (prefix: string, content: string[]) => {
-  return content.reduce(
+  const markdown = content.map((con) => {
+    return expandMarkdown(prefix, con);
+  });
+  return markdown.reduce(
     (previousValue, currentValue) => {
       return `${previousValue}\n:::{.${prefix}-item}\n${currentValue}\n:::\n`;
     },
@@ -483,3 +487,31 @@ const footerHandler = (context: NavigationPipelineContext) => {
     },
   };
 };
+
+function expandMarkdown(name: string, val: unknown): string[] {
+  if (Array.isArray(val)) {
+    return val.map((pathOrMarkdown) => {
+      return expandMarkdownFilePath(pathOrMarkdown);
+    });
+  } else if (typeof (val) == "string") {
+    return [expandMarkdownFilePath(val)];
+  } else {
+    throw Error(`Invalid value for ${name}:\n${val}`);
+  }
+}
+
+function expandMarkdownFilePath(val: string): string {
+  if (existsSync(val)) {
+    const fileContents = Deno.readTextFileSync(val);
+
+    // If we are reading raw HTML, provide raw block indicator
+    const ext = extname(val);
+    if (ext === ".html") {
+      return "```{=html}\n" + fileContents + "\n```";
+    } else {
+      return fileContents;
+    }
+  } else {
+    return val;
+  }
+}
