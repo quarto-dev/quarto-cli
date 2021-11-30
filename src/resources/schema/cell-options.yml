@@ -1,0 +1,7 @@
+- name: layout
+  schema:
+    arrayOf:
+      arrayOf: number
+  description: |
+    A 2-dimensional array where the first dimension defines rows and the
+    second columns
