@@ -251,7 +251,7 @@ export async function runPandoc(
     htmlPostprocessors.push(...(extras.html?.[kHtmlPostprocessors] || []));
 
     // add a post-processor for fixing overflow-x in cell output display
-    if (isHtmlOutput(options.format.pandoc, true)) {
+    if (isHtmlOutput(options.format.pandoc, false)) {
       htmlPostprocessors.push(selectInputPostprocessor);
     }
 
