@@ -374,6 +374,14 @@ function processCssIntoExtras(cssPath: string, extras: FormatExtras) {
       dirty = true;
     }
 
+    // Don't include duplicate variables
+    extras.html[kQuartoCssVariables] = ld.uniqBy(
+      extras.html[kQuartoCssVariables],
+      (val: string) => {
+        return val;
+      },
+    );
+
     if (dirty) {
       const cleanedCss = css.replaceAll(kVariablesRegex, "");
       const newCssPath = sessionTempFile({ suffix: ".css" });
