@@ -202,6 +202,7 @@ body.docked {
 .content {
   grid-column: body-content-start / body-content-end;
   grid-row: content-top / content-bottom;
+  align-content: flex-start;
 }
 
 .page-navigation {
@@ -368,13 +369,16 @@ img.img-fluid.column-screen-inset-shaded {
     z-index: $zindex-content;
     transform: translate3d(0, 0, 0);
   }
-
   .no-row-height {
     height: initial;
     overflow: initial;
   }
 
   #quarto-margin-sidebar {
+    display: none;
+  }
+
+  .hidden-sm {
     display: none;
   }
 }
