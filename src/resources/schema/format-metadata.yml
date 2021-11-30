@@ -132,8 +132,8 @@
       tool can look up or verify these tags. 
 
       This affects most formats, and controls hyphenation 
-      in PDF output when using LaTeX (through [`babel`](http://www.leliseron.org/annexes/LaTeX/babel.pdf) 
-      and [`polyglossia`](https://texdoc.org/serve/polyglossia/0)) or ConTeXt.
+      in PDF output when using LaTeX (through [`babel`](https://ctan.org/pkg/babel) 
+      and [`polyglossia`](https://ctan.org/pkg/polyglossia)) or ConTeXt.
 
 - name: dir
   schema:
@@ -153,3 +153,290 @@
       When using LaTeX for bidirectional documents, only the
       `xelatex` engine is fully supported (use
       `--pdf-engine=xelatex`).
+
+- name: document-css
+  schema: boolean
+  hidden: true
+  default: true
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  description: Enables inclusion of Pandoc default CSS for this document.
+
+- name: mainfont
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the main font for the document.
+    long: |
+      For HTML output, sets the CSS `font-family` on the HTML element.
+
+      For LaTeX output, the main font family for use with `xelatex` or 
+      `lualatex`. Takes the name of any system font, using the
+      [`fontspec`](https://ctan.org/pkg/fontspec) package. `CJKmainfont` uses 
+      the [`xecjk`](https://ctan.org/pkg/xecjk) package.
+
+      For ConTeXt output, the main font family. Use the name of any 
+      system font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more
+      information.
+
+- name: fontsize
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the main font size for the document.
+    long: |
+      For HTML output, sets the base CSS `font-size` property.
+
+      For LaTeX and ConTeXt output, sets the font size for the document body text.
+
+- name: fontcolor
+  schema: string
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  description: Sets the CSS `color` property.
+
+- name: linkcolor
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the color of hyperlinks in the document.
+    long: |
+      For HTML output, sets the CSS `color` property on all links.
+
+      For LaTeX output, sets the color for internal links within the document.
+
+      For ConTeXt output, sets the color for both external links and links within the document.
+
+- name: monofont
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      pptx,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the font used for when displaying code.
+    long: |
+      For HTML output, sets the CSS font-family property on code elements.
+
+      For PowerPoint output, sets the font used for code.
+
+      For LaTeX output, the monospace font family for use with `xelatex` or 
+      `lualatex`: take the name of any system font, using the
+      [`fontspec`](https://ctan.org/pkg/fontspec) package.  `CJKmainfont` uses 
+      the [`xecjk`](https://ctan.org/pkg/xecjk) package.
+
+      For ConTeXt output, the monspace font family. Use the name of any 
+      system font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more
+      information.
+
+- name: monobackgroundcolor
+  schema: string
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  description: Sets the CSS `background-color` property on code elements and adds extra padding.
+
+- name: linestretch
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the line height or spacing for text in the document.
+    long: |
+      For HTML output sets the CSS `line-height` property on the html 
+      element, which is preferred to be unitless.
+
+      For LaTeX output, adjusts line spacing using the 
+      [setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.
+
+- name: backgroundcolor
+  schema: string
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  description: |
+    Sets the CSS `background-color` property on the html element.
+
+- name: margin-left
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      pptx,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the left margin of the document.
+    long: |
+      For HTML output, sets the `margin-left` property on the Body element.
+
+      For LaTeX output, sets the left margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the left margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the left page margin.
+
+- name: margin-right
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      pptx,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the right margin of the document.
+    long: |
+      For HTML output, sets the `margin-right` property on the Body element.
+
+      For LaTeX output, sets the right margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the right margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the right page margin.
+
+- name: margin-top
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      pptx,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the top margin of the document.
+    long: |
+      For HTML output, sets the `margin-top` property on the Body element.
+
+      For LaTeX output, sets the top margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the top margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the top page margin.
+
+- name: margin-bottom
+  schema: string
+  enabled:
+    [
+      html,
+      html4,
+      html5,
+      slidy,
+      slideous,
+      s5,
+      revealjs,
+      dzslides,
+      pptx,
+      context,
+      latex,
+      pdf,
+      beamer,
+    ]
+  description:
+    short: Sets the bottom margin of the document.
+    long: |
+      For HTML output, sets the `margin-bottom` property on the Body element.
+
+      For LaTeX output, sets the bottom margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the bottom margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the bottom page margin.
