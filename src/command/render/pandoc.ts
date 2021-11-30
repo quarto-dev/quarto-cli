@@ -341,11 +341,18 @@ export async function runPandoc(
       allDefaults = {
         ...allDefaults,
         [kIncludeAfterBody]: [
-          ...extras[kIncludeAfterBody] || [],
           ...allDefaults[kIncludeAfterBody] || [],
+          ...extras[kIncludeAfterBody] || [],
         ],
       };
     }
+
+    // Resolve the body envelope here
+    // body envelope to includes (project body envelope always wins)
+    if (extras.html?.[kBodyEnvelope] && projectExtras.html?.[kBodyEnvelope]) {
+      extras.html[kBodyEnvelope] = projectExtras.html[kBodyEnvelope];
+    }
+    resolveBodyEnvelope(allDefaults, extras);
 
     // add any filters
     allDefaults.filters = [
@@ -612,12 +619,6 @@ async function resolveExtras(
 
     // resolve dependencies
     extras = resolveDependencies(extras, inputDir, libDir);
-
-    // body envelope to includes (project body envelope always wins)
-    if (extras.html?.[kBodyEnvelope] && projectExtras.html?.[kBodyEnvelope]) {
-      extras.html[kBodyEnvelope] = projectExtras.html[kBodyEnvelope];
-    }
-    extras = resolveBodyEnvelope(extras);
   } else {
     delete extras.html;
   }
@@ -731,24 +732,21 @@ export function resolveDependencies(
   return extras;
 }
 
-function resolveBodyEnvelope(extras: FormatExtras) {
-  // deep copy to not mutate caller's object
-  extras = ld.cloneDeep(extras);
-
+function resolveBodyEnvelope(pandoc: FormatPandoc, extras: FormatExtras) {
   const envelope = extras.html?.[kBodyEnvelope];
   if (envelope) {
     const writeBodyFile = (
       type: "include-in-header" | "include-before-body" | "include-after-body",
-      prepend: boolean,
+      prepend: boolean, // should we prepend or append this element
       content?: string,
     ) => {
       if (content) {
         const file = sessionTempFile({ suffix: ".html" });
         Deno.writeTextFileSync(file, content);
         if (!prepend) {
-          extras[type] = (extras[type] || []).concat(file);
+          pandoc[type] = (pandoc[type] || []).concat(file);
         } else {
-          extras[type] = [file].concat(extras[type] || []);
+          pandoc[type] = [file].concat(pandoc[type] || []);
         }
       }
     };
@@ -758,11 +756,7 @@ function resolveBodyEnvelope(extras: FormatExtras) {
     // Process the after body preamble and postamble (include-after-body appears between these)
     writeBodyFile(kIncludeAfterBody, true, envelope.afterPreamble);
     writeBodyFile(kIncludeAfterBody, false, envelope.afterPostamble);
-
-    delete extras.html?.[kBodyEnvelope];
   }
-
-  return extras;
 }
 
 function runPandocMessage(
