@@ -768,3 +768,47 @@
   default: false
   description: "Causes links to be printed as footnotes."
   
+# LaTeX - Front Matter
+
+- name: lof
+  schema: boolean
+  default: false
+  enabled: [$pdf-all]
+  description: Print a list of figures in the document.
+
+- name: lot
+  schema: boolean
+  default: false
+  enabled: [$pdf-all]
+  description: Print a list of tables in the document.  
+
+- name: thanks
+  schema: string #markdown
+  enabled: [$pdf-all]
+  description: The contents of an acknowledgments footnote after the document title.
+
+# toc / toc-depth (see format-pandoc.yml)
+
+# LaTeX - BibLaTeX Bibliographies
+
+- name: biblatexoptions
+  schema: 
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description: A list of options for BibLaTeX.
+
+- name: biblio-style
+  schema: string
+  enabled: [$pdf-all]
+  description: The bibliography style to use (e.g. `\bibliographystyle{dinat}`) when using `natbib` or `biblatex`.
+
+- name: biblio-title
+  schema: string
+  enabled: [$pdf-all]
+  description: The bibliography title to use when using `natbib` or `biblatex`.
+
+- name: natbiboptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description: One or more options to provide for `natbib` when generating a bibliography.
