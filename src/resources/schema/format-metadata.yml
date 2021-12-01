@@ -488,8 +488,11 @@
       ```
 
 - name: indent
-  schema: boolean
-  enabled: [$pdf-all]
+  schema:
+    oneOf:
+      - boolean
+      - string
+  enabled: [$pdf-all, ms]
   default: false
   description:
     short: Whether to document class settings for indentation.
@@ -497,6 +500,8 @@
       Wheher to use document class settings for indentation. If the document 
       class settings are not used, the default LaTeX template removes indentation 
       and adds space between paragraphs
+
+      For groff (`ms`) documents, the paragraph indent, for example, `2m`.
 
 - name: pagestyle
   schema:
@@ -535,15 +540,17 @@
 
 - name: fontfamily
   schema: string
-  enabled: [$pdf-all]
+  enabled: [$pdf-all, ms]
   default: "Latin Modern"
   description:
-    short: Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`.
+    short: Font package to use when compiling a PDF with the `pdflatex` `pdf-engine`.
     long: |
       Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`. 
 
       See [The LaTeX Font Catalogue](https://tug.org/FontCatalogue/) for a 
       summary of font options available.
+
+      For groff (`ms`) files, the font family for example, `T` or `P`.
 
 - name: fontfamilyoptions
   schema:
@@ -981,5 +988,53 @@
   schema: boolean
   enabled: [context]
   default: false
+  description: Whether to include all source documents as file attachments in the PDF file.
+
+# wkhtmltopdf variables footer-html, header-html, and pagesize
+# are omitted because we don't want those to appear as completions
+# for the HTML format
+
+# man
+
+- name: adjusting
+  schema:
+    enum: [l, r, c, b]
+  enabled: [man]
+  description: Adjusts text to the left (`l`), right (`r`), center (`c`), or both (`b`) margins.
+
+- name: footer
+  schema: string
+  enabled: [man]
+  description: The footer for man pages.
+
+- name: header
+  schema: string
+  enabled: [man]
+  description: The header for man pages.
+
+- name: hyphenate
+  schema: boolean
+  default: true
+  enabled: [man]
   description:
-    short: Whether to include all source documents as file attachments in the PDF file.
+    short: Whether to hyphenate text at line breaks even in words that do not contain hyphens.
+    long: |
+      Whether to hyphenate text at line breaks even in words that do not contain 
+      hyphens if it is necessary to do so to lay out words on a line without excessive spacing
+
+- name: section
+  schema: number
+  enabled: [man]
+  description: The section number in man pages.
+
+## ms / groff
+
+- name: lineheight
+  schema: string
+  enabled: [ms]
+  description: The line height, for example, `12p`.
+
+- name: pointsize
+  schema: string
+  enabled: [ms]
+  description: The point size, for example, `10p`.
