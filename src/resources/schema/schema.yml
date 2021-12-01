@@ -1,0 +1,162 @@
+- object:
+    id: schema/yaml-schema/base-schema
+    properties:
+      id: string
+      completions:
+        oneOf:
+          - arrayOf: string # FIXME this needs improving, look at
+                            # Completion interface
+          - object:
+              additionalProperties: string
+                
+      additionalCompletions:
+        oneOf:
+          - arrayOf: string # FIXME this needs improving, look at
+                            # Completion interface
+          - object:
+              additionalProperties: string
+
+- object:
+    id: schema/yaml-schema/object-schema
+    super:
+      resolveRef: schema/yaml-schema/base-schema
+    properties:
+      required:
+        oneOf:
+          - enum:
+              - all
+          - arrayOf: string
+      super:
+        ref: schema/yaml-schema/object-schema
+        description: be a yaml object schema
+      hidden: boolean
+      additionalProperties:
+        ref: schema/yaml-schema/schema
+        description: be a yaml yaml schema
+      properties:
+        object:
+          additionalProperties:
+            ref: schema/yaml-schema/schema
+            description: be a yaml yaml schema
+
+- object:
+    id: schema/yaml-schema/enum-schema
+    super:
+      resolveRef: schema/yaml-schema/base-schema
+    properties:
+      enum:
+        oneOf:
+          - arrayOf: string
+          - object:
+              super:
+                resolveRef: schema/yaml-schema/base-schema
+              properties:
+                values:
+                  arrayOf: string
+
+- object:
+    id: schema/yaml-schema/ref-schema
+    properties:
+      ref: string
+      description: string
+    additionalProperties: false
+    required: [ref, description]
+
+- object:
+    id: schema/yaml-schema/maybe-array-of-schema
+    super:
+      resolveRef: schema/yaml-schema/base-schema
+    properties:
+      maybeArrayOf:
+        ref: schema/yaml-schema/schema
+        description: be a yaml yaml schema
+    additionalProperties: false
+    required: all
+
+- object:
+    id: schema/yaml-schema/array-of-schema
+    super:
+      resolveRef: schema/yaml-schema/base-schema
+    properties:
+      arrayOf:
+        oneOf:
+          - arrayOf:
+              ref: schema/yaml-schema/schema
+              description: be a yaml yaml schema
+          - object:
+              super:
+                resolveRef: schema/yaml-schema/base-schema
+              properties:
+                schema:
+                  arrayOf:
+                    ref: schema/yaml-schema/schema
+                    description: be a yaml yaml schema
+    required: [arrayOf]
+
+- oneOf:
+    id: schema/yaml-schema/enum-schema
+    schemas:
+      - arrayOf: string
+      - object:
+          super:
+            resolveRef: schema/yaml-schema/base-schema
+          properties:
+            values:
+              arrayOf: string
+
+- object:
+    id: schema/yaml-schema/one-of-schema
+    super:
+      resolveRef: schema/yaml-schema/base-schema
+    properties:
+      oneOf:
+        oneOf:
+          - arrayOf:
+              ref: schema/yaml-schema/schema
+              description: be a yaml yaml schema
+          - object:
+              super:
+                resolveRef: schema/yaml-schema/base-schema
+              properties:
+                schemas:
+                  arrayOf:
+                    ref: schema/yaml-schema/schema
+                    description: be a yaml yaml schema
+    required: [oneOf]
+
+- object:
+    id: schema/yaml-schema/any-of-schema
+    super:
+      resolveRef: schema/yaml-schema/base-schema
+    properties:
+      anyOf:
+        oneOf:
+          - arrayOf:
+              ref: schema/yaml-schema/schema
+              description: be a yaml yaml schema
+          - object:
+              super:
+                resolveRef: schema/yaml-schema/base-schema
+              properties:
+                schemas:
+                  arrayOf:
+                    ref: schema/yaml-schema/schema
+                    description: be a yaml yaml schema
+    
+- oneOf:
+    id: schema/yaml-schema/schema
+    schemas:
+      - enum:
+        - object
+        - string
+        - number
+        - boolean
+
+      - resolveRef: schema/yaml-schema/ref-schema
+      - resolveRef: schema/yaml-schema/maybe-array-of-schema
+      - resolveRef: schema/yaml-schema/array-of-schema
+      - resolveRef: schema/yaml-schema/one-of-schema
+      - resolveRef: schema/yaml-schema/any-of-schema
+      - resolveRef: schema/yaml-schema/enum-schema
+      - resolveRef: schema/yaml-schema/object-schema
+
