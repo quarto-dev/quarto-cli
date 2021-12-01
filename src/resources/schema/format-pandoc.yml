@@ -160,7 +160,7 @@
       citation style file.
 
 - name: csl
-  schama: string
+  schema: string
   description: Citation Style Language file to use for formatting references.
 
 - name: citation-abbreviations
