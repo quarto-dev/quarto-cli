@@ -40,8 +40,11 @@ export const frontMatterSchema = withId(
     objectS({
       properties: {
         title: StringS,
-        execute,
-        format: frontMatterFormatSchema,
+        // execute,
+        // format: frontMatterFormatSchema,
+        //
+        // NOTE: we are temporarily disabling format validation
+        // because it's way too strict
       },
       description: "be a Quarto YAML front matter object",
     }),
