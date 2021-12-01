@@ -40,31 +40,32 @@
 - name: output-file
   schema:
     oneOf:
-      - string
+      - path
       - "null":
           hidden: true
   default: "Input filename with output extension (e.g. .pdf, .html, etc.)"
   description: "Output file to write to"
 
 - name: input-file
-  schema: string
+  schema: path
   hidden: true
   description: "Input file to read from"
 
 - name: input-files
   schema:
-    arrayOf: string
+    arrayOf: path
   hidden: true
   description: "Input files to read from"
 
 - name: defaults
   schema:
-    arrayOf: string
+    arrayOf: path
   hidden: true
   description: "Include options from the specified defaults files"
 
 - name: template
   disabled: [$office-all]
+  schema: path
   description: |
     Use the specified file as a custom template for the generated document.
 
@@ -106,7 +107,7 @@
   description: "Pandoc metadata variables"
 
 - name: metadata-file
-  schema: string
+  schema: path
   description:
     short: "Include file with YAML metadata"
     long: |
@@ -119,7 +120,7 @@
 
 - name: metadata-files
   schema:
-    arrayOf: string
+    arrayOf: path
   description:
     short: "Include files with YAML metadata"
     long: |
@@ -135,7 +136,7 @@
 - name: include-before-body
   disabled: [pptx, docx]
   schema:
-    maybeArrayOf: string
+    maybeArrayOf: path
   description: |
     Include contents of files, verbatim, at the beginning of the document body
     (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command 
@@ -144,7 +145,7 @@
 - name: include-after-body
   disabled: [pptx, docx]
   schema:
-    maybeArrayOf: string
+    maybeArrayOf: path
   description: |
     Include contents of files, verbatim, at the end of the document body (before
     the `</body>` tag in HTML, or the `\end{document}` command in LaTeX).
@@ -152,14 +153,14 @@
 - name: include-in-header
   disabled: [pptx, docx]
   schema:
-    maybeArrayOf: string
+    maybeArrayOf: path
   description: |
     Include contents of files, verbatim, at the end of the header. This can
     be used, for example, to include special CSS or JavaScript in HTML 
     documents.
 
 - name: resource-path
-  schema: string
+  schema: path
   default: "."
   description: |
     List of paths to search for images and other resources. The paths should
@@ -178,11 +179,11 @@
       citation style file.
 
 - name: csl
-  schema: string
+  schema: path
   description: Citation Style Language file to use for formatting references.
 
 - name: citation-abbreviations
-  schema: string
+  schema: path
   description: |
     JSON file containing abbreviations of journals that should be
     used in formatted bibliographies when `form="short"` is
@@ -201,7 +202,7 @@
 
 - name: bibliography
   schema:
-    maybeArrayOf: string
+    maybeArrayOf: path
   description: |
     Document bibliography (BibTeX or CSL). May be a single file or a list of files
 
@@ -209,11 +210,11 @@
   schema:
     arrayOf:
       oneOf:
-        - string
+        - path
         - object:
             properties:
               type: string
-              path: string
+              path: path
             required: [type, path]
         - object:
             properties:
@@ -231,7 +232,7 @@
   description: "Parse each file individually before combining for multifile documents."
 
 - name: data-dir
-  schema: string
+  schema: path
   hidden: true
   description: "Specify the user data directory to search for pandoc data files."
 
@@ -242,7 +243,7 @@
   description: "Level of program output (provide INFO for diagnostics)"
 
 - name: log-file
-  schema: string
+  schema: path
   description: "Write log messages in machine-readable JSON format to FILE."
 
 - name: cite-method
@@ -368,7 +369,7 @@
       encoded value is used instead of the default specified by this option.
 
 - name: extract-media
-  schema: string
+  schema: path
   description:
     short: |
       Extract images and other media contained in or linked from the source document to the
@@ -573,12 +574,12 @@
       highlighting style.
 
 - name: syntax-definition
-  schema: string
+  schema: path
   description: "KDE language syntax definition file (XML)"
 
 - name: syntax-definitions
   schema: 
-    arrayOf: string
+    arrayOf: path
   description: "KDE language syntax definition files (XML)"
 
 - name: listings
@@ -594,7 +595,7 @@
 
 - name: reference-doc
   enabled: [$office-all, odt]
-  schema: string
+  schema: path
   description: | 
     Use the specified file as a style reference in producing a docx, 
     pptx, or odt file.
@@ -694,7 +695,7 @@
 - name: epub-subdirectory
   enabled: [$epub-all]
   schema: 
-    oneOf: [string, null]
+    oneOf: [path, null]
   default: EPUB
   description: |
     Specify the subdirectory in the OCF container that is to hold the
@@ -703,7 +704,7 @@
 
 - name: epub-metadata
   enabled: [$epub-all]
-  schema: string
+  schema: path
   description:
     short: |
       Look in the specified XML file for metadata for the EPUB.
@@ -732,7 +733,7 @@
 - name: epub-fonts
   enabled: [$epub-all]
   schema:
-    arrayOf: string
+    arrayOf: path
   description:
     short: "Embed the specified fonts in the EPUB"
     long: |
@@ -768,7 +769,7 @@
 
 - name: epub-cover-image
   enabled: [$epub-all]
-  schema: string
+  schema: path
   description: |
     Use the specified image as the EPUB cover. It is recommended
     that the image be less than 1000px in width and height. 
@@ -842,7 +843,7 @@
 - name: css
   enabled: [$html-all]
   schema:
-    maybeArrayOf: string
+    maybeArrayOf: path
   description: "One or more CSS style sheets."
       
 - name: ipynb-output
