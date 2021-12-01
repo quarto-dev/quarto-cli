@@ -1,3 +1,5 @@
+# from: https://github.com/jgm/pandoc/blob/619dfa2a2a19a8433424e830a21384c7b520866a/MANUAL.txt
+
 - name: from
   alias: reader
   schema: string
@@ -447,7 +449,7 @@
       to be included in other pages.
 
 - name: title-prefix
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslide]
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
   schema: string
   description: |
     Specify STRING as a prefix at the beginning of the title that appears in 
@@ -477,7 +479,7 @@
 
 - name: strip-comments
   schema: boolean
-  enabled: [markdown, gfm, commonmark, textile, html, html4, html5, slidy, slideous, s5, revealjs, dzslide]
+  enabled: [markdown, gfm, commonmark, textile, html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
   description:
     short: "Strip out HTML comments in source, rather than passing them on to output."
     long: |
@@ -613,6 +615,188 @@
           url: string
         required: [method]
 
+- name: email-obfuscation
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  schema:
+    enum: [none, references, javascript]
+  default: none
+  description:
+    short: "Method for obfuscating mailto: links in HTML documents."
+    long: |
+      Specify a method for obfuscating `mailto:` links in HTML documents.
+      `none` leaves `mailto:` links as they are.  `javascript` obfuscates
+      them using JavaScript. `references` obfuscates them by printing their
+      letters as decimal or hexadecimal character references.  The default
+      is `none`.
+      
+- name: tab-stop
+  schema: number
+  hidden: true
+  description: 
+    short: "Specify the number of spaces per tab (default is 4)."
+    long: |
+      Specify the number of spaces per tab (default is 4). Note that tabs
+      within normal textual input are always converted to spaces. Tabs 
+      within code are also converted, however this can be disabled with
+      `preserve-tabs: false`.
+
+- name: preserve-tabs
+  schema: boolean
+  default: false
+  description:
+    short: |
+      Preserve tabs within code instead of converting them to spaces. 
+    long: |
+      Preserve tabs within code instead of converting them to spaces.
+      (By default, pandoc converts tabs to spaces before parsing its input.) 
+      Note that this will only affect tabs in literal code spans and code blocks. 
+      Tabs in regular text are always treated as spaces.
+
+- name: incremental
+  enabled: [pptx, beamer, s5, slidy, slideous, dzslides, revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Make list items in slide shows display incrementally (one by one). 
+    The default is for lists to be displayed all at once.
+
+- name: slide-level
+  enabled: [pptx, beamer, s5, slidy, slideous, dzslides, revealjs]
+  schema: number
+  default: 2
+  description: 
+    short: |
+      Specifies that headings with the specified level create slides.
+      Headings above this level in the hierarchy are used to divide 
+      the slide show into sections.
+    long: |
+       Specifies that headings with the specified level create slides.
+      Headings above this level in the hierarchy are used to divide 
+      the slide show into sections; headings below this level create 
+      subheads within a slide. Valid values are 0-6. If a slide level
+      of 0 is specified, slides will not be split automatically on 
+      headings, and horizontal rules must be used to indicate slide 
+      boundaries. If a slide level is not specified explicitly, the
+      slide level will be set automatically based on the contents of
+      the document
+
+- name: epub-subdirectory
+  enabled: [epub, epub2, epub3]
+  schema: 
+    oneOf: [string, null]
+  default: EPUB
+  description: |
+    Specify the subdirectory in the OCF container that is to hold the
+    EPUB-specific contents. The default is `EPUB`. To put the EPUB 
+    contents in the top level, use an empty string.
+
+- name: epub-metadata
+  enabled: [epub, epub2, epub3]
+  schema: string
+  description:
+    short: |
+      Look in the specified XML file for metadata for the EPUB.
+      The file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).
+    long: |
+      Look in the specified XML file for metadata for the EPUB.
+      The file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).
+      For example:
+
+      ```xml
+      <dc:rights>Creative Commons</dc:rights>
+      <dc:language>es-AR</dc:language>
+      ```
+
+      By default, pandoc will include the following metadata elements:
+      `<dc:title>` (from the document title), `<dc:creator>` (from the
+      document authors), `<dc:date>` (from the document date, which should
+      be in [ISO 8601 format]), `<dc:language>` (from the `lang`
+      variable, or, if is not set, the locale), and `<dc:identifier
+      id="BookId">` (a randomly generated UUID). Any of these may be
+      overridden by elements in the metadata file.
+
+      Note: if the source document is Markdown, a YAML metadata block
+      in the document can be used instead.
+
+- name: epub-fonts
+  enabled: [epub, epub2, epub3]
+  schema:
+    arrayOf: string
+  description:
+    short: "Embed the specified fonts in the EPUB"
+    long: |
+      Embed the specified fonts in the EPUB. Wildcards can also be used: for example,
+      `DejaVuSans-*.ttf`. To use the embedded fonts, you will need to add declarations
+      like the following to your CSS:
+
+      ```css
+      @font-face {
+        font-family: DejaVuSans;
+        font-style: normal;
+        font-weight: normal;
+        src:url("DejaVuSans-Regular.ttf");
+      }
+      ```
+
+- name: epub-chapter-level
+  enabled: [epub, epub2, epub3]
+  schema: number
+  default: 1
+  description:
+    short: |
+      Specify the heading level at which to split the EPUB into separate
+      chapter files.
+    long: |
+      Specify the heading level at which to split the EPUB into separate
+      chapter files. The default is to split into chapters at level-1
+      headings. This option only affects the internal composition of the
+      EPUB, not the way chapters and sections are displayed to users. Some
+      readers may be slow if the chapter files are too large, so for large
+      documents with few level-1 headings, one might want to use a chapter
+      level of 2 or 3.
+
+- name: epub-cover-image
+  enabled: [epub, epub2, epub3]
+  schema: string
+  description: |
+    Use the specified image as the EPUB cover. It is recommended
+    that the image be less than 1000px in width and height. 
+
+- name: reference-links
+  enabled: [markdown, gfm, commonmark, rst]
+  schema: boolean
+  description: 
+    short: |
+      Use reference-style links, rather than inline links, in writing Markdown
+      or reStructuredText. 
+    long: |
+      Use reference-style links, rather than inline links, in writing Markdown
+      or reStructuredText.  By default inline links are used.  The
+      placement of link references is affected by the
+      `reference-location` option.
+
+- name: reference-location
+  enabled: [markdown, gfm, commonmark, muse, html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  schema:
+    enum: [block, section, margin, document]
+  description:
+    short: |
+      Location for footnotes and references
+    long: |
+      Specify whether footnotes (and references, if `reference-links` is
+      set) are placed at the end of the current (top-level) block, the
+      current section, the margin, or the end of the document. 
+
+- name: markdown-headings
+  enabled: [markdown, gfm, commonmark, ipynb]
+  schema: 
+    enum: [setext,atx]
+  default: atx
+  description: |
+    Specify whether to use ATX-style (`#`-prefixed) or
+    Setext-style (underlined) headings for level 1 and 2
+    headings.
+  
 - name: track-changes
   enabled: [docx]
   schema:
@@ -638,6 +822,33 @@
       affected paragraph break. This option only affects the docx
       reader.
 
+- name: html-q-tags
+  enabled: [epub, epub2, epub3, html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  schema: boolean
+  default: false
+  description: "Use `<q>` tags for quotes in HTML."
+
+- name: css
+  enabled: [epub, epub2, epub3, html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  schema:
+    maybeArrayOf: string
+  description: "One or more CSS style sheets."
+      
+- name: ipynb-output
+  enabled: [ipynb]
+  schema:
+    enum: [none, all, best]
+  default: best
+  description: 
+    short: "Determines which ipynb cell output formats are rendered."
+    long: |
+      Determines which ipynb cell output formats are rendered. `all` means
+      that all of the data formats included in the original are
+      preserved.  `none` means that the contents of data cells
+      are omitted.  `best` causes pandoc to try to pick the
+      richest data block in each output cell that is compatible
+      with the output format. The default is `best`.
+  
 - name: request-headers
   schema:
     arrayOf:
@@ -645,3 +856,26 @@
         schema: string
         length: 2
   description: "Headers to include with HTTP requests by Pandoc"
+
+- name: fail-if-warnings
+  schema: boolean
+  default: false
+  description: "Exit with error status if there are any warnings."
+
+- name: dump-args
+  schema: boolean
+  default: false
+  hidden: true
+  description: "Print information about command-line arguments to *stdout*, then exit."
+
+- name: ignore-args
+  schema: boolean
+  default: false
+  hidden: true
+  description: "Ignore command-line arguments (for use in wrapper scripts)."
+
+- name: trace
+  schema: boolean
+  default: false
+  hidden: true
+  description: "Display trace debug output."
