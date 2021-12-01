@@ -29,6 +29,14 @@ export interface QuartoMdCell {
   sourceVerbatim: MappedString;
 
   sourceOffset: number; // FIXME these might be unnecessary now. Check back
+
+  // line number of the start of the cell in the file, 0-based.
+  // 
+  // NB this number means slightly different things depending on the
+  // cell type. for markdown and raw cells, it's literally the first
+  // line in the file corresponding to the cell. for code cells,
+  // though, it's the first line of the _content_: it skips the triple
+  // ticks.
   sourceStartLine: number;
 }
 
@@ -54,11 +62,13 @@ export async function breakQuartoMd(
   const endCodeRegEx = /^```\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
   let language = ""; // current language block
+  let cellStartLine = 0;
 
   // line buffer
   const lineBuffer: RangedSubstring[] = [];
   const flushLineBuffer = async (
     cell_type: "markdown" | "code" | "raw" | "math",
+    index: number
   ) => {
     if (lineBuffer.length) {
       // FIXME: understand why was this here. This makes our line
@@ -86,8 +96,12 @@ export async function breakQuartoMd(
         sourceOffset: 0,
         sourceStartLine: 0,
         sourceVerbatim: source,
+        cellStartLine
       };
 
+      // the next cell will start on the next index.
+      cellStartLine = index + 1; 
+      
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
         const { yaml, source, sourceStartLine } =
@@ -140,17 +154,19 @@ export async function breakQuartoMd(
     inCode = false;
 
   const srcLines = rangedLines(src.value, true);
-  for (const line of srcLines) {
+  
+  for (let i = 0; i < srcLines.length; ++i) {
+    const line = srcLines[i];
     // yaml front matter
     if (
       yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock
     ) {
       if (inYaml) {
         lineBuffer.push(line);
-        await flushLineBuffer("raw");
+        await flushLineBuffer("raw", i);
         inYaml = false;
       } else {
-        await flushLineBuffer("markdown");
+        await flushLineBuffer("markdown", i);
         lineBuffer.push(line);
         inYaml = true;
       }
@@ -158,7 +174,7 @@ export async function breakQuartoMd(
     else if (startCodeCellRegEx.test(line.substring)) {
       const m = line.substring.match(startCodeCellRegEx);
       language = (m as string[])[1];
-      await flushLineBuffer("markdown");
+      await flushLineBuffer("markdown", i);
       inCodeCell = true;
 
       // end code block: ^``` (tolerate trailing ws)
@@ -166,7 +182,7 @@ export async function breakQuartoMd(
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
-        await flushLineBuffer("code");
+        await flushLineBuffer("code", i);
 
         // otherwise this flips the state of in-code
       } else {
@@ -180,13 +196,13 @@ export async function breakQuartoMd(
       lineBuffer.push(line);
     } else if (delimitMathBlockRegEx.test(line.substring)) {
       if (inMathBlock) {
-        await flushLineBuffer("math");
+        await flushLineBuffer("math", i);
       } else {
         if (inYaml || inCode || inCodeCell) {
           // FIXME: signal a parse error?
           // for now, we just skip.
         } else {
-          await flushLineBuffer("markdown");
+          await flushLineBuffer("markdown", i);
         }
       }
       inMathBlock = !inMathBlock;
@@ -197,7 +213,7 @@ export async function breakQuartoMd(
   }
 
   // if there is still a line buffer then make it a markdown cell
-  await flushLineBuffer("markdown");
+  await flushLineBuffer("markdown", srcLines.length);
 
   return nb;
 }

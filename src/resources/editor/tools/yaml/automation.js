@@ -344,15 +344,13 @@ async function automationFromGoodParseMarkdown(kind, context) {
   };
 
   if (kind === "completions") {
-    let linesSoFar = 0;
     let foundCell = undefined;
     for (const cell of result.cells) {
       const size = adjustedCellSize(cell);
-      if (size + linesSoFar > position.row) {
+      if (size + cell.cellStartLine > position.row) {
         foundCell = cell;
         break;
       }
-      linesSoFar += size;
     }
     if (foundCell === undefined) {
       return false;
@@ -379,7 +377,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
         language: foundCell.cell_type.language,
         code: foundCell.source,
         position: {
-          row: position.row - (linesSoFar + 1),
+          row: position.row - foundCell.cellStartLine,
           column: position.column,
         },
         line,
