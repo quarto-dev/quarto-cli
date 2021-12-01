@@ -80,6 +80,14 @@ export function enumSchema(...args: string[]) {
   };
 }
 
+export function regexSchema(arg: string, description: string) {
+  return {
+    "type": "string",
+    "pattern": arg,
+    description
+  };
+}
+
 export function oneOfSchema(...args: Schema[]) {
   return {
     "oneOf": args,
@@ -271,6 +279,13 @@ export function arraySchema(items?: Schema) {
 export function documentSchema(schema: Schema, doc: string) {
   const result = Object.assign({}, schema);
   result.documentation = doc;
+  return result;
+}
+
+// this overrides the automatic description
+export function describeSchema(schema: Schema, description: string) {
+  const result = Object.assign({}, schema);
+  result.description = `be ${description}`;
   return result;
 }
 

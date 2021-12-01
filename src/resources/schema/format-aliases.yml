@@ -1,0 +1,12 @@
+aliases:
+  epub-all: [epub, epub2, epub3]
+  pdf-all: [latex, pdf, beamer]
+  markdown-all: [markdown, gfm, commonmark, hugo]
+  office-all: [docx, pptx]
+  docbook-all: [docbook, docbook4, docbook5]
+  odt-all: [odt, opendocument]
+  html-doc: [html, html4, html5]
+  html-pres: [slidy, slideous, s5, revealjs, dzslides]
+  html-files: [$html-doc, $html-pres]
+  html-all: [$html-files, $epub-all]
+  asciidoc-all: [asciidoc, asciidoctor]
