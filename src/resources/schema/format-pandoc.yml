@@ -1,5 +1,23 @@
 # from: https://github.com/jgm/pandoc/blob/619dfa2a2a19a8433424e830a21384c7b520866a/MANUAL.txt
 
+
+# $epub-all: [epub, epub2, epub3]
+# $pdf-all: [latex, pdf, beamer]
+# $markdown-all: [markdown, gfm, commonmark, hugo]
+# $office-all: [docx, pptx]
+# $docbook-all: [docbook, docbook4, docbook5]
+# $odt-all: [odt, opendocument]
+
+# $html-doc: [html, html4, html5]
+# $html-pres: [slidy, slideous, s5, revealjs, dzslides]
+# $html-files: [$html-doc, $html-pres]
+# $html-all: [$html-files, $epub-all]
+
+
+
+
+
+
 - name: from
   alias: reader
   schema: string
@@ -46,7 +64,7 @@
   description: "Include options from the specified defaults files"
 
 - name: template
-  disabled: [pptx, docx]
+  disabled: [$office-all]
   description: |
     Use the specified file as a custom template for the generated document.
 
@@ -57,7 +75,7 @@
     Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)"
 
 - name: self-contained
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-file]
   schema: boolean
   default: false
   description:
@@ -228,7 +246,7 @@
   description: "Write log messages in machine-readable JSON format to FILE."
 
 - name: cite-method
-  enabled: [latex, pdf, beamer]
+  enabled: [$pdf-all]
   schema:
     enum: [citeproc, natbib, biblatex]
   default: citeproc
@@ -236,7 +254,7 @@
     Method used to format citations.
 
 - name: top-level-division
-  enabled: [latex, pdf, beamer, context, docbook, docbook4, docbook5, tei]
+  enabled: [$pdf-all, context, $docbook-all, tei]
   schema:
     enum: [default, section, chapter, part]
   description:
@@ -271,7 +289,7 @@
       spaces.
 
 - name: pdf-engine
-  enabled: [latex, pdf, beamer, ms, context, html, html4, html5]
+  enabled: [$pdf-all, ms, context, $html-doc]
   schema:
     string:
       completions: 
@@ -301,7 +319,7 @@
       - `ms`:  `pdfroff`
 
 - name: pdf-engine-opt
-  enabled: [latex, pdf, beamer, ms, context, html, html4, html5]
+  enabled: [$pdf-all, ms, context, $html-doc]
   schema: string
   description:
     short: "Use the given string as a command-line argument to the `pdf-engine`."
@@ -312,7 +330,7 @@
       duplicate options is done.
 
 - name: wrap
-  disabled: [latex, pdf, beamer, pptx, docx, odt, html, html4, html5, slidy, slideous, s5, revealjs, dzslides, epub, epub2, epub3, docbook, docbook4, docbook5]
+  disabled: [$pdf-all, $office-all, $odt-all, $html-all, $docbook-all]
   schema: 
     enum: [auto, none, preserve]
   default: auto
@@ -327,7 +345,7 @@
       nonsemantic newlines in the output as well
 
 - name: columns
-  disabled: [latex, pdf, beamer, pptx, docx, odt, html, html4, html5, slidy, slideous, s5, revealjs, dzslides, epub, epub2, epub3, docbook, docbook4, docbook5]
+  disabled: [$pdf-all, $office-all, $odt-all, $html-all, $docbook-all]
   schema: number
   description:
     short: Specify length of lines in characters.
@@ -365,7 +383,7 @@
 
 - name: toc
   alias: table-of-contents
-  disabled: [man, docbook, docbook4, docbook5, or jats]
+  disabled: [man, $docbook-all, jats]
   schema: boolean
   description: 
     short: "Include an automatically generated table of contents"
@@ -383,7 +401,7 @@
       `pdf-engine-opt: --no-toc-relocation`.
 
 - name: toc-depth
-  disabled: [man, docbook, docbook4, docbook5, or jats]
+  disabled: [man, $docbook-all, jats]
   schema: number
   description: | 
     Specify the number of section levels to include in the table of contents.
@@ -431,14 +449,14 @@
       replaces the metadata title. 
       
 - name: section-divs
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-file]
   schema: boolean
   description: |
     Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`
     rather than the heading itself.
 
 - name: identifier-prefix
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides, docbook, docbook4, docbook5, markdown, gfm, commonmark, haddock]
+  enabled: [$html-file, $docbook-all, $markdown-all, haddock]
   schema: string
   description:
     short: "Specify a prefix to be added to all identifiers and internal links."
@@ -449,7 +467,7 @@
       to be included in other pages.
 
 - name: title-prefix
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-file]
   schema: string
   description: |
     Specify STRING as a prefix at the beginning of the title that appears in 
@@ -479,7 +497,7 @@
 
 - name: strip-comments
   schema: boolean
-  enabled: [markdown, gfm, commonmark, textile, html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$markdown-all, textile, $html-file]
   description:
     short: "Strip out HTML comments in source, rather than passing them on to output."
     long: |
@@ -530,26 +548,19 @@
       - breezedark
       - haddock
       - arrow
-      - arrow-dark
       - atom-one
-      - atom-one-dark
       - ayu
-      - ayu-dark
       - ayu-mirage
       - breeze
-      - breeze-dark
       - dracula
       - github
-      - github-dark
       - gruvbox
-      - gruvbox-dark
       - mokokai
       - nord
       - oblivion
       - printing
       - radical
       - solarized
-      - solarized-dark
       - vim-dark
   description: 
     short: Specifies the coloring style to be used in highlighted source code.
@@ -571,7 +582,7 @@
   description: "KDE language syntax definition files (XML)"
 
 - name: listings
-  enabled: [latex, pdf, beamer]
+  enabled: [$pdf-all]
   schema: boolean
   description:
     short: "Use the listings package for LaTeX code blocks."
@@ -582,7 +593,7 @@
       documented here: [Encoding issue with the listings package](https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue)
 
 - name: reference-doc
-  enabled: [docx, pptx, odt]
+  enabled: [$office-all, odt]
   schema: string
   description: | 
     Use the specified file as a style reference in producing a docx, 
@@ -616,7 +627,7 @@
         required: [method]
 
 - name: email-obfuscation
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-file]
   schema:
     enum: [none, references, javascript]
   default: none
@@ -653,7 +664,7 @@
       Tabs in regular text are always treated as spaces.
 
 - name: incremental
-  enabled: [pptx, beamer, s5, slidy, slideous, dzslides, revealjs]
+  enabled: [pptx, beamer, $html-pres]
   schema: boolean
   default: false
   description: |
@@ -661,7 +672,7 @@
     The default is for lists to be displayed all at once.
 
 - name: slide-level
-  enabled: [pptx, beamer, s5, slidy, slideous, dzslides, revealjs]
+  enabled: [pptx, beamer, $html-pres]
   schema: number
   default: 2
   description: 
@@ -681,7 +692,7 @@
       the document
 
 - name: epub-subdirectory
-  enabled: [epub, epub2, epub3]
+  enabled: [$epub-all]
   schema: 
     oneOf: [string, null]
   default: EPUB
@@ -691,7 +702,7 @@
     contents in the top level, use an empty string.
 
 - name: epub-metadata
-  enabled: [epub, epub2, epub3]
+  enabled: [$epub-all]
   schema: string
   description:
     short: |
@@ -719,7 +730,7 @@
       in the document can be used instead.
 
 - name: epub-fonts
-  enabled: [epub, epub2, epub3]
+  enabled: [$epub-all]
   schema:
     arrayOf: string
   description:
@@ -739,7 +750,7 @@
       ```
 
 - name: epub-chapter-level
-  enabled: [epub, epub2, epub3]
+  enabled: [$epub-all]
   schema: number
   default: 1
   description:
@@ -756,7 +767,7 @@
       level of 2 or 3.
 
 - name: epub-cover-image
-  enabled: [epub, epub2, epub3]
+  enabled: [$epub-all]
   schema: string
   description: |
     Use the specified image as the EPUB cover. It is recommended
@@ -776,7 +787,7 @@
       `reference-location` option.
 
 - name: reference-location
-  enabled: [markdown, gfm, commonmark, muse, html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$markdown-all, muse, $html-file]
   schema:
     enum: [block, section, margin, document]
   description:
@@ -788,7 +799,7 @@
       current section, the margin, or the end of the document. 
 
 - name: markdown-headings
-  enabled: [markdown, gfm, commonmark, ipynb]
+  enabled: [$markdown-all, ipynb]
   schema: 
     enum: [setext,atx]
   default: atx
@@ -823,13 +834,13 @@
       reader.
 
 - name: html-q-tags
-  enabled: [epub, epub2, epub3, html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-all]
   schema: boolean
   default: false
   description: "Use `<q>` tags for quotes in HTML."
 
 - name: css
-  enabled: [epub, epub2, epub3, html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-all]
   schema:
     maybeArrayOf: string
   description: "One or more CSS style sheets."

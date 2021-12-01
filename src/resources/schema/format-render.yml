@@ -1,0 +1,77 @@
+- name: keep-tex
+  enabled: [pdf, beamer]
+  schema: boolean
+  default: false
+  description: "Keep the intermediate tex file used during render."
+
+- name: keep-yaml
+  enabled: [$markdown-all]
+  schema: boolean
+  default: false
+  description: "Preserve the original YAML front matter in rendered markdown"
+
+- name: variant
+  enabled: [$markdown-all]
+  schema: string
+  description: |
+    Enable and disable extensions for markdown output (e.g. "+emoji")
+
+- name: output-ext
+  schema: string
+  description: |
+    Extension to use for generated output file
+
+- name: page-width
+  enabled: [docx, $odt-all]
+  schema: number
+  description:
+    short: |
+      Target page width for output (used to compute columns widths for `layout` divs)
+    long: |
+      Target page width for output (used to compute columns widths for `layout` divs).
+      Defaults to 6.5 inches, which corresponds to default letter page settings in 
+      docx and odt.
+
+- name: fig-align
+  enabled: [docx, rtf, $odt-all, $pdf-all, $html-all]
+
+- name: keep-source
+  enabled: [$html-doc]
+  schema: boolean
+  default: false
+  hidden: true
+  description:
+    short: "Embed the input file source code in the generated HTML"
+    long: |
+      Embed the input file source code in the generated HTML. A hidden div with 
+      class `quarto-embedded-source-code` will be added to the document. This
+      option is not normally used directly but rather in the implementation
+      of the `code-tools` option.
+
+- name: keep-hidden
+  enabled: [$html-doc]
+  schama: boolean
+  default: false
+  hidden: true
+  description: "Keep hidden source code and output (marked with class `.hidden`)"
+
+- name: prefer-html
+  enabled: [$markdown-all]
+  schema: boolean
+  default: false
+  hidden: true
+  description:
+    short: "Generate HTML output (if necessary) even when targeting markdown."
+    long: |
+      Generate HTML output (if necessary) even when targeting markdown. Enables the 
+      embedding of more sophisticated output (e.g. Jupyter widgets) in markdown.
+      Note that this option is set to `true` for the `hugo` format.
+
+- name: output-divs
+  schema: boolean
+  default: true
+  hidden: true
+  description: |
+    Indicates that computational output should not be written within divs. 
+    This is necessary for some formats (e.g. `pptx`) to properly layout
+    figures.
