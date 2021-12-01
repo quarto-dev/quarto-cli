@@ -397,8 +397,6 @@
       Sections with class `.unnumbered` will never be numbered, even if `number-sections`
       is specified.
 
-
-
 - name: number-offset
   schema:
     arrayOf: number
@@ -413,6 +411,180 @@
       document to be numbered "6", specify `number-offset: 5`. If your
       document starts with a level-2 heading which you want to be numbered
       "1.5", specify `number-offset: [1,4]`. Implies `number-sections`
+
+- name: shift-heading-level-by
+  schema: number
+  description:
+    short: |
+      Shift heading levels by a positive or negative integer. For example, with 
+      `shift-heading-level-by: -1`, level 2 headings become level 1 headings.
+    long: |
+      Shift heading levels by a positive or negative integer.
+      For example, with `shift-heading-level-by: -1`, level 2
+      headings become level 1 headings, and level 3 headings
+      become level 2 headings.  Headings cannot have a level
+      less than 1, so a heading that would be shifted below level 1
+      becomes a regular paragraph.  Exception: with a shift of -N,
+      a level-N heading at the beginning of the document
+      replaces the metadata title. 
+      
+- name: section-divs
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  schema: boolean
+  description: |
+    Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`
+    rather than the heading itself.
+
+- name: identifier-prefix
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides, docbook, docbook4, docbook5, markdown, gfm, commonmark, haddock]
+  schema: string
+  description:
+    short: "Specify a prefix to be added to all identifiers and internal links."
+    long: |
+      Specify a prefix to be added to all identifiers and internal links in HTML and
+      DocBook output, and to footnote numbers in Markdown and Haddock output. 
+      This is useful for preventing duplicate identifiers when generating fragments
+      to be included in other pages.
+
+- name: title-prefix
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslide]
+  schema: string
+  description: |
+    Specify STRING as a prefix at the beginning of the title that appears in 
+    the HTML header (but not in the title as it appears at the beginning of the body)
+
+- name: strip-empty-paragraphs
+  schema: boolean
+  hidden: true
+  description:
+    short: "Ignore paragraphs with no content."
+    long: |
+      *Deprecated.  Use the `+empty_paragraphs` extension instead.*
+      Ignore paragraphs with no content.  This option is useful
+      for converting word processing documents where users have
+      used empty paragraphs to create inter-paragraph space.
+
+- name: eol
+  schema: 
+    enum: [lf, crlf, native]
+  description:
+    short: "Manually specify line endings (`lf`, `crlf`, or `native`)."
+    long: |
+      Manually specify line endings: `crlf` (Windows), `lf`
+      (macOS/Linux/UNIX), or `native` (line endings appropriate
+      to the OS on which pandoc is being run).  The default is
+      `native`.
+
+- name: strip-comments
+  schema: boolean
+  enabled: [markdown, gfm, commonmark, textile, html, html4, html5, slidy, slideous, s5, revealjs, dzslide]
+  description:
+    short: "Strip out HTML comments in source, rather than passing them on to output."
+    long: |
+      Strip out HTML comments in the Markdown source,
+      rather than passing them on to Markdown, Textile or HTML
+      output as raw HTML.  This does not apply to HTML comments
+      inside raw HTML blocks when the `markdown_in_html_blocks`
+      extension is not set.
+
+- name: indented-code-classes
+  schema:
+    arrayOf: string
+  description: "Specify classes to use for all indented code blocks"
+
+- name: ascii
+  schema: boolean
+  description: 
+    short: "Use only ASCII characters in output."
+    long: |
+      Use only ASCII characters in output. Currently supported for XML
+      and HTML formats (which use entities instead of UTF-8 when this
+      option is selected), CommonMark, gfm, and Markdown (which use
+      entities), roff ms (which use hexadecimal escapes), and to a
+      limited degree LaTeX (which uses standard commands for accented
+      characters when possible). roff man output uses ASCII by default.
+
+- name: default-image-extension
+  schema: string
+  hidden: true
+  description: 
+    short: |
+      Specify a default extension to use when image paths/URLs have no extension.
+    long: |
+      Specify a default extension to use when image paths/URLs have no
+      extension.  This allows you to use the same source for formats that
+      require different kinds of images.  Currently this option only affects
+      the Markdown and LaTeX readers.
+
+- name: highlight-style
+  string:
+    completions: 
+      - pygments
+      - tango
+      - espresso
+      - zenburn
+      - kate
+      - monochrome
+      - breezedark
+      - haddock
+      - arrow
+      - arrow-dark
+      - atom-one
+      - atom-one-dark
+      - ayu
+      - ayu-dark
+      - ayu-mirage
+      - breeze
+      - breeze-dark
+      - dracula
+      - github
+      - github-dark
+      - gruvbox
+      - gruvbox-dark
+      - mokokai
+      - nord
+      - oblivion
+      - printing
+      - radical
+      - solarized
+      - solarized-dark
+      - vim-dark
+  description: 
+    short: Specifies the coloring style to be used in highlighted source code.
+    long: |
+      Specifies the coloring style to be used in highlighted source code.
+
+      Instead of a *STYLE* name, a JSON file with extension
+    ` .theme` may be supplied.  This will be parsed as a KDE
+      syntax highlighting theme and (if valid) used as the
+      highlighting style.
+
+- name: syntax-definition
+  schema: string
+  description: "KDE language syntax definition file (XML)"
+
+- name: syntax-definitions
+  schema: 
+    arrayOf: string
+  description: "KDE language syntax definition files (XML)"
+
+- name: listings
+  enabled: [latex, pdf, beamer]
+  schema: boolean
+  description:
+    short: "Use the listings package for LaTeX code blocks."
+    long: |
+      Use the `listings` package for LaTeX code blocks. The package
+      does not support multi-byte encoding for source code. To handle UTF-8
+      you would need to use a custom template. This issue is fully
+      documented here: [Encoding issue with the listings package](https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue)
+
+- name: reference-doc
+  enabled: [docx, pptx, odt]
+  schema: string
+  description: | 
+    Use the specified file as a style reference in producing a docx, 
+    pptx, or odt file.
 
 - name: html-math-method
   enabled:
