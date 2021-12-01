@@ -111,6 +111,7 @@ export function allOfSchema(...args: Schema[]) {
 // keys in properties
 export function objectSchema(params: {
   properties?: { [k: string]: Schema };
+  patternProperties?: { [k: string]: Schema };
   required?: string[];
   exhaustive?: boolean;
   additionalProperties?: Schema;
@@ -121,6 +122,7 @@ export function objectSchema(params: {
 } = {}) {
   let {
     properties,
+    patternProperties,
     required,
     additionalProperties,
     description,
@@ -131,6 +133,7 @@ export function objectSchema(params: {
 
   required = required || [];
   properties = properties || {};
+  patternProperties = patternProperties || {};
 
   const hasDescription = description !== undefined;
   description = description || "be an object";
@@ -177,6 +180,7 @@ export function objectSchema(params: {
     }
 
     result.properties = Object.assign({}, result.properties, properties);
+    result.patternProperties = Object.assign({}, result.patternProperties, patternProperties);
 
     if (required) {
       result.required = (result.required ?? []).slice();
@@ -223,6 +227,10 @@ export function objectSchema(params: {
       result.properties = properties;
     }
 
+    if (patternProperties) {
+      result.patternProperties = patternProperties;
+    }
+    
     if (required && required.length > 0) {
       result.required = required;
     }
@@ -270,6 +278,12 @@ export function completeSchema(schema: Schema, ...completions: Completion[]) {
   const result = Object.assign({}, schema);
   const prevCompletions = (schema.completions ?? []).slice();
   prevCompletions.push(...completions);
+  result.completions = prevCompletions;
+  return result;
+}
+
+export function completeSchemaOverwrite(schema: Schema, ...completions: Completion[]) {
+  const result = Object.assign({}, schema);
   result.completions = completions;
   return result;
 }
