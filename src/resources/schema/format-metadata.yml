@@ -74,6 +74,8 @@
   enabled: [$office-all]
   description: "The document category."
 
+# Language
+
 - name: lang
   schema: string
   description:
@@ -114,6 +116,8 @@
   enabled: [$html-file]
   description: Enables inclusion of Pandoc default CSS for this document.
 
+# HTML
+
 - name: mainfont
   schema: string
   enabled: [
@@ -128,8 +132,7 @@
 
       For LaTeX output, the main font family for use with `xelatex` or 
       `lualatex`. Takes the name of any system font, using the
-      [`fontspec`](https://ctan.org/pkg/fontspec) package. `CJKmainfont` uses 
-      the [`xecjk`](https://ctan.org/pkg/xecjk) package.
+      [`fontspec`](https://ctan.org/pkg/fontspec) package. 
 
       For ConTeXt output, the main font family. Use the name of any 
       system font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more
@@ -174,8 +177,7 @@
 
       For LaTeX output, the monospace font family for use with `xelatex` or 
       `lualatex`: take the name of any system font, using the
-      [`fontspec`](https://ctan.org/pkg/fontspec) package.  `CJKmainfont` uses 
-      the [`xecjk`](https://ctan.org/pkg/xecjk) package.
+      [`fontspec`](https://ctan.org/pkg/fontspec) package.  
 
       For ConTeXt output, the monspace font family. Use the name of any 
       system font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more
@@ -268,18 +270,7 @@
 
       For `wkhtmltopdf` sets the bottom page margin.
 
-- name: classoption
-  schema:
-    maybeArrayOf: string
-  enabled: [$html-file, $pdf-all]
-  description:
-    short: Options for the document class,
-    long: |
-      For LaTeX/PDF output, the options set for the document
-      class.
-
-      For HTML output using KaTeX, you can render display
-      math equations flush left using `classoption: fleqn`
+# HTML Slides
 
 - name: institute
   schema:
@@ -307,6 +298,8 @@
   enabled: [slideous]
   description: The base url for Slideous presentations.
 
+# Slides - Reveal
+
 - name: title-slide-attributes
   schema:
   enabled: [revealjs]
@@ -326,6 +319,8 @@
 
 # TODO: Reveal configuration options:
 # https://revealjs.com/config/
+
+# Slides - Beamer
 
 - name: aspectratio
   schema:
@@ -403,3 +398,373 @@
   schema: path
   enabled: [beamer]
   description: The image for the title slide.
+
+# LaTeX - Layout
+
+- name: block-headings
+  schema: boolean
+  enabled: [$pdf-all]
+  description:
+    short: Make `\paragraph` and `\subparagraph` free-standing rather than run-in.
+    long: |
+      Make `\paragraph` and `\subparagraph` (fourth- and
+      fifth-level headings, or fifth- and sixth-level with book
+      classes) free-standing rather than run-in; requires further
+      formatting to distinguish from `\subsubsection` (third- or
+      fourth-level headings). Instead of using this option,
+      [KOMA-Script](https://ctan.org/pkg/koma-script) can adjust headings 
+      more extensively:
+
+      ```yaml
+      header-includes: |
+        \RedeclareSectionCommand[
+          beforeskip=-10pt plus -2pt minus -1pt,
+          afterskip=1sp plus -1sp minus 1sp,
+          font=\normalfont\itshape]{paragraph}
+        \RedeclareSectionCommand[
+          beforeskip=-10pt plus -2pt minus -1pt,
+          afterskip=1sp plus -1sp minus 1sp,
+          font=\normalfont\scshape,
+          indent=0pt]{subparagraph}
+      ```
+
+- name: classoption
+  schema:
+    maybeArrayOf: string
+  enabled: [$html-file, $pdf-all]
+  description:
+    short: Options for the document class,
+    long: |
+      For LaTeX/PDF output, the options set for the document
+      class.
+
+      For HTML output using KaTeX, you can render display
+      math equations flush left using `classoption: fleqn`
+
+- name: documentclass
+  schema:
+    string:
+      completions:
+        - scrartcl
+        - scrbook
+        - scrreprt
+        - article
+        - book
+        - report
+        - memoir
+  enabled: [$pdf-all]
+  default: scrartcl
+  description: The document class.
+
+- name: geometry
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: Options for the geometry package.
+    long: |
+      Options for the [geometry](https://ctan.org/pkg/geometry) package. For example:
+
+      ```yaml
+      geometry:
+        - top=30mm
+        - left=20mm
+        - heightrounded
+      ```
+- name: hyperrefoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: Options for the hyperref package.
+    long: |
+      Options for the [hyperref](https://ctan.org/pkg/hyperref) package. For example:
+
+      ```yaml
+      hyperrefoptions:
+        - linktoc=all
+        - pdfwindowui
+        - pdfpagemode=FullScreen      
+      ```
+
+- name: indent
+  schema: boolean
+  enabled: [$pdf-all]
+  default: false
+  description:
+    short: Whether to document class settings for indentation.
+    long: |
+      Wheher to use document class settings for indentation. If the document 
+      class settings are not used, the default LaTeX template removes indentation 
+      and adds space between paragraphs
+
+- name: pagestyle
+  schema:
+    string:
+      completions:
+        - plain
+        - empty
+        - headings
+  enabled: [$pdf-all]
+  default: plain
+  description: Control the `\pagestyle{}` for the document.
+
+- name: papersize
+  schema: string
+  enabled: [$pdf-all]
+  description: The paper size for the document.
+
+- name: secnumdepth
+  schema: number
+  hidden: true
+  enabled: [$pdf-all]
+  description: The numbering depth for sections. (Use `number-depth` instead).
+
+# LaTeX - fonts
+
+- name: fontenc
+  schema: string
+  enabled: [$pdf-all]
+  default: T1
+  description:
+    short: Allows font encoding to be specified through `fontenc` package.
+    long: |
+      Allows font encoding to be specified through [`fontenc`](https://www.ctan.org/pkg/fontenc) package.
+
+      See [LaTeX Font Encodings Guide](https://ctan.org/pkg/encguide) for addition information on font encoding.
+
+- name: fontfamily
+  schema: string
+  enabled: [$pdf-all]
+  default: "Latin Modern"
+  description:
+    short: Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`.
+    long: |
+      Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`. 
+
+      See [The LaTeX Font Catalogue](https://tug.org/FontCatalogue/) for a 
+      summary of font options available.
+
+- name: fontfamilyoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: Options for the package used as `fontfamily`.
+    long: |
+      Options for the package used as `fontfamily`.
+
+      For example, to use the Libertine font with proportional lowercase
+      (old-style) figures through the [`libertinus`](https://ctan.org/pkg/libertinus) package:
+
+      ```yaml
+      fontfamily: libertinus
+      fontfamilyoptions:
+        - osf
+        - p
+      ```
+
+- name: sansfont
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The sans serif font family for use with `xelatex` or `lualatex`.
+    long: |
+      The sans serif font family for use with `xelatex` or 
+      `lualatex`. Takes the name of any system font, using the
+      [`fontspec`](https://ctan.org/pkg/fontspec) package.
+
+- name: mathfont
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The math font family for use with `xelatex` or `lualatex`.
+    long: |
+      The math font family for use with `xelatex` or 
+      `lualatex`. Takes the name of any system font, using the
+      [`fontspec`](https://ctan.org/pkg/fontspec) package.
+
+- name: CJKmainfont
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The CJK main font family for use with `xelatex` or `lualatex`.
+    long: |
+      The CJK main font family for use with `xelatex` or 
+      `lualatex` using the [`xecjk`](https://ctan.org/pkg/xecjk) package.
+
+# dependencies upon other key values (e.g. pdf-engine: xelatex)
+- name: mainfontoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The main font options for use with `xelatex` or `lualatex`.
+    long: |
+      The main font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: sansfontoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The sans serif font options for use with `xelatex` or `lualatex`.
+    long: |
+      The sans serif font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: monofontoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The monospace font options for use with `xelatex` or `lualatex`.
+    long: |
+      The monospace font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: mathfontoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The monospace font options for use with `xelatex` or `lualatex`.
+    long: |
+      The monospace font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: CJKoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The CJK font options for use with `xelatex` or `lualatex`.
+    long: |
+      The CJK font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+  - name: microtypeoptions
+    schema: 
+      maybeArrayOf: string
+    enabled: [$pdf-all]
+    description: 
+      short: Options to pass to the microtype package.
+      long: Options to pass to the [microtype](https://ctan.org/pkg/microtype) package.
+
+# LaTeX - link options
+
+- name: colorlinks
+  schema: boolean
+  enabled: [$pdf-all]
+  default: true
+  description: | 
+    Add color to link text, automatically enabled if any of 
+    `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.
+
+- name: linkcolor
+  schema: string
+  enabled: [$pdf-all]
+  description: 
+      short: "The color used for internal links using color options allowed by `xcolor`"
+      long: |
+        The color used for internal links using color options
+        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+        including the `dvipsnames`, `svgnames`, and
+        `x11names` lists.
+
+- name: filecolor
+  schema: string
+  enabled: [$pdf-all]
+  description: 
+      short: "The color used for external links using color options allowed by `xcolor`"
+      long: |
+        The color used for external links using color options
+        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+        including the `dvipsnames`, `svgnames`, and
+        `x11names` lists.
+
+- name: citecolor
+  schema: string
+  enabled: [$pdf-all]
+  description: 
+      short: "The color used for citation links using color options allowed by `xcolor`"
+      long: |
+        The color used for citation links using color options
+        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+        including the `dvipsnames`, `svgnames`, and
+        `x11names` lists.                
+
+- name: urlcolor
+  schema: string
+  enabled: [$pdf-all]
+  description: 
+      short: "The color used for linked URLs using color options allowed by `xcolor`"
+      long: |
+        The color used for linked URLs using color options
+        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+        including the `dvipsnames`, `svgnames`, and
+        `x11names` lists.                
+
+- name: toccolor
+  schema: string
+  enabled: [$pdf-all]
+  description: 
+      short: "The color used for links in the Table of Contents using color options allowed by `xcolor`"
+      long: |
+        The color used for links in the Table of Contents using color options
+        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+        including the `dvipsnames`, `svgnames`, and
+        `x11names` lists.              
+
+- name: links-as-notes
+  schema: boolean
+  enabled: [$pdf-all]  
+  default: false
+  description: "Causes links to be printed as footnotes."
+  
