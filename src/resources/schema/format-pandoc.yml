@@ -13,9 +13,7 @@
 # $html-files: [$html-doc, $html-pres]
 # $html-all: [$html-files, $epub-all]
 
-
-
-
+# $asciidoc-all: [asciidoc, asciidoctor]
 
 
 - name: from

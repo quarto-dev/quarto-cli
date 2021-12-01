@@ -1,3 +1,5 @@
+# from: https://github.com/jgm/pandoc/blob/426342f00d13eb6a899961715961975b113f9792/MANUAL.txt
+
 - name: title
   schema: string
   description: "Identifies the title of the document"
@@ -15,68 +17,33 @@
 
 - name: title-meta
   schema: string
-  enabled: [latex, pdf, beamer]
+  enabled: [$pdf-all]
   description: "Sets the title metadata for the document"
 
 - name: description-meta
   schema: string
-  enabled: [html, html4, html5]
+  enabled: [$html-file]
   description: "Sets the description metadata for the document"
 
 - name: author-meta
   schema: string
-  enabled:
-    [
-      latex,
-      pdf,
-      beamer,
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-    ]
+  enabled: [$pdf-all, $html-file]
   description: "Sets the author metadata for the document"
 
 - name: subtitle
   schema: string
-  enabled:
-    [
-      latex,
-      pdf,
-      beamer,
-      context,
-      muse,
-      odt,
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      epub,
-      epub2,
-      epub3,
-    ]
+  enabled: [$pdf-all, $html-all, context, muse, odt]
   description: "Identifies the subtitle of the document."
 
 - name: abstract
   schema: string
   enabled:
     [
-      asciidoc,
-      asciidoctor,
+      $pdf-all,
+      $asciidoc-all,
       jats_publishing,
       jats_articleauthoring,
-      latex,
       context,
-      pdf,
-      beamer,
       ms,
       odt,
     ]
@@ -87,38 +54,22 @@
     oneOf:
       - string
       - arrayOf: string
-  enabled:
-    [
-      asciidoc,
-      asciidoctor,
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      dzslides,
-      revealjs,
-      context,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$asciidoc-all, $html-file, $pdf-all, context]
   description: "List of keywords to be included in the document metadata."
 
 - name: subject
   schema: string
-  enabled: [latex, pdf, beamer, docx, pptx]
+  enabled: [$pdf-all, $office-all]
   description: "The document subject"
 
 - name: description
   schema: string
-  enabled: [docx, pptx]
+  enabled: [$office-all]
   description: "The document description. Some applications show this as `Comments` metadata."
 
 - name: category
   schema: string
-  enabled: [docx, pptx]
+  enabled: [$office-all]
   description: "The document category."
 
 - name: lang
@@ -158,25 +109,15 @@
   schema: boolean
   hidden: true
   default: true
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-file]
   description: Enables inclusion of Pandoc default CSS for this document.
 
 - name: mainfont
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
+  enabled: [
+      $html-file
       context,
-      latex,
-      pdf,
-      beamer,
+      $pdf-all,
     ]
   description:
     short: Sets the main font for the document.
@@ -194,21 +135,7 @@
 
 - name: fontsize
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      context,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$html-file, context, $pdf-all]
   description:
     short: Sets the main font size for the document.
     long: |
@@ -218,26 +145,12 @@
 
 - name: fontcolor
   schema: string
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-file]
   description: Sets the CSS `color` property.
 
 - name: linkcolor
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      context,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$html-file, context, $pdf-all]
   description:
     short: Sets the color of hyperlinks in the document.
     long: |
@@ -249,22 +162,7 @@
 
 - name: monofont
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      pptx,
-      context,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$html-file, context, $pdf-all]
   description:
     short: Sets the font used for when displaying code.
     long: |
@@ -288,20 +186,7 @@
 
 - name: linestretch
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$html-file, context, $pdf-all]
   description:
     short: Sets the line height or spacing for text in the document.
     long: |
@@ -313,28 +198,13 @@
 
 - name: backgroundcolor
   schema: string
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  enabled: [$html-file]
   description: |
     Sets the CSS `background-color` property on the html element.
 
 - name: margin-left
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      pptx,
-      context,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$html-file, context, $pdf-all]
   description:
     short: Sets the left margin of the document.
     long: |
@@ -350,22 +220,7 @@
 
 - name: margin-right
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      pptx,
-      context,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$html-file, context, $pdf-all]
   description:
     short: Sets the right margin of the document.
     long: |
@@ -381,22 +236,7 @@
 
 - name: margin-top
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      pptx,
-      context,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$html-file, context, $pdf-all]
   description:
     short: Sets the top margin of the document.
     long: |
@@ -412,22 +252,7 @@
 
 - name: margin-bottom
   schema: string
-  enabled:
-    [
-      html,
-      html4,
-      html5,
-      slidy,
-      slideous,
-      s5,
-      revealjs,
-      dzslides,
-      pptx,
-      context,
-      latex,
-      pdf,
-      beamer,
-    ]
+  enabled: [$html-file, context, $pdf-all]
   description:
     short: Sets the bottom margin of the document.
     long: |
