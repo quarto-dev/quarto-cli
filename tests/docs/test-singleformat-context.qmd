@@ -1,0 +1,10 @@
+---
+title: "My Document"
+author: "Jane Doe"
+format: context
+---
+
+
+## Heading
+
+This is a paragraph that is rendered.

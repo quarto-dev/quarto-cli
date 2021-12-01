@@ -488,8 +488,11 @@
       ```
 
 - name: indent
-  schema: boolean
-  enabled: [$pdf-all]
+  schema:
+    oneOf:
+      - boolean
+      - string
+  enabled: [$pdf-all, ms]
   default: false
   description:
     short: Whether to document class settings for indentation.
@@ -497,6 +500,8 @@
       Wheher to use document class settings for indentation. If the document 
       class settings are not used, the default LaTeX template removes indentation 
       and adds space between paragraphs
+
+      For groff (`ms`) documents, the paragraph indent, for example, `2m`.
 
 - name: pagestyle
   schema:
@@ -535,15 +540,17 @@
 
 - name: fontfamily
   schema: string
-  enabled: [$pdf-all]
+  enabled: [$pdf-all, ms]
   default: "Latin Modern"
   description:
-    short: Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`.
+    short: Font package to use when compiling a PDF with the `pdflatex` `pdf-engine`.
     long: |
       Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`. 
 
       See [The LaTeX Font Catalogue](https://tug.org/FontCatalogue/) for a 
       summary of font options available.
+
+      For groff (`ms`) files, the font family for example, `T` or `P`.
 
 - name: fontfamilyoptions
   schema:
@@ -689,13 +696,13 @@
         - Numbers=Proportional    
       ```
 
-  - name: microtypeoptions
-    schema: 
-      maybeArrayOf: string
-    enabled: [$pdf-all]
-    description: 
-      short: Options to pass to the microtype package.
-      long: Options to pass to the [microtype](https://ctan.org/pkg/microtype) package.
+- name: microtypeoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: Options to pass to the microtype package.
+    long: Options to pass to the [microtype](https://ctan.org/pkg/microtype) package.
 
 # LaTeX - link options
 
@@ -703,68 +710,331 @@
   schema: boolean
   enabled: [$pdf-all]
   default: true
-  description: | 
+  description: |
     Add color to link text, automatically enabled if any of 
     `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.
 
 - name: linkcolor
   schema: string
   enabled: [$pdf-all]
-  description: 
-      short: "The color used for internal links using color options allowed by `xcolor`"
-      long: |
-        The color used for internal links using color options
-        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
-        including the `dvipsnames`, `svgnames`, and
-        `x11names` lists.
+  description:
+    short: "The color used for internal links using color options allowed by `xcolor`"
+    long: |
+      The color used for internal links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
 
 - name: filecolor
   schema: string
   enabled: [$pdf-all]
-  description: 
-      short: "The color used for external links using color options allowed by `xcolor`"
-      long: |
-        The color used for external links using color options
-        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
-        including the `dvipsnames`, `svgnames`, and
-        `x11names` lists.
+  description:
+    short: "The color used for external links using color options allowed by `xcolor`"
+    long: |
+      The color used for external links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
 
 - name: citecolor
   schema: string
   enabled: [$pdf-all]
-  description: 
-      short: "The color used for citation links using color options allowed by `xcolor`"
-      long: |
-        The color used for citation links using color options
-        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
-        including the `dvipsnames`, `svgnames`, and
-        `x11names` lists.                
+  description:
+    short: "The color used for citation links using color options allowed by `xcolor`"
+    long: |
+      The color used for citation links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
 
 - name: urlcolor
   schema: string
   enabled: [$pdf-all]
-  description: 
-      short: "The color used for linked URLs using color options allowed by `xcolor`"
-      long: |
-        The color used for linked URLs using color options
-        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
-        including the `dvipsnames`, `svgnames`, and
-        `x11names` lists.                
+  description:
+    short: "The color used for linked URLs using color options allowed by `xcolor`"
+    long: |
+      The color used for linked URLs using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
 
 - name: toccolor
   schema: string
   enabled: [$pdf-all]
-  description: 
-      short: "The color used for links in the Table of Contents using color options allowed by `xcolor`"
-      long: |
-        The color used for links in the Table of Contents using color options
-        allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
-        including the `dvipsnames`, `svgnames`, and
-        `x11names` lists.              
+  description:
+    short: "The color used for links in the Table of Contents using color options allowed by `xcolor`"
+    long: |
+      The color used for links in the Table of Contents using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
 
 - name: links-as-notes
   schema: boolean
-  enabled: [$pdf-all]  
+  enabled: [$pdf-all]
   default: false
   description: "Causes links to be printed as footnotes."
-  
+
+# LaTeX - Front Matter
+
+- name: lof
+  schema: boolean
+  default: false
+  enabled: [$pdf-all]
+  description: Print a list of figures in the document.
+
+- name: lot
+  schema: boolean
+  default: false
+  enabled: [$pdf-all]
+  description: Print a list of tables in the document.
+
+- name: thanks
+  schema: string #markdown
+  enabled: [$pdf-all]
+  description: The contents of an acknowledgments footnote after the document title.
+
+# toc / toc-depth (see format-pandoc.yml)
+
+# LaTeX - BibLaTeX Bibliographies
+
+- name: biblatexoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description: A list of options for BibLaTeX.
+
+- name: biblio-style
+  schema: string
+  enabled: [$pdf-all]
+  description: The bibliography style to use (e.g. `\bibliographystyle{dinat}`) when using `natbib` or `biblatex`.
+
+- name: biblio-title
+  schema: string
+  enabled: [$pdf-all]
+  description: The bibliography title to use when using `natbib` or `biblatex`.
+
+- name: natbiboptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description: One or more options to provide for `natbib` when generating a bibliography.
+
+  # ConTeXt
+
+- name: headertext
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: Text to be in a running header.
+    long: |
+      Text to be in a running header.
+
+      Provide a single option or up to four options for different placements 
+      (odd page inner, odd page outer, even page innner, even page outer).
+
+- name: footertext
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: Text to be in a running footer.
+    long: |
+      Text to be in a running footer.
+
+      Provide a single option or up to four options for different placements 
+      (odd page inner, odd page outer, even page innner, even page outer).
+
+      See [ConTeXt Headers and Footers](https://wiki.contextgarden.net/Headers_and_Footers) for more information.
+
+- name: indenting
+  schema:
+    maybeArrayOf:
+      string:
+        completions:
+          - yes
+          - no
+          - none
+          - small
+          - medium
+          - big
+          - first
+          - next
+          - odd
+          - even
+          - normal
+  enabled: [context]
+  description:
+    short: Set the indentation of paragraphs with one or more options.
+    long: |
+      Set the indentation of paragraphs with one or more options.
+
+      See [ConTeXt Indentation](https://wiki.contextgarden.net/Indentation) for additional information.
+
+- name: interlinespace
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description: Adjusts line spacing using the `\setupinterlinespace` command.
+
+- name: layout
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: The options for margins and text layout for this document.
+    long: |
+      The options for margins and text layout for this document.
+
+      See [ConTeXt Layout](https://wiki.contextgarden.net/Layout) for additional information.
+
+- name: contrastcolor
+  schema: string
+  enabled: [context]
+  description:
+    short: Color for links to other content within the document.
+    long: |
+      Color for links to other content within the document. 
+
+      See [ConTeXt Color](https://wiki.contextgarden.net/Color) for additional information.
+
+- name: linkstyle
+  schema:
+    string:
+      completions:
+        - normal
+        - bold
+        - slanted
+        - boldslanted
+        - type
+        - cap
+        - small
+  enabled: [context]
+  description: The typeface style for links in the document.
+
+- name: pagenumbering
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: Sets the page numbering style and location for the document.
+    long: |
+      Sets the page numbering style and location for the document using the
+      `\setuppagenumbering` command. 
+
+      See [ConTeXt Page Numbering](https://wiki.contextgarden.net/Command/setuppagenumbering) 
+      for additional information.
+
+- name: pdfa
+  schema:
+    oneOf:
+      - boolean
+      - string
+  enabled: [context]
+  description:
+    short: Adds the necessary setup to the document preamble to generate PDF/A of the type specified.
+    long: |
+      Adds the necessary setup to the document preamble to generate PDF/A of the type specified.
+
+      If the value is set to `true`, `1b:2005` will be used as default.
+
+      To successfully generate PDF/A the required
+      ICC color profiles have to be available and the content and all
+      included files (such as images) have to be standard conforming.
+      The ICC profiles and output intent may be specified using the
+      variables `pdfaiccprofile` and `pdfaintent`.  See also [ConTeXt
+      PDFA](https://wiki.contextgarden.net/PDF/A) for more details.
+
+- name: pdfaiccprofile
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: |
+      When used in conjunction with `pdfa`, specifies the ICC profile to use 
+      in the PDF, e.g. `default.cmyk`.
+    long: |
+      When used in conjunction with `pdfa`, specifies the ICC profile to use 
+      in the PDF, e.g. `default.cmyk`.
+
+      If left unspecified, `sRGB.icc` is used as default. May be repeated to 
+      include multiple profiles. Note that the profiles have to be available 
+      on the system. They can be obtained from 
+      [ConTeXt ICC Profiles](https://wiki.contextgarden.net/PDFX#ICC_profiles).
+
+- name: pdfaintent
+  schema: string
+  enabled: [context]
+  description:
+    short: When used in conjunction with `pdfa`, specifies the output intent for the colors.
+    long: |
+      When used in conjunction with `pdfa`, specifies the output intent for
+      the colors, for example `ISO coated v2 300\letterpercent\space (ECI)`
+
+      If left unspecified, `sRGB IEC61966-2.1` is used as default.
+
+- name: whitespace
+  schema: string
+  enabled: [context]
+  description:
+    short: Set the spacing between paragraphs, for example `none`, `small.
+    long: |
+      Set the spacing between paragraphs, for example `none`, `small` 
+      using the [`setupwhitespace`](https://wiki.contextgarden.net/Command/setupwhitespace) 
+      command.
+
+- name: includesource
+  schema: boolean
+  enabled: [context]
+  default: false
+  description: Whether to include all source documents as file attachments in the PDF file.
+
+# wkhtmltopdf variables footer-html, header-html, and pagesize
+# are omitted because we don't want those to appear as completions
+# for the HTML format
+
+# man
+
+- name: adjusting
+  schema:
+    enum: [l, r, c, b]
+  enabled: [man]
+  description: Adjusts text to the left (`l`), right (`r`), center (`c`), or both (`b`) margins.
+
+- name: footer
+  schema: string
+  enabled: [man]
+  description: The footer for man pages.
+
+- name: header
+  schema: string
+  enabled: [man]
+  description: The header for man pages.
+
+- name: hyphenate
+  schema: boolean
+  default: true
+  enabled: [man]
+  description:
+    short: Whether to hyphenate text at line breaks even in words that do not contain hyphens.
+    long: |
+      Whether to hyphenate text at line breaks even in words that do not contain 
+      hyphens if it is necessary to do so to lay out words on a line without excessive spacing
+
+- name: section
+  schema: number
+  enabled: [man]
+  description: The section number in man pages.
+
+## ms / groff
+
+- name: lineheight
+  schema: string
+  enabled: [ms]
+  description: The line height, for example, `12p`.
+
+- name: pointsize
+  schema: string
+  enabled: [ms]
+  description: The point size, for example, `10p`.

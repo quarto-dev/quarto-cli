@@ -1,0 +1,10 @@
+---
+title: "My Document"
+author: "Jane Doe"
+format: docx
+---
+
+
+## Heading
+
+This is a paragraph that is rendered.

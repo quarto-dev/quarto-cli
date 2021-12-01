@@ -14,7 +14,7 @@ export function outputForInput(input: string, to: string) {
   const stem = basename(input, extname(input));
 
   let outputExt = to || "html";
-  if (to === "latex") {
+  if (to === "latex" || to == "context") {
     outputExt = "tex";
   }
 
@@ -37,7 +37,7 @@ export function fileLoader(...path: string[]) {
     const output = outputForInput(input, to);
     return {
       input,
-      output
+      output,
     };
-  }
+  };
 }
