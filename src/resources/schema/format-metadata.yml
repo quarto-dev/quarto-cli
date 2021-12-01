@@ -1,5 +1,7 @@
 # from: https://github.com/jgm/pandoc/blob/426342f00d13eb6a899961715961975b113f9792/MANUAL.txt
 
+# Note: path is used as a schema to represent a string that is a path to a file
+
 - name: title
   schema: string
   description: "Identifies the title of the document"
@@ -265,3 +267,139 @@
       otherwise `layout` overrides these.
 
       For `wkhtmltopdf` sets the bottom page margin.
+
+- name: classoption
+  schema:
+    maybeArrayOf: string
+  enabled: [$html-file, $pdf-all]
+  description:
+    short: Options for the document class,
+    long: |
+      For LaTeX/PDF output, the options set for the document
+      class.
+
+      For HTML output using KaTeX, you can render display
+      math equations flush left using `classoption: fleqn`
+
+- name: institute
+  schema:
+    maybeArrayOf: string
+  enabled: [$html-pre, beamer]
+  description: Author affiliations for the presentation.
+
+- name: reveal-js-url
+  schema: path
+  enabled: [revealjs]
+  description: Directory containing reveal.js files.
+
+- name: s5-url
+  schema: string
+  enabled: [s5]
+  description: The base url for s5 presentations.
+
+- name: slidy-url
+  schema: string
+  enabled: [slidy]
+  description: The base url for Slidy presentations.
+
+- name: slideous-url
+  schema: string
+  enabled: [slideous]
+  description: The base url for Slideous presentations.
+
+- name: title-slide-attributes
+  schema:
+  enabled: [revealjs]
+  description:
+    short: Additional attributes for the title slide of a reveal.js presentation.
+    long: |
+      Additional attributes for the title slide of a reveal.js presentation as a map of 
+      attribute names and values. For example
+
+      ```yaml
+        title-slide-attributes:
+            data-background-image: /path/to/title_image.png
+            data-background-size: contain      
+      ```
+
+      (Note that the data- prefix is required here, as it isn’t added automatically.)
+
+# TODO: Reveal configuration options:
+# https://revealjs.com/config/
+
+- name: aspectratio
+  schema:
+    oneOf:
+      - 43
+      - 169
+      - 1610
+      - 149
+      - 141
+      - 54
+      - 32
+  enabled: [beamer]
+  description: The aspect ratio for this presentation.
+
+- name: beamerarticle
+  schema: boolean
+  enabled: [beamer]
+  description: Whether to produce a Beamer article from this presentation.
+
+- name: beameroption
+  schema:
+    maybeArrayOf: string
+  enabled: [beamer]
+  description: Add an extra Beamer option using `\setbeameroption{}`.
+
+- name: logo
+  schema: path
+  enabled: [beamer]
+  description: The logo image for slides.
+
+- name: navigation
+  schema:
+    enum: [empty, frame, vertical, horizontal]
+  enabled: [beamer]
+  description: Controls navigation symbols for the presentation.
+
+- name: section-titles
+  schema: boolean
+  enabled: [beamer]
+  default: true
+  description: Whether to enable title pages for new sections.
+
+- name: theme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer theme for this presentation.
+
+- name: colortheme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer color theme for this presentation.
+
+- name: fonttheme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer font theme for this presentation.
+
+- name: innertheme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer inner theme for this presentation.
+
+- name: outertheme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer outer theme for this presentation.
+
+- name: themeoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [beamer]
+  description: Options passed to LaTeX Beamer themes.
+
+- name: titlegraphic
+  schema: path
+  enabled: [beamer]
+  description: The image for the title slide.
