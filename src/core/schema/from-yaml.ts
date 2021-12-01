@@ -29,27 +29,6 @@ import {
   completeSchemaOverwrite,
 } from "./common.ts";
 
-// const baseSchema = withId(objectS({
-//   properties: {
-//     id: stringS,
-//     completions: arrayOfS(stringS)
-//   }
-// }), "schema/yaml-schema/base-schema");
-// const objectSchema = withId(objectS({
-//   baseSchema: baseSchema
-//   properties: {
-//     required: oneOfS(enumS("all"), arrayOfS(stringS)),
-//     "super": refS("schema/yaml-schema/object-schema", "be an object schema object"),
-//     hidden: booleanS,
-//     additionalProperties: refS("schema/yaml-schema/schema", "be a schema object"),
-//     properties: objectS({
-//       additionalProperties: refS("schema/yaml-schema/schema", "be a schema object")
-//     })
-//   },
-// }), "schema/yaml-schema/object-schema");
-// const enumSchema = withId(objectS({
-// }, "schema/yaml-schema/enum-schema"));
-
 function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
 {
   if (yaml.additionalCompletions)
