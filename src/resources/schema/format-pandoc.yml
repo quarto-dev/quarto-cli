@@ -536,32 +536,32 @@
       the Markdown and LaTeX readers.
 
 - name: highlight-style
-  schema: string
-  string:
-    completions: 
-      - pygments
-      - tango
-      - espresso
-      - zenburn
-      - kate
-      - monochrome
-      - breezedark
-      - haddock
-      - arrow
-      - atom-one
-      - ayu
-      - ayu-mirage
-      - breeze
-      - dracula
-      - github
-      - gruvbox
-      - mokokai
-      - nord
-      - oblivion
-      - printing
-      - radical
-      - solarized
-      - vim-dark
+  schema: 
+    string:
+      completions: 
+        - pygments
+        - tango
+        - espresso
+        - zenburn
+        - kate
+        - monochrome
+        - breezedark
+        - haddock
+        - arrow
+        - atom-one
+        - ayu
+        - ayu-mirage
+        - breeze
+        - dracula
+        - github
+        - gruvbox
+        - mokokai
+        - nord
+        - oblivion
+        - printing
+        - radical
+        - solarized
+        - vim-dark
   description: 
     short: Specifies the coloring style to be used in highlighted source code.
     long: |
@@ -624,6 +624,7 @@
               ref: math-methods
             url: string
           required: [method]
+  description: "Method use to render math in HTML output"
 
 - name: email-obfuscation
   enabled: [$html-files]

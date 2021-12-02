@@ -67,6 +67,12 @@ const kRevealOptions = [
   "showNotes",
   "autoPlayMedia",
   "preloadIframes",
+  "autoAnimate",
+  "autoAnimateMatcher",
+  "autoAnimateEasing",
+  "autoAnimateDuration",
+  "autoAnimateUnmatched",
+  "autoAnimateStyles",
   "autoSlide",
   "autoSlideStoppable",
   "autoSlideMethod",
@@ -92,9 +98,7 @@ const kRevealOptions = [
   "maxScale",
   "mathjax",
   "pdfSeparateFragments",
-  "autoAnimateEasing",
-  "autoAnimateDuration",
-  "autoAnimateUnmatched",
+  "pdfPageHeightOffset",
 ];
 
 const kRevealKebabOptions = optionsToKebab(kRevealOptions);
@@ -106,6 +110,7 @@ export const kSlideLogo = "logo";
 export const kSlideFooter = "footer";
 export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
+export const kSmaller = "smaller";
 export const kCenterTitleSlide = "center-title-slide";
 export const kControlsAuto = "controlsAuto";
 export const kPreviewLinksAuto = "previewLinksAuto";
@@ -223,6 +228,7 @@ export function revealjsFormat() {
           const extraConfig = {
             [kControlsAuto]: controlsAuto,
             [kPreviewLinksAuto]: previewLinksAuto,
+            [kSmaller]: !!format.metadata[kSmaller],
             [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
             [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
             [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
@@ -432,8 +438,12 @@ function revealHtmlPostprocessor(format: Format) {
     slideHeadings.forEach((slideHeading) => {
       const slideHeadingEl = slideHeading as Element;
       if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
-        // remove attributes
+        // remove attributes (except for data-visibility)
         for (const attrib of slideHeadingEl.getAttributeNames()) {
+          if (attrib === "data-visibility") {
+            continue;
+          }
+
           slideHeadingEl.removeAttribute(attrib);
           // if it's auto-animate then do some special handling
           if (attrib === "data-auto-animate") {

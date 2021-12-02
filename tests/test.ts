@@ -1,5 +1,5 @@
 import { existsSync } from "fs/mod.ts";
-import { assert } from "testing/asserts.ts";
+import { assert, fail } from "testing/asserts.ts";
 import { warning } from "log/mod.ts";
 import { initDenoDom } from "../src/core/html.ts";
 
@@ -124,6 +124,7 @@ export function test(test: TestDescriptor) {
         quiet: true,
       });
 
+      let testOutput: ExecuteOutput[] = [];
       try {
         await test.execute();
 
@@ -132,19 +133,21 @@ export function test(test: TestDescriptor) {
 
         // Read the output
         if (existsSync(log)) {
-          const testOutput = readExecuteOutput(log);
+          testOutput = readExecuteOutput(log);
           Deno.removeSync(log);
           for (const ver of test.verify) {
             await ver.verify(testOutput);
           }
         }
       } catch (ex) {
-        if (existsSync(log)) {
-          const testOutput = readExecuteOutput(log);
+        if (testOutput && testOutput.length > 0) {
           const errorTxts = testOutput.map((msg) => msg.msg);
-          assert(false, `Exception while executing test\n${errorTxts}`);
+          fail(
+            `\n---------------------------------------------\n${ex.message}\n${ex.stack}\n\nTEST OUTPUT:\n${errorTxts}----------------------------------------------`,
+          );
+        } else {
+          fail(`${ex.message}\n${ex.stack}`);
         }
-        throw ex;
       } finally {
         await cleanupLogOnce();
         if (test.context.teardown) {

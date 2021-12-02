@@ -1,0 +1,13 @@
+- name: url
+  schema: string
+  default: https://reveal-multiplex.glitch.me/
+  description: |
+    Multiplex token server (defaults to Reveal-hosted server)
+
+- name: id
+  schema: string
+  description: Unique presentation id provided by multiplex token server
+
+- name: secret
+  schema: string
+  description: Secret provided by multiplex token server
