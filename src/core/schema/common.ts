@@ -321,3 +321,9 @@ export function refSchema($ref: string, description: string) {
     description,
   };
 }
+
+export function valueSchema(val: number | boolean | string) {
+  return {
+    "enum": [ val ] // enum takes non-strings too (!)
+  };
+}

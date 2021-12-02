@@ -163,36 +163,42 @@ async function completionsFromGoodParseYAML(context) {
   }
   const indent = line.trimEnd().length - line.trim().length;
 
+  const completeEmptyLineOnIndentation = async ({deletions, mappedCode}) => {
+    // the valid parse we found puts us in a pure-whitespace line, so we should locate
+    // entirely on indentation.
+    const path = locateFromIndentation({
+      line: line.slice(0, -deletions),
+      code: mappedCode.value,
+      position: {
+        row: position.row,
+        column: position.column - deletions,
+      },
+    });
+    // we're in an empty line, so the only valid completions are object keys
+    const rawCompletions = await completions({
+      schema,
+      path,
+      word,
+      indent,
+      commentPrefix,
+    });
+    rawCompletions.completions = rawCompletions.completions.filter(
+      (completion) => completion.type === "key",
+    );
+    return rawCompletions;
+  };
+  
   for (const parseResult of attemptParsesAtLine(context, parser)) {
     const {
       parse: tree,
       code: mappedCode,
       deletions,
     } = parseResult;
+    const lineAfterDeletions = line.substring(0, line.length - deletions);
 
-    if (line.substring(0, line.length - deletions).trim().length === 0) {
-      // the valid parse we found puts us in a pure-whitespace line, so we should locate
-      // entirely on indentation.
-      const path = locateFromIndentation({
-        line: line.slice(0, -deletions),
-        code: mappedCode.value,
-        position: {
-          row: position.row,
-          column: position.column - deletions,
-        },
-      });
-      // we're in an empty line, so the only valid completions are object keys
-      const rawCompletions = await completions({
-        schema,
-        path,
-        word,
-        indent,
-        commentPrefix,
-      });
-      rawCompletions.completions = rawCompletions.completions.filter(
-        (completion) => completion.type === "key",
-      );
-      return rawCompletions;
+    if (lineAfterDeletions.trim().length === 0) {
+      const result = await completeEmptyLineOnIndentation({deletions, mappedCode});
+      return result;
     } else {
       const doc = buildAnnotated(tree, mappedCode);
       if (doc === null) {
@@ -202,30 +208,39 @@ async function completionsFromGoodParseYAML(context) {
         row: position.row,
         column: position.column - deletions,
       });
-      const { withError: locateFailed, value: path } = locateCursor(doc, index);
-      // if cursor is at the end of line and it's an object mapping,
-      // we can fix the failed location.
+      let { withError: locateFailed, value: path } = locateCursor(doc, index);
+      
+      // revert to indentation-based location if location failed
       if (locateFailed) {
-        if (line.indexOf(":") === -1) {
-          // we are inside a line that has no colon, but inside an object mapping (because
-          // locateFailed only returns true inside object mappings).
-          //
-          // we guess here, then that we have an error-tolerant parse
-          // and we're inside a string key. Add previous line as key
-          // to the path assuming all operations succeed.
-          const lines = core.lines(mappedCode.value);
-          if (position.row > 0 && lines.length > (position.row - 1)) {
-            const prevLine = lines[position.row - 1].trim().split(":");
-            if (prevLine.length > 0) {
-              path.push(prevLine[0]);
-            }
-          }
-        } else {
-          if (position.column >= line.length) {
-            path.push(line.trim().split(":")[0]);
-          }
+        // case of empty line 
+        if (lineAfterDeletions.trim().length === 0) {
+          const result = await completeEmptyLineOnIndentation({deletions, mappedCode});
+          return result;
         }
+        
+        path = locateFromIndentation({
+          line: lineAfterDeletions,
+          code: mappedCode.value,
+          position: {
+            row: position.row,
+            column: position.column - deletions,
+          },
+        });
+
+        // non-empty case. Do we have a colon, in which case we must complete a value,
+        // or do we not have a colon, in which case we must complete the keys
+        // that are prefixes of the line contents?
+
       }
+      
+      if (path[path.length - 1] === word) {
+        // we're in the middle of a completion and we located inside that value,
+        // for example "echo: fal_"
+        //
+        // delete it before attempting completion
+        path.pop();
+      }
+      
       const rawCompletions = await completions({
         schema,
         path,
@@ -241,15 +256,21 @@ async function completionsFromGoodParseYAML(context) {
       // 2. "     foo: _": completion on value position of object
       // 3. "     - _": completion on array sequence
       // 4. "     - foo: ": completion on value position of object inside array sequence
+      // 5. "     foo_": completion on key position in partially-completed word
       //
       // case 1 was handled upstream of this, so we don't need to handle it here
       // cases 2 and 4 take only value completions
-      // case 3 takes all completions
+      // case 3 takes all completions, so no work is needed
 
-      // this picks up only cases 2 and 4
       if (line.indexOf(":") !== -1) {
+        // this picks up cases 2 and 4
         rawCompletions.completions = rawCompletions.completions.filter(
           (completion) => completion.type === "value",
+        );
+      } else if (line.indexOf("-") === -1) {
+        // this picks up case 5 (and 1, but case one was already handled.)
+        rawCompletions.completions = rawCompletions.completions.filter(
+          (completion) => completion.type === "key",
         );
       }
       return rawCompletions;

@@ -20,6 +20,17 @@ export async function getSchemas() {
   return _schemas;
 }
 
+function matchPatternProperties(schema, key)
+{
+  for (const [regexpStr, subschema] of Object.entries(schema.patternProperties || {})) {
+    const prefixPattern = core.prefixes(new RegExp(regexpStr));
+    if (key.match(prefixPattern)) {
+      return subschema;
+    }
+  }
+  return false;
+}
+
 export function navigateSchema(schema, path) {
   const refs = {};
   function inner(subSchema, index) {
@@ -40,22 +51,29 @@ export function navigateSchema(schema, path) {
     const st = core.schemaType(subSchema);
     if (st === "object") {
       const key = path[index];
-      if (subSchema.properties[key] === undefined) {
-        // because we're using this in an autocomplete scenario, there's the "last entry is a prefix of a
-        // valid key" special case.
-        if (index !== path.length - 1) {
-          return [];
-        }
-        const completions = Object.getOwnPropertyNames(subSchema.properties)
-          .filter(
-            (name) => name.startsWith(key),
-          );
-        if (completions.length === 0) {
-          return [];
-        }
-        return [subSchema];
+      // does it match a properties key exactly? use it
+      if (subSchema.properties && subSchema.properties[key]) {
+        return inner(subSchema.properties[key], index + 1);
       }
-      return inner(subSchema.properties[key], index + 1);
+      // does the key match a regular expression in a patternProperties key? use it
+      const patternPropMatch = matchPatternProperties(subSchema, key);
+      if (patternPropMatch) {
+        return inner(patternPropMatch, index + 1);
+      }
+      
+      // because we're using this in an autocomplete scenario, there's the "last entry is a prefix of a
+      // valid key" special case.
+      if (index !== path.length - 1) {
+        return [];
+      }
+      const completions = Object.getOwnPropertyNames(subSchema.properties || {})
+            .filter(
+              (name) => name.startsWith(key),
+            );
+      if (completions.length === 0) {
+        return [];
+      }
+      return [subSchema];
     } else if (st === "array") {
       // arrays are uniformly typed, easy
       if (subSchema.items === undefined) {

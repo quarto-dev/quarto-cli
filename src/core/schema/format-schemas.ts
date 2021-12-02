@@ -46,6 +46,7 @@ import {
   objectSchema as objectS,
   enumSchema as enumS,
   idSchema as withId,
+  documentSchema,
 } from "./common.ts";
 
 interface SchemaEntry {
@@ -75,13 +76,13 @@ export async function getFormatSchema(format: string): Promise<Schema>
       "schema entry file validation failed."
     )) as SchemaEntry[]));
   } catch (e) {
-    console.log("\n");
-    console.log(e);
+    error("\n");
+    error(e);
     if (e instanceof ValidationError) {
       for (const err of e.validationErrors) {
-        console.log(err.message);
-        console.log(err.error.message);
-        console.log("\n");
+        error(err.message);
+        error(err.error.message);
+        error("\n");
       }
     }
     throw e;
@@ -102,7 +103,19 @@ export async function getFormatSchema(format: string): Promise<Schema>
     if (!useEntry(entry)) {
       continue;
     }
-    properties[entry.name] = convertFromYaml(entry.schema);
+    let schema = convertFromYaml(entry.schema);
+    
+    // pick documentation from entry (the in-schema documentation has
+    // already been handled by convertFromYaml)
+    
+    if (entry.description) {
+      if (typeof entry.description === "string") {
+        schema = documentSchema(schema, entry.description);
+      } else if (typeof entry.description === "object") {
+        schema = documentSchema(schema, entry.description.short);
+      }
+    }
+    properties[entry.name] = schema;
   }
   return oneOfS(
     objectS({

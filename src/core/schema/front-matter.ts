@@ -16,7 +16,8 @@ import {
   oneOfSchema as oneOfS,
   anyOfSchema as anyOfS,
   StringSchema as StringS,
-  regexSchema as regexS
+  regexSchema as regexS,
+  completeSchema
 } from "./common.ts";
 
 import {
@@ -145,7 +146,15 @@ export async function makeFrontMatterFormatSchema()
       ({ regex, schema }) => [regex, schema]);
   const plusFormatStringSchemas =
     formatSchemaDescriptorList.map(
-      ({ regex, name }) => regexS(regex, `be '${name}'`));
+      ({ regex, name }) => completeSchema(
+        regexS(regex, `be '${name}'`),
+        {
+          type: "value",
+          display: name,
+          suggest_on_accept: true,
+          value: name,
+          description: name
+        }));
   const completionsObject =
     Object.fromEntries(formatSchemaDescriptorList.map(
       ({ name }) => [name, name]));

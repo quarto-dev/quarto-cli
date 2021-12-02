@@ -28,8 +28,10 @@ import {
   oneOfSchema as oneOfS,
   anyOfSchema as anyOfS,
   enumSchema as enumS,
+  documentSchema,
   completeSchema,
   completeSchemaOverwrite,
+  valueSchema,
 } from "./common.ts";
 
 function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
@@ -40,6 +42,18 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
     schema = completeSchemaOverwrite(schema, yaml.completions);
   if (yaml.id)
     schema = withId(schema, yaml.id);
+
+  // FIXME in YAML schema, we call it description
+  // in the JSON objects, we call that "documentation"
+
+  if (yaml.description) {
+    if (typeof yaml.description === "string") {
+      schema = documentSchema(schema, yaml.description);
+    } else if (typeof yaml.description === "object") {
+      schema = documentSchema(schema, yaml.description.short);
+    }
+  }
+  
   // FIXME handle hidden here
   return schema;
 }
@@ -188,6 +202,15 @@ export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schem
     }
   }
 
+  // if the yaml file isn't an object, treat it as a "single-valued enum"
+  //
+  // NB this doesn't catch all strings. If you want the string "boolean", "path", etc,
+  // then you still need to use enum explicitly. This is more useful for singleton
+  // numbers and booleans, and only a convenience for (some) strings.
+  if (typeof yaml !== "object") {
+    return valueSchema(yaml);
+  }
+
   // object key checks:
   interface KV {
     key: string,
@@ -214,7 +237,7 @@ export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schem
         return fun(yaml, dict);
       }
     } catch (e) {
-      console.log({yaml});
+      error({yaml});
       throw e;
     }
   }
