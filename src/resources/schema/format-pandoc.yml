@@ -71,10 +71,10 @@
   schema: boolean
   default: true
   description: |
-    Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)"
+    Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)
 
 - name: self-contained
-  enabled: [$html-file]
+  enabled: [$html-files]
   schema: boolean
   default: false
   description:
@@ -217,7 +217,7 @@
         - object:
             properties:
               type:
-                enum: citeproc
+                enum: [citeproc]
             required: [type]
   description: |
     Specify executables or Lua scripts to be used as a filter transforming
@@ -302,7 +302,7 @@
         - prince
         - context
         - pdfroff
-   description: 
+  description: 
     short: "Use the specified engine when producing PDF output."
     long: |
       Use the specified engine when producing PDF output. If the engine is not
@@ -448,14 +448,14 @@
       replaces the metadata title. 
       
 - name: section-divs
-  enabled: [$html-file]
+  enabled: [$html-files]
   schema: boolean
   description: |
     Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`
     rather than the heading itself.
 
 - name: identifier-prefix
-  enabled: [$html-file, $docbook-all, $markdown-all, haddock]
+  enabled: [$html-files, $docbook-all, $markdown-all, haddock]
   schema: string
   description:
     short: "Specify a prefix to be added to all identifiers and internal links."
@@ -466,7 +466,7 @@
       to be included in other pages.
 
 - name: title-prefix
-  enabled: [$html-file]
+  enabled: [$html-files]
   schema: string
   description: |
     Specify STRING as a prefix at the beginning of the title that appears in 
@@ -496,7 +496,7 @@
 
 - name: strip-comments
   schema: boolean
-  enabled: [$markdown-all, textile, $html-file]
+  enabled: [$markdown-all, textile, $html-files]
   description:
     short: "Strip out HTML comments in source, rather than passing them on to output."
     long: |
@@ -536,6 +536,7 @@
       the Markdown and LaTeX readers.
 
 - name: highlight-style
+  schema: string
   string:
     completions: 
       - pygments
@@ -567,7 +568,7 @@
       Specifies the coloring style to be used in highlighted source code.
 
       Instead of a *STYLE* name, a JSON file with extension
-    ` .theme` may be supplied.  This will be parsed as a KDE
+      ` .theme` may be supplied.  This will be parsed as a KDE
       syntax highlighting theme and (if valid) used as the
       highlighting style.
 
@@ -599,6 +600,7 @@
     pptx, or odt file.
 
 - name: html-math-method
+  description: "TBF"
   enabled:
     [
       html,
@@ -615,18 +617,16 @@
     ]
   schema:
     oneOf:
-      enum:
-        id: math-methods
-        values: [plain, webtex, gladtex, mathml, mathjax, katex]
-      object:
-        properties:
-          method:
-            ref: math-methods
-          url: string
-        required: [method]
+      - ref: math-methods
+      - object:
+          properties:
+            method:
+              ref: math-methods
+            url: string
+          required: [method]
 
 - name: email-obfuscation
-  enabled: [$html-file]
+  enabled: [$html-files]
   schema:
     enum: [none, references, javascript]
   default: none
@@ -680,7 +680,7 @@
       Headings above this level in the hierarchy are used to divide 
       the slide show into sections.
     long: |
-       Specifies that headings with the specified level create slides.
+      Specifies that headings with the specified level create slides.
       Headings above this level in the hierarchy are used to divide 
       the slide show into sections; headings below this level create 
       subheads within a slide. Valid values are 0-6. If a slide level
@@ -786,7 +786,7 @@
       `reference-location` option.
 
 - name: reference-location
-  enabled: [$markdown-all, muse, $html-file]
+  enabled: [$markdown-all, muse, $html-files]
   schema:
     enum: [block, section, margin, document]
   description:

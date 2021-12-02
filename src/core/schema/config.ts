@@ -20,7 +20,7 @@ import {
   StringSchema as StringS,
 } from "./common.ts";
 
-import { frontMatterFormatSchema } from "./front-matter.ts";
+import { getFrontMatterFormatSchema } from "./front-matter.ts";
 
 const sidebarEntrySchema = objectS({
   properties: {
@@ -111,20 +111,24 @@ const siteSchema = objectS({
   exhaustive: true,
 });
 
-export const configSchema = withId(
-  objectS({
-    properties: {
-      project: objectS({
-        properties: {
-          type: doc(enumS("site", "book", "website"), "type of quarto project"),
-          "output-dir": doc(StringS, "output directory for the project"),
-        },
-      }),
-      site: siteSchema,
-      "bibliography": StringS,
-      "filters": arrayS(StringS),
-      "format": frontMatterFormatSchema,
-    },
-  }),
-  "config",
-);
+export async function getConfigSchema()
+{
+  return withId(
+    objectS({
+      properties: {
+        project: objectS({
+          properties: {
+            type: doc(enumS("site", "book", "website"), "type of quarto project"),
+            "output-dir": doc(StringS, "output directory for the project"),
+          },
+        }),
+        site: siteSchema,
+        "bibliography": StringS,
+        "filters": arrayS(StringS),
+        "format": await getFrontMatterFormatSchema(),
+      },
+    }),
+    "config",
+  );
+}
+

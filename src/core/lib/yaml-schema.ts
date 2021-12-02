@@ -151,7 +151,11 @@ function navigateSchema(
     return schema;
   }
   const pathVal = path[pathIndex];
-  if (pathVal === "properties") {
+  if (pathVal === "patternProperties") {
+    const key = path[pathIndex + 1];
+    const subSchema = schema.patternProperties[key];
+    return navigateSchema(path, subSchema, pathIndex + 2);
+  } else if (pathVal === "properties") {
     const key = path[pathIndex + 1];
     const subSchema = schema.properties[key];
     return navigateSchema(path, subSchema, pathIndex + 2);
@@ -373,7 +377,7 @@ function localizeAndPruneErrors(
       if (error.keyword.startsWith("_custom_")) {
         messageNoLocation = error.message;
       } else {
-        const innerSchema = navigateSchema(schemaPath, schema);
+        const innerSchema = navigateSchema(schemaPath.map(decodeURIComponent), schema);
         if (instancePath === "") {
           messageNoLocation = `(top-level error) ${error.message}`;
         } else {

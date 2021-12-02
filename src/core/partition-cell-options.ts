@@ -20,7 +20,7 @@ import { readYamlFromString } from "./yaml.ts";
 import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
 import { warnOnce } from "./log.ts";
 
-import { languageOptionsSchema } from "./schema/chunk-metadata.ts";
+import { getLanguageOptionsSchema } from "./schema/chunk-metadata.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -72,7 +72,7 @@ export function partitionCellOptions(
   };
 }
 
-export function parseAndValidateCellOptions(
+export async function parseAndValidateCellOptions(
   mappedYaml: MappedString,
   language: string,
   validate = false,
@@ -81,6 +81,7 @@ export function parseAndValidateCellOptions(
     return undefined;
   }
 
+  const languageOptionsSchema = await getLanguageOptionsSchema();
   const schema = languageOptionsSchema[language];
 
   if (schema === undefined || !validate) {

@@ -8,20 +8,19 @@
 *
 */
 
-import { frontMatterSchema } from "./front-matter.ts";
-import { configSchema } from "./config.ts";
-import { languageOptionsSchema } from "./chunk-metadata.ts";
+import { getFrontMatterSchema } from "./front-matter.ts";
+import { getConfigSchema } from "./config.ts";
+import { getLanguageOptionsSchema } from "./chunk-metadata.ts";
 import { join } from "path/mod.ts";
 
-const obj = {
-  schemas: {
-    "front-matter": frontMatterSchema,
-    "config": configSchema,
-    "languages": languageOptionsSchema,
-  },
-};
-
-export function buildSchemaFile(resourceDir: string) {
+export async function buildSchemaFile(resourceDir: string) {
+  const obj = {
+    schemas: {
+      "front-matter": await getFrontMatterSchema(),
+      "config": await getConfigSchema(),
+      "languages": await getLanguageOptionsSchema(),
+    },
+  };
   const str = JSON.stringify(obj, null, 2);
   const path = join(resourceDir, "/editor/tools/yaml/quarto-json-schemas.json");
 

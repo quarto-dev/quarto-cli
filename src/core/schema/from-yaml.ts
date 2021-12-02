@@ -9,6 +9,8 @@
 
 import { readAnnotatedYamlFromString } from "./annotated-yaml.ts";
 
+import { error } from "log/mod.ts";
+
 import {
   Schema
 } from "../lib/schema.ts";
@@ -17,6 +19,7 @@ import {
   idSchema as withId,
   StringSchema as stringS,
   BooleanSchema as booleanS,
+  NullSchema as nullS,
   NumberSchema as numberS,
   objectSchema as objectS,
   anySchema as anyS,
@@ -37,7 +40,33 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
     schema = completeSchemaOverwrite(schema, yaml.completions);
   if (yaml.id)
     schema = withId(schema, yaml.id);
+  // FIXME handle hidden here
   return schema;
+}
+
+function convertFromNull(yaml: any, _dict: Record<string, Schema>): Schema
+{
+  return setBaseSchemaProperties(yaml, nullS);
+}
+
+function convertFromString(yaml: any, _dict: Record<string, Schema>): Schema
+{
+  return setBaseSchemaProperties(yaml, stringS);
+}
+
+function convertFromPath(yaml: any, _dict: Record<string, Schema>): Schema
+{
+  return setBaseSchemaProperties(yaml, stringS);
+}
+
+function convertFromNumber(yaml: any, _dict: Record<string, Schema>): Schema
+{
+  return setBaseSchemaProperties(yaml, numberS);
+}
+
+function convertFromBoolean(yaml: any, _dict: Record<string, Schema>): Schema
+{
+  return setBaseSchemaProperties(yaml, booleanS);
 }
 
 function convertFromRef(yaml: any, _dict: Record<string, Schema>): Schema
@@ -139,14 +168,19 @@ function lookup(yaml: any, dict: Record<string, Schema>): Schema
   return dict[yaml.resolveRef];
 }
 
-export function convertFromYaml(yaml: any, dict: Record<string, Schema>): Schema
+export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schema
 {
+  dict = dict ?? {};
+
   // literals
   const literalValues = [
     ["object", objectS()],
+    ["path", stringS], // FIXME we should do this one differently to record the autocompletion difference
     ["string", stringS],
     ["number", numberS],
-    ["boolean", booleanS]
+    ["boolean", booleanS],
+    [null, nullS],
+    // ["null", nullS],
   ];
   for (const [testVal, result] of literalValues) {
     if (yaml === testVal) {
@@ -160,21 +194,32 @@ export function convertFromYaml(yaml: any, dict: Record<string, Schema>): Schema
     value: (yaml: any, lookup: Record<string, Schema>) => Schema
   }
   const schemaObjectKeyFunctions: KV[] = [
-    { key: "ref", value: convertFromRef },
-    { key: "maybeArrayOf", value: convertFromMaybeArrayOf },
-    { key: "arrayOf", value: convertFromArrayOf },
-    { key: "oneOf", value: convertFromOneOf },
     { key: "anyOf", value: convertFromAnyOf },
+    { key: "boolean", value: convertFromBoolean },
+    { key: "arrayOf", value: convertFromArrayOf },
     { key: "enum", value: convertFromEnum },
+    { key: "maybeArrayOf", value: convertFromMaybeArrayOf },
+    { key: "null", value: convertFromNull },
+    { key: "number", value: convertFromNumber },
     { key: "object", value: convertFromObject },
+    { key: "oneOf", value: convertFromOneOf },
+    { key: "path", value: convertFromPath },
+    { key: "ref", value: convertFromRef },
     { key: "resolveRef", value: lookup },
+    { key: "string", value: convertFromString },
   ];
   for (const { key: objectKey, value: fun } of schemaObjectKeyFunctions) {
-    if (yaml[objectKey as string] !== undefined) {
-      return fun(yaml, dict);
+    try {
+      if (yaml[objectKey as string] !== undefined) {
+        return fun(yaml, dict);
+      }
+    } catch (e) {
+      console.log({yaml});
+      throw e;
     }
   }
 
+  error(JSON.stringify(yaml, null, 2));
   throw new Error("Internal Error: Cannot convert object; this should have failed validation.");
 }
 

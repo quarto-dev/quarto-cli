@@ -1,11 +1,11 @@
 import { unitTest } from "../../test.ts";
 import { YAMLSchema, ensureAjv } from "../../../src/core/schema/yaml-schema.ts";
-import { frontMatterSchema as fm } from "../../../src/core/schema/front-matter.ts";
+import { getFrontMatterSchema } from "../../../src/core/schema/front-matter.ts";
 import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
 import { asMappedString } from "../../../src/core/mapped-text.ts";
 import { assert } from "testing/asserts.ts";
 
-unitTest("execute-validation", () => {
+unitTest("execute-validation", async () => {
   const good = `
 title: A quarto document
 execute:
@@ -16,8 +16,9 @@ execute:
 title: A bad quarto document
 execute: [1, 2, "foo"] 
 `;
-  ensureAjv();
-  
+  await ensureAjv();
+
+  const fm = await getFrontMatterSchema(true);
   const fmSchema = new YAMLSchema(fm);
 
   // deno-lint-ignore no-explicit-any

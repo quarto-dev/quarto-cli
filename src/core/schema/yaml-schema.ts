@@ -11,12 +11,14 @@ import { YAMLSchema } from "../lib/yaml-schema.ts";
 export { YAMLSchema } from "../lib/yaml-schema.ts";
 import { MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
+import { loadDefaultSchemaDefinitions } from "./definitions.ts";
 
 let ajvInit = false;
-export function ensureAjv() {
+export async function ensureAjv() {
   if (!ajvInit) {
     setupAjv(new Ajv({ allErrors: true }));
     ajvInit = true;
+    await loadDefaultSchemaDefinitions();
   }
 }
 

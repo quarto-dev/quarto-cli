@@ -42,7 +42,7 @@ export interface QuartoMdCell {
   // line in the file corresponding to the cell. for code cells,
   // though, it's the first line of the _content_: it skips the triple
   // ticks.
-   cellStartLine: number;
+  cellStartLine: number;
 }
 
 export interface QuartoMdChunks {
