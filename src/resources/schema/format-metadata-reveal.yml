@@ -511,6 +511,7 @@
       Use a smaller default font for slide content. This can also
       be set per-slide by including the `.smaller` class on the slide title.
 
+
 - name: multiplex
   schema:
     oneOf:
