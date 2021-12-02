@@ -350,7 +350,6 @@ const sidebarHeaderFooterHandler = (context: NavigationPipelineContext) => {
         }
         const renderedFooterEl = rendered[kSidebarFooter];
         if (renderedFooterEl) {
-          console.log(renderedFooterEl.outerHTML);
           const footerEl = toHeaderFooterContainer(
             doc,
             kSidebarFooter,

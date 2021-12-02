@@ -7,6 +7,7 @@
 */
 
 import { make, simple } from "acorn/walk";
+import { error } from "log/mod.ts";
 
 // we need to patch the base walker ourselves because OJS sometimes
 // emits Program nodes with "cells" rather than "body"
@@ -37,7 +38,7 @@ const walkerBase = make({
         c(stmt, st);
       }
     } else {
-      console.log("I don't know how to walk this node", node);
+      error("I don't know how to walk this node", node);
       throw new Error("Internal error while walking OJS source");
     }
   },
