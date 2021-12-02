@@ -554,7 +554,7 @@ knitr_options_hook <- function(options) {
       # we need to do this to the yaml options prior to merging
       # so that the correctly interact with standard fig. and
       # out. options provided within knitr
-      results$yaml <- alias_dash_options(results$yaml)
+      results$yaml <- normalize_options(results$yaml)
       # alias 'warning' explicitly set here to 'message'
       if (!is.null(results$yaml[["warning"]])) {
         options[["message"]] = results$yaml[["warning"]]
@@ -575,7 +575,7 @@ knitr_options_hook <- function(options) {
     }
   } else {
     # convert any option with fig- into fig. and out- to out.
-    options <- alias_dash_options(options)
+    options <- normalize_options(options)
   }
   
   # return options  
@@ -589,9 +589,8 @@ knitr_options_hook <- function(options) {
 # however we want to support all existing knitr code as well
 # as support all documented knitr chunk options without the user
 # needing to replace . with -
-alias_dash_options <- function(options) {
-  names(options) <- sub("^fig-", "fig.", names(options))
-  names(options) <- sub("^out-", "out.", names(options))
+normalize_options <- function(options) {
+  names(options) <- sub("^(\\w+)-", "\\1.", names(options))
   options
 }
 

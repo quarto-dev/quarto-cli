@@ -53,9 +53,11 @@ if (!knitr_has_yaml_chunk_options()) {
     # into knitr parse_block -- if it's not then we can pursue more robust versions
     # of textual option forwarding that don't run into newlines 
     extra_opts <- list()
-    for (opt in c("ref.label")) {
+    for (opt in c("ref.label", "ref-label")) {
       if (!is.null(partitioned$yaml[[opt]])) {
-        extra_opts[[opt]] <- paste(gsub("\n", " ", deparse(partitioned$yaml[[opt]], 
+        value <- partitioned$yaml[[opt]]
+        opt <- sub("-", ".", opt)
+        extra_opts[[opt]] <- paste(gsub("\n", " ", deparse(value, 
                                                            width.cutoff = 500, 
                                                            nlines = 1), fixed = TRUE), 
                                    collapse = " ") 
