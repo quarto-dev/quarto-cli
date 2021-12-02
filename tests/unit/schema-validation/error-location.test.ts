@@ -15,6 +15,12 @@ import { cleanoutput } from "../../smoke/render/render.ts";
 import { validateDocumentFromSource } from "../../../src/core/schema/validate-document.ts";
 
 unitTest("schema-validation-error-location", async () => {
+
+  /*
+FIXME: we're temporarily disabling this test since it relies on format
+checks failing, and our format schema is disabled on `main` to avoid
+user breakage at the moment.
+
   const {
     input
   } = schemaTestFile("good-validation-fail.qmd", "html");
@@ -45,4 +51,5 @@ unitTest("schema-validation-error-location", async () => {
   assert(error2.end!.column === 15);
 
   cleanoutput("good-validation-fail.qmd", "html");
+  */
 });
