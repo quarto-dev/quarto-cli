@@ -2,7 +2,7 @@
 title: "Some bad breaks for YAML chunks"
 format:
   html:
-    echo: badness
+    dpi: "wrong"
 ---
 
 ```{r}
