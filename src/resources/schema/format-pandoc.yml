@@ -600,7 +600,6 @@
     pptx, or odt file.
 
 - name: html-math-method
-  description: "TBF"
   enabled:
     [
       html,
