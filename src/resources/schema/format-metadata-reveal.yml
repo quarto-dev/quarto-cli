@@ -511,3 +511,81 @@
       Use a smaller default font for slide content. This can also
       be set per-slide by including the `.smaller` class on the slide title.
 
+- name: multiplex
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            url:
+              string:
+                default: https://reveal-multiplex.glitch.me/
+                description: |
+                  Multiplex token server (defaults to Reveal-hosted server)
+            id:
+              string:
+                description: Unique presentation id provided by multiplex token server
+            secret:
+              string:
+                description: Secret provided by multiplex token server
+   
+
+  - name: menu
+    schema:  
+      oneOf:
+        - boolean
+        - object:
+            properties:
+              side:
+                enum: [left, right]
+                default: left
+                description: "Side of the presentation where the menu will be shown."
+              width:
+                string:
+                  completions: [normal, wide, third, half, full]
+                default: normal
+                description: "Width of the menu"
+              numbers:
+                boolean:
+                  default: false
+                  description: "Add slide numbers to menu items"
+              
+- name: chalkboard
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            theme:
+              enum: [chalkboard, whiteboard]
+              default: chalkboard
+              description: "Visual theme for drawing surface"
+            boardmarker-width:
+              number:
+                default: 3
+                description: |
+                  The drawing width of the boardmarker. Defaults to 3. Larger values draw thicker lines.
+            chalk-width:
+              number: 
+                default: 7
+                description: |
+                  The drawing width of the chalk. Defaults to 7. Larger values draw thicker lines.
+            src: 
+              path:
+                description: |
+                  Optional file name for pre-recorded drawings (download drawings using the `D` key)
+            read-only:
+              boolean:
+                default: false
+                description: |
+                  Configuration option to prevent changes to existing drawings
+            buttons: 
+              boolean:
+                default: true
+                description: |
+                  Add chalkboard buttons at the bottom of the slide
+            transition:
+              number:
+                description: |
+                  Gives the duration (in ms) of the transition for a slide change, 
+                  so that the notes canvas is drawn after the transition is completed.
