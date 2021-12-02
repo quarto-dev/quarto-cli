@@ -64,8 +64,8 @@ import { kSite, kWebsite } from "./types/website/website-config.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 
-import { configSchema } from "../core/schema/config.ts";
-import { frontMatterSchema } from "../core/schema/front-matter.ts";
+import { getConfigSchema } from "../core/schema/config.ts";
+import { getFrontMatterSchema } from "../core/schema/front-matter.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -101,6 +101,8 @@ export async function projectContext(
   );
   const originalDir = dir;
 
+  const configSchema = await getConfigSchema();
+  
   while (true) {
     const configFile = projectConfigFile(dir);
     if (configFile) {
@@ -350,6 +352,7 @@ export async function directoryMetadataForInputFile(
   // Walk through each directory (starting from the project and
   // walking deeper to the input)
   let currentDir = projectDir;
+  const frontMatterSchema = await getFrontMatterSchema();
   await Promise.all(dirs.map(async (dir) => {
     currentDir = join(currentDir, dir);
     const file = metadataFile(currentDir);

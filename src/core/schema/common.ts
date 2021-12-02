@@ -178,6 +178,10 @@ export function objectSchema(params: {
       throw new Error("Internal Error: can only extend other object Schema");
     }
     result = Object.assign({}, baseSchema);
+    // remove $id from base schema to avoid names from getting multiplied
+    if (result.$id) {
+      delete result.$id;
+    }
 
     if (exhaustive && baseSchema.exhaustiveCompletions) {
       result.exhaustiveCompletions = true;

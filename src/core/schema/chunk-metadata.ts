@@ -7,7 +7,7 @@
 *
 */
 
-import { Schema } from "../lib/schema.ts";
+import { Schema, normalizeSchema } from "../lib/schema.ts";
 
 import {
   anyOfSchema as anyOfS,
@@ -112,8 +112,23 @@ export const jupyterCellOptionsSchema = withId(
 
 export const rCellOptionsSchema = withId(commonCellOptionsSchema, "r");
 
-export const languageOptionsSchema: Record<string, Schema> = {
-  "ojs": ojsCellOptionsSchema,
-  "python": jupyterCellOptionsSchema,
-  "r": rCellOptionsSchema,
-};
+export async function getLanguageOptionsSchema(normalized?: boolean): Promise<Record<string, Schema>>
+{
+  // currently this could be sync but eventually it'll be just like the
+  // other schema, produced from YAML and hence async
+
+  // FIXME put this behind a cache; it's super inefficient.
+  if (normalized) {
+    return {
+      "ojs": normalizeSchema(ojsCellOptionsSchema),
+      "python": normalizeSchema(jupyterCellOptionsSchema),
+      "r": normalizeSchema(rCellOptionsSchema),
+    };
+  } else {
+    return {
+      "ojs": ojsCellOptionsSchema,
+      "python": jupyterCellOptionsSchema,
+      "r": rCellOptionsSchema,
+    };
+  }
+}

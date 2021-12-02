@@ -3,7 +3,7 @@ import { YAMLSchema, ensureAjv } from "../../../src/core/schema/yaml-schema.ts";
 import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
 import { asMappedString } from "../../../src/core/mapped-text.ts";
 
-unitTest("schema-validation-hello-world", () => {
+unitTest("schema-validation-hello-world", async () => {
 
   const src = `
 lets:
@@ -20,7 +20,7 @@ what:
     nested: "things like this"
 `;
 
-  ensureAjv();
+  await ensureAjv();
   
   const yamlSchema = new YAMLSchema({
     "type": "object",

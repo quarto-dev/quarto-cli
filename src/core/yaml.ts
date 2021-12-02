@@ -9,7 +9,7 @@ import { existsSync } from "fs/exists.ts";
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 import { lines, matchAll, normalizeNewlines } from "./text.ts";
-import { frontMatterSchema } from "./schema/front-matter.ts";
+import { getFrontMatterSchema } from "./schema/front-matter.ts";
 
 import {
   asMappedString,
@@ -147,7 +147,7 @@ export async function readAndValidateYamlFromMarkdown(
     // we must validate it, so we go the slow route
     return readAndValidateYamlFromMappedString(
       mappedYaml,
-      frontMatterSchema,
+      (await getFrontMatterSchema()),
       "YAML front matter validation failed",
     );
   }

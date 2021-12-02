@@ -110,8 +110,8 @@ export function schemaCompletions(schema: Schema): Completion[] {
 
 export function walkSchema<T>(schema: Schema, f: (a: Schema) => T) {
   f(schema);
-
-  switch (schemaType(schema)) {
+  const t = schemaType(schema);
+  switch (t) {
     case "array":
       if (schema.items) {
         walkSchema(schema.items, f);
@@ -139,10 +139,25 @@ export function walkSchema<T>(schema: Schema, f: (a: Schema) => T) {
           walkSchema(s, f);
         }
       }
+      if (schema.patternProperties) {
+        for (const key of Object.getOwnPropertyNames(schema.patternProperties)) {
+          const s = schema.patternProperties[key];
+          walkSchema(s, f);
+        }
+      }
       if (schema.additionalProperties) {
         walkSchema(schema.additionalProperties, f);
       }
       break;
+    // case "boolean":
+    // case "null":
+    // case "number":
+    // case "any":
+    // case "enum":
+    // case "string":
+    //   break;
+    // default:
+    //   log(`Skipping walk on schema of type ${t}`);
   }
 }
 

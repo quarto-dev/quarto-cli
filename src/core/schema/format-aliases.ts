@@ -41,7 +41,11 @@ export function expandFormatAliases(lst: string[])
   for (let i = 0; i < lst.length; ++i) {
     const el = lst[i];
     if (el.startsWith("$")) {
-      lst.push(...aliases[el.slice(1)]);
+      const v = aliases[el.slice(1)];
+      if (v === undefined) {
+        throw new Error(`Internal Error: ${el} doesn't have an entry in the aliases map`);
+      }
+      lst.push(...v);
     } else {
       result.push(el);
     }

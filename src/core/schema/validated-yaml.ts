@@ -46,7 +46,7 @@ export async function readAndValidateYamlFromMappedString(
   schema: Schema,
   errorMessage: string,
 ): Promise<{ [key: string]: unknown }> {
-  ensureAjv();
+  await ensureAjv();
 
   const result = await withValidator(schema, (validator) => {
     const annotation = readAnnotatedYamlFromMappedString(mappedYaml);

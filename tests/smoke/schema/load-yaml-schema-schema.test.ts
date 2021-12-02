@@ -5,7 +5,7 @@
 *
 */
 
-import { getSchema } from "../../../src/core/schema/yaml-schema-schema.ts";
+import { getSchemaSchemas } from "../../../src/core/schema/yaml-schema-schema.ts";
 import { test } from "../../test.ts";
 
 test({
@@ -14,6 +14,6 @@ test({
   name: "yaml schema schema loads",
   context: {},
   execute: async () => {
-    getSchema();
+    getSchemaSchemas();
   }
 });

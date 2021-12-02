@@ -9,12 +9,12 @@ import { RenderContext } from "../../command/render/types.ts";
 import { breakQuartoMd } from "../break-quarto-md.ts";
 import { asMappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
-import { frontMatterSchema } from "./front-matter.ts";
+import { getFrontMatterSchema } from "./front-matter.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error, info } from "log/mod.ts";
 import { ensureAjv } from "./yaml-schema.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
-import { languageOptionsSchema } from "./chunk-metadata.ts";
+import { getLanguageOptionsSchema } from "./chunk-metadata.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
@@ -54,8 +54,9 @@ export async function validateDocumentFromSource(
       }],
     );
     const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
+    const frontMatterSchema = await getFrontMatterSchema(true);
 
-    ensureAjv();
+    await ensureAjv();
     await withValidator(frontMatterSchema, (frontMatterValidator) => {
       const fmValidation = frontMatterValidator.validateParseWithErrors(
         frontMatterText,
@@ -71,7 +72,9 @@ export async function validateDocumentFromSource(
   } else {
     firstContentCellIndex = 0;
   }
-
+  
+  const languageOptionsSchema = await getLanguageOptionsSchema(true);
+  
   for (const cell of nb.cells.slice(firstContentCellIndex)) {
     if (
       cell.cell_type === "markdown" ||
