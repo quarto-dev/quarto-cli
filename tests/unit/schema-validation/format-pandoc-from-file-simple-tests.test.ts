@@ -8,5 +8,4 @@ unitTest("execute-validation", async () => {
   ensureAjv();
 
   const result = await getFormatSchema("html");
-  console.log(result);
 });

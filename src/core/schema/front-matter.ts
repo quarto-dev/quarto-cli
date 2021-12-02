@@ -132,16 +132,31 @@ const pandocOutputFormats = [
 
 export async function makeFrontMatterFormatSchema()
 {
-  const formatSchemas = await Promise.all(
-    pandocOutputFormats.map(async (x) => [`^${x}(\\+.+)?$`, await getFormatSchema(x)]));
+  const formatSchemaDescriptorList = await Promise.all(
+    pandocOutputFormats.map(async (x) => {
+      return {
+        regex: `^${x}(\\+.+)?$`,
+        schema: await getFormatSchema(x),
+        name: x
+      };
+    }));
+  const formatSchemas =
+    formatSchemaDescriptorList.map(
+      ({ regex, schema }) => [regex, schema]);
   const plusFormatStringSchemas =
-    pandocOutputFormats.map((x) => regexS(`^${x}(\\+.+)?$`, `be '${x}'`));
+    formatSchemaDescriptorList.map(
+      ({ regex, name }) => regexS(regex, `be '${name}'`));
+  const completionsObject =
+    Object.fromEntries(formatSchemaDescriptorList.map(
+      ({ name }) => [name, name]));
   
   return oneOfS(
     describeSchema(oneOfS(...plusFormatStringSchemas), "the name of a pandoc-supported output format"),
     regexS("^hugo(\\+.+)?$", "be 'hugo'"),
     objectS({
-      patternProperties: Object.fromEntries(formatSchemas)
+      patternProperties: Object.fromEntries(formatSchemas),
+      completions: completionsObject,
+      additionalProperties: false
     })
   );
 }

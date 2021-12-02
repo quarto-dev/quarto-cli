@@ -548,11 +548,36 @@ async function getAutomation(kind, context) {
   return result || null;
 }
 
+let automationInit = false;
+
+async function initAutomation(path)
+{
+  if (automationInit) {
+    return;
+  }
+  automationInit = true;
+  setMainPath(path);
+  core.setupAjv(window.ajv);
+
+  // do a similar thing from loadDefaultSchemaDefinitions
+  // but using the schemas from getSchemas
+
+  let schemaDefs = (await getSchemas()).definitions;
+  for (const [_key, value] of Object.entries(schemaDefs)) {
+    await core.withValidator(value, async (_validator) => {
+      return;
+    });
+  }
+
+  console.log("Automation init succeeded.");
+}
+
+
 window.QuartoYamlEditorTools = {
   // deno-lint-ignore require-await
   getCompletions: async function (context, path) {
     try {
-      setMainPath(path);
+      await initAutomation(path);
       return getAutomation("completions", context);
     } catch (e) {
       console.log("Error found during autocomplete", e);
@@ -563,8 +588,7 @@ window.QuartoYamlEditorTools = {
   // deno-lint-ignore require-await
   getLint: async function (context, path) {
     try {
-      setMainPath(path);
-      core.setupAjv(window.ajv);
+      await initAutomation(path);
       return getAutomation("validation", context);
     } catch (e) {
       console.log("Error found during linting", e);
