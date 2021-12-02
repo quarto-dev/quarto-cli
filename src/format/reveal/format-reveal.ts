@@ -438,8 +438,12 @@ function revealHtmlPostprocessor(format: Format) {
     slideHeadings.forEach((slideHeading) => {
       const slideHeadingEl = slideHeading as Element;
       if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
-        // remove attributes
+        // remove attributes (except for data-visibility)
         for (const attrib of slideHeadingEl.getAttributeNames()) {
+          if (attrib === "data-visibility") {
+            continue;
+          }
+
           slideHeadingEl.removeAttribute(attrib);
           // if it's auto-animate then do some special handling
           if (attrib === "data-auto-animate") {
