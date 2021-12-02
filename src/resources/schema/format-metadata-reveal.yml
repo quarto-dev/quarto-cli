@@ -1,0 +1,291 @@
+
+- name: controls
+  enabled: [revealjs]
+  schema:
+    anyOf:
+      - enum: [auto]
+      - booleanS    
+  default: auto
+  description: 
+    short: "Show arrow controls for navigating through slides"
+    long: |
+      Show arrow controls for navigating through slides (defaults to
+      auto, which will show controls when vertical slides are present
+      or when the deck is embedded in an iframe).
+
+- name: controls-layout
+  enabled: [revealjs]
+  schema:
+    enum: [edges, bottom-right]
+  default: edges
+  description: "Location for navigatoin controls (`edges` or `bottom-right`)"
+
+- name: controls-tutorial
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Help the user learn the controls by providing visual hints."
+
+- name: controls-back-arrows
+  enabled: [revealjs]
+  schema:
+    enum: [faded, hidden, visible]
+  default: faded
+  description: |
+    Visibility rule for backwards navigation arrows; `faded`, `hidden`
+    or `visible`
+
+- name: progress
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Display a presentation progress bar"
+
+- name: slide-number
+  enabled: [revealjs]
+  schema:  
+    oneOf:
+      - boolean
+      - enum: ["h.v", "h/v", "c", "c/t"]
+  default: false
+  description: 
+    short: "Display the page number of the current slide"
+    long: |
+      Display the page number of the current slide
+      
+      - `true`:    Show slide number
+      - `false`:   Hide slide number
+  
+      Can optionally be set as a string that specifies the number formatting:
+     
+      - `h.v`:   Horizontal . vertical slide number
+      - `h/v`:   Horizontal / vertical slide number
+      - `c`:   Flattened slide number
+      - `c/t`:   Flattened slide number / total slides (default)
+
+- name: show-slide-number
+  enabled: [revealjs]
+  schema: 
+    enum: [all, print, speaker]
+  default: all
+  description: "Contexts in which the slide number appears"
+
+- name: hash
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Add the current slide to the URL hash"
+
+- name: hash-type
+  enabled: [revealjs]
+  schema: 
+    enum: [number, title]
+  default: title
+  description: "URL hash type (`number` or `title`)"
+
+- name: hash-one-based-index
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Use 1 based indexing for hash links to match slide number
+
+- name: respond-to-hash-changes
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Monitor the hash and change slides accordingly
+  
+- name: history
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: | 
+    Push each slide change to the browser history
+
+- name: keyboard
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Enable keyboard shortcuts for navigation"
+
+- name: overview
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Enable the slide overview mode"
+
+- name: disable-layout
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Disables the default reveal.js slide layout (scaling and centering)
+
+- name: center
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Vertical centering of slides"
+
+- name: center-title-slide
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Vertical centering of title slide"
+
+- name: touch
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Enable touch navigation on devices with touch input
+
+- name: loop
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Loop the presentation"  
+
+- name: rtl
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Change the presentation direction to be RTL
+
+- name: navigation-mode
+  enabled: [revealjs]
+  schema: 
+    enum: [linear, vertical, grid]
+  default: linear
+  description: 
+    short: "Navigation progression"
+    long: |
+      Changes the behavior of navigation directions.
+  
+      `default`:
+      Left/right arrow keys step between horizontal slides, up/down
+      arrow keys step between vertical slides. Space key steps through
+      all slides (both horizontal and vertical).
+
+      `linear`:
+      Removes the up/down arrows. Left/right arrows step through all
+      slides (both horizontal and vertical).
+
+      `grid`:
+      When this is enabled, stepping left/right from a vertical stack
+      to an adjacent vertical stack will land you at the same vertical
+      index.
+
+- name: shuffle
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Randomize the order of slides each time the presentation loads"
+
+- name: fragments
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Turns fragments on and off globally"
+
+- name: fragment-in-url
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Include the current fragment in the URL"
+
+- name: embedded
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Flags if the presentation is running in an embedded mode
+
+- name: help
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Show a help overlay when the `?` key is pressed
+
+- name: pause
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Flags whether it should be possible to pause the presentation (blackout)
+
+- name: show-notes
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Make speaker notes visible to all viewers
+
+- name: auto-play-media
+  enabled: [revealjs]
+  schema: 
+    enum: [null, true, false]
+  default: null
+  description: |
+    Autoplay embedded media. Default is `null` (only when `autoplay` 
+    attribute is specified)
+
+- name: preload-iframes
+  enabled: [revealjs]
+  schema:
+    enum: [null, true, false]
+  default: null
+  description:
+    short: "Global override for preloading lazy-loaded iframes"
+    long: |
+      Global override for preloading lazy-loaded iframes
+      
+      - `null`:   Iframes with data-src AND data-preload will be loaded when within
+        the `viewDistanc`e, iframes with only data-src will be loaded when visible
+      - `true`:   All iframes with data-src will be loaded when within the viewDistance
+      - `false`:  All iframes with data-src will be loaded only when visible
+
+
+
+export const kSlideLogo = "logo";
+export const kSlideFooter = "footer";
+export const kScrollable = "scrollable";
+
+"autoSlide",
+"autoSlideStoppable",
+"autoSlideMethod",
+"defaultTiming",
+"mouseWheel",
+"display",
+"hideInactiveCursor",
+"hideCursorTime",
+"previewLinks",
+"transition",
+"transitionSpeed",
+"backgroundTransition",
+"viewDistance",
+"mobileViewDistance",
+"parallaxBackgroundImage",
+"parallaxBackgroundSize",
+"parallaxBackgroundHorizontal",
+"parallaxBackgroundVertical",
+"width",
+"height",
+"margin",
+"minScale",
+"maxScale",
+"mathjax",
+"pdfSeparateFragments",
+"autoAnimateEasing",
+"autoAnimateDuration",
+"autoAnimateUnmatched",
+
+sub-configs:
+
+chalkboard
+menu
+multiplex
