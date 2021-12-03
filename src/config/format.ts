@@ -25,8 +25,13 @@ export function isBeamerOutput(format: FormatPandoc) {
   return ["beamer"].includes(format.to || "");
 }
 
-export function isEpubOutput(format: FormatPandoc) {
-  return ["epub", "epub2", "epub3"].includes(format.to || "");
+export function isEpubOutput(format: string): boolean;
+export function isEpubOutput(format: FormatPandoc): boolean;
+export function isEpubOutput(format: string | FormatPandoc): boolean {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
+  return ["epub", "epub2", "epub3"].includes(format || "");
 }
 
 export function isDocxOutput(format: string): boolean;
@@ -36,6 +41,15 @@ export function isDocxOutput(format: string | FormatPandoc): boolean {
     format = format?.to || "html";
   }
   return format === "docx";
+}
+
+export function isHtmlFileOutput(format: string): boolean;
+export function isHtmlFileOutput(format: FormatPandoc): boolean;
+export function isHtmlFileOutput(format?: string | FormatPandoc): boolean {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
+  return isHtmlDocOutput(format) || isHtmlSlideOutput(format);
 }
 
 export function isHtmlOutput(format: string, strict?: boolean): boolean;
@@ -49,27 +63,32 @@ export function isHtmlOutput(
   }
   format = format || "html";
   if (
-    [
-      "html",
-      "html4",
-      "html5",
-    ].includes(format)
+    isHtmlDocOutput(format)
   ) {
     return true;
   } else if (!strict) {
-    return [
-      "s5",
-      "dzslides",
-      "slidy",
-      "slideous",
-      "revealjs",
-      "epub",
-      "epub2",
-      "epub3",
-    ].includes(format);
+    return isHtmlSlideOutput(format) || isEpubOutput(format);
   } else {
     return false;
   }
+}
+
+export function isHtmlDocOutput(format: string) {
+  return [
+    "html",
+    "html4",
+    "html5",
+  ].includes(format);
+}
+
+export function isHtmlSlideOutput(format: string) {
+  return [
+    "s5",
+    "dzslides",
+    "slidy",
+    "slideous",
+    "revealjs",
+  ].includes(format);
 }
 
 export function isPresentationOutput(format: FormatPandoc) {
