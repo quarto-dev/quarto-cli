@@ -1,0 +1,63 @@
+- name: project
+  schema:
+    object:
+      properties:
+        type:
+          enum: [website, book, site]
+          completions: [website, book]
+          description: "Project type"
+        render:
+          arrayOf: path
+          description: "Files to render (defaults to all files)"
+        execute-dir:
+          enum: [file, project]
+          description:
+            short: "Working directory for computations"
+            long: |
+              Working directory for computations: `file` uses the directory of the
+              currently executing file, `project` uses the root project directory.
+        output-dir:
+          path:
+            description: "Output directory"
+        lib-dir:
+          path:
+            description: "HTML library (JS/CSS/etc.) directory"
+        resources:
+          arrayOf: path
+          description: "Additional file resources to be copied to output directory"
+
+- name: site
+  schema:
+    object:
+      properties:
+        title:
+          string:
+            description: "Website title"
+        site-url:
+          string:
+            description: "Base URL for published website"
+        repo-url:
+          string:
+            descripiton: "Base URL for website source code repository"
+        repo-branch:
+          string:
+            description: "Branch of website source code (defaults to `main`)"
+        repo-actions:
+          maybeArrayOf:
+            enum: [none, edit, source, issue]
+            description: "Links to source repository actions"
+        # TODO: navbar
+        # TODO: sidebar
+        page-navigation:
+          boolean:
+            description: "Provide next and previous article links in footer"
+        # TODO: page-footer
+        margin-header:
+          maybeArrayOf: string
+          description: "Markdown to place above margin content (text or file path)"
+        margin-footer:
+          maybeArrayOf: string
+          description: "Markdown to place below margin content (text or file path)"
+        ## TODO: search
+        ## TODO: open-graph
+        ## TODO: twitter-card
