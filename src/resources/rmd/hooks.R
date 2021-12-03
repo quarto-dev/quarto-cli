@@ -597,6 +597,8 @@ normalize_options <- function(options) {
                     "cache-vars",
                     "cache-lazy",
                     "cache-rebuild",
+                    "cache-globals",
+                    "cache-comments",
                     "fig-keep",
                     "fig-show",
                     "fig-align",
@@ -625,7 +627,10 @@ normalize_options <- function(options) {
                     "attr-warning",
                     "attr-error",
                     "fig-retina",
-                    "ref-label")) {
+                    "ref-label",
+                    "animation-hook",
+                    "ffmpeg-bitrate",
+                    "ffmpeg-format")) {
       sub("-", ".", name)
     } else {
       name
