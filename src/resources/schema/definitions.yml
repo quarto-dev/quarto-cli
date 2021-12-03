@@ -1,3 +1,31 @@
 math-methods:
   enum:
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
+
+pandoc-format-request-headers:
+  arrayOf:
+    arrayOf:
+      schema: string
+      length: 2
+
+pandoc-format-output-file:
+  oneOf:
+    - path
+    - "null":
+        hidden: true
+
+pandoc-format-filters:
+  arrayOf:
+    oneOf:
+      - path
+      - object:
+          properties:
+            type: string
+            path: path
+          required: [type, path]
+      - object:
+          properties:
+            type:
+              enum: [citeproc]
+          required: [type]
+  

@@ -37,10 +37,7 @@
 
 - name: output-file
   schema:
-    oneOf:
-      - path
-      - "null":
-          hidden: true
+    ref: pandoc-format-output-file
   default: "Input filename with output extension (e.g. .pdf, .html, etc.)"
   description: "Output file to write to"
 
@@ -206,19 +203,7 @@
 
 - name: filters
   schema:
-    arrayOf:
-      oneOf:
-        - path
-        - object:
-            properties:
-              type: string
-              path: path
-            required: [type, path]
-        - object:
-            properties:
-              type:
-                enum: [citeproc]
-            required: [type]
+    ref: pandoc-format-filters
   description: |
     Specify executables or Lua scripts to be used as a filter transforming
     the pandoc AST after the input is parsed and before the output is written.
@@ -861,10 +846,7 @@
   
 - name: request-headers
   schema:
-    arrayOf:
-      arrayOf:
-        schema: string
-        length: 2
+    ref: pandoc-format-request-headers
   description: "Headers to include with HTTP requests by Pandoc"
 
 - name: fail-if-warnings

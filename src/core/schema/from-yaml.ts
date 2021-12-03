@@ -42,6 +42,10 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
     schema = completeSchemaOverwrite(schema, yaml.completions);
   if (yaml.id)
     schema = withId(schema, yaml.id);
+  if (yaml.hidden === false) {
+    // don't complete anything through a `hidden` field
+    schema = completeSchemaOverwrite(schema);
+  }
 
   // FIXME in YAML schema, we call it description
   // in the JSON objects, we call that "documentation"
@@ -155,9 +159,15 @@ function convertFromObject(yaml: any, dict: Record<string, Schema>): Schema
       Object.entries(schema.properties)
         .map(([key, value]) => [key, convertFromYaml(value, dict)]));
   }
-  if (schema.additionalProperties) {
-    params.additionalProperties = convertFromYaml(
-      schema.additionalProperties, dict);
+  if (schema.additionalProperties !== undefined) {
+    // we special-case `false` here because as a schema, `false` means
+    // "accept the value `false`" which is not what we want.
+    if (schema.additionalProperties === false) {
+      params.additionalProperties = false;
+    } else {
+      params.additionalProperties = convertFromYaml(
+        schema.additionalProperties, dict);
+    }
   }
   if (schema["super"]) {
     params.baseSchema = convertFromYaml(schema["super"], dict);
