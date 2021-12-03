@@ -50,3 +50,10 @@ page-column:
         screen-inset-right,
         margin,
       ]
+
+crossref-labels-schema:
+  string:
+    completions:
+      - alpha
+      - arabic
+      - roman
