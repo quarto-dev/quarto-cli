@@ -614,6 +614,16 @@ normalize_options <- function(options) {
                     "out-width",
                     "out-height",
                     "out-extra",
+                    "class-source",
+                    "class-output",
+                    "class-message",
+                    "class-warning",
+                    "class-error",
+                    "attr-source",
+                    "attr-output",
+                    "attr-message",
+                    "attr-warning",
+                    "attr-error",
                     "fig-retina",
                     "ref-label")) {
       sub("-", ".", name)
