@@ -29,3 +29,24 @@ pandoc-format-filters:
               enum: [citeproc]
           required: [type]
   
+page-column:
+  enum:
+    values:
+      [
+        body,
+        body-outset,
+        body-outset-left,
+        body-outset-right,
+        page,
+        page-left,
+        page-right,
+        screen,
+        screen-left,
+        screen-right,
+        screen-rightcolumn,
+        screen-inset,
+        screen-inset-shaded,
+        screen-inset-left,
+        screen-inset-right,
+        margin,
+      ]

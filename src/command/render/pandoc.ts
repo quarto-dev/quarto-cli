@@ -34,7 +34,11 @@ import {
   kTemplatePatches,
   kTextHighlightingMode,
 } from "../../config/types.ts";
-import { isHtmlOutput, isLatexOutput } from "../../config/format.ts";
+import {
+  isHtmlFileOutput,
+  isHtmlOutput,
+  isLatexOutput,
+} from "../../config/format.ts";
 import { isQuartoMetadata, metadataGetDeep } from "../../config/metadata.ts";
 import {
   pandocBinaryPath,
@@ -251,7 +255,7 @@ export async function runPandoc(
     htmlPostprocessors.push(...(extras.html?.[kHtmlPostprocessors] || []));
 
     // add a post-processor for fixing overflow-x in cell output display
-    if (isHtmlOutput(options.format.pandoc, false)) {
+    if (isHtmlFileOutput(options.format.pandoc)) {
       htmlPostprocessors.push(selectInputPostprocessor);
     }
 

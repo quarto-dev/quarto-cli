@@ -1,5 +1,8 @@
+/*
+TODO: Re-enable once we have YAML validation re-enabled
+
 import { unitTest } from "../../test.ts";
-import { YAMLSchema, ensureAjv } from "../../../src/core/schema/yaml-schema.ts";
+import { ensureAjv, YAMLSchema } from "../../../src/core/schema/yaml-schema.ts";
 import { getFrontMatterSchema } from "../../../src/core/schema/front-matter.ts";
 import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
 import { asMappedString } from "../../../src/core/mapped-text.ts";
@@ -33,3 +36,4 @@ unitTest("execute-validation", async () => {
   //   assert(goodResult.errors.length === 0, "good document should pass");
   //   assert(badResult.errors.length !== 0, "bad document should fail");
 });
+*/
