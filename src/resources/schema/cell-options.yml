@@ -27,8 +27,10 @@
 
 - name: layout
   schema:
-    arrayOf:
-      arrayOf: number
+    oneOf:
+      - string
+      - arrayOf:
+          arrayOf: number
   description: 
     short: "2d-array of widths where the first dimension specifies columns and the second rows."
     long: |
