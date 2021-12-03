@@ -4,18 +4,18 @@
 
 - name: title
   schema: string
-  description: "Identifies the title of the document"
+  description: "Document title"
 
 - name: author
   schema:
     oneOf:
       - string
       - arrayOf: string
-  description: "Identifies the author or authors of the document"
+  description: "Author or authors of the document"
 
 - name: date
   schema: string
-  description: "Identifies the date of the document"
+  description: "Document date"
 
 - name: title-meta
   schema: string

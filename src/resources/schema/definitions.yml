@@ -82,4 +82,7 @@ base-website:
       # TODO: page-footer
       # TODO: open-graph
       # TODO: twitter-card
-      # TODO: search:
+      # TODO: search
+
+      # TODO: what's up with kImage being copied from book to site
+      #       (not clear where its actually used)

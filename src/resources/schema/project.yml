@@ -37,6 +37,31 @@
       super:
         resolveRef: base-website
       properties:
+        title:
+          string:
+            description: "Book title"
+        subtitle:
+          string:
+            description: "Book subtitle"
+        author:
+          maybeArrayOf:
+            schema: string
+            description: "Author or authors of the book"
+        date:
+          string:
+            description: "Book publication date"
         output-file:
           path:
-            description: "etc"
+            description: "Base name for single-file output (e.g. PDF, ePub)"
+#   | "chapters"
+#   | "references"
+#   | "appendices"
+
+#   | "sharing"
+#   | "downloads"
+#   | "tools"
+
+#   | "description"
+
+#   | "abstract"
+#   | "cover-image";
