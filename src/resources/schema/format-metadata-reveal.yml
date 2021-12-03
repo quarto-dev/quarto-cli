@@ -590,3 +590,9 @@
                 description: |
                   Gives the duration (in ms) of the transition for a slide change, 
                   so that the notes canvas is drawn after the transition is completed.
+
+
+- name: slide-tone
+  schema: boolean
+  default: false
+  description: "Play a subtle sound when changing slides"
