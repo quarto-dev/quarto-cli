@@ -582,7 +582,7 @@ knitr_options_hook <- function(options) {
   options
 }
 
-# convert any option with fig- into fig. and out- to out.
+# convert any option with e.g. fig- into fig. 
 # we do this so that all downstream code can consume a single
 # variation of these functions. We support both syntaxes because
 # quarto/pandoc generally uses - as a delimeter everywhere,
@@ -590,7 +590,37 @@ knitr_options_hook <- function(options) {
 # as support all documented knitr chunk options without the user
 # needing to replace . with -
 normalize_options <- function(options) {
-  names(options) <- sub("^(\\w+)-", "\\1.", names(options))
+  names(options) <- sapply(names(options), function(name) {
+    if (name %in% c("tidy-opts", 
+                    "strip-white",
+                    "cache-path",
+                    "cache-vars",
+                    "cache-lazy",
+                    "cache-rebuild",
+                    "fig-keep",
+                    "fig-show",
+                    "fig-align",
+                    "fig-path",
+                    "dev-args",
+                    "fig-ext",
+                    "fig-width",
+                    "fig-height",
+                    "fig-env",
+                    "fig-cap",
+                    "fig-scap",
+                    "fig-lp",
+                    "fig-subcap",
+                    "fig-pos",
+                    "out-width",
+                    "out-height",
+                    "out-extra",
+                    "fig-retina",
+                    "ref-label")) {
+      sub("-", ".", name)
+    } else {
+      name
+    }
+  }, USE.NAMES = FALSE)
   options
 }
 
