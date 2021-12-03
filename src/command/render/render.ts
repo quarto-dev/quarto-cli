@@ -121,7 +121,11 @@ import {
   PandocIncludes,
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
-import { isHtmlCompatible, isHtmlOutput } from "../../config/format.ts";
+import {
+  isHtmlCompatible,
+  isHtmlFileOutput,
+  isHtmlOutput,
+} from "../../config/format.ts";
 import { initDenoDom } from "../../core/html.ts";
 import { resolveLanguageMetadata } from "../../core/language.ts";
 
@@ -553,9 +557,21 @@ export async function renderPandoc(
   }
 
   // run html postprocessors if we have them
+  const canHtmlPostProcess = isHtmlFileOutput(format.pandoc);
+  if (!canHtmlPostProcess && pandocResult.htmlPostprocessors.length > 0) {
+    const postProcessorNames = pandocResult.htmlPostprocessors.map((p) =>
+      p.name
+    ).join(", ");
+    const msg =
+      `Attempt to HTML post process non HTML output using: ${postProcessorNames}`;
+    throw new Error(msg);
+  }
+  const htmlPostProcessors = canHtmlPostProcess
+    ? pandocResult.htmlPostprocessors
+    : [];
   const resourceRefs = await runHtmlPostprocessors(
     pandocOptions,
-    pandocResult.htmlPostprocessors,
+    htmlPostProcessors,
   );
 
   // run generic postprocessors
