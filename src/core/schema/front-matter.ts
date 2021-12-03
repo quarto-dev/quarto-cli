@@ -180,8 +180,8 @@ export async function makeFrontMatterSchema()
       objectS({
         properties: {
           title: StringS,
-          // execute,
-          // format: (await getFrontMatterFormatSchema()),
+          execute,
+          format: (await getFrontMatterFormatSchema()),
           //
           // NOTE: we are temporarily disabling format validation
           // because it's way too strict
