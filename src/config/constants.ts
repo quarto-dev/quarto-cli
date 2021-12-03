@@ -13,10 +13,10 @@ export const kPandocDefaults = "pandoc";
 export const kLanguageDefaults = "language";
 export const kPandocMetadata = "metadata";
 
-export const kFigWidth = "fig.width";
-export const kFigHeight = "fig.height";
-export const kFigFormat = "fig.format";
-export const kFigDpi = "fig.dpi";
+export const kFigWidth = "fig-width";
+export const kFigHeight = "fig-height";
+export const kFigFormat = "fig-format";
+export const kFigDpi = "fig-dpi";
 
 export const kCache = "cache";
 export const kFreeze = "freeze";

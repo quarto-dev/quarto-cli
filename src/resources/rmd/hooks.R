@@ -554,7 +554,7 @@ knitr_options_hook <- function(options) {
       # we need to do this to the yaml options prior to merging
       # so that the correctly interact with standard fig. and
       # out. options provided within knitr
-      results$yaml <- alias_dash_options(results$yaml)
+      results$yaml <- normalize_options(results$yaml)
       # alias 'warning' explicitly set here to 'message'
       if (!is.null(results$yaml[["warning"]])) {
         options[["message"]] = results$yaml[["warning"]]
@@ -575,23 +575,62 @@ knitr_options_hook <- function(options) {
     }
   } else {
     # convert any option with fig- into fig. and out- to out.
-    options <- alias_dash_options(options)
+    options <- normalize_options(options)
   }
   
   # return options  
   options
 }
 
-# convert any option with fig- into fig. and out- to out.
+# convert any option with e.g. fig- into fig. 
 # we do this so that all downstream code can consume a single
 # variation of these functions. We support both syntaxes because
 # quarto/pandoc generally uses - as a delimeter everywhere,
 # however we want to support all existing knitr code as well
 # as support all documented knitr chunk options without the user
 # needing to replace . with -
-alias_dash_options <- function(options) {
-  names(options) <- sub("^fig-", "fig.", names(options))
-  names(options) <- sub("^out-", "out.", names(options))
+normalize_options <- function(options) {
+  names(options) <- sapply(names(options), function(name) {
+    if (name %in% c("tidy-opts", 
+                    "strip-white",
+                    "cache-path",
+                    "cache-vars",
+                    "cache-lazy",
+                    "cache-rebuild",
+                    "fig-keep",
+                    "fig-show",
+                    "fig-align",
+                    "fig-path",
+                    "dev-args",
+                    "fig-ext",
+                    "fig-width",
+                    "fig-height",
+                    "fig-env",
+                    "fig-cap",
+                    "fig-scap",
+                    "fig-lp",
+                    "fig-subcap",
+                    "fig-pos",
+                    "out-width",
+                    "out-height",
+                    "out-extra",
+                    "class-source",
+                    "class-output",
+                    "class-message",
+                    "class-warning",
+                    "class-error",
+                    "attr-source",
+                    "attr-output",
+                    "attr-message",
+                    "attr-warning",
+                    "attr-error",
+                    "fig-retina",
+                    "ref-label")) {
+      sub("-", ".", name)
+    } else {
+      name
+    }
+  }, USE.NAMES = FALSE)
   options
 }
 

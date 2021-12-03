@@ -52,10 +52,10 @@ def notebook_execute(options, status):
 
    eval = execute["eval"]
    allow_errors = bool(execute["error"])
-   fig_width = execute["fig.width"]
-   fig_height = execute["fig.height"]
-   fig_format = execute["fig.format"]
-   fig_dpi = execute["fig.dpi"]
+   fig_width = execute["fig-width"]
+   fig_height = execute["fig-height"]
+   fig_format = execute["fig-format"]
+   fig_dpi = execute["fig-dpi"]
    if "cache" in execute:
       cache = execute["cache"]
    else:

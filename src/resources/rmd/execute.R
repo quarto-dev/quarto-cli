@@ -187,10 +187,10 @@ knitr_options <- function(format, resourceDir) {
   # opts_chunk
   opts_chunk <- list(
     # options derived from format
-    fig.width = format$execute$`fig.width`,
-    fig.height = format$execute$`fig.height`,
-    dev = format$execute$`fig.format`,
-    dpi = format$execute$`fig.dpi`,
+    fig.width = format$execute$`fig-width`,
+    fig.height = format$execute$`fig-height`,
+    dev = format$execute$`fig-format`,
+    dpi = format$execute$`fig-dpi`,
     eval = format$execute[["eval"]],
     error = format$execute[["error"]],
     echo = !isFALSE(format$execute[["echo"]]),
