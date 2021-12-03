@@ -1,12 +1,3 @@
-- name: layout
-  schema:
-    arrayOf:
-      arrayOf: number
-  description: |
-    A 2-dimensional array where the first dimension defines rows and the
-    second columns
-
-
 
 id
 label
@@ -17,7 +8,15 @@ column
 fig-column
 tbl-column
 
-layout
+- name: layout
+  schema:
+    arrayOf:
+      arrayOf: number
+  description: |
+    2d-array of widths where the first dimension specifies columns and the
+    second rows.
+
+
 layout-ncol
 layout-nrow
 layout-align
