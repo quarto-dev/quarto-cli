@@ -1,5 +1,3 @@
-
-
 - name: label
   schema: string
   description: "Unique label for code cell"
@@ -14,15 +12,18 @@
   description: "Panel type for cell output"
 
 - name: column
-  schema: ref: page-column
+  schema:
+    ref: page-column
   description: "Page column for output"
 
 - name: fig-column
-  schema: ref: page-column
+  schema:
+    ref: page-column
   description: "Page column for figure output"
 
 - name: tbl-column
-  schema: ref: page-column
+  schema:
+    ref: page-column
   description: "Page column for table output"
 
 - name: layout
@@ -31,7 +32,7 @@
       - string
       - arrayOf:
           arrayOf: number
-  description: 
+  description:
     short: "2d-array of widths where the first dimension specifies columns and the second rows."
     long: |
       2d-array of widths where the first dimension specifies columns and the second rows.
@@ -41,7 +42,7 @@
 
       Use negative values to create margin. For example, to create space between the 
       output blocks in the top row of the previous example, use `[[3,-1, 3], [1]]`.
-      
+
 - name: layout-ncol
   schema: number
   description: Layout output blocks into columns
@@ -49,19 +50,19 @@
 - name: layout-nrow
   schema: number
   description: Layout output blocks into rows
-  
+
 - name: layout-align
-  schema: 
+  schema:
     enum: [default, left, center, right]
   default: center
   description: Horizontal alignment for layout content
 
 - name: layout-valign
-  schema: 
+  schema:
     enum: [default, top, center, bottom]
   default: top
   description: Vertical alignment for layout content
-  
+
 - name: fig-cap
   schema: string
   description: Figure caption
@@ -72,12 +73,12 @@
   description: Figure subcaptions
 
 - name: fig-link
-  schema: 
+  schema:
     maybeArrayOf: string
   description: Hyperlink target for the figure
 
 - name: fig-align
-  schema: 
+  schema:
     maybeArrayOf:
       enum: [default, left, right, center]
   default: default
@@ -85,26 +86,26 @@
 
 - name: fig-alt
   enabled: [$html-all]
-  schema: 
+  schema:
     maybeArrayOf: string
   description: |
     Alternative text to be used in the `alt` attribute of HTML images.
 
 - name: fig-env
   enabled: [$pdf-all]
-  schema: 
+  schema:
     maybeArrayOf: string
   description: LaTeX environment for figure output
 
 - name: fig-pos
   enabled: [$pdf-all]
-  schema: 
+  schema:
     maybeArrayOf: string
   description: LaTeX figure position arrangement to be used in `\begin{figure}[]`.
 
 - name: fig-scap
   enabled: [$pdf-all]
-  schema: 
+  schema:
     maybeArrayOf: string
   description:
     short: A short caption (only used in LaTeX output)
@@ -122,13 +123,13 @@
   schema:
     enum: [inline, margin]
   default: inline
-  description: "Where to place figure captions."  
+  description: "Where to place figure captions."
 
 - name: tbl-cap-location
   schema:
     enum: [inline, margin]
   default: inline
-  description: "Where to place table captions."  
+  description: "Where to place table captions."
 
 - name: lst-label
   schema: string
@@ -137,8 +138,3 @@
 - name: lst-cap
   schema: string
   description: "Caption for code listing"
-
-
-
-
-

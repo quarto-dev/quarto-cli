@@ -23,41 +23,20 @@
           path:
             description: "HTML library (JS/CSS/etc.) directory"
         resources:
-          arrayOf: path
-          description: "Additional file resources to be copied to output directory"
+          arrayOf:
+            schama: path
+            description: "Additional file resources to be copied to output directory"
 
-- name: site
+- name: website
+  schema:
+    ref: base-website
+
+- name: book
   schema:
     object:
+      super:
+        resolveRef: base-website
       properties:
-        title:
-          string:
-            description: "Website title"
-        site-url:
-          string:
-            description: "Base URL for published website"
-        repo-url:
-          string:
-            descripiton: "Base URL for website source code repository"
-        repo-branch:
-          string:
-            description: "Branch of website source code (defaults to `main`)"
-        repo-actions:
-          maybeArrayOf:
-            enum: [none, edit, source, issue]
-            description: "Links to source repository actions"
-        # TODO: navbar
-        # TODO: sidebar
-        page-navigation:
-          boolean:
-            description: "Provide next and previous article links in footer"
-        # TODO: page-footer
-        margin-header:
-          maybeArrayOf: string
-          description: "Markdown to place above margin content (text or file path)"
-        margin-footer:
-          maybeArrayOf: string
-          description: "Markdown to place below margin content (text or file path)"
-        ## TODO: search
-        ## TODO: open-graph
-        ## TODO: twitter-card
+        output-file:
+          path:
+            description: "etc"

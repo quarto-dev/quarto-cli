@@ -28,7 +28,7 @@ pandoc-format-filters:
             type:
               enum: [citeproc]
           required: [type]
-  
+
 page-column:
   enum:
     values:
@@ -50,3 +50,36 @@ page-column:
         screen-inset-right,
         margin,
       ]
+
+base-website:
+  object:
+    properties:
+      title:
+        string:
+          description: "Website title"
+      site-url:
+        string:
+          description: "Base URL for published website"
+      site-path:
+        string:
+          description: |
+            Path to site (defaults to '/'). Not required if you specify `site-url`.
+      repo-url:
+        string:
+          descripiton: "Base URL for website source code repository"
+      repo-branch:
+        string:
+          description: "Branch of website source code (defaults to `main`)"
+      repo-actions:
+        maybeArrayOf:
+          enum: [none, edit, source, issue]
+          description: "Links to source repository actions"
+      # TODO: navbar
+      # TODO: sidebar
+      page-navigation:
+        boolean:
+          description: "Provide next and previous article links in footer"
+      # TODO: page-footer
+      # TODO: open-graph
+      # TODO: twitter-card
+      # TODO: search:
