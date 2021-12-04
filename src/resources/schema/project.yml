@@ -75,7 +75,15 @@
           arrayOf:
             schema:
               ref: navigation-item
+            description: "Custom tools for navbar or sidebar"
         chapters:
           arrayOf:
             schema:
               ref: chapter-list
+            description: "Book part and chapter files"
+        references:
+          path:
+            description: "Book references file"
+        appendices:
+          arrayOf: path
+          description: "Book appendix files"
