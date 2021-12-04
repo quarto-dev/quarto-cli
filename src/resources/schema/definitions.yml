@@ -78,6 +78,40 @@ navigation-item:
             ref: navigation-item
     additionalProperties: false
 
+social-metadata:
+  object:
+    properties:
+      title:
+        string:
+          description:
+            short: "The title of the page"
+            long: |
+              The title of the page. Note that by default Quarto will automatically 
+              use the title metadata from the page. Specify this field if you’d like 
+              to override the title for this provider.
+      description:
+        string:
+          description:
+            short: "A short description of the content."
+            long: |
+              A short description of the content. Note that by default Quarto will
+              automatically  use the description metadata from the page. Specify this
+              field if you’d like to override the description for this provider.
+      image:
+        path:
+          description:
+            short: "The path to a preview image for the content."
+            long: |
+              The path to a preview image for the content. By default, Quarto will use
+              the `image` value from the website or book metadata. If you provide an 
+              image, you may also optionally provide an `image-width` and `image-height`.
+      image-width:
+        number:
+          description: "Image width (pixels)"
+      image-height:
+        number:
+          description: "Image height (pixels)"
+
 base-website:
   object:
     properties:
@@ -107,14 +141,54 @@ base-website:
         boolean:
           description: "Provide next and previous article links in footer"
       # TODO: page-footer
+      # TODO: search
       image:
         path:
           description: |
             Default site thumbnail image for twitter / open-graph
-
-      # TODO: open-graph
-      # TODO: twitter-card
-      # TODO: search
+      open-graph:
+        oneOf:
+          - boolean
+          - object:
+              super:
+                resolveRef: social-metadata
+              properties:
+                locale:
+                  string:
+                    description: "Locale of open graph metadata"
+                site-name:
+                  string:
+                    description:
+                      short: "Name that should be displayed for the overall site"
+                      long: |
+                        Name that should be displayed for the overall site. If not explicitly 
+                        provided in the `open-graph` metadata, Quarto will use the website or
+                        book `title` by default.
+              additionalProperties: false
+        description: "Publish open graph metadata"
+      twitter-card:
+        oneOf:
+          - boolean
+          - object:
+              super:
+                resolveRef: social-metadata
+              properties:
+                card-style:
+                  enum: [summary, summary_large_image]
+                  description:
+                    short: "Card style"
+                    long: |
+                      Card style. If this is not provided, the best style will automatically 
+                      selected based upon other metadata. You can learn more about Twitter Card
+                      styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).
+                creator:
+                  string:
+                    description: "`@username` of the content creator (must be a quoted string)"
+                site:
+                  string:
+                    description: "`@username` of the website (must be a quoted string)"
+              additionalProperties: false
+        description: "Publish twitter card metadata"
 
 chapter-list:
   arrayOf:
