@@ -75,3 +75,7 @@
           arrayOf:
             schema:
               ref: navigation-item
+        chapters:
+          arrayOf:
+            schema:
+              ref: chapter-list

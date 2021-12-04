@@ -115,3 +115,18 @@ base-website:
       # TODO: open-graph
       # TODO: twitter-card
       # TODO: search
+
+chapter-list:
+  arrayOf:
+    oneOf:
+      - path
+      - object:
+          properties:
+            part:
+              path:
+                description: "Path to part input file"
+            chapters:
+              arrayOf: path
+              description: "Path to chapter input file"
+          required: [part, chapter]
+          additionalProperties: false
