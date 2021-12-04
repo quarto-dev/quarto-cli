@@ -69,13 +69,9 @@
         downloads:
           maybeArrayOf:
             enum: [pdf, epub, docx]
-            description: 
-              | Download buttons for other formats to include on navbar or sidebar
-
-        
-#   | "chapters"
-#   | "references"
-#   | "appendices"
-
-#   | "tools"
-
+            description: |
+              Download buttons for other formats to include on navbar or sidebar
+        tools:
+          arrayOf:
+            schema:
+              ref: navigation-item

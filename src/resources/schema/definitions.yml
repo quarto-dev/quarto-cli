@@ -51,6 +51,33 @@ page-column:
         margin,
       ]
 
+navigation-item:
+  object:
+    properties:
+      href:
+        string:
+          description: |
+            Link to file contained with the project or external URL
+      text:
+        string:
+          description: Text to display for navigation item (defaults to the
+            document title if not provided)
+      icon:
+        string:
+          description:
+            short: Name of bootstrap icon (e.g. "github", "twitter", "share")
+            long: |
+              Name of bootstrap icon (e.g. "github", "twitter", "share")
+              See <https://icons.getbootstrap.com/> for a list of available icons
+      aria-label:
+        string:
+          description: "Accessible label for the navigation item."
+      menu:
+        arrayOf:
+          schema:
+            ref: navigation-item
+    additionalProperties: false
+
 base-website:
   object:
     properties:
