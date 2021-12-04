@@ -80,9 +80,11 @@ base-website:
         boolean:
           description: "Provide next and previous article links in footer"
       # TODO: page-footer
+      image:
+        path:
+          description: |
+            Default site thumbnail image for twitter / open-graph
+
       # TODO: open-graph
       # TODO: twitter-card
       # TODO: search
-
-      # TODO: what's up with kImage being copied from book to site
-      #       (not clear where its actually used)

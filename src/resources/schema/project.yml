@@ -53,15 +53,29 @@
         output-file:
           path:
             description: "Base name for single-file output (e.g. PDF, ePub)"
+        abstract:
+          string:
+            description: "Book abstract"
+        description:
+          string:
+            description: "Description metadata for HTML version of book"
+        cover-image:
+          path:
+            description: "Cover image (used in HTML and ePub formats)"
+        sharing:
+          maybeArrayOf:
+            enum: [twitter, facebook, linkedin]
+            description: "Sharing buttons to include on navbar or sidebar"
+        downloads:
+          maybeArrayOf:
+            enum: [pdf, epub, docx]
+            description: 
+              | Download buttons for other formats to include on navbar or sidebar
+
+        
 #   | "chapters"
 #   | "references"
 #   | "appendices"
 
-#   | "sharing"
-#   | "downloads"
 #   | "tools"
 
-#   | "description"
-
-#   | "abstract"
-#   | "cover-image";
