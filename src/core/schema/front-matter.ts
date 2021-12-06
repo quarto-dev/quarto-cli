@@ -22,6 +22,14 @@ import {
 } from "./common.ts";
 
 import {
+  resourcePath
+} from "../resources.ts";
+
+import {
+  objectSchemaFromFieldsFile
+} from "./from-yaml.ts";
+
+import {
   Schema,
   normalizeSchema
 } from "../lib/schema.ts";
@@ -92,11 +100,13 @@ export async function makeFrontMatterFormatSchema()
   return oneOfS(
     describeSchema(oneOfS(...plusFormatStringSchemas), "the name of a pandoc-supported output format"),
     regexS("^hugo(\\+.+)?$", "be 'hugo'"),
-    objectS({
-      patternProperties: Object.fromEntries(formatSchemas),
-      completions: completionsObject,
-      additionalProperties: false
-    }),
+    allOfS(
+      objectSchemaFromFieldsFile(resourcePath("schema/format-metadata.yml")),
+      objectS({
+        patternProperties: Object.fromEntries(formatSchemas),
+        completions: completionsObject,
+        additionalProperties: false
+      }))
   );
 }
 export const getFrontMatterFormatSchema = cacheSchemaFunction(
@@ -110,7 +120,6 @@ export async function makeFrontMatterSchema()
       allOfS(
         objectS({
           properties: {
-            title: StringS,
             execute: getFormatExecuteOptionsSchema(),
             format: (await getFrontMatterFormatSchema()),
             //
@@ -119,6 +128,7 @@ export async function makeFrontMatterSchema()
           },
           description: "be a Quarto YAML front matter object",
         }),
+        objectSchemaFromFieldsFile(resourcePath("schema/format-metadata.yml")),
         getFormatExecuteGlobalOptionsSchema(),
         getFormatExecuteCellOptionsSchema()
       )
