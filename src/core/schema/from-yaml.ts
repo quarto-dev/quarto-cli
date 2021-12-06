@@ -291,12 +291,21 @@ export function convertFromYAMLString(src: string)
   return convertFromYaml(yaml);
 }
 
-export function objectSchemaFromFieldsFile(file: string): Schema
+export function objectSchemaFromFieldsFile(
+  file: string,
+  exclude?: (key: string) => boolean): Schema
 {
-  const properties: Record<string, Schema> = {};
+  exclude = exclude ?? ((key: string) => true);
+  let properties: Record<string, Schema> = {};
   const global = readYaml(file) as any[];
   
   convertFromFieldsObject(global, properties);
+  for (const key of Object.keys(properties)) {
+    if (exclude(key)) {
+      delete properties[key];
+    }
+  }
+  
   return objectS({ properties });
 }
 

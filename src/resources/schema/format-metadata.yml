@@ -12,8 +12,8 @@
   description: "Author or authors of the document"
 
 # - name: date
-#  schema: string
-#  description: "Document date"
+#   schema: string
+#   description: "Document date"
 
 - name: title-meta
   schema: string
@@ -1616,10 +1616,10 @@
       [TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), 
       but Authors may use any text string as a value.
 
-# - name: format
-#  enabled: [epub-all]
-#  schema: string
-#  description: Text describing the format of this publication.
+- name: format
+  enabled: [epub-all]
+  schema: string
+  description: Text describing the format of this publication.
 
 - name: relation
   enabled: [epub-all]

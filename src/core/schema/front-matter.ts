@@ -126,7 +126,10 @@ export async function makeFrontMatterSchema() {
           },
           description: "be a Quarto YAML front matter object",
         }),
-        objectSchemaFromFieldsFile(resourcePath("schema/format-metadata.yml")),
+        objectSchemaFromFieldsFile(
+          resourcePath("schema/format-metadata.yml"),
+          key => key === "format",
+        ),
         getFormatExecuteGlobalOptionsSchema(),
         getFormatExecuteCellOptionsSchema(),
       ),
