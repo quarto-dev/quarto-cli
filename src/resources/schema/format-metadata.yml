@@ -1240,7 +1240,7 @@
                       default: false
                       description: Controls whether the sidebar opens automatically on startup.
                   showHighlights:
-                    onOf:
+                    oneOf:
                       - boolean
                       - enum: ["always", "never"]
                     default: "always"
@@ -1688,21 +1688,22 @@
   schema:
     oneOf:
       - boolean
-      - string:
+      - string
       - object:
           properties:
             kernelspec:
               object:
-                display_name:
-                  string:
-                    description: The name to display in the UI.
-                language:
-                  string:
-                    description: The name of the language the kernel implements.
-                name:
-                  string:
-                    description: The name of the kernel.
-                required: [name, langauge, display_name]
+                properties:
+                  display_name:
+                    string:
+                      description: The name to display in the UI.
+                  language:
+                    string:
+                      description: The name of the language the kernel implements.
+                  name:
+                    string:
+                      description: The name of the kernel.
+                required: [name, language, display_name]
   description: Configures the Jupyter engine.
 
 - name: server
