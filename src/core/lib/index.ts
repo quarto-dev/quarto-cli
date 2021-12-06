@@ -28,7 +28,7 @@ export {
   normalizeNewlines,
   rowColToIndex,
 } from "./text.ts";
-export { schemaCompletions, schemaType } from "./schema.ts";
+export { schemaCompletions, schemaType, getSchemaDefinition, setSchemaDefinition, getSchemaDefinitionsObject } from "./schema.ts";
 export { setupAjv, YAMLSchema } from "./yaml-schema.ts";
 export { withValidator } from "./validator-queue.ts";
 export { prefixes } from "./regexp.js";
