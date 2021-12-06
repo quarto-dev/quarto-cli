@@ -115,6 +115,13 @@
         number:
           description: "Image height (pixels)"
 
+- oneOf:
+    id: page-footer-region
+    schemas:
+      - string
+      - arrayOf:
+          ref: navigation-item
+
 - object:
     id: base-website
     properties:
@@ -143,7 +150,33 @@
       page-navigation:
         boolean:
           description: "Provide next and previous article links in footer"
-      # TODO: page-footer
+      page-footer:
+        oneOf:
+          - string
+          - object:
+              properties:
+                left:
+                  ref: page-footer-region
+                  description: "Footer left content"
+                right:
+                  ref: page-footer-region
+                  description: "Footer right content"
+                center:
+                  ref: page-footer-region
+                  description: "Footer center content"
+                border:
+                  oneOf:
+                    - boolean
+                    - string
+                  description: "Footer border"
+                background:
+                  schema: string
+                  description: "Footer background color"
+                foreground:
+                  schema: string
+                  description: "Footer foreground color"
+              additionalProperties: false
+        description: "Shared page footer"
       search:
         oneOf:
           - boolean
@@ -272,6 +305,26 @@
       - alpha
       - arabic
       - roman
-      
-- string:
+
+- oneOf:
     id: epub-contributor
+    schemas:
+      - string
+      - maybeArrayOf:
+          object:
+            properties:
+              role:
+                string:
+                  description:
+                    short: The role of this creator or contributor.
+                    long: |
+                      The role of this creator or contributor using 
+                      [MARC relators](https://loc.gov/marc/relators/relaterm.html). Human readable
+                      translations to commonly used relators (e.g. 'author', 'editor') will 
+                      attempt to be automatically translated.
+              file-as:
+                string:
+                  description: An alternate version of the creator or contributor text used for alphabatizing.
+              text:
+                string:
+                  description: The text describing the creator or contributor (for example, creator name).
