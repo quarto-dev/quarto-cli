@@ -11,9 +11,9 @@
     maybeArrayOf: string
   description: "Author or authors of the document"
 
-# - name: date
-#   schema: string
-#   description: "Document date"
+- name: date
+  schema: string
+  description: "Document date"
 
 - name: title-meta
   schema: string

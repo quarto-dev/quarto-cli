@@ -295,7 +295,7 @@ export function objectSchemaFromFieldsFile(
   file: string,
   exclude?: (key: string) => boolean): Schema
 {
-  exclude = exclude ?? ((key: string) => true);
+  exclude = exclude ?? ((key: string) => false);
   let properties: Record<string, Schema> = {};
   const global = readYaml(file) as any[];
   
