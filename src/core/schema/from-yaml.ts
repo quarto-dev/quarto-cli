@@ -33,6 +33,7 @@ import {
   completeSchema,
   completeSchemaOverwrite,
   valueSchema,
+  regexSchema
 } from "./common.ts";
 
 function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
@@ -59,8 +60,10 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
     }
   }
   
-  // FIXME handle hidden here
-  return schema;
+  // make shallow copy so that downstream can assign to it
+  const result = Object.assign({}, schema);
+  
+  return result;
 }
 
 function convertFromNull(yaml: any): Schema
@@ -70,7 +73,8 @@ function convertFromNull(yaml: any): Schema
 
 function convertFromString(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, stringS);
+  const schema = yaml.pattern ? regexSchema(yaml.pattern) : stringS;
+  return setBaseSchemaProperties(yaml, schema);
 }
 
 function convertFromPath(yaml: any): Schema
@@ -261,4 +265,16 @@ export function convertFromYAMLString(src: string)
   const yaml = readAnnotatedYamlFromString(src);
   
   return convertFromYaml(yaml);
+}
+
+export function convertFromFieldsObject(yaml: any[], obj?: Record<string, Schema>): Record<string, Schema>
+{
+  const result = obj ?? {};
+
+  for (const field of yaml) {
+    const schema = convertFromYaml(field.schema);
+    result[field.name] = schema;
+  }
+
+  return result;
 }

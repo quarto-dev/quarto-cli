@@ -216,31 +216,6 @@ export const formatRenderOptionsSchema = objectS({
   },
 });
 
-export const formatExecuteOptionsSchema = objectS({
-  properties: {
-    "fig-width": NumberS, // FIXME Minimum? other validation?
-    "fig-height": NumberS, // FIXME Minimum? other validation?
-    "fig-format": enumS("retina", "png", "jpeg", "svg", "pdf"),
-    "fig-dpi": NumberS, // FIXME Minimum? other validation?
-    [kCache]: oneOfS(BooleanS, NullS, enumS("refresh")),
-    [kFreeze]: oneOfS(BooleanS, enumS("auto")),
-    [kExecuteEnabled]: oneOfS(BooleanS, NullS),
-    [kExecuteIpynb]: oneOfS(BooleanS, NullS),
-    [kExecuteDaemon]: oneOfS(NumberS, BooleanS, NullS),
-    [kExecuteDaemonRestart]: BooleanS,
-    [kExecuteDebug]: BooleanS,
-    [kEngine]: StringS,
-    [kEval]: oneOfS(BooleanS, NullS),
-    [kError]: BooleanS,
-    [kEcho]: oneOfS(BooleanS, enumS("fenced")),
-    [kOutput]: oneOfS(BooleanS, enumS("all", "asis")),
-    [kWarning]: BooleanS,
-    [kInclude]: BooleanS,
-    [kKeepMd]: BooleanS,
-    [kKeepIpynb]: BooleanS,
-  },
-});
-
 export const formatPandocOptionsSchema = objectS({
   properties: {
     "from": StringS,

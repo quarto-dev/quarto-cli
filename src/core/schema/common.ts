@@ -80,12 +80,17 @@ export function enumSchema(...args: string[]) {
   };
 }
 
-export function regexSchema(arg: string, description: string) {
-  return {
+export function regexSchema(arg: string, description?: string) {
+  const result: Schema = {
     "type": "string",
-    "pattern": arg,
-    description
+    "pattern": arg
   };
+  if (description) {
+    result.description = description;
+  } else {
+    result.description = `be a string that satisfies regex "${arg}"`;
+  }
+  return result;
 }
 
 export function oneOfSchema(...args: Schema[]) {

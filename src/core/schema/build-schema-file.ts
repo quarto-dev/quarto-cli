@@ -19,7 +19,7 @@ import { normalizeSchema, Schema, setSchemaDefinition, getSchemaDefinitionsObjec
 import { convertFromYaml } from "./from-yaml.ts";
 
 export async function buildSchemaFile(resourceDir: string) {
-  let yamlDefinitions = readYaml(resourcePath("/schema/definitions.yml")) as any[];
+  const yamlDefinitions = readYaml(resourcePath("/schema/definitions.yml")) as any[];
   for (const yamlSchema of yamlDefinitions) {
     const schema = normalizeSchema(convertFromYaml(yamlSchema));
     setSchemaDefinition(schema);
