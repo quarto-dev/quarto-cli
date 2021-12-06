@@ -1559,17 +1559,17 @@
     oneOf:
       - string
       - object:
-        properties:
-          text:
-            string:
-              description: The identifier value.
-          scheme:
-            enum: ['ISBN-10'. 'GTIN-13', 'UPC', 
-              'ISMN-10', 'DOI', 'LCCN', 'GTIN-14', 
-              'ISBN-13', 'Legal deposit number', 'URN', 
-              'OCLC', 'ISMN-13', 'ISBN-A', 'JP', OLCC
-              ]
-            description: The identifier scheme.
+          properties:
+            text:
+              string:
+                description: The identifier value.
+            scheme:
+              enum: ['ISBN-10'. 'GTIN-13', 'UPC', 
+                'ISMN-10', 'DOI', 'LCCN', 'GTIN-14', 
+                'ISBN-13', 'Legal deposit number', 'URN', 
+                'OCLC', 'ISMN-13', 'ISBN-A', 'JP', OLCC
+                ]
+              description: The identifier scheme.
   description: The identifier for this publication.
 
 - name: creator
@@ -1590,16 +1590,16 @@
     oneOf:
       - string
       - object:
-        properties:
-          text:
-            string:
-              description: The subject text.
-          authority:
-            string:
-              description: An EPUB reserved authority value.
-          term:
-            string:
-              description: The subject term (defined by the schema).
+          properties:
+            text:
+              string:
+                description: The subject text.
+            authority:
+              string:
+                description: An EPUB reserved authority value.
+            term:
+              string:
+                description: The subject term (defined by the schema).
   description: The subject of the publication.
 
 - name: type
@@ -1668,3 +1668,56 @@
         scroll-axis:
           enum: [vertical, horizontal, default]
           description: The scroll direction for this book.
+
+- name: knitr
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            opts_knit:
+                object:
+                  description: Knit options.
+            opts_chunk:
+                object:
+                  description: Knitr chunk options.
+  description: Set Knitr options.
+    
+- name: jupyter
+  schema:
+    oneOf:
+      - boolean
+      - string:
+      - object:
+          properties:
+            kernelspec:
+              object:
+                display_name:
+                  string:
+                    description: The name to display in the UI.
+                language:
+                  string:
+                    description: The name of the language the kernel implements.
+                name:
+                  string:
+                    description: The name of the kernel.
+                required: [name, langauge, display_name]
+  description: Configures the Jupyter engine.
+
+- name: server
+  schema:
+    oneOf:
+      - enum: [shiny]
+      - object:
+          properties:
+            type:
+              enum: [shiny]
+              description: Type of server to run behind the document.
+            ojs-export:
+              maybeArrayOf: string
+              description: OJS variables to export to server.
+            ojs-import:
+              maybeArrayOf: string
+              description: Server reactive values to import into OJS.
+  description: Document server
+
