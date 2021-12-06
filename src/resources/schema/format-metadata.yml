@@ -8,9 +8,7 @@
 
 - name: author
   schema:
-    oneOf:
-      - string
-      - arrayOf: string
+    maybeArrayOf: string
   description: "Identifies the author or authors of the document"
 
 - name: date
@@ -53,9 +51,7 @@
 
 - name: keywords
   schema:
-    oneOf:
-      - string
-      - arrayOf: string
+    maybeArrayOf: string
   enabled: [$asciidoc-all, $html-file, $pdf-all, context]
   description: "List of keywords to be included in the document metadata."
 
