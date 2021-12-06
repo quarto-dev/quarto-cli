@@ -14,14 +14,14 @@ import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error, info } from "log/mod.ts";
 import { ensureAjv } from "./yaml-schema.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
-import { getLanguageOptionsSchema } from "./chunk-metadata.ts";
+import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
 
-
 export async function validateDocumentFromSource(
   src: string,
+  engine: string,
   // deno-lint-ignore no-explicit-any
   error: (msg: string) => any,
   // deno-lint-ignore no-explicit-any
@@ -73,7 +73,8 @@ export async function validateDocumentFromSource(
     firstContentCellIndex = 0;
   }
   
-  const languageOptionsSchema = await getLanguageOptionsSchema(true);
+  const engineOptionsSchema = await getEngineOptionsSchema(true);
+  const schema = engineOptionsSchema[engine];
   
   for (const cell of nb.cells.slice(firstContentCellIndex)) {
     if (
@@ -86,14 +87,9 @@ export async function validateDocumentFromSource(
     }
 
     const lang = cell.cell_type.language;
-    const schema = languageOptionsSchema[lang];
-    if (schema === undefined) {
-      // not a language with schemas
-      continue;
-    }
 
     try {
-      await partitionCellOptionsMapped(lang, cell.source, true);
+      await partitionCellOptionsMapped(lang, cell.source, true, engine);
     } catch (e) {
       if (e instanceof ValidationError) {
         result.push(...e.validationErrors);
@@ -114,5 +110,7 @@ export async function validateDocument(
     return [];
   }
 
-  return validateDocumentFromSource(context.target.markdown, error, info);
+  return validateDocumentFromSource(
+    context.target.markdown, context.engine.name, error, info
+  );
 }

@@ -10,7 +10,7 @@
 
 import { getFrontMatterSchema } from "./front-matter.ts";
 import { getConfigSchema } from "./config.ts";
-import { getLanguageOptionsSchema } from "./chunk-metadata.ts";
+import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { readYaml } from "../yaml.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
@@ -28,7 +28,7 @@ export async function buildSchemaFile(resourceDir: string) {
     schemas: {
       "front-matter": await getFrontMatterSchema(),
       "config": await getConfigSchema(),
-      "languages": await getLanguageOptionsSchema(),
+      "engines": await getEngineOptionsSchema(),
     },
     definitions: getSchemaDefinitionsObject()
   };

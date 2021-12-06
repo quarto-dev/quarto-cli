@@ -8,127 +8,46 @@
 */
 
 import { Schema, normalizeSchema } from "../lib/schema.ts";
+import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
+import { objectSchema, allOfSchema as allOfS, idSchema } from "./common.ts";
+import { resourcePath } from "../resources.ts";
 
-import {
-  anyOfSchema as anyOfS,
-  arraySchema as arrayS,
-  BooleanSchema as BooleanS,
-  enumSchema as enumS,
-  idSchema as withId,
-  NullSchema as NullS,
-  numericSchema as numericS,
-  objectSchema as objectS,
-  oneOfSchema as oneOfS,
-  StringSchema as StringS,
-} from "./common.ts";
+let normalizedCache: Record<string, Schema> | undefined = undefined;
+let unNormalizedCache: Record<string, Schema> | undefined = undefined;
 
-import {
-  kCellClasses,
-  kCellFigAlign,
-  kCellFigAlt,
-  kCellFigCap,
-  kCellFigEnv,
-  kCellFigLink,
-  kCellFigPos,
-  kCellFigScap,
-  kCellFigSubCap,
-  kCellLabel,
-  kCellLstCap,
-  kCellLstLabel,
-  kCellMdIndent,
-  kCellPanel,
-  kCodeFold,
-  kCodeOverflow,
-  kCodeSummary,
-  kEcho,
-  kError,
-  kEval,
-  kInclude,
-  kLayoutNcol,
-  kLayoutNrow,
-  kOutput,
-  kWarning,
-} from "../../config/constants.ts";
-
-const commonCellOptionsSchema = objectS({
-  properties: {
-    [kCellLabel]: StringS,
-    [kCellFigCap]: anyOfS(StringS, arrayS(StringS)),
-    [kCellFigSubCap]: arrayS(StringS),
-    [kCellLstLabel]: StringS,
-    [kCellLstCap]: StringS,
-    [kCellClasses]: StringS,
-    [kCellPanel]: StringS,
-    [kCodeFold]: oneOfS(StringS, BooleanS), // FIXME tighten code-fold strings
-    [kCodeSummary]: StringS,
-    [kCodeOverflow]: StringS, // FIXME should this be enumS("wrap", "scroll")?
-
-    [kCellFigScap]: StringS,
-    [kCellFigLink]: StringS,
-    [kCellFigAlign]: StringS,
-    [kCellFigEnv]: StringS,
-    [kCellFigPos]: StringS,
-    [kCellFigAlt]: StringS,
-
-    [kEval]: anyOfS(BooleanS, NullS),
-    [kError]: BooleanS,
-    [kEcho]: anyOfS(BooleanS, enumS("fenced")),
-    [kOutput]: anyOfS(BooleanS, enumS("all", "asis")),
-    [kInclude]: BooleanS,
-
-    [kLayoutNcol]: numericS({
-      "type": "integer",
-      "minimum": 1,
-    }),
-    [kLayoutNrow]: numericS({
-      "type": "integer",
-      "minimum": 1,
-    }),
-  },
-});
-
-export const ojsCellOptionsSchema = withId(
-  objectS({
-    baseSchema: commonCellOptionsSchema,
-    properties: {
-      classes: arrayS(StringS),
-    },
-    description: "be an OJS cell options object",
-  }),
-  "ojs",
-);
-
-export const jupyterCellOptionsSchema = withId(
-  objectS({
-    baseSchema: commonCellOptionsSchema,
-    properties: {
-      [kCellMdIndent]: StringS,
-      [kWarning]: BooleanS,
-    },
-    description: "be a Jupyter cell options object",
-  }),
-  "python",
-);
-
-export const rCellOptionsSchema = withId(commonCellOptionsSchema, "r");
-
-export async function getLanguageOptionsSchema(normalized?: boolean): Promise<Record<string, Schema>>
+export function getEngineOptionsSchema(normalized?: boolean): Record<string, Schema>
 {
-  // currently this could be sync but eventually it'll be just like the
-  // other schema, produced from YAML and hence async
-
-  // FIXME put this behind a cache; it's super inefficient.
-  if (normalized) {
-    return {
-      "ojs": normalizeSchema(ojsCellOptionsSchema),
-      "python": normalizeSchema(jupyterCellOptionsSchema),
-      "r": normalizeSchema(rCellOptionsSchema),
-    };
-  } else {
-    return {
-      "ojs": ojsCellOptionsSchema,
-      "python": jupyterCellOptionsSchema,
-      "r": rCellOptionsSchema,
-    };
+  if (normalized && normalizedCache !== undefined) {
+    return normalizedCache;
   }
+  if (!normalized && unNormalizedCache !== undefined) {
+    return unNormalizedCache;
+  }
+
+  const allOpts = objectSchemaFromFieldsFile(resourcePath("schema/cell-options.yml"));
+  const knitrOpts = objectSchemaFromFieldsFile(resourcePath("schema/cell-options-knitr.yml"));
+  const jupyterOpts = objectSchemaFromFieldsFile(resourcePath("schema/cell-options-jupyter.yml"));
+  
+  const execute = objectSchemaFromFieldsFile(resourcePath("schema/format-execute-cell.yml"));
+  const render = objectSchemaFromFieldsFile(resourcePath("schema/format-render-cell.yml"));
+
+  const all = idSchema(allOfS(allOpts, execute, render), "engine-markdown");
+  const knitr = idSchema(allOfS(allOpts, execute, render, knitrOpts), "engine-knitr");
+  const jupyter = idSchema(allOfS(allOpts, execute, render, jupyterOpts), "engine-jupyter");
+  
+  if (normalized) {
+    normalizedCache = {
+      "markdown": normalizeSchema(all),
+      "knitr": normalizeSchema(knitr),
+      "jupyter": normalizeSchema(jupyter),
+    };
+    return normalizedCache;
+  } else {
+    unNormalizedCache = {
+      "markdown": all,
+      knitr,
+      jupyter
+    };
+    return unNormalizedCache;
+  };
 }

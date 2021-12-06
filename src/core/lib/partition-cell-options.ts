@@ -30,6 +30,7 @@ export async function partitionCellOptionsMapped(
   language: string,
   source: MappedString,
   _validate = false,
+  _engine = ""
 ) {
   const commentChars = langCommentChars(language);
   const optionPrefix = optionCommentPrefix(commentChars[0]);

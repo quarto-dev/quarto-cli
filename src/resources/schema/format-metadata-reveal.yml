@@ -3,7 +3,7 @@
   schema:
     anyOf:
       - enum: [auto]
-      - booleanS
+      - boolean
   default: auto
   description:
     short: "Show arrow controls for navigating through slides"
@@ -363,7 +363,7 @@
   schema:
     anyOf:
       - enum: [auto]
-      - booleanS
+      - boolean
   default: auto
   description:
     short: "Opens links in an iframe preview overlay"

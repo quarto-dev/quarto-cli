@@ -3,7 +3,7 @@
   schema:
     oneOf:
       - enum: [show]
-      - booleanS
+      - boolean
   default: false
   description:
     short: "Collapse code into an HTML `<details>` tag so the user can display it on-demand."

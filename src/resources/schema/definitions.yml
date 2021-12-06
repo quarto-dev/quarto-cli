@@ -31,7 +31,7 @@
               type:
                 enum: [citeproc]
             required: [type]
-
+            
 - enum:
     id: page-column
     values:

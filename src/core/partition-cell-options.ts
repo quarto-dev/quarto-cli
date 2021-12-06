@@ -6,10 +6,12 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
 import {
   asMappedString,
   MappedString,
 } from "./lib/mapped-text.ts";
+
 import {
   langCommentChars,
   optionCommentPrefix,
@@ -20,7 +22,7 @@ import { readYamlFromString } from "./yaml.ts";
 import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
 import { warnOnce } from "./log.ts";
 
-import { getLanguageOptionsSchema } from "./schema/chunk-metadata.ts";
+import { getEngineOptionsSchema } from "./schema/chunk-metadata.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -76,13 +78,14 @@ export async function parseAndValidateCellOptions(
   mappedYaml: MappedString,
   language: string,
   validate = false,
+  engine = ""
 ) {
   if (mappedYaml.value.trim().length === 0) {
     return undefined;
   }
 
-  const languageOptionsSchema = await getLanguageOptionsSchema();
-  const schema = languageOptionsSchema[language];
+  const engineOptionsSchema = await getEngineOptionsSchema();
+  const schema = engineOptionsSchema[engine];
 
   if (schema === undefined || !validate) {
     return readYamlFromString(mappedYaml.value);
@@ -91,7 +94,7 @@ export async function parseAndValidateCellOptions(
   return readAndValidateYamlFromMappedString(
     mappedYaml,
     schema,
-    `Validation of YAML ${language} chunk options failed`,
+    `Validation of YAML chunk options for engine ${engine} failed`,
   );
 }
 
@@ -101,6 +104,7 @@ export async function partitionCellOptionsMapped(
   language: string,
   outerSource: MappedString,
   validate = false,
+  engine = "",
 ) {
   const {
     yaml: mappedYaml,
@@ -113,6 +117,7 @@ export async function partitionCellOptionsMapped(
     mappedYaml ?? asMappedString(""),
     language,
     validate,
+    engine,
   );
 
   return {

@@ -258,8 +258,8 @@
 - name: fig-keep
   schema:
     oneOf:
-      enum: [high, none, all, first, last]
-      maybeArrayOf: number
+      - enum: [high, none, all, first, last]
+      - maybeArrayOf: number
   default: high
   description:
     short: "How plots in chunks should be kept."
