@@ -180,20 +180,21 @@
                         boolean:
                           description: "Enable tracking of Algolia analytics events"
                       index-fields:
-                        properties:
-                          href:
-                            schema: string
-                            description: "Field that contains the URL of index entries"
-                          title:
-                            schema: string
-                            description: "Field that contains the title of index entries"
-                          text:
-                            schema: string
-                            description: "Field that contains the text of index entries"
-                          section:
-                            schema: string
-                            description: "Field that contains the section of index entries"
-                        additionalProperties: false
+                        object:
+                          properties:
+                            href:
+                              schema: string
+                              description: "Field that contains the URL of index entries"
+                            title:
+                              schema: string
+                              description: "Field that contains the title of index entries"
+                            text:
+                              schema: string
+                              description: "Field that contains the text of index entries"
+                            section:
+                              schema: string
+                              description: "Field that contains the section of index entries"
+                          additionalProperties: false
                       params:
                         object:
                           description: "Additional parameters to pass when executing a search"
@@ -265,8 +266,8 @@
             required: [part, chapter]
             additionalProperties: false
 
-crossref-labels-schema:
-  string:
+- string:
+    id: crossref-labels-schema
     completions:
       - alpha
       - arabic
