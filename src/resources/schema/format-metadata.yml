@@ -1563,12 +1563,13 @@
             text:
               string:
                 description: The identifier value.
-            scheme:
-              enum: ['ISBN-10'. 'GTIN-13', 'UPC', 
-                'ISMN-10', 'DOI', 'LCCN', 'GTIN-14', 
-                'ISBN-13', 'Legal deposit number', 'URN', 
-                'OCLC', 'ISMN-13', 'ISBN-A', 'JP', OLCC
-                ]
+            schema:
+              enum: ['ISBN-10', 'GTIN-13', 'UPC', 
+              'ISMN-10', 'DOI', 'LCCN', 'GTIN-14', 
+              'ISBN-13', 'Legal deposit number', 
+              'URN', 'OCLC', 'ISMN-13', 
+              'ISBN-A', 'JP', 'OLCC'
+              ]
               description: The identifier scheme.
   description: The identifier for this publication.
 
@@ -1608,12 +1609,12 @@
   description: 
     short: Text describing the specialized type of this publication.
     long: |
-    Text describing the specialized type of this publication.
+      Text describing the specialized type of this publication.
 
-    An informative registry of specialized EPUB Publication 
-    types for use with this element is maintained in the 
-    [TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), 
-    but Authors may use any text string as a value.
+      An informative registry of specialized EPUB Publication 
+      types for use with this element is maintained in the 
+      [TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), 
+      but Authors may use any text string as a value.
 
 - name: format
   enabled: [epub-all]
