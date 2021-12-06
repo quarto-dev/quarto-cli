@@ -11,6 +11,8 @@ import { readAnnotatedYamlFromString } from "./annotated-yaml.ts";
 
 import { error } from "log/mod.ts";
 
+import { readYaml } from "../yaml.ts";
+
 import {
   Schema,
   getSchemaDefinition
@@ -28,6 +30,7 @@ import {
   arraySchema as arrayOfS,
   oneOfSchema as oneOfS,
   anyOfSchema as anyOfS,
+  allOfSchema as allOfS,
   enumSchema as enumS,
   documentSchema,
   completeSchema,
@@ -130,6 +133,18 @@ function convertFromOneOf(yaml: any): Schema
     return setBaseSchemaProperties(schema, result);
   } else {
     return oneOfS(...schema.map((x: any) => convertFromYaml(x)));
+  }
+};
+
+function convertFromAllOf(yaml: any): Schema
+{
+  const schema = yaml.allOf;
+  if (schema.schemas) {
+    let inner = schema.schemas.map((x: any) => convertFromYaml(x));
+    let result = allOfS(...inner);
+    return setBaseSchemaProperties(schema, result);
+  } else {
+    return allOfS(...schema.map((x: any) => convertFromYaml(x)));
   }
 };
 
@@ -239,6 +254,7 @@ export function convertFromYaml(yaml: any): Schema
   }
   const schemaObjectKeyFunctions: KV[] = [
     { key: "anyOf", value: convertFromAnyOf },
+    { key: "allOf", value: convertFromAllOf },
     { key: "boolean", value: convertFromBoolean },
     { key: "arrayOf", value: convertFromArrayOf },
     { key: "enum", value: convertFromEnum },
@@ -273,6 +289,15 @@ export function convertFromYAMLString(src: string)
   const yaml = readAnnotatedYamlFromString(src);
   
   return convertFromYaml(yaml);
+}
+
+export function objectSchemaFromFieldsFile(file: string): Schema
+{
+  const properties: Record<string, Schema> = {};
+  const global = readYaml(file) as any[];
+  
+  convertFromFieldsObject(global, properties);
+  return objectS({ properties });
 }
 
 export function convertFromFieldsObject(yaml: any[], obj?: Record<string, Schema>): Record<string, Schema>

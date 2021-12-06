@@ -14,6 +14,7 @@ import {
   NullSchema as nullS,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
+  allOfSchema as allOfS,
   anyOfSchema as anyOfS,
   StringSchema as StringS,
   regexSchema as regexS,
@@ -25,19 +26,14 @@ import {
   normalizeSchema
 } from "../lib/schema.ts";
 
-import { getFormatExecuteOptionsSchema } from "./execute.ts";
+import {
+  getFormatExecuteOptionsSchema,
+  getFormatExecuteGlobalOptionsSchema,
+  getFormatExecuteCellOptionsSchema,
+} from "./execute.ts";
+
 import { getFormatSchema } from "./format-schemas.ts";
 import { pandocOutputFormats } from "./pandoc-output-formats.ts";
-
-export async function getHtmlFormatSchema()
-{
-  return objectS({
-    properties: {
-      "html": await getFormatSchema("html"),
-    },
-    description: "be an HTML format object",
-  });
-}
 
 const schemaCache: Record<string, Schema> = {};
 const schemaCacheNormalized: Record<string, Schema> = {};
@@ -100,7 +96,7 @@ export async function makeFrontMatterFormatSchema()
       patternProperties: Object.fromEntries(formatSchemas),
       completions: completionsObject,
       additionalProperties: false
-    })
+    }),
   );
 }
 export const getFrontMatterFormatSchema = cacheSchemaFunction(
@@ -111,17 +107,21 @@ export async function makeFrontMatterSchema()
   return withId(
     oneOfS(
       nullS,
-      objectS({
-        properties: {
-          title: StringS,
-          execute: getFormatExecuteOptionsSchema(),
-          format: (await getFrontMatterFormatSchema()),
-          //
-          // NOTE: we are temporarily disabling format validation
-          // because it's way too strict
-        },
-        description: "be a Quarto YAML front matter object",
-      }),
+      allOfS(
+        objectS({
+          properties: {
+            title: StringS,
+            execute: getFormatExecuteOptionsSchema(),
+            format: (await getFrontMatterFormatSchema()),
+            //
+            // NOTE: we are temporarily disabling format validation
+            // because it's way too strict
+          },
+          description: "be a Quarto YAML front matter object",
+        }),
+        getFormatExecuteGlobalOptionsSchema(),
+        getFormatExecuteCellOptionsSchema()
+      )
     ),
     "front-matter",
   );
