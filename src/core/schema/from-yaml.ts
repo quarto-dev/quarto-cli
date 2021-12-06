@@ -12,7 +12,8 @@ import { readAnnotatedYamlFromString } from "./annotated-yaml.ts";
 import { error } from "log/mod.ts";
 
 import {
-  Schema
+  Schema,
+  getSchemaDefinition
 } from "../lib/schema.ts";
 
 import {
@@ -62,77 +63,77 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
   return schema;
 }
 
-function convertFromNull(yaml: any, _dict: Record<string, Schema>): Schema
+function convertFromNull(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml, nullS);
 }
 
-function convertFromString(yaml: any, _dict: Record<string, Schema>): Schema
+function convertFromString(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml, stringS);
 }
 
-function convertFromPath(yaml: any, _dict: Record<string, Schema>): Schema
+function convertFromPath(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml, stringS);
 }
 
-function convertFromNumber(yaml: any, _dict: Record<string, Schema>): Schema
+function convertFromNumber(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml, numberS);
 }
 
-function convertFromBoolean(yaml: any, _dict: Record<string, Schema>): Schema
+function convertFromBoolean(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml, booleanS);
 }
 
-function convertFromRef(yaml: any, _dict: Record<string, Schema>): Schema
+function convertFromRef(yaml: any): Schema
 {
   return refS(yaml.ref, yaml.description || "");
 }
 
-function convertFromMaybeArrayOf(yaml: any, dict: Record<string, Schema>): Schema
+function convertFromMaybeArrayOf(yaml: any): Schema
 {
-  const schema = convertFromYaml(yaml.maybeArrayOf, dict);
+  const schema = convertFromYaml(yaml.maybeArrayOf);
   return oneOfS(schema, arrayOfS(schema));
 };
 
-function convertFromArrayOf(yaml: any, dict: Record<string, Schema>): Schema
+function convertFromArrayOf(yaml: any): Schema
 {
   const schema = yaml.arrayOf;
   if (schema.schema) {
-    let result = arrayOfS(convertFromYaml(schema.schema, dict));
+    let result = arrayOfS(convertFromYaml(schema.schema));
     return setBaseSchemaProperties(schema, result);
   } else {
-    return arrayOfS(convertFromYaml(schema, dict));
+    return arrayOfS(convertFromYaml(schema));
   }
 };
 
-function convertFromOneOf(yaml: any, dict: Record<string, Schema>): Schema
+function convertFromOneOf(yaml: any): Schema
 {
   const schema = yaml.oneOf;
   if (schema.schemas) {
-    let inner = schema.schemas.map((x: any) => convertFromYaml(x, dict));
+    let inner = schema.schemas.map((x: any) => convertFromYaml(x));
     let result = oneOfS(...inner);
     return setBaseSchemaProperties(schema, result);
   } else {
-    return oneOfS(...schema.map((x: any) => convertFromYaml(x, dict)));
+    return oneOfS(...schema.map((x: any) => convertFromYaml(x)));
   }
 };
 
-function convertFromAnyOf(yaml: any, dict: Record<string, Schema>): Schema
+function convertFromAnyOf(yaml: any): Schema
 {
   const schema = yaml.anyOf;
   if (schema.schemas) {
-    let result = anyOfS(...schema.schemas.map((x: any) => convertFromYaml(x, dict)));
+    let result = anyOfS(...schema.schemas.map((x: any) => convertFromYaml(x)));
     return setBaseSchemaProperties(schema, result);
   } else {
-    return anyOfS(...schema.map((x: any) => convertFromYaml(x, dict)));
+    return anyOfS(...schema.map((x: any) => convertFromYaml(x)));
   }
 };
 
-function convertFromEnum(yaml: any, _dict: Record<string, Schema>): Schema
+function convertFromEnum(yaml: any): Schema
 {
   const schema = yaml["enum"];
   // testing for the existence of "schema.values" doesn't work
@@ -145,19 +146,19 @@ function convertFromEnum(yaml: any, _dict: Record<string, Schema>): Schema
   }
 };
 
-function convertFromObject(yaml: any, dict: Record<string, Schema>): Schema
+function convertFromObject(yaml: any): Schema
 {
   const schema = yaml["object"];
   const params: Record<string, any> = {};
   if (schema.properties) {
     params.properties = Object.fromEntries(
       Object.entries(schema.properties)
-        .map(([key, value]) => [key, convertFromYaml(value, dict)]));
+        .map(([key, value]) => [key, convertFromYaml(value)]));
   }
   if (schema.patternProperties) {
     params.patternProperties = Object.fromEntries(
       Object.entries(schema.properties)
-        .map(([key, value]) => [key, convertFromYaml(value, dict)]));
+        .map(([key, value]) => [key, convertFromYaml(value)]));
   }
   if (schema.additionalProperties !== undefined) {
     // we special-case `false` here because as a schema, `false` means
@@ -166,11 +167,11 @@ function convertFromObject(yaml: any, dict: Record<string, Schema>): Schema
       params.additionalProperties = false;
     } else {
       params.additionalProperties = convertFromYaml(
-        schema.additionalProperties, dict);
+        schema.additionalProperties);
     }
   }
   if (schema["super"]) {
-    params.baseSchema = convertFromYaml(schema["super"], dict);
+    params.baseSchema = convertFromYaml(schema["super"]);
   }
   if (schema["required"] === "all") {
     params.required = Object.keys(schema.properties || {});
@@ -184,18 +185,17 @@ function convertFromObject(yaml: any, dict: Record<string, Schema>): Schema
   return setBaseSchemaProperties(schema, objectS(params));
 };
 
-function lookup(yaml: any, dict: Record<string, Schema>): Schema
+function lookup(yaml: any): Schema
 {
-  if (dict[yaml.resolveRef] === undefined) {
-    throw new Error(`lookup of key ${yaml.resolveRef} failed`);
+  const result = getSchemaDefinition(yaml.resolveRef);
+  if (result === undefined) {
+    throw new Error(`lookup of key ${yaml.resolveRef} in definitions failed`);
   }
-  return dict[yaml.resolveRef];
+  return result;
 }
 
-export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schema
+export function convertFromYaml(yaml: any): Schema
 {
-  dict = dict ?? {};
-
   // literals
   const literalValues = [
     ["object", objectS()],
@@ -224,7 +224,7 @@ export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schem
   // object key checks:
   interface KV {
     key: string,
-    value: (yaml: any, lookup: Record<string, Schema>) => Schema
+    value: (yaml: any) => Schema
   }
   const schemaObjectKeyFunctions: KV[] = [
     { key: "anyOf", value: convertFromAnyOf },
@@ -244,7 +244,7 @@ export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schem
   for (const { key: objectKey, value: fun } of schemaObjectKeyFunctions) {
     try {
       if (yaml[objectKey as string] !== undefined) {
-        return fun(yaml, dict);
+        return fun(yaml);
       }
     } catch (e) {
       error({yaml});
@@ -260,5 +260,5 @@ export function convertFromYAMLString(src: string)
 {
   const yaml = readAnnotatedYamlFromString(src);
   
-  return convertFromYaml(yaml, {});
+  return convertFromYaml(yaml);
 }

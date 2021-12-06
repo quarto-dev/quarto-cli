@@ -11,7 +11,7 @@ import { convertFromYaml } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import { readYaml } from "../yaml.ts";
 import { ensureAjv } from "./yaml-schema.ts";
-import { normalizeSchema } from "../lib/schema.ts";
+import { normalizeSchema, Schema, setSchemaDefinition } from "../lib/schema.ts";
 
 export function loadDefaultSchemaDefinitions()
 {
@@ -20,12 +20,13 @@ export function loadDefaultSchemaDefinitions()
 
 export async function loadSchemaDefinitions(file: string)
 {
-  let yaml = readYaml(file) as Record<string, any>;
+  let yaml = readYaml(file) as any[];
+
   await ensureAjv();
-  await Promise.all(Object.entries(yaml).map(async ([name, yamlSchema]) => {
-    const schema = normalizeSchema(idSchema(convertFromYaml(yamlSchema), name));
+  await Promise.all(yaml.map(async (yamlSchema) => {
+    const schema = normalizeSchema(convertFromYaml(yamlSchema));
     await withValidator(schema, (_validator) => {
-      return;
+      setSchemaDefinition(schema);
     });
   }));
 }

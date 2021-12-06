@@ -15,14 +15,14 @@ import { readYaml } from "../yaml.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
 import { idSchema } from "./common.ts";
-import { normalizeSchema, Schema } from "../lib/schema.ts";
+import { normalizeSchema, Schema, setSchemaDefinition, getSchemaDefinitionsObject } from "../lib/schema.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 
 export async function buildSchemaFile(resourceDir: string) {
-  let yamlDefinitions = readYaml(resourcePath("/schema/definitions.yml")) as Record<string, any>;
-  const defObj: Record<string, Schema> = {};
-  for (const [name, yamlSchema] of Object.entries(yamlDefinitions)) {
-    defObj[name] = normalizeSchema(idSchema(convertFromYaml(yamlSchema), name));
+  let yamlDefinitions = readYaml(resourcePath("/schema/definitions.yml")) as any[];
+  for (const yamlSchema of yamlDefinitions) {
+    const schema = normalizeSchema(convertFromYaml(yamlSchema));
+    setSchemaDefinition(schema);
   }
   const obj = {
     schemas: {
@@ -30,7 +30,7 @@ export async function buildSchemaFile(resourceDir: string) {
       "config": await getConfigSchema(),
       "languages": await getLanguageOptionsSchema(),
     },
-    definitions: defObj
+    definitions: getSchemaDefinitionsObject()
   };
   const str = JSON.stringify(obj, null, 2);
   const path = join(resourceDir, "/editor/tools/yaml/quarto-json-schemas.json");

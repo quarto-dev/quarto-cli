@@ -185,3 +185,22 @@ export function normalizeSchema(schema: Schema): Schema {
 
   return result;
 }
+
+const definitionsObject: Record<string, Schema> = {};
+
+export function getSchemaDefinition(key: string): Schema | undefined
+{
+  return definitionsObject[key];
+}
+
+export function setSchemaDefinition(schema: Schema)
+{
+  if (definitionsObject[schema.$id] === undefined) {
+    definitionsObject[schema.$id] = schema;
+  }
+}
+
+export function getSchemaDefinitionsObject(): Record<string, Schema>
+{
+  return Object.assign({}, definitionsObject);
+}

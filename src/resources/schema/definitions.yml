@@ -1,36 +1,39 @@
-math-methods:
-  enum:
+- enum:
+    id: math-methods
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
 
-pandoc-format-request-headers:
-  arrayOf:
-    arrayOf:
-      schema: string
-      length: 2
+- arrayOf:
+    id: pandoc-format-request-headers
+    schema:
+      arrayOf:
+        schema: string
+        length: 2
 
-pandoc-format-output-file:
-  oneOf:
-    - path
-    - "null":
-        hidden: true
-
-pandoc-format-filters:
-  arrayOf:
-    oneOf:
+- oneOf:
+    id: pandoc-format-output-file
+    schemas:
       - path
-      - object:
-          properties:
-            type: string
-            path: path
-          required: [type, path]
-      - object:
-          properties:
-            type:
-              enum: [citeproc]
-          required: [type]
+      - "null":
+          hidden: true
 
-page-column:
-  enum:
+- arrayOf:
+    id: pandoc-format-filters
+    schema:
+      oneOf:
+        - path
+        - object:
+            properties:
+              type: string
+              path: path
+            required: [type, path]
+        - object:
+            properties:
+              type:
+                enum: [citeproc]
+            required: [type]
+
+- enum:
+    id: page-column
     values:
       [
         body,
@@ -51,8 +54,8 @@ page-column:
         margin,
       ]
 
-navigation-item:
-  object:
+- object:
+    id: navigation-item
     properties:
       href:
         string:
@@ -78,8 +81,8 @@ navigation-item:
             ref: navigation-item
     additionalProperties: false
 
-social-metadata:
-  object:
+- object:
+    id: social-metadata
     properties:
       title:
         string:
@@ -112,8 +115,8 @@ social-metadata:
         number:
           description: "Image height (pixels)"
 
-base-website:
-  object:
+- object:
+    id: base-website
     properties:
       title:
         string:
@@ -190,17 +193,18 @@ base-website:
               additionalProperties: false
         description: "Publish twitter card metadata"
 
-chapter-list:
-  arrayOf:
-    oneOf:
-      - path
-      - object:
-          properties:
-            part:
-              path:
-                description: "Path to part input file"
-            chapters:
-              arrayOf: path
-              description: "Path to chapter input file"
-          required: [part, chapter]
-          additionalProperties: false
+- arrayOf:
+    id: chapter-list
+    schema:
+      oneOf:
+        - path
+        - object:
+            properties:
+              part:
+                path:
+                  description: "Path to part input file"
+              chapters:
+                arrayOf: path
+                description: "Path to chapter input file"
+            required: [part, chapter]
+            additionalProperties: false
