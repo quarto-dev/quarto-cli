@@ -74,8 +74,8 @@ navigation-item:
           description: "Accessible label for the navigation item."
       menu:
         arrayOf:
-          schema:
-            ref: navigation-item
+          ref: navigation-item
+          description: "Menu items"
     additionalProperties: false
 
 social-metadata:
