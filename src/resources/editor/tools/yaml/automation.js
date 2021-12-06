@@ -586,7 +586,7 @@ async function initAutomation(path)
   let schemaDefs = (await getSchemas()).definitions;
   for (const [_key, value] of Object.entries(schemaDefs)) {
     await core.withValidator(value, async (_validator) => {
-      return;
+      core.setSchemaDefinition(value);
     });
   }
 
