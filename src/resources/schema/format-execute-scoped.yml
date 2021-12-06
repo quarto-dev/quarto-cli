@@ -10,24 +10,24 @@
   schema:
     anyOf:
       - enum: [refresh]
-      - booleanS
-   default: false
-   description: 
-     short: "Cache results of computations."  
-     long: |
-       Cache results of computations (using the [knitr cache](https://yihui.org/knitr/demo/cache/) 
-       for R documents, and [Jupyter Cache](https://jupyter-cache.readthedocs.io/en/latest/) 
-       for Jupyter documents).
-
-       Note that cache invalidation is triggered by changes in chunk source code 
-       (or other cache attributes you've defined). Use `refresh` to force a refresh
-       of the cache even if has not been otherwise invalidated.
+      - boolean
+  default: false
+  description: 
+    short: "Cache results of computations."  
+    long: |
+      Cache results of computations (using the [knitr cache](https://yihui.org/knitr/demo/cache/) 
+      for R documents, and [Jupyter Cache](https://jupyter-cache.readthedocs.io/en/latest/) 
+      for Jupyter documents).
+      
+      Note that cache invalidation is triggered by changes in chunk source code 
+      (or other cache attributes you've defined). Use `refresh` to force a refresh
+      of the cache even if has not been otherwise invalidated.
 
 - name: freeze
   schema:
     anyOf:
       - enum: [auto]
-      - booleanS
+      - boolean
   default: false
   description:
     short: "Re-use previous computational output when rendering"
@@ -56,7 +56,7 @@
 - name: daemon-restart
   schema: boolean
   hidden: true
-  default :false
+  default: false
   description: "Restart any running Jupyter daemon before rendering."
 
 - name: enabled

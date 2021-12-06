@@ -33,6 +33,7 @@ import {
   completeSchema,
   completeSchemaOverwrite,
   valueSchema,
+  regexSchema
 } from "./common.ts";
 
 function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
@@ -59,33 +60,43 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
     }
   }
   
-  // FIXME handle hidden here
-  return schema;
+  // make shallow copy so that downstream can assign to it
+  const result = Object.assign({}, schema);
+  
+  return result;
 }
 
 function convertFromNull(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, nullS);
+  return setBaseSchemaProperties(yaml["null"], nullS);
+}
+
+function convertFromSchema(yaml: any): Schema
+{
+  const schema = convertFromYaml(yaml.schema);
+  return setBaseSchemaProperties(yaml, schema);
 }
 
 function convertFromString(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, stringS);
+  yaml = yaml["string"];
+  const schema = yaml.pattern ? regexSchema(yaml.pattern) : stringS;
+  return setBaseSchemaProperties(yaml, schema);
 }
 
 function convertFromPath(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, stringS);
+  return setBaseSchemaProperties(yaml["path"], stringS);
 }
 
 function convertFromNumber(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, numberS);
+  return setBaseSchemaProperties(yaml["number"], numberS);
 }
 
 function convertFromBoolean(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, booleanS);
+  return setBaseSchemaProperties(yaml["boolean"], booleanS);
 }
 
 function convertFromRef(yaml: any): Schema
@@ -240,6 +251,7 @@ export function convertFromYaml(yaml: any): Schema
     { key: "ref", value: convertFromRef },
     { key: "resolveRef", value: lookup },
     { key: "string", value: convertFromString },
+    { key: "schema", value: convertFromSchema },
   ];
   for (const { key: objectKey, value: fun } of schemaObjectKeyFunctions) {
     try {
@@ -261,4 +273,16 @@ export function convertFromYAMLString(src: string)
   const yaml = readAnnotatedYamlFromString(src);
   
   return convertFromYaml(yaml);
+}
+
+export function convertFromFieldsObject(yaml: any[], obj?: Record<string, Schema>): Record<string, Schema>
+{
+  const result = obj ?? {};
+
+  for (const field of yaml) {
+    const schema = convertFromYaml(field.schema);
+    result[field.name] = schema;
+  }
+
+  return result;
 }

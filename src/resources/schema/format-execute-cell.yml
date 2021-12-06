@@ -7,7 +7,7 @@
   schema:
     anyOf:
       - enum: [fenced]
-      - booleanS
+      - boolean
   description: |
     Include cell source code in rendered output.
 
@@ -15,7 +15,7 @@
   schema:
     anyOf:
       - enum: [asis]
-      - booleanS
+      - boolean
   description:
     Include the results of executing the code in the output (specify `asis` to
     treat output as raw markdown with no enclosing containers).
