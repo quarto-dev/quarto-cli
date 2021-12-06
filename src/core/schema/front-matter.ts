@@ -8,36 +8,26 @@
 */
 
 import {
+  allOfSchema as allOfS,
+  completeSchema,
   describeSchema,
-  enumSchema as enumS,
   idSchema as withId,
   NullSchema as nullS,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
-  allOfSchema as allOfS,
-  anyOfSchema as anyOfS,
-  StringSchema as StringS,
   regexSchema as regexS,
-  completeSchema
 } from "./common.ts";
 
-import {
-  resourcePath
-} from "../resources.ts";
+import { resourcePath } from "../resources.ts";
+
+import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
+
+import { normalizeSchema, Schema } from "../lib/schema.ts";
 
 import {
-  objectSchemaFromFieldsFile
-} from "./from-yaml.ts";
-
-import {
-  Schema,
-  normalizeSchema
-} from "../lib/schema.ts";
-
-import {
-  getFormatExecuteOptionsSchema,
-  getFormatExecuteGlobalOptionsSchema,
   getFormatExecuteCellOptionsSchema,
+  getFormatExecuteGlobalOptionsSchema,
+  getFormatExecuteOptionsSchema,
 } from "./execute.ts";
 
 import { getFormatSchema } from "./format-schemas.ts";
@@ -46,9 +36,10 @@ import { pandocOutputFormats } from "./pandoc-output-formats.ts";
 const schemaCache: Record<string, Schema> = {};
 const schemaCacheNormalized: Record<string, Schema> = {};
 
-function cacheSchemaFunction(name: string, maker: () => Promise<Schema>):
-((normalized?: boolean) => Promise<Schema>)
-{
+function cacheSchemaFunction(
+  name: string,
+  maker: () => Promise<Schema>,
+): ((normalized?: boolean) => Promise<Schema>) {
   const getter = async (normalized?: boolean) => {
     if (normalized) {
       if (schemaCacheNormalized[name]) {
@@ -65,55 +56,62 @@ function cacheSchemaFunction(name: string, maker: () => Promise<Schema>):
       schemaCache[name] = schema;
       return schema;
     }
-  }
+  };
   return getter;
 }
 
-export async function makeFrontMatterFormatSchema()
-{
+export async function makeFrontMatterFormatSchema() {
   const formatSchemaDescriptorList = await Promise.all(
     pandocOutputFormats.map(async (x) => {
       return {
         regex: `^${x}(\\+.+)?$`,
         schema: await getFormatSchema(x),
-        name: x
+        name: x,
       };
-    }));
-  const formatSchemas =
-    formatSchemaDescriptorList.map(
-      ({ regex, schema }) => [regex, schema]);
-  const plusFormatStringSchemas =
-    formatSchemaDescriptorList.map(
-      ({ regex, name }) => completeSchema(
+    }),
+  );
+  const formatSchemas = formatSchemaDescriptorList.map(
+    ({ regex, schema }) => [regex, schema],
+  );
+  const plusFormatStringSchemas = formatSchemaDescriptorList.map(
+    ({ regex, name }) =>
+      completeSchema(
         regexS(regex, `be '${name}'`),
         {
           type: "value",
           display: name,
           suggest_on_accept: true,
           value: name,
-          description: name
-        }));
-  const completionsObject =
-    Object.fromEntries(formatSchemaDescriptorList.map(
-      ({ name }) => [name, name]));
-  
+          description: name,
+        },
+      ),
+  );
+  const completionsObject = Object.fromEntries(formatSchemaDescriptorList.map(
+    ({ name }) => [name, name],
+  ));
+
   return oneOfS(
-    describeSchema(oneOfS(...plusFormatStringSchemas), "the name of a pandoc-supported output format"),
+    describeSchema(
+      oneOfS(...plusFormatStringSchemas),
+      "the name of a pandoc-supported output format",
+    ),
     regexS("^hugo(\\+.+)?$", "be 'hugo'"),
     allOfS(
       objectSchemaFromFieldsFile(resourcePath("schema/format-metadata.yml")),
       objectS({
         patternProperties: Object.fromEntries(formatSchemas),
         completions: completionsObject,
-        additionalProperties: false
-      }))
+        additionalProperties: false,
+      }),
+    ),
   );
 }
 export const getFrontMatterFormatSchema = cacheSchemaFunction(
-  "front-matter-format", makeFrontMatterFormatSchema);
+  "front-matter-format",
+  makeFrontMatterFormatSchema,
+);
 
-export async function makeFrontMatterSchema()
-{
+export async function makeFrontMatterSchema() {
   return withId(
     oneOfS(
       nullS,
@@ -130,12 +128,13 @@ export async function makeFrontMatterSchema()
         }),
         objectSchemaFromFieldsFile(resourcePath("schema/format-metadata.yml")),
         getFormatExecuteGlobalOptionsSchema(),
-        getFormatExecuteCellOptionsSchema()
-      )
+        getFormatExecuteCellOptionsSchema(),
+      ),
     ),
     "front-matter",
   );
 }
 export const getFrontMatterSchema = cacheSchemaFunction(
-  "front-matter", makeFrontMatterSchema);
-
+  "front-matter",
+  makeFrontMatterSchema,
+);
