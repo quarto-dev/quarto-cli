@@ -8,9 +8,7 @@
 
 - name: author
   schema:
-    oneOf:
-      - string
-      - arrayOf: string
+    maybeArrayOf: string
   description: "Author or authors of the document"
 
 - name: date
@@ -53,9 +51,7 @@
 
 - name: keywords
   schema:
-    oneOf:
-      - string
-      - arrayOf: string
+    maybeArrayOf: string
   enabled: [$asciidoc-all, $html-file, $pdf-all, context]
   description: "List of keywords to be included in the document metadata."
 
@@ -1202,36 +1198,38 @@
 - name: comments
   schema:
     object:
+      additionalProperties: false
       properties:
         utterances:
-          properties:
-            repo:
-              string:
-                description: The Github repo that will be used to store comments.
-            label:
-              string:
-                description: The label that will be assigned to issues created by Utterances.
-            theme:
-              string:
-                description: The Github theme that should be used for Utterances.
-                completions:
-                  - github-light
-                  - github-dark
-                  - github-dark-orange
-                  - icy-dark
-                  - dark-blue
-                  - photon-dark
-                  - body-light
-                  - gruvbox-dark
-              issue-term:
+          object:
+            properties:
+              repo:
                 string:
-                  description: How posts should be mapped to Github issues.
+                  description: The Github repo that will be used to store comments.
+              label:
+                string:
+                  description: The label that will be assigned to issues created by Utterances.
+              theme:
+                string:
+                  description: The Github theme that should be used for Utterances.
                   completions:
-                    - pathname
-                    - url
-                    - title
-                    - og:title
-          required: [repo]
+                    - github-light
+                    - github-dark
+                    - github-dark-orange
+                    - icy-dark
+                    - dark-blue
+                    - photon-dark
+                    - body-light
+                    - gruvbox-dark
+                issue-term:
+                  string:
+                    description: How posts should be mapped to Github issues.
+                    completions:
+                      - pathname
+                      - url
+                      - title
+                      - og:title
+            required: [repo]
         hypothesis:
           oneOf:
             - boolean
@@ -1350,4 +1348,323 @@
                     string:
                       description: The URL for the sidebar application which displays annotations.
                       default: "https://hypothes.is/app.html"
-#TODO Pandoc EPUB variables?
+
+- name: minimal
+  schema: boolean
+  default: false
+  enabled: [html-doc]
+  description: Disables the built in html features like theming, anchor sections, code block behavior, and more.
+
+- name: number-sections
+  schema: boolean
+  default: true
+  enabled: [pdf-all, context, docx, html-all, ms]
+  description:
+    short: Whether to number headings.
+    long: |
+      Whether to number headings. Sections with the class `unnumbered` 
+      will never be numbered, even when `number-sections` is set to true.
+
+- name: number-depth
+  schema: number
+  enabled: [html-all, pdf-all, docx]
+  description:
+    short: The depth to which sections should be numbered.
+    long: |
+      By default, all headings in your document create a 
+      numbered section. You customize numbering depth using 
+      the `number-depth` option. 
+
+      For example, to only number sections immediately below 
+      the chapter level, use this:
+
+      ```yaml  
+      number-depth: 1
+      ```
+
+- name: crossref
+  schema:
+    object:
+      properties:
+        chapters:
+          boolean:
+            description: Use top level sections (H1) in this document as chapters.
+            default: false
+        title-delim:
+          string:
+            description: The delimiter used between the prefix and the caption.
+        fig-title:
+          string:
+            description: The title prefix used for figure captions.
+        tbl-title:
+          string:
+            description: The title prefix used for table captions.
+        eq-title:
+          string:
+            description: The title prefix used for equation captions.
+        lst-title:
+          string:
+            description: The title prefix used for listing captions.
+        thm-title:
+          string:
+            description: The title prefix used for theorem captions.
+        lem-title:
+          string:
+            description: The title prefix used for lemma captions.
+        cor-title:
+          string:
+            description: The title prefix used for corollary captions.
+        prp-title:
+          string:
+            description: The title prefix used for proposition captions.
+        cnj-title:
+          string:
+            description: The title prefix used for conjecture captions.
+        def-title:
+          string:
+            description: The title prefix used for definition captions.
+        exm-title:
+          string:
+            description: The title prefix used for example captions.
+        exr-title:
+          string:
+            description: The title prefix used for exercise captions.
+        fig-prefix:
+          string:
+            description: The prefix used for an inline reference to a figure.
+        tbl-prefix:
+          string:
+            description: The prefix used for an inline reference to a table.
+        eq-prefix:
+          string:
+            description: The prefix used for an inline reference to an equation.
+        sec-prefix:
+          string:
+            description: The prefix used for an inline reference to a section.
+        lst-prefix:
+          string:
+            description: The prefix used for an inline reference to a listing.
+        thm-prefix:
+          string:
+            description: The prefix used for an inline reference to a theorem.
+        lem-prefix:
+          string:
+            description: The prefix used for an inline reference to a lemma.
+        cor-prefix:
+          string:
+            description: The prefix used for an inline reference to a corollary.
+        prp-prefix:
+          string:
+            description: The prefix used for an inline reference to a proposition.
+        cnj-prefix:
+          string:
+            description: The prefix used for an inline reference to a conjecture.
+        def-prefix:
+          string:
+            description: The prefix used for an inline reference to a definition.
+        exm-prefix:
+          string:
+            description: The prefix used for an inline reference to an example.
+        exr-prefix:
+          string:
+            description: The prefix used for an inline reference to an exercise.
+
+        fig-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for figures.
+
+        tbl-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for tables.
+
+        eq-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for equations.
+
+        sec-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for sections.
+
+        lst-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for listings.
+
+        thm-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for theorems.
+
+        lem-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for lemmas.
+
+        cor-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for corollaries.
+
+        prp-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for propositions.
+
+        cnj-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for conjectures.
+
+        def-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for definitions.
+
+        exm-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for examples.
+
+        exr-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for exercises.
+
+        lof-title:
+          string:
+            description: The title used for the list of figures.
+
+        lot-title:
+          string:
+            description: The title used for the list of tables.
+
+        lol-title:
+          string:
+            description: The title used for the list of listings.
+
+        labels:
+          ref: crossref-labels-schema
+          description: The number scheme used for references.
+
+        subref-labels:
+          ref: crossref-labels-schema
+          description: The number scheme used for sub references.
+
+        ref-hyperlink:
+          boolean:
+            default: true
+            description: Whether cross references should be hyper-linked.
+
+- name: resources
+  schema:
+    maybeArrayOf: string
+  enabled: [html-all]
+  description: Path (or glob) to files to publish with this document.
+
+
+- name: identifier
+  enabled: [epub-all]
+  schema: 
+    oneOf:
+      - string
+      - object:
+        properties:
+          text:
+            string:
+              description: The identifier value.
+          scheme:
+            enum: ['ISBN-10'. 'GTIN-13', 'UPC', 
+              'ISMN-10', 'DOI', 'LCCN', 'GTIN-14', 
+              'ISBN-13', 'Legal deposit number', 'URN', 
+              'OCLC', 'ISMN-13', 'ISBN-A', 'JP', OLCC
+              ]
+            description: The identifier scheme.
+  description: The identifier for this publication.
+
+- name: creator
+  enabled: [epub-all]
+  schema:
+    ref: epub-contributor
+  description: Creators of this publication.
+
+- name: contributor
+  enabled: [epub-all]
+  schema:
+    ref: epub-contributor
+  description: Contributors to this publication.
+
+- name: subject
+  enabled: [epub-all]
+  schema:
+    oneOf:
+      - string
+      - object:
+        properties:
+          text:
+            string:
+              description: The subject text.
+          authority:
+            string:
+              description: An EPUB reserved authority value.
+          term:
+            string:
+              description: The subject term (defined by the schema).
+  description: The subject of the publication.
+
+- name: type
+  enabled: [epub-all]
+  schema: string
+  description: 
+    short: Text describing the specialized type of this publication.
+    long: |
+    Text describing the specialized type of this publication.
+
+    An informative registry of specialized EPUB Publication 
+    types for use with this element is maintained in the 
+    [TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), 
+    but Authors may use any text string as a value.
+
+- name: format
+  enabled: [epub-all]
+  schema: string
+  description: Text describing the format of this publication.
+
+- name: relation
+  enabled: [epub-all]
+  schema: string
+  description: Text describing the relation of this publication.
+
+- name: coverage
+  enabled: [epub-all]
+  schema: string
+  description: Text describing the coverage of this publication.
+
+- name: rights
+  enabled: [epub-all]
+  schema: string
+  description: Text describing the rights of this publication.
+  
+- name: belongs-to-collection
+  enabled: [epub-all]
+  schema: string
+  description: Identifies the name of a collection to which the EPUB Publication belongs.
+
+- name: group-position
+  enabled: [epub-all]
+  schema: number
+  description: | 
+    Indicates the numeric position in which this publication 
+    belongs relative to other works belonging to the same 
+    `belongs-to-collection` field.
+
+- name: page-progression-direction
+  enabled: [epub-all]
+  schema: 
+    enum: [ltr, rtl]
+  description: Sets the global direction in which content flows.
+
+- name: ibooks
+  enabled: [epub-all]
+  schema: 
+    object:
+      properties:
+        version:
+          string:
+            description: What is new in this version of the book.
+        specified-fonts:
+          boolean:
+            description: Whether this book provides embedded fonts in a flowing or fixed layout book.
+        scroll-axis:
+          enum: [vertical, horizontal, default]
+          description: The scroll direction for this book.

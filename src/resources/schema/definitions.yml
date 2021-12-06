@@ -208,3 +208,11 @@
                 description: "Path to chapter input file"
             required: [part, chapter]
             additionalProperties: false
+
+crossref-labels-schema:
+  string:
+    completions:
+      - alpha
+      - arabic
+      - roman
+      
