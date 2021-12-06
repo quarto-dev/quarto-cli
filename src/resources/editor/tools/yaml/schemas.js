@@ -84,10 +84,11 @@ export function navigateSchema(schema, path) {
     } else if (st === "anyOf") {
       return subSchema.anyOf.map((ss) => inner(ss, index));
     } else if (st === "allOf") {
-      // FIXME
-      throw new Error(
-        "Internal error: don't know how to navigate allOf schema :(",
-      );
+      return subSchema.allOf.map((ss) => inner(ss, index));
+      // // FIXME
+      // throw new Error(
+      //   "Internal error: don't know how to navigate allOf schema :(",
+      // );
     } else if (st === "oneOf") {
       const result = subSchema.oneOf.map((ss) => inner(ss, index)).flat(
         Infinity,

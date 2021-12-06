@@ -101,7 +101,7 @@ export function schemaCompletions(schema: Schema): Completion[] {
       return schema.anyOf.map(schemaCompletions).flat();
     case "oneOf":
       return schema.oneOf.map(schemaCompletions).flat();
-    case "allOf": // FIXME this should be cleverer and keep only the intersection
+    case "allOf":
       return schema.allOf.map(schemaCompletions).flat();
     default:
       return [];
