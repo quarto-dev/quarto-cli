@@ -163,6 +163,10 @@ function navigateSchema(
     const key = Number(path[pathIndex + 1]);
     const subSchema = schema.anyOf[key];
     return navigateSchema(path, subSchema, pathIndex + 2);
+  } else if (pathVal === "allOf") {
+    const key = Number(path[pathIndex + 1]);
+    const subSchema = schema.allOf[key];
+    return navigateSchema(path, subSchema, pathIndex + 2);
   } else if (pathVal === "oneOf") {
     const key = Number(path[pathIndex + 1]);
     const subSchema = schema.oneOf[key];
