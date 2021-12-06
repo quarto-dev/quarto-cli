@@ -24,7 +24,7 @@
             description: "HTML library (JS/CSS/etc.) directory"
         resources:
           arrayOf:
-            schama: path
+            schema: path
             description: "Additional file resources to be copied to output directory"
 
 - name: website
