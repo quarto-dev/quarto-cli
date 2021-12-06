@@ -73,11 +73,13 @@
               Download buttons for other formats to include on navbar or sidebar
         tools:
           arrayOf:
-            ref: navigation-item
+            schema:
+              ref: navigation-item
             description: "Custom tools for navbar or sidebar"
         chapters:
           arrayOf:
-            ref: chapter-list
+            schema:
+              ref: chapter-list
             description: "Book part and chapter files"
         references:
           path:
