@@ -355,5 +355,12 @@
 - name: purl
   schema: boolean
   default: true
-  description: "Include chunk when extracting code with `knitr::purl()`
+  description: "Include chunk when extracting code with `knitr::purl()`"
 
+- name: code
+  schema: string
+  description: "String containing code to execute for this chunk"
+
+- name: file
+  schema: path
+  description: "File containing code to execute for this chunk"
