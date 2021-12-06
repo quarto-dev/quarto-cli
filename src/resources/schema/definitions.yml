@@ -273,3 +273,5 @@
       - arabic
       - roman
       
+- string:
+    id: epub-contributor
