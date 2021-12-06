@@ -68,28 +68,35 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
 
 function convertFromNull(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, nullS);
+  return setBaseSchemaProperties(yaml["null"], nullS);
+}
+
+function convertFromSchema(yaml: any): Schema
+{
+  const schema = convertFromYaml(yaml.schema);
+  return setBaseSchemaProperties(yaml, schema);
 }
 
 function convertFromString(yaml: any): Schema
 {
+  yaml = yaml["string"];
   const schema = yaml.pattern ? regexSchema(yaml.pattern) : stringS;
   return setBaseSchemaProperties(yaml, schema);
 }
 
 function convertFromPath(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, stringS);
+  return setBaseSchemaProperties(yaml["path"], stringS);
 }
 
 function convertFromNumber(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, numberS);
+  return setBaseSchemaProperties(yaml["number"], numberS);
 }
 
 function convertFromBoolean(yaml: any): Schema
 {
-  return setBaseSchemaProperties(yaml, booleanS);
+  return setBaseSchemaProperties(yaml["boolean"], booleanS);
 }
 
 function convertFromRef(yaml: any): Schema
@@ -244,6 +251,7 @@ export function convertFromYaml(yaml: any): Schema
     { key: "ref", value: convertFromRef },
     { key: "resolveRef", value: lookup },
     { key: "string", value: convertFromString },
+    { key: "schema", value: convertFromSchema },
   ];
   for (const { key: objectKey, value: fun } of schemaObjectKeyFunctions) {
     try {
