@@ -1,6 +1,3 @@
-
-
-
 - name: fig-width
   schema: number
   description: "Default width for figures"
@@ -18,10 +15,9 @@
   schema: number
   description: "Default DPI for figures"
 
-
 - name: out-width
   schema: string
-  description: 
+  description:
     short: "Width of plot in the output document"
     long: |
       Width of the plot in the output document, which can be different from its physical `fig-width`,
@@ -32,7 +28,7 @@
 
 - name: out-height
   schema: string
-  description: 
+  description:
     short: "Height of plot in the output document"
     long: |
       Height of the plot in the output document, which can be different from its physical `fig-height`, 
@@ -47,7 +43,7 @@
       - enum: [markup, asis, hold, hide]
       - false
   default: markup
-  description: 
+  description:
     short: "How to display text results"
     long: |
       How to display text results. Note that this option only applies to normal text output (not warnings,
@@ -67,28 +63,28 @@
         In this case, `results: markup` means to put the text output in fenced
         code blocks (```` ``` ````).
 
-    - `asis`: Write text output as-is, i.e., write the raw text results
-      directly into the output document without any markups.
+      - `asis`: Write text output as-is, i.e., write the raw text results
+        directly into the output document without any markups.
 
-      ```` md
-      ```{r}
-      #| results: asis
-      cat("I'm raw **Markdown** content.\n")
-      ```
-      ````
+        ```` md
+        ```{r}
+        #| results: asis
+        cat("I'm raw **Markdown** content.\n")
+        ```
+        ````
 
-    - `hold`: Hold all pieces of text output in a chunk and flush them to the
-      end of the chunk.
+      - `hold`: Hold all pieces of text output in a chunk and flush them to the
+        end of the chunk.
 
-    - `hide` (or `false`): Hide text output.
-  
+      - `hide` (or `false`): Hide text output.
+
 - name: tidy
   schema: boolean
   default: false
   description: "Whether to reformat R code."
 
 - name: tidy-opts
-  schema: 
+  schema:
     arrayOf: string
   description: "List of options to pass to `tidy` handler"
 
@@ -96,8 +92,8 @@
   schema: boolean
   default: false
   description: |
-    Collapse all the source and output blocks from one code chunk into a single block 
-  
+    Collapse all the source and output blocks from one code chunk into a single block
+
 - name: prompt
   schema: boolean
   default: false
@@ -109,7 +105,7 @@
       that adding prompts can make it difficult for readers to copy R code from
       the output, so `prompt: false` may be a better choice. This option may not
       work well when the `engine` is not `R`
-      ([#1274](https://github.com/yihui/knitr/issues/1274)).      
+      ([#1274](https://github.com/yihui/knitr/issues/1274)).
 
 - name: comment
   schema: string
@@ -123,7 +119,7 @@
       can select and copy everything from the chunk, since the text output is
       masked in comments (and will be ignored when running the copied text). Set
       `comment: ''` to remove the default `##`.
-      
+
 - name: highlight
   schema: boolean
   default: false
@@ -131,59 +127,59 @@
   description: "Whether to syntax highlight the source code"
 
 - name: class-source
-  schema: 
-     maybeArrayOf: string
+  schema:
+    maybeArrayOf: string
   description: "Class name(s) for source code blocks"
 
 - name: attr-source
-  schema: 
+  schema:
     maybeArrayOf: string
   description: "Attribute(s) for source code blocks"
 
 - name: class-output
-  schema: 
-     maybeArrayOf: string
+  schema:
+    maybeArrayOf: string
   description: "Class name(s) for text/console output"
 
 - name: attr-output
-  schema: 
+  schema:
     maybeArrayOf: string
   description: "Attribute(s) for text/console output"
 
 - name: class-warning
-  schema: 
-     maybeArrayOf: string
+  schema:
+    maybeArrayOf: string
   description: "Class name(s) for warning output"
 
 - name: attr-warning
-  schema: 
+  schema:
     maybeArrayOf: string
   description: "Attribute(s) for warning output"
 
 - name: class-message
-  schema: 
-     maybeArrayOf: string
+  schema:
+    maybeArrayOf: string
   description: "Class name(s) for message output"
 
 - name: attr-message
-  schema: 
+  schema:
     maybeArrayOf: string
   description: "Attribute(s) for message output"
 
 - name: class-error
-  schema: 
-     maybeArrayOf: string
+  schema:
+    maybeArrayOf: string
   description: "Class name(s) for error output"
 
 - name: attr-error
-  schema: 
+  schema:
     maybeArrayOf: string
   description: "Attribute(s) for error output"
 
 - name: cache
   schema: boolean
   default: false
-  description: 
+  description:
     short: "Whether to cache a code chunk."
     long: |
       Whether to cache a code chunk. When evaluating
@@ -205,7 +201,7 @@
     maybeArrayOf: string
   description:
     short: "Variable names to be saved in the cache database."
-    long: | 
+    long: |
       Variable names to be saved in
       the cache database. By default, all variables created in the current chunks
       are identified and saved, but you may want to manually specify the variables
@@ -214,11 +210,11 @@
 
 - name: cache-globals
   schema: string
-  description: 
+  description:
     short: "Variables names that are not created from the current chunk"
     long: |
       Variables names that are not created from the current chunk.
-      
+
       This option is mainly for `autodep: true` to work more precisely---a chunk
       `B` depends on chunk `A` when any of `B`'s global variables are `A`'s local 
       variables. In case the automatic detection of global variables in a chunk 
@@ -246,22 +242,21 @@
   default: true
   description: "Prevent comment changes from invalidating the cache for a chunk"
 
-
 - name: dependson
-  schema: 
+  schema:
     oneOf:
       - maybeArrayOf: string
       - maybeArrayOf: number
-  description: | 
+  description: |
     Explicitly specify cache dependencies for this chunk (one or more chunk labels)
 
 - name: autodep
   schema: boolean
   default: false
   description: "Detect cache dependencies automatically via usage of global variables"
- 
+
 - name: fig-keep
-  schema: 
+  schema:
     oneOf:
       enum: [high, none, all, first, last]
       maybeArrayOf: number
@@ -281,10 +276,10 @@
           to keep.
 
 - name: fig-show
-  schema: 
+  schema:
     enum: [asis, hold, animate, hide]
   default: asis
-  description: 
+  description:
     short: "How to show/arrange the plots"
     long: |
       How to show/arrange the plots. Possible values are as follows:
@@ -320,18 +315,18 @@
 - name: aniopts
   schema: string
   default: "controls, loop"
-  description: 
+  description:
     short: "Extra options for animations"
-    long: | 
+    long: |
       Extra options for animations; see the documentation of the LaTeX [**animate**
       package.](http://ctan.org/pkg/animate)
-      
+
 - name: animation-hook
-  schema: 
-    string: 
-      completions: [ffmpeg,gifski]
+  schema:
+    string:
+      completions: [ffmpeg, gifski]
   default: ffmpeg
-  description: 
+  description:
     short: "Hook function to create animations in HTML output"
     long: |
       Hook function to create animations in HTML output. 
@@ -348,7 +343,7 @@
   description: Including messages in rendered output.
 
 - name: child
-  schema: 
+  schema:
     maybeArrayOf: path
   description: "One or more paths of child documents to be knitted and input into the main document."
 

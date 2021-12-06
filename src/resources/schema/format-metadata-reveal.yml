@@ -1,12 +1,11 @@
-
 - name: controls
   enabled: [revealjs]
   schema:
     anyOf:
       - enum: [auto]
-      - booleanS    
+      - booleanS
   default: auto
-  description: 
+  description:
     short: "Show arrow controls for navigating through slides"
     long: |
       Show arrow controls for navigating through slides (defaults to
@@ -18,7 +17,7 @@
   schema:
     enum: [edges, bottom-right]
   default: edges
-  description: "Location for navigatoin controls (`edges` or `bottom-right`)"
+  description: "Location for navigation controls (`edges` or `bottom-right`)"
 
 - name: controls-tutorial
   enabled: [revealjs]
@@ -43,21 +42,21 @@
 
 - name: slide-number
   enabled: [revealjs]
-  schema:  
+  schema:
     oneOf:
       - boolean
       - enum: ["h.v", "h/v", "c", "c/t"]
   default: false
-  description: 
+  description:
     short: "Display the page number of the current slide"
     long: |
       Display the page number of the current slide
-      
+
       - `true`:    Show slide number
       - `false`:   Hide slide number
-  
+
       Can optionally be set as a string that specifies the number formatting:
-     
+
       - `h.v`:   Horizontal . vertical slide number
       - `h/v`:   Horizontal / vertical slide number
       - `c`:   Flattened slide number
@@ -65,7 +64,7 @@
 
 - name: show-slide-number
   enabled: [revealjs]
-  schema: 
+  schema:
     enum: [all, print, speaker]
   default: all
   description: "Contexts in which the slide number appears"
@@ -78,7 +77,7 @@
 
 - name: hash-type
   enabled: [revealjs]
-  schema: 
+  schema:
     enum: [number, title]
   default: title
   description: "URL hash type (`number` or `title`)"
@@ -96,12 +95,12 @@
   default: true
   description: |
     Monitor the hash and change slides accordingly
-  
+
 - name: history
   enabled: [revealjs]
   schema: boolean
   default: true
-  description: | 
+  description: |
     Push each slide change to the browser history
 
 - name: keyboard
@@ -146,7 +145,7 @@
   enabled: [revealjs]
   schema: boolean
   default: false
-  description: "Loop the presentation"  
+  description: "Loop the presentation"
 
 - name: rtl
   enabled: [revealjs]
@@ -157,14 +156,14 @@
 
 - name: navigation-mode
   enabled: [revealjs]
-  schema: 
+  schema:
     enum: [linear, vertical, grid]
   default: linear
-  description: 
+  description:
     short: "Navigation progression"
     long: |
       Changes the behavior of navigation directions.
-  
+
       `default`:
       Left/right arrow keys step between horizontal slides, up/down
       arrow keys step between vertical slides. Space key steps through
@@ -227,7 +226,7 @@
 
 - name: auto-play-media
   enabled: [revealjs]
-  schema: 
+  schema:
     enum: [null, true, false]
   default: null
   description: |
@@ -243,7 +242,7 @@
     short: "Global override for preloading lazy-loaded iframes"
     long: |
       Global override for preloading lazy-loaded iframes
-      
+
       - `null`:   Iframes with data-src AND data-preload will be loaded when within
         the `viewDistanc`e, iframes with only data-src will be loaded when visible
       - `true`:   All iframes with data-src will be loaded when within the viewDistance
@@ -259,7 +258,7 @@
   enabled: [revealjs]
   schema: string
   default: "ease"
-  description: 
+  description:
     short: "Default CSS easing function for auto-animation"
     long: |
       Default CSS easing function for auto-animation.
@@ -269,7 +268,7 @@
   enabled: [revealjs]
   schema: number
   default: 1.0
-  description: 
+  description:
     short: "Duration (in seconds) of auto-animate transition"
     long: |
       Duration (in seconds) of auto-animate transition.
@@ -279,7 +278,7 @@
   enabled: [revealjs]
   schema: boolean
   default: true
-  description: 
+  description:
     short: "Auto-animate unmatched elements."
     long: |
       Auto-animate unmatched elements.
@@ -287,18 +286,31 @@
 
 - name: auto-animate-styles
   enabled: [revealjs]
-  schema: 
-    arrayOf: 
-      enum: [opacity, color, background-color, padding, font-size, line-height, letter-spacing, border-width, border-color, border-radius, outline, outline-offset]
+  schema:
+    arrayOf:
+      enum:
+        [
+          opacity,
+          color,
+          background-color,
+          padding,
+          font-size,
+          line-height,
+          letter-spacing,
+          border-width,
+          border-color,
+          border-radius,
+          outline,
+          outline-offset,
+        ]
   description:
     short: |
       CSS properties that can be auto-animated (positional styles like top, left, etc.
       are always animated.
 
-
 - name: auto-slide
   enabled: [revealjs]
-  schema: 
+  schema:
     oneOf:
       - number
       - false
@@ -351,9 +363,9 @@
   schema:
     anyOf:
       - enum: [auto]
-      - booleanS    
+      - booleanS
   default: auto
-  description: 
+  description:
     short: "Opens links in an iframe preview overlay"
     long: |
       Opens links in an iframe preview overlay (defaults to
@@ -361,21 +373,21 @@
 
 - name: transition
   enabled: [revealjs]
-  schema: 
+  schema:
     enum: [none, fade, slide, convex, concave, zoom]
   default: none
   description: "Slide transition style"
 
 - name: transition-speed
   enabled: [revealjs]
-  schema: 
+  schema:
     enum: [default, fast, slow]
   default: default
   description: "Slide transition speed"
 
 - name: background-transition
   enabled: [revealjs]
-  schema: 
+  schema:
     enum: [none, fade, slide, convex, concave, zoom]
   default: none
   description: "Transition style for full page slide backgrounds"
@@ -405,22 +417,22 @@
 
 - name: parallax-background-horizontal
   enabled: [revealjs]
-  schema: number 
+  schema: number
   default: 200
-  description: "Number of pixels to move the parallax background horizontally per slide."  
+  description: "Number of pixels to move the parallax background horizontally per slide."
 
 - name: parallax-background-vertical
   enabled: [revealjs]
-  schema: number 
+  schema: number
   default: 50
-  description: "Number of pixels to move the parallax background vertically per slide."  
+  description: "Number of pixels to move the parallax background vertically per slide."
 
 - name: width
   enabled: [revealjs]
-  schema: 
+  schema:
     oneOf: [number, string]
   default: 1050
-  description: 
+  description:
     short: "The 'normal' width of the presentation"
     long: |
       The "normal" width of the presentation, aspect ratio will
@@ -429,10 +441,10 @@
 
 - name: height
   enabled: [revealjs]
-  schema: 
+  schema:
     oneOf: [number, string]
   default: 700
-  description: 
+  description:
     short: "The 'normal' height of the presentation"
     long: |
       The "normal" height of the presentation, aspect ratio will
@@ -467,7 +479,7 @@
   enabled: [revealjs]
   schema: number
   default: -1
-  description: 
+  description:
     short: "Offset used to reduce the height of content within exported PDF pages."
     long: |
       Offset used to reduce the height of content within exported PDF pages.
@@ -484,18 +496,17 @@
 - name: footer
   enabled: [revealjs]
   schema: string
-  description: 
+  description:
     short: "Footer to include on all slides"
     long: |
       Footer to include on all slides. Can also be set per-slide by including a
       div with class `.footer` on the slide.
 
-
 - name: scrollable
   enabled: [revealjs]
   schema: boolean
   default: false
-  description: 
+  description:
     short: "Allow content that overflows slides vertically to scroll"
     long: |
       Allow content that overflows slides vertically to scroll. This can also
@@ -505,12 +516,11 @@
   enabled: [revealjs]
   schema: boolean
   default: false
-   description: 
+  description:
     short: "Use a smaller default font for slide content"
     long: |
       Use a smaller default font for slide content. This can also
       be set per-slide by including the `.smaller` class on the slide title.
-
 
 - name: multiplex
   schema:
@@ -529,28 +539,27 @@
             secret:
               string:
                 description: Secret provided by multiplex token server
-   
 
-  - name: menu
-    schema:  
-      oneOf:
-        - boolean
-        - object:
-            properties:
-              side:
-                enum: [left, right]
-                default: left
-                description: "Side of the presentation where the menu will be shown."
-              width:
-                string:
-                  completions: [normal, wide, third, half, full]
-                default: normal
-                description: "Width of the menu"
-              numbers:
-                boolean:
-                  default: false
-                  description: "Add slide numbers to menu items"
-              
+- name: menu
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            side:
+              enum: [left, right]
+              default: left
+              description: "Side of the presentation where the menu will be shown."
+            width:
+              string:
+                completions: [normal, wide, third, half, full]
+              default: normal
+              description: "Width of the menu"
+            numbers:
+              boolean:
+                default: false
+                description: "Add slide numbers to menu items"
+
 - name: chalkboard
   schema:
     oneOf:
@@ -567,11 +576,11 @@
                 description: |
                   The drawing width of the boardmarker. Defaults to 3. Larger values draw thicker lines.
             chalk-width:
-              number: 
+              number:
                 default: 7
                 description: |
                   The drawing width of the chalk. Defaults to 7. Larger values draw thicker lines.
-            src: 
+            src:
               path:
                 description: |
                   Optional file name for pre-recorded drawings (download drawings using the `D` key)
@@ -580,7 +589,7 @@
                 default: false
                 description: |
                   Configuration option to prevent changes to existing drawings
-            buttons: 
+            buttons:
               boolean:
                 default: true
                 description: |
@@ -590,7 +599,6 @@
                 description: |
                   Gives the duration (in ms) of the transition for a slide change, 
                   so that the notes canvas is drawn after the transition is completed.
-
 
 - name: slide-tone
   schema: boolean
