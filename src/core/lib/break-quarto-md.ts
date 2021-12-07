@@ -112,7 +112,7 @@ export async function breakQuartoMd(
           );
         // FIXME I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
-        const breaks = lineOffsets(cell.source.value).slice(1);
+        const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
           if (breaks.length) {
