@@ -34,12 +34,19 @@ import { getFormatSchema } from "./format-schemas.ts";
 import { pandocOutputFormats } from "./pandoc-output-formats.ts";
 import { cacheSchemaFunction } from "./utils.ts";
 
+export const getFormatPandocSchema = cacheSchemaFunction(
+  "format-pandoc",
+  async () => objectSchemaFromFieldsFile(schemaPath("format-pandoc.yml"))
+);
+
 export async function makeFrontMatterFormatSchema() {
   const formatSchemaDescriptorList = await Promise.all(
     pandocOutputFormats.map(async (x) => {
       return {
         regex: `^${x}(\\+.+)?$`,
-        schema: await getFormatSchema(x),
+        schema: allOfS(
+          await getFormatSchema(x),
+          await getFormatPandocSchema()),
         name: x,
       };
     }),
@@ -71,7 +78,6 @@ export async function makeFrontMatterFormatSchema() {
     ),
     regexS("^hugo(\\+.+)?$", "be 'hugo'"),
     allOfS(
-      objectSchemaFromFieldsFile(schemaPath("format-metadata.yml")),
       objectS({
         patternProperties: Object.fromEntries(formatSchemas),
         completions: completionsObject,
@@ -100,10 +106,14 @@ export async function makeFrontMatterSchema() {
           },
           description: "be a Quarto YAML front matter object",
         }),
-        // objectSchemaFromFieldsFile(
-        //   schemaPath("format-metadata.yml"),
-        //   key => key === "format",
-        // ),
+        objectSchemaFromFieldsFile(
+          schemaPath("format-metadata.yml"),
+          key => key === "format",
+        ),
+        objectSchemaFromFieldsFile(
+          schemaPath("format-pandoc.yml"),
+          key => key === "format",
+        ),
         getFormatExecuteGlobalOptionsSchema(),
         getFormatExecuteCellOptionsSchema(),
       ),
