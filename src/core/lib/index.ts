@@ -27,6 +27,7 @@ export {
   lines,
   normalizeNewlines,
   rowColToIndex,
+  matchAll,
 } from "./text.ts";
 export { schemaCompletions, schemaType, getSchemaDefinition, setSchemaDefinition, getSchemaDefinitionsObject } from "./schema.ts";
 export { setupAjv, YAMLSchema } from "./yaml-schema.ts";

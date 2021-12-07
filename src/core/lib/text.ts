@@ -20,6 +20,9 @@ export function normalizeNewlines(text: string) {
 //
 // NB this mutates the regexp.
 export function* matchAll(text: string, regexp: RegExp) {
+  if (!regexp.global) {
+    throw new Error("matchAll requires global regexps");
+  }
   let match;
   while ((match = regexp.exec(text)) !== null) {
     yield match;
