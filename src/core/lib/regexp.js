@@ -49,6 +49,6 @@ export function prefixes(regexp)
   regexp = regexp.source;
   regexp = regexp.slice(1, -1);
     
-  return new RegExp(prefixesFromParse(
-    regexpp.parseRegExpLiteral(new RegExp(regexp))));
+  return new RegExp("^" + prefixesFromParse(
+    regexpp.parseRegExpLiteral(new RegExp(regexp))) + "$");
 }
