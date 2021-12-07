@@ -90,6 +90,20 @@ export function buildAnnotated(tree, mappedSource)
     "double_quote_scalar": (node) => {
       return annotate(node, JSON.parse(node.text), []);
     },
+    "single_quote_scalar": (node) => {
+      // apparently YAML single-quoted scalars quote single quotes by doubling the quote,
+      // but YAML double-quoted scalars quote double quotes with backslashes.
+      //
+      // consistency, hobgoblins, little minds, etc
+      const str = node.text.slice(1, -1);
+      const matches = [-2, ...Array.from(core.matchAll(str, /''/g)).map(x => x.index), str.length];
+      const lst = [];
+      for (let i = 0; i < matches.length - 1; ++i) {
+        lst.push(str.substring(matches[i] + 2, matches[i + 1]));
+      }
+      const result = lst.join("'");
+      return annotate(node, result, []);
+    },
     "plain_scalar": (node) => {
       // FIXME yuck, the yaml rules are ugly. I'm sure we'll get this wrong at first, oh well.
       function getV() {
