@@ -380,6 +380,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
       const schema = (await getSchemas()).schemas["front-matter"];
       // complete the yaml front matter
       context = {
+        ...context,
         line,
         position,
         schema,
@@ -395,6 +396,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
       return automationFromGoodParseYAML(kind, context);
     } else if (foundCell.cell_type.language) {
       return automationFromGoodParseScript(kind, {
+        ...context,
         language: foundCell.cell_type.language,
         code: foundCell.source,
         position: {
@@ -422,6 +424,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
         const innerLints = await automationFromGoodParseYAML(
           kind,
           trimTicks({
+            ...context,
             filetype: "yaml",
             code: cell.source,
             schema: (await getSchemas()).schemas["front-matter"],
@@ -435,6 +438,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
         }
       } else if (cell.cell_type.language) {
         const innerLints = await automationFromGoodParseScript(kind, {
+          ...context,
           filetype: "script",
           code: cell.source,
           language: cell.cell_type.language,
@@ -495,10 +499,11 @@ async function automationFromGoodParseScript(kind, context) {
   }
 
   const schemas = (await getSchemas()).schemas;
-  const schema = schemas.languages[language];
+  const schema = schemas.engines[context.engine || "markdown"];
   const commentPrefix = core.kLangCommentChars[language] + "| ";
 
   context = {
+    ...context,
     line: context.line.slice(commentPrefix.length),
     code: yaml,
     commentPrefix,
