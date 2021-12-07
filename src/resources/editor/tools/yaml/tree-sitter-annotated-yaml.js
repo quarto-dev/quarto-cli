@@ -247,6 +247,7 @@ export function navigate(path, annotation, pathIndex = 0)
 export function locateCursor(annotation, position)
 {
   let failedLast = false;
+  const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
   
   function locate(node, pathSoFar) {
     if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
@@ -289,7 +290,7 @@ export function locateCursor(annotation, position)
         }
       }
 
-      throw new Error("Internal error: cursor outside bounds in sequence locate?");
+      throw new Error(kInternalLocateError);
     } else {
       if (node.kind !== "<<EMPTY>>") {
         return [node.result, pathSoFar];
@@ -299,9 +300,20 @@ export function locateCursor(annotation, position)
       }
     }
   }
-  const value = locate(annotation, []).flat(Infinity).reverse();
-  return {
-    withError: failedLast,
-    value
-  };
+  try {
+    const value = locate(annotation, []).flat(Infinity).reverse();
+    return {
+      withError: failedLast,
+      value
+    };
+  } catch (e) {
+    if (e.message === kInternalLocateError) {
+      return {
+        withError: true,
+        value: undefined
+      };
+    } else {
+      throw e;
+    }
+  }
 }
