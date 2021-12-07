@@ -1,24 +1,22 @@
-
 - name: engine
   schema:
     string:
       completions: [jupyter, knitr]
   description: "Engine used for executable code blocks."
 
-
 - name: cache
   schema:
     anyOf:
-      - enum: [refresh]
       - boolean
+      - enum: [refresh]
   default: false
-  description: 
-    short: "Cache results of computations."  
+  description:
+    short: "Cache results of computations."
     long: |
       Cache results of computations (using the [knitr cache](https://yihui.org/knitr/demo/cache/) 
       for R documents, and [Jupyter Cache](https://jupyter-cache.readthedocs.io/en/latest/) 
       for Jupyter documents).
-      
+
       Note that cache invalidation is triggered by changes in chunk source code 
       (or other cache attributes you've defined). Use `refresh` to force a refresh
       of the cache even if has not been otherwise invalidated.
@@ -26,8 +24,8 @@
 - name: freeze
   schema:
     anyOf:
-      - enum: [auto]
       - boolean
+      - enum: [auto]
   default: false
   description:
     short: "Re-use previous computational output when rendering"
@@ -35,10 +33,9 @@
       Option to denote that computational documents should never be re-rendered during
       a global project render (`freeze: true`), or alternatively only be re-rendered
       when their source file changes (`freeze: auto`).
-      
 
 - name: daemon
-  schema: 
+  schema:
     oneOf: [number, boolean]
   default: 300
   description:
@@ -70,5 +67,3 @@
   default: false
   hidden: true
   description: "Execute code cell execution in Jupyter notebooks."
-
-

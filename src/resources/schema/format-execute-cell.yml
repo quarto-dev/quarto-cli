@@ -6,16 +6,16 @@
 - name: echo
   schema:
     anyOf:
-      - enum: [fenced]
       - boolean
+      - enum: [fenced]
   description: |
     Include cell source code in rendered output.
 
 - name: output
   schema:
     anyOf:
-      - enum: [asis]
       - boolean
+      - enum: [asis]
   description:
     Include the results of executing the code in the output (specify `asis` to
     treat output as raw markdown with no enclosing containers).
