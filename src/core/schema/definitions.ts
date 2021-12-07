@@ -6,17 +6,17 @@
 */
 
 import { withValidator } from "../lib/validator-queue.ts";
-import { resourcePath } from "../resources.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import { readYaml } from "../yaml.ts";
 import { ensureAjv } from "./yaml-schema.ts";
 import { normalizeSchema, Schema, setSchemaDefinition } from "../lib/schema.ts";
 import { error } from "log/mod.ts";
+import { schemaPath } from "./utils.ts";
 
 export function loadDefaultSchemaDefinitions()
 {
-  return loadSchemaDefinitions(resourcePath("schema/definitions.yml"));
+  return loadSchemaDefinitions(schemaPath("definitions.yml"));
 }
 
 export async function loadSchemaDefinitions(file: string)

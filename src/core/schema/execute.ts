@@ -10,7 +10,7 @@
 
 import { readYaml } from "../yaml.ts";
 import { objectSchemaFromFieldsFile, convertFromFieldsObject } from "../schema/from-yaml.ts";
-import { resourcePath } from "../resources.ts";
+import { schemaPath } from "./utils.ts";
 import { Schema } from "../lib/schema.ts";
 import { allOfSchema, idSchema } from "../schema/common.ts";
 
@@ -19,26 +19,26 @@ export function getFormatExecuteOptionsSchema()
   const fields: Record<string, Schema> = {};
 
   const schemas = [
-    "/schema/format-execute-global.yml",
-    "/schema/format-execute-scoped.yml",
-    "/schema/format-execute-cell.yml"
-  ].map((file) => objectSchemaFromFieldsFile(resourcePath(file)));
+    "format-execute-global.yml",
+    "format-execute-scoped.yml",
+    "format-execute-cell.yml"
+  ].map((file) => objectSchemaFromFieldsFile(schemaPath(file)));
   
   // FIXME description
-  return idSchema(allOfSchema(...schemas), "/quarto/schemas/front-matter-execute");
+  return idSchema(allOfSchema(...schemas), "front-matter-execute");
 }
 
 export function getFormatExecuteGlobalOptionsSchema()
 {
-  return objectSchemaFromFieldsFile(resourcePath("/schema/format-execute-global.yml"));
+  return objectSchemaFromFieldsFile(schemaPath("format-execute-global.yml"));
 }
 
 export function getFormatExecuteScopedOptionsSchema()
 {
-  return objectSchemaFromFieldsFile(resourcePath("/schema/format-execute-scoped.yml"));
+  return objectSchemaFromFieldsFile(schemaPath("format-execute-scoped.yml"));
 }
 
 export function getFormatExecuteCellOptionsSchema()
 {
-  return objectSchemaFromFieldsFile(resourcePath("/schema/format-execute-cell.yml"));
+  return objectSchemaFromFieldsFile(schemaPath("format-execute-cell.yml"));
 }

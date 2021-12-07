@@ -10,7 +10,7 @@
 import { Schema, normalizeSchema } from "../lib/schema.ts";
 import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
 import { objectSchema, allOfSchema as allOfS, idSchema } from "./common.ts";
-import { resourcePath } from "../resources.ts";
+import { schemaPath } from "./utils.ts";
 
 let normalizedCache: Record<string, Schema> | undefined = undefined;
 let unNormalizedCache: Record<string, Schema> | undefined = undefined;
@@ -24,12 +24,12 @@ export function getEngineOptionsSchema(normalized?: boolean): Record<string, Sch
     return unNormalizedCache;
   }
 
-  const allOpts = objectSchemaFromFieldsFile(resourcePath("schema/cell-options.yml"));
-  const knitrOpts = objectSchemaFromFieldsFile(resourcePath("schema/cell-options-knitr.yml"));
-  const jupyterOpts = objectSchemaFromFieldsFile(resourcePath("schema/cell-options-jupyter.yml"));
+  const allOpts = objectSchemaFromFieldsFile(schemaPath("cell-options.yml"));
+  const knitrOpts = objectSchemaFromFieldsFile(schemaPath("cell-options-knitr.yml"));
+  const jupyterOpts = objectSchemaFromFieldsFile(schemaPath("cell-options-jupyter.yml"));
   
-  const execute = objectSchemaFromFieldsFile(resourcePath("schema/format-execute-cell.yml"));
-  const render = objectSchemaFromFieldsFile(resourcePath("schema/format-render-cell.yml"));
+  const execute = objectSchemaFromFieldsFile(schemaPath("format-execute-cell.yml"));
+  const render = objectSchemaFromFieldsFile(schemaPath("format-render-cell.yml"));
 
   const all = idSchema(allOfS(allOpts, execute, render), "engine-markdown");
   const knitr = idSchema(allOfS(allOpts, execute, render, knitrOpts), "engine-knitr");

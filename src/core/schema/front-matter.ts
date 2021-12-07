@@ -18,7 +18,7 @@ import {
   regexSchema as regexS,
 } from "./common.ts";
 
-import { resourcePath } from "../resources.ts";
+import { schemaPath } from "./utils.ts";
 
 import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
 
@@ -32,33 +32,7 @@ import {
 
 import { getFormatSchema } from "./format-schemas.ts";
 import { pandocOutputFormats } from "./pandoc-output-formats.ts";
-
-const schemaCache: Record<string, Schema> = {};
-const schemaCacheNormalized: Record<string, Schema> = {};
-
-function cacheSchemaFunction(
-  name: string,
-  maker: () => Promise<Schema>,
-): ((normalized?: boolean) => Promise<Schema>) {
-  const getter = async (normalized?: boolean) => {
-    if (normalized) {
-      if (schemaCacheNormalized[name]) {
-        return schemaCacheNormalized[name];
-      }
-      const schema = await getter();
-      schemaCacheNormalized[name] = normalizeSchema(schema);
-      return schemaCacheNormalized[name];
-    } else {
-      if (schemaCache[name]) {
-        return schemaCache[name];
-      }
-      const schema = await maker();
-      schemaCache[name] = schema;
-      return schema;
-    }
-  };
-  return getter;
-}
+import { cacheSchemaFunction } from "./utils.ts";
 
 export async function makeFrontMatterFormatSchema() {
   const formatSchemaDescriptorList = await Promise.all(
@@ -97,7 +71,7 @@ export async function makeFrontMatterFormatSchema() {
     ),
     regexS("^hugo(\\+.+)?$", "be 'hugo'"),
     allOfS(
-      objectSchemaFromFieldsFile(resourcePath("schema/format-metadata.yml")),
+      objectSchemaFromFieldsFile(schemaPath("format-metadata.yml")),
       objectS({
         patternProperties: Object.fromEntries(formatSchemas),
         completions: completionsObject,
@@ -127,7 +101,7 @@ export async function makeFrontMatterSchema() {
           description: "be a Quarto YAML front matter object",
         }),
         objectSchemaFromFieldsFile(
-          resourcePath("schema/format-metadata.yml"),
+          schemaPath("format-metadata.yml"),
           key => key === "format",
         ),
         getFormatExecuteGlobalOptionsSchema(),

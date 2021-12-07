@@ -9,7 +9,7 @@
 
 import { Schema } from "../lib/schema.ts";
 
-import { resourcePath } from "../resources.ts";
+import { schemaPath } from "./utils.ts";
 
 import { expandFormatAliases } from "./format-aliases.ts";
 
@@ -50,7 +50,7 @@ export async function getFormatSchema(format: string): Promise<Schema> {
   try {
     entries.push(
       ...((await readAndValidateYamlFromFile(
-        resourcePath("schema/format-pandoc.yml"),
+        schemaPath("format-pandoc.yml"),
         { $id: "good" }, // schemaEntryFileSchema is killing ajv currently :(
         "schema entry file validation failed.",
       )) as SchemaEntry[]),

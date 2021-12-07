@@ -9,17 +9,17 @@
 */
 
 import { getFrontMatterSchema } from "./front-matter.ts";
-import { getConfigSchema } from "./config.ts";
+import { getProjectConfigSchema } from "./project-config.ts";
 import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { readYaml } from "../yaml.ts";
-import { resourcePath } from "../resources.ts";
+import { schemaPath } from "./utils.ts";
 import { join } from "path/mod.ts";
 import { idSchema } from "./common.ts";
 import { normalizeSchema, Schema, setSchemaDefinition, getSchemaDefinitionsObject } from "../lib/schema.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 
 export async function buildSchemaFile(resourceDir: string) {
-  const yamlDefinitions = readYaml(resourcePath("/schema/definitions.yml")) as any[];
+  const yamlDefinitions = readYaml(schemaPath("definitions.yml")) as any[];
   for (const yamlSchema of yamlDefinitions) {
     const schema = normalizeSchema(convertFromYaml(yamlSchema));
     setSchemaDefinition(schema);
@@ -27,7 +27,7 @@ export async function buildSchemaFile(resourceDir: string) {
   const obj = {
     schemas: {
       "front-matter": await getFrontMatterSchema(),
-      "config": await getConfigSchema(),
+      "config": await getProjectConfigSchema(),
       "engines": await getEngineOptionsSchema(),
     },
     definitions: getSchemaDefinitionsObject()

@@ -64,7 +64,7 @@ import { kSite, kWebsite } from "./types/website/website-config.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 
-import { getConfigSchema } from "../core/schema/config.ts";
+import { getProjectConfigSchema } from "../core/schema/project-config.ts";
 import { getFrontMatterSchema } from "../core/schema/front-matter.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
@@ -101,7 +101,7 @@ export async function projectContext(
   );
   const originalDir = dir;
 
-  const configSchema = await getConfigSchema();
+  const configSchema = await getProjectConfigSchema();
   
   while (true) {
     const configFile = projectConfigFile(dir);
