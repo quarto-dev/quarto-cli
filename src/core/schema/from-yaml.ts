@@ -42,9 +42,9 @@ import {
 function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
 {
   if (yaml.additionalCompletions)
-    schema = completeSchema(schema, yaml.additionalCompletions);
+    schema = completeSchema(schema, ...yaml.additionalCompletions);
   if (yaml.completions)
-    schema = completeSchemaOverwrite(schema, yaml.completions);
+    schema = completeSchemaOverwrite(schema, ...yaml.completions);
   if (yaml.id)
     schema = withId(schema, yaml.id);
   if (yaml.hidden === false) {
