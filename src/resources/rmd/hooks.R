@@ -148,9 +148,10 @@ knitr_hooks <- function(format, resourceDir) {
       return(x)
     }
 
-    # asis and verbatim should do nothing
+    # asis, verbatim, and comment should do nothing
     if (identical(options[["results"]], "asis") ||
-        identical(options[["engine"]], "verbatim")) {
+        identical(options[["engine"]], "verbatim") ||
+        identical(options[["engine"]], "comment")) {
       return(x)
     }
 
