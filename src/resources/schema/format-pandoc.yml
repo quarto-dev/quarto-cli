@@ -1,21 +1,5 @@
 # from: https://github.com/jgm/pandoc/blob/619dfa2a2a19a8433424e830a21384c7b520866a/MANUAL.txt
 
-
-# $epub-all: [epub, epub2, epub3]
-# $pdf-all: [latex, pdf, beamer]
-# $markdown-all: [markdown, gfm, commonmark, hugo]
-# $office-all: [docx, pptx]
-# $docbook-all: [docbook, docbook4, docbook5]
-# $odt-all: [odt, opendocument]
-
-# $html-doc: [html, html4, html5]
-# $html-pres: [slidy, slideous, s5, revealjs, dzslides]
-# $html-files: [$html-doc, $html-pres]
-# $html-all: [$html-files, $epub-all]
-
-# $asciidoc-all: [asciidoc, asciidoctor]
-
-
 - name: from
   alias: reader
   schema: string
@@ -276,7 +260,7 @@
   enabled: [$pdf-all, ms, context, $html-doc]
   schema:
     string:
-      completions: 
+      completions:
         - pdflatex
         - lualatex
         - xelatex
@@ -287,7 +271,7 @@
         - prince
         - context
         - pdfroff
-  description: 
+  description:
     short: "Use the specified engine when producing PDF output."
     long: |
       Use the specified engine when producing PDF output. If the engine is not
@@ -315,10 +299,10 @@
 
 - name: wrap
   disabled: [$pdf-all, $office-all, $odt-all, $html-all, $docbook-all]
-  schema: 
+  schema:
     enum: [auto, none, preserve]
   default: auto
-  description: 
+  description:
     short: "Determine how text is wrapped in the output."
     long: |
       Determine how text is wrapped in the output (the source code, not the rendered
@@ -336,7 +320,7 @@
     long: |
       Specify length of lines in characters. This affects text wrapping in generated source
       code (see `wrap`). It also affects calculation of column widths for plain text
-      tables. 
+      tables.
 
 - name: dpi
   schema: number
@@ -369,7 +353,7 @@
   alias: table-of-contents
   disabled: [man, $docbook-all, jats]
   schema: boolean
-  description: 
+  description:
     short: "Include an automatically generated table of contents"
     long: |
       Include an automatically generated table of contents (or, in
@@ -387,14 +371,14 @@
 - name: toc-depth
   disabled: [man, $docbook-all, jats]
   schema: number
-  description: | 
+  description: |
     Specify the number of section levels to include in the table of contents.
     The default is 3
-      
+
 - name: number-sections
   schema: boolean
   default: false
-  description: 
+  description:
     short: "Number section headings"
     long: |
       Number section headings rendered ouptut. By default, sections are not numbered.
@@ -430,8 +414,8 @@
       less than 1, so a heading that would be shifted below level 1
       becomes a regular paragraph.  Exception: with a shift of -N,
       a level-N heading at the beginning of the document
-      replaces the metadata title. 
-      
+      replaces the metadata title.
+
 - name: section-divs
   enabled: [$html-files]
   schema: boolean
@@ -469,7 +453,7 @@
       used empty paragraphs to create inter-paragraph space.
 
 - name: eol
-  schema: 
+  schema:
     enum: [lf, crlf, native]
   description:
     short: "Manually specify line endings (`lf`, `crlf`, or `native`)."
@@ -498,7 +482,7 @@
 
 - name: ascii
   schema: boolean
-  description: 
+  description:
     short: "Use only ASCII characters in output."
     long: |
       Use only ASCII characters in output. Currently supported for XML
@@ -511,7 +495,7 @@
 - name: default-image-extension
   schema: string
   hidden: true
-  description: 
+  description:
     short: |
       Specify a default extension to use when image paths/URLs have no extension.
     long: |
@@ -521,9 +505,9 @@
       the Markdown and LaTeX readers.
 
 - name: highlight-style
-  schema: 
+  schema:
     string:
-      completions: 
+      completions:
         - pygments
         - tango
         - espresso
@@ -547,7 +531,7 @@
         - radical
         - solarized
         - vim-dark
-  description: 
+  description:
     short: Specifies the coloring style to be used in highlighted source code.
     long: |
       Specifies the coloring style to be used in highlighted source code.
@@ -562,7 +546,7 @@
   description: "KDE language syntax definition file (XML)"
 
 - name: syntax-definitions
-  schema: 
+  schema:
     arrayOf: path
   description: "KDE language syntax definition files (XML)"
 
@@ -580,7 +564,7 @@
 - name: reference-doc
   enabled: [$office-all, odt]
   schema: path
-  description: | 
+  description: |
     Use the specified file as a style reference in producing a docx, 
     pptx, or odt file.
 
@@ -623,11 +607,11 @@
       them using JavaScript. `references` obfuscates them by printing their
       letters as decimal or hexadecimal character references.  The default
       is `none`.
-      
+
 - name: tab-stop
   schema: number
   hidden: true
-  description: 
+  description:
     short: "Specify the number of spaces per tab (default is 4)."
     long: |
       Specify the number of spaces per tab (default is 4). Note that tabs
@@ -640,7 +624,7 @@
   default: false
   description:
     short: |
-      Preserve tabs within code instead of converting them to spaces. 
+      Preserve tabs within code instead of converting them to spaces.
     long: |
       Preserve tabs within code instead of converting them to spaces.
       (By default, pandoc converts tabs to spaces before parsing its input.) 
@@ -659,7 +643,7 @@
   enabled: [pptx, beamer, $html-pres]
   schema: number
   default: 2
-  description: 
+  description:
     short: |
       Specifies that headings with the specified level create slides.
       Headings above this level in the hierarchy are used to divide 
@@ -677,7 +661,7 @@
 
 - name: epub-subdirectory
   enabled: [$epub-all]
-  schema: 
+  schema:
     oneOf: [path, null]
   default: EPUB
   description: |
@@ -755,15 +739,15 @@
   schema: path
   description: |
     Use the specified image as the EPUB cover. It is recommended
-    that the image be less than 1000px in width and height. 
+    that the image be less than 1000px in width and height.
 
 - name: reference-links
   enabled: [markdown, gfm, commonmark, rst]
   schema: boolean
-  description: 
+  description:
     short: |
       Use reference-style links, rather than inline links, in writing Markdown
-      or reStructuredText. 
+      or reStructuredText.
     long: |
       Use reference-style links, rather than inline links, in writing Markdown
       or reStructuredText.  By default inline links are used.  The
@@ -780,18 +764,18 @@
     long: |
       Specify whether footnotes (and references, if `reference-links` is
       set) are placed at the end of the current (top-level) block, the
-      current section, the margin, or the end of the document. 
+      current section, the margin, or the end of the document.
 
 - name: markdown-headings
   enabled: [$markdown-all, ipynb]
-  schema: 
-    enum: [setext,atx]
+  schema:
+    enum: [setext, atx]
   default: atx
   description: |
     Specify whether to use ATX-style (`#`-prefixed) or
     Setext-style (underlined) headings for level 1 and 2
     headings.
-  
+
 - name: track-changes
   enabled: [docx]
   schema:
@@ -828,13 +812,13 @@
   schema:
     maybeArrayOf: path
   description: "One or more CSS style sheets."
-      
+
 - name: ipynb-output
   enabled: [ipynb]
   schema:
     enum: [none, all, best]
   default: best
-  description: 
+  description:
     short: "Determines which ipynb cell output formats are rendered."
     long: |
       Determines which ipynb cell output formats are rendered. `all` means
@@ -843,7 +827,7 @@
       are omitted.  `best` causes pandoc to try to pick the
       richest data block in each output cell that is compatible
       with the output format. The default is `best`.
-  
+
 - name: request-headers
   schema:
     ref: pandoc-format-request-headers

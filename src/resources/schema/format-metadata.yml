@@ -312,9 +312,7 @@
       ```
 
       (Note that the data- prefix is required here, as it isn’t added automatically.)
-
-# TODO: Reveal configuration options:
-# https://revealjs.com/config/
+s
 
 # Slides - Beamer
 
@@ -1141,8 +1139,8 @@
 - name: code-copy
   schema:
     oneOf:
-      - boolean
       - enum: [hover]
+      - boolean
   enabled: [html-all]
   default: "hover"
   description: Enables a code copy icon for code blocks.

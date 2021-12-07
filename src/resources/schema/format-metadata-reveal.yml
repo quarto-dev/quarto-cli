@@ -2,8 +2,8 @@
   enabled: [revealjs]
   schema:
     anyOf:
-      - enum: [auto]
       - boolean
+      - enum: [auto]
   default: auto
   description:
     short: "Show arrow controls for navigating through slides"

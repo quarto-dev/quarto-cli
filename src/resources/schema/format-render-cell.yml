@@ -2,8 +2,8 @@
   enabled: [$html-all]
   schema:
     oneOf:
-      - enum: [show]
       - boolean
+      - enum: [show]
   default: false
   description:
     short: "Collapse code into an HTML `<details>` tag so the user can display it on-demand."
