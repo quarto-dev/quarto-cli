@@ -9,7 +9,7 @@ format:
     fontsize: 18px
     html-math-method: katex
   pdf:
-    documentclass: report
+    documentclass: article
     # microtype introduced a bug preventing reports
     # from being compiled properly
     # https://github.com/schlcht/microtype/issues/3
