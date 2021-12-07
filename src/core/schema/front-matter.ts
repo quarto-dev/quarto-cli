@@ -41,13 +41,14 @@ export const getFormatPandocSchema = cacheSchemaFunction(
 
 export async function makeFrontMatterFormatSchema() {
   const formatSchemaDescriptorList = await Promise.all(
-    pandocOutputFormats.map(async (x) => {
+    pandocOutputFormats.map(async ({ name, hidden }) => {
       return {
-        regex: `^${x}(\\+.+)?$`,
+        regex: `^${name}(\\+.+)?$`,
         schema: allOfS(
-          await getFormatSchema(x),
+          await getFormatSchema(name),
           await getFormatPandocSchema()),
-        name: x,
+        name,
+        hidden
       };
     }),
   );
@@ -55,21 +56,24 @@ export async function makeFrontMatterFormatSchema() {
     ({ regex, schema }) => [regex, schema],
   );
   const plusFormatStringSchemas = formatSchemaDescriptorList.map(
-    ({ regex, name }) =>
-      completeSchema(
-        regexS(regex, `be '${name}'`),
-        {
-          type: "value",
-          display: "",
-          suggest_on_accept: true,
-          value: name,
-          description: "",
-        },
-      ),
+    ({ regex, name, hidden }) => {
+      const schema = regexS(regex, `be '${name}'`);
+      if (hidden) {
+        return schema;
+      } 
+      return completeSchema(schema, {
+        type: "value",
+        display: "",
+        suggest_on_accept: true,
+        value: name,
+        description: "",
+      });
+    });
+  const completionsObject = Object.fromEntries(
+    formatSchemaDescriptorList
+      .filter( ({ hidden }) => !hidden)
+      .map(({ name }) => [name, ""])
   );
-  const completionsObject = Object.fromEntries(formatSchemaDescriptorList.map(
-    ({ name }) => [name, ""],
-  ));
 
   return oneOfS(
     describeSchema(
