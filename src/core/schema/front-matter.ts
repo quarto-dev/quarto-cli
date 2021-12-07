@@ -9,6 +9,7 @@
 
 import {
   allOfSchema as allOfS,
+  enumSchema as enumS,
   completeSchema,
   describeSchema,
   idSchema as withId,
@@ -44,9 +45,11 @@ export async function makeFrontMatterFormatSchema() {
     pandocOutputFormats.map(async ({ name, hidden }) => {
       return {
         regex: `^${name}(\\+.+)?$`,
-        schema: allOfS(
-          await getFormatSchema(name),
-          await getFormatPandocSchema()),
+        schema: oneOfS(
+          enumS("default"),
+          allOfS(
+            await getFormatSchema(name),
+            await getFormatPandocSchema())),
         name,
         hidden
       };

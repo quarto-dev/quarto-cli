@@ -8,6 +8,7 @@ format: pdf
 header-includes: |
   \usepackage{makeidx}
   \makeindex
+validate: false
 ---
 
 # Document with Index
