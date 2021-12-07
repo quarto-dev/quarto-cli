@@ -266,7 +266,9 @@ async function completionsFromGoodParseYAML(context) {
         // this picks up cases 2 and 4
         rawCompletions.completions = rawCompletions.completions.filter(
           (completion) => completion.type === "value",
-        );
+        ).map(completion =>
+          // never followup a suggestion in value position
+          ({ ... completion, suggest_on_accept: false }));
       } else if (line.indexOf("-") === -1) {
         // this picks up case 5 (and 1, but case one was already handled.)
         rawCompletions.completions = rawCompletions.completions.filter(
