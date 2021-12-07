@@ -60,15 +60,15 @@ export async function makeFrontMatterFormatSchema() {
         regexS(regex, `be '${name}'`),
         {
           type: "value",
-          display: name,
+          display: "",
           suggest_on_accept: true,
           value: name,
-          description: name,
+          description: "",
         },
       ),
   );
   const completionsObject = Object.fromEntries(formatSchemaDescriptorList.map(
-    ({ name }) => [name, name],
+    ({ name }) => [name, ""],
   ));
 
   return oneOfS(
