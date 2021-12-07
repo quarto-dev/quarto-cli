@@ -322,7 +322,7 @@ function completions(obj) {
       }
     });
   }).flat().filter((c) => c.value.startsWith(word));
-  completions.sort((a, b) => a.value.localeCompare(b.value));
+  // completions.sort((a, b) => a.value.localeCompare(b.value));
 
   return new Promise(function (resolve, _reject) {
     // resolve completions
