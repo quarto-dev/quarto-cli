@@ -32,7 +32,7 @@ export async function buildSchemaFile(resourceDir: string) {
     },
     definitions: getSchemaDefinitionsObject()
   };
-  const str = JSON.stringify(obj, null, 2);
+  const str = JSON.stringify(obj);
   const path = join(resourceDir, "/editor/tools/yaml/quarto-json-schemas.json");
 
   return Deno.writeTextFile(path, str);
