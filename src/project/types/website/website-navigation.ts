@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 import { ld } from "lodash/mod.ts";
 
@@ -101,6 +101,7 @@ import {
   createMarkdownPipeline,
   MarkdownPipeline,
 } from "./website-pipeline-md.ts";
+import { engineValidExtensions } from "../../../execute/engine.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -392,6 +393,15 @@ function navigationHtmlPostprocessor(
         const resolved = await resolveInputTarget(project, projRelativeHref);
         if (resolved) {
           link.setAttribute("href", offset + resolved.outputHref + hash);
+        } else {
+          // if this is a unresolvable markdown/ipynb link then print a warning
+          const targetFile = join(projectOutputDir(project), projRelativeHref);
+          if (
+            engineValidExtensions().includes(extname(targetFile)) &&
+            !safeExistsSync(join(projectOutputDir(project), projRelativeHref))
+          ) {
+            warning("Unable to resolve link target: " + projRelativeHref);
+          }
         }
       }
     }
