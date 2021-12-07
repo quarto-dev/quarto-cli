@@ -20,7 +20,7 @@ import {
 export const BooleanSchema = {
   "type": "boolean",
   "description": "be a boolean value",
-  "completions": ["true", "false"],
+  "completions": ["false", "true"],
   "exhaustiveCompletions": true,
 };
 
