@@ -85,19 +85,8 @@ export function navigateSchema(schema, path) {
       return subSchema.anyOf.map((ss) => inner(ss, index));
     } else if (st === "allOf") {
       return subSchema.allOf.map((ss) => inner(ss, index));
-      // // FIXME
-      // throw new Error(
-      //   "Internal error: don't know how to navigate allOf schema :(",
-      // );
     } else if (st === "oneOf") {
-      const result = subSchema.oneOf.map((ss) => inner(ss, index)).flat(
-        Infinity,
-      );
-      if (result.length !== 1) {
-        return [];
-      } else {
-        return result;
-      }
+      return subSchema.oneOf.map((ss) => inner(ss, index));
     } else {
       // if path wanted to navigate deeper but this is a YAML
       // "terminal" (not a compound type) then this is not a valid
