@@ -54,21 +54,23 @@ export async function validateDocumentFromSource(
       }],
     );
     const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
-    const frontMatterSchema = await getFrontMatterSchema(true);
+    if (annotation.result?.validate !== false) {
+      const frontMatterSchema = await getFrontMatterSchema(true);
 
-    await ensureAjv();
-    await withValidator(frontMatterSchema, (frontMatterValidator) => {
-      const fmValidation = frontMatterValidator.validateParseWithErrors(
-        frontMatterText,
-        annotation,
-        "Validation of YAML front matter failed.",
-        error,
-        info,
-      );
-      if (fmValidation && fmValidation.errors.length) {
-        result.push(...fmValidation.errors);
-      }
-    });
+      await ensureAjv();
+      await withValidator(frontMatterSchema, (frontMatterValidator) => {
+        const fmValidation = frontMatterValidator.validateParseWithErrors(
+          frontMatterText,
+          annotation,
+          "Validation of YAML front matter failed.",
+          error,
+          info,
+        );
+        if (fmValidation && fmValidation.errors.length) {
+          result.push(...fmValidation.errors);
+        }
+      });
+    }
   } else {
     firstContentCellIndex = 0;
   }
