@@ -171,9 +171,9 @@
     ```json
     { "default": {
         "container-title": {
-                "Lloyd's Law Reports": "Lloyd's Rep",
-                "Estates Gazette": "EG",
-                "Scots Law Times": "SLT"
+          "Lloyd's Law Reports": "Lloyd's Rep",
+          "Estates Gazette": "EG",
+          "Scots Law Times": "SLT"
         }
       }
     }

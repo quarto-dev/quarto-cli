@@ -1,0 +1,9 @@
+- cell:
+    - attributes
+    - codeoutput
+    - textoutput
+    - figure
+    - layout
+    - pagelayout
+    - cache
+    - include
