@@ -11,8 +11,7 @@
 
 - name: to
   alias: writer
-  schema:
-    ref: pandoc-output-formats
+  schema: string
   default: html
   hidden: true
   description:
