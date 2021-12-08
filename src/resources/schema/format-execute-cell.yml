@@ -16,6 +16,9 @@
     anyOf:
       - boolean
       - enum: [asis]
+      # these are here for compatibility with rmarkdown output: yaml
+      - string
+      - object
   description:
     Include the results of executing the code in the output (specify `asis` to
     treat output as raw markdown with no enclosing containers).
