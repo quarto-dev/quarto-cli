@@ -169,11 +169,15 @@ export function objectSchema(params: {
   ) {
     const valueS = properties[k];
 
+    const description = valueS?.documentation?.short ??
+      valueS?.documentation ??
+      completionsParam?.[k] ??
+      "";
     completions.push({
       type: "key",
       display: k,
       value: `${k}: `,
-      description: completionsParam?.[k] || "",
+      description,
       suggest_on_accept: valueS && schemaExhaustiveCompletions(valueS),
     });
   }
