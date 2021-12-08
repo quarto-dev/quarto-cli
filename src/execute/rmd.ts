@@ -11,9 +11,7 @@ import * as colors from "fmt/colors.ts";
 
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
-import {
-  readYamlFromMarkdown,
-} from "../core/yaml.ts";
+import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { kCodeLink } from "../config/constants.ts";
@@ -79,7 +77,7 @@ export const knitrEngine: ExecutionEngine = {
   execute: (options: ExecuteOptions): Promise<ExecuteResult> => {
     return callR<ExecuteResult>(
       "execute",
-      options,
+      { ...options, target: undefined, input: options.target.input },
       options.quiet,
     );
   },
@@ -87,7 +85,7 @@ export const knitrEngine: ExecutionEngine = {
   dependencies: (options: DependenciesOptions) => {
     return callR<DependenciesResult>(
       "dependencies",
-      options,
+      { ...options, target: undefined, input: options.target.input },
       options.quiet,
     );
   },
@@ -100,7 +98,12 @@ export const knitrEngine: ExecutionEngine = {
     if (options.format.render?.[kCodeLink]) {
       await callR<void>(
         "postprocess",
-        { ...options, preserve: undefined },
+        {
+          ...options,
+          target: undefined,
+          preserve: undefined,
+          input: options.target.input,
+        },
         options.quiet,
         false,
       ).then(() => {
