@@ -87,6 +87,17 @@ function convertFromString(yaml: any): Schema
   return setBaseSchemaProperties(yaml, schema);
 }
 
+function convertFromPattern(yaml: any): Schema
+{
+  yaml = yaml["pattern"];
+  if (typeof yaml === "string") {
+    return regexSchema(yaml);
+  } else {
+    const schema = regexSchema(yaml.regex);
+    return setBaseSchemaProperties(yaml, schema);
+  }
+}
+
 function convertFromPath(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml["path"], stringS);
@@ -267,6 +278,7 @@ export function convertFromYaml(yaml: any): Schema
     { key: "ref", value: convertFromRef },
     { key: "resolveRef", value: lookup },
     { key: "string", value: convertFromString },
+    { key: "pattern", value: convertFromPattern },
     { key: "schema", value: convertFromSchema },
   ];
   for (const { key: objectKey, value: fun } of schemaObjectKeyFunctions) {
@@ -316,6 +328,9 @@ export function convertFromFieldsObject(yaml: any[], obj?: Record<string, Schema
   for (const field of yaml) {
     const schema = convertFromYaml(field.schema);
     result[field.name] = schema;
+    if (field.alias) {
+      result[field.alias] = completeSchemaOverwrite(schema);
+    }
   }
 
   return result;
