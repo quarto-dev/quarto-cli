@@ -57,6 +57,7 @@ import {
   printWatchingForChangesMessage,
   resourceFilesFromFile,
 } from "../render/render-shared.ts";
+import { projectType } from "../../project/types/project-types.ts";
 import { htmlResourceResolverPostprocessor } from "../../project/types/website/website-resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { kResources } from "../../config/constants.ts";
@@ -102,6 +103,9 @@ export async function serveProject(
         "default"}' (try using project type 'site').`,
     );
   }
+
+  // get type
+  const projType = projectType(project?.config?.project?.[kProjectType]);
 
   // provide defaults
   options = {
@@ -249,10 +253,15 @@ export async function serveProject(
         }
         let result: RenderResult | undefined;
         if (inputFile) {
-          // remove 'to' argument to allow the file to be rendered in it's default format
           const renderFlags = { ...flags, quiet: true };
-          delete renderFlags?.to;
-          const renderPandocArgs = removePandocToArg(pandocArgs);
+          // remove 'to' argument to allow the file to be rendered in it's default format
+          // (only if we are in a project type e.g. websites that allows multiple formats)
+          const renderPandocArgs = projType.projectFormatsOnly
+            ? pandocArgs
+            : removePandocToArg(pandocArgs);
+          if (!projType.projectFormatsOnly) {
+            delete renderFlags?.to;
+          }
           try {
             result = await renderQueue.enqueue(() =>
               renderProject(
