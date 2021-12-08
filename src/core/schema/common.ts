@@ -20,7 +20,7 @@ import {
 export const BooleanSchema = {
   "type": "boolean",
   "description": "be a boolean value",
-  "completions": ["false", "true"],
+  "completions": ["true", "false"],
   "exhaustiveCompletions": true,
 };
 
@@ -83,7 +83,7 @@ export function enumSchema(...args: string[]) {
 export function regexSchema(arg: string, description?: string) {
   const result: Schema = {
     "type": "string",
-    "pattern": arg
+    "pattern": arg,
   };
   if (description) {
     result.description = description;
@@ -197,7 +197,11 @@ export function objectSchema(params: {
     }
 
     result.properties = Object.assign({}, result.properties, properties);
-    result.patternProperties = Object.assign({}, result.patternProperties, patternProperties);
+    result.patternProperties = Object.assign(
+      {},
+      result.patternProperties,
+      patternProperties,
+    );
 
     if (required) {
       result.required = (result.required ?? []).slice();
@@ -247,7 +251,7 @@ export function objectSchema(params: {
     if (patternProperties) {
       result.patternProperties = patternProperties;
     }
-    
+
     if (required && required.length > 0) {
       result.required = required;
     }
@@ -306,7 +310,10 @@ export function completeSchema(schema: Schema, ...completions: Completion[]) {
   return result;
 }
 
-export function completeSchemaOverwrite(schema: Schema, ...completions: Completion[]) {
+export function completeSchemaOverwrite(
+  schema: Schema,
+  ...completions: Completion[]
+) {
   const result = Object.assign({}, schema);
   result.completions = completions;
   return result;
@@ -327,9 +334,12 @@ export function refSchema($ref: string, description: string) {
   };
 }
 
-export function valueSchema(val: number | boolean | string, description?: string) {
+export function valueSchema(
+  val: number | boolean | string,
+  description?: string,
+) {
   return {
-    "enum": [ val ], // enum takes non-strings too (!)
-    "description": description ?? `be ${JSON.stringify(val)}`
+    "enum": [val], // enum takes non-strings too (!)
+    "description": description ?? `be ${JSON.stringify(val)}`,
   };
 }
