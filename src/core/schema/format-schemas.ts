@@ -55,6 +55,13 @@ export async function getFormatSchema(format: string): Promise<Schema> {
         "schema entry file validation failed.",
       )) as SchemaEntry[]),
     );
+    entries.push(
+      ...((await readAndValidateYamlFromFile(
+        schemaPath("format-metadata.yml"),
+        { $id: "good" }, // schemaEntryFileSchema is killing ajv currently :(
+        "schema entry file validation failed.",
+      )) as SchemaEntry[]),
+    );
   } catch (e) {
     error("\n");
     error(e);

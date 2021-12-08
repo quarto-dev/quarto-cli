@@ -323,7 +323,24 @@ function completions(obj) {
         return completion;
       }
     });
-  }).flat().filter((c) => c.value.startsWith(word));
+  }).flat()
+        .filter((c) => c.value.startsWith(word))
+        .map((c) => {
+          if (c.documentation === "" ||
+              c.documentation === undefined) {
+            // don't change description if there's no documentation
+            return c;
+          }
+          if (c.description !== undefined &&
+              c.description !== "") {
+            // don't change description if description exists
+            return c;
+          }
+          return {
+            ...c,
+            description: c.documentation
+          };
+        });
   // completions.sort((a, b) => a.value.localeCompare(b.value));
 
   return new Promise(function (resolve, _reject) {

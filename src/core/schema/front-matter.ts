@@ -45,11 +45,7 @@ export async function makeFrontMatterFormatSchema() {
     pandocOutputFormats.map(async ({ name, hidden }) => {
       return {
         regex: `^${name}(\\+.+)?$`,
-        schema: oneOfS(
-          enumS("default"),
-          allOfS(
-            await getFormatSchema(name),
-            await getFormatPandocSchema())),
+        schema: await getFormatSchema(name),
         name,
         hidden
       };

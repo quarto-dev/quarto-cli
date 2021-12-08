@@ -1,3 +1,77 @@
+- oneOf:
+    id: pandoc-output-formats
+    schemas:
+      - pattern: ^asciidoc(\+.+)?$
+      - pattern: ^asciidoctor(\+.+)?$
+      - pattern: ^beamer(\+.+)?$
+      - pattern: ^biblatex(\+.+)?$
+      - pattern: ^bibtex(\+.+)?$
+      - pattern: ^commonmark(\+.+)?$
+      - pattern: ^commonmark_x(\+.+)?$
+      - pattern: ^context(\+.+)?$
+      - pattern: ^csljson(\+.+)?$
+      - pattern: ^docbook(\+.+)?$
+      - pattern: ^docbook4(\+.+)?$
+      - pattern: ^docbook5(\+.+)?$
+      - pattern: ^docx(\+.+)?$
+      - pattern: ^dokuwiki(\+.+)?$
+      - pattern: ^dzslides(\+.+)?$
+      - pattern: ^epub(\+.+)?$
+      - pattern: ^epub2(\+.+)?$
+      - pattern: ^epub3(\+.+)?$
+      - pattern: ^fb2(\+.+)?$
+      - pattern: ^gfm(\+.+)?$
+      - pattern: ^haddock(\+.+)?$
+      - pattern: ^html(\+.+)?$
+      - pattern: ^html4(\+.+)?$
+      - pattern: ^html5(\+.+)?$
+      - pattern: ^icml(\+.+)?$
+      - pattern: ^ipynb(\+.+)?$
+      - pattern: ^jats(\+.+)?$
+      - pattern: ^jats_archiving(\+.+)?$
+      - pattern: ^jats_articleauthoring(\+.+)?$
+      - pattern: ^jats_publishing(\+.+)?$
+      - pattern: ^jira(\+.+)?$
+      - pattern: ^json(\+.+)?$
+      - pattern: ^latex(\+.+)?$
+      - pattern: ^man(\+.+)?$
+      - pattern: ^markdown(\+.+)?$
+      - pattern: ^markdown_github(\+.+)?$
+      - pattern: ^markdown_mmd(\+.+)?$
+      - pattern: ^markdown_phpextra(\+.+)?$
+      - pattern: ^markdown_strict(\+.+)?$
+      - pattern: ^mediawiki(\+.+)?$
+      - pattern: ^ms(\+.+)?$
+      - pattern: ^muse(\+.+)?$
+      - pattern: ^native(\+.+)?$
+      - pattern: ^odt(\+.+)?$
+      - pattern: ^opendocument(\+.+)?$
+      - pattern: ^opml(\+.+)?$
+      - pattern: ^org(\+.+)?$
+      - pattern: ^pdf(\+.+)?$
+      - pattern: ^plain(\+.+)?$
+      - pattern: ^pptx(\+.+)?$
+      - pattern: ^revealjs(\+.+)?$
+      - pattern: ^rst(\+.+)?$
+      - pattern: ^rtf(\+.+)?$
+      - pattern: ^s5(\+.+)?$
+      - pattern: ^slideous(\+.+)?$
+      - pattern: ^slidy(\+.+)?$
+      - pattern: ^tei(\+.+)?$
+      - pattern: ^texinfo(\+.+)?$
+      - pattern: ^textile(\+.+)?$
+      - pattern: ^xwiki(\+.+)?$
+      - pattern: ^zimwiki(\+.+)?$
+
+    completions: [asciidoc, asciidoctor, beamer, biblatex, bibtex,
+      commonmark, commonmark_x, context, csljson, docbook, docx,
+      dokuwiki, dzslides, epub, fb2, gfm, haddock, html, icml, ipynb,
+      jats, jats_archiving, jats_articleauthoring, jats_publishing,
+      jira, json, latex, man, markdown, markdown_github, markdown_mmd,
+      markdown_phpextra, markdown_strict, mediawiki, ms, muse, native,
+      odt, opendocument, opml, org, pdf, plain, pptx, revealjs, rst,
+      rtf, s5, slideous, slidy, tei, texinfo, textile, xwiki, zimwiki]
+    
 - enum:
     id: math-methods
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
