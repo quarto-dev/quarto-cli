@@ -1,0 +1,47 @@
+- name: number-sections
+  schema: boolean
+  default: false
+  description:
+    short: "Number section headings"
+    long: |
+      Number section headings rendered ouptut. By default, sections are not numbered.
+      Sections with class `.unnumbered` will never be numbered, even if `number-sections`
+      is specified.
+
+- name: number-offset
+  schema:
+    arrayOf: number
+  default: [0, 0, 0, 0, 0, 0]
+  description:
+    short: Offset for section headings in output (offsets are 0 by default)
+    long: |
+      Offset for section headings in output (offsets are 0 by default)
+      The first number is added to the section number for
+      top-level headings, the second for second-level headings, and so on.
+      So, for example, if you want the first top-level heading in your
+      document to be numbered "6", specify `number-offset: 5`. If your
+      document starts with a level-2 heading which you want to be numbered
+      "1.5", specify `number-offset: [1,4]`. Implies `number-sections`
+
+- name: shift-heading-level-by
+  schema: number
+  description:
+    short: |
+      Shift heading levels by a positive or negative integer. For example, with 
+      `shift-heading-level-by: -1`, level 2 headings become level 1 headings.
+    long: |
+      Shift heading levels by a positive or negative integer.
+      For example, with `shift-heading-level-by: -1`, level 2
+      headings become level 1 headings, and level 3 headings
+      become level 2 headings.  Headings cannot have a level
+      less than 1, so a heading that would be shifted below level 1
+      becomes a regular paragraph.  Exception: with a shift of -N,
+      a level-N heading at the beginning of the document
+      replaces the metadata title.
+
+- name: section-divs
+  enabled: [$html-files]
+  schema: boolean
+  description: |
+    Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`
+    rather than the heading itself.

@@ -1,0 +1,176 @@
+- name: fontenc
+  schema: string
+  enabled: [$pdf-all]
+  default: T1
+  description:
+    short: Allows font encoding to be specified through `fontenc` package.
+    long: |
+      Allows font encoding to be specified through [`fontenc`](https://www.ctan.org/pkg/fontenc) package.
+
+      See [LaTeX Font Encodings Guide](https://ctan.org/pkg/encguide) for addition information on font encoding.
+
+- name: fontfamily
+  schema: string
+  enabled: [$pdf-all, ms]
+  default: "Latin Modern"
+  description:
+    short: Font package to use when compiling a PDF with the `pdflatex` `pdf-engine`.
+    long: |
+      Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`. 
+
+      See [The LaTeX Font Catalogue](https://tug.org/FontCatalogue/) for a 
+      summary of font options available.
+
+      For groff (`ms`) files, the font family for example, `T` or `P`.
+
+- name: fontfamilyoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: Options for the package used as `fontfamily`.
+    long: |
+      Options for the package used as `fontfamily`.
+
+      For example, to use the Libertine font with proportional lowercase
+      (old-style) figures through the [`libertinus`](https://ctan.org/pkg/libertinus) package:
+
+      ```yaml
+      fontfamily: libertinus
+      fontfamilyoptions:
+        - osf
+        - p
+      ```
+
+- name: sansfont
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The sans serif font family for use with `xelatex` or `lualatex`.
+    long: |
+      The sans serif font family for use with `xelatex` or 
+      `lualatex`. Takes the name of any system font, using the
+      [`fontspec`](https://ctan.org/pkg/fontspec) package.
+
+- name: mathfont
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The math font family for use with `xelatex` or `lualatex`.
+    long: |
+      The math font family for use with `xelatex` or 
+      `lualatex`. Takes the name of any system font, using the
+      [`fontspec`](https://ctan.org/pkg/fontspec) package.
+
+- name: CJKmainfont
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The CJK main font family for use with `xelatex` or `lualatex`.
+    long: |
+      The CJK main font family for use with `xelatex` or 
+      `lualatex` using the [`xecjk`](https://ctan.org/pkg/xecjk) package.
+
+# dependencies upon other key values (e.g. pdf-engine: xelatex)
+- name: mainfontoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The main font options for use with `xelatex` or `lualatex`.
+    long: |
+      The main font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: sansfontoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The sans serif font options for use with `xelatex` or `lualatex`.
+    long: |
+      The sans serif font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: monofontoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The monospace font options for use with `xelatex` or `lualatex`.
+    long: |
+      The monospace font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: mathfontoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The monospace font options for use with `xelatex` or `lualatex`.
+    long: |
+      The monospace font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: CJKoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: The CJK font options for use with `xelatex` or `lualatex`.
+    long: |
+      The CJK font options for use with `xelatex` or `lualatex` allowing
+      any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
+
+      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
+      version of Palatino with lowercase figures:
+      ```yaml
+      mainfont: TeX Gyre Pagella
+      mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional    
+      ```
+
+- name: microtypeoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: Options to pass to the microtype package.
+    long: Options to pass to the [microtype](https://ctan.org/pkg/microtype) package.
