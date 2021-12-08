@@ -47,9 +47,8 @@ export async function makeFrontMatterFormatSchema() {
         regex: `^${name}(\\+.+)?$`,
         schema: oneOfS(
           enumS("default"),
-          allOfS(
-            await getFormatSchema(name),
-            await getFormatPandocSchema())),
+          await getFormatSchema(name)
+        ),
         name,
         hidden
       };
