@@ -8,7 +8,7 @@
     Include cell source code in rendered output.
 
 - name: code-fold
-  contexts: [document]
+  contexts: [document-code]
   enabled: [$html-all]
   schema:
     oneOf:
@@ -22,14 +22,14 @@
       Specify `show` to have the code initiallly visible.
 
 - name: code-summary
-  contexts: [document]
+  contexts: [document-code]
   enabled: [$html-all]
   schema: string
   default: "Code"
   description: "Summary text to use for code blocks collapsed using `code-fold`"
 
 - name: code-overflow
-  contexts: [document]
+  contexts: [document-code]
   enabled: [$html-all]
   schema:
     enum: [scroll, wrap]
@@ -37,7 +37,7 @@
   description: "Choose whether to `scroll` or `wrap` when code lines are too wide for their container."
 
 - name: code-line-numbers
-  contexts: [document]
+  contexts: [document-code]
   schema: boolean
   default: false
   description: "Include line numbers in code block output."

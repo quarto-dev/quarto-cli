@@ -1,3 +1,47 @@
+- name: mainfont
+  schema: string
+  enabled: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the main font for the document.
+    long: |
+      For HTML output, sets the CSS `font-family` on the HTML element.
+
+      For LaTeX output, the main font family for use with `xelatex` or 
+      `lualatex`. Takes the name of any system font, using the
+      [`fontspec`](https://ctan.org/pkg/fontspec) package. 
+
+      For ConTeXt output, the main font family. Use the name of any 
+      system font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more
+      information.
+
+- name: monofont
+  schema: string
+  enabled: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the font used for when displaying code.
+    long: |
+      For HTML output, sets the CSS font-family property on code elements.
+
+      For PowerPoint output, sets the font used for code.
+
+      For LaTeX output, the monospace font family for use with `xelatex` or 
+      `lualatex`: take the name of any system font, using the
+      [`fontspec`](https://ctan.org/pkg/fontspec) package.  
+
+      For ConTeXt output, the monspace font family. Use the name of any 
+      system font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more
+      information.
+
+- name: fontsize
+  schema: string
+  enabled: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the main font size for the document.
+    long: |
+      For HTML output, sets the base CSS `font-size` property.
+
+      For LaTeX and ConTeXt output, sets the font size for the document body text.
+
 - name: fontenc
   schema: string
   enabled: [$pdf-all]
@@ -174,3 +218,55 @@
   description:
     short: Options to pass to the microtype package.
     long: Options to pass to the [microtype](https://ctan.org/pkg/microtype) package.
+
+- name: pointsize
+  schema: string
+  enabled: [ms]
+  description: The point size, for example, `10p`.
+
+- name: lineheight
+  schema: string
+  enabled: [ms]
+  description: The line height, for example, `12p`.
+
+- name: linestretch
+  schema: string
+  enabled: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the line height or spacing for text in the document.
+    long: |
+      For HTML output sets the CSS `line-height` property on the html 
+      element, which is preferred to be unitless.
+
+      For LaTeX output, adjusts line spacing using the 
+      [setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.
+
+- name: interlinespace
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description: Adjusts line spacing using the `\setupinterlinespace` command.
+
+- name: linkstyle
+  schema:
+    string:
+      completions:
+        - normal
+        - bold
+        - slanted
+        - boldslanted
+        - type
+        - cap
+        - small
+  enabled: [context]
+  description: The typeface style for links in the document.
+
+- name: whitespace
+  schema: string
+  enabled: [context]
+  description:
+    short: Set the spacing between paragraphs, for example `none`, `small.
+    long: |
+      Set the spacing between paragraphs, for example `none`, `small` 
+      using the [`setupwhitespace`](https://wiki.contextgarden.net/Command/setupwhitespace) 
+      command.

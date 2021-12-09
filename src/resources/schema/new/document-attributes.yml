@@ -36,6 +36,11 @@
     ]
   description: "Provides a summary of the document"
 
+- name: doi
+  schema: string
+  enabled: [$html-doc]
+  description: Displays the document Digital Object Identifier in the header.
+
 - name: thanks
   schema: string
   enabled: [$pdf-all]
@@ -109,3 +114,8 @@
   schema: string
   enabled: [$pdf-all, $html-files]
   description: "Sets the author metadata for the document"
+
+- name: date-meta
+  schema: string
+  enabled: [$html-all, $pdf-all]
+  description: "Sets the date metadata for the document"

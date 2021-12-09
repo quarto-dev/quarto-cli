@@ -8,6 +8,29 @@
       Sections with class `.unnumbered` will never be numbered, even if `number-sections`
       is specified.
 
+- name: number-depth
+  schema: number
+  enabled: [$html-all, $pdf-all, docx]
+  description:
+    short: The depth to which sections should be numbered.
+    long: |
+      By default, all headings in your document create a 
+      numbered section. You customize numbering depth using 
+      the `number-depth` option. 
+
+      For example, to only number sections immediately below 
+      the chapter level, use this:
+
+      ```yaml  
+      number-depth: 1
+      ```
+
+- name: secnumdepth
+  schema: number
+  hidden: true
+  enabled: [$pdf-all]
+  description: The numbering depth for sections. (Use `number-depth` instead).
+
 - name: number-offset
   schema:
     arrayOf: number
@@ -39,9 +62,15 @@
       a level-N heading at the beginning of the document
       replaces the metadata title.
 
-- name: section-divs
-  enabled: [$html-files]
-  schema: boolean
-  description: |
-    Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`
-    rather than the heading itself.
+- name: pagenumbering
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: Sets the page numbering style and location for the document.
+    long: |
+      Sets the page numbering style and location for the document using the
+      `\setuppagenumbering` command. 
+
+      See [ConTeXt Page Numbering](https://wiki.contextgarden.net/Command/setuppagenumbering) 
+      for additional information.

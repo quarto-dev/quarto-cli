@@ -42,6 +42,104 @@
   enabled: [$pdf-all]
   description: The paper size for the document.
 
+- name: layout
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: The options for margins and text layout for this document.
+    long: |
+      The options for margins and text layout for this document.
+
+      See [ConTeXt Layout](https://wiki.contextgarden.net/Layout) for additional information.
+
+- name: page-layout
+  schema:
+    enum: [article, custom, none]
+  default: article
+  enabled: [$html-doc]
+  description: The page layout to use for this document.
+
+- name: page-width
+  enabled: [docx, $odt-all]
+  schema: number
+  description:
+    short: |
+      Target page width for output (used to compute columns widths for `layout` divs)
+    long: |
+      Target page width for output (used to compute columns widths for `layout` divs).
+      Defaults to 6.5 inches, which corresponds to default letter page settings in 
+      docx and odt.
+
+- name: max-width
+  schema: string
+  enabled: [$html-files]
+  description: Adds a css `max-width` to the body Element.
+
+- name: margin-left
+  schema: string
+  enabled: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the left margin of the document.
+    long: |
+      For HTML output, sets the `margin-left` property on the Body element.
+
+      For LaTeX output, sets the left margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the left margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the left page margin.
+
+- name: margin-right
+  schema: string
+  enabled: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the right margin of the document.
+    long: |
+      For HTML output, sets the `margin-right` property on the Body element.
+
+      For LaTeX output, sets the right margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the right margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the right page margin.
+
+- name: margin-top
+  schema: string
+  enabled: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the top margin of the document.
+    long: |
+      For HTML output, sets the `margin-top` property on the Body element.
+
+      For LaTeX output, sets the top margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the top margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the top page margin.
+
+- name: margin-bottom
+  schema: string
+  enabled: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the bottom margin of the document.
+    long: |
+      For HTML output, sets the `margin-bottom` property on the Body element.
+
+      For LaTeX output, sets the bottom margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the bottom margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the bottom page margin.
+
 - name: geometry
   schema:
     maybeArrayOf: string

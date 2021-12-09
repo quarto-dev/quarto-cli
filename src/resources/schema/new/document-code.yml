@@ -1,0 +1,23 @@
+- name: code-copy
+  schema:
+    oneOf:
+      - enum: [hover]
+      - boolean
+  enabled: [$html-all]
+  default: "hover"
+  description: Enables a code copy icon for code blocks.
+
+- name: code-link
+  schema: boolean
+  enabled: [$html-files]
+  default: false
+  description:
+    short: |
+      Enables hyper-linking of functions within code blocks 
+      to their online documentation.
+    long: |
+      Enables hyper-linking of functions within code blocks 
+      to their online documentation.
+
+      Code linking is currently implemented only for the knitr engine 
+      (via the [downlit](https://downlit.r-lib.org/) package).
