@@ -1,0 +1,69 @@
+- name: colorlinks
+  schema: boolean
+  enabled: [$pdf-all]
+  default: true
+  description: |
+    Add color to link text, automatically enabled if any of 
+    `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.
+
+- name: linkcolor
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The color used for internal links using color options allowed by `xcolor`
+
+    long: |
+      The color used for internal links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: filecolor
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The color used for external links using color options allowed by `xcolor`
+    long: |
+      The color used for external links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: citecolor
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The color used for citation links using color options allowed by `xcolor`
+    long: |
+      The color used for citation links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: urlcolor
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The color used for linked URLs using color options allowed by `xcolor`
+    long: |
+      The color used for linked URLs using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: toccolor
+  schema: string
+  enabled: [$pdf-all]
+  description:
+    short: The color used for links in the Table of Contents using color options allowed by `xcolor`
+    long: |
+      The color used for links in the Table of Contents using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: links-as-notes
+  schema: boolean
+  enabled: [$pdf-all]
+  default: false
+  description: Causes links to be printed as footnotes.

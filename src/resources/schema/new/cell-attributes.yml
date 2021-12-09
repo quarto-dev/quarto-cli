@@ -1,0 +1,25 @@
+- name: label
+  schema: string
+  description: "Unique label for code cell"
+
+- name: classes
+  schema: string
+  description: "Classes to apply to cell output"
+
+- name: tags
+  engine: jupyter
+  schema:
+    arrayOf: string
+  description: "Tags for notebook cell"
+
+- name: id
+  engine: jupyter
+  schema: string
+  hidden: true
+  description:
+    short: "Notebook cell identifier"
+    long: |
+      Notebook cell identifier. Note that if there is no cell id then `label` 
+      will be used as the cell if it is present.
+      See <https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html>
+      for additionanl details on cell ids.

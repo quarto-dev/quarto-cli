@@ -1,0 +1,111 @@
+- name: title
+  schema: string
+  description: "Document title"
+
+- name: author
+  schema:
+    maybeArrayOf: string
+  description: "Author or authors of the document"
+
+- name: institute
+  schema:
+    maybeArrayOf: string
+  enabled: [$html-pres, beamer]
+  description: Author affiliations for the presentation.
+
+- name: date
+  schema: string
+  description: "Document date"
+
+- name: subtitle
+  schema: string
+  enabled: [$pdf-all, $html-all, context, muse, odt]
+  description: "Identifies the subtitle of the document."
+
+- name: abstract
+  schema: string
+  enabled:
+    [
+      $pdf-all,
+      $asciidoc-all,
+      jats_publishing,
+      jats_articleauthoring,
+      context,
+      ms,
+      odt,
+    ]
+  description: "Provides a summary of the document"
+
+- name: thanks
+  schema: string
+  enabled: [$pdf-all]
+  description: The contents of an acknowledgments footnote after the document title.
+
+- name: lang
+  schema: string
+  description:
+    short: Identifies the main language of the document (e.g. `en` or `en-GB`).
+    long: |
+      Identifies the main language of the document using IETF language tags 
+      (following the [BCP 47](https://www.rfc-editor.org/info/bcp47) standard), 
+      such as `en` or `en-GB`. The [Language subtag lookup](https://r12a.github.io/app-subtags/) 
+      tool can look up or verify these tags. 
+
+      This affects most formats, and controls hyphenation 
+      in PDF output when using LaTeX (through [`babel`](https://ctan.org/pkg/babel) 
+      and [`polyglossia`](https://ctan.org/pkg/polyglossia)) or ConTeXt.
+
+- name: dir
+  schema:
+    enum: [rtl, ltr]
+  description:
+    short: The base script direction for the document.
+    long: |
+      The base script direction for the document.
+
+      For bidirectional documents, native pandoc `span`s and
+      `div`s with the `dir` attribute (value `rtl` or `ltr`) can
+      be used to override the base direction in some output
+      formats.  This may not always be necessary if the final
+      renderer (e.g. the browser, when generating HTML) supports
+      the [Unicode Bidirectional Algorithm].
+
+      When using LaTeX for bidirectional documents, only the
+      `xelatex` engine is fully supported (use
+      `--pdf-engine=xelatex`).
+
+- name: keywords
+  schema:
+    maybeArrayOf: string
+  enabled: [$asciidoc-all, $html-files, $pdf-all, context]
+  description: "List of keywords to be included in the document metadata."
+
+- name: subject
+  schema: string
+  enabled: [$pdf-all, $office-all]
+  description: "The document subject"
+
+- name: description
+  schema: string
+  enabled: [$office-all]
+  description: "The document description. Some applications show this as `Comments` metadata."
+
+- name: category
+  schema: string
+  enabled: [$office-all]
+  description: "The document category."
+
+- name: title-meta
+  schema: string
+  enabled: [$pdf-all]
+  description: "Sets the title metadata for the document"
+
+- name: description-meta
+  schema: string
+  enabled: [$html-files]
+  description: "Sets the description metadata for the document"
+
+- name: author-meta
+  schema: string
+  enabled: [$pdf-all, $html-files]
+  description: "Sets the author metadata for the document"

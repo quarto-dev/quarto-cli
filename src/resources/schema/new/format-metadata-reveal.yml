@@ -1,0 +1,606 @@
+- name: controls
+  enabled: [revealjs]
+  schema:
+    anyOf:
+      - boolean
+      - enum: [auto]
+  default: auto
+  description:
+    short: "Show arrow controls for navigating through slides"
+    long: |
+      Show arrow controls for navigating through slides (defaults to
+      auto, which will show controls when vertical slides are present
+      or when the deck is embedded in an iframe).
+
+- name: controls-layout
+  enabled: [revealjs]
+  schema:
+    enum: [edges, bottom-right]
+  default: edges
+  description: "Location for navigation controls (`edges` or `bottom-right`)"
+
+- name: controls-tutorial
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Help the user learn the controls by providing visual hints."
+
+- name: controls-back-arrows
+  enabled: [revealjs]
+  schema:
+    enum: [faded, hidden, visible]
+  default: faded
+  description: |
+    Visibility rule for backwards navigation arrows; `faded`, `hidden`
+    or `visible`
+
+- name: progress
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Display a presentation progress bar"
+
+- name: slide-number
+  enabled: [revealjs]
+  schema:
+    oneOf:
+      - boolean
+      - enum: ["h.v", "h/v", "c", "c/t"]
+  default: false
+  description:
+    short: "Display the page number of the current slide"
+    long: |
+      Display the page number of the current slide
+
+      - `true`:    Show slide number
+      - `false`:   Hide slide number
+
+      Can optionally be set as a string that specifies the number formatting:
+
+      - `h.v`:   Horizontal . vertical slide number
+      - `h/v`:   Horizontal / vertical slide number
+      - `c`:   Flattened slide number
+      - `c/t`:   Flattened slide number / total slides (default)
+
+- name: show-slide-number
+  enabled: [revealjs]
+  schema:
+    enum: [all, print, speaker]
+  default: all
+  description: "Contexts in which the slide number appears"
+
+- name: hash
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Add the current slide to the URL hash"
+
+- name: hash-type
+  enabled: [revealjs]
+  schema:
+    enum: [number, title]
+  default: title
+  description: "URL hash type (`number` or `title`)"
+
+- name: hash-one-based-index
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Use 1 based indexing for hash links to match slide number
+
+- name: respond-to-hash-changes
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Monitor the hash and change slides accordingly
+
+- name: history
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Push each slide change to the browser history
+
+- name: keyboard
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Enable keyboard shortcuts for navigation"
+
+- name: overview
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Enable the slide overview mode"
+
+- name: disable-layout
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Disables the default reveal.js slide layout (scaling and centering)
+
+- name: center
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Vertical centering of slides"
+
+- name: center-title-slide
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Vertical centering of title slide"
+
+- name: touch
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Enable touch navigation on devices with touch input
+
+- name: loop
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Loop the presentation"
+
+- name: rtl
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Change the presentation direction to be RTL
+
+- name: navigation-mode
+  enabled: [revealjs]
+  schema:
+    enum: [linear, vertical, grid]
+  default: linear
+  description:
+    short: "Navigation progression"
+    long: |
+      Changes the behavior of navigation directions.
+
+      `default`:
+      Left/right arrow keys step between horizontal slides, up/down
+      arrow keys step between vertical slides. Space key steps through
+      all slides (both horizontal and vertical).
+
+      `linear`:
+      Removes the up/down arrows. Left/right arrows step through all
+      slides (both horizontal and vertical).
+
+      `grid`:
+      When this is enabled, stepping left/right from a vertical stack
+      to an adjacent vertical stack will land you at the same vertical
+      index.
+
+- name: shuffle
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Randomize the order of slides each time the presentation loads"
+
+- name: fragments
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Turns fragments on and off globally"
+
+- name: fragment-in-url
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Include the current fragment in the URL"
+
+- name: embedded
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Flags if the presentation is running in an embedded mode
+
+- name: help
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Show a help overlay when the `?` key is pressed
+
+- name: pause
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Flags whether it should be possible to pause the presentation (blackout)
+
+- name: show-notes
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Make speaker notes visible to all viewers
+
+- name: auto-play-media
+  enabled: [revealjs]
+  schema:
+    enum: [null, true, false]
+  default: null
+  description: |
+    Autoplay embedded media. Default is `null` (only when `autoplay` 
+    attribute is specified)
+
+- name: preload-iframes
+  enabled: [revealjs]
+  schema:
+    enum: [null, true, false]
+  default: null
+  description:
+    short: "Global override for preloading lazy-loaded iframes"
+    long: |
+      Global override for preloading lazy-loaded iframes
+
+      - `null`:   Iframes with data-src AND data-preload will be loaded when within
+        the `viewDistanc`e, iframes with only data-src will be loaded when visible
+      - `true`:   All iframes with data-src will be loaded when within the viewDistance
+      - `false`:  All iframes with data-src will be loaded only when visible
+
+- name: auto-animate
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Globally enable/disable auto-animate (enabled by default)"
+
+- name: auto-animate-easing
+  enabled: [revealjs]
+  schema: string
+  default: "ease"
+  description:
+    short: "Default CSS easing function for auto-animation"
+    long: |
+      Default CSS easing function for auto-animation.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-duration
+  enabled: [revealjs]
+  schema: number
+  default: 1.0
+  description:
+    short: "Duration (in seconds) of auto-animate transition"
+    long: |
+      Duration (in seconds) of auto-animate transition.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-unmatched
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description:
+    short: "Auto-animate unmatched elements."
+    long: |
+      Auto-animate unmatched elements.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-styles
+  enabled: [revealjs]
+  schema:
+    arrayOf:
+      enum:
+        [
+          opacity,
+          color,
+          background-color,
+          padding,
+          font-size,
+          line-height,
+          letter-spacing,
+          border-width,
+          border-color,
+          border-radius,
+          outline,
+          outline-offset,
+        ]
+  description:
+    short: |
+      CSS properties that can be auto-animated (positional styles like top, left, etc.
+      are always animated.
+
+- name: auto-slide
+  enabled: [revealjs]
+  schema:
+    oneOf:
+      - number
+      - false
+  default: 0
+  description: "Automatically progress all slides at the specified interval"
+
+- name: auto-slide-stoppable
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Stop auto-sliding after user input"
+
+- name: auto-slide-method
+  enabled: [revealjs]
+  schema: string
+  default: navigateNext
+  description: "Navigation method to use when auto sliding (defaults to navigateNext)"
+
+- name: default-timing
+  enabled: [revealjs]
+  schema: number
+  description: "Expected average seconds per slide (used by pacing timer in speaker view)"
+
+- name: mouse-wheel
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Enable slide navigation via mouse wheel"
+
+- name: display
+  enabled: [revealjs]
+  schema: string
+  default: block
+  description: "The display mode that will be used to show slides"
+
+- name: hide-inactive-cursor
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Hide cursor if inactive"
+
+- name: hide-cursor-time
+  enabled: [revealjs]
+  schema: number
+  default: 5000
+  description: "Time before the cursor is hidden (in ms)"
+
+- name: preview-links
+  enabled: [revealjs]
+  schema:
+    anyOf:
+      - enum: [auto]
+      - boolean
+  default: auto
+  description:
+    short: "Opens links in an iframe preview overlay"
+    long: |
+      Opens links in an iframe preview overlay (defaults to
+      auto, which will use an iframe in fullscreen mode).
+
+- name: transition
+  enabled: [revealjs]
+  schema:
+    enum: [none, fade, slide, convex, concave, zoom]
+  default: none
+  description: "Slide transition style"
+
+- name: transition-speed
+  enabled: [revealjs]
+  schema:
+    enum: [default, fast, slow]
+  default: default
+  description: "Slide transition speed"
+
+- name: background-transition
+  enabled: [revealjs]
+  schema:
+    enum: [none, fade, slide, convex, concave, zoom]
+  default: none
+  description: "Transition style for full page slide backgrounds"
+
+- name: view-distance
+  enabled: [revealjs]
+  schema: number
+  default: 3
+  description: "Number of slides away from the current slide to pre-load resources for"
+
+- name: mobile-view-distance
+  enabled: [revealjs]
+  schema: number
+  default: 2
+  description: |
+    Number of slides away from the current slide to pre-load resources for (on mobile devices).
+
+- name: parallax-background-image
+  enabled: [revealjs]
+  schema: path
+  description: "Parallax background image"
+
+- name: parallax-background-size
+  enabled: [revealjs]
+  schema: string
+  description: "Parallax background size (e.g. '2100px 900px')"
+
+- name: parallax-background-horizontal
+  enabled: [revealjs]
+  schema: number
+  default: 200
+  description: "Number of pixels to move the parallax background horizontally per slide."
+
+- name: parallax-background-vertical
+  enabled: [revealjs]
+  schema: number
+  default: 50
+  description: "Number of pixels to move the parallax background vertically per slide."
+
+- name: width
+  enabled: [revealjs]
+  schema:
+    oneOf: [number, string]
+  default: 1050
+  description:
+    short: "The 'normal' width of the presentation"
+    long: |
+      The "normal" width of the presentation, aspect ratio will
+      be preserved when the presentation is scaled to fit different
+      resolutions. Can be specified using percentage units.
+
+- name: height
+  enabled: [revealjs]
+  schema:
+    oneOf: [number, string]
+  default: 700
+  description:
+    short: "The 'normal' height of the presentation"
+    long: |
+      The "normal" height of the presentation, aspect ratio will
+      be preserved when the presentation is scaled to fit different
+      resolutions. Can be specified using percentage units.
+
+- name: margin
+  enabled: [revealjs]
+  schema: number
+  default: 0.1
+  description: "Factor of the display size that should remain empty around the content"
+
+- name: min-scale
+  enabled: [revealjs]
+  schema: number
+  default: 0.2
+  description: "Bounds for smallest possible scale to apply to content"
+
+- name: max-scale
+  enabled: [revealjs]
+  schema: number
+  default: 2.0
+  description: "Bounds for largest possible scale to apply to content"
+
+- name: pdf-separate-fragments
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Prints each fragment on a separate slide"
+
+- name: pdf-page-height-offset
+  enabled: [revealjs]
+  schema: number
+  default: -1
+  description:
+    short: "Offset used to reduce the height of content within exported PDF pages."
+    long: |
+      Offset used to reduce the height of content within exported PDF pages.
+      This exists to account for environment differences based on how you
+      print to PDF. CLI printing options, like phantomjs and wkpdf, can end
+      on precisely the total height of the document whereas in-browser
+      printing has to end one pixel before.
+
+- name: logo
+  enabled: [revealjs]
+  schema: path
+  description: "Logo image (placed in bottom right corner of slides)"
+
+- name: footer
+  enabled: [revealjs]
+  schema: string
+  description:
+    short: "Footer to include on all slides"
+    long: |
+      Footer to include on all slides. Can also be set per-slide by including a
+      div with class `.footer` on the slide.
+
+- name: scrollable
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description:
+    short: "Allow content that overflows slides vertically to scroll"
+    long: |
+      Allow content that overflows slides vertically to scroll. This can also
+      be set per-slide by including the `.scrollable` class on the slide title.
+
+- name: smaller
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description:
+    short: "Use a smaller default font for slide content"
+    long: |
+      Use a smaller default font for slide content. This can also
+      be set per-slide by including the `.smaller` class on the slide title.
+
+- name: multiplex
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            url:
+              string:
+                default: https://reveal-multiplex.glitch.me/
+                description: |
+                  Multiplex token server (defaults to Reveal-hosted server)
+            id:
+              string:
+                description: Unique presentation id provided by multiplex token server
+            secret:
+              string:
+                description: Secret provided by multiplex token server
+
+- name: menu
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            side:
+              enum: [left, right]
+              default: left
+              description: "Side of the presentation where the menu will be shown."
+            width:
+              string:
+                completions: [normal, wide, third, half, full]
+              default: normal
+              description: "Width of the menu"
+            numbers:
+              boolean:
+                default: false
+                description: "Add slide numbers to menu items"
+
+- name: chalkboard
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            theme:
+              enum: [chalkboard, whiteboard]
+              default: chalkboard
+              description: "Visual theme for drawing surface"
+            boardmarker-width:
+              number:
+                default: 3
+                description: |
+                  The drawing width of the boardmarker. Defaults to 3. Larger values draw thicker lines.
+            chalk-width:
+              number:
+                default: 7
+                description: |
+                  The drawing width of the chalk. Defaults to 7. Larger values draw thicker lines.
+            src:
+              path:
+                description: |
+                  Optional file name for pre-recorded drawings (download drawings using the `D` key)
+            read-only:
+              boolean:
+                default: false
+                description: |
+                  Configuration option to prevent changes to existing drawings
+            buttons:
+              boolean:
+                default: true
+                description: |
+                  Add chalkboard buttons at the bottom of the slide
+            transition:
+              number:
+                description: |
+                  Gives the duration (in ms) of the transition for a slide change, 
+                  so that the notes canvas is drawn after the transition is completed.
+
+- name: slide-tone
+  schema: boolean
+  default: false
+  description: "Play a subtle sound when changing slides"

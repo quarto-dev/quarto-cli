@@ -1,0 +1,21 @@
+- cell:
+    - attributes
+    - codeoutput
+    - textoutput
+    - figure
+    - layout
+    - pagelayout
+    - cache
+    - include
+
+- document:
+    - attributes
+    - toc
+    - sections
+    - formatting
+    - execute
+    - bibliography
+    - latex:
+        - layout
+        - fonts
+        - links

@@ -1,0 +1,118 @@
+- name: documentclass
+  schema:
+    string:
+      completions:
+        - scrartcl
+        - scrbook
+        - scrreprt
+        - article
+        - book
+        - report
+        - memoir
+  enabled: [$pdf-all]
+  default: scrartcl
+  description: The document class.
+
+- name: classoption
+  schema:
+    maybeArrayOf: string
+  enabled: [$html-files, $pdf-all]
+  description:
+    short: Options for the document class,
+    long: |
+      For LaTeX/PDF output, the options set for the document
+      class.
+
+      For HTML output using KaTeX, you can render display
+      math equations flush left using `classoption: fleqn`
+
+- name: pagestyle
+  schema:
+    string:
+      completions:
+        - plain
+        - empty
+        - headings
+  enabled: [$pdf-all]
+  default: plain
+  description: Control the `\pagestyle{}` for the document.
+
+- name: papersize
+  schema: string
+  enabled: [$pdf-all]
+  description: The paper size for the document.
+
+- name: geometry
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: Options for the geometry package.
+    long: |
+      Options for the [geometry](https://ctan.org/pkg/geometry) package. For example:
+
+      ```yaml
+      geometry:
+        - top=30mm
+        - left=20mm
+        - heightrounded
+      ```
+
+- name: hyperrefoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [$pdf-all]
+  description:
+    short: Options for the hyperref package.
+    long: |
+      Options for the [hyperref](https://ctan.org/pkg/hyperref) package. For example:
+
+      ```yaml
+      hyperrefoptions:
+        - linktoc=all
+        - pdfwindowui
+        - pdfpagemode=FullScreen      
+      ```
+
+- name: indent
+  schema:
+    oneOf:
+      - boolean
+      - string
+  enabled: [$pdf-all, ms]
+  default: false
+  description:
+    short: Whether to use document class settings for indentation.
+    long: |
+      Wheher to use document class settings for indentation. If the document 
+      class settings are not used, the default LaTeX template removes indentation 
+      and adds space between paragraphs
+
+      For groff (`ms`) documents, the paragraph indent, for example, `2m`.
+
+- name: block-headings
+  schema: boolean
+  enabled: [$pdf-all]
+  description:
+    short: Make `\paragraph` and `\subparagraph` free-standing rather than run-in.
+    long: |
+      Make `\paragraph` and `\subparagraph` (fourth- and
+      fifth-level headings, or fifth- and sixth-level with book
+      classes) free-standing rather than run-in; requires further
+      formatting to distinguish from `\subsubsection` (third- or
+      fourth-level headings). Instead of using this option,
+      [KOMA-Script](https://ctan.org/pkg/koma-script) can adjust headings 
+      more extensively:
+
+      ```yaml
+      header-includes: |
+        \RedeclareSectionCommand[
+          beforeskip=-10pt plus -2pt minus -1pt,
+          afterskip=1sp plus -1sp minus 1sp,
+          font=\normalfont\itshape]{paragraph}
+        \RedeclareSectionCommand[
+          beforeskip=-10pt plus -2pt minus -1pt,
+          afterskip=1sp plus -1sp minus 1sp,
+          font=\normalfont\scshape,
+          indent=0pt]{subparagraph}
+      ```

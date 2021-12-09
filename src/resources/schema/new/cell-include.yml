@@ -1,0 +1,21 @@
+- name: child
+  engine: knitr
+  schema:
+    maybeArrayOf: path
+  description: "One or more paths of child documents to be knitted and input into the main document."
+
+- name: file
+  engine: knitr
+  schema: path
+  description: "File containing code to execute for this chunk"
+
+- name: code
+  engine: knitr
+  schema: string
+  description: "String containing code to execute for this chunk"
+
+- name: purl
+  engine: knitr
+  schema: boolean
+  default: true
+  description: "Include chunk when extracting code with `knitr::purl()`"

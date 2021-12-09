@@ -1,0 +1,37 @@
+- name: panel
+  schema:
+    enum: [tabset, input, sidebar, fill, center]
+  description: "Panel type for cell output"
+
+- name: column
+  schema:
+    ref: page-column
+  description: "Page column for output"
+
+- name: fig-column
+  schema:
+    ref: page-column
+  description: "Page column for figure output"
+
+- name: tbl-column
+  schema:
+    ref: page-column
+  description: "Page column for table output"
+
+- name: caption-location
+  schema:
+    enum: [inline, margin]
+  default: inline
+  description: "Where to place figure and table captions."
+
+- name: fig-cap-location
+  schema:
+    enum: [inline, margin]
+  default: inline
+  description: "Where to place figure captions."
+
+- name: tbl-cap-location
+  schema:
+    enum: [inline, margin]
+  default: inline
+  description: "Where to place table captions."
