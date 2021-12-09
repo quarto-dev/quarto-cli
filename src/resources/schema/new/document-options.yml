@@ -1,3 +1,10 @@
+- name: reference-doc
+  enabled: [$office-all, odt]
+  schema: path
+  description: |
+    Use the specified file as a style reference in producing a docx, 
+    pptx, or odt file.
+
 - name: theme
   enabled: [$html-doc, revealjs]
   schema:
@@ -16,17 +23,43 @@
                   description: The dark theme name, theme scss file, or a mix of both.
   description: Theme name, theme scss file, or a mix of both.
 
+- name: minimal
+  schema: boolean
+  default: false
+  enabled: [$html-doc]
+  description: Disables the built in html features like theming, anchor sections, code block behavior, and more.
+
+- name: document-css
+  schema: boolean
+  hidden: true
+  default: true
+  enabled: [$html-files]
+  description: Enables inclusion of Pandoc default CSS for this document.
+
+- name: css
+  enabled: [$html-all]
+  schema:
+    maybeArrayOf: path
+  description: "One or more CSS style sheets."
+
 - name: anchor-sections
   schema: boolean
   default: true
   enabled: [$html-doc]
   description: Enables hover over a section title to see an anchor link.
 
-- name: minimal
-  schema: boolean
-  default: false
-  enabled: [$html-doc]
-  description: Disables the built in html features like theming, anchor sections, code block behavior, and more.
+- name: html-math-method
+  enabled: [$html-all]
+  schema:
+    oneOf:
+      - ref: math-methods
+      - object:
+          properties:
+            method:
+              ref: math-methods
+            url: string
+          required: [method]
+  description: "Method use to render math in HTML output"
 
 - name: section-divs
   enabled: [$html-files]
@@ -35,6 +68,85 @@
   description: |
     Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`
     rather than the heading itself.
+
+- name: identifier-prefix
+  enabled: [$html-files, $docbook-all, $markdown-all, haddock]
+  schema: string
+  description:
+    short: "Specify a prefix to be added to all identifiers and internal links."
+    long: |
+      Specify a prefix to be added to all identifiers and internal links in HTML and
+      DocBook output, and to footnote numbers in Markdown and Haddock output. 
+      This is useful for preventing duplicate identifiers when generating fragments
+      to be included in other pages.
+
+- name: title-prefix
+  enabled: [$html-files]
+  schema: string
+  description: |
+    Specify STRING as a prefix at the beginning of the title that appears in 
+    the HTML header (but not in the title as it appears at the beginning of the body)
+
+- name: email-obfuscation
+  enabled: [$html-files]
+  schema:
+    enum: [none, references, javascript]
+  default: none
+  description:
+    short: "Method for obfuscating mailto: links in HTML documents."
+    long: |
+      Specify a method for obfuscating `mailto:` links in HTML documents.
+      `none` leaves `mailto:` links as they are.  `javascript` obfuscates
+      them using JavaScript. `references` obfuscates them by printing their
+      letters as decimal or hexadecimal character references.  The default
+      is `none`.
+
+- name: html-q-tags
+  enabled: [$html-all]
+  schema: boolean
+  default: false
+  description: "Use `<q>` tags for quotes in HTML."
+
+- name: pdf-engine
+  enabled: [$pdf-all, ms, context]
+  schema:
+    string:
+      completions:
+        - pdflatex
+        - lualatex
+        - xelatex
+        - latexmk
+        - tectonic
+        - wkhtmltopdf
+        - weasyprint
+        - prince
+        - context
+        - pdfroff
+  description:
+    short: "Use the specified engine when producing PDF output."
+    long: |
+      Use the specified engine when producing PDF output. If the engine is not
+      in your PATH, the full path of the engine may be specified here. If this
+      option is not specified, pandoc uses the following defaults
+      depending on the output format in use:
+      - `latex`: `pdflatex` (other options: `xelatex`, `lualatex`,
+        `tectonic`, `latexmk`)
+      - `context`: `context`
+      - `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;
+        see [print-css.rocks](https://print-css.rocks) for a good
+        introduction to PDF generation from HTML/CSS.)
+      - `ms`:  `pdfroff`
+
+- name: pdf-engine-opt
+  enabled: [$pdf-all, ms, context]
+  schema: string
+  description:
+    short: "Use the given string as a command-line argument to the `pdf-engine`."
+    long: |
+      Use the given string as a command-line argument to the pdf-engine.
+      For example, to use a persistent directory foo for latexmk’s auxiliary
+      files, use `pdf-engine-opt: -outdir=foo`. Note that no check for 
+      duplicate options is done.
 
 - name: beamerarticle
   schema: boolean
@@ -108,14 +220,44 @@
   enabled: [beamer]
   description: Options passed to LaTeX Beamer themes.
 
-- name: document-css
-  schema: boolean
-  hidden: true
-  default: true
-  enabled: [$html-files]
-  description: Enables inclusion of Pandoc default CSS for this document.
-
 - name: section
   schema: number
   enabled: [man]
   description: The section number in man pages.
+
+- name: variant
+  enabled: [$markdown-all]
+  schema: string
+  description: |
+    Enable and disable extensions for markdown output (e.g. "+emoji")
+
+- name: markdown-headings
+  enabled: [$markdown-all, ipynb]
+  schema:
+    enum: [setext, atx]
+  default: atx
+  description: |
+    Specify whether to use ATX-style (`#`-prefixed) or
+    Setext-style (underlined) headings for level 1 and 2
+    headings.
+
+- name: keep-yaml
+  enabled: [$markdown-all]
+  schema: boolean
+  default: false
+  description: "Preserve the original YAML front matter in rendered markdown"
+
+- name: ipynb-output
+  enabled: [ipynb]
+  schema:
+    enum: [none, all, best]
+  default: best
+  description:
+    short: "Determines which ipynb cell output formats are rendered."
+    long: |
+      Determines which ipynb cell output formats are rendered. `all` means
+      that all of the data formats included in the original are
+      preserved.  `none` means that the contents of data cells
+      are omitted.  `best` causes pandoc to try to pick the
+      richest data block in each output cell that is compatible
+      with the output format. The default is `best`.

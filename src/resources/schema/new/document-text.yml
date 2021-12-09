@@ -1,0 +1,81 @@
+- name: wrap
+  disabled: [$pdf-all, $office-all, $odt-all, $html-all, $docbook-all]
+  schema:
+    enum: [auto, none, preserve]
+  default: auto
+  description:
+    short: "Determine how text is wrapped in the output."
+    long: |
+      Determine how text is wrapped in the output (the source code, not the rendered
+      version). With `auto` (the default), pandoc will attempt to wrap lines to the column
+      width specified by `columns` (default 72). With `none`, pandoc will not wrap lines at
+      all. With `preserve`, pandoc will attempt to preserve the wrapping from the source
+      document (that is, where there are nonsemantic newlines in the source, there will be
+      nonsemantic newlines in the output as well
+
+- name: columns
+  disabled: [$pdf-all, $office-all, $odt-all, $html-all, $docbook-all]
+  schema: number
+  description:
+    short: Specify length of lines in characters.
+    long: |
+      Specify length of lines in characters. This affects text wrapping in generated source
+      code (see `wrap`). It also affects calculation of column widths for plain text
+      tables.
+
+- name: tab-stop
+  schema: number
+  description:
+    short: "Specify the number of spaces per tab (default is 4)."
+    long: |
+      Specify the number of spaces per tab (default is 4). Note that tabs
+      within normal textual input are always converted to spaces. Tabs 
+      within code are also converted, however this can be disabled with
+      `preserve-tabs: false`.
+
+- name: preserve-tabs
+  schema: boolean
+  default: false
+  description:
+    short: |
+      Preserve tabs within code instead of converting them to spaces.
+    long: |
+      Preserve tabs within code instead of converting them to spaces.
+      (By default, pandoc converts tabs to spaces before parsing its input.) 
+      Note that this will only affect tabs in literal code spans and code blocks. 
+      Tabs in regular text are always treated as spaces.
+
+- name: eol
+  schema:
+    enum: [lf, crlf, native]
+  description:
+    short: "Manually specify line endings (`lf`, `crlf`, or `native`)."
+    long: |
+      Manually specify line endings: `crlf` (Windows), `lf`
+      (macOS/Linux/UNIX), or `native` (line endings appropriate
+      to the OS on which pandoc is being run).  The default is
+      `native`.
+
+- name: strip-comments
+  schema: boolean
+  enabled: [$markdown-all, textile, $html-files]
+  description:
+    short: "Strip out HTML comments in source, rather than passing them on to output."
+    long: |
+      Strip out HTML comments in the Markdown source,
+      rather than passing them on to Markdown, Textile or HTML
+      output as raw HTML.  This does not apply to HTML comments
+      inside raw HTML blocks when the `markdown_in_html_blocks`
+      extension is not set.
+
+- name: ascii
+  schema: boolean
+  description:
+    short: "Use only ASCII characters in output."
+    long: |
+      Use only ASCII characters in output. Currently supported for XML
+      and HTML formats (which use entities instead of UTF-8 when this
+      option is selected), CommonMark, gfm, and Markdown (which use
+      entities), roff ms (which use hexadecimal escapes), and to a
+      limited degree LaTeX (which uses standard commands for accented
+      characters when possible). roff man output uses ASCII by default.

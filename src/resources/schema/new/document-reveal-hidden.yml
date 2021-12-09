@@ -1,0 +1,14 @@
+- name: embedded
+  enabled: [revealjs]
+  schema: boolean
+  hidden: true
+  default: false
+  description: |
+    Flags if the presentation is running in an embedded mode
+
+- name: display
+  enabled: [revealjs]
+  schema: string
+  hidden: true
+  default: block
+  description: "The display mode that will be used to show slides"

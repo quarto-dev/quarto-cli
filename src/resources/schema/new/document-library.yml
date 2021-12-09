@@ -1,3 +1,8 @@
+- name: reveal-js-url
+  schema: path
+  enabled: [revealjs]
+  description: Directory containing reveal.js files.
+
 - name: s5-url
   schema: string
   enabled: [s5]

@@ -1,0 +1,56 @@
+- name: latex-auto-mk
+  enabled: [pdf, beamer]
+  schema: boolean
+  default: true
+  description:
+    short: "Use Quarto's built-in PDF rendering wrapper"
+    long: |
+      Use Quarto's built-in PDF rendering wrapper (includes support 
+      for automatically installing missing LaTeX packages)
+
+- name: latex-auto-install
+  enabled: [pdf, beamer]
+  schema: boolean
+  default: true
+  description: "Enable/disable automatic LaTeX package installation"
+
+- name: latex-min-runs
+  enabled: [pdf, beamer]
+  schema: number
+  default: 1
+  description: "Minimum number of compilation passes."
+
+- name: latex-max-runs
+  enabled: [pdf, beamer]
+  schema: number
+  default: 10
+  description: "Maximum number of compilation passes."
+
+- name: latex-clean
+  enabled: [pdf, beamer]
+  schema: boolean
+  default: true
+  description: "Clean intermediates after compilation."
+
+- name: latex-makeindex
+  enabled: [pdf, beamer]
+  schema: string
+  default: makeindex
+  description: "Program to use for `makeindex`."
+
+- name: latex-makeindex-opts
+  enabled: [pdf, beamer]
+  schema:
+    arrayOf: string
+  decription: "Array of command line options for `makeindex`."
+
+- name: latex-tlmgr-opts
+  enabled: [pdf, beamer]
+  schema:
+    arrayOf: string
+  descrption: "Array of command line options for `tlmgr`."
+
+- name: latex-output-dir
+  enabled: [pdf, beamer]
+  schema: string
+  description: "Output directory for intermediates and PDF."

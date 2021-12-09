@@ -9,6 +9,7 @@
 
 - name: code-link
   schema: boolean
+  engine: knitr
   enabled: [$html-files]
   default: false
   description:
@@ -21,3 +22,84 @@
 
       Code linking is currently implemented only for the knitr engine 
       (via the [downlit](https://downlit.r-lib.org/) package).
+
+- name: code-tools
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            source: boolean
+            toggle: boolean
+            caption: string
+  default: false
+  description:
+    short: "Include a code tools menu (for hiding and showing code)."
+    long: |
+      Include a code tools menu (for hiding and showing code).
+      Use `true` or `false` to enable or disable the standard code 
+      tools menu. Specify sub-properties `source`, `toggle`, and
+      `caption` to customize the behavior and appearnce of code tools.
+
+- name: highlight-style
+  schema:
+    string:
+      completions:
+        - pygments
+        - tango
+        - espresso
+        - zenburn
+        - kate
+        - monochrome
+        - breezedark
+        - haddock
+        - arrow
+        - atom-one
+        - ayu
+        - ayu-mirage
+        - breeze
+        - dracula
+        - github
+        - gruvbox
+        - mokokai
+        - nord
+        - oblivion
+        - printing
+        - radical
+        - solarized
+        - vim-dark
+  description:
+    short: Specifies the coloring style to be used in highlighted source code.
+    long: |
+      Specifies the coloring style to be used in highlighted source code.
+
+      Instead of a *STYLE* name, a JSON file with extension
+      ` .theme` may be supplied.  This will be parsed as a KDE
+      syntax highlighting theme and (if valid) used as the
+      highlighting style.
+
+- name: syntax-definition
+  schema: path
+  hidden: true
+  description: "KDE language syntax definition file (XML)"
+
+- name: syntax-definitions
+  schema:
+    arrayOf: path
+  description: "KDE language syntax definition files (XML)"
+
+- name: listings
+  enabled: [$pdf-all]
+  schema: boolean
+  description:
+    short: "Use the listings package for LaTeX code blocks."
+    long: |
+      Use the `listings` package for LaTeX code blocks. The package
+      does not support multi-byte encoding for source code. To handle UTF-8
+      you would need to use a custom template. This issue is fully
+      documented here: [Encoding issue with the listings package](https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue)
+
+- name: indented-code-classes
+  schema:
+    arrayOf: string
+  description: "Specify classes to use for all indented code blocks"

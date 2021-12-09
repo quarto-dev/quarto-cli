@@ -115,3 +115,88 @@
         scroll-axis:
           enum: [vertical, horizontal, default]
           description: The scroll direction for this book.
+
+
+- name: epub-metadata
+  enabled: [$epub-all]
+  schema: path
+  description:
+    short: |
+      Look in the specified XML file for metadata for the EPUB.
+      The file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).
+    long: |
+      Look in the specified XML file for metadata for the EPUB.
+      The file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).
+      For example:
+
+      ```xml
+      <dc:rights>Creative Commons</dc:rights>
+      <dc:language>es-AR</dc:language>
+      ```
+
+      By default, pandoc will include the following metadata elements:
+      `<dc:title>` (from the document title), `<dc:creator>` (from the
+      document authors), `<dc:date>` (from the document date, which should
+      be in [ISO 8601 format]), `<dc:language>` (from the `lang`
+      variable, or, if is not set, the locale), and `<dc:identifier
+      id="BookId">` (a randomly generated UUID). Any of these may be
+      overridden by elements in the metadata file.
+
+      Note: if the source document is Markdown, a YAML metadata block
+      in the document can be used instead.
+
+
+- name: epub-subdirectory
+  enabled: [$epub-all]
+  schema:
+    oneOf: [path, null]
+  default: EPUB
+  description: |
+    Specify the subdirectory in the OCF container that is to hold the
+    EPUB-specific contents. The default is `EPUB`. To put the EPUB 
+    contents in the top level, use an empty string.
+
+- name: epub-fonts
+  enabled: [$epub-all]
+  schema:
+    arrayOf: path
+  description:
+    short: "Embed the specified fonts in the EPUB"
+    long: |
+      Embed the specified fonts in the EPUB. Wildcards can also be used: for example,
+      `DejaVuSans-*.ttf`. To use the embedded fonts, you will need to add declarations
+      like the following to your CSS:
+
+      ```css
+      @font-face {
+        font-family: DejaVuSans;
+        font-style: normal;
+        font-weight: normal;
+        src:url("DejaVuSans-Regular.ttf");
+      }
+      ```
+
+- name: epub-chapter-level
+  enabled: [$epub-all]
+  schema: number
+  default: 1
+  description:
+    short: |
+      Specify the heading level at which to split the EPUB into separate
+      chapter files.
+    long: |
+      Specify the heading level at which to split the EPUB into separate
+      chapter files. The default is to split into chapters at level-1
+      headings. This option only affects the internal composition of the
+      EPUB, not the way chapters and sections are displayed to users. Some
+      readers may be slow if the chapter files are too large, so for large
+      documents with few level-1 headings, one might want to use a chapter
+      level of 2 or 3.
+
+- name: epub-cover-image
+  enabled: [$epub-all]
+  schema: path
+  description: |
+    Use the specified image as the EPUB cover. It is recommended
+    that the image be less than 1000px in width and height.
+    

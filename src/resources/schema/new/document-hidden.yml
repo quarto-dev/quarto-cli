@@ -1,0 +1,173 @@
+- name: to
+  alias: writer
+  schema: string
+  default: html
+  hidden: true
+  description:
+    short: "Format to write to (e.g. html)"
+    long: |
+      Format to write to. Extensions can be individually enabled or disabled by appending +EXTENSION or -EXTENSION to the format name (e.g. gfm+footnotes)
+
+- name: input-file
+  schema: path
+  hidden: true
+  description: "Input file to read from"
+
+- name: input-files
+  schema:
+    arrayOf: path
+  hidden: true
+  description: "Input files to read from"
+
+- name: defaults
+  schema:
+    arrayOf: path
+  hidden: true
+  description: "Include options from the specified defaults files"
+
+- name: variables
+  schema: object
+  hidden: true
+  description: "Pandoc metadata variables"
+
+- name: metadata
+  schema: object
+  hidden: true
+  description: "Pandoc metadata variables"
+
+- name: request-headers
+  schema:
+    ref: pandoc-format-request-headers
+  hidden: true
+  description: "Headers to include with HTTP requests by Pandoc"
+
+- name: trace
+  schema: boolean
+  default: false
+  description: "Display trace debug output."
+
+- name: fail-if-warnings
+  schema: boolean
+  default: false
+  description: "Exit with error status if there are any warnings."
+
+- name: dump-args
+  schema: boolean
+  default: false
+  hidden: true
+  description: "Print information about command-line arguments to *stdout*, then exit."
+
+- name: ignore-args
+  schema: boolean
+  default: false
+  hidden: true
+  description: "Ignore command-line arguments (for use in wrapper scripts)."
+
+- name: file-scope
+  schema: boolean
+  hidden: true
+  default: false
+  description: "Parse each file individually before combining for multifile documents."
+
+- name: data-dir
+  schema: path
+  hidden: true
+  description: "Specify the user data directory to search for pandoc data files."
+
+- name: verbosity
+  schema:
+    enum: [ERROR, WARNING, INFO]
+  default: WARNING
+  hidden: true
+  description: "Level of program output (provide INFO for diagnostics)"
+
+- name: log-file
+  hidden: true
+  schema: path
+  description: "Write log messages in machine-readable JSON format to FILE."
+
+- name: track-changes
+  enabled: [docx]
+  hidden: true
+  schema:
+    enum: [accept, reject, all]
+  default: accept
+  description:
+    short: |
+      Specifies what to do with insertions, deletions, and comments produced by 
+      the MS Word “Track Changes” feature.
+    long: |
+      Specifies what to do with insertions, deletions, and comments
+      produced by the MS Word "Track Changes" feature.  `accept` (the
+      default) processes all the insertions and deletions.
+      `reject` ignores them.  Both `accept` and `reject` ignore comments.
+      `all` includes all insertions, deletions, and comments, wrapped
+      in spans with `insertion`, `deletion`, `comment-start`, and
+      `comment-end` classes, respectively. The author and time of
+      change is included. `all` is useful for scripting: only
+      accepting changes from a certain reviewer, say, or before a
+      certain date. If a paragraph is inserted or deleted,
+      `track-changes=all` produces a span with the class
+      `paragraph-insertion`/`paragraph-deletion` before the
+      affected paragraph break. This option only affects the docx
+      reader.
+
+- name: strip-empty-paragraphs
+  schema: boolean
+  hidden: true
+  description:
+    short: "Ignore paragraphs with no content."
+    long: |
+      *Deprecated.  Use the `+empty_paragraphs` extension instead.*
+      Ignore paragraphs with no content.  This option is useful
+      for converting word processing documents where users have
+      used empty paragraphs to create inter-paragraph space.
+
+- name: keep-source
+  enabled: [$html-doc]
+  schema: boolean
+  default: false
+  hidden: true
+  description:
+    short: "Embed the input file source code in the generated HTML"
+    long: |
+      Embed the input file source code in the generated HTML. A hidden div with 
+      class `quarto-embedded-source-code` will be added to the document. This
+      option is not normally used directly but rather in the implementation
+      of the `code-tools` option.
+
+- name: keep-hidden
+  enabled: [$html-doc]
+  schema: boolean
+  default: false
+  hidden: true
+  description: "Keep hidden source code and output (marked with class `.hidden`)"
+
+- name: prefer-html
+  enabled: [$markdown-all]
+  schema: boolean
+  default: false
+  hidden: true
+  description:
+    short: "Generate HTML output (if necessary) even when targeting markdown."
+    long: |
+      Generate HTML output (if necessary) even when targeting markdown. Enables the 
+      embedding of more sophisticated output (e.g. Jupyter widgets) in markdown.
+      Note that this option is set to `true` for the `hugo` format.
+
+- name: output-divs
+  schema: boolean
+  default: true
+  hidden: true
+  description: |
+    Indicates that computational output should not be written within divs. 
+    This is necessary for some formats (e.g. `pptx`) to properly layout
+    figures.
+
+- name: merge-includes
+  schema: boolean
+  default: true
+  hidden: true
+  description: |
+    Disable merging of string based and file based includes (some formats, 
+    specifically ePub, do not correctly handle this merging)

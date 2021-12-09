@@ -26,8 +26,26 @@
         title: "Table of Contents"
     - numbering:
         title: "Numbering"
+    - slides:
+        title: "Slides"
+    - reveal-content:
+        title: "Slide Content"
+    - reveal-tools:
+        title: "Slide Tools"
+    - reveal-transitions:
+        title: "Transitions"
+    - reveal-navigation:
+        title: "Navigation"
+    - reveal-print:
+        title: "Print to PDF"
+    - reveal-media:
+        title: "Media"
+    - reveal-layout:
+        title: "Slide Layout"
+    - reveal-hidden:
+        title: "Reveal Hidden"
     - epub:
-        title: "ePub Metadata"
+        title: "ePub Options"
     - fonts:
         title: "Fonts"
     - colors:
@@ -42,6 +60,8 @@
         title: "Execution"
     - figures:
         title: "Figures"
+    - links:
+        title: "Links"
     - references:
         title: "Citations and Footnotes"
     - crossref:
@@ -50,9 +70,17 @@
         title: "Comments"
     - includes:
         title: "Includes"
+    - render:
+        title: "Rendering"
+    - latexmk:
+        title: "Latexmk"
     - website:
         title: "Website"
     - pdfa:
         title: "PDF/A"
+    - text:
+        title: "Text Output"
     - library:
         title: "Library"
+    - hidden:
+        title: "Hidden"

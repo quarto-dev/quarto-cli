@@ -74,3 +74,27 @@
 
       See [ConTeXt Page Numbering](https://wiki.contextgarden.net/Command/setuppagenumbering) 
       for additional information.
+
+- name: top-level-division
+  enabled: [$pdf-all, context, $docbook-all, tei]
+  schema:
+    enum: [default, section, chapter, part]
+  description:
+    short: |
+      Treat top-level headings as the given division type. The hierarchy
+      order is part, chapter, then section; all headings are shifted such 
+      that the top-level heading becomes the specified type.
+    long: |
+      Treat top-level headings as the given division type. The hierarchy
+      order is part, chapter, then section; all headings are shifted such 
+      that the top-level heading becomes the specified type.  
+
+      The default behavior is to determine the
+      best division type via heuristics: unless other conditions
+      apply, `section` is chosen. When the `documentclass`
+      variable is set to `report`, `book`, or `memoir` (unless the
+      `article` option is specified), `chapter` is implied as the
+      setting for this option. If `beamer` is the output format,
+      specifying either `chapter` or `part` will cause top-level
+      headings to become `\part{..}`, while second-level headings
+      remain as their default type.

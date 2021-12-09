@@ -1,0 +1,54 @@
+- name: width
+  enabled: [revealjs]
+  schema:
+    oneOf: [number, string]
+  default: 1050
+  description:
+    short: "The 'normal' width of the presentation"
+    long: |
+      The "normal" width of the presentation, aspect ratio will
+      be preserved when the presentation is scaled to fit different
+      resolutions. Can be specified using percentage units.
+
+- name: height
+  enabled: [revealjs]
+  schema:
+    oneOf: [number, string]
+  default: 700
+  description:
+    short: "The 'normal' height of the presentation"
+    long: |
+      The "normal" height of the presentation, aspect ratio will
+      be preserved when the presentation is scaled to fit different
+      resolutions. Can be specified using percentage units.
+
+- name: margin
+  enabled: [revealjs]
+  schema: number
+  default: 0.1
+  description: "Factor of the display size that should remain empty around the content"
+
+- name: min-scale
+  enabled: [revealjs]
+  schema: number
+  default: 0.2
+  description: "Bounds for smallest possible scale to apply to content"
+
+- name: max-scale
+  enabled: [revealjs]
+  schema: number
+  default: 2.0
+  description: "Bounds for largest possible scale to apply to content"
+
+- name: center
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: "Vertical centering of slides"
+
+- name: disable-layout
+  enabled: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Disables the default reveal.js slide layout (scaling and centering)

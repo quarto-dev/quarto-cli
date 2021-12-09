@@ -83,3 +83,31 @@
   schema: string
   enabled: [man]
   description: The header for man pages.
+
+- name: metadata-file
+  schema: path
+  hidden: true
+  description:
+    short: "Include file with YAML metadata"
+    long: |
+      Read metadata from the supplied YAML (or JSON) file. This
+      option can be used with every input format, but string scalars
+      in the YAML file will always be parsed as Markdown. Generally,
+      the input will be handled the same as in YAML metadata blocks.
+      Metadata values specified inside the document, or by using `-M`, 
+      overwrite values specified with this option.
+
+- name: metadata-files
+  schema:
+    arrayOf: path
+  description:
+    short: "Include files with YAML metadata"
+    long: |
+      Read metadata from the supplied YAML (or JSON) files. This
+      option can be used with every input format, but string scalars
+      in the YAML file will always be parsed as Markdown. Generally,
+      the input will be handled the same as in YAML metadata blocks.
+      Values in files specified later in the list will be preferred
+      over those specified earlier. Metadata values specified inside 
+      the document, or by using `-M`, overwrite values specified with
+      this option.

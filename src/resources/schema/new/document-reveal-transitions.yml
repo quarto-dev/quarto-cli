@@ -1,0 +1,86 @@
+- name: transition
+  enabled: [revealjs]
+  schema:
+    enum: [none, fade, slide, convex, concave, zoom]
+  default: none
+  description: "Slide transition style"
+
+- name: transition-speed
+  enabled: [revealjs]
+  schema:
+    enum: [default, fast, slow]
+  default: default
+  description: "Slide transition speed"
+
+- name: background-transition
+  enabled: [revealjs]
+  schema:
+    enum: [none, fade, slide, convex, concave, zoom]
+  default: none
+  description: "Transition style for full page slide backgrounds"
+
+- name: fragments
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Turns fragments on and off globally"
+
+- name: auto-animate
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description: "Globally enable/disable auto-animate (enabled by default)"
+
+- name: auto-animate-easing
+  enabled: [revealjs]
+  schema: string
+  default: "ease"
+  description:
+    short: "Default CSS easing function for auto-animation"
+    long: |
+      Default CSS easing function for auto-animation.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-duration
+  enabled: [revealjs]
+  schema: number
+  default: 1.0
+  description:
+    short: "Duration (in seconds) of auto-animate transition"
+    long: |
+      Duration (in seconds) of auto-animate transition.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-unmatched
+  enabled: [revealjs]
+  schema: boolean
+  default: true
+  description:
+    short: "Auto-animate unmatched elements."
+    long: |
+      Auto-animate unmatched elements.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-styles
+  enabled: [revealjs]
+  schema:
+    arrayOf:
+      enum:
+        [
+          opacity,
+          color,
+          background-color,
+          padding,
+          font-size,
+          line-height,
+          letter-spacing,
+          border-width,
+          border-color,
+          border-radius,
+          outline,
+          outline-offset,
+        ]
+  description:
+    short: |
+      CSS properties that can be auto-animated (positional styles like top, left, etc.
+      are always animated.
