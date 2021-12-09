@@ -65,21 +65,24 @@
 
 - name: citation-abbreviations
   schema: path
-  description: |
-    JSON file containing abbreviations of journals that should be
-    used in formatted bibliographies when `form="short"` is
-    specified. The format of the file can be illustrated with an
-    example:
-    ```json
-    { "default": {
-        "container-title": {
-          "Lloyd's Law Reports": "Lloyd's Rep",
-          "Estates Gazette": "EG",
-          "Scots Law Times": "SLT"
+  description:
+    short: "JSON file containing abbreviations of journals that should be used in formatted bibliographies."
+    long: |
+      JSON file containing abbreviations of journals that should be
+      used in formatted bibliographies when `form="short"` is
+      specified. The format of the file can be illustrated with an
+      example:
+
+      ```json
+      { "default": {
+          "container-title": {
+            "Lloyd's Law Reports": "Lloyd's Rep",
+            "Estates Gazette": "EG",
+            "Scots Law Times": "SLT"
+          }
         }
       }
-    }
-    ```
+      ```
 
 - name: footnotes-hover
   schema: boolean
