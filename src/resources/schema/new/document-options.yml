@@ -1,0 +1,121 @@
+- name: theme
+  enabled: [$html-doc, revealjs]
+  schema:
+    oneOf:
+      - string
+      - arrayOf: string
+      - object:
+          properties:
+            light:
+              maybeArrayOf:
+                string:
+                  description: The light theme name, theme scss file, or a mix of both.
+            dark:
+              maybeArrayOf:
+                string:
+                  description: The dark theme name, theme scss file, or a mix of both.
+  description: Theme name, theme scss file, or a mix of both.
+
+- name: anchor-sections
+  schema: boolean
+  default: true
+  enabled: [$html-doc]
+  description: Enables hover over a section title to see an anchor link.
+
+- name: minimal
+  schema: boolean
+  default: false
+  enabled: [$html-doc]
+  description: Disables the built in html features like theming, anchor sections, code block behavior, and more.
+
+- name: section-divs
+  enabled: [$html-files]
+  schema: boolean
+  default: true
+  description: |
+    Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`
+    rather than the heading itself.
+
+- name: beamerarticle
+  schema: boolean
+  enabled: [beamer]
+  description: Whether to produce a Beamer article from this presentation.
+
+- name: beameroption
+  schema:
+    maybeArrayOf: string
+  enabled: [beamer]
+  description: Add an extra Beamer option using `\setbeameroption{}`.
+
+- name: aspectratio
+  schema:
+    oneOf:
+      - 43
+      - 169
+      - 1610
+      - 149
+      - 141
+      - 54
+      - 32
+  enabled: [beamer]
+  description: The aspect ratio for this presentation.
+
+- name: logo
+  schema: path
+  enabled: [beamer]
+  description: The logo image for slides.
+
+- name: titlegraphic
+  schema: path
+  enabled: [beamer]
+  description: The image for the title slide.
+
+- name: navigation
+  schema:
+    enum: [empty, frame, vertical, horizontal]
+  enabled: [beamer]
+  description: Controls navigation symbols for the presentation.
+
+- name: section-titles
+  schema: boolean
+  enabled: [beamer]
+  default: true
+  description: Whether to enable title pages for new sections.
+
+- name: colortheme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer color theme for this presentation.
+
+- name: fonttheme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer font theme for this presentation.
+
+- name: innertheme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer inner theme for this presentation.
+
+- name: outertheme
+  schema: string
+  enabled: [beamer]
+  description: The Beamer outer theme for this presentation.
+
+- name: themeoptions
+  schema:
+    maybeArrayOf: string
+  enabled: [beamer]
+  description: Options passed to LaTeX Beamer themes.
+
+- name: document-css
+  schema: boolean
+  hidden: true
+  default: true
+  enabled: [$html-files]
+  description: Enables inclusion of Pandoc default CSS for this document.
+
+- name: section
+  schema: number
+  enabled: [man]
+  description: The section number in man pages.

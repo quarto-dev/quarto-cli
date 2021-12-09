@@ -21,17 +21,6 @@
   description: |
     Extension to use for generated output file
 
-- name: page-width
-  enabled: [docx, $odt-all]
-  schema: number
-  description:
-    short: |
-      Target page width for output (used to compute columns widths for `layout` divs)
-    long: |
-      Target page width for output (used to compute columns widths for `layout` divs).
-      Defaults to 6.5 inches, which corresponds to default letter page settings in 
-      docx and odt.
-
 - name: fig-align
   enabled: [docx, rtf, $odt-all, $pdf-all, $html-all]
   schema:

@@ -34,3 +34,15 @@
   schema: string
   enabled: [$epub-all, $odt-all, $office-all, $pdf-all, $html-doc, revealjs]
   description: The title used for the table of contents.
+
+- name: lof
+  schema: boolean
+  default: false
+  enabled: [$pdf-all]
+  description: Print a list of figures in the document.
+
+- name: lot
+  schema: boolean
+  default: false
+  enabled: [$pdf-all]
+  description: Print a list of tables in the document.

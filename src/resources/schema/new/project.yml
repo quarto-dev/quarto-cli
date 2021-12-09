@@ -1,0 +1,87 @@
+- name: project
+  schema:
+    object:
+      properties:
+        type:
+          enum: [website, book, site]
+          completions: [website, book]
+          description: "Project type"
+        render:
+          arrayOf: path
+          description: "Files to render (defaults to all files)"
+        execute-dir:
+          enum: [file, project]
+          description:
+            short: "Working directory for computations"
+            long: |
+              Working directory for computations: `file` uses the directory of the
+              currently executing file, `project` uses the root project directory.
+        output-dir:
+          path:
+            description: "Output directory"
+        lib-dir:
+          path:
+            description: "HTML library (JS/CSS/etc.) directory"
+        resources:
+          arrayOf:
+            schema: path
+            description: "Additional file resources to be copied to output directory"
+
+- name: website
+  schema:
+    ref: base-website
+
+- name: book
+  schema:
+    object:
+      super:
+        resolveRef: base-website
+      properties:
+        title:
+          string:
+            description: "Book title"
+        subtitle:
+          string:
+            description: "Book subtitle"
+        author:
+          maybeArrayOf:
+            schema: string
+            description: "Author or authors of the book"
+        date:
+          string:
+            description: "Book publication date"
+        output-file:
+          path:
+            description: "Base name for single-file output (e.g. PDF, ePub)"
+        abstract:
+          string:
+            description: "Book abstract"
+        description:
+          string:
+            description: "Description metadata for HTML version of book"
+        cover-image:
+          path:
+            description: "Cover image (used in HTML and ePub formats)"
+        sharing:
+          maybeArrayOf:
+            enum: [twitter, facebook, linkedin]
+            description: "Sharing buttons to include on navbar or sidebar"
+        downloads:
+          maybeArrayOf:
+            enum: [pdf, epub, docx]
+            description: |
+              Download buttons for other formats to include on navbar or sidebar
+        tools:
+          arrayOf:
+            schema:
+              ref: navigation-item
+            description: "Custom tools for navbar or sidebar"
+        chapters:
+          ref: chapter-list
+          description: "Book part and chapter files"
+        references:
+          path:
+            description: "Book references file"
+        appendices:
+          arrayOf: path
+          description: "Book appendix files"

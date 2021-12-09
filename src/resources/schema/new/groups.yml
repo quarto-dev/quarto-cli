@@ -1,21 +1,58 @@
 - cell:
-    - attributes
-    - codeoutput
-    - textoutput
-    - figure
-    - layout
-    - pagelayout
-    - cache
-    - include
+    - attributes:
+        title: "Attributes"
+    - codeoutput:
+        title: "Code Output"
+    - textoutput:
+        title: "Text Output"
+    - figure:
+        title: "Figures"
+    - layout:
+        title: "Output Layout"
+    - pagelayout:
+        title: "Page Layout"
+    - cache:
+        title: "Cache"
+    - include:
+        title: "Include"
 
+# from: https://github.com/jgm/pandoc/blob/426342f00d13eb6a899961715961975b113f9792/MANUAL.txt
 - document:
-    - attributes
-    - toc
-    - sections
-    - formatting
-    - execute
-    - bibliography
-    - latex:
-        - layout
-        - fonts
-        - links
+    - attributes:
+        title: "Attributes"
+    - options:
+        title: "Format Options"
+    - toc:
+        title: "Table of Contents"
+    - numbering:
+        title: "Numbering"
+    - epub:
+        title: "ePub Metadata"
+    - fonts:
+        title: "Fonts"
+    - colors:
+        title: "Colors"
+    - layout:
+        title: "Layout"
+    - formatting:
+        title: "Formatting"
+    - code:
+        title: "Code"
+    - execute:
+        title: "Execution"
+    - figures:
+        title: "Figures"
+    - references:
+        title: "Citations and Footnotes"
+    - crossref:
+        title: "Cross References"
+    - comments:
+        title: "Comments"
+    - includes:
+        title: "Includes"
+    - website:
+        title: "Website"
+    - pdfa:
+        title: "PDF/A"
+    - library:
+        title: "Library"

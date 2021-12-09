@@ -1,3 +1,45 @@
+- name: engine
+  schema:
+    string:
+      completions: [jupyter, knitr]
+  description: "Engine used for executable code blocks."
+
+- name: jupyter
+  schema:
+    oneOf:
+      - boolean
+      - string
+      - object:
+          properties:
+            kernelspec:
+              object:
+                properties:
+                  display_name:
+                    string:
+                      description: The name to display in the UI.
+                  language:
+                    string:
+                      description: The name of the language the kernel implements.
+                  name:
+                    string:
+                      description: The name of the kernel.
+                required: [name, language, display_name]
+  description: Configures the Jupyter engine.
+
+- name: knitr
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            opts_knit:
+              object:
+                description: Knit options.
+            opts_chunk:
+              object:
+                description: Knitr chunk options.
+  description: Set Knitr options.
+
 - name: cache
   schema:
     anyOf:
@@ -28,6 +70,23 @@
       a global project render (`freeze: true`), or alternatively only be re-rendered
       when their source file changes (`freeze: auto`).
 
+- name: server
+  schema:
+    oneOf:
+      - enum: [shiny]
+      - object:
+          properties:
+            type:
+              enum: [shiny]
+              description: Type of server to run behind the document.
+            ojs-export:
+              maybeArrayOf: string
+              description: OJS variables to export to server.
+            ojs-import:
+              maybeArrayOf: string
+              description: Server reactive values to import into OJS.
+  description: Document server
+
 - name: daemon
   schema:
     oneOf: [number, boolean]
@@ -44,12 +103,6 @@
   hidden: true
   default: false
   description: "Restart any running Jupyter daemon before rendering."
-
-- name: engine
-  schema:
-    string:
-      completions: [jupyter, knitr]
-  description: "Engine used for executable code blocks."
 
 - name: enabled
   schema: boolean

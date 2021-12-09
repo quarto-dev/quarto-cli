@@ -1,22 +1,32 @@
-- name: colorlinks
-  schema: boolean
-  enabled: [$pdf-all]
-  default: true
-  description: |
-    Add color to link text, automatically enabled if any of 
-    `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.
-
+- name: fontcolor
+  schema: string
+  enabled: [$html-files]
+  description: Sets the CSS `color` property.
 - name: linkcolor
   schema: string
-  enabled: [$pdf-all]
+  enabled: [$html-files, context, $pdf-all]
   description:
-    short: The color used for internal links using color options allowed by `xcolor`
-
+    short: Sets the color of hyperlinks in the document.
     long: |
-      The color used for internal links using color options
+      For HTML output, sets the CSS `color` property on all links.
+
+      For LaTeX output, The color used for internal links using color options
       allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
       including the `dvipsnames`, `svgnames`, and
       `x11names` lists.
+
+      For ConTeXt output, sets the color for both external links and links within the document.
+
+- name: monobackgroundcolor
+  schema: string
+  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  description: Sets the CSS `background-color` property on code elements and adds extra padding.
+
+- name: backgroundcolor
+  schema: string
+  enabled: [$html-files]
+  description: |
+    Sets the CSS `background-color` property on the html element.
 
 - name: filecolor
   schema: string
@@ -62,8 +72,20 @@
       including the `dvipsnames`, `svgnames`, and
       `x11names` lists.
 
-- name: links-as-notes
+- name: colorlinks
   schema: boolean
   enabled: [$pdf-all]
-  default: false
-  description: Causes links to be printed as footnotes.
+  default: true
+  description: |
+    Add color to link text, automatically enabled if any of 
+    `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.
+
+- name: contrastcolor
+  schema: string
+  enabled: [context]
+  description:
+    short: Color for links to other content within the document.
+    long: |
+      Color for links to other content within the document. 
+
+      See [ConTeXt Color](https://wiki.contextgarden.net/Color) for additional information.

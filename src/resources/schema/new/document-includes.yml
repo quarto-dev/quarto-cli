@@ -1,0 +1,85 @@
+- name: header-includes
+  schema: string
+  description: The markdown to include at the end of the document header.
+
+- name: include-before
+  schema: string
+  description: The markdown to include at the beginning of the document body (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command in LaTeX).
+
+- name: include-after
+  schema: string
+  description: The markdown to include at the end of the document body (before the `</body>` tag in HTML, or the `\end{document}` command in LaTeX).
+
+- name: include-before-body
+  disabled: [pptx, docx]
+  schema:
+    maybeArrayOf: path
+  description: |
+    Include contents of files, verbatim, at the beginning of the document body
+    (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command 
+    in LaTeX).
+
+- name: include-after-body
+  disabled: [pptx, docx]
+  schema:
+    maybeArrayOf: path
+  description: |
+    Include contents of files, verbatim, at the end of the document body (before
+    the `</body>` tag in HTML, or the `\end{document}` command in LaTeX).
+
+- name: include-in-header
+  disabled: [pptx, docx]
+  schema:
+    maybeArrayOf: path
+  description: |
+    Include contents of files, verbatim, at the end of the header. This can
+    be used, for example, to include special CSS or JavaScript in HTML 
+    documents.
+
+- name: resources
+  schema:
+    maybeArrayOf: string
+  enabled: [$html-all]
+  description: Path (or glob) to files to publish with this document.
+
+- name: headertext
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: Text to be in a running header.
+    long: |
+      Text to be in a running header.
+
+      Provide a single option or up to four options for different placements 
+      (odd page inner, odd page outer, even page innner, even page outer).
+
+- name: footertext
+  schema:
+    maybeArrayOf: string
+  enabled: [context]
+  description:
+    short: Text to be in a running footer.
+    long: |
+      Text to be in a running footer.
+
+      Provide a single option or up to four options for different placements 
+      (odd page inner, odd page outer, even page innner, even page outer).
+
+      See [ConTeXt Headers and Footers](https://wiki.contextgarden.net/Headers_and_Footers) for more information.
+
+- name: includesource
+  schema: boolean
+  enabled: [context]
+  default: false
+  description: Whether to include all source documents as file attachments in the PDF file.
+
+- name: footer
+  schema: string
+  enabled: [man]
+  description: The footer for man pages.
+
+- name: header
+  schema: string
+  enabled: [man]
+  description: The header for man pages.

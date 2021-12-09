@@ -8,6 +8,19 @@
   schema: path
   description: Citation Style Language file to use for formatting references.
 
+- name: citations-hover
+  schema: boolean
+  enabled: [$html-files]
+  default: true
+  decription: Enables a hover popup for citation that shows the reference information.
+
+- name: citation-location
+  schema:
+    enum: [document, margin]
+  enabled: [$html-doc]
+  default: document
+  description: Where citation information should be displayed.
+
 - name: cite-method
   enabled: [$pdf-all]
   schema:
@@ -59,6 +72,7 @@
       used in formatted bibliographies when `form="short"` is
       specified. The format of the file can be illustrated with an
       example:
+
       ```json
       { "default": {
           "container-title": {
@@ -69,3 +83,15 @@
         }
       }
       ```
+
+- name: footnotes-hover
+  schema: boolean
+  enabled: [$html-files]
+  default: true
+  decription: Enables a hover popup for footnotes that shows the footnote contents.
+
+- name: links-as-notes
+  schema: boolean
+  enabled: [$pdf-all]
+  default: false
+  description: Causes links to be printed as footnotes.
