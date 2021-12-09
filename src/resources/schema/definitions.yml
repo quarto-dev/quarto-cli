@@ -63,15 +63,65 @@
       - pattern: ^xwiki(\+.+)?$
       - pattern: ^zimwiki(\+.+)?$
 
-    completions: [asciidoc, asciidoctor, beamer, biblatex, bibtex,
-      commonmark, commonmark_x, context, csljson, docbook, docx,
-      dokuwiki, dzslides, epub, fb2, gfm, haddock, html, icml, ipynb,
-      jats, jats_archiving, jats_articleauthoring, jats_publishing,
-      jira, json, latex, man, markdown, markdown_github, markdown_mmd,
-      markdown_phpextra, markdown_strict, mediawiki, ms, muse, native,
-      odt, opendocument, opml, org, pdf, plain, pptx, revealjs, rst,
-      rtf, s5, slideous, slidy, tei, texinfo, textile, xwiki, zimwiki]
-    
+    completions:
+      [
+        asciidoc,
+        asciidoctor,
+        beamer,
+        biblatex,
+        bibtex,
+        commonmark,
+        commonmark_x,
+        context,
+        csljson,
+        docbook,
+        docx,
+        dokuwiki,
+        dzslides,
+        epub,
+        fb2,
+        gfm,
+        haddock,
+        html,
+        icml,
+        ipynb,
+        jats,
+        jats_archiving,
+        jats_articleauthoring,
+        jats_publishing,
+        jira,
+        json,
+        latex,
+        man,
+        markdown,
+        markdown_github,
+        markdown_mmd,
+        markdown_phpextra,
+        markdown_strict,
+        mediawiki,
+        ms,
+        muse,
+        native,
+        odt,
+        opendocument,
+        opml,
+        org,
+        pdf,
+        plain,
+        pptx,
+        revealjs,
+        rst,
+        rtf,
+        s5,
+        slideous,
+        slidy,
+        tei,
+        texinfo,
+        textile,
+        xwiki,
+        zimwiki,
+      ]
+
 - enum:
     id: math-methods
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
@@ -105,7 +155,7 @@
               type:
                 enum: [citeproc]
             required: [type]
-            
+
 - enum:
     id: page-column
     values:
@@ -127,6 +177,25 @@
         screen-inset-right,
         margin,
       ]
+
+- object:
+    id: tool-item
+    properties:
+      icon:
+        string:
+          description:
+            short: Name of bootstrap icon (e.g. "github", "twitter", "share")
+            long: |
+              Name of bootstrap icon (e.g. "github", "twitter", "share")
+              See <https://icons.getbootstrap.com/> for a list of available icons
+      href:
+        string:
+          description: |
+            Link to file contained with the project or external URL
+      menu:
+        arrayOf:
+          schema:
+            ref: navigation-item
 
 - object:
     id: navigation-item
@@ -219,8 +288,162 @@
         maybeArrayOf:
           enum: [none, edit, source, issue]
           description: "Links to source repository actions"
-      # TODO: navbar
-      # TODO: sidebar
+
+      navbar:
+        oneOf:
+          - boolean
+          - object:
+            properties:
+              title:
+                oneOf:
+                  - string
+                  - boolean
+                description: "The navbar title. Uses the project title if none is specified."
+              logo:
+                path:
+                  description: "Path to a logo image that will be displayed to the left of the title."
+              background:
+                oneOf:
+                  - enum:
+                      [
+                        “primary”,
+                        “secondary”,
+                        “success”,
+                        “danger”,
+                        “warning”,
+                        “info”,
+                        “light”,
+                        “dark”,
+                      ]
+                  - string
+                description: "The navbar's background color (named or hex color)."
+              foreground:
+                oneOf:
+                  - enum:
+                      [
+                        “primary”,
+                        “secondary”,
+                        “success”,
+                        “danger”,
+                        “warning”,
+                        “info”,
+                        “light”,
+                        “dark”,
+                      ]
+                  - string
+                description: "The navbar's foreground color (named or hex color)."
+              search:
+                boolean:
+                  description: "Include a search box in the navbar."
+              pinned:
+                boolean:
+                  description: "Always show the navbar (keeping it pinned)."
+                  default: false
+              collapse:
+                boolean:
+                  description: "Collapse the navbar into a menu when the display becomes narrow."
+                  default: true
+              collapse-below:
+                enum: [“sm”, “md”, “lg”, “xl”, or “xxl”]
+                description: "The responsive breakpoint below which the navbar will collapse into a menu."
+                default: "lg"
+              left:
+                ref:
+                  navbar-items-schema:
+                    description: "List of items for the left side of the navbar."
+              right:
+                ref:
+                  navbar-items-schema:
+                    description: "List of items for the right side of the navbar."
+        description: "Top navigation options"
+
+      sidebar:
+        oneOf:
+          - boolean
+          - object:
+            properties:
+              id:
+                string:
+                  description: "The identifier for this sidebar."
+              title:
+                oneOf:
+                  - string
+                  - boolean
+                description: "The sidebar title. Uses the project title if none is specified."
+              subtitle:
+                string:
+                  description: "The subtitle for this sidebar."
+              logo:
+                path:
+                  description: "Path to a logo image that will be displayed in the sidebar."
+              search:
+                boolean:
+                  description: "Include a search control in the sidebar."
+              tools:
+                ref:
+                  tool-item:
+                    description: "List of sidebar tools"
+              contents:
+                ref:
+                  sidebar-contents:
+                    description: "List of items for the sidebar"
+              style:
+                enum: ["docked", "floating"]
+                description: "The style of sidebar."
+                default: "floating"
+              background:
+                oneOf:
+                  - enum:
+                      [
+                        “primary”,
+                        “secondary”,
+                        “success”,
+                        “danger”,
+                        “warning”,
+                        “info”,
+                        “light”,
+                        “dark”,
+                      ]
+                  - string
+                description: "The sidebar's background color (named or hex color)."
+              foreground:
+                oneOf:
+                  - enum:
+                      [
+                        “primary”,
+                        “secondary”,
+                        “success”,
+                        “danger”,
+                        “warning”,
+                        “info”,
+                        “light”,
+                        “dark”,
+                      ]
+                  - string
+                description: "The sidebar's foreground color (named or hex color)."
+              alignment:
+                enum: ["left", "right", "center"]
+                description: "Alignment of the items within the sidebar"
+              collapse-level:
+                number:
+                  description: "The depth at which the sidebar contents should be collapsed by default."
+                  default: 2
+              pinned:
+                boolean:
+                  description: "When collapsed, pin the collapsed sidebar to the top of the page."
+              header:
+                maybeArrayOf: string
+                description: "Markdown to place above sidebar content (text or file path)"
+              footer:
+                maybeArrayOf: string
+                description: "Markdown to place below sidebar content (text or file path)"
+
+      margin-header:
+        maybeArrayOf: string
+        description: "Markdown to place above margin content (text or file path)"
+      margin-footer:
+        maybeArrayOf: string
+        description: "Markdown to place below margin content (text or file path)"
       page-navigation:
         boolean:
           description: "Provide next and previous article links in footer"
@@ -356,6 +579,18 @@
                     description: "`@username` of the website (must be a quoted string)"
               additionalProperties: false
         description: "Publish twitter card metadata"
+
+- arrayOf:
+    id: sidebar-contents
+    schema:
+      oneOf:
+        - ref: navigation-item
+        - path
+        - object:
+            properties:
+              section: string
+              contents:
+                ref: sidebar-contents
 
 - arrayOf:
     id: chapter-list
