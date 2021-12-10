@@ -109,7 +109,7 @@ async function revealMultiplexToken(
     const initPos = speakerContent.lastIndexOf("Reveal.initialize({");
     if (initPos !== -1) {
       const initLines = lines(speakerContent.substring(initPos));
-      const kMultiplexStart = "multiplex: {";
+      const kMultiplexStart = "'multiplex': {";
       const kMultiplexEnd = "},";
       for (const line of initLines) {
         if (line.startsWith(kMultiplexStart) && line.endsWith(kMultiplexEnd)) {
@@ -150,7 +150,7 @@ async function revealMultiplexToken(
 
 function withMultiplexToken(content: string, token: RevealMultiplexToken) {
   return content.replace(
-    /(Reveal.initialize\({.*?multiplex: )({.*?},)/gs,
+    /(Reveal.initialize\({[\s\S]*?'multiplex': )({.*?},)/g,
     `$1${JSON.stringify(token)},`,
   );
 }
