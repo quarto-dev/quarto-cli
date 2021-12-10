@@ -23,6 +23,11 @@
               boolean:
                 default: false
                 description: "Add slide numbers to menu items"
+            use-text-content-for-missing-titles:
+              boolean:
+                default: true
+                description: |
+                  For slides with no title, attempt to use the start of the text content as the title instead.
 
 - name: chalkboard
   schema:
