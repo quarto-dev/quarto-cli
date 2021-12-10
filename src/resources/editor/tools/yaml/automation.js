@@ -155,6 +155,7 @@ async function completionsFromGoodParseYAML(context) {
       word,
       indent,
       commentPrefix,
+      context
     });
     rawCompletions.completions = rawCompletions.completions.filter(
       (completion) => completion.type === "key",
@@ -181,6 +182,7 @@ async function completionsFromGoodParseYAML(context) {
       word,
       indent,
       commentPrefix,
+      context
     });
     rawCompletions.completions = rawCompletions.completions.filter(
       (completion) => completion.type === "key",
@@ -247,6 +249,7 @@ async function completionsFromGoodParseYAML(context) {
         word,
         indent,
         commentPrefix,
+        context
       });
 
       // filter raw completions depending on cursor context. We use "_" to denote
@@ -282,15 +285,21 @@ async function completionsFromGoodParseYAML(context) {
   return false;
 }
 
-function completions(obj) {
+async function completions(obj) {
   const {
     schema,
     path,
     word,
     indent,
     commentPrefix,
+    context
   } = obj;
   const matchingSchemas = navigateSchema(schema, path);
+  const formats = [
+    ...Array.from(context.formats),
+    ...Array.from(context.project_formats)
+  ];
+  const { aliases } = await getSchemas();
 
   // indent mappings and sequences automatically
   const completions = matchingSchemas.map((schema) => {
@@ -325,6 +334,59 @@ function completions(obj) {
     });
   }).flat()
         .filter((c) => c.value.startsWith(word))
+        .filter((c) => {
+          if (formats.length === 0) {
+            // don't filter on tags if there's no detected formats anywhere.
+            return true;
+          }
+          // handle format-enabling and -disabling tags
+          let tags;
+          if (c.type === "key") {
+            let value = c.schema.properties[c.display];
+            if (value === undefined) {
+              for (const key of Object.keys(c.schema.patternProperties)) {
+                let regexp = new RegExp(key);
+                if (c.display.match(regexp)) {
+                  value = c.schema.patternProperties[key];
+                  break;
+                }
+              }
+            }
+            if (value === undefined) {
+              // can't follow the schema to check tags in key context;
+              // don't hide
+              return true;
+            }
+            tags = value.tags || [];
+          } else if (c.type === "value") {
+            tags = c.schema.tags || [];
+          } else {
+            // weird completion type?
+            console.log(`Unexpected completion type ${c.type}`);
+            return true;
+          }
+
+          const enabled = tags.filter(tag => !tag.startsWith("!"));
+          const enabledSet = new Set();
+          if (enabled.length === 0) {
+            for (const el of aliases["pandoc-all"]) {
+              enabledSet.add(el);
+            }
+          } else {
+            for (const tag of enabled) {
+              for (const el of core.expandAliasesFrom([tag], aliases)) {
+                enabledSet.add(el);
+              }
+            }
+          }
+          for (let tag of tags.filter(tag => tag.startsWith("!"))) {
+            tag = tag.slice(1);
+            for (const el of core.expandAliasesFrom([tag], aliases)) {
+              enabledSet.delete(el);
+            }
+          }
+          return formats.some(f => enabledSet.has(f));
+        })
         .map((c) => {
           if (c.documentation === "" ||
               c.documentation === undefined) {

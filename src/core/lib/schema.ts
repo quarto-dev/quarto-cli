@@ -17,7 +17,7 @@ export interface Completion {
   description: string;
   // deno-lint-ignore camelcase
   suggest_on_accept: boolean;
-
+  
   // `schema` stores the concrete schema that yielded the completion.
   // We need to carry it explicitly because of combinators like oneOf
   schema?: Schema;
@@ -181,6 +181,9 @@ export function normalizeSchema(schema: Schema): Schema {
     if (schema.documentation) {
       delete schema.documentation;
     }
+    if (schema.tags) {
+      delete schema.tags;
+    }
   });
 
   return result;
@@ -203,4 +206,25 @@ export function setSchemaDefinition(schema: Schema)
 export function getSchemaDefinitionsObject(): Record<string, Schema>
 {
   return Object.assign({}, definitionsObject);
+}
+
+export function expandAliasesFrom(lst: string[], defs: Record<string, string[]>): string[]
+{
+  const aliases = defs;
+  const result = [];
+  
+  lst = lst.slice();
+  for (let i = 0; i < lst.length; ++i) {
+    const el = lst[i];
+    if (el.startsWith("$")) {
+      const v = aliases[el.slice(1)];
+      if (v === undefined) {
+        throw new Error(`Internal Error: ${el} doesn't have an entry in the aliases map`);
+      }
+      lst.push(...v);
+    } else {
+      result.push(el);
+    }
+  }
+  return result;
 }

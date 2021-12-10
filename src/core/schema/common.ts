@@ -1,15 +1,16 @@
 /*
 * common.ts
 *
-* Common JSON Schema objects
+* Common JSON Schema objects that make up a schema combinator library.
+*
+* These are not strictly JSON Schemas (they have extra fields for
+* auto-completions, etc) but core/lib/schema.ts includes a
+* `normalizeSchema()` call that takes a schema produced here and
+* returns a valid JSON Schema object.
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-
-// we build up our little schema combinator library here.
-// Right now it just emits a JSON schema but this is setting up for
-// when we want to enrich our schema with other things like documentation etc
 
 import {
   Completion,
@@ -33,6 +34,14 @@ export const IntegerSchema = {
   "type": "integer",
   "description": "be an integral number",
 };
+
+export function tagSchema(schema: Schema, tags: string[]): Schema
+{
+  return {
+    ...schema,
+    tags: [...(schema.tags ?? []), ...tags]
+  };
+}
 
 export function numericSchema(obj: {
   "type": "integer" | "number";

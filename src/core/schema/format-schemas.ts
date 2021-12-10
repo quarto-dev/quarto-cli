@@ -13,7 +13,7 @@ import { schemaPath } from "./utils.ts";
 
 import { expandFormatAliases } from "./format-aliases.ts";
 
-import { convertFromYaml } from "./from-yaml.ts";
+import { annotateSchemaFromField, convertFromYaml } from "./from-yaml.ts";
 
 import {
   readAndValidateYamlFromFile,
@@ -90,18 +90,7 @@ export async function getFormatSchema(format: string): Promise<Schema> {
     if (!useEntry(entry)) {
       continue;
     }
-    let schema = convertFromYaml(entry.schema);
-
-    // pick documentation from entry (the in-schema documentation has
-    // already been handled by convertFromYaml)
-
-    if (entry.description) {
-      if (typeof entry.description === "string") {
-        schema = documentSchema(schema, entry.description);
-      } else if (typeof entry.description === "object") {
-        schema = documentSchema(schema, entry.description.short);
-      }
-    }
+    let schema = annotateSchemaFromField(entry, convertFromYaml(entry.schema));
     properties[entry.name] = schema;
   }
   return oneOfS(

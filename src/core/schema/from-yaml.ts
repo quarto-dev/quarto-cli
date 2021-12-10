@@ -36,7 +36,8 @@ import {
   completeSchema,
   completeSchemaOverwrite,
   valueSchema,
-  regexSchema
+  regexSchema,
+  tagSchema
 } from "./common.ts";
 
 function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
@@ -321,16 +322,35 @@ export function objectSchemaFromFieldsFile(
   return objectS({ properties });
 }
 
+export function annotateSchemaFromField(field: any, schema: Schema): Schema
+{
+  if (field.alias) {
+    schema = completeSchemaOverwrite(schema);
+  }
+  if (field.enabled !== undefined) {
+    schema = tagSchema(schema, field.enabled);
+  }
+  if (field.disabled !== undefined) {
+    schema = tagSchema(schema, (field.disabled as string[]).map(x => `!${x}`));
+  }
+  if (field.description) {
+    if (typeof field.description === "string") {
+      schema = documentSchema(schema, field.description);
+    } else if (typeof field.description === "object") {
+      schema = documentSchema(schema, field.description.short);
+    }
+  }
+  return schema;
+}
+
 export function convertFromFieldsObject(yaml: any[], obj?: Record<string, Schema>): Record<string, Schema>
 {
   const result = obj ?? {};
 
   for (const field of yaml) {
-    const schema = convertFromYaml(field.schema);
+    let schema = convertFromYaml(field.schema);
+    schema = annotateSchemaFromField(field, schema);
     result[field.name] = schema;
-    if (field.alias) {
-      result[field.alias] = completeSchemaOverwrite(schema);
-    }
   }
 
   return result;

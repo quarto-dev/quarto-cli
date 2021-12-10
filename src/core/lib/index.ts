@@ -25,11 +25,20 @@ export {
   indexToRowCol,
   lineOffsets,
   lines,
+  matchAll,
   normalizeNewlines,
   rowColToIndex,
-  matchAll,
 } from "./text.ts";
-export { schemaCompletions, schemaType, getSchemaDefinition, setSchemaDefinition, getSchemaDefinitionsObject } from "./schema.ts";
+
+export {
+  expandAliasesFrom,
+  getSchemaDefinition,
+  getSchemaDefinitionsObject,
+  schemaCompletions,
+  schemaType,
+  setSchemaDefinition,
+} from "./schema.ts";
+
 export { setupAjv, YAMLSchema } from "./yaml-schema.ts";
 export { withValidator } from "./validator-queue.ts";
 export { prefixes } from "./regexp.js";

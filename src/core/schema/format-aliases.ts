@@ -7,9 +7,10 @@
 *
 */
 
-import { readYaml } from "../../core/yaml.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { readYaml } from "../yaml.ts";
+import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
+import { expandAliasesFrom } from "../lib/schema.ts";
 
 let formatAliases: any = undefined;
 
@@ -34,21 +35,5 @@ export function getExpandedFormatAliases(): Record<string, string[]>
 
 export function expandFormatAliases(lst: string[])
 {
-  const aliases = getFormatAliases();
-  const result = [];
-  
-  lst = lst.slice();
-  for (let i = 0; i < lst.length; ++i) {
-    const el = lst[i];
-    if (el.startsWith("$")) {
-      const v = aliases[el.slice(1)];
-      if (v === undefined) {
-        throw new Error(`Internal Error: ${el} doesn't have an entry in the aliases map`);
-      }
-      lst.push(...v);
-    } else {
-      result.push(el);
-    }
-  }
-  return result;
+  return expandAliasesFrom(lst, getFormatAliases());
 }
