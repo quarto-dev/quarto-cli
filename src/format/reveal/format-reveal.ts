@@ -428,6 +428,15 @@ function revealHtmlPostprocessor(format: Format) {
       }
     }
 
+    // remove slides with data-visibility=hidden
+    const invisibleSlides = doc.querySelectorAll(
+      'section.slide[data-visibility="hidden"]',
+    );
+    for (let i = (invisibleSlides.length - 1); i >= 0; i--) {
+      const slide = invisibleSlides.item(i);
+      slide.parentNode?.removeChild(slide);
+    }
+
     // remove all attributes from slide headings (pandoc has already moved
     // them to the enclosing section)
     const slideLevel = format.pandoc[kSlideLevel] || 2;
@@ -438,12 +447,8 @@ function revealHtmlPostprocessor(format: Format) {
     slideHeadings.forEach((slideHeading) => {
       const slideHeadingEl = slideHeading as Element;
       if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
-        // remove attributes (except for data-visibility)
+        // remove attributes
         for (const attrib of slideHeadingEl.getAttributeNames()) {
-          if (attrib === "data-visibility") {
-            continue;
-          }
-
           slideHeadingEl.removeAttribute(attrib);
           // if it's auto-animate then do some special handling
           if (attrib === "data-auto-animate") {
