@@ -4,8 +4,6 @@ stylesheet: [menu.css, quarto-menu.css]
 config:
   menu:
     side: "left"
-    titleSelector: "h1:not([data-visibility='hidden']), h2:not([data-visibility='hidden']), h3:not([data-visibility='hidden']), h4:not([data-visibility='hidden']), h5:not([data-visibility='hidden']), h6:not([data-visibility='hidden'])"
-    hideMissingTitles: true
-    useTextContentForMissingTitles: false
+    useTextContentForMissingTitles: true
     markers: false
     loadIcons: false
