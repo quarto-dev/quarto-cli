@@ -42,3 +42,6 @@ export {
 export { setupAjv, YAMLSchema } from "./yaml-schema.ts";
 export { withValidator } from "./validator-queue.ts";
 export { prefixes } from "./regexp.js";
+
+import Semaphore_default from "./external/async-mutex/Semaphore.ts";
+export const Semaphore = Semaphore_default;

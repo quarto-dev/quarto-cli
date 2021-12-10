@@ -50,9 +50,7 @@ export function* attemptParsesAtLine(context, parser) {
       };
     }
   } catch (_e) {
-    console.log(
-      "Internal Error: tree-sitter raised exception. assuming no valid parses",
-    );
+    // bail on internal error from tree-sitter.
     return;
   }
 

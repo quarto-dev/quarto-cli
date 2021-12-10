@@ -58,6 +58,7 @@ function trimTicks(context) {
   return context;
 }
 
+let hasInitSemaphore = new core.Semaphore(0);
 export async function validationFromGoodParseYAML(context) {
   const {
     code, // full contents of the buffer
@@ -67,6 +68,9 @@ export async function validationFromGoodParseYAML(context) {
     throw new Error("Internal error: Expected a MappedString");
   }
 
+  // wait on hasInitSemaphore
+  await hasInitSemaphore.runExclusive(async (_value) => {});
+  
   const result = await core.withValidator(context.schema, async (validator) => {
     const parser = await getTreeSitter();
 
@@ -657,27 +661,30 @@ async function getAutomation(kind, context) {
 }
 
 let automationInit = false;
+let mustInitSemaphore = new core.Semaphore(1);
 
 async function initAutomation(path)
 {
   if (automationInit) {
     return;
   }
-  automationInit = true;
-  setMainPath(path);
-  core.setupAjv(window.ajv);
 
-  // do a similar thing from loadDefaultSchemaDefinitions
-  // but using the schemas from getSchemas
+  await mustInitSemaphore.runExclusive(async (_value) => {
+    if (automationInit)
+      return;
+    automationInit = true;
+    setMainPath(path);
+    core.setupAjv(window.ajv);
+    
+    let schemaDefs = (await getSchemas()).definitions;
+    for (const [_key, value] of Object.entries(schemaDefs)) {
+      await core.withValidator(value, async (_validator) => {
+        core.setSchemaDefinition(value);
+      });
+    }
 
-  let schemaDefs = (await getSchemas()).definitions;
-  for (const [_key, value] of Object.entries(schemaDefs)) {
-    await core.withValidator(value, async (_validator) => {
-      core.setSchemaDefinition(value);
-    });
-  }
-
-  console.log("Automation init succeeded.");
+    hasInitSemaphore.release();
+  });
 }
 
 
