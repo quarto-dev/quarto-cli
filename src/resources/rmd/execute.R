@@ -212,12 +212,6 @@ knitr_options <- function(format, resourceDir) {
   }
 
 
-  # add screenshot force if prefer-html specified
-  if (isTRUE(format$render$`prefer-html`)) {
-    opts_chunk$screenshot.force = TRUE
-  }
-
-
   # add fig.retina if requested
   if (opts_chunk$dev == "retina"){
     opts_chunk$dev <- "png"
