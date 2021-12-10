@@ -295,11 +295,12 @@ async function completions(obj) {
     context
   } = obj;
   const matchingSchemas = navigateSchema(schema, path);
+  const { aliases } = await getSchemas();
   const formats = [
     ...Array.from(context.formats),
     ...Array.from(context.project_formats)
-  ];
-  const { aliases } = await getSchemas();
+    // keep only pandoc valid formats here
+  ].filter(x => aliases["pandoc-all"].indexOf(x) !== -1);
 
   // indent mappings and sequences automatically
   const completions = matchingSchemas.map((schema) => {
