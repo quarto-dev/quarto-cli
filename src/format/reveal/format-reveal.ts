@@ -412,6 +412,15 @@ function revealMarkdownAfterBody(format: Format) {
 
 function revealHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
+    // if we are using 'number' as our hash type then remove the
+    // title slide id
+    if (format.metadata[kHashType] === "number") {
+      const titleSlide = doc.getElementById("title-slide");
+      if (titleSlide) {
+        titleSlide.removeAttribute("id");
+      }
+    }
+
     // find reveal initialization and perform fixups
     const scripts = doc.querySelectorAll("script");
     for (const script of scripts) {
