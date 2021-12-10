@@ -10,6 +10,7 @@ import { join } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { safeExistsSync } from "../core/path.ts";
+import { asHtmlId } from "../core/html.ts";
 
 import { readInputTargetIndex } from "./project-index.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
@@ -93,6 +94,7 @@ export interface Sidebar {
 export interface SidebarItem extends NavItem {
   // core structure/contents
   section?: string;
+  sectionId?: string;
   contents?: SidebarItem[];
 
   // more
@@ -143,6 +145,7 @@ export function normalizeSidebarItem(
       } else {
         item.text = section;
       }
+      item.sectionId = "quarto-sidebar-section-" + asHtmlId(section);
       delete item.section;
     }
 

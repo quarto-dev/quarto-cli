@@ -201,7 +201,6 @@ function hugoFormat(): Format {
     },
     pandoc: {
       to: "gfm",
-      [kOutputFile]: "index.md",
     },
   });
 }

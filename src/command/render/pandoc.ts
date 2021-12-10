@@ -72,6 +72,7 @@ import {
   kDocumentClass,
   kFigResponsive,
   kFilterParams,
+  kFrom,
   kHighlightStyle,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -117,6 +118,10 @@ import {
   readDefaultLanguageTranslations,
   translationsForLang,
 } from "../../core/language.ts";
+import {
+  pandocFormatWith,
+  splitPandocFormatString,
+} from "../../core/pandoc/pandoc-formats.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -284,6 +289,24 @@ export async function runPandoc(
 
     // merge pandoc
     if (extras.pandoc) {
+      // Special case - we need to more intelligently merge pandoc from
+      // by breaking apart the from string
+      if (
+        typeof (allDefaults[kFrom]) === "string" &&
+        typeof (extras.pandoc[kFrom]) === "string"
+      ) {
+        const userFrom = splitPandocFormatString(allDefaults[kFrom] as string);
+        const extrasFrom = splitPandocFormatString(
+          extras.pandoc[kFrom] as string,
+        );
+        allDefaults[kFrom] = pandocFormatWith(
+          userFrom.format,
+          "",
+          extrasFrom.options + userFrom.options,
+        );
+        printAllDefaults[kFrom] = allDefaults[kFrom];
+      }
+
       allDefaults = mergeConfigs(extras.pandoc, allDefaults);
       printAllDefaults = mergeConfigs(extras.pandoc, printAllDefaults);
 

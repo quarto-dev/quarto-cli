@@ -3,7 +3,7 @@
   <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%= item.text %></a>
 </li>
 <% } else if (item.contents && item.text) { %>  
-  <% sectionId = (item.text + "-collapse").toLowerCase().replace(/\s/g,'').replace(/:/, "") %>
+  <% sectionId = item.sectionId %>
   <% isCollapsed = collapse <= depth  && !item.expanded %>
 
   <ul class="list-unstyled sidebar-section depth<%-depth%>">

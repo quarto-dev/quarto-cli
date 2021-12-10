@@ -156,7 +156,8 @@ function renderLatexFigure(el, render)
 
   -- begin the figure
   local figEnv = latexFigureEnv(el)
-  local figPos = attribute(el, kFigPos, nil)
+  local figPos = latexFigurePosition(el, figEnv)
+
   figure.content:insert(latexBeginEnv(figEnv, figPos))
   
   -- fill in the body (returns the caption inlines)
@@ -537,7 +538,18 @@ function latexRemoveTableDelims(el)
   })
 end
 
+local kMarginFigureEnv = "marginfigure"
 
+-- Computes the figure position for a figure environment
+-- (margin figures, for example, don't support position since 
+-- they're already in the margin)
+function latexFigurePosition(el, env) 
+  if env == kMarginFigureEnv then
+    return nil
+  else
+    return attribute(el, kFigPos, nil)
+  end
+end
 
 function latexFigureEnv(el) 
  -- Check whether the user has specified a figure environment
@@ -553,7 +565,7 @@ function latexFigureEnv(el)
       -- a margin figure or aside
       if isMarginEnv(class) then 
         noteHasColumns()
-        return "marginfigure"
+        return kMarginFigureEnv
       end
 
       -- any column that resolves to full width
