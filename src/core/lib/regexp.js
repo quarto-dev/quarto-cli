@@ -34,6 +34,11 @@ function prefixesFromParse(parse)
       // this is a ? quantifier
       return prefixesFromParse(parse.element);
     } if (parse.min === 1 && parse.max === Infinity) {
+      // this is the + quantifier
+      return `(${parse.element.raw}*)` + prefixesFromParse(parse.element);
+    } if (parse.min === 0 && parse.max === Infinity) {
+      // this is the kleene star
+      // prefixes(p+) = prefixes(p*)
       return `(${parse.element.raw}*)` + prefixesFromParse(parse.element);
     } else {
       throw new Error(`Internal Error, can't handle quantifiers min=${parse.min} max=${parse.max}`);
