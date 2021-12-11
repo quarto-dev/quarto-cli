@@ -5,8 +5,7 @@
 *
 */
 
-import { copySync } from "fs/mod.ts";
-import { info } from "log/mod.ts";
+import { copySync } from "fs/copy.ts";
 import { join } from "path/mod.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";

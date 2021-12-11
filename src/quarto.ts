@@ -80,8 +80,8 @@ if (import.meta.main) {
   try {
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
-      onSignal(Deno.Signal.SIGINT, abend);
-      onSignal(Deno.Signal.SIGTERM, abend);
+      onSignal("SIGINT", abend);
+      onSignal("SIGTERM", abend);
     }
 
     await initializeLogger(logOptions(parse(Deno.args)));

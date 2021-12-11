@@ -9,7 +9,7 @@ import { info } from "log/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { serve, ServerRequest } from "http/server.ts";
+import { serve, ServerRequest } from "http/server_legacy.ts";
 
 import { ld } from "lodash/mod.ts";
 

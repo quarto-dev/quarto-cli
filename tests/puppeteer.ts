@@ -10,7 +10,7 @@
 import { join } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 
-import puppeteer, { Browser } from "https://deno.land/x/puppeteer@9.0.1/mod.ts";
+import puppeteer, { Browser } from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
 
 import { which } from "../src/core/path.ts";
 import { readRegistryKey } from "../src/core/windows.ts";
@@ -26,9 +26,9 @@ export function inPuppeteer(url: string, f: any) {
   const allowedErrorMessages = [
     "Navigation failed because browser has disconnected!",
     "Navigation timeout of 30000 ms exceeded",
-    "Evaluation failed: undefined"
+    "Evaluation failed: undefined",
   ];
-    
+
   // deno-lint-ignore no-explicit-any
   return (async (...params: any[]) => {
     let attempts = 0;
@@ -42,9 +42,13 @@ export function inPuppeteer(url: string, f: any) {
           return clientSideResult;
         });
       } catch (error) {
-        if ((allowedErrorMessages.indexOf(error.message) !== -1) &&
-          (attempts < maxAttempts)) {
-          console.log(`\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`);
+        if (
+          (allowedErrorMessages.indexOf(error.message) !== -1) &&
+          (attempts < maxAttempts)
+        ) {
+          console.log(
+            `\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`,
+          );
         } else {
           throw error;
         }
