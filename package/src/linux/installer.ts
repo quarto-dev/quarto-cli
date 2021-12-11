@@ -5,7 +5,8 @@
 *
 */
 import { join } from "path/mod.ts";
-import { copySync, emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
+import { emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
+import { copySync } from "fs/copy.ts";
 import { error, info } from "log/mod.ts";
 
 import { Configuration } from "../common/config.ts";
