@@ -91,8 +91,12 @@ export interface ExecutedFile {
 
 export interface PandocRenderer {
   onBeforeExecute: (format: Format) => RenderExecuteOptions;
-  onRender: (format: string, file: ExecutedFile) => Promise<void>;
-  onComplete: (error?: boolean) => Promise<RenderFilesResult>;
+  onRender: (
+    format: string,
+    file: ExecutedFile,
+    quiet: boolean,
+  ) => Promise<void>;
+  onComplete: (error?: boolean, quiet?: boolean) => Promise<RenderFilesResult>;
 }
 
 export interface RenderFilesResult {

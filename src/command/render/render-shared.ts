@@ -96,6 +96,10 @@ export async function render(
   };
 }
 
+export function renderProgress(message: string) {
+  info(colors.bold(colors.blue(message)));
+}
+
 export function pandocMetadataPath(path: string) {
   return pathWithForwardSlashes(path);
 }

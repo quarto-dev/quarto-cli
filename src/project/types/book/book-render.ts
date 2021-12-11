@@ -117,7 +117,7 @@ export function bookPandocRenderer(
       };
     },
 
-    onRender: async (format: string, file: ExecutedFile) => {
+    onRender: async (format: string, file: ExecutedFile, quiet: boolean) => {
       // render immediately for multi-file book formats (with appropriate
       // handling of titles, headings, etc.)
       if (isMultiFileBookFormat(file.context.format)) {
@@ -187,7 +187,7 @@ export function bookPandocRenderer(
         }
 
         // perform the render
-        renderedFiles.push(await renderPandoc(file));
+        renderedFiles.push(await renderPandoc(file, quiet));
 
         // accumulate executed files for single file formats
       } else {
@@ -195,7 +195,7 @@ export function bookPandocRenderer(
         executedFiles[format].push(file);
       }
     },
-    onComplete: async (error?: boolean) => {
+    onComplete: async (error?: boolean, quiet?: boolean) => {
       // if there was an error during execution then cleanup any
       // executed files we've accumulated and return no rendered files
       if (error) {
@@ -224,6 +224,7 @@ export function bookPandocRenderer(
                   project!,
                   options,
                   files,
+                  !!quiet,
                 ),
               );
             }
@@ -253,6 +254,7 @@ async function renderSingleFileBook(
   project: ProjectContext,
   options: RenderOptions,
   files: ExecutedFile[],
+  quiet: boolean,
 ): Promise<RenderedFile> {
   // we are going to compose a single ExecutedFile from the array we have been passed
   const executedFile = await mergeExecutedFiles(
@@ -274,7 +276,7 @@ async function renderSingleFileBook(
   );
 
   // do pandoc render
-  const renderedFile = await renderPandoc(executedFile);
+  const renderedFile = await renderPandoc(executedFile, quiet);
 
   // cleanup step for each executed file
   files.forEach((file) => {
