@@ -111,11 +111,11 @@ const siteSchema = objectS({
   exhaustive: true,
 });
 
-export async function getConfigSchema()
-{
-  return withId(
+export function getConfigSchema() {
+  return Promise.resolve(withId(
     objectS({
       properties: {
+        /*
         project: objectS({
           properties: {
             type: doc(enumS("site", "book", "website"), "type of quarto project"),
@@ -126,9 +126,9 @@ export async function getConfigSchema()
         "bibliography": StringS,
         "filters": arrayS(StringS),
         "format": await getFrontMatterFormatSchema(),
+        */
       },
     }),
     "config",
-  );
+  ));
 }
-
