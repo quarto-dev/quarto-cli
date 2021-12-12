@@ -990,9 +990,9 @@ async function resolveFormats(
     // if the project specifies that only project formats are
     // valid then use the project formats
     formats = projFormatKeys;
-  } else if (inputFormatKeys.some((key) => !projFormatKeys.includes(key))) {
-    // if the input metadata has a format that is NOT in the project
-    // then use it's formats (and ignore the project)
+  } else if (inputFormatKeys.length > 0) {
+    // if the input metadata has a format then this is an override
+    // of the project so use its keys (and ignore the project)
     formats = inputFormatKeys;
     // otherwise use the project formats
   } else {
