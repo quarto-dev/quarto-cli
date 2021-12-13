@@ -3,14 +3,16 @@
     oneOf:
       - enum: [hover]
       - boolean
-  enabled: [$html-all]
+  tags:
+    formats: [$html-all]
   default: "hover"
   description: Enables a code copy icon for code blocks.
 
 - name: code-link
   schema: boolean
-  engine: knitr
-  enabled: [$html-files]
+  tags:
+    engine: knitr
+    formats: [$html-files]
   default: false
   description:
     short: |
@@ -89,7 +91,8 @@
   description: "KDE language syntax definition files (XML)"
 
 - name: listings
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   schema: boolean
   description:
     short: "Use the listings package for LaTeX code blocks."

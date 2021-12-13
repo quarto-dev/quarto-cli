@@ -1,5 +1,6 @@
 - name: echo
-  contexts: [document-execute]
+  tags:
+    contexts: [document-execute]
   schema:
     anyOf:
       - boolean
@@ -8,8 +9,9 @@
     Include cell source code in rendered output.
 
 - name: code-fold
-  contexts: [document-code]
-  enabled: [$html-all]
+  tags:
+    contexts: [document-code]
+    formats: [$html-all]
   schema:
     oneOf:
       - boolean
@@ -22,22 +24,25 @@
       Specify `show` to have the code initiallly visible.
 
 - name: code-summary
-  contexts: [document-code]
-  enabled: [$html-all]
+  tags:
+    contexts: [document-code]
+    formats: [$html-all]
   schema: string
   default: "Code"
   description: "Summary text to use for code blocks collapsed using `code-fold`"
 
 - name: code-overflow
-  contexts: [document-code]
-  enabled: [$html-all]
+  tags:
+    contexts: [document-code]
+    formats: [$html-all]
   schema:
     enum: [scroll, wrap]
   default: scroll
   description: "Choose whether to `scroll` or `wrap` when code lines are too wide for their container."
 
 - name: code-line-numbers
-  contexts: [document-code]
+  tags:
+    contexts: [document-code]
   schema: boolean
   default: false
   description: "Include line numbers in code block output."
@@ -51,26 +56,30 @@
   description: "Caption for code listing"
 
 - name: tidy
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: false
   description: "Whether to reformat R code."
 
 - name: tidy-opts
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     arrayOf: string
   description: "List of options to pass to `tidy` handler"
 
 - name: collapse
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: false
   description: |
     Collapse all the source and output blocks from one code chunk into a single block
 
 - name: prompt
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: false
   description:
@@ -84,20 +93,23 @@
       ([#1274](https://github.com/yihui/knitr/issues/1274)).
 
 - name: highlight
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: false
   hidden: true
   description: "Whether to syntax highlight the source code"
 
 - name: class-source
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Class name(s) for source code blocks"
 
 - name: attr-source
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Attribute(s) for source code blocks"

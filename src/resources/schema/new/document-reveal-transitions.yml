@@ -1,38 +1,44 @@
 - name: transition
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [none, fade, slide, convex, concave, zoom]
   default: none
   description: "Slide transition style"
 
 - name: transition-speed
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [default, fast, slow]
   default: default
   description: "Slide transition speed"
 
 - name: background-transition
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [none, fade, slide, convex, concave, zoom]
   default: none
   description: "Transition style for full page slide backgrounds"
 
 - name: fragments
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Turns fragments on and off globally"
 
 - name: auto-animate
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Globally enable/disable auto-animate (enabled by default)"
 
 - name: auto-animate-easing
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: string
   default: "ease"
   description:
@@ -42,7 +48,8 @@
       Can be overridden per-slide or per-element via attributes.
 
 - name: auto-animate-duration
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 1.0
   description:
@@ -52,7 +59,8 @@
       Can be overridden per-slide or per-element via attributes.
 
 - name: auto-animate-unmatched
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description:
@@ -62,7 +70,8 @@
       Can be overridden per-slide or per-element via attributes.
 
 - name: auto-animate-styles
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     arrayOf:
       enum:

@@ -1,12 +1,14 @@
 - name: reference-doc
-  enabled: [$office-all, odt]
+  tags:
+    formats: [$office-all, odt]
   schema: path
   description: |
     Use the specified file as a style reference in producing a docx, 
     pptx, or odt file.
 
 - name: theme
-  enabled: [$html-doc, revealjs]
+  tags:
+    formats: [$html-doc, revealjs]
   schema:
     oneOf:
       - string
@@ -26,18 +28,21 @@
 - name: minimal
   schema: boolean
   default: false
-  enabled: [$html-doc]
+  tags:
+    formats: [$html-doc]
   description: Disables the built in html features like theming, anchor sections, code block behavior, and more.
 
 - name: document-css
   schema: boolean
   hidden: true
   default: true
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   description: Enables inclusion of Pandoc default CSS for this document.
 
 - name: css
-  enabled: [$html-all]
+  tags:
+    formats: [$html-all]
   schema:
     maybeArrayOf: path
   description: "One or more CSS style sheets."
@@ -45,11 +50,13 @@
 - name: anchor-sections
   schema: boolean
   default: true
-  enabled: [$html-doc]
+  tags:
+    formats: [$html-doc]
   description: Enables hover over a section title to see an anchor link.
 
 - name: html-math-method
-  enabled: [$html-all]
+  tags:
+    formats: [$html-all]
   schema:
     oneOf:
       - ref: math-methods
@@ -62,7 +69,8 @@
   description: "Method use to render math in HTML output"
 
 - name: section-divs
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   schema: boolean
   default: true
   description: |
@@ -70,7 +78,8 @@
     rather than the heading itself.
 
 - name: identifier-prefix
-  enabled: [$html-files, $docbook-all, $markdown-all, haddock]
+  tags:
+    formats: [$html-files, $docbook-all, $markdown-all, haddock]
   schema: string
   description:
     short: "Specify a prefix to be added to all identifiers and internal links."
@@ -81,14 +90,16 @@
       to be included in other pages.
 
 - name: title-prefix
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   schema: string
   description: |
     Specify STRING as a prefix at the beginning of the title that appears in 
     the HTML header (but not in the title as it appears at the beginning of the body)
 
 - name: email-obfuscation
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   schema:
     enum: [none, references, javascript]
   default: none
@@ -102,13 +113,15 @@
       is `none`.
 
 - name: html-q-tags
-  enabled: [$html-all]
+  tags:
+    formats: [$html-all]
   schema: boolean
   default: false
   description: "Use `<q>` tags for quotes in HTML."
 
 - name: pdf-engine
-  enabled: [$pdf-all, ms, context]
+  tags:
+    formats: [$pdf-all, ms, context]
   schema:
     string:
       completions:
@@ -138,7 +151,8 @@
       - `ms`:  `pdfroff`
 
 - name: pdf-engine-opt
-  enabled: [$pdf-all, ms, context]
+  tags:
+    formats: [$pdf-all, ms, context]
   schema: string
   description:
     short: "Use the given string as a command-line argument to the `pdf-engine`."
@@ -150,13 +164,15 @@
 
 - name: beamerarticle
   schema: boolean
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: Whether to produce a Beamer article from this presentation.
 
 - name: beameroption
   schema:
     maybeArrayOf: string
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: Add an extra Beamer option using `\setbeameroption{}`.
 
 - name: aspectratio
@@ -169,70 +185,83 @@
       - 141
       - 54
       - 32
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: The aspect ratio for this presentation.
 
 - name: logo
   schema: path
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: The logo image for slides.
 
 - name: titlegraphic
   schema: path
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: The image for the title slide.
 
 - name: navigation
   schema:
     enum: [empty, frame, vertical, horizontal]
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: Controls navigation symbols for the presentation.
 
 - name: section-titles
   schema: boolean
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   default: true
   description: Whether to enable title pages for new sections.
 
 - name: colortheme
   schema: string
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: The Beamer color theme for this presentation.
 
 - name: fonttheme
   schema: string
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: The Beamer font theme for this presentation.
 
 - name: innertheme
   schema: string
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: The Beamer inner theme for this presentation.
 
 - name: outertheme
   schema: string
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: The Beamer outer theme for this presentation.
 
 - name: themeoptions
   schema:
     maybeArrayOf: string
-  enabled: [beamer]
+  tags:
+    formats: [beamer]
   description: Options passed to LaTeX Beamer themes.
 
 - name: section
   schema: number
-  enabled: [man]
+  tags:
+    formats: [man]
   description: The section number in man pages.
 
 - name: variant
-  enabled: [$markdown-all]
+  tags:
+    formats: [$markdown-all]
   schema: string
   description: |
     Enable and disable extensions for markdown output (e.g. "+emoji")
 
 - name: markdown-headings
-  enabled: [$markdown-all, ipynb]
+  tags:
+    formats: [$markdown-all, ipynb]
   schema:
     enum: [setext, atx]
   default: atx
@@ -242,13 +271,15 @@
     headings.
 
 - name: keep-yaml
-  enabled: [$markdown-all]
+  tags:
+    formats: [$markdown-all]
   schema: boolean
   default: false
   description: "Preserve the original YAML front matter in rendered markdown"
 
 - name: ipynb-output
-  enabled: [ipynb]
+  tags:
+    formats: [ipynb]
   schema:
     enum: [none, all, best]
   default: best

@@ -1,18 +1,21 @@
 - name: progress
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Display a presentation progress bar"
 
 - name: history
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: |
     Push each slide change to the browser history
 
 - name: navigation-mode
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [linear, vertical, grid]
   default: linear
@@ -36,50 +39,58 @@
       index.
 
 - name: touch
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: |
     Enable touch navigation on devices with touch input
 
 - name: keyboard
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Enable keyboard shortcuts for navigation"
 
 - name: mouse-wheel
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: "Enable slide navigation via mouse wheel"
 
 - name: hide-inactive-cursor
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Hide cursor if inactive"
 
 - name: hide-cursor-time
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 5000
   description: "Time before the cursor is hidden (in ms)"
 
 - name: loop
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: "Loop the presentation"
 
 - name: shuffle
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: "Randomize the order of slides each time the presentation loads"
 
 - name: controls
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     anyOf:
       - boolean
@@ -93,20 +104,23 @@
       or when the deck is embedded in an iframe).
 
 - name: controls-layout
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [edges, bottom-right]
   default: edges
   description: "Location for navigation controls (`edges` or `bottom-right`)"
 
 - name: controls-tutorial
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: "Help the user learn the controls by providing visual hints."
 
 - name: controls-back-arrows
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [faded, hidden, visible]
   default: faded
@@ -115,7 +129,8 @@
     or `visible`
 
 - name: auto-slide
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     oneOf:
       - number
@@ -124,65 +139,75 @@
   description: "Automatically progress all slides at the specified interval"
 
 - name: auto-slide-stoppable
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Stop auto-sliding after user input"
 
 - name: auto-slide-method
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: string
   default: navigateNext
   description: "Navigation method to use when auto sliding (defaults to navigateNext)"
 
 - name: default-timing
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   description: "Expected average seconds per slide (used by pacing timer in speaker view)"
 
 - name: pause
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: |
     Flags whether it should be possible to pause the presentation (blackout)
 
 - name: help
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: |
     Show a help overlay when the `?` key is pressed
 
 - name: hash
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Add the current slide to the URL hash"
 
 - name: hash-type
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [number, title]
   default: title
   description: "URL hash type (`number` or `title`)"
 
 - name: hash-one-based-index
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: |
     Use 1 based indexing for hash links to match slide number
 
 - name: respond-to-hash-changes
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: |
     Monitor the hash and change slides accordingly
 
 - name: fragment-in-url
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: "Include the current fragment in the URL"

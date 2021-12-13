@@ -1,5 +1,6 @@
 - name: embedded
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   hidden: true
   default: false
@@ -7,7 +8,8 @@
     Flags if the presentation is running in an embedded mode
 
 - name: display
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: string
   hidden: true
   default: block

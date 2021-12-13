@@ -1,5 +1,6 @@
 - name: width
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     oneOf: [number, string]
   default: 1050
@@ -11,7 +12,8 @@
       resolutions. Can be specified using percentage units.
 
 - name: height
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     oneOf: [number, string]
   default: 700
@@ -23,31 +25,36 @@
       resolutions. Can be specified using percentage units.
 
 - name: margin
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 0.1
   description: "Factor of the display size that should remain empty around the content"
 
 - name: min-scale
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 0.2
   description: "Bounds for smallest possible scale to apply to content"
 
 - name: max-scale
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 2.0
   description: "Bounds for largest possible scale to apply to content"
 
 - name: center
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: "Vertical centering of slides"
 
 - name: disable-layout
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: |

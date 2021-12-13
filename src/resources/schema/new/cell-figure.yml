@@ -1,10 +1,12 @@
 - name: fig-width
-  engine: knitr
+  tags:
+    engine: knitr
   schema: number
   description: "Default width for figures"
 
 - name: fig-height
-  engine: knitr
+  tags:
+    engine: knitr
   schema: number
   description: "Default height for figures"
 
@@ -30,26 +32,30 @@
   description: Horizontal alignment for the figure
 
 - name: fig-alt
-  enabled: [$html-all]
+  tags:
+    formats: [$html-all]
   schema:
     maybeArrayOf: string
   description: |
     Alternative text to be used in the `alt` attribute of HTML images.
 
 - name: fig-env
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   schema:
     maybeArrayOf: string
   description: LaTeX environment for figure output
 
 - name: fig-pos
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   schema:
     maybeArrayOf: string
   description: LaTeX figure position arrangement to be used in `\begin{figure}[]`.
 
 - name: fig-scap
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   schema:
     maybeArrayOf: string
   description:
@@ -59,18 +65,21 @@
       and usually displayed in the “List of Figures” of a PDF document.
 
 - name: fig-format
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     enum: [retina, png, jpeg, svg, pdf]
   description: "Default output format for figures"
 
 - name: fig-dpi
-  engine: knitr
+  tags:
+    engine: knitr
   schema: number
   description: "Default DPI for figures"
 
 - name: out-width
-  engine: knitr
+  tags:
+    engine: knitr
   schema: string
   description:
     short: "Width of plot in the output document"
@@ -82,7 +91,8 @@
       for HTML, it can be `300px`.
 
 - name: out-height
-  engine: knitr
+  tags:
+    engine: knitr
   schema: string
   description:
     short: "Height of plot in the output document"
@@ -94,7 +104,8 @@
       for HTML, it can be `300px`.
 
 - name: fig-keep
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     oneOf:
       - enum: [high, none, all, first, last]
@@ -115,7 +126,8 @@
           to keep.
 
 - name: fig-show
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     enum: [asis, hold, animate, hide]
   default: asis
@@ -132,32 +144,37 @@
       -   `hide`: Generate plot files but hide them in the output document.
 
 - name: out-extra
-  engine: knitr
+  tags:
+    engine: knitr
   schema: string
   description: "Additional raw LaTeX or HTML options to be applied to figures"
 
 - name: external
-  engine: knitr
-  enabled: [$pdf-all]
+  tags:
+    engine: knitr
+    formats: [$pdf-all]
   schema: boolean
   default: true
   description: "Externalize tikz graphics (pre-compile to PDF)"
 
 - name: sanitize
-  engine: knitr
-  enabled: [$pdf-all]
+  tags:
+    engine: knitr
+    formats: [$pdf-all]
   schema: boolean
   default: false
   description: "sanitize tikz graphics (escape special LaTeX characters)."
 
 - name: interval
-  engine: knitr
+  tags:
+    engine: knitr
   schema: number
   default: 1
   description: "Time interval (number of seconds) between animation frames."
 
 - name: aniopts
-  engine: knitr
+  tags:
+    engine: knitr
   schema: string
   default: "controls, loop"
   description:
@@ -167,7 +184,8 @@
       package.](http://ctan.org/pkg/animate)
 
 - name: animation-hook
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     string:
       completions: [ffmpeg, gifski]

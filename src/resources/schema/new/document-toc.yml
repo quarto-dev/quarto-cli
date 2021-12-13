@@ -1,6 +1,7 @@
 - name: toc
   alias: table-of-contents
-  disabled: [man, $docbook-all, jats]
+  tags:
+    formats: [!man, !$docbook-all, !jats]
   schema: boolean
   description:
     short: "Include an automatically generated table of contents"
@@ -20,11 +21,13 @@
 - name: toc-float
   schema: boolean
   default: true
-  enabled: [$html-doc]
+  tags:
+    formats: [$html-doc]
   description: Use a floating table of contents for this document.
 
 - name: toc-depth
-  disabled: [man, $docbook-all, jats]
+  tags:
+    formats: [!man, !$docbook-all, !jats]
   schema: number
   description: |
     Specify the number of section levels to include in the table of contents.
@@ -32,17 +35,20 @@
 
 - name: toc-title
   schema: string
-  enabled: [$epub-all, $odt-all, $office-all, $pdf-all, $html-doc, revealjs]
+  tags:
+    formats: [$epub-all, $odt-all, $office-all, $pdf-all, $html-doc, revealjs]
   description: The title used for the table of contents.
 
 - name: lof
   schema: boolean
   default: false
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: Print a list of figures in the document.
 
 - name: lot
   schema: boolean
   default: false
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: Print a list of tables in the document.

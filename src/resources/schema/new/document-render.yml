@@ -31,7 +31,8 @@
     Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)
 
 - name: self-contained
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   schema: boolean
   default: false
   description:
@@ -52,7 +53,8 @@
       link to will not be incorporated in the document.
 
 - name: self-contained-math
-  enabled: [$html-fiile]
+  tags:
+    formats: [$html-fiile]
   schema: boolean
   default: false
   description:
@@ -80,7 +82,8 @@
   description: "Keep the notebook file generated from executing code."
 
 - name: keep-tex
-  enabled: [pdf, beamer]
+  tags:
+    formats: [pdf, beamer]
   schema: boolean
   default: false
   description: "Keep the intermediate tex file used during render."

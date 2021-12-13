@@ -1,5 +1,6 @@
 - name: incremental
-  enabled: [pptx, beamer, $html-pres]
+  tags:
+    formats: [pptx, beamer, $html-pres]
   schema: boolean
   default: false
   description: |
@@ -7,7 +8,8 @@
     The default is for lists to be displayed all at once.
 
 - name: slide-level
-  enabled: [pptx, beamer, $html-pres]
+  tags:
+    formats: [pptx, beamer, $html-pres]
   schema: number
   default: 2
   description:
@@ -27,7 +29,8 @@
       the document
 
 - name: slide-number
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     oneOf:
       - boolean
@@ -49,7 +52,8 @@
       - `c/t`:   Flattened slide number / total slides (default)
 
 - name: show-slide-number
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [all, print, speaker]
   default: all
@@ -57,7 +61,8 @@
 
 - name: title-slide-attributes
   schema:
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   description:
     short: Additional attributes for the title slide of a reveal.js presentation.
     long: |
@@ -73,20 +78,23 @@
       (Note that the data- prefix is required here, as it isn’t added automatically.)
 
 - name: center-title-slide
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Vertical centering of title slide"
 
 - name: show-notes
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: |
     Make speaker notes visible to all viewers
 
 - name: rtl
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: |

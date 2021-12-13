@@ -1,10 +1,12 @@
 - name: logo
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: path
   description: "Logo image (placed in bottom right corner of slides)"
 
 - name: footer
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: string
   description:
     short: "Footer to include on all slides"
@@ -13,7 +15,8 @@
       div with class `.footer` on the slide.
 
 - name: scrollable
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description:
@@ -23,7 +26,8 @@
       be set per-slide by including the `.scrollable` class on the slide title.
 
 - name: smaller
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description:

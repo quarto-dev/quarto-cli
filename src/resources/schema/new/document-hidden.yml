@@ -87,7 +87,8 @@
   description: "Write log messages in machine-readable JSON format to FILE."
 
 - name: track-changes
-  enabled: [docx]
+  tags:
+    formats: [docx]
   hidden: true
   schema:
     enum: [accept, reject, all]
@@ -124,7 +125,8 @@
       used empty paragraphs to create inter-paragraph space.
 
 - name: keep-source
-  enabled: [$html-doc]
+  tags:
+    formats: [$html-doc]
   schema: boolean
   default: false
   hidden: true
@@ -137,14 +139,16 @@
       of the `code-tools` option.
 
 - name: keep-hidden
-  enabled: [$html-doc]
+  tags:
+    formats: [$html-doc]
   schema: boolean
   default: false
   hidden: true
   description: "Keep hidden source code and output (marked with class `.hidden`)"
 
 - name: prefer-html
-  enabled: [$markdown-all]
+  tags:
+    formats: [$markdown-all]
   schema: boolean
   default: false
   hidden: true

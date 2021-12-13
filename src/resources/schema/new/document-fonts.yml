@@ -1,6 +1,7 @@
 - name: mainfont
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the main font for the document.
     long: |
@@ -16,7 +17,8 @@
 
 - name: monofont
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the font used for when displaying code.
     long: |
@@ -34,7 +36,8 @@
 
 - name: fontsize
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the main font size for the document.
     long: |
@@ -44,7 +47,8 @@
 
 - name: fontenc
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   default: T1
   description:
     short: Allows font encoding to be specified through `fontenc` package.
@@ -55,7 +59,8 @@
 
 - name: fontfamily
   schema: string
-  enabled: [$pdf-all, ms]
+  tags:
+    formats: [$pdf-all, ms]
   default: "Latin Modern"
   description:
     short: Font package to use when compiling a PDF with the `pdflatex` `pdf-engine`.
@@ -70,7 +75,8 @@
 - name: fontfamilyoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: Options for the package used as `fontfamily`.
     long: |
@@ -88,7 +94,8 @@
 
 - name: sansfont
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The sans serif font family for use with `xelatex` or `lualatex`.
     long: |
@@ -98,7 +105,8 @@
 
 - name: mathfont
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The math font family for use with `xelatex` or `lualatex`.
     long: |
@@ -108,7 +116,8 @@
 
 - name: CJKmainfont
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The CJK main font family for use with `xelatex` or `lualatex`.
     long: |
@@ -119,7 +128,8 @@
 - name: mainfontoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The main font options for use with `xelatex` or `lualatex`.
     long: |
@@ -138,7 +148,8 @@
 - name: sansfontoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The sans serif font options for use with `xelatex` or `lualatex`.
     long: |
@@ -157,7 +168,8 @@
 - name: monofontoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The monospace font options for use with `xelatex` or `lualatex`.
     long: |
@@ -176,7 +188,8 @@
 - name: mathfontoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The monospace font options for use with `xelatex` or `lualatex`.
     long: |
@@ -195,7 +208,8 @@
 - name: CJKoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The CJK font options for use with `xelatex` or `lualatex`.
     long: |
@@ -214,24 +228,28 @@
 - name: microtypeoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: Options to pass to the microtype package.
     long: Options to pass to the [microtype](https://ctan.org/pkg/microtype) package.
 
 - name: pointsize
   schema: string
-  enabled: [ms]
+  tags:
+    formats: [ms]
   description: The point size, for example, `10p`.
 
 - name: lineheight
   schema: string
-  enabled: [ms]
+  tags:
+    formats: [ms]
   description: The line height, for example, `12p`.
 
 - name: linestretch
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the line height or spacing for text in the document.
     long: |
@@ -244,7 +262,8 @@
 - name: interlinespace
   schema:
     maybeArrayOf: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description: Adjusts line spacing using the `\setupinterlinespace` command.
 
 - name: linkstyle
@@ -258,12 +277,14 @@
         - type
         - cap
         - small
-  enabled: [context]
+  tags:
+    formats: [context]
   description: The typeface style for links in the document.
 
 - name: whitespace
   schema: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: Set the spacing between paragraphs, for example `none`, `small.
     long: |

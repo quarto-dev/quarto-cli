@@ -1,11 +1,13 @@
 - name: pdf-separate-fragments
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: "Prints each fragment on a separate slide"
 
 - name: pdf-page-height-offset
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: -1
   description:

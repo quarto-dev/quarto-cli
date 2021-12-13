@@ -1,5 +1,6 @@
 - name: overview
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: true
   description: "Enable the slide overview mode"

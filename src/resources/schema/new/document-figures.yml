@@ -1,5 +1,6 @@
 - name: fig-align
-  enabled: [docx, rtf, $odt-all, $pdf-all, $html-all]
+  tags:
+    formats: [docx, rtf, $odt-all, $pdf-all, $html-all]
   schema:
     enum: [left, right, center, default]
   default: default

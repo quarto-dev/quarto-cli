@@ -3,7 +3,8 @@
     oneOf:
       - boolean
       - string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: Adds the necessary setup to the document preamble to generate PDF/A of the type specified.
     long: |
@@ -21,7 +22,8 @@
 - name: pdfaiccprofile
   schema:
     maybeArrayOf: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: |
       When used in conjunction with `pdfa`, specifies the ICC profile to use 
@@ -37,7 +39,8 @@
 
 - name: pdfaintent
   schema: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: When used in conjunction with `pdfa`, specifies the output intent for the colors.
     long: |

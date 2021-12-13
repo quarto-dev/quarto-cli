@@ -10,7 +10,8 @@
 - name: institute
   schema:
     maybeArrayOf: string
-  enabled: [$html-pres, beamer]
+  tags:
+    formats: [$html-pres, beamer]
   description: Author affiliations for the presentation.
 
 - name: date
@@ -19,31 +20,26 @@
 
 - name: subtitle
   schema: string
-  enabled: [$pdf-all, $html-all, context, muse, odt]
+  tags:
+    formats: [$pdf-all, $html-all, context, muse, odt]
   description: "Identifies the subtitle of the document."
 
 - name: abstract
   schema: string
-  enabled:
-    [
-      $pdf-all,
-      $asciidoc-all,
-      jats_publishing,
-      jats_articleauthoring,
-      context,
-      ms,
-      odt,
-    ]
+  tags:
+    formats: [ $pdf-all, $asciidoc-all, jats_publishing, jats_articleauthoring, context, ms, odt ]
   description: "Provides a summary of the document"
 
 - name: doi
   schema: string
-  enabled: [$html-doc]
+  tags:
+    formats: [$html-doc]
   description: Displays the document Digital Object Identifier in the header.
 
 - name: thanks
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: The contents of an acknowledgments footnote after the document title.
 
 - name: lang
@@ -82,40 +78,48 @@
 - name: keywords
   schema:
     maybeArrayOf: string
-  enabled: [$asciidoc-all, $html-files, $pdf-all, context]
+  tags:
+    formats: [$asciidoc-all, $html-files, $pdf-all, context]
   description: "List of keywords to be included in the document metadata."
 
 - name: subject
   schema: string
-  enabled: [$pdf-all, $office-all]
+  tags:
+    formats: [$pdf-all, $office-all]
   description: "The document subject"
 
 - name: description
   schema: string
-  enabled: [$office-all]
+  tags:
+    formats: [$office-all]
   description: "The document description. Some applications show this as `Comments` metadata."
 
 - name: category
   schema: string
-  enabled: [$office-all]
+  tags:
+    formats: [$office-all]
   description: "The document category."
 
 - name: title-meta
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: "Sets the title metadata for the document"
 
 - name: description-meta
   schema: string
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   description: "Sets the description metadata for the document"
 
 - name: author-meta
   schema: string
-  enabled: [$pdf-all, $html-files]
+  tags:
+    formats: [$pdf-all, $html-files]
   description: "Sets the author metadata for the document"
 
 - name: date-meta
   schema: string
-  enabled: [$html-all, $pdf-all]
+  tags:
+    formats: [$html-all, $pdf-all]
   description: "Sets the date metadata for the document"

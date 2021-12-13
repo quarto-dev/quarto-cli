@@ -1,5 +1,6 @@
 - name: preview-links
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     anyOf:
       - enum: [auto]
@@ -12,7 +13,8 @@
       auto, which will use an iframe in fullscreen mode).
 
 - name: auto-play-media
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [null, true, false]
   default: null
@@ -21,7 +23,8 @@
     attribute is specified)
 
 - name: preload-iframes
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema:
     enum: [null, true, false]
   default: null
@@ -36,36 +39,42 @@
       - `false`:  All iframes with data-src will be loaded only when visible
 
 - name: view-distance
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 3
   description: "Number of slides away from the current slide to pre-load resources for"
 
 - name: mobile-view-distance
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 2
   description: |
     Number of slides away from the current slide to pre-load resources for (on mobile devices).
 
 - name: parallax-background-image
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: path
   description: "Parallax background image"
 
 - name: parallax-background-size
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: string
   description: "Parallax background size (e.g. '2100px 900px')"
 
 - name: parallax-background-horizontal
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 200
   description: "Number of pixels to move the parallax background horizontally per slide."
 
 - name: parallax-background-vertical
-  enabled: [revealjs]
+  tags:
+    formats: [revealjs]
   schema: number
   default: 50
   description: "Number of pixels to move the parallax background vertically per slide."

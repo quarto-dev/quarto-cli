@@ -1,10 +1,13 @@
 - name: fontcolor
   schema: string
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   description: Sets the CSS `color` property.
+
 - name: linkcolor
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the color of hyperlinks in the document.
     long: |
@@ -19,18 +22,21 @@
 
 - name: monobackgroundcolor
   schema: string
-  enabled: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  tags:
+    formats: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
   description: Sets the CSS `background-color` property on code elements and adds extra padding.
 
 - name: backgroundcolor
   schema: string
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   description: |
     Sets the CSS `background-color` property on the html element.
 
 - name: filecolor
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The color used for external links using color options allowed by `xcolor`
     long: |
@@ -41,7 +47,8 @@
 
 - name: citecolor
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The color used for citation links using color options allowed by `xcolor`
     long: |
@@ -52,7 +59,8 @@
 
 - name: urlcolor
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The color used for linked URLs using color options allowed by `xcolor`
     long: |
@@ -63,7 +71,8 @@
 
 - name: toccolor
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: The color used for links in the Table of Contents using color options allowed by `xcolor`
     long: |
@@ -74,7 +83,8 @@
 
 - name: colorlinks
   schema: boolean
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   default: true
   description: |
     Add color to link text, automatically enabled if any of 
@@ -82,7 +92,8 @@
 
 - name: contrastcolor
   schema: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: Color for links to other content within the document.
     long: |

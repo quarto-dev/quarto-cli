@@ -10,19 +10,22 @@
 
 - name: citations-hover
   schema: boolean
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   default: true
   decription: Enables a hover popup for citation that shows the reference information.
 
 - name: citation-location
   schema:
     enum: [document, margin]
-  enabled: [$html-doc]
+  tags:
+    formats: [$html-doc]
   default: document
   description: Where citation information should be displayed.
 
 - name: cite-method
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   schema:
     enum: [citeproc, natbib, biblatex]
   default: citeproc
@@ -44,23 +47,27 @@
 - name: biblatexoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: A list of options for BibLaTeX.
 
 - name: natbiboptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: One or more options to provide for `natbib` when generating a bibliography.
 
 - name: biblio-style
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: The bibliography style to use (e.g. `\bibliographystyle{dinat}`) when using `natbib` or `biblatex`.
 
 - name: biblio-title
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: The bibliography title to use when using `natbib` or `biblatex`.
 
 - name: citation-abbreviations
@@ -86,18 +93,21 @@
 
 - name: footnotes-hover
   schema: boolean
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   default: true
   decription: Enables a hover popup for footnotes that shows the footnote contents.
 
 - name: links-as-notes
   schema: boolean
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   default: false
   description: Causes links to be printed as footnotes.
 
 - name: reference-location
-  enabled: [$markdown-all, muse, $html-files, pdf]
+  tags:
+    formats: [$markdown-all, muse, $html-files, pdf]
   schema:
     enum: [block, section, margin, document]
   default: document

@@ -9,14 +9,16 @@
         - book
         - report
         - memoir
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   default: scrartcl
   description: The document class.
 
 - name: classoption
   schema:
     maybeArrayOf: string
-  enabled: [$html-files, $pdf-all]
+  tags:
+    formats: [$html-files, $pdf-all]
   description:
     short: Options for the document class,
     long: |
@@ -33,19 +35,22 @@
         - plain
         - empty
         - headings
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   default: plain
   description: Control the `\pagestyle{}` for the document.
 
 - name: papersize
   schema: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: The paper size for the document.
 
 - name: layout
   schema:
     maybeArrayOf: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: The options for margins and text layout for this document.
     long: |
@@ -57,11 +62,13 @@
   schema:
     enum: [article, custom, none]
   default: article
-  enabled: [$html-doc]
+  tags:
+    formats: [$html-doc]
   description: The page layout to use for this document.
 
 - name: page-width
-  enabled: [docx, $odt-all]
+  tags:
+    formats: [docx, $odt-all]
   schema: number
   description:
     short: |
@@ -73,12 +80,14 @@
 
 - name: max-width
   schema: string
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   description: Adds a css `max-width` to the body Element.
 
 - name: margin-left
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the left margin of the document.
     long: |
@@ -94,7 +103,8 @@
 
 - name: margin-right
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the right margin of the document.
     long: |
@@ -110,7 +120,8 @@
 
 - name: margin-top
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the top margin of the document.
     long: |
@@ -126,7 +137,8 @@
 
 - name: margin-bottom
   schema: string
-  enabled: [$html-files, context, $pdf-all]
+  tags:
+    formats: [$html-files, context, $pdf-all]
   description:
     short: Sets the bottom margin of the document.
     long: |
@@ -143,7 +155,8 @@
 - name: geometry
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: Options for the geometry package.
     long: |
@@ -159,7 +172,8 @@
 - name: hyperrefoptions
   schema:
     maybeArrayOf: string
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: Options for the hyperref package.
     long: |
@@ -177,7 +191,8 @@
     oneOf:
       - boolean
       - string
-  enabled: [$pdf-all, ms]
+  tags:
+    formats: [$pdf-all, ms]
   default: false
   description:
     short: Whether to use document class settings for indentation.
@@ -190,7 +205,8 @@
 
 - name: block-headings
   schema: boolean
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description:
     short: Make `\paragraph` and `\subparagraph` free-standing rather than run-in.
     long: |

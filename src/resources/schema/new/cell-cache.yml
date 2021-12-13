@@ -1,5 +1,6 @@
 - name: cache
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: false
   description:
@@ -16,12 +17,14 @@
       a different MD5 digest, and hence invalidate the cache.
 
 - name: cache-path
-  engine: knitr
+  tags:
+    engine: knitr
   schema: path
   description: "A prefix to be used to generate the paths of cache files"
 
 - name: cache-vars
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description:
@@ -34,7 +37,8 @@
       or you may want to save only a subset of variables.
 
 - name: cache-globals
-  engine: knitr
+  tags:
+    engine: knitr
   schema: string
   description:
     short: "Variables names that are not created from the current chunk"
@@ -49,7 +53,8 @@
       chunk, no matter if they are global or local variables.
 
 - name: cache-lazy
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: true
   description:
@@ -60,19 +65,22 @@
       [#572](https://github.com/yihui/knitr/issues/572)).
 
 - name: cache-rebuild
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: false
   description: "Force rebuild of cache for chunk"
 
 - name: cache-comments
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: true
   description: "Prevent comment changes from invalidating the cache for a chunk"
 
 - name: dependson
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     oneOf:
       - maybeArrayOf: string
@@ -81,7 +89,8 @@
     Explicitly specify cache dependencies for this chunk (one or more chunk labels)
 
 - name: autodep
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: false
   description: "Detect cache dependencies automatically via usage of global variables"

@@ -7,13 +7,15 @@
   description: "Classes to apply to cell output"
 
 - name: tags
-  engine: jupyter
+  tags:
+    engine: jupyter
   schema:
     arrayOf: string
   description: "Tags for notebook cell"
 
 - name: id
-  engine: jupyter
+  tags:
+    engine: jupyter
   schema: string
   hidden: true
   description:

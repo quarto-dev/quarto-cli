@@ -1,5 +1,6 @@
 - name: output
-  contexts: [document-execute]
+  tags:
+    contexts: [document-execute]
   schema:
     anyOf:
       - boolean
@@ -12,12 +13,14 @@
     treat output as raw markdown with no enclosing containers).
 
 - name: warning
-  contexts: [document-execute]
+  tags:
+    contexts: [document-execute]
   schema: boolean
   description: Including warnings in rendered output.
 
 - name: error
-  contexts: [document-execute]
+  tags:
+    contexts: [document-execute]
   schema: boolean
   default: false
   description: |
@@ -25,20 +28,23 @@
     will not halt processing of the document).
 
 - name: include
-  contexts: [document-execute]
+  tags:
+    contexts: [document-execute]
   schema: boolean
   default: false
   description: |
     Catch all for preventing any output (code or results) from being included in output.
 
 - name: message
-  engine: knitr
+  tags:
+    engine: knitr
   schema: boolean
   default: true
   description: Including messages in rendered output.
 
 - name: results
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     oneOf:
       - enum: [markup, asis, hold, hide]
@@ -80,7 +86,8 @@
       - `hide` (or `false`): Hide text output.
 
 - name: comment
-  engine: knitr
+  tags:
+    engine: knitr
   schema: string
   default: "##"
   description:
@@ -94,49 +101,57 @@
       `comment: ''` to remove the default `##`.
 
 - name: class-output
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Class name(s) for text/console output"
 
 - name: attr-output
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Attribute(s) for text/console output"
 
 - name: class-warning
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Class name(s) for warning output"
 
 - name: attr-warning
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Attribute(s) for warning output"
 
 - name: class-message
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Class name(s) for message output"
 
 - name: attr-message
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Attribute(s) for message output"
 
 - name: class-error
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Class name(s) for error output"
 
 - name: attr-error
-  engine: knitr
+  tags:
+    engine: knitr
   schema:
     maybeArrayOf: string
   description: "Attribute(s) for error output"

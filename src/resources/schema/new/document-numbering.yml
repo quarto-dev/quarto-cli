@@ -10,7 +10,8 @@
 
 - name: number-depth
   schema: number
-  enabled: [$html-all, $pdf-all, docx]
+  tags:
+    formats: [$html-all, $pdf-all, docx]
   description:
     short: The depth to which sections should be numbered.
     long: |
@@ -28,7 +29,8 @@
 - name: secnumdepth
   schema: number
   hidden: true
-  enabled: [$pdf-all]
+  tags:
+    formats: [$pdf-all]
   description: The numbering depth for sections. (Use `number-depth` instead).
 
 - name: number-offset
@@ -65,7 +67,8 @@
 - name: pagenumbering
   schema:
     maybeArrayOf: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: Sets the page numbering style and location for the document.
     long: |
@@ -76,7 +79,8 @@
       for additional information.
 
 - name: top-level-division
-  enabled: [$pdf-all, context, $docbook-all, tei]
+  tags:
+    formats: [$pdf-all, context, $docbook-all, tei]
   schema:
     enum: [default, section, chapter, part]
   description:

@@ -14,7 +14,8 @@
           - odd
           - even
           - normal
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: Set the indentation of paragraphs with one or more options.
     long: |
@@ -25,13 +26,15 @@
 - name: adjusting
   schema:
     enum: [l, r, c, b]
-  enabled: [man]
+  tags:
+    formats: [man]
   description: Adjusts text to the left (`l`), right (`r`), center (`c`), or both (`b`) margins.
 
 - name: hyphenate
   schema: boolean
   default: true
-  enabled: [man]
+  tags:
+    formats: [man]
   description:
     short: Whether to hyphenate text at line breaks even in words that do not contain hyphens.
     long: |

@@ -1,6 +1,7 @@
 
 - name: identifier
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: 
     oneOf:
       - string
@@ -20,19 +21,22 @@
   description: The identifier for this publication.
 
 - name: creator
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema:
     ref: epub-contributor
   description: Creators of this publication.
 
 - name: contributor
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema:
     ref: epub-contributor
   description: Contributors to this publication.
 
 - name: subject
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema:
     oneOf:
       - string
@@ -50,7 +54,8 @@
   description: The subject of the publication.
 
 - name: type
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: string
   description: 
     short: Text describing the specialized type of this publication.
@@ -63,32 +68,38 @@
       but Authors may use any text string as a value.
 
 - name: format
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: string
   description: Text describing the format of this publication.
 
 - name: relation
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: string
   description: Text describing the relation of this publication.
 
 - name: coverage
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: string
   description: Text describing the coverage of this publication.
 
 - name: rights
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: string
   description: Text describing the rights of this publication.
   
 - name: belongs-to-collection
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: string
   description: Identifies the name of a collection to which the EPUB Publication belongs.
 
 - name: group-position
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: number
   description: | 
     Indicates the numeric position in which this publication 
@@ -96,13 +107,15 @@
     `belongs-to-collection` field.
 
 - name: page-progression-direction
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: 
     enum: [ltr, rtl]
   description: Sets the global direction in which content flows.
 
 - name: ibooks
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: 
     object:
       properties:
@@ -118,7 +131,8 @@
 
 
 - name: epub-metadata
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: path
   description:
     short: |
@@ -147,7 +161,8 @@
 
 
 - name: epub-subdirectory
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema:
     oneOf: [path, null]
   default: EPUB
@@ -157,7 +172,8 @@
     contents in the top level, use an empty string.
 
 - name: epub-fonts
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema:
     arrayOf: path
   description:
@@ -177,7 +193,8 @@
       ```
 
 - name: epub-chapter-level
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: number
   default: 1
   description:
@@ -194,7 +211,8 @@
       level of 2 or 3.
 
 - name: epub-cover-image
-  enabled: [$epub-all]
+  tags:
+    formats: [$epub-all]
   schema: path
   description: |
     Use the specified image as the EPUB cover. It is recommended

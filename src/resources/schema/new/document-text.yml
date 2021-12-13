@@ -1,5 +1,6 @@
 - name: wrap
-  disabled: [$pdf-all, $office-all, $odt-all, $html-all, $docbook-all]
+  tags:
+    formats: [!$pdf-all, !$office-all, !$odt-all, !$html-all, !$docbook-all]
   schema:
     enum: [auto, none, preserve]
   default: auto
@@ -14,7 +15,8 @@
       nonsemantic newlines in the output as well
 
 - name: columns
-  disabled: [$pdf-all, $office-all, $odt-all, $html-all, $docbook-all]
+  tags:
+    formats: [!$pdf-all, !$office-all, !$odt-all, !$html-all, !$docbook-all]
   schema: number
   description:
     short: Specify length of lines in characters.
@@ -58,7 +60,8 @@
 
 - name: strip-comments
   schema: boolean
-  enabled: [$markdown-all, textile, $html-files]
+  tags:
+    formats: [$markdown-all, textile, $html-files]
   description:
     short: "Strip out HTML comments in source, rather than passing them on to output."
     long: |

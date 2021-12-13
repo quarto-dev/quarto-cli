@@ -1,5 +1,6 @@
 - name: comments
-  enabled: [$html-files]
+  tags:
+    formats: [$html-files]
   schema:
     object:
       additionalProperties: false

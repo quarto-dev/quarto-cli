@@ -39,13 +39,15 @@
 - name: resources
   schema:
     maybeArrayOf: string
-  enabled: [$html-all]
+  tags:
+    formats: [$html-all]
   description: Path (or glob) to files to publish with this document.
 
 - name: headertext
   schema:
     maybeArrayOf: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: Text to be in a running header.
     long: |
@@ -57,7 +59,8 @@
 - name: footertext
   schema:
     maybeArrayOf: string
-  enabled: [context]
+  tags:
+    formats: [context]
   description:
     short: Text to be in a running footer.
     long: |
@@ -70,18 +73,21 @@
 
 - name: includesource
   schema: boolean
-  enabled: [context]
+  tags:
+    formats: [context]
   default: false
   description: Whether to include all source documents as file attachments in the PDF file.
 
 - name: footer
   schema: string
-  enabled: [man]
+  tags:
+    formats: [man]
   description: The footer for man pages.
 
 - name: header
   schema: string
-  enabled: [man]
+  tags:
+    formats: [man]
   description: The header for man pages.
 
 - name: metadata-file
