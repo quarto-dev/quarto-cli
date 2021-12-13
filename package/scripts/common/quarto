@@ -32,7 +32,9 @@ if [ -f "$DEV_PATH" ]; then
 
   # Check for deno update
   QUARTO_SRC_DIR=$QUARTO_BIN_PATH/../../..
-  DENO_VERSION_FILE=$QUARTO_BIN_PATH/../share/deno-version
+  QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config
+  mkdir -p $QUARTO_DIST_CONFIG
+  DENO_VERSION_FILE=$QUARTO_DIST_CONFIG/deno-version
   DENO_SOURCE_VERSION=`(cd $QUARTO_SRC_DIR && source ./configuration && echo $DENO)`
   if [ -f "$DENO_VERSION_FILE" ]; then
     DENO_INSTALLED_VERSION=`cat $DENO_VERSION_FILE`

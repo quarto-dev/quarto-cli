@@ -41,17 +41,18 @@ export function createDevConfig(
   };
 }
 
-export function writeDevConfig(config: DevConfig, shareDir: string) {
-  ensureDirSync(shareDir);
+export function writeDevConfig(config: DevConfig, binPath: string) {
+  const configPath = join(binPath, "..", "config");
+  ensureDirSync(configPath);
   Deno.writeTextFileSync(
-    join(shareDir, kDevConfig),
+    join(configPath, kDevConfig),
     JSON.stringify(config, undefined, 2),
   );
 }
 
 export function readInstalledDevConfig(): DevConfig | null {
   const binPath = quartoConfig.binPath();
-  const configPath = join(binPath, "..", "share", kDevConfig);
+  const configPath = join(binPath, "..", "config", kDevConfig);
   if (existsSync(configPath)) {
     return JSON.parse(Deno.readTextFileSync(configPath)) as DevConfig;
   } else {

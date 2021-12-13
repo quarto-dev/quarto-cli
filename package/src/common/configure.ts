@@ -65,7 +65,7 @@ export async function configure(
     Deno.env.get("ESBUILD") || "",
     config.directoryInfo.bin,
   );
-  writeDevConfig(devConfig, config.directoryInfo.share);
+  writeDevConfig(devConfig, config.directoryInfo.bin);
 
   // Set up a symlink (if appropriate)
   const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
