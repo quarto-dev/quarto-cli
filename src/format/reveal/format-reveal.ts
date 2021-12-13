@@ -535,6 +535,33 @@ function revealHtmlPostprocessor(format: Format) {
       referencesDiv.appendChild(refs);
     }
 
+    // Add stretch class to images in slides with only one image
+    const allSlides = doc.querySelectorAll("section");
+    // only target slides with one image
+    allSlides.forEach((slide) => {
+      const slideEl = slide as Element;
+      const images = slideEl.querySelectorAll("img");
+      if (images.length === 1) {
+        const image = images[0];
+        const imageEl = image as Element;
+        // add stretch class if not already
+        if (
+          !imageEl.classList.contains("stretch") ||
+          !imageEl.classList.contains("r-stretch")
+        ) {
+          imageEl.classList.add("stretch");
+        }
+        if (image.parentNode?.nodeName !== "SECTION") {
+          // move img node as direct child of section in the slide
+          // image is probably inside quarto-figure div
+          const divQuartoFigure =
+            slideEl.querySelectorAll("div.quarto-figure")[0];
+          slide.insertBefore(image, divQuartoFigure);
+          divQuartoFigure.parentNode?.removeChild(divQuartoFigure);
+        }
+      }
+    });
+
     return Promise.resolve([]);
   };
 }
