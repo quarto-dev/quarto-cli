@@ -37,7 +37,7 @@ import {
   revealMuliplexPreviewFile,
   revealMultiplexExtras,
 } from "./format-reveal-multiplex.ts";
-import { warning } from "https://deno.land/std@0.97.0/log/mod.ts";
+import { info, warning } from "https://deno.land/std@0.97.0/log/mod.ts";
 
 const kRevealOptions = [
   "controls",
@@ -566,7 +566,12 @@ function revealHtmlPostprocessor(format: Format) {
               slideEl.querySelectorAll("div.quarto-figure")[0];
             if (divCellOutput && divCellOutput.parentNode) {
               slide.insertBefore(image, divCellOutput.parentNode.nextSibling);
-              divCellOutput.parentNode?.removeChild(divCellOutput);
+              const divCell = divCellOutput.parentNode;
+              divCell.removeChild(divCellOutput);
+              // Remove the whole cell div if it was only output
+              if (divCell.children.length === 0) {
+                divCell.parentNode?.removeChild(divCell);
+              }
             } else if (divQuartoFigure) {
               slide.insertBefore(image, divQuartoFigure.nextSibling);
               divQuartoFigure.parentNode?.removeChild(divQuartoFigure);
