@@ -9,7 +9,7 @@ import { error, info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
-import { serve, ServerRequest } from "http/server.ts";
+import { serve, ServerRequest } from "http/server_legacy.ts";
 
 import { ld } from "lodash/mod.ts";
 import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
@@ -55,6 +55,7 @@ import { watchProject } from "./watch.ts";
 import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
+  renderProgress,
   resourceFilesFromFile,
 } from "../render/render-shared.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -118,9 +119,9 @@ export async function serveProject(
   // are we rendering?
   const renderBefore = options.render !== kRenderNone;
   if (renderBefore) {
-    info("Rendering:");
+    renderProgress("Rendering:");
   } else {
-    info("Preparing to preview");
+    renderProgress("Preparing to preview");
   }
 
   // get 'to' from --render

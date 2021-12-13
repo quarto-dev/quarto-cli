@@ -51,7 +51,7 @@ IF %ERRORLEVEL% EQU 0 (
 SET NO_COLOR=TRUE
 )
 
-SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net
+SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --v8-flags=--noopt
 "%SCRIPT_DIR%deno" %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
 
 :end

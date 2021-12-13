@@ -128,6 +128,11 @@
     source(file.path(res_dir, "hooks.R"), local = TRUE)
   }
 
+  # print execute-debug message
+  debug <- isTRUE(params$format$execute[["debug"]])
+  if (debug)
+    message("[knitr engine]: ", request$action)
+
   # dispatch request
   if (request$action == "spin") {
     result <- spin(params$input)
@@ -143,12 +148,18 @@
   }
 
   # write results
+  if (debug)
+    message("[knitr engine]: writing results")
   resultJson <- jsonlite::toJSON(auto_unbox = TRUE, result)
   xfun:::write_utf8(paste(resultJson, collapse = "\n"), request$result)
+  if (debug)
+    message("[knitr engine]: exiting")
 }
 
 # run main
 .main()
+
+
 
 
 

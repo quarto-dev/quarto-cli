@@ -30,6 +30,31 @@ if [ -f "$DEV_PATH" ]; then
   export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../src/resources/";pwd`"
   export QUARTO_DEBUG=true
 
+  # Check for deno update
+  QUARTO_SRC_DIR=$QUARTO_BIN_PATH/../../..
+  QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config
+  mkdir -p $QUARTO_DIST_CONFIG
+  DENO_VERSION_FILE=$QUARTO_DIST_CONFIG/deno-version
+  DENO_SOURCE_VERSION=`(cd $QUARTO_SRC_DIR && source ./configuration && echo $DENO)`
+  if [ -f "$DENO_VERSION_FILE" ]; then
+    DENO_INSTALLED_VERSION=`cat $DENO_VERSION_FILE`
+    if [ "$DENO_SOURCE_VERSION" != "$DENO_INSTALLED_VERSION" ]; then
+      # configure will call back into this script so we need to update the
+      # version so that the check will pass next time through
+      echo $DENO_SOURCE_VERSION > $DENO_VERSION_FILE
+      if [ "$(uname)" = "Darwin" ]; then
+        (cd $QUARTO_SRC_DIR && ./configure-macos.sh)
+      else
+        (cd $QUARTO_SRC_DIR && ./configure-linux.sh)
+      fi
+      echo ""
+      printf "\\033[0;31mQuarto required reconfiguration to install Deno ${DENO_SOURCE_VERSION}. Please try command again.\\033[0m\n\n"
+      exit 1
+    fi
+  else
+    echo $DENO_SOURCE_VERSION > $DENO_VERSION_FILE
+  fi
+
   if [ "$1" == "--version" ]; then
     echo "99.9.9"
     exit 0
@@ -57,6 +82,6 @@ fi
 
 
 QUARTO_DENO_EXTRA_OPTIONS=""
-QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"
+QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --v8-flags=--noopt"
 
 ${SCRIPT_PATH}/deno ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_TARGET} "$@"

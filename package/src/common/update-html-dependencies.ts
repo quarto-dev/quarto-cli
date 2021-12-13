@@ -4,13 +4,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import {
-  copySync,
-  ensureDir,
-  ensureDirSync,
-  existsSync,
-  moveSync,
-} from "fs/mod.ts";
+import { ensureDir, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
+import { copySync } from "fs/copy.ts";
 import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
 import { copyMinimal } from "../../../src/core/path.ts";

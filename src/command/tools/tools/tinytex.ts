@@ -94,8 +94,8 @@ async function installed() {
   }
 }
 
-function installDir() {
-  if (installed()) {
+async function installDir() {
+  if (await installed()) {
     return Promise.resolve(tinyTexInstallDir());
   } else {
     return Promise.resolve(undefined);

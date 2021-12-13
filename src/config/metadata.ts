@@ -53,7 +53,7 @@ export async function includedMetadata(
 
   // Read the yaml
   const filesMetadata = await Promise.all(yamlFiles.map(async (yamlFile) => {
-    if (exists(yamlFile)) {
+    if (await exists(yamlFile)) {
       try {
         const yaml = await readAndValidateYamlFromFile(
           yamlFile,

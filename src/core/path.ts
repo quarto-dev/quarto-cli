@@ -7,7 +7,8 @@
 
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
-import { copySync, ensureDirSync, walkSync } from "fs/mod.ts";
+import { copySync } from "fs/copy.ts";
+import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 

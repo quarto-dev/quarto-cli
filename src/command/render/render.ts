@@ -131,6 +131,7 @@ import { resolveLanguageMetadata } from "../../core/language.ts";
 
 import { validateDocument } from "../../core/schema/validate-document.ts";
 import { getFrontMatterSchema } from "../../core/schema/front-matter.ts";
+import { renderProgress } from "./render-shared.ts";
 
 export async function renderFiles(
   files: string[],
@@ -150,10 +151,8 @@ export async function renderFiles(
     const progress = options.progress ||
       (project && (files.length > 1) && !options.flags?.quiet);
 
-    if (progress) {
-      options.flags = options.flags || {};
-      options.flags.quiet = true;
-    }
+    // quiet pandoc output if we are doing file by file progress
+    const pandocQuiet = !!progress;
 
     // calculate num width
     const numWidth = String(files.length).length;
@@ -162,7 +161,7 @@ export async function renderFiles(
       const file = files[i];
 
       if (progress) {
-        info(
+        renderProgress(
           `[${String(i + 1).padStart(numWidth)}/${files.length}] ${
             relative(project!.dir, file)
           }`,
@@ -230,7 +229,7 @@ export async function renderFiles(
           recipe,
           executeResult,
           resourceFiles,
-        });
+        }, pandocQuiet);
       }
     }
 
@@ -238,7 +237,7 @@ export async function renderFiles(
       info("");
     }
 
-    return await pandocRenderer.onComplete();
+    return await pandocRenderer.onComplete(false, pandocQuiet);
   } catch (error) {
     return {
       files: (await pandocRenderer.onComplete(true)).files,
@@ -478,6 +477,7 @@ export async function renderExecute(
 
 export async function renderPandoc(
   file: ExecutedFile,
+  quiet: boolean,
 ): Promise<RenderedFile> {
   // alias options
   const { context, recipe, executeResult, resourceFiles } = file;
@@ -530,7 +530,10 @@ export async function renderPandoc(
     project: context.project,
     args: recipe.args,
     metadata: executeResult.metadata,
-    flags: context.options.flags,
+    flags: {
+      ...context.options.flags,
+      quiet: quiet || !!context.options.flags?.quiet,
+    },
   };
 
   // add offset if we are in a project
@@ -754,8 +757,12 @@ function defaultPandocRenderer(
   return {
     onBeforeExecute: (_format: Format) => ({}),
 
-    onRender: async (_format: string, executedFile: ExecutedFile) => {
-      renderedFiles.push(await renderPandoc(executedFile));
+    onRender: async (
+      _format: string,
+      executedFile: ExecutedFile,
+      quiet: boolean,
+    ) => {
+      renderedFiles.push(await renderPandoc(executedFile, quiet));
     },
     onComplete: async () => {
       return {
@@ -983,9 +990,9 @@ async function resolveFormats(
     // if the project specifies that only project formats are
     // valid then use the project formats
     formats = projFormatKeys;
-  } else if (inputFormatKeys.some((key) => !projFormatKeys.includes(key))) {
-    // if the input metadata has a format that is NOT in the project
-    // then use it's formats (and ignore the project)
+  } else if (inputFormatKeys.length > 0) {
+    // if the input metadata has a format then this is an override
+    // of the project so use its keys (and ignore the project)
     formats = inputFormatKeys;
     // otherwise use the project formats
   } else {

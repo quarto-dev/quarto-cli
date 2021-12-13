@@ -8,7 +8,7 @@
 */
 
 import { ExecuteOutput, Verify } from "../../../test.ts";
-import { Browser } from "https://deno.land/x/puppeteer@9.0.1/mod.ts";
+import { Browser } from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
 import { inPuppeteer, withHeadlessBrowser } from "../../../puppeteer.ts";
 import { assert } from "testing/asserts.ts";
 
@@ -33,8 +33,7 @@ export function verifyDomTextValue(
         // we need the definitions to be there (same in the
         // fieldsExist reference below). We should consider including
         // a library of puppeteer utilities in ojs-bundle.js
-        function fieldsExist(obj: any, names: string[], timeout = 1000)
-        {
+        function fieldsExist(obj: any, names: string[], timeout = 1000) {
           names = names.slice();
           // deno-lint-ignore no-explicit-any
           let accept: any, reject: any;
@@ -85,7 +84,6 @@ export function verifyDomTextValue(
   };
 }
 
-
 export function verifyOjsValue(
   url: string,
   valName: string,
@@ -97,8 +95,7 @@ export function verifyOjsValue(
     verify: async (_output: ExecuteOutput[]) => {
       // deno-lint-ignore no-explicit-any
       const ojsVal = await inPuppeteer(url, async (name: any) => {
-        function fieldsExist(obj: any, names: string[], timeout = 1000)
-        {
+        function fieldsExist(obj: any, names: string[], timeout = 1000) {
           names = names.slice();
           // deno-lint-ignore no-explicit-any
           let accept: any, reject: any;

@@ -5,7 +5,8 @@
 *
 */
 
-import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { copySync } from "fs/copy.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 

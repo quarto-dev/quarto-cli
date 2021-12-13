@@ -25,6 +25,12 @@ import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
+import {
+  devConfigsEqual,
+  readInstalledDevConfig,
+  readSourceDevConfig,
+  reconfigureQuarto,
+} from "./core/devconfig.ts";
 
 import { parse } from "flags/mod.ts";
 
@@ -32,6 +38,16 @@ export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,
 ) {
+  // check for need to reconfigure
+  if (quartoConfig.isDebug()) {
+    const installed = readInstalledDevConfig();
+    const source = readSourceDevConfig();
+    if (installed == null || !devConfigsEqual(installed, source)) {
+      await reconfigureQuarto(installed, source);
+      Deno.exit(1);
+    }
+  }
+
   // passthrough to pandoc
   if (args[0] === "pandoc") {
     const result = await execProcess({
@@ -80,8 +96,8 @@ if (import.meta.main) {
   try {
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
-      onSignal(Deno.Signal.SIGINT, abend);
-      onSignal(Deno.Signal.SIGTERM, abend);
+      onSignal("SIGINT", abend);
+      onSignal("SIGTERM", abend);
     }
 
     await initializeLogger(logOptions(parse(Deno.args)));

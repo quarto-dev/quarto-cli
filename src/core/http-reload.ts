@@ -5,7 +5,7 @@
 *
 */
 
-import { ServerRequest } from "http/server.ts";
+import { ServerRequest } from "http/server_legacy.ts";
 
 import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 import { isRevealjsOutput } from "../config/format.ts";
