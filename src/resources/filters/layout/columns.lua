@@ -160,6 +160,10 @@ function processOtherContent(el)
   removeColumnClasses(el)
 end
 
+function hasColumnClasses(el) 
+  return tcontains(el.attr.classes, isColumnClass) or hasMarginColumn(el)
+end
+
 function hasMarginColumn(el)
   if el.attr ~= nil and el.attr.classes ~= nil then
     return tcontains(el.attr.classes, 'column-margin') or tcontains(el.attr.classes, 'aside')
