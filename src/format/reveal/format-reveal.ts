@@ -119,6 +119,7 @@ export const kPdfSeparateFragments = "pdfSeparateFragments";
 export const kAutoAnimateEasing = "autoAnimateEasing";
 export const kAutoAnimateDuration = "autoAnimateDuration";
 export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
+export const kStretchAuto = "stretch-auto";
 
 export function optionsToKebab(options: string[]) {
   return options.reduce(
@@ -194,6 +195,9 @@ export function revealjsFormat() {
       },
       render: {
         [kCodeLineNumbers]: true,
+      },
+      metadata: {
+        [kStretchAuto]: true,
       },
       resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
@@ -536,43 +540,45 @@ function revealHtmlPostprocessor(format: Format) {
       referencesDiv.appendChild(refs);
     }
 
-    // Add stretch class to images in slides with only one image
-    const allSlides = doc.querySelectorAll("section");
-    // only target slides with one image
-    allSlides.forEach((slide) => {
-      const slideEl = slide as Element;
-      const images = slideEl.querySelectorAll("img");
-      if (images.length === 1) {
-        const image = images[0];
-        const imageEl = image as Element;
-        // add stretch class if not already
-        if (
-          !imageEl.classList.contains("stretch") ||
-          !imageEl.classList.contains("r-stretch")
-        ) {
-          imageEl.classList.add("stretch");
-        }
-        if (image.parentNode?.nodeName !== "SECTION") {
-          // move img node as direct child of section in the slide
-          // image is probably inside quarto-figure div
-          const divCellOutput =
-            slideEl.querySelectorAll("div.cell-output-display")[0];
-          const divQuartoFigure =
-            slideEl.querySelectorAll("div.quarto-figure")[0];
-          if (divCellOutput && divCellOutput.parentNode) {
-            slide.insertBefore(image, divCellOutput.parentNode.nextSibling);
-            divCellOutput.parentNode?.removeChild(divCellOutput);
-          } else if (divQuartoFigure) {
-            slide.insertBefore(image, divQuartoFigure.nextSibling);
-            divQuartoFigure.parentNode?.removeChild(divQuartoFigure);
-          } else {
-            warning(
-              `img node not moved on slide id ${slideEl.getAttribute("id")}`,
-            );
+    if (format.metadata[kStretchAuto] === true) {
+      // Add stretch class to images in slides with only one image
+      const allSlides = doc.querySelectorAll("section");
+      // only target slides with one image
+      allSlides.forEach((slide) => {
+        const slideEl = slide as Element;
+        const images = slideEl.querySelectorAll("img");
+        if (images.length === 1) {
+          const image = images[0];
+          const imageEl = image as Element;
+          // add stretch class if not already
+          if (
+            !imageEl.classList.contains("stretch") ||
+            !imageEl.classList.contains("r-stretch")
+          ) {
+            imageEl.classList.add("stretch");
+          }
+          if (image.parentNode?.nodeName !== "SECTION") {
+            // move img node as direct child of section in the slide
+            // image is probably inside quarto-figure div
+            const divCellOutput =
+              slideEl.querySelectorAll("div.cell-output-display")[0];
+            const divQuartoFigure =
+              slideEl.querySelectorAll("div.quarto-figure")[0];
+            if (divCellOutput && divCellOutput.parentNode) {
+              slide.insertBefore(image, divCellOutput.parentNode.nextSibling);
+              divCellOutput.parentNode?.removeChild(divCellOutput);
+            } else if (divQuartoFigure) {
+              slide.insertBefore(image, divQuartoFigure.nextSibling);
+              divQuartoFigure.parentNode?.removeChild(divQuartoFigure);
+            } else {
+              warning(
+                `img node not moved on slide id ${slideEl.getAttribute("id")}`,
+              );
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     return Promise.resolve([]);
   };
