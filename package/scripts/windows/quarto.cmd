@@ -41,7 +41,7 @@ IF EXIST "%QUARTO_TS_PATH%" (
 			call configure-windows.cmd
       echo ""
 			echo "Quarto required reconfiguration to install Deno !DENO!. Please try command again."
-			exit 1
+			GOTO end
 		)
 	) else (
 		echo !DENO! > "!DENO_VERSION_FILE!"
