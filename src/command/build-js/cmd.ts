@@ -7,7 +7,8 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "path/mod.ts";
-import { copy } from "fs/mod.ts";
+import { copy } from "fs/copy.ts";
+
 import { lines } from "../../core/text.ts";
 import { execProcess } from "../../core/process.ts";
 import { esbuildCompile } from "../../core/esbuild.ts";

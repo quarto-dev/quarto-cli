@@ -5,7 +5,8 @@
 *
 */
 
-import { copySync, existsSync } from "fs/mod.ts";
+import { existsSync } from "fs/mod.ts";
+import { copySync } from "fs/copy.ts";
 import { join, relative } from "path/mod.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";

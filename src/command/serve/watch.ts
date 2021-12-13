@@ -5,7 +5,7 @@
 *
 */
 
-import { ServerRequest } from "http/server.ts";
+import { ServerRequest } from "http/server_legacy.ts";
 
 import { extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";

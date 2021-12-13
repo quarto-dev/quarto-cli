@@ -11,7 +11,7 @@ import { error, info } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { Response, ServerRequest } from "http/server.ts";
+import { Response, ServerRequest } from "http/server_legacy.ts";
 import { contentType, isHtmlContent } from "./mime.ts";
 import { logError } from "./log.ts";
 import { pathWithForwardSlashes } from "./path.ts";

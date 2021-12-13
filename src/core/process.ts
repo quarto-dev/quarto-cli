@@ -6,7 +6,7 @@
 */
 
 import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
-import { iter } from "io/mod.ts";
+import { iterateReader } from "streams/mod.ts";
 import { info } from "log/mod.ts";
 
 export interface ProcessResult {
@@ -60,8 +60,8 @@ export async function execProcess(
       ) => {
         if (stream !== null) {
           const streamIter = filter
-            ? filteredAsyncIterator(iter(stream), filter)
-            : iter(stream);
+            ? filteredAsyncIterator(iterateReader(stream), filter)
+            : iterateReader(stream);
           multiplexIterator.add(streamIter);
         }
       };
@@ -93,7 +93,7 @@ export async function execProcess(
       // Process the streams independently
       if (process.stdout !== null) {
         stdoutText = await processOutput(
-          iter(process.stdout),
+          iterateReader(process.stdout),
           options.stdout,
         );
         process.stdout.close();
@@ -101,8 +101,8 @@ export async function execProcess(
 
       if (process.stderr != null) {
         const iterator = stderrFilter
-          ? filteredAsyncIterator(iter(process.stderr), stderrFilter)
-          : iter(process.stderr);
+          ? filteredAsyncIterator(iterateReader(process.stderr), stderrFilter)
+          : iterateReader(process.stderr);
         stderrText = await processOutput(
           iterator,
           options.stderr,

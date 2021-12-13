@@ -6,7 +6,7 @@
 */
 
 import { basename, join } from "path/mod.ts";
-import { ServerRequest } from "http/server.ts";
+import { ServerRequest } from "http/server_legacy.ts";
 import { md5Hash } from "./hash.ts";
 import { pathWithForwardSlashes } from "./path.ts";
 import { formatResourcePath } from "./resources.ts";
