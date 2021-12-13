@@ -18,6 +18,10 @@ import {
   schemaExhaustiveCompletions,
 } from "../lib/schema.ts";
 
+import {
+  mergeConfigs
+} from "../config.ts";
+
 export const BooleanSchema = {
   "type": "boolean",
   "description": "be a boolean value",
@@ -35,11 +39,11 @@ export const IntegerSchema = {
   "description": "be an integral number",
 };
 
-export function tagSchema(schema: Schema, tags: string[]): Schema
+export function tagSchema(schema: Schema, tags: Record<string, any>): Schema
 {
   return {
     ...schema,
-    tags: [...(schema.tags ?? []), ...tags]
+    tags: mergeConfigs(schema?.tags ?? {}, tags)
   };
 }
 

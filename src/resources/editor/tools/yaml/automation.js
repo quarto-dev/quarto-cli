@@ -345,7 +345,7 @@ async function completions(obj) {
             return true;
           }
           // handle format-enabling and -disabling tags
-          let tags;
+          let formatTags = [];
           if (c.type === "key") {
             let value = c.schema.properties[c.display];
             if (value === undefined) {
@@ -362,16 +362,16 @@ async function completions(obj) {
               // don't hide
               return true;
             }
-            tags = value.tags || [];
+            formatTags = value?.tags?.formats || [];
           } else if (c.type === "value") {
-            tags = c.schema.tags || [];
+            formatTags = c.schema?.tags?.formats || [];
           } else {
             // weird completion type?
             console.log(`Unexpected completion type ${c.type}`);
             return true;
           }
 
-          const enabled = tags.filter(tag => !tag.startsWith("!"));
+          const enabled = formatTags.filter(tag => !tag.startsWith("!"));
           const enabledSet = new Set();
           if (enabled.length === 0) {
             for (const el of aliases["pandoc-all"]) {
@@ -384,7 +384,7 @@ async function completions(obj) {
               }
             }
           }
-          for (let tag of tags.filter(tag => tag.startsWith("!"))) {
+          for (let tag of formatTags.filter(tag => tag.startsWith("!"))) {
             tag = tag.slice(1);
             for (const el of core.expandAliasesFrom([tag], aliases)) {
               enabledSet.delete(el);

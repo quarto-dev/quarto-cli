@@ -328,10 +328,17 @@ export function annotateSchemaFromField(field: any, schema: Schema): Schema
     schema = completeSchemaOverwrite(schema);
   }
   if (field.enabled !== undefined) {
-    schema = tagSchema(schema, field.enabled);
+    schema = tagSchema(schema, {
+      formats: field.enabled
+    });
   }
   if (field.disabled !== undefined) {
-    schema = tagSchema(schema, (field.disabled as string[]).map(x => `!${x}`));
+    schema = tagSchema(schema, {
+      formats: (field.disabled as string[]).map(x => `!${x}`)
+    });
+  }
+  if (field.tags) {
+    schema = tagSchema(schema, field.tags)
   }
   if (field.description) {
     if (typeof field.description === "string") {
@@ -355,3 +362,4 @@ export function convertFromFieldsObject(yaml: any[], obj?: Record<string, Schema
 
   return result;
 }
+
