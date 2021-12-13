@@ -5,9 +5,7 @@
 *
 */
 
-import {
-  readYamlFromMarkdown,
-} from "../core/yaml.ts";
+import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import {
@@ -71,4 +69,5 @@ export const markdownEngine: ExecutionEngine = {
   postprocess: (_options: PostProcessOptions) => Promise.resolve(),
 
   canFreeze: false,
+  generatesFigures: false,
 };
