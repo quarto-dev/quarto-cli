@@ -13,6 +13,10 @@ export function isWindows() {
   return Deno.build.os === "windows";
 }
 
+export function isMac() {
+  return Deno.build.os === "darwin";
+}
+
 export function isRStudio() {
   return !!Deno.env.get("RSTUDIO");
 }
