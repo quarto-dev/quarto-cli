@@ -24,26 +24,27 @@ IF EXIST "%QUARTO_TS_PATH%" (
 		SET QUARTO_TARGET="%QUARTO_TS_PATH%"
 	)
 	
-	SET "QUARTO_BIN_PATH=%SCRIPT_DIR%"
-	SET "QUARTO_SHARE_PATH=%SRC_PATH%resources\"
+	SET "QUARTO_BIN_PATH=!SCRIPT_DIR!"
+	SET "QUARTO_SHARE_PATH=!SRC_PATH!resources\"
 	SET QUARTO_DEBUG=true
-	SET "QUARTO_DEV_DIR=%SCRIPT_DIR%..\..\.."
-	SET DENO_VERSION_FILE="%SCRIPT_DIR%..\config\deno-version"
+	SET "QUARTO_DEV_DIR=!SCRIPT_DIR!..\..\.."
+	SET DENO_VERSION_FILE="!SCRIPT_DIR!..\config\deno-version"
 
 	FOR /F "tokens=*" %%A IN (!QUARTO_DEV_DIR!\configuration) DO CALL :convertExportToSet %%A 
 
-	if exist "%DENO_VERSION_FILE%" (
-		set /p DENO_INSTALLED_VERSION=<"%DENO_VERSION_FILE%"
-		if NOT "%DENO%"=="%DENO_INSTALLED_VERSION%" (
-			echo !DENO! > "%DENO_VERSION_FILE%"
-			cd %QUARTO_DEV_DIR%
+  CD "!DENO_VERSION_FILE!"
+	if exist "!DENO_VERSION_FILE!" (
+		set /p DENO_INSTALLED_VERSION=<"!DENO_VERSION_FILE!"
+		if NOT "!DENO!"=="!DENO_INSTALLED_VERSION!" (
+			echo !DENO! > "!DENO_VERSION_FILE!"
+			cd !QUARTO_DEV_DIR!
 			call configure-windows.cmd
       echo ""
-			echo "Quarto required reconfiguration to install Deno %DENO%. Please try command again."
+			echo "Quarto required reconfiguration to install Deno !DENO!. Please try command again."
 			exit 1
 		)
 	) else (
-		echo %DENO% > "%DENO_VERSION_FILE%"
+		echo !DENO! > "!DENO_VERSION_FILE!"
 	)
 
 
