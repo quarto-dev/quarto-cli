@@ -1,0 +1,15 @@
+---
+title: "test"
+format:
+  latex: default
+---
+
+::: {#fig-foo}
+![](images/image.jpeg)
+
+This is the figure
+:::
+
+See @fig-foo for more.
+
+
