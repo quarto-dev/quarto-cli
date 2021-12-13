@@ -80,14 +80,23 @@
   width: 100%;
   margin-bottom: 0;
 }
-.quarto-figure-left > figure > p {
-  text-align: left;
+.quarto-figure-left > figure {
+  > p,
+  > figcaption {
+    text-align: left;
+  }
 }
-.quarto-figure-center > figure > p {
-  text-align: center;
+.quarto-figure-center > figure {
+  > p,
+  > figcaption {
+    text-align: center;
+  }
 }
-.quarto-figure-right > figure > p {
-  text-align: right;
+.quarto-figure-right > figure {
+  > p,
+  > figcaption {
+    text-align: right;
+  }
 }
 figure > p:empty {
   display: none;
