@@ -9,6 +9,11 @@ import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
 import { expandPath } from "../../../src/core/path.ts";
+import {
+  createDevConfig,
+  writeDevConfig,
+} from "../../../src/core/devconfig.ts";
+
 import { Configuration } from "./config.ts";
 import {
   kDependencies,
@@ -52,6 +57,16 @@ export async function configure(
     );
   }
 
+  // record dev config
+  const devConfig = createDevConfig(
+    Deno.env.get("DENO") || "",
+    Deno.env.get("PANDOC") || "",
+    Deno.env.get("DARTSASS") || "",
+    Deno.env.get("ESBUILD") || "",
+    config.directoryInfo.bin,
+  );
+  writeDevConfig(devConfig, config.directoryInfo.bin);
+
   // Set up a symlink (if appropriate)
   const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
 
@@ -66,7 +81,9 @@ export async function configure(
         }
       } catch (error) {
         info(error);
-        info("\n> Failed to remove existing symlink.\n> Did you previously install with sudo? Run 'which quarto' to test which version will be used.");
+        info(
+          "\n> Failed to remove existing symlink.\n> Did you previously install with sudo? Run 'which quarto' to test which version will be used.",
+        );
       }
       try {
         // for the last path, try even creating a directory as a last ditch effort
@@ -82,8 +99,9 @@ export async function configure(
         info("> Success");
         // it worked, just move on
         break;
-      } catch (error) {
-        info(error);
+      } catch (_error) {
+        // NOTE: printing this error makes the user think that something went wrong when it didn't
+        // info(error);
         // none of them worked!
         if (i === symlinkPaths.length - 1) {
           warning("Failed to create symlink to quarto.");

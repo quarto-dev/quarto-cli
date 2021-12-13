@@ -5,7 +5,7 @@
 *
 */
 
-import { ServerRequest } from "http/server.ts";
+import { ServerRequest } from "http/server_legacy.ts";
 import { Format } from "../../config/types.ts";
 
 import { ProjectContext } from "../../project/types.ts";

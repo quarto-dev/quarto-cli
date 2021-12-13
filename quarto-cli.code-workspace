@@ -15,7 +15,8 @@
     "deno.unstable": true,
     "deno.path": "./package/dist/bin/deno",
     "deno.suggest.imports.hosts": {
-      "https://deno.land": true
+      "https://deno.land": true,
+      "https://den.o.land": false
     }
   }
 }

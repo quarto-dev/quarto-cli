@@ -140,7 +140,8 @@ export async function executeKernelKeepalive(
     conn.close();
 
     if (serverLogProcess) {
-      serverLogProcess.kill(9);
+      // deno-lint-ignore no-explicit-any
+      (serverLogProcess as any).kill("SIGKILL");
     }
   }
 }
