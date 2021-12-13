@@ -22,6 +22,8 @@ import("book-cleanup.lua")
 import("ipynb.lua")
 import("ojs.lua")
 import("reveal.lua")
+import("tikz.lua")
+import("meta.lua")
 import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
@@ -40,9 +42,11 @@ return {
     foldCode(),
     responsive(),
     ipynb(),
-    reveal()
+    reveal(),
+    tikz()
   }),
-  ojs()
+  ojs(),
+  quartoPostMetaInject(),
 }
 
 

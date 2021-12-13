@@ -94,7 +94,9 @@ function createFigureDiv(paraEl, fig)
   -- if the image is a .tex file we need to tex \input 
   if latexIsTikzImage(fig) then
     paraEl = pandoc.walk_block(paraEl, {
-      Image = latexFigureInline
+      Image = function(image)
+        return latexFigureInline(image, preState)
+      end
     })
   end
   
@@ -106,34 +108,3 @@ function createFigureDiv(paraEl, fig)
   return figureDiv
   
 end
-
-function latexIsTikzImage(image)
-  return isLatexOutput() and string.find(image.src, "%.tex$")
-end
-
-function latexFigureInline(image)
-  -- if this is a tex file (e.g. created w/ tikz) then use \\input
-  if latexIsTikzImage(image) then
-    
-    -- be sure to inject \usepackage{tikz}
-    preState.usingTikz = true
-    
-    -- base input
-    local input = "\\input{" .. image.src .. "}"
-    
-    -- apply resize.width and/or resize.height if specified
-    local rw = attribute(image, kResizeWidth, "!")
-    local rh = attribute(image, kResizeHeight, "!")
-    if rw ~= "!" or rh ~= "!" then
-      input = "\\resizebox{" .. rw .. "}{" .. rh .. "}{" .. input .. "}"
-    end
-    
-    -- return inline
-    return pandoc.RawInline("latex", input)
-  else
-    return image
-  end
-end
-
-
-
