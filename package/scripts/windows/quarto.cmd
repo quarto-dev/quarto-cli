@@ -32,19 +32,19 @@ IF EXIST "%QUARTO_TS_PATH%" (
 
 	FOR /F "tokens=*" %%A IN (!QUARTO_DEV_DIR!\configuration) DO CALL :convertExportToSet %%A 
 
-  CD "!DENO_VERSION_FILE!"
-	if exist "!DENO_VERSION_FILE!" (
+  if exist "!DENO_VERSION_FILE!" (
 		set /p DENO_INSTALLED_VERSION=<"!DENO_VERSION_FILE!"
 		if NOT "!DENO!"=="!DENO_INSTALLED_VERSION!" (
-			echo !DENO! > "!DENO_VERSION_FILE!"
+			echo !DENO!>"!DENO_VERSION_FILE!"
+		
 			cd !QUARTO_DEV_DIR!
 			call configure-windows.cmd
-      echo ""
-			echo "Quarto required reconfiguration to install Deno !DENO!. Please try command again."
+      echo 
+			echo Quarto required reconfiguration to install Deno !DENO!. Please try command again.
 			GOTO end
 		)
 	) else (
-		echo !DENO! > "!DENO_VERSION_FILE!"
+		echo !DENO!>"!DENO_VERSION_FILE!"
 	)
 
 
