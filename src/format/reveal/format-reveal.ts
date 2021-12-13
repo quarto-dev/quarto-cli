@@ -37,6 +37,7 @@ import {
   revealMuliplexPreviewFile,
   revealMultiplexExtras,
 } from "./format-reveal-multiplex.ts";
+import { warning } from "https://deno.land/std@0.97.0/log/mod.ts";
 
 const kRevealOptions = [
   "controls",
@@ -554,10 +555,21 @@ function revealHtmlPostprocessor(format: Format) {
         if (image.parentNode?.nodeName !== "SECTION") {
           // move img node as direct child of section in the slide
           // image is probably inside quarto-figure div
+          const divCellOutput =
+            slideEl.querySelectorAll("div.cell-output-display")[0];
           const divQuartoFigure =
             slideEl.querySelectorAll("div.quarto-figure")[0];
-          slide.insertBefore(image, divQuartoFigure);
-          divQuartoFigure.parentNode?.removeChild(divQuartoFigure);
+          if (divCellOutput && divCellOutput.parentNode) {
+            slide.insertBefore(image, divCellOutput.parentNode.nextSibling);
+            divCellOutput.parentNode?.removeChild(divCellOutput);
+          } else if (divQuartoFigure) {
+            slide.insertBefore(image, divQuartoFigure.nextSibling);
+            divQuartoFigure.parentNode?.removeChild(divQuartoFigure);
+          } else {
+            warning(
+              `img node not moved on slide id ${slideEl.getAttribute("id")}`,
+            );
+          }
         }
       }
     });
