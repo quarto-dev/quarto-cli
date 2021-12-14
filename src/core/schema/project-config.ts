@@ -50,9 +50,6 @@ export async function makeProjectConfigSchema()
 {
   const projectConfigFields = await getProjectConfigFieldsSchema();
   const execute = getFormatExecuteOptionsSchema();
-  // const formatExecuteGlobalOptions = getFormatExecuteGlobalOptionsSchema();
-  // const formatExecuteCellOptions = getFormatExecuteCellOptionsSchema();
-  // FIXME!!
   const format = await getFrontMatterFormatSchema();
 
   return withId(
@@ -61,7 +58,6 @@ export async function makeProjectConfigSchema()
         properties: {
           execute,
           format,
-          //
           // NOTE: we are temporarily disabling format validation
           // because it's way too strict
         },
