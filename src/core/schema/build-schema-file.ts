@@ -20,11 +20,6 @@ import { convertFromYaml } from "./from-yaml.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 
 export async function buildSchemaFile(resourceDir: string) {
-  const yamlDefinitions = readYaml(schemaPath("definitions.yml")) as any[];
-  for (const yamlSchema of yamlDefinitions) {
-    const schema = normalizeSchema(convertFromYaml(yamlSchema));
-    setSchemaDefinition(schema);
-  }
   const obj = {
     schemas: {
       "front-matter": await getFrontMatterSchema(),
