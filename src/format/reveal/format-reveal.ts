@@ -543,10 +543,10 @@ function revealHtmlPostprocessor(format: Format) {
     if (format.metadata[kStretchAuto] === true) {
       // Add stretch class to images in slides with only one image
       const allSlides = doc.querySelectorAll("section");
-      // only target slides with one image
       allSlides.forEach((slide) => {
         const slideEl = slide as Element;
         const images = slideEl.querySelectorAll("img");
+        // only target slides with one image
         if (images.length === 1) {
           const image = images[0];
           const imageEl = image as Element;
@@ -557,40 +557,38 @@ function revealHtmlPostprocessor(format: Format) {
           ) {
             imageEl.classList.add("stretch");
           }
+          // If <img> is not a direct child of <section>, move it
           if (image.parentNode?.nodeName !== "SECTION") {
-            // move img node as direct child of section in the slide
-            const imageParentNode = image.parentNode;
-            if (
-              imageParentNode &&
-              imageParentNode.nodeName === "P" &&
-              imageParentNode.parentNode?.nodeName === "SECTION"
-            ) {
-              slide.insertBefore(image, imageParentNode.nextSibling);
-              imageParentNode.remove();
-            } else {
-              // otherwise image is probably inside quarto-figure div
-              const divCellOutput =
-                slideEl.querySelectorAll("div.cell-output-display")[0];
-              const divQuartoFigure =
-                slideEl.querySelectorAll("div.quarto-figure")[0];
-              if (divCellOutput && divCellOutput.parentNode) {
-                slide.insertBefore(image, divCellOutput.parentNode.nextSibling);
-                const divCell = divCellOutput.parentNode;
-                divCell.removeChild(divCellOutput);
-                // Remove the whole cell div if it was only output
-                if (divCell.children.length === 0) {
-                  divCell.parentNode?.removeChild(divCell);
-                }
-              } else if (divQuartoFigure) {
-                slide.insertBefore(image, divQuartoFigure.nextSibling);
-                divQuartoFigure.parentNode?.removeChild(divQuartoFigure);
-              } else {
-                warning(
-                  `img node not moved on slide id ${
-                    slideEl.getAttribute("id")
-                  }`,
-                );
+            // find the node that contains the img
+            let selNode;
+            for (const node of slide.childNodes) {
+              if (node.contains(image)) {
+                selNode = node;
+                break;
               }
+            }
+            const nodeEl = selNode as Element;
+            // Remove image from its parent
+            image.parentNode?.removeChild(image);
+            // insert at first level
+            slideEl.insertBefore(
+              image,
+              nodeEl.nextElementSibling,
+            );
+            // remove image container
+            if (
+              nodeEl.nodeName === "DIV" &&
+              nodeEl.classList.contains("quarto-figure")
+            ) {
+              nodeEl.remove();
+            } else if (
+              nodeEl.nodeName === "DIV" && nodeEl.classList.contains("cell")
+            ) {
+              nodeEl.querySelector("div.cell-output-display")?.remove();
+            } else if (
+              nodeEl.nodeName == "P" && nodeEl.children.length === 0
+            ) {
+              nodeEl.remove();
             }
           }
         }
