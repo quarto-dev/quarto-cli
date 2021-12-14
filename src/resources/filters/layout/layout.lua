@@ -263,7 +263,7 @@ function layoutCells(divEl, cells)
     return row:map(function(cell)
       
       -- percentage based layouts need to be scaled down so they don't overflow the page 
-      local percentWidth = widthToPercent(attribute(cell, "width", nil))
+      local percentWidth = sizeToPercent(attribute(cell, "width", nil))
       if percentWidth then
         percentWidth = round(percentWidth,1)
         cell.attr.attributes["width"] = tostring(percentWidth) .. "%"

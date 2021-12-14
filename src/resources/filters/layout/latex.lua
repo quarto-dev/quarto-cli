@@ -361,10 +361,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   end
   
   -- convert to latex percent as necessary
-  local percentWidth = widthToPercent(width)
-  if percentWidth then
-    width = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
-  end
+  width = asLatexSize(width)
 
   -- start the minipage
   local miniPageVAlign = latexMinipageValign(vAlign)

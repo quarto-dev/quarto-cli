@@ -107,20 +107,6 @@ end
 
 
 
-local function asLatexSize(size)
-  local pct = string.match(size, "^(%d+)%%")
-  if pct then
-    if pct == "100" then
-      return  "\\linewidth"
-    else
-      return tostring(pct/100) .. "\\linewidth"
-    end
-  else
-    return size
-  end
-end
-
-
 function latexIsTikzImage(image)
   return isLatexOutput() and string.find(image.src, "%.tex$")
 end
@@ -139,7 +125,7 @@ function latexFigureInline(image, state)
     local rw = attribute(image, kResizeWidth, attribute(image, "width", "!"))
     local rh = attribute(image, kResizeHeight, attribute(image, "height", "!"))
 
-    -- convert % to textwidth
+    -- convert % to linewidth
     rw = asLatexSize(rw)
     rh = asLatexSize(rh)
 
