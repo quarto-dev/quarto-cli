@@ -36,7 +36,6 @@ import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import {
   websiteConfig,
   websiteConfigMetadata,
-  websiteConfigString,
   websitePath,
   websiteTitle,
 } from "./website-config.ts";
