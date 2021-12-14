@@ -321,7 +321,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               if (quartoSearchOptions.algolia["show-logo"]) {
                 const libDir = quartoSearchOptions.algolia["libDir"];
                 const logo = createElement("img", {
-                  src: `/${libDir}/quarto-search/search-by-algolia.png`,
+                  src: offsetURL(
+                    `${libDir}/quarto-search/search-by-algolia.svg`
+                  ),
                   class: "algolia-search-logo",
                 });
                 return createElement(

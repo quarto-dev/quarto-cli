@@ -458,7 +458,7 @@ export function websiteSearchDependency(
     if (algoliaOpts) {
       if (algoliaOpts[kShowLogo]) {
         // Add the logo as a resource
-        resources.push(searchDependency("search-by-algolia.png"));
+        resources.push(searchDependency("search-by-algolia.svg"));
       }
 
       if (
