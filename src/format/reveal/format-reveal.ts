@@ -540,61 +540,84 @@ function revealHtmlPostprocessor(format: Format) {
       referencesDiv.appendChild(refs);
     }
 
-    if (format.metadata[kStretchAuto] === true) {
-      // Add stretch class to images in slides with only one image
-      const allSlides = doc.querySelectorAll("section");
-      allSlides.forEach((slide) => {
-        const slideEl = slide as Element;
-        const images = slideEl.querySelectorAll("img");
-        // only target slides with one image
-        if (images.length === 1) {
-          const image = images[0];
-          const imageEl = image as Element;
-          // add stretch class if not already
-          if (
-            !imageEl.classList.contains("stretch") ||
-            !imageEl.classList.contains("r-stretch")
-          ) {
-            imageEl.classList.add("stretch");
-          }
-          // If <img> is not a direct child of <section>, move it
-          if (image.parentNode?.nodeName !== "SECTION") {
-            // find the node that contains the img
-            let selNode;
-            for (const node of slide.childNodes) {
-              if (node.contains(image)) {
-                selNode = node;
-                break;
-              }
-            }
-            const nodeEl = selNode as Element;
-            // Remove image from its parent
-            image.parentNode?.removeChild(image);
-            // insert at first level
-            slideEl.insertBefore(
-              image,
-              nodeEl.nextElementSibling,
-            );
-            // remove image container
-            if (
-              nodeEl.nodeName === "DIV" &&
-              nodeEl.classList.contains("quarto-figure")
-            ) {
-              nodeEl.remove();
-            } else if (
-              nodeEl.nodeName === "DIV" && nodeEl.classList.contains("cell")
-            ) {
-              nodeEl.querySelector("div.cell-output-display")?.remove();
-            } else if (
-              nodeEl.nodeName == "P" && nodeEl.children.length === 0
-            ) {
-              nodeEl.remove();
-            }
-          }
-        }
-      });
-    }
+    if (format.metadata[kStretchAuto] === true) applyStretch(doc);
 
     return Promise.resolve([]);
   };
+}
+
+function moveCaptionContent(
+  doc: Document,
+  slideEl: Element,
+  imageEl: Element,
+  nodeEl: Element,
+) {
+  const figCaption = nodeEl.querySelector("figcaption");
+  if (figCaption) {
+    const caption = doc.createElement("p");
+    caption.classList.add("caption");
+    caption.innerHTML = figCaption.innerHTML;
+    slideEl.insertBefore(
+      caption,
+      imageEl.nextElementSibling,
+    );
+  }
+}
+
+function applyStretch(doc: Document) {
+  // Add stretch class to images in slides with only one image
+  const allSlides = doc.querySelectorAll("section");
+  allSlides.forEach((slide) => {
+    const slideEl = slide as Element;
+    const images = slideEl.querySelectorAll("img");
+    // only target slides with one image
+    if (images.length === 1) {
+      const image = images[0];
+      const imageEl = image as Element;
+      // add stretch class if not already
+      if (
+        !imageEl.classList.contains("stretch") ||
+        !imageEl.classList.contains("r-stretch")
+      ) {
+        imageEl.classList.add("stretch");
+      }
+      // If <img> is not a direct child of <section>, move it
+      if (image.parentNode?.nodeName !== "SECTION") {
+        // find the node that contains the img
+        let selNode;
+        for (const node of slide.childNodes) {
+          if (node.contains(image)) {
+            selNode = node;
+            break;
+          }
+        }
+        const nodeEl = selNode as Element;
+        // Remove image from its parent
+        image.parentNode?.removeChild(image);
+        // insert at first level
+        slideEl.insertBefore(
+          image,
+          nodeEl.nextElementSibling,
+        );
+
+        // remove image container
+        if (
+          nodeEl.nodeName === "DIV" &&
+          nodeEl.classList.contains("quarto-figure")
+        ) {
+          moveCaptionContent(doc, slideEl, imageEl, nodeEl);
+          nodeEl.remove();
+        } else if (
+          nodeEl.nodeName === "DIV" && nodeEl.classList.contains("cell")
+        ) {
+          moveCaptionContent(doc, slideEl, imageEl, nodeEl);
+          nodeEl.querySelector("div.cell-output-display")?.remove();
+        } else if (
+          nodeEl.nodeName == "P" && nodeEl.children.length === 0
+        ) {
+          nodeEl.remove();
+        }
+      }
+    }
+  });
 }
