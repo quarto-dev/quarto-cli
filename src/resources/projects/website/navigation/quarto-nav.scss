@@ -584,10 +584,12 @@ body:not(.floating) .nav-footer {
   margin-top: 0.25rem;
 }
 
-.nav-footer,
-.nav-footer a {
-  @if variable-exists(footer-fg) {
-    color: $footer-fg;
+.nav-footer {
+  min-height: 3.5em;
+  a {
+    @if variable-exists(footer-fg) {
+      color: $footer-fg;
+    }
   }
 }
 
@@ -613,20 +615,23 @@ body:not(.floating) .nav-footer {
 .nav-footer-center .footer-items,
 .nav-footer-right .footer-items {
   display: flex;
-  margin-bottom: 0;
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+  margin-bottom: 0em;
 }
 
 .nav-footer-left .footer-items .nav-link,
 .nav-footer-center .footer-items .nav-link,
 .nav-footer-right .footer-items .nav-link {
-  padding-left: 0.8em;
-  padding-right: 0em;
+  padding-left: 0.6em;
+  padding-right: 0.6em;
 }
 .nav-footer-left {
   margin-right: auto;
 }
 
 .nav-footer-center {
+  min-height: 3em;
   width: 100%;
   position: absolute;
   display: flex;
