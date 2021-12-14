@@ -14,6 +14,8 @@ import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { ProjectContext } from "../../types.ts";
 import { Navbar, NavItem, Sidebar, SidebarItem } from "../../project-config.ts";
 import {
+  kBodyFooter,
+  kBodyHeader,
   kMarginFooter,
   kMarginHeader,
   kPageFooter,
@@ -36,6 +38,7 @@ export interface Navigation {
   pageNavigation?: boolean;
   footer?: NavigationFooter;
   pageMargin?: PageMargin;
+  bodyDecorators?: BodyDecorators;
 }
 
 export interface NavigationFooter {
@@ -52,6 +55,11 @@ export interface NavigationPagination {
 }
 
 export interface PageMargin {
+  header?: string[];
+  footer?: string[];
+}
+
+export interface BodyDecorators {
   header?: string[];
   footer?: string[];
 }
@@ -167,8 +175,25 @@ export function websiteNavigationConfig(project: ProjectContext) {
     pageMargin.footer = footerVal;
   }
 
+  const bodyDecorators: BodyDecorators = {};
+  const bodyHeaderVal = websiteConfigArray(kBodyHeader, project.config);
+  if (bodyHeaderVal) {
+    bodyDecorators.header = bodyHeaderVal;
+  }
+  const bodyFooterVal = websiteConfigArray(kBodyFooter, project.config);
+  if (bodyFooterVal) {
+    bodyDecorators.footer = bodyFooterVal;
+  }
+
   // return
-  return { navbar, sidebars, pageNavigation, footer, pageMargin };
+  return {
+    navbar,
+    sidebars,
+    pageNavigation,
+    footer,
+    pageMargin,
+    bodyDecorators,
+  };
 }
 
 export function flattenItems(

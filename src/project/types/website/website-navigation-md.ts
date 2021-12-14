@@ -11,9 +11,16 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { Format, Metadata } from "../../../config/types.ts";
 import { NavbarItem, NavItem, Sidebar } from "../../project-config.ts";
 
-import { kWebsite } from "./website-config.ts";
+import {
+  kBodyFooter,
+  kBodyHeader,
+  kMarginFooter,
+  kMarginHeader,
+  kWebsite,
+} from "./website-config.ts";
 import { kTitle } from "../../../config/constants.ts";
 import {
+  BodyDecorators,
   flattenItems,
   Navigation,
   NavigationPagination,
@@ -34,6 +41,7 @@ export interface NavigationPipelineContext {
   sidebar?: Sidebar;
   navigation?: Navigation;
   pageMargin?: PageMargin;
+  bodyDecorators?: BodyDecorators;
   pageNavigation: NavigationPagination;
 }
 
@@ -48,6 +56,7 @@ export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
     navbarContentsHandler(context),
     footerHandler(context),
     marginHeaderFooterHandler(context),
+    bodyHeaderFooterHandler(context),
   ];
 }
 
@@ -362,10 +371,64 @@ const sidebarHeaderFooterHandler = (context: NavigationPipelineContext) => {
   };
 };
 
+const bodyHeaderFooterHandler = (context: NavigationPipelineContext) => {
+  return {
+    getUnrendered() {
+      const result: Record<string, string> = {};
+      if (context.bodyDecorators?.header) {
+        result[kBodyHeader] = toHeaderFooterMarkdown(
+          kBodyHeader,
+          context.bodyDecorators?.header as string[],
+        );
+      }
+      if (context.bodyDecorators?.footer) {
+        result[kBodyFooter] = toHeaderFooterMarkdown(
+          kBodyFooter,
+          context.bodyDecorators?.footer as string[],
+        );
+      }
+      return { blocks: result };
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const mainEl = doc.querySelector("main");
+      if (mainEl) {
+        const renderedHeaderEl = rendered[kBodyHeader];
+        if (renderedHeaderEl) {
+          const headerEl = renderedHeaderEl.querySelector(
+            `.${kBodyHeader}-item`,
+          );
+          if (headerEl) {
+            const titleBlock = mainEl.querySelector("#title-block-header");
+            const insertBefore = titleBlock?.nextElementSibling ||
+              mainEl.childNodes[0] || null;
+            for (const child of headerEl.children) {
+              if (insertBefore) {
+                mainEl.insertBefore(child, insertBefore);
+              } else {
+                mainEl.appendChild(child);
+              }
+            }
+          }
+        }
+
+        const renderedFooterEl = rendered[kBodyFooter];
+        if (renderedFooterEl) {
+          const footerEl = renderedFooterEl.querySelector(
+            `.${kBodyFooter}-item`,
+          );
+          if (footerEl) {
+            for (const child of footerEl.children) {
+              mainEl.appendChild(child);
+            }
+          }
+        }
+      }
+    },
+  };
+};
+
 // Render and place the margin and header and footer, if specified
 const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
-  const kMarginHeader = "margin-header";
-  const kMarginFooter = "margin-footer";
   return {
     getUnrendered() {
       const result: Record<string, string> = {};
