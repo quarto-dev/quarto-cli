@@ -36,7 +36,7 @@ import { schemaPath, cacheSchemaFunction } from "./utils.ts";
 
 export async function makeProjectConfigFieldsSchema() {
   const result = objectSchemaFromFieldsFile(
-    schemaPath("project.yml")
+    schemaPath("new/project.yml")
   );
   return result;
 }
@@ -54,10 +54,6 @@ export async function makeProjectConfigSchema()
   // const formatExecuteCellOptions = getFormatExecuteCellOptionsSchema();
   // FIXME!!
   const format = await getFrontMatterFormatSchema();
-  const formatMetadata = objectSchemaFromFieldsFile(
-    schemaPath("format-metadata.yml"),
-    key => key === "format",
-  );
 
   return withId(
     allOfS(
@@ -71,9 +67,8 @@ export async function makeProjectConfigSchema()
         },
         description: "be a Quarto YAML front matter object",
       }),
-      formatMetadata,
-      // formatExecuteGlobalOptions,
-      // formatExecuteCellOptions,
+      execute,
+      format,
       projectConfigFields,
     ),
     "project-config"
