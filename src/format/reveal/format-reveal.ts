@@ -546,24 +546,6 @@ function revealHtmlPostprocessor(format: Format) {
   };
 }
 
-function moveCaptionContent(
-  doc: Document,
-  slideEl: Element,
-  imageEl: Element,
-  nodeEl: Element,
-) {
-  const figCaption = nodeEl.querySelector("figcaption");
-  if (figCaption) {
-    const caption = doc.createElement("p");
-    caption.classList.add("caption");
-    caption.innerHTML = figCaption.innerHTML;
-    slideEl.insertBefore(
-      caption,
-      imageEl.nextElementSibling,
-    );
-  }
-}
-
 function applyStretch(doc: Document) {
   // Add stretch class to images in slides with only one image
   const allSlides = doc.querySelectorAll("section");
@@ -583,7 +565,7 @@ function applyStretch(doc: Document) {
       }
       // If <img> is not a direct child of <section>, move it
       if (image.parentNode?.nodeName !== "SECTION") {
-        // find the node that contains the img
+        // find the first level node that contains the img
         let selNode;
         for (const node of slide.childNodes) {
           if (node.contains(image)) {
@@ -592,31 +574,40 @@ function applyStretch(doc: Document) {
           }
         }
         const nodeEl = selNode as Element;
+
         // Remove image from its parent
         image.parentNode?.removeChild(image);
-        // insert at first level
+        // insert at first level after the element
         slideEl.insertBefore(
           image,
           nodeEl.nextElementSibling,
         );
 
-        // remove image container
-        if (
-          nodeEl.nodeName === "DIV" &&
-          nodeEl.classList.contains("quarto-figure")
-        ) {
-          moveCaptionContent(doc, slideEl, imageEl, nodeEl);
-          nodeEl.remove();
-        } else if (
-          nodeEl.nodeName === "DIV" && nodeEl.classList.contains("cell")
-        ) {
-          moveCaptionContent(doc, slideEl, imageEl, nodeEl);
-          nodeEl.querySelector("div.cell-output-display")?.remove();
-        } else if (
-          nodeEl.nodeName == "P" && nodeEl.children.length === 0
-        ) {
-          nodeEl.remove();
+        // Figure environment ? Get caption and alignment
+        const quartoFig = slideEl.querySelector("div.quarto-figure");
+        if (quartoFig) {
+          // Get alignment
+          const align = quartoFig.className.match(
+            "quarto-figure-(center|left|right)",
+          );
+          if (align) imageEl.classList.add(align[0]);
+          // Get Caption
+          const figCaption = nodeEl.querySelector("figcaption");
+          if (figCaption) {
+            const caption = doc.createElement("p");
+            caption.classList.add("caption");
+            caption.innerHTML = figCaption.innerHTML;
+            slideEl.insertBefore(
+              caption,
+              imageEl.nextElementSibling,
+            );
+            figCaption.remove();
+          }
+          // Remove the container
+          quartoFig.remove();
         }
+
+        // TODO: remove empty image container
       }
     }
   });
