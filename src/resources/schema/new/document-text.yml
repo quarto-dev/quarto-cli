@@ -1,6 +1,6 @@
 - name: wrap
   tags:
-    formats: [!$pdf-all, !$office-all, !$odt-all, !$html-all, !$docbook-all]
+    formats: ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
   schema:
     enum: [auto, none, preserve]
   default: auto
@@ -16,7 +16,7 @@
 
 - name: columns
   tags:
-    formats: [!$pdf-all, !$office-all, !$odt-all, !$html-all, !$docbook-all]
+    formats: ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
   schema: number
   description:
     short: Specify length of lines in characters.

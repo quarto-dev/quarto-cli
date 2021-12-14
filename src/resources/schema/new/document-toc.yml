@@ -1,7 +1,7 @@
 - name: toc
   alias: table-of-contents
   tags:
-    formats: [!man, !$docbook-all, !jats]
+    formats: ["!man", "!$docbook-all", "!jats"]
   schema: boolean
   description:
     short: "Include an automatically generated table of contents"
@@ -27,7 +27,7 @@
 
 - name: toc-depth
   tags:
-    formats: [!man, !$docbook-all, !jats]
+    formats: ["!man", "!$docbook-all", "!jats"]
   schema: number
   description: |
     Specify the number of section levels to include in the table of contents.

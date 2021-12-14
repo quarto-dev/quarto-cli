@@ -24,8 +24,6 @@ import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
 import { normalizeSchema, Schema } from "../lib/schema.ts";
 
 import {
-  getFormatExecuteCellOptionsSchema,
-  getFormatExecuteGlobalOptionsSchema,
   getFormatExecuteOptionsSchema,
 } from "./execute.ts";
 
@@ -52,8 +50,9 @@ export async function makeProjectConfigSchema()
 {
   const projectConfigFields = await getProjectConfigFieldsSchema();
   const execute = getFormatExecuteOptionsSchema();
-  const formatExecuteGlobalOptions = getFormatExecuteGlobalOptionsSchema();
-  const formatExecuteCellOptions = getFormatExecuteCellOptionsSchema();
+  // const formatExecuteGlobalOptions = getFormatExecuteGlobalOptionsSchema();
+  // const formatExecuteCellOptions = getFormatExecuteCellOptionsSchema();
+  // FIXME!!
   const format = await getFrontMatterFormatSchema();
   const formatMetadata = objectSchemaFromFieldsFile(
     schemaPath("format-metadata.yml"),
@@ -73,8 +72,8 @@ export async function makeProjectConfigSchema()
         description: "be a Quarto YAML front matter object",
       }),
       formatMetadata,
-      formatExecuteGlobalOptions,
-      formatExecuteCellOptions,
+      // formatExecuteGlobalOptions,
+      // formatExecuteCellOptions,
       projectConfigFields,
     ),
     "project-config"

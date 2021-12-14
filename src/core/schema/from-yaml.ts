@@ -13,10 +13,19 @@ import { error } from "log/mod.ts";
 
 import { readYaml } from "../yaml.ts";
 
+import { expandGlobSync } from "fs/expand_glob.ts";
+
+import { resourcePath } from "../resources.ts";
+
 import {
   Schema,
-  getSchemaDefinition
+  getSchemaDefinition,
+  setSchemaDefinition
 } from "../lib/schema.ts";
+
+import {
+  withValidator
+} from "../lib/validator-queue.ts";
 
 import {
   idSchema as withId,
@@ -322,7 +331,41 @@ export function objectSchemaFromFieldsFile(
   return objectS({ properties });
 }
 
-export function annotateSchemaFromField(field: any, schema: Schema): Schema
+export interface SchemaField {
+  name: string;
+  schema: Schema;
+  hidden?: boolean;
+  // deno-lint-ignore no-explicit-any
+  "default"?: any;
+  alias?: string;
+  disabled?: string[];
+  enabled?: string[];
+  description: string | {
+    short: string;
+    long: string;
+  };
+  // deno-lint-ignore no-explicit-any
+  tags?: Record<string, any>;
+};
+
+export function objectSchemaFromGlob(
+  glob: string,
+  exclude?: (key: string) => boolean): Schema
+{
+  exclude = exclude ?? ((key: string) => false);
+  let properties: Record<string, Schema> = {};
+  for (const { path } of expandGlobSync(glob)) {
+    convertFromFieldsObject(readYaml(path) as SchemaField[], properties);
+  }
+  for (const key of Object.keys(properties)) {
+    if (exclude(key)) {
+      delete properties[key];
+    }
+  }
+  return objectS({ properties });
+}
+
+function annotateSchemaFromField(field: SchemaField, schema: Schema): Schema
 {
   if (field.alias) {
     schema = completeSchemaOverwrite(schema);
@@ -350,7 +393,12 @@ export function annotateSchemaFromField(field: any, schema: Schema): Schema
   return schema;
 }
 
-export function convertFromFieldsObject(yaml: any[], obj?: Record<string, Schema>): Record<string, Schema>
+export function schemaFromField(entry: SchemaField): Schema {
+  let schema = convertFromYaml(entry.schema);
+  return annotateSchemaFromField(entry, schema);
+}
+
+export function convertFromFieldsObject(yaml: SchemaField[], obj?: Record<string, Schema>): Record<string, Schema>
 {
   const result = obj ?? {};
 
@@ -363,3 +411,62 @@ export function convertFromFieldsObject(yaml: any[], obj?: Record<string, Schema
   return result;
 }
 
+interface SchemaFieldIdDescriptor {
+  schemaId: string,
+  field: SchemaField
+}
+
+export function schemaFieldsFromGlob(
+  globPath: string,
+  testFun?: (entry: SchemaField, path: string) => boolean
+): SchemaFieldIdDescriptor[]
+{
+  const result = [];
+  testFun = testFun ?? ((_e, _p) => true);
+  for (const file of expandGlobSync(globPath)) {
+    for (const field of readYaml(file.path) as SchemaField[]) {
+      const fieldName = field.name;
+      const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
+      if (testFun(field, file.path)) {
+        result.push({
+          schemaId,
+          field
+        })
+      }
+    }
+  }
+  return result;
+}
+
+export function objectRefSchemaFromGlob(
+  glob: string,
+  testFun?: (field: SchemaField, path: string) => boolean): Schema
+{
+  const properties: Record<string, Schema> = {};
+
+  for (const { schemaId, field } of schemaFieldsFromGlob(glob, testFun)) {
+    let schema = refS(schemaId, schemaId); // FIXME this is a bad description
+    properties[field.name] = schema;
+  }
+  return objectS({ properties });
+}
+
+export async function buildSchemaResources()
+{
+  const path = resourcePath("schema/new/{cell-*,document-*,project}.yml");
+  const result = {};
+  // precompile all of the field schemas
+  for (const file of expandGlobSync(path)) {
+    const yaml = readYaml(file.path) as SchemaField[];
+    const entries = Object.entries(convertFromFieldsObject(yaml));
+    for (const [fieldName, fieldSchema] of entries) {
+      // FIXME this id has to be defined consistently with schemaFieldsFromGlob.
+      // It's a footgun.
+      const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
+      const schema = withId(fieldSchema, schemaId);
+      await withValidator(schema, async (_validator) => {
+        setSchemaDefinition(schema);
+      });
+    }
+  }
+}

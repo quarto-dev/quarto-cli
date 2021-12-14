@@ -17,40 +17,31 @@ import {
   objectSchema as objectS,
   oneOfSchema as oneOfS,
   regexSchema as regexS,
+  refSchema
 } from "./common.ts";
+
+import { getFormatExecuteOptionsSchema } from "./execute.ts";
 
 import { schemaPath } from "./utils.ts";
 
-import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
+import { objectRefSchemaFromGlob, SchemaField } from "./from-yaml.ts";
 
 import { normalizeSchema, Schema } from "../lib/schema.ts";
-
-import {
-  getFormatExecuteCellOptionsSchema,
-  getFormatExecuteGlobalOptionsSchema,
-  getFormatExecuteOptionsSchema,
-} from "./execute.ts";
 
 import { getFormatSchema } from "./format-schemas.ts";
 import { pandocOutputFormats } from "./pandoc-output-formats.ts";
 import { cacheSchemaFunction } from "./utils.ts";
 
-export const getFormatPandocSchema = cacheSchemaFunction(
-  "format-pandoc",
-  async () => objectSchemaFromFieldsFile(schemaPath("format-pandoc.yml"))
-);
-
 export async function makeFrontMatterFormatSchema() {
-  const formatSchemaDescriptorList = await Promise.all(
-    pandocOutputFormats.map(async ({ name, hidden }) => {
+  const formatSchemaDescriptorList =
+    pandocOutputFormats.map(({ name, hidden }) => {
       return {
         regex: `^${name}(\\+.+)?$`,
-        schema: await getFormatSchema(name),
+        schema: getFormatSchema(name),
         name,
         hidden
       };
-    }),
-  );
+    });
   const formatSchemas = formatSchemaDescriptorList.map(
     ({ regex, schema }) => [regex, schema],
   );
@@ -95,30 +86,23 @@ export const getFrontMatterFormatSchema = cacheSchemaFunction(
 );
 
 export async function makeFrontMatterSchema() {
+  const executeObjSchema = getFormatExecuteOptionsSchema();
   return withId(
     oneOfS(
       nullS,
       allOfS(
         objectS({
           properties: {
-            execute: getFormatExecuteOptionsSchema(),
+            execute: executeObjSchema,
             format: (await getFrontMatterFormatSchema()),
-            //
-            // NOTE: we are temporarily disabling format validation
-            // because it's way too strict
           },
           description: "be a Quarto YAML front matter object",
         }),
-        objectSchemaFromFieldsFile(
-          schemaPath("format-metadata.yml"),
-          key => key === "format",
+        objectRefSchemaFromGlob(
+          schemaPath("new/document-*.yml"),
+          (field: SchemaField) => field.name !== "format",
         ),
-        objectSchemaFromFieldsFile(
-          schemaPath("format-pandoc.yml"),
-          key => key === "format",
-        ),
-        getFormatExecuteGlobalOptionsSchema(),
-        getFormatExecuteCellOptionsSchema(),
+        refSchema("front-matter-execute", "front-matter-execute"), // FIXME description
       ),
     ),
     "front-matter",

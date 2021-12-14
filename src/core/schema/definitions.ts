@@ -13,10 +13,12 @@ import { ensureAjv } from "./yaml-schema.ts";
 import { normalizeSchema, Schema, setSchemaDefinition } from "../lib/schema.ts";
 import { error } from "log/mod.ts";
 import { schemaPath } from "./utils.ts";
+import { buildSchemaResources } from "./from-yaml.ts";
 
-export function loadDefaultSchemaDefinitions()
+export async function loadDefaultSchemaDefinitions()
 {
-  return loadSchemaDefinitions(schemaPath("definitions.yml"));
+  await loadSchemaDefinitions(schemaPath("definitions.yml"));
+  await buildSchemaResources();
 }
 
 export async function loadSchemaDefinitions(file: string)

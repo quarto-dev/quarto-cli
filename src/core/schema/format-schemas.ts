@@ -13,90 +13,61 @@ import { schemaPath } from "./utils.ts";
 
 import { expandFormatAliases } from "./format-aliases.ts";
 
-import { annotateSchemaFromField, convertFromYaml } from "./from-yaml.ts";
+import {
+  SchemaField,
+  schemaFromField,
+  convertFromYaml,
+  objectRefSchemaFromGlob,
+} from "./from-yaml.ts";
 
 import {
   readAndValidateYamlFromFile,
   ValidationError,
 } from "./validated-yaml.ts";
 
+import { readYaml } from "../yaml.ts";
+
+import { resourcePath } from "../resources.ts";
+
 import { error } from "log/mod.ts";
 
 import {
   documentSchema,
+  refSchema,
   enumSchema as enumS,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
 } from "./common.ts";
 
-interface SchemaEntry {
-  name: string;
-  schema: Schema;
-  hidden?: boolean;
-  // deno-lint-ignore no-explicit-any
-  "default"?: any;
-  alias?: string;
-  disabled?: string[];
-  enabled?: string[];
-  description: string | {
-    short: string;
-    long: string;
-  };
-}
+import {
+  expandGlobSync
+} from "fs/expand_glob.ts";
 
-export async function getFormatSchema(format: string): Promise<Schema> {
-  const entries: SchemaEntry[] = [];
-
-  try {
-    entries.push(
-      ...((await readAndValidateYamlFromFile(
-        schemaPath("format-pandoc.yml"),
-        { $id: "good" }, // schemaEntryFileSchema is killing ajv currently :(
-        "schema entry file validation failed.",
-      )) as SchemaEntry[]),
-    );
-    entries.push(
-      ...((await readAndValidateYamlFromFile(
-        schemaPath("format-metadata.yml"),
-        { $id: "good" }, // schemaEntryFileSchema is killing ajv currently :(
-        "schema entry file validation failed.",
-      )) as SchemaEntry[]),
-    );
-  } catch (e) {
-    error("\n");
-    error(e);
-    if (e instanceof ValidationError) {
-      for (const err of e.validationErrors) {
-        error(err.message);
-        error(err.error.message);
-        error("\n");
-      }
-    }
-    throw e;
-  }
-
-  const useEntry = (entry: SchemaEntry) => {
-    if (entry.disabled) {
-      return expandFormatAliases(entry.disabled).indexOf(format) === -1;
-    } else if (entry.enabled) {
-      return expandFormatAliases(entry.enabled).indexOf(format) !== -1;
-    }
+function useSchema(schema: Schema, format: string) {
+  const formats = schema?.tags?.formats as string[] | undefined;
+  if (formats === undefined)
     return true;
-  };
-
-  const properties: Record<string, Schema> = {};
-
-  for (const entry of entries) {
-    if (!useEntry(entry)) {
-      continue;
-    }
-    let schema = annotateSchemaFromField(entry, convertFromYaml(entry.schema));
-    properties[entry.name] = schema;
+  const disabled = formats.filter(f => f.startsWith("!")).map(f => f.slice(1));
+  const enabled = formats.filter(f => !f.startsWith("!"));
+  if (disabled.length > 0 &&
+    expandFormatAliases(disabled).indexOf(format) !== -1) {
+    return false;
   }
-  return oneOfS(
-    objectS({
-      properties,
-    }),
-    enumS("default"),
-  );
+  if (enabled.length > 0 &&
+    expandFormatAliases(enabled).indexOf(format) === -1) {
+    return false;
+  }
+  return true;
+};
+
+export function getFormatSchema(format: string): Schema
+{
+  const schema = objectRefSchemaFromGlob(
+    resourcePath("schema/new/document-*.yml"),
+    (field: SchemaField) => {
+      let schema = schemaFromField(field);
+      return useSchema(schema, format);
+    });
+  
+  return oneOfS(schema, enumS("default"));
 }
