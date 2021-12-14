@@ -27,6 +27,19 @@ export function outputForInput(input: string, to: string) {
   };
 }
 
+export function siteOutputForInput(input: string) {
+  const dir = join(dirname(input), "_site");
+  const stem = basename(input, extname(input));
+
+  const outputPath = join(dir, `${stem}.html`);
+  const supportPath = join(dir, `site_libs`);
+
+  return {
+    outputPath,
+    supportPath,
+  };
+}
+
 export function docs(path: string): string {
   return join("docs", path);
 }

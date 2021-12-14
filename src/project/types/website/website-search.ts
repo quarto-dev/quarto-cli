@@ -18,11 +18,12 @@ import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
 import {
+  DependencyFile,
   Format,
   FormatDependency,
   FormatLanguage,
 } from "../../../config/types.ts";
-import { ProjectContext } from "../../types.ts";
+import { kProjectLibDir, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import {
@@ -36,7 +37,6 @@ import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import {
   websiteConfig,
   websiteConfigMetadata,
-  websiteConfigString,
   websitePath,
   websiteTitle,
 } from "./website-config.ts";
@@ -95,6 +95,7 @@ const kSection = "section";
 const kTitle = "title";
 const kText = "text";
 const kAnalyticsEvents = "analytics-events";
+const kShowLogo = "show-logo";
 
 interface SearchOptionsAlgolia {
   [kSearchOnlyApiKey]?: string;
@@ -108,6 +109,7 @@ interface SearchOptionsAlgolia {
   };
   [kSearchParams]?: Record<string, unknown>;
   [kAnalyticsEvents]?: boolean;
+  [kShowLogo]?: boolean;
 }
 
 export type SearchInputLocation = "navbar" | "sidebar";
@@ -282,7 +284,7 @@ export function searchOptions(
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
       [kType]: searchType(searchMetadata[kType], location),
       [kLimit]: searchInputLimit(searchMetadata),
-      [kAlgolia]: algoliaOptions(searchMetadata),
+      [kAlgolia]: algoliaOptions(searchMetadata, project),
     };
   } else {
     const searchRaw = websiteConfig(kSearch, project.config);
@@ -333,7 +335,10 @@ function searchType(
   }
 }
 
-function algoliaOptions(searchConfig: Record<string, unknown>) {
+function algoliaOptions(
+  searchConfig: Record<string, unknown>,
+  project: ProjectContext,
+) {
   const algoliaRaw = searchConfig[kAlgolia];
   if (algoliaRaw && typeof (algoliaRaw) === "object") {
     const algoliaObj = algoliaRaw as SearchOptionsAlgolia;
@@ -343,6 +348,7 @@ function algoliaOptions(searchConfig: Record<string, unknown>) {
     const params = algoliaObj[kSearchParams];
     const indexKeys = algoliaObj[kIndexFields];
     const analytics = !!algoliaObj[kAnalyticsEvents];
+    const showLogo = !!algoliaObj[kShowLogo];
     return {
       [kSearchApplicationId]: applicationId,
       [kSearchOnlyApiKey]: apiKey,
@@ -350,6 +356,8 @@ function algoliaOptions(searchConfig: Record<string, unknown>) {
       [kSearchParams]: params,
       [kIndexFields]: indexKeys,
       [kAnalyticsEvents]: analytics,
+      [kShowLogo]: showLogo,
+      libDir: project?.config?.project[kProjectLibDir],
     };
   } else {
     return undefined;
@@ -430,6 +438,8 @@ export function websiteSearchDependency(
   source: string,
 ): FormatDependency[] {
   const searchDependencies: FormatDependency[] = [];
+  const resources: DependencyFile[] = [];
+
   const options = searchOptions(project);
   if (options) {
     const sourceRelative = relative(project.dir, source);
@@ -446,6 +456,11 @@ export function websiteSearchDependency(
     // and add the algolia search dependency
     const algoliaOpts = options[kAlgolia];
     if (algoliaOpts) {
+      if (algoliaOpts[kShowLogo]) {
+        // Add the logo as a resource
+        resources.push(searchDependency("search-by-algolia.svg"));
+      }
+
       if (
         algoliaOpts[kSearchApplicationId] &&
         algoliaOpts[kSearchOnlyApiKey] &&
@@ -481,6 +496,7 @@ export function websiteSearchDependency(
       },
       stylesheets: [],
       scripts,
+      resources,
     });
   }
   return searchDependencies;

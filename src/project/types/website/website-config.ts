@@ -116,6 +116,21 @@ type WebsiteConfigKey =
   | "body-footer"
   | "search";
 
+export function websiteConfigBoolean(
+  name: WebsiteConfigKey,
+  defaultValue: boolean,
+  project?: ProjectConfig,
+) {
+  const config = websiteConfig(name, project);
+  if (typeof (config) === "string") {
+    return !!config;
+  } else if (typeof (config) == "boolean") {
+    return config;
+  } else {
+    return defaultValue;
+  }
+}
+
 export function websiteConfigString(
   name: WebsiteConfigKey,
   project?: ProjectConfig,

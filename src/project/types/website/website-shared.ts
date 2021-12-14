@@ -25,6 +25,7 @@ import {
   kWebsite,
   websiteConfig,
   websiteConfigArray,
+  websiteConfigBoolean,
   websiteConfigMetadata,
   websiteConfigString,
 } from "./website-config.ts";
@@ -130,8 +131,9 @@ export function websiteNavigationConfig(project: ProjectContext) {
   }
 
   // read the page navigation
-  const pageNavigation = !!websiteConfigString(
+  const pageNavigation = websiteConfigBoolean(
     kSitePageNavigation,
+    false,
     project.config,
   );
 

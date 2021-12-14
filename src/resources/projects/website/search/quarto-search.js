@@ -317,6 +317,23 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 );
               }
             },
+            footer({ _items, createElement }) {
+              if (quartoSearchOptions.algolia["show-logo"]) {
+                const libDir = quartoSearchOptions.algolia["libDir"];
+                const logo = createElement("img", {
+                  src: offsetURL(
+                    `${libDir}/quarto-search/search-by-algolia.svg`
+                  ),
+                  class: "algolia-search-logo",
+                });
+                return createElement(
+                  "a",
+                  { href: "http://www.algolia.com/" },
+                  logo
+                );
+              }
+            },
+
             item({ item, createElement }) {
               return renderItem(
                 item,

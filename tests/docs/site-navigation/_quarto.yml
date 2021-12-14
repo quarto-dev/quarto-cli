@@ -1,0 +1,28 @@
+project:
+  type: website
+
+website:
+  title: "site-navigation"
+  navbar:
+    type: dark
+    background: primary
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+  sidebar:
+    contents:
+      - page1.qmd
+      - page2.qmd
+      - page3.qmd
+  page-navigation: true
+  
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+editor: visual
+
