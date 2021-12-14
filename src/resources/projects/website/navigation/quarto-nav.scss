@@ -627,8 +627,10 @@ body:not(.floating) .nav-footer {
 }
 
 .nav-footer-center {
-  margin-right: auto;
-  margin-left: auto;
+  width: 100%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
 }
 
 .nav-footer-right {
