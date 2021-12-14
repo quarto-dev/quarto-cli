@@ -506,7 +506,7 @@ export async function runPandoc(
   // then append that before rendering
   const markdownWithRenderAfter =
     isHtmlOutput(options.format.pandoc) && htmlRenderAfterBody.length > 0
-      ? markdown + "\n" + htmlRenderAfterBody.join("\n")
+      ? markdown + "\n\n\n" + htmlRenderAfterBody.join("\n") + "\n\n"
       : markdown;
 
   // append render after + keep-source if requested
