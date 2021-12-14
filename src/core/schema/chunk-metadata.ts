@@ -8,8 +8,8 @@
 */
 
 import { Schema, normalizeSchema } from "../lib/schema.ts";
-import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
-import { objectSchema, allOfSchema as allOfS, idSchema } from "./common.ts";
+import { objectRefSchemaFromGlob } from "./from-yaml.ts";
+import { idSchema } from "./common.ts";
 import { schemaPath } from "./utils.ts";
 
 let normalizedCache: Record<string, Schema> | undefined = undefined;
@@ -24,27 +24,36 @@ export function getEngineOptionsSchema(normalized?: boolean): Record<string, Sch
     return unNormalizedCache;
   }
 
-  const allOpts = objectSchemaFromFieldsFile(schemaPath("cell-options.yml"));
-  const knitrOpts = objectSchemaFromFieldsFile(schemaPath("cell-options-knitr.yml"));
-  const jupyterOpts = objectSchemaFromFieldsFile(schemaPath("cell-options-jupyter.yml"));
+  const markdown = idSchema(objectRefSchemaFromGlob(
+    schemaPath("new/cell-*.yml"),
+    (field, _path) => {
+      const engine = field?.tags?.engine
+      return engine === undefined || engine === "markdown";
+    }), "engine-markdown");
+  const knitr = idSchema(objectRefSchemaFromGlob(
+    schemaPath("new/cell-*.yml"),
+    (field, _path) => {
+      const engine = field?.tags?.engine;
+      return engine === undefined || engine === "knitr"
+    }), "engine-knitr");
+  const jupyter = idSchema(objectRefSchemaFromGlob(
+    schemaPath("new/cell-*.yml"),
+    (field, _path) => {
+      const engine = field?.tags?.engine;
+      return engine === undefined || engine === "jupyter"
+    }), "engine-jupyter");
   
-  const execute = objectSchemaFromFieldsFile(schemaPath("format-execute-cell.yml"));
-  const render = objectSchemaFromFieldsFile(schemaPath("format-render-cell.yml"));
-
-  const all = idSchema(allOfS(allOpts, execute, render), "engine-markdown");
-  const knitr = idSchema(allOfS(allOpts, execute, render, knitrOpts), "engine-knitr");
-  const jupyter = idSchema(allOfS(allOpts, execute, render, jupyterOpts), "engine-jupyter");
-  
+ 
   if (normalized) {
     normalizedCache = {
-      "markdown": normalizeSchema(all),
+      "markdown": normalizeSchema(markdown),
       "knitr": normalizeSchema(knitr),
       "jupyter": normalizeSchema(jupyter),
     };
     return normalizedCache;
   } else {
     unNormalizedCache = {
-      "markdown": all,
+      markdown,
       knitr,
       jupyter
     };
