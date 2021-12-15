@@ -42,7 +42,7 @@ jobs:
           ./quarto-bld prepare-dist
           bundle_end=$(date +%s.%3N)
           bundle_elapsed=$(echo "scale=3; $bundle_end - $bundle_start" | bc)
-          echo $(bundle_elapsed)
+          echo $bundle_elapsed
           
           mv ../../src/quarto.ts ../../src/quarto1.ts 
 
@@ -50,9 +50,8 @@ jobs:
           quarto
           q_end=$(date +%s.%3N)
           q_elapsed=$(echo "scale=3; $q_end - $q_start" | bc)
-          echo $(q_elapsed)
+          echo $q_elapsed
           
-          echo $(git rev-parse --short '$GITHUB_SHA')
 
           echo "::set-output name=bundle_time:$(bundle_elapsed)\n"
           echo "::set-output name=q_time:$(q_elapsed)\n"
