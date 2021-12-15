@@ -81,7 +81,9 @@ end
 
 function processValue(val, name, t)    
   if type(val) == "table" then
-    if val.t == "MetaInlines" then
+    if #val == 0 then
+      return { pandoc.Str( "") }
+    elseif val.t == "MetaInlines" then
       return val
     else
       warn("Unsupported type for key " .. name .. " in a " .. t .. " shortcode.")
