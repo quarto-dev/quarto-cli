@@ -12,15 +12,19 @@ import { readYaml } from "../yaml.ts";
 import { objectRefSchemaFromGlob, SchemaField } from "../schema/from-yaml.ts";
 import { schemaPath } from "./utils.ts";
 import { Schema } from "../lib/schema.ts";
-import { allOfSchema, idSchema } from "../schema/common.ts";
+import { refSchema, idSchema } from "../schema/common.ts";
+import { define } from "./definitions.ts";
 
-export function getFormatExecuteOptionsSchema()
+export async function getFormatExecuteOptionsSchema()
 {
-  return idSchema(objectRefSchemaFromGlob(
+  const schema = idSchema(objectRefSchemaFromGlob(
     schemaPath("new/{document,cell}-*.yml"),
     ((field: SchemaField, path: string) => (
       path.endsWith("document-execute.yml") ||
         ((field?.tags?.contexts || []) as string[]).some(
           c => c === "document-execute")))
   ), "front-matter-execute");
+
+  await define(schema);
+  return refSchema("front-matter-execute", "be a front-matter-execute object");
 }

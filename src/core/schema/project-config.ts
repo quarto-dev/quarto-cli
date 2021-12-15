@@ -27,33 +27,24 @@ import {
   getFormatExecuteOptionsSchema,
 } from "./execute.ts";
 
-import { getFrontMatterFormatSchema } from "./front-matter.ts";
+import { makeFrontMatterFormatSchema, getFrontMatterFormatSchema } from "./front-matter.ts";
 
 import { getFormatSchema } from "./format-schemas.ts";
 import { pandocOutputFormats } from "./pandoc-output-formats.ts";
 
-import { schemaPath, cacheSchemaFunction } from "./utils.ts";
+import { schemaPath } from "./utils.ts";
+import { defineCached } from "./definitions.ts";
 
-export async function makeProjectConfigFieldsSchema() {
-  const result = objectSchemaFromFieldsFile(
-    schemaPath("new/project.yml")
-  );
-  return result;
-}
+export const getProjectConfigFieldsSchema = defineCached(
+  async () => objectSchemaFromFieldsFile(schemaPath("new/project.yml")),
+  "project-config-fields");
 
-export const getProjectConfigFieldsSchema = cacheSchemaFunction(
-  "project-config-fields",
-  makeProjectConfigFieldsSchema
-);
-
-export async function makeProjectConfigSchema()
-{
-  const projectConfigFields = await getProjectConfigFieldsSchema();
-  const execute = getFormatExecuteOptionsSchema();
-  const format = await getFrontMatterFormatSchema();
-
-  return withId(
-    allOfS(
+export const getProjectConfigSchema = defineCached(
+  async () => {
+    const projectConfigFields = await getProjectConfigFieldsSchema();
+    const execute = await getFormatExecuteOptionsSchema();
+    const format = await getFrontMatterFormatSchema();
+    const result = allOfS(
       objectS({
         properties: {
           execute,
@@ -64,14 +55,10 @@ export async function makeProjectConfigSchema()
         description: "be a Quarto YAML front matter object",
       }),
       execute,
-      format,
+      (await makeFrontMatterFormatSchema(true)), // we must make this nonStrict, see definition
       projectConfigFields,
-    ),
-    "project-config"
-  );
-}
+    );
+    return describeSchema(result, "a project configuration object");
+  },
+  "project-config");
 
-export const getProjectConfigSchema = cacheSchemaFunction(
-  "project-config",
-  makeProjectConfigSchema
-);

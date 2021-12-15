@@ -55,7 +55,7 @@ export async function validateDocumentFromSource(
     );
     const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
     if (annotation.result?.validate !== false) {
-      const frontMatterSchema = await getFrontMatterSchema(true);
+      const frontMatterSchema = await getFrontMatterSchema();
 
       await ensureAjv();
       await withValidator(frontMatterSchema, (frontMatterValidator) => {

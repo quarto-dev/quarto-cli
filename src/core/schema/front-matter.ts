@@ -30,9 +30,10 @@ import { normalizeSchema, Schema } from "../lib/schema.ts";
 
 import { getFormatSchema } from "./format-schemas.ts";
 import { pandocOutputFormats } from "./pandoc-output-formats.ts";
-import { cacheSchemaFunction } from "./utils.ts";
 
-export async function makeFrontMatterFormatSchema() {
+import { defineCached } from "./definitions.ts";
+
+export async function makeFrontMatterFormatSchema(nonStrict = false) {
   const formatSchemaDescriptorList =
     pandocOutputFormats.map(({ name, hidden }) => {
       return {
@@ -75,20 +76,24 @@ export async function makeFrontMatterFormatSchema() {
       objectS({
         patternProperties: Object.fromEntries(formatSchemas),
         completions: completionsObject,
-        additionalProperties: false,
+        additionalProperties: nonStrict,
       }),
     ),
   );
 }
-export const getFrontMatterFormatSchema = cacheSchemaFunction(
-  "front-matter-format",
-  makeFrontMatterFormatSchema,
-);
 
-export async function makeFrontMatterSchema() {
-  const executeObjSchema = getFormatExecuteOptionsSchema();
-  return withId(
-    oneOfS(
+export const getFrontMatterFormatSchema = defineCached(
+  () => makeFrontMatterFormatSchema(),
+  "front-matter-format");
+
+export const getNonStrictFrontMatterFormatSchema = defineCached(
+  () => makeFrontMatterFormatSchema(true),
+  "front-matter-format-nonstrict");
+
+export const getFrontMatterSchema = defineCached(
+  async () => {
+    const executeObjSchema = await getFormatExecuteOptionsSchema();
+    return oneOfS(
       nullS,
       allOfS(
         objectS({
@@ -102,13 +107,8 @@ export async function makeFrontMatterSchema() {
           schemaPath("new/document-*.yml"),
           (field: SchemaField) => field.name !== "format",
         ),
-        refSchema("front-matter-execute", "front-matter-execute"), // FIXME description
+        executeObjSchema,
       ),
-    ),
-    "front-matter",
-  );
-}
-export const getFrontMatterSchema = cacheSchemaFunction(
-  "front-matter",
-  makeFrontMatterSchema,
-);
+    );
+  }, "front-matter");
+
