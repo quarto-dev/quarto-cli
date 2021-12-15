@@ -53,9 +53,9 @@ jobs:
           echo $q_elapsed
           
 
-          echo "::set-output name=bundle_time:$(bundle_elapsed)\n"
-          echo "::set-output name=q_time:$(q_elapsed)\n"
-          echo "::set-output name=commit:$(git rev-parse --short '$GITHUB_SHA')"
+          echo "::set-output name=bundle_time:$bundle_elapsed"
+          echo "::set-output name=q_time:$q_elapsed"
+          echo "::set-output name=commit:$(git rev-parse --short $GITHUB_SHA)"
 
       - name: Send Event
         uses: ./.github/workflows/actions/amplitude
