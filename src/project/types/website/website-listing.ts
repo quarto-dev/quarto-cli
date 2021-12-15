@@ -6,7 +6,7 @@
 *
 */
 
-import { dirname, relative } from "path/mod.ts";
+import { basename, dirname, relative } from "path/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import {
@@ -23,6 +23,8 @@ import {
   MarkdownPipeline,
   PipelineMarkdown,
 } from "./website-pipeline-md.ts";
+import { renderEjs } from "../../../core/ejs.ts";
+import { resourcePath } from "../../../core/resources.ts";
 
 // The core listing type
 export interface Listing {
@@ -35,7 +37,11 @@ export interface Listing {
 export interface ListingItem {
   title?: string;
   description?: string;
-  projectRelativePath: string;
+  author?: string[];
+  date?: Date;
+  image?: string;
+  path: string;
+  filename: string;
 }
 
 // The type of listing
@@ -81,13 +87,27 @@ export async function listingHtmlDependencies(
 
       const documentMeta = target?.markdown.yaml;
       const description = documentMeta?.description as string || "";
+      const image = documentMeta?.image as string;
+      const date = documentMeta?.date as Date;
+      const author = Array.isArray(documentMeta?.author)
+        ? documentMeta?.author
+        : [documentMeta?.author];
+      const filename = basename(projectRelativePath);
 
       items.push({
         title: target?.title,
+        date,
+        author,
+        image,
         description,
-        projectRelativePath: `/${projectRelativePath}`,
+        path: `/${projectRelativePath}`,
+        filename,
       });
     }
+
+    // TODO: Sort the items
+
+    // TODO: Filter the items
 
     listingItems.push({
       listing,
@@ -134,23 +154,6 @@ function markdownHandler(
   }
 }
 
-// The markdown that we'll generate for a card
-const cardMarkdown = (item: ListingItem) => {
-  return `
-:::card
-:::card-body
-:::card-title
-[${item.title}](${item.projectRelativePath})
-:::
-
-:::card-text
-${item.description}
-:::
-:::
-:::
-`;
-};
-
 function getListingContainer(doc: Document, listing: Listing) {
   // See if there is a target div already in the page
   let listingEl = doc.getElementById(listing.id);
@@ -166,9 +169,18 @@ function getListingContainer(doc: Document, listing: Listing) {
   return listingEl;
 }
 
+// The markdown that we'll generate for a card
+const cardMarkdown = (item: ListingItem) => {
+  return renderEjs(
+    resourcePath("projects/website/listing/card.ejs.md"),
+    { item },
+    false,
+  );
+};
+
 const cardTypeHandler = (listing: Listing, items: ListingItem[]) => {
   const key = (item: ListingItem) => {
-    return `${listing.id}-${item.projectRelativePath}`;
+    return `${listing.id}-${item.path}`;
   };
 
   return {
@@ -197,26 +209,16 @@ const cardTypeHandler = (listing: Listing, items: ListingItem[]) => {
 
 // The markdown that we'll generate for a card
 const gridCardMarkdown = (item: ListingItem) => {
-  return `
-:::g-col-8
-:::card
-:::card-body
-:::card-title
-[${item.title}](${item.projectRelativePath})
-:::
-
-:::card-text
-${item.description}
-:::
-:::
-:::
-:::
-`;
+  return renderEjs(
+    resourcePath("projects/website/listing/grid-card.ejs.md"),
+    { item },
+    false,
+  );
 };
 
 const gridTypeHandler = (listing: Listing, items: ListingItem[]) => {
   const key = (item: ListingItem) => {
-    return `${listing.id}-${item.projectRelativePath}`;
+    return `${listing.id}-${item.path}`;
   };
 
   return {
@@ -266,12 +268,11 @@ const tableTypeHandler = (listing: Listing, items: ListingItem[]) => {
 };
 
 const tableMarkdown = (items: ListingItem[]) => {
-  const tableRows = items.map((item) => {
-    return `[${item.title}](${item.projectRelativePath}) | ${item.description} `;
-  });
-  tableRows.unshift(" --- | --- ");
-  tableRows.unshift("Title | Desc ");
-  return tableRows.join("\n");
+  return renderEjs(
+    resourcePath("projects/website/listing/table.ejs.md"),
+    { items },
+    false,
+  );
 };
 
 function resolveListingContents(source: string, listings: Listing[]) {
