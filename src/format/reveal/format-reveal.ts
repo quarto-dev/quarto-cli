@@ -37,7 +37,6 @@ import {
   revealMuliplexPreviewFile,
   revealMultiplexExtras,
 } from "./format-reveal-multiplex.ts";
-import { info, warning } from "https://deno.land/std@0.97.0/log/mod.ts";
 
 const kRevealOptions = [
   "controls",
