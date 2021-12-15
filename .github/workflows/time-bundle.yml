@@ -55,7 +55,7 @@ jobs:
           echo "::set-output name=commit:$(git rev-parse --short '$GITHUB_SHA')"
 
       - name: Send Event
-        uses: dragonstyle/action-stats@v1
+        uses: ./.github/workflows/amplitude/send-event
         with:
           api_key: ${{ secrets.amplitude_api_key }}
           event: "Bundle"
