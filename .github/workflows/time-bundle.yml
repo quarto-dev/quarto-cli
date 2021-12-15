@@ -58,7 +58,7 @@ jobs:
 
           # test a quarto render
           q_render_start=$(date +%s.%3N)
-          quarto render test/docs/test.qmd
+          quarto render tests/docs/test.qmd
           q_render_end=$(date +%s.%3N)
           q_render_elapsed=$(echo "scale=3; $q_end - $q_start" | bc)
           
