@@ -31,6 +31,7 @@ export interface Listing {
   id: string;
   type: ListingType;
   contents: string[]; // globs
+  classes: string[];
 }
 
 // An individual listing item
@@ -166,6 +167,10 @@ function getListingContainer(doc: Document, listing: Listing) {
       content.appendChild(listingEl);
     }
   }
+
+  // Append any requested classes
+  listing.classes.forEach((clz) => listingEl?.classList.add(clz));
+
   return listingEl;
 }
 
@@ -329,6 +334,7 @@ function normalizeListingConfiguration(
       id: kDefaultId,
       type: kDefaultListingType,
       contents: kDefaultContentsGlob,
+      classes: [],
     });
   }
   return listings;
@@ -349,6 +355,7 @@ function resolveListing(meta: Record<string, unknown>, synthId: () => string) {
     id: meta.id as string || synthId(),
     type: meta.type as ListingType || kDefaultListingType,
     contents: maybeArray(meta.contents) as string[] || kDefaultContentsGlob,
+    classes: maybeArray(meta.classes) || [],
   };
 }
 
@@ -359,6 +366,7 @@ function resolveListingStr(val: string): Listing {
         id: kDefaultId,
         type: ListingType.Grid,
         contents: kDefaultContentsGlob,
+        classes: [],
       };
 
     case ListingType.Cards:
@@ -366,6 +374,7 @@ function resolveListingStr(val: string): Listing {
         id: kDefaultId,
         type: ListingType.Cards,
         contents: kDefaultContentsGlob,
+        classes: [],
       };
 
     case ListingType.Table:
@@ -373,6 +382,7 @@ function resolveListingStr(val: string): Listing {
         id: kDefaultId,
         type: ListingType.Table,
         contents: kDefaultContentsGlob,
+        classes: [],
       };
   }
 
@@ -381,5 +391,6 @@ function resolveListingStr(val: string): Listing {
     id: kDefaultId,
     type: kDefaultListingType,
     contents: [val],
+    classes: [],
   };
 }
