@@ -670,6 +670,7 @@ async function initAutomation(path)
   }
 
   await mustInitSemaphore.runExclusive(async (_value) => {
+    const before = performance.now();
     if (automationInit)
       return;
     automationInit = true;
@@ -682,7 +683,8 @@ async function initAutomation(path)
         core.setSchemaDefinition(value);
       });
     }
-
+    const after = performance.now();
+    console.log(`Initialization time: ${after - before}ms`);
     hasInitSemaphore.release();
   });
 }

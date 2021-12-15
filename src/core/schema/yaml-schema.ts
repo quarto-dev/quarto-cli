@@ -16,7 +16,7 @@ import { loadDefaultSchemaDefinitions } from "./definitions.ts";
 let ajvInit = false;
 export async function ensureAjv() {
   if (!ajvInit) {
-    setupAjv(new Ajv({ allErrors: true }));
+    setupAjv(new Ajv({ allErrors: true, code: { optimize: false } }));
     ajvInit = true;
     await loadDefaultSchemaDefinitions();
   }
