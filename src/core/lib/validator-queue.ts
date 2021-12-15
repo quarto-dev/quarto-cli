@@ -13,7 +13,7 @@ const yamlValidators: Record<string, YAMLSchema> = {};
 const validatorQueues: Record<string, PromiseQueue<void>> = {};
 
 function getSchemaName(schema: Schema): string {
-  const schemaName = schema["$id"];
+  const schemaName = schema["$id"] || schema["$ref"];
   if (schemaName === undefined) {
     throw new Error("Expected schema to be named");
   }
