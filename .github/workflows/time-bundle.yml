@@ -55,7 +55,7 @@ jobs:
           echo "::set-output name=commit:$(git rev-parse --short '$GITHUB_SHA')"
 
       - name: Send Event
-        uses: ./.github/workflows/amplitude
+        uses: ./.github/workflows/actions/amplitude
         with:
           api_key: ${{ secrets.amplitude_api_key }}
           event: "Bundle"
