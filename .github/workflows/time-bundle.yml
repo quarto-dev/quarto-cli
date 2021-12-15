@@ -43,7 +43,7 @@ jobs:
           bundle_start=$(date +%s.%3N)
           ./quarto-bld prepare-dist
           bundle_end=$(date +%s.%3N)
-          bundle_elapsed=$(echo "scale=3; $bundle_end - $bundle_start" | bc)
+          bundle_elapsed=$(printf '%.3f\n' $(echo "scale=3; $bundle_end - $bundle_start" | bc))
           
           popd
           
@@ -54,13 +54,13 @@ jobs:
           q_start=$(date +%s.%3N)
           quarto
           q_end=$(date +%s.%3N)
-          q_elapsed=$(echo "scale=3; $q_end - $q_start" | bc)
+          q_elapsed=$(printf '%.3f\n' $(echo "scale=3; $q_end - $q_start" | bc))
 
           # test a quarto render
           q_render_start=$(date +%s.%3N)
           quarto render tests/docs/test.qmd --to html
           q_render_end=$(date +%s.%3N)
-          q_render_elapsed=$(echo "scale=3; $q_end - $q_start" | bc)
+          q_render_elapsed=$(printf '%.3f\n' $(echo "scale=3; $q_end - $q_start" | bc))
           
           # return the measures
           echo "::set-output name=bundle_time::$bundle_elapsed"
