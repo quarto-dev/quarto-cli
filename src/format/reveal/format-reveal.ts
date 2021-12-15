@@ -119,7 +119,7 @@ export const kPdfSeparateFragments = "pdfSeparateFragments";
 export const kAutoAnimateEasing = "autoAnimateEasing";
 export const kAutoAnimateDuration = "autoAnimateDuration";
 export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
-export const kStretchAuto = "stretch-auto";
+export const kAutoStretch = "auto-stretch";
 
 export function optionsToKebab(options: string[]) {
   return options.reduce(
@@ -196,9 +196,6 @@ export function revealjsFormat() {
       render: {
         [kCodeLineNumbers]: true,
       },
-      metadata: {
-        [kStretchAuto]: true,
-      },
       resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
@@ -226,6 +223,13 @@ export function revealjsFormat() {
         const previewLinksAuto = format.metadata["previewLinks"] === "auto";
         if (previewLinksAuto) {
           metadataOverride.previewLinks = false;
+        }
+
+        // specify auto-stretch if there is no boolean 'auto-stretch'
+        const autoStretch =
+          typeof (format.metadata[kAutoStretch]) !== "boolean";
+        if (autoStretch) {
+          metadataOverride[kAutoStretch] = true;
         }
 
         // additional options not supported by pandoc
@@ -540,13 +544,13 @@ function revealHtmlPostprocessor(format: Format) {
       referencesDiv.appendChild(refs);
     }
 
-    if (format.metadata[kStretchAuto] === true) applyStretch(doc);
+    applyStretch(doc, format.metadata[kAutoStretch] as boolean);
 
     return Promise.resolve([]);
   };
 }
 
-function applyStretch(doc: Document) {
+function applyStretch(doc: Document, autoStretch: boolean) {
   // Add stretch class to images in slides with only one image
   const allSlides = doc.querySelectorAll("section");
   allSlides.forEach((slide) => {
@@ -556,15 +560,20 @@ function applyStretch(doc: Document) {
     if (images.length === 1) {
       const image = images[0];
       const imageEl = image as Element;
-      // add stretch class if not already
-      if (
-        !imageEl.classList.contains("stretch") ||
-        !imageEl.classList.contains("r-stretch")
-      ) {
+
+      // add stretch class if not already when auto-stretch is set
+      const hasStretchClass = function (imageEl: Element): boolean {
+        return imageEl.classList.contains("stretch") ||
+          imageEl.classList.contains("r-stretch");
+      };
+      if (autoStretch === true && !hasStretchClass(imageEl)) {
         imageEl.classList.add("stretch");
       }
-      // If <img> is not a direct child of <section>, move it
-      if (image.parentNode?.nodeName !== "SECTION") {
+      // If <img class="stetch"> is not a direct child of <section>, move it
+      if (
+        hasStretchClass(imageEl) &&
+        imageEl.parentNode?.nodeName !== "SECTION"
+      ) {
         // find the first level node that contains the img
         let selNode;
         for (const node of slide.childNodes) {
