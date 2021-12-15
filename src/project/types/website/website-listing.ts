@@ -140,7 +140,7 @@ const cardTypeHandler = (listing: Listing, items: ListingItem[]) => {
       let listingEl = doc.getElementById(listing.id);
       if (listingEl === null) {
         // No target div, cook one up
-        const content = doc.getElementById("quarto-content");
+        const content = doc.querySelector("#quarto-content main.content");
         if (content) {
           listingEl = doc.createElement("div");
           listingEl.id = listing.id;
