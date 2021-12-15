@@ -33,7 +33,7 @@ jobs:
           ./configure-linux.sh
 
       - name: Test Bundle
-        id: test-bundle
+        id: create_bundle
         shell: bash
         run: |
           pushd package/src
@@ -53,9 +53,9 @@ jobs:
           echo $q_elapsed
           
 
-          echo "::set-output name=bundle_time:$bundle_elapsed"
-          echo "::set-output name=q_time:$q_elapsed"
-          echo "::set-output name=commit:$(git rev-parse --short $GITHUB_SHA)"
+          echo "::set-output name=bundle_time::$bundle_elapsed"
+          echo "::set-output name=q_time::$q_elapsed"
+          echo "::set-output name=commit::$(git rev-parse --short $GITHUB_SHA)"
 
       - name: Send Event
         uses: ./.github/workflows/actions/amplitude
@@ -63,8 +63,8 @@ jobs:
           api_key: ${{ secrets.amplitude_api_key }}
           event: "Bundle"
           success: true
-          duration: ${{ steps.test-bundle.outputs.bundle_time }}
-          commit: ${{ steps.test-bundle.outputs.commit }}
+          duration: ${{ steps.create_bundle.outputs.bundle_time }}
+          commit: ${{ steps.create_bundle.outputs.commit }}
 
     
 
