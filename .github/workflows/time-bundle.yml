@@ -36,25 +36,36 @@ jobs:
         id: create_bundle
         shell: bash
         run: |
+        
+          # Do the bundle
           pushd package/src
 
           bundle_start=$(date +%s.%3N)
           ./quarto-bld prepare-dist
           bundle_end=$(date +%s.%3N)
           bundle_elapsed=$(echo "scale=3; $bundle_end - $bundle_start" | bc)
-          echo $bundle_elapsed
           
-          mv ../../src/quarto.ts ../../src/quarto1.ts 
+          popd
+          
+          # move the TS file so quarto command will use bundled JS
+          mv src/quarto.ts src/quarto1.ts 
 
+          # test a bare quarto command
           q_start=$(date +%s.%3N)
           quarto
           q_end=$(date +%s.%3N)
           q_elapsed=$(echo "scale=3; $q_end - $q_start" | bc)
-          echo $q_elapsed
-          
 
+          # test a quarto render
+          q_render_start=$(date +%s.%3N)
+          quarto render test/docs/test.qmd
+          q_render_end=$(date +%s.%3N)
+          q_render_elapsed=$(echo "scale=3; $q_end - $q_start" | bc)
+          
+          # return the measures
           echo "::set-output name=bundle_time::$bundle_elapsed"
           echo "::set-output name=q_time::$q_elapsed"
+          echo "::set-output name=q_render_time::$q_render_elapsed"
           echo "::set-output name=commit::$(git rev-parse --short $GITHUB_SHA)"
 
       - name: Send Event
@@ -66,5 +77,21 @@ jobs:
           duration: ${{ steps.create_bundle.outputs.bundle_time }}
           commit: ${{ steps.create_bundle.outputs.commit }}
 
+      - name: Send Event
+        uses: ./.github/workflows/actions/amplitude
+        with:
+          api_key: ${{ secrets.amplitude_api_key }}
+          event: "Quarto"
+          success: true
+          duration: ${{ steps.create_bundle.outputs.q_time }}
+          commit: ${{ steps.create_bundle.outputs.commit }}
     
 
+      - name: Send Event
+        uses: ./.github/workflows/actions/amplitude
+        with:
+          api_key: ${{ secrets.amplitude_api_key }}
+          event: "Quarto Render"
+          success: true
+          duration: ${{ steps.create_bundle.outputs.q_render_time }}
+          commit: ${{ steps.create_bundle.outputs.commit }}
