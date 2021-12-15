@@ -34,7 +34,8 @@ export interface Listing {
 // An individual listing item
 export interface ListingItem {
   title?: string;
-  relativePath: string;
+  description?: string;
+  projectRelativePath: string;
 }
 
 // The type of listing
@@ -68,18 +69,23 @@ export async function listingHtmlDependencies(
   const listingItems: { listing: Listing; items: ListingItem[] }[] = [];
   for (const listingResolved of listingsResolved) {
     const listing = listingResolved.listing;
-    const items = [];
+    const items: ListingItem[] = [];
 
     // Read the metadata for each of the listing files
     for (const input of listingResolved.files) {
-      const relativePath = relative(project.dir, input);
+      const projectRelativePath = relative(project.dir, input);
       const target = await inputTargetIndex(
         project,
-        relativePath,
+        projectRelativePath,
       );
+
+      const documentMeta = target?.markdown.yaml;
+      const description = documentMeta?.description as string || "";
+
       items.push({
         title: target?.title,
-        relativePath,
+        description,
+        projectRelativePath: `/${projectRelativePath}`,
       });
     }
 
@@ -117,46 +123,155 @@ function markdownHandler(
   listing: Listing,
   items: ListingItem[],
 ) {
-  return cardTypeHandler(listing, items);
+  switch (listing.type) {
+    case ListingType.Table:
+      return tableTypeHandler(listing, items);
+    case ListingType.Grid:
+      return gridTypeHandler(listing, items);
+    case ListingType.Cards:
+    default:
+      return cardTypeHandler(listing, items);
+  }
+}
+
+// The markdown that we'll generate for a card
+const cardMarkdown = (item: ListingItem) => {
+  return `
+:::card
+:::card-body
+:::card-title
+[${item.title}](${item.projectRelativePath})
+:::
+
+:::card-text
+${item.description}
+:::
+:::
+:::
+`;
+};
+
+function getListingContainer(doc: Document, listing: Listing) {
+  // See if there is a target div already in the page
+  let listingEl = doc.getElementById(listing.id);
+  if (listingEl === null) {
+    // No target div, cook one up
+    const content = doc.querySelector("#quarto-content main.content");
+    if (content) {
+      listingEl = doc.createElement("div");
+      listingEl.id = listing.id;
+      content.appendChild(listingEl);
+    }
+  }
+  return listingEl;
 }
 
 const cardTypeHandler = (listing: Listing, items: ListingItem[]) => {
   const key = (item: ListingItem) => {
-    return `${listing.id}-${item.relativePath}`;
+    return `${listing.id}-${item.projectRelativePath}`;
   };
 
   return {
     getUnrendered() {
-      const unrendered: PipelineMarkdown = { inlines: {} };
+      const unrendered: PipelineMarkdown = { blocks: {} };
       items.forEach((item) => {
         if (item.title) {
-          unrendered.inlines![key(item)] = `\n_${item.title}_\n`;
+          unrendered.blocks![key(item)] = cardMarkdown(item);
         }
       });
       return unrendered;
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
-      // See if there is a target div already in the page
-      let listingEl = doc.getElementById(listing.id);
-      if (listingEl === null) {
-        // No target div, cook one up
-        const content = doc.querySelector("#quarto-content main.content");
-        if (content) {
-          listingEl = doc.createElement("div");
-          listingEl.id = listing.id;
-          content.appendChild(listingEl);
-        }
-      }
+      const listingEl = getListingContainer(doc, listing);
       items.forEach((item) => {
         const renderedEl = rendered[key(item)];
         if (renderedEl) {
-          renderedEl.childNodes.forEach((node) => {
-            listingEl?.appendChild(node);
-          });
+          for (const child of renderedEl.children) {
+            listingEl?.appendChild(child);
+          }
         }
       });
     },
   };
+};
+
+// The markdown that we'll generate for a card
+const gridCardMarkdown = (item: ListingItem) => {
+  return `
+:::g-col-8
+:::card
+:::card-body
+:::card-title
+[${item.title}](${item.projectRelativePath})
+:::
+
+:::card-text
+${item.description}
+:::
+:::
+:::
+:::
+`;
+};
+
+const gridTypeHandler = (listing: Listing, items: ListingItem[]) => {
+  const key = (item: ListingItem) => {
+    return `${listing.id}-${item.projectRelativePath}`;
+  };
+
+  return {
+    getUnrendered() {
+      const unrendered: PipelineMarkdown = { blocks: {} };
+      items.forEach((item) => {
+        if (item.title) {
+          unrendered.blocks![key(item)] = gridCardMarkdown(item);
+        }
+      });
+      return unrendered;
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const listingEl = getListingContainer(doc, listing);
+      listingEl?.classList.add("grid");
+
+      items.forEach((item) => {
+        const renderedEl = rendered[key(item)];
+        if (renderedEl) {
+          for (const child of renderedEl.children) {
+            listingEl?.appendChild(child);
+          }
+        }
+      });
+    },
+  };
+};
+
+const tableTypeHandler = (listing: Listing, items: ListingItem[]) => {
+  return {
+    getUnrendered() {
+      const unrendered: PipelineMarkdown = {
+        blocks: {
+          [listing.id]: tableMarkdown(items),
+        },
+      };
+      return unrendered;
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const listingEl = getListingContainer(doc, listing);
+      const renderedEl = rendered[listing.id];
+      for (const child of renderedEl.children) {
+        listingEl?.appendChild(child);
+      }
+    },
+  };
+};
+
+const tableMarkdown = (items: ListingItem[]) => {
+  const tableRows = items.map((item) => {
+    return `[${item.title}](${item.projectRelativePath}) | ${item.description} `;
+  });
+  tableRows.unshift(" --- | --- ");
+  tableRows.unshift("Title | Desc ");
+  return tableRows.join("\n");
 };
 
 function resolveListingContents(source: string, listings: Listing[]) {
