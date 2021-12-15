@@ -1,7 +1,7 @@
 # Tests whether Quarto can successfully bundle and run the bundled javascript. 
 # If this test fails, the release version of Quarto will error when run since 
 # bundling has failed.
-name: Bundle Test
+name: Bundle Time
 on:
   workflow_dispatch:
   pull_request:
