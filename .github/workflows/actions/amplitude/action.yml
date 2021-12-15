@@ -29,8 +29,7 @@ runs:
      - name: Send Event
        shell: bash
        run: |
-          curl --data 
-          '
+          curl --data '
           {
             "api_key": "${{ inputs.api_key }}", 
             "events": 
