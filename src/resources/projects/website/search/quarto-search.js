@@ -318,7 +318,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               }
             },
             footer({ _items, createElement }) {
-              if (quartoSearchOptions.algolia["show-logo"]) {
+              if (
+                quartoSearchOptions.algolia &&
+                quartoSearchOptions.algolia["show-logo"]
+              ) {
                 const libDir = quartoSearchOptions.algolia["libDir"];
                 const logo = createElement("img", {
                   src: offsetURL(
@@ -832,10 +835,11 @@ function positionPanel(pos) {
   const inputEl = window.document.querySelector(
     "#quarto-search .aa-Autocomplete"
   );
+
   if (panelEl && inputEl) {
     panelEl.style.top = `${Math.round(panelEl.offsetTop)}px`;
     if (pos === "start") {
-      panelEl.style.left = `${Math.round(inputEl.offsetLeft)}px`;
+      panelEl.style.left = `${Math.round(inputEl.left)}px`;
     } else {
       panelEl.style.right = `${Math.round(inputEl.offsetRight)}px`;
     }
