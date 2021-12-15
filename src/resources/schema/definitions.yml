@@ -452,7 +452,12 @@
                   maybeArrayOf: string
                   description: "Markdown to place below sidebar content (text or file path)"
         description: "Side navigation options"
-
+      body-header:
+        maybeArrayOf: string
+        description: "Markdown to place above body content (text or file path)"
+      body-footer:
+        maybeArrayOf: string
+        description: "Markdown to place below body content (text or file path)"
       margin-header:
         maybeArrayOf: string
         description: "Markdown to place above margin content (text or file path)"
@@ -524,6 +529,9 @@
                       analytics-events:
                         boolean:
                           description: "Enable tracking of Algolia analytics events"
+                      show-logo:
+                        boolean:
+                          description: "Enable the display of the Algolia logo in the search results footer."
                       index-fields:
                         object:
                           properties:
