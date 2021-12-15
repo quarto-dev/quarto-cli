@@ -70,7 +70,7 @@ export async function validationFromGoodParseYAML(context) {
 
   // wait on hasInitSemaphore
   await hasInitSemaphore.runExclusive(async (_value) => {});
-  
+
   const result = await core.withValidator(context.schema, async (validator) => {
     const parser = await getTreeSitter();
 
@@ -298,7 +298,7 @@ async function completions(obj) {
     commentPrefix,
     context
   } = obj;
-  const matchingSchemas = navigateSchema(schema, path);
+  const matchingSchemas = await navigateSchema(schema, path);
   const { aliases } = await getSchemas();
   const formats = [
     ...Array.from(context.formats),
@@ -362,9 +362,9 @@ async function completions(obj) {
               // don't hide
               return true;
             }
-            formatTags = value?.tags?.formats || [];
+            formatTags = (value && value.tags && value.tags.formats) || [];
           } else if (c.type === "value") {
-            formatTags = c.schema?.tags?.formats || [];
+            formatTags = (c.schema && c.schema.tags && c.schema.tags.formats) || [];
           } else {
             // weird completion type?
             console.log(`Unexpected completion type ${c.type}`);
@@ -675,7 +675,7 @@ async function initAutomation(path)
     automationInit = true;
     setMainPath(path);
     core.setupAjv(window.ajv);
-    
+
     let schemaDefs = (await getSchemas()).definitions;
     for (const [_key, value] of Object.entries(schemaDefs)) {
       await core.withValidator(value, async (_validator) => {

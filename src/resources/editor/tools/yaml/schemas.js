@@ -31,19 +31,24 @@ function matchPatternProperties(schema, key)
   return false;
 }
 
-export function navigateSchema(schema, path) {
+export async function navigateSchema(schema, path) {
   const refs = {};
+  const { definitions } = await getSchemas();
+  
   function inner(subSchema, index) {
     if (subSchema.$id) {
       refs[subSchema.$id] = subSchema;
     }
     if (subSchema.$ref) {
-      if (refs[subSchema.$ref] === undefined) {
+      if (refs[subSchema.$ref]) {
+        subSchema = refs[subSchema.$ref];
+      } else if (definitions[subSchema.$ref]) {
+        subSchema = definitions[subSchema.$ref];
+      } else {
         throw new Error(
-          `Internal error: schema reference ${subSchema.$ref} undefined`,
+          `Internal error: schema reference ${subSchema.$ref} not found in internal refs or definitions`,
         );
       }
-      subSchema = refs[subSchema.$ref];
     }
     if (index === path.length) {
       return [subSchema];
