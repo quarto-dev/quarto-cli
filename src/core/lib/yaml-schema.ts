@@ -126,7 +126,7 @@ function navigate(
         }
       }
     }
-    throw new Error("Internal error: searchKey not found in mapping object");
+    throw new Error(`Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`);
   } else if (
     annotation.kind === "sequence" || annotation.kind === "block_sequence"
   ) {
@@ -322,10 +322,9 @@ function localizeAndPruneErrors(
           newErrors.push(...narrowOneOfError(error, errors));
         } else if (error.keyword === "additionalProperties") {
           error.hasBeenTransformed = true;
-          instancePath = `${instancePath}/${error.params.additionalProperty}`;
           newErrors.push({
             ...error,
-            instancePath,
+            instancePath: `${instancePath}/${error.params.additionalProperty}`,
             keyword: "_custom_invalidProperty",
             message:
               `property ${error.params.additionalProperty} not allowed in object`,
