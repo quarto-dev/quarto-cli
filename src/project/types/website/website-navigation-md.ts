@@ -346,7 +346,7 @@ const sidebarHeaderFooterHandler = (context: NavigationPipelineContext) => {
       return { blocks: result };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
-      var sidebarEl = doc.getElementById("quarto-sidebar");
+      const sidebarEl = doc.getElementById("quarto-sidebar");
       if (sidebarEl) {
         const renderedHeaderEl = rendered[kSidebarHeader];
         if (renderedHeaderEl) {
@@ -451,7 +451,7 @@ const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
       return { blocks: result };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
-      var sidebarEl = doc.getElementById("quarto-margin-sidebar");
+      const sidebarEl = doc.getElementById("quarto-margin-sidebar");
       if (sidebarEl) {
         const renderedHeaderEl = rendered[kMarginHeader];
         if (renderedHeaderEl) {
