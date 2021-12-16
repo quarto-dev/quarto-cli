@@ -22,6 +22,7 @@ import { ProjectContext } from "../../../types.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
+  MarkdownPipelineHandler,
 } from "../website-pipeline-md.ts";
 import { renderEjs } from "../../../../core/ejs.ts";
 import { resourcePath } from "../../../../core/resources.ts";
@@ -92,6 +93,7 @@ export async function listingHtmlDependencies(
         projectRelativePath,
       );
 
+      // Create the item
       const documentMeta = target?.markdown.yaml;
       const description = documentMeta?.description as string || "";
       const image = documentMeta?.image as string;
@@ -100,7 +102,6 @@ export async function listingHtmlDependencies(
         ? documentMeta?.author
         : [documentMeta?.author];
       const filename = basename(projectRelativePath);
-
       items.push({
         title: target?.title,
         date,
@@ -137,27 +138,24 @@ export async function listingHtmlDependencies(
     });
   }
 
-  const pipelines: MarkdownPipeline[] = [];
+  // Create and return the markdown pipeline for this set of listings
+  const markdownHandlers: MarkdownPipelineHandler[] = [];
   listingItems.forEach((listingItem) => {
-    const pipelineName = `quarto-listing-${listingItem.listing.id}`;
-
-    const pipeline = createMarkdownPipeline(
-      pipelineName,
-      [markdownHandler(listingItem.listing, listingItem.items)],
+    markdownHandlers.push(
+      markdownHandler(listingItem.listing, listingItem.items),
     );
-
-    pipelines.push(pipeline);
   });
 
+  const pipeline = createMarkdownPipeline(
+    `quarto-listing-pipeline`,
+    markdownHandlers,
+  );
   return {
     [kHtmlPostprocessors]: (doc: Document) => {
-      pipelines.forEach((pipe) => {
-        pipe.processRenderedMarkdown(doc);
-      });
+      pipeline.processRenderedMarkdown(doc);
       return Promise.resolve([]);
     },
-    [kMarkdownAfterBody]: pipelines.map((pipe) => pipe.markdownAfterBody())
-      .join("\n\n"),
+    [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
   };
 }
 
@@ -206,7 +204,6 @@ function getListingContainer(doc: Document, listing: Listing) {
 
   // Append any requested classes
   listing.classes.forEach((clz) => listingEl?.classList.add(clz));
-
   return listingEl;
 }
 
@@ -215,19 +212,19 @@ const templateMarkdownHandler = (
   listing: Listing,
   items: ListingItem[],
 ) => {
-  const generateMarkdown = () => {
-    return renderEjs(
-      resourcePath(template),
-      { items },
-      false,
-    );
-  };
+  // Render the template into markdown
+  const markdown = renderEjs(
+    resourcePath(template),
+    { items },
+    false,
+  );
 
+  // Return the handler
   return {
     getUnrendered() {
       return {
         blocks: {
-          [listing.id]: generateMarkdown(),
+          [listing.id]: markdown,
         },
       };
     },
