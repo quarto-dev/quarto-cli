@@ -161,13 +161,17 @@ export function watchProject(
               }
             });
 
-            if (result.error && result.error.message) {
-              logError(result.error);
+            if (result.error) {
+              if (result.error.message) {
+                logError(result.error);
+              }
+              return undefined;
+            } else {
+              return {
+                config: false,
+                output: true,
+              };
             }
-            return {
-              config: false,
-              output: true,
-            };
           }
         }
 
