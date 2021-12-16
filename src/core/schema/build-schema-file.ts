@@ -13,9 +13,10 @@ import { getProjectConfigSchema } from "./project-config.ts";
 import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { readYaml } from "../yaml.ts";
 import { schemaPath } from "./utils.ts";
-import { join } from "path/mod.ts";
+import { resourcePath } from "../resources.ts";
 import { idSchema } from "./common.ts";
 import { normalizeSchema, Schema, setSchemaDefinition, getSchemaDefinitionsObject } from "../lib/schema.ts";
+import { exportStandaloneValidators } from "./yaml-schema.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 
@@ -30,7 +31,11 @@ export async function buildSchemaFile(resourceDir: string) {
     aliases: getFormatAliases()
   };
   const str = JSON.stringify(obj);
-  const path = join(resourceDir, "/editor/tools/yaml/quarto-json-schemas.json");
+  const path = resourcePath("/editor/tools/yaml/quarto-json-schemas.json");
+  
+  const validatorPath = resourcePath("/editor/tools/yaml/standalone-schema-validators.js");
+  const validatorModule = await exportStandaloneValidators();
 
+  Deno.writeTextFileSync(validatorPath, validatorModule);
   return Deno.writeTextFile(path, str);
 }

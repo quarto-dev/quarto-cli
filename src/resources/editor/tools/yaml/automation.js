@@ -18,6 +18,7 @@ import {
 } from "./parsing.js";
 import { getSchemas, navigateSchema } from "./schemas.js";
 import { setMainPath } from "./paths.js";
+import { withValidator } from "./validator-queue.js";
 
 import * as core from "../../../build/core-lib.js";
 
@@ -71,7 +72,7 @@ export async function validationFromGoodParseYAML(context) {
   // wait on hasInitSemaphore
   await hasInitSemaphore.runExclusive(async (_value) => {});
 
-  const result = await core.withValidator(context.schema, async (validator) => {
+  const result = await withValidator(context.schema, async (validator) => {
     const parser = await getTreeSitter();
 
     for (const parseResult of attemptParsesAtLine(context, parser)) {
@@ -678,9 +679,9 @@ async function initAutomation(path)
     core.setupAjv(window.ajv);
 
     let schemaDefs = (await getSchemas()).definitions;
-    for (const [_key, value] of Object.entries(schemaDefs)) {
-      await core.withValidator(value, async (_validator) => {
-        core.setSchemaDefinition(value);
+    for (const [key, value] of Object.entries(schemaDefs)) {
+      await withValidator(value, async (_validator) => {
+        console.log(`Schema ${key} loaded`);
       });
     }
     const after = performance.now();
