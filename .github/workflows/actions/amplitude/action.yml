@@ -39,13 +39,12 @@ runs:
                 "event_type": "${{ inputs.event }}",
                   "user_properties": {}, 
                   "event_properties" : {
-                    workflow: "${{ github.workflow }}",
-                    ref_name: "${{ github.ref_name }}",
-                    duration: ${{ inputs.duration }},
-                    commit: "${{ inputs.commit }}",
-                    os: "${{ runner.os }}",
-                    arch: "${{ runner.arch }}",
-
+                    "workflow": "${{ github.workflow }}",
+                    "ref_name": "${{ github.ref_name }}",
+                    "duration": ${{ inputs.duration }},
+                    "commit": "${{ inputs.commit }}",
+                    "os": "${{ runner.os }}",
+                    "arch": "${{ runner.arch }}"
                     },
                   "country": "United States", 
                   "ip": "127.0.0.1"

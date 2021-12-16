@@ -40,6 +40,9 @@ export const createProjectCommand = new Command()
     `Project type (${kProjectTypes.join(", ")})`,
     {
       value: (value: string): string => {
+        // strip off subtype
+        value = value.split(":")[0];
+
         if (kProjectTypesAndAliases.indexOf(value || "default") === -1) {
           throw new Error(
             `Project type must be one of ${
