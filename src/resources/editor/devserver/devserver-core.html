@@ -1,8 +1,26 @@
 <script type="text/javascript">
+  const logEntries = new Array(1000);
+  logEntries.offset = 0;
+  function recordLogEntry(entry) {
+    logEntries[logEntries.offset++] = entry;
+    logEntries.offset %= logEntries.length;
+  }
+  function getLogEntry(i) { // backwards, 0 is most recent
+      return logEntries[(logEntries.offset - 1 - i + logEntries.length) % logEntries.length];
+  }
   const devServerSocket = new WebSocket('ws://<%- localhost %>:<%- port %>' + window.location.pathname);
   devServerSocket.onopen = () => {
     console.log('Socket connection open. Listening for events.');
   };
+  function showError(msg) {
+    const ansiUp = new AnsiUp
+    const html = ansiUp.ansi_to_html(msg.trim());
+    const display = document.getElementById("quarto-log-error-display");
+    display.innerHTML = html;
+    MicroModal.show('quarto-log-error-modal', {
+      awaitCloseAnimation: true
+    });
+  }
   devServerSocket.onmessage = (msg) => {
     if (msg.data.startsWith('reload')) {
       devServerSocket.close();
@@ -15,13 +33,29 @@
     } else if (msg.data.startsWith('log:')) {
       const ansiUp = new AnsiUp
       const log = JSON.parse(msg.data.substr(4));
+      recordLogEntry(log);
       if (log.levelName === "ERROR") {
-        const html = ansiUp.ansi_to_html(log.msgFormatted.trim());
-        const display = document.getElementById("quarto-log-error-display");
-        display.innerHTML = html;
-        MicroModal.show('quarto-log-error-modal', {
-          awaitCloseAnimation: true
-        });
+        showError(log.msgFormatted)
+      } else {
+        // see if there is a knitr error to report
+        if (log.msg.indexOf("Execution halted") !== -1) {
+          // scan backwards for beginning of error
+          const errorEntries = [getLogEntry(0).msgFormatted];
+          for (let i=1; i<logEntries.length; i++) {
+            const logEntry = getLogEntry(i);
+            if (logEntry) {
+              errorEntries.unshift(logEntry.msgFormatted);
+              if (logEntry.msg.indexOf("Quitting from lines") !== -1) {
+                showError(errorEntries.join(""));
+                break;
+              } else if (logEntry.msg.indexOf("Execution halted") !== -1) {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+        }
       }
     }
   };
