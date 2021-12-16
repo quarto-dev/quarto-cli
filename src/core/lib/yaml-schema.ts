@@ -44,6 +44,10 @@ export function setupAjv(_ajv: any) {
   ajv = _ajv;
 }
 
+export function getAjvInstance() {
+  return ajv;
+}
+
 // deno-lint-ignore no-explicit-any
 export type JSONSchema = any;
 
@@ -423,9 +427,13 @@ export class YAMLSchema {
   // deno-lint-ignore no-explicit-any
   validate: any; // FIXME: find the typing for this
 
-  constructor(schema: JSONSchema) {
+  constructor(schema: JSONSchema, compiledModule?: any) {
     this.schema = schema;
-    this.validate = ajv.compile(normalizeSchema(schema));
+    if (compiledModule !== undefined) {
+      this.validate = compiledModule[this.schema.$id || this.schema.$ref];
+    } else {
+      this.validate = ajv.compile(normalizeSchema(schema));
+    }
   }
 
   validateParse(
