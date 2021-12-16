@@ -290,7 +290,9 @@ export async function serveProject(
         const fileContents = Deno.readFileSync(file);
 
         // inject watcher client for html
-        if (isHtmlContent(file) && inputFile && result) {
+        if (
+          isHtmlContent(file) && inputFile && result && result.files.length > 0
+        ) {
           const projInputFile = join(
             project!.dir,
             relative(watcher.serveProject().dir, inputFile),
@@ -355,7 +357,7 @@ export async function serveProject(
   printBrowsePreviewMessage(browseUrl);
 
   if (options.browse) {
-    openUrl(browseUrl);
+    await openUrl(browseUrl);
   }
 
   // if this is a pdf then we tweak the options to correctly handle pdfjs

@@ -7,6 +7,8 @@ on:
   push:
     # only trigger on branches, not on tags
     branches: [main]
+  schedule:
+    - cron: 0 * * * *
 
 
 jobs:

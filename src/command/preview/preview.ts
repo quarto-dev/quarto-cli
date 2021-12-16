@@ -125,7 +125,7 @@ export async function preview(
     : "";
   const url = `http://localhost:${options.port}/${initialPath}`;
   if (options.browse) {
-    openUrl(url);
+    await openUrl(url);
   }
 
   // print status

@@ -161,7 +161,7 @@ export function watchProject(
               }
             });
 
-            if (result.error) {
+            if (result.error && result.error.message) {
               logError(result.error);
             }
             return {
