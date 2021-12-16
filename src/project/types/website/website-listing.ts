@@ -8,6 +8,7 @@
 
 import { basename, dirname, relative } from "path/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { ld } from "lodash/mod.ts";
 
 import {
   Format,
@@ -32,6 +33,12 @@ export interface Listing {
   type: ListingType;
   contents: string[]; // globs
   classes: string[];
+  sort?: ListingSort[];
+}
+
+export interface ListingSort {
+  field: "title" | "author" | "date" | "filename";
+  direction: "asc" | "desc";
 }
 
 // An individual listing item
@@ -106,13 +113,28 @@ export async function listingHtmlDependencies(
       });
     }
 
-    // TODO: Sort the items
-
-    // TODO: Filter the items
+    // Sort the items (first array is of sort functions)
+    // second array is of sort direction
+    const sortedAndFiltered = (): ListingItem[] => {
+      if (listing.sort && listing.sort.length > 0) {
+        return ld.orderBy(
+          items,
+          listing.sort.map((l) => {
+            return (item: ListingItem) => {
+              return item[l.field];
+            };
+          }),
+          listing.sort.map((l) => l.direction),
+        );
+      } else {
+        return items;
+      }
+    };
+    const orderedItems = sortedAndFiltered();
 
     listingItems.push({
       listing,
-      items,
+      items: orderedItems,
     });
   }
 
@@ -356,7 +378,59 @@ function resolveListing(meta: Record<string, unknown>, synthId: () => string) {
     type: meta.type as ListingType || kDefaultListingType,
     contents: maybeArray(meta.contents) as string[] || kDefaultContentsGlob,
     classes: maybeArray(meta.classes) || [],
+    sort: resolveListingSort(meta.sort),
   };
+}
+
+function toSortKey(key: string) {
+  switch (key) {
+    case "title":
+      return "title";
+    case "author":
+      return "author";
+    case "date":
+      return "date";
+    case "filename":
+      return "filename";
+    default:
+      return "filename";
+  }
+}
+
+function resolveListingSort(rawValue: unknown): ListingSort[] | undefined {
+  const parseValue = (sortValue: unknown): ListingSort | undefined => {
+    if (sortValue == undefined) {
+      return undefined;
+    }
+
+    if (typeof (sortValue) === "string") {
+      const sortStr = sortValue as string;
+      const parts = sortStr.split(" ");
+      if (parts.length === 2) {
+        return {
+          field: toSortKey(parts[0]),
+          direction: parts[1] === "asc" ? "asc" : "desc",
+        };
+      } else {
+        return {
+          field: toSortKey(parts[0]),
+          direction: "desc",
+        };
+      }
+    }
+  };
+
+  if (Array.isArray(rawValue)) {
+    return rawValue.map(parseValue).filter((val) =>
+      val !== undefined
+    ) as ListingSort[];
+  } else {
+    const sort = parseValue(rawValue);
+    if (sort) {
+      return [sort];
+    }
+  }
+  return undefined;
 }
 
 function resolveListingStr(val: string): Listing {
