@@ -195,6 +195,9 @@ export function revealjsFormat() {
       render: {
         [kCodeLineNumbers]: true,
       },
+      metadata: {
+        [kAutoStretch]: true,
+      },
       resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
@@ -222,13 +225,6 @@ export function revealjsFormat() {
         const previewLinksAuto = format.metadata["previewLinks"] === "auto";
         if (previewLinksAuto) {
           metadataOverride.previewLinks = false;
-        }
-
-        // specify auto-stretch if there is no boolean 'auto-stretch'
-        const autoStretch =
-          typeof (format.metadata[kAutoStretch]) !== "boolean";
-        if (autoStretch) {
-          metadataOverride[kAutoStretch] = true;
         }
 
         // additional options not supported by pandoc
