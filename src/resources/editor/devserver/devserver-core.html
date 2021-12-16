@@ -16,7 +16,7 @@
       const ansiUp = new AnsiUp
       const log = JSON.parse(msg.data.substr(4));
       if (log.levelName === "ERROR") {
-        const html = ansiUp.ansi_to_html(log.msgFormatted);
+        const html = ansiUp.ansi_to_html(log.msgFormatted.trim());
         const display = document.getElementById("quarto-log-error-display");
         display.innerHTML = html;
         MicroModal.show('quarto-log-error-modal', {
@@ -472,7 +472,7 @@ function rgxG(tmplObj) {
     <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="quarto-log-error-modal-title">
       <header class="modal__header">
         <h2 class="modal__title" id="quarto-log-error-modal-title">
-          Quarto Error
+          <i class="bi bi-exclamation-circle"></i>Error
         </h2>
         <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
       </header>
@@ -549,6 +549,10 @@ function rgxG(tmplObj) {
   color: rgb(191,71,65);
   line-height: 1.25;
   box-sizing: border-box;
+}
+
+.modal__title .bi {
+  margin-right: 7px;
 }
 
 .modal__close {
