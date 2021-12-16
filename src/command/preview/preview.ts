@@ -23,7 +23,7 @@ import {
   httpFileRequestHandler,
   HttpFileRequestOptions,
 } from "../../core/http.ts";
-import { HttpReloader, httpReloader } from "../../core/http-reload.ts";
+import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
 import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
@@ -76,7 +76,7 @@ export async function preview(
   const project = await projectContext(file);
 
   // create client reloader
-  const reloader = httpReloader(options.port, options.presentation);
+  const reloader = httpDevServer(options.port, options.presentation);
 
   // watch for changes and re-render / re-load as necessary
   const changeHandler = createChangeHandler(
@@ -214,7 +214,7 @@ interface ChangeHandler {
 
 function createChangeHandler(
   result: RenderForPreviewResult,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   render: () => Promise<RenderForPreviewResult>,
   renderOnChange: boolean,
 ): ChangeHandler {
@@ -342,7 +342,7 @@ function projectHtmlFileRequestHandler(
   context: ProjectContext,
   inputFile: string,
   format: Format,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ) {
   return httpFileRequestHandler(
@@ -361,7 +361,7 @@ function htmlFileRequestHandler(
   htmlFile: string,
   inputFile: string,
   format: Format,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ) {
   return httpFileRequestHandler(
@@ -381,7 +381,7 @@ function htmlFileRequestHandlerOptions(
   defaultFile: string,
   inputFile: string,
   format: Format,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ): HttpFileRequestOptions {
   return {
@@ -421,7 +421,7 @@ function pdfFileRequestHandler(
   pdfFile: string,
   inputFile: string,
   format: Format,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)

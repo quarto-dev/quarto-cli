@@ -25,7 +25,7 @@ import { projectContext } from "../../project/project-context.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
-import { httpReloader } from "../../core/http-reload.ts";
+import { httpDevServer } from "../../core/http-devserver.ts";
 import { Format } from "../../config/types.ts";
 import { RenderFlags, RenderResult } from "../render/types.ts";
 import { renderProject } from "../render/project.ts";
@@ -204,8 +204,8 @@ export function watchProject(
     }
   };
 
-  // http reloader
-  const reloader = httpReloader(options.port);
+  // http devserver
+  const devServer = httpDevServer(options.port);
 
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
@@ -273,7 +273,7 @@ export function watchProject(
       }
 
       // reload clients
-      reloader.reloadClients(reloadTarget);
+      devServer.reloadClients(reloadTarget);
     } catch (e) {
       logError(e);
     }
@@ -325,11 +325,11 @@ export function watchProject(
   // return watcher interface
   return Promise.resolve({
     handle: (req: ServerRequest) => {
-      return reloader.handle(req);
+      return devServer.handle(req);
     },
-    connect: reloader.connect,
+    connect: devServer.connect,
     injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
-      return reloader.injectClient(file, inputFile, format);
+      return devServer.injectClient(file, inputFile, format);
     },
     project: () => project,
     serveProject: () => serveProject,

@@ -117,6 +117,22 @@ export class StdErrOutputHandler extends BaseHandler {
   }
 }
 
+export class LogEventsHandler extends StdErrOutputHandler {
+  handle(logRecord: LogRecord) {
+    LogEventsHandler.handlers_.forEach((handler) =>
+      handler(logRecord, super.format(logRecord))
+    );
+  }
+
+  static onLog(handler: (logRecord: LogRecord, msg: string) => void) {
+    LogEventsHandler.handlers_.push(handler);
+  }
+
+  private static handlers_ = new Array<
+    (logRecord: LogRecord, msg: string) => void
+  >();
+}
+
 export class LogFileHandler extends FileHandler {
   constructor(levelName: log.LevelName, options: LogFileHandlerOptions) {
     super(levelName, options);
@@ -180,6 +196,10 @@ export async function initializeLogger(logOptions: LogOptions) {
   const defaultHandlers = [];
   const file = logOptions.log;
   const logLevel = logOptions.level ? parseLevel(logOptions.level) : "INFO";
+
+  // Provide a stream of log events
+  handlers["events"] = new LogEventsHandler(logLevel, {});
+  defaultHandlers.push("events");
 
   // Don't add the StdErroutputHandler if we're quiet
   if (!logOptions.quiet) {
