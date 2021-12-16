@@ -355,7 +355,7 @@ export async function serveProject(
   printBrowsePreviewMessage(browseUrl);
 
   if (options.browse) {
-    openUrl(browseUrl);
+    await openUrl(browseUrl);
   }
 
   // if this is a pdf then we tweak the options to correctly handle pdfjs
