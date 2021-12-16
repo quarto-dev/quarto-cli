@@ -52,13 +52,8 @@ export function httpDevServer(
             msgFormatted: msg,
           }),
         );
-      } catch (e) {
-        maybeDisplaySocketError(e);
-      } finally {
-        if (!socket.isClosed) {
-          socket.close().catch(maybeDisplaySocketError);
-        }
-        clients.splice(i, 1);
+      } catch (_e) {
+        // we don't want to recurse so we ignore errors here
       }
     }
   });
