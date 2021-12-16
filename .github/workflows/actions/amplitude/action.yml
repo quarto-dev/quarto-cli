@@ -1,0 +1,53 @@
+name: 'Send Amplitude Event'
+description: 'Send an event to Amplitude.'
+inputs:
+  api_key:
+    description: 'The Amplitude API key (store as a secret).'
+    required: true
+
+  event:  
+    description: 'The name of the event.'
+    required: true
+
+  success:
+    description: 'Whether the event succeeded.'
+    required: true
+  
+  duration:
+    description: 'The length of time it took for the event to occur.'
+    required: true
+
+  commit:
+    description: 'The commit associated with this event'
+    required: false
+    default: ''
+
+
+runs:
+  using: "composite"
+  steps: 
+     - name: Send Event
+       shell: bash
+       run: |
+          curl --data '
+          {
+            "api_key": "${{ inputs.api_key }}", 
+            "events": 
+              [
+                {
+                "user_id": "${{ github.repository }}", 
+                "event_type": "${{ inputs.event }}",
+                  "user_properties": {}, 
+                  "event_properties" : {
+                    "workflow": "${{ github.workflow }}",
+                    "ref_name": "${{ github.ref_name }}",
+                    "duration": ${{ inputs.duration }},
+                    "commit": "${{ inputs.commit }}",
+                    "os": "${{ runner.os }}",
+                    "arch": "${{ runner.arch }}"
+                    },
+                  "country": "United States", 
+                  "ip": "127.0.0.1"
+                  }
+                ]
+            }' https://api.amplitude.com/2/httpapi

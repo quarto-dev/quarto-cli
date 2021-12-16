@@ -1,5 +1,5 @@
 import { existsSync } from "fs/mod.ts";
-import { assert, fail } from "testing/asserts.ts";
+import { fail } from "testing/asserts.ts";
 import { warning } from "log/mod.ts";
 import { initDenoDom } from "../src/core/html.ts";
 

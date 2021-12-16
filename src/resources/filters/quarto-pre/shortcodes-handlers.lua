@@ -79,13 +79,17 @@ function handleVars(shortCode)
   end
 end
 
-function processValue(val, name, t) 
-  if type(val) == "boolean" then
-    return { pandoc.Str( tostring(val) ) }      
-  elseif type(val) == "table" and val.t == "MetaInlines" then
-    return val
-  else
-    warn("Unsupported type for key " .. name .. " in a " .. t .. " shortcode.")
-    return { pandoc.Strong({pandoc.Str("?invalid " .. t .. " type:" .. name)}) }    
+function processValue(val, name, t)    
+  if type(val) == "table" then
+    if #val == 0 then
+      return { pandoc.Str( "") }
+    elseif val.t == "MetaInlines" then
+      return val
+    else
+      warn("Unsupported type for key " .. name .. " in a " .. t .. " shortcode.")
+      return { pandoc.Strong({pandoc.Str("?invalid " .. t .. " type:" .. name)}) }         
+    end
+  else 
+    return { pandoc.Str( tostring(val) ) }  
   end
 end

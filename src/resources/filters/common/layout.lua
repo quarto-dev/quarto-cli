@@ -85,3 +85,30 @@ function layoutCellHasRefParent(cell)
   return false
 end
 
+function sizeToPercent(size)
+  if size then
+    local percent = string.match(size, "^([%d%.]+)%%$")
+    if percent then
+      return tonumber(percent)
+    end
+  end
+  return nil
+end
+
+function asLatexSize(size, macro)
+  -- default to linewidth
+  if not macro then
+    macro = "linewidth"
+  end
+  -- see if this is a percent, if it is the conver 
+  local percentSize = sizeToPercent(size)
+  if percentSize then
+    if percentSize == 100 then
+      return "\\" .. macro
+    else
+      return string.format("%2.2f", percentSize/100) .. "\\" .. macro
+    end
+  else
+    return size
+  end
+end

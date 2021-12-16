@@ -5,7 +5,7 @@
 *
 */
 
-import { error, info, warning } from "log/mod.ts";
+import { error, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
@@ -100,8 +100,10 @@ export async function serveProject(
   // confirm that it's a project type that can be served
   if (!projectIsWebsite(project)) {
     throw new Error(
-      `Cannot serve project of type '${project?.config?.project[kProjectType] ||
-        "default"}' (try using project type 'site').`,
+      `Cannot serve project of type '${
+        project?.config?.project[kProjectType] ||
+        "default"
+      }' (try using project type 'site').`,
     );
   }
 

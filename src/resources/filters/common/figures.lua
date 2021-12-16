@@ -106,3 +106,39 @@ function isReferenceableFig(figEl)
 end
 
 
+
+function latexIsTikzImage(image)
+  return isLatexOutput() and string.find(image.src, "%.tex$")
+end
+
+function latexFigureInline(image, state)
+  -- if this is a tex file (e.g. created w/ tikz) then use \\input
+  if latexIsTikzImage(image) then
+    
+    -- be sure to inject \usepackage{tikz}
+    state.usingTikz = true
+    
+    -- base input
+    local input = "\\input{" .. image.src .. "}"
+    
+    -- apply resize.width and/or resize.height if specified
+    local rw = attribute(image, kResizeWidth, attribute(image, "width", "!"))
+    local rh = attribute(image, kResizeHeight, attribute(image, "height", "!"))
+
+    -- convert % to linewidth
+    rw = asLatexSize(rw)
+    rh = asLatexSize(rh)
+
+    if rw ~= "!" or rh ~= "!" then
+      input = "\\resizebox{" .. rw .. "}{" .. rh .. "}{" .. input .. "}"
+    end
+    
+    -- return inline
+    return pandoc.RawInline("latex", input)
+  else
+    return image
+  end
+end
+
+
+

@@ -46,6 +46,9 @@ export const kPageFooter = "page-footer";
 export const kMarginHeader = "margin-header";
 export const kMarginFooter = "margin-footer";
 
+export const kBodyHeader = "body-header";
+export const kBodyFooter = "body-footer";
+
 export const kContents = "contents";
 
 export const kTwitterCard = "twitter-card";
@@ -109,7 +112,24 @@ type WebsiteConfigKey =
   | "page-footer"
   | "margin-header"
   | "margin-footer"
+  | "body-header"
+  | "body-footer"
   | "search";
+
+export function websiteConfigBoolean(
+  name: WebsiteConfigKey,
+  defaultValue: boolean,
+  project?: ProjectConfig,
+) {
+  const config = websiteConfig(name, project);
+  if (typeof (config) === "string") {
+    return !!config;
+  } else if (typeof (config) == "boolean") {
+    return config;
+  } else {
+    return defaultValue;
+  }
+}
 
 export function websiteConfigString(
   name: WebsiteConfigKey,
@@ -304,6 +324,13 @@ export function websiteProjectConfig(
   };
 
   const siteMeta = (config[kWebsite] || {}) as Metadata;
+  if (siteMeta[kBodyHeader]) {
+    siteMeta[kBodyHeader] = ensureArray(siteMeta[kBodyHeader]);
+  }
+  if (siteMeta[kBodyFooter]) {
+    siteMeta[kBodyFooter] = ensureArray(siteMeta[kBodyFooter]);
+  }
+
   if (siteMeta[kMarginHeader]) {
     siteMeta[kMarginHeader] = ensureArray(siteMeta[kMarginHeader]);
   }

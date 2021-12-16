@@ -43,6 +43,7 @@ export interface ExecutionEngine {
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   canFreeze: boolean;
+  generatesFigures: boolean;
   canKeepSource?: (target: ExecutionTarget) => boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreDirs?: () => string[] | undefined;

@@ -118,6 +118,7 @@ export const knitrEngine: ExecutionEngine = {
   },
 
   canFreeze: true,
+  generatesFigures: true,
 
   ignoreDirs: () => {
     return ["renv", "packrat", "rsconnect"];

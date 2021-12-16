@@ -7,7 +7,7 @@ function extendedFigures()
     
     Para = function(el)
       local image = discoverFigure(el, false)
-      if image and shouldHandleExtended(image) then
+      if image and shouldHandleExtendedImage(image) then
         if isHtmlOutput() then
           return htmlImageFigure(image)
         elseif isLatexOutput() then
@@ -42,25 +42,36 @@ function forceExtendedFigure(el)
 end
 
 function shouldHandleExtended(el)
-  -- first check whether this has been explicitely enabled or disabled
-  if el.attr.attributes[kFigExtended] ~= nil then
-    return el.attr.attributes[kFigExtended]
-  end
+  return el.attr.attributes[kFigExtended] ~= "false"
+end
 
-  -- handle extended if there is a caption 
+-- By default, images without captions should be
+-- excluded from extended processing. 
+function shouldHandleExtendedImage(el) 
+  -- handle extended if there is a caption
   if el.caption and #el.caption > 0 then
     return true
   end
 
-  -- handle extended there are fig- attributes
+  -- handle extended if there are fig- attributes
   local keys = tkeys(el.attr.attributes)
   for _,k in pairs(keys) do
     if isFigAttribute(k) then
       return true
     end
   end
-  
 
+  -- handle extended if there is column or caption 
+  -- classes
+  if hasColumnClasses(el) then
+    return true
+  end
+
+  -- handle extended if it was explicitly enabled
+  if el.attr.attributes[kFigExtended] == "true" then
+    return true
+  end
+
+  -- otherwise, by default, do not handle
   return false
-
 end

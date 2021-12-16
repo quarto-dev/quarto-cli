@@ -119,27 +119,16 @@ function widthsToPercent(layout, cols)
 end
 
 
-function widthToPercent(width)
-  if width then
-    local percent = string.match(width, "^([%d%.]+)%%$")
-    if percent then
-      return tonumber(percent)
-    end
-  end
-  return nil
-end
-
-
 -- elements with a percentage width and no height have a 'layout percent'
 -- which means then should be laid out at a higher level in the tree than
 -- the individual figure element
 function horizontalLayoutPercent(el)
-  return widthToPercent(el.attr.attributes["width"])
+  return sizeToPercent(el.attr.attributes["width"])
 end
 
 function transferImageWidthToCell(img, divEl)
   divEl.attr.attributes["width"] = img.attributes["width"]
-  if widthToPercent(attribute(img, "width", nil)) then
+  if sizeToPercent(attribute(img, "width", nil)) then
     img.attributes["width"] = nil
   end
   img.attributes["height"] = nil

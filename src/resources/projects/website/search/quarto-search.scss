@@ -289,6 +289,15 @@ $quarto-search-collapse-icon-size: 26px !default;
     }
   }
 
+  .aa-SourceFooter {
+    .algolia-search-logo {
+      width: 110px;
+      opacity: 0.85;
+      margin: 8px;
+      float: right;
+    }
+  }
+
   .search-result-section {
     font-size: 0.875em;
   }

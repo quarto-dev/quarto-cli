@@ -38,5 +38,5 @@ jobs:
           pushd package/src
           ./quarto-bld prepare-dist
           mv ../../src/quarto.ts ../../src/quarto1.ts 
-          quarto --version
+          quarto
 

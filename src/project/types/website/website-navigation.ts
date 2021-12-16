@@ -112,10 +112,16 @@ export const kSidebarLogo = "logo";
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // read config
-  const { navbar, sidebars, pageNavigation, footer, pageMargin } =
-    websiteNavigationConfig(
-      project,
-    );
+  const {
+    navbar,
+    sidebars,
+    pageNavigation,
+    footer,
+    pageMargin,
+    bodyDecorators,
+  } = websiteNavigationConfig(
+    project,
+  );
   if (!navbar && !sidebars && !pageNavigation) {
     return;
   }
@@ -140,6 +146,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
 
   navigation.pageNavigation = pageNavigation;
   navigation.footer = await resolveFooter(project, footer);
+  navigation.bodyDecorators = bodyDecorators;
 
   navigation.pageMargin = pageMargin;
 }
@@ -245,6 +252,7 @@ export async function websiteNavigationExtras(
     sidebar,
     navigation,
     pageNavigation,
+    bodyDecorators: navigation.bodyDecorators,
   });
   const markdownPipeline = createMarkdownPipeline(
     "quarto-navigation-envelope",

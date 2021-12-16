@@ -30,8 +30,12 @@ import { kProjectRender, ProjectConfig } from "../../types.ts";
 
 import {
   isGithubRepoUrl,
+  kBodyFooter,
+  kBodyHeader,
   kContents,
   kImage,
+  kMarginFooter,
+  kMarginHeader,
   kOpenGraph,
   kPageFooter,
   kSiteNavbar,
@@ -88,9 +92,6 @@ export async function bookProjectConfig(
   config: ProjectConfig,
   forceHtml: boolean,
 ) {
-  // inherit website config behavior
-  config = await websiteProjectConfig(projectDir, config, forceHtml);
-
   // ensure we have a site
   const site = (config[kWebsite] || {}) as Record<string, unknown>;
   config[kWebsite] = site;
@@ -110,6 +111,10 @@ export async function bookProjectConfig(
     site[kOpenGraph] = book[kOpenGraph];
     site[kTwitterCard] = book[kTwitterCard];
     site[kImage] = book[kImage];
+    site[kMarginHeader] = book[kMarginHeader];
+    site[kMarginFooter] = book[kMarginFooter];
+    site[kBodyHeader] = book[kBodyHeader];
+    site[kBodyFooter] = book[kBodyFooter];
     site[kBookSearch] = book[kBookSearch];
 
     // If there is an explicitly set footer use that
@@ -192,8 +197,8 @@ export async function bookProjectConfig(
     config.project[kProjectRender]!.push(`404${ext404}`);
   }
 
-  // return config
-  return config;
+  // return config (inherit website config behavior)
+  return websiteProjectConfig(projectDir, config, forceHtml);
 }
 
 const variableRegex = /{{<\s*var\s+(.*?)\s*>}}/gm;

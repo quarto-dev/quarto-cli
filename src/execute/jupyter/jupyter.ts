@@ -9,9 +9,7 @@ import { extname, join } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
-import {
-  readYamlFromMarkdown,
-} from "../../core/yaml.ts";
+import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { isInteractiveSession } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
@@ -306,6 +304,8 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   canFreeze: true,
+
+  generatesFigures: true,
 
   ignoreDirs: () => {
     return ["venv", "env"];
