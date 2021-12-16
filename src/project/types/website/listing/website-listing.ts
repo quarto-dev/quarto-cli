@@ -21,7 +21,6 @@ import { inputTargetIndex } from "../../../project-index.ts";
 import { ProjectContext } from "../../../types.ts";
 import {
   createMarkdownPipeline,
-  MarkdownPipeline,
   MarkdownPipelineHandler,
 } from "../website-pipeline-md.ts";
 import { renderEjs } from "../../../../core/ejs.ts";
@@ -33,6 +32,7 @@ export interface Listing {
   type: ListingType;
   contents: string[]; // globs
   classes: string[];
+  options?: Record<string, unknown>;
   sort?: ListingSort[];
 }
 
@@ -189,24 +189,6 @@ function markdownHandler(
   }
 }
 
-function getListingContainer(doc: Document, listing: Listing) {
-  // See if there is a target div already in the page
-  let listingEl = doc.getElementById(listing.id);
-  if (listingEl === null) {
-    // No target div, cook one up
-    const content = doc.querySelector("#quarto-content main.content");
-    if (content) {
-      listingEl = doc.createElement("div");
-      listingEl.id = listing.id;
-      content.appendChild(listingEl);
-    }
-  }
-
-  // Append any requested classes
-  listing.classes.forEach((clz) => listingEl?.classList.add(clz));
-  return listingEl;
-}
-
 const templateMarkdownHandler = (
   template: string,
   listing: Listing,
@@ -215,7 +197,7 @@ const templateMarkdownHandler = (
   // Render the template into markdown
   const markdown = renderEjs(
     resourcePath(template),
-    { items },
+    { listing, items },
     false,
   );
 
@@ -229,7 +211,21 @@ const templateMarkdownHandler = (
       };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
-      const listingEl = getListingContainer(doc, listing);
+      // See if there is a target div already in the page
+      let listingEl = doc.getElementById(listing.id);
+      if (listingEl === null) {
+        // No target div, cook one up
+        const content = doc.querySelector("#quarto-content main.content");
+        if (content) {
+          listingEl = doc.createElement("div");
+          listingEl.id = listing.id;
+          content.appendChild(listingEl);
+        }
+      }
+
+      // Append any requested classes
+      listing.classes.forEach((clz) => listingEl?.classList.add(clz));
+
       const renderedEl = rendered[listing.id];
       for (const child of renderedEl.children) {
         listingEl?.appendChild(child);
@@ -315,6 +311,7 @@ function resolveListing(meta: Record<string, unknown>, synthId: () => string) {
     contents: maybeArray(meta.contents) as string[] || kDefaultContentsGlob,
     classes: maybeArray(meta.classes) || [],
     sort: resolveListingSort(meta.sort),
+    options: meta.options as Record<string, unknown>,
   };
 }
 
