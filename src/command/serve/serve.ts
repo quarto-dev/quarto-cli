@@ -290,7 +290,9 @@ export async function serveProject(
         const fileContents = Deno.readFileSync(file);
 
         // inject watcher client for html
-        if (isHtmlContent(file) && inputFile && result) {
+        if (
+          isHtmlContent(file) && inputFile && result && result.files.length > 0
+        ) {
           const projInputFile = join(
             project!.dir,
             relative(watcher.serveProject().dir, inputFile),
