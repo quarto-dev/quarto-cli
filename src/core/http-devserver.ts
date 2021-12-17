@@ -90,23 +90,10 @@ export function httpDevServer(
 
     reloadClients: async (reloadTarget = "") => {
       for (let i = clients.length - 1; i >= 0; i--) {
-        let clientReloadTarget = reloadTarget;
-        // can't reload indvidual pages on jupyterhub b/c the
-        // client path is reported as "/" even on port proxy
-        if (isJupyterHubServer()) {
-          clientReloadTarget = "";
-        }
         const socket = clients[i].socket;
         try {
-          // if this is rstudio server then we might need to include a port proxy
-          if (isRStudioServer() && clientReloadTarget) {
-            const prefix = clients[i].path.match(/^\/p\/\w+\//);
-            if (prefix) {
-              clientReloadTarget = prefix[0] +
-                clientReloadTarget.replace(/^\//, "");
-            }
-          }
-          await socket.send(`reload${clientReloadTarget}`);
+          const message = "reload";
+          await socket.send(`${message}${reloadTarget}`);
         } catch (e) {
           maybeDisplaySocketError(e);
         } finally {
