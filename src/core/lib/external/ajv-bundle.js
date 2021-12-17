@@ -1563,7 +1563,7 @@ var require_dataType = __commonJS({
     exports.checkDataTypes = checkDataTypes;
     var typeError = {
       message: ({ schema }) => `must be ${schema}`,
-      params: ({ schema, schemaValue }) => typeof schema == "string" ? (0, codegen_1._)`{type: ${schema}}` : (0, codegen_1._)`{type: ${schemaValue}}`
+      params: ({ schema, schemaValue, it }) => typeof schema == "string" ? (0, codegen_1._)`{type: ${schema}, schema: ${it.topSchemaRef}${it.schemaPath}}` : (0, codegen_1._)`{type: ${schemaValue}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     function reportTypeError(it) {
       const cxt = getTypeErrorContext(it);
@@ -4796,7 +4796,7 @@ var require_limitNumber = __commonJS({
     };
     var error = {
       message: ({ keyword, schemaCode }) => (0, codegen_1.str)`must be ${KWDs[keyword].okStr} ${schemaCode}`,
-      params: ({ keyword, schemaCode }) => (0, codegen_1._)`{comparison: ${KWDs[keyword].okStr}, limit: ${schemaCode}}`
+      params: ({ keyword, schemaCode, it }) => (0, codegen_1._)`{comparison: ${KWDs[keyword].okStr}, limit: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: Object.keys(KWDs),
@@ -4821,7 +4821,7 @@ var require_multipleOf = __commonJS({
     var codegen_1 = require_codegen();
     var error = {
       message: ({ schemaCode }) => (0, codegen_1.str)`must be multiple of ${schemaCode}`,
-      params: ({ schemaCode }) => (0, codegen_1._)`{multipleOf: ${schemaCode}}`
+      params: ({ schemaCode, it }) => (0, codegen_1._)`{multipleOf: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "multipleOf",
@@ -4880,7 +4880,7 @@ var require_limitLength = __commonJS({
         const comp = keyword === "maxLength" ? "more" : "fewer";
         return (0, codegen_1.str)`must NOT have ${comp} than ${schemaCode} characters`;
       },
-      params: ({ schemaCode }) => (0, codegen_1._)`{limit: ${schemaCode}}`
+      params: ({ schemaCode, it }) => (0, codegen_1._)`{limit: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: ["maxLength", "minLength"],
@@ -4908,7 +4908,7 @@ var require_pattern = __commonJS({
     var codegen_1 = require_codegen();
     var error = {
       message: ({ schemaCode }) => (0, codegen_1.str)`must match pattern "${schemaCode}"`,
-      params: ({ schemaCode }) => (0, codegen_1._)`{pattern: ${schemaCode}}`
+      params: ({ schemaCode, it }) => (0, codegen_1._)`{pattern: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "pattern",
@@ -4938,7 +4938,7 @@ var require_limitProperties = __commonJS({
         const comp = keyword === "maxProperties" ? "more" : "fewer";
         return (0, codegen_1.str)`must NOT have ${comp} than ${schemaCode} items`;
       },
-      params: ({ schemaCode }) => (0, codegen_1._)`{limit: ${schemaCode}}`
+      params: ({ schemaCode, it }) => (0, codegen_1._)`{limit: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: ["maxProperties", "minProperties"],
@@ -4966,7 +4966,7 @@ var require_required = __commonJS({
     var util_1 = require_util();
     var error = {
       message: ({ params: { missingProperty } }) => (0, codegen_1.str)`must have required property '${missingProperty}'`,
-      params: ({ params: { missingProperty } }) => (0, codegen_1._)`{missingProperty: ${missingProperty}}`
+      params: ({ params: { missingProperty }, it }) => (0, codegen_1._)`{missingProperty: ${missingProperty}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "required",
@@ -5049,7 +5049,7 @@ var require_limitItems = __commonJS({
         const comp = keyword === "maxItems" ? "more" : "fewer";
         return (0, codegen_1.str)`must NOT have ${comp} than ${schemaCode} items`;
       },
-      params: ({ schemaCode }) => (0, codegen_1._)`{limit: ${schemaCode}}`
+      params: ({ schemaCode, it }) => (0, codegen_1._)`{limit: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: ["maxItems", "minItems"],
@@ -5089,7 +5089,7 @@ var require_uniqueItems = __commonJS({
     var equal_1 = require_equal();
     var error = {
       message: ({ params: { i, j } }) => (0, codegen_1.str)`must NOT have duplicate items (items ## ${j} and ${i} are identical)`,
-      params: ({ params: { i, j } }) => (0, codegen_1._)`{i: ${i}, j: ${j}}`
+      params: ({ params: { i, j }, it }) => (0, codegen_1._)`{i: ${i}, j: ${j}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "uniqueItems",
@@ -5155,7 +5155,7 @@ var require_const = __commonJS({
     var equal_1 = require_equal();
     var error = {
       message: "must be equal to constant",
-      params: ({ schemaCode }) => (0, codegen_1._)`{allowedValue: ${schemaCode}}`
+      params: ({ schemaCode, it }) => (0, codegen_1._)`{allowedValue: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "const",
@@ -5184,7 +5184,7 @@ var require_enum = __commonJS({
     var equal_1 = require_equal();
     var error = {
       message: "must be equal to one of the allowed values",
-      params: ({ schemaCode }) => (0, codegen_1._)`{allowedValues: ${schemaCode}}`
+      params: ({ schemaCode, it }) => (0, codegen_1._)`{allowedValues: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "enum",
@@ -5196,7 +5196,7 @@ var require_enum = __commonJS({
         if (!$data && schema.length === 0)
           throw new Error("enum must have non-empty array");
         const useLoop = schema.length >= it.opts.loopEnum;
-        const needsEql = schema.some((x) => x !== null && typeof x === "object");
+        const needsEql = useLoop || $data || !Array.isArray(schema) || schema.some((x) => x !== null && typeof x === "object");
         const eql = needsEql ? (0, util_1.useFunc)(gen, equal_1.default) : void 0;
         let valid;
         if (useLoop || $data) {
@@ -5266,7 +5266,7 @@ var require_additionalItems = __commonJS({
     var util_1 = require_util();
     var error = {
       message: ({ params: { len } }) => (0, codegen_1.str)`must NOT have more than ${len} items`,
-      params: ({ params: { len } }) => (0, codegen_1._)`{limit: ${len}}`
+      params: ({ params: { len }, it }) => (0, codegen_1._)`{limit: ${len}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "additionalItems",
@@ -5394,7 +5394,7 @@ var require_items2020 = __commonJS({
     var additionalItems_1 = require_additionalItems();
     var error = {
       message: ({ params: { len } }) => (0, codegen_1.str)`must NOT have more than ${len} items`,
-      params: ({ params: { len } }) => (0, codegen_1._)`{limit: ${len}}`
+      params: ({ params: { len }, it }) => (0, codegen_1._)`{limit: ${len}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "items",
@@ -5427,7 +5427,7 @@ var require_contains = __commonJS({
     var util_1 = require_util();
     var error = {
       message: ({ params: { min, max } }) => max === void 0 ? (0, codegen_1.str)`must contain at least ${min} valid item(s)` : (0, codegen_1.str)`must contain at least ${min} and no more than ${max} valid item(s)`,
-      params: ({ params: { min, max } }) => max === void 0 ? (0, codegen_1._)`{minContains: ${min}}` : (0, codegen_1._)`{minContains: ${min}, maxContains: ${max}}`
+      params: ({ params: { min, max }, it }) => max === void 0 ? (0, codegen_1._)`{minContains: ${min}, schema: ${it.topSchemaRef}${it.schemaPath}}` : (0, codegen_1._)`{minContains: ${min}, maxContains: ${max}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "contains",
@@ -5526,10 +5526,11 @@ var require_dependencies = __commonJS({
         const property_ies = depsCount === 1 ? "property" : "properties";
         return (0, codegen_1.str)`must have ${property_ies} ${deps} when property ${property} is present`;
       },
-      params: ({ params: { property, depsCount, deps, missingProperty } }) => (0, codegen_1._)`{property: ${property},
+      params: ({ params: { property, depsCount, deps, missingProperty }, it }) => (0, codegen_1._)`{property: ${property},
     missingProperty: ${missingProperty},
     depsCount: ${depsCount},
-    deps: ${deps}}`
+    deps: ${deps},
+    schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "dependencies",
@@ -5609,7 +5610,7 @@ var require_propertyNames = __commonJS({
     var util_1 = require_util();
     var error = {
       message: "property name must be valid",
-      params: ({ params }) => (0, codegen_1._)`{propertyName: ${params.propertyName}}`
+      params: ({ params, it }) => (0, codegen_1._)`{propertyName: ${params.propertyName}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "propertyNames",
@@ -5654,7 +5655,7 @@ var require_additionalProperties = __commonJS({
     var util_1 = require_util();
     var error = {
       message: "must NOT have additional properties",
-      params: ({ params }) => (0, codegen_1._)`{additionalProperty: ${params.additionalProperty}}`
+      params: ({ params, it }) => (0, codegen_1._)`{additionalProperty: ${params.additionalProperty}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "additionalProperties",
@@ -5938,7 +5939,7 @@ var require_oneOf = __commonJS({
     var util_1 = require_util();
     var error = {
       message: "must match exactly one schema in oneOf",
-      params: ({ params }) => (0, codegen_1._)`{passingSchemas: ${params.passing}}`
+      params: ({ params, it }) => (0, codegen_1._)`{passingSchemas: ${params.passing}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "oneOf",
@@ -6023,7 +6024,7 @@ var require_if = __commonJS({
     var util_1 = require_util();
     var error = {
       message: ({ params }) => (0, codegen_1.str)`must match "${params.ifClause}" schema`,
-      params: ({ params }) => (0, codegen_1._)`{failingKeyword: ${params.ifClause}}`
+      params: ({ params, it }) => (0, codegen_1._)`{failingKeyword: ${params.ifClause}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "if",
@@ -6155,7 +6156,7 @@ var require_format = __commonJS({
     var codegen_1 = require_codegen();
     var error = {
       message: ({ schemaCode }) => (0, codegen_1.str)`must match format "${schemaCode}"`,
-      params: ({ schemaCode }) => (0, codegen_1._)`{format: ${schemaCode}}`
+      params: ({ schemaCode, it }) => (0, codegen_1._)`{format: ${schemaCode}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "format",
@@ -6316,7 +6317,7 @@ var require_discriminator = __commonJS({
     var types_1 = require_types();
     var error = {
       message: ({ params: { discrError, tagName } }) => discrError === types_1.DiscrError.Tag ? `tag "${tagName}" must be string` : `value of tag "${tagName}" must be in oneOf`,
-      params: ({ params: { discrError, tag, tagName } }) => (0, codegen_1._)`{error: ${discrError}, tag: ${tagName}, tagValue: ${tag}}`
+      params: ({ params: { discrError, tag, tagName }, it }) => (0, codegen_1._)`{error: ${discrError}, tag: ${tagName}, tagValue: ${tag}, schema: ${it.topSchemaRef}${it.schemaPath}}`
     };
     var def = {
       keyword: "discriminator",
