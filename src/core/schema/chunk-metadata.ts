@@ -13,6 +13,7 @@ import { addValidatorErrorHandler } from "../lib/validator-queue.ts";
 import { objectRefSchemaFromGlob } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import { schemaPath } from "./utils.ts";
+import { tidyverseInfo, tidyverseError } from "../log.ts";
 
 let normalizedCache: Record<string, Schema> | undefined = undefined;
 let unNormalizedCache: Record<string, Schema> | undefined = undefined;
@@ -27,24 +28,27 @@ function checkForEqualsInChunk(
   if (error.error.keyword !== 'type')
     return error;
   let m;
+  const errorHeading = `${error.location}: ${JSON.stringify(badObject)} must be a YAML mapping.`;
+  const errorMsg = tidyverseError(`${JSON.stringify(badObject)} is a string.`);
+  
   if (m = badObject.match(/= *TRUE/i)) {
+    const suggestion = tidyverseInfo(`Did you accidentally use \`${m[0]}\` instead of \`: true\`?`);
     error = {
       ...error,
-      message: `${error.location}: ${JSON.stringify(badObject)} is a string, but it needs to be a YAML mapping. Did you accidentally use '${m[0]}' instead of ': true'?`
+      message: [errorHeading, errorMsg, suggestion].join("\n")
     };
-    return error;
   } else if (m = badObject.match(/= *FALSE/i)) {
+    const suggestion = tidyverseInfo(`Did you accidentally use \`${m[0]}\` instead of \`: false\`?`);
     error = {
       ...error,
-      message: `${error.location}: ${JSON.stringify(badObject)} is a string, but it needs to be a YAML mapping. Did you accidentally use '${m[0]}' instead of ': false'?`
+      message: [errorHeading, errorMsg, suggestion].join("\n")
     };
-    return error;
   } else if (badObject.match('=')) {
+    const suggestion = tidyverseInfo(`Did you accidentally use \`=\` instead of \`:\`?`);
     error = {
       ...error,
-      message: `${error.location}: ${JSON.stringify(badObject)} is a string, but it needs to be a YAML mapping. Did you accidentally use '=' instead of ':'?`
+      message: [errorHeading, errorMsg, suggestion].join("\n")
     };
-    return error;
   }
   return error;
 }
