@@ -8,7 +8,8 @@
 */
 
 import { existsSync } from "fs/exists.ts";
-import { error, info } from "log/mod.ts";
+import { errorOnce } from "../log.ts";
+import { info } from "log/mod.ts";
 import { Schema } from "../lib/schema.ts";
 import { asMappedString, MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
@@ -41,6 +42,7 @@ export function readAndValidateYamlFromFile(
   return readAndValidateYamlFromMappedString(contents, schema, errorMessage);
 }
 
+
 export async function readAndValidateYamlFromMappedString(
   mappedYaml: MappedString,
   schema: Schema,
@@ -63,7 +65,11 @@ export async function readAndValidateYamlFromMappedString(
           },
           mappedYaml!,
           errorMessage,
-          error,
+          (msg) => {
+            if (!errorOnce(msg)) {
+              info(""); // line break
+            }
+          },
           info,
         );
       }
