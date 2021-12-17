@@ -112,9 +112,6 @@ export async function preview(
       changeHandler.render,
     );
 
-  // serve project
-  const server = Deno.listen({ port: options.port, hostname: options.host });
-
   // open browser if requested
   const initialPath = isPdfContent(result.outputFile)
     ? kPdfJsInitialPath
@@ -131,17 +128,15 @@ export async function preview(
   // print status
   printBrowsePreviewMessage(options.port, initialPath);
 
-  // handle requests
-  for await (const conn of server) {
-    const httpConn = Deno.serveHttp(conn);
-    for await (const requestEvent of httpConn) {
-      const response = await handler(requestEvent.request);
-      try {
-        await requestEvent.respondWith(response);
-      } catch (e) {
-        maybeDisplaySocketError(e);
+  // serve project
+  for await (
+    const conn of Deno.listen({ port: options.port, hostname: options.host })
+  ) {
+    (async () => {
+      for await (const { request, respondWith } of Deno.serveHttp(conn)) {
+        respondWith(handler(request));
       }
-    }
+    })();
   }
 }
 
@@ -398,7 +393,7 @@ function htmlFileRequestHandlerOptions(
     printUrls: "404",
     onRequest: async (req: Request) => {
       if (reloader.handle(req)) {
-        return await reloader.connect(req);
+        return reloader.connect(req);
       } else if (req.url.startsWith("/quarto-render/")) {
         await renderHandler();
         return httpContentResponse("rendered");

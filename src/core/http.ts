@@ -189,7 +189,8 @@ export function maybeDisplaySocketError(e: unknown) {
   if (
     !(e instanceof Deno.errors.BrokenPipe) &&
     !(e instanceof Deno.errors.ConnectionAborted) &&
-    !(e instanceof Deno.errors.ConnectionReset)
+    !(e instanceof Deno.errors.ConnectionReset) &&
+    !(e instanceof DOMException)
   ) {
     logError(e as Error);
   }

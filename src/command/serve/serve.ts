@@ -9,6 +9,8 @@ import { error, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
+import { listenAndServe } from "http/mod.ts";
+
 import { ld } from "lodash/mod.ts";
 import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 
@@ -333,9 +335,6 @@ export async function serveProject(
     },
   };
 
-  // serve project
-  const server = Deno.listen({ port: options.port, hostname: options.host });
-
   // compute site url
   const siteUrl = `http://localhost:${options.port}/`;
 
@@ -382,18 +381,16 @@ export async function serveProject(
     );
   }
 
-  // wait for requests
+  // serve project
   const handler = httpFileRequestHandler(handlerOptions);
-  for await (const conn of server) {
-    const httpConn = Deno.serveHttp(conn);
-    for await (const requestEvent of httpConn) {
-      const response = await handler(requestEvent.request);
-      try {
-        await requestEvent.respondWith(response);
-      } catch (e) {
-        maybeDisplaySocketError(e);
+  for await (
+    const conn of Deno.listen({ port: options.port, hostname: options.host })
+  ) {
+    (async () => {
+      for await (const { request, respondWith } of Deno.serveHttp(conn)) {
+        respondWith(handler(request));
       }
-    }
+    })();
   }
 }
 
