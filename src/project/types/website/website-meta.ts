@@ -38,6 +38,7 @@ import {
   createMarkdownPipeline,
   MarkdownPipeline,
 } from "./website-pipeline-md.ts";
+import { findPreviewImg } from "./util/discover-meta.ts";
 
 const kCard = "card";
 
@@ -362,37 +363,6 @@ function writeMeta(name: string, content: string, doc: Document) {
   // Insert the nodes
   doc.querySelector("head")?.appendChild(m);
   doc.querySelector("head")?.appendChild(nl);
-}
-
-const kNamedFileRegex =
-  /(.*?(?:preview|feature|cover|thumbnail).*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))/;
-function findPreviewImg(
-  doc: Document,
-): string | undefined {
-  let image = undefined;
-  // look for an image explicitly marked as the preview image (.class .quarto-preview)
-  const match = doc.querySelector("img.preview-image");
-  if (match) {
-    const src = getDecodedAttribute(match, "src");
-    if (src !== null) {
-      image = src;
-    }
-  }
-
-  // look for an image with name feature, cover, or thumbnail
-  if (image == undefined) {
-    const imgs = doc.querySelectorAll("img");
-    for (let i = 0; i < imgs.length; i++) {
-      const img = imgs[i] as Element;
-      const src = getDecodedAttribute(img, "src");
-      if (src !== null && kNamedFileRegex.test(src)) {
-        image = src;
-        break;
-      }
-    }
-  }
-
-  return image;
 }
 
 const kMetaTitleId = "quarto-metatitle";
