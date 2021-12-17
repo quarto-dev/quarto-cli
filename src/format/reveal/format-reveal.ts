@@ -579,12 +579,19 @@ function applyStretch(doc: Document, autoStretch: boolean) {
         }
         const nodeEl = selNode as Element;
 
+        const removeEmpty = function (el: Element) {
+          const parentEl = el.parentElement;
+          // Remove element then maybe remove its parents
+          parentEl?.removeChild(el);
+          if (parentEl?.innerText.trim() === "") removeEmpty(parentEl);
+        };
+
         // Do not apply stretch if the image is a column layout
         if (nodeEl.nodeName === "DIV" && nodeEl.classList.contains("columns")) {
           imageEl.classList.remove("stretch");
         } else {
           // Remove image from its parent
-          image.parentNode?.removeChild(image);
+          removeEmpty(imageEl);
           // insert at first level after the element
           slideEl.insertBefore(
             image,
@@ -612,11 +619,9 @@ function applyStretch(doc: Document, autoStretch: boolean) {
               figCaption.remove();
             }
             // Remove the container
-            quartoFig.remove();
+            removeEmpty(quartoFig);
           }
         }
-
-        // TODO: remove empty image container
       }
     }
   });
