@@ -28,8 +28,8 @@ function checkForEqualsInChunk(
   if (error.error.keyword !== 'type')
     return error;
   let m;
-  const errorHeading = `${error.location}: ${JSON.stringify(badObject)} must be a YAML mapping.`;
-  const errorMsg = tidyverseError(`${JSON.stringify(badObject)} is a string.`);
+  const errorHeading = `${error.location}: \`${badObject}\` must be a YAML mapping.`;
+  const errorMsg = tidyverseError(`\`${badObject}\` is a string.`);
   
   if (m = badObject.match(/= *TRUE/i)) {
     const suggestion = tidyverseInfo(`Did you accidentally use \`${m[0]}\` instead of \`: true\`?`);
