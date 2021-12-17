@@ -5,14 +5,13 @@
 *
 */
 
-import { ServerRequest } from "http/server_legacy.ts";
 import { Format } from "../../config/types.ts";
 
 import { ProjectContext } from "../../project/types.ts";
 
 export interface ProjectWatcher {
-  handle: (req: ServerRequest) => boolean;
-  connect: (req: ServerRequest) => Promise<void>;
+  handle: (req: Request) => boolean;
+  connect: (req: Request) => Promise<Response | undefined>;
   injectClient: (
     file: Uint8Array,
     inputFile?: string,

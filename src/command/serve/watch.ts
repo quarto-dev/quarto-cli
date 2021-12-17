@@ -5,8 +5,6 @@
 *
 */
 
-import { ServerRequest } from "http/server_legacy.ts";
-
 import { extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -328,7 +326,7 @@ export function watchProject(
 
   // return watcher interface
   return Promise.resolve({
-    handle: (req: ServerRequest) => {
+    handle: (req: Request) => {
       return devServer.handle(req);
     },
     connect: devServer.connect,

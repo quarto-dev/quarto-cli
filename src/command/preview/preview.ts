@@ -9,8 +9,6 @@ import { info } from "log/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { serve, ServerRequest } from "http/server_legacy.ts";
-
 import { ld } from "lodash/mod.ts";
 
 import { kOutputFile } from "../../config/constants.ts";
@@ -22,6 +20,7 @@ import {
   httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
+  maybeDisplaySocketError,
 } from "../../core/http.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
 import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
@@ -114,7 +113,7 @@ export async function preview(
     );
 
   // serve project
-  const server = serve({ port: options.port, hostname: options.host });
+  const server = Deno.listen({ port: options.port, hostname: options.host });
 
   // open browser if requested
   const initialPath = isPdfContent(result.outputFile)
@@ -133,8 +132,16 @@ export async function preview(
   printBrowsePreviewMessage(options.port, initialPath);
 
   // handle requests
-  for await (const req of server) {
-    await handler(req);
+  for await (const conn of server) {
+    const httpConn = Deno.serveHttp(conn);
+    for await (const requestEvent of httpConn) {
+      const response = await handler(requestEvent.request);
+      try {
+        requestEvent.respondWith(response);
+      } catch (e) {
+        maybeDisplaySocketError(e);
+      }
+    }
   }
 }
 
@@ -389,16 +396,14 @@ function htmlFileRequestHandlerOptions(
     baseDir,
     defaultFile,
     printUrls: "404",
-    onRequest: async (req: ServerRequest) => {
+    onRequest: async (req: Request) => {
       if (reloader.handle(req)) {
-        await reloader.connect(req);
-        return true;
+        return await reloader.connect(req);
       } else if (req.url.startsWith("/quarto-render/")) {
-        await req.respond(httpContentResponse("rendered"));
         await renderHandler();
-        return true;
+        return httpContentResponse("rendered");
       } else {
-        return false;
+        return undefined;
       }
     },
     onFile: async (file: string) => {

@@ -1,5 +1,3 @@
-import { onSignal } from "signal/mod.ts";
-
 import { debug } from "log/mod.ts";
 import {
   Command,
@@ -134,8 +132,8 @@ if (import.meta.main) {
 
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
-      onSignal("SIGINT", cleanup);
-      onSignal("SIGTERM", cleanup);
+      Deno.addSignalListener("SIGINT", cleanup);
+      Deno.addSignalListener("SIGTERM", cleanup);
     }
 
     await pdf(Deno.args);

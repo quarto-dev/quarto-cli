@@ -7,21 +7,17 @@
 
 import { LogRecord } from "log/mod.ts";
 
-import { ServerRequest } from "http/server_legacy.ts";
-
-import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 import { isRevealjsOutput } from "../config/format.ts";
 import { Format } from "../config/types.ts";
 import { renderEjs } from "./ejs.ts";
 import { maybeDisplaySocketError } from "./http.ts";
 import { LogEventsHandler } from "./log.ts";
-import { isJupyterHubServer, isRStudioServer } from "./platform.ts";
 import { kLocalhost } from "./port.ts";
 import { resourcePath } from "./resources.ts";
 
 export interface HttpDevServer {
-  handle: (req: ServerRequest) => boolean;
-  connect: (req: ServerRequest) => Promise<void>;
+  handle: (req: Request) => boolean;
+  connect: (req: Request) => Promise<Response | undefined>;
   injectClient: (
     file: Uint8Array,
     inputFile?: string,
@@ -59,21 +55,17 @@ export function httpDevServer(
   });
 
   return {
-    handle: (req: ServerRequest) => {
+    handle: (req: Request) => {
       return req.headers.get("upgrade") === "websocket";
     },
-    connect: async (req: ServerRequest) => {
-      const { conn, r: bufReader, w: bufWriter, headers } = req;
+    connect: (req: Request) => {
       try {
-        const socket = await acceptWebSocket({
-          conn,
-          bufReader,
-          bufWriter,
-          headers,
-        });
+        const { socket, response } = Deno.upgradeWebSocket(req);
         clients.push({ path: req.url, socket });
+        return Promise.resolve(response);
       } catch (e) {
         maybeDisplaySocketError(e);
+        return Promise.resolve(undefined);
       }
     },
     injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
@@ -97,8 +89,12 @@ export function httpDevServer(
         } catch (e) {
           maybeDisplaySocketError(e);
         } finally {
-          if (!socket.isClosed) {
-            socket.close().catch(maybeDisplaySocketError);
+          if (!socket.CLOSED && !socket.CLOSING) {
+            try {
+              socket.close();
+            } catch (e) {
+              maybeDisplaySocketError(e);
+            }
           }
           clients.splice(i, 1);
         }

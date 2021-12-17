@@ -5,7 +5,6 @@
 *
 */
 
-import { onSignal } from "signal/mod.ts";
 
 import {
   Command,
@@ -96,8 +95,8 @@ if (import.meta.main) {
   try {
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
-      onSignal("SIGINT", abend);
-      onSignal("SIGTERM", abend);
+      Deno.addSignalListener("SIGINT", abend);
+      Deno.addSignalListener("SIGTERM", abend);
     }
 
     await initializeLogger(logOptions(parse(Deno.args)));

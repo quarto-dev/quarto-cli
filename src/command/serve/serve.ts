@@ -9,8 +9,6 @@ import { error, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
-import { serve, ServerRequest } from "http/server_legacy.ts";
-
 import { ld } from "lodash/mod.ts";
 import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 
@@ -48,6 +46,7 @@ import {
 import {
   httpFileRequestHandler,
   HttpFileRequestOptions,
+  maybeDisplaySocketError,
 } from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
@@ -226,12 +225,11 @@ export async function serveProject(
     printUrls: "all",
 
     // handle websocket upgrade requests
-    onRequest: async (req: ServerRequest) => {
+    onRequest: async (req: Request) => {
       if (watcher.handle(req)) {
-        await watcher.connect(req);
-        return true;
+        return await watcher.connect(req);
       } else {
-        return false;
+        return undefined;
       }
     },
 
@@ -336,7 +334,7 @@ export async function serveProject(
   };
 
   // serve project
-  const server = serve({ port: options.port, hostname: options.host });
+  const server = Deno.listen({ port: options.port, hostname: options.host });
 
   // compute site url
   const siteUrl = `http://localhost:${options.port}/`;
@@ -386,8 +384,16 @@ export async function serveProject(
 
   // wait for requests
   const handler = httpFileRequestHandler(handlerOptions);
-  for await (const req of server) {
-    handler(req);
+  for await (const conn of server) {
+    const httpConn = Deno.serveHttp(conn);
+    for await (const requestEvent of httpConn) {
+      const response = await handler(requestEvent.request);
+      try {
+        requestEvent.respondWith(response);
+      } catch (e) {
+        maybeDisplaySocketError(e);
+      }
+    }
   }
 }
 
