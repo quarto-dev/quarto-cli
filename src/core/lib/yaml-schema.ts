@@ -10,7 +10,7 @@
 
 import { mappedIndexToRowCol, MappedString } from "./mapped-text.ts";
 import { formatLineRange, lines } from "./text.ts";
-import { normalizeSchema } from "./schema.ts";
+import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -150,36 +150,40 @@ function navigateSchema(
   path: string[],
   schema: JSONSchema,
   pathIndex = 0,
-): JSONSchema {
+): JSONSchema[] {
+  if (schema.$ref) {
+    schema = getSchemaDefinition(schema.$ref);
+  }
   if (pathIndex >= path.length - 1) {
-    return schema;
+    return [schema];
   }
   const pathVal = path[pathIndex];
-  if (pathVal === "patternProperties") {
+  // allOf doesn't appear to trigger a new path in the schemapath, so
+  // we have to check if the _current_ schema is an allOf, and just
+  // iterate over all of them and concatenate. Maybe? :shrug: ?
+  if (schema.allOf !== undefined) {
+    return schema.allOf.map((s: Schema) => navigateSchema(path, s, pathIndex)).flat();
+  } else if (pathVal === "patternProperties" && schema.patternProperties) {
     const key = path[pathIndex + 1];
     const subSchema = schema.patternProperties[key];
     return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "properties") {
+  } else if (pathVal === "properties" && schema.properties) {
     const key = path[pathIndex + 1];
     const subSchema = schema.properties[key];
     return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "anyOf") {
+  } else if (pathVal === "anyOf" && schema.anyOf) {
     const key = Number(path[pathIndex + 1]);
     const subSchema = schema.anyOf[key];
     return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "allOf") {
-    const key = Number(path[pathIndex + 1]);
-    const subSchema = schema.allOf[key];
-    return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "oneOf") {
+  } else if (pathVal === "oneOf" && schema.oneOf) {
     const key = Number(path[pathIndex + 1]);
     const subSchema = schema.oneOf[key];
     return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "items") {
+  } else if (pathVal === "items" && schema.items) {
     const subSchema = schema.items;
     return navigateSchema(path, subSchema, pathIndex + 1);
   } else {
-    throw new Error(`Internal error: Failed to navigate schema path ${path}`);
+    return [];
   }
 }
 
@@ -384,12 +388,19 @@ function localizeAndPruneErrors(
       if (error.keyword.startsWith("_custom_")) {
         messageNoLocation = error.message;
       } else {
-        const innerSchema = navigateSchema(schemaPath.map(decodeURIComponent), schema);
         if (instancePath === "") {
           messageNoLocation = `(top-level error) ${error.message}`;
         } else {
-          messageNoLocation =
-            `Field ${instancePath} must ${innerSchema.description}`;
+          const errorSchema = error.params && error.params.schema;
+          const innerSchema = errorSchema ? [errorSchema] : navigateSchema(schemaPath.map(decodeURIComponent), schema);
+          if (innerSchema.length === 0) {
+            // this is probably an internal error..
+            messageNoLocation = `Field ${instancePath}, schema ${schemaPath}: ${error.message}`;
+          } else {
+            const idTag = errorSchema.$id ? ` (${errorSchema.$id})` : ""
+            messageNoLocation =
+              `Field ${instancePath} must ${innerSchema.map(s => s.description).join(", ")}${idTag}`;
+          }
         }
       }
       const message = `${locStr}: ${messageNoLocation}`;

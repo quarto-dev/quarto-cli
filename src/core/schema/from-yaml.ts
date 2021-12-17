@@ -125,7 +125,7 @@ function convertFromBoolean(yaml: any): Schema
 
 function convertFromRef(yaml: any): Schema
 {
-  return refS(yaml.ref, yaml.description || "");
+  return refS(yaml.ref, yaml.description || `be ${yaml.ref}`);
 }
 
 function convertFromMaybeArrayOf(yaml: any): Schema

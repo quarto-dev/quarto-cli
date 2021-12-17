@@ -20,7 +20,7 @@ import { dirname } from "path/mod.ts";
 let ajvInit = false;
 export async function ensureAjv() {
   if (!ajvInit) {
-    setupAjv(new Ajv({ allErrors: true, code: { optimize: false, source: true } }));
+    setupAjv(new Ajv({ allErrors: true, inlineRefs: false, code: { optimize: false, source: true } }));
     ajvInit = true;
     await loadDefaultSchemaDefinitions();
   }

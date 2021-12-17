@@ -271,7 +271,7 @@
 - arrayOf:
     id: sidebar-contents
     schema:
-      oneOf:
+      anyOf:
         - ref: navigation-item
         - path
         - object:
