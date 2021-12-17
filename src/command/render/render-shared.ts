@@ -176,7 +176,7 @@ export function printWatchingForChangesMessage() {
 export function printBrowsePreviewMessage(port: number, path: string) {
   if (isJupyterHubServer()) {
     info(
-      `Browse at <jupyterhub-url>/user/${jupyterHubUser()}/proxy/${port}/${path}`,
+      `\nBrowse at <jupyterhub-server-url>/user/${jupyterHubUser()}/proxy/${port}/${path}`,
       {
         format: colors.green,
       },
