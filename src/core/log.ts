@@ -241,6 +241,16 @@ export function logError(e: Error) {
   }
 }
 
+export function errorOnce(msg: string) {
+  if (!errors[msg]) {
+    errors[msg] = true;
+    error(msg);
+    return true;
+  }
+  return false;
+}
+const errors: Record<string, boolean> = {};
+
 export function warnOnce(msg: string) {
   if (!warnings[msg]) {
     warnings[msg] = true;
