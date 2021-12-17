@@ -137,7 +137,7 @@ export async function preview(
     for await (const requestEvent of httpConn) {
       const response = await handler(requestEvent.request);
       try {
-        requestEvent.respondWith(response);
+        await requestEvent.respondWith(response);
       } catch (e) {
         maybeDisplaySocketError(e);
       }
