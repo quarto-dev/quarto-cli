@@ -15,7 +15,7 @@ import { Format } from "../config/types.ts";
 import { renderEjs } from "./ejs.ts";
 import { maybeDisplaySocketError } from "./http.ts";
 import { LogEventsHandler } from "./log.ts";
-import { isRStudioServer } from "./platform.ts";
+import { isJupyterHubServer, isRStudioServer } from "./platform.ts";
 import { kLocalhost } from "./port.ts";
 import { resourcePath } from "./resources.ts";
 
@@ -91,6 +91,11 @@ export function httpDevServer(
     reloadClients: async (reloadTarget = "") => {
       for (let i = clients.length - 1; i >= 0; i--) {
         let clientReloadTarget = reloadTarget;
+        // can't reload indvidual pages on jupyterhub b/c the
+        // client path is reported as "/" even on port proxy
+        if (isJupyterHubServer()) {
+          clientReloadTarget = "";
+        }
         const socket = clients[i].socket;
         try {
           // if this is rstudio server then we might need to include a port proxy

@@ -47,6 +47,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
+import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 
 interface PreviewOptions {
   port: number;
@@ -124,12 +125,12 @@ export async function preview(
     )
     : "";
   const url = `http://localhost:${options.port}/${initialPath}`;
-  if (options.browse) {
+  if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
     await openUrl(url);
   }
 
   // print status
-  printBrowsePreviewMessage(url);
+  printBrowsePreviewMessage(options.port, initialPath);
 
   // handle requests
   for await (const req of server) {

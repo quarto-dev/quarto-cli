@@ -28,7 +28,11 @@ import {
 } from "./types.ts";
 import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
-import { isRStudioServer } from "../../core/platform.ts";
+import {
+  isJupyterHubServer,
+  isRStudioServer,
+  jupyterHubUser,
+} from "../../core/platform.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 
 export async function render(
@@ -169,12 +173,22 @@ export function printWatchingForChangesMessage() {
   info("Watching files for changes", { format: colors.green });
 }
 
-export function printBrowsePreviewMessage(url: string) {
-  if (!isRStudioServer()) {
-    info(`Browse at `, {
-      newline: false,
-      format: colors.green,
-    });
+export function printBrowsePreviewMessage(port: number, path: string) {
+  if (isJupyterHubServer()) {
+    info(
+      `Browse at <jupyterhub-url>/user/${jupyterHubUser()}/proxy/${port}/${path}`,
+      {
+        format: colors.green,
+      },
+    );
+  } else {
+    const url = `http://localhost:${port}/${path}`;
+    if (!isRStudioServer()) {
+      info(`Browse at `, {
+        newline: false,
+        format: colors.green,
+      });
+    }
+    info(url, { format: (str: string) => colors.underline(colors.green(str)) });
   }
-  info(url, { format: (str: string) => colors.underline(colors.green(str)) });
 }

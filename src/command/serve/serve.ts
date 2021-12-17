@@ -74,6 +74,7 @@ import {
 import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-config.ts";
 import { removePandocToArg } from "../render/flags.ts";
+import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -349,14 +350,17 @@ export async function serveProject(
     : pdfOutput
     ? kPdfJsInitialPath
     : renderResultUrlPath(renderResult);
-  const browseUrl = targetPath
-    ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
-    : siteUrl;
 
   // print browse url and open browser if requested
-  printBrowsePreviewMessage(browseUrl);
+  printBrowsePreviewMessage(
+    options.port,
+    (targetPath && targetPath !== "index.html") ? targetPath : "",
+  );
 
-  if (options.browse) {
+  if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
+    const browseUrl = targetPath
+      ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
+      : siteUrl;
     await openUrl(browseUrl);
   }
 
