@@ -20,7 +20,8 @@ import { resourcePath } from "../resources.ts";
 import {
   Schema,
   getSchemaDefinition,
-  setSchemaDefinition
+  setSchemaDefinition,
+  hasSchemaDefinition
 } from "../lib/schema.ts";
 
 import {
@@ -234,11 +235,10 @@ function convertFromObject(yaml: any): Schema
 
 function lookup(yaml: any): Schema
 {
-  const result = getSchemaDefinition(yaml.resolveRef);
-  if (result === undefined) {
+  if (!hasSchemaDefinition(yaml.resolveRef)) {
     throw new Error(`lookup of key ${yaml.resolveRef} in definitions failed`);
   }
-  return result;
+  return getSchemaDefinition(yaml.resolveRef);
 }
 
 export function convertFromYaml(yaml: any): Schema

@@ -10,7 +10,7 @@ import { convertFromYaml } from "./from-yaml.ts";
 import { idSchema, refSchema } from "./common.ts";
 import { readYaml } from "../yaml.ts";
 import { ensureAjv } from "./yaml-schema.ts";
-import { normalizeSchema, Schema, getSchemaDefinition, setSchemaDefinition } from "../lib/schema.ts";
+import { normalizeSchema, Schema, hasSchemaDefinition, setSchemaDefinition } from "../lib/schema.ts";
 import { error } from "log/mod.ts";
 import { schemaPath } from "./utils.ts";
 import { buildSchemaResources } from "./from-yaml.ts";
@@ -20,8 +20,7 @@ export function defineCached(thunk: () => Promise<Schema>, schemaId: string): ((
   let schema: Schema;
   return async () => {
     await ensureAjv();
-    const result = getSchemaDefinition(schemaId);
-    if (result === undefined) {
+    if (!hasSchemaDefinition(schemaId)) {
       schema = await thunk();
       if (schemaId !== schema!.$id as string) {
         schema = idSchema(schema, schemaId);
@@ -35,7 +34,7 @@ export function defineCached(thunk: () => Promise<Schema>, schemaId: string): ((
 export async function define(schema: Schema)
 {
   await ensureAjv();
-  if (getSchemaDefinition(schema.$id) === undefined) {
+  if (!hasSchemaDefinition(schema.$id)) {
     await withValidator(normalizeSchema(schema), (_validator) => {
       setSchemaDefinition(schema);
     });

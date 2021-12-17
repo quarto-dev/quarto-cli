@@ -191,8 +191,16 @@ export function normalizeSchema(schema: Schema): Schema {
 
 const definitionsObject: Record<string, Schema> = {};
 
-export function getSchemaDefinition(key: string): Schema | undefined
+export function hasSchemaDefinition(key: string): boolean
 {
+  return definitionsObject[key] !== undefined;
+}
+
+export function getSchemaDefinition(key: string): Schema
+{
+  if (definitionsObject[key] === undefined) {
+    throw new Error(`Internal Error: Schema ${key} not found.`);
+  }
   return definitionsObject[key];
 }
 

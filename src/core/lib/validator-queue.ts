@@ -5,7 +5,7 @@
 *
 */
 
-import { YAMLSchema } from "./yaml-schema.ts";
+import { YAMLSchema, LocalizedError, AnnotatedParse } from "./yaml-schema.ts";
 import { PromiseQueue } from "./promise.ts";
 import { Schema } from "./schema.ts";
 
@@ -66,4 +66,15 @@ export async function withValidator<T>(
   }
 
   return result!;
+}
+
+export function addValidatorErrorHandler(
+  schema: Schema,
+  handler: (error: LocalizedError,
+            parse: AnnotatedParse,
+            schema: Schema) => LocalizedError
+) {
+  return withValidator(schema, (validator) => {
+    validator.addHandler(handler);
+  })
 }

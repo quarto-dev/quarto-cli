@@ -14,7 +14,8 @@ import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export interface AnnotatedParse {
+export interface AnnotatedParse
+{
   start: number;
   end: number;
   // deno-lint-ignore no-explicit-any
@@ -47,9 +48,6 @@ export function setupAjv(_ajv: any) {
 export function getAjvInstance() {
   return ajv;
 }
-
-// deno-lint-ignore no-explicit-any
-export type JSONSchema = any;
 
 export interface ErrorObject {
   keyword: string; // validation keyword.
@@ -84,6 +82,7 @@ export interface LocalizedError {
   instancePath: string;
   message: string;
   messageNoLocation?: string;
+  location: string;
   start?: {
     line: number;
     column: number;
@@ -148,9 +147,9 @@ function navigate(
 
 function navigateSchema(
   path: string[],
-  schema: JSONSchema,
+  schema: Schema,
   pathIndex = 0,
-): JSONSchema[] {
+): Schema[] {
   if (schema.$ref) {
     schema = getSchemaDefinition(schema.$ref);
   }
@@ -264,7 +263,7 @@ function localizeAndPruneErrors(
   annotation: AnnotatedParse,
   validationErrors: ErrorObject[],
   source: MappedString,
-  schema: JSONSchema,
+  schema: Schema,
 ) {
   const result: LocalizedError[] = [];
 
@@ -410,6 +409,7 @@ function localizeAndPruneErrors(
         violatingObject,
         message,
         messageNoLocation,
+        location: locStr,
         source,
         start,
         end,
@@ -434,11 +434,18 @@ interface ValidatedParseResult {
 // requests over any one schema.
 
 export class YAMLSchema {
-  schema: JSONSchema; // FIXME: I haven't found typescript typings for JSON Schema
+  schema: Schema; // FIXME: I haven't found typescript typings for JSON Schema
   // deno-lint-ignore no-explicit-any
   validate: any; // FIXME: find the typing for this
 
-  constructor(schema: JSONSchema, compiledModule?: any) {
+  // These are schema-specific error transformers to yield custom
+  // error messages.
+  errorHandlers: ((error: LocalizedError,
+                   annotation: AnnotatedParse,
+                   schema: Schema) => LocalizedError)[];
+  
+  constructor(schema: Schema, compiledModule?: any) {
+    this.errorHandlers = [];
     this.schema = schema;
     if (compiledModule !== undefined) {
       this.validate = compiledModule[this.schema.$id || this.schema.$ref];
@@ -447,18 +454,37 @@ export class YAMLSchema {
     }
   }
 
+  addHandler(handler: (error: LocalizedError,
+                       annotation: AnnotatedParse,
+                       schema: Schema) => LocalizedError)
+  {
+    this.errorHandlers.push(handler);
+  }
+  
+  transformErrors(
+    annotation: AnnotatedParse,
+    errors: LocalizedError[])
+  {
+    return errors.map(error => {
+      for (const handler of this.errorHandlers) {
+        error = handler(error, annotation, this.schema);
+      }
+      return error;
+    });
+  }
+  
   validateParse(
     src: MappedString,
     annotation: AnnotatedParse,
   ) {
     let errors: LocalizedError[] = [];
     if (!this.validate(annotation.result)) {
-      errors = localizeAndPruneErrors(
+      errors = this.transformErrors(annotation, localizeAndPruneErrors(
         annotation,
         this.validate.errors,
         src,
         this.schema,
-      );
+      ));
       return {
         result: annotation.result,
         errors,
