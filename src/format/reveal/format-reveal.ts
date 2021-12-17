@@ -579,36 +579,41 @@ function applyStretch(doc: Document, autoStretch: boolean) {
         }
         const nodeEl = selNode as Element;
 
-        // Remove image from its parent
-        image.parentNode?.removeChild(image);
-        // insert at first level after the element
-        slideEl.insertBefore(
-          image,
-          nodeEl.nextElementSibling,
-        );
-
-        // Figure environment ? Get caption and alignment
-        const quartoFig = slideEl.querySelector("div.quarto-figure");
-        if (quartoFig) {
-          // Get alignment
-          const align = quartoFig.className.match(
-            "quarto-figure-(center|left|right)",
+        // Do not apply stretch if the image is a column layout
+        if (nodeEl.nodeName === "DIV" && nodeEl.classList.contains("columns")) {
+          imageEl.classList.remove("stretch");
+        } else {
+          // Remove image from its parent
+          image.parentNode?.removeChild(image);
+          // insert at first level after the element
+          slideEl.insertBefore(
+            image,
+            nodeEl.nextElementSibling,
           );
-          if (align) imageEl.classList.add(align[0]);
-          // Get Caption
-          const figCaption = nodeEl.querySelector("figcaption");
-          if (figCaption) {
-            const caption = doc.createElement("p");
-            caption.classList.add("caption");
-            caption.innerHTML = figCaption.innerHTML;
-            slideEl.insertBefore(
-              caption,
-              imageEl.nextElementSibling,
+
+          // Figure environment ? Get caption and alignment
+          const quartoFig = slideEl.querySelector("div.quarto-figure");
+          if (quartoFig) {
+            // Get alignment
+            const align = quartoFig.className.match(
+              "quarto-figure-(center|left|right)",
             );
-            figCaption.remove();
+            if (align) imageEl.classList.add(align[0]);
+            // Get Caption
+            const figCaption = nodeEl.querySelector("figcaption");
+            if (figCaption) {
+              const caption = doc.createElement("p");
+              caption.classList.add("caption");
+              caption.innerHTML = figCaption.innerHTML;
+              slideEl.insertBefore(
+                caption,
+                imageEl.nextElementSibling,
+              );
+              figCaption.remove();
+            }
+            // Remove the container
+            quartoFig.remove();
           }
-          // Remove the container
-          quartoFig.remove();
         }
 
         // TODO: remove empty image container
