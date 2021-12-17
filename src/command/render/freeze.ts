@@ -209,6 +209,7 @@ export function pruneProjectFreezerDir(
     try {
       removeIfExists(filePath);
     } catch {
+      //
     }
   });
   removeIfEmptyDir(join(freezerDir, dir));
