@@ -132,10 +132,10 @@ if (import.meta.main) {
     const args = parse(Deno.args);
     await initializeLogger(logOptions(args));
 
-    // install termination signal handlers (not yet supported on Windows)
+    // install termination signal handlers
     if (Deno.build.os !== "windows") {
-      onSignal(Deno.Signal.SIGINT, cleanup);
-      onSignal(Deno.Signal.SIGTERM, cleanup);
+      onSignal("SIGINT", cleanup);
+      onSignal("SIGTERM", cleanup);
     }
 
     await pdf(Deno.args);

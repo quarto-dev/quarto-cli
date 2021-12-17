@@ -5,7 +5,7 @@
 *
 */
 
-import { error, info, warning } from "log/mod.ts";
+import { error, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
@@ -74,6 +74,7 @@ import {
 import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-config.ts";
 import { removePandocToArg } from "../render/flags.ts";
+import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -100,8 +101,10 @@ export async function serveProject(
   // confirm that it's a project type that can be served
   if (!projectIsWebsite(project)) {
     throw new Error(
-      `Cannot serve project of type '${project?.config?.project[kProjectType] ||
-        "default"}' (try using project type 'site').`,
+      `Cannot serve project of type '${
+        project?.config?.project[kProjectType] ||
+        "default"
+      }' (try using project type 'site').`,
     );
   }
 
@@ -288,7 +291,9 @@ export async function serveProject(
         const fileContents = Deno.readFileSync(file);
 
         // inject watcher client for html
-        if (isHtmlContent(file) && inputFile && result) {
+        if (
+          isHtmlContent(file) && inputFile && result && result.files.length > 0
+        ) {
           const projInputFile = join(
             project!.dir,
             relative(watcher.serveProject().dir, inputFile),
@@ -345,15 +350,18 @@ export async function serveProject(
     : pdfOutput
     ? kPdfJsInitialPath
     : renderResultUrlPath(renderResult);
-  const browseUrl = targetPath
-    ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
-    : siteUrl;
 
   // print browse url and open browser if requested
-  printBrowsePreviewMessage(browseUrl);
+  printBrowsePreviewMessage(
+    options.port,
+    (targetPath && targetPath !== "index.html") ? targetPath : "",
+  );
 
-  if (options.browse) {
-    openUrl(browseUrl);
+  if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
+    const browseUrl = targetPath
+      ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
+      : siteUrl;
+    await openUrl(browseUrl);
   }
 
   // if this is a pdf then we tweak the options to correctly handle pdfjs
