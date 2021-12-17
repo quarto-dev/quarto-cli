@@ -26,10 +26,23 @@ function checkForEqualsInChunk(
   const badObject = error.violatingObject.result;
   if (error.error.keyword !== 'type')
     return error;
-  if (badObject.match('=')) {
+  let m;
+  if (m = badObject.match(/= *TRUE/i)) {
     error = {
       ...error,
-      message: `${error.location}: ${JSON.stringify(badObject)} is a string, but it needs to be an object. Did you accidentally use '=' instead of ':'?`
+      message: `${error.location}: ${JSON.stringify(badObject)} is a string, but it needs to be a YAML mapping. Did you accidentally use '${m[0]}' instead of ': true'?`
+    };
+    return error;
+  } else if (m = badObject.match(/= *FALSE/i)) {
+    error = {
+      ...error,
+      message: `${error.location}: ${JSON.stringify(badObject)} is a string, but it needs to be a YAML mapping. Did you accidentally use '${m[0]}' instead of ': false'?`
+    };
+    return error;
+  } else if (badObject.match('=')) {
+    error = {
+      ...error,
+      message: `${error.location}: ${JSON.stringify(badObject)} is a string, but it needs to be a YAML mapping. Did you accidentally use '=' instead of ':'?`
     };
     return error;
   }
