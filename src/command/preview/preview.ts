@@ -394,7 +394,7 @@ function htmlFileRequestHandlerOptions(
     onRequest: async (req: Request) => {
       if (reloader.handle(req)) {
         return reloader.connect(req);
-      } else if (req.url.startsWith("/quarto-render/")) {
+      } else if (req.url.endsWith("/quarto-render/")) {
         await renderHandler();
         return httpContentResponse("rendered");
       } else {
