@@ -25,7 +25,6 @@ import {
 } from "../website-pipeline-md.ts";
 import { renderEjs } from "../../../../core/ejs.ts";
 import { resourcePath } from "../../../../core/resources.ts";
-import { lines } from "../../../../core/text.ts";
 import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
 
 // The core listing type
@@ -168,28 +167,40 @@ function markdownHandler(
   items: ListingItem[],
 ) {
   switch (listing.type) {
-    case ListingType.Table:
+    case ListingType.Table: {
       return templateMarkdownHandler(
         "projects/website/listing/listing-table.ejs.md",
         listing,
         items,
       );
-    case ListingType.Grid:
+    }
+    case ListingType.Grid: {
       // Enable grid on the listing container
       listing.classes.push("grid");
 
+      // resolve options
+      listing.options = listing.options || {};
+      const cols = listing.options.columns as number || 3;
+      listing.options["card-column-span"] = columnSpan(cols);
+
+      // TODO: Gap configurable?
       return templateMarkdownHandler(
         "projects/website/listing/listing-grid.ejs.md",
         listing,
         items,
+        {
+          style: "--bs-gap: 1em;",
+        },
       );
+    }
     case ListingType.Cards:
-    default:
+    default: {
       return templateMarkdownHandler(
         "projects/website/listing/listing-card.ejs.md",
         listing,
         items,
       );
+    }
   }
 }
 
@@ -197,6 +208,7 @@ const templateMarkdownHandler = (
   template: string,
   listing: Listing,
   items: ListingItem[],
+  attributes?: Record<string, string>,
 ) => {
   // Render the template into markdown
   const markdown = renderEjs(
@@ -229,6 +241,13 @@ const templateMarkdownHandler = (
 
       // Append any requested classes
       listing.classes.forEach((clz) => listingEl?.classList.add(clz));
+
+      // Add attributes
+      if (attributes) {
+        Object.keys(attributes).forEach((attrName) => {
+          listingEl?.setAttribute(attrName, attributes[attrName]);
+        });
+      }
 
       const renderedEl = rendered[listing.id];
       for (const child of renderedEl.children) {
@@ -404,4 +423,25 @@ function resolveListingStr(val: string): Listing {
     contents: [val],
     classes: [],
   };
+}
+
+// Forces a user input column value into the appropriate
+// grid span bucket
+const kGridColSize = 24;
+const kGridValidSpans = [2, 3, 4, 6, 8, 12, 24];
+function columnSpan(columns: number) {
+  const rawValue = kGridColSize / columns;
+  for (let i = 0; i < kGridValidSpans.length; i++) {
+    const validSpan = kGridValidSpans[i];
+    if (rawValue === validSpan) {
+      return rawValue;
+    } else if (
+      i < kGridValidSpans.length && rawValue < kGridValidSpans[i + 1]
+    ) {
+      return validSpan;
+    } else if (i === kGridValidSpans.length - 1) {
+      return kGridValidSpans[i];
+    }
+  }
+  return rawValue;
 }

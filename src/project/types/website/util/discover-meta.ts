@@ -68,7 +68,6 @@ export function findPreviewImgMd(markdown?: string): string | undefined {
     // Look for an image with a 'magic' name
     const fileNameMatch = markdown.match(kMdNamedImageRegex);
     if (fileNameMatch) {
-      console.log(fileNameMatch);
       return fileNameMatch[1];
     }
 
