@@ -118,6 +118,7 @@ export const kPdfSeparateFragments = "pdfSeparateFragments";
 export const kAutoAnimateEasing = "autoAnimateEasing";
 export const kAutoAnimateDuration = "autoAnimateDuration";
 export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
+export const kAutoStretch = "auto-stretch";
 
 export function optionsToKebab(options: string[]) {
   return options.reduce(
@@ -193,6 +194,9 @@ export function revealjsFormat() {
       },
       render: {
         [kCodeLineNumbers]: true,
+      },
+      metadata: {
+        [kAutoStretch]: true,
       },
       resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
@@ -535,6 +539,90 @@ function revealHtmlPostprocessor(format: Format) {
       referencesDiv.appendChild(refs);
     }
 
+    applyStretch(doc, format.metadata[kAutoStretch] as boolean);
+
     return Promise.resolve([]);
   };
+}
+
+function applyStretch(doc: Document, autoStretch: boolean) {
+  // Add stretch class to images in slides with only one image
+  const allSlides = doc.querySelectorAll("section");
+  allSlides.forEach((slide) => {
+    const slideEl = slide as Element;
+    const images = slideEl.querySelectorAll("img");
+    // only target slides with one image
+    if (images.length === 1) {
+      const image = images[0];
+      const imageEl = image as Element;
+
+      // add stretch class if not already when auto-stretch is set
+      const hasStretchClass = function (imageEl: Element): boolean {
+        return imageEl.classList.contains("stretch") ||
+          imageEl.classList.contains("r-stretch");
+      };
+      if (autoStretch === true && !hasStretchClass(imageEl)) {
+        imageEl.classList.add("stretch");
+      }
+      // If <img class="stetch"> is not a direct child of <section>, move it
+      if (
+        hasStretchClass(imageEl) &&
+        imageEl.parentNode?.nodeName !== "SECTION"
+      ) {
+        // find the first level node that contains the img
+        let selNode;
+        for (const node of slide.childNodes) {
+          if (node.contains(image)) {
+            selNode = node;
+            break;
+          }
+        }
+        const nodeEl = selNode as Element;
+
+        const removeEmpty = function (el: Element) {
+          const parentEl = el.parentElement;
+          // Remove element then maybe remove its parents
+          parentEl?.removeChild(el);
+          if (parentEl?.innerText.trim() === "") removeEmpty(parentEl);
+        };
+
+        // Do not apply stretch if the image is a column layout
+        if (nodeEl.nodeName === "DIV" && nodeEl.classList.contains("columns")) {
+          imageEl.classList.remove("stretch");
+        } else {
+          // Remove image from its parent
+          removeEmpty(imageEl);
+          // insert at first level after the element
+          slideEl.insertBefore(
+            image,
+            nodeEl.nextElementSibling,
+          );
+
+          // Figure environment ? Get caption and alignment
+          const quartoFig = slideEl.querySelector("div.quarto-figure");
+          if (quartoFig) {
+            // Get alignment
+            const align = quartoFig.className.match(
+              "quarto-figure-(center|left|right)",
+            );
+            if (align) imageEl.classList.add(align[0]);
+            // Get Caption
+            const figCaption = nodeEl.querySelector("figcaption");
+            if (figCaption) {
+              const caption = doc.createElement("p");
+              caption.classList.add("caption");
+              caption.innerHTML = figCaption.innerHTML;
+              slideEl.insertBefore(
+                caption,
+                imageEl.nextElementSibling,
+              );
+              figCaption.remove();
+            }
+            // Remove the container
+            removeEmpty(quartoFig);
+          }
+        }
+      }
+    }
+  });
 }

@@ -335,6 +335,14 @@ $panel-sidebar-padding: 0.5em;
   color: $text-muted;
 }
 
+// handle caption for figures
+.reveal .slide {
+  figure > figcaption,
+  img.stretch + p.caption {
+    font-size: #{$presentation-font-smaller}em;
+  }
+}
+
 @media screen and (min-width: 500px) {
   $arrow-spacing: 0.2em;
   $control-arrow-spacing: 1.4em;
