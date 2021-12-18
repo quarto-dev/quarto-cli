@@ -68,7 +68,25 @@
     margin-bottom: 0.2em;
   }
 
-  .reveal .slide figure > figcaption {
-    font-size: 0.5em
+  .reveal .slide > img.stretch.quarto-figure-center,
+  .reveal .slide > img.r-stretch.quarto-figure-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto; 
   }
+
+  .reveal .slide > img.stretch.quarto-figure-left,
+  .reveal .slide > img.r-stretch.quarto-figure-left  {
+    display: block;
+    margin-left: 0;
+    margin-right: auto; 
+  }
+
+  .reveal .slide > img.stretch.quarto-figure-right,
+  .reveal .slide > img.r-stretch.quarto-figure-right  {
+    display: block;
+    margin-left: auto;
+    margin-right: 0; 
+  }
+
 </style>

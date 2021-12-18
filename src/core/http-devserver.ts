@@ -1,26 +1,23 @@
 /*
-* http-reload.ts
+* http-devserver.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
 
-import { ServerRequest } from "http/server_legacy.ts";
+import { LogRecord } from "log/mod.ts";
 
-import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 import { isRevealjsOutput } from "../config/format.ts";
 import { Format } from "../config/types.ts";
 import { renderEjs } from "./ejs.ts";
 import { maybeDisplaySocketError } from "./http.ts";
-import { isRStudioServer } from "./platform.ts";
+import { LogEventsHandler } from "./log.ts";
 import { kLocalhost } from "./port.ts";
 import { resourcePath } from "./resources.ts";
 
-// track a set of http clients and notify them when to reload themselves
-
-export interface HttpReloader {
-  handle: (req: ServerRequest) => boolean;
-  connect: (req: ServerRequest) => Promise<void>;
+export interface HttpDevServer {
+  handle: (req: Request) => boolean;
+  connect: (req: Request) => Promise<Response | undefined>;
   injectClient: (
     file: Uint8Array,
     inputFile?: string,
@@ -29,10 +26,10 @@ export interface HttpReloader {
   reloadClients: (reloadTarget?: string) => Promise<void>;
 }
 
-export function httpReloader(
+export function httpDevServer(
   port: number,
   isPresentation?: boolean,
-): HttpReloader {
+): HttpDevServer {
   // track clients
   interface Client {
     path: string;
@@ -40,22 +37,35 @@ export function httpReloader(
   }
   const clients: Client[] = [];
 
+  // stream log events to clients
+  LogEventsHandler.onLog(async (logRecord: LogRecord, msg: string) => {
+    for (let i = clients.length - 1; i >= 0; i--) {
+      const socket = clients[i].socket;
+      try {
+        await socket.send(
+          "log:" + JSON.stringify({
+            ...logRecord,
+            msgFormatted: msg,
+          }),
+        );
+      } catch (_e) {
+        // we don't want to recurse so we ignore errors here
+      }
+    }
+  });
+
   return {
-    handle: (req: ServerRequest) => {
+    handle: (req: Request) => {
       return req.headers.get("upgrade") === "websocket";
     },
-    connect: async (req: ServerRequest) => {
-      const { conn, r: bufReader, w: bufWriter, headers } = req;
+    connect: (req: Request) => {
       try {
-        const socket = await acceptWebSocket({
-          conn,
-          bufReader,
-          bufWriter,
-          headers,
-        });
+        const { socket, response } = Deno.upgradeWebSocket(req);
         clients.push({ path: req.url, socket });
+        return Promise.resolve(response);
       } catch (e) {
         maybeDisplaySocketError(e);
+        return Promise.resolve(undefined);
       }
     },
     injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
@@ -72,23 +82,19 @@ export function httpReloader(
 
     reloadClients: async (reloadTarget = "") => {
       for (let i = clients.length - 1; i >= 0; i--) {
-        let clientReloadTarget = reloadTarget;
         const socket = clients[i].socket;
         try {
-          // if this is rstudio server then we might need to include a port proxy
-          if (isRStudioServer() && clientReloadTarget) {
-            const prefix = clients[i].path.match(/^\/p\/\w+\//);
-            if (prefix) {
-              clientReloadTarget = prefix[0] +
-                clientReloadTarget.replace(/^\//, "");
-            }
-          }
-          await socket.send(`reload${clientReloadTarget}`);
+          const message = "reload";
+          await socket.send(`${message}${reloadTarget}`);
         } catch (e) {
           maybeDisplaySocketError(e);
         } finally {
-          if (!socket.isClosed) {
-            socket.close().catch(maybeDisplaySocketError);
+          if (!socket.CLOSED && !socket.CLOSING) {
+            try {
+              socket.close();
+            } catch (e) {
+              maybeDisplaySocketError(e);
+            }
           }
           clients.splice(i, 1);
         }
@@ -103,9 +109,9 @@ function devServerClientScript(
   format?: Format,
   isPresentation?: boolean,
 ): string {
-  // reload devserver
+  // core devserver
   const devserver = [
-    renderEjs(resourcePath("editor/devserver/devserver-reload.html"), {
+    renderEjs(resourcePath("editor/devserver/devserver-core.html"), {
       localhost: kLocalhost,
       port,
     }),

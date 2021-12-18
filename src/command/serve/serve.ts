@@ -9,7 +9,7 @@ import { error, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
-import { serve, ServerRequest } from "http/server_legacy.ts";
+import { listenAndServe } from "http/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
@@ -48,6 +48,7 @@ import {
 import {
   httpFileRequestHandler,
   HttpFileRequestOptions,
+  maybeDisplaySocketError,
 } from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
@@ -74,6 +75,7 @@ import {
 import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-config.ts";
 import { removePandocToArg } from "../render/flags.ts";
+import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -225,12 +227,11 @@ export async function serveProject(
     printUrls: "all",
 
     // handle websocket upgrade requests
-    onRequest: async (req: ServerRequest) => {
+    onRequest: async (req: Request) => {
       if (watcher.handle(req)) {
-        await watcher.connect(req);
-        return true;
+        return await watcher.connect(req);
       } else {
-        return false;
+        return undefined;
       }
     },
 
@@ -290,7 +291,9 @@ export async function serveProject(
         const fileContents = Deno.readFileSync(file);
 
         // inject watcher client for html
-        if (isHtmlContent(file) && inputFile && result) {
+        if (
+          isHtmlContent(file) && inputFile && result && result.files.length > 0
+        ) {
           const projInputFile = join(
             project!.dir,
             relative(watcher.serveProject().dir, inputFile),
@@ -332,9 +335,6 @@ export async function serveProject(
     },
   };
 
-  // serve project
-  const server = serve({ port: options.port, hostname: options.host });
-
   // compute site url
   const siteUrl = `http://localhost:${options.port}/`;
 
@@ -347,15 +347,18 @@ export async function serveProject(
     : pdfOutput
     ? kPdfJsInitialPath
     : renderResultUrlPath(renderResult);
-  const browseUrl = targetPath
-    ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
-    : siteUrl;
 
   // print browse url and open browser if requested
-  printBrowsePreviewMessage(browseUrl);
+  printBrowsePreviewMessage(
+    options.port,
+    (targetPath && targetPath !== "index.html") ? targetPath : "",
+  );
 
-  if (options.browse) {
-    openUrl(browseUrl);
+  if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
+    const browseUrl = targetPath
+      ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
+      : siteUrl;
+    await openUrl(browseUrl);
   }
 
   // if this is a pdf then we tweak the options to correctly handle pdfjs
@@ -378,10 +381,16 @@ export async function serveProject(
     );
   }
 
-  // wait for requests
+  // serve project
   const handler = httpFileRequestHandler(handlerOptions);
-  for await (const req of server) {
-    handler(req);
+  for await (
+    const conn of Deno.listen({ port: options.port, hostname: options.host })
+  ) {
+    (async () => {
+      for await (const { request, respondWith } of Deno.serveHttp(conn)) {
+        respondWith(handler(request));
+      }
+    })();
   }
 }
 

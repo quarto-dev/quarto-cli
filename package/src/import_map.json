@@ -1,20 +1,19 @@
 {
     "imports": {
         "cliffy/": "https://deno.land/x/cliffy/",
-        "encoding/": "https://deno.land/std@0.117.0/encoding/",
-        "flags/": "https://deno.land/std@0.117.0/flags/",
-        "fmt/": "https://deno.land/std@0.117.0/fmt/",
-        "fs/": "https://deno.land/std@0.117.0/fs/",
-        "io/": "https://deno.land/std@0.117.0/io/",
-        "log/": "https://deno.land/std@0.117.0/log/",
-        "streams/": "https://deno.land/std@0.117.0/streams/",
-        "path/": "https://deno.land/std@0.117.0/path/",
+        "encoding/": "https://deno.land/std@0.118.0/encoding/",
+        "flags/": "https://deno.land/std@0.118.0/flags/",
+        "fmt/": "https://deno.land/std@0.118.0/fmt/",
+        "fs/": "https://deno.land/std@0.118.0/fs/",
+        "io/": "https://deno.land/std@0.118.0/io/",
+        "log/": "https://deno.land/std@0.118.0/log/",
+        "streams/": "https://deno.land/std@0.118.0/streams/",
+        "path/": "https://deno.land/std@0.118.0/path/",
         "lodash/": "https://deno.land/x/deno_lodash/",
-        "async/": "https://deno.land/std@0.117.0/async/",
+        "async/": "https://deno.land/std@0.118.0/async/",
         "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5",
-	
-	"diff": "https://cdn.skypack.dev/diff",
-	"ajv": "https://cdn.skypack.dev/ajv",
-	"deno_dom/": "https://deno.land/x/deno_dom@v0.1.14-alpha/"
+        "diff": "https://cdn.skypack.dev/diff",
+        "ajv": "https://cdn.skypack.dev/ajv",
+        "deno_dom/": "https://deno.land/x/deno_dom@v0.1.14-alpha/"
     }
 }

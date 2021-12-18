@@ -37,11 +37,7 @@ export async function capabilities(): Promise<Capabilities> {
     if (pythonEx.jupyter_core) {
       pythonEx.kernels = Array.from((await jupyterKernelspecs()).values());
     }
-    if (!pythonEx.conda) {
-      pythonEx.venv = true;
-    } else {
-      pythonEx.venv = !!await jupyterCapabilitiesNoConda();
-    }
+    pythonEx.venv = !!pythonEx.conda;
   }
 
   return caps;

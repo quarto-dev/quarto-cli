@@ -11,7 +11,6 @@ import { error, info } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { Response, ServerRequest } from "http/server_legacy.ts";
 import { contentType, isHtmlContent } from "./mime.ts";
 import { logError } from "./log.ts";
 import { pathWithForwardSlashes } from "./path.ts";
@@ -20,10 +19,10 @@ export interface HttpFileRequestOptions {
   baseDir: string;
   defaultFile?: string;
   printUrls?: "all" | "404";
-  onRequest?: (req: ServerRequest) => Promise<boolean>;
+  onRequest?: (req: Request) => Promise<Response | undefined>;
   onFile?: (
     file: string,
-    req: ServerRequest,
+    req: Request,
   ) => Promise<Uint8Array | undefined>;
   on404?: (url: string) => { print?: boolean; body?: Uint8Array };
 }
@@ -37,7 +36,7 @@ export function httpFileRequestHandler(
 ) {
   async function serveFile(
     filePath: string,
-    req: ServerRequest,
+    req: Request,
   ): Promise<Response> {
     // read file (allow custom handler first shot at html files)
     let fileContents: Uint8Array | undefined;
@@ -52,16 +51,15 @@ export function httpFileRequestHandler(
   }
 
   function serveFallback(
-    req: ServerRequest,
+    req: Request,
     e: Error,
     fsPath?: string,
   ): Promise<Response> {
     const encoder = new TextEncoder();
     if (e instanceof URIError) {
-      return Promise.resolve({
-        status: 400,
-        body: encoder.encode("Bad Request"),
-      });
+      return Promise.resolve(
+        new Response(encoder.encode("BadRequest"), { status: 400 }),
+      );
     } else if (e instanceof Deno.errors.NotFound) {
       const url = normalizeURL(req.url);
       const handle404 = options.on404
@@ -76,24 +74,27 @@ export function httpFileRequestHandler(
       if (handle404.print) {
         printUrl(url, false);
       }
-      return Promise.resolve({
-        status: 404,
-        body: handle404.body,
-      });
+      return Promise.resolve(
+        new Response(handle404.body, {
+          status: 404,
+        }),
+      );
     } else {
       error(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
-      return Promise.resolve({
-        status: 500,
-        body: encoder.encode("Internal server error"),
-      });
+      return Promise.resolve(
+        new Response(encoder.encode("Internal server error"), {
+          status: 500,
+        }),
+      );
     }
   }
 
-  return async (req: ServerRequest): Promise<void> => {
+  return async (req: Request): Promise<Response> => {
     // custom request handler
     if (options.onRequest) {
-      if (await options.onRequest(req)) {
-        return;
+      const response = await options.onRequest(req);
+      if (response) {
+        return response;
       }
     }
 
@@ -128,13 +129,8 @@ export function httpFileRequestHandler(
         e,
         fsPath,
       );
-    } finally {
-      try {
-        await req.respond(response!);
-      } catch (e) {
-        maybeDisplaySocketError(e);
-      }
     }
+    return response!;
   };
 }
 
@@ -152,11 +148,10 @@ export function httpContentResponse(
     headers.set("Content-Type", contentType);
   }
   headers.set("Cache-Control", "no-store, max-age=0");
-  return {
+  return new Response(content, {
     status: 200,
-    body: content,
     headers,
-  };
+  });
 }
 
 export function normalizeURL(url: string): string {
@@ -194,7 +189,8 @@ export function maybeDisplaySocketError(e: unknown) {
   if (
     !(e instanceof Deno.errors.BrokenPipe) &&
     !(e instanceof Deno.errors.ConnectionAborted) &&
-    !(e instanceof Deno.errors.ConnectionReset)
+    !(e instanceof Deno.errors.ConnectionReset) &&
+    !(e instanceof DOMException)
   ) {
     logError(e as Error);
   }
@@ -203,10 +199,10 @@ export function maybeDisplaySocketError(e: unknown) {
 function serveRedirect(url: string): Response {
   const headers = new Headers();
   headers.set("Location", url);
-  return {
+  return new Response(null, {
     status: 301,
     headers,
-  };
+  });
 }
 
 function printUrl(url: string, found = true) {

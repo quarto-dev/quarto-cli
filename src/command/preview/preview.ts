@@ -9,8 +9,6 @@ import { info } from "log/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { serve, ServerRequest } from "http/server_legacy.ts";
-
 import { ld } from "lodash/mod.ts";
 
 import { kOutputFile } from "../../config/constants.ts";
@@ -22,8 +20,9 @@ import {
   httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
+  maybeDisplaySocketError,
 } from "../../core/http.ts";
-import { HttpReloader, httpReloader } from "../../core/http-reload.ts";
+import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
 import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
@@ -47,6 +46,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
+import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 
 interface PreviewOptions {
   port: number;
@@ -76,7 +76,7 @@ export async function preview(
   const project = await projectContext(file);
 
   // create client reloader
-  const reloader = httpReloader(options.port, options.presentation);
+  const reloader = httpDevServer(options.port, options.presentation);
 
   // watch for changes and re-render / re-load as necessary
   const changeHandler = createChangeHandler(
@@ -112,9 +112,6 @@ export async function preview(
       changeHandler.render,
     );
 
-  // serve project
-  const server = serve({ port: options.port, hostname: options.host });
-
   // open browser if requested
   const initialPath = isPdfContent(result.outputFile)
     ? kPdfJsInitialPath
@@ -124,16 +121,22 @@ export async function preview(
     )
     : "";
   const url = `http://localhost:${options.port}/${initialPath}`;
-  if (options.browse) {
-    openUrl(url);
+  if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
+    await openUrl(url);
   }
 
   // print status
-  printBrowsePreviewMessage(url);
+  printBrowsePreviewMessage(options.port, initialPath);
 
-  // handle requests
-  for await (const req of server) {
-    await handler(req);
+  // serve project
+  for await (
+    const conn of Deno.listen({ port: options.port, hostname: options.host })
+  ) {
+    (async () => {
+      for await (const { request, respondWith } of Deno.serveHttp(conn)) {
+        respondWith(handler(request));
+      }
+    })();
   }
 }
 
@@ -214,7 +217,7 @@ interface ChangeHandler {
 
 function createChangeHandler(
   result: RenderForPreviewResult,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   render: () => Promise<RenderForPreviewResult>,
   renderOnChange: boolean,
 ): ChangeHandler {
@@ -342,7 +345,7 @@ function projectHtmlFileRequestHandler(
   context: ProjectContext,
   inputFile: string,
   format: Format,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ) {
   return httpFileRequestHandler(
@@ -361,7 +364,7 @@ function htmlFileRequestHandler(
   htmlFile: string,
   inputFile: string,
   format: Format,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ) {
   return httpFileRequestHandler(
@@ -381,23 +384,21 @@ function htmlFileRequestHandlerOptions(
   defaultFile: string,
   inputFile: string,
   format: Format,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ): HttpFileRequestOptions {
   return {
     baseDir,
     defaultFile,
     printUrls: "404",
-    onRequest: async (req: ServerRequest) => {
+    onRequest: async (req: Request) => {
       if (reloader.handle(req)) {
-        await reloader.connect(req);
-        return true;
-      } else if (req.url.startsWith("/quarto-render/")) {
-        await req.respond(httpContentResponse("rendered"));
+        return reloader.connect(req);
+      } else if (req.url.endsWith("/quarto-render/")) {
         await renderHandler();
-        return true;
+        return httpContentResponse("rendered");
       } else {
-        return false;
+        return undefined;
       }
     },
     onFile: async (file: string) => {
@@ -421,7 +422,7 @@ function pdfFileRequestHandler(
   pdfFile: string,
   inputFile: string,
   format: Format,
-  reloader: HttpReloader,
+  reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
