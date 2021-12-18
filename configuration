@@ -8,7 +8,8 @@
 
 
 # Binary dependencies
-export DENO=v1.17.0
+export DENO=v1.16.4
+export DENO_CANARY_COMMIT=b220a58d1a678ffd46a42567909d0b0d59731d99
 export PANDOC=2.16.2
 export DARTSASS=1.32.8
 export ESBUILD=0.12.10
