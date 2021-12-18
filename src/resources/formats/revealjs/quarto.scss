@@ -338,7 +338,8 @@ $panel-sidebar-padding: 0.5em;
 // handle caption for figures
 .reveal .slide {
   figure > figcaption,
-  img.stretch + p.caption {
+  img.stretch + p.caption,
+  img.r-stretch + p.caption {
     font-size: #{$presentation-font-smaller}em;
   }
 }

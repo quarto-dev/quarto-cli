@@ -562,7 +562,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           imageEl.classList.contains("r-stretch");
       };
       if (autoStretch === true && !hasStretchClass(imageEl)) {
-        imageEl.classList.add("stretch");
+        imageEl.classList.add("r-stretch");
       }
       // If <img class="stetch"> is not a direct child of <section>, move it
       if (
@@ -589,6 +589,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
         // Do not apply stretch if the image is a column layout
         if (nodeEl.nodeName === "DIV" && nodeEl.classList.contains("columns")) {
           imageEl.classList.remove("stretch");
+          imageEl.classList.remove("r-stretch");
         } else {
           // Remove image from its parent
           removeEmpty(imageEl);
