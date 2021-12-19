@@ -3,8 +3,7 @@
 
 :::{.card .quarto-card .my-2}
 <% if (item.image) { %>
-:::card-image-<%=imageAlign%>
-![](<%= item.image %>){.card-top data-no-responsive="true" <%= imageWidth ? `width="${imageWidth}"` : '' %>}
+:::{.card-image-<%=imageAlign%> style="background-image: url(<%= item.image %>);"}
 :::
 <% } %>
 :::card-body
