@@ -12,10 +12,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 
 import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
 import { JupyterCapabilitiesEx } from "../../core/jupyter/types.ts";
-import {
-  jupyterCapabilities,
-  jupyterCapabilitiesNoConda,
-} from "../../core/jupyter/capabilities.ts";
+import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { jupyterKernelspecs } from "../../core/jupyter/kernels.ts";
 
 export interface Capabilities {
@@ -37,7 +34,7 @@ export async function capabilities(): Promise<Capabilities> {
     if (pythonEx.jupyter_core) {
       pythonEx.kernels = Array.from((await jupyterKernelspecs()).values());
     }
-    pythonEx.venv = !!pythonEx.conda;
+    pythonEx.venv = !pythonEx.conda;
   }
 
   return caps;

@@ -113,7 +113,11 @@ function preprocessTable(el, parentId)
         
         -- provide error caption if there is none
         if #last.content == 0 then
-          last.content:insert(noCaption())
+          if parentId then
+            tappend(last.content, { emptyCaption() })
+          else
+            tappend(last.content, { noCaption() })
+          end
         end
         
       -- if there is a parent then auto-assign a label if there is none 

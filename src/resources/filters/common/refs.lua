@@ -10,7 +10,7 @@ function hasFigureRef(el)
 end
 
 function isFigureRef(identifier)
-  return string.find(identifier, "^fig%-")
+  return (identifier ~= nil) and string.find(identifier, "^fig%-")
 end
 
 -- does this element have a table label?
@@ -19,7 +19,7 @@ function hasTableRef(el)
 end
 
 function isTableRef(identifier)
-  return string.find(identifier, "^tbl%-")
+  return (identifier ~= nil) and string.find(identifier, "^tbl%-")
 end
 
 -- does this element support sub-references
@@ -53,6 +53,10 @@ end
 
 function noCaption()
   return pandoc.Strong( { pandoc.Str("?(caption)") })
+end
+
+function emptyCaption()
+  return pandoc.Str("")
 end
 
 function hasSubRefs(divEl, type)
