@@ -190,7 +190,8 @@
                   Link to file contained with the project or external URL
             text:
               string:
-                description: Text to display for navigation item (defaults to the
+                description: |
+                  Text to display for navigation item (defaults to the
                   document title if not provided)
             icon:
               string:
@@ -303,7 +304,9 @@
         maybeArrayOf:
           enum: [none, edit, source, issue]
           description: "Links to source repository actions"
-
+      reader-mode:
+        boolean:
+          description: "Display a reader mode toggle for the site."
       navbar:
         oneOf:
           - boolean
