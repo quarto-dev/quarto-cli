@@ -583,7 +583,13 @@ function applyStretch(doc: Document, autoStretch: boolean) {
         return imageEl.classList.contains("stretch") ||
           imageEl.classList.contains("r-stretch");
       };
-      if (autoStretch === true && !hasStretchClass(imageEl)) {
+      if (
+        autoStretch === true &&
+        !hasStretchClass(imageEl) &&
+        // if height is already set, we do nothing
+        !imageEl.getAttribute("style")?.match("height:") &&
+        !imageEl.hasAttribute("height")
+      ) {
         imageEl.classList.add("r-stretch");
       }
       // If <img class="stetch"> is not a direct child of <section>, move it
