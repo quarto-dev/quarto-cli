@@ -112,7 +112,7 @@
       A short caption (only used in LaTeX output). A short caption is inserted in `\caption[]`, 
       and usually displayed in the “List of Figures” of a PDF document.
 
-- name: caption-location
+- name: cap-location
   schema:
     enum: [inline, margin]
   default: inline
