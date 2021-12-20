@@ -7,7 +7,7 @@
 *
 */
 
-import { Schema, normalizeSchema } from "../lib/schema.ts";
+import { normalizeSchema, Schema } from "../lib/schema.ts";
 
 import {
   anyOfSchema as anyOfS,
@@ -54,7 +54,7 @@ const commonCellOptionsSchema = objectS({
   properties: {
     [kCellLabel]: StringS,
     [kCellFigCap]: anyOfS(StringS, arrayS(StringS)),
-    [kCellFigSubCap]: arrayS(StringS),
+    [kCellFigSubCap]: anyOfS(StringS, arrayS(StringS)),
     [kCellLstLabel]: StringS,
     [kCellLstCap]: StringS,
     [kCellClasses]: StringS,
@@ -112,8 +112,9 @@ export const jupyterCellOptionsSchema = withId(
 
 export const rCellOptionsSchema = withId(commonCellOptionsSchema, "r");
 
-export async function getLanguageOptionsSchema(normalized?: boolean): Promise<Record<string, Schema>>
-{
+export async function getLanguageOptionsSchema(
+  normalized?: boolean,
+): Promise<Record<string, Schema>> {
   // currently this could be sync but eventually it'll be just like the
   // other schema, produced from YAML and hence async
 

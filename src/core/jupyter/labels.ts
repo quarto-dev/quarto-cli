@@ -32,7 +32,7 @@ import { includeOutput } from "./tags.ts";
 
 export function cellLabel(cell: JupyterCellWithOptions) {
   const label = asHtmlId(
-    (cell.options[kCellLabel] || cell.metadata[kCellName] || ""),
+    cell.options[kCellLabel] || cell.metadata[kCellName] || "",
   );
 
   if (label && !label.startsWith("#")) {
@@ -80,8 +80,10 @@ export function shouldLabelCellContainer(
     return true;
   }
 
-  // multiple display data outputs
-  if (displayDataOutputs.length > 1) {
+  // multiple display data outputs (with multiple caps)
+  if (
+    displayDataOutputs.length > 1 && !Array.isArray(cell.options[kCellFigCap])
+  ) {
     return true;
   }
 
@@ -93,7 +95,7 @@ export function shouldLabelOutputContainer(
   output: JupyterOutput,
   options: JupyterToMarkdownOptions,
 ) {
-  // label output container unless this is an image (which gets it's id directly assigned)
+  // label output container unless this is an image (which gets its ids directly assigned)
   if (isDisplayData(output)) {
     if (!isCaptionableData(output)) {
       return false;
@@ -137,7 +139,11 @@ export function resolveCaptions(cell: JupyterCellWithOptions) {
       };
     }
   } else if (cell.options[kCellFigCap]) {
-    if (cell.options[kCellFigSubCap]) {
+    if (cell.options[kCellFigSubCap] !== undefined) {
+      let subCap = cell.options[kCellFigSubCap];
+      if (!Array.isArray(subCap)) {
+        subCap = [String(subCap)];
+      }
       return {
         cellCaption: cell.options[kCellFigCap],
         outputCaptions: cell.options[kCellFigSubCap] || [],
