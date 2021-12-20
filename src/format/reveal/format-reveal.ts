@@ -550,6 +550,10 @@ function applyStretch(doc: Document, autoStretch: boolean) {
   const allSlides = doc.querySelectorAll("section");
   for (const slide of allSlides) {
     const slideEl = slide as Element;
+
+    // opt-out mechanism per slide
+    if (slideEl.classList.contains("nostretch")) continue;
+
     const images = slideEl.querySelectorAll("img");
     // only target slides with one image
     if (images.length === 1) {
