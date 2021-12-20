@@ -167,7 +167,7 @@ knitr_hooks <- function(format, resourceDir) {
     if (!is.null(placeholder)) {
       figs <- length(regmatches(x, gregexpr(placeholder, x, fixed = TRUE))[[1]])
       for (i in 1:figs) {
-        suffix <- ifelse(!is.null(fig.subcap), paste0("-", i), "")
+        suffix <- ifelse(figs > 1, paste0("-", i), "")
         x <- sub(placeholder, paste0(label, suffix), fixed = TRUE, x)
       }
     }
