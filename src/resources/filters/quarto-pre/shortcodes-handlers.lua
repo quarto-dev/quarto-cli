@@ -20,6 +20,10 @@ function handlerForShortcode(shortCode, type)
     var = {
       type = "inline",
       handle = handleVars
+    },
+    env = {
+      type = "inline",
+      handle = handleEnv
     }
   }
   
@@ -27,6 +31,26 @@ function handlerForShortcode(shortCode, type)
   if handler ~= nil and handler.type == type then
     return handler
   else
+    return nil
+  end
+end
+
+-- Implements reading values from envrionment variables
+function handleEnv(shortCode)
+  if #shortCode.args > 0 then
+    -- the args are the var name
+    local varName = inlinesToString(shortCode.args[1].value)
+
+    -- read the environment variable
+    local envValue = os.getenv(varName)
+    if envValue ~= nil then
+      return { pandoc.Str(envValue) }  
+    else 
+      warn("Unknown variable " .. varName .. " specified in an env Shortcode.")
+      return { pandoc.Strong({pandoc.Str("?env:" .. varName)}) } 
+    end
+  else
+    -- no args, we can't do anything
     return nil
   end
 end
