@@ -125,7 +125,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         if (!isVisible) {
           // If the element is current not visible reveal if there are
           // no conflicts with overlay regions
-          if (!inHiddenRegion(elTop, elBottom, hiddenRegions)) {
+          if (
+            !inHiddenRegion(elTop, elBottom, hiddenRegions) ||
+            !isReaderMode()
+          ) {
             for (const child of el.children) {
               child.style.opacity = 1;
             }
@@ -142,8 +145,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           }
         } else {
           // If the element is visible, hide it if it conflicts with overlay regions
-          // and insert a placeholder toggle
-          if (inHiddenRegion(elTop, elBottom, hiddenRegions)) {
+          // and insert a placeholder toggle (or if we're in reader mode)
+          if (
+            inHiddenRegion(elTop, elBottom, hiddenRegions) ||
+            isReaderMode()
+          ) {
             const elBackground = window
               .getComputedStyle(window.document.body, null)
               .getPropertyValue("background");
@@ -155,7 +161,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
             const toggleContainer = window.document.createElement("div");
             toggleContainer.style.width = "100%";
-            toggleContainer.classList.add("zindex-modal");
+            toggleContainer.classList.add("zindex-over-content");
             toggleContainer.classList.add("quarto-sidebar-toggle");
             toggleContainer.classList.add("headroom-target"); // Marks this to be managed by headeroom
             toggleContainer.id = placeholderDescriptor.id;
@@ -171,14 +177,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               placeholderDescriptor.titleSelector
             );
             toggleTitle.append(titleEl.innerText, toggleIcon);
-            toggleTitle.classList.add("zindex-modal");
+            toggleTitle.classList.add("zindex-over-content");
             toggleTitle.classList.add("quarto-sidebar-toggle-title");
             toggleContainer.append(toggleTitle);
 
             const toggleContents = window.document.createElement("div");
             toggleContents.style.background = elBackground;
             toggleContents.classList = el.classList;
-            toggleContents.classList.add("zindex-modal");
+            toggleContents.classList.add("zindex-over-content");
             toggleContents.classList.add("quarto-sidebar-toggle-contents");
             for (const child of el.children) {
               if (child.id === "toc-title") {
@@ -327,6 +333,28 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     sidebarScrollVisiblity(toRegions(leftSideConflictEls));
   };
 
+  window.quartoToggleReader = () => {
+    setReaderModeValue(!isReaderMode());
+    hideOverlappedSidebars();
+  };
+
+  const setReaderModeValue = (val) => {
+    if (window.location.protocol !== "file:") {
+      window.localStorage.setItem("quarto-reader-mode", val);
+    } else {
+      localReaderMode = val;
+    }
+  };
+
+  const isReaderMode = () => {
+    if (window.location.protocol !== "file:") {
+      return window.localStorage.getItem("quarto-reader-mode");
+    } else {
+      return localReaderMode;
+    }
+  };
+  let localReaderMode = null;
+
   // Walk the TOC and collapse/expand nodes
   // Nodes are expanded if:
   // - they are top level
@@ -379,13 +407,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         updateActiveLink();
         walk(tocEl, 0);
       }
-      hideOverlappedSidebars();
+      if (!isReaderMode()) {
+        hideOverlappedSidebars();
+      }
     }, 5)
   );
   window.addEventListener(
     "resize",
     throttle(() => {
-      hideOverlappedSidebars();
+      if (!isReaderMode()) {
+        hideOverlappedSidebars();
+      }
     }, 10)
   );
   hideOverlappedSidebars();
