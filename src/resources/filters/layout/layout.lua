@@ -137,7 +137,11 @@ function partitionCells(divEl)
     if isPreambleBlock(block) then
       preamble:insert(block)
     elseif block.t == "Header" then
-      heading = block
+      if isRevealJsOutput() then
+        heading = pandoc.Para({ pandoc.Strong(block.content)})
+      else
+        heading = block
+      end
     else 
       -- ensure we are dealing with a div
       local cellDiv = nil
