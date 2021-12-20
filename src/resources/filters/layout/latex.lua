@@ -328,6 +328,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   
   -- derive prefix, content, and suffix
   local prefix = pandoc.List()
+  local subcap = pandoc.List()
   local content = pandoc.List()
   local suffix = pandoc.List()
 
@@ -353,11 +354,10 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
       cell.content = tslice(cell.content, 1, #cell.content-1)
     end
     
-    -- prefix
-    latexAppend(prefix, "\\subfloat[")
-    tappend(prefix, caption)
-    latexAppend(prefix, "]{\\label{" .. label .. "}%")
-    latexAppend(prefix, "\n")
+    -- subcap
+    latexAppend(subcap, "\\subcaption{\\label{" .. label .. "}")
+    tappend(subcap, caption)
+    latexAppend(subcap, "}\n")
   end
   
   -- convert to latex percent as necessary
@@ -366,6 +366,8 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   -- start the minipage
   local miniPageVAlign = latexMinipageValign(vAlign)
   latexAppend(prefix, "\\begin{minipage}" .. miniPageVAlign .. "{" .. width .. "}\n")
+
+  tappend(prefix, subcap)
 
 
   -- if we aren't in a sub-ref we may need to do some special work to
@@ -405,10 +407,6 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
 
   -- close the minipage
   latexAppend(suffix, "\\end{minipage}%")
-  
-  if isSubRef then
-    latexAppend(suffix, "\n}")
-  end
   
   latexAppend(suffix, "\n")
   if not endOfRow then

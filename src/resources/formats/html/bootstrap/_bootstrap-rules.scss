@@ -793,6 +793,19 @@ div.hanging-indent {
   word-break: break-word;
 }
 
+table {
+  caption-side: top;
+}
+
+.quarto-layout-cell[data-ref-parent] table {
+  caption-side: bottom;
+}
+
+caption,
+.table-caption {
+  text-align: center;
+}
+
 @if $code-block-border-left {
   // Align source code and callout text (not border) with main body text when there is room
   @include media-breakpoint-up(lg) {

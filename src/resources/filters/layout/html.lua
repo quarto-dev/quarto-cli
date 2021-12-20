@@ -91,7 +91,12 @@ function htmlPanel(divEl, layout, caption)
       panel.content:insert(captionPara)
     else
       local panelCaption = pandoc.Div(caption, pandoc.Attr("", { "panel-caption" }))
-      panel.content:insert(panelCaption)
+      if hasTableRef(divEl) then
+        panelCaption.attr.classes:insert("table-caption")
+        tprepend(panel.content, { panelCaption })
+      else
+        panel.content:insert(panelCaption)
+      end
     end
   end
   
