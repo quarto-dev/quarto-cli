@@ -112,4 +112,4 @@ $enable-cssgrid: true;
 $grid-gutter-width: 0;
 $grid-columns: 24;
 
-$zindex-content: 1025;
+$zindex-pagelayout: #{zindex-drop - 2};
