@@ -1057,6 +1057,10 @@ $callouts: (
   }
 }
 
+.quarto-toggle-container {
+  display: flex;
+}
+
 // dark mode
 .navbar .quarto-color-scheme-toggle {
   @include media-breakpoint-up(lg) {
@@ -1069,6 +1073,7 @@ $callouts: (
   }
 }
 
+.quarto-reader-toggle .bi::before,
 .quarto-color-scheme-toggle .bi::before {
   display: inline-block;
   height: 1rem;
@@ -1092,6 +1097,13 @@ $callouts: (
   margin-bottom: -0.2rem;
 }
 
+.sidebar-tools-main .quarto-reader-toggle .bi::before,
+.sidebar-tools-main .quarto-color-scheme-toggle .bi::before {
+  padding-top: 0.2rem;
+  margin-bottom: -0.2rem;
+}
+
+.navbar .quarto-reader-toggle .bi::before,
 .navbar .quarto-color-scheme-toggle .bi::before {
   padding-top: 0.2rem;
   margin-bottom: -0.2rem;
@@ -1111,6 +1123,46 @@ $callouts: (
 
 .sidebar-navigation .quarto-color-scheme-toggle.alternate .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 10%))}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
+}
+
+.navbar .quarto-reader-toggle {
+  padding-left: 0.3em;
+  padding-right: 0;
+}
+
+.navbar .quarto-reader-toggle.reader .quarto-reader-toggle-btn {
+  background-color: $navbar-light-color;
+  border-radius: 3px;
+}
+
+.quarto-reader-toggle.reader.sidebar-tool .quarto-reader-toggle-btn {
+  background-color: $sidebar-color;
+  border-radius: 3px;
+}
+
+.quarto-reader-toggle.sidebar-tool {
+  padding-left: 0.3em;
+}
+
+.quarto-reader-toggle .quarto-reader-toggle-btn {
+  width: 1.5em;
+  text-align: center;
+}
+
+.navbar .quarto-reader-toggle:not(.reader) .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-light-color)}" class="bi bi-justify-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.navbar .quarto-reader-toggle.reader .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-light-bg)}" class="bi bi-justify-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.sidebar-navigation .quarto-reader-toggle:not(.reader) .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($sidebar-color, 10%))}" class="bi bi-justify-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.sidebar-navigation .quarto-reader-toggle.reader .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($sidebar-bg, 10%))}" class="bi bi-justify-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
 }
 
 // sidebar handling

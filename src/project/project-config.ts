@@ -44,6 +44,7 @@ export interface Navbar {
   [kCollapseBelow]?: LayoutBreak;
   [kSidebarMenus]?: boolean;
   darkToggle?: boolean;
+  readerToggle?: boolean;
 }
 
 export interface NavItem {

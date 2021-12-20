@@ -342,9 +342,23 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   };
 
   window.quartoToggleReader = () => {
-    const currentMode = isReaderMode();
-    setReaderModeValue(!currentMode);
+    const readerMode = !isReaderMode();
+    setReaderModeValue(readerMode);
+    highlightReaderToggle(readerMode);
     hideOverlappedSidebars();
+  };
+
+  const highlightReaderToggle = (readerMode) => {
+    const els = document.querySelectorAll(".quarto-reader-toggle");
+    if (els) {
+      els.forEach((el) => {
+        if (readerMode) {
+          el.classList.add("reader");
+        } else {
+          el.classList.remove("reader");
+        }
+      });
+    }
   };
 
   const setReaderModeValue = (val) => {
@@ -430,6 +444,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }, 10)
   );
   hideOverlappedSidebars();
+  highlightReaderToggle(isReaderMode());
 });
 
 function throttle(func, wait) {

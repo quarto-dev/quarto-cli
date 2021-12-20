@@ -71,11 +71,13 @@ import {
 import {
   isGithubRepoUrl,
   kSiteNavbar,
+  kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
   websiteConfigActions,
+  websiteConfigBoolean,
   websiteHtmlFormat,
   websiteRepoBranch,
   websiteRepoUrl,
@@ -233,6 +235,18 @@ export async function websiteNavigationExtras(
     (nav.navbar as Record<string, unknown>).darkToggle = true;
   } else if (darkMode !== undefined && nav.sidebar) {
     (nav.sidebar as Record<string, unknown>).darkToggle = true;
+  }
+
+  // determine whether to show the reader mode toggle
+  const readerMode = websiteConfigBoolean(
+    kSiteReaderMode,
+    false,
+    project.config,
+  );
+  if (readerMode && nav.navbar) {
+    (nav.navbar as Record<string, unknown>).readerToggle = true;
+  } else if (readerMode && nav.sidebar) {
+    (nav.sidebar as Record<string, unknown>).readerToggle = true;
   }
 
   const projTemplate = (template: string) =>
