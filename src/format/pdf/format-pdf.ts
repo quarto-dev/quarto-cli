@@ -96,8 +96,23 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
       formatExtras: (_input: string, flags: PandocFlags, format: Format) => {
         const extras: FormatExtras = {};
 
+        console.log(format.metadata["documentclass"]);
+
         // Post processed for dealing with latex output
         extras.postprocessors = [pdfLatexPostProcessor(flags, format)];
+
+        // user may have overridden koma, check for that here
+        const documentclass = format.metadata[kDocumentClass] as
+          | string
+          | undefined;
+        if (
+          documentclass &&
+          !["srcbook", "scrreprt", "scrartcl", "scrlttr2"].includes(
+            documentclass,
+          )
+        ) {
+          koma = false;
+        }
 
         // default to KOMA article class. we do this here rather than
         // above so that projectExtras can override us
