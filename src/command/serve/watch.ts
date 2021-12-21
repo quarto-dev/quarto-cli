@@ -24,7 +24,6 @@ import { copyProjectForServe } from "./serve-shared.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpDevServer } from "../../core/http-devserver.ts";
-import { Format } from "../../config/types.ts";
 import { RenderFlags, RenderResult } from "../render/types.ts";
 import { renderProject } from "../render/project.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -330,8 +329,8 @@ export function watchProject(
       return devServer.handle(req);
     },
     connect: devServer.connect,
-    injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
-      return devServer.injectClient(file, inputFile, format);
+    injectClient: (file: Uint8Array, inputFile?: string) => {
+      return devServer.injectClient(file, inputFile);
     },
     project: () => project,
     serveProject: () => serveProject,

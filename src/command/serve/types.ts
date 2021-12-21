@@ -5,8 +5,6 @@
 *
 */
 
-import { Format } from "../../config/types.ts";
-
 import { ProjectContext } from "../../project/types.ts";
 
 export interface ProjectWatcher {
@@ -15,7 +13,6 @@ export interface ProjectWatcher {
   injectClient: (
     file: Uint8Array,
     inputFile?: string,
-    format?: Format,
   ) => Uint8Array;
   project: () => ProjectContext;
   serveProject: () => ProjectContext;

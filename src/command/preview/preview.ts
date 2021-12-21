@@ -20,7 +20,6 @@ import {
   httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
-  maybeDisplaySocketError,
 } from "../../core/http.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
 import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
@@ -408,7 +407,7 @@ function htmlFileRequestHandlerOptions(
           file = format.formatPreviewFile(file, format);
         }
         const fileContents = await Deno.readFile(file);
-        return reloader.injectClient(fileContents, inputFile, format);
+        return reloader.injectClient(fileContents, inputFile);
       }
     },
   };

@@ -7,8 +7,6 @@
 
 import { LogRecord } from "log/mod.ts";
 
-import { isRevealjsOutput } from "../config/format.ts";
-import { Format } from "../config/types.ts";
 import { renderEjs } from "./ejs.ts";
 import { maybeDisplaySocketError } from "./http.ts";
 import { LogEventsHandler } from "./log.ts";
@@ -21,7 +19,6 @@ export interface HttpDevServer {
   injectClient: (
     file: Uint8Array,
     inputFile?: string,
-    format?: Format,
   ) => Uint8Array;
   reloadClients: (reloadTarget?: string) => Promise<void>;
 }
@@ -68,9 +65,9 @@ export function httpDevServer(
         return Promise.resolve(undefined);
       }
     },
-    injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
+    injectClient: (file: Uint8Array, inputFile?: string) => {
       const scriptContents = new TextEncoder().encode(
-        "\n" + devServerClientScript(port, inputFile, format, isPresentation),
+        "\n" + devServerClientScript(port, inputFile, isPresentation),
       );
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
@@ -106,7 +103,6 @@ export function httpDevServer(
 function devServerClientScript(
   port: number,
   inputFile?: string,
-  format?: Format,
   isPresentation?: boolean,
 ): string {
   // core devserver
@@ -116,13 +112,10 @@ function devServerClientScript(
       port,
     }),
   ];
-  if (isPresentation && format && isRevealjsOutput(format.pandoc)) {
-    // revealjs devserver
-    if (isRevealjsOutput(format.pandoc)) {
-      devserver.push(
-        renderEjs(resourcePath("editor/devserver/devserver-revealjs.html"), {}),
-      );
-    }
+  if (isPresentation) {
+    devserver.push(
+      renderEjs(resourcePath("editor/devserver/devserver-revealjs.html"), {}),
+    );
   } else {
     // viewer devserver
     devserver.push(

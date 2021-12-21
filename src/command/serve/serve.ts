@@ -5,11 +5,9 @@
 *
 */
 
-import { error, warning } from "log/mod.ts";
+import { warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
-
-import { listenAndServe } from "http/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
@@ -48,7 +46,6 @@ import {
 import {
   httpFileRequestHandler,
   HttpFileRequestOptions,
-  maybeDisplaySocketError,
 } from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
@@ -256,6 +253,7 @@ export async function serveProject(
           );
         }
         let result: RenderResult | undefined;
+        let renderError: Error | undefined;
         if (inputFile) {
           const renderFlags = { ...flags, quiet: true };
           // remove 'to' argument to allow the file to be rendered in it's default format
@@ -281,19 +279,21 @@ export async function serveProject(
             );
             if (result.error) {
               logError(result.error);
+              renderError = result.error;
             }
           } catch (e) {
             logError(e);
+            renderError = e;
           }
         }
 
         // read the output file
-        const fileContents = Deno.readFileSync(file);
+        const fileContents = renderError
+          ? renderErrorPage(renderError)
+          : Deno.readFileSync(file);
 
         // inject watcher client for html
-        if (
-          isHtmlContent(file) && inputFile && result && result.files.length > 0
-        ) {
+        if (isHtmlContent(file) && inputFile) {
           const projInputFile = join(
             project!.dir,
             relative(watcher.serveProject().dir, inputFile),
@@ -301,7 +301,6 @@ export async function serveProject(
           return watcher.injectClient(
             fileContents,
             projInputFile,
-            result.files[0].format,
           );
         } else {
           return fileContents;
@@ -392,6 +391,11 @@ export async function serveProject(
       }
     })();
   }
+}
+
+function renderErrorPage(e: Error) {
+  const content = e.message;
+  return new TextEncoder().encode(content);
 }
 
 async function serveFiles(
