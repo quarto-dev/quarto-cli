@@ -1070,6 +1070,10 @@ $callouts: (
   }
 }
 
+.quarto-toggle-container {
+  display: flex;
+}
+
 // dark mode
 .navbar .quarto-color-scheme-toggle {
   @include media-breakpoint-up(lg) {
@@ -1082,6 +1086,7 @@ $callouts: (
   }
 }
 
+.quarto-reader-toggle .bi::before,
 .quarto-color-scheme-toggle .bi::before {
   display: inline-block;
   height: 1rem;
@@ -1105,6 +1110,13 @@ $callouts: (
   margin-bottom: -0.2rem;
 }
 
+.sidebar-tools-main .quarto-reader-toggle .bi::before,
+.sidebar-tools-main .quarto-color-scheme-toggle .bi::before {
+  padding-top: 0.2rem;
+  margin-bottom: -0.2rem;
+}
+
+.navbar .quarto-reader-toggle .bi::before,
 .navbar .quarto-color-scheme-toggle .bi::before {
   padding-top: 0.2rem;
   margin-bottom: -0.2rem;

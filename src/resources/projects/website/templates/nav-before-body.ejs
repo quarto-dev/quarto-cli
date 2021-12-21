@@ -17,9 +17,14 @@
           <% partial('navcollapse.ejs') %>
             <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
             <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
-            <% if (nav.navbar.darkToggle) { %>
-              <div>
-                <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
+            <% if (nav.navbar.darkToggle || nav.navbar.readerToggle) { %>
+              <div class="quarto-toggle-container">
+                <% if (nav.navbar.darkToggle) { %>
+                  <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
+                <% } %>
+                <% if (nav.navbar.readerToggle) { %>
+                  <% partial('navreadertoggle.ejs', { classes: 'nav-link' }) %>
+                <% } %>
               </div>
             <% } %>    
             <% if (nav.navbar.search) { %>
@@ -29,9 +34,15 @@
         <% } else { %>
           <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
           <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
-          <% if (nav.navbar.darkToggle) { %>
-            <div>
-            <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
+          <% if (nav.navbar.darkToggle || nav.navbar.readerToggle) { %>
+            <div class="quarto-toggle-container">
+              <% if (nav.navbar.darkToggle) { %>
+                <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
+              <% } %>
+              <% if (nav.navbar.readerToggle) { %>
+                <% partial('navreadertoggle.ejs', { classes: 'nav-link' }) %>
+              <% } %>
+
             </div>
           <% } %>    
           <% if (nav.navbar.search) { %>
@@ -39,9 +50,14 @@
           <% } %>
         <% } %> 
       <% } else { %>
-        <% if (nav.navbar.darkToggle) { %>
-          <div class="ms-auto">
-            <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
+        <% if (nav.navbar.darkToggle || nav.navbar.readerToggle) { %>
+          <div class="quarto-toggle-container ms-auto">
+            <% if (nav.navbar.darkToggle) { %>
+              <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
+            <% } %>
+            <% if (nav.navbar.readerToggle) { %>
+              <% partial('navreadertoggle.ejs', { classes: 'nav-link' }) %>
+            <% } %>
           </div>
         <% } %>    
         <% if (nav.navbar.search) { %>
