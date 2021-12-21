@@ -112,7 +112,7 @@ export const jupyterCellOptionsSchema = withId(
 
 export const rCellOptionsSchema = withId(commonCellOptionsSchema, "r");
 
-export async function getLanguageOptionsSchema(
+export function getLanguageOptionsSchema(
   normalized?: boolean,
 ): Promise<Record<string, Schema>> {
   // currently this could be sync but eventually it'll be just like the
@@ -120,16 +120,16 @@ export async function getLanguageOptionsSchema(
 
   // FIXME put this behind a cache; it's super inefficient.
   if (normalized) {
-    return {
+    return Promise.resolve({
       "ojs": normalizeSchema(ojsCellOptionsSchema),
       "python": normalizeSchema(jupyterCellOptionsSchema),
       "r": normalizeSchema(rCellOptionsSchema),
-    };
+    });
   } else {
-    return {
+    return Promise.resolve({
       "ojs": ojsCellOptionsSchema,
       "python": jupyterCellOptionsSchema,
       "r": rCellOptionsSchema,
-    };
+    });
   }
 }
