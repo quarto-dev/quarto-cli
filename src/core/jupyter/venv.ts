@@ -56,7 +56,7 @@ export async function jupyterCreateCondaenv(dir: string, packages?: string[]) {
     info(`Using conda at ${conda}`);
     packages = ld.uniq(["jupyter"].concat(packages || []));
     const installResult = await execProcess({
-      cmd: ["conda", "create", "--prefix", "env", ...packages],
+      cmd: ["conda", "create", "--yes", "--prefix", "env", ...packages],
       cwd: dir,
     });
     if (!installResult.success) {
