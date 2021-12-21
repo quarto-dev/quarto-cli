@@ -15,6 +15,7 @@ import { ld } from "lodash/mod.ts";
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { jupyterCapabilitiesNoConda } from "./capabilities.ts";
+import { which } from "../path.ts";
 
 export async function jupyterCreateVenv(dir: string, packages?: string[]) {
   const kEnvDir = "env";
@@ -44,5 +45,24 @@ export async function jupyterCreateVenv(dir: string, packages?: string[]) {
     }
   } else {
     throw new Error("Unable to create venv (Non-conda Python 3 not found)");
+  }
+}
+
+export async function jupyterCreateCondaenv(dir: string, packages?: string[]) {
+  const kEnvDir = "env";
+  info(`Creating conda environment at ${colors.bold(kEnvDir + "/")}:`);
+  const conda = await which("conda");
+  if (conda) {
+    info(`Using conda at ${conda}`);
+    packages = ld.uniq(["jupyter"].concat(packages || []));
+    const installResult = await execProcess({
+      cmd: ["conda", "create", "--prefix", "env", ...packages],
+      cwd: dir,
+    });
+    if (!installResult.success) {
+      throw new Error();
+    }
+  } else {
+    throw new Error("Unable to create condaenv (conda not found)");
   }
 }
