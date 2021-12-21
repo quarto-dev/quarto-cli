@@ -100,7 +100,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         if (koma) {
           extras.metadata = {
             [kDocumentClass]: "scrartcl",
-            [kClassOption]: ["DIV=11"],
+            [kClassOption]: ["DIV=11", "captions=tableheading"],
             [kPaperSize]: "letter",
           };
         }
