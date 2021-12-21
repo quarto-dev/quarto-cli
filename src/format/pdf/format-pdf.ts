@@ -11,7 +11,9 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kCapBottom,
   kCapLoc,
+  kCapTop,
   kCitationLocation,
   kCiteMethod,
   kClassOption,
@@ -117,14 +119,11 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         if (koma) {
           // determine caption options
           const captionOptions = [];
-          const tblCaploc = format.metadata[kTblCapLoc] ||
-            format.metadata[kCapLoc] || "top";
+          const tblCaploc = tblCapLocation(format);
           captionOptions.push(
-            tblCaploc === "top" ? "tableheading" : "tablesignature",
+            tblCaploc === kCapTop ? "tableheading" : "tablesignature",
           );
-          const figCaploc = format.metadata[kFigCapLoc] ||
-            format.metadata[kCapLoc] || "bottom";
-          if (figCaploc === "top") {
+          if (figCapLocation(format) === kCapTop) {
             captionOptions.push("figureheading");
           }
 
@@ -213,6 +212,11 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
       }
     }
 
+    // Move longtable captions below if requested
+    if (tblCapLocation(format) === kCapBottom) {
+      lineProcessors.push(longtableBottomCaptionProcessor());
+    }
+
     // If enabled, switch to sidenote footnotes
     if (marginRefs(flags, format)) {
       // Replace notes with side notes
@@ -226,6 +230,14 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
       ]);
     }
   };
+}
+
+function tblCapLocation(format: Format) {
+  return format.metadata[kTblCapLoc] || format.metadata[kCapLoc] || kCapTop;
+}
+
+function figCapLocation(format: Format) {
+  return format.metadata[kFigCapLoc] || format.metadata[kCapLoc] || kCapBottom;
 }
 
 function marginRefs(flags: PandocFlags, format: Format) {
@@ -337,6 +349,32 @@ const natbibCiteLineProcessor = () => {
 const sideNoteLineProcessor = () => {
   return (line: string): string | undefined => {
     return line.replaceAll(/\\footnote{/g, "\\sidenote{\\footnotesize ");
+  };
+};
+
+const longtableBottomCaptionProcessor = () => {
+  let scanning = false;
+  let caption: string | undefined;
+
+  return (line: string): string | undefined => {
+    if (scanning) {
+      // look for a caption line
+      if (line.match(/^\\caption.*?\\tabularnewline$/)) {
+        caption = line;
+        return undefined;
+      } else if (line.match(/^\\end{longtable}$/)) {
+        scanning = false;
+        if (caption) {
+          line = caption + "\n" + line;
+          caption = undefined;
+          return line;
+        }
+      }
+    } else {
+      scanning = !!line.match(/^\\begin{longtable}/);
+    }
+
+    return line;
   };
 };
 

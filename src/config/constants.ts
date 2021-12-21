@@ -336,6 +336,8 @@ export const kFigResponsive = "fig-responsive";
 export const kCapLoc = "cap-location";
 export const kFigCapLoc = "fig-cap-location";
 export const kTblCapLoc = "tbl-cap-location";
+export const kCapTop = "top";
+export const kCapBottom = "bottom";
 
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca

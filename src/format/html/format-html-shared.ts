@@ -8,6 +8,7 @@ import { join } from "path/mod.ts";
 import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
 import {
   kCapLoc,
+  kCapTop,
   kCodeOverflow,
   kLinkExternalIcon,
   kTblCapLoc,
@@ -183,7 +184,7 @@ export const quartoDefaults = (format: Format) => {
       sassVariable(
         kTblCapLoc,
         format.metadata[kTblCapLoc] ||
-          format.metadata[kCapLoc] || "top",
+          format.metadata[kCapLoc] || kCapTop,
       ),
     ),
   );
