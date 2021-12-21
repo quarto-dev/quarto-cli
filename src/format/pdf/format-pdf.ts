@@ -11,20 +11,25 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kCapLoc,
   kCitationLocation,
   kCiteMethod,
   kClassOption,
   kDocumentClass,
   kEcho,
+  kFigCapLoc,
   kFigDpi,
   kFigFormat,
   kFigHeight,
   kFigWidth,
+  kHeaderIncludes,
   kKeepTex,
   kNumberSections,
   kPaperSize,
   kReferenceLocation,
   kShiftHeadingLevelBy,
+  kTblCapLoc,
+  kTblSubcapLoc,
   kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";
@@ -98,10 +103,28 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         // default to KOMA article class. we do this here rather than
         // above so that projectExtras can override us
         if (koma) {
+          // determine caption options
+          const captionOptions = [];
+          const tblCaploc = format.metadata[kTblCapLoc] ||
+            format.metadata[kCapLoc] || "top";
+          captionOptions.push(
+            tblCaploc === "top" ? "tableheading" : "tablesignature",
+          );
+          const figCaploc = format.metadata[kFigCapLoc] ||
+            format.metadata[kCapLoc] || "bottom";
+          if (figCaploc === "top") {
+            captionOptions.push("figureheading");
+          }
+
           extras.metadata = {
             [kDocumentClass]: "scrartcl",
-            [kClassOption]: ["DIV=11", "captions=tableheading"],
+            [kClassOption]: [
+              "DIV=11",
+            ],
             [kPaperSize]: "letter",
+            [kHeaderIncludes]: [
+              "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
+            ],
           };
         }
 

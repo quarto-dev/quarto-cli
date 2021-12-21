@@ -6,7 +6,12 @@
 */
 import { join } from "path/mod.ts";
 import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
-import { kCodeOverflow, kLinkExternalIcon } from "../../config/constants.ts";
+import {
+  kCodeOverflow,
+  kLinkExternalIcon,
+  kTblCapLoc,
+  kTblSubcapLoc,
+} from "../../config/constants.ts";
 import { Format, FormatDependency } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
@@ -176,18 +181,18 @@ export const quartoDefaults = (format: Format) => {
   defaults.push(
     outputVariable(
       sassVariable(
-        "tbl-cap-location",
-        format.metadata["tbl-cap-location"] ||
-          format.metadata["cap-location"] || "top",
+        kTblCapLoc,
+        format.metadata[kTblCapLoc] ||
+          format.metadata[kTblCapLoc] || "top",
       ),
     ),
   );
   defaults.push(
     outputVariable(
       sassVariable(
-        "tbl-subcap-location",
-        format.metadata["tbl-subcap-location"] ||
-          format.metadata["subcap-location"] || "bottom",
+        kTblSubcapLoc,
+        format.metadata[kTblSubcapLoc] ||
+          format.metadata[kTblSubcapLoc] || "bottom",
       ),
     ),
   );
