@@ -173,5 +173,23 @@ export const quartoDefaults = (format: Format) => {
       ),
     ),
   );
+  defaults.push(
+    outputVariable(
+      sassVariable(
+        "tbl-cap-location",
+        format.metadata["tbl-cap-location"] ||
+          format.metadata["cap-location"] || "top",
+      ),
+    ),
+  );
+  defaults.push(
+    outputVariable(
+      sassVariable(
+        "tbl-subcap-location",
+        format.metadata["tbl-subcap-location"] ||
+          format.metadata["subcap-location"] || "bottom",
+      ),
+    ),
+  );
   return defaults.join("\n");
 };

@@ -88,12 +88,20 @@ function htmlPanel(divEl, layout, caption)
       captionPara.content:insert(pandoc.RawInline("html", figcaption))
       tappend(captionPara.content, caption.content)
       captionPara.content:insert(pandoc.RawInline("html", "</figcaption>"))
-      panel.content:insert(captionPara)
+      if capLocation('fig', 'bottom') == 'bottom' then
+        panel.content:insert(captionPara)
+      else
+        tprepend(panel.content, { captionPara })
+      end
     else
       local panelCaption = pandoc.Div(caption, pandoc.Attr("", { "panel-caption" }))
       if hasTableRef(divEl) then
         panelCaption.attr.classes:insert("table-caption")
-        tprepend(panel.content, { panelCaption })
+        if capLocation('tbl', 'top') == 'bottom' then
+          panel.content:insert(panelCaption)
+        else
+          tprepend(panel.content, { panelCaption })
+        end
       else
         panel.content:insert(panelCaption)
       end
@@ -112,17 +120,18 @@ function htmlDivFigure(el)
   
   return renderHtmlFigure(el, function(figure)
     
-    -- render content
-    tappend(figure.content, tslice(el.content, 1, #el.content-1))
-    
-    -- extract and return caption inlines
+    -- get figure
+    local figure = tslice(el.content, 1, #el.content-1)
+
+    -- get caption
     local caption = refCaptionFromDiv(el)
     if caption then
-      return caption.content
+      caption = caption.content
     else
-      return nil
+      caption = nil
     end
-    
+
+    return figure, caption    
   end)
   
 end
@@ -143,10 +152,10 @@ function htmlImageFigure(image)
     end
    
     -- insert the figure without the caption
-    figure.content:insert(pandoc.Para({image}))
+    local figure = { pandoc.Para({image}) }
     
-    -- return the caption inlines
-    return caption
+
+    return figure, caption
     
   end)
   
@@ -154,7 +163,7 @@ end
 
 
 function renderHtmlFigure(el, render)
-  
+
   -- capture relevant figure attributes then strip them
   local align = figAlignAttribute(el)
   local keys = tkeys(el.attr.attributes)
@@ -178,7 +187,7 @@ function renderHtmlFigure(el, render)
   figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
   
   -- render (and collect caption)
-  local captionInlines = render(figureDiv)
+  local figure, captionInlines = render(figureDiv)
   
   -- render caption
   if captionInlines and #captionInlines > 0 then
@@ -188,7 +197,15 @@ function renderHtmlFigure(el, render)
     ))
     tappend(figureCaption.content, captionInlines) 
     figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
-    figureDiv.content:insert(figureCaption)
+    if capLocation('fig', 'bottom', hasRefParent(el)) == 'top' then
+      figureDiv.content:insert(figureCaption)
+      tappend(figureDiv.content, figure)
+    else
+      tappend(figureDiv.content, figure)
+      figureDiv.content:insert(figureCaption)
+    end
+  else
+    tappend(figureDiv.content, figure)
   end
   
   -- end figure and return

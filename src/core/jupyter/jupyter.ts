@@ -70,8 +70,8 @@ import { FormatExecute, FormatPandoc } from "../../config/types.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
 import {
+  kCapLoc,
   kCellAutoscroll,
-  kCellCapLoc,
   kCellClasses,
   kCellColab,
   kCellColabType,
@@ -82,7 +82,6 @@ import {
   kCellFigAlign,
   kCellFigAlt,
   kCellFigCap,
-  kCellFigCapLoc,
   kCellFigColumn,
   kCellFigEnv,
   kCellFigLink,
@@ -104,7 +103,6 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTags,
-  kCellTblCapLoc,
   kCellTblColumn,
   kCodeFold,
   kCodeLineNumbers,
@@ -113,6 +111,7 @@ import {
   kEcho,
   kError,
   kEval,
+  kFigCapLoc,
   kInclude,
   kLayout,
   kLayoutAlign,
@@ -120,6 +119,7 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
+  kTblCapLoc,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -209,9 +209,9 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellLabel]?: string;
   [kCellFigCap]?: string | string[];
   [kCellFigSubCap]?: string[];
-  [kCellFigCapLoc]?: string;
-  [kCellTblCapLoc]?: string;
-  [kCellCapLoc]?: string;
+  [kFigCapLoc]?: string;
+  [kTblCapLoc]?: string;
+  [kCapLoc]?: string;
   [kCellFigColumn]?: string;
   [kCellTblColumn]?: string;
   [kCellLstLabel]?: string;
@@ -256,9 +256,9 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigCap,
   kCellFigSubCap,
   kCellFigScap,
-  kCellFigCapLoc,
-  kCellTblCapLoc,
-  kCellCapLoc,
+  kFigCapLoc,
+  kTblCapLoc,
+  kCapLoc,
   kCellFigColumn,
   kCellTblColumn,
   kCellFigLink,
@@ -1036,14 +1036,14 @@ function mdFromCodeCell(
     if (typeof cell.options[kCellTblColumn] === "string") {
       classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
     }
-    if (typeof cell.options[kCellCapLoc] === "string") {
-      classes.push(`caption-${cell.options[kCellFigCapLoc]}`);
+    if (typeof cell.options[kCapLoc] === "string") {
+      classes.push(`caption-${cell.options[kFigCapLoc]}`);
     }
-    if (typeof cell.options[kCellFigCapLoc] === "string") {
-      classes.push(`fig-cap-location-${cell.options[kCellFigCapLoc]}`);
+    if (typeof cell.options[kFigCapLoc] === "string") {
+      classes.push(`fig-cap-location-${cell.options[kFigCapLoc]}`);
     }
-    if (typeof cell.options[kCellTblCapLoc] === "string") {
-      classes.push(`tbl-cap-location-${cell.options[kCellTblCapLoc]}`);
+    if (typeof cell.options[kTblCapLoc] === "string") {
+      classes.push(`tbl-cap-location-${cell.options[kTblCapLoc]}`);
     }
 
     const classText = classes
@@ -1290,7 +1290,7 @@ function mdFromCodeCell(
   }
 
   // lines to next cell
-  md.push("\n".repeat((cell.metadata.lines_to_next_cell || 1)));
+  md.push("\n".repeat(cell.metadata.lines_to_next_cell || 1));
 
   // if we have kCellMdIndent then join, split on \n, apply indent, then re-join
   if (cell.options[kCellMdIndent]) {

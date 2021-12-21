@@ -25,6 +25,15 @@
 .quarto-layout-panel > .panel-caption {
   margin-top: 10pt;
 }
+
+.quarto-layout-panel > .table-caption {
+  margin-top: 0px;
+}
+
+.table-caption p {
+  margin-bottom: 0.5em;
+}
+
 .quarto-layout-row {
   display: flex;
   flex-direction: row;
@@ -168,6 +177,21 @@ h6:hover > .anchorjs-link,
 // (Remove bottom margin from paragraphs in table headers)
 tr.header > th > p:last-of-type {
   margin-bottom: 0px;
+}
+
+table,
+.table {
+  caption-side: $tbl-cap-location;
+}
+
+.quarto-layout-cell[data-ref-parent] table,
+.quarto-layout-cell[data-ref-parent] .table {
+  caption-side: $tbl-subcap-location;
+}
+
+caption,
+.table-caption {
+  text-align: center;
 }
 
 // utterances

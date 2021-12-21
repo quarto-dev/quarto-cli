@@ -14,12 +14,11 @@ import { parseModule } from "observablehq/parser";
 import { Format, kDependencies } from "../../config/types.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
-  kCellCapLoc,
+  kCapLoc,
   kCellClasses,
   kCellColumn,
   kCellFigAlign,
   kCellFigAlt,
-  kCellFigCapLoc,
   kCellFigColumn,
   kCellFigEnv,
   kCellFigLink,
@@ -27,12 +26,13 @@ import {
   kCellFigScap,
   kCellLabel,
   kCellPanel,
-  kCellTblCapLoc,
   kCellTblColumn,
   kCodeSummary,
+  kFigCapLoc,
   kIncludeAfterBody,
   kIncludeInHeader,
   kSelfContained,
+  kTblCapLoc,
 } from "../../config/constants.ts";
 import { RenderContext } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -284,9 +284,11 @@ export async function ojsCompile(
         const [_heading, fullMsg] = msg.split(": ");
         calloutDiv.push(
           pandocRawStr(
-            `#### OJS Syntax Error (line ${err.loc.line +
+            `#### OJS Syntax Error (line ${
+              err.loc.line +
               cellStartingLoc + cell.sourceStartLine -
-              1}, column ${err.loc.column + 1})`,
+              1
+            }, column ${err.loc.column + 1})`,
           ),
         );
         calloutDiv.push(pandocRawStr(`${fullMsg}`));
@@ -405,9 +407,9 @@ export async function ojsCompile(
         kCellFigCap,
         kCellFigSubCap,
         kCellFigScap,
-        kCellCapLoc,
-        kCellFigCapLoc,
-        kCellTblCapLoc,
+        kCapLoc,
+        kFigCapLoc,
+        kTblCapLoc,
         kCellFigColumn,
         kCellTblColumn,
         kCellFigLink,
@@ -463,14 +465,14 @@ export async function ojsCompile(
       if (typeof cell.options?.column === "string") {
         classes.push(`column-${cell.options?.column}`);
       }
-      if (typeof cell.options?.[kCellCapLoc] === "string") {
-        classes.push(`caption-${cell.options?.[kCellCapLoc]}`);
+      if (typeof cell.options?.[kCapLoc] === "string") {
+        classes.push(`caption-${cell.options?.[kCapLoc]}`);
       }
-      if (typeof cell.options?.[kCellFigCapLoc] === "string") {
-        classes.push(`fig-cap-location-${cell.options?.[kCellFigCapLoc]}`);
+      if (typeof cell.options?.[kFigCapLoc] === "string") {
+        classes.push(`fig-cap-location-${cell.options?.[kFigCapLoc]}`);
       }
-      if (typeof cell.options?.[kCellTblCapLoc] === "string") {
-        classes.push(`tbl-cap-location-${cell.options?.[kCellTblCapLoc]}`);
+      if (typeof cell.options?.[kTblCapLoc] === "string") {
+        classes.push(`tbl-cap-location-${cell.options?.[kTblCapLoc]}`);
       }
       if (typeof cell.options?.[kCellFigColumn] === "string") {
         classes.push(`fig-caption-${cell.options?.[kCellFigColumn]}`);
@@ -613,8 +615,10 @@ export async function ojsCompile(
                 .length;
 
             ourAttrs.push(
-              `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
-                linesSkipped}"`,
+              `startFrom="${
+                cellStartingLoc + cell.sourceStartLine - 1 +
+                linesSkipped
+              }"`,
             );
             ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
             const srcDiv = pandocCode({
@@ -675,8 +679,10 @@ export async function ojsCompile(
             cellSrcStr.value.substring(0, innerInfo[0].start).split("\n")
               .length;
           ourAttrs.push(
-            `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
-              linesSkipped}"`,
+            `startFrom="${
+              cellStartingLoc + cell.sourceStartLine - 1 +
+              linesSkipped
+            }"`,
           );
           ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
           if (shouldEmitSource) {

@@ -29,3 +29,20 @@ function option(name, def)
   end
 end
 
+function capLocation(scope, default, subcap)
+  local prefix = "cap"
+  if subcap then
+    prefix = "subcap"
+  end
+  local loc = option(scope .. '-' .. prefix .. '-location', option('cap-location', nil))
+  if loc ~= nil then
+    return inlinesToString(loc)
+  else
+    return default
+  end
+end
+
+function subcapLocation(scope, default)
+  return capLocation(scope, default, true)
+end
+

@@ -10,6 +10,17 @@ function latexPanel(divEl, layout, caption)
   -- begin container
   local env, pos = latexPanelEnv(divEl, layout)
   panel.content:insert(latexBeginEnv(env, pos));
+
+  local capType = "fig"
+  local locDefault = "bottom"
+  if hasTableRef(divEl) then
+    capType = "tbl"
+    locDefault = "top"
+  end
+  local capLoc = capLocation(capType, locDefault)
+  if (caption and capLoc == "top") then
+    insertLatexCaption(divEl, panel.content, caption.content)
+  end
   
    -- read vertical alignment and strip attribute
   local vAlign = validatedVAlign(divEl.attr.attributes[kLayoutVAlign])
@@ -43,7 +54,7 @@ function latexPanel(divEl, layout, caption)
   end
   
   -- surround caption w/ appropriate latex (and end the panel)
-  if caption then
+  if caption and capLoc == "bottom" then
     insertLatexCaption(divEl, panel.content, caption.content)
   end
   
@@ -110,16 +121,15 @@ function latexImageFigure(image)
     local align = figAlignAttribute(image)
    
     -- insert the figure without the caption
-    local figurePara = pandoc.Para({
+    local figureContent = { pandoc.Para({
       pandoc.RawInline("latex", latexBeginAlign(align)),
       image,
       pandoc.RawInline("latex", latexEndAlign(align)),
       pandoc.RawInline("latex", "\n")
-    })
-    figure.content:insert(figurePara)
+    }) }
     
-    -- return the caption inlines
-    return caption
+    -- return the figure and caption
+    return figureContent, caption
     
   end)
 end
@@ -133,17 +143,18 @@ function latexDivFigure(divEl)
 
     -- append everything before the caption
     local blocks = tslice(divEl.content, 1, #divEl.content - 1)
+    local figureContent = pandoc.List()
     if align == "center" then
-      figure.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
+      figureContent:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
     end
-    tappend(figure.content, blocks)
+    tappend(figureContent, blocks)
     if align == "center" then
-      figure.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
+      figureContent:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
     end
     
-    -- return the caption
+    -- return the figure and caption
     local caption = refCaptionFromDiv(divEl)
-    return caption.content
+    return figureContent, caption.content
    
   end)
   
@@ -160,12 +171,22 @@ function renderLatexFigure(el, render)
 
   figure.content:insert(latexBeginEnv(figEnv, figPos))
   
-  -- fill in the body (returns the caption inlines)
-  local captionInlines = render(figure)  
+  -- get the figure content and caption inlines
+  local figureContent, captionInlines = render(figure)  
+
+  local capLoc = capLocation("fig", "bottom", hasRefParent(el))  
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and inlinesToString(captionInlines) ~= "" then
-    insertLatexCaption(el, figure.content, captionInlines)
+    if capLoc == "top" then
+      insertLatexCaption(el, figure.content, captionInlines)
+      tappend(figure.content, figureContent)
+    else
+      tappend(figure.content, figureContent)
+      insertLatexCaption(el, figure.content, captionInlines)
+    end
+  else
+    tappend(figure.content, figureContent)
   end
   
   -- end figure
@@ -367,8 +388,12 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local miniPageVAlign = latexMinipageValign(vAlign)
   latexAppend(prefix, "\\begin{minipage}" .. miniPageVAlign .. "{" .. width .. "}\n")
 
-  tappend(prefix, subcap)
 
+  local capLoc = subcapLocation("fig", "bottom")
+
+  if (capLoc == "top") then
+    tappend(prefix, subcap)
+  end
 
   -- if we aren't in a sub-ref we may need to do some special work to
   -- ensure that captions are correctly emitted
@@ -403,6 +428,10 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
       latexAppend(prefix, "\\raisebox{-\\height}{") 
       latexAppend(suffix, "}")
     end  
+  end
+
+  if (capLoc == "bottom") then
+    tappend(suffix, subcap)
   end
 
   -- close the minipage

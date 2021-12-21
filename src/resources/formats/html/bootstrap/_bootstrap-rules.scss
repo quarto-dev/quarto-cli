@@ -438,8 +438,21 @@ mark {
 .panel-caption,
 caption,
 .figure-caption {
-  @include body-secondary;
   font-size: 1rem;
+}
+
+.panel-caption,
+.figure-caption {
+  @include body-secondary;
+}
+
+.table-caption,
+caption {
+  color: $body-color;
+}
+
+.quarto-layout-cell[data-ref-parent] caption {
+  @include body-secondary;
 }
 
 .column-margin figcaption,
@@ -791,19 +804,6 @@ div.hanging-indent {
 
 .table a {
   word-break: break-word;
-}
-
-table {
-  caption-side: top;
-}
-
-.quarto-layout-cell[data-ref-parent] table {
-  caption-side: bottom;
-}
-
-caption,
-.table-caption {
-  text-align: center;
 }
 
 @if $code-block-border-left {
