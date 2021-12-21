@@ -112,7 +112,11 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar #quarto-search {
-  margin-top: 0.5rem;
+  margin-top: -1px;
+  svg.aa-SubmitIcon {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .sidebar-navigation a {
