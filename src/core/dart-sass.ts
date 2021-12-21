@@ -55,12 +55,13 @@ async function dartCommand(args: string[]) {
     {
       cmd,
       stdout: "piped",
+      stderr: "piped",
     },
   );
 
   if (result.success) {
     return result.stdout;
   } else {
-    throw new Error("Sass command failed");
+    throw new Error("Theme file compilation failed:\n\n" + result.stderr);
   }
 }
