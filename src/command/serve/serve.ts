@@ -175,7 +175,7 @@ export async function serveProject(
 
   // exit if there was an error
   if (renderResult.error) {
-    throw error;
+    throw renderResult.error;
   }
 
   const finalOutput = renderResultFinalOutput(renderResult);
