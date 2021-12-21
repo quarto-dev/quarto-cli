@@ -18,20 +18,26 @@
     ref: page-column
   description: "Page column for table output"
 
-- name: caption-location
+- name: cap-location
+  tags:
+    contexts: [document-layout]
   schema:
-    enum: [inline, margin]
+    enum: [top, bottom, margin]
   default: inline
   description: "Where to place figure and table captions."
 
 - name: fig-cap-location
+  tags:
+    contexts: [document-layout]
   schema:
-    enum: [inline, margin]
+    enum: [top, bottom, margin]
   default: inline
   description: "Where to place figure captions."
 
 - name: tbl-cap-location
+  tags:
+    contexts: [document-layout]
   schema:
-    enum: [inline, margin]
+    enum: [top, bottom, margin]
   default: inline
   description: "Where to place table captions."

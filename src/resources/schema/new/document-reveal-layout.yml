@@ -1,3 +1,10 @@
+- name: auto-stretch
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "For slides with a single top-level image, automatically stretch it to fill the slide."
+
 - name: width
   tags:
     formats: [revealjs]
