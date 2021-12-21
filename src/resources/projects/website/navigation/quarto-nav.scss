@@ -127,7 +127,7 @@ nav .nav-item.compact .nav-link {
   margin-top: 0.25rem;
   padding-bottom: 0.5rem;
   font-size: 1.3rem;
-  line-height: 1.4rem;
+  line-height: 1.6rem;
   visibility: visible;
 }
 
@@ -137,7 +137,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-title .sidebar-tools-main {
-  margin-top: 4px;
+  margin-top: -6px;
 }
 
 .sidebar-header-stacked .sidebar-title {
@@ -163,8 +163,9 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-tools-main {
-  margin-left: 0;
-  display: flex;
+  margin-left: 0px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .sidebar-section .bi {
@@ -665,7 +666,9 @@ body:not(.floating) .nav-footer {
 }
 
 .quarto-reader-toggle .quarto-reader-toggle-btn {
-  width: 1.5em;
+  display: inline-flex;
+  padding-left: 0.1em;
+  padding-right: 0.3em;
   text-align: center;
 }
 
