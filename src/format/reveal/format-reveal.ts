@@ -601,23 +601,16 @@ function applyStretch(doc: Document, autoStretch: boolean) {
         hasStretchClass(imageEl) &&
         imageEl.parentNode?.nodeName !== "SECTION"
       ) {
+        // Remove element then maybe remove its parents if empty
         const removeEmpty = function (el: Element) {
           const parentEl = el.parentElement;
-          // Remove element then maybe remove its parents
           parentEl?.removeChild(el);
           if (parentEl?.innerText.trim() === "") removeEmpty(parentEl);
         };
 
-        // Remove image from its parent
-        removeEmpty(imageEl);
-        // insert at first level after the element
-        slideEl.insertBefore(
-          image,
-          nodeEl.nextElementSibling,
-        );
-
         // Figure environment ? Get caption and alignment
         const quartoFig = slideEl.querySelector("div.quarto-figure");
+        const caption = doc.createElement("p");
         if (quartoFig) {
           // Get alignment
           const align = quartoFig.className.match(
@@ -627,18 +620,28 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           // Get Caption
           const figCaption = nodeEl.querySelector("figcaption");
           if (figCaption) {
-            const caption = doc.createElement("p");
             caption.classList.add("caption");
             caption.innerHTML = figCaption.innerHTML;
-            slideEl.insertBefore(
-              caption,
-              imageEl.nextElementSibling,
-            );
-            figCaption.remove();
           }
-          // Remove the container
-          removeEmpty(quartoFig);
         }
+
+        // Remove image from its parent
+        removeEmpty(imageEl);
+        // insert at first level after the element
+        slideEl.insertBefore(
+          image,
+          nodeEl.nextElementSibling,
+        );
+
+        // If there was a caption processed add it after
+        if (caption.classList.contains("caption")) {
+          slideEl.insertBefore(
+            caption,
+            imageEl.nextElementSibling,
+          );
+        }
+        // Remove container if still there
+        if (quartoFig) removeEmpty(quartoFig);
       }
     }
   }
