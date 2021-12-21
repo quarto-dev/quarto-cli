@@ -41,6 +41,7 @@ import {
   kSiteNavbar,
   kSitePageNavigation,
   kSitePath,
+  kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoBranch,
   kSiteRepoUrl,
@@ -116,6 +117,7 @@ export async function bookProjectConfig(
     site[kBodyHeader] = book[kBodyHeader];
     site[kBodyFooter] = book[kBodyFooter];
     site[kBookSearch] = book[kBookSearch];
+    site[kSiteReaderMode] = book[kSiteReaderMode];
 
     // If there is an explicitly set footer use that
     if (book[kPageFooter]) {
