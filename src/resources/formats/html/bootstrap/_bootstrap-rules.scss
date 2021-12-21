@@ -442,7 +442,8 @@ caption,
 }
 
 .panel-caption,
-.figure-caption {
+.figure-caption,
+figcaption {
   @include body-secondary;
 }
 

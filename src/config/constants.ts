@@ -334,11 +334,8 @@ export const kCrossrefChapterId = "chapter-id";
 export const kFigResponsive = "fig-responsive";
 
 export const kCapLoc = "cap-location";
-export const kSubcapLoc = "subcap-location";
 export const kFigCapLoc = "fig-cap-location";
-export const kFigSubcapLoc = "fig-subcap-location";
 export const kTblCapLoc = "tbl-cap-location";
-export const kTblSubcapLoc = "tbl-subcap-location";
 
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca

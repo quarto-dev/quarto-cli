@@ -197,7 +197,7 @@ function renderHtmlFigure(el, render)
     ))
     tappend(figureCaption.content, captionInlines) 
     figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
-    if capLocation('fig', 'bottom', hasRefParent(el)) == 'top' then
+    if capLocation('fig', 'bottom') == 'top' then
       figureDiv.content:insert(figureCaption)
       tappend(figureDiv.content, figure)
     else

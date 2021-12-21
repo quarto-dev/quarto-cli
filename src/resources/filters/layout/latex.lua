@@ -174,7 +174,7 @@ function renderLatexFigure(el, render)
   -- get the figure content and caption inlines
   local figureContent, captionInlines = render(figure)  
 
-  local capLoc = capLocation("fig", "bottom", hasRefParent(el))  
+  local capLoc = capLocation("fig", "bottom")  
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and inlinesToString(captionInlines) ~= "" then
@@ -341,6 +341,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
     label = image.attr.identifier
   end
   local isFigure = isFigureRef(label)
+  local isTable = isTableRef(label)
   local isSubRef = hasRefParent(cell) or (image and hasRefParent(image))
   local tbl = tableFromLayoutCell(cell)
   
@@ -388,8 +389,13 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local miniPageVAlign = latexMinipageValign(vAlign)
   latexAppend(prefix, "\\begin{minipage}" .. miniPageVAlign .. "{" .. width .. "}\n")
 
-
-  local capLoc = subcapLocation("fig", "bottom")
+  local capType = "fig"
+  local locDefault = "bottom"
+  if isTable then
+    capType = "tbl"
+    locDefault = "top"
+  end
+  local capLoc = capLocation(capType, locDefault)
 
   if (capLoc == "top") then
     tappend(prefix, subcap)

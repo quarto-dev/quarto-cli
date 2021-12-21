@@ -29,7 +29,6 @@ import {
   kReferenceLocation,
   kShiftHeadingLevelBy,
   kTblCapLoc,
-  kTblSubcapLoc,
   kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";

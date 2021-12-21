@@ -184,11 +184,6 @@ table,
   caption-side: $tbl-cap-location;
 }
 
-.quarto-layout-cell[data-ref-parent] table,
-.quarto-layout-cell[data-ref-parent] .table {
-  caption-side: $tbl-subcap-location;
-}
-
 caption,
 .table-caption {
   text-align: center;

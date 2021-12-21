@@ -7,10 +7,10 @@
 import { join } from "path/mod.ts";
 import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
 import {
+  kCapLoc,
   kCodeOverflow,
   kLinkExternalIcon,
   kTblCapLoc,
-  kTblSubcapLoc,
 } from "../../config/constants.ts";
 import { Format, FormatDependency } from "../../config/types.ts";
 
@@ -183,16 +183,7 @@ export const quartoDefaults = (format: Format) => {
       sassVariable(
         kTblCapLoc,
         format.metadata[kTblCapLoc] ||
-          format.metadata[kTblCapLoc] || "top",
-      ),
-    ),
-  );
-  defaults.push(
-    outputVariable(
-      sassVariable(
-        kTblSubcapLoc,
-        format.metadata[kTblSubcapLoc] ||
-          format.metadata[kTblSubcapLoc] || "bottom",
+          format.metadata[kCapLoc] || "top",
       ),
     ),
   );
