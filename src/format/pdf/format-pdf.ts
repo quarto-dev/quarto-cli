@@ -96,8 +96,6 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
       formatExtras: (_input: string, flags: PandocFlags, format: Format) => {
         const extras: FormatExtras = {};
 
-        console.log(format.metadata["documentclass"]);
-
         // Post processed for dealing with latex output
         extras.postprocessors = [pdfLatexPostProcessor(flags, format)];
 
