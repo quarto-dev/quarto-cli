@@ -112,7 +112,11 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar #quarto-search {
-  margin-top: 0.5rem;
+  margin-top: -1px;
+  svg.aa-SubmitIcon {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .sidebar-navigation a {
@@ -133,7 +137,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-title .sidebar-tools-main {
-  margin-top: -6px;
+  margin-top: 4px;
 }
 
 .sidebar-header-stacked .sidebar-title {
@@ -159,9 +163,8 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-tools-main {
-  margin-left: 8px;
-  display: inline-block;
-  vertical-align: middle;
+  margin-left: 0;
+  display: flex;
 }
 
 .sidebar-section .bi {
