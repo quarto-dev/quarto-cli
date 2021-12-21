@@ -394,7 +394,18 @@ export async function serveProject(
 }
 
 function renderErrorPage(e: Error) {
-  const content = e.message;
+  const content = `
+<!doctype html>
+<html lang=en>
+<head>
+<meta charset=utf-8>
+<title>Quarto Render Error</title>
+<script id="quarto-render-error" type="text/plain">${e.message}</script>
+</head>
+<body>
+</body>
+</html>
+`;
   return new TextEncoder().encode(content);
 }
 
