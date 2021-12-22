@@ -38,7 +38,7 @@ export function readAndValidateYamlFromFile(
     throw new Error(`YAML file ${file} not found.`);
   }
 
-  const contents = asMappedString(Deno.readTextFileSync(file));
+  const contents = asMappedString(Deno.readTextFileSync(file), file);
   return readAndValidateYamlFromMappedString(contents, schema, errorMessage);
 }
 

@@ -26,9 +26,10 @@ export async function validateDocumentFromSource(
   error: (msg: string) => any,
   // deno-lint-ignore no-explicit-any
   info: (msg: string) => any,
+  filename?: string,
 ): Promise<LocalizedError[]> {
   const result: LocalizedError[] = [];
-  const nb = await breakQuartoMd(asMappedString(src));
+  const nb = await breakQuartoMd(asMappedString(src, filename));
 
   if (nb.cells.length < 1) {
     // no cells -> no validation
@@ -113,6 +114,6 @@ export async function validateDocument(
   }
 
   return validateDocumentFromSource(
-    context.target.markdown, context.engine.name, error, info
+    context.target.markdown, context.engine.name, error, info, context.target.source, 
   );
 }
