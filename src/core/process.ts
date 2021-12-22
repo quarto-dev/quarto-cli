@@ -38,7 +38,16 @@ export async function execProcess(
       if (!process.stdin) {
         throw new Error("Process stdin not available");
       }
-      await process.stdin.write(new TextEncoder().encode(stdin));
+      // write in 4k chunks (deno observed to overflow at > 64k)
+      const kWindowSize = 4096;
+      const buffer = new TextEncoder().encode(stdin);
+      let offset = 0;
+      while (offset < buffer.length) {
+        const end = Math.min(offset + kWindowSize, buffer.length);
+        const window = buffer.subarray(offset, end);
+        const written = await process.stdin.write(window);
+        offset += written;
+      }
       process.stdin.close();
     }
 
