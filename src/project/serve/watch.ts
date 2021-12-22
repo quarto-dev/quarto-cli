@@ -24,10 +24,10 @@ import { copyProjectForServe } from "./serve-shared.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpDevServer } from "../../core/http-devserver.ts";
-import { RenderFlags, RenderResult } from "../render/types.ts";
-import { renderProject } from "../render/project.ts";
+import { RenderFlags, RenderResult } from "../../command/render/types.ts";
+import { renderProject } from "../../command/render/project.ts";
 import { PromiseQueue } from "../../core/promise.ts";
-import { render } from "../render/render-shared.ts";
+import { render } from "../../command/render/render-shared.ts";
 import { isRStudio } from "../../core/platform.ts";
 import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
 

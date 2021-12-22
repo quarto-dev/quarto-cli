@@ -14,7 +14,11 @@ import { Command } from "cliffy/command/mod.ts";
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import { preview } from "./preview.ts";
-import { kRenderDefault, kRenderNone, serveProject } from "../serve/serve.ts";
+import {
+  kRenderDefault,
+  kRenderNone,
+  serveProject,
+} from "../../project/serve/serve.ts";
 import { isRStudio } from "../../core/platform.ts";
 
 export const previewCommand = new Command()
