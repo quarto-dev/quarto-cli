@@ -11,6 +11,8 @@
 import { mappedIndexToRowCol, MappedString } from "./mapped-text.ts";
 import { formatLineRange, lines } from "./text.ts";
 import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
+import { tidyverseFormatError, addFileInfo } from "./errors.ts";
+import * as colors from "./external/colors.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -385,30 +387,44 @@ function localizeAndPruneErrors(
       let messageNoLocation;
       // in the case of customized errors, use message we prepared earlier
       if (error.keyword.startsWith("_custom_")) {
-        messageNoLocation = error.message;
+        messageNoLocation = { heading: error.message, error: [], info: [] };
       } else {
         if (instancePath === "") {
-          messageNoLocation = `(top-level error) ${error.message}`;
+          messageNoLocation = { heading: `(top-level error) ${error.message}`, error: [], info: [] };
         } else {
           const errorSchema = error.params && error.params.schema;
           const innerSchema = errorSchema ? [errorSchema] : navigateSchema(schemaPath.map(decodeURIComponent), schema);
           if (innerSchema.length === 0) {
             // this is probably an internal error..
-            messageNoLocation = `Field ${instancePath}, schema ${schemaPath}: ${error.message}`;
+            messageNoLocation = {
+              heading: `Field ${instancePath}, schema ${schemaPath}: ${error.message}`,
+              error: [],
+              info: []
+            };
           } else {
-            const idTag = errorSchema.$id ? ` (${errorSchema.$id})` : ""
-            messageNoLocation =
-              `Field ${instancePath} must ${innerSchema.map(s => s.description).join(", ")}${idTag}`;
+            const idTag = errorSchema.$id ? ` ${colors.gray("(schema id: " + errorSchema.$id + ")")}` : "";
+            
+            messageNoLocation = {
+              heading: `Field ${instancePath} must ${innerSchema.map(s => s.description).join(", ")}${idTag}`,
+              error: [],
+              info: []
+            };
           }
         }
       }
-      const message = `${locStr}: ${messageNoLocation}`;
+      messageNoLocation = {
+        ...messageNoLocation,
+        heading: `${locStr}: ${messageNoLocation.heading}`
+      };
+      addFileInfo(messageNoLocation, source);
+      
+      const message = tidyverseFormatError(messageNoLocation);
 
       result.push({
         instancePath,
         violatingObject,
         message,
-        messageNoLocation,
+        messageNoLocation: messageNoLocation.heading,
         location: locStr,
         source,
         start,
@@ -549,7 +565,7 @@ export class YAMLSchema {
               : end.column);
             log(
               " ".repeat(prefixWidth + startColumn) +
-                "^".repeat(endColumn - startColumn + 1),
+                colors.blue("~".repeat(endColumn - startColumn + 1)),
             );
           }
         }
