@@ -8,10 +8,36 @@
 import { YAMLSchema, LocalizedError, AnnotatedParse } from "./yaml-schema.ts";
 import { PromiseQueue } from "./promise.ts";
 import { Schema } from "./schema.ts";
-import { tidyverseInfo, tidyverseError } from "../log.ts";
+import { tidyverseFormatError, TidyverseError, quotedStringColor, addFileInfo, addInstancePathInfo } from "./errors.ts";
 
 const yamlValidators: Record<string, YAMLSchema> = {};
 const validatorQueues: Record<string, PromiseQueue<void>> = {};
+
+function checkForTypeMismatch(
+  error: LocalizedError, parse: AnnotatedParse, schema: Schema
+)
+{
+  schema = error.error.params.schema;
+  const verbatimInput = error.source.value.substring(
+    error.violatingObject.start,
+    error.violatingObject.end);
+  
+  if (error.error.keyword === "type") {
+    // console.log(JSON.stringify(error, null, 2));
+    const newError: TidyverseError = {
+      heading: `${error.location}: The value ${quotedStringColor(verbatimInput)} must be a ${error.error.params.type}.`,
+      error: [`The value ${quotedStringColor(verbatimInput)} is a ${typeof error.violatingObject.result}.`],
+      info: []
+    };
+    addInstancePathInfo(newError, error.error.instancePath);
+    addFileInfo(newError, error.source);
+    return {
+      ...error,
+      message: tidyverseFormatError(newError)
+    };
+  }
+  return error;
+}
 
 function checkForBadBoolean(
   error: LocalizedError, parse: AnnotatedParse, schema: Schema
@@ -40,13 +66,21 @@ function checkForBadBoolean(
     return error;
   }
 
-  const errorHeading = `${error.location}: \`${verbatimInput}\` must be a boolean`;
-  const errorMessage = tidyverseError(`\`${verbatimInput}\` is a string.`);
-  const suggestion1 = tidyverseInfo(`Quarto uses YAML 1.2, which interprets booleans strictly.`)
-  const suggestion2 = tidyverseInfo(`Did you mean \`${fix}\` instead?`);
+  const heading = `${error.location}: The value ${quotedStringColor(verbatimInput)} must be a boolean`;
+  const errorMessage = `The value ${quotedStringColor(verbatimInput)} is a string.`;
+  const suggestion1 = `Quarto uses YAML 1.2, which interprets booleans strictly.`;
+  const suggestion2 = `Try using ${quotedStringColor(String(fix))} instead.`;
+  const newError: TidyverseError = {
+    heading,
+    error: [errorMessage],
+    info: []
+  };
+  addInstancePathInfo(newError, error.error.instancePath);
+  addFileInfo(newError, error.source);
+  newError.info.push(suggestion1, suggestion2);
   return {
     ...error,
-    message: [errorHeading, errorMessage, suggestion1, suggestion2].join("\n")
+    message: tidyverseFormatError(newError)
   };
 }
 
@@ -73,6 +107,7 @@ function getValidator(schema: Schema): YAMLSchema {
   yamlValidators[schemaName] = validator;
 
   // FIXME where do we declare all of the standard validator error handlers?
+  validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);
   
   return validator;
