@@ -7,6 +7,7 @@
 */
 
 import { basename, dirname, relative } from "path/mod.ts";
+import { format } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { ld } from "lodash/mod.ts";
 
@@ -43,7 +44,7 @@ export interface ListingSort {
 }
 
 // An individual listing item
-export interface ListingItem {
+export interface ListingItem extends Record<string, unknown> {
   title?: string;
   description?: string;
   author?: string[];
@@ -51,6 +52,7 @@ export interface ListingItem {
   image?: string;
   path: string;
   filename: string;
+  filemodified?: Date;
 }
 
 // The type of listing
@@ -59,6 +61,9 @@ export enum ListingType {
   Cards = "cards",
   Table = "table",
 }
+
+// Options
+const kDateFormat = "date-format";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -95,17 +100,22 @@ export async function listingHtmlDependencies(
       );
 
       // Create the item
+      const filename = basename(projectRelativePath);
+      const filemodified = fileModifiedDate(input);
       const documentMeta = target?.markdown.yaml;
       const description = documentMeta?.description as string ||
         findDescriptionMd(target?.markdown.markdown);
       const image = documentMeta?.image as string ||
         findPreviewImgMd(target?.markdown.markdown);
-      const date = documentMeta?.date as Date;
+      const date = documentMeta?.date
+        ? new Date(documentMeta.date as string)
+        : filemodified;
       const author = Array.isArray(documentMeta?.author)
         ? documentMeta?.author
         : [documentMeta?.author];
-      const filename = basename(projectRelativePath);
+
       items.push({
+        ...documentMeta,
         title: target?.title,
         date,
         author,
@@ -113,6 +123,7 @@ export async function listingHtmlDependencies(
         description,
         path: `/${projectRelativePath}`,
         filename,
+        filemodified,
       });
     }
 
@@ -210,10 +221,33 @@ const templateMarkdownHandler = (
   items: ListingItem[],
   attributes?: Record<string, string>,
 ) => {
+  // Process the items into simple key value pairs, applying
+  // any formatting
+  const reshapedItems: Record<string, unknown | undefined>[] = items.map(
+    (item) => {
+      const record: Record<string, unknown | undefined> = { ...item };
+      // TODO: Improve author formatting
+      record.author = item.author ? item.author.join(", ") : undefined;
+
+      // Format date values
+      // Read date formatting from an option, if present
+      const dateFormat = listing.options?.[kDateFormat] as string ||
+        "MM/dd/yyyy";
+
+      if (item.date) {
+        record.date = format(item.date, dateFormat);
+      }
+      if (item.filemodified) {
+        record.filemodified = format(item.filemodified, dateFormat);
+      }
+      return record;
+    },
+  );
+
   // Render the template into markdown
   const markdown = renderEjs(
     resourcePath(template),
-    { listing, items },
+    { listing, items: reshapedItems },
     false,
   );
 
@@ -335,6 +369,9 @@ function resolveListing(meta: Record<string, unknown>, synthId: () => string) {
     classes: maybeArray(meta.classes) || [],
     sort: resolveListingSort(meta.sort),
     options: meta.options as Record<string, unknown>,
+    format: (key: string, val: unknown) => {
+      return val as string;
+    },
   };
 }
 
@@ -444,4 +481,10 @@ function columnSpan(columns: number) {
     }
   }
   return rawValue;
+}
+
+function fileModifiedDate(input: string) {
+  const file = Deno.openSync(input, { read: true });
+  const fileInfo = Deno.fstatSync(file.rid);
+  return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
 }
