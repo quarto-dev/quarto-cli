@@ -62,7 +62,7 @@ export function pdfJsFileHandler(
         );
       // always hide the sidebar in the viewer pane
       const referrer = req.headers.get("Referer");
-      const isViewer = referrer && referrer.includes("viewer_pane=1");
+      const isViewer = referrer && referrer.includes("capabilities=");
       if (isViewer) {
         viewerJs = viewerJs.replace(
           "sidebarView: sidebarView",
