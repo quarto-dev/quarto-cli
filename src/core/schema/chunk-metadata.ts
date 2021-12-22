@@ -13,7 +13,7 @@ import { addValidatorErrorHandler } from "../lib/validator-queue.ts";
 import { objectRefSchemaFromGlob } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import { schemaPath } from "./utils.ts";
-import { tidyverseInfo, tidyverseError } from "../log.ts";
+import { tidyverseFormatError, quotedStringColor, TidyverseError, addFileInfo, addInstancePathInfo } from "../lib/errors.ts";
 
 let normalizedCache: Record<string, Schema> | undefined = undefined;
 let unNormalizedCache: Record<string, Schema> | undefined = undefined;
@@ -24,33 +24,39 @@ function checkForEqualsInChunk(
 {
   if (typeof error.violatingObject.result !== "string")
     return error;
-  const badObject = error.violatingObject.result;
+  const badObject = error.source.value.substring(
+    error.violatingObject.start,
+    error.violatingObject.end);
+
   if (error.error.keyword !== 'type')
     return error;
   let m;
-  const errorHeading = `${error.location}: \`${badObject}\` must be a YAML mapping.`;
-  const errorMsg = tidyverseError(`\`${badObject}\` is a string.`);
+  const heading = `${error.location}: ${quotedStringColor(badObject)} must be a YAML mapping.`;
+  const errorMsg = [`${quotedStringColor(badObject)} is a string.`];
+  
+  const newError: TidyverseError = {
+    heading,
+    error: errorMsg,
+    info: []
+  };
+  addFileInfo(newError, error.source);
+  addInstancePathInfo(newError, error.error.instancePath);
   
   if (m = badObject.match(/= *TRUE/i)) {
-    const suggestion = tidyverseInfo(`Did you accidentally use \`${m[0]}\` instead of \`: true\`?`);
-    error = {
-      ...error,
-      message: [errorHeading, errorMsg, suggestion].join("\n")
-    };
+    newError.info.push(`Try using ${quotedStringColor(": true")} instead of ${quotedStringColor(m[0])}.`);
   } else if (m = badObject.match(/= *FALSE/i)) {
-    const suggestion = tidyverseInfo(`Did you accidentally use \`${m[0]}\` instead of \`: false\`?`);
-    error = {
-      ...error,
-      message: [errorHeading, errorMsg, suggestion].join("\n")
-    };
+    newError.info.push(`Try using ${quotedStringColor(": false")} instead of ${quotedStringColor(m[0])}.`);
   } else if (badObject.match('=')) {
-    const suggestion = tidyverseInfo(`Did you accidentally use \`=\` instead of \`:\`?`);
-    error = {
-      ...error,
-      message: [errorHeading, errorMsg, suggestion].join("\n")
-    };
+    newError.info.push(`Try using ${quotedStringColor(":")} instead of ${quotedStringColor("=")}.`);
+  } else {
+    // it didn't match any, so don't change the error.
+    return error;
   }
-  return error;
+  
+  return {
+    ...error,
+    message: tidyverseFormatError(newError)
+  };
 }
 
 export async function getEngineOptionsSchema(normalized?: boolean): Promise<Record<string, Schema>>
