@@ -21,6 +21,7 @@ import {
 export interface MappedString {
   readonly value: string;
   readonly originalString: string;
+  readonly fileName?: string;
   map: (a: number) => number | undefined;
   mapClosest: (a: number) => number | undefined;
 }
@@ -41,6 +42,9 @@ concatenated into the result in the field `value`.
 
 In the field `originalString`, we keep the "original string"
 
+In the field `fileName`, we (optionally) keep a filename, strictly as
+metadata for error reporting.
+
 In addition to this new string, mappedString returns two functions:
 
 - a function `map` that sends offset from this new
@@ -60,6 +64,7 @@ This provides a natural composition for mapped strings.
 export function mappedString(
   source: EitherString,
   pieces: StringChunk[],
+  fileName?: string
 ): MappedString {
   interface OffsetInfo {
     fromSource: boolean;
@@ -169,6 +174,7 @@ export function mappedString(
     return {
       value,
       originalString: source,
+      fileName,
       map,
       mapClosest,
     };
@@ -178,6 +184,7 @@ export function mappedString(
       originalString,
       map: previousMap,
       mapClosest: previousMapClosest,
+      fileName: previousFileName
     } = source;
 
     const {
@@ -207,18 +214,25 @@ export function mappedString(
       originalString,
       map: composeMap,
       mapClosest: composeMapClosest,
+      fileName: previousFileName
     };
   }
 }
 
-export function asMappedString(str: EitherString): MappedString {
+export function asMappedString(
+  str: EitherString,
+  fileName?: string
+): MappedString {
   if (typeof str === "string") {
     return {
       value: str,
       originalString: str,
       map: (x: number) => x,
       mapClosest: (x: number) => x,
+      fileName
     };
+  } else if (fileName !== undefined) {
+    throw new Error("Internal error: can't change the fileName of an existing MappedString");
   } else {
     return str;
   }
@@ -240,6 +254,7 @@ export function mappedConcat(strings: MappedString[]): MappedString {
   return {
     value,
     originalString: strings[0].originalString,
+    fileName: strings[0].fileName,
     map(offset: number) {
       if (offset < 0 || offset >= value.length) {
         return undefined;
