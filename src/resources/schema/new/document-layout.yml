@@ -5,6 +5,7 @@
         - scrartcl
         - scrbook
         - scrreprt
+        - scrlttr2
         - article
         - book
         - report
