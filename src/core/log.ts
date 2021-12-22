@@ -314,18 +314,3 @@ const levelMap: Record<
   error: "ERROR",
   critical: "CRITICAL",
 };
-
-// tidyverse error message styling
-// https://style.tidyverse.org/error-messages.html
-//
-// formats an info message according to the tidyverse style guide
-export function tidyverseInfo(msg: string)
-{
-  return `${colors.blue("ℹ")} ${msg}`;
-}
-
-// formats an error message according to the tidyverse style guide
-export function tidyverseError(msg: string)
-{
-  return `${colors.red("✖")} ${msg}`;
-}
