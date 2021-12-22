@@ -29,7 +29,6 @@ export function httpDevServer(
 ): HttpDevServer {
   // track clients
   interface Client {
-    path: string;
     socket: WebSocket;
   }
   const clients: Client[] = [];
@@ -58,7 +57,7 @@ export function httpDevServer(
     connect: (req: Request) => {
       try {
         const { socket, response } = Deno.upgradeWebSocket(req);
-        clients.push({ path: req.url, socket });
+        clients.push({ socket });
         return Promise.resolve(response);
       } catch (e) {
         maybeDisplaySocketError(e);
