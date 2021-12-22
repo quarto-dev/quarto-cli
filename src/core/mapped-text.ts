@@ -62,5 +62,5 @@ export function mappedDiff(
     }
   }
 
-  return mappedString(source, resultChunks);
+  return mappedString(source, resultChunks, source.fileName);
 }
