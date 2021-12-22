@@ -5,7 +5,7 @@
 *
 */
 
-import { YAMLSchema, LocalizedError, AnnotatedParse } from "./yaml-schema.ts";
+import { YAMLSchema, LocalizedError, getVerbatimInput, AnnotatedParse } from "./yaml-schema.ts";
 import { PromiseQueue } from "./promise.ts";
 import { Schema } from "./schema.ts";
 import { tidyverseFormatError, TidyverseError, quotedStringColor, addFileInfo, addInstancePathInfo } from "./errors.ts";
@@ -17,23 +17,22 @@ function checkForTypeMismatch(
   error: LocalizedError, parse: AnnotatedParse, schema: Schema
 )
 {
-  schema = error.error.params.schema;
-  const verbatimInput = error.source.value.substring(
-    error.violatingObject.start,
-    error.violatingObject.end);
+  schema = error.ajvError.params.schema;
+  const verbatimInput = quotedStringColor(getVerbatimInput(error));
   
-  if (error.error.keyword === "type") {
+  if (error.ajvError.keyword === "type") {
     // console.log(JSON.stringify(error, null, 2));
     const newError: TidyverseError = {
-      heading: `${error.location}: The value ${quotedStringColor(verbatimInput)} must be a ${error.error.params.type}.`,
-      error: [`The value ${quotedStringColor(verbatimInput)} is a ${typeof error.violatingObject.result}.`],
-      info: []
+      heading: `The value ${verbatimInput} must be a ${error.ajvError.params.type}.`,
+      error: [`The value ${verbatimInput} is a ${typeof error.violatingObject.result}.`],
+      info: [],
+      location: error.niceError.location
     };
-    addInstancePathInfo(newError, error.error.instancePath);
+    addInstancePathInfo(newError, error.ajvError.instancePath);
     addFileInfo(newError, error.source);
     return {
       ...error,
-      message: tidyverseFormatError(newError)
+      niceError: newError
     };
   }
   return error;
@@ -43,16 +42,14 @@ function checkForBadBoolean(
   error: LocalizedError, parse: AnnotatedParse, schema: Schema
 )
 {
-  schema = error.error.params.schema;
+  schema = error.ajvError.params.schema;
   if (!(typeof error.violatingObject.result === "string" &&
-    error.error.keyword === "type" &&
+    error.ajvError.keyword === "type" &&
     schema?.type === "boolean")) {
     return error;
   }
   const strValue = error.violatingObject.result;
-  const verbatimInput = error.source.value.substring(
-    error.violatingObject.start,
-    error.violatingObject.end);
+  const verbatimInput = quotedStringColor(getVerbatimInput(error));
 
   // from https://yaml.org/type/bool.html
   const yesses = new Set("y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON".split("|"));
@@ -66,21 +63,22 @@ function checkForBadBoolean(
     return error;
   }
 
-  const heading = `${error.location}: The value ${quotedStringColor(verbatimInput)} must be a boolean`;
-  const errorMessage = `The value ${quotedStringColor(verbatimInput)} is a string.`;
+  const heading = `The value ${verbatimInput} must be a boolean`;
+  const errorMessage = `The value ${verbatimInput} is a string.`;
   const suggestion1 = `Quarto uses YAML 1.2, which interprets booleans strictly.`;
   const suggestion2 = `Try using ${quotedStringColor(String(fix))} instead.`;
   const newError: TidyverseError = {
     heading,
     error: [errorMessage],
-    info: []
+    info: [],
+    location: error.niceError.location
   };
-  addInstancePathInfo(newError, error.error.instancePath);
+  addInstancePathInfo(newError, error.ajvError.instancePath);
   addFileInfo(newError, error.source);
   newError.info.push(suggestion1, suggestion2);
   return {
     ...error,
-    message: tidyverseFormatError(newError)
+    niceError: newError
   };
 }
 

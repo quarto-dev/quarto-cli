@@ -9,9 +9,21 @@
 */
 
 import { mappedIndexToRowCol, MappedString } from "./mapped-text.ts";
+
 import { formatLineRange, lines } from "./text.ts";
+
 import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
-import { tidyverseFormatError, addFileInfo } from "./errors.ts";
+
+import {
+  tidyverseFormatError,
+  addFileInfo,
+  ErrorLocation,
+  TidyverseError,
+  locationString,
+  quotedStringColor,
+  addInstancePathInfo,
+} from "./errors.ts";
+
 import * as colors from "./external/colors.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +44,7 @@ let ajv: any = undefined;
 /* we use a minimal dependency-injection setup here to decouple this
    library from the Ajv dependency. This allows us core-lib not to
    depend directly on Ajv, which in turn lets us use the UMD version
-   of Ajv in the Javascript runtime.
+   of Ajv in the Javascript runtime as well as deno.
 
    Ideally, we'd do the same for the YAML parsers, which are different
    in deno and in the browser. At some point, we might want to shim over
@@ -51,6 +63,8 @@ export function getAjvInstance() {
   return ajv;
 }
 
+// this is an interface from ajv which we're repeating here for build
+// simplicity
 export interface ErrorObject {
   keyword: string; // validation keyword.
   instancePath: string; // JSON Pointer to the location in the data instance (e.g., `"/prop/1/subProp"`).
@@ -83,18 +97,17 @@ export interface LocalizedError {
   violatingObject: AnnotatedParse;
   instancePath: string;
   message: string;
-  messageNoLocation?: string;
-  location: string;
-  start?: {
-    line: number;
-    column: number;
-  };
-  end?: {
-    line: number;
-    column: number;
-  };
+  location?: ErrorLocation;
+  niceError: TidyverseError;
   // deno-lint-ignore no-explicit-any
-  error?: any; // upstream error
+  ajvError?: any; // upstream error object from ajv
+}
+
+export function getVerbatimInput(error: LocalizedError)
+{
+  return error.source.value.substring(
+    error.violatingObject.start,
+    error.violatingObject.end);
 }
 
 function navigate(
@@ -110,14 +123,14 @@ function navigate(
     const { components } = annotation;
     const searchKey = path[pathIndex];
     // this loop is inverted to provide better error messages in the
-    // case of repeated keys. This is a parse error in any case, but
+    // case of repeated keys. Repeated keys are an error in any case, but
     // the parsing by the validation infrastructure reports the last
     // entry of a given key in the mapping as the one that counts
     // (instead of the first, which would be what we'd get if running
     // the loop forward).
     //
     // In that case, the validation errors will also point to the last
-    // entry. In order for the errors to be at least somewhat sensible,
+    // entry. In order for the errors to be at least consistent,
     // we then loop backwards
     const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
     for (let i = lastKeyIndex; i >= 0; i -= 2) {
@@ -249,7 +262,11 @@ function narrowOneOfError(
 /*
  * This attempts to prune the large number of errors reported by avj.
  *
- * We apply two general heuristics:
+ * We get a large number of errors in ajv because we have to run it
+ * with "allErrors: true" in order to get the IDE validation prompts
+ * over the entirety of the file.
+ *
+ * To prune the errors, we apply two general heuristics:
  *
  * 1. if there are errors in two instance paths, and one error is in a
  *    prefix of another error, we only report the innermost error (the
@@ -259,7 +276,11 @@ function narrowOneOfError(
  *    error also fixes the larger error.)
  *
  * 2. For errors in the _same_ instance path, we always choose at most
- *    one error to display.
+ *    one error to display. The principle here is that fixing this
+ *    error is likely to change the other errors on a second attempt,
+ *    and so we don't want to overwhelm the user with multiple reports
+ *    on the same location.
+ *
  */
 function localizeAndPruneErrors(
   annotation: AnnotatedParse,
@@ -378,58 +399,57 @@ function localizeAndPruneErrors(
       const start = locF(violatingObject.start);
       const end = locF(violatingObject.end);
 
-      const locStr = (start.line === end.line
-        ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column +
-          1})`
-        : `(line ${start.line + 1}, column ${start.column +
-          1} through line ${end.line + 1}, column ${end.column + 1})`);
-
-      let messageNoLocation;
+      let niceError = {
+        heading: "",
+        error: [],
+        info: [],
+        location: { start, end },
+      };
+      
       // in the case of customized errors, use message we prepared earlier
       if (error.keyword.startsWith("_custom_")) {
-        messageNoLocation = { heading: error.message, error: [], info: [] };
+        niceError = {
+          ...niceError,
+          heading: error.message ?? "",
+        };
       } else {
         if (instancePath === "") {
-          messageNoLocation = { heading: `(top-level error) ${error.message}`, error: [], info: [] };
+          niceError = {
+            ...niceError,
+            heading: `(top-level error) ${error.message}`,
+          };
         } else {
           const errorSchema = error.params && error.params.schema;
           const innerSchema = errorSchema ? [errorSchema] : navigateSchema(schemaPath.map(decodeURIComponent), schema);
           if (innerSchema.length === 0) {
             // this is probably an internal error..
-            messageNoLocation = {
-              heading: `Field ${instancePath}, schema ${schemaPath}: ${error.message}`,
-              error: [],
-              info: []
+            niceError = {
+              ...niceError,
+              heading: `Schema ${schemaPath}: ${error.message}`,
             };
           } else {
             const idTag = errorSchema.$id ? ` ${colors.gray("(schema id: " + errorSchema.$id + ")")}` : "";
-            
-            messageNoLocation = {
-              heading: `Field ${instancePath} must ${innerSchema.map(s => s.description).join(", ")}${idTag}`,
-              error: [],
-              info: []
+            const verbatimInput = quotedStringColor(
+              source.value.substring(violatingObject.start, violatingObject.end));
+            niceError = {
+              ...niceError,
+              heading: `The value ${verbatimInput} must ${innerSchema.map(s => s.description).join(", ")}${idTag}.`,
             };
           }
         }
       }
-      messageNoLocation = {
-        ...messageNoLocation,
-        heading: `${locStr}: ${messageNoLocation.heading}`
-      };
-      addFileInfo(messageNoLocation, source);
-      
-      const message = tidyverseFormatError(messageNoLocation);
+      niceError.location = { start, end };
+      addFileInfo(niceError, source);
+      addInstancePathInfo(niceError, instancePath);
 
       result.push({
         instancePath,
+        message: error.message ?? "",
         violatingObject,
-        message,
-        messageNoLocation: messageNoLocation.heading,
-        location: locStr,
+        location: { start, end },
         source,
-        start,
-        end,
-        error, // we include the full error to allow downstream fine-tuning
+        ajvError: error, // we include the full AJV error to allow downstream fine-tuning
+        niceError: niceError
       });
     }
   }
@@ -530,7 +550,7 @@ export class YAMLSchema {
       const nLines = lines(src.originalString).length;
       error(message);
       for (const err of result.errors) {
-        log(err.message);
+        // log(err.message);
         // attempt to trim whitespace from error report
         let startO = err.violatingObject.start;
         let endO = err.violatingObject.end;
@@ -556,19 +576,22 @@ export class YAMLSchema {
           Math.max(0, start.line - 1),
           Math.min(end.line + 1, nLines - 1),
         );
+        const contextLines: string[] = [];
         for (const { lineNumber, content, rawLine } of lines) {
-          log(content);
+          contextLines.push(content);
           if (lineNumber >= start.line && lineNumber <= end.line) {
             const startColumn = (lineNumber > start.line ? 0 : start.column);
             const endColumn = (lineNumber < end.line
               ? rawLine.length
               : end.column);
-            log(
+            contextLines.push(
               " ".repeat(prefixWidth + startColumn) +
                 colors.blue("~".repeat(endColumn - startColumn + 1)),
             );
           }
         }
+        err.niceError.sourceContext = contextLines.join("\n");
+        log(tidyverseFormatError(err.niceError));
       }
     }
     return result;

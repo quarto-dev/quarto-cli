@@ -28,7 +28,7 @@ function checkForEqualsInChunk(
     error.violatingObject.start,
     error.violatingObject.end);
 
-  if (error.error.keyword !== 'type')
+  if (error.ajvError.keyword !== 'type')
     return error;
   let m;
   const heading = `${error.location}: ${quotedStringColor(badObject)} must be a YAML mapping.`;
@@ -40,7 +40,7 @@ function checkForEqualsInChunk(
     info: []
   };
   addFileInfo(newError, error.source);
-  addInstancePathInfo(newError, error.error.instancePath);
+  addInstancePathInfo(newError, error.ajvError.instancePath);
   
   if (m = badObject.match(/= *TRUE/i)) {
     newError.info.push(`Try using ${quotedStringColor(": true")} instead of ${quotedStringColor(m[0])}.`);

@@ -13,6 +13,14 @@ import { MappedString } from "./mapped-text.ts";
 // tidyverse error message styling
 // https://style.tidyverse.org/error-messages.html
 //
+// Currently, the only way in which we disagree with the tidyverse
+// style guide is in the phrasing of the "hint" (here, "info") prompts.
+// Instead of using question marks, we use actionable, but tentative phrasing.
+//
+// Where the style guide would suggest "have you tried x instead?"
+//
+// here, we will say "Try x instead."
+// 
 
 // formats an info message according to the tidyverse style guide
 export function tidyverseInfo(msg: string)
@@ -26,17 +34,38 @@ export function tidyverseError(msg: string)
   return `${colors.red("✖")} ${msg}`;
 }
 
+export interface ErrorLocation {
+  start: {
+    line: number,
+    column: number,
+  },
+  end: {
+    line: number,
+    column: number,
+  },
+};
+
 export interface TidyverseError {
   heading: string,
   error: string[],
-  info: string[]
+  info: string[],
+  fileName?: string,
+  location?: ErrorLocation,
+  sourceContext?: string
 };
 
 export function tidyverseFormatError(msg: TidyverseError)
 {
-  const { heading, error, info } = msg;
+  let { heading, error, info } = msg;
+  if (msg.location) {
+    heading = `${locationString(msg.location)} ${heading}`;
+  }
+  if (msg.fileName) {
+    heading = `In file ${msg.fileName} ${heading}`;
+  }
   const strings =
     [heading,
+     msg.sourceContext,
      ...error.map(tidyverseError),
      ...info.map(tidyverseInfo)];
   return strings.join("\n");
@@ -51,8 +80,7 @@ export function quotedStringColor(msg: string)
 export function addFileInfo(msg: TidyverseError, src: MappedString)
 {
   if (src.fileName !== undefined) {
-    msg.heading = `In file ${src.fileName} ${msg.heading}`;
-    // msg.info.push(`In file ${src.fileName}:`);
+    msg.fileName = src.fileName;
   }
 }
 
@@ -62,3 +90,14 @@ export function addInstancePathInfo(msg: TidyverseError, instancePath: string)
     msg.info.push(`The error happened in the field ${instancePath}.`);
   }
 }
+
+export function locationString(loc: ErrorLocation)
+{
+  const { start, end } = loc;
+  const locStr = (start.line === end.line
+    ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`
+    : `(line ${start.line + 1}, column ${start.column + 
+       1} through line ${end.line + 1}, column ${end.column + 1})`);
+  return locStr;
+}
+
