@@ -96,6 +96,14 @@ export async function renderProject(
     options = { ...options, useFreezer: true };
   }
 
+  // some standard pre and post render script env vars
+  const renderAll = !files || (files.length === context.files.input.length);
+  const prePostEnv = {
+    "QUARTO_PROJECT_OUTPUT_DIR": context.config?.project?.[kProjectOutputDir] ||
+      ".",
+    ...(renderAll ? { QUARTO_PROJECT_RENDER_ALL: "1" } : {}),
+  };
+
   // default for files if not specified
   files = files || context.files.input;
 
@@ -109,12 +117,22 @@ export async function renderProject(
   // ensure we have the requisite entries in .gitignore
   await ensureGitignore(context.dir);
 
-  // run pre-render steps if this isn't incremental
-  if (!incremental && context.config?.project?.[kProjectPreRender]) {
+  // determine whether pre and post render steps should show progress
+  const progress = !!options.progress && (files.length > 1);
+
+  // run pre-render step if we are rendering all files
+  if (files.length > 0 && context.config?.project?.[kProjectPreRender]) {
     await runPreRender(
       projDir,
       context.config?.project?.[kProjectPreRender]!,
+      progress,
       !!options.flags?.quiet,
+      {
+        ...prePostEnv,
+        QUARTO_PROJECT_INPUT_FILES: files
+          .map((file) => relative(projDir, file))
+          .join("\n"),
+      },
     );
   }
 
@@ -355,26 +373,35 @@ export async function renderProject(
 
     // call project post-render
     if (!projResults.error) {
+      const outputFiles = projResults.files.map((result) => {
+        const file = outputDir ? join(outputDir, result.file) : result.file;
+        return {
+          file: join(projDir, file),
+          format: result.format,
+        };
+      });
+
       if (projType.postRender) {
         await projType.postRender(
           context,
           incremental,
-          projResults.files.map((result) => {
-            const file = outputDir ? join(outputDir, result.file) : result.file;
-            return {
-              file: join(projDir, file),
-              format: result.format,
-            };
-          }),
+          outputFiles,
         );
       }
 
       // run post-render if this isn't incremental
-      if (!incremental && context.config?.project?.[kProjectPostRender]) {
+      if (files.length > 0 && context.config?.project?.[kProjectPostRender]) {
         await runPostRender(
           projDir,
           context.config?.project?.[kProjectPostRender]!,
+          progress,
           !!options.flags?.quiet,
+          {
+            ...prePostEnv,
+            QUARTO_PROJECT_OUTPUT_FILES: outputFiles
+              .map((outputFile) => relative(projDir, outputFile.file))
+              .join("\n"),
+          },
         );
       }
     }
@@ -388,29 +415,35 @@ export async function renderProject(
 async function runPreRender(
   projDir: string,
   preRender: string[],
+  progress: boolean,
   quiet: boolean,
+  env?: { [key: string]: string },
 ) {
-  await runScripts(projDir, preRender, quiet);
+  await runScripts(projDir, preRender, progress, quiet, env);
 }
 
 async function runPostRender(
   projDir: string,
   postRender: string[],
+  progress: boolean,
   quiet: boolean,
+  env?: { [key: string]: string },
 ) {
-  await runScripts(projDir, postRender, quiet);
+  await runScripts(projDir, postRender, progress, quiet, env);
 }
 
 async function runScripts(
   projDir: string,
   scripts: string[],
+  progress: boolean,
   quiet: boolean,
+  env?: { [key: string]: string },
 ) {
   for (let i = 0; i < scripts.length; i++) {
     const args = parse(scripts[i]);
     const script = args[0];
 
-    if (!quiet) {
+    if (progress && !quiet) {
       info(colors.bold(colors.blue(`${script}`)));
     }
 
@@ -419,12 +452,14 @@ async function runScripts(
       await handler.run(script, args.splice(1), {
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
+        env,
       });
     } else {
       await execProcess({
         cmd: args,
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
+        env,
       });
     }
   }
