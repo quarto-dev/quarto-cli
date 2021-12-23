@@ -8,6 +8,8 @@
 import { info } from "log/mod.ts";
 
 import { dirname, extname } from "path/mod.ts";
+import { quartoInitFilter } from "../../command/render/filters.ts";
+import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./run.ts";
@@ -17,44 +19,28 @@ export const luaRunHandler: RunHandler = {
     return [".lua"].includes(extname(script).toLowerCase());
   },
   run: async (script: string, args: string[], options?: RunHandlerOptions) => {
-    // append boilerplate "do nothing" pandoc format code to temporary copy of the script
-    script = Deno.realPathSync(script);
-    const tempScript = Deno.makeTempFileSync({
-      dir: dirname(script),
-      prefix: ".run-",
-      suffix: ".lua",
-    });
-    Deno.writeTextFileSync(
-      tempScript,
-      Deno.readTextFileSync(script) + `\n
-local meta = {}
-meta.__index =
-function(_, key)
-return function() return '' end
-end
-setmetatable(_G, meta)      
-`,
-    );
-
-    // call pandoc w/ temp script as --to
-    try {
-      return await execProcess({
-        cmd: [
-          pandocBinaryPath(),
-          "--from",
-          "markdown",
-          "--to",
-          tempScript,
-          ...args,
-        ],
-        ...options,
-      }, "");
-    } finally {
-      // remove temp script
-      if (tempScript) {
-        Deno.removeSync(tempScript);
-      }
+    // call pandoc w/ script as a filter
+    const cmd = [
+      pandocBinaryPath(),
+      "--from",
+      "markdown",
+      "--to",
+      "plain",
+    ];
+    if (isWindows()) {
+      cmd.push("--lua-filter");
+      cmd.push(quartoInitFilter());
     }
+    cmd.push(
+      "--lua-filter",
+      script,
+    );
+    cmd.push(...args);
+
+    return await execProcess({
+      cmd,
+      ...options,
+    }, "");
   },
 };
 
