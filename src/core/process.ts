@@ -29,12 +29,12 @@ export async function execProcess(
     // the proper behavior for inherit, etc....
     const process = Deno.run({
       ...options,
-      stdin: stdin ? "piped" : options.stdin,
+      stdin: stdin !== undefined ? "piped" : options.stdin,
       stdout: typeof (options.stdout) === "number" ? options.stdout : "piped",
       stderr: typeof (options.stderr) === "number" ? options.stderr : "piped",
     });
 
-    if (stdin) {
+    if (stdin !== undefined) {
       if (!process.stdin) {
         throw new Error("Process stdin not available");
       }

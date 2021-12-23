@@ -48,7 +48,7 @@ setmetatable(_G, meta)
           ...args,
         ],
         ...options,
-      }, " ");
+      }, "");
     } finally {
       // remove temp script
       if (tempScript) {
