@@ -10,6 +10,8 @@ import { Format, FormatExtras } from "../config/types.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
+export const kProjectPreRender = "pre-render";
+export const kProjectPostRender = "post-render";
 export const kProjectExecuteDir = "execute-dir";
 export const kProjectOutputDir = "output-dir";
 export const kProjectLibDir = "lib-dir";
@@ -37,6 +39,8 @@ export interface ProjectConfig {
   project: {
     [kProjectType]?: string;
     [kProjectRender]?: string[];
+    [kProjectPreRender]?: string[];
+    [kProjectPostRender]?: string[];
     [kProjectExecuteDir]?: "file" | "project";
     [kProjectOutputDir]?: string;
     [kProjectLibDir]?: string;

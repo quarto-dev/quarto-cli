@@ -10,13 +10,13 @@ import { info } from "log/mod.ts";
 import { dirname, extname } from "path/mod.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath } from "../resources.ts";
-import { RunHandler } from "./run.ts";
+import { RunHandler, RunHandlerOptions } from "./run.ts";
 
 export const luaRunHandler: RunHandler = {
   canHandle: (script: string) => {
     return [".lua"].includes(extname(script).toLowerCase());
   },
-  run: async (script: string, args: string[]) => {
+  run: async (script: string, args: string[], options?: RunHandlerOptions) => {
     // append boilerplate "do nothing" pandoc format code to temporary copy of the script
     script = Deno.realPathSync(script);
     const tempScript = Deno.makeTempFileSync({
@@ -47,6 +47,7 @@ setmetatable(_G, meta)
           tempScript,
           ...args,
         ],
+        ...options,
       }, " ");
     } finally {
       // remove temp script

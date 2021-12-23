@@ -8,7 +8,9 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
+
+import * as colors from "fmt/colors.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -18,6 +20,8 @@ import {
   kProjectExecuteDir,
   kProjectLibDir,
   kProjectOutputDir,
+  kProjectPostRender,
+  kProjectPreRender,
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
@@ -42,6 +46,8 @@ import {
   removeIfEmptyDir,
   removeIfExists,
 } from "../../core/path.ts";
+import { handlerForScript } from "../../core/run/run.ts";
+import { execProcess } from "../../core/process.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -102,6 +108,15 @@ export async function renderProject(
 
   // ensure we have the requisite entries in .gitignore
   await ensureGitignore(context.dir);
+
+  // run pre-render steps if this isn't incremental
+  if (!incremental && context.config?.project?.[kProjectPreRender]) {
+    await runPreRender(
+      projDir,
+      context.config?.project?.[kProjectPreRender]!,
+      !!options.flags?.quiet,
+    );
+  }
 
   // lookup the project type and call preRender
   if (projType.preRender) {
@@ -338,23 +353,99 @@ export async function renderProject(
     // forward error to projResults
     projResults.error = fileResults.error;
 
-    // call post-render
-    if (!projResults.error && projType.postRender) {
-      await projType.postRender(
-        context,
-        incremental,
-        projResults.files.map((result) => {
-          const file = outputDir ? join(outputDir, result.file) : result.file;
-          return {
-            file: join(projDir, file),
-            format: result.format,
-          };
-        }),
-      );
+    // call project post-render
+    if (!projResults.error) {
+      if (projType.postRender) {
+        await projType.postRender(
+          context,
+          incremental,
+          projResults.files.map((result) => {
+            const file = outputDir ? join(outputDir, result.file) : result.file;
+            return {
+              file: join(projDir, file),
+              format: result.format,
+            };
+          }),
+        );
+      }
+
+      // run post-render if this isn't incremental
+      if (!incremental && context.config?.project?.[kProjectPostRender]) {
+        await runPostRender(
+          projDir,
+          context.config?.project?.[kProjectPostRender]!,
+          !!options.flags?.quiet,
+        );
+      }
     }
 
     return projResults;
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
   }
+}
+
+async function runPreRender(
+  projDir: string,
+  preRender: string[],
+  quiet: boolean,
+) {
+  await runScripts(projDir, preRender, quiet);
+}
+
+async function runPostRender(
+  projDir: string,
+  postRender: string[],
+  quiet: boolean,
+) {
+  await runScripts(projDir, postRender, quiet);
+}
+
+async function runScripts(
+  projDir: string,
+  scripts: string[],
+  quiet: boolean,
+) {
+  for (let i = 0; i < scripts.length; i++) {
+    const args = parse(scripts[i]);
+    const script = args[0];
+
+    if (!quiet) {
+      info(colors.bold(colors.blue(`${script}`)));
+    }
+
+    const handler = handlerForScript(script);
+    if (handler) {
+      await handler.run(script, args.splice(1), {
+        cwd: projDir,
+        stdout: quiet ? "piped" : "inherit",
+      });
+    } else {
+      await execProcess({
+        cmd: args,
+        cwd: projDir,
+        stdout: quiet ? "piped" : "inherit",
+      });
+    }
+  }
+  if (scripts.length > 0) {
+    info("");
+  }
+}
+
+function parse(cmdLine: string) {
+  let space = "{{space}}";
+  while (cmdLine.indexOf(space) > -1) {
+    space += "&";
+  }
+  const noSpaces = cmdLine.replace(
+    /"([^"]*)"?/g,
+    (_, capture) => {
+      return capture.replace(/ /g, space);
+    },
+  );
+  const paramArray = noSpaces.split(/ +/);
+  return paramArray.map((mangled) => {
+    return mangled.replace(RegExp(space, "g"), " ");
+  });
 }

@@ -21,6 +21,8 @@ import { Metadata } from "../config/types.ts";
 import {
   kProjectLibDir,
   kProjectOutputDir,
+  kProjectPostRender,
+  kProjectPreRender,
   kProjectRender,
   kProjectType,
   ProjectConfig,
@@ -102,7 +104,7 @@ export async function projectContext(
   const originalDir = dir;
 
   const configSchema = await getConfigSchema();
-  
+
   while (true) {
     const configFile = projectConfigFile(dir);
     if (configFile) {
@@ -152,6 +154,18 @@ export async function projectContext(
         // provide output-dir from command line if specfified
         if (flags?.outputDir) {
           projectConfig.project[kProjectOutputDir] = flags.outputDir;
+        }
+
+        // convert pre and post render to array
+        if (typeof (projectConfig.project[kProjectPreRender]) === "string") {
+          projectConfig.project[kProjectPreRender] = [
+            projectConfig.project[kProjectPreRender] as unknown as string,
+          ];
+        }
+        if (typeof (projectConfig.project[kProjectPostRender]) === "string") {
+          projectConfig.project[kProjectPostRender] = [
+            projectConfig.project[kProjectPostRender] as unknown as string,
+          ];
         }
 
         // get project config and type
