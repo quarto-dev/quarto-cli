@@ -118,7 +118,7 @@ export async function renderProject(
   await ensureGitignore(context.dir);
 
   // determine whether pre and post render steps should show progress
-  const progress = !!options.progress && (files.length > 1);
+  const progress = !!options.progress || (files.length > 1);
 
   // run pre-render step if we are rendering all files
   if (files.length > 0 && context.config?.project?.[kProjectPreRender]) {
