@@ -1,0 +1,20 @@
+/*-- scss:rules --*/
+
+ul.pagination {
+  float: right;
+  padding-left: 8px;
+  li {
+    padding-right: 0.75em;
+  }
+  li.disabled,
+  li.active {
+    a {
+      color: $body-color;
+      text-decoration: none;
+    }
+  }
+}
+
+.quarto-listing-filter {
+  margin-bottom: 0.8em;
+}

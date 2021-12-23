@@ -21,6 +21,7 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
+  kSassBundles,
   PandocFlags,
 } from "../../../config/types.ts";
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
@@ -180,6 +181,19 @@ export const websiteProjectType: ProjectType = {
       );
       extras.html[kMarkdownAfterBody]?.push(
         htmlListingDependencies[kMarkdownAfterBody],
+      );
+      extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+      extras[kIncludeInHeader]!.push(
+        ...htmlListingDependencies[kIncludeInHeader],
+      );
+      extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+      extras.html[kSassBundles]!.push(
+        ...htmlListingDependencies[kSassBundles],
+      );
+
+      extras.html[kDependencies] = extras.html[kDependencies] || [];
+      extras.html[kDependencies]?.push(
+        ...htmlListingDependencies[kDependencies],
       );
 
       // metadata html dependencies

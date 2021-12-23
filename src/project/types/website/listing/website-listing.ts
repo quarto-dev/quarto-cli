@@ -13,9 +13,12 @@ import { ld } from "lodash/mod.ts";
 
 import {
   Format,
+  FormatDependency,
   FormatExtras,
+  kDependencies,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
+  kSassBundles,
 } from "../../../../config/types.ts";
 import { resolvePathGlobs } from "../../../../core/path.ts";
 import { inputTargetIndex } from "../../../project-index.ts";
@@ -27,6 +30,10 @@ import {
 import { renderEjs } from "../../../../core/ejs.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
+import { kIncludeInHeader } from "../../../../config/constants.ts";
+import { sessionTempFile } from "../../../../core/temp.ts";
+import { sassLayer } from "../../../../core/sass.ts";
+import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
 
 // The core listing type
 export interface Listing {
@@ -164,12 +171,34 @@ export async function listingHtmlDependencies(
     `quarto-listing-pipeline`,
     markdownHandlers,
   );
+
+  const kListingDependency = "quarto-listing";
+  const jsPaths = [
+    resourcePath("projects/website/listing/list.min.js"),
+  ];
+  const htmlDependencies: FormatDependency[] = [{
+    name: kListingDependency,
+    scripts: jsPaths.map((path) => {
+      return {
+        name: basename(path),
+        path,
+      };
+    }),
+  }];
+
+  const scripts = listings.map((listing) => {
+    return listJsScript(listing);
+  });
+
   return {
+    [kIncludeInHeader]: [scriptFileForScripts(scripts)],
     [kHtmlPostprocessors]: (doc: Document) => {
       pipeline.processRenderedMarkdown(doc);
       return Promise.resolve([]);
     },
     [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
+    [kDependencies]: htmlDependencies,
+    [kSassBundles]: [listingSassBundle()],
   };
 }
 
@@ -231,6 +260,7 @@ const templateMarkdownHandler = (
 
       // Format date values
       // Read date formatting from an option, if present
+      // TODO: Use deno to get the locale format as the default
       const dateFormat = listing.options?.[kDateFormat] as string ||
         "MM/dd/yyyy";
 
@@ -487,4 +517,46 @@ function fileModifiedDate(input: string) {
   const file = Deno.openSync(input, { read: true });
   const fileInfo = Deno.fstatSync(file.rid);
   return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
+}
+
+const kRows = "rows";
+function listJsScript(listing: Listing) {
+  const rows = listing.options?.[kRows];
+
+  return `
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const options = {
+      valueNames: [
+        "title",
+        "author",
+        "custom-field",
+        "filename",
+        "filemodified",
+      ],
+      ${rows ? `page: ${rows}` : ""},
+      pagination: true,
+    };
+    const userList = new List("${listing.id}", options);
+  });
+  `;
+}
+
+function scriptFileForScripts(scripts: string[]) {
+  const scriptFile = sessionTempFile({ suffix: ".html" });
+  const contents = `<script>\n${scripts.join("\n")}</script>`;
+  Deno.writeTextFileSync(scriptFile, contents);
+  return scriptFile;
+}
+
+export function listingSassBundle() {
+  const scssPath = resourcePath("projects/website/listing/quarto-listing.scss");
+  const layer = sassLayer(scssPath);
+  return {
+    dependency: kBootstrapDependencyName,
+    key: scssPath,
+    quarto: {
+      name: "quarto-listing.css",
+      ...layer,
+    },
+  };
 }
