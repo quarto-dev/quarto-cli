@@ -143,15 +143,35 @@ async function downloadDenoStdLibrary(config: Configuration) {
   const denoStdTs = join(
     config.directoryInfo.pkg,
     "scripts",
-    "common",
+    "deno_std",
     "deno_std.ts",
   );
-  const denoCacheDir = join(config.directoryInfo.src, "resources", "deno_std");
+
+  const denoCacheLock = join(
+    config.directoryInfo.pkg,
+    "scripts",
+    "deno_std",
+    "deno_std.lock",
+  );
+  const denoCacheDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "deno_std",
+    "cache",
+  );
   ensureDirSync(denoCacheDir);
+
   info("Updating Deno Stdlib");
   info("");
   await execProcess({
-    cmd: [denoBinary, "--unstable", "cache", denoStdTs],
+    cmd: [
+      denoBinary,
+      "cache",
+      "--unstable",
+      "--lock",
+      denoCacheLock,
+      denoStdTs,
+    ],
     env: {
       DENO_DIR: denoCacheDir,
     },

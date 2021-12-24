@@ -5,7 +5,7 @@
 *
 */
 
-import { extname } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 import { execProcess } from "../process.ts";
 import { binaryPath, resourcePath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./run.ts";
@@ -20,14 +20,17 @@ export const denoRunHandler: RunHandler = {
       ...options,
       env: {
         ...options?.env,
-        DENO_DIR: resourcePath("deno_std"),
+        DENO_DIR: resourcePath(join("deno_std", "cache")),
       },
     };
+    const importMap = resourcePath(join("deno_std", "import_map.json"));
 
     return await execProcess({
       cmd: [
         binaryPath("deno"),
         "run",
+        "--import-map",
+        importMap,
         "--cached-only",
         "--allow-all",
         "--unstable",
