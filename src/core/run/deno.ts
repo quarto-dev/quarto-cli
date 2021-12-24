@@ -60,9 +60,6 @@ function initDenoCache() {
   ) {
     removeIfExists(cacheDenoStd);
     copySync(distDenoStd, cacheDenoStd, { overwrite: true });
-    info("Initializing deno_dir cache");
-  } else {
-    info("Using cached deno_dir");
   }
 
   return join(cacheDenoStd, "cache");
