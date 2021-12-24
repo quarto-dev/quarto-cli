@@ -29,6 +29,7 @@ export interface RunHandler {
 }
 
 export const kRunHandlers = [
+  denoRunHandler,
   luaRunHandler,
   pythonRunHandler,
   rRunHandler,

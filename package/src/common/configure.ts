@@ -8,6 +8,7 @@ import { dirname, join, SEP } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
+import { execProcess } from "../../../src/core/process.ts";
 import { expandPath } from "../../../src/core/path.ts";
 import {
   createDevConfig,
@@ -42,6 +43,9 @@ export async function configure(
     }
     info(`${dependency.name} complete.\n`);
   }
+
+  // Download deno std library
+  await downloadDenoStdLibrary(config);
 
   // Move the quarto script into place
   info("Creating Quarto script");
@@ -132,4 +136,24 @@ async function downloadBinaryDependency(
     data,
   );
   return targetFile;
+}
+
+async function downloadDenoStdLibrary(config: Configuration) {
+  const denoBinary = join(config.directoryInfo.bin, "deno");
+  const denoStdTs = join(
+    config.directoryInfo.pkg,
+    "scripts",
+    "common",
+    "deno_std.ts",
+  );
+  const denoCacheDir = join(config.directoryInfo.src, "resources", "deno_std");
+  ensureDirSync(denoCacheDir);
+  info("Updating Deno Stdlib");
+  info("");
+  await execProcess({
+    cmd: [denoBinary, "--unstable", "cache", denoStdTs],
+    env: {
+      DENO_DIR: denoCacheDir,
+    },
+  });
 }

@@ -14,3 +14,5 @@ package/dist/**
 src/resources/build/core-lib.js
 src/resources/editor/tools/yaml/quarto-json-schemas.json
 src/resources/editor/tools/yaml/yaml.js
+# deno_std library
+src/resources/deno_std/
