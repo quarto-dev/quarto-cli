@@ -20,6 +20,7 @@ import {
   kDependencies,
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
+import { isWindows } from "../../../src/core/platform.ts";
 
 export async function configure(
   config: Configuration,
@@ -45,7 +46,9 @@ export async function configure(
   }
 
   // Download deno std library
-  await downloadDenoStdLibrary(config);
+  if (!isWindows()) {
+    await downloadDenoStdLibrary(config);
+  }
 
   // Move the quarto script into place
   info("Creating Quarto script");

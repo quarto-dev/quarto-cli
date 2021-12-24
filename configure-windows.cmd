@@ -67,6 +67,9 @@ CALL quarto-bld configure --log-level info
 
 POPD
 
+ECHO Downloading Deno Stdlib
+CALL package\scripts\deno_std\download.bat
+
 SET QUARTO_DENO_EXTRA_OPTIONS="--reload"
 CALL %FINAL_BIN_PATH%\quarto --version
 
