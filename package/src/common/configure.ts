@@ -20,7 +20,6 @@ import {
   kDependencies,
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
-import { isWindows } from "../../../src/core/platform.ts";
 
 export async function configure(
   config: Configuration,
@@ -43,11 +42,6 @@ export async function configure(
       Deno.removeSync(targetFile);
     }
     info(`${dependency.name} complete.\n`);
-  }
-
-  // Download deno std library
-  if (!isWindows()) {
-    await downloadDenoStdLibrary(config);
   }
 
   // Move the quarto script into place
@@ -141,6 +135,10 @@ async function downloadBinaryDependency(
   return targetFile;
 }
 
+// note that this didn't actually work on windows (it froze and then deno was
+// inoperable on the machine until reboot!) so we moved it to script/batch
+// files on both platforms)
+// deno-lint-ignore no-unused-vars
 async function downloadDenoStdLibrary(config: Configuration) {
   const denoBinary = join(config.directoryInfo.bin, "deno");
   const denoStdTs = join(
