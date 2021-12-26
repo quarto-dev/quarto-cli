@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-native.ts";
+import { Document, Element } from "../../../core/deno-dom.ts";
 import {
   kHtmlResourceTags,
   processFileResourceRefs,

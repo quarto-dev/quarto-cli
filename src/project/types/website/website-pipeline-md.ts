@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { Document, Element, Node } from "deno_dom/deno-dom-native.ts";
+import { Document, Element, Node } from "../../../core/deno-dom.ts";
 
 export interface PipelineMarkdown {
   blocks?: Record<string, string>;

@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element, NodeType } from "deno_dom/deno-dom-native.ts";
+import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 import {
   kCodeLineNumbers,
   kFrom,
