@@ -91,6 +91,8 @@ export async function initDenoDom() {
           return genericParse(dylibParseFragSync, html);
         };
 
+        debug("Loaded deno-dom-native");
+
         // Register parse function and return
         register(parse, parseFrag);
         return;
