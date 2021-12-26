@@ -25,7 +25,7 @@ export interface PlatformDependency {
 }
 
 export const kDependencies = [
-  deno_dom(version("DENO_DOM")),
+  // deno_dom(version("DENO_DOM")),
   pandoc(version("PANDOC")),
   dartSass(version("DARTSASS")),
   esBuild(version("ESBUILD")),
