@@ -11,7 +11,9 @@ import { testRender } from "../../../smoke/render/render.ts";
 import { verifyOjsValue } from "./ojs-utils.ts";
 import { localFileURL } from "../../../puppeteer.ts";
 
+/*
 const computes = "docs/ojs/test-ojs-es-modules.qmd";
 testRender(computes, "html", false, [
   verifyOjsValue(localFileURL(computes), "x", 35),
 ]);
+*/
