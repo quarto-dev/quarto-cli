@@ -1,7 +1,7 @@
 import { existsSync } from "fs/mod.ts";
 import { fail } from "testing/asserts.ts";
 import { warning } from "log/mod.ts";
-import { initDenoDom } from "../src/core/html.ts";
+import { initDenoDom } from "../src/core/deno-dom.ts";
 
 import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
