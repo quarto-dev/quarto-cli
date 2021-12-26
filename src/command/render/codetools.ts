@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "deno_dom/deno-dom-native.ts";
 
 import { kMarkdownBlockSeparator } from "./types.ts";
 import { Format } from "../../config/types.ts";

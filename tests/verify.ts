@@ -6,7 +6,7 @@
 */
 
 import { exists, existsSync } from "fs/exists.ts";
-import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { DOMParser } from "deno_dom/deno-dom-native.ts";
 import { assert } from "testing/asserts.ts";
 import { join } from "path/mod.ts";
 

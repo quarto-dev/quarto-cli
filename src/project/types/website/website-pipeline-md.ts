@@ -4,12 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import {
-  Document,
-  Element,
-  Node,
-  NodeList,
-} from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element, Node } from "deno_dom/deno-dom-native.ts";
 
 export interface PipelineMarkdown {
   blocks?: Record<string, string>;

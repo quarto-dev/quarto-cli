@@ -9,7 +9,7 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 import { ld } from "lodash/mod.ts";
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "deno_dom/deno-dom-native.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";

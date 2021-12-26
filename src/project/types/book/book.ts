@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "deno_dom/deno-dom-native.ts";
 
 import { join } from "path/mod.ts";
 import { resourcePath } from "../../../core/resources.ts";

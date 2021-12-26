@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document } from "deno_dom/deno-dom-native.ts";
 
 import {
   kAtxHeaders,

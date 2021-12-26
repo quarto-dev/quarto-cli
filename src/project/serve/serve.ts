@@ -10,7 +10,7 @@ import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
-import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { DOMParser } from "deno_dom/deno-dom-native.ts";
 
 import { openUrl } from "../../core/shell.ts";
 import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
@@ -63,7 +63,6 @@ import { kResources } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { RenderFlags, RenderResult } from "../../command/render/types.ts";
-import { initDenoDom } from "../../core/html.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -412,9 +411,6 @@ function renderErrorPage(e: Error) {
 async function serveFiles(
   project: ProjectContext,
 ): Promise<{ files: string[]; resourceFiles: string[] }> {
-  // one time denoDom init
-  await initDenoDom();
-
   const files: string[] = [];
   const resourceFiles: string[] = [];
   for (let i = 0; i < project.files.input.length; i++) {
