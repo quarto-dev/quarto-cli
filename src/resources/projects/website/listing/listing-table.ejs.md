@@ -1,28 +1,13 @@
 <%
+
 const colNames = options["column-names"];
 const cols = options.columns;
-const colTypes = options["column-types"];
+const colSortTargets = options["column-sort-targets"];
 
 const links = options["column-links"];
 const allowSort = options["allow-sort"] !== false;
 const allowFilter = options["allow-filter"] !== false;
 const pageLength = options["rows"];
-
-const useDataValue = (col) => {
-const colType = colTypes[col];
-if (colType === 'date' || colType === 'number') {
-return true;
-} else {
-if (links.includes(col)) {
-return true;
-}
-}
-return false;
-}
-
-const dataValue = (col, item) => {
-return item.sortableValueFields[col];
-}
 %>
 
 ```{=html}
@@ -39,7 +24,7 @@ return item.sortableValueFields[col];
   | <% for (col of cols) { %>
     <th>
     <% if (allowSort) { %>
-    <a class="sort" data-sort="<%- useDataValue(col) ? `${col}-value` : col %>" onclick="return false;">
+    <a class="sort" data-sort="<%-colSortTargets[col]%>" onclick="return false;">
     <% } %>
     <%= colNames[col] ? colNames[col] : col %>
     <% if (allowSort) { %>
@@ -51,10 +36,9 @@ return item.sortableValueFields[col];
 </thead>
 <tbody class="list">
 <% for (item of items) { %>
-      <% console.log(item); %>
   <tr>
     <% for (col of cols){ %>
-      <td class="<%- col %><%-useDataValue(col) ? ` ${col}-value` : '' %>" <%- useDataValue(col) ? `data-${col}-value=${item.sortableValues[col]}` : ""%>>
+      <td class="<%- col %><%-colSortTargets[col] !== col ? ' ' + colSortTargets[col] : '' %>" <%- colSortTargets[col] !== col ? `data-${colSortTargets[col]}=${item.sortableValues[col]}` : ""%>>
         <%= item[col] !== undefined ? links.includes(col) ? `<a href="${item.path}">${item[col]}</a>` : item[col] : "&nbsp;" %>
       </td>
     <% } %>

@@ -7,8 +7,7 @@
 */
 
 import { basename, dirname, relative } from "path/mod.ts";
-import { format } from "datetime/mod.ts";
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { ld } from "lodash/mod.ts";
 
 import {
@@ -27,7 +26,6 @@ import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
 } from "../website-pipeline-md.ts";
-import { renderEjs } from "../../../../core/ejs.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
 import { kIncludeInHeader } from "../../../../config/constants.ts";
@@ -44,10 +42,9 @@ import {
   resolveItemForTemplate,
   resolveTemplateOptions,
   templateJsScript,
+  templateMarkdownHandler,
   TemplateOptions,
 } from "./website-listing-template.ts";
-
-const kDateFormat = "date-format";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -248,86 +245,6 @@ function markdownHandler(
     }
   }
 }
-
-const templateMarkdownHandler = (
-  template: string,
-  options: TemplateOptions,
-  listing: Listing,
-  items: ListingItem[],
-  attributes?: Record<string, string>,
-) => {
-  // Process the items into simple key value pairs, applying
-  // any formatting
-  const reshapedItems: Record<string, unknown | undefined>[] = items.map(
-    (item) => {
-      const record: Record<string, unknown | undefined> = { ...item };
-      // TODO: Improve author formatting
-      record.author = item.author ? item.author.join(", ") : undefined;
-
-      // Format date values
-      // Read date formatting from an option, if present
-      const dateFormat = listing.options?.[kDateFormat] as string;
-
-      if (item.date) {
-        record.date = dateFormat
-          ? format(item.date, dateFormat)
-          : item.date.toLocaleDateString();
-      }
-      if (item.filemodified) {
-        record.filemodified = dateFormat
-          ? format(item.filemodified, dateFormat)
-          : item.filemodified.toLocaleString();
-      }
-      return record;
-    },
-  );
-
-  // Render the template into markdown
-  const markdown = renderEjs(
-    resourcePath(template),
-    { listing, options, items: reshapedItems },
-    false,
-  );
-
-  // Return the handler
-  return {
-    getUnrendered() {
-      return {
-        blocks: {
-          [listing.id]: markdown,
-        },
-      };
-    },
-    processRendered(rendered: Record<string, Element>, doc: Document) {
-      // See if there is a target div already in the page
-      let listingEl = doc.getElementById(listing.id);
-      if (listingEl === null) {
-        // No target div, cook one up
-        const content = doc.querySelector("#quarto-content main.content");
-        if (content) {
-          listingEl = doc.createElement("div");
-          listingEl.setAttribute("id", listing.id);
-          content.appendChild(listingEl);
-        }
-      }
-
-      // Append any requested classes
-      listing.classes.forEach((clz) => listingEl?.classList.add(clz));
-
-      // Add attributes
-      if (attributes) {
-        Object.keys(attributes).forEach((attrName) => {
-          listingEl?.setAttribute(attrName, attributes[attrName]);
-        });
-      }
-
-      const renderedEl = rendered[listing.id];
-      for (const child of renderedEl.children) {
-        listingEl?.appendChild(child);
-      }
-    },
-  };
-};
 
 function resolveListingContents(source: string, listings: Listing[]) {
   return listings.map((listing) => {
