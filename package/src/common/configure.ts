@@ -61,7 +61,6 @@ export async function configure(
   // record dev config
   const devConfig = createDevConfig(
     Deno.env.get("DENO") || "",
-    Deno.env.get("DENO_DOM") || "",
     Deno.env.get("PANDOC") || "",
     Deno.env.get("DARTSASS") || "",
     Deno.env.get("ESBUILD") || "",
