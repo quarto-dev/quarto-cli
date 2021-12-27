@@ -79,6 +79,14 @@ export async function makeInstallerMac(config: Configuration) {
     const deno = join(config.directoryInfo.bin, "deno");
     await signCode(applicationDevId, deno, entitlements);
 
+    // Sign deno dom
+    const denoDom = join(
+      config.directoryInfo.bin,
+      "deno_dom",
+      "libplugin.dylib",
+    );
+    await signCode(applicationDevId, denoDom, entitlements);
+
     // Sign esbuild
     const esbuild = join(config.directoryInfo.bin, "esbuild");
     await signCode(applicationDevId, esbuild, entitlements);
