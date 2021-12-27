@@ -72,6 +72,8 @@ IF %ERRORLEVEL% EQU 0 (
 SET NO_COLOR=TRUE
 )
 
+set "DENO_DOM_PLUGIN=%QUARTO_BIN_PATH%deno_dom\plugin.dll"
+
 SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi --v8-flags=--noopt
 "%SCRIPT_DIR%deno" %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
 

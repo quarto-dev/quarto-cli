@@ -6,6 +6,7 @@
 */
 
 import { dartSass } from "./dartsass.ts";
+import { deno_dom } from "./deno_dom.ts";
 import { esBuild } from "./esbuild.ts";
 import { pandoc } from "./pandoc.ts";
 
@@ -24,6 +25,7 @@ export interface PlatformDependency {
 }
 
 export const kDependencies = [
+  deno_dom(version("DENO_DOM")),
   pandoc(version("PANDOC")),
   dartSass(version("DARTSASS")),
   esBuild(version("ESBUILD")),
