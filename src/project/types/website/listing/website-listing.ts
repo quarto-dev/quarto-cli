@@ -34,42 +34,19 @@ import { kIncludeInHeader } from "../../../../config/constants.ts";
 import { sessionTempFile } from "../../../../core/temp.ts";
 import { sassLayer } from "../../../../core/sass.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
+import {
+  Listing,
+  ListingItem,
+  ListingSort,
+  ListingType,
+} from "./website-list-shared.ts";
+import {
+  resolveItemForTemplate,
+  resolveTemplateOptions,
+  templateJsScript,
+  TemplateOptions,
+} from "./website-listing-template.ts";
 
-// The core listing type
-export interface Listing {
-  id: string;
-  type: ListingType;
-  contents: string[]; // globs
-  classes: string[];
-  options?: Record<string, unknown>;
-  sort?: ListingSort[];
-}
-
-export interface ListingSort {
-  field: "title" | "author" | "date" | "filename";
-  direction: "asc" | "desc";
-}
-
-// An individual listing item
-export interface ListingItem extends Record<string, unknown> {
-  title?: string;
-  description?: string;
-  author?: string[];
-  date?: Date;
-  image?: string;
-  path: string;
-  filename: string;
-  filemodified?: Date;
-}
-
-// The type of listing
-export enum ListingType {
-  Grid = "grid",
-  Cards = "cards",
-  Table = "table",
-}
-
-// Options
 const kDateFormat = "date-format";
 
 // Defaults (a card listing that contains everything
@@ -77,6 +54,7 @@ const kDateFormat = "date-format";
 const kDefaultListingType = ListingType.Cards;
 const kDefaultContentsGlob = ["*"];
 const kDefaultId = "quarto-listing";
+const kSortableValueFields = ["date", "filemodified"];
 
 export const kListing = "listing";
 
@@ -93,10 +71,18 @@ export async function listingHtmlDependencies(
   const listingsResolved = resolveListingContents(source, listings);
 
   // Generate the list of items for this listing
-  const listingItems: { listing: Listing; items: ListingItem[] }[] = [];
+  const listingItems: {
+    listing: Listing;
+    items: ListingItem[];
+    options: TemplateOptions;
+  }[] = [];
+
   for (const listingResolved of listingsResolved) {
     const listing = listingResolved.listing;
     const items: ListingItem[] = [];
+
+    // Resolve the options
+    const options = resolveTemplateOptions(listing);
 
     // Read the metadata for each of the listing files
     for (const input of listingResolved.files) {
@@ -121,7 +107,7 @@ export async function listingHtmlDependencies(
         ? documentMeta?.author
         : [documentMeta?.author];
 
-      items.push({
+      const item: ListingItem = {
         ...documentMeta,
         title: target?.title,
         date,
@@ -131,7 +117,13 @@ export async function listingHtmlDependencies(
         path: `/${projectRelativePath}`,
         filename,
         filemodified,
-      });
+        sortableValues: {},
+      };
+
+      // Resolves the item for template rendering
+      resolveItemForTemplate(item, options);
+
+      items.push(item);
     }
 
     // Sort the items (first array is of sort functions)
@@ -156,6 +148,7 @@ export async function listingHtmlDependencies(
     listingItems.push({
       listing,
       items: orderedItems,
+      options,
     });
   }
 
@@ -163,7 +156,11 @@ export async function listingHtmlDependencies(
   const markdownHandlers: MarkdownPipelineHandler[] = [];
   listingItems.forEach((listingItem) => {
     markdownHandlers.push(
-      markdownHandler(listingItem.listing, listingItem.items),
+      markdownHandler(
+        listingItem.listing,
+        listingItem.items,
+        listingItem.options,
+      ),
     );
   });
 
@@ -186,8 +183,12 @@ export async function listingHtmlDependencies(
     }),
   }];
 
-  const scripts = listings.map((listing) => {
-    return listJsScript(listing);
+  const scripts = listingItems.map((listingItem) => {
+    return templateJsScript(
+      listingItem.listing.id,
+      listingItem.options,
+      listingItem.items.length,
+    );
   });
 
   return {
@@ -205,11 +206,13 @@ export async function listingHtmlDependencies(
 function markdownHandler(
   listing: Listing,
   items: ListingItem[],
+  templateOptions: TemplateOptions,
 ) {
   switch (listing.type) {
     case ListingType.Table: {
       return templateMarkdownHandler(
         "projects/website/listing/listing-table.ejs.md",
+        templateOptions,
         listing,
         items,
       );
@@ -226,6 +229,7 @@ function markdownHandler(
       // TODO: Gap configurable?
       return templateMarkdownHandler(
         "projects/website/listing/listing-grid.ejs.md",
+        templateOptions,
         listing,
         items,
         {
@@ -237,6 +241,7 @@ function markdownHandler(
     default: {
       return templateMarkdownHandler(
         "projects/website/listing/listing-card.ejs.md",
+        templateOptions,
         listing,
         items,
       );
@@ -246,6 +251,7 @@ function markdownHandler(
 
 const templateMarkdownHandler = (
   template: string,
+  options: TemplateOptions,
   listing: Listing,
   items: ListingItem[],
   attributes?: Record<string, string>,
@@ -260,15 +266,17 @@ const templateMarkdownHandler = (
 
       // Format date values
       // Read date formatting from an option, if present
-      // TODO: Use deno to get the locale format as the default
-      const dateFormat = listing.options?.[kDateFormat] as string ||
-        "MM/dd/yyyy";
+      const dateFormat = listing.options?.[kDateFormat] as string;
 
       if (item.date) {
-        record.date = format(item.date, dateFormat);
+        record.date = dateFormat
+          ? format(item.date, dateFormat)
+          : item.date.toLocaleDateString();
       }
       if (item.filemodified) {
-        record.filemodified = format(item.filemodified, dateFormat);
+        record.filemodified = dateFormat
+          ? format(item.filemodified, dateFormat)
+          : item.filemodified.toLocaleString();
       }
       return record;
     },
@@ -277,7 +285,7 @@ const templateMarkdownHandler = (
   // Render the template into markdown
   const markdown = renderEjs(
     resourcePath(template),
-    { listing, items: reshapedItems },
+    { listing, options, items: reshapedItems },
     false,
   );
 
@@ -298,7 +306,7 @@ const templateMarkdownHandler = (
         const content = doc.querySelector("#quarto-content main.content");
         if (content) {
           listingEl = doc.createElement("div");
-          listingEl.id = listing.id;
+          listingEl.setAttribute("id", listing.id);
           content.appendChild(listingEl);
         }
       }
@@ -376,8 +384,10 @@ function normalizeListingConfiguration(
       type: kDefaultListingType,
       contents: kDefaultContentsGlob,
       classes: [],
+      sortableValueFields: kSortableValueFields,
     });
   }
+
   return listings;
 }
 
@@ -399,9 +409,7 @@ function resolveListing(meta: Record<string, unknown>, synthId: () => string) {
     classes: maybeArray(meta.classes) || [],
     sort: resolveListingSort(meta.sort),
     options: meta.options as Record<string, unknown>,
-    format: (key: string, val: unknown) => {
-      return val as string;
-    },
+    sortableValueFields: kSortableValueFields,
   };
 }
 
@@ -464,6 +472,7 @@ function resolveListingStr(val: string): Listing {
         type: ListingType.Grid,
         contents: kDefaultContentsGlob,
         classes: [],
+        sortableValueFields: kSortableValueFields,
       };
 
     case ListingType.Cards:
@@ -472,6 +481,7 @@ function resolveListingStr(val: string): Listing {
         type: ListingType.Cards,
         contents: kDefaultContentsGlob,
         classes: [],
+        sortableValueFields: kSortableValueFields,
       };
 
     case ListingType.Table:
@@ -480,6 +490,7 @@ function resolveListingStr(val: string): Listing {
         type: ListingType.Table,
         contents: kDefaultContentsGlob,
         classes: [],
+        sortableValueFields: kSortableValueFields,
       };
   }
 
@@ -489,6 +500,7 @@ function resolveListingStr(val: string): Listing {
     type: kDefaultListingType,
     contents: [val],
     classes: [],
+    sortableValueFields: kSortableValueFields,
   };
 }
 
@@ -517,28 +529,6 @@ function fileModifiedDate(input: string) {
   const file = Deno.openSync(input, { read: true });
   const fileInfo = Deno.fstatSync(file.rid);
   return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
-}
-
-const kRows = "rows";
-function listJsScript(listing: Listing) {
-  const rows = listing.options?.[kRows];
-
-  return `
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const options = {
-      valueNames: [
-        "title",
-        "author",
-        "custom-field",
-        "filename",
-        "filemodified",
-      ],
-      ${rows ? `page: ${rows}` : ""},
-      pagination: true,
-    };
-    const userList = new List("${listing.id}", options);
-  });
-  `;
 }
 
 function scriptFileForScripts(scripts: string[]) {
