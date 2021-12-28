@@ -31,6 +31,7 @@ import("shortcodes.lua")
 import("shortcodes-handlers.lua")
 import("outputs.lua")
 import("figures.lua")
+import("tables.lua")
 import("theorems.lua")
 import("resourcerefs.lua")
 import("resourcefiles.lua")
@@ -82,6 +83,7 @@ return {
     resourceRefs(),
     resourceFiles(),
     figures(),
+    tables(),
     theorems(),
     callout(),
     lineNumbers(),

@@ -309,6 +309,9 @@ knitr_hooks <- function(format, resourceDir) {
     if (is_table_label(options[["label"]])) {
       label <- options[["label"]]
     }
+    if (!is.null(label)) {
+      label <- paste0(label, " ")
+    }
     
     # return cell
     paste0(
