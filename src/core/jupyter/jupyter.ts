@@ -1065,16 +1065,20 @@ function mdFromCodeCell(
   for (const key of Object.keys(cellOptions)) {
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
-      const value = (cellOptions as any)[key];
-      if (value && !ld.isObject(value) && !ld.isArray(value)) {
-        divMd.push(`${key}="${value}" `);
+      let value = (cellOptions as any)[key];
+      if (value) {
+        if (typeof (value) !== "string") {
+          value = JSON.stringify(value);
+        }
+        value = value.replaceAll("'", `\\'`);
+        divMd.push(`${key}='${value}' `);
       }
     }
   }
 
   // add execution_count if we have one
   if (typeof (cell.execution_count) === "number") {
-    divMd.push(`execution_count="${cell.execution_count}" `);
+    divMd.push(`execution_count=${cell.execution_count} `);
   }
 
   // create string for div enclosure (we'll use it later but
@@ -1168,7 +1172,10 @@ function mdFromCodeCell(
         md.push("\n::: {");
 
         // include label/id if appropriate
-        if (outputLabel && shouldLabelOutputContainer(output, options)) {
+        if (
+          outputLabel &&
+          shouldLabelOutputContainer(output, cell.options, options)
+        ) {
           md.push(outputLabel + " ");
         }
 
