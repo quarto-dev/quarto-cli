@@ -1,6 +1,8 @@
 -- tables.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+kTblCap = "tbl-cap"
+kTblSubCap = "tbl-subcap"
 
 function tables() 
   
@@ -9,11 +11,118 @@ function tables()
     Div = function(el)
       if hasTableRef(el) and tcontains(el.attr.classes, "cell") then
         local tables = countTables(el)
-        -- dump(tables)
+        if tables > 0 then
+          -- extract table attributes
+          local tblCap = extractTblCapAttrib(el,kTblCap)
+          local tblSubCap = extractTblCapAttrib(el, kTblSubCap)
+          -- apply captions and labels if we have a tbl-cap or tbl-subcap
+          if tblCap or tblSubCap then
+            -- compute all captions and labels
+            local mainCaption, tblCaptions, mainLabel, tblLabels = tableCaptionsAndLabels(
+              el.attr.identifier,
+              tables,
+              tblCap,
+              tblSubCap
+            )
+            -- apply captions and label
+            el.attr.identifier = mainLabel
+            if mainCaption then
+              el.content:insert(pandoc.Para(mainCaption))
+            end
+            if #tblCaptions > 0 then
+              el = applyTableCaptions(el, tblCaptions, tblLabels)
+            end
+            return el
+          end
+        end
       end
     end
   }
 
+end
+
+function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
+  
+  local mainCaption = nil
+  local tblCaptions = pandoc.List()
+  local mainLabel = ""
+  local tblLabels = pandoc.List()
+
+  -- case: no subcaps (no main caption or label, apply caption(s) to tables)
+  if not tblSubCap then
+    -- case: single table (no label interpolation)
+    if tables == 1 then
+      tblCaptions:insert(markdownToInlines(tblCap[1]))
+      tblLabels:insert(label)
+    -- case: multiple tables (label interpolation)
+    else
+      for i=1,tables do
+        if i <= #tblCap then
+          tblCaptions:insert(markdownToInlines(tblCap[i]))
+          tblLabels:insert(label .. "-" .. tostring(i))
+        end
+      end
+    end
+  
+  -- case: subcaps
+  else
+    mainLabel = label
+    if tblCap then
+      mainCaption = markdownToInlines(tblCap[1])
+    else
+      mainCaption = noCaption()
+    end
+    for i=1,tables do
+      if tblSubCap and i <= #tblSubCap and tblSubCap[i] ~= "" then
+        tblCaptions:insert(markdownToInlines(tblSubCap[i]))
+      else
+        tblCaptions:insert(pandoc.List( { pandoc.Space() } ))
+      end
+      tblLabels:insert(label .. "-" .. tostring(i))
+    end
+  end
+
+  return mainCaption, tblCaptions, mainLabel, tblLabels
+
+end
+
+function applyTableCaptions(el, tblCaptions, tblLabels)
+  local idx = 1
+  return pandoc.walk_block(el, {
+    -- TODO: deal with caption and/or label already being in there
+    Table = function(table)
+      if idx <= #tblLabels then
+        table = pandoc.utils.to_simple_table(table)
+        table.caption = pandoc.List()
+        if tblCaptions[idx] ~= nil then
+          tappend(table.caption, tblCaptions[idx])
+          table.caption:insert(pandoc.Space())
+        end
+        tappend(table.caption, {
+          pandoc.Str("{#" .. tblLabels[idx] .. "}")
+        })
+        idx = idx + 1
+        return pandoc.utils.from_simple_table(table)
+      end
+    end,
+    RawBlock = function(raw)
+      -- TODO: raw
+    end
+  })
+end
+
+function extractTblCapAttrib(el, name)
+  local value = attribute(el, name, nil)
+  if value then
+    if startsWith(value, "[") then
+      value = pandoc.List(jsonDecode(value))
+    else
+      value = pandoc.List({ value })
+    end
+    el.attr.attributes[name] = nil
+    return value
+  end
+  return nil
 end
 
 function countTables(div)
@@ -47,8 +156,8 @@ local latexLongtablePattern = "\\begin{longtable}"
 
 function hasRawLatexTable(raw)
   if isRawLatex(raw) and isLatexOutput() then
-    return raw.text.match(latexTablePattern) or 
-           raw.text.match(latexLongtablePattern)
+    return raw.text:match(latexTablePattern) or 
+           raw.text:match(latexLongtablePattern)
   else
     return false
   end
