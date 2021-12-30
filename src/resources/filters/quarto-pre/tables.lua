@@ -50,8 +50,12 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
 
   -- case: no subcaps (no main caption or label, apply caption(s) to tables)
   if not tblSubCap then
+    -- case: single caption (apply to entire panel)
+    if #tblCap == 1 then
+      mainCaption = tblCap[1]
+      mainLabel = label
     -- case: single table (no label interpolation)
-    if tables == 1 then
+    elseif tables == 1 then
       tblCaptions:insert(markdownToInlines(tblCap[1]))
       tblLabels:insert(label)
     -- case: multiple tables (label interpolation)
@@ -89,14 +93,16 @@ end
 function applyTableCaptions(el, tblCaptions, tblLabels)
   local idx = 1
   return pandoc.walk_block(el, {
-    -- TODO: deal with caption and/or label already being in there
     Table = function(table)
       if idx <= #tblLabels then
         table = pandoc.utils.to_simple_table(table)
-        table.caption = pandoc.List()
         if tblCaptions[idx] ~= nil then
+          table.caption = pandoc.List()
           tappend(table.caption, tblCaptions[idx])
           table.caption:insert(pandoc.Space())
+        end
+        if table.caption == nil then
+          table.caption = pandoc.List()
         end
         tappend(table.caption, {
           pandoc.Str("{#" .. tblLabels[idx] .. "}")
@@ -106,7 +112,13 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
       end
     end,
     RawBlock = function(raw)
-      -- TODO: raw
+      if idx <= #tblLabels then
+        -- (1) if there is no caption at all then populate it from tblCaptions[idx]
+        -- (assuming there is one, might not be in case of empty subcaps)
+        -- (2) Append the tblLabels[idx] to whatever caption is there
+        idx = idx + 1
+        return raw
+      end
     end
   })
 end

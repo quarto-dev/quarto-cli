@@ -33,6 +33,8 @@ function preprocess()
                   el.attr.attributes[kRefParent] = parentId
                 end
               else
+                -- mark as parent
+                el.attr.classes:insert(refType(el.attr.identifier) .. "-parent")
                 el = pandoc.walk_block(el, walkRefs(el.attr.identifier))
               end
             end
@@ -84,6 +86,9 @@ function preprocess()
           local parentId = nil
           if hasFigureOrTableRef(el) then
             parentId = el.attr.identifier
+
+            -- mark as parent
+            el.attr.classes:insert(refType(parentId) .. "-parent")
             
             -- provide error caption if there is none
             if not refCaptionFromDiv(el) then
@@ -94,7 +99,7 @@ function preprocess()
           doc.blocks[i] = pandoc.walk_block(el, walkRefs(parentId))
         end
       end
-      
+
       return doc
 
     end

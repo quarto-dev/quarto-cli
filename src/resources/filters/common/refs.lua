@@ -61,26 +61,11 @@ end
 
 function hasSubRefs(divEl, type)
   if hasFigureOrTableRef(divEl) and not hasRefParent(divEl) then
-    local found = false
-    function checkForParent(el)
-      if not found then
-        if hasRefParent(el) then
-          if not type or (refType(el.attr.identifier) == type) then
-            found = true
-          end
-        end
-        
-      end
-    end
-    pandoc.walk_block(divEl, {
-      Div = checkForParent,
-      Image = checkForParent
-    })
-    return found
+    local type = refType(divEl.attr.identifier)
+    return divEl.attr.classes:includes(type .. "-parent")
   else
     return false
   end
-  
 end
    
 
