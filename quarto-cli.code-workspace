@@ -17,6 +17,15 @@
     "deno.suggest.imports.hosts": {
       "https://deno.land": true,
       "https://den.o.land": false
+    },
+    "files.associations": {
+      "*.ejs.md": "ejs",
+      "*.ejs.yml": "ejs",
+      "*.ejs.html": "ejs",
+      "*.ejs.js": "ejs"
+    },
+    "[ejs]": {
+      "editor.formatOnSave": false
     }
   }
 }
