@@ -16,7 +16,7 @@ const rowCount = options["row-count"];
 <% } %>
 :::{.list .grid}
 <% for (const item of items) { %>
-<% partial('item-grid.ejs.md', {listing, item, options}) %>
+  <% partial('item-grid.ejs.md', {listing, item, options}) %>
 <% } %>
 :::
 <% if (rowCount < items.length) { %>

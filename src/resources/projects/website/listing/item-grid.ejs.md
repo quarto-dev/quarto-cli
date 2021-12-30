@@ -11,13 +11,13 @@ const align = options["alignment"] || "left";
 const capHeight = options['card-cap-height'];
 
 const outputValue = (col) => {
-const value = item[col];
-const path = item.path;
-if (path && value !== undefined && links.includes(col)) {
-return `<a href="${path}">${value}</a>`;
-} else {
-return value;
-}
+  const value = item[col];
+  const path = item.path;
+  if (path && value !== undefined && links.includes(col)) {
+    return `<a href="${path}">${value}</a>`;
+  } else {
+    return value;
+  }
 }
 
 const otherCols = cols.filter(col => {
