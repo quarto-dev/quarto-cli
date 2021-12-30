@@ -279,11 +279,16 @@ export function templateJsScript(
   options: TemplateOptions,
   itemCount: number,
 ) {
-  const rows = options[kRowCount] as number || 50;
+  const columnCount = options[kColumnCount] as number || 0;
+  const rowCount = options[kRowCount] as number || 50;
+
+  // If columns are present, factor that in
+  const pageCount = columnCount > 0 ? rowCount * columnCount : rowCount;
+
   const columns = options[kColumns] as string[] || [];
 
-  const pageJs = itemCount > rows
-    ? `${rows ? `page: ${rows}` : ""},
+  const pageJs = itemCount > pageCount
+    ? `${pageCount ? `page: ${pageCount}` : ""},
     pagination: true,`
     : "";
 
