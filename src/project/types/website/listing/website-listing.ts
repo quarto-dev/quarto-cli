@@ -37,7 +37,7 @@ import {
   ListingItem,
   ListingSort,
   ListingType,
-} from "./website-list-shared.ts";
+} from "./website-listing-shared.ts";
 import {
   resolveItemForTemplate,
   resolveTemplateOptions,
@@ -217,11 +217,6 @@ function markdownHandler(
     case ListingType.Grid: {
       // Enable grid on the listing container
       listing.classes.push("grid");
-
-      // resolve options
-      listing.options = listing.options || {};
-      const cols = listing.options.columns as number || 3;
-      listing.options["card-column-span"] = columnSpan(cols);
 
       // TODO: Gap configurable?
       return templateMarkdownHandler(
@@ -419,27 +414,6 @@ function resolveListingStr(val: string): Listing {
     classes: [],
     sortableValueFields: kSortableValueFields,
   };
-}
-
-// Forces a user input column value into the appropriate
-// grid span bucket
-const kGridColSize = 24;
-const kGridValidSpans = [2, 3, 4, 6, 8, 12, 24];
-function columnSpan(columns: number) {
-  const rawValue = kGridColSize / columns;
-  for (let i = 0; i < kGridValidSpans.length; i++) {
-    const validSpan = kGridValidSpans[i];
-    if (rawValue === validSpan) {
-      return rawValue;
-    } else if (
-      i < kGridValidSpans.length && rawValue < kGridValidSpans[i + 1]
-    ) {
-      return validSpan;
-    } else if (i === kGridValidSpans.length - 1) {
-      return kGridValidSpans[i];
-    }
-  }
-  return rawValue;
 }
 
 function fileModifiedDate(input: string) {

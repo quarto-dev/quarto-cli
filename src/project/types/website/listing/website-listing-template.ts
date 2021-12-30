@@ -10,7 +10,7 @@ import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { renderEjs } from "../../../../core/ejs.ts";
 import { resourcePath } from "../../../../core/resources.ts";
-import { Listing, ListingItem } from "./website-list-shared.ts";
+import { Listing, ListingItem } from "./website-listing-shared.ts";
 
 export const kColumns = "columns";
 export const kColumnNames = "column-names";
@@ -18,15 +18,27 @@ export const kColumnLinks = "column-links";
 export const kColumnTypes = "column-types";
 export const kColumnSortTargets = "column-sort-targets";
 
-export const kRows = "rows";
+export const kRowCount = "row-count";
+export const kColumnCount = "column-count";
+
 export const kAllowFilter = "allow-filter";
 export const kAllowSort = "allow-sort";
 
 export const kDateFormat = "date-format";
 
+export const kCardColumnSpan = "card-column-span";
+
 export type ColumnType = "date" | "string" | "number";
 
-const kDefaultColumns = ["date", "title", "author", "filename"];
+const kDefaultTableColumns = ["date", "title", "author", "filename"];
+const kDefaultCardColumns = [
+  "title",
+  "subtitle",
+  "author",
+  "image",
+  "description",
+];
+
 const kDefaultColumnLinks = ["title", "filename"];
 // TODO: Localize
 const kDefaultColumnNames = {
@@ -35,6 +47,7 @@ const kDefaultColumnNames = {
   "description": "Description",
   "author": "Author",
   "filename": "File Name",
+  "filemodified": "Modified",
 };
 const kDefaultColumnTypes: Record<string, ColumnType> = {
   "date": "date",
@@ -47,14 +60,16 @@ export interface TemplateOptions extends Record<string, unknown> {
   [kColumnTypes]: Record<string, ColumnType>;
   [kColumnLinks]: string[];
   [kColumnSortTargets]: Record<string, string>;
-}
-
-export interface TableTemplateOptions extends TemplateOptions {
-  [kRows]: number;
+  [kRowCount]: number;
   [kAllowFilter]: boolean;
   [kAllowSort]: boolean;
 }
 
+// Create a markdown handler for the markdown pipeline
+// This will render an EJS template into markdown
+// (providing options and items to the template)
+// make that markdown available to the pipeline,
+// then insert the rendered HTML into the document
 export function templateMarkdownHandler(
   template: string,
   options: TemplateOptions,
@@ -135,6 +150,11 @@ export function templateMarkdownHandler(
   };
 }
 
+// Items in templates need to carry additional information to assist
+// rendering. For example, item fields that are non string types
+// need to carry a sortable version of their value (e.g. a date needs
+// a sortable version of the date)- this function will resolve item
+// data into template ready versions of the item
 export function resolveItemForTemplate(
   item: ListingItem,
   options: TemplateOptions,
@@ -158,47 +178,74 @@ export function resolveItemForTemplate(
   });
 }
 
+// Options may also need computation / resolution before being handed
+// off to the template. This function will do any computation on the options
+// so they're ready for the template
 export function resolveTemplateOptions(
   listing: Listing,
-): TableTemplateOptions | TemplateOptions {
+): TemplateOptions {
   const baseOptions = () => {
-    if (listing.type === "table") {
-      return {
-        [kColumns]: listing.options?.[kColumns] as string[] || kDefaultColumns,
+    // resolve options
+    const options = (defaultCols: string[]): TemplateOptions => {
+      // Raw options from the listing
+      const listingOptions = listing.options || {};
+
+      // Computed template options
+      const templateOptions = {
+        [kColumns]: listingOptions[kColumns] as string[] ||
+          defaultCols,
         [kColumnTypes]: {
           ...kDefaultColumnTypes,
-          ...(listing.options?.[kColumnTypes] as Record<string, ColumnType> ||
+          ...(listingOptions[kColumnTypes] as Record<string, ColumnType> ||
             {}),
         },
         [kColumnNames]: {
           ...kDefaultColumnNames,
-          ...(listing.options?.[kColumnNames] as Record<string, unknown> || {}),
+          ...(listingOptions[kColumnNames] as Record<string, unknown> || {}),
         },
-        [kColumnLinks]: listing.options?.[kColumnLinks] as string[] ||
+        [kColumnLinks]: listingOptions[kColumnLinks] as string[] ||
           kDefaultColumnLinks,
-        [kRows]: listing.options?.[kRows] as number || 100,
-        [kAllowFilter]: listing.options?.[kAllowFilter] !== undefined
-          ? listing.options?.[kAllowFilter]
+        [kRowCount]: listingOptions[kRowCount] as number || 100,
+        [kAllowFilter]: listingOptions[kAllowFilter] !== undefined
+          ? listingOptions[kAllowFilter] as boolean
           : true,
-        [kAllowSort]: listing.options?.[kAllowSort] !== undefined
-          ? listing.options?.[kAllowSort]
+        [kAllowSort]: listingOptions[kAllowSort] !== undefined
+          ? listingOptions[kAllowSort] as boolean
           : true,
         [kColumnSortTargets]: {},
       };
-    }
-    return {
-      [kColumns]: kDefaultColumns,
-      [kColumnNames]: kDefaultColumnNames,
-      [kColumnLinks]: kDefaultColumnLinks,
-      [kColumnTypes]: kDefaultColumnTypes,
-      [kColumnSortTargets]: {},
+
+      // Return the merged values, retaining the listing options
+      // and overwriting any of the values that were computed for the
+      // template
+      return {
+        ...listingOptions,
+        ...templateOptions,
+      };
     };
+
+    if (listing.type === "table") {
+      return options(kDefaultTableColumns);
+    } else if (listing.type === "grid") {
+      const gridOptions = options(kDefaultCardColumns);
+      gridOptions[kCardColumnSpan] = columnSpan(
+        listing.options?.[kColumnCount] as number || 3,
+      );
+      return gridOptions;
+    } else {
+      return options(kDefaultCardColumns);
+    }
   };
   const options = baseOptions();
   options[kColumnSortTargets] = computeSortingTargets(options);
   return options;
 }
 
+// Determine the target value for sorting a field
+// Fields need a special sorting target if they are a non-string
+// data type (e.g. a number or date), or if they are going to be
+// linked (since the 'value' will be surrounded by the href tag, which
+// will interfere with sorthing)
 function computeSortingTargets(
   options: TemplateOptions,
 ): Record<string, string> {
@@ -207,8 +254,10 @@ function computeSortingTargets(
   const columnLinks = options[kColumnLinks];
   const columnTypes = options[kColumnTypes];
   columns.forEach((column) => {
+    // The data type of this column
     const columnType = columnTypes[column];
-    // Will this column be linked?
+
+    // Figure out whether we should use a sort target or not
     const useTarget = columnLinks.includes(column) ||
       columnType === "date" ||
       columnType === "number";
@@ -222,17 +271,20 @@ function computeSortingTargets(
   return sortingTargets;
 }
 
+// Generates the script tag for this listing / template
+// This binds list.js to the listing, enabling
+// sorting, pagings, filtering, etc...
 export function templateJsScript(
   id: string,
   options: TemplateOptions,
   itemCount: number,
 ) {
-  const rows = options[kRows] as number || 50;
+  const rows = options[kRowCount] as number || 50;
   const columns = options[kColumns] as string[] || [];
 
   const pageJs = itemCount > rows
     ? `${rows ? `page: ${rows}` : ""},
-    pagination: false,`
+    pagination: true,`
     : "";
 
   const useDataField = (col: string) => {
@@ -269,4 +321,25 @@ export function templateJsScript(
   });
   `;
   return jsScript;
+}
+
+// Forces a user input column value into the appropriate
+// grid span bucket
+const kGridColSize = 24;
+const kGridValidSpans = [2, 3, 4, 6, 8, 12, 24];
+function columnSpan(columns: number) {
+  const rawValue = kGridColSize / columns;
+  for (let i = 0; i < kGridValidSpans.length; i++) {
+    const validSpan = kGridValidSpans[i];
+    if (rawValue === validSpan) {
+      return rawValue;
+    } else if (
+      i < kGridValidSpans.length && rawValue < kGridValidSpans[i + 1]
+    ) {
+      return validSpan;
+    } else if (i === kGridValidSpans.length - 1) {
+      return kGridValidSpans[i];
+    }
+  }
+  return rawValue;
 }

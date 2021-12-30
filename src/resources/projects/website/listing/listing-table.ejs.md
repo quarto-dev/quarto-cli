@@ -1,13 +1,13 @@
 <%
-
-const colNames = options["column-names"];
+// Column information
 const cols = options.columns;
+const colNames = options["column-names"];
 const colSortTargets = options["column-sort-targets"];
-
 const links = options["column-links"];
+
 const allowSort = options["allow-sort"] !== false;
 const allowFilter = options["allow-filter"] !== false;
-const pageLength = options["rows"];
+const rowCount = options["row-count"];
 %>
 
 ```{=html}
@@ -46,7 +46,7 @@ const pageLength = options["rows"];
 <% } %>
 </tbody>
 </table>
-<% if (pageLength < items.length) { %>
+<% if (rowCount < items.length) { %>
 <ul class="pagination"></ul>
 <% } %>
 ```

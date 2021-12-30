@@ -18,3 +18,34 @@ ul.pagination {
 .quarto-listing-filter {
   margin-bottom: 0.8em;
 }
+
+.quarto-grid-item.card div.card-img-top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  p {
+    margin-bottom: 0;
+    color: $light;
+  }
+}
+
+.quarto-grid-item .card-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  p {
+    margin-bottom: 0;
+  }
+}
+
+.card-right {
+  text-align: right;
+}
+
+.card-left {
+  text-align: left;
+}
+
+.card-center {
+  text-align: center;
+}
