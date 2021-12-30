@@ -8,7 +8,7 @@ const cardColumnSpan = options['card-column-span'] || 8;
 const align = options["alignment"] || "left";
 
 // Cap Options
-const capHeight = options['card-cap-height'];
+const imgHeight = options['image-height'];
 
 const outputValue = (col) => {
   const value = item[col];
@@ -31,9 +31,9 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
 <div class="quarto-grid-item card h-100 <%-`card-${align}`%>">
 
 <% if (item.image) { %>
-  <img src="<%= item.image %>"<%= capHeight ? ` height="${capHeight}"` : '' %>>
+  <img src="<%= item.image %>"<%= imgHeight ? ` height="${imgHeight}"` : '' %>>
 <% } else { %>
-  <div class="card-img-top"<%= capHeight ? ` style="height: ${capHeight}px;"` : '' %>>
+  <div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight}px;"` : '' %>>
   <%= (item['card-cap-text']) ? outputValue('card-cap-text') : "&nbsp;" %>
   </div>
 <% } %>

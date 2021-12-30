@@ -50,3 +50,12 @@ ul.pagination {
 .card-center {
   text-align: center;
 }
+
+table.quarto-listing td.image {
+  padding: 0px;
+  img {
+    width: 100%;
+    max-width: 50px;
+    object-fit: contain;
+  }
+}

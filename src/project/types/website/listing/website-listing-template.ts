@@ -25,6 +25,7 @@ export const kAllowFilter = "allow-filter";
 export const kAllowSort = "allow-sort";
 
 export const kDateFormat = "date-format";
+export const kImageHeight = "image-height";
 
 export const kCardColumnSpan = "card-column-span";
 
@@ -231,6 +232,8 @@ export function resolveTemplateOptions(
       gridOptions[kCardColumnSpan] = columnSpan(
         listing.options?.[kColumnCount] as number || 3,
       );
+      gridOptions[kImageHeight] = gridOptions[kImageHeight] || 120;
+
       return gridOptions;
     } else {
       return options(kDefaultCardColumns);
