@@ -14,16 +14,6 @@ const outputValue = (col) => {
 const value = item[col];
 const path = item.path;
 if (path && value !== undefined && links.includes(col)) {
-return `[${value}](${path})`;
-} else {
-return value;
-}
-}
-
-const outputHtmlValue = (col) => {
-const value = item[col];
-const path = item.path;
-if (path && value !== undefined && links.includes(col)) {
 return `<a href="${path}">${value}</a>`;
 } else {
 return value;
@@ -35,74 +25,71 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
 });
 %>
 
-:::<%=`g-col-${cardColumnSpan}`%>
-:::{.quarto-grid-item .card .h-100 <%-`.card-${align}`%>}
+```{=html}
+
+<div class="<%=`g-col-${cardColumnSpan}`%>">
+<div class="quarto-grid-item card h-100 <%-`card-${align}`%>">
 
 <% if (item.image) { %>
-![](<%= item.image %>){.card-img-top <%= capHeight ? `height="${capHeight}"` : '' %>}
+  <img src="<%= item.image %>"<%= capHeight ? ` height="${capHeight}"` : '' %>>
 <% } else { %>
-:::{.card-img-top <%= capHeight ? `style="height: ${capHeight}px;"` : '' %>}
-<%= (item['card-cap-text']) ? outputValue('card-cap-text') : "&nbsp;" %>
-:::
+  <div class="card-img-top"<%= capHeight ? ` style="height: ${capHeight}px;"` : '' %>>
+  <%= (item['card-cap-text']) ? outputValue('card-cap-text') : "&nbsp;" %>
+  </div>
 <% } %>
 
-:::card-body
+<div class="card-body">
+
 <% if (cols.includes('title') && item.title) { %>
-:::card-title
-<%= outputValue('title') %>
-:::
+  <div class="card-title title">
+  <%= outputValue('title') %>
+  </div>
 <% } %>
 
 <% if (cols.includes('subtitle') && item.subtitle) { %>
-:::card-subtitle
-<%= outputValue('subtitle') %>
-:::
+  <div class="card-subtitle subtitle">
+  <%= outputValue('subtitle') %>
+  </div>
 <% } %>
 
 <% if (cols.includes('description') && item.description) { %>
-:::card-text
-<%= item.description %>
-:::
+  <div class="card-text description">
+  <%= item.description %>
+  </div>
 <% } %>
 
 <% if (otherCols.length > 0) { %>
-
-```{=html}
-<table class="card-other-values">
-<% for (const col of otherCols) { %>
-  <tr>
-    <td><%= colNames[col] || col %></td>
-    <td><%= outputHtmlValue(col) %></td>
-  </tr>
-<% } %>
-</table>
-```
-
+  <table class="card-other-values">
+  <% for (const col of otherCols) { %>
+    <tr>
+      <td><%= colNames[col] || col %></td>
+      <td class="<%=col%>"><%= outputValue(col) %></td>
+    </tr>
+  <% } %>
+  </table>
 <% } %>
 
-:::
+</div>
 
 <% if (cols.includes('filename') || cols.includes('filemodified')) { %>
-:::{.card-footer .text-muted}
+<div class="card-footer text-muted">
 <% if (cols.includes('filename')) { %>
-
-:::{.card-filename}
-<%= outputHtmlValue('filename') %>
-:::
-
+  <div class="card-filename filename">
+  <%= outputValue('filename') %>
+  </div>
 <% } %>
 <% if (cols.includes('filemodified')) { %>
-
-:::{.card-filemodified}
-<%= outputHtmlValue('filemodified') %>
-:::
+  <div class="card-filemodified filemodified">
+  <%= outputValue('filemodified') %>
+  </div>
+<% } %>
+</div>
 
 <% } %>
-:::
-<% } %>
 
-:::
-:::
+</div>
+</div>
+```
 
 <%
 
