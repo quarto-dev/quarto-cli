@@ -21,52 +21,57 @@ function tables()
   return {
    
     Div = function(el)
-      if hasTableRef(el) and tcontains(el.attr.classes, "cell") then
-        local tables = countTables(el)
-        if tables > 0 then
-         
-          -- extract table attributes
-          local tblCap = extractTblCapAttrib(el,kTblCap)
-          local tblSubCap = extractTblCapAttrib(el, kTblSubCap, true)
-          -- apply captions and labels if we have a tbl-cap or tbl-subcap
-          if tblCap or tblSubCap then
-
-            -- special case: knitr::kable will generate a \begin{tablular} without
-            -- a \begin{table} wrapper -- put the wrapper in here if need be
-            if isLatexOutput() then
-              el = pandoc.walk_block(el, {
-                RawBlock = function(raw)
-                  if isRawLatex(raw) then
-                    if raw.text:match(latexTabularPattern) and not raw.text:match(latexTablePattern) then
-                      raw.text = raw.text:gsub(latexTabularPattern, 
-                                              "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
-                                              1)
-                      return raw                       
+      if tcontains(el.attr.classes, "cell") then
+        -- extract table attributes
+        local tblCap = extractTblCapAttrib(el,kTblCap)
+        local tblSubCap = extractTblCapAttrib(el, kTblSubCap, true)
+        if hasTableRef(el) or tblCap then
+          local tables = countTables(el)
+          if tables > 0 then
+           
+            -- apply captions and labels if we have a tbl-cap or tbl-subcap
+            if tblCap or tblSubCap then
+  
+              -- special case: knitr::kable will generate a \begin{tablular} without
+              -- a \begin{table} wrapper -- put the wrapper in here if need be
+              if isLatexOutput() then
+                el = pandoc.walk_block(el, {
+                  RawBlock = function(raw)
+                    if isRawLatex(raw) then
+                      if raw.text:match(latexTabularPattern) and not raw.text:match(latexTablePattern) then
+                        raw.text = raw.text:gsub(latexTabularPattern, 
+                                                "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
+                                                1)
+                        return raw                       
+                      end
                     end
                   end
-                end
-              })
+                })
+              end
+  
+              -- compute all captions and labels
+              local label = el.attr.identifier
+              local mainCaption, tblCaptions, mainLabel, tblLabels = tableCaptionsAndLabels(
+                label,
+                tables,
+                tblCap,
+                tblSubCap
+              )
+              -- apply captions and label
+              el.attr.identifier = mainLabel
+              if mainCaption then
+                el.content:insert(pandoc.Para(mainCaption))
+              end
+              if #tblCaptions > 0 then
+                el = applyTableCaptions(el, tblCaptions, tblLabels)
+              end
+              return el
             end
-
-            -- compute all captions and labels
-            local mainCaption, tblCaptions, mainLabel, tblLabels = tableCaptionsAndLabels(
-              el.attr.identifier,
-              tables,
-              tblCap,
-              tblSubCap
-            )
-            -- apply captions and label
-            el.attr.identifier = mainLabel
-            if mainCaption then
-              el.content:insert(pandoc.Para(mainCaption))
-            end
-            if #tblCaptions > 0 then
-              el = applyTableCaptions(el, tblCaptions, tblLabels)
-            end
-            return el
           end
         end
       end
+      
+      
     end
   }
 
@@ -94,7 +99,11 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
       for i=1,tables do
         if i <= #tblCap then
           tblCaptions:insert(markdownToInlines(tblCap[i]))
-          tblLabels:insert(label .. "-" .. tostring(i))
+          if #label > 0 then
+            tblLabels:insert(label .. "-" .. tostring(i))
+          else
+            tblLabels:insert("")
+          end
         end
       end
     end
@@ -135,9 +144,11 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
         if table.caption == nil then
           table.caption = pandoc.List()
         end
-        tappend(table.caption, {
-          pandoc.Str("{#" .. tblLabels[idx] .. "}")
-        })
+        if #tblLabels[idx] > 0 then
+          tappend(table.caption, {
+            pandoc.Str("{#" .. tblLabels[idx] .. "}")
+          })
+        end
         idx = idx + 1
         return pandoc.utils.from_simple_table(table)
       end
@@ -161,7 +172,9 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           if #tblCaptions[idx] > 0 then
             captionText = pandoc.utils.stringify(tblCaptions[idx])
           end
-          captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
+          if #tblLabels[idx] > 0 then
+            captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
+          end
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText .. "%3", 1)
         elseif hasRawLatexTable(raw) then
           for i,pattern in ipairs(latexTablePatterns) do
@@ -191,7 +204,9 @@ function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
   if #tblCaption > 0 then
     captionText = pandoc.utils.stringify(tblCaption)
   end
-  captionText = captionText .. " {#" .. tblLabel .. "}"
+  if #tblLabel > 0 then
+    captionText = captionText .. " {#" .. tblLabel .. "}"
+  end
   latex = latex:gsub(latexCaptionPattern, "%1" .. captionText .. "%3", 1)
   return latex
 end
