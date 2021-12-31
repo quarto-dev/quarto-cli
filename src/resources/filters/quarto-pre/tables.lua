@@ -80,7 +80,7 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
       if tblSubCap and i <= #tblSubCap and tblSubCap[i] ~= "" then
         tblCaptions:insert(markdownToInlines(tblSubCap[i]))
       else
-        tblCaptions:insert(pandoc.List( { pandoc.Space() } ))
+        tblCaptions:insert(pandoc.List())
       end
       tblLabels:insert(label .. "-" .. tostring(i))
     end
@@ -96,7 +96,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
     Table = function(table)
       if idx <= #tblLabels then
         table = pandoc.utils.to_simple_table(table)
-        if tblCaptions[idx] ~= nil then
+        if #tblCaptions[idx] > 0 then
           table.caption = pandoc.List()
           tappend(table.caption, tblCaptions[idx])
           table.caption:insert(pandoc.Space())
@@ -116,6 +116,27 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
         -- (1) if there is no caption at all then populate it from tblCaptions[idx]
         -- (assuming there is one, might not be in case of empty subcaps)
         -- (2) Append the tblLabels[idx] to whatever caption is there
+        if hasRawHtmlTable(raw) then
+          -- html table patterns
+          local tablePattern = htmlTablePattern()
+          local captionPattern = htmlTableCaptionPattern()
+          -- insert caption if there is none
+          local beginCaption, caption = raw.text:match(captionPattern)
+          if not beginCaption then
+            raw.text = raw.text:gsub(tablePattern, "%1" .. "<caption></caption>" .. "%2%3", 1)
+          end
+          -- apply table caption and label
+          local beginCaption, captionText, endCaption = raw.text:match(captionPattern)
+          if #tblCaptions[idx] > 0 then
+            captionText = pandoc.utils.stringify(tblCaptions[idx])
+          end
+          captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
+          raw.text = raw.text:gsub(captionPattern, "%1" .. captionText .. "%3", 1)
+        elseif hasRawLatexTable(raw) then
+          
+
+        end
+       
         idx = idx + 1
         return raw
       end
@@ -152,12 +173,11 @@ function countTables(div)
   return tables
 end
 
-local tableTag = "[Tt][Aa][Bb][Ll][Ee]"
-local htmlTablePattern = "(<" .. tableTag .. "[^>]*>)(.*)(</" .. tableTag .. ">)"
+local tablePattern = htmlTablePattern()
 
 function hasRawHtmlTable(raw)
   if isRawHtml(raw) and isHtmlOutput() then
-    return raw.text:match(htmlTablePattern)
+    return raw.text:match(tablePattern)
   else
     return false
   end
