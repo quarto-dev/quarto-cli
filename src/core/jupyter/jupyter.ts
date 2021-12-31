@@ -208,7 +208,7 @@ export interface JupyterOutputDisplayData extends JupyterOutput {
 export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellLabel]?: string;
   [kCellFigCap]?: string | string[];
-  [kCellFigSubCap]?: string[];
+  [kCellFigSubCap]?: string[] | true;
   [kFigCapLoc]?: string;
   [kTblCapLoc]?: string;
   [kCapLoc]?: string;

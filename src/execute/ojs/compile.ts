@@ -654,16 +654,23 @@ export async function ojsCompile(
           div.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else if (hasFigureSubCaptions()) {
+        let subCap = (cell.options?.[kCellFigSubCap]) as string[] | true;
+        if (subCap === true) {
+          subCap = [""];
+        }
+        if (!Array.isArray(subCap)) {
+          subCap = [subCap];
+        }
         if (
           hasManyRowsCols() &&
-          (cell.options?.[kCellFigSubCap] as string[]).length !==
+          (subCap as string[]).length !==
             (nRow() * nCol())
         ) {
           throw new Error(
             "Cannot have subcaptions and multi-row/col layout with mismatched number of cells",
           );
         }
-        const specs = (cell.options?.[kCellFigSubCap] as string[]).map(
+        const specs = (subCap as string[]).map(
           (caption) => ({ caption }),
         );
         makeSubFigures(specs);

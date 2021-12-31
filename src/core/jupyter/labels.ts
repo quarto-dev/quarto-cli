@@ -154,12 +154,15 @@ export function resolveCaptions(cell: JupyterCellWithOptions) {
   } else if (cell.options[kCellFigCap]) {
     if (cell.options[kCellFigSubCap] !== undefined) {
       let subCap = cell.options[kCellFigSubCap];
+      if (subCap === true) {
+        subCap = [""];
+      }
       if (!Array.isArray(subCap)) {
         subCap = [String(subCap)];
       }
       return {
         cellCaption: cell.options[kCellFigCap],
-        outputCaptions: cell.options[kCellFigSubCap] || [],
+        outputCaptions: subCap,
       };
     } else {
       return {

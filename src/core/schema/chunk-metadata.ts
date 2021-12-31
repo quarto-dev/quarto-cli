@@ -54,7 +54,7 @@ const commonCellOptionsSchema = objectS({
   properties: {
     [kCellLabel]: StringS,
     [kCellFigCap]: anyOfS(StringS, arrayS(StringS)),
-    [kCellFigSubCap]: anyOfS(StringS, arrayS(StringS)),
+    [kCellFigSubCap]: anyOfS(StringS, arrayS(StringS), BooleanS),
     [kCellLstLabel]: StringS,
     [kCellLstCap]: StringS,
     [kCellClasses]: StringS,

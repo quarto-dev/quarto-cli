@@ -589,6 +589,12 @@ knitr_options_hook <- function(options) {
     # convert any option with fig- into fig. and out- to out.
     options <- normalize_options(options)
   }
+
+  # fig.subcap: TRUE means fig.subcap: "" (more natural way 
+  # to specify that empty subcaps are okay)
+  if (isTRUE(options[["fig.subcap"]])) {
+    options[["fig.subcap"]] <- ""
+  }
   
   # return options  
   options

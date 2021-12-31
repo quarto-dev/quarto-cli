@@ -27,7 +27,7 @@ function tables()
          
           -- extract table attributes
           local tblCap = extractTblCapAttrib(el,kTblCap)
-          local tblSubCap = extractTblCapAttrib(el, kTblSubCap)
+          local tblSubCap = extractTblCapAttrib(el, kTblSubCap, true)
           -- apply captions and labels if we have a tbl-cap or tbl-subcap
           if tblCap or tblSubCap then
 
@@ -197,11 +197,13 @@ function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
 end
 
 
-function extractTblCapAttrib(el, name)
+function extractTblCapAttrib(el, name, subcap)
   local value = attribute(el, name, nil)
   if value then
     if startsWith(value, "[") then
       value = pandoc.List(jsonDecode(value))
+    elseif subcap and (value == "true") then
+      value = pandoc.List({ "" })
     else
       value = pandoc.List({ value })
     end
