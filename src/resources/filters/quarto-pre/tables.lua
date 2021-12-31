@@ -81,14 +81,14 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
 
   -- case: no subcaps (no main caption or label, apply caption(s) to tables)
   if not tblSubCap then
-    -- case: single caption (apply to entire panel)
-    if #tblCap == 1 then
-      mainCaption = tblCap[1]
-      mainLabel = label
     -- case: single table (no label interpolation)
-    elseif tables == 1 then
+    if tables == 1 then
       tblCaptions:insert(markdownToInlines(tblCap[1]))
       tblLabels:insert(label)
+    -- case: single caption (apply to entire panel)
+    elseif #tblCap == 1 then
+      mainCaption = tblCap[1]
+      mainLabel = label
     -- case: multiple tables (label interpolation)
     else
       for i=1,tables do
