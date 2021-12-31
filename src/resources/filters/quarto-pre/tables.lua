@@ -24,11 +24,30 @@ function tables()
       if hasTableRef(el) and tcontains(el.attr.classes, "cell") then
         local tables = countTables(el)
         if tables > 0 then
+         
           -- extract table attributes
           local tblCap = extractTblCapAttrib(el,kTblCap)
           local tblSubCap = extractTblCapAttrib(el, kTblSubCap)
           -- apply captions and labels if we have a tbl-cap or tbl-subcap
           if tblCap or tblSubCap then
+
+            -- special case: knitr::kable will generate a \begin{tablular} without
+            -- a \begin{table} wrapper -- put the wrapper in here if need be
+            if isLatexOutput() then
+              el = pandoc.walk_block(el, {
+                RawBlock = function(raw)
+                  if isRawLatex(raw) then
+                    if raw.text:match(latexTabularPattern) and not raw.text:match(latexTablePattern) then
+                      raw.text = raw.text:gsub(latexTabularPattern, 
+                                              "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
+                                              1)
+                      return raw                       
+                    end
+                  end
+                end
+              })
+            end
+
             -- compute all captions and labels
             local mainCaption, tblCaptions, mainLabel, tblLabels = tableCaptionsAndLabels(
               el.attr.identifier,
@@ -145,14 +164,6 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText .. "%3", 1)
         elseif hasRawLatexTable(raw) then
-          -- special case: knitr::kable will generate a \begin{tablular} without
-          -- a \begin{table} wrapper -- put the wrapper in here if need be
-          if raw.text:match(latexTabularPattern) and not raw.text:match(latexTablePattern) then
-            raw.text = raw.text:gsub(latexTabularPattern, 
-                                     "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
-                                    1)
-          end
-
           for i,pattern in ipairs(latexTablePatterns) do
             if raw.text:match(pattern) then
               raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], pattern)
