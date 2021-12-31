@@ -4,6 +4,18 @@
 kTblCap = "tbl-cap"
 kTblSubCap = "tbl-subcap"
 
+local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
+local latexLongtablePattern = "(\\begin{longtable})(.*)(\\end{longtable})"
+local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
+
+local latexTablePatterns = pandoc.List({
+  latexTablePattern,
+  latexLongtablePattern,
+  latexTabularPattern,
+})
+
+local latexCaptionPattern =  "(\\caption{)(.-)(}\n)"
+
 function tables() 
   
   return {
@@ -133,8 +145,20 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText .. "%3", 1)
         elseif hasRawLatexTable(raw) then
-          
+          -- special case: knitr::kable will generate a \begin{tablular} without
+          -- a \begin{table} wrapper -- put the wrapper in here if need be
+          if raw.text:match(latexTabularPattern) and not raw.text:match(latexTablePattern) then
+            raw.text = raw.text:gsub(latexTabularPattern, 
+                                     "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
+                                    1)
+          end
 
+          for i,pattern in ipairs(latexTablePatterns) do
+            if raw.text:match(pattern) then
+              raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], pattern)
+              break
+            end
+          end
         end
        
         idx = idx + 1
@@ -143,6 +167,24 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
     end
   })
 end
+
+
+function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
+  -- insert caption if there is none
+  local beginCaption, caption = latex:match(latexCaptionPattern)
+  if not beginCaption then
+    latex = latex:gsub(tablePattern, "%1" .. "\n\\caption{ }\n" .. "%2%3", 1)
+  end
+  -- apply table caption and label
+  local beginCaption, captionText, endCaption = latex:match(latexCaptionPattern)
+  if #tblCaption > 0 then
+    captionText = pandoc.utils.stringify(tblCaption)
+  end
+  captionText = captionText .. " {#" .. tblLabel .. "}"
+  latex = latex:gsub(latexCaptionPattern, "%1" .. captionText .. "%3", 1)
+  return latex
+end
+
 
 function extractTblCapAttrib(el, name)
   local value = attribute(el, name, nil)
@@ -183,13 +225,14 @@ function hasRawHtmlTable(raw)
   end
 end
 
-local latexTablePattern = "\\begin{tabular}"
-local latexLongtablePattern = "\\begin{longtable}"
-
 function hasRawLatexTable(raw)
   if isRawLatex(raw) and isLatexOutput() then
-    return raw.text:match(latexTablePattern) or 
-           raw.text:match(latexLongtablePattern)
+    for i,pattern in ipairs(latexTablePatterns) do
+      if raw.text:match(pattern) then
+        return true
+      end
+    end
+    return false
   else
     return false
   end

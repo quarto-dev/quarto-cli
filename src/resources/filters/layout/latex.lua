@@ -372,8 +372,13 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
       end
       cell.content = { latexTabular(tbl, vAlign) }
     else
-      caption = refCaptionFromDiv(cell).content
-      cell.content = tslice(cell.content, 1, #cell.content-1)
+      local divCaption = refCaptionFromDiv(cell)
+      if divCaption then
+        caption = refCaptionFromDiv(cell).content
+        cell.content = tslice(cell.content, 1, #cell.content-1)
+      else
+        caption = pandoc.List()
+      end
     end
     
     -- subcap
