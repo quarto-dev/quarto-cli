@@ -43,6 +43,7 @@ const kDefaultCardColumns = [
 const kDefaultColumnLinks = ["title", "filename"];
 // TODO: Localize
 const kDefaultColumnNames = {
+  "image": " ",
   "date": "Date",
   "title": "Title",
   "description": "Description",
