@@ -13,37 +13,31 @@ const imgHeight = options['image-height'];
 
 const outputValue = (col) => {
 
-  const linkify = (value) => {
-    const path = item.path;
-    if (path && value !== undefined && links.includes(col)) {
-      return `<a href="${path}">${value}</a>`;
-    } else {
-      return value;
-    }
-  }
-
-  let value = item[col];
-  if (col === "image") {
-    if (item.image) {
-      value = `<img src="${item[col]}" ${imgHeight ? ` height="${imgHeight}"` : ''}>`;
-    } else {
-      value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight}px;"` : '' }>&nbsp;</div>`;
-    }
-  }
-  return linkify(value);
+const linkify = (value) => {
+const path = item.path;
+if (path && value !== undefined && links.includes(col)) {
+return `<a href="${path}">${value}</a>`;
+} else {
+return value;
+}
 }
 
+let value = item[col];
+if (col === "image") {
+if (item.image) {
+value = `<img src="${item[col]}" ${imgHeight ? ` height="${imgHeight}"` : ''}>`;
+} else {
+value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight}px;"` : '' }>&nbsp;</div>`;
+}
+}
+return linkify(value);
+}
 
 %>
 
-```{=html}
-<% if (allowFilter) { %>
-<div class="input-group input-group-sm quarto-listing-filter" style="width: 33%; float: right;">
-<span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
-<input type="text" class="search form-control" placeholder="Filter" />
-</div>
-<% } %>
+<% partial('_filter.ejs.md', {listing, items, options}) %>
 
+```{=html}
 <table class="quarto-listing table">
 <thead>
   <tr>
@@ -72,7 +66,5 @@ const outputValue = (col) => {
 <% } %>
 </tbody>
 </table>
-<% if (rowCount < items.length) { %>
-<ul class="pagination"></ul>
-<% } %>
 ```
+<% partial('_pagination.ejs.md', {listing, items, options}) %>
