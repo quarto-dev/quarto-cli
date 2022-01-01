@@ -111,6 +111,9 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
   -- case: subcaps
   else
     mainLabel = label
+    if mainLabel == "" then
+      mainLabel = anonymousTblId()
+    end
     if tblCap then
       mainCaption = markdownToInlines(tblCap[1])
     else
@@ -122,8 +125,8 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
       else
         tblCaptions:insert(pandoc.List())
       end
-      if #label > 0 then
-        tblLabels:insert(label .. "-" .. tostring(i))
+      if #mainLabel > 0 then
+        tblLabels:insert(mainLabel .. "-" .. tostring(i))
       else
         tblLabels:insert("")
       end

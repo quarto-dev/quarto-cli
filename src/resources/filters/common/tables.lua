@@ -14,3 +14,16 @@ function tagPattern(tag)
   local pattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
   return pattern
 end
+
+function anonymousTblId()
+  return "tbl-anonymous-" .. tostring(math.random(10000000))
+end
+
+function isAnonymousTblId(identifier)
+  return string.find(identifier, "^tbl%-anonymous-")
+end
+
+function isReferenceableTbl(tblEl)
+  return tblEl.attr.identifier ~= "" and 
+         not isAnonymousTblId(tblEl.attr.identifier)
+end

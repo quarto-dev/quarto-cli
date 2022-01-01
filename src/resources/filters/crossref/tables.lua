@@ -7,7 +7,7 @@
 function tables()
   return {
     Div = function(el)
-      if isTableDiv(el) then
+      if isTableDiv(el) and isReferenceableTbl(el) then
         
         -- are we a parent of subrefs? If so then process the caption
         -- at the bottom of the div
