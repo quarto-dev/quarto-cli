@@ -61,6 +61,7 @@ end
 
 function hasSubRefs(divEl, type)
   if hasFigureOrTableRef(divEl) and not hasRefParent(divEl) then
+    -- children w/ parent id
     local found = false
     function checkForParent(el)
       if not found then
@@ -69,7 +70,7 @@ function hasSubRefs(divEl, type)
             found = true
           end
         end
-        
+
       end
     end
     pandoc.walk_block(divEl, {
@@ -80,7 +81,6 @@ function hasSubRefs(divEl, type)
   else
     return false
   end
-  
 end
    
 
