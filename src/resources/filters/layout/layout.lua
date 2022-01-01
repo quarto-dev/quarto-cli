@@ -109,9 +109,10 @@ function requiresPanelLayout(divEl)
   
   if hasLayoutAttributes(divEl) then
     return true
-  -- latex and html require special layout markup for table subcaptions
+  -- latex and html require special layout markup for subcaptions
   elseif (isLatexOutput() or isHtmlOutput()) and 
-          divEl.attr.classes:includes("tbl-parent") then
+         (divEl.attr.classes:includes("fig-parent") or
+          divEl.attr.classes:includes("tbl-parent")) then
     return true
   else 
     return false
