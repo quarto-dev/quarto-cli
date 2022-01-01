@@ -12,7 +12,7 @@ See @fig-elephant for an illustration
 
 ## Simple Sub Figure
 
-::: {#fig-elephants layout.ncol=2}
+::: {#fig-elephants layout-ncol=2}
 
 ![Surus](img/surus.jpg){#fig-surus}
 
@@ -25,11 +25,10 @@ See @fig-elephants for examples. In particular, @fig-abbas.
 
 -->
 
-
 ## Simple Crossref Table
 
 | Col1 | Col2 | Col3 |
-|------|------|------|
+| ---- | ---- | ---- |
 | A    | B    | C    |
 | E    | F    | G    |
 | A    | G    | G    |
@@ -42,7 +41,7 @@ See @tbl-letters.
 
 ## Sub tables
 
-::: {#tbl-panel layout.ncol=2}
+::: {#tbl-panel layout-ncol=2}
 | Col1 | Col2 | Col3 |
 |------|------|------|
 | A    | B    | C    |
@@ -66,11 +65,10 @@ See @tbl-panel for details, especially @tbl-second.
 
 -->
 
-
 ## Math
 
-
 ::: {#thm-line}
+
 ## Line
 
 The equation of any straight line, called a linear equation, can be written as:
@@ -78,9 +76,7 @@ The equation of any straight line, called a linear equation, can be written as:
 $$
 y = mx + b
 $$
+
 :::
 
 See @thm-line.
-
-
-
