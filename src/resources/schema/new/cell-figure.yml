@@ -16,7 +16,9 @@
 
 - name: fig-subcap
   schema:
-    maybeArrayOf: string
+    oneOf:
+      - true
+      - maybeArrayOf: string
   description: Figure subcaptions
 
 - name: fig-link

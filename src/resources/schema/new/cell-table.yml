@@ -1,0 +1,10 @@
+- name: tbl-cap
+  schema: string
+  description: Table caption
+
+- name: tbl-subcap
+  schema:
+    oneOf:
+      - true
+      - maybeArrayOf: string
+  description: Table subcaptions
