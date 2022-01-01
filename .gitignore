@@ -15,3 +15,5 @@ src/resources/build/core-lib.js
 src/resources/editor/tools/yaml/quarto-json-schemas.json
 src/resources/editor/tools/yaml/yaml.js
 src/resources/editor/tools/yaml/standalone-schema-validators.js
+# deno_std library
+src/resources/deno_std/cache
