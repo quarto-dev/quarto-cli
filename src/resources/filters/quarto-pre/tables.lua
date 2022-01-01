@@ -250,11 +250,10 @@ function countTables(div)
   return tables
 end
 
-local tablePattern = htmlTablePattern()
 
 function hasRawHtmlTable(raw)
   if isRawHtml(raw) and isHtmlOutput() then
-    return raw.text:match(tablePattern)
+    return raw.text:match(htmlTablePattern())
   else
     return false
   end
