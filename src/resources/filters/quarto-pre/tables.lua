@@ -122,7 +122,11 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
       else
         tblCaptions:insert(pandoc.List())
       end
-      tblLabels:insert(label .. "-" .. tostring(i))
+      if #label > 0 then
+        tblLabels:insert(label .. "-" .. tostring(i))
+      else
+        tblLabels:insert("")
+      end
     end
   end
 
