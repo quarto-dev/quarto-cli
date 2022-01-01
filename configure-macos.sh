@@ -23,7 +23,20 @@ pushd $QUARTO_BIN_DIR
 
 # Download Dependencies
 DENOURL=https://github.com/denoland/deno/releases/download/
-DENOFILE=deno-x86_64-apple-darwin.zip
+DL_ARCH="x86_64"
+if [ "$(uname -m)" = "arm64" ]; then
+  # deno canary commits only release per x86 arches
+	# These are the currently supported target tuples:
+    # Apple x86 (64-bit): x86_64-apple-darwin
+    # Linux x86 (64-bit): x86_64-unknown-linux-gnu
+    # Windows x86 (64-bit): x86_64-pc-windows-msvc
+	echo "unsetting canary commit from $DENO_CANARY_COMMIT as not built on ARM"
+	# hmm just unset was not seeming to work properly
+	# we can just manually zero it out 
+	DENO_CANARY_COMMIT=""
+  DL_ARCH="aarch64"
+fi
+DENOFILE="deno-${DL_ARCH}-apple-darwin.zip"
 curl -fail -L $DENOURL/$DENO/$DENOFILE -o $DENOFILE --no-include
 unzip -o $DENOFILE
 rm $DENOFILE
