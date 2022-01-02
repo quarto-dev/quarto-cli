@@ -48,7 +48,7 @@ import {
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
-const kDefaultListingType = ListingType.Cards;
+const kDefaultListingType = ListingType.Posts;
 const kDefaultContentsGlob = ["*"];
 const kDefaultId = "quarto-listing";
 const kSortableValueFields = ["date", "filemodified"];
@@ -226,10 +226,10 @@ function markdownHandler(
         },
       );
     }
-    case ListingType.Cards:
+    case ListingType.Posts:
     default: {
       return templateMarkdownHandler(
-        "projects/website/listing/listing-card.ejs.md",
+        "projects/website/listing/listing-posts.ejs.md",
         templateOptions,
         listing,
         items,
@@ -384,10 +384,10 @@ function resolveListingStr(val: string): Listing {
         sortableValueFields: kSortableValueFields,
       };
 
-    case ListingType.Cards:
+    case ListingType.Posts:
       return {
         id: kDefaultId,
-        type: ListingType.Cards,
+        type: ListingType.Posts,
         contents: kDefaultContentsGlob,
         classes: [],
         sortableValueFields: kSortableValueFields,

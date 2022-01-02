@@ -59,3 +59,47 @@ table.quarto-listing td.image {
     object-fit: contain;
   }
 }
+
+.quarto-post {
+  display: flex;
+  a.post-contents {
+    display: flex;
+    flex-basis: 67%;
+    div.title {
+      flex-shrink: 0;
+    }
+
+    div.description {
+      flex-shrink: 0;
+    }
+  }
+
+  a.image-left {
+    flex-direction: row;
+  }
+  a.image-right {
+    flex-direction: row-reverse;
+  }
+
+  .metadata {
+    padding-right: 2em;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8em;
+    font-family: $font-family-base;
+    flex-basis: 33%;
+  }
+
+  .thumbnail {
+    width: 35%;
+    margin-bottom: 0;
+    position: relative;
+    max-width: 500px;
+    flex-basis: 25%;
+    img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+    }
+  }
+}

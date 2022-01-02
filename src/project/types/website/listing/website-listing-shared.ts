@@ -20,7 +20,7 @@ export interface Listing {
 // The type of listing
 export enum ListingType {
   Grid = "grid",
-  Cards = "cards",
+  Posts = "posts",
   Table = "table",
 }
 
