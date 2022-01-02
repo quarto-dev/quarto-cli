@@ -41,14 +41,14 @@ $navbar-bg: theme-override-value(
 $navbar-fg: theme-override-value(
   $theme-name,
   "navbar-fg",
-  theme-contrast($navbar-bg)
+  theme-contrast($navbar-bg, $navbar-bg)
 ) !default;
 $navbar-hl: theme-override-value(
   $theme-name,
   "navbar-hl",
   if(
     variable-exists(link-color),
-    color.mix($navbar-bg, $link-color, 80%),
+    theme-contrast($link-color, $navbar-bg),
     $navbar-fg
   )
 ) !default;
@@ -84,7 +84,7 @@ $navbar-dark-brand-hover-color: $navbar-hl;
 
 // Sidebar coloring
 $sidebar-bg: if(variable-exists(light), $light, #fff) !default;
-$sidebar-fg: theme-contrast($sidebar-bg) !default;
+$sidebar-fg: theme-contrast($sidebar-bg, $sidebar-bg) !default;
 $sidebar-hl: null;
 $sidebar-font-size: 0.875rem !default;
 $sidebar-font-size-section: 1rem !default;
@@ -93,7 +93,7 @@ $sidebar-font-size-section-collapse: 1.1rem !default;
 
 // Footer coloring
 $footer-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
-$footer-fg: theme-contrast($footer-bg) !default;
+$footer-fg: theme-contrast($footer-bg, $footer-bg) !default;
 $footer-font-size: 0.825em !default;
 $footer-left-font-size: $footer-font-size !default;
 $footer-center-font-size: $footer-font-size !default;

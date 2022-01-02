@@ -8,21 +8,24 @@
 }
 
 // Provides a contrast color for a given color
-@function theme-contrast($baseColor) {
+// The color is the starting color that will used to form a contrasting color
+// The bgColor is the color that will be used to test contrast (e.g. the color
+// will be shifted until its contrast against the bgColor is acceptable)
+@function theme-contrast($color, $bgColor, $level: "AAA") {
   // These will be defined in bootstrap, but creating values here
   // That will make this function accessible to callers prior to bootstrap variables
   // being set
   $black: rgb(0, 0, 0) !default;
   $white: rgb(255, 255, 255) !default;
 
-  @if tone($baseColor) == "light" {
-    @return accessibleContrast($baseColor, $black);
+  @if tone($bgColor) == "light" {
+    @return accessibleContrast($color, $black, $bgColor);
   } @else {
-    @return accessibleContrast($baseColor, $white);
+    @return accessibleContrast($color, $white, $bgColor);
   }
 }
 
-@function accessibleContrast($color, $mixColor, $level: "AAA") {
+@function accessibleContrast($startColor, $mixColor, $bgColor, $level: "AAA") {
   // A: 3:1
   // AA: 4.5:1
   // AAA: 7:1
@@ -37,10 +40,11 @@
   $contrastRatio: 0;
   $contrastColor: null;
   @while ($contrastRatio < $goalContrastRatio and $percentMix > 0) {
-    $contrastColor: mix($color, $mixColor, percentage($percentMix/100));
-    $contrastRatio: contrast($color, $contrastColor);
+    $contrastColor: mix($startColor, $mixColor, percentage($percentMix/100));
+    $contrastRatio: contrast($contrastColor, $bgColor);
     $percentMix: $percentMix - 1;
   }
+
   @return $contrastColor;
 }
 
@@ -62,18 +66,18 @@
   $gray-500: #adb5bd !default;
 
   $theme-overrides: (
-    litera: (
-      navbar-bg: $white,
+    cerulean: (
+      navbar-fg: $white,
     ),
     cyborg: (
       navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
     ),
-    cerulean: (
-      navbar-fg: $white,
-    ),
     darkly: (
       navbar-fg: $gray-500,
       navbar-hl: $white,
+    ),
+    litera: (
+      navbar-bg: $white,
     ),
     minty: (
       navbar-fg: $white,
