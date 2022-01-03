@@ -69,34 +69,85 @@
     cerulean: (
       navbar-fg: $white,
     ),
+    cosmo: (),
     cyborg: (
       navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
+      navbar-hl: $white,
     ),
     darkly: (
-      navbar-fg: $gray-500,
+      navbar-fg: $gray-300,
+      navbar-hl: $white,
+    ),
+    flatly: (
+      navbar-hl: $white,
+    ),
+    journal: (
+      navbar-fg: rgba($white, 0.7),
       navbar-hl: $white,
     ),
     litera: (
       navbar-bg: $white,
+    ),
+    lumen: (
+      navbar-fg: rgba($white, 0.7),
+      navbar-hl: $white,
+    ),
+    lux: (),
+    materia: (
+      navbar-fg: rgba($white, 0.7),
+      navbar-hl: $white,
     ),
     minty: (
       navbar-fg: $white,
     ),
     morph: (
       navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
+      navbar-fg: rgba($black, 0.5),
+    ),
+    pulse: (
+      navbar-fg: rgba($white, 0.7),
+      navbar-hl: $white,
+    ),
+    quartz: (
+      navbar-fg: rgba($white, 0.8),
+      navbar-hl: $white,
     ),
     sandstone: (
       navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-fg: rgba($white, 0.7),
+      navbar-hl: $white,
     ),
+    simplex: (
+      navbar-bg: $white,
+      navbar-fg: rgba($black, 0.6),
+      navbar-hl: $black,
+    ),
+    sketchy: (
+      navbar-fg: $white,
+    ),
+    slate: (),
     solar: (
       navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-hl: $white,
     ),
     spacelab: (
       navbar-bg: if(variable-exists(light), $light, #bbb),
+      navbar-hl: if(variable-exists(link-color), $link-color, $blue),
     ),
     superhero: (
       navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-hl: $white,
     ),
+    united: (
+      navbar-fg: rgba($white, 0.8),
+      navbar-hl: $white,
+    ),
+    vapor: (
+      navbar-fg: rgba($white, 0.8),
+      navbar-hl: $white,
+    ),
+    yeti: (),
+    zephyr: (),
   );
 
   $val: null;
