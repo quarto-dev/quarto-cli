@@ -2,6 +2,7 @@
     "imports": {
         "cliffy/": "https://deno.land/x/cliffy/",
         "encoding/": "https://deno.land/std@0.119.0/encoding/",
+	"uuid/": "https://deno.land/std@0.119.0/uuid/",
         "flags/": "https://deno.land/std@0.119.0/flags/",
         "fmt/": "https://deno.land/std@0.119.0/fmt/",
         "fs/": "https://deno.land/std@0.119.0/fs/",
