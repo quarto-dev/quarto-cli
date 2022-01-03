@@ -96,19 +96,23 @@ nav .nav-item.compact .nav-link {
   font-size: 0.9rem;
 }
 
-.navbar-light .navbar-nav .nav-link.dropdown-toggle::after {
-  opacity: 0.75;
-  vertical-align: 0.175em;
-}
+.navbar {
+  .navbar-nav {
+    .nav-link.dropdown-toggle::after {
+      opacity: 0.75;
+      vertical-align: 0.175em;
+    }
+  }
 
-.navbar .dropdown-header {
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  padding: 0 0.5rem;
-}
+  .dropdown-header {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    padding: 0 0.5rem;
+  }
 
-.navbar .dropdown-item {
-  padding: 0.1rem 0.5rem;
+  .dropdown-item {
+    padding: 0.1rem 0.5rem;
+  }
 }
 
 .sidebar #quarto-search {
