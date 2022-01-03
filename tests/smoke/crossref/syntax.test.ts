@@ -48,7 +48,7 @@ const verify: Verify = {
     if (imgBody && divBody) {
       assert(
         imgBody[0] === divBody[0],
-        "Contents of HTML generated for figures do not match.",
+        "Contents of HTML generated for figures with div vs img syntax do not match.",
       );
     } else {
       fail("Unable to extract html body from output.");
