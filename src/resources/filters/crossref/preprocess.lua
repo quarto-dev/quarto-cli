@@ -33,8 +33,10 @@ function preprocess()
                   el.attr.attributes[kRefParent] = parentId
                 end
               else
-                -- mark as parent
-                el.attr.classes:insert(refType(el.attr.identifier) .. "-parent")
+                -- mark as table parent if required
+                if isTableRef(el.attr.identifier) then
+                  el.attr.classes:insert("tbl-parent")
+                end
                 el = pandoc.walk_block(el, walkRefs(el.attr.identifier))
               end
             end
@@ -88,7 +90,9 @@ function preprocess()
             parentId = el.attr.identifier
 
             -- mark as parent
-            el.attr.classes:insert(refType(parentId) .. "-parent")
+            if isTableRef(el.attr.identifier) then
+              el.attr.classes:insert("tbl-parent")
+            end
             
             -- provide error caption if there is none
             if not refCaptionFromDiv(el) then
