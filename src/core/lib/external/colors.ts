@@ -3,6 +3,12 @@
 // on npm.
 //
 
+// - 2022-01-03
+//   In order for this to work in the RStudio IDE, we need to minimally edit
+//   the file to remove references to (?.) as an operator;
+//   globalThis also doesn't work in the IDE.
+//    
+
 /**
  * ```ts
  * import { bgBlue, red, bold } from "https://deno.land/std@$STD_VERSION/fmt/colors.ts";
@@ -17,8 +23,13 @@
 // This module is browser compatible.
 
 // deno-lint-ignore no-explicit-any
-const { Deno } = globalThis as any;
-const noColor = typeof Deno?.noColor === "boolean"
+let Deno: any;
+try {
+  Deno = globalThis.Deno;
+} catch (e) {}
+
+// const { Deno } = globalThis as any;
+const noColor = typeof (Deno && Deno.noColor) === "boolean"
   ? Deno.noColor as boolean
   : true;
 

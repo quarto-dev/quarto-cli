@@ -47,3 +47,7 @@ export { prefixes } from "./regexp.js";
 // export const Semaphore = Semaphore_default;
 
 export { Semaphore } from "./semaphore.ts";
+
+import _ajv from "./external/ajv-bundle.js";
+
+export const Ajv = _ajv; 

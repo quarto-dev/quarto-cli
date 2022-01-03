@@ -54,8 +54,6 @@ async function buildYAMLJS(resourceDir: string) {
 
   const files = [
     "tree-sitter.js",
-    "external/ajv7.bundle.js",
-    "ajv-stub.js",
   ].map((filename) => Deno.readTextFileSync(join(path, filename)));
   files.push(automationSrc!);
   return Deno.writeTextFile(join(path, "yaml.js"), files.join(""));

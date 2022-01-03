@@ -410,7 +410,7 @@ function localizeAndPruneErrors(
       if (error.keyword.startsWith("_custom_")) {
         niceError = {
           ...niceError,
-          heading: error.message ?? "",
+          heading: error.message === undefined ? "" : error.message,
         };
       } else {
         if (instancePath === "") {
@@ -419,7 +419,7 @@ function localizeAndPruneErrors(
             heading: `(top-level error) ${error.message}`,
           };
         } else {
-          const errorSchema = error.params && error.params.schema;
+          const errorSchema = (error.params && error.params.schema) || error.parentSchema;
           const innerSchema = errorSchema ? [errorSchema] : navigateSchema(schemaPath.map(decodeURIComponent), schema);
           if (innerSchema.length === 0) {
             // this is probably an internal error..
@@ -428,7 +428,8 @@ function localizeAndPruneErrors(
               heading: `Schema ${schemaPath}: ${error.message}`,
             };
           } else {
-            const idTag = errorSchema.$id ? ` ${colors.gray("(schema id: " + errorSchema.$id + ")")}` : "";
+            const idTag = ""; // FIXME until we have verbose options, this hurts the IDE output.
+            // const idTag = (errorSchema && errorSchema.$id) ? ` ${colors.gray("(schema id: " + errorSchema.$id + ")")}` : "";
             const verbatimInput = quotedStringColor(
               source.value.substring(violatingObject.start, violatingObject.end));
             niceError = {
@@ -444,7 +445,7 @@ function localizeAndPruneErrors(
 
       result.push({
         instancePath,
-        message: error.message ?? "",
+        message: error.message === undefined ? "" : error.message,
         violatingObject,
         location: { start, end },
         source,

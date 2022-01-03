@@ -88,12 +88,21 @@ export async function validationFromGoodParseYAML(context) {
       const validationResult = validator.validateParse(code, annotation);
 
       for (const error of validationResult.errors) {
+        let text;
+        if (error.niceError && error.niceError.heading) {
+          // use a new nice error if available
+          text = error.niceError.heading;
+        } else {
+          // default to ajv msg otherwise
+          text = error.message;
+        }
+        
         lints.push({
-          "start.row": error.start.line,
-          "start.column": error.start.column,
-          "end.row": error.end.line,
-          "end.column": error.end.column,
-          "text": error.messageNoLocation,
+          "start.row": error.location.start.line,
+          "start.column": error.location.start.column,
+          "end.row": error.location.end.line,
+          "end.column": error.location.end.column,
+          "text": text,
           "type": "error",
         });
       }
@@ -676,12 +685,13 @@ async function initAutomation(path)
       return;
     automationInit = true;
     setMainPath(path);
-    core.setupAjv(window.ajv);
+    let ajv = new core.Ajv({ allErrors: true, inlineRefs: false, verbose: true, code: { optimize: false, source: true } });
+    core.setupAjv(ajv);
 
     let schemaDefs = (await getSchemas()).definitions;
     for (const [key, value] of Object.entries(schemaDefs)) {
       await withValidator(value, async (_validator) => {
-        console.log(`Schema ${key} loaded`);
+        // console.log(`Schema ${key} loaded`);
       });
     }
     const after = performance.now();
