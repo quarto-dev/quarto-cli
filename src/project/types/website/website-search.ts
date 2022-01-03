@@ -50,7 +50,7 @@ import {
 import { kLanguageDefaults } from "../../../config/constants.ts";
 
 // The main search key
-const kSearch = "search";
+export const kSearch = "search";
 
 // The type of search UI (e.g. overlay or textbox)
 const kType = "type";
