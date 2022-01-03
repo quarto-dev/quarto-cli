@@ -279,9 +279,10 @@ $quarto-search-collapse-icon-size: 26px !default;
   .aa-SourceHeader {
     .search-result-header {
       font-size: 0.875rem;
-      background-color: $light;
+      background-color: theme-dim($body-bg, 5%);
       padding-left: 14px;
       padding-bottom: 4px;
+      padding-top: 4px;
     }
 
     .search-result-header-no-results {
