@@ -8,7 +8,7 @@
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { Element, HTMLDocument } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Element, HTMLDocument } from "../../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 

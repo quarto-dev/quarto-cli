@@ -12,7 +12,7 @@ import { basename, join, relative } from "path/mod.ts";
 // @deno-types="fuse/dist/fuse.d.ts"
 // import Fuse from "fuse/dist/fuse.esm.min.js";
 
-import { DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { DOMParser, Element } from "../../../core/deno-dom.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
@@ -50,7 +50,7 @@ import {
 import { kLanguageDefaults } from "../../../config/constants.ts";
 
 // The main search key
-const kSearch = "search";
+export const kSearch = "search";
 
 // The type of search UI (e.g. overlay or textbox)
 const kType = "type";

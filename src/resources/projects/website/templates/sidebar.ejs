@@ -39,7 +39,7 @@ if (sidebar.title && !navbar) {
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
     <% } %>
     <% if (needsTools && toolsLocation === "logo") { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search })%>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
      <% } %> 
     
     <% if (!navbar) { %>
@@ -51,7 +51,7 @@ if (sidebar.title && !navbar) {
       </a> 
       <% } %>  
       <% if (needsTools && toolsLocation === "title") { %>
-        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search })%>
+        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
       <% } %>  
     </div>
     <% } %>
@@ -68,12 +68,12 @@ if (sidebar.title && !navbar) {
       </div>
       <% } %>
       <% if (needsTools && toolsLocation === "search") { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search })%>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
       <% } %>  
     </div>
   <% } %>
   <% if (needsTools && toolsLocation === "fallthrough") { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search })%>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
   <% } %>
 
   <div class="sidebar-menu-container"> 

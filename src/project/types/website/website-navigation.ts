@@ -9,7 +9,7 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 import { ld } from "lodash/mod.ts";
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
@@ -71,11 +71,13 @@ import {
 import {
   isGithubRepoUrl,
   kSiteNavbar,
+  kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
   websiteConfigActions,
+  websiteConfigBoolean,
   websiteHtmlFormat,
   websiteRepoBranch,
   websiteRepoUrl,
@@ -233,6 +235,18 @@ export async function websiteNavigationExtras(
     (nav.navbar as Record<string, unknown>).darkToggle = true;
   } else if (darkMode !== undefined && nav.sidebar) {
     (nav.sidebar as Record<string, unknown>).darkToggle = true;
+  }
+
+  // determine whether to show the reader mode toggle
+  const readerMode = websiteConfigBoolean(
+    kSiteReaderMode,
+    false,
+    project.config,
+  );
+  if (readerMode && nav.navbar) {
+    (nav.navbar as Record<string, unknown>).readerToggle = true;
+  } else if (readerMode && nav.sidebar) {
+    (nav.sidebar as Record<string, unknown>).readerToggle = true;
   }
 
   const projTemplate = (template: string) =>

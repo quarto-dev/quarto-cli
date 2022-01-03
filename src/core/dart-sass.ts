@@ -9,6 +9,7 @@ import { join } from "path/mod.ts";
 import { binaryPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
 import { sessionTempFile } from "./temp.ts";
+import { lines } from "./text.ts";
 
 export function dartSassInstallDir() {
   return binaryPath("dart-sass");
@@ -55,12 +56,17 @@ async function dartCommand(args: string[]) {
     {
       cmd,
       stdout: "piped",
+      stderr: "piped",
     },
   );
 
   if (result.success) {
     return result.stdout;
   } else {
-    throw new Error("Sass command failed");
+    const errLines = lines(result.stderr || "");
+    // truncate the last 2 lines (they include a pointer to the temp file containing
+    // all of the concatenated sass, which is more or less incomprehensible for users.
+    const errMsg = errLines.slice(0, errLines.length - 2).join("\n");
+    throw new Error("Theme file compilation failed:\n\n" + errMsg);
   }
 }

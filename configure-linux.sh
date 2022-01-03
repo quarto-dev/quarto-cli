@@ -46,6 +46,9 @@ pushd $QUARTO_PACKAGE_DIR/src/
 
 popd
 
+echo "Downloading Deno Stdlib"
+./package/scripts/deno_std/download.sh
+
 # Run the quarto command with 'reload', which will force the import_map dependencies
 # to be reloaded
 if ! quarto_loc="$(type -p quarto)" || [[ -z $quarto_loc ]]; then

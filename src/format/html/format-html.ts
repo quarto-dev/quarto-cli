@@ -7,7 +7,7 @@
 
 import { join } from "path/mod.ts";
 
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "../../core/deno-dom.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { mergeConfigs } from "../../core/config.ts";

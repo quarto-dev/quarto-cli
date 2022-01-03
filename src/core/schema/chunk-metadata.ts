@@ -8,7 +8,7 @@
 */
 
 import { LocalizedError, AnnotatedParse } from "../lib/yaml-schema.ts";
-import { Schema, normalizeSchema } from "../lib/schema.ts";
+import { normalizeSchema, Schema } from "../lib/schema.ts";
 import { addValidatorErrorHandler } from "../lib/validator-queue.ts";
 import { objectRefSchemaFromGlob } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";

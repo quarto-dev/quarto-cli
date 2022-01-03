@@ -110,15 +110,16 @@ export async function executeKernelKeepalive(
             const msg: { type: string; data: string } = JSON.parse(
               jsonMessage,
             );
-            info(msg.data, { newline: false });
             if (msg.type === "error") {
               trace(options, "Error response received");
-              info("");
+              error(msg.data, { colorize: false });
               printExecDiagnostics(msg.data);
               return Promise.reject();
             } else if (msg.type == "restart") {
               trace(options, "Restart request received");
               return executeKernelKeepalive(options);
+            } else {
+              info(msg.data, { newline: false });
             }
           } catch {
             leftover = jsonMessage;

@@ -8,6 +8,7 @@ import { dirname, join, SEP } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
+import { execProcess } from "../../../src/core/process.ts";
 import { expandPath } from "../../../src/core/path.ts";
 import {
   createDevConfig,
@@ -60,6 +61,7 @@ export async function configure(
   // record dev config
   const devConfig = createDevConfig(
     Deno.env.get("DENO") || "",
+    Deno.env.get("DENO_DOM") || "",
     Deno.env.get("PANDOC") || "",
     Deno.env.get("DARTSASS") || "",
     Deno.env.get("ESBUILD") || "",
@@ -132,4 +134,48 @@ async function downloadBinaryDependency(
     data,
   );
   return targetFile;
+}
+
+// note that this didn't actually work on windows (it froze and then deno was
+// inoperable on the machine until reboot!) so we moved it to script/batch
+// files on both platforms)
+// deno-lint-ignore no-unused-vars
+async function downloadDenoStdLibrary(config: Configuration) {
+  const denoBinary = join(config.directoryInfo.bin, "deno");
+  const denoStdTs = join(
+    config.directoryInfo.pkg,
+    "scripts",
+    "deno_std",
+    "deno_std.ts",
+  );
+
+  const denoCacheLock = join(
+    config.directoryInfo.pkg,
+    "scripts",
+    "deno_std",
+    "deno_std.lock",
+  );
+  const denoCacheDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "deno_std",
+    "cache",
+  );
+  ensureDirSync(denoCacheDir);
+
+  info("Updating Deno Stdlib");
+  info("");
+  await execProcess({
+    cmd: [
+      denoBinary,
+      "cache",
+      "--unstable",
+      "--lock",
+      denoCacheLock,
+      denoStdTs,
+    ],
+    env: {
+      DENO_DIR: denoCacheDir,
+    },
+  });
 }

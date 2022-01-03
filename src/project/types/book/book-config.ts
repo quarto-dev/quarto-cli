@@ -41,6 +41,7 @@ import {
   kSiteNavbar,
   kSitePageNavigation,
   kSitePath,
+  kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoBranch,
   kSiteRepoUrl,
@@ -69,6 +70,11 @@ import {
 } from "../../../config/constants.ts";
 
 import { texSafeFilename } from "../../../core/tex.ts";
+import {
+  kCookieConsent,
+  kGoogleAnalytics,
+} from "../website/website-analytics.ts";
+import { kSearch } from "../website/website-search.ts";
 
 const kAppendicesSectionLabel = "Appendices";
 
@@ -116,6 +122,9 @@ export async function bookProjectConfig(
     site[kBodyHeader] = book[kBodyHeader];
     site[kBodyFooter] = book[kBodyFooter];
     site[kBookSearch] = book[kBookSearch];
+    site[kSiteReaderMode] = book[kSiteReaderMode];
+    site[kGoogleAnalytics] = book[kGoogleAnalytics];
+    site[kCookieConsent] = book[kCookieConsent];
 
     // If there is an explicitly set footer use that
     if (book[kPageFooter]) {

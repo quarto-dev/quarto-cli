@@ -5,8 +5,6 @@
 *
 */
 
-import { onSignal } from "signal/mod.ts";
-
 import {
   Command,
   CompletionsCommand,
@@ -33,6 +31,7 @@ import {
 } from "./core/devconfig.ts";
 
 import { parse } from "flags/mod.ts";
+import { runScript } from "./command/run/run.ts";
 
 export async function quarto(
   args: string[],
@@ -53,6 +52,12 @@ export async function quarto(
     const result = await execProcess({
       cmd: [pandocBinaryPath(), ...args.slice(1)],
     });
+    Deno.exit(result.code);
+  }
+
+  // passthrough to run handlers
+  if (args[0] === "run") {
+    const result = await runScript(args.slice(1));
     Deno.exit(result.code);
   }
 
@@ -96,8 +101,8 @@ if (import.meta.main) {
   try {
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
-      onSignal("SIGINT", abend);
-      onSignal("SIGTERM", abend);
+      Deno.addSignalListener("SIGINT", abend);
+      Deno.addSignalListener("SIGTERM", abend);
     }
 
     await initializeLogger(logOptions(parse(Deno.args)));

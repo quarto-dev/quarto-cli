@@ -18,6 +18,7 @@ const kDevConfig = "dev-config";
 
 export interface DevConfig {
   deno: string;
+  deno_dom: string;
   pandoc: string;
   dartsass: string;
   esbuild: string;
@@ -26,6 +27,7 @@ export interface DevConfig {
 
 export function createDevConfig(
   deno: string,
+  deno_dom: string,
   pandoc: string,
   dartsass: string,
   esbuild: string,
@@ -34,6 +36,7 @@ export function createDevConfig(
   const scriptPath = join(scriptDir, "quarto" + (isWindows() ? ".cmd" : ""));
   return {
     deno,
+    deno_dom,
     pandoc,
     dartsass,
     esbuild,
@@ -87,6 +90,7 @@ export function readSourceDevConfig(): DevConfig {
   );
   return createDevConfig(
     readConfig("DENO"),
+    readConfig("DENO_DOM"),
     readConfig("PANDOC"),
     readConfig("DARTSASS"),
     readConfig("ESBUILD"),
@@ -96,6 +100,7 @@ export function readSourceDevConfig(): DevConfig {
 
 export function devConfigsEqual(a: DevConfig, b: DevConfig) {
   return a.deno === b.deno &&
+    a.deno_dom === b.deno_dom &&
     a.pandoc === b.pandoc &&
     a.dartsass == b.dartsass &&
     a.esbuild == b.esbuild &&
@@ -140,6 +145,8 @@ function reconfigureReason(
   };
   if (installed === null || installed.deno !== source.deno) {
     return versionMessage("Deno", source.deno);
+  } else if (installed.deno_dom !== source.deno_dom) {
+    return versionMessage("Deno Dom", source.deno_dom);
   } else if (installed.pandoc !== source.pandoc) {
     return versionMessage("Pandoc", source.pandoc);
   } else if (installed.dartsass !== source.dartsass) {

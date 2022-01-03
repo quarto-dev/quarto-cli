@@ -112,7 +112,11 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar #quarto-search {
-  margin-top: 0.5rem;
+  margin-top: -1px;
+  svg.aa-SubmitIcon {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .sidebar-navigation a {
@@ -123,7 +127,7 @@ nav .nav-item.compact .nav-link {
   margin-top: 0.25rem;
   padding-bottom: 0.5rem;
   font-size: 1.3rem;
-  line-height: 1.4rem;
+  line-height: 1.6rem;
   visibility: visible;
 }
 
@@ -159,7 +163,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-tools-main {
-  margin-left: 8px;
+  margin-left: 0px;
   display: inline-block;
   vertical-align: middle;
 }
@@ -640,4 +644,46 @@ body:not(.floating) .nav-footer {
 
 .nav-footer-right {
   margin-left: auto;
+}
+
+.navbar .quarto-reader-toggle {
+  padding-left: 0.4em;
+  padding-right: 0;
+}
+
+.navbar .quarto-reader-toggle.reader .quarto-reader-toggle-btn {
+  background-color: $navbar-fg;
+  border-radius: 3px;
+}
+
+.quarto-reader-toggle.reader.sidebar-tool .quarto-reader-toggle-btn {
+  background-color: $sidebar-fg;
+  border-radius: 3px;
+}
+
+.quarto-reader-toggle.sidebar-tool {
+  padding-left: 0.3em;
+}
+
+.quarto-reader-toggle .quarto-reader-toggle-btn {
+  display: inline-flex;
+  padding-left: 0.1em;
+  padding-right: 0.3em;
+  text-align: center;
+}
+
+.navbar .quarto-reader-toggle:not(.reader) .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-fg)}" class="bi bi-justify-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.navbar .quarto-reader-toggle.reader .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-bg)}" class="bi bi-justify-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.sidebar-navigation .quarto-reader-toggle:not(.reader) .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($sidebar-fg, 10%))}" class="bi bi-justify-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.sidebar-navigation .quarto-reader-toggle.reader .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($sidebar-bg, 10%))}" class="bi bi-justify-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
 }

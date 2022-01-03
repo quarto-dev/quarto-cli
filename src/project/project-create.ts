@@ -11,7 +11,10 @@ import { basename, dirname, join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
 import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
-import { jupyterCreateVenv } from "../core/jupyter/venv.ts";
+import {
+  jupyterCreateCondaenv,
+  jupyterCreateVenv,
+} from "../core/jupyter/venv.ts";
 
 import { projectType } from "./types/project-types.ts";
 import { renderEjs } from "../core/ejs.ts";
@@ -32,7 +35,8 @@ export interface ProjectCreateOptions {
   kernel?: string;
   editor?: string;
   venv?: boolean;
-  venvPackages?: string[];
+  condaenv?: boolean;
+  envPackages?: string[];
 }
 
 export async function projectCreate(options: ProjectCreateOptions) {
@@ -73,7 +77,9 @@ export async function projectCreate(options: ProjectCreateOptions) {
     "- Created _quarto.yml",
     { indent: 2 },
   );
-  if (await ensureGitignore(options.dir, !!options.venv)) {
+  if (
+    await ensureGitignore(options.dir, !!options.venv || !!options.condaenv)
+  ) {
     info(
       "- Created .gitignore\n" + "- Created .gitattributes",
       { indent: 2 },
@@ -87,7 +93,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
       const scaffold of projCreate.scaffold(
         options.engine,
         options.kernel,
-        options.venvPackages,
+        options.envPackages,
       )
     ) {
       const md = projectMarkdownFile(
@@ -118,7 +124,9 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   // create venv if requested
   if (options.venv) {
-    await jupyterCreateVenv(options.dir, options.venvPackages);
+    await jupyterCreateVenv(options.dir, options.envPackages);
+  } else if (options.condaenv) {
+    await jupyterCreateCondaenv(options.dir, options.envPackages);
   }
 }
 

@@ -33,6 +33,10 @@ function preprocess()
                   el.attr.attributes[kRefParent] = parentId
                 end
               else
+                -- mark as table parent if required
+                if isTableRef(el.attr.identifier) then
+                  el.attr.classes:insert("tbl-parent")
+                end
                 el = pandoc.walk_block(el, walkRefs(el.attr.identifier))
               end
             end
@@ -52,7 +56,11 @@ function preprocess()
             -- provide error caption if there is none
             local fig = discoverFigure(el, false)
             if fig and hasFigureRef(fig) and #fig.caption == 0 then
-              fig.caption:insert(noCaption())
+              if isFigureRef(parentId) then
+                fig.caption:insert(emptyCaption())
+              else
+                fig.caption:insert(noCaption())
+              end
             end
             
             -- if we have a parent fig: then mark it's sub-refs
@@ -80,6 +88,11 @@ function preprocess()
           local parentId = nil
           if hasFigureOrTableRef(el) then
             parentId = el.attr.identifier
+
+            -- mark as parent
+            if isTableRef(el.attr.identifier) then
+              el.attr.classes:insert("tbl-parent")
+            end
             
             -- provide error caption if there is none
             if not refCaptionFromDiv(el) then
@@ -90,7 +103,7 @@ function preprocess()
           doc.blocks[i] = pandoc.walk_block(el, walkRefs(parentId))
         end
       end
-      
+
       return doc
 
     end

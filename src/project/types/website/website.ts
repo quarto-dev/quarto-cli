@@ -7,7 +7,7 @@
 
 import { join } from "path/mod.ts";
 
-import { DOMParser, HTMLDocument } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { DOMParser, HTMLDocument } from "../../../core/deno-dom.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";

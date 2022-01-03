@@ -442,8 +442,6 @@ function writeError(primary: string, secondary?: string, logFile?: string) {
   if (logFile) {
     info(`see ${logFile} for more information.`);
   }
-
-  return Promise.reject();
 }
 
 async function recompileLatexUntilComplete(

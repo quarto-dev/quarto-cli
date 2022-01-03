@@ -10,7 +10,7 @@ function layoutMetaInject()
       metaInjectLatex(meta, function(inject)
         inject(
           usePackage("caption") .. "\n" ..
-          usePackage("subfig")
+          usePackage("subcaption")
         )
         if layoutState.usingTikz then
           inject(usePackage("tikz"))

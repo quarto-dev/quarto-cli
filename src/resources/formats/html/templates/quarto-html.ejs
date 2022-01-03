@@ -169,7 +169,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
     viewSource.addEventListener("click", function(e) {
       if (sourceUrl) {
-        if (/\bviewer_pane=1\b/.test(window.location)) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
           window.open(sourceUrl);
         } else {
           window.location.href = sourceUrl;

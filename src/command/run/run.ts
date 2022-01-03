@@ -5,30 +5,24 @@
 *
 */
 
-import { ProcessResult, processSuccessResult } from "../../core/process.ts";
+import { existsSync } from "fs/exists.ts";
+import { error } from "log/mod.ts";
+import { handlerForScript } from "../../core/run/run.ts";
 
-import { fileExecutionEngine } from "../../execute/engine.ts";
-import { RunOptions } from "../../execute/types.ts";
-
-import { render } from "../render/render-shared.ts";
-
-export async function run(options: RunOptions): Promise<ProcessResult> {
-  const engine = await fileExecutionEngine(options.input);
-  if (engine?.run) {
-    const target = await engine.target(options.input, options.quiet);
-    if (target) {
-      if (options.render) {
-        const result = await render(target.input, {});
-        if (result.error) {
-          throw result.error;
-        }
-      }
-      await engine.run({ ...options, input: target.input });
-      return processSuccessResult();
-    }
+export async function runScript(args: string[]) {
+  const script = args[0];
+  if (!script) {
+    error("quarto run: no script specified");
+    Deno.exit(1);
   }
-
-  return Promise.reject(
-    new Error("Unable to run computations for input file"),
-  );
+  if (!existsSync(script)) {
+    error("quarto run: script '" + script + "' not found");
+    Deno.exit(1);
+  }
+  const handler = await handlerForScript(script);
+  if (!handler) {
+    error("quarto run: no handler found for script '" + script + "'");
+    Deno.exit(1);
+  }
+  return await handler.run(script, args.slice(1));
 }

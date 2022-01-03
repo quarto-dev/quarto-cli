@@ -6,7 +6,13 @@
 */
 import { join } from "path/mod.ts";
 import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
-import { kCodeOverflow, kLinkExternalIcon } from "../../config/constants.ts";
+import {
+  kCapLoc,
+  kCapTop,
+  kCodeOverflow,
+  kLinkExternalIcon,
+  kTblCapLoc,
+} from "../../config/constants.ts";
 import { Format, FormatDependency } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
@@ -170,6 +176,15 @@ export const quartoDefaults = (format: Format) => {
       sassVariable(
         "code-white-space",
         format.render[kCodeOverflow] === "wrap" ? "pre-wrap" : "pre",
+      ),
+    ),
+  );
+  defaults.push(
+    outputVariable(
+      sassVariable(
+        kTblCapLoc,
+        format.metadata[kTblCapLoc] ||
+          format.metadata[kCapLoc] || kCapTop,
       ),
     ),
   );

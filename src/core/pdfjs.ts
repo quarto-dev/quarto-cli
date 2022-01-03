@@ -6,7 +6,6 @@
 */
 
 import { basename, join } from "path/mod.ts";
-import { ServerRequest } from "http/server_legacy.ts";
 import { md5Hash } from "./hash.ts";
 import { pathWithForwardSlashes } from "./path.ts";
 import { formatResourcePath } from "./resources.ts";
@@ -38,10 +37,10 @@ export function pdfJsFileHandler(
   pdfFile: () => string,
   htmlHandler?: (
     file: string,
-    req: ServerRequest,
+    req: Request,
   ) => Promise<Uint8Array | undefined>,
 ) {
-  return async (file: string, req: ServerRequest) => {
+  return async (file: string, req: Request) => {
     // base behavior (injects the reloader into html files)
     if (htmlHandler) {
       const contents = await htmlHandler(file, req);
@@ -63,7 +62,7 @@ export function pdfJsFileHandler(
         );
       // always hide the sidebar in the viewer pane
       const referrer = req.headers.get("Referer");
-      const isViewer = referrer && referrer.includes("viewer_pane=1");
+      const isViewer = referrer && referrer.includes("capabilities=");
       if (isViewer) {
         viewerJs = viewerJs.replace(
           "sidebarView: sidebarView",

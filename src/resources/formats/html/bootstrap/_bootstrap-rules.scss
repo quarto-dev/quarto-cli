@@ -221,42 +221,42 @@ body.docked {
 
 .column-body-outset {
   grid-column: body-start-outset / body-end-outset;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-body-outset-left {
   grid-column: body-start-outset / body-content-end;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-body-outset-right {
   grid-column: body-content-start / body-end-outset;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-page {
   grid-column: page-start-inset / page-end-inset;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-page-left {
   grid-column: page-start-inset / body-content-end;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-page-right {
   grid-column: body-content-start / page-end-inset;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   figcaption {
     text-align: right;
@@ -266,42 +266,42 @@ body.docked {
 
 .column-screen-inset {
   grid-column: screen-start-inset / screen-end-inset;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-screen-inset-left {
   grid-column: screen-start-inset / body-content-end;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-screen-inset-right {
   grid-column: body-content-start / screen-end-inset;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-screen {
   grid-column: screen-start / screen-end;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-screen-left {
   grid-column: screen-start / body-content-end;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
 .column-screen-right {
   grid-column: body-start / screen-end;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
@@ -310,18 +310,23 @@ body.docked {
   grid-column: screen-start / screen-end;
   padding: 1em;
   background: $light;
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   margin-bottom: 1em;
 }
 
 .zindex-content {
-  z-index: $zindex-content;
+  z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
 }
 
 .zindex-modal {
   z-index: $zindex-modal;
+  transform: translate3d(0, 0, 0);
+}
+
+.zindex-over-content {
+  z-index: #{$zindex-dropdown - 1};
   transform: translate3d(0, 0, 0);
 }
 
@@ -336,7 +341,7 @@ img.img-fluid.column-screen-inset-shaded {
   aside,
   .column-margin {
     grid-column: body-end / page-end !important;
-    z-index: $zindex-content;
+    z-index: $zindex-pagelayout;
   }
 
   .no-row-height {
@@ -351,7 +356,7 @@ img.img-fluid.column-screen-inset-shaded {
   aside,
   .column-margin {
     grid-column: body-end / page-end !important;
-    z-index: $zindex-content;
+    z-index: $zindex-pagelayout;
   }
 
   .no-row-height {
@@ -366,7 +371,7 @@ img.img-fluid.column-screen-inset-shaded {
   aside,
   .column-margin {
     grid-column: body-content-start / body-content-end !important;
-    z-index: $zindex-content;
+    z-index: $zindex-pagelayout;
     transform: translate3d(0, 0, 0);
   }
   .no-row-height {
@@ -433,8 +438,22 @@ mark {
 .panel-caption,
 caption,
 .figure-caption {
-  @include body-secondary;
   font-size: 1rem;
+}
+
+.panel-caption,
+.figure-caption,
+figcaption {
+  @include body-secondary;
+}
+
+.table-caption,
+caption {
+  color: $body-color;
+}
+
+.quarto-layout-cell[data-ref-parent] caption {
+  @include body-secondary;
 }
 
 .column-margin figcaption,
@@ -1052,6 +1071,10 @@ $callouts: (
   }
 }
 
+.quarto-toggle-container {
+  display: flex;
+}
+
 // dark mode
 .navbar .quarto-color-scheme-toggle {
   @include media-breakpoint-up(lg) {
@@ -1064,6 +1087,7 @@ $callouts: (
   }
 }
 
+.quarto-reader-toggle .bi::before,
 .quarto-color-scheme-toggle .bi::before {
   display: inline-block;
   height: 1rem;
@@ -1087,6 +1111,13 @@ $callouts: (
   margin-bottom: -0.2rem;
 }
 
+.sidebar-tools-main .quarto-reader-toggle .bi::before,
+.sidebar-tools-main .quarto-color-scheme-toggle .bi::before {
+  padding-top: 0.2rem;
+  margin-bottom: -0.2rem;
+}
+
+.navbar .quarto-reader-toggle .bi::before,
 .navbar .quarto-color-scheme-toggle .bi::before {
   padding-top: 0.2rem;
   margin-bottom: -0.2rem;
@@ -1183,6 +1214,11 @@ $callouts: (
 #quarto-sidebar > *,
 #TOC > * {
   transition: opacity 0.1s ease, border 0.1s ease;
+}
+
+#quarto-sidebar.slow > *,
+#TOC.slow > * {
+  transition: opacity 0.4s ease, border 0.4s ease;
 }
 
 .quarto-color-scheme-toggle:not(.alternate).top-right .bi::before {

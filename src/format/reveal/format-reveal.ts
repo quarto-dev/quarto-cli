@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element, NodeType } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 import {
   kCodeLineNumbers,
   kFrom,
@@ -118,6 +118,7 @@ export const kPdfSeparateFragments = "pdfSeparateFragments";
 export const kAutoAnimateEasing = "autoAnimateEasing";
 export const kAutoAnimateDuration = "autoAnimateDuration";
 export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
+export const kAutoStretch = "auto-stretch";
 
 export function optionsToKebab(options: string[]) {
   return options.reduce(
@@ -193,6 +194,9 @@ export function revealjsFormat() {
       },
       render: {
         [kCodeLineNumbers]: true,
+      },
+      metadata: {
+        [kAutoStretch]: true,
       },
       resolveFormat: revealResolveFormat,
       formatPreviewFile: revealMuliplexPreviewFile,
@@ -535,6 +539,110 @@ function revealHtmlPostprocessor(format: Format) {
       referencesDiv.appendChild(refs);
     }
 
+    applyStretch(doc, format.metadata[kAutoStretch] as boolean);
+
     return Promise.resolve([]);
   };
+}
+
+function applyStretch(doc: Document, autoStretch: boolean) {
+  // Add stretch class to images in slides with only one image
+  const allSlides = doc.querySelectorAll("section");
+  for (const slide of allSlides) {
+    const slideEl = slide as Element;
+
+    // opt-out mechanism per slide
+    if (slideEl.classList.contains("nostretch")) continue;
+
+    const images = slideEl.querySelectorAll("img");
+    // only target slides with one image
+    if (images.length === 1) {
+      const image = images[0];
+      const imageEl = image as Element;
+
+      // find the first level node that contains the img
+      let selNode;
+      for (const node of slide.childNodes) {
+        if (node.contains(image)) {
+          selNode = node;
+          break;
+        }
+      }
+      const nodeEl = selNode as Element;
+
+      // Do not apply stretch in some cases
+      if (
+        // if the image is a column layout or layout panel
+        (nodeEl.nodeName === "DIV" &&
+            (nodeEl.classList.contains("columns")) ||
+          nodeEl.classList.contains("quarto-layout-panel")) ||
+        // if this is an inline image among text
+        (nodeEl.nodeName === "P" && nodeEl.childNodes.length > 1)
+      ) {
+        continue;
+      }
+
+      // add stretch class if not already when auto-stretch is set
+      const hasStretchClass = function (imageEl: Element): boolean {
+        return imageEl.classList.contains("stretch") ||
+          imageEl.classList.contains("r-stretch");
+      };
+      if (
+        autoStretch === true &&
+        !hasStretchClass(imageEl) &&
+        // if height is already set, we do nothing
+        !imageEl.getAttribute("style")?.match("height:") &&
+        !imageEl.hasAttribute("height")
+      ) {
+        imageEl.classList.add("r-stretch");
+      }
+      // If <img class="stetch"> is not a direct child of <section>, move it
+      if (
+        hasStretchClass(imageEl) &&
+        imageEl.parentNode?.nodeName !== "SECTION"
+      ) {
+        // Remove element then maybe remove its parents if empty
+        const removeEmpty = function (el: Element) {
+          const parentEl = el.parentElement;
+          parentEl?.removeChild(el);
+          if (parentEl?.innerText.trim() === "") removeEmpty(parentEl);
+        };
+
+        // Figure environment ? Get caption and alignment
+        const quartoFig = slideEl.querySelector("div.quarto-figure");
+        const caption = doc.createElement("p");
+        if (quartoFig) {
+          // Get alignment
+          const align = quartoFig.className.match(
+            "quarto-figure-(center|left|right)",
+          );
+          if (align) imageEl.classList.add(align[0]);
+          // Get Caption
+          const figCaption = nodeEl.querySelector("figcaption");
+          if (figCaption) {
+            caption.classList.add("caption");
+            caption.innerHTML = figCaption.innerHTML;
+          }
+        }
+
+        // Remove image from its parent
+        removeEmpty(imageEl);
+        // insert at first level after the element
+        slideEl.insertBefore(
+          image,
+          nodeEl.nextElementSibling,
+        );
+
+        // If there was a caption processed add it after
+        if (caption.classList.contains("caption")) {
+          slideEl.insertBefore(
+            caption,
+            imageEl.nextElementSibling,
+          );
+        }
+        // Remove container if still there
+        if (quartoFig) removeEmpty(quartoFig);
+      }
+    }
+  }
 }

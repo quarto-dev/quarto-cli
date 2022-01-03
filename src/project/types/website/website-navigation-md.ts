@@ -6,7 +6,7 @@
 */
 import { existsSync } from "fs/exists.ts";
 import { extname } from "path/mod.ts";
-import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
 import { NavbarItem, NavItem, Sidebar } from "../../project-config.ts";

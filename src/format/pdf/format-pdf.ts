@@ -11,20 +11,26 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kCapBottom,
+  kCapLoc,
+  kCapTop,
   kCitationLocation,
   kCiteMethod,
   kClassOption,
   kDocumentClass,
   kEcho,
+  kFigCapLoc,
   kFigDpi,
   kFigFormat,
   kFigHeight,
   kFigWidth,
+  kHeaderIncludes,
   kKeepTex,
   kNumberSections,
   kPaperSize,
   kReferenceLocation,
   kShiftHeadingLevelBy,
+  kTblCapLoc,
   kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";
@@ -95,13 +101,41 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         // Post processed for dealing with latex output
         extras.postprocessors = [pdfLatexPostProcessor(flags, format)];
 
+        // user may have overridden koma, check for that here
+        const documentclass = format.metadata[kDocumentClass] as
+          | string
+          | undefined;
+        if (
+          documentclass &&
+          !["srcbook", "scrreprt", "scrartcl", "scrlttr2"].includes(
+            documentclass,
+          )
+        ) {
+          koma = false;
+        }
+
         // default to KOMA article class. we do this here rather than
         // above so that projectExtras can override us
         if (koma) {
+          // determine caption options
+          const captionOptions = [];
+          const tblCaploc = tblCapLocation(format);
+          captionOptions.push(
+            tblCaploc === kCapTop ? "tableheading" : "tablesignature",
+          );
+          if (figCapLocation(format) === kCapTop) {
+            captionOptions.push("figureheading");
+          }
+
           extras.metadata = {
             [kDocumentClass]: "scrartcl",
-            [kClassOption]: ["DIV=11"],
+            [kClassOption]: [
+              "DIV=11",
+            ],
             [kPaperSize]: "letter",
+            [kHeaderIncludes]: [
+              "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
+            ],
           };
         }
 
@@ -178,6 +212,11 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
       }
     }
 
+    // Move longtable captions below if requested
+    if (tblCapLocation(format) === kCapBottom) {
+      lineProcessors.push(longtableBottomCaptionProcessor());
+    }
+
     // If enabled, switch to sidenote footnotes
     if (marginRefs(flags, format)) {
       // Replace notes with side notes
@@ -191,6 +230,14 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
       ]);
     }
   };
+}
+
+function tblCapLocation(format: Format) {
+  return format.metadata[kTblCapLoc] || format.metadata[kCapLoc] || kCapTop;
+}
+
+function figCapLocation(format: Format) {
+  return format.metadata[kFigCapLoc] || format.metadata[kCapLoc] || kCapBottom;
 }
 
 function marginRefs(flags: PandocFlags, format: Format) {
@@ -302,6 +349,32 @@ const natbibCiteLineProcessor = () => {
 const sideNoteLineProcessor = () => {
   return (line: string): string | undefined => {
     return line.replaceAll(/\\footnote{/g, "\\sidenote{\\footnotesize ");
+  };
+};
+
+const longtableBottomCaptionProcessor = () => {
+  let scanning = false;
+  let caption: string | undefined;
+
+  return (line: string): string | undefined => {
+    if (scanning) {
+      // look for a caption line
+      if (line.match(/^\\caption.*?\\tabularnewline$/)) {
+        caption = line;
+        return undefined;
+      } else if (line.match(/^\\end{longtable}$/)) {
+        scanning = false;
+        if (caption) {
+          line = caption + "\n" + line;
+          caption = undefined;
+          return line;
+        }
+      }
+    } else {
+      scanning = !!line.match(/^\\begin{longtable}/);
+    }
+
+    return line;
   };
 };
 

@@ -29,6 +29,7 @@ export interface LogMessageOptions {
   dim?: boolean;
   indent?: number;
   format?: (line: string) => string;
+  colorize?: boolean;
 }
 
 export function appendLogOptions(cmd: Command): Command {
@@ -71,18 +72,19 @@ export function logOptions(args: Args) {
 }
 
 export class StdErrOutputHandler extends BaseHandler {
-  format(logRecord: LogRecord): string {
-    let msg = super.format(logRecord);
-
-    if (logRecord.level >= log.LogLevels.WARNING) {
-      msg = `${logRecord.levelName}: ${msg}`;
-    }
-
+  format(logRecord: LogRecord, prefix = true): string {
     // Set default options
     const options = {
       newline: true,
+      colorize: true,
       ...(logRecord.args[0] as LogMessageOptions),
     };
+
+    let msg = super.format(logRecord);
+
+    if (prefix && (logRecord.level >= log.LogLevels.WARNING)) {
+      msg = `${logRecord.levelName}: ${msg}`;
+    }
 
     // Format the message based upon type
     switch (logRecord.level) {
@@ -91,13 +93,19 @@ export class StdErrOutputHandler extends BaseHandler {
         msg = applyMsgOptions(msg, options);
         break;
       case log.LogLevels.WARNING:
-        msg = colors.yellow(msg);
+        if (options.colorize) {
+          msg = colors.yellow(msg);
+        }
         break;
       case log.LogLevels.ERROR:
-        msg = colors.brightRed(msg);
+        if (options.colorize) {
+          msg = colors.brightRed(msg);
+        }
         break;
       case log.LogLevels.CRITICAL:
-        msg = colors.bold(colors.red(msg));
+        if (options.colorize) {
+          msg = colors.bold(colors.red(msg));
+        }
         break;
       default:
         break;
@@ -115,6 +123,27 @@ export class StdErrOutputHandler extends BaseHandler {
       new TextEncoder().encode(msg),
     );
   }
+}
+
+export class LogEventsHandler extends StdErrOutputHandler {
+  constructor(levelName: log.LevelName) {
+    super(levelName, {
+      formatter: "{msg}",
+    });
+  }
+  handle(logRecord: LogRecord) {
+    LogEventsHandler.handlers_.forEach((handler) =>
+      handler(logRecord, super.format(logRecord, false))
+    );
+  }
+
+  static onLog(handler: (logRecord: LogRecord, msg: string) => void) {
+    LogEventsHandler.handlers_.push(handler);
+  }
+
+  private static handlers_ = new Array<
+    (logRecord: LogRecord, msg: string) => void
+  >();
 }
 
 export class LogFileHandler extends FileHandler {
@@ -180,6 +209,10 @@ export async function initializeLogger(logOptions: LogOptions) {
   const defaultHandlers = [];
   const file = logOptions.log;
   const logLevel = logOptions.level ? parseLevel(logOptions.level) : "INFO";
+
+  // Provide a stream of log events
+  handlers["events"] = new LogEventsHandler(logLevel);
+  defaultHandlers.push("events");
 
   // Don't add the StdErroutputHandler if we're quiet
   if (!logOptions.quiet) {

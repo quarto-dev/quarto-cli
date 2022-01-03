@@ -27,8 +27,11 @@
   <% } %>
 <% }) %>
 
-<% if (darkToggle) { %>
+<% if (darkToggle) { %>  
   <% partial('navdarktoggle.ejs', { classes: 'sidebar-tool' }) %>
+<% } %>
+<% if (readerToggle) { %>
+  <% partial('navreadertoggle.ejs', { classes: 'sidebar-tool' }) %>
 <% } %>    
 <% if (search && search === "overlay") { %>
     <% partial('navsearch.ejs', { classes: 'sidebar-tool' }) %>

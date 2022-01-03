@@ -12,7 +12,7 @@ import { ld } from "lodash/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 import { error } from "log/mod.ts";
 
-import { Document, DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, DOMParser, Element } from "../../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { execProcess } from "../../../core/process.ts";

@@ -18,7 +18,7 @@ import {
 
 import { ld } from "lodash/mod.ts";
 
-import { Document, DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 
 import { info } from "log/mod.ts";
 
@@ -126,7 +126,6 @@ import {
   isHtmlFileOutput,
   isHtmlOutput,
 } from "../../config/format.ts";
-import { initDenoDom } from "../../core/html.ts";
 import { resolveLanguageMetadata } from "../../core/language.ts";
 
 import { validateDocument } from "../../core/schema/validate-document.ts";

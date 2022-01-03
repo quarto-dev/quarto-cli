@@ -34,6 +34,7 @@ export const kSiteTitle = "title";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoBranch = "repo-branch";
 export const kSiteRepoActions = "repo-actions";
+export const kSiteReaderMode = "reader-mode";
 
 export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";
@@ -114,7 +115,8 @@ type WebsiteConfigKey =
   | "margin-footer"
   | "body-header"
   | "body-footer"
-  | "search";
+  | "search"
+  | "reader-mode";
 
 export function websiteConfigBoolean(
   name: WebsiteConfigKey,

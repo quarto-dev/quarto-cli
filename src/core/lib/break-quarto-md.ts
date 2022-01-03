@@ -31,13 +31,15 @@ export interface QuartoMdCell {
   sourceOffset: number; // FIXME these might be unnecessary now. Check back
 
   // line number of the start of the cell in the file, 0-based.
-  // 
+  //
   // NB this number means slightly different things depending on the
   // cell type. for markdown and raw cells, it's literally the first
   // line in the file corresponding to the cell. for code cells,
   // though, it's the first line of the _content_: it skips the triple
   // ticks.
   sourceStartLine: number;
+
+  cellStartLine: number;
 }
 
 export interface QuartoMdChunks {
@@ -68,7 +70,7 @@ export async function breakQuartoMd(
   const lineBuffer: RangedSubstring[] = [];
   const flushLineBuffer = async (
     cell_type: "markdown" | "code" | "raw" | "math",
-    index: number
+    index: number,
   ) => {
     if (lineBuffer.length) {
       // FIXME: understand why was this here. This makes our line
@@ -96,12 +98,12 @@ export async function breakQuartoMd(
         sourceOffset: 0,
         sourceStartLine: 0,
         sourceVerbatim: source,
-        cellStartLine
+        cellStartLine,
       };
 
       // the next cell will start on the next index.
-      cellStartLine = index + 1; 
-      
+      cellStartLine = index + 1;
+
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
         const { yaml, source, sourceStartLine } =
@@ -154,7 +156,7 @@ export async function breakQuartoMd(
     inCode = false;
 
   const srcLines = rangedLines(src.value, true);
-  
+
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
     // yaml front matter

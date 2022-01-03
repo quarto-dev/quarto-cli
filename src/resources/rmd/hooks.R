@@ -158,7 +158,6 @@ knitr_hooks <- function(format, resourceDir) {
     # read some options
     label <- output_label(options)
     fig.cap <- options[["fig.cap"]]
-    tbl.cap <- options[["tbl-cap"]]
     cell.cap <- NULL
     fig.subcap = options[["fig.subcap"]]
     
@@ -167,7 +166,7 @@ knitr_hooks <- function(format, resourceDir) {
     if (!is.null(placeholder)) {
       figs <- length(regmatches(x, gregexpr(placeholder, x, fixed = TRUE))[[1]])
       for (i in 1:figs) {
-        suffix <- ifelse(!is.null(fig.subcap), paste0("-", i), "")
+        suffix <- ifelse(figs > 1, paste0("-", i), "")
         x <- sub(placeholder, paste0(label, suffix), fixed = TRUE, x)
       }
     }
@@ -179,10 +178,6 @@ knitr_hooks <- function(format, resourceDir) {
         cell.cap <- paste0("\n", fig.cap, "\n")
       } else {
         label = NULL
-      }
-    } else if (is_table_label(label)) {
-      if (!is.null(tbl.cap)) {
-        cell.cap <- paste0("\n", tbl.cap, "\n")
       }
     } else {
       label <- NULL
@@ -258,7 +253,7 @@ knitr_hooks <- function(format, resourceDir) {
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
                      "lst-label", "classes", "panel", "column", "fig.column", "tbl.column", "fig.cap-location", 
-                     "tbl-cap-location", "caption-location", "code-fold", "code-summary", "code-overflow",
+                     "tbl-cap-location", "cap-location", "code-fold", "code-summary", "code-overflow",
                      "code-line-numbers",
                      "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
@@ -273,14 +268,15 @@ knitr_hooks <- function(format, resourceDir) {
     # json encode if necessary
     unknown_values <- lapply(options[unknown_opts], 
                              function(value) {
-                               if (!is.character(value) || length(value) > 1)
-                                 jsonlite::toJSON(value, auto_unbox = TRUE)
-                               else
-                                 value
+                               if (!is.character(value) || length(value) > 1) {
+                                 value <- jsonlite::toJSON(value, auto_unbox = TRUE)
+                               } 
+                               # will be enclosed in single quotes so escape
+                               gsub("'", "\\\'", value, fixed = TRUE)
                             })
     # append to forward list
     forwardAttr <- c(forwardAttr, 
-                     sprintf("%s=\"%s\"", unknown_opts, unknown_values))
+                     sprintf("%s='%s'", unknown_opts, unknown_values))
     if (length(forwardAttr) > 0)
       forwardAttr <- paste0(" ", paste(forwardAttr, collapse = " "))
     else
@@ -296,8 +292,8 @@ knitr_hooks <- function(format, resourceDir) {
       classes <- c(classes, paste0("fig-column-", options[["fig.column"]]))
      if (is.character(options[["tbl-column"]]))
       classes <- c(classes, paste0("tbl-column-", options[["tbl-column"]]))
-     if (is.character(options[["caption-location"]])) 
-      classes <- c(classes, paste0("caption-", options[["caption-location"]]))      
+     if (is.character(options[["cap-location"]])) 
+      classes <- c(classes, paste0("caption-", options[["cap-location"]]))      
      if (is.character(options[["fig.cap-location"]])) 
       classes <- c(classes, paste0("fig-cap-location-", options[["fig.cap-location"]]))      
      if (is.character(options[["tbl-cap-location"]])) 
@@ -309,6 +305,14 @@ knitr_hooks <- function(format, resourceDir) {
     }
     classes <- sapply(classes, function(clz) ifelse(startsWith(clz, "."), clz, paste0(".", clz)))
 
+    # allow table lable through
+    if (is_table_label(options[["label"]])) {
+      label <- options[["label"]]
+    }
+    if (!is.null(label)) {
+      label <- paste0(label, " ")
+    }
+    
     # return cell
     paste0(
       options[["indent"]], "::: {", 
@@ -585,6 +589,12 @@ knitr_options_hook <- function(options) {
     # convert any option with fig- into fig. and out- to out.
     options <- normalize_options(options)
   }
+
+  # fig.subcap: TRUE means fig.subcap: "" (more natural way 
+  # to specify that empty subcaps are okay)
+  if (isTRUE(options[["fig.subcap"]])) {
+    options[["fig.subcap"]] <- ""
+  }
   
   # return options  
   options
@@ -802,7 +812,7 @@ figure_cap <- function(options) {
 
 output_label <- function(options) {
   label <- options[["label"]]
-  if (!is.null(label) && grepl("^#?(fig|tbl)-", label)) {
+  if (!is.null(label) && grepl("^#?(fig)-", label)) {
     label
   } else {
     NULL

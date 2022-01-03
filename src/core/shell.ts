@@ -5,11 +5,16 @@
 *
 */
 
-export function openUrl(url: string) {
+import { which } from "./path.ts";
+
+export async function openUrl(url: string) {
   const shellOpen = {
     windows: "explorer",
     darwin: "open",
     linux: "xdg-open",
   };
-  Deno.run({ cmd: [shellOpen[Deno.build.os], url] });
+  const cmd = shellOpen[Deno.build.os];
+  if (await which(cmd)) {
+    Deno.run({ cmd: [cmd, url] });
+  }
 }

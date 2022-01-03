@@ -202,7 +202,7 @@ export function sassLayerFile(theme: string): SassLayer {
   // Verify that the scss file has required boundaries
   if (!kLayerBoundaryTest.test(rawContents)) {
     throw new Error(
-      `The file ${theme} doesn't contain at least one layer boundaries (/*-- scss:defaults --*/, /*-- scss:rules --*/, /*-- scss:mixins --*/ or /*-- scss:functions --*/)`,
+      `The file ${theme} doesn't contain at least one layer boundary (/*-- scss:defaults --*/, /*-- scss:rules --*/, /*-- scss:mixins --*/ or /*-- scss:functions --*/)`,
     );
   }
 

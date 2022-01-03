@@ -41,7 +41,10 @@ end
 
 function prependSubrefNumber(captionContent, order)
   if not isLatexOutput() then
-    tprepend(captionContent, { pandoc.Str(")"), pandoc.Space() })
+    if #inlinesToString(captionContent) > 0 then
+      tprepend(captionContent, { pandoc.Space() })
+    end
+    tprepend(captionContent, { pandoc.Str(")") })
     tprepend(captionContent, subrefNumber(order))
     captionContent:insert(1, pandoc.Str("("))
   end

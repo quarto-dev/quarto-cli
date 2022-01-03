@@ -8,10 +8,9 @@
 import type { Command } from "cliffy/command/mod.ts";
 
 import { renderCommand } from "./render/cmd.ts";
-import { runCommand } from "./run/cmd.ts";
+import { serveCommand } from "./serve/cmd.ts";
 import { createProjectCommand } from "./create-project/cmd.ts";
 import { toolsCommand } from "./tools/cmd.ts";
-import { serveCommand } from "./serve/cmd.ts";
 import { previewCommand } from "./preview/cmd.ts";
 import { convertCommand } from "./convert/cmd.ts";
 import { capabilitiesCommand } from "./capabilities/cmd.ts";
@@ -22,9 +21,8 @@ import { buildJsCommand } from "./build-js/cmd.ts";
 export function commands(): Command[] {
   return [
     renderCommand,
-    runCommand,
-    createProjectCommand,
     serveCommand,
+    createProjectCommand,
     previewCommand,
     convertCommand,
     capabilitiesCommand,

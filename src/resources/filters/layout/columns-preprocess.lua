@@ -161,7 +161,7 @@ function applyColumnClasses(el, classes, scope)
 end
 
 function computeClassesForScopedCaption(el, scope)
-  local globalCaptionClasses = captionOption('caption-location')
+  local globalCaptionClasses = captionOption('cap-location')
   local elCaptionClasses = resolveCaptionClasses(el)
   local orderedCaptionClasses = {elCaptionClasses, globalCaptionClasses}
 

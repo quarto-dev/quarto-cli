@@ -16,7 +16,7 @@ const simpleFigRegexes = [
   /fig\.~\\ref{fig-elephant}/,
 ];
 const subFigRegexes = [
-  /\\begin{figure}[\s]*?\\subfloat\[Surus\][^]*?\\subfloat\[Abbas\][^]*?\\end{figure}/,
+  /\\begin{figure}[^]*?\\subcaption{\\label{fig-surus}Surus}[^]*?\\subcaption{\\label{fig-abbas}Abbas}[^]*?\\end{figure}/,
   /fig\.~\\ref{fig-elephants}/,
   /fig\.~\\ref{fig-abbas}/,
 ];
@@ -26,7 +26,7 @@ const simpleTableRegexes = [
   /tbl\.~\\ref{tbl-letters}/,
 ];
 const subTableRegexes = [
-  /\\begin{table}[\s]*?\\subfloat\[First Table[^]*?\\subfloat\[Second Table[^]*?\\end{table}/,
+  /\\begin{table}[^]*?\\subcaption{\\label{tbl-first}First Table }[^]*?\\subcaption{\\label{tbl-second}Second Table }[^]*?\\end{table}/,
   /tbl\.~\\ref{tbl-panel}/,
   /tbl\.~\\ref{tbl-second}/,
 ];

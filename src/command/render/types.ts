@@ -5,7 +5,7 @@
 *
 */
 
-import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document } from "../../core/deno-dom.ts";
 
 import { Format, PandocFlags } from "../../config/types.ts";
 import {

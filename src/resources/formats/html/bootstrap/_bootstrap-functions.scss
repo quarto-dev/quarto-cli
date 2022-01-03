@@ -8,21 +8,24 @@
 }
 
 // Provides a contrast color for a given color
-@function theme-contrast($baseColor) {
+// The color is the starting color that will used to form a contrasting color
+// The bgColor is the color that will be used to test contrast (e.g. the color
+// will be shifted until its contrast against the bgColor is acceptable)
+@function theme-contrast($color, $bgColor, $level: "AAA") {
   // These will be defined in bootstrap, but creating values here
   // That will make this function accessible to callers prior to bootstrap variables
   // being set
   $black: rgb(0, 0, 0) !default;
   $white: rgb(255, 255, 255) !default;
 
-  @if tone($baseColor) == "light" {
-    @return accessibleContrast($baseColor, $black);
+  @if tone($bgColor) == "light" {
+    @return accessibleContrast($color, $black, $bgColor);
   } @else {
-    @return accessibleContrast($baseColor, $white);
+    @return accessibleContrast($color, $white, $bgColor);
   }
 }
 
-@function accessibleContrast($color, $mixColor, $level: "AAA") {
+@function accessibleContrast($startColor, $mixColor, $bgColor, $level: "AAA") {
   // A: 3:1
   // AA: 4.5:1
   // AAA: 7:1
@@ -37,10 +40,11 @@
   $contrastRatio: 0;
   $contrastColor: null;
   @while ($contrastRatio < $goalContrastRatio and $percentMix > 0) {
-    $contrastColor: mix($color, $mixColor, percentage($percentMix/100));
-    $contrastRatio: contrast($color, $contrastColor);
+    $contrastColor: mix($startColor, $mixColor, percentage($percentMix/100));
+    $contrastRatio: contrast($contrastColor, $bgColor);
     $percentMix: $percentMix - 1;
   }
+
   @return $contrastColor;
 }
 
@@ -60,19 +64,39 @@
   $black: rgb(0, 0, 0) !default;
   $white: rgb(255, 255, 255) !default;
   $gray-500: #adb5bd !default;
+  $gray-300: #dee2e6 !default;
+  $blue: #0d6efd !default;
 
   $theme-overrides: (
-    litera: (
-      navbar-bg: $white,
-    ),
-    cyborg: (
-      navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
-    ),
     cerulean: (
       navbar-fg: $white,
     ),
+    cosmo: (),
+    cyborg: (
+      navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
+      navbar-hl: $white,
+    ),
     darkly: (
-      navbar-fg: $gray-500,
+      navbar-fg: $gray-300,
+      navbar-hl: $white,
+    ),
+    flatly: (
+      navbar-hl: $white,
+    ),
+    journal: (
+      navbar-fg: rgba($white, 0.7),
+      navbar-hl: $white,
+    ),
+    litera: (
+      navbar-bg: $white,
+    ),
+    lumen: (
+      navbar-fg: rgba($white, 0.7),
+      navbar-hl: $white,
+    ),
+    lux: (),
+    materia: (
+      navbar-fg: rgba($white, 0.7),
       navbar-hl: $white,
     ),
     minty: (
@@ -80,19 +104,52 @@
     ),
     morph: (
       navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
+      navbar-fg: rgba($black, 0.5),
+    ),
+    pulse: (
+      navbar-fg: rgba($white, 0.7),
+      navbar-hl: $white,
+    ),
+    quartz: (
+      navbar-fg: rgba($white, 0.8),
+      navbar-hl: $white,
     ),
     sandstone: (
       navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-fg: rgba($white, 0.7),
+      navbar-hl: $white,
     ),
+    simplex: (
+      navbar-bg: $white,
+      navbar-fg: rgba($black, 0.6),
+      navbar-hl: $black,
+    ),
+    sketchy: (
+      navbar-fg: $white,
+    ),
+    slate: (),
     solar: (
       navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-hl: $white,
     ),
     spacelab: (
       navbar-bg: if(variable-exists(light), $light, #bbb),
+      navbar-hl: if(variable-exists(link-color), $link-color, $blue),
     ),
     superhero: (
       navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-hl: $white,
     ),
+    united: (
+      navbar-fg: rgba($white, 0.8),
+      navbar-hl: $white,
+    ),
+    vapor: (
+      navbar-fg: rgba($white, 0.8),
+      navbar-hl: $white,
+    ),
+    yeti: (),
+    zephyr: (),
   );
 
   $val: null;

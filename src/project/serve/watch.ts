@@ -5,8 +5,6 @@
 *
 */
 
-import { ServerRequest } from "http/server_legacy.ts";
-
 import { extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -25,12 +23,11 @@ import { projectContext } from "../../project/project-context.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
-import { httpReloader } from "../../core/http-reload.ts";
-import { Format } from "../../config/types.ts";
-import { RenderFlags, RenderResult } from "../render/types.ts";
-import { renderProject } from "../render/project.ts";
+import { httpDevServer } from "../../core/http-devserver.ts";
+import { RenderFlags, RenderResult } from "../../command/render/types.ts";
+import { renderProject } from "../../command/render/project.ts";
 import { PromiseQueue } from "../../core/promise.ts";
-import { render } from "../render/render-shared.ts";
+import { render } from "../../command/render/render-shared.ts";
 import { isRStudio } from "../../core/platform.ts";
 import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
 
@@ -162,12 +159,16 @@ export function watchProject(
             });
 
             if (result.error) {
-              logError(result.error);
+              if (result.error.message) {
+                logError(result.error);
+              }
+              return undefined;
+            } else {
+              return {
+                config: false,
+                output: true,
+              };
             }
-            return {
-              config: false,
-              output: true,
-            };
           }
         }
 
@@ -204,8 +205,8 @@ export function watchProject(
     }
   };
 
-  // http reloader
-  const reloader = httpReloader(options.port);
+  // http devserver
+  const devServer = httpDevServer(options.port);
 
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
@@ -273,7 +274,7 @@ export function watchProject(
       }
 
       // reload clients
-      reloader.reloadClients(reloadTarget);
+      devServer.reloadClients(reloadTarget);
     } catch (e) {
       logError(e);
     }
@@ -324,12 +325,12 @@ export function watchProject(
 
   // return watcher interface
   return Promise.resolve({
-    handle: (req: ServerRequest) => {
-      return reloader.handle(req);
+    handle: (req: Request) => {
+      return devServer.handle(req);
     },
-    connect: reloader.connect,
-    injectClient: (file: Uint8Array, inputFile?: string, format?: Format) => {
-      return reloader.injectClient(file, inputFile, format);
+    connect: devServer.connect,
+    injectClient: (file: Uint8Array, inputFile?: string) => {
+      return devServer.injectClient(file, inputFile);
     },
     project: () => project,
     serveProject: () => serveProject,

@@ -12,7 +12,7 @@ import { createSessionTempDir } from "../../core/temp.ts";
 
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { projectFreezerDir } from "../render/freeze.ts";
+import { projectFreezerDir } from "../../command/render/freeze.ts";
 import { projectCrossrefDir } from "../../project/project-crossrefs.ts";
 import { engineIgnoreDirs } from "../../execute/engine.ts";
 

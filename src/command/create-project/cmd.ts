@@ -83,6 +83,10 @@ export const createProjectCommand = new Command()
     "Create a virtualenv for this project",
   )
   .option(
+    "--with-condaenv [packages:string]",
+    "Create a condaenv for this project",
+  )
+  .option(
     "--no-scaffold",
     "Don't create initial project file(s)",
   )
@@ -115,20 +119,30 @@ export const createProjectCommand = new Command()
     "quarto create-project mybook --type book --engine knitr",
   )
   .example(
-    "Create jupyter project with venv ",
+    "Create jupyter project with virtualenv",
     "quarto create-project myproject --engine jupyter --with-venv",
   )
   .example(
-    "Create jupyter project with venv + packages",
+    "Create jupyter project with virtualenv + packages",
     "quarto create-project myproject --engine jupyter --with-venv pandas,matplotlib",
+  )
+  .example(
+    "Create jupyter project with condaenv ",
+    "quarto create-project myproject --engine jupyter --with-condaenv",
+  )
+  .example(
+    "Create jupyter project with condaenv + packages",
+    "quarto create-project myproject --engine jupyter --with-condaenv pandas,matplotlib",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
     dir = dir || Deno.cwd();
     const engine = options.engine || [];
 
-    const venvPackages = typeof (options.withVenv) === "string"
+    const envPackages = typeof (options.withVenv) === "string"
       ? options.withVenv.split(",").map((pkg: string) => pkg.trim())
+      : typeof (options.withCondaenv) === "string"
+      ? options.withCondaenv.split(",").map((pkg: string) => pkg.trim())
       : undefined;
 
     await projectCreate({
@@ -140,6 +154,7 @@ export const createProjectCommand = new Command()
       kernel: engine[1],
       editor: options.editor,
       venv: !!options.withVenv,
-      venvPackages,
+      condaenv: !!options.withCondaenv,
+      envPackages,
     });
   });

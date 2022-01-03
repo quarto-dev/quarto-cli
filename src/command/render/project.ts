@@ -8,7 +8,9 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
+
+import * as colors from "fmt/colors.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -18,6 +20,8 @@ import {
   kProjectExecuteDir,
   kProjectLibDir,
   kProjectOutputDir,
+  kProjectPostRender,
+  kProjectPreRender,
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
@@ -37,7 +41,13 @@ import {
 } from "./freeze.ts";
 import { resourceFilesFromRenderedFile } from "./render-shared.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { copyMinimal, removeIfEmptyDir } from "../../core/path.ts";
+import {
+  copyMinimal,
+  removeIfEmptyDir,
+  removeIfExists,
+} from "../../core/path.ts";
+import { handlerForScript } from "../../core/run/run.ts";
+import { execProcess } from "../../core/process.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -86,6 +96,14 @@ export async function renderProject(
     options = { ...options, useFreezer: true };
   }
 
+  // some standard pre and post render script env vars
+  const renderAll = !files || (files.length === context.files.input.length);
+  const prePostEnv = {
+    "QUARTO_PROJECT_OUTPUT_DIR": context.config?.project?.[kProjectOutputDir] ||
+      ".",
+    ...(renderAll ? { QUARTO_PROJECT_RENDER_ALL: "1" } : {}),
+  };
+
   // default for files if not specified
   files = files || context.files.input;
 
@@ -98,6 +116,25 @@ export async function renderProject(
 
   // ensure we have the requisite entries in .gitignore
   await ensureGitignore(context.dir);
+
+  // determine whether pre and post render steps should show progress
+  const progress = !!options.progress || (files.length > 1);
+
+  // run pre-render step if we are rendering all files
+  if (files.length > 0 && context.config?.project?.[kProjectPreRender]) {
+    await runPreRender(
+      projDir,
+      context.config?.project?.[kProjectPreRender]!,
+      progress,
+      !!options.flags?.quiet,
+      {
+        ...prePostEnv,
+        QUARTO_PROJECT_INPUT_FILES: files
+          .map((file) => relative(projDir, file))
+          .join("\n"),
+      },
+    );
+  }
 
   // lookup the project type and call preRender
   if (projType.preRender) {
@@ -271,7 +308,7 @@ export async function renderProject(
                 const targetDir = join(outputDirAbsolute, copyDir);
                 copyMinimal(srcDir, targetDir);
                 if (!keepLibsDir) {
-                  Deno.removeSync(srcDir, { recursive: true });
+                  removeIfExists(srcDir);
                 }
               }
             }
@@ -334,23 +371,116 @@ export async function renderProject(
     // forward error to projResults
     projResults.error = fileResults.error;
 
-    // call post-render
-    if (!projResults.error && projType.postRender) {
-      await projType.postRender(
-        context,
-        incremental,
-        projResults.files.map((result) => {
-          const file = outputDir ? join(outputDir, result.file) : result.file;
-          return {
-            file: join(projDir, file),
-            format: result.format,
-          };
-        }),
-      );
+    // call project post-render
+    if (!projResults.error) {
+      const outputFiles = projResults.files.map((result) => {
+        const file = outputDir ? join(outputDir, result.file) : result.file;
+        return {
+          file: join(projDir, file),
+          format: result.format,
+        };
+      });
+
+      if (projType.postRender) {
+        await projType.postRender(
+          context,
+          incremental,
+          outputFiles,
+        );
+      }
+
+      // run post-render if this isn't incremental
+      if (files.length > 0 && context.config?.project?.[kProjectPostRender]) {
+        await runPostRender(
+          projDir,
+          context.config?.project?.[kProjectPostRender]!,
+          progress,
+          !!options.flags?.quiet,
+          {
+            ...prePostEnv,
+            QUARTO_PROJECT_OUTPUT_FILES: outputFiles
+              .map((outputFile) => relative(projDir, outputFile.file))
+              .join("\n"),
+          },
+        );
+      }
     }
 
     return projResults;
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
   }
+}
+
+async function runPreRender(
+  projDir: string,
+  preRender: string[],
+  progress: boolean,
+  quiet: boolean,
+  env?: { [key: string]: string },
+) {
+  await runScripts(projDir, preRender, progress, quiet, env);
+}
+
+async function runPostRender(
+  projDir: string,
+  postRender: string[],
+  progress: boolean,
+  quiet: boolean,
+  env?: { [key: string]: string },
+) {
+  await runScripts(projDir, postRender, progress, quiet, env);
+}
+
+async function runScripts(
+  projDir: string,
+  scripts: string[],
+  progress: boolean,
+  quiet: boolean,
+  env?: { [key: string]: string },
+) {
+  for (let i = 0; i < scripts.length; i++) {
+    const args = parse(scripts[i]);
+    const script = args[0];
+
+    if (progress && !quiet) {
+      info(colors.bold(colors.blue(`${script}`)));
+    }
+
+    const handler = handlerForScript(script);
+    if (handler) {
+      await handler.run(script, args.splice(1), {
+        cwd: projDir,
+        stdout: quiet ? "piped" : "inherit",
+        env,
+      });
+    } else {
+      await execProcess({
+        cmd: args,
+        cwd: projDir,
+        stdout: quiet ? "piped" : "inherit",
+        env,
+      });
+    }
+  }
+  if (scripts.length > 0) {
+    info("");
+  }
+}
+
+function parse(cmdLine: string) {
+  let space = "{{space}}";
+  while (cmdLine.indexOf(space) > -1) {
+    space += "&";
+  }
+  const noSpaces = cmdLine.replace(
+    /"([^"]*)"?/g,
+    (_, capture) => {
+      return capture.replace(/ /g, space);
+    },
+  );
+  const paramArray = noSpaces.split(/ +/);
+  return paramArray.map((mangled) => {
+    return mangled.replace(RegExp(space, "g"), " ");
+  });
 }
