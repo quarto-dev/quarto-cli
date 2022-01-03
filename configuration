@@ -17,7 +17,7 @@ export ESBUILD=0.12.10
 # Bootstrap dependencies from bslib
 # (use commit hash from bslib repo)
 export BOOTSTRAP=efc475c3d141cf584fcd73fc8e2368900856dc8d
-export BOOTSTRAP_FONT=1.5.0
+export BOOTSTRAP_FONT=1.7.0
 export BOOTSWATCH=5.1.2
 
 # javascript HTML dependencies
