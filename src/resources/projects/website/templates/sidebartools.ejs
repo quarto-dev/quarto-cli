@@ -1,8 +1,21 @@
-
+<% 
+// If there are more than 2 icons appearing in the tools menu,
+// wrap it to the next line
+let toolCount = tools.length;
+if (darkToggle) {
+  toolCount++;
+} 
+if (readerToggle) {
+  toolCount++;
+}
+if (search && search === "overlay") {
+  toolCount++;
+}
+const isWide = toolCount > 2; %>
 
 <% toolCount = 0 %>
 <% tools = tools || [] %>
-<div class="<%- className %>">
+<div class="<%- className %><%- isWide ? ' tools-wide' : ''%>">
 <% tools.forEach(tool => {  %>
 
   <% if (tool.menu) { %>

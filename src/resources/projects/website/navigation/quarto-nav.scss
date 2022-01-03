@@ -164,8 +164,15 @@ nav .nav-item.compact .nav-link {
 
 .sidebar-tools-main {
   margin-left: 0px;
+}
+
+.sidebar-tools-main:not(.tools-wide) {
   display: inline-block;
   vertical-align: middle;
+}
+
+.sidebar-tools-main.tools-wide {
+  padding-top: 0.3em;
 }
 
 .sidebar-section .bi {
