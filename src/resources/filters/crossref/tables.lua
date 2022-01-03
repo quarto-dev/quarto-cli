@@ -7,7 +7,7 @@
 function tables()
   return {
     Div = function(el)
-      if isTableDiv(el) then
+      if isTableDiv(el) and isReferenceableTbl(el) then
         
         -- are we a parent of subrefs? If so then process the caption
         -- at the bottom of the div
@@ -208,7 +208,7 @@ function processRawTable(divEl)
           
           indexAddEntry(label, parent, order, stringToInlines(caption))
         
-          rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. prefix .. "%2%3", 1)
+          rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. prefix .. " %2%3", 1)
           rawParentEl.content[rawIndex] = rawEl
           return divEl
         end
@@ -275,12 +275,6 @@ function prependTitlePrefix(caption, label, order)
   else
      tprepend(caption.content, tableTitlePrefix(order))
   end
-end
-
-function htmlTableCaptionPattern()
-  local tag = "[Cc][Aa][Pp][Tt][Ii][Oo][Nn]"
-  local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
-  return captionPattern
 end
 
 

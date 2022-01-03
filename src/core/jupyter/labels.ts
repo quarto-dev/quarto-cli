@@ -15,6 +15,7 @@ import {
 } from "./display-data.ts";
 
 import {
+  JupyterCellOptions,
   JupyterCellWithOptions,
   JupyterOutput,
   JupyterOutputDisplayData,
@@ -87,16 +88,32 @@ export function shouldLabelCellContainer(
     return true;
   }
 
+  // table label
+  if (hasTableLabel(cell.options)) {
+    return true;
+  }
+
   // don't label it (single display_data output)
   return false;
 }
 
+function hasTableLabel(options: JupyterCellOptions) {
+  return typeof (options[kCellLabel]) === "string" &&
+    options[kCellLabel]?.startsWith("tbl-");
+}
+
 export function shouldLabelOutputContainer(
   output: JupyterOutput,
+  cellOptions: JupyterCellOptions,
   options: JupyterToMarkdownOptions,
 ) {
   // label output container unless this is an image (which gets its ids directly assigned)
   if (isDisplayData(output)) {
+    // don't label tables (lua filter will do that)
+    if (hasTableLabel(cellOptions)) {
+      return false;
+    }
+
     if (!isCaptionableData(output)) {
       return false;
     }
@@ -114,10 +131,6 @@ export function shouldLabelOutputContainer(
   } else {
     return false;
   }
-}
-
-export function isFigureLabel(label: string) {
-  return label && label.startsWith("#fig:");
 }
 
 export function resolveCaptions(cell: JupyterCellWithOptions) {
@@ -141,12 +154,15 @@ export function resolveCaptions(cell: JupyterCellWithOptions) {
   } else if (cell.options[kCellFigCap]) {
     if (cell.options[kCellFigSubCap] !== undefined) {
       let subCap = cell.options[kCellFigSubCap];
+      if (subCap === true) {
+        subCap = [""];
+      }
       if (!Array.isArray(subCap)) {
         subCap = [String(subCap)];
       }
       return {
         cellCaption: cell.options[kCellFigCap],
-        outputCaptions: cell.options[kCellFigSubCap] || [],
+        outputCaptions: subCap,
       };
     } else {
       return {

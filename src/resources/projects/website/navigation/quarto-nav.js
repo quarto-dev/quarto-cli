@@ -70,7 +70,7 @@ window.document.addEventListener("DOMContentLoaded", function () {
         sidebar.style.maxHeight = "100vh";
       } else {
         sidebar.style.top = topOffset + "px";
-        sidebar.style.maxHeight = "calc(100vh - " + bodyOffset + "px)";
+        sidebar.style.maxHeight = "calc(100vh - " + topOffset + "px)";
       }
     });
 

@@ -16,14 +16,14 @@ import { kWebsite } from "./website-config.ts";
 // tracking id for google analytics
 // GA3 calls this 'tracking id'
 // GA4 calls this 'measurement id'
-const kGoogleAnalytics = "google-analytics";
+export const kGoogleAnalytics = "google-analytics";
 const kTrackingId = "tracking-id";
 const kStorage = "storage";
 const kAnonymizeIp = "anonymize-ip";
 const kVersion = "version";
 
 // Cookie consent properties
-const kCookieConsent = "cookie-consent";
+export const kCookieConsent = "cookie-consent";
 const kCookieConsentType = "type";
 const kCookieConsentStyle = "style";
 const kCookieConsentPalette = "palette";
