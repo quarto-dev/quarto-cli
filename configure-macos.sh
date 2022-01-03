@@ -24,7 +24,7 @@ pushd $QUARTO_BIN_DIR
 # Download Dependencies
 DENOURL=https://github.com/denoland/deno/releases/download/
 DL_ARCH="x86_64"
-if [ "$(uname -m)" = "arm64" ]; then
+if [ "$(arch)" = "arm64" ]; then
   # deno canary commits only release per x86 arches
 	# These are the currently supported target tuples:
     # Apple x86 (64-bit): x86_64-apple-darwin
