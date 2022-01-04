@@ -390,10 +390,8 @@ nav.sidebar.sidebar-navigation {
 }
 
 @include media-breakpoint-up(lg) {
-  .sidebar-navigation .sidebar-item a,
   .nav-page .nav-page-text,
-  .sidebar-navigation,
-  .sidebar-navigation .sidebar-menu-container a {
+  .sidebar-navigation .sidebar-section .sidebar-item {
     font-size: $sidebar-font-size;
   }
 
