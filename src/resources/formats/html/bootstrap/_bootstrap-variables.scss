@@ -99,13 +99,6 @@ $footer-left-font-size: $footer-font-size !default;
 $footer-center-font-size: $footer-font-size !default;
 $footer-right-font-size: $footer-font-size !default;
 
-// Body Secondary Background Color
-$body-bg-secondary: if(
-  variable-exists(body-bg),
-  theme-dim($body-bg, 50),
-  #ddd
-) !default;
-
 // Disable default grid system and switch to CSS grid
 $enable-grid-classes: false;
 $enable-cssgrid: true;
@@ -113,3 +106,18 @@ $grid-gutter-width: 0;
 $grid-columns: 24;
 
 $zindex-pagelayout: #{zindex-drop - 2};
+
+$popover-bg: if(variable-exists(body-bg), $body-bg, null) !default;
+$input-bg: if(variable-exists(body-bg), $body-bg, null) !default;
+
+// Note that 'default' is intentionally omitted from this
+// because we're using the default value if one is defined at this
+// point (the if variable exists check in the default).
+// This is a change to override the input border color for
+// darkly, which sets the border color to the body color for
+// whatever reason.
+$input-border-color: theme-override-value(
+  $theme-name,
+  "input-border-color",
+  if(variable-exists(input-border-color), $input-border-color, null)
+);

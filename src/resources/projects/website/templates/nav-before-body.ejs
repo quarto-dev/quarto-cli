@@ -8,7 +8,7 @@
   <header id="quarto-header" class="headroom fixed-top">
 
   <% if (nav.navbar) { %>  
-    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-light <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
+    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-dark <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
       <div class="navbar-container container-fluid">
       <% partial('navbrand.ejs', nav.navbar) %>
       <% if (nav.navbar.left || nav.navbar.right) { %>  

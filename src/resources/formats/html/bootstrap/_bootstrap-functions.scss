@@ -1,6 +1,6 @@
 // Dims a color (either making it more white or more black)
 @function theme-dim($baseColor, $amount) {
-  @if (color.blackness($baseColor) > 50%) {
+  @if (tone($baseColor) == "dark") {
     @return lighten($baseColor, $amount);
   } @else {
     @return darken($baseColor, $amount);
@@ -50,7 +50,7 @@
 
 // Fades a color towards the background color
 @function theme-fade($baseColor, $backgroundColor, $amount) {
-  @if (color.blackness($backgroundColor) > 50%) {
+  @if (tone($backgroundColor) == "light") {
     @return darken($baseColor, $amount);
   } @else {
     @return lighten($baseColor, $amount);
@@ -79,6 +79,7 @@
     darkly: (
       navbar-fg: $gray-300,
       navbar-hl: $white,
+      input-border-color: $gray-500,
     ),
     flatly: (
       navbar-hl: $white,

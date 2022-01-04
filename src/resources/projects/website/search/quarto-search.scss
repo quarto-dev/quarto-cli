@@ -120,7 +120,7 @@ $quarto-search-collapse-icon-size: 26px !default;
         padding: 0;
         text-align: left;
         svg {
-          color: $input-color;
+          color: $body-color;
           opacity: 0.5;
         }
       }
@@ -149,13 +149,13 @@ $quarto-search-collapse-icon-size: 26px !default;
         appearance: none;
         background: none;
         border: 0;
-        color: $input-color;
+        color: $body-color;
         font: inherit;
         height: calc(1.5em + (0.1rem + 2px));
         padding: 0;
         width: 100%;
         &::placeholder {
-          color: $input-color;
+          color: $body-color;
           opacity: 0.8;
         }
         // Focus is set and styled on the parent, it isn't necessary here
@@ -279,9 +279,10 @@ $quarto-search-collapse-icon-size: 26px !default;
   .aa-SourceHeader {
     .search-result-header {
       font-size: 0.875rem;
-      background-color: $light;
+      background-color: theme-dim($body-bg, 5%);
       padding-left: 14px;
       padding-bottom: 4px;
+      padding-top: 4px;
     }
 
     .search-result-header-no-results {
