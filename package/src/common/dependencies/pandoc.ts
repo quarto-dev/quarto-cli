@@ -61,6 +61,7 @@ export function pandoc(version: string): Dependency {
   // The pandocRelease
   return {
     name: "Pandoc",
+    bucket: "pandoc",
     version,
     "windows": pandocRelease(
       `pandoc-${version}-windows-x86_64.zip`,
