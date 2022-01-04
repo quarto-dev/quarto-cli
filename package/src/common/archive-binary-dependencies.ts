@@ -15,8 +15,8 @@ import {
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
 
-const kBucket = "s3://rstudio-buildtools/quarto";
-const kBucketBaseUrl = "https://s3.amazonaws.com/rstudio-buildtools/quarto";
+const kBucket = "s3://quart"; // "s3://rstudio-buildtools/quarto";
+const kBucketBaseUrl = "https://s3.amazonaws.com/quart"; // "https://s3.amazonaws.com/rstudio-buildtools/quarto";
 
 export function archiveUrl(
   dependency: Dependency,
@@ -51,7 +51,7 @@ export async function archiveBinaryDependencies(_config: Configuration) {
 
           // Sync to S3
           info(`Copying to ${dependencyAwsPath}\n`);
-          s3cmd("cp", [localPath, dependencyAwsPath]);
+          s3cmd("cp", [localPath, dependencyAwsPath, "--acl public-read"]);
         } else {
           info(`File ${dep.filename} skipped\n`);
         }
