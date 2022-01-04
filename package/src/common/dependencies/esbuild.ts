@@ -16,7 +16,7 @@ export function esBuild(version: string): Dependency {
     platformstr: string,
   ) => {
     return {
-      filename: `esbuild-${platformstr}`,
+      filename: `esbuild-${platformstr}.tgz`,
       url:
         `https://registry.npmjs.org/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
       configure: async (path: string) => {
