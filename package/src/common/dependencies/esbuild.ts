@@ -53,6 +53,7 @@ export function esBuild(version: string): Dependency {
 
   return {
     name: "esbuild javscript bundler",
+    bucket: "esbuild",
     version,
     "windows": esBuildRelease("windows-64"),
     "linux": esBuildRelease("linux-64"),

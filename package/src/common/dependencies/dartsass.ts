@@ -36,6 +36,7 @@ export function dartSass(version: string): Dependency {
 
   return {
     name: "Dart Sass Compiler",
+    bucket: "dart-sass",
     version,
     "windows": dartRelease(`dart-sass-${version}-windows-x64.zip`),
     "linux": dartRelease(`dart-sass-${version}-linux-x64.tar.gz`),
