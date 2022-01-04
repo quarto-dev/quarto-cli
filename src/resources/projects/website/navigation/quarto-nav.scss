@@ -654,8 +654,10 @@ body:not(.floating) .nav-footer {
   min-height: 3em;
   width: 100%;
   position: absolute;
-  display: flex;
-  justify-content: center;
+  text-align: center;
+  .footer-items {
+    justify-content: center;
+  }
 }
 
 .nav-footer-right {
