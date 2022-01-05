@@ -72,7 +72,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
       {
         file: join(
           configuration.directoryInfo.bin,
-          "date-sass",
+          "dart-sass",
           "src",
           "dart.exe",
         ),
