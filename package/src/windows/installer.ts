@@ -7,6 +7,7 @@ import { runCmd } from "../util/cmd.ts";
 import { download, getEnv, unzip } from "../util/utils.ts";
 import { signtool } from "./signtool.ts";
 import { execProcess } from "../../../src/core/process.ts";
+import { copySync } from "fs/copy.ts";
 
 export async function makeInstallerWindows(configuration: Configuration) {
   const packageName = `quarto-${configuration.version}-win.msi`;
@@ -61,24 +62,29 @@ export async function makeInstallerWindows(configuration: Configuration) {
     Deno.remove(destZip);
   }
 
+  // Copy the 'dist' files into a temporary working directory
+  const tempDir = Deno.makeTempDirSync();
+  const workingDistPath = join(tempDir, "dist");
+  const workingBinPath = join(workingDistPath, "bin");
+  copySync(configuration.directoryInfo.dist, workingDistPath);
+
   if (sign) {
     info("Signing application files");
 
     const filesToSign = [
-      //{ file: join(configuration.directoryInfo.bin, "deno.exe") }, Can't sign as deno.exe is running this script!
-      { file: join(configuration.directoryInfo.bin, "esbuild.exe") },
-      { file: join(configuration.directoryInfo.bin, "pandoc.exe") },
-      // { file: join(configuration.directoryInfo.bin, "dart-sass", "sass.bat") }, No signing of BAT files
+      { file: join(configuration.directoryInfo.bin, "deno.exe") },
+      { file: join(workingBinPath, "esbuild.exe") },
+      { file: join(workingBinPath, "pandoc.exe") },
       {
         file: join(
-          configuration.directoryInfo.bin,
+          workingBinPath,
           "dart-sass",
           "src",
           "dart.exe",
         ),
       },
-      { file: join(configuration.directoryInfo.bin, "deno_dom", "plugin.dll") },
-      { file: join(configuration.directoryInfo.bin, "quarto.js") },
+      { file: join(workingBinPath, "deno_dom", "plugin.dll") },
+      { file: join(workingBinPath, "quarto.js") },
     ];
     await signtool(
       filesToSign,
@@ -90,12 +96,12 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
   // Create a zip file
   info("Creating zip installer");
-  const zipInput = join(configuration.directoryInfo.dist, "*");
+  const zipInput = join(workingDistPath, "*");
   const zipOutput = join(
     configuration.directoryInfo.out,
     `quarto-${configuration.version}-win.zip`,
   );
-  zip(zipInput, zipOutput);
+  await zip(zipInput, zipOutput);
 
   // Set the installer version
   Deno.env.set("QUARTO_INSTALLER_VERSION", configuration.version);
@@ -107,7 +113,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
     heatCmd,
     [
       "dir",
-      configuration.directoryInfo.dist,
+      workingDistPath,
       "-var",
       "var.SourceDir",
       "-gg",
@@ -142,7 +148,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
     return await runCmd(
       candleCmd,
       [
-        `-dSourceDir=${configuration.directoryInfo.dist}`,
+        `-dSourceDir=${workingDistPath}`,
         "-arch",
         "x64",
         "-out",
@@ -193,6 +199,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
   // Clean up the working directory
   Deno.remove(workingDir, { recursive: true });
+  Deno.remove(workingDistPath, { recursive: true });
 }
 
 export function zip(input: string, output: string) {
@@ -200,6 +207,7 @@ export function zip(input: string, output: string) {
   const cmd = [
     "powershell",
     "Compress-Archive",
+    "-Force",
     input,
     "-DestinationPath",
     output,
