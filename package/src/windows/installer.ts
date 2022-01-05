@@ -65,10 +65,10 @@ export async function makeInstallerWindows(configuration: Configuration) {
     info("Signing application files");
 
     const filesToSign = [
-      //{ file: join(configuration.directoryInfo.bin, "deno.exe") },
+      //{ file: join(configuration.directoryInfo.bin, "deno.exe") }, Can't sign as deno.exe is running this script!
       { file: join(configuration.directoryInfo.bin, "esbuild.exe") },
       { file: join(configuration.directoryInfo.bin, "pandoc.exe") },
-      { file: join(configuration.directoryInfo.bin, "dart-sass", "sass.exe") },
+      // { file: join(configuration.directoryInfo.bin, "dart-sass", "sass.bat") }, No signing of BAT files
       {
         file: join(
           configuration.directoryInfo.bin,
