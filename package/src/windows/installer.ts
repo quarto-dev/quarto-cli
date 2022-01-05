@@ -65,7 +65,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
     info("Signing application files");
 
     const filesToSign = [
-      /*
       { file: join(configuration.directoryInfo.bin, "deno.exe") },
       { file: join(configuration.directoryInfo.bin, "esbuild.exe") },
       { file: join(configuration.directoryInfo.bin, "pandoc.exe") },
@@ -78,7 +77,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
           "dart.exe",
         ),
       },
-      { file: join(configuration.directoryInfo.bin, "deno_dim", "plugin.dll") }, */
+      { file: join(configuration.directoryInfo.bin, "deno_dim", "plugin.dll") },
       { file: join(configuration.directoryInfo.bin, "quarto.js") },
     ];
     await signtool(
