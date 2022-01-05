@@ -75,29 +75,38 @@ export async function makeInstallerMac(config: Configuration) {
       "entitlements.plist",
     );
 
-    // Sign deno
-    const deno = join(config.directoryInfo.bin, "deno");
-    await signCode(applicationDevId, deno, entitlements);
+    // Sign these executable / binary files
+    // and include our entitlements declaration
+    const signWithEntitlements = [
+      join(config.directoryInfo.bin, "deno"),
+      join(
+        config.directoryInfo.bin,
+        "deno_dom",
+        "libplugin.dylib",
+      ),
+      join(config.directoryInfo.bin, "esbuild"),
+      join(config.directoryInfo.bin, "dart-sass", "src", "dart"),
+      join(config.directoryInfo.bin, "pandoc"),
+    ];
 
-    // Sign deno dom
-    const denoDom = join(
-      config.directoryInfo.bin,
-      "deno_dom",
-      "libplugin.dylib",
-    );
-    await signCode(applicationDevId, denoDom, entitlements);
+    // Sign these non-binary files and don't include
+    // the entitlements declaration
+    const signWithoutEntitlements = [
+      join(config.directoryInfo.bin, "dart-sass", "sass"),
+      join(config.directoryInfo.bin, "quarto.js"),
+      join(config.directoryInfo.bin, "quarto"),
+    ];
 
-    // Sign esbuild
-    const esbuild = join(config.directoryInfo.bin, "esbuild");
-    await signCode(applicationDevId, esbuild, entitlements);
+    for (const fileToSign of signWithEntitlements) {
+      info(fileToSign);
+      await signCode(applicationDevId, fileToSign, entitlements);
+    }
+    for (const fileToSign of signWithoutEntitlements) {
+      info(fileToSign);
+      await signCode(applicationDevId, fileToSign);
+    }
 
-    // Sign the quarto js file
-    const quartojs = join(config.directoryInfo.bin, "quarto.js");
-    await signCode(applicationDevId, quartojs);
-
-    // Sign the quarto shell script
-    const quartosh = join(config.directoryInfo.bin, "quarto");
-    await signCode(applicationDevId, quartosh);
+    info("Done signing Done signing binaries");
   } else {
     warning("Missing Application Developer Id, not signing");
   }
