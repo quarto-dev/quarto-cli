@@ -6,6 +6,8 @@
   description: "Enable the slide overview mode"
 
 - name: menu
+  tags:
+    formats: [revealjs]
   schema:
     oneOf:
       - boolean
@@ -31,6 +33,8 @@
                   For slides with no title, attempt to use the start of the text content as the title instead.
 
 - name: chalkboard
+  tags:
+    formats: [revealjs]
   schema:
     oneOf:
       - boolean
@@ -71,6 +75,8 @@
                   so that the notes canvas is drawn after the transition is completed.
 
 - name: multiplex
+  tags:
+    formats: [revealjs]
   schema:
     oneOf:
       - boolean

@@ -213,6 +213,8 @@
   description: "Include the current fragment in the URL"
 
 - name: slide-tone
+  tags:
+    formats: [revealjs]
   schema: boolean
   default: false
   description: "Play a subtle sound when changing slides"
