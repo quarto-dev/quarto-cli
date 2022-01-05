@@ -50,7 +50,7 @@
 
 // Fades a color towards the background color
 @function theme-fade($baseColor, $backgroundColor, $amount) {
-  @if (tone($backgroundColor) == "light") {
+  @if (tone($backgroundColor) == "dark") {
     @return darken($baseColor, $amount);
   } @else {
     @return lighten($baseColor, $amount);

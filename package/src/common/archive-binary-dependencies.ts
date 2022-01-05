@@ -15,9 +15,10 @@ import {
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
 
-const kBucket = "s3://rstudio-buildtools/quarto";
-const kBucketBaseUrl = "https://s3.amazonaws.com/rstudio-buildtools/quarto";
+const kBucket = "s3://quart"; // "s3://rstudio-buildtools/quarto";
+const kBucketBaseUrl = "https://s3.amazonaws.com/quart"; // "https://s3.amazonaws.com/rstudio-buildtools/quarto";
 
+// Provides a URL in the archive for a dependency
 export function archiveUrl(
   dependency: Dependency,
   platformDependency: PlatformDependency,
@@ -25,6 +26,7 @@ export function archiveUrl(
   return `${kBucketBaseUrl}/${dependency.bucket}/${dependency.version}/${platformDependency.filename}`;
 }
 
+// Archives dependencies (if they are not present in the archive already)
 export async function archiveBinaryDependencies(_config: Configuration) {
   const workingDir = Deno.makeTempDirSync();
 
@@ -33,7 +35,7 @@ export async function archiveBinaryDependencies(_config: Configuration) {
   for (const dependency of kDependencies) {
     info(`** ${dependency.name} ${dependency.version} **`);
 
-    const dependencyBucketPath = pathForDependency(dependency);
+    const dependencyBucketPath = `${dependency.bucket}/${dependency.version}`;
     info("Checking archive status...\n");
     const deps = [dependency.darwin, dependency.linux, dependency.windows];
     for (const dep of deps) {
@@ -51,7 +53,12 @@ export async function archiveBinaryDependencies(_config: Configuration) {
 
           // Sync to S3
           info(`Copying to ${dependencyAwsPath}\n`);
-          s3cmd("cp", [localPath, dependencyAwsPath]);
+          await s3cmd("cp", [
+            localPath,
+            dependencyAwsPath,
+            "--acl",
+            "public-read",
+          ]);
         } else {
           info(`File ${dep.filename} skipped\n`);
         }
@@ -61,10 +68,6 @@ export async function archiveBinaryDependencies(_config: Configuration) {
   }
 
   Deno.removeSync(workingDir, { recursive: true });
-}
-
-function pathForDependency(dependency: Dependency) {
-  return `${dependency.bucket}/${dependency.version}`;
 }
 
 async function s3cmd(cmd: string, args: string[]) {
