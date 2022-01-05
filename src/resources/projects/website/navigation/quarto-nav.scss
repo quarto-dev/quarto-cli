@@ -211,7 +211,7 @@ nav .nav-item.compact .nav-link {
   padding-bottom: 1px;
 }
 
-.sidebar-navigation .sidebar-section-item:not(.depth1) {
+.sidebar-navigation .sidebar-section:not(.depth1) .sidebar-section-item {
   padding-bottom: 0px;
 }
 
