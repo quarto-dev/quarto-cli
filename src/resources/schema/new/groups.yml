@@ -19,7 +19,7 @@
 # from: https://github.com/jgm/pandoc/blob/426342f00d13eb6a899961715961975b113f9792/MANUAL.txt
 - document:
     - attributes:
-        title: "Attributes"
+        title: "Title & Author"
     - options:
         title: "Format Options"
     - toc:
@@ -63,13 +63,19 @@
     - links:
         title: "Links"
     - references:
-        title: "Citations and Footnotes"
+        title: "Citations"
+    - footnotes:
+        title: "Footnotes"
     - crossref:
-        title: "Cross References"
+        title: "Crossrefs"
+    - language:
+        title: "Language"
     - comments:
         title: "Comments"
     - includes:
         title: "Includes"
+    - metadata:
+        title: "Metadata"
     - render:
         title: "Rendering"
     - latexmk:

@@ -49,14 +49,14 @@
     formats: [pdf, beamer]
   schema:
     arrayOf: string
-  decription: "Array of command line options for `makeindex`."
+  description: "Array of command line options for `makeindex`."
 
 - name: latex-tlmgr-opts
   tags:
     formats: [pdf, beamer]
   schema:
     arrayOf: string
-  descrption: "Array of command line options for `tlmgr`."
+  description: "Array of command line options for `tlmgr`."
 
 - name: latex-output-dir
   tags:

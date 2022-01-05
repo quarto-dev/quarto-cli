@@ -89,14 +89,6 @@
       This is useful for preventing duplicate identifiers when generating fragments
       to be included in other pages.
 
-- name: title-prefix
-  tags:
-    formats: [$html-files]
-  schema: string
-  description: |
-    Specify STRING as a prefix at the beginning of the title that appears in 
-    the HTML header (but not in the title as it appears at the beginning of the body)
-
 - name: email-obfuscation
   tags:
     formats: [$html-files]

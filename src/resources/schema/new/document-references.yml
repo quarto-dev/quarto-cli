@@ -13,7 +13,7 @@
   tags:
     formats: [$html-files]
   default: true
-  decription: Enables a hover popup for citation that shows the reference information.
+  description: Enables a hover popup for citation that shows the reference information.
 
 - name: citation-location
   schema:
@@ -90,31 +90,3 @@
         }
       }
       ```
-
-- name: footnotes-hover
-  schema: boolean
-  tags:
-    formats: [$html-files]
-  default: true
-  decription: Enables a hover popup for footnotes that shows the footnote contents.
-
-- name: links-as-notes
-  schema: boolean
-  tags:
-    formats: [$pdf-all]
-  default: false
-  description: Causes links to be printed as footnotes.
-
-- name: reference-location
-  tags:
-    formats: [$markdown-all, muse, $html-files, pdf]
-  schema:
-    enum: [block, section, margin, document]
-  default: document
-  description:
-    short: |
-      Location for footnotes and references
-    long: |
-      Specify whether footnotes (and references, if `reference-links` is
-      set) are placed at the end of the current (top-level) block, the
-      current section, the margin, or the end of the document.
