@@ -21,7 +21,27 @@
       ],
       "env": {
         "QUARTO_BIN_PATH": "${workspaceFolder}/package/dist/bin",
-        "QUARTO_SHARE_PATH": "${workspaceFolder}/src/resources",
+        "QUARTO_SHARE_PATH": "${workspaceFolder}/src/resources"
+      },
+      "attachSimplePort": 9229
+    },
+    {
+      "name": "test",
+      "request": "launch",
+      "type": "node",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "test",
+        "--unstable",
+        "--importmap=${workspaceFolder}/src/import_map.json",
+        "--inspect-brk",
+        "--allow-all",
+        "${file}"
+      ],
+      "env": {
+        "QUARTO_BIN_PATH": "${workspaceFolder}/package/dist/bin",
+        "QUARTO_SHARE_PATH": "${workspaceFolder}/src/resources"
       },
       "attachSimplePort": 9229
     }
