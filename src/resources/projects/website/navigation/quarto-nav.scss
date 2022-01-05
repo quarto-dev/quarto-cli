@@ -462,15 +462,17 @@ nav.sidebar.sidebar-navigation {
 #quarto-sidebar {
   width: 100%;
   padding-right: 1em;
-}
-
-.quarto-sidebar-footer {
-  position: absolute;
-  bottom: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #quarto-sidebar .sidebar-menu-container {
   padding-top: 14px;
+  flex-grow: 2;
+}
+
+.quarto-sidebar-footer {
+  font-size: 0.875em;
 }
 
 .sidebar nav .dropdown-menu .dropdown-item .bi::before {
