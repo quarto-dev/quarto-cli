@@ -4,14 +4,17 @@ import {
   assertStringIncludes,
   assertThrows,
 } from "testing/asserts.ts";
-import { download } from "./utils.ts";
+import { download, downloadFile } from "./utils.ts";
 import { Buffer } from "io/buffer.ts";
+import { join } from "path/mod.ts";
 
 // 560 byte text file
 const validTextDl =
   "https://github.com/quarto-dev/quarto-cli/releases/download/v0.2.418/quarto-0.2.418-checksums.txt";
 
-Deno.test("downloadFile works", async () => {
+const validZipDl =
+  "https://github.com/tidyverse/dplyr/archive/refs/tags/v1.0.7.zip";
+Deno.test("download works", async () => {
   const tfilestr = await Deno.makeTempFile();
   const tfile = await Deno.open(tfilestr, {
     read: true,
@@ -30,7 +33,7 @@ Deno.test("downloadFile works", async () => {
   assertEquals(fileInfo.size, 560);
 });
 
-Deno.test("downloadFile can write to buffer", async () => {
+Deno.test("download can write to buffer", async () => {
   const buff = new Buffer();
   // just picked a random, small, accessible file in the repo
   await download(
@@ -65,7 +68,7 @@ Deno.test("download properly throws", async () => {
   assertThrows(tfile.close);
 });
 
-Deno.test("downloadFile closes writer unless explicitly set", async () => {
+Deno.test("download closes writer unless explicitly set", async () => {
   const tfilestr = await Deno.makeTempFile();
   const tfile = await Deno.open(tfilestr, {
     read: true,
@@ -88,7 +91,7 @@ Deno.test("downloadFile closes writer unless explicitly set", async () => {
   assertEquals(fileInfo.size, 560);
 });
 
-Deno.test("downloadFile closes writer unless explicitly set, even when dl fails", async () => {
+Deno.test("download closes writer unless explicitly set, even when dl fails", async () => {
   const tfile = await Deno.open(await Deno.makeTempFile(), {
     read: true,
     write: true,
@@ -151,5 +154,51 @@ Deno.test("validator func can check response", async () => {
     actualError = err;
   }
   assertEquals(actualError, errorToThrow);
-  // this should still be closed even though couldn't write to it
+});
+
+Deno.test("downloadFile works for zip file in nested dir", async () => {
+  const nestedFile = join(
+    await Deno.makeTempDir(),
+    "another",
+    "dir",
+    "file.zip",
+  );
+  await downloadFile(validZipDl, nestedFile);
+  const res = await Deno.lstat(nestedFile);
+  assertEquals(res.size, 846670);
+});
+
+Deno.test("downloadFile errors on bad dl's gracefully", async () => {
+  const nestedFile = join(
+    await Deno.makeTempDir(),
+    "another",
+    "dir",
+    "file.zip",
+  );
+  let actualError;
+  try {
+    await downloadFile(
+      "https://github.com/tidyverse/dplyr/archive/refs/tags/notreal.zip",
+      nestedFile,
+    );
+  } catch (err) {
+    actualError = err;
+  }
+  assertStringIncludes(actualError.message, "unable to download");
+});
+Deno.test("downloadFile errors on non-file dls gracefully", async () => {
+  const nestedFile = join(
+    await Deno.makeTempDir(),
+    "file.zip",
+  );
+  let actualError;
+  try {
+    await downloadFile(
+      "https://github.com",
+      nestedFile,
+    );
+  } catch (err) {
+    actualError = err;
+  }
+  assertStringIncludes(actualError.message, "content-type not valid");
 });

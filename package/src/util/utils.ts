@@ -1,3 +1,5 @@
+import { ensureDir } from "fs/mod.ts";
+import { dirname } from "path/mod.ts";
 import { CmdResult, runCmd } from "./cmd.ts";
 import {
   writableStreamFromWriter,
@@ -71,6 +73,35 @@ export async function download(
   await response.body?.pipeTo(
     ws,
   );
+}
+
+/**
+ * Download a file. Before downloading, recursively create any directories needed
+ * so the file can be created
+ * @param src source target
+ * @param dest path on file system to download
+ */
+export async function downloadFile(src: string | URL | Request, dest: string) {
+  const validContentTypes = [
+    // github release tarballs are also application/octet-stream
+    "application/octet-stream",
+    // https://www.rfc-editor.org/rfc/rfc6713
+    "application/gzip",
+    // https://superuser.com/questions/901962/what-is-the-correct-mime-type-for-a-tar-gz-file
+    // github zips are application/zip
+    "application/zip",
+  ];
+  await ensureDir(dirname(dest));
+  const destFile = await Deno.create(dest);
+  await download(src, destFile, (resp) => {
+    const ct = resp.headers.get("content-type");
+    if (!ct || !validContentTypes.includes(ct)) {
+      throw (new Error(
+        "content-type not valid, must be one of: " +
+          validContentTypes.join(", "),
+      ));
+    }
+  });
 }
 
 export async function unzip(
