@@ -205,7 +205,10 @@ export async function runPandoc(
   // if there is no toc title then provide the appropirate default
   if (!options.format.metadata[kTocTitle]) {
     options.format.metadata[kTocTitle] = options.format.language[
-      projectIsWebsite(options.project) ? kTocTitleWebsite : kTocTitleDocument
+      projectIsWebsite(options.project) &&
+        isHtmlOutput(options.format.pandoc, true)
+        ? kTocTitleWebsite
+        : kTocTitleDocument
     ];
   }
 

@@ -807,6 +807,19 @@ div.hanging-indent {
   word-break: break-word;
 }
 
+.table > :not(:first-child) {
+  border-top-width: 1px;
+  border-top-color: $table-border-color;
+}
+
+.table > thead {
+  border-bottom: 1px solid $table-group-separator-color;
+}
+
+.table > tbody {
+  border-top: 1px solid $table-border-color;
+}
+
 @if $code-block-border-left {
   // Align source code and callout text (not border) with main body text when there is room
   @include media-breakpoint-up(lg) {
