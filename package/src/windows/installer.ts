@@ -77,7 +77,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
           "dart.exe",
         ),
       },
-      { file: join(configuration.directoryInfo.bin, "deno_dim", "plugin.dll") },
+      { file: join(configuration.directoryInfo.bin, "deno_dom", "plugin.dll") },
       { file: join(configuration.directoryInfo.bin, "quarto.js") },
     ];
     await signtool(
