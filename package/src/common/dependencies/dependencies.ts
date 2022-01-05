@@ -12,6 +12,7 @@ import { pandoc } from "./pandoc.ts";
 
 export interface Dependency {
   name: string;
+  bucket: string;
   version: string;
   "darwin"?: PlatformDependency;
   "linux"?: PlatformDependency;

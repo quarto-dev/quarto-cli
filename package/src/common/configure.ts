@@ -17,9 +17,11 @@ import {
 
 import { Configuration } from "./config.ts";
 import {
+  Dependency,
   kDependencies,
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
+import { archiveUrl } from "./archive-binary-dependencies.ts";
 
 export async function configure(
   config: Configuration,
@@ -33,7 +35,11 @@ export async function configure(
     const platformDep = dependency[Deno.build.os];
     if (platformDep) {
       info(`Downloading ${dependency.name}`);
-      const targetFile = await downloadBinaryDependency(platformDep, config);
+      const targetFile = await downloadBinaryDependency(
+        dependency,
+        platformDep,
+        config,
+      );
 
       info(`Configuring ${dependency.name}`);
       await platformDep.configure(targetFile);
@@ -116,14 +122,19 @@ export async function configure(
 }
 
 async function downloadBinaryDependency(
-  dependency: PlatformDependency,
+  dependency: Dependency,
+  platformDependency: PlatformDependency,
   configuration: Configuration,
 ) {
-  const targetFile = join(configuration.directoryInfo.bin, dependency.filename);
+  const targetFile = join(
+    configuration.directoryInfo.bin,
+    platformDependency.filename,
+  );
+  const dlUrl = archiveUrl(dependency, platformDependency);
 
-  info("Downloading " + dependency.url);
+  info("Downloading " + dlUrl);
   info("to " + targetFile);
-  const response = await fetch(dependency.url);
+  const response = await fetch(dlUrl);
   const blob = await response.blob();
 
   const bytes = await blob.arrayBuffer();

@@ -208,7 +208,11 @@ nav .nav-item.compact .nav-link {
 
 .sidebar-navigation .sidebar-section-item {
   font-size: $sidebar-font-size-section;
-  padding-bottom: 0.1rem;
+  padding-bottom: 1px;
+}
+
+.sidebar-navigation .sidebar-section-item:not(.depth1) {
+  padding-bottom: 0px;
 }
 
 .sidebar-navigation .sidebar-section-item > a {

@@ -16,7 +16,7 @@ export function esBuild(version: string): Dependency {
     platformstr: string,
   ) => {
     return {
-      filename: `esbuild-${platformstr}`,
+      filename: `esbuild-${platformstr}.tgz`,
       url:
         `https://registry.npmjs.org/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
       configure: async (path: string) => {
@@ -53,6 +53,7 @@ export function esBuild(version: string): Dependency {
 
   return {
     name: "esbuild javscript bundler",
+    bucket: "esbuild",
     version,
     "windows": esBuildRelease("windows-64"),
     "linux": esBuildRelease("linux-64"),
