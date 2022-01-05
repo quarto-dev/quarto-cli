@@ -15,8 +15,8 @@ import {
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
 
-const kBucket = "s3://quart"; // "s3://rstudio-buildtools/quarto";
-const kBucketBaseUrl = "https://s3.amazonaws.com/quart"; // "https://s3.amazonaws.com/rstudio-buildtools/quarto";
+const kBucket = "s3://rstudio-buildtools/quarto";
+const kBucketBaseUrl = "https://s3.amazonaws.com/rstudio-buildtools/quarto";
 
 // Provides a URL in the archive for a dependency
 export function archiveUrl(
