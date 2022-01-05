@@ -610,6 +610,7 @@ body:not(.floating) .nav-footer {
 
 .nav-footer {
   min-height: 3.5em;
+  color: $footer-fg;
   a {
     @if variable-exists(footer-fg) {
       color: $footer-fg;
