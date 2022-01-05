@@ -211,7 +211,7 @@ nav .nav-item.compact .nav-link {
   padding-bottom: 1px;
 }
 
-.sidebar-navigation .sidebar-section-item:not(.depth1) {
+.sidebar-navigation .sidebar-section:not(.depth1) .sidebar-section-item {
   padding-bottom: 0px;
 }
 
@@ -462,15 +462,17 @@ nav.sidebar.sidebar-navigation {
 #quarto-sidebar {
   width: 100%;
   padding-right: 1em;
-}
-
-.quarto-sidebar-footer {
-  position: absolute;
-  bottom: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #quarto-sidebar .sidebar-menu-container {
   padding-top: 14px;
+  flex-grow: 2;
+}
+
+.quarto-sidebar-footer {
+  font-size: 0.875em;
 }
 
 .sidebar nav .dropdown-menu .dropdown-item .bi::before {
@@ -608,6 +610,7 @@ body:not(.floating) .nav-footer {
 
 .nav-footer {
   min-height: 3.5em;
+  color: $footer-fg;
   a {
     @if variable-exists(footer-fg) {
       color: $footer-fg;

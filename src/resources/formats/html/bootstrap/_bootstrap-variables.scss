@@ -52,6 +52,16 @@ $navbar-hl: theme-override-value(
     $navbar-fg
   )
 ) !default;
+$navbar-brand: theme-override-value(
+  $theme-name,
+  "navbar-brand",
+  $navbar-fg
+) !default;
+$navbar-brand-hl: theme-override-value(
+  $theme-name,
+  "navbar-brand-hl",
+  $navbar-hl
+) !default;
 
 $navbar-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>");
 $navbar-togger-border-color: rgba($navbar-fg, 0.4);
@@ -77,10 +87,10 @@ $navbar-light-disabled-color: $navbar-disabled-color;
 $navbar-light-toggler-icon-bg: $navbar-toggler-icon-bg;
 $navbar-light-toggler-border-color: $navbar-togger-border-color;
 
-$navbar-light-brand-color: $navbar-hl;
-$navbar-light-brand-hover-color: $navbar-hl;
-$navbar-dark-brand-color: $navbar-hl;
-$navbar-dark-brand-hover-color: $navbar-hl;
+$navbar-light-brand-color: $navbar-brand;
+$navbar-light-brand-hover-color: $navbar-brand-hl;
+$navbar-dark-brand-color: $navbar-brand;
+$navbar-dark-brand-hover-color: $navbar-brand-hl;
 
 // Sidebar coloring
 $sidebar-bg: if(variable-exists(light), $light, #fff) !default;
