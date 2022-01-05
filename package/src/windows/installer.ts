@@ -34,6 +34,20 @@ export async function makeInstallerWindows(configuration: Configuration) {
     );
   }
 
+  if (sign) {
+    info("Signing application files");
+
+    const filesToSign = [
+      { file: join(configuration.directoryInfo.bin, "quarto.js") },
+    ];
+    await signtool(
+      filesToSign,
+      encodedPfx,
+      pfxPw,
+      workingDir,
+    );
+  }
+
   // Create a zip file
   info("Creating zip installer");
   const zipInput = join(configuration.directoryInfo.dist, "*");
@@ -68,20 +82,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
     // Delete the downloaded zip file
     Deno.remove(destZip);
-  }
-
-  if (sign) {
-    info("Signing application files");
-
-    const filesToSign = [
-      { file: join(configuration.directoryInfo.bin, "quarto.js") },
-    ];
-    await signtool(
-      filesToSign,
-      encodedPfx,
-      pfxPw,
-      workingDir,
-    );
   }
 
   // Set the installer version
