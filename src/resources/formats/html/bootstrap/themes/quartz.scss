@@ -173,6 +173,12 @@ $card-cap-color:                    $white !default;
 $card-color:                        $white !default;
 $card-bg:                           transparent !default;
 
+// Accordion
+
+$accordion-button-bg:                     $secondary !default;
+$accordion-button-active-bg:              $primary !default;
+$accordion-button-active-color:           $white !default;
+
 // Tooltips
 
 $tooltip-opacity:                   .7 !default;
@@ -200,6 +206,7 @@ $progress-bg:                       rgba($black, .2) !default;
 
 // List group
 
+$list-group-color:                  $white !default;
 $list-group-bg:                     transparent !default;
 $list-group-border-color:           $border-color !default;
 $list-group-border-width:           0 !default;
@@ -434,6 +441,10 @@ body {
 }
 
 .badge {
+  &.bg-secondary {
+    --bs-bg-opacity: .4;
+  }
+
   &.bg-light {
     color: $gray-800;
   }
@@ -449,8 +460,12 @@ body {
   @include glass();
 
   @each $color, $value in $theme-colors {
-    &.bg-#{$color} {
-      background-image: none;
+    @if ($color == secondary) {
+      --bs-secondary-rgb: transparent;
+    } @else {
+      &.bg-#{$color} {
+        background-image: none;
+      }
     }
   }
 
@@ -481,6 +496,11 @@ body {
   &-header {
     font-weight: $headings-font-weight;
   }
+}
+
+.accordion-item {
+  @include glass();
+  box-shadow: none;
 }
 
 .toast {
