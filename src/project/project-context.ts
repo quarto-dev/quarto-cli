@@ -367,7 +367,8 @@ export async function directoryMetadataForInputFile(
   // walking deeper to the input)
   let currentDir = projectDir;
   const frontMatterSchema = await getFrontMatterSchema();
-  await Promise.all(dirs.map(async (dir) => {
+  for (let i = 0; i < dirs.length; i++) {
+    const dir = dirs[i];
     currentDir = join(currentDir, dir);
     const file = metadataFile(currentDir);
     if (file) {
@@ -408,7 +409,8 @@ export async function directoryMetadataForInputFile(
         ),
       );
     }
-  }));
+  }
+
   return config;
 }
 
