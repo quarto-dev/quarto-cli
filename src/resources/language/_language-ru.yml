@@ -6,7 +6,7 @@ section-title-footnotes: "Сноски"
 callout-tip-caption: "Совет"
 callout-note-caption: "Уведомление"
 callout-warning-caption: "Предупреждение"
-callout-important-caption: "Важное Уведомление"
+callout-important-caption: "Важное уведомление"
 callout-danger-caption: "Возможная проблема"
 
 code-summary: "Код"
