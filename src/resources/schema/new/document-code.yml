@@ -26,6 +26,8 @@
       (via the [downlit](https://downlit.r-lib.org/) package).
 
 - name: code-tools
+  tags:
+    formats: [$html-doc]
   schema:
     oneOf:
       - boolean

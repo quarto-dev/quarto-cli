@@ -1,6 +1,7 @@
 - name: wrap
   tags:
-    formats: ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
+    formats:
+      ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
   schema:
     enum: [auto, none, preserve]
   default: auto
@@ -16,7 +17,8 @@
 
 - name: columns
   tags:
-    formats: ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
+    formats:
+      ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
   schema: number
   description:
     short: Specify length of lines in characters.
@@ -26,6 +28,9 @@
       tables.
 
 - name: tab-stop
+  tags:
+    formats:
+      ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
   schema: number
   description:
     short: "Specify the number of spaces per tab (default is 4)."
@@ -36,6 +41,9 @@
       `preserve-tabs: false`.
 
 - name: preserve-tabs
+  tags:
+    formats:
+      ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
   schema: boolean
   default: false
   description:
@@ -48,6 +56,9 @@
       Tabs in regular text are always treated as spaces.
 
 - name: eol
+  tags:
+    formats:
+      ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
   schema:
     enum: [lf, crlf, native]
   description:
@@ -72,6 +83,8 @@
       extension is not set.
 
 - name: ascii
+  tags:
+    formats: [$html-all, $pdf-all, $markdown-all, ms]
   schema: boolean
   description:
     short: "Use only ASCII characters in output."
