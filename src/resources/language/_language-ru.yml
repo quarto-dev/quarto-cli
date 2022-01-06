@@ -31,7 +31,7 @@ search-more-match-text: "дополнительный результат в эт
 search-more-matches-text: "дополнительных результата(-ов) в этом документе"
 search-clear-button-title: "Очистить"
 search-detached-cancel-button-title: "Отменить"
-search-submit-button-title: "Сохранить"
+search-submit-button-title: "Найти"
 
 crossref-fig-title: "Рисунок"
 crossref-tbl-title: "Таблица"
