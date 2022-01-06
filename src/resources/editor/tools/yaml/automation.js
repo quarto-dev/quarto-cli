@@ -152,7 +152,9 @@ async function completionsFromGoodParseYAML(context) {
 
   const parser = await getTreeSitter();
   let word;
-  if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
+  if (line.slice(-1) === ":") {
+    word = "";
+  } else if (line.trimLeft()[0] === "-") {
     word = "";
   } else {
     // take the last word after spaces
