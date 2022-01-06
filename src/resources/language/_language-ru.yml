@@ -12,8 +12,8 @@ callout-danger-caption: "Возможная проблема"
 code-summary: "Код"
 
 code-tools-menu-caption: "Код"
-code-tools-show-all-code: "Просмотр кода страницы"
-code-tools-hide-all-code: "Скрыть код страницы"
+code-tools-show-all-code: "Развернуть код"
+code-tools-hide-all-code: "Скрыть код"
 code-tools-view-source: "Показать код"
 code-tools-source-code: "Исходный код"
 
@@ -31,7 +31,7 @@ search-more-match-text: "дополнительный результат в эт
 search-more-matches-text: "дополнительных результата(-ов) в этом документе"
 search-clear-button-title: "Очистить"
 search-detached-cancel-button-title: "Отменить"
-search-submit-button-title: "Подтвердить"
+search-submit-button-title: "Сохранить"
 
 crossref-fig-title: "Рисунок"
 crossref-tbl-title: "Таблица"
