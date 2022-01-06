@@ -26,6 +26,7 @@ import {
   kFigWidth,
   kHeaderIncludes,
   kKeepTex,
+  kLang,
   kNumberSections,
   kPaperSize,
   kReferenceLocation,
@@ -127,11 +128,30 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
             captionOptions.push("figureheading");
           }
 
+          // establish default class options
+          const defaultClassOptions = ["DIV=11"];
+          if (format.metadata[kLang] !== "de") {
+            defaultClassOptions.push("numbers=noendperiod");
+          }
+
+          // determine class options (filter by options already set by the user)
+          const userClassOptions = format.metadata[kClassOption] as
+            | string[]
+            | undefined;
+          const classOptions = defaultClassOptions.filter((option) => {
+            if (Array.isArray(userClassOptions)) {
+              const name = option.split("=")[0];
+              return !userClassOptions.some((userOption) =>
+                String(userOption).startsWith(name + "=")
+              );
+            } else {
+              return true;
+            }
+          });
+
           extras.metadata = {
             [kDocumentClass]: "scrartcl",
-            [kClassOption]: [
-              "DIV=11",
-            ],
+            [kClassOption]: classOptions,
             [kPaperSize]: "letter",
             [kHeaderIncludes]: [
               "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
