@@ -394,6 +394,10 @@ nav.sidebar.sidebar-navigation {
 }
 
 @include media-breakpoint-up(lg) {
+  #quarto-sidebar {
+    display: flex;
+    flex-direction: column;
+  }
   .nav-page .nav-page-text,
   .sidebar-navigation .sidebar-section .sidebar-item {
     font-size: $sidebar-font-size;
@@ -462,8 +466,6 @@ nav.sidebar.sidebar-navigation {
 #quarto-sidebar {
   width: 100%;
   padding-right: 1em;
-  display: flex;
-  flex-direction: column;
 }
 
 #quarto-sidebar .sidebar-menu-container {
