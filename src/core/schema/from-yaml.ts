@@ -9,8 +9,10 @@
 
 import { readAnnotatedYamlFromString } from "./annotated-yaml.ts";
 
-import { error } from "log/mod.ts";
+import { globToRegExp } from "path/glob.ts";
 
+import { error } from "log/mod.ts"
+import { basename } from "path/mod.ts";
 import { readYaml } from "../yaml.ts";
 
 import { expandGlobSync } from "fs/expand_glob.ts";
@@ -49,6 +51,10 @@ import {
   regexSchema,
   tagSchema
 } from "./common.ts";
+
+import { schemaPath } from "./utils.ts";
+
+import { memoize } from "../memoize.ts";
 
 function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
 {
@@ -438,6 +444,48 @@ export function schemaFieldsFromGlob(
   return result;
 }
 
+
+export const schemaRefContexts = memoize(() => {
+  const groups = readYaml(schemaPath("new/groups.yml")) as Record<string, Record<string, Record<string, string>>>;
+  const result = [];
+  
+  for (const [topLevel, sub] of Object.entries(groups)) {
+    for (const key of Object.keys(sub)) {
+      result.push(`${topLevel}-${key}`);
+    }
+  }
+  return result;
+}, () => "const") as (() => Schema);
+
+export function objectRefSchemaFromContextGlob(
+  contextGlob: string,
+  testFun?: (field: SchemaField, path: string) => boolean
+): Schema
+{
+  let regexp = globToRegExp(contextGlob);
+  let contexts = schemaRefContexts();
+
+  // Why is typescript thinking that testFun can be undefined
+  // after the expression below?
+  //
+  // testFun = testFun ?? ((_field, _path) => true);
+  return objectRefSchemaFromGlob(
+    schemaPath("new/{document,cell}-*.yml"),
+    (field: SchemaField, path: string) => {
+      if (testFun !== undefined && !testFun(field, path)) {
+        return false;
+      }
+      
+      let pathContext = basename(path, ".yml");
+      let schemaContexts = ((field?.tags?.contexts || []) as string[]);
+      
+      if (pathContext.match(regexp)) {
+        return true;
+      }
+      return schemaContexts.some(c => c.match(regexp));
+    });
+}
+
 export function objectRefSchemaFromGlob(
   glob: string,
   testFun?: (field: SchemaField, path: string) => boolean): Schema
@@ -453,7 +501,7 @@ export function objectRefSchemaFromGlob(
 
 export async function buildSchemaResources()
 {
-  const path = resourcePath("schema/new/{cell-*,document-*,project}.yml");
+  const path = schemaPath("new/{cell-*,document-*,project}.yml");
   const result = {};
   // precompile all of the field schemas
   for (const file of expandGlobSync(path)) {

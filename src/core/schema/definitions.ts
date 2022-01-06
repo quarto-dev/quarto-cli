@@ -53,13 +53,13 @@ export async function loadSchemaDefinitions(file: string)
 
   await ensureAjv();
   await Promise.all(yaml.map(async (yamlSchema) => {
-    const schema = normalizeSchema(convertFromYaml(yamlSchema));
+    const schema = convertFromYaml(yamlSchema);
     if (schema.$id === undefined) {
       console.log(JSON.stringify(yamlSchema, null, 2));
       error(JSON.stringify(schema, null, 2));
       throw new Error(`Internal error: unnamed schema in definitions`);
     }
-    await withValidator(schema, (_validator) => {
+    await withValidator(normalizeSchema(schema), (_validator) => {
       setSchemaDefinition(schema);
     });
   }));

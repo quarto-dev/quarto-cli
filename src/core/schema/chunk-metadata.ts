@@ -10,7 +10,7 @@
 import { LocalizedError, AnnotatedParse } from "../lib/yaml-schema.ts";
 import { normalizeSchema, Schema } from "../lib/schema.ts";
 import { addValidatorErrorHandler } from "../lib/validator-queue.ts";
-import { objectRefSchemaFromGlob } from "./from-yaml.ts";
+import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import { schemaPath } from "./utils.ts";
 import { tidyverseFormatError, quotedStringColor, TidyverseError, addFileInfo, addInstancePathInfo } from "../lib/errors.ts";
@@ -68,21 +68,21 @@ export async function getEngineOptionsSchema(normalized?: boolean): Promise<Reco
     return unNormalizedCache;
   }
 
-  const markdown = idSchema(objectRefSchemaFromGlob(
-    schemaPath("new/cell-*.yml"),
-    (field, _path) => {
-      const engine = field?.tags?.engine
+  const markdown = idSchema(objectRefSchemaFromContextGlob(
+    "cell-*",
+    (field: SchemaField, _path: string) => {
+      const engine = field?.tags?.engine;
       return engine === undefined || engine === "markdown";
     }), "engine-markdown");
-  const knitr = idSchema(objectRefSchemaFromGlob(
-    schemaPath("new/cell-*.yml"),
-    (field, _path) => {
+  const knitr = idSchema(objectRefSchemaFromContextGlob(
+    "cell-*",
+    (field: SchemaField, _path: string) => {
       const engine = field?.tags?.engine;
       return engine === undefined || engine === "knitr"
     }), "engine-knitr");
-  const jupyter = idSchema(objectRefSchemaFromGlob(
-    schemaPath("new/cell-*.yml"),
-    (field, _path) => {
+  const jupyter = idSchema(objectRefSchemaFromContextGlob(
+    "cell-*",
+    (field: SchemaField, _path: string) => {
       const engine = field?.tags?.engine;
       return engine === undefined || engine === "jupyter"
     }), "engine-jupyter");

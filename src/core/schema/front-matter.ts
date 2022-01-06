@@ -24,9 +24,9 @@ import { getFormatExecuteOptionsSchema } from "./execute.ts";
 
 import { schemaPath } from "./utils.ts";
 
-import { objectRefSchemaFromGlob, SchemaField } from "./from-yaml.ts";
+import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 
-import { normalizeSchema, Schema } from "../lib/schema.ts";
+import { Schema } from "../lib/schema.ts";
 
 import { getFormatSchema } from "./format-schemas.ts";
 import { pandocOutputFormats } from "./pandoc-output-formats.ts";
@@ -103,8 +103,8 @@ export const getFrontMatterSchema = defineCached(
           },
           description: "be a Quarto YAML front matter object",
         }),
-        objectRefSchemaFromGlob(
-          schemaPath("new/document-*.yml"),
+        objectRefSchemaFromContextGlob(
+          "document-*",
           (field: SchemaField) => field.name !== "format",
         ),
         executeObjSchema,

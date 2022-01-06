@@ -17,7 +17,7 @@ import {
   SchemaField,
   schemaFromField,
   convertFromYaml,
-  objectRefSchemaFromGlob,
+  objectRefSchemaFromContextGlob,
 } from "./from-yaml.ts";
 
 import {
@@ -62,8 +62,8 @@ function useSchema(schema: Schema, format: string) {
 
 export function getFormatSchema(format: string): Schema
 {
-  const schema = objectRefSchemaFromGlob(
-    resourcePath("schema/new/document-*.yml"),
+  const schema = objectRefSchemaFromContextGlob(
+    "document-*",
     (field: SchemaField) => {
       let schema = schemaFromField(field);
       return useSchema(schema, format);

@@ -21,7 +21,7 @@ import {
 
 import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
 
-import { normalizeSchema, Schema } from "../lib/schema.ts";
+import { Schema } from "../lib/schema.ts";
 
 import {
   getFormatExecuteOptionsSchema,
