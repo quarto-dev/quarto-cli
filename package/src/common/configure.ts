@@ -26,27 +26,48 @@ import { archiveUrl } from "./archive-binary-dependencies.ts";
 export async function configure(
   config: Configuration,
 ) {
-  info("Configuring local machine for development");
+  info("");
+  info("******************************************");
+  info("Configuring local machine for development:");
+  info(` - OS  : ${Deno.build.os}`);
+  info(` - Arch: ${Deno.build.arch}`);
+  info(` - Cwd : ${Deno.cwd()}`);
+  info("");
+  info("******************************************");
+  info("");
 
   // Download dependencies
-  info("Downloading dependencies");
   for (const dependency of kDependencies) {
     info(`Preparing ${dependency.name}`);
-    const platformDep = dependency[Deno.build.os];
-    if (platformDep) {
+    const archDep = dependency.architectureDependencies[Deno.build.arch];
+    if (archDep) {
+      const platformDep = archDep[Deno.build.os];
       info(`Downloading ${dependency.name}`);
-      const targetFile = await downloadBinaryDependency(
-        dependency,
-        platformDep,
-        config,
-      );
+
+      let targetFile;
+      try {
+        targetFile = await downloadBinaryDependency(
+          dependency,
+          platformDep,
+          config,
+        );
+      } catch (error) {
+        const msg =
+          `Failed to Download ${dependency.name}\nAre you sure that version ${dependency.version} of ${dependency.bucket} has been archived using './quarto-bld archive-bin-deps'?\n${error.message}`;
+        throw new Error(msg);
+      }
 
       info(`Configuring ${dependency.name}`);
       await platformDep.configure(targetFile);
 
       info(`Cleaning up`);
       Deno.removeSync(targetFile);
+    } else {
+      throw new Error(
+        `The architecture ${Deno.build.arch} is missing the dependency ${dependency.name}`,
+      );
     }
+
     info(`${dependency.name} complete.\n`);
   }
 
@@ -74,6 +95,7 @@ export async function configure(
     config.directoryInfo.bin,
   );
   writeDevConfig(devConfig, config.directoryInfo.bin);
+  info("");
 
   // Set up a symlink (if appropriate)
   const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
@@ -135,16 +157,20 @@ async function downloadBinaryDependency(
   info("Downloading " + dlUrl);
   info("to " + targetFile);
   const response = await fetch(dlUrl);
-  const blob = await response.blob();
+  if (response.status === 200) {
+    const blob = await response.blob();
 
-  const bytes = await blob.arrayBuffer();
-  const data = new Uint8Array(bytes);
+    const bytes = await blob.arrayBuffer();
+    const data = new Uint8Array(bytes);
 
-  Deno.writeFileSync(
-    targetFile,
-    data,
-  );
-  return targetFile;
+    Deno.writeFileSync(
+      targetFile,
+      data,
+    );
+    return targetFile;
+  } else {
+    throw new Error(response.statusText);
+  }
 }
 
 // note that this didn't actually work on windows (it froze and then deno was
