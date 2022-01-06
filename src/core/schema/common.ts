@@ -16,6 +16,8 @@ import {
   Completion,
   Schema,
   schemaExhaustiveCompletions,
+  getSchemaDefinition,
+  hasSchemaDefinition
 } from "../lib/schema.ts";
 
 import {
@@ -180,7 +182,10 @@ export function objectSchema(params: {
       completionsParam || properties,
     )
   ) {
-    const valueS = properties[k];
+    let valueS = properties[k];
+    if (hasSchemaDefinition(valueS?.$ref)) {
+      valueS = getSchemaDefinition(valueS?.$ref);
+    }
 
     const description = valueS?.documentation?.short ??
       valueS?.documentation ??

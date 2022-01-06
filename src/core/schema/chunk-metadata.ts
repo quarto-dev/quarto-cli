@@ -14,9 +14,7 @@ import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import { schemaPath } from "./utils.ts";
 import { tidyverseFormatError, quotedStringColor, TidyverseError, addFileInfo, addInstancePathInfo } from "../lib/errors.ts";
-
-let normalizedCache: Record<string, Schema> | undefined = undefined;
-let unNormalizedCache: Record<string, Schema> | undefined = undefined;
+import { defineCached } from "./definitions.ts";
 
 function checkForEqualsInChunk(
   error: LocalizedError, parse: AnnotatedParse, _schema: Schema
@@ -59,49 +57,28 @@ function checkForEqualsInChunk(
   };
 }
 
-export async function getEngineOptionsSchema(normalized?: boolean): Promise<Record<string, Schema>>
+const makeEngineSchema = (engine: string): Schema =>
+  idSchema(objectRefSchemaFromContextGlob(
+    "cell-*",
+    (field: SchemaField, _path: string) => {
+      const engineTag = field?.tags?.engine;
+      return engineTag === undefined || engineTag === engine;
+    }), `engine-${engine}`);
+
+const markdownEngineSchema = defineCached(() => makeEngineSchema("markdown"), "engine-markdown");
+const knitrEngineSchema = defineCached(() => makeEngineSchema("markdown"), "engine-knitr");
+const jupyterEngineSchema = defineCached(() => makeEngineSchema("markdown"), "engine-jupyter");
+
+export async function getEngineOptionsSchema(): Promise<Record<string, Schema>>
 {
-  if (normalized && normalizedCache !== undefined) {
-    return normalizedCache;
-  }
-  if (!normalized && unNormalizedCache !== undefined) {
-    return unNormalizedCache;
-  }
-
-  const markdown = idSchema(objectRefSchemaFromContextGlob(
-    "cell-*",
-    (field: SchemaField, _path: string) => {
-      const engine = field?.tags?.engine;
-      return engine === undefined || engine === "markdown";
-    }), "engine-markdown");
-  const knitr = idSchema(objectRefSchemaFromContextGlob(
-    "cell-*",
-    (field: SchemaField, _path: string) => {
-      const engine = field?.tags?.engine;
-      return engine === undefined || engine === "knitr"
-    }), "engine-knitr");
-  const jupyter = idSchema(objectRefSchemaFromContextGlob(
-    "cell-*",
-    (field: SchemaField, _path: string) => {
-      const engine = field?.tags?.engine;
-      return engine === undefined || engine === "jupyter"
-    }), "engine-jupyter");
-
-  normalizedCache = {
-    "markdown": normalizeSchema(markdown),
-    "knitr": normalizeSchema(knitr),
-    "jupyter": normalizeSchema(jupyter),
+  let obj = {
+    markdown: await markdownEngineSchema(),
+    knitr: await knitrEngineSchema(),
+    jupyter: await jupyterEngineSchema(),
   };
-  unNormalizedCache = {
-    markdown,
-    knitr,
-    jupyter
-  };
+  
+  // FIXME how does this get to the IDE??
+  await addValidatorErrorHandler(obj.knitr, checkForEqualsInChunk);
 
-  await addValidatorErrorHandler(normalizedCache.knitr, checkForEqualsInChunk);
-  if (normalized) {
-    return normalizedCache;
-  } else {
-    return unNormalizedCache;
-  };
+  return obj;
 }

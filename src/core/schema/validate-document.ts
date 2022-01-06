@@ -75,10 +75,7 @@ export async function validateDocumentFromSource(
   } else {
     firstContentCellIndex = 0;
   }
-  
-  const engineOptionsSchema = await getEngineOptionsSchema(true);
-  const schema = engineOptionsSchema[engine];
-  
+    
   for (const cell of nb.cells.slice(firstContentCellIndex)) {
     if (
       cell.cell_type === "markdown" ||

@@ -21,11 +21,14 @@ import { convertFromYaml } from "./from-yaml.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 
 export async function buildSchemaFile(resourceDir: string) {
+  const frontMatter = await getFrontMatterSchema();
+  const config = await getProjectConfigSchema();
+  const engines = await getEngineOptionsSchema();
   const obj = {
     schemas: {
-      "front-matter": await getFrontMatterSchema(),
-      "config": await getProjectConfigSchema(),
-      "engines": await getEngineOptionsSchema(),
+      "front-matter": frontMatter,
+      config,
+      engines,
     },
     definitions: getSchemaDefinitionsObject(),
     aliases: getFormatAliases()
