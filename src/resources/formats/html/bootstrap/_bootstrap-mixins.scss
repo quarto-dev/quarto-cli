@@ -9,7 +9,8 @@
 // Grid Layouts
 
 $grid-screen-inset-padding: 1.5em;
-$grid-body-minsize: 0px;
+$grid-body-minsize: 500px;
+$grid-body-minsize-slim: 450px;
 $grid-body-maxsize-mid: calc(750px - #{2 * $grid-screen-inset-padding});
 $grid-body-maxsize-wide: calc(800px - #{2 * $grid-screen-inset-padding});
 
@@ -42,13 +43,13 @@ $grid-body-maxsize-wide: calc(800px - #{2 * $grid-screen-inset-padding});
     [screen-start] $grid-screen-inset-padding
     [screen-start-inset] 5fr
     [page-start] minmax(50px, 150px)
-    [page-start-inset] 50px
-    [body-start-outset] 50px
+    [page-start-inset] minmax(25px, 50px)
+    [body-start-outset] minmax(25px, 50px)
     [body-start] 1.5em
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-wide)
     [body-content-end] 1.5em
-    [body-end] 50px
-    [body-end-outset] 50px
+    [body-end] minmax(25px, 50px)
+    [body-end-outset] minmax(25px, 50px)
     [page-end-inset] minmax(50px, 150px)
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
@@ -64,7 +65,7 @@ $grid-body-maxsize-wide: calc(800px - #{2 * $grid-screen-inset-padding});
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1.5em
-    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
+    [body-content-start] minmax($grid-body-minsize-slim, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 50px
     [body-end-outset] 50px
@@ -169,7 +170,7 @@ $grid-body-maxsize-wide: calc(800px - #{2 * $grid-screen-inset-padding});
     [page-start-inset] 50px
     [body-start-outset] 50px
     [body-start] 1.5em
-    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
+    [body-content-start] minmax($grid-body-minsize-slim, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 50px
     [body-end-outset] 50px
