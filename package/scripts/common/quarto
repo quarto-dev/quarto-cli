@@ -65,7 +65,15 @@ else
   QUARTO_ACTION=run
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
   export QUARTO_BIN_PATH=$SCRIPT_PATH
-  export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
+
+
+  # If Quarto is bundled into an `.app` file, it will be looking for the 
+  # share directory over in the resources folder.
+  if [[ $SCRIPT_PATH == *"/Contents/MacOS/quarto/bin" ]]; then
+    export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../Resources/quarto/share";pwd`"
+  else
+    export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
+  fi
 
   if [ "$1" == "--version" ]; then
     echo `cat "$QUARTO_SHARE_PATH/version"`
