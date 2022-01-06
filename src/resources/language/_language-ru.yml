@@ -4,9 +4,9 @@ toc-title-website: "Содержание"
 section-title-footnotes: "Сноски"
 
 callout-tip-caption: "Рекомендация"
-callout-note-caption: "Ремарка"
+callout-note-caption: "Уведомление"
 callout-warning-caption: "Предупреждение"
-callout-important-caption: "Важно"
+callout-important-caption: "Уведомление"
 callout-danger-caption: "Возможная проблема"
 
 code-summary: "Код"
