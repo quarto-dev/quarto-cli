@@ -4,7 +4,7 @@ import { emptyDirSync, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
-import { download, getEnv, unzip } from "../util/utils.ts";
+import { downloadFile, getEnv, unzip } from "../util/utils.ts";
 import { signtool } from "./signtool.ts";
 import { execProcess } from "../../../src/core/process.ts";
 
@@ -60,7 +60,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
     // Download the wix tools
     info(`Downloading ${wixToolsUrl}`);
     info(`to ${destZip}`);
-    await download(wixToolsUrl, destZip);
+    await downloadFile(wixToolsUrl, destZip);
 
     // Uncompress the wix tools in the supporting directory
     info("Unzipping wix tools...");

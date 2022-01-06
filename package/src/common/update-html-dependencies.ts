@@ -13,7 +13,7 @@ import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
 import { Repo, withRepo } from "../util/git.ts";
 
-import { download, unzip } from "../util/utils.ts";
+import { downloadFile, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 
 export async function updateHtmlDepedencies(config: Configuration) {
@@ -377,7 +377,7 @@ async function updatePdfJs(
   ensureDirSync(pdfjsDir);
 
   info(`Downloading ${distUrl}`);
-  await download(distUrl, zipFile);
+  await downloadFile(distUrl, zipFile);
   await unzip(zipFile, pdfjsDir);
 
   // Remove extraneous files
@@ -406,7 +406,7 @@ async function updateCookieConsent(
   const tempPath = join(working, fileName);
 
   info(`Downloading ${url}`);
-  await download(url, tempPath);
+  await downloadFile(url, tempPath);
 
   const targetDir = join(
     config.directoryInfo.src,
@@ -519,7 +519,7 @@ async function updateBoostrapIcons(
 
   // Download and unzip the release
   info(`Downloading ${distUrl}`);
-  await download(distUrl, zipFile);
+  await downloadFile(distUrl, zipFile);
   await unzip(zipFile, working);
 
   // Copy the woff file
@@ -592,7 +592,7 @@ async function updateUnpkgDependency(
 
     info(`Downloading ${url} to ${target}`);
     ensureDirSync(dirname(target));
-    await download(url, target);
+    await downloadFile(url, target);
     info("done\n");
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
@@ -612,7 +612,7 @@ async function updateJsDelivrDependency(
 
     info(`Downloading ${url} to ${target}`);
     ensureDirSync(dirname(target));
-    await download(url, target);
+    await downloadFile(url, target);
     info("done\n");
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
@@ -642,7 +642,7 @@ async function updateGithubSourceCodeDependency(
 
     // Download and unzip the release
     info(`Downloading ${distUrl}`);
-    await download(distUrl, zipFile);
+    await downloadFile(distUrl, zipFile);
     await unzip(zipFile, working);
 
     onDownload(working, version);
