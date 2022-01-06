@@ -12,7 +12,7 @@ callout-danger-caption: "Возможная проблема"
 code-summary: "Код"
 
 code-tools-menu-caption: "Код"
-code-tools-show-all-code: "Показать кода страницы"
+code-tools-show-all-code: "Просмотр кода страницы"
 code-tools-hide-all-code: "Скрыть код страницы"
 code-tools-view-source: "Показать код"
 code-tools-source-code: "Исходный код"
