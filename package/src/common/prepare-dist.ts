@@ -69,6 +69,14 @@ export async function prepareDist(
       { overwrite: true },
     );
   }
+
+  // Remove the config directory, if present
+  info(`Cleaning config`);
+  info(join(config.directoryInfo.dist, "config"));
+  Deno.removeSync(join(config.directoryInfo.dist, "config"), {
+    recursive: true,
+  });
+
   info("");
 }
 
