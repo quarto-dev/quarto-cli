@@ -5,7 +5,7 @@
 *
 */
 
-import { warning } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
@@ -235,14 +235,26 @@ export async function serveProject(
           new RegExp(`/${kQuartoRenderCommand}/(.*)$`),
         );
         if (match) {
-          const path = match[1];
-          const result = await render(join(project!.dir, path), {
+          const path = join(project!.dir, match[1]);
+          render(path, {
             flags,
             pandocArgs,
+          }).then((result) => {
+            if (result.error) {
+              if (result.error?.message) {
+                logError(result.error);
+              }
+            } else {
+              // print output created
+              const finalOutput = renderResultFinalOutput(result, project!.dir);
+              if (!finalOutput) {
+                throw new Error(
+                  "No output created by quarto render " + basename(path),
+                );
+              }
+              info("Output created: " + finalOutput + "\n");
+            }
           });
-          if (result.error?.message) {
-            logError(result.error);
-          }
         }
         return httpContentResponse("rendered");
       } else {
