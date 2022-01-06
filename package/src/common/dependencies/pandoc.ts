@@ -61,18 +61,23 @@ export function pandoc(version: string): Dependency {
   // The pandocRelease
   return {
     name: "Pandoc",
+    bucket: "pandoc",
     version,
-    "windows": pandocRelease(
-      `pandoc-${version}-windows-x86_64.zip`,
-      "pandoc.exe",
-    ),
-    "linux": pandocRelease(
-      `pandoc-${version}-linux-amd64.tar.gz`,
-      "pandoc",
-    ),
-    "darwin": pandocRelease(
-      `pandoc-${version}-macOS.zip`,
-      "pandoc",
-    ),
+    architectureDependencies: {
+      "x86_64": {
+        "windows": pandocRelease(
+          `pandoc-${version}-windows-x86_64.zip`,
+          "pandoc.exe",
+        ),
+        "linux": pandocRelease(
+          `pandoc-${version}-linux-amd64.tar.gz`,
+          "pandoc",
+        ),
+        "darwin": pandocRelease(
+          `pandoc-${version}-macOS.zip`,
+          "pandoc",
+        ),
+      },
+    },
   };
 }

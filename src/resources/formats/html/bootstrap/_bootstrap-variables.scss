@@ -52,6 +52,16 @@ $navbar-hl: theme-override-value(
     $navbar-fg
   )
 ) !default;
+$navbar-brand: theme-override-value(
+  $theme-name,
+  "navbar-brand",
+  $navbar-fg
+) !default;
+$navbar-brand-hl: theme-override-value(
+  $theme-name,
+  "navbar-brand-hl",
+  $navbar-hl
+) !default;
 
 $navbar-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>");
 $navbar-togger-border-color: rgba($navbar-fg, 0.4);
@@ -77,10 +87,10 @@ $navbar-light-disabled-color: $navbar-disabled-color;
 $navbar-light-toggler-icon-bg: $navbar-toggler-icon-bg;
 $navbar-light-toggler-border-color: $navbar-togger-border-color;
 
-$navbar-light-brand-color: $navbar-hl;
-$navbar-light-brand-hover-color: $navbar-hl;
-$navbar-dark-brand-color: $navbar-hl;
-$navbar-dark-brand-hover-color: $navbar-hl;
+$navbar-light-brand-color: $navbar-brand;
+$navbar-light-brand-hover-color: $navbar-brand-hl;
+$navbar-dark-brand-color: $navbar-brand;
+$navbar-dark-brand-hover-color: $navbar-brand-hl;
 
 // Sidebar coloring
 $sidebar-bg: if(variable-exists(light), $light, #fff) !default;
@@ -99,13 +109,6 @@ $footer-left-font-size: $footer-font-size !default;
 $footer-center-font-size: $footer-font-size !default;
 $footer-right-font-size: $footer-font-size !default;
 
-// Body Secondary Background Color
-$body-bg-secondary: if(
-  variable-exists(body-bg),
-  theme-dim($body-bg, 50),
-  #ddd
-) !default;
-
 // Disable default grid system and switch to CSS grid
 $enable-grid-classes: false;
 $enable-cssgrid: true;
@@ -113,3 +116,18 @@ $grid-gutter-width: 0;
 $grid-columns: 24;
 
 $zindex-pagelayout: #{zindex-drop - 2};
+
+$popover-bg: if(variable-exists(body-bg), $body-bg, null) !default;
+$input-bg: if(variable-exists(body-bg), $body-bg, null) !default;
+
+// Note that 'default' is intentionally omitted from this
+// because we're using the default value if one is defined at this
+// point (the if variable exists check in the default).
+// This is a change to override the input border color for
+// darkly, which sets the border color to the body color for
+// whatever reason.
+$input-border-color: theme-override-value(
+  $theme-name,
+  "input-border-color",
+  if(variable-exists(input-border-color), $input-border-color, null)
+);

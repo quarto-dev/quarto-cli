@@ -211,6 +211,10 @@ jobs:
       with:
         name: Mac Zip
         path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
+
+    - name: Cleanup Keychain
+      run: |
+        security delete-keychain build.keychain
         
   publish-release:
     if: ${{ github.event.inputs.publish-release == 'true' }}

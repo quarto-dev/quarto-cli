@@ -29,6 +29,7 @@ import {
   cycleDependenciesCommand,
   parseSwcLogCommand,
 } from "./common/cyclic-dependencies.ts";
+import { archiveBinaryDependencies } from "./common/archive-binary-dependencies.ts";
 
 // Core command dispatch
 export async function quartoBld(args: string[]) {
@@ -84,6 +85,11 @@ function getCommands() {
       .description(
         "Updates Bootstrap, themes, and JS/CSS dependencies based upon the version in configuration",
       ),
+  );
+  commands.push(
+    packageCommand(archiveBinaryDependencies)
+      .name("archive-bin-deps")
+      .description("Downloads and archives our binary dependencies."),
   );
   commands.push(
     packageCommand(prepareDist)

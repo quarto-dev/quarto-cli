@@ -84,6 +84,7 @@ $input-btn-padding-x:       1rem !default;
 
 // Forms
 
+$input-bg:                          $white !default;
 $input-disabled-bg:                 $body-color !default;
 
 $input-color:                       body-mix(85%) !default;
@@ -320,7 +321,7 @@ legend {
 
 // Containers
 
-.list-group-item {
+.list-group-item-action {
 
   &:hover {
     border-color: $primary;

@@ -236,7 +236,7 @@ export async function renderFiles(
       info("");
     }
 
-    return await pandocRenderer.onComplete(false, pandocQuiet);
+    return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
     return {
       files: (await pandocRenderer.onComplete(true)).files,

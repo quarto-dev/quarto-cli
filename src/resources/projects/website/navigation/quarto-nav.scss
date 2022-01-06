@@ -92,7 +92,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .navbar-nav .dropdown-menu {
-  min-width: 190px;
+  min-width: 220px;
   font-size: 0.9rem;
 }
 
@@ -203,12 +203,16 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-navigation ul.sidebar-section .sidebar-item-contents {
-  padding-left: 0.6rem;
+  padding-left: 0.5rem;
 }
 
 .sidebar-navigation .sidebar-section-item {
   font-size: $sidebar-font-size-section;
-  padding-bottom: 0.1rem;
+  padding-bottom: 1px;
+}
+
+.sidebar-navigation .sidebar-section:not(.depth1) .sidebar-section-item {
+  padding-bottom: 0px;
 }
 
 .sidebar-navigation .sidebar-section-item > a {
@@ -390,10 +394,12 @@ nav.sidebar.sidebar-navigation {
 }
 
 @include media-breakpoint-up(lg) {
-  .sidebar-navigation .sidebar-item a,
+  #quarto-sidebar {
+    display: flex;
+    flex-direction: column;
+  }
   .nav-page .nav-page-text,
-  .sidebar-navigation,
-  .sidebar-navigation .sidebar-menu-container a {
+  .sidebar-navigation .sidebar-section .sidebar-item {
     font-size: $sidebar-font-size;
   }
 
@@ -462,13 +468,13 @@ nav.sidebar.sidebar-navigation {
   padding-right: 1em;
 }
 
-.quarto-sidebar-footer {
-  position: absolute;
-  bottom: 0;
-}
-
 #quarto-sidebar .sidebar-menu-container {
   padding-top: 14px;
+  flex-grow: 2;
+}
+
+.quarto-sidebar-footer {
+  font-size: 0.875em;
 }
 
 .sidebar nav .dropdown-menu .dropdown-item .bi::before {
@@ -606,6 +612,7 @@ body:not(.floating) .nav-footer {
 
 .nav-footer {
   min-height: 3.5em;
+  color: $footer-fg;
   a {
     @if variable-exists(footer-fg) {
       color: $footer-fg;
@@ -654,8 +661,10 @@ body:not(.floating) .nav-footer {
   min-height: 3em;
   width: 100%;
   position: absolute;
-  display: flex;
-  justify-content: center;
+  text-align: center;
+  .footer-items {
+    justify-content: center;
+  }
 }
 
 .nav-footer-right {
