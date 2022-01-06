@@ -6,7 +6,7 @@
 */
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
-
+import { downloadFile } from "../util/utils.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { Configuration } from "./config.ts";
 import {
@@ -112,16 +112,7 @@ async function download(
   dependency: PlatformDependency,
 ) {
   info("Downloading " + dependency.url);
-  const response = await fetch(dependency.url);
-  const blob = await response.blob();
-
-  const bytes = await blob.arrayBuffer();
-  const data = new Uint8Array(bytes);
-
   const targetPath = join(workingDir, dependency.filename);
-  Deno.writeFileSync(
-    targetPath,
-    data,
-  );
+  await downloadFile(dependency.url, targetPath);
   return targetPath;
 }
