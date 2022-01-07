@@ -29,6 +29,7 @@ import {
   kLang,
   kNumberSections,
   kPaperSize,
+  kPdfEngine,
   kReferenceLocation,
   kShiftHeadingLevelBy,
   kTblCapLoc,
@@ -90,6 +91,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         [kFigDpi]: 300,
       },
       pandoc: {
+        [kPdfEngine]: "xelatex",
         standalone: true,
         variables: {
           graphics: true,
