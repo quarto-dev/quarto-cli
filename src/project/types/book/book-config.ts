@@ -74,7 +74,6 @@ import {
   kCookieConsent,
   kGoogleAnalytics,
 } from "../website/website-analytics.ts";
-import { kSearch } from "../website/website-search.ts";
 
 const kAppendicesSectionLabel = "Appendices";
 
@@ -256,6 +255,9 @@ export async function bookRenderItems(
     type: BookRenderItemType,
     items: SidebarItem[],
   ) => {
+    const throwInputNotFound = (input: string) => {
+      throw new Error(`Book ${type} '${input}' not found`);
+    };
     for (const item of items) {
       if (item.contents) {
         inputs.push({
@@ -286,7 +288,11 @@ export async function bookRenderItems(
               number,
             });
           }
+        } else {
+          throwInputNotFound(item.href);
         }
+      } else if (item.text && !item.text.trim().match(/^-+$/)) {
+        throwInputNotFound(item.text);
       }
     }
   };
