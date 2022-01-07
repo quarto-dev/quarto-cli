@@ -16,9 +16,10 @@ import {
   RuntimeError,
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 
+// we vendor this for now since they dropped parseModule
 import {
   parseModule
-} from "https://cdn.skypack.dev/@observablehq/parser";
+} from "./observablehq-parser.js";
 
 import {
   FileAttachments, Library
