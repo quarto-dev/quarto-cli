@@ -107,7 +107,7 @@ function resolveCrossrefs(
       );
       ref.removeAttribute("class");
     } else {
-      warning(`${file}: Unable to resolve crossref #${id}`);
+      warning(`${file}: Unable to resolve crossref @${id}`);
       // insert error span if not found
       if (parentLink) {
         const parentLinkParent = parentLink.parentElement as Element;
