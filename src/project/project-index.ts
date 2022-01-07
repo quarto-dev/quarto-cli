@@ -202,5 +202,5 @@ function inputTargetIndexFile(projectDir: string, input: string): string {
 }
 
 function indexPath(projectDir: string, path = ""): string {
-  return projectScratchPath(projectDir, join("index", path));
+  return projectScratchPath(projectDir, join("idx", path));
 }

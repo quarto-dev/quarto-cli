@@ -506,7 +506,7 @@ async function serveFiles(
         );
         const globs: string[] = [];
         if (partitioned?.yaml) {
-          const metadata = readYamlFromMarkdown(partitioned.yaml);
+          const metadata = partitioned.yaml;
           globs.push(...resourcesFromMetadata(metadata[kResources]));
         }
 

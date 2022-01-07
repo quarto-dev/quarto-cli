@@ -7,7 +7,7 @@
 import { PandocAttr, PartitionedMarkdown } from "./types.ts";
 
 import { lines } from "../text.ts";
-import { partitionYamlFrontMatter } from "../yaml.ts";
+import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { pandocAttrParseText } from "./pandoc-attr.ts";
 
 export function firstHeadingFromMarkdownFile(file: string): string | undefined {
@@ -136,8 +136,9 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
       markdownLines.push(line);
     }
   }
+
   return {
-    yaml: (partitioned ? partitioned.yaml : undefined),
+    yaml: (partitioned ? readYamlFromMarkdown(partitioned.yaml) : undefined),
     headingText: markdownHeading,
     headingAttr: markdownHeadingAttr,
     containsRefs: markdownContainsRefs,

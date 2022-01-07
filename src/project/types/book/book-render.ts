@@ -28,7 +28,7 @@ import {
   kTitle,
   kToc,
 } from "../../../config/constants.ts";
-import { Format } from "../../../config/types.ts";
+import { Format, Metadata } from "../../../config/types.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 
 import {
@@ -337,7 +337,10 @@ async function mergeExecutedFiles(
           const partitioned = partitionYamlFrontMatter(
             file.executeResult.markdown,
           );
-          const frontTitle = frontMatterTitle(partitioned?.yaml);
+          const yaml = partitioned?.yaml
+            ? readYamlFromMarkdown(partitioned?.yaml)
+            : undefined;
+          const frontTitle = frontMatterTitle(yaml);
           const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
 
           itemMarkdown = bookItemMetadata(project, item, file) + titleMarkdown +
@@ -554,9 +557,8 @@ function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
   return format;
 }
 
-function frontMatterTitle(yamlStr?: string): string | undefined {
-  if (yamlStr) {
-    const yaml = readYamlFromMarkdown(yamlStr);
+function frontMatterTitle(yaml?: Metadata): string | undefined {
+  if (yaml) {
     return yaml[kTitle] as string | undefined;
   } else {
     return undefined;
