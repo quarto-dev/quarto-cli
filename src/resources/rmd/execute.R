@@ -123,7 +123,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     )
   } else {
     includes <- NULL
-    engineDependencies = I(list(jsonlite::serializeJSON(knit_meta)))
+    engineDependencies = list(knitr = I(list(jsonlite::serializeJSON(knit_meta))))
   }
 
   # include postprocessing if required

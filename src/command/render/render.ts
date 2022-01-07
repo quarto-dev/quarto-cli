@@ -66,6 +66,7 @@ import {
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/types.ts";
 import {
+  executionEngine,
   executionEngineKeepMd,
   fileExecutionEngine,
 } from "../../execute/engine.ts";
@@ -501,24 +502,24 @@ export async function renderPandoc(
   }
 
   // run the dependencies step if we didn't do it during execute
-  if (
-    executeResult.engineDependencies &&
-    executeResult.engineDependencies.length > 0
-  ) {
-    const dependenciesResult = await context.engine.dependencies({
-      target: context.target,
-      format,
-      output: recipe.output,
-      resourceDir: resourcePath(),
-      tempDir: createSessionTempDir(),
-      libDir: context.libDir,
-      dependencies: executeResult.engineDependencies,
-      quiet: context.options.flags?.quiet,
-    });
-    format.pandoc = mergePandocIncludes(
-      format.pandoc,
-      dependenciesResult.includes,
-    );
+  if (executeResult.engineDependencies) {
+    for (const engineName of Object.keys(executeResult.engineDependencies)) {
+      const engine = executionEngine(engineName)!;
+      const dependenciesResult = await engine.dependencies({
+        target: context.target,
+        format,
+        output: recipe.output,
+        resourceDir: resourcePath(),
+        tempDir: createSessionTempDir(),
+        libDir: context.libDir,
+        dependencies: executeResult.engineDependencies[engineName],
+        quiet: context.options.flags?.quiet,
+      });
+      format.pandoc = mergePandocIncludes(
+        format.pandoc,
+        dependenciesResult.includes,
+      );
+    }
   }
 
   // pandoc options

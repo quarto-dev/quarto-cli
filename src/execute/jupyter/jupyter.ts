@@ -253,11 +253,16 @@ export const jupyterEngine: ExecutionEngine = {
 
     // return dependencies as either includes or raw dependencies
     let includes: PandocIncludes | undefined;
-    let engineDependencies: Array<unknown> | undefined;
+    let engineDependencies: Record<string, Array<unknown>> | undefined;
     if (options.dependencies) {
       includes = executeResultIncludes(result.dependencies);
     } else {
-      engineDependencies = executeResultEngineDependencies(result.dependencies);
+      const dependencies = executeResultEngineDependencies(result.dependencies);
+      if (dependencies) {
+        engineDependencies = {
+          [kJupyterEngine]: dependencies,
+        };
+      }
     }
 
     // if it's a transient notebook then remove it
