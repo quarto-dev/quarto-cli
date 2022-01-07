@@ -16,13 +16,13 @@
 
 import {
   Interpreter
-} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
+} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler@0.6.0-alpha.9";
 
 import {
   Inspector,
   Runtime,
   RuntimeError,
-} from "https://cdn.skypack.dev/@observablehq/runtime";
+} from "https://cdn.skypack.dev/@observablehq/runtime@4.18.3";
 
 import {
   FileAttachments, Library
