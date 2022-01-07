@@ -108,7 +108,15 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           | undefined;
         if (
           documentclass &&
-          !["srcbook", "scrreport", "scrartcl", "scrlttr2"].includes(
+          ![
+            "srcbook",
+            "scrreprt",
+            "scrreport",
+            "scrartcl",
+            "scrarticle",
+            "scrlttr2",
+            "scrletter",
+          ].includes(
             documentclass,
           )
         ) {

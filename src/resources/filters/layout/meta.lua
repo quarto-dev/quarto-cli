@@ -93,12 +93,12 @@ function layoutMetaInject()
         local documentclassRaw = readOption(meta, 'documentclass');
         if documentclassRaw ~= nil then 
           local documentclass = pandoc.utils.stringify(documentclassRaw)
-          if documentclass == 'scrartcl' then
+          if documentclass == 'scrartcl' or documentclass == 'scrarticle' or 
+             documentclass == 'scrlttr2' or documentclass == 'scrletter' or
+             documentclass == 'scrreprt' or documentclass == 'scrreport' then
             oneSidedColumnLayout(meta)
           elseif documentclass == 'scrbook' then
             twoSidedColumnLayout(meta)
-          elseif documentclass == 'scrreport' then
-            oneSidedColumnLayout(meta)
           end  
         end
       end

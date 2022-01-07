@@ -17,6 +17,6 @@ format:
   html:
     theme: cosmo
   pdf:
-    documentclass: scrreport
+    documentclass: scrreprt
 
 <% if(editor){ %>editor: <%= editor %><% } %>
