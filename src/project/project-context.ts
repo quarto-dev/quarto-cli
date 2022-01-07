@@ -180,7 +180,12 @@ export async function projectContext(
         }
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
-          projectConfig = await type.config(dir, projectConfig, forceHtml);
+          projectConfig = await type.config(
+            dir,
+            projectConfig,
+            forceHtml,
+            flags,
+          );
         }
         const { files, engines } = projectInputFiles(dir, projectConfig);
 

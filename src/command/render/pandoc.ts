@@ -78,7 +78,6 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepSource,
-  kLang,
   kLinkColor,
   kMetadataFormat,
   kNumberOffset,
@@ -114,10 +113,7 @@ import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
 import { patchHtmlTemplate } from "./output.ts";
-import {
-  readDefaultLanguageTranslations,
-  translationsForLang,
-} from "../../core/language.ts";
+import { formatLanguage } from "../../core/language.ts";
 import {
   pandocFormatWith,
   splitPandocFormatString,
@@ -183,23 +179,10 @@ export async function runPandoc(
   }
 
   // now that 'lang' is resolved we can determine our actual language values
-  // start with system defaults for the current language
-  const langCode = (
-    options.flags?.pandocMetadata?.[kLang] ||
-    options.format.metadata[kLang] ||
-    "en"
-  ) as string;
-  const language = (await readDefaultLanguageTranslations(langCode)).language;
-  // merge any user provided language w/ the defaults
-  options.format.language = mergeConfigs(
-    language,
-    options.format.language || {},
-  );
-
-  // now select the correct variations based on the lang code and translations
-  options.format.language = translationsForLang(
+  options.format.language = await formatLanguage(
+    options.format.metadata,
     options.format.language,
-    langCode,
+    options.flags,
   );
 
   // if there is no toc title then provide the appropirate default

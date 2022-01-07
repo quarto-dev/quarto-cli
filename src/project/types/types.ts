@@ -7,7 +7,11 @@
 
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
-import { PandocRenderer, RenderOptions } from "../../command/render/types.ts";
+import {
+  PandocRenderer,
+  RenderFlags,
+  RenderOptions,
+} from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
 import { ProjectConfig, ProjectContext } from "../types.ts";
 
@@ -20,6 +24,7 @@ export interface ProjectType {
     projectDir: string,
     config: ProjectConfig,
     forceHtml: boolean,
+    flags?: RenderFlags,
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
