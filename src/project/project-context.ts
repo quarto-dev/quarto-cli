@@ -152,7 +152,7 @@ export async function projectContext(
       configFiles.push(...translationFiles);
 
       // inject format if specified in --to
-      if (flags?.to) {
+      if (flags?.to && flags?.to !== "all" && flags?.to !== "default") {
         const projectFormats = normalizeFormatYaml(
           projectConfig[kMetadataFormat],
         );
