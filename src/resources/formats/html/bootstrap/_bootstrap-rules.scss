@@ -256,15 +256,32 @@ body.docked {
   @include column-spanning-element();
 }
 
-.column-page-left {
+.column-page-inset-left {
   grid-column: page-start-inset / body-content-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-page-right {
+.column-page-inset-right {
   grid-column: body-content-start / page-end-inset;
+  z-index: $zindex-pagelayout;
+  transform: translate3d(0, 0, 0);
+  figcaption {
+    text-align: right;
+    @include column-spanning-element();
+  }
+}
+
+.column-page-left {
+  grid-column: page-start / body-content-end;
+  z-index: $zindex-pagelayout;
+  transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
+}
+
+.column-page-right {
+  grid-column: body-content-start / page-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   figcaption {
