@@ -6,7 +6,7 @@ format: pdf
 bibliography: references.bib
 cite-method: natbib
 header-includes: |
-  \usepackage{fontawesome}
+  \usepackage{fontawesome5}
   \usepackage{sansmath}
   \usepackage{makeidx}
   \makeindex
@@ -31,7 +31,7 @@ Document Language: \languagename
 
 \faApple is an apple!
 
-\faicon{audio-description}
+\faIcon{audio-description}
 
 This should test bibliography \index{Bibliography} generation [@adami2020]. I also think that @allaire has a good point here, but he can also be a clown \index{Clowns} from time to time.
 

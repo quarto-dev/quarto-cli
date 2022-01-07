@@ -55,8 +55,12 @@ export function esBuild(version: string): Dependency {
     name: "esbuild javscript bundler",
     bucket: "esbuild",
     version,
-    "windows": esBuildRelease("windows-64"),
-    "linux": esBuildRelease("linux-64"),
-    "darwin": esBuildRelease("darwin-64"),
+    architectureDependencies: {
+      "x86_64": {
+        "windows": esBuildRelease("windows-64"),
+        "linux": esBuildRelease("linux-64"),
+        "darwin": esBuildRelease("darwin-64"),
+      },
+    },
   };
 }

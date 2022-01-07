@@ -5,7 +5,7 @@
 *
 */
 
-import { warning } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
@@ -44,6 +44,7 @@ import {
 } from "../../command/render/render.ts";
 
 import {
+  httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
 } from "../../core/http.ts";
@@ -53,6 +54,7 @@ import { watchProject } from "./watch.ts";
 import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
+  render,
   renderProgress,
   resourceFilesFromFile,
 } from "../../command/render/render-shared.ts";
@@ -72,6 +74,8 @@ import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-config.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
 import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
+
+const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -222,10 +226,37 @@ export async function serveProject(
     // print all urls
     printUrls: "all",
 
-    // handle websocket upgrade requests
+    // handle websocket upgrade and render requests
     onRequest: async (req: Request) => {
       if (watcher.handle(req)) {
         return await watcher.connect(req);
+      } else if (req.url.includes(kQuartoRenderCommand)) {
+        const match = req.url.match(
+          new RegExp(`/${kQuartoRenderCommand}/(.*)$`),
+        );
+        if (match) {
+          const path = join(project!.dir, match[1]);
+          render(path, {
+            flags,
+            pandocArgs,
+          }).then((result) => {
+            if (result.error) {
+              if (result.error?.message) {
+                logError(result.error);
+              }
+            } else {
+              // print output created
+              const finalOutput = renderResultFinalOutput(result, project!.dir);
+              if (!finalOutput) {
+                throw new Error(
+                  "No output created by quarto render " + basename(path),
+                );
+              }
+              info("Output created: " + finalOutput + "\n");
+            }
+          });
+        }
+        return httpContentResponse("rendered");
       } else {
         return undefined;
       }

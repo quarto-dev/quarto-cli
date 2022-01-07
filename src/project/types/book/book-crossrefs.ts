@@ -5,6 +5,7 @@
 *
 */
 
+import { warning } from "log/mod.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -106,6 +107,7 @@ function resolveCrossrefs(
       );
       ref.removeAttribute("class");
     } else {
+      warning(`${file}: Unable to resolve crossref @${id}`);
       // insert error span if not found
       if (parentLink) {
         const parentLinkParent = parentLink.parentElement as Element;

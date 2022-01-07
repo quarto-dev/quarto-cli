@@ -9,6 +9,7 @@ import { existsSync, expandGlobSync } from "fs/mod.ts";
 import { extname, join } from "path/mod.ts";
 
 import {
+  kLang,
   kLanguageDefaults,
   kLanguageDefaultsKeys,
 } from "../config/constants.ts";
@@ -18,6 +19,7 @@ import { resourcePath } from "./resources.ts";
 import { mergeConfigs } from "./config.ts";
 import { formatLanguageSchema } from "./schema/format-language.ts";
 import { readAndValidateYamlFromFile } from "./schema/validated-yaml.ts";
+import { RenderFlags } from "../command/render/types.ts";
 
 export async function readLanguageTranslations(
   translationFile: string,
@@ -146,4 +148,24 @@ export function translationsForLang(language: FormatLanguage, lang: string) {
   }
 
   return translations;
+}
+
+export async function formatLanguage(
+  metadata: Metadata,
+  language?: FormatLanguage,
+  flags?: RenderFlags,
+) {
+  // start with system defaults for the current language
+  const langCode = (
+    flags?.pandocMetadata?.[kLang] ||
+    metadata[kLang] ||
+    "en"
+  ) as string;
+  const defaultLanguge =
+    (await readDefaultLanguageTranslations(langCode)).language;
+  // merge any user provided language w/ the defaults
+  language = mergeConfigs(defaultLanguge, language);
+
+  // now select the correct variations based on the lang code and translations
+  return translationsForLang(language, langCode);
 }

@@ -75,6 +75,7 @@ function resolveRefs()
           -- no entry for this reference, if it has a valid ref prefix
           -- then yield error text
           elseif tcontains(refTypes, type) then
+            warn("Unable to resolve crossref @" .. label)
             local err = pandoc.Strong({ pandoc.Str("?@" .. label) })
             refs:extend({err})
           end

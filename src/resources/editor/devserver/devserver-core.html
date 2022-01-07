@@ -631,11 +631,13 @@
       devServerSocket.close();
       let target = msg.data.replace(/^reload/, "").replace(/index\.html$/, "");
       // prepend proxy path to target if we have one
-      const pathPrefix = 
+      if (target) {
+        const pathPrefix = 
           window.location.pathname.match(/^.*?\/p\/\w+\//) ||
           window.location.pathname.match(/^.*?\/user\/[\w\d]+\/proxy\/\d+\//);
-      if (pathPrefix) {
-        target = pathPrefix + target.slice(1);
+        if (pathPrefix) {
+          target = pathPrefix + target.slice(1);
+        }
       }
       if (target && (target !== window.location.pathname)) {
         window.location.replace(target);

@@ -390,14 +390,16 @@ function htmlFileRequestHandlerOptions(
     baseDir,
     defaultFile,
     printUrls: "404",
-    onRequest: async (req: Request) => {
+    onRequest: (req: Request) => {
       if (reloader.handle(req)) {
-        return reloader.connect(req);
+        return Promise.resolve(reloader.connect(req));
       } else if (req.url.endsWith("/quarto-render/")) {
-        await renderHandler();
-        return httpContentResponse("rendered");
+        // don't wait for the promise so the
+        // caller gets an immediate reply
+        renderHandler();
+        return Promise.resolve(httpContentResponse("rendered"));
       } else {
-        return undefined;
+        return Promise.resolve(undefined);
       }
     },
     onFile: async (file: string) => {

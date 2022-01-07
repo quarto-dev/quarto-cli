@@ -227,9 +227,13 @@ function calloutLatex(div)
   local beginEnvironment = callout.beginInlines
   local endEnvironment = callout.endInlines
   local calloutContents = callout.contents
+  if classoutContents == nil then
+    calloutContents = pandoc.List({})
+  end
+
   tappend(calloutContents, div.content)
   
-  if calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
+  if calloutContents[1] ~= nil and calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     tprepend(calloutContents[1].content, beginEnvironment)
     tappend(calloutContents[#calloutContents].content, endEnvironment)
   else

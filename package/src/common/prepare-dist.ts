@@ -85,11 +85,11 @@ function supportingFiles(config: Configuration) {
   const filesToCopy = [
     {
       from: join(config.directoryInfo.root, "COPYING.md"),
-      to: join(config.directoryInfo.dist, "COPYING.md"),
+      to: join(config.directoryInfo.share, "COPYING.md"),
     },
     {
       from: join(config.directoryInfo.root, "COPYRIGHT"),
-      to: join(config.directoryInfo.dist, "COPYRIGHT"),
+      to: join(config.directoryInfo.share, "COPYRIGHT"),
     },
     {
       from: join(config.directoryInfo.src, "resources"),

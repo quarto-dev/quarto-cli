@@ -25,10 +25,6 @@ import {
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 
 import {
-  parseModule
-} from "https://cdn.skypack.dev/@observablehq/parser";
-
-import {
   FileAttachments, Library
 } from "./stdlib.js";
 

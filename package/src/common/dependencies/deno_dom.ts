@@ -28,8 +28,12 @@ export function deno_dom(version: string): Dependency {
     name: "deno_dom",
     bucket: "deno_dom",
     version,
-    darwin: deno_dom_release("libplugin.dylib"),
-    linux: deno_dom_release("libplugin.so"),
-    windows: deno_dom_release("plugin.dll"),
+    architectureDependencies: {
+      "x86_64": {
+        darwin: deno_dom_release("libplugin.dylib"),
+        linux: deno_dom_release("libplugin.so"),
+        windows: deno_dom_release("plugin.dll"),
+      },
+    },
   };
 }

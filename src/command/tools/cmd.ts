@@ -47,7 +47,7 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
   )
   .example(
     "Uninstall TinyTex",
-    "quarto tools uninstall tintytex",
+    "quarto tools uninstall tinytex",
   )
   .example(
     "Update TinyTex",

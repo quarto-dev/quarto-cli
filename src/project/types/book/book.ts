@@ -196,7 +196,7 @@ export const bookProjectType: ProjectType = {
         extras,
         {
           metadata: {
-            [kDocumentClass]: "scrreport",
+            [kDocumentClass]: "scrreprt",
             [kPaperSize]: "letter",
           },
           pandoc: {

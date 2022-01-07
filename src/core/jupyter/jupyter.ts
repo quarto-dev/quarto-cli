@@ -360,6 +360,10 @@ export async function quartoMdToJupyter(
       if (lineBuffer[lineBuffer.length - 1] === "") {
         lineBuffer.splice(lineBuffer.length - 1, 1);
       }
+      // only use codeIndent for code cells
+      if (cell_type !== "code") {
+        codeIndent = "";
+      }
       const cell: JupyterCell = {
         cell_type,
         metadata: codeIndent.length > 0 ? { [kCellMdIndent]: codeIndent } : {},
@@ -481,6 +485,7 @@ export async function quartoMdToJupyter(
         // otherwise this flips the state of in-code
       } else {
         inCode = !inCode;
+        codeIndent = "";
         lineBuffer.push(line);
       }
 

@@ -384,14 +384,24 @@ async function mergeExecutedFiles(
   // merge filters
   const filters = ld.uniq(files.flatMap((file) => file.executeResult.filters));
 
-  // merge dependencies
-  const dependencies = files.reduce(
-    (dependencies: Array<unknown>, file: ExecutedFile) => {
-      return dependencies.concat(
-        file.executeResult.engineDependencies as Array<unknown> || [],
-      );
+  // merge engine dependencies
+  const engineDependencies = files.reduce(
+    (
+      engineDependencies: Record<string, Array<unknown>>,
+      file: ExecutedFile,
+    ) => {
+      const fileEngineDependencies = file.executeResult.engineDependencies;
+      if (fileEngineDependencies) {
+        for (const engineName of Object.keys(fileEngineDependencies)) {
+          engineDependencies[engineName] =
+            (engineDependencies[engineName] || []).concat(
+              fileEngineDependencies[engineName],
+            );
+        }
+      }
+      return engineDependencies;
     },
-    new Array<unknown>(),
+    {} as Record<string, Array<unknown>>,
   );
 
   // merge preserves
@@ -423,10 +433,7 @@ async function mergeExecutedFiles(
       markdown,
       supporting,
       filters,
-      dependencies: {
-        type: "dependencies",
-        data: dependencies,
-      },
+      engineDependencies,
       preserve,
       postProcess,
     },

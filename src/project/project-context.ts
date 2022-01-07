@@ -39,6 +39,7 @@ import {
   kLanguageDefaults,
   kMetadataFile,
   kMetadataFiles,
+  kMetadataFormat,
   kQuartoVarsKey,
 } from "../config/constants.ts";
 
@@ -150,6 +151,22 @@ export async function projectContext(
       );
       configFiles.push(...translationFiles);
 
+      // inject format if specified in --to
+      if (flags?.to) {
+        const projectFormats = normalizeFormatYaml(
+          projectConfig[kMetadataFormat],
+        );
+        const toFormat = projectFormats[flags?.to] || {};
+        delete projectFormats[flags?.to];
+        const formats = {
+          [flags?.to]: toFormat,
+        };
+        Object.keys(projectFormats).forEach((format) => {
+          formats[format] = projectFormats[format];
+        });
+        projectConfig[kMetadataFormat] = formats;
+      }
+
       if (projectConfig?.project) {
         // provide output-dir from command line if specfified
         if (flags?.outputDir) {
@@ -180,7 +197,12 @@ export async function projectContext(
         }
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
-          projectConfig = await type.config(dir, projectConfig, forceHtml);
+          projectConfig = await type.config(
+            dir,
+            projectConfig,
+            forceHtml,
+            flags,
+          );
         }
         const { files, engines } = projectInputFiles(dir, projectConfig);
 
@@ -384,20 +406,7 @@ export async function directoryMetadataForInputFile(
 
       // resolve format into expected structure
       if (yaml.format) {
-        if (typeof (yaml.format) === "string") {
-          yaml.format = {
-            [yaml.format]: {},
-          };
-        } else if (typeof (yaml.format) === "object") {
-          const formats = Object.keys(yaml.format!);
-          for (const format of formats) {
-            if (
-              (yaml.format as Record<string, unknown>)[format] === "default"
-            ) {
-              (yaml.format as Record<string, unknown>)[format] = {};
-            }
-          }
-        }
+        yaml.format = normalizeFormatYaml(yaml.format);
       }
 
       config = mergeConfigs(
@@ -412,6 +421,26 @@ export async function directoryMetadataForInputFile(
   }
 
   return config;
+}
+
+export function normalizeFormatYaml(yamlFormat: unknown) {
+  if (yamlFormat) {
+    if (typeof (yamlFormat) === "string") {
+      yamlFormat = {
+        [yamlFormat]: {},
+      };
+    } else if (typeof (yamlFormat) === "object") {
+      const formats = Object.keys(yamlFormat);
+      for (const format of formats) {
+        if (
+          (yamlFormat as Record<string, unknown>)[format] === "default"
+        ) {
+          (yamlFormat as Record<string, unknown>)[format] = {};
+        }
+      }
+    }
+  }
+  return (yamlFormat || {}) as Record<string, unknown>;
 }
 
 export function toInputRelativePaths(
