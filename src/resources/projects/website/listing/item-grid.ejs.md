@@ -11,13 +11,13 @@ const align = options["alignment"] || "left";
 const imgHeight = options['image-height'];
 
 const outputValue = (col) => {
-  const value = item[col];
-  const path = item.path;
-  if (path && value !== undefined && links.includes(col)) {
-    return `<a href="${path}">${value}</a>`;
-  } else {
-    return value;
-  }
+const value = item[col];
+const path = item.path;
+if (path && value !== undefined && links.includes(col)) {
+return `<a href="${path}">${value}</a>`;
+} else {
+return value;
+}
 }
 
 const otherCols = cols.filter(col => {
@@ -31,7 +31,7 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
 <div class="quarto-grid-item card h-100 <%-`card-${align}`%>">
 
 <% if (item.image) { %>
-  <img src="<%= item.image %>"<%= imgHeight ? ` height="${imgHeight}"` : '' %>>
+  <img src="<%= item.image %>"<%= imgHeight ? ` height="${imgHeight}"` : '' %> class="thumbnail-image">
 <% } else { %>
   <div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight}px;"` : '' %>>
   <%= (item['card-cap-text']) ? outputValue('card-cap-text') : "&nbsp;" %>

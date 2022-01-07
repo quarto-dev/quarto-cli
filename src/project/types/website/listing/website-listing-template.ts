@@ -26,6 +26,7 @@ export const kAllowSort = "allow-sort";
 
 export const kDateFormat = "date-format";
 export const kImageHeight = "image-height";
+export const kImageAlign = "image-align";
 export const kMaxDescLength = "max-description-length";
 
 export const kCardColumnSpan = "card-column-span";
@@ -66,6 +67,10 @@ export interface TemplateOptions extends Record<string, unknown> {
   [kRowCount]: number;
   [kAllowFilter]: boolean;
   [kAllowSort]: boolean;
+}
+
+export interface DefaultTemplateOptions extends TemplateOptions {
+  [kImageAlign]: "right" | "left";
 }
 
 // Create a markdown handler for the markdown pipeline
@@ -237,17 +242,21 @@ export function resolveTemplateOptions(
     };
 
     if (listing.type === "table") {
+      // Default table options
       return options(kDefaultTableColumns);
     } else if (listing.type === "grid") {
+      // Default grid options
       const gridOptions = options(kDefaultCardColumns);
       gridOptions[kCardColumnSpan] = columnSpan(
         listing.options?.[kColumnCount] as number || 3,
       );
       gridOptions[kImageHeight] = gridOptions[kImageHeight] || 120;
-
       return gridOptions;
     } else {
-      return options(kDefaultCardColumns);
+      // Default options
+      const defaultOptions = options(kDefaultCardColumns);
+      defaultOptions[kImageAlign] = defaultOptions[kImageAlign] || "right";
+      return defaultOptions;
     }
   };
   const options = baseOptions();

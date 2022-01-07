@@ -18,6 +18,8 @@ ul.pagination {
 
 .quarto-listing-filter {
   margin-bottom: 0.8em;
+  width: 33%;
+  margin-left: auto;
 }
 
 .quarto-grid-item.card div.card-img-top {
@@ -30,15 +32,19 @@ ul.pagination {
   }
 }
 
-.quarto-grid-item .card-footer {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8em;
-  p {
-    margin-bottom: 0;
+.quarto-grid-item {
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    p {
+      margin-bottom: 0;
+    }
+    img.thumbnail-image {
+      object-fit: cover;
+    }
   }
 }
-
 .card-right {
   text-align: right;
 }
@@ -60,25 +66,55 @@ table.quarto-listing td.image {
   }
 }
 
+.quarto-post.image-left {
+  flex-direction: row;
+}
+
+.quarto-post.image-right {
+  flex-direction: row-reverse;
+}
+
 .quarto-post {
   display: flex;
-  a.post-contents {
-    display: flex;
-    flex-basis: 67%;
-    div.title {
-      flex-shrink: 0;
+  margin-bottom: 1.5em;
+
+  .metadata {
+    flex-basis: 15%;
+    flex-grow: 0;
+  }
+
+  .thumbnail {
+    flex-basis: 25%;
+    flex-grow: 0;
+    img {
+      width: 100%;
+      object-fit: cover;
     }
+  }
+
+  .body {
+    flex-basis: 60%;
+    flex-grow: 1;
+    flex-shrink: 0;
+    margin-left: 1em;
+    margin-right: 1em;
+
+    h2.title {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      border-bottom: none;
+    }
+  }
+
+  a.post-contents {
+    color: $body-color;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
 
     div.description {
       flex-shrink: 0;
     }
-  }
-
-  a.image-left {
-    flex-direction: row;
-  }
-  a.image-right {
-    flex-direction: row-reverse;
   }
 
   .metadata {
@@ -88,18 +124,5 @@ table.quarto-listing td.image {
     font-size: 0.8em;
     font-family: $font-family-base;
     flex-basis: 33%;
-  }
-
-  .thumbnail {
-    width: 35%;
-    margin-bottom: 0;
-    position: relative;
-    max-width: 500px;
-    flex-basis: 25%;
-    img {
-      width: 100%;
-      display: block;
-      object-fit: cover;
-    }
   }
 }

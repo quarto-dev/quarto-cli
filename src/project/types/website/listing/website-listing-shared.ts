@@ -19,8 +19,8 @@ export interface Listing {
 
 // The type of listing
 export enum ListingType {
+  Default = "default",
   Grid = "grid",
-  Posts = "posts",
   Table = "table",
 }
 
