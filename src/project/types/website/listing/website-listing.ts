@@ -191,7 +191,12 @@ export async function listingHtmlDependencies(
   return {
     [kIncludeInHeader]: [scriptFileForScripts(scripts)],
     [kHtmlPostprocessors]: (doc: Document) => {
+      // Process the rendered listings into the document
       pipeline.processRenderedMarkdown(doc);
+
+      // Do any other processing of the document
+      listingPostProcess(doc, listings);
+
       return Promise.resolve([]);
     },
     [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
@@ -235,6 +240,23 @@ function markdownHandler(
         items,
       );
     }
+  }
+}
+
+const kListingColumn = "column-page-left";
+function listingPostProcess(doc: Document, listings: Listing[]) {
+  // Move each listing to the correct column
+  listings.forEach((listing) => {
+    const listingDiv = doc.getElementById(listing.id);
+    if (listingDiv) {
+      listingDiv.classList.add(kListingColumn);
+    }
+  });
+
+  // Move the title element to the correct column
+  const titleEl = doc.getElementById("title-block-header");
+  if (titleEl) {
+    titleEl.classList.add(kListingColumn);
   }
 }
 
