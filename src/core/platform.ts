@@ -29,6 +29,10 @@ export function isJupyterHubServer() {
   return jupyterHubUser() !== undefined;
 }
 
+export function jupyterHubHttpReferrer() {
+  return Deno.env.get("JUPYTERHUB_HTTP_REFERER");
+}
+
 export function jupyterHubUser() {
   return Deno.env.get("JUPYTERHUB_USER");
 }
