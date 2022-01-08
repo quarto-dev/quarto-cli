@@ -18,7 +18,7 @@ ul.pagination {
 }
 
 .quarto-listing-filter {
-  margin-bottom: 0.8em;
+  margin-bottom: 1em;
   width: 33%;
   margin-left: auto;
 }
@@ -89,12 +89,14 @@ table.quarto-listing td.image {
   .metadata {
     flex-basis: 15%;
     flex-grow: 0;
+    margin-top: 0.2em;
   }
 
   .thumbnail {
     flex-basis: 25%;
     flex-grow: 0;
     img {
+      margin-top: 0.35em;
       width: 100%;
       object-fit: cover;
     }
@@ -111,6 +113,7 @@ table.quarto-listing td.image {
       margin-top: 0px;
       margin-bottom: 0px;
       border-bottom: none;
+      padding-bottom: 0.3em;
     }
   }
 

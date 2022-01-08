@@ -34,10 +34,18 @@ export const kCardColumnSpan = "card-column-span";
 export type ColumnType = "date" | "string" | "number";
 
 const kDefaultTableColumns = ["date", "title", "author", "filename"];
-const kDefaultCardColumns = [
+const kDefaultGridColumns = [
   "title",
   "subtitle",
   "author",
+  "image",
+  "description",
+];
+const kDefaultColumns = [
+  "date",
+  "title",
+  "author",
+  "subtitle",
   "image",
   "description",
 ];
@@ -244,7 +252,7 @@ export function resolveTemplateOptions(
       return options(kDefaultTableColumns);
     } else if (listing.type === "grid") {
       // Default grid options
-      const gridOptions = options(kDefaultCardColumns);
+      const gridOptions = options(kDefaultGridColumns);
       gridOptions[kColumnCount] = gridOptions[kColumnCount] !== undefined
         ? gridOptions[kColumnCount]
         : 2;
@@ -255,7 +263,7 @@ export function resolveTemplateOptions(
       return gridOptions;
     } else {
       // Default options
-      const defaultOptions = options(kDefaultCardColumns);
+      const defaultOptions = options(kDefaultColumns);
       defaultOptions[kImageAlign] = defaultOptions[kImageAlign] || "right";
       return defaultOptions;
     }

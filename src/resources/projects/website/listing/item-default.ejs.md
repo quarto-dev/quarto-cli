@@ -1,7 +1,12 @@
 <% 
 const imageAlign = options?.['image-align']  || 'left';
 const imageHeight = options?.['image-height'];
+const cols = options["columns"];
+const colNames = options["column-names"];
 
+const otherCols = cols.filter(col => {
+return !["title", "image", "subtitle", "description", "description"].includes(col);
+});
 
 const outputValue = (col) => {
   const value = item[col];
@@ -14,6 +19,7 @@ const outputValue = (col) => {
 }
 
 const outputMetadata = (col) => {
+  console.log(col);
   if (item[col] !== undefined) {
     return `<div class="metadata-value ${col}">${outputValue(col)}</div>`;  
   } else {
@@ -25,30 +31,35 @@ const outputMetadata = (col) => {
 
 ```{=html}
 <div class="quarto-post image-<%= imageAlign %>">
+  <% if (cols.includes('image')) { %>
   <div class="thumbnail">
     <a href="<%= item.path %>" class="post-contents">
     <% if (item.image) { %>
       <img src="<%= item.image %>"<%= imageHeight ? ` height="${imageHeight}"` : '' %> class="thumbnail-image">
     <% } else { %>
       <div class="thumbnail-image"<%= imageHeight ? ` style="height: ${imageHeight}px;"` : '' %>>
-        
       </div>
     <% } %>
     </a>
   </div>
+  <% } %>
   <div class="body">
     <a href="<%= item.path %>" class="post-contents">
-      <h2 class="title"><%= item.title %></h2>
-      <% if (item.authors) { %>
+      <% if (cols.includes('title')) { %>
+        <h2 class="title"><%= item.title %></h2>
+      <% } %>
+      <% if (cols.includes('authors') && item.authors) { %>
       <p class="authors"></p>
       <% } %>
+      <% if (cols.includes('description')) { %>
       <p class="description"><%= item.description %> </p>
+      <% } %>
     </a>
   </div>
   <div class="metadata">
-    <%= outputMetadata('date') %>
-    <%= outputMetadata('filename') %>
-    <%= outputMetadata('filemodified') %>
+    <% for (const col of otherCols) { %>
+      <%= outputMetadata(col) %>
+    <% } %>
   </div>
 </div>
 ```

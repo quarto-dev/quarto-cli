@@ -225,7 +225,6 @@ function markdownHandler(
       );
     }
     case ListingType.Grid: {
-      // TODO: Gap configurable?
       return templateMarkdownHandler(
         "projects/website/listing/listing-grid.ejs.md",
         templateOptions,

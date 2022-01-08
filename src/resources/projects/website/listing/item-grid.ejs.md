@@ -90,17 +90,3 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
 </div>
 </div>
 ```
-
-<%
-
-// Other columns
-
-// Card header text
-// Card footer text
-
-// Card alignment (left, right, center)
-
-// Listing grids at different sizes (sm, md, lg)
-
-// Pull card item out of grid and share
-%>
