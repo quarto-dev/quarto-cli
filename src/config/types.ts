@@ -168,7 +168,7 @@ export interface FormatDependency {
   name: string;
   version?: string;
   meta?: Record<string, string>;
-  links?: { rel: string; href: string }[];
+  links?: { rel: string; href: string; type?: string }[];
   scripts?: DependencyFile[];
   stylesheets?: DependencyFile[];
   resources?: DependencyFile[];

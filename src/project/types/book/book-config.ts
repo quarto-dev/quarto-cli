@@ -38,6 +38,7 @@ import {
   kMarginHeader,
   kOpenGraph,
   kPageFooter,
+  kSiteFavicon,
   kSiteNavbar,
   kSitePageNavigation,
   kSitePath,
@@ -108,6 +109,7 @@ export async function bookProjectConfig(
   const book = config[kBook] as Record<string, unknown>;
   if (book) {
     site[kSiteTitle] = book[kSiteTitle];
+    site[kSiteFavicon] = book[kSiteFavicon];
     site[kSiteUrl] = book[kSiteUrl];
     site[kSitePath] = book[kSitePath];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];

@@ -664,7 +664,7 @@ export function resolveDependencies(
     `<link <%= attribs %> href="<%- href %>" rel="stylesheet" />`,
   );
   const rawLinkTemplate = ld.template(
-    `<link href="<%- href %>" rel="<%- rel %>" />`,
+    `<link href="<%- href %>" rel="<%- rel %>"<% if (type) { %> type="<%- type %>"<% } %> />`,
   );
 
   const lines: string[] = [];
@@ -719,6 +719,9 @@ export function resolveDependencies(
       }
       if (dependency.links) {
         dependency.links.forEach((link) => {
+          if (!link.type) {
+            link.type = "";
+          }
           lines.push(rawLinkTemplate(link));
         });
       }
