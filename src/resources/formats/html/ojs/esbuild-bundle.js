@@ -1,12 +1,12 @@
 // quarto-ojs.js
 import {
   Interpreter as Interpreter2
-} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
+} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler@0.6.0-alpha.9";
 import {
   Inspector as Inspector4,
   Runtime as Runtime2,
   RuntimeError as RuntimeError2
-} from "https://cdn.skypack.dev/@observablehq/runtime";
+} from "https://cdn.skypack.dev/@observablehq/runtime@4.18.3";
 
 // stdlib.js
 var e = {};
@@ -890,15 +890,15 @@ var PandocCodeDecorator = class {
 // quarto-observable-shiny.js
 import {
   Inspector as Inspector2
-} from "https://cdn.skypack.dev/@observablehq/runtime";
+} from "https://cdn.skypack.dev/@observablehq/runtime@4.18.3";
 import {
   button
-} from "https://cdn.skypack.dev/@observablehq/inputs";
+} from "https://cdn.skypack.dev/@observablehq/inputs@0.10.4";
 
 // quarto-inspector.js
 import {
   Inspector
-} from "https://cdn.skypack.dev/@observablehq/runtime";
+} from "https://cdn.skypack.dev/@observablehq/runtime@4.18.3";
 var QuartoInspector = class extends Inspector {
   constructor(node, cellAst) {
     super(node);
@@ -1075,12 +1075,12 @@ function initOjsShinyRuntime() {
 // ojs-connector.js
 import {
   Interpreter
-} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
+} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler@0.6.0-alpha.9";
 import {
   Inspector as Inspector3,
   Runtime,
   RuntimeError
-} from "https://cdn.skypack.dev/@observablehq/runtime";
+} from "https://cdn.skypack.dev/@observablehq/runtime@4.18.3";
 
 // observablehq-parser.js
 import { getLineInfo, TokContext, tokTypes as tt, Parser } from "https://cdn.skypack.dev/acorn@7";
