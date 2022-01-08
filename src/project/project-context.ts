@@ -11,6 +11,7 @@ import {
   isAbsolute,
   join,
   relative,
+  SEP,
   SEP_PATTERN,
 } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
@@ -52,6 +53,7 @@ import {
 } from "../core/language.ts";
 
 import {
+  engineIgnoreDirs,
   engineIgnoreGlobs,
   executionEngineKeepFiles,
   fileExecutionEngine,
@@ -546,7 +548,11 @@ function projectInputFiles(
           // virtualenvs include symblinks to R or Python libraries that are in turn
           // circular. much safer to not follow symlinks!
           followSymlinks: false,
-          skip: [kSkipHidden],
+          skip: [kSkipHidden].concat(
+            engineIgnoreDirs().map((ignore) =>
+              globToRegExp(join(dir, ignore) + SEP)
+            ),
+          ),
         },
       )
     ) {
