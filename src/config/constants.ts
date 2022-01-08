@@ -274,6 +274,7 @@ export const kTopLevelDivision = "top-level-division";
 export const kPaperSize = "papersize";
 export const kLogFile = "log-file";
 export const kHighlightStyle = "highlight-style";
+export const kDefaultImageExtension = "default-image-extension";
 export const kLinkColor = "linkcolor";
 export const kColorLinks = "colorlinks";
 export const kVariables = "variables";
@@ -397,7 +398,7 @@ export const kPandocDefaultsKeys = [
   "strip-comments",
   "indented-code-classes",
   "ascii",
-  "default-image-extension",
+  kDefaultImageExtension,
   kHighlightStyle,
   kSyntaxDefinitions,
   kSyntaxDefinition,

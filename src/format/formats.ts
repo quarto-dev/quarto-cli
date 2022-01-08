@@ -6,6 +6,7 @@
 */
 
 import {
+  kDefaultImageExtension,
   kEcho,
   kFigFormat,
   kFigHeight,
@@ -232,6 +233,9 @@ function powerpointFormat(): Format {
       [kEcho]: false,
       [kWarning]: false,
     },
+    pandoc: {
+      [kDefaultImageExtension]: "png",
+    },
   });
 }
 
@@ -247,6 +251,7 @@ function plaintextFormat(ext: string): Format {
   return createFormat(ext, {
     pandoc: {
       standalone: true,
+      [kDefaultImageExtension]: "png",
     },
   });
 }
