@@ -109,3 +109,4 @@ export async function initDenoDom() {
 
 export * from "deno_dom/src/api.ts";
 export { DOMParser } from "deno_dom/src/dom/dom-parser.ts";
+export { NodeType } from "deno_dom/src/dom/node.ts";
