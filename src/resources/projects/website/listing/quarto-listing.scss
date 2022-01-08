@@ -1,5 +1,6 @@
 /*-- scss:rules --*/
 
+// General Pagination / Filter Control Styling
 ul.pagination {
   float: right;
   padding-left: 8px;
@@ -22,16 +23,7 @@ ul.pagination {
   margin-left: auto;
 }
 
-.quarto-grid-item.card div.card-img-top {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  p {
-    margin-bottom: 0;
-    color: $light;
-  }
-}
-
+// Grid Listing Styling
 .quarto-grid-item {
   .card-footer {
     display: flex;
@@ -40,23 +32,46 @@ ul.pagination {
     p {
       margin-bottom: 0;
     }
-    img.thumbnail-image {
-      object-fit: cover;
+  }
+  img.thumbnail-image {
+    object-fit: cover;
+  }
+  .card-other-values {
+    margin-top: 0.5em;
+    font-size: 0.8em;
+    tr {
+      margin-bottom: 0.5em;
+    }
+    tr > td:first-of-type {
+      font-weight: 600;
+      padding-right: 1em;
+      padding-left: 1em;
+      vertical-align: top;
     }
   }
+
+  div.card-img-top {
+    background-color: $gray-500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: $white;
+  }
 }
-.card-right {
+
+.quarto-grid-item.card-right {
   text-align: right;
 }
 
-.card-left {
+.quarto-grid-item.card-left {
   text-align: left;
 }
 
-.card-center {
+.quarto-grid-item.card-center {
   text-align: center;
 }
 
+// Table Listing Styling
 table.quarto-listing td.image {
   padding: 0px;
   img {
@@ -66,14 +81,7 @@ table.quarto-listing td.image {
   }
 }
 
-.quarto-post.image-left {
-  flex-direction: row;
-}
-
-.quarto-post.image-right {
-  flex-direction: row-reverse;
-}
-
+// Post (default) Styling
 .quarto-post {
   display: flex;
   margin-bottom: 1.5em;
@@ -125,4 +133,12 @@ table.quarto-listing td.image {
     font-family: $font-family-base;
     flex-basis: 33%;
   }
+}
+
+.quarto-post.image-left {
+  flex-direction: row;
+}
+
+.quarto-post.image-right {
+  flex-direction: row-reverse;
 }

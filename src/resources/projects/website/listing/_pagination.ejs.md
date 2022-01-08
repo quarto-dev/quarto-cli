@@ -2,7 +2,7 @@
 
 ```{=html}
 <div>
-<ul class="pagination"></ul>
+  <ul class="pagination"></ul>
 </div>
 ```
 

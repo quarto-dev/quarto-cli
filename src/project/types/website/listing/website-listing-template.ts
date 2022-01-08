@@ -160,9 +160,7 @@ export function templateMarkdownHandler(
       }
 
       const renderedEl = rendered[listing.id];
-      for (const child of renderedEl.children) {
-        listingEl?.appendChild(child);
-      }
+      listingEl!.innerHTML = renderedEl.innerHTML;
     },
   };
 }
@@ -247,8 +245,11 @@ export function resolveTemplateOptions(
     } else if (listing.type === "grid") {
       // Default grid options
       const gridOptions = options(kDefaultCardColumns);
+      gridOptions[kColumnCount] = gridOptions[kColumnCount] !== undefined
+        ? gridOptions[kColumnCount]
+        : 2;
       gridOptions[kCardColumnSpan] = columnSpan(
-        listing.options?.[kColumnCount] as number || 3,
+        gridOptions[kColumnCount] as number,
       );
       gridOptions[kImageHeight] = gridOptions[kImageHeight] || 120;
       return gridOptions;

@@ -4,7 +4,7 @@ const cols = options.columns;
 const colNames = options["column-names"];
 const colSortTargets = options["column-sort-targets"];
 const links = options["column-links"];
-const cardColumnSpan = options['card-column-span'] || 8;
+const cardColumnSpan = options['card-column-span'] || 12;
 const align = options["alignment"] || "left";
 
 // Cap Options

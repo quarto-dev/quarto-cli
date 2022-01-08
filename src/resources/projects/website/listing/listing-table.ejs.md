@@ -41,7 +41,7 @@ return linkify(value);
 <table class="quarto-listing table">
 <thead>
   <tr>
-  | <% for (col of cols) { %>
+  <% for (col of cols) { %>
     <th>
     <% if (allowSort) { %>
     <a class="sort" data-sort="<%-colSortTargets[col]%>" onclick="return false;">
