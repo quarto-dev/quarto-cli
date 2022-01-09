@@ -6,7 +6,6 @@
 */
 
 import { ld } from "lodash/mod.ts";
-import { formatKeys } from "../../../command/render/render.ts";
 
 import {
   kDescription,
@@ -16,6 +15,7 @@ import {
 import { isHtmlOutput } from "../../../config/format.ts";
 import {
   formatFromMetadata,
+  formatKeys,
   metadataAsFormat,
 } from "../../../config/metadata.ts";
 import { Format, Metadata } from "../../../config/types.ts";

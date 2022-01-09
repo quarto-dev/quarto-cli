@@ -8,6 +8,8 @@
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import { ProjectContext } from "./types.ts";
 import { Metadata } from "../config/types.ts";
 import { Format } from "../config/types.ts";
@@ -21,6 +23,8 @@ import { fileExecutionEngine } from "../execute/engine.ts";
 import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
 import { projectScratchPath } from "./project-scratch.ts";
 import { parsePandocTitle } from "../core/pandoc/pandoc-partition.ts";
+import { readYaml } from "../core/yaml.ts";
+import { formatKeys } from "../config/metadata.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -82,19 +86,42 @@ export function readInputTargetIndex(
   projectDir: string,
   input: string,
 ): InputTargetIndex | undefined {
+  // check if we have an index that's still current visa-vi the
+  // last modified date of the source file
+  const index = readInputTargetIndexIfStillCurrent(projectDir, input);
+
+  // if its still current visa-vi the input file, we then need to
+  // check if the format list has changed (which is also an invalidation)
+  if (index) {
+    const formats = Object.keys(index.formats);
+    const projConfigFile = projectConfigFile(projectDir);
+    if (projConfigFile) {
+      const config = readYaml(projConfigFile) as Metadata;
+      const projFormats = formatKeys(config);
+      if (ld.isEqual(formats, projFormats)) {
+        return index;
+      } else {
+        return undefined;
+      }
+    } else {
+      return index;
+    }
+  } else {
+    return undefined;
+  }
+}
+
+function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
   const inputFile = join(projectDir, input);
   const indexFile = inputTargetIndexFile(projectDir, input);
   if (existsSync(indexFile)) {
     const inputMod = Deno.statSync(inputFile).mtime;
     const indexMod = Deno.statSync(indexFile).mtime;
-    const projConfigFile = projectConfigFile(projectDir);
-    const projMod = projConfigFile ? Deno.statSync(projConfigFile).mtime : 0;
     if (
-      inputMod && indexMod && (indexMod >= inputMod) &&
-      (!projMod || (indexMod >= projMod))
+      inputMod && indexMod && (indexMod >= inputMod)
     ) {
       try {
-        return JSON.parse(Deno.readTextFileSync(indexFile));
+        return JSON.parse(Deno.readTextFileSync(indexFile)) as InputTargetIndex;
       } catch {
         return undefined;
       }
