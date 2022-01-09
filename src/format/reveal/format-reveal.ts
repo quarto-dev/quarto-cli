@@ -548,7 +548,7 @@ function revealHtmlPostprocessor(format: Format) {
 
 function applyStretch(doc: Document, autoStretch: boolean) {
   // Add stretch class to images in slides with only one image
-  const allSlides = doc.querySelectorAll("section");
+  const allSlides = doc.querySelectorAll("section.slide");
   for (const slide of allSlides) {
     const slideEl = slide as Element;
 
