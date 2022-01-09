@@ -12,6 +12,7 @@ import { info } from "log/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
+import { encode as base64Encode } from "encoding/base64.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -553,7 +554,7 @@ export async function runPandoc(
       cmd,
       cwd,
       env: {
-        "QUARTO_FILTER_PARAMS": paramsJson,
+        "QUARTO_FILTER_PARAMS": base64Encode(paramsJson),
       },
     },
   );
