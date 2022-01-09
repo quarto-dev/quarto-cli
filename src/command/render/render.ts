@@ -836,7 +836,7 @@ export async function resolveFormatsFromMetadata(
   );
 
   // resolve any language file references
-  resolveLanguageMetadata(allMetadata, includeDir);
+  await resolveLanguageMetadata(allMetadata, includeDir);
 
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
