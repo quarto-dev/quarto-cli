@@ -118,8 +118,6 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
             "scrreport",
             "scrartcl",
             "scrarticle",
-            "scrlttr2",
-            "scrletter",
           ].includes(
             documentclass,
           )
