@@ -23,6 +23,7 @@ import {
   kMergeIncludes,
   kOutputDivs,
   kReferenceLocation,
+  kTocTitleDocument,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import { Format, FormatLanguage, FormatPandoc } from "../../config/types.ts";
@@ -238,9 +239,12 @@ function referenceLocationArg(args: string[]) {
 function languageFilterParams(language: FormatLanguage) {
   const params: Metadata = {
     [kCodeSummary]: language[kCodeSummary],
+    [kTocTitleDocument]: language[kTocTitleDocument],
   };
   Object.keys(language).forEach((key) => {
-    if (key.startsWith("callout-") || key.startsWith("crossref-")) {
+    if (
+      key.startsWith("callout-") || key.startsWith("crossref-")
+    ) {
       params[key] = language[key];
     }
   });

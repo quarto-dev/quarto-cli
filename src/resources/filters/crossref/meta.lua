@@ -8,18 +8,14 @@ function crossrefMetaInject()
       metaInjectLatex(meta, function(inject)
         
         inject(usePackage("caption"))
-
-        inject(
-          "\\AtBeginDocument{%\n" ..
-          "\\renewcommand*\\figurename{" .. titleString("fig", "Figure") .. "}\n" ..
-          "\\renewcommand*\\tablename{" .. titleString("tbl", "Table") .. "}\n" ..
-          "}\n"
-        )
      
         inject(
           "\\AtBeginDocument{%\n" ..
+          "\\renewcommand*\\contentsname{" .. param("toc-title-document", "Table of contents") .. "}\n" ..
           "\\renewcommand*\\listfigurename{" .. listOfTitle("lof", "List of Figures") .. "}\n" ..
           "\\renewcommand*\\listtablename{" .. listOfTitle("lot", "List of Tables") .. "}\n" ..
+          "\\renewcommand*\\figurename{" .. titleString("fig", "Figure") .. "}\n" ..
+          "\\renewcommand*\\tablename{" .. titleString("tbl", "Table") .. "}\n" ..
           "}\n"
         )
       

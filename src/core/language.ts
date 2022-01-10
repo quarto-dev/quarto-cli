@@ -161,8 +161,11 @@ export async function formatLanguage(
     metadata[kLang] ||
     "en"
   ) as string;
-  const defaultLanguge =
-    (await readDefaultLanguageTranslations(langCode)).language;
+  const defaultLanguge = translationsForLang(
+    (await readDefaultLanguageTranslations(langCode)).language,
+    langCode,
+  );
+
   // merge any user provided language w/ the defaults
   language = mergeConfigs(defaultLanguge, language);
 
