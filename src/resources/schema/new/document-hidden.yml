@@ -79,7 +79,7 @@
     enum: [ERROR, WARNING, INFO]
   default: WARNING
   hidden: true
-  description: "Level of program output (provide INFO for diagnostics)"
+  description: "Level of program output (`INFO`, `ERROR`, or `WARNING`)"
 
 - name: log-file
   hidden: true

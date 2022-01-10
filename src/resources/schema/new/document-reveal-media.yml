@@ -10,7 +10,7 @@
     short: "Opens links in an iframe preview overlay"
     long: |
       Opens links in an iframe preview overlay (defaults to
-      auto, which will use an iframe in fullscreen mode).
+      `auto`, which will use an iframe in fullscreen mode).
 
 - name: auto-play-media
   tags:

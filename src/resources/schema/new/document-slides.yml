@@ -57,7 +57,7 @@
   schema:
     enum: [all, print, speaker]
   default: all
-  description: "Contexts in which the slide number appears"
+  description: "Contexts in which the slide number appears (`all`, `print`, or `speaker`)"
 
 - name: title-slide-attributes
   schema:

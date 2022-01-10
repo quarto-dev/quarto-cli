@@ -49,11 +49,11 @@
                       - boolean
                       - enum: ["always", "never"]
                     default: "always"
-                    description: Controls whether the in-document highlights are shown by default.
+                    description: Controls whether the in-document highlights are shown by default (`always` or `never`)
                   theme:
                     enum: ["classic", "clean"]
                     default: classic
-                    description: Controls the overall look of the sidebar.
+                    description: Controls the overall look of the sidebar (`classic` or `clean`)
                   enableExperimentalNewNoteButton:
                     boolean:
                       default: false

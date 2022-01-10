@@ -65,7 +65,7 @@
   default: article
   tags:
     formats: [$html-doc]
-  description: The page layout to use for this document.
+  description: The page layout to use for this document (`article`, `custom`, or `none`)
 
 - name: page-width
   tags:

@@ -1,22 +1,28 @@
 - name: panel
   schema:
     enum: [tabset, input, sidebar, fill, center]
-  description: "Panel type for cell output"
+  description: "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)"
 
 - name: column
   schema:
     ref: page-column
-  description: "Page column for output"
+  description:
+    short: "Page column for output"
+    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for output"
 
 - name: fig-column
   schema:
     ref: page-column
-  description: "Page column for figure output"
+  description:
+    short: "Page column for figure output"
+    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for figure output"
 
 - name: tbl-column
   schema:
     ref: page-column
-  description: "Page column for table output"
+  description:
+    short: "Page column for table output"
+    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for table output"
 
 - name: cap-location
   tags:
@@ -25,7 +31,7 @@
   schema:
     enum: [top, bottom, margin]
   default: inline
-  description: "Where to place figure and table captions."
+  description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
 
 - name: fig-cap-location
   tags:
@@ -34,7 +40,7 @@
   schema:
     enum: [top, bottom, margin]
   default: inline
-  description: "Where to place figure captions."
+  description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
 
 - name: tbl-cap-location
   tags:
@@ -43,4 +49,4 @@
   schema:
     enum: [top, bottom, margin]
   default: inline
-  description: "Where to place table captions."
+  description: "Where to place table captions (`top`, `bottom`, or `margin`)"

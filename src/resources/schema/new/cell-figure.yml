@@ -31,7 +31,7 @@
     maybeArrayOf:
       enum: [default, left, right, center]
   default: default
-  description: Horizontal alignment for the figure
+  description: Horizontal alignment for the figure (`default`, `left`, `right`, or `center`)
 
 - name: fig-alt
   tags:
@@ -71,7 +71,7 @@
     engine: knitr
   schema:
     enum: [retina, png, jpeg, svg, pdf]
-  description: "Default output format for figures"
+  description: "Default output format for figures (`retina`, `png`, `jpeg`, `svg`, or `pdf`)"
 
 - name: fig-dpi
   tags:

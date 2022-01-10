@@ -299,7 +299,9 @@
       repo-actions:
         maybeArrayOf:
           enum: [none, edit, source, issue]
-          description: "Links to source repository actions"
+          description:
+            short: "Links to source repository actions"
+            long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
 
       navbar:
         oneOf:
@@ -400,7 +402,7 @@
                   description: "List of items for the sidebar"
                 style:
                   enum: ["docked", "floating"]
-                  description: "The style of sidebar."
+                  description: "The style of sidebar (`docked` or `floating`)."
                   default: "floating"
                 background:
                   oneOf:
@@ -434,7 +436,7 @@
                   description: "The sidebar's foreground color (named or hex color)."
                 alignment:
                   enum: ["left", "right", "center"]
-                  description: "Alignment of the items within the sidebar"
+                  description: "Alignment of the items within the sidebar (`left`, `right`, or `center`)"
                 collapse-level:
                   number:
                     description: "The depth at which the sidebar contents should be collapsed by default."
@@ -493,10 +495,10 @@
               properties:
                 location:
                   enum: [navbar, sidebar]
-                  description: "Location for search widget (navbar or sidebar)"
+                  description: "Location for search widget (`navbar` or `sidebar`)"
                 type:
                   enum: [overlay, textbox]
-                  description: "Type of search UI (overlay or textbox)"
+                  description: "Type of search UI (`overlay` or `textbox`)"
                 limit:
                   schema: number
                   description: "Number of matches to display (defaults to 20)"
@@ -580,7 +582,7 @@
                   description:
                     short: "Card style"
                     long: |
-                      Card style. If this is not provided, the best style will automatically 
+                      Card style (`summary` or `summary_large_image`). If this is not provided, the best style will automatically 
                       selected based upon other metadata. You can learn more about Twitter Card
                       styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).
                 creator:

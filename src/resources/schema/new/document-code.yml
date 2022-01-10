@@ -6,7 +6,12 @@
   tags:
     formats: [$html-all]
   default: "hover"
-  description: Enables a code copy icon for code blocks.
+  description:
+    short: Enable a code copy icon for code blocks.
+    long: |
+      Enable a code copy icon for code blocks. Defaults to `hover`, which
+      shows the icon when the mouse hovers over the code block. Set to 
+      `true` or `false` to show or hide unconditionally.
 
 - name: code-link
   schema: boolean

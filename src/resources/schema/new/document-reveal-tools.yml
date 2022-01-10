@@ -16,7 +16,7 @@
             side:
               enum: [left, right]
               default: left
-              description: "Side of the presentation where the menu will be shown."
+              description: "Side of the presentation where the menu will be shown (`left` or `right`)"
             width:
               string:
                 completions: [normal, wide, third, half, full]
@@ -43,7 +43,7 @@
             theme:
               enum: [chalkboard, whiteboard]
               default: chalkboard
-              description: "Visual theme for drawing surface"
+              description: "Visual theme for drawing surface (`chalkboard` or `whiteboard`)"
             boardmarker-width:
               number:
                 default: 3

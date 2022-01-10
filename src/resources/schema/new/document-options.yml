@@ -66,7 +66,9 @@
               ref: math-methods
             url: string
           required: [method]
-  description: "Method use to render math in HTML output"
+  description:
+    short: "Method use to render math in HTML output"
+    long: "Method use to render math in HTML output (`plain`, `webtex`, `gladtex`, `mathml`, `mathjax`, `katex`)"
 
 - name: section-divs
   tags:
@@ -199,7 +201,7 @@
     enum: [empty, frame, vertical, horizontal]
   tags:
     formats: [beamer]
-  description: Controls navigation symbols for the presentation.
+  description: Controls navigation symbols for the presentation (`empty`, `frame`, `vertical`, or `horizontal`)
 
 - name: section-titles
   schema: boolean
@@ -259,8 +261,8 @@
     enum: [setext, atx]
   default: atx
   description: |
-    Specify whether to use ATX-style (`#`-prefixed) or
-    Setext-style (underlined) headings for level 1 and 2
+    Specify whether to use `atx` (`#`-prefixed) or
+    `setext` (underlined) headings for level 1 and 2
     headings.
 
 - name: keep-yaml

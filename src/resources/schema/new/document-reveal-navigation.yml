@@ -24,14 +24,14 @@
     long: |
       Changes the behavior of navigation directions.
 
-      `default`:
-      Left/right arrow keys step between horizontal slides, up/down
-      arrow keys step between vertical slides. Space key steps through
-      all slides (both horizontal and vertical).
-
       `linear`:
       Removes the up/down arrows. Left/right arrows step through all
       slides (both horizontal and vertical).
+
+      `vertical`:
+      Left/right arrow keys step between horizontal slides, up/down
+      arrow keys step between vertical slides. Space key steps through
+      all slides (both horizontal and vertical).
 
       `grid`:
       When this is enabled, stepping left/right from a vertical stack
@@ -100,7 +100,7 @@
     short: "Show arrow controls for navigating through slides"
     long: |
       Show arrow controls for navigating through slides (defaults to
-      auto, which will show controls when vertical slides are present
+      `auto`, which will show controls when vertical slides are present
       or when the deck is embedded in an iframe).
 
 - name: controls-layout

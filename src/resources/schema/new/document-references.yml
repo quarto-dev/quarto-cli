@@ -21,7 +21,7 @@
   tags:
     formats: [$html-doc]
   default: document
-  description: Where citation information should be displayed.
+  description: Where citation information should be displayed (`document` or `margin`)
 
 - name: cite-method
   tags:
@@ -30,7 +30,7 @@
     enum: [citeproc, natbib, biblatex]
   default: citeproc
   description: |
-    Method used to format citations.
+    Method used to format citations (`citeproc`, `natbib`, or `biblatex`).
 
 - name: citeproc
   schema: boolean

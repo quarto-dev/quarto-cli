@@ -82,7 +82,7 @@
           properties:
             type:
               enum: [shiny]
-              description: Type of server to run behind the document.
+              description: Type of server to run behind the document (e.g. `shiny`)
             ojs-export:
               maybeArrayOf: string
               description: OJS variables to export to server.

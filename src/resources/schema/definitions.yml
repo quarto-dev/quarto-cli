@@ -167,6 +167,8 @@
         page,
         page-left,
         page-right,
+        page-inset-left,
+        page-inset-right,
         screen,
         screen-left,
         screen-right,

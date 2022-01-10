@@ -27,10 +27,10 @@
   schema:
     enum: [default, left, center, right]
   default: center
-  description: Horizontal alignment for layout content
+  description: Horizontal alignment for layout content (`default`, `left`, `right`, or `center`)
 
 - name: layout-valign
   schema:
     enum: [default, top, center, bottom]
   default: top
-  description: Vertical alignment for layout content
+  description: Vertical alignment for layout content (`default`, `top`, `center`, or `bottom`)
