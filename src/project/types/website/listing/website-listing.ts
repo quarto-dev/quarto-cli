@@ -51,7 +51,6 @@ import {
 const kDefaultListingType = ListingType.Default;
 const kDefaultContentsGlob = ["*"];
 const kDefaultId = "quarto-listing";
-const kSortableValueFields = ["date", "filemodified"];
 
 export const kListing = "listing";
 
@@ -358,7 +357,6 @@ function normalizeListingConfiguration(
       type: kDefaultListingType,
       contents: kDefaultContentsGlob,
       classes: [],
-      sortableValueFields: kSortableValueFields,
     });
   }
 
@@ -383,7 +381,6 @@ function resolveListing(meta: Record<string, unknown>, synthId: () => string) {
     classes: maybeArray(meta.classes) || [],
     sort: resolveListingSort(meta.sort),
     options: meta.options as Record<string, unknown>,
-    sortableValueFields: kSortableValueFields,
   };
 }
 
@@ -446,7 +443,6 @@ function resolveListingStr(val: string): Listing {
         type: ListingType.Grid,
         contents: kDefaultContentsGlob,
         classes: [],
-        sortableValueFields: kSortableValueFields,
       };
 
     case ListingType.Default:
@@ -455,7 +451,6 @@ function resolveListingStr(val: string): Listing {
         type: ListingType.Default,
         contents: kDefaultContentsGlob,
         classes: [],
-        sortableValueFields: kSortableValueFields,
       };
 
     case ListingType.Table:
@@ -464,7 +459,6 @@ function resolveListingStr(val: string): Listing {
         type: ListingType.Table,
         contents: kDefaultContentsGlob,
         classes: [],
-        sortableValueFields: kSortableValueFields,
       };
   }
 
@@ -474,7 +468,6 @@ function resolveListingStr(val: string): Listing {
     type: kDefaultListingType,
     contents: [val],
     classes: [],
-    sortableValueFields: kSortableValueFields,
   };
 }
 

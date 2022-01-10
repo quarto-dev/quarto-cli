@@ -14,7 +14,6 @@ export interface Listing {
   classes: string[];
   options?: Record<string, unknown>;
   sort?: ListingSort[];
-  sortableValueFields: string[];
 }
 
 // The type of listing
