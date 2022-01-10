@@ -31,6 +31,7 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 import {
   isJupyterHubServer,
   isRStudioServer,
+  jupyterHubHttpReferrer,
   jupyterHubUser,
 } from "../../core/platform.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
@@ -175,8 +176,12 @@ export function printWatchingForChangesMessage() {
 
 export function printBrowsePreviewMessage(port: number, path: string) {
   if (isJupyterHubServer()) {
+    let httpReferrer = jupyterHubHttpReferrer();
+    if (!httpReferrer) {
+      httpReferrer = `<jupyterhub-server-url>/user/${jupyterHubUser()}/`;
+    }
     info(
-      `\nBrowse at <jupyterhub-server-url>/user/${jupyterHubUser()}/proxy/${port}/${path}`,
+      `\nBrowse at ${httpReferrer}proxy/${port}/${path}`,
       {
         format: colors.green,
       },

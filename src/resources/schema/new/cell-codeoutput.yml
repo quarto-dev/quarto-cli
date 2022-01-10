@@ -50,6 +50,7 @@
 - name: code-line-numbers
   tags:
     contexts: [document-code]
+    formats: [$html-all, docx, ms, $pdf-all]
   schema: boolean
   default: false
   description: "Include line numbers in code block output."

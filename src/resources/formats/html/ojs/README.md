@@ -15,6 +15,14 @@ through a fancy client-side import map trick?)
 Our solution is to take all required javascript files and bundle them
 together with `esbuild`.
 
+If you're making changes to the JS files, it's likely that you simply
+want to call
+
+    $ quarto build-js
+    
+This will perform the build step described below, as well as build
+all of Quarto's other JS and JSON assets.
+
 ## Building
 
 We use `esbuild` to create esbuild-bundle.js, a single JS module which
@@ -23,12 +31,6 @@ should be eventually automated, it currently isn't. As a result, every time
 you change JavaScript code, the following needs to run:
 
     $ esbuild --bundle quarto-ojs.js --outfile=esbuild-bundle.js --format=esm
-
-Note that you're likely going to want to simply call
-
-    $ quarto build-js
-    
-Which will rebuild this --- and all of other Quarto's --- JS build assets.
 
 ## Organization
 

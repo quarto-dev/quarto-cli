@@ -7,11 +7,11 @@
 
 import {
   Inspector
-} from "https://cdn.skypack.dev/@observablehq/runtime";
+} from "https://cdn.skypack.dev/@observablehq/runtime@4.18.3";
 
 import {
   button
-} from "https://cdn.skypack.dev/@observablehq/inputs";
+} from "https://cdn.skypack.dev/@observablehq/inputs@0.10.4";
 
 // see ojs-bundle.js for why we're importing from ./stdlib.js and not skypack.
 import {

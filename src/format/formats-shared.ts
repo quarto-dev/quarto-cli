@@ -14,6 +14,7 @@ import {
   kCodeLink,
   kCodeOverflow,
   kCodeTools,
+  kDefaultImageExtension,
   kEcho,
   kError,
   kEval,
@@ -89,6 +90,7 @@ export function createHtmlFormat(
     },
     pandoc: {
       [kStandalone]: true,
+      [kDefaultImageExtension]: "png",
     },
   });
 }
@@ -125,6 +127,9 @@ export function createEbookFormat(ext: string): Format {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
     },
+    pandoc: {
+      [kDefaultImageExtension]: "png",
+    },
   });
 }
 
@@ -136,6 +141,9 @@ export function createWordprocessorFormat(ext: string): Format {
     execute: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
+    },
+    pandoc: {
+      [kDefaultImageExtension]: "png",
     },
   });
 }

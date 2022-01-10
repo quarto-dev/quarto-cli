@@ -17,6 +17,7 @@ import {
   kCitationLocation,
   kCiteMethod,
   kClassOption,
+  kDefaultImageExtension,
   kDocumentClass,
   kEcho,
   kFigCapLoc,
@@ -97,6 +98,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           graphics: true,
           tables: true,
         },
+        [kDefaultImageExtension]: "pdf",
       },
       formatExtras: (_input: string, flags: PandocFlags, format: Format) => {
         const extras: FormatExtras = {};
@@ -116,8 +118,6 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
             "scrreport",
             "scrartcl",
             "scrarticle",
-            "scrlttr2",
-            "scrletter",
           ].includes(
             documentclass,
           )

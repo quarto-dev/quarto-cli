@@ -12,6 +12,7 @@ import { info } from "log/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
+import { encode as base64Encode } from "encoding/base64.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -553,7 +554,7 @@ export async function runPandoc(
       cmd,
       cwd,
       env: {
-        "QUARTO_FILTER_PARAMS": paramsJson,
+        "QUARTO_FILTER_PARAMS": base64Encode(paramsJson),
       },
     },
   );
@@ -664,7 +665,7 @@ export function resolveDependencies(
     `<link <%= attribs %> href="<%- href %>" rel="stylesheet" />`,
   );
   const rawLinkTemplate = ld.template(
-    `<link href="<%- href %>" rel="<%- rel %>" />`,
+    `<link href="<%- href %>" rel="<%- rel %>"<% if (type) { %> type="<%- type %>"<% } %> />`,
   );
 
   const lines: string[] = [];
@@ -719,6 +720,9 @@ export function resolveDependencies(
       }
       if (dependency.links) {
         dependency.links.forEach((link) => {
+          if (!link.type) {
+            link.type = "";
+          }
           lines.push(rawLinkTemplate(link));
         });
       }

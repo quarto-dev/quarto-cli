@@ -36,6 +36,7 @@ import { warnOnce } from "../../core/log.ts";
 
 import {
   formatFromMetadata,
+  formatKeys,
   includedMetadata,
   metadataAsFormat,
 } from "../../config/metadata.ts";
@@ -835,7 +836,7 @@ export async function resolveFormatsFromMetadata(
   );
 
   // resolve any language file references
-  resolveLanguageMetadata(allMetadata, includeDir);
+  await resolveLanguageMetadata(allMetadata, includeDir);
 
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
@@ -909,22 +910,6 @@ export async function resolveFormatsFromMetadata(
   });
 
   return resolved;
-}
-
-// determine all target formats (use original input and
-// project metadata to preserve order of keys and to
-// prefer input-level format keys to project-level)
-export function formatKeys(metadata: Metadata): string[] {
-  if (typeof metadata[kMetadataFormat] === "string") {
-    return [metadata[kMetadataFormat] as string];
-  } else if (metadata[kMetadataFormat] instanceof Object) {
-    return Object.keys(metadata[kMetadataFormat] as Metadata).filter((key) => {
-      const format = (metadata[kMetadataFormat] as Metadata)[key];
-      return format !== null && format !== false;
-    });
-  } else {
-    return [];
-  }
 }
 
 export function filesDirLibDir(input: string) {

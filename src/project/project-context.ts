@@ -11,6 +11,7 @@ import {
   isAbsolute,
   join,
   relative,
+  SEP,
   SEP_PATTERN,
 } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
@@ -52,6 +53,7 @@ import {
 } from "../core/language.ts";
 
 import {
+  engineIgnoreDirs,
   engineIgnoreGlobs,
   executionEngineKeepFiles,
   fileExecutionEngine,
@@ -152,7 +154,7 @@ export async function projectContext(
       configFiles.push(...translationFiles);
 
       // inject format if specified in --to
-      if (flags?.to) {
+      if (flags?.to && flags?.to !== "all" && flags?.to !== "default") {
         const projectFormats = normalizeFormatYaml(
           projectConfig[kMetadataFormat],
         );
@@ -546,7 +548,11 @@ function projectInputFiles(
           // virtualenvs include symblinks to R or Python libraries that are in turn
           // circular. much safer to not follow symlinks!
           followSymlinks: false,
-          skip: [kSkipHidden],
+          skip: [kSkipHidden].concat(
+            engineIgnoreDirs().map((ignore) =>
+              globToRegExp(join(dir, ignore) + SEP)
+            ),
+          ),
         },
       )
     ) {

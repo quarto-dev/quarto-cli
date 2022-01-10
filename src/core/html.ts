@@ -26,6 +26,25 @@ export function getDecodedAttribute(element: Element, attrib: string) {
   }
 }
 
+export function findParent(
+  el: Element,
+  match: (el: Element) => boolean,
+): Element | undefined {
+  let targetEl = el;
+  do {
+    if (targetEl.parentElement) {
+      if (match(targetEl.parentElement)) {
+        return targetEl.parentElement;
+      } else {
+        targetEl = targetEl.parentElement;
+      }
+    } else {
+      return undefined;
+    }
+  } while (targetEl !== null && targetEl.nodeType === 1);
+  return undefined;
+}
+
 export const kHtmlResourceTags: Record<string, string[]> = {
   "a": ["href"],
   "img": ["src", "data-src"],
