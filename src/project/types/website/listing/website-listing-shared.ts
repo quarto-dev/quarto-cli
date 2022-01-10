@@ -36,6 +36,11 @@ export const kAllowSort = "allow-sort";
 export const kImageHeight = "image-height";
 export const kImageAlign = "image-align";
 
+export interface ResolvedListing {
+  listing: Listing;
+  items: ListingItem[];
+}
+
 // The core listing type
 export interface Listing extends Record<string, unknown> {
   id: string;
