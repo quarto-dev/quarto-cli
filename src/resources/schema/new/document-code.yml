@@ -38,7 +38,10 @@
       - boolean
       - object:
           properties:
-            source: boolean
+            source:
+              oneOf:
+                - boolean
+                - string
             toggle: boolean
             caption: string
   default: false
