@@ -150,7 +150,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           const titleEl = window.document.body.querySelector(
             placeholderDescriptor.titleSelector
           );
-          toggleTitle.append(titleEl.innerText, toggleIcon);
+          if (titleEl) {
+            toggleTitle.append(titleEl.innerText, toggleIcon);
+          }
           toggleTitle.classList.add("zindex-over-content");
           toggleTitle.classList.add("quarto-sidebar-toggle-title");
           toggleContainer.append(toggleTitle);
