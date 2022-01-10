@@ -6,7 +6,8 @@
 *
 * This syntax looks like our YAML syntax. The functions in this
 * file are heuristics that attempt to sniff out which of the two
-* styles are being used.
+* styles are being used, so we don't attempt to validate or parse
+* something that really isn't YAML.
 *
 * Copyright (C) 2022 by RStudio, PBC
 *
