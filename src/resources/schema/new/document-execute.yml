@@ -1,10 +1,12 @@
 - name: engine
+  hidden: true
   schema:
     string:
       completions: [jupyter, knitr]
   description: "Engine used for executable code blocks."
 
 - name: jupyter
+  hidden: true
   schema:
     oneOf:
       - boolean
@@ -27,6 +29,7 @@
   description: Configures the Jupyter engine.
 
 - name: knitr
+  hidden: true
   schema:
     oneOf:
       - boolean
@@ -71,6 +74,7 @@
       when their source file changes (`freeze: auto`).
 
 - name: server
+  hidden: true
   schema:
     oneOf:
       - enum: [shiny]
@@ -88,6 +92,7 @@
   description: Document server
 
 - name: daemon
+  hidden: true
   schema:
     oneOf: [number, boolean]
   default: 300
@@ -117,6 +122,7 @@
   description: "Execute code cell execution in Jupyter notebooks."
 
 - name: debug
+  hidden: true
   schema: boolean
   default: false
   description: "Show code-execution related debug information."
