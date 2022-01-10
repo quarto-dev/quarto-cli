@@ -138,6 +138,7 @@
 
       For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
       version of Palatino with lowercase figures:
+
       ```yaml
       mainfont: TeX Gyre Pagella
       mainfontoptions:
@@ -158,6 +159,7 @@
 
       For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
       version of Palatino with lowercase figures:
+
       ```yaml
       mainfont: TeX Gyre Pagella
       mainfontoptions:
@@ -178,6 +180,7 @@
 
       For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
       version of Palatino with lowercase figures:
+
       ```yaml
       mainfont: TeX Gyre Pagella
       mainfontoptions:
@@ -198,6 +201,7 @@
 
       For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
       version of Palatino with lowercase figures:
+
       ```yaml
       mainfont: TeX Gyre Pagella
       mainfontoptions:
@@ -218,6 +222,7 @@
 
       For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
       version of Palatino with lowercase figures:
+
       ```yaml
       mainfont: TeX Gyre Pagella
       mainfontoptions:
