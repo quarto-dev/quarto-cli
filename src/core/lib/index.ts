@@ -48,6 +48,8 @@ export { prefixes } from "./regexp.js";
 
 export { Semaphore } from "./semaphore.ts";
 
+export { guessChunkOptionsFormat } from "./guess-chunk-options-format.ts";
+
 import _ajv from "./external/ajv-bundle.js";
 
 export const Ajv = _ajv; 

@@ -24,6 +24,8 @@ import { warnOnce } from "./log.ts";
 
 import { getEngineOptionsSchema } from "./schema/chunk-metadata.ts";
 
+import { guessChunkOptionsFormat } from "./lib/guess-chunk-options-format.ts";
+
 export function partitionCellOptions(
   language: string,
   source: string[],
@@ -54,6 +56,15 @@ export function partitionCellOptions(
     break;
   }
 
+  if (guessChunkOptionsFormat(yamlLines.join("\n")) === "knitr") {
+    return {
+      yaml: undefined,
+      optionsSource,
+      source: source.slice(yamlLines.length),
+      sourceStartLine: yamlLines.length,
+    };
+  };
+  
   let yaml = yamlLines.length > 0
     ? readYamlFromString(yamlLines.join("\n"))
     : undefined;
@@ -113,17 +124,26 @@ export async function partitionCellOptionsMapped(
     sourceStartLine,
   } = await libPartitionCellOptionsMapped(language, outerSource);
 
-  const yaml = await parseAndValidateCellOptions(
-    mappedYaml ?? asMappedString(""),
-    language,
-    validate,
-    engine,
-  );
+  if (guessChunkOptionsFormat((mappedYaml ?? asMappedString("")).value) === "yaml") {
+    const yaml = await parseAndValidateCellOptions(
+      mappedYaml ?? asMappedString(""),
+      language,
+      validate,
+      engine,
+    );
 
-  return {
-    yaml: yaml as Record<string, unknown> | undefined,
-    optionsSource,
-    source,
-    sourceStartLine,
-  };
+    return {
+      yaml: yaml as Record<string, unknown> | undefined,
+      optionsSource,
+      source,
+      sourceStartLine,
+    };
+  } else {
+    return {
+      yaml: undefined,
+      optionsSource,
+      source,
+      sourceStartLine,
+    };
+  }
 }

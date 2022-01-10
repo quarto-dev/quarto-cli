@@ -128,6 +128,12 @@ async function automationFromGoodParseYAML(kind, context) {
   // but includes the --- delimiters, so we trim those.
   context = trimTicks(context);
 
+  if (core.guessChunkOptionsFormat(context.code) === "knitr") {
+    // if the chunk options are in knitr format, don't validate or
+    // autocomplete
+    return null;
+  }
+
   const func = (
     kind === "completions"
       ? completionsFromGoodParseYAML
@@ -618,19 +624,7 @@ async function automationFromGoodParseScript(kind, context) {
     schemaName: language,
   };
 
-  if (kind === "completions") {
-    // user asked for autocomplete on "---": report none
-    if (positionInTicks(context)) {
-      return false;
-    }
-    // RStudio sends us here in Visual Editor mode for the YAML front
-    // matter but includes the --- delimiters, so we trim those.
-    context = trimTicks(context);
-    return completionsFromGoodParseYAML(context);
-  } else {
-    context = trimTicks(context);
-    return validationFromGoodParseYAML(context);
-  }
+  return automationFromGoodParseYAML(context);
 }
 
 // NB we keep this async for consistency
