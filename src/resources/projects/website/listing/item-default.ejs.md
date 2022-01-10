@@ -19,7 +19,6 @@ const outputValue = (col) => {
 }
 
 const outputMetadata = (col) => {
-  console.log(col);
   if (item[col] !== undefined) {
     return `<div class="metadata-value ${col}">${outputValue(col)}</div>`;  
   } else {
