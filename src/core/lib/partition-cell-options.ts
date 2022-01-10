@@ -23,7 +23,8 @@ function mappedSource(
 
 /** NB: this version does not validate or parse the YAML source
  *
- * also, it's async to match the core version type, although the async bit is only required inthe core versio
+ * also, it's async to match the core version type, although the async
+ * bit is only required in the core version
  */
 // deno-lint-ignore require-await
 export async function partitionCellOptionsMapped(
