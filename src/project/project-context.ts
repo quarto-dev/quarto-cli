@@ -187,7 +187,7 @@ export async function projectContext(
           ];
         }
 
-        // get project config and type
+        // get project config and type-specific defaults for libDir and outputDir
         const type = projectType(projectConfig.project?.[kProjectType]);
         if (
           projectConfig.project[kProjectLibDir] === undefined && type.libDir
@@ -197,6 +197,14 @@ export async function projectContext(
         if (!projectConfig.project[kProjectOutputDir] && type.outputDir) {
           projectConfig.project[kProjectOutputDir] = type.outputDir;
         }
+
+        // if the output-dir is "." that's equivalent to no output dir so make that
+        // conversion now (this allows code downstream to just check for no output dir
+        // rather than that as well as ".")
+        if (projectConfig.project[kProjectOutputDir] === ".") {
+          delete projectConfig.project[kProjectOutputDir];
+        }
+
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
           projectConfig = await type.config(
