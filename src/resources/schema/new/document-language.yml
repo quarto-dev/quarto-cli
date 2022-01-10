@@ -12,6 +12,13 @@
       in PDF output when using LaTeX (through [`babel`](https://ctan.org/pkg/babel) 
       and [`polyglossia`](https://ctan.org/pkg/polyglossia)) or ConTeXt.
 
+- name: language
+  schema:
+    oneOf:
+      - path
+      - object
+  description: YAML file containing custom language translations
+
 - name: dir
   schema:
     enum: [rtl, ltr]

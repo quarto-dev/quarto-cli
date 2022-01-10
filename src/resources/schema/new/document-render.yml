@@ -19,7 +19,7 @@
     Extension to use for generated output file
 
 - name: template
-  disabled: [$office-all]
+  disabled: [$office-all, ipynb]
   schema: path
   description: |
     Use the specified file as a custom template for the generated document.

@@ -134,6 +134,7 @@
       in your PATH, the full path of the engine may be specified here. If this
       option is not specified, Quarto uses the following defaults
       depending on the output format in use:
+
       - `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,
         `tectonic`, `latexmk`)
       - `context`: `context`
