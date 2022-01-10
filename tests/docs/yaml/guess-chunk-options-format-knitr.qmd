@@ -1,0 +1,15 @@
+---
+title: "knitr chunk options ignore test"
+---
+
+# Will this skip validation?
+
+```{r}
+#| rmdworkflow,
+#| echo = FALSE,
+#| fig.cap = "A diagram illustrating how an R Markdown document
+#|   is converted to the final output document.",
+#| out.width = "100%"
+
+rnorm(100)
+```
