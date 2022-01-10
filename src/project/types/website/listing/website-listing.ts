@@ -356,7 +356,6 @@ function normalizeListingConfiguration(
       id: kDefaultId,
       type: kDefaultListingType,
       contents: kDefaultContentsGlob,
-      classes: [],
     });
   }
 
@@ -442,7 +441,6 @@ function resolveListingStr(val: string): Listing {
         id: kDefaultId,
         type: ListingType.Grid,
         contents: kDefaultContentsGlob,
-        classes: [],
       };
 
     case ListingType.Default:
@@ -450,7 +448,6 @@ function resolveListingStr(val: string): Listing {
         id: kDefaultId,
         type: ListingType.Default,
         contents: kDefaultContentsGlob,
-        classes: [],
       };
 
     case ListingType.Table:
@@ -458,7 +455,6 @@ function resolveListingStr(val: string): Listing {
         id: kDefaultId,
         type: ListingType.Table,
         contents: kDefaultContentsGlob,
-        classes: [],
       };
   }
 
@@ -467,7 +463,6 @@ function resolveListingStr(val: string): Listing {
     id: kDefaultId,
     type: kDefaultListingType,
     contents: [val],
-    classes: [],
   };
 }
 

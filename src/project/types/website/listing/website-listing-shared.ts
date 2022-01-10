@@ -11,7 +11,7 @@ export interface Listing {
   id: string;
   type: ListingType;
   contents: string[]; // globs
-  classes: string[];
+  classes?: string[];
   options?: Record<string, unknown>;
   sort?: ListingSort[];
 }

@@ -158,7 +158,9 @@ export function templateMarkdownHandler(
       }
 
       // Append any requested classes
-      listing.classes.forEach((clz) => listingEl?.classList.add(clz));
+      if (listing.classes) {
+        listing.classes.forEach((clz) => listingEl?.classList.add(clz));
+      }
 
       // Add attributes
       if (attributes) {
