@@ -1,9 +1,9 @@
 <% if (listing["row-count"] < items.length) { %>
 
 ```{=html}
-<div>
+<nav id="<%- listing.id %>-pagination" aria-label="Page Navigation">
   <ul class="pagination"></ul>
-</div>
+</nav>
 ```
 
 <% } %>

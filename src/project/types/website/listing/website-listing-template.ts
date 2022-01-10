@@ -220,7 +220,7 @@ export function templateJsScript(
 
   const pageJs = itemCount > pageCount
     ? `${pageCount ? `page: ${pageCount}` : ""},
-    pagination: true,`
+    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" }`
     : "";
 
   const useDataField = (col: string) => {
