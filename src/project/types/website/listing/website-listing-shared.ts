@@ -23,9 +23,6 @@ export const kColumnTypes = "column-types";
 // value than what is displayed (for example, dates)
 export const kColumnSortTargets = "column-sort-targets";
 
-// The number of columns to display (grid)
-export const kColumnCount = "column-count";
-
 // The number of rows to display per page
 export const kRowCount = "row-count";
 
@@ -33,8 +30,12 @@ export const kRowCount = "row-count";
 export const kAllowFilter = "allow-filter";
 export const kAllowSort = "allow-sort";
 
+// The Image Height / Alignment
 export const kImageHeight = "image-height";
 export const kImageAlign = "image-align";
+
+// The number of columns to display (grid)
+export const kColumnCount = "column-count";
 
 export interface ResolvedListing {
   listing: Listing;
@@ -56,6 +57,7 @@ export interface Listing extends Record<string, unknown> {
   sort?: ListingSort[];
   classes?: string[];
 
+  // Computed values
   [kColumnSortTargets]?: Record<string, string>;
   [kColumnCount]?: number;
 }

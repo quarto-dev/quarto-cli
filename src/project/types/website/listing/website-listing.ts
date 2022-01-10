@@ -44,7 +44,7 @@ export async function listingHtmlDependencies(
   // Read and resolve listings from the metadata
   const resolvedListings = await resolveListings(source, project, format);
 
-  // Create and return the markdown pipeline for this set of listings
+  // Create the markdown pipeline for this set of listings
   const markdownHandlers: MarkdownPipelineHandler[] = [];
   resolvedListings.forEach((listingItem) => {
     markdownHandlers.push(
@@ -54,12 +54,12 @@ export async function listingHtmlDependencies(
       ),
     );
   });
-
   const pipeline = createMarkdownPipeline(
     `quarto-listing-pipeline`,
     markdownHandlers,
   );
 
+  // Add the list.js dependency
   const kListingDependency = "quarto-listing";
   const jsPaths = [
     resourcePath("projects/website/listing/list.min.js"),
@@ -74,6 +74,7 @@ export async function listingHtmlDependencies(
     }),
   }];
 
+  // Generate the inline script tags that configure list.js
   const scripts = resolvedListings.map((listingItem) => {
     return templateJsScript(
       listingItem.listing.id,
@@ -82,22 +83,26 @@ export async function listingHtmlDependencies(
     );
   });
 
+  // Create the post processor
+  const listingPostProcessor = (doc: Document) => {
+    // Process the rendered listings into the document
+    pipeline.processRenderedMarkdown(doc);
+
+    // Do any other processing of the document
+    listingPostProcess(
+      doc,
+      resolvedListings.map((resolvedListing) => {
+        return resolvedListing.listing;
+      }),
+    );
+
+    // No resource references to add
+    return Promise.resolve([]);
+  };
+
   return {
     [kIncludeInHeader]: [scriptFileForScripts(scripts)],
-    [kHtmlPostprocessors]: (doc: Document) => {
-      // Process the rendered listings into the document
-      pipeline.processRenderedMarkdown(doc);
-
-      // Do any other processing of the document
-      listingPostProcess(
-        doc,
-        resolvedListings.map((resolvedListing) => {
-          return resolvedListing.listing;
-        }),
-      );
-
-      return Promise.resolve([]);
-    },
+    [kHtmlPostprocessors]: listingPostProcessor,
     [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
     [kDependencies]: htmlDependencies,
     [kSassBundles]: [listingSassBundle()],
