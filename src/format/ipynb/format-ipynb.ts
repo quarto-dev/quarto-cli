@@ -5,7 +5,11 @@
 *
 */
 
-import { kCellFormat, kCellRawMimeType } from "../../config/constants.ts";
+import {
+  kCellFormat,
+  kCellRawMimeType,
+  kDefaultImageExtension,
+} from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import { jupyterFromFile } from "../../core/jupyter/jupyter.ts";
 import {
@@ -20,6 +24,7 @@ export function ipynbFormat(): Format {
   return createFormat("ipynb", {
     pandoc: {
       standalone: true,
+      [kDefaultImageExtension]: "png",
     },
     formatExtras: () => {
       return {

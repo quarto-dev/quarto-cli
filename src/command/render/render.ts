@@ -36,6 +36,7 @@ import { warnOnce } from "../../core/log.ts";
 
 import {
   formatFromMetadata,
+  formatKeys,
   includedMetadata,
   metadataAsFormat,
 } from "../../config/metadata.ts";
@@ -66,6 +67,7 @@ import {
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/types.ts";
 import {
+  executionEngine,
   executionEngineKeepMd,
   fileExecutionEngine,
 } from "../../execute/engine.ts";
@@ -236,7 +238,7 @@ export async function renderFiles(
       info("");
     }
 
-    return await pandocRenderer.onComplete(false, pandocQuiet);
+    return await pandocRenderer.onComplete(false, options.flags?.quiet);
   } catch (error) {
     return {
       files: (await pandocRenderer.onComplete(true)).files,
@@ -501,24 +503,24 @@ export async function renderPandoc(
   }
 
   // run the dependencies step if we didn't do it during execute
-  if (
-    executeResult.engineDependencies &&
-    executeResult.engineDependencies.length > 0
-  ) {
-    const dependenciesResult = await context.engine.dependencies({
-      target: context.target,
-      format,
-      output: recipe.output,
-      resourceDir: resourcePath(),
-      tempDir: createSessionTempDir(),
-      libDir: context.libDir,
-      dependencies: executeResult.engineDependencies,
-      quiet: context.options.flags?.quiet,
-    });
-    format.pandoc = mergePandocIncludes(
-      format.pandoc,
-      dependenciesResult.includes,
-    );
+  if (executeResult.engineDependencies) {
+    for (const engineName of Object.keys(executeResult.engineDependencies)) {
+      const engine = executionEngine(engineName)!;
+      const dependenciesResult = await engine.dependencies({
+        target: context.target,
+        format,
+        output: recipe.output,
+        resourceDir: resourcePath(),
+        tempDir: createSessionTempDir(),
+        libDir: context.libDir,
+        dependencies: executeResult.engineDependencies[engineName],
+        quiet: context.options.flags?.quiet,
+      });
+      format.pandoc = mergePandocIncludes(
+        format.pandoc,
+        dependenciesResult.includes,
+      );
+    }
   }
 
   // pandoc options
@@ -834,7 +836,7 @@ export async function resolveFormatsFromMetadata(
   );
 
   // resolve any language file references
-  resolveLanguageMetadata(allMetadata, includeDir);
+  await resolveLanguageMetadata(allMetadata, includeDir);
 
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
@@ -908,22 +910,6 @@ export async function resolveFormatsFromMetadata(
   });
 
   return resolved;
-}
-
-// determine all target formats (use original input and
-// project metadata to preserve order of keys and to
-// prefer input-level format keys to project-level)
-export function formatKeys(metadata: Metadata): string[] {
-  if (typeof metadata[kMetadataFormat] === "string") {
-    return [metadata[kMetadataFormat] as string];
-  } else if (metadata[kMetadataFormat] instanceof Object) {
-    return Object.keys(metadata[kMetadataFormat] as Metadata).filter((key) => {
-      const format = (metadata[kMetadataFormat] as Metadata)[key];
-      return format !== null && format !== false;
-    });
-  } else {
-    return [];
-  }
 }
 
 export function filesDirLibDir(input: string) {

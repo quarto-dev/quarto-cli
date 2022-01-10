@@ -80,7 +80,7 @@ export interface ExecuteResult {
   metadata?: Metadata;
   pandoc?: FormatPandoc;
   includes?: PandocIncludes;
-  engineDependencies?: Array<unknown>;
+  engineDependencies?: Record<string, Array<unknown>>;
   preserve?: Record<string, string>;
   postProcess?: boolean;
 }

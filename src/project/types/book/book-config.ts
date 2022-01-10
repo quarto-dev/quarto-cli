@@ -11,7 +11,7 @@ import { basename, join } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
-import { Metadata } from "../../../config/types.ts";
+import { FormatLanguage, Metadata } from "../../../config/types.ts";
 
 import {
   engineValidExtensions,
@@ -38,6 +38,7 @@ import {
   kMarginHeader,
   kOpenGraph,
   kPageFooter,
+  kSiteFavicon,
   kSiteNavbar,
   kSitePageNavigation,
   kSitePath,
@@ -64,8 +65,10 @@ import {
   kBook,
 } from "./book-shared.ts";
 import {
+  kLanguageDefaults,
   kOutputExt,
   kQuartoVarsKey,
+  kSectionTitleAppendices,
   kTitle,
 } from "../../../config/constants.ts";
 
@@ -74,9 +77,8 @@ import {
   kCookieConsent,
   kGoogleAnalytics,
 } from "../website/website-analytics.ts";
-import { kSearch } from "../website/website-search.ts";
-
-const kAppendicesSectionLabel = "Appendices";
+import { RenderFlags } from "../../../command/render/types.ts";
+import { formatLanguage } from "../../../core/language.ts";
 
 export const kBookChapters = "chapters";
 export const kBookAppendix = "appendices";
@@ -97,6 +99,7 @@ export async function bookProjectConfig(
   projectDir: string,
   config: ProjectConfig,
   forceHtml: boolean,
+  flags?: RenderFlags,
 ) {
   // ensure we have a site
   const site = (config[kWebsite] || {}) as Record<string, unknown>;
@@ -106,6 +109,7 @@ export async function bookProjectConfig(
   const book = config[kBook] as Record<string, unknown>;
   if (book) {
     site[kSiteTitle] = book[kSiteTitle];
+    site[kSiteFavicon] = book[kSiteFavicon];
     site[kSiteUrl] = book[kSiteUrl];
     site[kSitePath] = book[kSitePath];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
@@ -132,6 +136,13 @@ export async function bookProjectConfig(
     }
   }
 
+  // resolve language
+  const language = await formatLanguage(
+    config,
+    config[kLanguageDefaults] as FormatLanguage,
+    flags,
+  );
+
   // if we have a top-level 'contents' or 'appendix' fields fold into sidebar
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
@@ -154,7 +165,7 @@ export async function bookProjectConfig(
   if (Array.isArray(bookAppendix)) {
     siteSidebar[kContents] = (siteSidebar[kContents] as unknown[])
       .concat([{
-        section: kAppendicesSectionLabel,
+        section: language[kSectionTitleAppendices],
         contents: bookAppendix,
       }]);
   }
@@ -192,7 +203,7 @@ export async function bookProjectConfig(
 
   // save our own render list (which has more fine grained info about parts,
   // appendices, numbering, etc.) and popuplate the main config render list
-  const renderItems = await bookRenderItems(projectDir, config);
+  const renderItems = await bookRenderItems(projectDir, language, config);
   book[kBookRender] = renderItems;
   config.project[kProjectRender] = renderItems
     .filter((target) => !!target.file)
@@ -243,6 +254,7 @@ export interface BookRenderItem {
 
 export async function bookRenderItems(
   projectDir: string,
+  language: FormatLanguage,
   config?: ProjectConfig,
 ): Promise<BookRenderItem[]> {
   if (!config) {
@@ -256,6 +268,9 @@ export async function bookRenderItems(
     type: BookRenderItemType,
     items: SidebarItem[],
   ) => {
+    const throwInputNotFound = (input: string) => {
+      throw new Error(`Book ${type} '${input}' not found`);
+    };
     for (const item of items) {
       if (item.contents) {
         inputs.push({
@@ -286,7 +301,11 @@ export async function bookRenderItems(
               number,
             });
           }
+        } else {
+          throwInputNotFound(item.href);
         }
+      } else if (item.text && !item.text.trim().match(/^-+$/)) {
+        throwInputNotFound(item.text);
       }
     }
   };
@@ -322,7 +341,7 @@ export async function bookRenderItems(
 
   await findChapters(kBookAppendix, {
     type: kBookItemAppendix,
-    text: kAppendicesSectionLabel + " {.unnumbered}",
+    text: language[kSectionTitleAppendices] + " {.unnumbered}",
   });
 
   // validate that all of the chapters exist

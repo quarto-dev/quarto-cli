@@ -28,7 +28,11 @@ window.document.addEventListener("DOMContentLoaded", function () {
   function headerOffset() {
     // Set an offset if there is are fixed top navbar
     const headerEl = window.document.querySelector("header.fixed-top");
-    return headerEl.clientHeight;
+    if (headerEl) {
+      return headerEl.clientHeight;
+    } else {
+      return 0;
+    }
   }
 
   function footerOffset() {
@@ -146,7 +150,7 @@ window.document.addEventListener("DOMContentLoaded", function () {
 
   // Observe size changed for the header
   const headerEl = window.document.querySelector("header.fixed-top");
-  if (window.ResizeObserver) {
+  if (headerEl && window.ResizeObserver) {
     const observer = new window.ResizeObserver(
       throttle(updateDocumentOffsetWithoutAnimation, 50)
     );

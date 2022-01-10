@@ -28,6 +28,7 @@ import { camelToKebab, kebabToCamel, mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
 import { sessionTempFile } from "../../core/temp.ts";
+import { findParent } from "../../core/html.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
@@ -547,7 +548,7 @@ function revealHtmlPostprocessor(format: Format) {
 
 function applyStretch(doc: Document, autoStretch: boolean) {
   // Add stretch class to images in slides with only one image
-  const allSlides = doc.querySelectorAll("section");
+  const allSlides = doc.querySelectorAll("section.slide");
   for (const slide of allSlides) {
     const slideEl = slide as Element;
 
@@ -560,24 +561,30 @@ function applyStretch(doc: Document, autoStretch: boolean) {
       const image = images[0];
       const imageEl = image as Element;
 
+      // screen out images inside layout panels and columns
+      if (
+        findParent(imageEl, (el: Element) => {
+          return el.classList.contains("column") ||
+            el.classList.contains("quarto-layout-panel") ||
+            !!el.className.match(/panel-/);
+        })
+      ) {
+        continue;
+      }
+
       // find the first level node that contains the img
-      let selNode;
+      let selNode: Element | undefined;
       for (const node of slide.childNodes) {
         if (node.contains(image)) {
-          selNode = node;
+          selNode = node as Element;
           break;
         }
       }
-      const nodeEl = selNode as Element;
+      const nodeEl = selNode;
 
-      // Do not apply stretch in some cases
+      // Do not apply stretch if this is an inline image among text
       if (
-        // if the image is a column layout or layout panel
-        (nodeEl.nodeName === "DIV" &&
-            (nodeEl.classList.contains("columns")) ||
-          nodeEl.classList.contains("quarto-layout-panel")) ||
-        // if this is an inline image among text
-        (nodeEl.nodeName === "P" && nodeEl.childNodes.length > 1)
+        !nodeEl || (nodeEl.nodeName === "P" && nodeEl.childNodes.length > 1)
       ) {
         continue;
       }

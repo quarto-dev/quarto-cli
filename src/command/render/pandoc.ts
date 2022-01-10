@@ -12,6 +12,7 @@ import { info } from "log/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
+import { encode as base64Encode } from "encoding/base64.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -78,7 +79,6 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepSource,
-  kLang,
   kLinkColor,
   kMetadataFormat,
   kNumberOffset,
@@ -114,10 +114,7 @@ import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
 import { patchHtmlTemplate } from "./output.ts";
-import {
-  readDefaultLanguageTranslations,
-  translationsForLang,
-} from "../../core/language.ts";
+import { formatLanguage } from "../../core/language.ts";
 import {
   pandocFormatWith,
   splitPandocFormatString,
@@ -183,30 +180,17 @@ export async function runPandoc(
   }
 
   // now that 'lang' is resolved we can determine our actual language values
-  // start with system defaults for the current language
-  const langCode = (
-    options.flags?.pandocMetadata?.[kLang] ||
-    options.format.metadata[kLang] ||
-    "en"
-  ) as string;
-  const language = (await readDefaultLanguageTranslations(langCode)).language;
-  // merge any user provided language w/ the defaults
-  options.format.language = mergeConfigs(
-    language,
-    options.format.language || {},
-  );
-
-  // now select the correct variations based on the lang code and translations
-  options.format.language = translationsForLang(
+  options.format.language = await formatLanguage(
+    options.format.metadata,
     options.format.language,
-    langCode,
+    options.flags,
   );
 
   // if there is no toc title then provide the appropirate default
   if (!options.format.metadata[kTocTitle]) {
     options.format.metadata[kTocTitle] = options.format.language[
-      projectIsWebsite(options.project) &&
-        isHtmlOutput(options.format.pandoc, true)
+      (projectIsWebsite(options.project) && !projectIsBook(options.project) &&
+          isHtmlOutput(options.format.pandoc, true))
         ? kTocTitleWebsite
         : kTocTitleDocument
     ];
@@ -555,7 +539,7 @@ export async function runPandoc(
   cmd.push(...pandocArgs);
 
   // print full resolved input to pandoc
-  if (!options.flags?.quiet && options.format.metadata) {
+  if (!options.flags?.quiet) {
     runPandocMessage(
       printArgs,
       printAllDefaults,
@@ -570,7 +554,7 @@ export async function runPandoc(
       cmd,
       cwd,
       env: {
-        "QUARTO_FILTER_PARAMS": paramsJson,
+        "QUARTO_FILTER_PARAMS": base64Encode(paramsJson),
       },
     },
   );
@@ -681,7 +665,7 @@ export function resolveDependencies(
     `<link <%= attribs %> href="<%- href %>" rel="stylesheet" />`,
   );
   const rawLinkTemplate = ld.template(
-    `<link href="<%- href %>" rel="<%- rel %>" />`,
+    `<link href="<%- href %>" rel="<%- rel %>"<% if (type) { %> type="<%- type %>"<% } %> />`,
   );
 
   const lines: string[] = [];
@@ -736,6 +720,9 @@ export function resolveDependencies(
       }
       if (dependency.links) {
         dependency.links.forEach((link) => {
+          if (!link.type) {
+            link.type = "";
+          }
           lines.push(rawLinkTemplate(link));
         });
       }

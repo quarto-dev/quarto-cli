@@ -119,6 +119,7 @@ import {
   kSearchNoResultsText,
   kSearchSubmitButtonTitle,
   kSectionDivs,
+  kSectionTitleAppendices,
   kSectionTitleFootnotes,
   kSelfContained,
   kSelfContainedMath,
@@ -167,7 +168,7 @@ export interface FormatDependency {
   name: string;
   version?: string;
   meta?: Record<string, string>;
-  links?: { rel: string; href: string }[];
+  links?: { rel: string; href: string; type?: string }[];
   scripts?: DependencyFile[];
   stylesheets?: DependencyFile[];
   resources?: DependencyFile[];
@@ -405,6 +406,7 @@ export interface FormatLanguage {
   [kCalloutImportantCaption]?: string;
   [kCalloutDangerCaption]?: string;
   [kSectionTitleFootnotes]?: string;
+  [kSectionTitleAppendices]?: string;
   [kCodeSummary]?: string;
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;

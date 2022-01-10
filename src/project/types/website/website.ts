@@ -11,7 +11,7 @@ import { DOMParser, HTMLDocument } from "../../../core/deno-dom.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
-import { isHtmlContent } from "../../../core/mime.ts";
+import { contentType, isHtmlContent } from "../../../core/mime.ts";
 
 import { kProject404File, ProjectContext } from "../../types.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
@@ -45,7 +45,9 @@ import { updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
 import {
   kSite,
+  kSiteFavicon,
   kWebsite,
+  websiteConfigString,
   websiteMetadataFields,
   websiteProjectConfig,
   websiteTitle,
@@ -127,6 +129,22 @@ export const websiteProjectType: ProjectType = {
         extras.pandoc = {
           [kTitlePrefix]: title,
         };
+      }
+
+      // dependency for favicon if we have one
+      const favicon = websiteConfigString(kSiteFavicon, project.config);
+      if (favicon) {
+        const offset = projectOffset(project, source);
+        extras.html = extras.html || {};
+        extras.html.dependencies = extras.html.dependencies || [];
+        extras.html.dependencies.push({
+          name: kSiteFavicon,
+          links: [{
+            rel: "icon",
+            href: offset + "/" + favicon,
+            type: contentType(favicon),
+          }],
+        });
       }
 
       // pagetitle for home page if it has no title

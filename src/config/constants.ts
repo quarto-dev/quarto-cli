@@ -136,6 +136,7 @@ export const kCalloutWarningCaption = "callout-warning-caption";
 export const kCalloutImportantCaption = "callout-important-caption";
 export const kCalloutDangerCaption = "callout-danger-caption";
 export const kSectionTitleFootnotes = "section-title-footnotes";
+export const kSectionTitleAppendices = "section-title-appendices";
 export const kCodeSummary = "code-summary";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
@@ -193,6 +194,7 @@ export const kLanguageDefaultsKeys = [
   kCalloutImportantCaption,
   kCalloutDangerCaption,
   kSectionTitleFootnotes,
+  kSectionTitleAppendices,
   kCodeSummary,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
@@ -272,6 +274,7 @@ export const kTopLevelDivision = "top-level-division";
 export const kPaperSize = "papersize";
 export const kLogFile = "log-file";
 export const kHighlightStyle = "highlight-style";
+export const kDefaultImageExtension = "default-image-extension";
 export const kLinkColor = "linkcolor";
 export const kColorLinks = "colorlinks";
 export const kVariables = "variables";
@@ -395,7 +398,7 @@ export const kPandocDefaultsKeys = [
   "strip-comments",
   "indented-code-classes",
   "ascii",
-  "default-image-extension",
+  kDefaultImageExtension,
   kHighlightStyle,
   kSyntaxDefinitions,
   kSyntaxDefinition,

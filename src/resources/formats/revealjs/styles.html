@@ -13,9 +13,16 @@
     text-indent: -1em;
   }
 
-  .reveal .slide {
+  .reveal .slide:not(.center) {
     height: 100%;
     <% if (scrollable) { %>overflow-y: auto;<% } %>
+  }
+
+  .reveal #title-slide.center,
+  .reveal .title-slide.center,
+  .reveal .controls .navigate-left .controls-arrow,
+  .reveal .controls .navigate-right .controls-arrow {
+    margin-top: -15px;
   }
 
   .reveal .slide.scrollable {

@@ -58,6 +58,7 @@ function preprocess()
             if fig and hasFigureRef(fig) and #fig.caption == 0 then
               if isFigureRef(parentId) then
                 fig.caption:insert(emptyCaption())
+                fig.title = "fig:" .. fig.title
               else
                 fig.caption:insert(noCaption())
               end

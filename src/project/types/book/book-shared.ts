@@ -85,7 +85,7 @@ export function isNumberedChapter(partitioned: PartitionedMarkdown) {
 export function isMultiFileBookFormat(format: Format) {
   const extension = format.extensions?.book as BookExtension;
   if (extension) {
-    return extension.multiFile;
+    return !!extension.multiFile;
   } else {
     return false;
   }

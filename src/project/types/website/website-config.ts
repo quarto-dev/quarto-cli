@@ -6,7 +6,6 @@
 */
 
 import { ld } from "lodash/mod.ts";
-import { formatKeys } from "../../../command/render/render.ts";
 
 import {
   kDescription,
@@ -16,6 +15,7 @@ import {
 import { isHtmlOutput } from "../../../config/format.ts";
 import {
   formatFromMetadata,
+  formatKeys,
   metadataAsFormat,
 } from "../../../config/metadata.ts";
 import { Format, Metadata } from "../../../config/types.ts";
@@ -31,6 +31,7 @@ export const kSite = "site";
 export const kSiteUrl = "site-url";
 export const kSitePath = "site-path";
 export const kSiteTitle = "title";
+export const kSiteFavicon = "favicon";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoBranch = "repo-branch";
 export const kSiteRepoActions = "repo-actions";
@@ -67,6 +68,7 @@ export const kSiteName = "site-name";
 
 export interface WebsiteConfig {
   [kSiteTitle]?: string;
+  [kSiteFavicon]?: string;
   [kSiteUrl]?: string;
   [kSiteRepoUrl]?: string;
   [kSiteRepoBranch]?: string;
@@ -102,6 +104,7 @@ export interface OpenGraphConfig {
 
 type WebsiteConfigKey =
   | "title"
+  | "favicon"
   | "site-url"
   | "site-path"
   | "repo-url"

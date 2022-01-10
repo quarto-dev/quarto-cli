@@ -10,10 +10,10 @@ function info(message)
 end
 
 function warn(message) 
-  io.stderr:write("WARNING: " .. message .. "\n")
+  io.stderr:write(lunacolors.yellow("WARNING: " .. message .. "\n"))
 end
 
 function error(message)
-  io.stderr:write("ERROR: " .. message .. "\n")
+  io.stderr:write(lunacolors.red("ERROR: " .. message .. "\n"))
 end
 

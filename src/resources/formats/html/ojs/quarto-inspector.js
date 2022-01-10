@@ -7,7 +7,7 @@
 
 import {
   Inspector
-} from "https://cdn.skypack.dev/@observablehq/runtime";
+} from "https://cdn.skypack.dev/@observablehq/runtime@4.18.3";
 
 export class QuartoInspector extends Inspector {
   constructor(node, cellAst) {

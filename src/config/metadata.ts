@@ -120,6 +120,20 @@ export function formatFromMetadata(
   return mergedFormat;
 }
 
+// determine all target formats
+export function formatKeys(metadata: Metadata): string[] {
+  if (typeof metadata[kMetadataFormat] === "string") {
+    return [metadata[kMetadataFormat] as string];
+  } else if (metadata[kMetadataFormat] instanceof Object) {
+    return Object.keys(metadata[kMetadataFormat] as Metadata).filter((key) => {
+      const format = (metadata[kMetadataFormat] as Metadata)[key];
+      return format !== null && format !== false;
+    });
+  } else {
+    return [];
+  }
+}
+
 export function isQuartoMetadata(key: string) {
   return kRenderDefaultsKeys.includes(key) ||
     kExecuteDefaultsKeys.includes(key) ||

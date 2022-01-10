@@ -261,6 +261,11 @@ code a:hover {
   text-decoration: underline;
 }
 
+// task lists
+ul.task-list {
+  padding-left: 1em;
+}
+
 // tippy
 
 [data-tippy-root] {

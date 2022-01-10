@@ -32,7 +32,7 @@ testRender("docs/ojs/test-no-ojs.qmd", "html", false, [
   },
 ]);
 
-/*
+
 testRender("docs/ojs/test-ojs-es-modules.qmd", "html", false, [
   {
     name: "OJS runtime is absent",
@@ -45,4 +45,3 @@ testRender("docs/ojs/test-ojs-es-modules.qmd", "html", false, [
     },
   },
 ]);
-*/

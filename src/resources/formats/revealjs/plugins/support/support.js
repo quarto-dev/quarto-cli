@@ -6,13 +6,16 @@ window.QuartoSupport = function () {
 
   // implement controlsAudo
   function controlsAuto(deck) {
-    if (deck.getConfig().controlsAuto === true) {
+    const config = deck.getConfig();
+    if (config.controlsAuto === true) {
       const iframe = window.location !== window.parent.location;
       const localhost =
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1";
       deck.configure({
-        controls: (iframe && !localhost) || deck.hasVerticalSlides(),
+        controls:
+          (iframe && !localhost) ||
+          (deck.hasVerticalSlides() && config.navigationMode !== "linear"),
       });
     }
   }
