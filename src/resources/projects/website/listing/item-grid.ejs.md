@@ -1,14 +1,14 @@
 <%
 // Column information
-const cols = options.columns;
-const colNames = options["column-names"];
-const colSortTargets = options["column-sort-targets"];
-const links = options["column-links"];
-const cardColumnSpan = options['card-column-span'] || 12;
-const align = options["alignment"] || "left";
+const cols = listing.columns;
+const colNames = listing["column-names"];
+const colSortTargets = listing["column-sort-targets"];
+const links = listing["column-links"];
+const cardColumnSpan = listing['card-column-span'] || 12;
+const align = listing["alignment"] || "left";
 
 // Cap Options
-const imgHeight = options['image-height'];
+const imgHeight = listing['image-height'];
 
 const outputValue = (col) => {
 const value = item[col];

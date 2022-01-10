@@ -1,15 +1,15 @@
 <%
 // Column information
-const cols = options.columns;
-const colNames = options["column-names"];
-const colSortTargets = options["column-sort-targets"];
-const links = options["column-links"];
+const cols = listing.columns;
+const colNames = listing["column-names"];
+const colSortTargets = listing["column-sort-targets"];
+const links = listing["column-links"];
 
-const allowSort = options["allow-sort"] !== false;
-const allowFilter = options["allow-filter"] !== false;
-const rowCount = options["row-count"];
+const allowSort = listing["allow-sort"] !== false;
+const allowFilter = listing["allow-filter"] !== false;
+const rowCount = listing["row-count"];
 
-const imgHeight = options['image-height'];
+const imgHeight = listing['image-height'];
 
 const outputValue = (col) => {
 
@@ -35,7 +35,7 @@ return linkify(value);
 
 %>
 
-<% partial('_filter.ejs.md', {listing, items, options}) %>
+<% partial('_filter.ejs.md', {listing, items}) %>
 
 ```{=html}
 <table class="quarto-listing table">
@@ -67,4 +67,4 @@ return linkify(value);
 </tbody>
 </table>
 ```
-<% partial('_pagination.ejs.md', {listing, items, options}) %>
+<% partial('_pagination.ejs.md', {listing, items}) %>

@@ -7,79 +7,26 @@
 */
 import { format } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { ld } from "lodash/mod.ts";
 
 import { renderEjs } from "../../../../core/ejs.ts";
 import { resourcePath } from "../../../../core/resources.ts";
-import { Listing, ListingItem } from "./website-listing-shared.ts";
-
-export const kColumns = "columns";
-export const kColumnNames = "column-names";
-export const kColumnLinks = "column-links";
-export const kColumnTypes = "column-types";
-export const kColumnSortTargets = "column-sort-targets";
-
-export const kRowCount = "row-count";
-export const kColumnCount = "column-count";
-
-export const kAllowFilter = "allow-filter";
-export const kAllowSort = "allow-sort";
+import {
+  kColumnCount,
+  kColumnLinks,
+  kColumns,
+  kColumnSortTargets,
+  kColumnTypes,
+  kRowCount,
+  Listing,
+  ListingItem,
+  ListingType,
+} from "./website-listing-shared.ts";
 
 export const kDateFormat = "date-format";
-export const kImageHeight = "image-height";
-export const kImageAlign = "image-align";
 export const kMaxDescLength = "max-description-length";
 
 export const kCardColumnSpan = "card-column-span";
-
-export type ColumnType = "date" | "string" | "number";
-
-const kDefaultTableColumns = ["date", "title", "author", "filename"];
-const kDefaultGridColumns = [
-  "title",
-  "subtitle",
-  "author",
-  "image",
-  "description",
-];
-const kDefaultColumns = [
-  "date",
-  "title",
-  "author",
-  "subtitle",
-  "image",
-  "description",
-];
-
-const kDefaultColumnLinks = ["title", "filename"];
-// TODO: Localize
-const kDefaultColumnNames = {
-  "image": " ",
-  "date": "Date",
-  "title": "Title",
-  "description": "Description",
-  "author": "Author",
-  "filename": "File Name",
-  "filemodified": "Modified",
-};
-const kDefaultColumnTypes: Record<string, ColumnType> = {
-  "date": "date",
-  "filemodified": "date",
-};
-
-export interface TemplateOptions extends Record<string, unknown> {
-  [kColumns]: string[];
-  [kColumnNames]: Record<string, string>;
-  [kColumnTypes]: Record<string, ColumnType>;
-  [kColumnLinks]: string[];
-  [kColumnSortTargets]: Record<string, string>;
-  [kRowCount]: number;
-  [kAllowFilter]: boolean;
-  [kAllowSort]: boolean;
-}
-
-export interface DefaultTemplateOptions extends TemplateOptions {
-  [kImageAlign]: "right" | "left";
-}
 
 // Create a markdown handler for the markdown pipeline
 // This will render an EJS template into markdown
@@ -88,7 +35,6 @@ export interface DefaultTemplateOptions extends TemplateOptions {
 // then insert the rendered HTML into the document
 export function templateMarkdownHandler(
   template: string,
-  options: TemplateOptions,
   listing: Listing,
   items: ListingItem[],
   attributes?: Record<string, string>,
@@ -97,13 +43,15 @@ export function templateMarkdownHandler(
   // any formatting
   const reshapedItems: Record<string, unknown | undefined>[] = items.map(
     (item) => {
+      resolveItemForTemplate(item, listing);
+
       const record: Record<string, unknown | undefined> = { ...item };
       // TODO: Improve author formatting
       record.author = item.author ? item.author.join(", ") : undefined;
 
       // Format date values
       // Read date formatting from an option, if present
-      const dateFormat = listing.options?.[kDateFormat] as string;
+      const dateFormat = listing[kDateFormat] as string;
 
       if (item.date) {
         record.date = dateFormat
@@ -117,7 +65,7 @@ export function templateMarkdownHandler(
       }
 
       if (item.description !== undefined) {
-        const maxDescLength = listing.options?.[kMaxDescLength] as number ||
+        const maxDescLength = listing[kMaxDescLength] as number ||
           -1;
         if (maxDescLength > 0) {
           record.description = truncateText(item.description, maxDescLength);
@@ -131,7 +79,10 @@ export function templateMarkdownHandler(
   // Render the template into markdown
   const markdown = renderEjs(
     resourcePath(template),
-    { listing, options, items: reshapedItems },
+    {
+      listing: reshapeListing(listing),
+      items: reshapedItems,
+    },
     false,
   );
 
@@ -182,11 +133,11 @@ export function templateMarkdownHandler(
 // data into template ready versions of the item
 export function resolveItemForTemplate(
   item: ListingItem,
-  options: TemplateOptions,
+  listing: Listing,
 ) {
   // Add sortable values for fields of variant types
-  for (const col of Object.keys(options[kColumnTypes])) {
-    const type = options[kColumnTypes][col];
+  for (const col of Object.keys(listing[kColumnTypes])) {
+    const type = listing[kColumnTypes][col];
     if (type === "date") {
       item.sortableValues[col] = (item[col] as Date).valueOf().toString();
     } else if (type === "number") {
@@ -195,7 +146,7 @@ export function resolveItemForTemplate(
   }
 
   // Add sortable values for fields that will be linkerd
-  options[kColumnLinks].forEach((col) => {
+  listing[kColumnLinks].forEach((col) => {
     const val = item[col];
     if (val !== undefined) {
       item.sortableValues[col] = val as string;
@@ -206,73 +157,19 @@ export function resolveItemForTemplate(
 // Options may also need computation / resolution before being handed
 // off to the template. This function will do any computation on the options
 // so they're ready for the template
-export function resolveTemplateOptions(
+export function reshapeListing(
   listing: Listing,
-): TemplateOptions {
-  const baseOptions = () => {
-    // resolve options
-    const options = (defaultCols: string[]): TemplateOptions => {
-      // Raw options from the listing
-      const listingOptions = listing.options || {};
-
-      // Computed template options
-      const templateOptions = {
-        [kColumns]: listingOptions[kColumns] as string[] ||
-          defaultCols,
-        [kColumnTypes]: {
-          ...kDefaultColumnTypes,
-          ...(listingOptions[kColumnTypes] as Record<string, ColumnType> ||
-            {}),
-        },
-        [kColumnNames]: {
-          ...kDefaultColumnNames,
-          ...(listingOptions[kColumnNames] as Record<string, unknown> || {}),
-        },
-        [kColumnLinks]: listingOptions[kColumnLinks] as string[] ||
-          kDefaultColumnLinks,
-        [kRowCount]: listingOptions[kRowCount] as number || 100,
-        [kAllowFilter]: listingOptions[kAllowFilter] !== undefined
-          ? listingOptions[kAllowFilter] as boolean
-          : true,
-        [kAllowSort]: listingOptions[kAllowSort] !== undefined
-          ? listingOptions[kAllowSort] as boolean
-          : true,
-        [kColumnSortTargets]: {},
-      };
-
-      // Return the merged values, retaining the listing options
-      // and overwriting any of the values that were computed for the
-      // template
-      return {
-        ...listingOptions,
-        ...templateOptions,
-      };
-    };
-
-    if (listing.type === "table") {
-      // Default table options
-      return options(kDefaultTableColumns);
-    } else if (listing.type === "grid") {
-      // Default grid options
-      const gridOptions = options(kDefaultGridColumns);
-      gridOptions[kColumnCount] = gridOptions[kColumnCount] !== undefined
-        ? gridOptions[kColumnCount]
-        : 2;
-      gridOptions[kCardColumnSpan] = columnSpan(
-        gridOptions[kColumnCount] as number,
-      );
-      gridOptions[kImageHeight] = gridOptions[kImageHeight] || 120;
-      return gridOptions;
-    } else {
-      // Default options
-      const defaultOptions = options(kDefaultColumns);
-      defaultOptions[kImageAlign] = defaultOptions[kImageAlign] || "right";
-      return defaultOptions;
-    }
-  };
-  const options = baseOptions();
-  options[kColumnSortTargets] = computeSortingTargets(options);
-  return options;
+) {
+  const reshaped = ld.cloneDeep(listing);
+  if (reshaped.type === ListingType.Grid) {
+    // Compute the bootstrap column span of each card
+    reshaped[kCardColumnSpan] = columnSpan(
+      reshaped[kColumnCount] as number,
+    );
+  }
+  // Compute the sorting targets for the fields
+  reshaped[kColumnSortTargets] = computeSortingTargets(reshaped);
+  return reshaped;
 }
 
 // Determine the target value for sorting a field
@@ -281,12 +178,12 @@ export function resolveTemplateOptions(
 // linked (since the 'value' will be surrounded by the href tag, which
 // will interfere with sorthing)
 function computeSortingTargets(
-  options: TemplateOptions,
+  listing: Listing,
 ): Record<string, string> {
   const sortingTargets: Record<string, string> = {};
-  const columns = options[kColumns];
-  const columnLinks = options[kColumnLinks];
-  const columnTypes = options[kColumnTypes];
+  const columns = listing[kColumns];
+  const columnLinks = listing[kColumnLinks];
+  const columnTypes = listing[kColumnTypes];
   columns.forEach((column) => {
     // The data type of this column
     const columnType = columnTypes[column];
@@ -310,16 +207,16 @@ function computeSortingTargets(
 // sorting, pagings, filtering, etc...
 export function templateJsScript(
   id: string,
-  options: TemplateOptions,
+  listing: Listing,
   itemCount: number,
 ) {
-  const columnCount = options[kColumnCount] as number || 0;
-  const rowCount = options[kRowCount] as number || 50;
+  const columnCount = listing[kColumnCount] as number || 0;
+  const rowCount = listing[kRowCount] as number || 50;
 
   // If columns are present, factor that in
   const pageCount = columnCount > 0 ? rowCount * columnCount : rowCount;
 
-  const columns = options[kColumns] as string[] || [];
+  const columns = listing[kColumns] as string[] || [];
 
   const pageJs = itemCount > pageCount
     ? `${pageCount ? `page: ${pageCount}` : ""},
@@ -327,10 +224,10 @@ export function templateJsScript(
     : "";
 
   const useDataField = (col: string) => {
-    const type = options[kColumnTypes][col];
+    const type = listing[kColumnTypes][col];
     if (type === "date" || type === "number") {
       return true;
-    } else if (options[kColumnLinks].includes(col)) {
+    } else if (listing[kColumnLinks].includes(col)) {
       return true;
     }
     return false;

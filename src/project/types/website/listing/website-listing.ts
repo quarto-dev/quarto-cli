@@ -33,17 +33,23 @@ import { sessionTempFile } from "../../../../core/temp.ts";
 import { sassLayer } from "../../../../core/sass.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
 import {
+  kAllowFilter,
+  kAllowSort,
+  kColumnCount,
+  kColumnLinks,
+  kColumnNames,
+  kColumnTypes,
+  kImageAlign,
+  kImageHeight,
+  kRowCount,
   Listing,
   ListingItem,
   ListingSort,
   ListingType,
 } from "./website-listing-shared.ts";
 import {
-  resolveItemForTemplate,
-  resolveTemplateOptions,
   templateJsScript,
   templateMarkdownHandler,
-  TemplateOptions,
 } from "./website-listing-template.ts";
 
 // Defaults (a card listing that contains everything
@@ -61,7 +67,7 @@ export async function listingHtmlDependencies(
   _extras: FormatExtras,
 ) {
   // Read listing data from document metadata
-  const listings = normalizeListingConfiguration(format);
+  const listings = resolveListings(format);
 
   // Resolve the content globs
   const listingsResolved = resolveListingContents(
@@ -74,15 +80,11 @@ export async function listingHtmlDependencies(
   const listingItems: {
     listing: Listing;
     items: ListingItem[];
-    options: TemplateOptions;
   }[] = [];
 
   for (const listingResolved of listingsResolved) {
     const listing = listingResolved.listing;
     const items: ListingItem[] = [];
-
-    // Resolve the options
-    const options = resolveTemplateOptions(listing);
 
     // Read the metadata for each of the listing files
     for (const input of listingResolved.files) {
@@ -120,10 +122,6 @@ export async function listingHtmlDependencies(
         filemodified,
         sortableValues: {},
       };
-
-      // Resolves the item for template rendering
-      resolveItemForTemplate(item, options);
-
       items.push(item);
     }
 
@@ -149,7 +147,6 @@ export async function listingHtmlDependencies(
     listingItems.push({
       listing,
       items: orderedItems,
-      options,
     });
   }
 
@@ -160,7 +157,6 @@ export async function listingHtmlDependencies(
       markdownHandler(
         listingItem.listing,
         listingItem.items,
-        listingItem.options,
       ),
     );
   });
@@ -187,7 +183,7 @@ export async function listingHtmlDependencies(
   const scripts = listingItems.map((listingItem) => {
     return templateJsScript(
       listingItem.listing.id,
-      listingItem.options,
+      listingItem.listing,
       listingItem.items.length,
     );
   });
@@ -212,13 +208,11 @@ export async function listingHtmlDependencies(
 function markdownHandler(
   listing: Listing,
   items: ListingItem[],
-  templateOptions: TemplateOptions,
 ) {
   switch (listing.type) {
     case ListingType.Table: {
       return templateMarkdownHandler(
         "projects/website/listing/listing-table.ejs.md",
-        templateOptions,
         listing,
         items,
       );
@@ -226,7 +220,6 @@ function markdownHandler(
     case ListingType.Grid: {
       return templateMarkdownHandler(
         "projects/website/listing/listing-grid.ejs.md",
-        templateOptions,
         listing,
         items,
         {
@@ -238,7 +231,6 @@ function markdownHandler(
     default: {
       return templateMarkdownHandler(
         "projects/website/listing/listing-default.ejs.md",
-        templateOptions,
         listing,
         items,
       );
@@ -253,7 +245,7 @@ function listingPostProcess(doc: Document, listings: Listing[]) {
   // Move each listing to the correct column
   let titleColumn: string | undefined = undefined;
   listings.forEach((listing) => {
-    const userColumn = listing.options?.[kPageColumn] as string;
+    const userColumn = listing[kPageColumn] as string;
     const targetColumn = userColumn ? `column-${userColumn}` : defaultColumn;
     if (titleColumn === undefined) {
       titleColumn = targetColumn;
@@ -320,7 +312,7 @@ function resolveListingContents(
 
 // Processes the 'listing' metadata into an
 // array of Listings to be processed
-function normalizeListingConfiguration(
+function resolveListings(
   format: Format,
 ): Listing[] {
   const listingConfig = format.metadata[kListing];
@@ -352,34 +344,26 @@ function normalizeListingConfiguration(
     );
   } else if (listingConfig) {
     // Process a boolean that is true
-    listings.push({
-      id: kDefaultId,
-      type: kDefaultListingType,
-      contents: kDefaultContentsGlob,
-    });
+    listings.push(resolveListingStr(ListingType.Default));
   }
 
   return listings;
 }
 
-function resolveListing(meta: Record<string, unknown>, synthId: () => string) {
-  const maybeArray = (val: unknown) => {
-    if (val) {
-      if (Array.isArray(val)) {
-        return val;
-      } else {
-        return [val];
-      }
-    }
-  };
-
+function resolveListing(
+  meta: Record<string, unknown>,
+  synthId: () => string,
+): Listing {
+  // Create a default listing
+  const type = meta.type as ListingType || kDefaultListingType;
+  const baseListing = resolveListingStr(type);
   return {
-    id: meta.id as string || synthId(),
-    type: meta.type as ListingType || kDefaultListingType,
-    contents: maybeArray(meta.contents) as string[] || kDefaultContentsGlob,
-    classes: maybeArray(meta.classes) || [],
-    sort: resolveListingSort(meta.sort),
-    options: meta.options as Record<string, unknown>,
+    ...baseListing,
+    ...{
+      ...meta,
+      id: meta.id as string || synthId(),
+      sort: resolveListingSort(meta.sort),
+    },
   };
 }
 
@@ -434,36 +418,87 @@ function resolveListingSort(rawValue: unknown): ListingSort[] | undefined {
   return undefined;
 }
 
-function resolveListingStr(val: string): Listing {
+const kDefaultTableColumns = ["date", "title", "author", "filename"];
+const kDefaultGridColumns = [
+  "title",
+  "subtitle",
+  "author",
+  "image",
+  "description",
+];
+const kDefaultColumns = [
+  "date",
+  "title",
+  "author",
+  "subtitle",
+  "image",
+  "description",
+];
+// TODO: Localize
+const kDefaultColumnNames = {
+  "image": " ",
+  "date": "Date",
+  "title": "Title",
+  "description": "Description",
+  "author": "Author",
+  "filename": "File Name",
+  "filemodified": "Modified",
+};
+const kDefaultColumnTypes: Record<string, ColumnType> = {
+  "date": "date",
+  "filemodified": "date",
+};
+
+const kDefaultColumnLinks = ["title", "filename"];
+export type ColumnType = "date" | "string" | "number";
+
+function defaultColumns(type: ListingType) {
+  switch (type) {
+    case ListingType.Grid:
+      return kDefaultGridColumns;
+    case ListingType.Table:
+      return kDefaultTableColumns;
+    case ListingType.Default:
+    default:
+      return kDefaultColumns;
+  }
+}
+
+function listingType(val: unknown): ListingType {
   switch (val) {
     case ListingType.Grid:
-      return {
-        id: kDefaultId,
-        type: ListingType.Grid,
-        contents: kDefaultContentsGlob,
-      };
-
     case ListingType.Default:
-      return {
-        id: kDefaultId,
-        type: ListingType.Default,
-        contents: kDefaultContentsGlob,
-      };
-
     case ListingType.Table:
-      return {
-        id: kDefaultId,
-        type: ListingType.Table,
-        contents: kDefaultContentsGlob,
-      };
+      return val as ListingType;
+    default:
+      return ListingType.Default;
+  }
+}
+
+function resolveListingStr(val: string): Listing {
+  const type = listingType(val);
+  const listing: Listing = {
+    id: kDefaultId,
+    type: type,
+    contents: kDefaultContentsGlob,
+    columns: defaultColumns(type),
+    [kColumnNames]: kDefaultColumnNames,
+    [kColumnTypes]: kDefaultColumnTypes,
+    [kColumnLinks]: kDefaultColumnLinks,
+    [kRowCount]: 100,
+    [kAllowFilter]: true,
+    [kAllowSort]: true,
+  };
+
+  // Populate base default values for types
+  if (type === ListingType.Grid) {
+    listing[kColumnCount] = 2;
+    listing[kImageHeight] = 120;
+  } else if (type === ListingType.Default) {
+    listing[kImageAlign] = "right";
   }
 
-  // Since it isn't a type of listing, treat it as a path
-  return {
-    id: kDefaultId,
-    type: kDefaultListingType,
-    contents: [val],
-  };
+  return listing;
 }
 
 function fileModifiedDate(input: string) {

@@ -1,8 +1,8 @@
 <% 
-const imageAlign = options?.['image-align']  || 'left';
-const imageHeight = options?.['image-height'];
-const cols = options["columns"];
-const colNames = options["column-names"];
+const imageAlign = listing['image-align']  || 'left';
+const imageHeight = listing['image-height'];
+const cols = listing.columns;
+const colNames = listing["column-names"];
 
 const otherCols = cols.filter(col => {
 return !["title", "image", "subtitle", "description", "description"].includes(col);
@@ -11,7 +11,7 @@ return !["title", "image", "subtitle", "description", "description"].includes(co
 const outputValue = (col) => {
   const value = item[col];
   const path = item.path;
-  if (path && value !== undefined && options['column-links'].includes(col)) {
+  if (path && value !== undefined && listing['column-links'].includes(col)) {
     return `<a href="${path}">${value}</a>`;
   } else {
     return value;

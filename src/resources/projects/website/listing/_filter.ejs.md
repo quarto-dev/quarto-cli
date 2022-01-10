@@ -1,4 +1,4 @@
-<% if (options["allow-filter"] !== false) { %>
+<% if (listing["allow-filter"] !== false) { %>
 
 ```{=html}
 <div class="input-group input-group-sm quarto-listing-filter">

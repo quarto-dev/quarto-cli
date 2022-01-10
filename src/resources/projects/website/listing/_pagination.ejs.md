@@ -1,4 +1,4 @@
-<% if (options["row-count"] < items.length) { %>
+<% if (listing["row-count"] < items.length) { %>
 
 ```{=html}
 <div>
