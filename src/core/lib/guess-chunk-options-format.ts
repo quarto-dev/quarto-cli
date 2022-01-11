@@ -21,9 +21,17 @@ export function guessChunkOptionsFormat(options: string): "knitr" | "yaml"
   const noIndentOrColon = /^[^:\s]+[^:]+$/;
   const chunkLines = lines(options);
 
-  if (chunkLines.filter(l => l.match(noIndentOrColon)).length > 0) {
-    return "knitr";
+  // if there are no lines without indentation and colons, this must be yaml
+  if (chunkLines.filter(l => l.match(noIndentOrColon)).length === 0) {
+    return "yaml";
+  }
+  
+  // If there is a line that does not end with a comma and does not have an equals,
+  // then this is actually a yaml (with possibly errors, so we want to report them)
+  if (chunkLines.some(l => !l.trimRight().endsWith(",") && (l.indexOf("=") === -1))) {
+    return "yaml";
   }
 
-  return "yaml";
+  // this is likely knitr.  
+  return "knitr";
 }
