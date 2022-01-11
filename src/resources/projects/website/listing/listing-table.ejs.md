@@ -1,27 +1,11 @@
 <%
 // Column information
 const cols = listing.columns;
-const colNames = listing["column-names"];
-const colSortTargets = listing["column-sort-targets"];
-const links = listing["column-links"];
 
-const allowSort = listing["allow-sort"] !== false;
-const allowFilter = listing["allow-filter"] !== false;
-const rowCount = listing["row-count"];
-
+const showSort = listing["show-sort"] !== false;
 const imgHeight = listing['image-height'];
 
 const outputValue = (col) => {
-
-const linkify = (value) => {
-const path = item.path;
-if (path && value !== undefined && links.includes(col)) {
-return `<a href="${path}">${value}</a>`;
-} else {
-return value;
-}
-}
-
 let value = item[col];
 if (col === "image") {
 if (item.image) {
@@ -30,12 +14,11 @@ value = `<img src="${item[col]}" ${imgHeight ? ` height="${imgHeight}"` : ''}>`;
 value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight}px;"` : '' }>&nbsp;</div>`;
 }
 }
-return linkify(value);
+return listing.utilities.outputLink(col, item, value);
 }
-
 %>
 
-<% partial('_filter.ejs.md', {listing, items}) %>
+<% partial('\_filter.ejs.md', {listing, showSort: false, showFilter: listing['show-filter']}) %>
 
 ```{=html}
 <table class="quarto-listing table">
@@ -43,11 +26,11 @@ return linkify(value);
   <tr>
   <% for (col of cols) { %>
     <th>
-    <% if (allowSort) { %>
-    <a class="sort" data-sort="<%-colSortTargets[col]%>" onclick="return false;">
+    <% if (showSort) { %>
+    <a class="sort" data-sort="<%-listing.utilities.sortTarget(col)%>" onclick="return false;">
     <% } %>
-    <%= colNames[col] ? colNames[col] : col %>
-    <% if (allowSort) { %>
+    <%= listing.utilities.columnName(col) %>
+    <% if (showSort) { %>
     </a>
     <% } %>
     </th>
@@ -58,7 +41,7 @@ return linkify(value);
 <% for (item of items) { %>
   <tr>
     <% for (col of cols){ %>
-      <td class="<%- col %><%-colSortTargets[col] !== col ? ' ' + colSortTargets[col] : '' %>" <%- colSortTargets[col] !== col ? `data-${colSortTargets[col]}=${item.sortableValues[col]}` : ""%>>
+      <td class="<%- col %><%-listing.utilities.sortClass(col) %>"<%- listing.utilities.sortAttr(col, item)%>>
         <%= outputValue(col) %>
       </td>
     <% } %>
@@ -67,4 +50,5 @@ return linkify(value);
 </tbody>
 </table>
 ```
-<% partial('_pagination.ejs.md', {listing, items}) %>
+
+<% partial('\_pagination.ejs.md', {listing, items}) %>

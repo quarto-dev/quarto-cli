@@ -14,7 +14,9 @@ import { resourcePath } from "../../../../core/resources.ts";
 import {
   kColumnCount,
   kColumnLinks,
+  kColumnNames,
   kColumns,
+  kColumnSort,
   kColumnSortTargets,
   kColumnTypes,
   kRowCount,
@@ -160,7 +162,7 @@ export function resolveItemForTemplate(
 export function reshapeListing(
   listing: Listing,
 ) {
-  const reshaped = ld.cloneDeep(listing);
+  const reshaped = ld.cloneDeep(listing) as Listing;
   if (reshaped.type === ListingType.Grid) {
     // Compute the bootstrap column span of each card
     reshaped[kCardColumnSpan] = columnSpan(
@@ -169,6 +171,53 @@ export function reshapeListing(
   }
   // Compute the sorting targets for the fields
   reshaped[kColumnSortTargets] = computeSortingTargets(reshaped);
+
+  // Add template utilities
+  const utilities = {} as Record<string, unknown>;
+  utilities.sortableColumns = () => {
+    return reshaped[kColumnSort].filter((col) => {
+      return reshaped.columns.includes(col);
+    });
+  };
+
+  utilities.columnName = (col: string) => {
+    return reshaped[kColumnNames][col] || col;
+  };
+  utilities.outputLink = (col: string, item: ListingItem, val?: string) => {
+    const colLinks = reshaped["column-links"];
+    const value = val || item[col];
+    const path = item.path;
+    if (path && value !== undefined && colLinks.includes(col)) {
+      return `<a href="${path}">${value}</a>`;
+    } else {
+      return value;
+    }
+  };
+  utilities.sortClass = (col: string) => {
+    const colSortTargets = reshaped[kColumnSortTargets];
+    if (!colSortTargets || colSortTargets[col] === col) {
+      return "";
+    } else {
+      return ` ${colSortTargets[col]}`;
+    }
+  };
+  utilities.sortTarget = (col: string) => {
+    const colSortTargets = reshaped[kColumnSortTargets];
+    if (!colSortTargets || colSortTargets[col] === col) {
+      return col;
+    } else {
+      return colSortTargets[col];
+    }
+  };
+  utilities.sortAttr = (col: string, item: ListingItem) => {
+    const colSortTargets = reshaped[kColumnSortTargets];
+    if (!colSortTargets || colSortTargets[col] === col) {
+      return "";
+    } else {
+      return `data-${colSortTargets[col]}=${item.sortableValues[col]}`;
+    }
+  };
+  reshaped.utilities = utilities;
   return reshaped;
 }
 
@@ -253,7 +302,9 @@ export function templateJsScript(
       valueNames: ${rowJs},
       ${pageJs}
     };
-    const userList = new List("${id}", options);
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['${id}'] = new List('${id}', options);
   });
   `;
   return jsScript;

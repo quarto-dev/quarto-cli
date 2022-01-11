@@ -5,28 +5,19 @@ const cols = listing.columns;
 const colNames = listing["column-names"];
 
 const otherCols = cols.filter(col => {
-return !["title", "image", "subtitle", "description", "description"].includes(col);
+return !["title", "image", "subtitle", "description"].includes(col);
 });
 
-const outputValue = (col) => {
-  const value = item[col];
-  const path = item.path;
-  if (path && value !== undefined && listing['column-links'].includes(col)) {
-    return `<a href="${path}">${value}</a>`;
-  } else {
-    return value;
-  }
-}
-
-const outputMetadata = (col) => {
+const outputMetadata = (col, item) => {
   if (item[col] !== undefined) {
-    return `<div class="metadata-value ${col}">${outputValue(col)}</div>`;  
+    return `<div class="metadata-value ${col}${listing.utilities.sortClass(col)}" ${listing.utilities.sortAttr(col, item)}>${listing.utilities.outputLink(col, item)}</div>`;  
   } else {
     return "";
   }
 }
 
 %>
+
 
 ```{=html}
 <div class="quarto-post image-<%= imageAlign %>">
@@ -45,19 +36,19 @@ const outputMetadata = (col) => {
   <div class="body">
     <a href="<%= item.path %>" class="post-contents">
       <% if (cols.includes('title')) { %>
-        <h2 class="title"><%= item.title %></h2>
+        <h2 class="title<%-listing.utilities.sortClass('title')%>"<%-listing.utilities.sortAttr('title', item)%>><%= item.title %></h2>
       <% } %>
       <% if (cols.includes('authors') && item.authors) { %>
-      <p class="authors"></p>
+      <p class="authors<%-listing.utilities.sortClass('authors')%>"<%-listing.utilities.sortAttr('authors', item)%>></p>
       <% } %>
       <% if (cols.includes('description')) { %>
-      <p class="description"><%= item.description %> </p>
+      <p class="description<%-listing.utilities.sortClass('description')%>"<%-listing.utilities.sortAttr('description', item)%>><%= item.description %> </p>
       <% } %>
     </a>
   </div>
   <div class="metadata">
     <% for (const col of otherCols) { %>
-      <%= outputMetadata(col) %>
+      <%= outputMetadata(col, item) %>
     <% } %>
   </div>
 </div>

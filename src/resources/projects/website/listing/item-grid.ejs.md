@@ -10,16 +10,6 @@ const align = listing["alignment"] || "left";
 // Cap Options
 const imgHeight = listing['image-height'];
 
-const outputValue = (col) => {
-const value = item[col];
-const path = item.path;
-if (path && value !== undefined && links.includes(col)) {
-return `<a href="${path}">${value}</a>`;
-} else {
-return value;
-}
-}
-
 const otherCols = cols.filter(col => {
 return !["title", "image", "card-cap-text", "subtitle", "description", "filename", "filemodified"].includes(col);
 });
@@ -34,26 +24,26 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
   <img src="<%= item.image %>"<%= imgHeight ? ` height="${imgHeight}"` : '' %> class="thumbnail-image">
 <% } else { %>
   <div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight}px;"` : '' %>>
-  <%= (item['card-cap-text']) ? outputValue('card-cap-text') : "&nbsp;" %>
+  <%= (item['card-cap-text']) ? listing.utilities.outputLink('card-cap-text', item) : "&nbsp;" %>
   </div>
 <% } %>
 
 <div class="card-body">
 
 <% if (cols.includes('title') && item.title) { %>
-  <div class="card-title title">
-  <%= outputValue('title') %>
+  <div class="card-title title<%-listing.utilities.sortClass('title')%>"<%-listing.utilities.sortAttr('title', item)%>>
+  <%= listing.utilities.outputLink('title', item) %>
   </div>
 <% } %>
 
 <% if (cols.includes('subtitle') && item.subtitle) { %>
-  <div class="card-subtitle subtitle">
-  <%= outputValue('subtitle') %>
+  <div class="card-subtitle subtitle<%-listing.utilities.sortClass('subtitle')%>"<%-listing.utilities.sortAttr('subtitle', item)%>>
+  <%= listing.utilities.outputLink('subtitle', item) %>
   </div>
 <% } %>
 
 <% if (cols.includes('description') && item.description) { %>
-  <div class="card-text description">
+  <div class="card-text description<%-listing.utilities.sortClass('description')%>"<%-listing.utilities.sortAttr('description', item)%>>
   <%= item.description %>
   </div>
 <% } %>
@@ -63,7 +53,7 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
   <% for (const col of otherCols) { %>
     <tr>
       <td><%= colNames[col] || col %></td>
-      <td class="<%=col%>"><%= outputValue(col) %></td>
+      <td class="<%=col%><%-listing.utilities.sortClass(col)%>"<%-listing.utilities.sortAttr(col, item)%>><%= listing.utilities.outputLink(col, item) %></td>
     </tr>
   <% } %>
   </table>
@@ -74,13 +64,13 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
 <% if (cols.includes('filename') || cols.includes('filemodified')) { %>
 <div class="card-footer text-muted">
 <% if (cols.includes('filename')) { %>
-  <div class="card-filename filename">
-  <%= outputValue('filename') %>
+  <div class="card-filename filename<%-listing.utilities.sortClass('filename')%>"<%-listing.utilities.sortAttr('filename', item)%>>
+  <%= listing.utilities.outputLink('filename', item) %>
   </div>
 <% } %>
 <% if (cols.includes('filemodified')) { %>
-  <div class="card-filemodified filemodified">
-  <%= outputValue('filemodified') %>
+  <div class="card-filemodified filemodified<%-listing.utilities.sortClass('filemodified')%>"<%-listing.utilities.sortAttr('filemodified', item)%>>
+  <%= listing.utilities.outputLink('filemodified', item) %>
   </div>
 <% } %>
 </div>

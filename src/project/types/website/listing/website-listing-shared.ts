@@ -15,6 +15,9 @@ export const kColumnNames = "column-names";
 // The list of columns to show as hyperlinks
 export const kColumnLinks = "column-links";
 
+// The list of columns to include as sortable
+export const kColumnSort = "column-sort";
+
 // a record providing a column to type mapping
 export const kColumnTypes = "column-types";
 
@@ -27,8 +30,8 @@ export const kColumnSortTargets = "column-sort-targets";
 export const kRowCount = "row-count";
 
 // Configuration of the filtering and sorting options
-export const kAllowFilter = "allow-filter";
-export const kAllowSort = "allow-sort";
+export const kShowFilter = "show-filter";
+export const kShowSort = "show-sort";
 
 // The Image Height / Alignment
 export const kImageHeight = "image-height";
@@ -51,9 +54,10 @@ export interface Listing extends Record<string, unknown> {
   [kColumnNames]: Record<string, string>;
   [kColumnTypes]: Record<string, ColumnType>;
   [kColumnLinks]: string[];
+  [kColumnSort]: string[];
   [kRowCount]: number;
-  [kAllowFilter]: boolean;
-  [kAllowSort]: boolean;
+  [kShowFilter]: boolean;
+  [kShowSort]: boolean;
   sort?: ListingSort[];
   classes?: string[];
 

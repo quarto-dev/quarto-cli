@@ -17,15 +17,16 @@ import { ProjectContext } from "../../../types.ts";
 import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
 import {
   ColumnType,
-  kAllowFilter,
-  kAllowSort,
   kColumnCount,
   kColumnLinks,
   kColumnNames,
+  kColumnSort,
   kColumnTypes,
   kImageAlign,
   kImageHeight,
   kRowCount,
+  kShowFilter,
+  kShowSort,
   Listing,
   ListingItem,
   ListingSort,
@@ -48,6 +49,8 @@ const kDefaultGridColumns = [
   "author",
   "image",
   "description",
+  "filename",
+  "filemodified",
 ];
 const kDefaultColumns = [
   "date",
@@ -66,12 +69,21 @@ const kDefaultColumnNames = {
   "author": "Author",
   "filename": "File Name",
   "filemodified": "Modified",
+  "subtitle": "Subtitle",
 };
 const kDefaultColumnTypes: Record<string, ColumnType> = {
   "date": "date",
   "filemodified": "date",
 };
 const kDefaultColumnLinks = ["title", "filename"];
+
+const kDefaultColumnSort = [
+  "title",
+  "date",
+  "author",
+  "filename",
+  "filemodified",
+];
 
 export async function resolveListings(
   source: string,
@@ -331,9 +343,10 @@ function resolveListingStr(val: string): Listing {
     [kColumnNames]: kDefaultColumnNames,
     [kColumnTypes]: kDefaultColumnTypes,
     [kColumnLinks]: kDefaultColumnLinks,
+    [kColumnSort]: kDefaultColumnSort,
     [kRowCount]: 100,
-    [kAllowFilter]: true,
-    [kAllowSort]: true,
+    [kShowFilter]: true,
+    [kShowSort]: true,
   };
 
   // Populate base default values for types
