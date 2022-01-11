@@ -187,6 +187,21 @@ export const kCrossrefExrPrefix = "crossref-exr-prefix";
 export const kCrossrefLofTitle = "crossref-lof-title";
 export const kCrossrefLotTitle = "crossref-lot-title";
 export const kCrossrefLolTitle = "crossref-lol-title";
+export const kListingPageOrderBy = "listing-page-order-by";
+export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
+export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
+export const kListingPageOrderByNumberAsc = "listing-page-order-by-number-asc";
+export const kListingPageOrderByNumberDesc =
+  "listing-page-order-by-number-desc";
+export const kListingPageOrderByStringAsc = "listing-page-order-by-string-asc";
+export const kListingPageColumnDate = "listing-page-column-date";
+export const kListingPageColumnTitle = "listing-page-column-title";
+export const kListingPageColumnDescription = "listing-page-column-description";
+export const kListingPageColumnAuthor = "listing-page-column-author";
+export const kListingPageColumnFileName = "listing-page-column-filename";
+export const kListingPageColumnFileModified =
+  "listing-page-column-filemodified";
+export const kListingPageColumnSubtitle = "listing-page-column-subtitle";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -245,6 +260,19 @@ export const kLanguageDefaultsKeys = [
   kCrossrefLofTitle,
   kCrossrefLotTitle,
   kCrossrefLolTitle,
+  kListingPageOrderBy,
+  kListingPageOrderByDateAsc,
+  kListingPageOrderByDateDesc,
+  kListingPageOrderByNumberAsc,
+  kListingPageOrderByNumberDesc,
+  kListingPageOrderByStringAsc,
+  kListingPageColumnDate,
+  kListingPageColumnTitle,
+  kListingPageColumnDescription,
+  kListingPageColumnAuthor,
+  kListingPageColumnFileName,
+  kListingPageColumnFileModified,
+  kListingPageColumnSubtitle,
 ];
 
 // 'defaults' fields

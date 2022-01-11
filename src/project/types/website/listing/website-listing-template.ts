@@ -5,9 +5,17 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { format } from "datetime/mod.ts";
+import { format as formatDate } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { ld } from "lodash/mod.ts";
+import {
+  kListingPageOrderByDateAsc,
+  kListingPageOrderByDateDesc,
+  kListingPageOrderByNumberAsc,
+  kListingPageOrderByNumberDesc,
+  kListingPageOrderByStringAsc,
+} from "../../../../config/constants.ts";
+import { Format } from "../../../../config/types.ts";
 
 import { renderEjs } from "../../../../core/ejs.ts";
 import { resourcePath } from "../../../../core/resources.ts";
@@ -40,6 +48,7 @@ export function templateMarkdownHandler(
   template: string,
   listing: Listing,
   items: ListingItem[],
+  format: Format,
   attributes?: Record<string, string>,
 ) {
   // Process the items into simple key value pairs, applying
@@ -58,12 +67,12 @@ export function templateMarkdownHandler(
 
       if (item.date) {
         record.date = dateFormat
-          ? format(item.date, dateFormat)
+          ? formatDate(item.date, dateFormat)
           : item.date.toLocaleDateString();
       }
       if (item.filemodified) {
         record.filemodified = dateFormat
-          ? format(item.filemodified, dateFormat)
+          ? formatDate(item.filemodified, dateFormat)
           : item.filemodified.toLocaleString();
       }
 
@@ -83,7 +92,7 @@ export function templateMarkdownHandler(
   const markdown = renderEjs(
     resourcePath(template),
     {
-      listing: reshapeListing(listing),
+      listing: reshapeListing(listing, format),
       items: reshapedItems,
     },
     false,
@@ -162,6 +171,7 @@ export function resolveItemForTemplate(
 // so they're ready for the template
 export function reshapeListing(
   listing: Listing,
+  format: Format,
 ) {
   const reshaped = ld.cloneDeep(listing) as Listing;
   if (reshaped.type === ListingType.Grid) {
@@ -195,9 +205,9 @@ export function reshapeListing(
             column,
             direction: "asc",
           },
-          description: `${
-            reshaped[kColumnNames][column] || column
-          } (Oldest to Newest)`,
+          description: `${reshaped[kColumnNames][column] || column} (${
+            format.language[kListingPageOrderByDateAsc]
+          })`,
         });
 
         columnSortData.push({
@@ -205,9 +215,9 @@ export function reshapeListing(
             column,
             direction: "desc",
           },
-          description: `${
-            reshaped[kColumnNames][column] || column
-          } (Newest to Oldest)`,
+          description: `${reshaped[kColumnNames][column] || column} (${
+            format.language[kListingPageOrderByDateDesc]
+          })`,
         });
       } else if (reshaped[kColumnTypes][column] === "number") {
         columnSortData.push({
@@ -215,18 +225,18 @@ export function reshapeListing(
             column,
             direction: "asc",
           },
-          description: `${
-            reshaped[kColumnNames][column] || column
-          } (Low to High)`,
+          description: `${reshaped[kColumnNames][column] || column} (${
+            format.language[kListingPageOrderByNumberAsc]
+          })`,
         });
         columnSortData.push({
           listingSort: {
             column,
             direction: "desc",
           },
-          description: `${
-            reshaped[kColumnNames][column] || column
-          } (High to Low)`,
+          description: `${reshaped[kColumnNames][column] || column} (${
+            format.language[kListingPageOrderByNumberDesc]
+          })`,
         });
       } else {
         columnSortData.push({
@@ -234,9 +244,9 @@ export function reshapeListing(
             column,
             direction: "asc",
           },
-          description: `${
-            reshaped[kColumnNames][column] || column
-          } (Alphabetical)`,
+          description: `${reshaped[kColumnNames][column] || column} (${
+            format.language[kListingPageOrderByStringAsc]
+          })`,
         });
       }
     });
@@ -280,6 +290,10 @@ export function reshapeListing(
     } else {
       return `data-${colSortTargets[col]}=${item.sortableValues[col]}`;
     }
+  };
+  utilities.localizedString = (str: string) => {
+    const localizedStrings = (format.language as Record<string, string>);
+    return localizedStrings[str];
   };
   reshaped.utilities = utilities;
   return reshaped;

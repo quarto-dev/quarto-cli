@@ -33,6 +33,15 @@ import {
   ListingType,
   ResolvedListing,
 } from "./website-listing-shared.ts";
+import {
+  kListingPageColumnAuthor,
+  kListingPageColumnDate,
+  kListingPageColumnDescription,
+  kListingPageColumnFileModified,
+  kListingPageColumnFileName,
+  kListingPageColumnSubtitle,
+  kListingPageColumnTitle,
+} from "../../../../config/constants.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -60,17 +69,20 @@ const kDefaultColumns = [
   "image",
   "description",
 ];
-// TODO: Localize
-const kDefaultColumnNames = {
-  "image": " ",
-  "date": "Date",
-  "title": "Title",
-  "description": "Description",
-  "author": "Author",
-  "filename": "File Name",
-  "filemodified": "Modified",
-  "subtitle": "Subtitle",
+
+const defaultColumnNames = (format: Format) => {
+  return {
+    "image": " ",
+    "date": format.language[kListingPageColumnDate] || "",
+    "title": format.language[kListingPageColumnTitle] || "",
+    "description": format.language[kListingPageColumnDescription] || "",
+    "author": format.language[kListingPageColumnAuthor] || "",
+    "filename": format.language[kListingPageColumnFileName] || "",
+    "filemodified": format.language[kListingPageColumnFileModified] || "",
+    "subtitle": format.language[kListingPageColumnSubtitle] || "",
+  };
 };
+
 const kDefaultColumnTypes: Record<string, ColumnType> = {
   "date": "date",
   "filemodified": "date",
@@ -211,7 +223,7 @@ function readListings(
   const listings: Listing[] = [];
   if (typeof (listingConfig) == "string") {
     // Resolve this string
-    const listing = resolveListingStr(listingConfig);
+    const listing = resolveListingStr(listingConfig, format);
     if (listing) {
       listings.push(listing);
     }
@@ -225,18 +237,18 @@ function readListings(
       return resolveListing(listing, () => {
         count = count + 1;
         return `${kDefaultId}-${count}`;
-      });
+      }, format);
     }));
   } else if (listingConfig && typeof (listingConfig) === "object") {
     // Process an individual listing
     listings.push(
       resolveListing(listingConfig as Record<string, unknown>, () => {
         return kDefaultId;
-      }),
+      }, format),
     );
   } else if (listingConfig) {
     // Process a boolean that is true
-    listings.push(resolveListingStr(ListingType.Default));
+    listings.push(resolveListingStr(ListingType.Default, format));
   }
 
   return listings;
@@ -245,10 +257,11 @@ function readListings(
 function resolveListing(
   meta: Record<string, unknown>,
   synthId: () => string,
+  format: Format,
 ): Listing {
   // Create a default listing
   const type = meta.type as ListingType || kDefaultListingType;
-  const baseListing = resolveListingStr(type);
+  const baseListing = resolveListingStr(type, format);
   return {
     ...baseListing,
     ...{
@@ -333,14 +346,14 @@ function listingType(val: unknown): ListingType {
   }
 }
 
-function resolveListingStr(val: string): Listing {
+function resolveListingStr(val: string, format: Format): Listing {
   const type = listingType(val);
   const listing: Listing = {
     id: kDefaultId,
     type: type,
     contents: kDefaultContentsGlob,
     columns: defaultColumns(type),
-    [kColumnNames]: kDefaultColumnNames,
+    [kColumnNames]: defaultColumnNames(format),
     [kColumnTypes]: kDefaultColumnTypes,
     [kColumnLinks]: kDefaultColumnLinks,
     [kColumnSort]: kDefaultColumnSort,

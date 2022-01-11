@@ -49,6 +49,7 @@ export async function listingHtmlDependencies(
   resolvedListings.forEach((listingItem) => {
     markdownHandlers.push(
       markdownHandler(
+        format,
         listingItem.listing,
         listingItem.items,
       ),
@@ -110,6 +111,7 @@ export async function listingHtmlDependencies(
 }
 
 function markdownHandler(
+  format: Format,
   listing: Listing,
   items: ListingItem[],
 ) {
@@ -119,6 +121,7 @@ function markdownHandler(
         "projects/website/listing/listing-table.ejs.md",
         listing,
         items,
+        format,
       );
     }
     case ListingType.Grid: {
@@ -126,6 +129,7 @@ function markdownHandler(
         "projects/website/listing/listing-grid.ejs.md",
         listing,
         items,
+        format,
         {
           style: "--bs-gap: 1em;",
         },
@@ -137,6 +141,7 @@ function markdownHandler(
         "projects/website/listing/listing-default.ejs.md",
         listing,
         items,
+        format,
       );
     }
   }

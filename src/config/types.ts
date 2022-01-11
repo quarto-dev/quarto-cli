@@ -93,6 +93,19 @@ import {
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kListingPageColumnAuthor,
+  kListingPageColumnDate,
+  kListingPageColumnDescription,
+  kListingPageColumnFileModified,
+  kListingPageColumnFileName,
+  kListingPageColumnSubtitle,
+  kListingPageColumnTitle,
+  kListingPageOrderBy,
+  kListingPageOrderByDateAsc,
+  kListingPageOrderByDateDesc,
+  kListingPageOrderByNumberAsc,
+  kListingPageOrderByNumberDesc,
+  kListingPageOrderByStringAsc,
   kListings,
   kMarkdownHeadings,
   kMathjax,
@@ -465,6 +478,19 @@ export interface FormatLanguage {
   [kCrossrefLofTitle]?: string;
   [kCrossrefLotTitle]?: string;
   [kCrossrefLolTitle]?: string;
+  [kListingPageOrderBy]?: string;
+  [kListingPageOrderByDateAsc]?: string;
+  [kListingPageOrderByDateDesc]?: string;
+  [kListingPageOrderByNumberAsc]?: string;
+  [kListingPageOrderByNumberDesc]?: string;
+  [kListingPageOrderByStringAsc]?: string;
+  [kListingPageColumnDate]?: string;
+  [kListingPageColumnTitle]?: string;
+  [kListingPageColumnDescription]?: string;
+  [kListingPageColumnAuthor]?: string;
+  [kListingPageColumnFileName]?: string;
+  [kListingPageColumnFileModified]?: string;
+  [kListingPageColumnSubtitle]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

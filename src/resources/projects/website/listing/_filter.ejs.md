@@ -11,7 +11,7 @@ const showSort = listing['show-sort'];
   <% if (showSort) { %>
     <div class="dropdown">
       <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="listing-<%- listing.id %>-sort" data-bs-toggle="dropdown" aria-expanded="false">
-        Order By
+        <%= listing.utilities.localizedString("listing-page-order-by")%>
       </button>
       <ul class="dropdown-menu" aria-labelledby="listing-<%- listing.id %>-sort">
         <% for (const sortData of listing.utilities.sortableColumnData()) { %>
