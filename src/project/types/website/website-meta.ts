@@ -39,6 +39,7 @@ import {
   MarkdownPipeline,
 } from "./website-pipeline-md.ts";
 import { findPreviewImg } from "./util/discover-meta.ts";
+import { isAbsoluteRef } from "../../../core/http.ts";
 
 const kCard = "card";
 
@@ -297,7 +298,7 @@ function imageMetadata(
   source: string,
   context: ProjectContext,
 ) {
-  if (image.match(/^(?:http|https)\:\/\/.+/)) {
+  if (isAbsoluteRef(image)) {
     // We can't resolve any size data, just return the image
     return {
       href: image,

@@ -6,7 +6,7 @@
 *
 */
 
-import { basename, dirname, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { Format } from "../../../../config/types.ts";
@@ -42,6 +42,7 @@ import {
   kListingPageColumnSubtitle,
   kListingPageColumnTitle,
 } from "../../../../config/constants.ts";
+import { isAbsoluteRef } from "../../../../core/http.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -136,8 +137,11 @@ export async function resolveListings(
       const documentMeta = target?.markdown.yaml;
       const description = documentMeta?.description as string ||
         findDescriptionMd(target?.markdown.markdown);
-      const image = documentMeta?.image as string ||
+      const imageRaw = documentMeta?.image as string ||
         findPreviewImgMd(target?.markdown.markdown);
+      const image = imageRaw !== undefined
+        ? listingItemHref(imageRaw, dirname(projectRelativePath))
+        : undefined;
 
       const date = documentMeta?.date
         ? new Date(documentMeta.date as string)
@@ -186,6 +190,17 @@ export async function resolveListings(
     });
   }
   return listingItems;
+}
+
+function listingItemHref(path: string, projectRelativePath: string) {
+  if (isAbsoluteRef(path) || path.startsWith("/")) {
+    // This is a project relative or absolute href, just
+    // leave it alone
+    return path;
+  } else {
+    // This is a document relative path, need to fix it up
+    return join(projectRelativePath, path);
+  }
 }
 
 function resolveListingContents(
