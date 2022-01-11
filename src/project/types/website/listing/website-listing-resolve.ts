@@ -8,8 +8,9 @@
 
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
-import { Format } from "../../../../config/types.ts";
+import { Format, Metadata } from "../../../../config/types.ts";
 import { filterPaths } from "../../../../core/path.ts";
 import { inputTargetIndex } from "../../../project-index.ts";
 import { ProjectContext } from "../../../types.ts";
@@ -103,67 +104,15 @@ export async function resolveListings(
   project: ProjectContext,
   format: Format,
 ): Promise<ResolvedListing[]> {
+  // The listings and items for this source
+  const listingItems: ResolvedListing[] = [];
+
   // Read listing data from document metadata
   const listings = readListings(format);
 
-  // Resolve the content globs
-  const listingsResolved = resolveListingContents(
-    source,
-    project,
-    listings,
-  );
-
-  // Generate the list of items for this listing
-  const listingItems: {
-    listing: Listing;
-    items: ListingItem[];
-  }[] = [];
-
-  for (const listingResolved of listingsResolved) {
-    const listing = listingResolved.listing;
-    const items: ListingItem[] = [];
-
+  for (const listing of listings) {
     // Read the metadata for each of the listing files
-    for (const input of listingResolved.files) {
-      const projectRelativePath = relative(project.dir, input);
-      const target = await inputTargetIndex(
-        project,
-        projectRelativePath,
-      );
-
-      // Create the item
-      const filename = basename(projectRelativePath);
-      const filemodified = fileModifiedDate(input);
-      const documentMeta = target?.markdown.yaml;
-      const description = documentMeta?.description as string ||
-        findDescriptionMd(target?.markdown.markdown);
-      const imageRaw = documentMeta?.image as string ||
-        findPreviewImgMd(target?.markdown.markdown);
-      const image = imageRaw !== undefined
-        ? listingItemHref(imageRaw, dirname(projectRelativePath))
-        : undefined;
-
-      const date = documentMeta?.date
-        ? new Date(documentMeta.date as string)
-        : filemodified;
-      const author = Array.isArray(documentMeta?.author)
-        ? documentMeta?.author
-        : [documentMeta?.author];
-
-      const item: ListingItem = {
-        ...documentMeta,
-        title: target?.title,
-        date,
-        author,
-        image,
-        description,
-        path: `/${projectRelativePath}`,
-        filename,
-        filemodified,
-        sortableValues: {},
-      };
-      items.push(item);
-    }
+    const items = await resolveContents(source, project, listing);
 
     // Sort the items (first array is of sort functions)
     // second array is of sort direction
@@ -184,6 +133,7 @@ export async function resolveListings(
     };
     const orderedItems = sortedAndFiltered();
 
+    // Add this listing and its items to the list
     listingItems.push({
       listing,
       items: orderedItems,
@@ -192,41 +142,104 @@ export async function resolveListings(
   return listingItems;
 }
 
-function listingItemHref(path: string, projectRelativePath: string) {
-  if (isAbsoluteRef(path) || path.startsWith("/")) {
-    // This is a project relative or absolute href, just
-    // leave it alone
-    return path;
-  } else {
-    // This is a document relative path, need to fix it up
-    return join(projectRelativePath, path);
-  }
-}
-
-function resolveListingContents(
+async function resolveContents(
   source: string,
   project: ProjectContext,
-  listings: Listing[],
+  listing: Listing,
 ) {
-  // Filter the source file out of the inputs
-  const inputsWithoutSource = project.files.input.filter((file) =>
-    file !== source
+  const listingItems: ListingItem[] = [];
+  for (const content of listing.contents) {
+    if (typeof (content) === "string") {
+      // This is a path, expand it
+      // Filter the source file out of the inputs
+      const inputsWithoutSource = project.files.input.filter((file) =>
+        file !== source
+      );
+      const files = filterPaths(
+        dirname(source),
+        inputsWithoutSource,
+        [content],
+      );
+
+      for (const file of files.include) {
+        if (!files.exclude.includes(file)) {
+          const item = await listItemFromFile(file, project);
+          listingItems.push(item);
+        }
+      }
+    } else {
+      const listingItem = listItemFromMeta(content);
+      console.log(listingItem);
+      listingItems.push(listingItem);
+    }
+  }
+  return listingItems;
+}
+
+function listItemFromMeta(meta: Metadata) {
+  // This is a raw item object, adapt any typed values...
+  const date = meta?.date ? new Date(meta.date as string) : undefined;
+  const author = meta.author !== undefined
+    ? Array.isArray(meta?.author) ? meta?.author : [meta?.author]
+    : undefined;
+
+  // If there is a path, try to complete the filename and
+  // modified values
+  const filename = meta?.path !== undefined
+    ? basename(meta.path as string)
+    : undefined;
+  const filemodified = meta?.path !== undefined
+    ? fileModifiedDate(meta.path as string)
+    : undefined;
+
+  return {
+    ...meta,
+    date,
+    author,
+    filename,
+    filemodified,
+  };
+}
+
+async function listItemFromFile(input: string, project: ProjectContext) {
+  const projectRelativePath = relative(project.dir, input);
+  const target = await inputTargetIndex(
+    project,
+    projectRelativePath,
   );
 
-  return listings.map((listing) => {
-    // Go through the contents globs and
-    // convert them to a regex and apply them
-    // to the input files
-    const files = filterPaths(
-      dirname(source),
-      inputsWithoutSource,
-      listing.contents,
-    );
-    return {
-      listing,
-      files: files.include.filter((file) => !files.exclude.includes(file)),
-    };
-  });
+  // Create the item
+  const filename = basename(projectRelativePath);
+  const filemodified = fileModifiedDate(input);
+  const documentMeta = target?.markdown.yaml;
+  const description = documentMeta?.description as string ||
+    findDescriptionMd(target?.markdown.markdown);
+  const imageRaw = documentMeta?.image as string ||
+    findPreviewImgMd(target?.markdown.markdown);
+  const image = imageRaw !== undefined
+    ? listingItemHref(imageRaw, dirname(projectRelativePath))
+    : undefined;
+
+  const date = documentMeta?.date
+    ? new Date(documentMeta.date as string)
+    : filemodified;
+  const author = Array.isArray(documentMeta?.author)
+    ? documentMeta?.author
+    : [documentMeta?.author];
+
+  const item: ListingItem = {
+    ...documentMeta,
+    title: target?.title,
+    date,
+    author,
+    image,
+    description,
+    path: `/${projectRelativePath}`,
+    filename,
+    filemodified,
+    sortableValues: {},
+  };
+  return item;
 }
 
 // Processes the 'listing' metadata into an
@@ -405,7 +418,22 @@ function resolveListingStr(val: string, format: Format): Listing {
 }
 
 function fileModifiedDate(input: string) {
-  const file = Deno.openSync(input, { read: true });
-  const fileInfo = Deno.fstatSync(file.rid);
-  return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
+  if (existsSync(input)) {
+    const file = Deno.openSync(input, { read: true });
+    const fileInfo = Deno.fstatSync(file.rid);
+    return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
+  } else {
+    return undefined;
+  }
+}
+
+function listingItemHref(path: string, projectRelativePath: string) {
+  if (isAbsoluteRef(path) || path.startsWith("/")) {
+    // This is a project relative or absolute href, just
+    // leave it alone
+    return path;
+  } else {
+    // This is a document relative path, need to fix it up
+    return join(projectRelativePath, path);
+  }
 }

@@ -65,12 +65,12 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
 <div class="card-footer text-muted">
 <% if (cols.includes('filename')) { %>
   <div class="card-filename filename<%-listing.utilities.sortClass('filename')%>"<%-listing.utilities.sortAttr('filename', item)%>>
-  <%= listing.utilities.outputLink('filename', item) %>
+  <%= item.filename ? listing.utilities.outputLink('filename', item) : "&nbsp;" %>
   </div>
 <% } %>
 <% if (cols.includes('filemodified')) { %>
   <div class="card-filemodified filemodified<%-listing.utilities.sortClass('filemodified')%>"<%-listing.utilities.sortAttr('filemodified', item)%>>
-  <%= listing.utilities.outputLink('filemodified', item) %>
+  <%= item.filemodified ? listing.utilities.outputLink('filemodified', item) : "&nbsp;"%>
   </div>
 <% } %>
 </div>

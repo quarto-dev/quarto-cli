@@ -147,23 +147,29 @@ export function resolveItemForTemplate(
   item: ListingItem,
   listing: Listing,
 ) {
+  // ensure this is present
+  item.sortableValues = item.sortableValues || {};
+
   // Add sortable values for fields of variant types
   for (const col of Object.keys(listing[kColumnTypes])) {
     const type = listing[kColumnTypes][col];
-    if (type === "date") {
-      item.sortableValues[col] = (item[col] as Date).valueOf().toString();
-    } else if (type === "number") {
-      item.sortableValues[col] = (item[col] as number).toString();
+    if (item[col] !== undefined) {
+      if (type === "date") {
+        item.sortableValues[col] = (item[col] as Date).valueOf().toString();
+      } else if (type === "number") {
+        item.sortableValues[col] = (item[col] as number).toString();
+      }
     }
   }
 
-  // Add sortable values for fields that will be linkerd
-  listing[kColumnLinks].forEach((col) => {
+  // Add sortable values for fields that will be linked
+  for (const col of listing[kColumnLinks]) {
     const val = item[col];
     if (val !== undefined) {
+      item.sortableValues = item.sortableValues || {};
       item.sortableValues[col] = val as string;
     }
-  });
+  }
 }
 
 // Options may also need computation / resolution before being handed
@@ -284,6 +290,7 @@ export function reshapeListing(
     }
   };
   utilities.sortAttr = (col: string, item: ListingItem) => {
+    item.sortableValues = item.sortableValues || {};
     const colSortTargets = reshaped[kColumnSortTargets];
     if (!colSortTargets || colSortTargets[col] === col) {
       return "";

@@ -6,6 +6,8 @@
 *
 */
 
+import { Metadata } from "../../../../config/types.ts";
+
 // The list of columns to display
 export const kColumns = "columns";
 
@@ -49,7 +51,7 @@ export interface ResolvedListing {
 export interface Listing extends Record<string, unknown> {
   id: string;
   type: ListingType;
-  contents: string[]; // globs (or items)
+  contents: Array<string | Metadata>; // globs (or items)
   columns: string[];
   [kColumnNames]: Record<string, string>;
   [kColumnTypes]: Record<string, ColumnType>;
@@ -60,6 +62,7 @@ export interface Listing extends Record<string, unknown> {
   [kShowSort]: boolean;
   sort?: ListingSort[];
   classes?: string[];
+  template?: string;
 
   // Computed values
   [kColumnSortTargets]?: Record<string, string>;
@@ -85,12 +88,13 @@ export type ColumnType = "date" | "string" | "number";
 // An individual listing item
 export interface ListingItem extends Record<string, unknown> {
   title?: string;
+  subtitle?: string;
   description?: string;
   author?: string[];
   date?: Date;
   image?: string;
-  path: string;
-  filename: string;
+  path?: string;
+  filename?: string;
   filemodified?: Date;
-  sortableValues: Record<string, string>;
+  sortableValues?: Record<string, string>;
 }
