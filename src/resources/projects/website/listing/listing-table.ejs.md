@@ -18,7 +18,7 @@ return listing.utilities.outputLink(col, item, value);
 }
 %>
 
-<% partial('\_filter.ejs.md', {listing, showSort: false, showFilter: listing['show-filter']}) %>
+<% partial('\_filter.ejs.md', {listing}) %>
 
 ```{=html}
 <table class="quarto-listing table">

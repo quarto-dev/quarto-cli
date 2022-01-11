@@ -1,23 +1,23 @@
+<%
+const showFilter = listing['show-filter'];
+const showSort = listing['show-sort'];
+%>
+
 <% if (showSort || showFilter) { %>
 
 ```{=html}
 <div class="listing-actions-group">
 
   <% if (showSort) { %>
-    <div class="input-group mb-3">
-      <div class="input-group-prepend">
-        <label class="input-group-text" for="inputGroupListingSearch">Sort By</label>
-      </div>
-      <select class="custom-select"
-              id="inputGroupListingSearch"
-              onChange="window['quarto-listings']['<%- listing.id %>'].sort(this.value, { order: 'desc'})">
-        <option selected>Choose...</option>
+    <div class="dropdown">
+      <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="listing-<%- listing.id %>-sort" data-bs-toggle="dropdown" aria-expanded="false">
+        Sort
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="listing-<%- listing.id %>-sort">
         <% for (const col of listing.utilities.sortableColumns()) { %>
-          <% if (col) { %>
-          <option value="<%- listing.utilities.sortTarget(col) %>"><%= listing.utilities.columnName(col) %></option>
-          <% } %>
+          <li><button class="dropdown-item" type="button" onClick="window['quarto-listings']['<%- listing.id %>'].sort('<%-listing.utilities.sortTarget(col) %>', { order: 'desc'})"><%= listing.utilities.columnName(col) %></button></li>
         <% } %>
-      </select>
+      </ul>
     </div>
   <% } %>
 
