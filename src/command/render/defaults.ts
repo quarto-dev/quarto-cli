@@ -58,7 +58,7 @@ export function generateDefaults(
 
     // If we're rendering Latex, forward the number-depth to pandoc (it handles numbering)
     if (isLatexOutput(options.format.pandoc)) {
-      if (options.format.metadata[kNumberDepth]) {
+      if (options.format.metadata[kNumberDepth] !== undefined) {
         allDefaults.variables = allDefaults.variables || {};
         allDefaults.variables["secnumdepth"] =
           options.format.metadata[kNumberDepth];
