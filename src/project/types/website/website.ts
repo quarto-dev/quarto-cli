@@ -176,25 +176,27 @@ export const websiteProjectType: ProjectType = {
         format,
         extras,
       );
-      extras.html[kHtmlPostprocessors]?.push(
-        htmlListingDependencies[kHtmlPostprocessors],
-      );
-      extras.html[kMarkdownAfterBody]?.push(
-        htmlListingDependencies[kMarkdownAfterBody],
-      );
-      extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
-      extras[kIncludeInHeader]!.push(
-        ...htmlListingDependencies[kIncludeInHeader],
-      );
-      extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-      extras.html[kSassBundles]!.push(
-        ...htmlListingDependencies[kSassBundles],
-      );
+      if (htmlListingDependencies) {
+        extras.html[kHtmlPostprocessors]?.push(
+          htmlListingDependencies[kHtmlPostprocessors],
+        );
+        extras.html[kMarkdownAfterBody]?.push(
+          htmlListingDependencies[kMarkdownAfterBody],
+        );
+        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+        extras[kIncludeInHeader]!.push(
+          ...htmlListingDependencies[kIncludeInHeader],
+        );
+        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+        extras.html[kSassBundles]!.push(
+          ...htmlListingDependencies[kSassBundles],
+        );
 
-      extras.html[kDependencies] = extras.html[kDependencies] || [];
-      extras.html[kDependencies]?.push(
-        ...htmlListingDependencies[kDependencies],
-      );
+        extras.html[kDependencies] = extras.html[kDependencies] || [];
+        extras.html[kDependencies]?.push(
+          ...htmlListingDependencies[kDependencies],
+        );
+      }
 
       // metadata html dependencies
       const htmlMetadataDependencies = metadataHtmlDependencies(

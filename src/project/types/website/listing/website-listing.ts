@@ -44,6 +44,11 @@ export async function listingHtmlDependencies(
   // Read and resolve listings from the metadata
   const resolvedListings = await resolveListings(source, project, format);
 
+  // If there no listings, don't inject the dependencies
+  if (resolvedListings.length === 0) {
+    return undefined;
+  }
+
   // Create the markdown pipeline for this set of listings
   const markdownHandlers: MarkdownPipelineHandler[] = [];
   resolvedListings.forEach((listingItem) => {
