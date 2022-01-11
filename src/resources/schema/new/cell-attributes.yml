@@ -1,6 +1,10 @@
 - name: label
   schema: string
-  description: "Unique label for code cell (used for cross references, e.g. `fig-samples` or `tbl-summary`"
+  description:
+    short: "Unique label for code cell"
+    long: |
+      Unique label for code cell. Used when other code needs to refer to the cell 
+      (e.g. for cross references `fig-samples` or `tbl-summary`)
 
 - name: classes
   schema: string
@@ -11,13 +15,12 @@
     engine: jupyter
   schema:
     arrayOf: string
-  description: "Tags for notebook cell (applies to Jupyter engine only)"
+  description: "Array of tags for notebook cell"
 
 - name: id
   tags:
     engine: jupyter
   schema: string
-  hidden: true
   description:
     short: "Notebook cell identifier"
     long: |
