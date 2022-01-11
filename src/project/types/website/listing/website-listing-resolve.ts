@@ -262,7 +262,16 @@ function resolveListing(
   // Create a default listing
   const type = meta.type as ListingType || kDefaultListingType;
   const baseListing = resolveListingStr(type, format);
-  return {
+
+  const ensureArray = (val: unknown): string[] => {
+    if (Array.isArray(val)) {
+      return val as string[];
+    } else {
+      return [val] as string[];
+    }
+  };
+
+  const listing = {
     ...baseListing,
     ...{
       ...meta,
@@ -270,6 +279,13 @@ function resolveListing(
       sort: resolveListingSort(meta.sort),
     },
   };
+
+  // Coerce contents to an array
+  if (meta.contents) {
+    listing.contents = ensureArray(meta.contents);
+  }
+
+  return listing;
 }
 
 function toSortKey(key: string) {
