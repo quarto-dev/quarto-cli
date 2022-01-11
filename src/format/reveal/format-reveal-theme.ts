@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { kTheme } from "../../config/constants.ts";
@@ -88,7 +88,10 @@ export async function revealTheme(
   const themeLayers = (Array.isArray(themeConfig) ? themeConfig : [themeConfig])
     .map(
       (theme) => {
-        if (!existsSync(theme)) {
+        const themePath = join(relative(Deno.cwd(), dirname(input)), theme);
+        if (existsSync(themePath)) {
+          return themeLayer(themePath);
+        } else {
           // alias revealjs theme names
           if (theme === "white") {
             theme = "default";
@@ -100,8 +103,8 @@ export async function revealTheme(
             "revealjs",
             join("themes", `${theme}.scss`),
           );
+          return themeLayer(theme);
         }
-        return themeLayer(theme);
       },
     );
 
