@@ -1,9 +1,6 @@
 <%
 // Column information
 const cols = listing.columns;
-const colNames = listing["column-names"];
-const colSortTargets = listing["column-sort-targets"];
-const links = listing["column-links"];
 const cardColumnSpan = listing['card-column-span'] || 12;
 const align = listing["alignment"] || "left";
 
@@ -52,7 +49,7 @@ return !["title", "image", "card-cap-text", "subtitle", "description", "filename
   <table class="card-other-values">
   <% for (const col of otherCols) { %>
     <tr>
-      <td><%= colNames[col] || col %></td>
+      <td><%= listing.utilities.columnName(col) %></td>
       <td class="<%=col%><%-listing.utilities.sortClass(col)%>"<%-listing.utilities.sortAttr(col, item)%>><%= listing.utilities.outputLink(col, item) %></td>
     </tr>
   <% } %>

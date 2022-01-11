@@ -169,7 +169,6 @@ async function resolveContents(
       }
     } else {
       const listingItem = listItemFromMeta(content);
-      console.log(listingItem);
       listingItems.push(listingItem);
     }
   }
