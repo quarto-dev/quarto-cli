@@ -157,7 +157,7 @@ export async function resolveListings(
           items,
           listing.sort.map((l) => {
             return (item: ListingItem) => {
-              return item[l.field];
+              return item[l.column];
             };
           }),
           listing.sort.map((l) => l.direction),
@@ -270,7 +270,7 @@ function toSortKey(key: string) {
     case "filename":
       return "filename";
     default:
-      return "filename";
+      return key;
   }
 }
 
@@ -285,12 +285,12 @@ function resolveListingSort(rawValue: unknown): ListingSort[] | undefined {
       const parts = sortStr.split(" ");
       if (parts.length === 2) {
         return {
-          field: toSortKey(parts[0]),
+          column: toSortKey(parts[0]),
           direction: parts[1] === "asc" ? "asc" : "desc",
         };
       } else {
         return {
-          field: toSortKey(parts[0]),
+          column: toSortKey(parts[0]),
           direction: "desc",
         };
       }

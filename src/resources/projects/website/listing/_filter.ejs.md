@@ -10,12 +10,12 @@ const showSort = listing['show-sort'];
 
   <% if (showSort) { %>
     <div class="dropdown">
-      <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="listing-<%- listing.id %>-sort" data-bs-toggle="dropdown" aria-expanded="false">
-        Sort
+      <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="listing-<%- listing.id %>-sort" data-bs-toggle="dropdown" aria-expanded="false">
+        Order By
       </button>
       <ul class="dropdown-menu" aria-labelledby="listing-<%- listing.id %>-sort">
-        <% for (const col of listing.utilities.sortableColumns()) { %>
-          <li><button class="dropdown-item" type="button" onClick="window['quarto-listings']['<%- listing.id %>'].sort('<%-listing.utilities.sortTarget(col) %>', { order: 'desc'})"><%= listing.utilities.columnName(col) %></button></li>
+        <% for (const sortData of listing.utilities.sortableColumnData()) { %>
+          <li><button class="dropdown-item" type="button" onClick="window['quarto-listings']['<%- listing.id %>'].sort('<%-listing.utilities.sortTarget(sortData.listingSort.column) %>', { order: '<%= sortData.listingSort.direction %>'})"><%= listing.utilities.columnName(sortData.description) %></button></li>
         <% } %>
       </ul>
     </div>

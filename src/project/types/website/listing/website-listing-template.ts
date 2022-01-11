@@ -22,6 +22,7 @@ import {
   kRowCount,
   Listing,
   ListingItem,
+  ListingSort,
   ListingType,
 } from "./website-listing-shared.ts";
 
@@ -178,6 +179,69 @@ export function reshapeListing(
     return reshaped[kColumnSort].filter((col) => {
       return reshaped.columns.includes(col);
     });
+  };
+  utilities.sortableColumnData = () => {
+    const columnSortData: Array<{
+      listingSort: ListingSort;
+      description: string;
+    }> = [];
+
+    reshaped[kColumnSort].filter((col) => {
+      return reshaped.columns.includes(col);
+    }).forEach((column) => {
+      if (reshaped[kColumnTypes][column] === "date") {
+        columnSortData.push({
+          listingSort: {
+            column,
+            direction: "asc",
+          },
+          description: `${
+            reshaped[kColumnNames][column] || column
+          } (Oldest to Newest)`,
+        });
+
+        columnSortData.push({
+          listingSort: {
+            column,
+            direction: "desc",
+          },
+          description: `${
+            reshaped[kColumnNames][column] || column
+          } (Newest to Oldest)`,
+        });
+      } else if (reshaped[kColumnTypes][column] === "number") {
+        columnSortData.push({
+          listingSort: {
+            column,
+            direction: "asc",
+          },
+          description: `${
+            reshaped[kColumnNames][column] || column
+          } (Low to High)`,
+        });
+        columnSortData.push({
+          listingSort: {
+            column,
+            direction: "desc",
+          },
+          description: `${
+            reshaped[kColumnNames][column] || column
+          } (High to Low)`,
+        });
+      } else {
+        columnSortData.push({
+          listingSort: {
+            column,
+            direction: "asc",
+          },
+          description: `${
+            reshaped[kColumnNames][column] || column
+          } (Alphabetical)`,
+        });
+      }
+    });
+
+    return columnSortData;
   };
 
   utilities.columnName = (col: string) => {
