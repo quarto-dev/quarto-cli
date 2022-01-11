@@ -4,13 +4,15 @@ cell:
   codeoutput:
     title: "Code Output"
   textoutput:
-    title: "Text Output"
+    title: "Cell Output"
   figure:
     title: "Figures"
+  table:
+    title: "Tables"
   layout:
-    title: "Output Layout"
+    title: "Panel Layout"
   pagelayout:
-    title: "Page Layout"
+    title: "Page Columns"
   cache:
     title: "Cache"
   include:

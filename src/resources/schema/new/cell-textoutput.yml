@@ -35,6 +35,11 @@
   description: |
     Catch all for preventing any output (code or results) from being included in output.
 
+- name: panel
+  schema:
+    enum: [tabset, input, sidebar, fill, center]
+  description: "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)"
+
 - name: message
   tags:
     engine: knitr

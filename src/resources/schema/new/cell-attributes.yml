@@ -1,17 +1,17 @@
 - name: label
   schema: string
-  description: "Unique label for code cell"
+  description: "Unique label for code cell (used for cross references, e.g. `fig-samples` or `tbl-summary`"
 
 - name: classes
   schema: string
-  description: "Classes to apply to cell output"
+  description: "Classes to apply to cell container"
 
 - name: tags
   tags:
     engine: jupyter
   schema:
     arrayOf: string
-  description: "Tags for notebook cell"
+  description: "Tags for notebook cell (applies to Jupyter engine only)"
 
 - name: id
   tags:

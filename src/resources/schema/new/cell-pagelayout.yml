@@ -1,8 +1,3 @@
-- name: panel
-  schema:
-    enum: [tabset, input, sidebar, fill, center]
-  description: "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)"
-
 - name: column
   schema:
     ref: page-column
