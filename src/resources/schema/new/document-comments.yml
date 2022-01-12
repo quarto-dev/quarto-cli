@@ -16,7 +16,13 @@
                   description: The label that will be assigned to issues created by Utterances.
               theme:
                 string:
-                  description: The Github theme that should be used for Utterances.
+                  description:
+                    short: The Github theme that should be used for Utterances.
+                    long: |
+                      The Github theme that should be used for Utterances
+                      (`github-light`, `github-dark`, `github-dark-orange`,
+                      `icy-dark`, `dark-blue`, `photon-dark`, `body-light`,
+                      or `gruvbox-dark`)
                   completions:
                     - github-light
                     - github-dark
@@ -28,7 +34,11 @@
                     - gruvbox-dark
                 issue-term:
                   string:
-                    description: How posts should be mapped to Github issues.
+                    description:
+                      short: How posts should be mapped to Github issues
+                      long: |
+                        How posts should be mapped to Github issues
+                        (`pathname`, `url`, `title` or `og:title`)
                     completions:
                       - pathname
                       - url
@@ -61,7 +71,8 @@
                         Controls whether the experimental New Note button 
                         should be shown in the notes tab in the sidebar.
                   usernameUrl:
-                    string: |
+                    schema: string
+                    description: |
                       Specify a URL to direct a user to, 
                       in a new tab. when they click on the annotation author 
                       link in the header of an annotation.
@@ -126,15 +137,16 @@
                       properties:
                         user:
                           object:
-                            username:
-                              string:
-                                description: The username of the user to focus on.
-                            userid:
-                              string:
-                                description: The userid of the user to focus on.
-                            displayName:
-                              string:
-                                description: The display name of the user to focus on.
+                            properties:
+                              username:
+                                string:
+                                  description: The username of the user to focus on.
+                              userid:
+                                string:
+                                  description: The userid of the user to focus on.
+                              displayName:
+                                string:
+                                  description: The display name of the user to focus on.
                       required: [user]
                     description: Defines a focused filter set for the available annotations on a page.
                   requestConfigFromFrame:
