@@ -98,12 +98,16 @@ export function templateMarkdownHandler(
     false,
   );
 
+  const pipelineId = (id: string) => {
+    return `pipeline-${id}`;
+  };
+
   // Return the handler
   return {
     getUnrendered() {
       return {
         blocks: {
-          [listing.id]: markdown,
+          [pipelineId(listing.id)]: markdown,
         },
       };
     },
@@ -132,7 +136,7 @@ export function templateMarkdownHandler(
         });
       }
 
-      const renderedEl = rendered[listing.id];
+      const renderedEl = rendered[pipelineId(listing.id)];
       listingEl!.innerHTML = renderedEl.innerHTML;
     },
   };
