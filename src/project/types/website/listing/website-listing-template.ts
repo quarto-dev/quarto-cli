@@ -65,15 +65,19 @@ export function templateMarkdownHandler(
       // Read date formatting from an option, if present
       const dateFormat = listing[kDateFormat] as string;
 
-      if (item.date) {
-        record.date = dateFormat
-          ? formatDate(item.date, dateFormat)
-          : item.date.toLocaleDateString();
-      }
-      if (item.filemodified) {
-        record.filemodified = dateFormat
-          ? formatDate(item.filemodified, dateFormat)
-          : item.filemodified.toLocaleString();
+      const colTypes = listing[kColumnTypes];
+      for (const col of Object.keys(colTypes)) {
+        if (colTypes[col] === "date") {
+          const dateRaw = item[col];
+          if (dateRaw) {
+            const date = typeof (dateRaw) === "string"
+              ? new Date(dateRaw as string)
+              : dateRaw as Date;
+            record[col] = dateFormat
+              ? formatDate(date, dateFormat)
+              : date.toLocaleString();
+          }
+        }
       }
 
       if (item.description !== undefined) {
