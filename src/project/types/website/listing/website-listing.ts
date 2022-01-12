@@ -95,14 +95,6 @@ export async function listingHtmlDependencies(
     // Process the rendered listings into the document
     pipeline.processRenderedMarkdown(doc);
 
-    // Do any other processing of the document
-    listingPostProcess(
-      doc,
-      resolvedListings.map((resolvedListing) => {
-        return resolvedListing.listing;
-      }),
-    );
-
     // No resource references to add
     return Promise.resolve([]);
   };
@@ -169,52 +161,6 @@ function markdownHandler(
         format,
       );
     }
-  }
-}
-
-function listingPostProcess(doc: Document, listings: Listing[]) {
-  // Check for whether this page had sidebars and choose column as appropriate
-  const defaultColumn = suggestColumn(doc);
-
-  // Move each listing to the correct column
-  let titleColumn: string | undefined = undefined;
-  listings.forEach((listing) => {
-    const userColumn = listing[kPageColumn] as string;
-    const targetColumn = userColumn ? `column-${userColumn}` : defaultColumn;
-    if (titleColumn === undefined) {
-      titleColumn = targetColumn;
-    }
-
-    const listingDiv = doc.getElementById(listing.id);
-    if (listingDiv) {
-      listingDiv.classList.add(targetColumn);
-    }
-  });
-
-  // Move the title element to the correct column
-  const titleEl = doc.getElementById("title-block-header");
-  if (titleEl) {
-    titleEl.classList.add(titleColumn || defaultColumn);
-  }
-}
-
-const kPageColumn = "page-column";
-const kSidebarId = "quarto-sidebar";
-const kMarginSidebarId = "quarto-margin-sidebar";
-
-// Suggests a default column by inspecting sidebars
-// if there are none or some, take up the extra space!
-function suggestColumn(doc: Document) {
-  const leftSidebar = doc.getElementById(kSidebarId);
-  const rightSidebar = doc.getElementById(kMarginSidebarId);
-  if (leftSidebar && rightSidebar) {
-    return "column-body";
-  } else if (leftSidebar && leftSidebar.innerText.trim() !== "") {
-    return "column-page-right";
-  } else if (rightSidebar && rightSidebar.innerText.trim() !== "") {
-    return "columm-page-left";
-  } else {
-    return "column-page";
   }
 }
 
