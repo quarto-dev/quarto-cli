@@ -479,7 +479,7 @@
                   oneOf:
                     - boolean
                     - string
-                  description: "Footer border"
+                  description: "Footer border (`true`, `false`, or a border color)"
                 background:
                   schema: string
                   description: "Footer background color"
@@ -549,7 +549,7 @@
       image:
         path:
           description: |
-            Default site thumbnail image for twitter / open-graph
+            Default site thumbnail image for `twitter` / `open-graph`
       open-graph:
         oneOf:
           - boolean
