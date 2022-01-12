@@ -11,9 +11,10 @@
         "path/": "https://deno.land/std@0.119.0/path/",
         "lodash/": "https://deno.land/x/deno_lodash/",
         "async/": "https://deno.land/std@0.119.0/async/",
-        "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5",
-        "diff": "https://cdn.skypack.dev/diff",
-        "ajv": "https://cdn.skypack.dev/ajv",
-        "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/"
+        "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5@2.19.0",
+        "diff": "https://cdn.skypack.dev/diff@5.0.0",
+        "ajv": "https://cdn.skypack.dev/ajv@8.8.2",
+        "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
+        "esbuild/": "https://deno.land/x/esbuild@v0.12.10/",
     }
 }
