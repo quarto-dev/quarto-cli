@@ -426,7 +426,7 @@
                     description: "Collapse the navbar into a menu when the display becomes narrow."
                     default: true
                 collapse-below:
-                  enum: [“sm”, “md”, “lg”, “xl”, or “xxl”]
+                  enum: [sm, md, lg, xl, xxl]
                   description: "The responsive breakpoint below which the navbar will collapse into a menu."
                   default: "lg"
                 left:
@@ -442,82 +442,83 @@
       sidebar:
         oneOf:
           - boolean
-          - object:
-              properties:
-                id:
-                  string:
-                    description: "The identifier for this sidebar."
-                title:
-                  oneOf:
-                    - string
-                    - boolean
-                  description: "The sidebar title. Uses the project title if none is specified."
-                subtitle:
-                  string:
-                    description: "The subtitle for this sidebar."
-                logo:
-                  path:
-                    description: "Path to a logo image that will be displayed in the sidebar."
-                search:
-                  boolean:
-                    description: "Include a search control in the sidebar."
-                tools:
-                  arrayOf:
-                    ref: tool-item
-                  description: "List of sidebar tools"
-                contents:
-                  ref: sidebar-contents
-                  description: "List of items for the sidebar"
-                style:
-                  enum: ["docked", "floating"]
-                  description: 'The style of sidebar (`docked` or `floating`).'
-                  default: "floating"
-                background:
-                  oneOf:
-                    - enum:
-                        [
-                          “primary”,
-                          “secondary”,
-                          “success”,
-                          “danger”,
-                          “warning”,
-                          “info”,
-                          “light”,
-                          “dark”,
-                        ]
-                    - string
-                  description: "The sidebar's background color (named or hex color)."
-                foreground:
-                  oneOf:
-                    - enum:
-                        [
-                          “primary”,
-                          “secondary”,
-                          “success”,
-                          “danger”,
-                          “warning”,
-                          “info”,
-                          “light”,
-                          “dark”,
-                        ]
-                    - string
-                  description: "The sidebar's foreground color (named or hex color)."
-                alignment:
-                  enum: ["left", "right", "center"]
-                  description: 'Alignment of the items within the sidebar (`left`, `right`, or `center`)'
-                collapse-level:
-                  number:
-                    description: "The depth at which the sidebar contents should be collapsed by default."
-                    default: 2
-                pinned:
-                  boolean:
-                    description: "When collapsed, pin the collapsed sidebar to the top of the page."
-                header:
-                  maybeArrayOf: string
-                  description: "Markdown to place above sidebar content (text or file path)"
-                footer:
-                  maybeArrayOf: string
-                  description: "Markdown to place below sidebar content (text or file path)"
+          - maybeArrayOf:
+              object:
+                properties:
+                  id:
+                    string:
+                      description: "The identifier for this sidebar."
+                  title:
+                    oneOf:
+                      - string
+                      - boolean
+                    description: "The sidebar title. Uses the project title if none is specified."
+                  subtitle:
+                    string:
+                      description: "The subtitle for this sidebar."
+                  logo:
+                    path:
+                      description: "Path to a logo image that will be displayed in the sidebar."
+                  search:
+                    boolean:
+                      description: "Include a search control in the sidebar."
+                  tools:
+                    arrayOf:
+                      ref: tool-item
+                    description: "List of sidebar tools"
+                  contents:
+                    ref: sidebar-contents
+                    description: "List of items for the sidebar"
+                  style:
+                    enum: ["docked", "floating"]
+                    description: "The style of sidebar (`docked` or `floating`)."
+                    default: "floating"
+                  background:
+                    oneOf:
+                      - enum:
+                          [
+                            “primary”,
+                            “secondary”,
+                            “success”,
+                            “danger”,
+                            “warning”,
+                            “info”,
+                            “light”,
+                            “dark”,
+                          ]
+                      - string
+                    description: "The sidebar's background color (named or hex color)."
+                  foreground:
+                    oneOf:
+                      - enum:
+                          [
+                            “primary”,
+                            “secondary”,
+                            “success”,
+                            “danger”,
+                            “warning”,
+                            “info”,
+                            “light”,
+                            “dark”,
+                          ]
+                      - string
+                    description: "The sidebar's foreground color (named or hex color)."
+                  alignment:
+                    enum: ["left", "right", "center"]
+                    description: "Alignment of the items within the sidebar (`left`, `right`, or `center`)"
+                  collapse-level:
+                    number:
+                      description: "The depth at which the sidebar contents should be collapsed by default."
+                      default: 2
+                  pinned:
+                    boolean:
+                      description: "When collapsed, pin the collapsed sidebar to the top of the page."
+                  header:
+                    maybeArrayOf: string
+                    description: "Markdown to place above sidebar content (text or file path)"
+                  footer:
+                    maybeArrayOf: string
+                    description: "Markdown to place below sidebar content (text or file path)"
         description: "Side navigation options"
 
       margin-header:
@@ -547,7 +548,7 @@
                   oneOf:
                     - boolean
                     - string
-                  description: 'Footer border (`true`, `false`, or a border color)'
+                  description: "Footer border (`true`, `false`, or a border color)"
                 background:
                   schema: string
                   description: "Footer background color"
