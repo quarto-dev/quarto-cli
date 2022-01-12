@@ -344,6 +344,9 @@
                       analytics-events:
                         boolean:
                           description: "Enable tracking of Algolia analytics events"
+                      show-logo:
+                        boolean:
+                          description: "Enable the display of the Algolia logo in the search results footer."
                       index-fields:
                         object:
                           properties:
@@ -553,67 +556,6 @@
                   description: "Footer foreground color"
               additionalProperties: false
         description: "Shared page footer"
-      search:
-        oneOf:
-          - boolean
-          - object:
-              properties:
-                location:
-                  enum: [navbar, sidebar]
-                  description: "Location for search widget (navbar or sidebar)"
-                type:
-                  enum: [overlay, textbox]
-                  description: "Type of search UI (overlay or textbox)"
-                limit:
-                  schema: number
-                  description: "Number of matches to display (defaults to 20)"
-                collapse-after:
-                  schema: number
-                  description: "Matches after which to collapse additional results"
-                copy-button:
-                  schema: boolean
-                  description: "Provide button for copying search link"
-                algolia:
-                  object:
-                    properties:
-                      index-name:
-                        schema: string
-                        description: "The name of the index to use when performing a search"
-                      application-id:
-                        schema: string
-                        description: "The unique ID used by Algolia to identify your application"
-                      search-only-api-key:
-                        schema: string
-                        description: "The Search-Only API key to use to connect to Algolia"
-                      analytics-events:
-                        boolean:
-                          description: "Enable tracking of Algolia analytics events"
-                      show-logo:
-                        boolean:
-                          description: "Enable the display of the Algolia logo in the search results footer."
-                      index-fields:
-                        object:
-                          properties:
-                            href:
-                              schema: string
-                              description: "Field that contains the URL of index entries"
-                            title:
-                              schema: string
-                              description: "Field that contains the title of index entries"
-                            text:
-                              schema: string
-                              description: "Field that contains the text of index entries"
-                            section:
-                              schema: string
-                              description: "Field that contains the section of index entries"
-                          additionalProperties: false
-                      params:
-                        object:
-                          description: "Additional parameters to pass when executing a search"
-                    additionalProperties: false
-                  description: "Use external Algolia search index"
-              additionalProperties: false
-        description: "Provide full text search for website"
       image:
         path:
           description: |
