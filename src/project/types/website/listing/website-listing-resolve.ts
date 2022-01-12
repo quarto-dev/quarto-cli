@@ -108,7 +108,7 @@ export async function resolveListings(
   const listingItems: ResolvedListing[] = [];
 
   // Read listing data from document metadata
-  const listings = readListings(format);
+  const listings = readListings(source, format);
 
   for (const listing of listings) {
     // Read the metadata for each of the listing files
@@ -244,6 +244,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
 // Processes the 'listing' metadata into an
 // array of Listings to be processed
 function readListings(
+  source: string,
   format: Format,
 ): Listing[] {
   const listingConfig = format.metadata[kListing];
@@ -261,17 +262,27 @@ function readListings(
     );
     let count = 0;
     listings.push(...listingConfigs.map((listing) => {
-      return resolveListing(listing, () => {
-        count = count + 1;
-        return `${kDefaultId}-${count}`;
-      }, format);
+      return resolveListing(
+        listing,
+        () => {
+          count = count + 1;
+          return `${kDefaultId}-${count}`;
+        },
+        source,
+        format,
+      );
     }));
   } else if (listingConfig && typeof (listingConfig) === "object") {
     // Process an individual listing
     listings.push(
-      resolveListing(listingConfig as Record<string, unknown>, () => {
-        return kDefaultId;
-      }, format),
+      resolveListing(
+        listingConfig as Record<string, unknown>,
+        () => {
+          return kDefaultId;
+        },
+        source,
+        format,
+      ),
     );
   } else if (listingConfig) {
     // Process a boolean that is true
@@ -284,6 +295,7 @@ function readListings(
 function resolveListing(
   meta: Record<string, unknown>,
   synthId: () => string,
+  source: string,
   format: Format,
 ): Listing {
   // Create a default listing
@@ -312,6 +324,12 @@ function resolveListing(
     listing.contents = ensureArray(meta.contents);
   }
 
+  // If a template is provided, this must be custom
+  if (meta.template && typeof (meta.template) === "string") {
+    listing.type = ListingType.Custom;
+    listing.template = join(dirname(source), meta.template);
+  }
+  console.log(listing);
   return listing;
 }
 

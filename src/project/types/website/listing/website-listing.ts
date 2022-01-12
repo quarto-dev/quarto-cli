@@ -8,6 +8,7 @@
 
 import { basename } from "path/mod.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { existsSync } from "fs/mod.ts";
 
 import {
   Format,
@@ -123,7 +124,7 @@ function markdownHandler(
   switch (listing.type) {
     case ListingType.Table: {
       return templateMarkdownHandler(
-        "projects/website/listing/listing-table.ejs.md",
+        resourcePath("projects/website/listing/listing-table.ejs.md"),
         listing,
         items,
         format,
@@ -131,7 +132,7 @@ function markdownHandler(
     }
     case ListingType.Grid: {
       return templateMarkdownHandler(
-        "projects/website/listing/listing-grid.ejs.md",
+        resourcePath("projects/website/listing/listing-grid.ejs.md"),
         listing,
         items,
         format,
@@ -140,10 +141,29 @@ function markdownHandler(
         },
       );
     }
+    case ListingType.Custom: {
+      if (listing.template === undefined) {
+        throw new Error(
+          "In order to use a listing of type custom, please provide the path to a template.",
+        );
+      } else {
+        if (!existsSync(listing.template)) {
+          throw new Error(
+            `The template ${listing.template} can't be found.`,
+          );
+        }
+      }
+      return templateMarkdownHandler(
+        listing.template,
+        listing,
+        items,
+        format,
+      );
+    }
     case ListingType.Default:
     default: {
       return templateMarkdownHandler(
-        "projects/website/listing/listing-default.ejs.md",
+        resourcePath("projects/website/listing/listing-default.ejs.md"),
         listing,
         items,
         format,

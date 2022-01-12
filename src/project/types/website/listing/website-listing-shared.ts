@@ -74,6 +74,7 @@ export enum ListingType {
   Default = "default",
   Grid = "grid",
   Table = "table",
+  Custom = "custom",
 }
 
 // Listing sorting

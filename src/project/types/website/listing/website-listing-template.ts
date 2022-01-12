@@ -90,7 +90,7 @@ export function templateMarkdownHandler(
 
   // Render the template into markdown
   const markdown = renderEjs(
-    resourcePath(template),
+    template,
     {
       listing: reshapeListing(listing, format),
       items: reshapedItems,
