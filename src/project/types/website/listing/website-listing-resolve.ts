@@ -346,13 +346,28 @@ function resolveListing(
     }
   };
 
+  // Create the base listing by simply merging the
+  // default listing with the users configuration of a listing
   const listing = {
     ...baseListing,
-    ...{
-      ...meta,
-      id: meta.id as string || synthId(),
-      sort: resolveListingSort(meta.sort),
-    },
+    ...meta,
+  };
+
+  // Go through and specifically merge fields that require
+  // special behavior
+
+  // Use the userId or our synthesized Id
+  listing.id = meta.id as string || synthId();
+
+  // Set the sort to our resolve listing (if the user has provided it)
+  // If the user hasn't provided a sort, the list will be unsorted
+  // following the order provided in the listing contents
+  listing.sort = resolveListingSort(meta.sort);
+
+  // Merge column types
+  listing[kColumnTypes] = {
+    ...baseListing[kColumnTypes],
+    ...meta[kColumnTypes] as Record<string, ColumnType>,
   };
 
   // Coerce contents to an array
