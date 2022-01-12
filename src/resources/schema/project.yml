@@ -5,7 +5,7 @@
         type:
           enum: [website, book, site]
           completions: [website, book]
-          description: "Project type"
+          description: "Project type (`default`, `website`, or `book`)"
         render:
           arrayOf: path
           description: "Files to render (defaults to all files)"
@@ -50,32 +50,12 @@
         date:
           string:
             description: "Book publication date"
-        output-file:
-          path:
-            description: "Base name for single-file output (e.g. PDF, ePub)"
         abstract:
           string:
             description: "Book abstract"
         description:
           string:
             description: "Description metadata for HTML version of book"
-        cover-image:
-          path:
-            description: "Cover image (used in HTML and ePub formats)"
-        sharing:
-          maybeArrayOf:
-            enum: [twitter, facebook, linkedin]
-            description: "Sharing buttons to include on navbar or sidebar (`twitter`, `facebook`, or `linkedin`)"
-        downloads:
-          maybeArrayOf:
-            enum: [pdf, epub, docx]
-            description: |
-              Download buttons for other formats to include on navbar or sidebar
-        tools:
-          arrayOf:
-            schema:
-              ref: navigation-item
-            description: "Custom tools for navbar or sidebar"
         chapters:
           ref: chapter-list
           description: "Book part and chapter files"
@@ -85,3 +65,26 @@
         appendices:
           arrayOf: path
           description: "Book appendix files"
+        output-file:
+          path:
+            description: "Base name for single-file output (e.g. PDF, ePub)"
+        cover-image:
+          path:
+            description: "Cover image (used in HTML and ePub formats)"
+        sharing:
+          maybeArrayOf:
+            enum: [twitter, facebook, linkedin]
+            description: |
+              Sharing buttons to include on navbar or sidebar
+              (one or more of `twitter`, `facebook`, `linkedin`)
+        downloads:
+          maybeArrayOf:
+            enum: [pdf, epub, docx]
+            description: |
+              Download buttons for other formats to include on navbar or sidebar
+              (one or more of `pdf`, `epub`, and `docx)
+        tools:
+          arrayOf:
+            schema:
+              ref: navigation-item
+            description: "Custom tools for navbar or sidebar"

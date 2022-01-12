@@ -36,7 +36,7 @@ import { schemaPath } from "./utils.ts";
 import { defineCached } from "./definitions.ts";
 
 export const getProjectConfigFieldsSchema = defineCached(
-  async () => objectSchemaFromFieldsFile(schemaPath("new/project.yml")),
+  async () => objectSchemaFromFieldsFile(schemaPath("project.yml")),
   "project-config-fields");
 
 export const getProjectConfigSchema = defineCached(

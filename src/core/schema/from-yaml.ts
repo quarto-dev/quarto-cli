@@ -446,7 +446,7 @@ export function schemaFieldsFromGlob(
 
 
 export const schemaRefContexts = memoize(() => {
-  const groups = readYaml(schemaPath("new/groups.yml")) as Record<string, Record<string, Record<string, string>>>;
+  const groups = readYaml(schemaPath("groups.yml")) as Record<string, Record<string, Record<string, string>>>;
   const result = [];
   
   for (const [topLevel, sub] of Object.entries(groups)) {
@@ -470,7 +470,7 @@ export function objectRefSchemaFromContextGlob(
   //
   // testFun = testFun ?? ((_field, _path) => true);
   return objectRefSchemaFromGlob(
-    schemaPath("new/{document,cell}-*.yml"),
+    schemaPath("{document,cell}-*.yml"),
     (field: SchemaField, path: string) => {
       if (testFun !== undefined && !testFun(field, path)) {
         return false;
@@ -501,7 +501,7 @@ export function objectRefSchemaFromGlob(
 
 export async function buildSchemaResources()
 {
-  const path = schemaPath("new/{cell-*,document-*,project}.yml");
+  const path = schemaPath("{cell-*,document-*,project}.yml");
   const result = {};
   // precompile all of the field schemas
   for (const file of expandGlobSync(path)) {
