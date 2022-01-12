@@ -15,6 +15,6 @@
         "diff": "https://cdn.skypack.dev/diff@5.0.0",
         "ajv": "https://cdn.skypack.dev/ajv@8.8.2",
         "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
-        "esbuild/": "https://deno.land/x/esbuild@v0.12.10/",
+        "esbuild/": "https://deno.land/x/esbuild@v0.12.10/"
     }
 }
