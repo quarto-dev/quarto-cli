@@ -34,7 +34,7 @@ import {
   templateJsScript,
   templateMarkdownHandler,
 } from "./website-listing-template.ts";
-import { elaborateListings } from "./website-listing-elaborate.ts";
+import { readListings } from "./website-listing-read.ts";
 
 export async function listingHtmlDependencies(
   source: string,
@@ -43,7 +43,7 @@ export async function listingHtmlDependencies(
   _extras: FormatExtras,
 ) {
   // Read and resolve listings from the metadata
-  const elaboratedListings = await elaborateListings(source, project, format);
+  const elaboratedListings = await readListings(source, project, format);
 
   // If there no listings, don't inject the dependencies
   if (elaboratedListings.length === 0) {

@@ -18,7 +18,6 @@ import {
 import { Format } from "../../../../config/types.ts";
 
 import { renderEjs } from "../../../../core/ejs.ts";
-import { resourcePath } from "../../../../core/resources.ts";
 import {
   kColumnCount,
   kColumnLinks,

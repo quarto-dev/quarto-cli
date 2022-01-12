@@ -18,7 +18,6 @@ import { ProjectContext } from "../../../types.ts";
 import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
 import {
   ColumnType,
-  ElaboratedListing,
   kColumnCount,
   kColumnLinks,
   kColumnNames,
@@ -30,7 +29,10 @@ import {
   kShowFilter,
   kShowSort,
   Listing,
+  ListingDehydrated,
+  ListingDescriptor,
   ListingItem,
+  ListingItemSource,
   ListingSort,
   ListingType,
 } from "./website-listing-shared.ts";
@@ -101,24 +103,30 @@ const kDefaultColumnSort = [
   "filemodified",
 ];
 
-export async function elaborateListings(
+export async function readListings(
   source: string,
   project: ProjectContext,
   format: Format,
-): Promise<ElaboratedListing[]> {
+): Promise<ListingDescriptor[]> {
   // The listings and items for this source
-  const listingItems: ElaboratedListing[] = [];
+  const listingItems: ListingDescriptor[] = [];
 
   // Read listing data from document metadata
-  const listings = readListings(source, format);
+  const listings = readDehydratedListings(source, format);
 
   for (const listing of listings) {
     // Read the metadata for each of the listing files
-    const items = await readContents(source, project, listing);
+    const { items, sources } = await readContents(source, project, listing);
+
+    // Hydrate the listing
+    const listingHydrated = hydrateListing(format, listing, items, sources);
 
     // Sort the items (first array is of sort functions)
     // second array is of sort direction
-    const sortedAndFiltered = (): ListingItem[] => {
+    const sortedAndFiltered = (
+      listing: Listing,
+      items: ListingItem[],
+    ): ListingItem[] => {
       if (listing.sort && listing.sort.length > 0) {
         return ld.orderBy(
           items,
@@ -133,23 +141,86 @@ export async function elaborateListings(
         return items;
       }
     };
-    const orderedItems = sortedAndFiltered();
+    const orderedItems = sortedAndFiltered(listingHydrated, items);
 
     // Add this listing and its items to the list
     listingItems.push({
-      listing,
+      listing: listingHydrated,
       items: orderedItems,
     });
   }
   return listingItems;
 }
 
+function hydrateListing(
+  format: Format,
+  listing: ListingDehydrated,
+  items: ListingItem[],
+  sources: Set<ListingItemSource>,
+): Listing {
+  const columnsForItems = (items: ListingItem[]): string[] => {
+    const unionedItem = items.reduce((prev, current) => {
+      return {
+        ...prev,
+        ...current,
+      };
+    }, {});
+    return Object.keys(unionedItem).filter((key) => {
+      return unionedItem[key] !== undefined;
+    });
+  };
+
+  const columnsForTable = (items: ListingItem[]): string[] => {
+    // If the items have come from metadata, we should just show
+    // all the columns in the table. Otherwise, we should use the
+    // document default columns
+    if (sources.has(ListingItemSource.metadata)) {
+      return columnsForItems(items);
+    } else {
+      return kDefaultTableColumns;
+    }
+  };
+
+  const columns = listing.type === ListingType.Table
+    ? columnsForTable(items)
+    : defaultColumns(listing.type);
+
+  const listingHydrated: Listing = {
+    columns,
+    [kColumnNames]: defaultColumnNames(format),
+    [kColumnTypes]: kDefaultColumnTypes,
+    [kColumnLinks]: kDefaultColumnLinks,
+    [kColumnSort]: kDefaultColumnSort,
+    [kRowCount]: 100,
+    [kShowFilter]: true,
+    [kShowSort]: true,
+    ...listing,
+  };
+
+  // Populate base default values for types
+  if (listing.type === ListingType.Grid) {
+    listingHydrated[kColumnCount] = 2;
+    listingHydrated[kImageHeight] = 120;
+  } else if (listing.type === ListingType.Default) {
+    listingHydrated[kImageAlign] = "right";
+  }
+
+  // Merge column types
+  listingHydrated[kColumnTypes] = {
+    ...listingHydrated[kColumnTypes],
+    ...listing[kColumnTypes] as Record<string, ColumnType>,
+  };
+
+  return listingHydrated;
+}
+
 async function readContents(
   source: string,
   project: ProjectContext,
-  listing: Listing,
+  listing: ListingDehydrated,
 ) {
   const listingItems: ListingItem[] = [];
+  const listingItemSources = new Set<ListingItemSource>();
 
   // Accumulate the files that would be allowed to be included
   // This will include:
@@ -182,6 +253,7 @@ async function readContents(
               items.forEach((item) => {
                 if (typeof (item) === "object") {
                   const listingItem = listItemFromMeta(item as Metadata);
+                  listingItemSources.add(ListingItemSource.metadata);
                   listingItems.push(listingItem);
                 } else {
                   throw new Error(
@@ -191,6 +263,7 @@ async function readContents(
               });
             } else if (typeof (yaml) === "object") {
               const listingItem = listItemFromMeta(yaml as Metadata);
+              listingItemSources.add(ListingItemSource.metadata);
               listingItems.push(listingItem);
             } else {
               throw new Error(
@@ -199,16 +272,21 @@ async function readContents(
             }
           } else {
             const item = await listItemFromFile(file, project);
+            listingItemSources.add(ListingItemSource.document);
             listingItems.push(item);
           }
         }
       }
     } else {
       const listingItem = listItemFromMeta(content);
+      listingItemSources.add(ListingItemSource.metadata);
       listingItems.push(listingItem);
     }
   }
-  return listingItems;
+  return {
+    items: listingItems,
+    sources: listingItemSources,
+  };
 }
 
 function listItemFromMeta(meta: Metadata) {
@@ -272,22 +350,21 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     path: `/${projectRelativePath}`,
     filename,
     filemodified,
-    sortableValues: {},
   };
   return item;
 }
 
 // Processes the 'listing' metadata into an
 // array of Listings to be processed
-function readListings(
+function readDehydratedListings(
   source: string,
   format: Format,
-): Listing[] {
+): ListingDehydrated[] {
   const listingConfig = format.metadata[kListing];
-  const listings: Listing[] = [];
+  const listings: ListingDehydrated[] = [];
   if (typeof (listingConfig) == "string") {
     // Resolve this string
-    const listing = elaborateListingType(listingType(listingConfig), format);
+    const listing = listingForType(listingType(listingConfig));
     if (listing) {
       listings.push(listing);
     }
@@ -298,45 +375,42 @@ function readListings(
     );
     let count = 0;
     listings.push(...listingConfigs.map((listing) => {
-      return elaborateListing(
+      return listingForMetadata(
         listing,
         () => {
           count = count + 1;
           return `${kDefaultId}-${count}`;
         },
         source,
-        format,
       );
     }));
   } else if (listingConfig && typeof (listingConfig) === "object") {
     // Process an individual listing
     listings.push(
-      elaborateListing(
+      listingForMetadata(
         listingConfig as Record<string, unknown>,
         () => {
           return kDefaultId;
         },
         source,
-        format,
       ),
     );
   } else if (listingConfig) {
     // Process a boolean that is true
-    listings.push(elaborateListingType(ListingType.Default, format));
+    listings.push(listingForType(ListingType.Default));
   }
 
   return listings;
 }
 
-function elaborateListing(
+function listingForMetadata(
   meta: Record<string, unknown>,
   synthId: () => string,
   source: string,
-  format: Format,
-): Listing {
+): ListingDehydrated {
   // Create a default listing
   const listingType = meta.type as ListingType || kDefaultListingType;
-  const baseListing = elaborateListingType(listingType, format);
+  const baseListing = listingForType(listingType);
 
   const ensureArray = (val: unknown): string[] => {
     if (Array.isArray(val)) {
@@ -363,12 +437,6 @@ function elaborateListing(
   // If the user hasn't provided a sort, the list will be unsorted
   // following the order provided in the listing contents
   listing.sort = computeListingSort(meta.sort);
-
-  // Merge column types
-  listing[kColumnTypes] = {
-    ...baseListing[kColumnTypes],
-    ...meta[kColumnTypes] as Record<string, ColumnType>,
-  };
 
   // Coerce contents to an array
   if (meta.contents) {
@@ -457,29 +525,14 @@ function listingType(val: unknown): ListingType {
   }
 }
 
-function elaborateListingType(type: ListingType, format: Format): Listing {
-  const listing: Listing = {
+function listingForType(
+  type: ListingType,
+): ListingDehydrated {
+  const listing: ListingDehydrated = {
     id: kDefaultId,
     type: type,
     contents: kDefaultContentsGlob,
-    columns: defaultColumns(type),
-    [kColumnNames]: defaultColumnNames(format),
-    [kColumnTypes]: kDefaultColumnTypes,
-    [kColumnLinks]: kDefaultColumnLinks,
-    [kColumnSort]: kDefaultColumnSort,
-    [kRowCount]: 100,
-    [kShowFilter]: true,
-    [kShowSort]: true,
   };
-
-  // Populate base default values for types
-  if (type === ListingType.Grid) {
-    listing[kColumnCount] = 2;
-    listing[kImageHeight] = 120;
-  } else if (type === ListingType.Default) {
-    listing[kImageAlign] = "right";
-  }
-
   return listing;
 }
 

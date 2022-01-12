@@ -42,16 +42,19 @@ export const kImageAlign = "image-align";
 // The number of columns to display (grid)
 export const kColumnCount = "column-count";
 
-export interface ElaboratedListing {
+export interface ListingDescriptor {
   listing: Listing;
   items: ListingItem[];
 }
 
-// The core listing type
-export interface Listing extends Record<string, unknown> {
+export interface ListingDehydrated extends Record<string, unknown> {
   id: string;
   type: ListingType;
   contents: Array<string | Metadata>; // globs (or items)
+}
+
+// The core listing type
+export interface Listing extends ListingDehydrated {
   columns: string[];
   [kColumnNames]: Record<string, string>;
   [kColumnTypes]: Record<string, ColumnType>;
@@ -60,6 +63,7 @@ export interface Listing extends Record<string, unknown> {
   [kRowCount]: number;
   [kShowFilter]: boolean;
   [kShowSort]: boolean;
+
   sort?: ListingSort[];
   classes?: string[];
   template?: string;
@@ -85,6 +89,12 @@ export interface ListingSort {
 
 // Column Types
 export type ColumnType = "date" | "string" | "number";
+
+// Sources that provide Listing Items
+export enum ListingItemSource {
+  document = "document",
+  metadata = "metadata",
+}
 
 // An individual listing item
 export interface ListingItem extends Record<string, unknown> {
