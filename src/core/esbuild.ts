@@ -1,38 +1,12 @@
 /*
 * esbuild.ts
 *
-* esbuild helpers
-*
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
 
 import { execProcess } from "./process.ts";
-import { binaryPath, resourcePath } from "./resources.ts";
-import { build } from "esbuild/mod.js";
-import { cache } from "./lib/external/esbuild_plugin_cache/mod.ts";
-import { createSessionTempDir } from "./temp.ts";
-
-let esbuildCacheDir: string | undefined;
-export function esbuild(
-  args: Record<string, unknown>,
-) {
-  if (esbuildCacheDir === undefined) {
-    esbuildCacheDir = createSessionTempDir();
-  }
-  const importmap = JSON.parse(
-    Deno.readTextFileSync(resourcePath("../import_map.json")),
-  );
-  return build({
-    bundle: true,
-    format: "esm",
-    ...args,
-    plugins: [cache({
-      importmap,
-      directory: esbuildCacheDir,
-    })],
-  });
-}
+import { binaryPath } from "./resources.ts";
 
 export async function esbuildCompile(
   input: string,
@@ -47,10 +21,10 @@ export async function esbuildCompile(
     ...(args || []),
   ];
 
-  return await esbuildCLI(fullArgs, input, workingDir);
+  return await esbuildCommand(fullArgs, input, workingDir);
 }
 
-async function esbuildCLI(
+async function esbuildCommand(
   args: string[],
   input: string,
   workingDir: string,
