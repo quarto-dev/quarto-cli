@@ -11,15 +11,12 @@ import {
   HelpCommand,
 } from "cliffy/command/mod.ts";
 
+import { mainRunner } from "./core/main.ts";
 import { commands } from "./command/command.ts";
 import {
-  appendLogOptions,
-  cleanupLogger,
-  initializeLogger,
-  logError,
-  logOptions,
+  appendLogOptions
 } from "./core/log.ts";
-import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
+import { initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
@@ -29,6 +26,7 @@ import {
   readSourceDevConfig,
   reconfigureQuarto,
 } from "./core/devconfig.ts";
+
 
 import { parse } from "flags/mod.ts";
 import { runScript } from "./command/run/run.ts";
@@ -92,41 +90,8 @@ export async function quarto(
 
   await quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
-
-  // cleanup
-  cleanup();
 }
 
 if (import.meta.main) {
-  try {
-    // install termination signal handlers
-    if (Deno.build.os !== "windows") {
-      Deno.addSignalListener("SIGINT", abend);
-      Deno.addSignalListener("SIGTERM", abend);
-    }
-
-    await initializeLogger(logOptions(parse(Deno.args)));
-
-    // run quarto
-    await quarto(Deno.args, appendLogOptions);
-
-    await cleanupLogger();
-
-    // exit
-    Deno.exit(0);
-  } catch (e) {
-    if (e) {
-      logError(e);
-    }
-    abend();
-  }
-}
-
-function abend() {
-  cleanup();
-  Deno.exit(1);
-}
-
-function cleanup() {
-  cleanupSessionTempDir();
+  await mainRunner(() => quarto(Deno.args, appendLogOptions));
 }

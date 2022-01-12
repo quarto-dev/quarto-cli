@@ -72,7 +72,7 @@ export async function buildAssets() {
   // this has to come first because buildYAMLJS depends on it.
   await buildCoreLib(resourceDir);
 
-  return Promise.all([
+  await Promise.all([
     buildSchemaFile(resourceDir),
     buildQuartoOJS(resourceDir),
     buildYAMLJS(resourceDir),

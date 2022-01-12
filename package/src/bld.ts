@@ -9,6 +9,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { packageCommand } from "./cmd/pkg-cmd.ts";
 import { configure } from "./common/configure.ts";
 import { error } from "log/mod.ts";
+import { mainRunner } from "../../src/core/main.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
 import { updateHtmlDepedencies } from "./common/update-html-dependencies.ts";
@@ -54,19 +55,7 @@ export async function quartoBld(args: string[]) {
 }
 
 if (import.meta.main) {
-  try {
-    const args = parse(Deno.args);
-    await initializeLogger(logOptions(args));
-
-    await quartoBld(Deno.args);
-    cleanupLogger();
-  } catch (e) {
-    if (e) {
-      error(`${e.stack}\n`);
-    }
-    cleanupLogger();
-    Deno.exit(1);
-  }
+  await mainRunner(() => quartoBld(Deno.args));
 }
 
 // Supported package commands
