@@ -251,7 +251,7 @@ function readListings(
   const listings: Listing[] = [];
   if (typeof (listingConfig) == "string") {
     // Resolve this string
-    const listing = resolveListingStr(listingConfig, format);
+    const listing = resolveListingType(listingType(listingConfig), format);
     if (listing) {
       listings.push(listing);
     }
@@ -286,7 +286,7 @@ function readListings(
     );
   } else if (listingConfig) {
     // Process a boolean that is true
-    listings.push(resolveListingStr(ListingType.Default, format));
+    listings.push(resolveListingType(ListingType.Default, format));
   }
 
   return listings;
@@ -299,8 +299,8 @@ function resolveListing(
   format: Format,
 ): Listing {
   // Create a default listing
-  const type = meta.type as ListingType || kDefaultListingType;
-  const baseListing = resolveListingStr(type, format);
+  const listingType = meta.type as ListingType || kDefaultListingType;
+  const baseListing = resolveListingType(listingType, format);
 
   const ensureArray = (val: unknown): string[] => {
     if (Array.isArray(val)) {
@@ -407,8 +407,7 @@ function listingType(val: unknown): ListingType {
   }
 }
 
-function resolveListingStr(val: string, format: Format): Listing {
-  const type = listingType(val);
+function resolveListingType(type: ListingType, format: Format): Listing {
   const listing: Listing = {
     id: kDefaultId,
     type: type,
