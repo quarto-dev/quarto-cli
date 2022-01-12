@@ -44,6 +44,8 @@ import {
   kListingPageColumnTitle,
 } from "../../../../config/constants.ts";
 import { isAbsoluteRef } from "../../../../core/http.ts";
+import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
+import { projectYamlFiles } from "../../../project-context.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -148,23 +150,57 @@ async function resolveContents(
   listing: Listing,
 ) {
   const listingItems: ListingItem[] = [];
+
+  // Accumulate the files that would be allowed to be included
+  // This will include:
+  //   - project input files
+  const inputsWithoutSource = project.files.input.filter((file) =>
+    file !== source
+  );
+  //   - YAML files in the source directory or a child directory
+  const yamlFiles: string[] = projectYamlFiles(dirname(source));
+  const possibleListingFiles = [
+    ...inputsWithoutSource,
+    ...yamlFiles,
+  ];
+
   for (const content of listing.contents) {
     if (typeof (content) === "string") {
-      // This is a path, expand it
-      // Filter the source file out of the inputs
-      const inputsWithoutSource = project.files.input.filter((file) =>
-        file !== source
-      );
+      // This is a path (glob)-  compare itw
       const files = filterPaths(
         dirname(source),
-        inputsWithoutSource,
+        possibleListingFiles,
         [content],
       );
 
       for (const file of files.include) {
         if (!files.exclude.includes(file)) {
-          const item = await listItemFromFile(file, project);
-          listingItems.push(item);
+          if (isYamlPath(file)) {
+            const yaml = readYaml(file);
+            if (Array.isArray(yaml)) {
+              const items = yaml as Array<unknown>;
+              items.forEach((item) => {
+                if (typeof (item) === "object") {
+                  const listingItem = listItemFromMeta(item as Metadata);
+                  listingItems.push(listingItem);
+                } else {
+                  throw new Error(
+                    `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
+                  );
+                }
+              });
+            } else if (typeof (yaml) === "object") {
+              const listingItem = listItemFromMeta(yaml as Metadata);
+              listingItems.push(listingItem);
+            } else {
+              throw new Error(
+                `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
+              );
+            }
+          } else {
+            const item = await listItemFromFile(file, project);
+            listingItems.push(item);
+          }
         }
       }
     } else {
@@ -329,7 +365,6 @@ function resolveListing(
     listing.type = ListingType.Custom;
     listing.template = join(dirname(source), meta.template);
   }
-  console.log(listing);
   return listing;
 }
 
