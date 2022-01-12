@@ -18,6 +18,7 @@ import { ProjectContext } from "../../../types.ts";
 import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
 import {
   ColumnType,
+  ElaboratedListing,
   kColumnCount,
   kColumnLinks,
   kColumnNames,
@@ -32,7 +33,6 @@ import {
   ListingItem,
   ListingSort,
   ListingType,
-  ResolvedListing,
 } from "./website-listing-shared.ts";
 import {
   kListingPageColumnAuthor,
@@ -101,20 +101,20 @@ const kDefaultColumnSort = [
   "filemodified",
 ];
 
-export async function resolveListings(
+export async function elaborateListings(
   source: string,
   project: ProjectContext,
   format: Format,
-): Promise<ResolvedListing[]> {
+): Promise<ElaboratedListing[]> {
   // The listings and items for this source
-  const listingItems: ResolvedListing[] = [];
+  const listingItems: ElaboratedListing[] = [];
 
   // Read listing data from document metadata
   const listings = readListings(source, format);
 
   for (const listing of listings) {
     // Read the metadata for each of the listing files
-    const items = await resolveContents(source, project, listing);
+    const items = await readContents(source, project, listing);
 
     // Sort the items (first array is of sort functions)
     // second array is of sort direction
@@ -144,7 +144,7 @@ export async function resolveListings(
   return listingItems;
 }
 
-async function resolveContents(
+async function readContents(
   source: string,
   project: ProjectContext,
   listing: Listing,
@@ -287,7 +287,7 @@ function readListings(
   const listings: Listing[] = [];
   if (typeof (listingConfig) == "string") {
     // Resolve this string
-    const listing = resolveListingType(listingType(listingConfig), format);
+    const listing = elaborateListingType(listingType(listingConfig), format);
     if (listing) {
       listings.push(listing);
     }
@@ -298,7 +298,7 @@ function readListings(
     );
     let count = 0;
     listings.push(...listingConfigs.map((listing) => {
-      return resolveListing(
+      return elaborateListing(
         listing,
         () => {
           count = count + 1;
@@ -311,7 +311,7 @@ function readListings(
   } else if (listingConfig && typeof (listingConfig) === "object") {
     // Process an individual listing
     listings.push(
-      resolveListing(
+      elaborateListing(
         listingConfig as Record<string, unknown>,
         () => {
           return kDefaultId;
@@ -322,13 +322,13 @@ function readListings(
     );
   } else if (listingConfig) {
     // Process a boolean that is true
-    listings.push(resolveListingType(ListingType.Default, format));
+    listings.push(elaborateListingType(ListingType.Default, format));
   }
 
   return listings;
 }
 
-function resolveListing(
+function elaborateListing(
   meta: Record<string, unknown>,
   synthId: () => string,
   source: string,
@@ -336,7 +336,7 @@ function resolveListing(
 ): Listing {
   // Create a default listing
   const listingType = meta.type as ListingType || kDefaultListingType;
-  const baseListing = resolveListingType(listingType, format);
+  const baseListing = elaborateListingType(listingType, format);
 
   const ensureArray = (val: unknown): string[] => {
     if (Array.isArray(val)) {
@@ -362,7 +362,7 @@ function resolveListing(
   // Set the sort to our resolve listing (if the user has provided it)
   // If the user hasn't provided a sort, the list will be unsorted
   // following the order provided in the listing contents
-  listing.sort = resolveListingSort(meta.sort);
+  listing.sort = computeListingSort(meta.sort);
 
   // Merge column types
   listing[kColumnTypes] = {
@@ -398,7 +398,7 @@ function toSortKey(key: string) {
   }
 }
 
-function resolveListingSort(rawValue: unknown): ListingSort[] | undefined {
+function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
   const parseValue = (sortValue: unknown): ListingSort | undefined => {
     if (sortValue == undefined) {
       return undefined;
@@ -457,7 +457,7 @@ function listingType(val: unknown): ListingType {
   }
 }
 
-function resolveListingType(type: ListingType, format: Format): Listing {
+function elaborateListingType(type: ListingType, format: Format): Listing {
   const listing: Listing = {
     id: kDefaultId,
     type: type,

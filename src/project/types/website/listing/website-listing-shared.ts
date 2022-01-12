@@ -42,7 +42,7 @@ export const kImageAlign = "image-align";
 // The number of columns to display (grid)
 export const kColumnCount = "column-count";
 
-export interface ResolvedListing {
+export interface ElaboratedListing {
   listing: Listing;
   items: ListingItem[];
 }

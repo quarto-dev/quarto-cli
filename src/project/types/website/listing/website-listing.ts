@@ -34,7 +34,7 @@ import {
   templateJsScript,
   templateMarkdownHandler,
 } from "./website-listing-template.ts";
-import { resolveListings } from "./website-listing-resolve.ts";
+import { elaborateListings } from "./website-listing-elaborate.ts";
 
 export async function listingHtmlDependencies(
   source: string,
@@ -43,16 +43,16 @@ export async function listingHtmlDependencies(
   _extras: FormatExtras,
 ) {
   // Read and resolve listings from the metadata
-  const resolvedListings = await resolveListings(source, project, format);
+  const elaboratedListings = await elaborateListings(source, project, format);
 
   // If there no listings, don't inject the dependencies
-  if (resolvedListings.length === 0) {
+  if (elaboratedListings.length === 0) {
     return undefined;
   }
 
   // Create the markdown pipeline for this set of listings
   const markdownHandlers: MarkdownPipelineHandler[] = [];
-  resolvedListings.forEach((listingItem) => {
+  elaboratedListings.forEach((listingItem) => {
     markdownHandlers.push(
       markdownHandler(
         format,
@@ -82,7 +82,7 @@ export async function listingHtmlDependencies(
   }];
 
   // Generate the inline script tags that configure list.js
-  const scripts = resolvedListings.map((listingItem) => {
+  const scripts = elaboratedListings.map((listingItem) => {
     return templateJsScript(
       listingItem.listing.id,
       listingItem.listing,
@@ -98,8 +98,8 @@ export async function listingHtmlDependencies(
     // Do any other processing of the document
     listingPostProcess(
       doc,
-      resolvedListings.map((resolvedListing) => {
-        return resolvedListing.listing;
+      elaboratedListings.map((elaboratedListing) => {
+        return elaboratedListing.listing;
       }),
     );
 
