@@ -57,8 +57,10 @@ export function templateMarkdownHandler(
       resolveItemForTemplate(item, listing);
 
       const record: Record<string, unknown | undefined> = { ...item };
-      // TODO: Improve author formatting
-      record.author = item.author ? item.author.join(", ") : undefined;
+
+      if (item.author) {
+        record.author = item.author.join(", ");
+      }
 
       // Format date values
       // Read date formatting from an option, if present
@@ -160,27 +162,29 @@ export function resolveItemForTemplate(
   item: ListingItem,
   listing: Listing,
 ) {
-  // ensure this is present
-  item.sortableValues = item.sortableValues || {};
+  // add sort key if needed
+  const addSortable = (item: ListingItem, field: string, value: string) => {
+    item.sortableValues = item.sortableValues || {};
+    item.sortableValues[field] = value;
+  };
 
   // Add sortable values for fields of variant types
-  for (const col of Object.keys(listing[kFieldTypes])) {
-    const type = listing[kFieldTypes][col];
-    if (item[col] !== undefined) {
+  for (const field of Object.keys(listing[kFieldTypes])) {
+    const type = listing[kFieldTypes][field];
+    if (item[field] !== undefined) {
       if (type === "date") {
-        item.sortableValues[col] = (item[col] as Date).valueOf().toString();
+        addSortable(item, field, (item[field] as Date).valueOf().toString());
       } else if (type === "number") {
-        item.sortableValues[col] = (item[col] as number).toString();
+        addSortable(item, field, (item[field] as number).toString());
       }
     }
   }
 
   // Add sortable values for fields that will be linked
-  for (const col of listing[kFieldLinks]) {
-    const val = item[col];
+  for (const field of listing[kFieldLinks]) {
+    const val = item[field];
     if (val !== undefined) {
-      item.sortableValues = item.sortableValues || {};
-      item.sortableValues[col] = val as string;
+      addSortable(item, field, val as string);
     }
   }
 }

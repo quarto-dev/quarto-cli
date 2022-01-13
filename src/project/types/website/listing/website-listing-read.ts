@@ -7,7 +7,7 @@
 */
 
 import { basename, dirname, join, relative } from "path/mod.ts";
-import { orderBy } from "../../../../core/lodash.ts";
+import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
@@ -185,12 +185,21 @@ function hydrateListing(
     ? columnsForTable(items)
     : defaultFields(listing.type);
 
+  // Sorting and linking are only available in built in templates
+  // right now, so don't expose these fields defaults in custom
+  const defaultSort = listing.type !== ListingType.Custom
+    ? kDefaultFieldSort
+    : [];
+  const defaultLinks = listing.type !== ListingType.Custom
+    ? kDefaultFieldLinks
+    : [];
+
   const listingHydrated: Listing = {
     fields,
     [kFieldNames]: defaultFieldNames(format),
     [kFieldTypes]: kDefaultFieldTypes,
-    [kFieldLinks]: kDefaultFieldLinks,
-    [kFieldSort]: kDefaultFieldSort,
+    [kFieldLinks]: defaultLinks,
+    [kFieldSort]: defaultSort,
     [kRowCount]: 100,
     [kShowFilter]: true,
     [kShowSort]: true,
@@ -290,28 +299,21 @@ async function readContents(
 }
 
 function listItemFromMeta(meta: Metadata) {
-  // This is a raw item object, adapt any typed values...
-  const date = meta?.date ? new Date(meta.date as string) : undefined;
-  const author = meta.author !== undefined
-    ? Array.isArray(meta?.author) ? meta?.author : [meta?.author]
-    : undefined;
+  const listingItem = cloneDeep(meta);
 
   // If there is a path, try to complete the filename and
   // modified values
-  const filename = meta?.path !== undefined
-    ? basename(meta.path as string)
-    : undefined;
-  const filemodified = meta?.path !== undefined
-    ? fileModifiedDate(meta.path as string)
-    : undefined;
+  if (meta.path !== undefined) {
+    meta.filename = basename(meta.path as string);
+    meta.filemodified = fileModifiedDate(meta.path as string);
+  }
 
-  return {
-    ...meta,
-    date,
-    author,
-    filename,
-    filemodified,
-  };
+  if (meta.author) {
+    if (!Array.isArray(meta.author)) {
+      meta.author = [meta.author];
+    }
+  }
+  return listingItem;
 }
 
 async function listItemFromFile(input: string, project: ProjectContext) {

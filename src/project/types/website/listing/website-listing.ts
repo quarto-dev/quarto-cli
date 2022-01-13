@@ -190,7 +190,6 @@ function listingPostProcess(doc: Document, listings: Listing[]) {
   const mainEl = doc.querySelector("main.content");
   if (mainEl) {
     mainEl.classList.add(titleColumn || defaultColumn);
-    console.log(mainEl.classList);
   }
 }
 
