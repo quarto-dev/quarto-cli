@@ -103,6 +103,30 @@ export async function updateHtmlDepedencies(config: Configuration) {
   );
   cleanSourceMap(tippyUmdJs);
 
+  // List.js
+  const listJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "listing",
+    "list.min.js",
+  );
+  await updateGithubSourceCodeDependency(
+    "listjs",
+    "javve/list.js",
+    "LIST_JS",
+    workingDir,
+    (dir: string, version: string) => {
+      ensureDirSync(dirname(listJs));
+      // Copy the js file
+      Deno.copyFileSync(
+        join(dir, `list.js-${version}`, "dist", "list.min.js"),
+        listJs,
+      );
+    },
+  );
+
   const tippyCss = join(formatDir, "tippy", "tippy.css");
   await updateUnpkgDependency(
     "TIPPY_JS",
