@@ -22,9 +22,9 @@ jobs:
   configure:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{steps.config.outputs.version}}.${{ github.run_number - 475}}
-      tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number - 475 }}
-      release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number - 475 }})
+      version: ${{steps.config.outputs.version}}.${{ github.run_number + steps.config.outputs.run_number_offset}}
+      tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number + steps.config.outputs.run_number_offset }}
+      release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number + steps.config.outputs.run_number_offset }})
       changes: ${{ steps.config.outputs.changes }}  
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
@@ -48,6 +48,7 @@ jobs:
 
         echo ::set-output name=version::$QUARTO_VERSION
         echo ::set-output name=changes::$CHANGES
+        echo ::set-output name=run_number_offset::$QUARTO_BUILD_RUN_OFFSET
   
   make-tarball:
     runs-on: ubuntu-latest
