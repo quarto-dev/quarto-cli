@@ -128,7 +128,7 @@ async function automationFromGoodParseYAML(kind, context) {
   // but includes the --- delimiters, so we trim those.
   context = trimTicks(context);
 
-  if (core.guessChunkOptionsFormat(context.code) === "knitr") {
+  if (core.guessChunkOptionsFormat(context.code.value) === "knitr") {
     // if the chunk options are in knitr format, don't validate or
     // autocomplete
     return null;
