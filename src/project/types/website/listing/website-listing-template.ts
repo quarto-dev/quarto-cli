@@ -7,7 +7,7 @@
 */
 import { format as formatDate } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { cloneDeep } from "../../../../core/lodash.ts";
+import { cloneDeep, escape } from "../../../../core/lodash.ts";
 import {
   kListingPageOrderByDateAsc,
   kListingPageOrderByDateDesc,
@@ -295,7 +295,7 @@ export function reshapeListing(
     if (!colSortTargets || colSortTargets[field] === field) {
       return "";
     } else {
-      return ` ${colSortTargets[field]}`;
+      return ` ${escape(colSortTargets[field])}`;
     }
   };
   utilities.sortTarget = (field: string) => {
@@ -312,7 +312,9 @@ export function reshapeListing(
     if (!colSortTargets || colSortTargets[field] === field) {
       return "";
     } else {
-      return `data-${colSortTargets[field]}=${item.sortableValues[field]}`;
+      return `data-${colSortTargets[field]}="${
+        escape(item.sortableValues[field])
+      }"`;
     }
   };
   utilities.localizedString = (str: string) => {

@@ -23,35 +23,33 @@ const outputValue = (field) => {
 
 <% partial('\_filter.ejs.md', {listing}) %>
 
-```{=html}
 <table class="quarto-listing table">
 <thead>
-  <tr>
-  <% for (const field of fields) { %>
-    <th>
-    <% if (showSort) { %>
-    <a class="sort" data-sort="<%=listing.utilities.sortTarget(field)%>" onclick="return false;">
-    <% } %>
-    <%= listing.utilities.fieldName(field) %>
-    <% if (showSort) { %>
-    </a>
-    <% } %>
-    </th>
-  <% } %>
-  </tr>
+<tr>
+<% for (const field of fields) { %>
+<th>
+<% if (showSort) { %>
+<a class="sort" data-sort="<%=listing.utilities.sortTarget(field)%>" onclick="return false;">
+<% } %>
+<%= listing.utilities.fieldName(field) %>
+<% if (showSort) { %>
+</a>
+<% } %>
+</th>
+<% } %>
+</tr>
 </thead>
 <tbody class="list">
 <% for (item of items) { %>
-  <tr>
-    <% for (const field of fields){ %>
-      <td class="<%= field %><%=listing.utilities.sortClass(field) %>"<%=listing.utilities.sortAttr(item, field)%>>
-        <%= outputValue(field) %>
-      </td>
-    <% } %>
-  </tr>
+<tr>
+<% for (const field of fields){ %>
+<td class="<%= field %><%=listing.utilities.sortClass(field) %>"<%=listing.utilities.sortAttr(item, field)%>>
+<%= outputValue(field) %>
+</td>
+<% } %>
+</tr>
 <% } %>
 </tbody>
 </table>
-```
 
 <% partial('\_pagination.ejs.md', {listing, items}) %>
