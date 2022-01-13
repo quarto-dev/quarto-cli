@@ -52,55 +52,72 @@ import { projectYamlFiles } from "../../../project-context.ts";
 // The root listing key
 export const kListing = "listing";
 
+export const kFieldTitle = "title";
+export const kFieldSubtitle = "subtitle";
+export const kFieldAuthor = "author";
+export const kFieldFileModified = "filemodified";
+export const kFieldFileName = "filename";
+export const kFieldDate = "date";
+export const kFieldImage = "image";
+export const kFieldDescription = "description";
+
+export const kSortAsc = "asc";
+export const kSortDesc = "desc";
+
 // Defaults (a card listing that contains everything
 // in the source document's directory)
 const kDefaultListingType = ListingType.Default;
 const kDefaultContentsGlob = ["*"];
 const kDefaultId = "quarto-listing";
-const kDefaultTableFields = ["date", "title", "author", "filename"];
+const kDefaultTableFields = [
+  kFieldDate,
+  kFieldTitle,
+  kFieldAuthor,
+  kFieldFileName,
+];
 const kDefaultGridFields = [
-  "title",
-  "subtitle",
-  "author",
-  "image",
-  "description",
-  "filename",
-  "filemodified",
+  kFieldTitle,
+  kFieldSubtitle,
+  kFieldAuthor,
+  kFieldImage,
+  kFieldDescription,
+  kFieldFileName,
+  kFieldFileModified,
 ];
 const kDefaultFields = [
-  "date",
-  "title",
-  "author",
-  "subtitle",
-  "image",
-  "description",
+  kFieldDate,
+  kFieldTitle,
+  kFieldAuthor,
+  kFieldSubtitle,
+  kFieldImage,
+  kFieldDescription,
 ];
 
 const defaultFieldNames = (format: Format) => {
   return {
-    "image": " ",
-    "date": format.language[kListingPageColumnDate] || "",
-    "title": format.language[kListingPageColumnTitle] || "",
-    "description": format.language[kListingPageColumnDescription] || "",
-    "author": format.language[kListingPageColumnAuthor] || "",
-    "filename": format.language[kListingPageColumnFileName] || "",
-    "filemodified": format.language[kListingPageColumnFileModified] || "",
-    "subtitle": format.language[kListingPageColumnSubtitle] || "",
+    [kFieldImage]: " ",
+    [kFieldDate]: format.language[kListingPageColumnDate] || "",
+    [kFieldTitle]: format.language[kListingPageColumnTitle] || "",
+    [kFieldDescription]: format.language[kListingPageColumnDescription] || "",
+    [kFieldAuthor]: format.language[kListingPageColumnAuthor] || "",
+    [kFieldFileName]: format.language[kListingPageColumnFileName] || "",
+    [kFieldFileModified]: format.language[kListingPageColumnFileModified] || "",
+    [kFieldSubtitle]: format.language[kListingPageColumnSubtitle] || "",
   };
 };
 
 const kDefaultFieldTypes: Record<string, ColumnType> = {
-  "date": "date",
-  "filemodified": "date",
+  [kFieldDate]: "date",
+  [kFieldFileModified]: "date",
 };
-const kDefaultFieldLinks = ["title", "filename"];
+const kDefaultFieldLinks = [kFieldTitle, kFieldFileName];
 
 const kDefaultFieldSort = [
-  "title",
-  "date",
-  "author",
-  "filename",
-  "filemodified",
+  kFieldTitle,
+  kFieldDate,
+  kFieldAuthor,
+  kFieldFileName,
+  kFieldFileModified,
 ];
 
 export async function readListings(
@@ -132,7 +149,7 @@ export async function readListings(
           items,
           listing.sort.map((l) => {
             return (item: ListingItem) => {
-              return item[l.column];
+              return item[l.field];
             };
           }),
           listing.sort.map((l) => l.direction),
@@ -454,21 +471,6 @@ function listingForMetadata(
   return listing;
 }
 
-function toSortKey(key: string) {
-  switch (key) {
-    case "title":
-      return "title";
-    case "author":
-      return "author";
-    case "date":
-      return "date";
-    case "filename":
-      return "filename";
-    default:
-      return key;
-  }
-}
-
 function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
   const parseValue = (sortValue: unknown): ListingSort | undefined => {
     if (sortValue == undefined) {
@@ -480,13 +482,13 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
       const parts = sortStr.split(" ");
       if (parts.length === 2) {
         return {
-          column: toSortKey(parts[0]),
-          direction: parts[1] === "asc" ? "asc" : "desc",
+          field: parts[0],
+          direction: parts[1] === kSortAsc ? kSortAsc : kSortDesc,
         };
       } else {
         return {
-          column: toSortKey(parts[0]),
-          direction: "desc",
+          field: parts[0],
+          direction: kSortDesc,
         };
       }
     }

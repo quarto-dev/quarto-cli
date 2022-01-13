@@ -32,6 +32,12 @@ import {
   ListingSort,
   ListingType,
 } from "./website-listing-shared.ts";
+import {
+  kFieldDate,
+  kFieldFileModified,
+  kSortAsc,
+  kSortDesc,
+} from "./website-listing-read.ts";
 
 export const kDateFormat = "date-format";
 export const kMaxDescLength = "max-description-length";
@@ -66,17 +72,22 @@ export function templateMarkdownHandler(
       // Read date formatting from an option, if present
       const dateFormat = listing[kDateFormat] as string;
 
-      const colTypes = listing[kFieldTypes];
-      for (const col of Object.keys(colTypes)) {
-        if (colTypes[col] === "date") {
-          const dateRaw = item[col];
+      const fieldTypes = listing[kFieldTypes];
+      for (const field of Object.keys(fieldTypes)) {
+        if (fieldTypes[field] === kFieldDate) {
+          const dateRaw = item[field];
           if (dateRaw) {
+            // For file modified specifically, include the time portion
+            const includeTime = field === kFieldFileModified;
+
             const date = typeof (dateRaw) === "string"
               ? new Date(dateRaw as string)
               : dateRaw as Date;
-            record[col] = dateFormat
+            record[field] = dateFormat
               ? formatDate(date, dateFormat)
-              : date.toLocaleString();
+              : includeTime
+              ? date.toLocaleString()
+              : date.toLocaleDateString();
           }
         }
       }
@@ -213,68 +224,68 @@ export function reshapeListing(
       return reshaped.fields.includes(col);
     });
   };
-  utilities.sortableColumnData = () => {
-    const columnSortData: Array<{
+  utilities.sortableFieldData = () => {
+    const fieldSortData: Array<{
       listingSort: ListingSort;
       description: string;
     }> = [];
 
-    reshaped[kFieldSort].filter((col) => {
-      return reshaped.fields.includes(col);
-    }).forEach((column) => {
-      if (reshaped[kFieldTypes][column] === "date") {
-        columnSortData.push({
+    reshaped[kFieldSort].filter((field) => {
+      return reshaped.fields.includes(field);
+    }).forEach((field) => {
+      if (reshaped[kFieldTypes][field] === "date") {
+        fieldSortData.push({
           listingSort: {
-            column,
-            direction: "asc",
+            field,
+            direction: kSortAsc,
           },
-          description: `${reshaped[kFieldNames][column] || column} (${
+          description: `${reshaped[kFieldNames][field] || field} (${
             format.language[kListingPageOrderByDateAsc]
           })`,
         });
 
-        columnSortData.push({
+        fieldSortData.push({
           listingSort: {
-            column,
-            direction: "desc",
+            field,
+            direction: kSortDesc,
           },
-          description: `${reshaped[kFieldNames][column] || column} (${
+          description: `${reshaped[kFieldNames][field] || field} (${
             format.language[kListingPageOrderByDateDesc]
           })`,
         });
-      } else if (reshaped[kFieldTypes][column] === "number") {
-        columnSortData.push({
+      } else if (reshaped[kFieldTypes][field] === "number") {
+        fieldSortData.push({
           listingSort: {
-            column,
-            direction: "asc",
+            field,
+            direction: kSortAsc,
           },
-          description: `${reshaped[kFieldNames][column] || column} (${
+          description: `${reshaped[kFieldNames][field] || field} (${
             format.language[kListingPageOrderByNumberAsc]
           })`,
         });
-        columnSortData.push({
+        fieldSortData.push({
           listingSort: {
-            column,
-            direction: "desc",
+            field,
+            direction: kSortDesc,
           },
-          description: `${reshaped[kFieldNames][column] || column} (${
+          description: `${reshaped[kFieldNames][field] || field} (${
             format.language[kListingPageOrderByNumberDesc]
           })`,
         });
       } else {
-        columnSortData.push({
+        fieldSortData.push({
           listingSort: {
-            column,
-            direction: "asc",
+            field,
+            direction: kSortAsc,
           },
-          description: `${reshaped[kFieldNames][column] || column} (${
+          description: `${reshaped[kFieldNames][field] || field} (${
             format.language[kListingPageOrderByStringAsc]
           })`,
         });
       }
     });
 
-    return columnSortData;
+    return fieldSortData;
   };
 
   utilities.fieldName = (field: string) => {
@@ -336,20 +347,20 @@ function computeSortingTargets(
   const sortingTargets: Record<string, string> = {};
   const columns = listing[kFields];
   const columnLinks = listing[kFieldLinks];
-  const columnTypes = listing[kFieldTypes];
-  columns.forEach((column) => {
+  const fieldTypes = listing[kFieldTypes];
+  columns.forEach((field) => {
     // The data type of this column
-    const columnType = columnTypes[column];
+    const fieldType = fieldTypes[field];
 
     // Figure out whether we should use a sort target or not
-    const useTarget = columnLinks.includes(column) ||
-      columnType === "date" ||
-      columnType === "number";
+    const useTarget = columnLinks.includes(field) ||
+      fieldType === "date" ||
+      fieldType === "number";
 
     if (useTarget) {
-      sortingTargets[column] = `${column}-value`;
+      sortingTargets[field] = `${field}-value`;
     } else {
-      sortingTargets[column] = column;
+      sortingTargets[field] = field;
     }
   });
   return sortingTargets;
@@ -376,27 +387,30 @@ export function templateJsScript(
     pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" }`
     : "";
 
-  const useDataField = (col: string) => {
-    const type = listing[kFieldTypes][col];
+  const useDataField = (field: string) => {
+    const type = listing[kFieldTypes][field];
     if (type === "date" || type === "number") {
       return true;
-    } else if (listing[kFieldLinks].includes(col)) {
+    } else if (listing[kFieldLinks].includes(field)) {
       return true;
     }
     return false;
   };
 
-  const formatItem = (col: string) => {
-    if (useDataField(col)) {
-      return [`"${col}"`, `{ attr: 'data-${col}-value', name: '${col}-value'}`];
+  const formatItem = (field: string) => {
+    if (useDataField(field)) {
+      return [
+        `"${field}"`,
+        `{ attr: 'data-${field}-value', name: '${field}-value'}`,
+      ];
     } else {
-      return `"${col}"`;
+      return `"${field}"`;
     }
   };
 
   const rowJs = `[${
-    columns.flatMap((col) => {
-      return formatItem(col);
+    columns.flatMap((field) => {
+      return formatItem(field);
     }).join(",")
   }]`;
 

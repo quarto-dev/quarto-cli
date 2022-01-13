@@ -83,7 +83,7 @@ export enum ListingType {
 
 // Listing sorting
 export interface ListingSort {
-  column: "title" | "author" | "date" | "filename" | string;
+  field: "title" | "author" | "date" | "filename" | string;
   direction: "asc" | "desc";
 }
 
