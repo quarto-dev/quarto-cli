@@ -107,10 +107,12 @@ function processValue(val, name, t)
   if type(val) == "table" then
     if #val == 0 then
       return { pandoc.Str( "") }
-    elseif val.t == "MetaInlines" then
+    elseif pandoc.utils.type(val) == "Inlines" then
       return val
+    elseif pandoc.utils.type(val) == "Blocks" then
+      return pandoc.utils.blocks_to_inlines(val)
     else
-      warn("Unsupported type for key " .. name .. " in a " .. t .. " shortcode.")
+      warn("Unsupported type '" .. pandoc.utils.type(val)  .. "' for key " .. name .. " in a " .. t .. " shortcode.")
       return { pandoc.Strong({pandoc.Str("?invalid " .. t .. " type:" .. name)}) }         
     end
   else 

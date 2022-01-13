@@ -98,8 +98,10 @@ end
 function readMetadataInlines(meta, key)
   val = meta[key]
   if type(val) == "boolean" then
-    return { pandoc.Str( tostring(val) ) }      
-  elseif type(val) == "table" and val.t == "MetaInlines" then
+    return { pandoc.Str( tostring(val) ) } 
+  elseif type(val) == "string" then
+    return stringToInlines(val)     
+  elseif pandoc.utils.type(v) == "Inlines" then
     return val
   else
    return nil
