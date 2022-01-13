@@ -91,13 +91,19 @@ export function templateMarkdownHandler(
     },
   );
 
+  // For built in templates, provide the listing and items
+  // For custom templates, provide only the list of items
+  const ejsParams: Record<string, unknown> = {
+    items: reshapedItems,
+  };
+  if (listing.type !== ListingType.Custom) {
+    ejsParams.listing = reshapeListing(listing, format);
+  }
+
   // Render the template into markdown
   const markdown = renderEjs(
     template,
-    {
-      listing: reshapeListing(listing, format),
-      items: reshapedItems,
-    },
+    ejsParams,
     false,
   );
 
