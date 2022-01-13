@@ -46,7 +46,7 @@ jobs:
         # CHANGES="${CHANGES//$'\r'/'%0D'}"
         # echo ::set-output name=changes::$CHANGES
 
-        $QUARTO_BUILD_NUMBER = $(($QUARTO_BUILD_RUN_OFFSET + $GITHUB_RUN_NUMBER))
+        QUARTO_BUILD_NUMBER = $(($QUARTO_BUILD_RUN_OFFSET + $GITHUB_RUN_NUMBER))
 
         echo ::set-output name=version::$QUARTO_VERSION
         echo ::set-output name=changes::$CHANGES
