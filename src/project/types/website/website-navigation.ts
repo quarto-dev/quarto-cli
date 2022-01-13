@@ -113,6 +113,9 @@ const navigation: Navigation = {
 export const kSidebarLogo = "logo";
 
 export async function initWebsiteNavigation(project: ProjectContext) {
+  // reset unique menu ids
+  resetMenuIds();
+
   // read config
   const {
     navbar,
@@ -1019,6 +1022,9 @@ async function navigationItem(
 }
 
 const menuIds = new Map<string, number>();
+function resetMenuIds() {
+  menuIds.clear();
+}
 function uniqueMenuId(navItem: NavbarItem) {
   const id = asHtmlId(navItem.text || navItem.icon || "");
   const number = menuIds.get(id) || 0;

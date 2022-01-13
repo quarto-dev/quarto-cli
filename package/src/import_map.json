@@ -15,6 +15,9 @@
         "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5",
         "diff": "https://cdn.skypack.dev/diff",
         "ajv": "https://cdn.skypack.dev/ajv",
-        "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/"
+        "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
+
+	"https://deno.land/std@0.105.0/": "https://deno.land/std@0.119.0/",
+	"https://deno.land/std@0.101.0/": "https://deno.land/std@0.119.0/"
     }
 }

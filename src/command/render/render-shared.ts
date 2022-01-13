@@ -176,10 +176,9 @@ export function printWatchingForChangesMessage() {
 
 export function printBrowsePreviewMessage(port: number, path: string) {
   if (isJupyterHubServer()) {
-    let httpReferrer = jupyterHubHttpReferrer();
-    if (!httpReferrer) {
-      httpReferrer = `<jupyterhub-server-url>/user/${jupyterHubUser()}/`;
-    }
+    const httpReferrer = `${
+      jupyterHubHttpReferrer() || "<jupyterhub-server-url>/"
+    }user/${jupyterHubUser()}/`;
     info(
       `\nBrowse at ${httpReferrer}proxy/${port}/${path}`,
       {

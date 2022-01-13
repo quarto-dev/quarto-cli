@@ -44,7 +44,6 @@ import {
 import { updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
 import {
-  kSite,
   kSiteFavicon,
   kWebsite,
   websiteConfigString,
@@ -61,10 +60,9 @@ import {
 import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 
 import { defaultProjectType } from "../project-default.ts";
-
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
-  typeAliases: [kSite],
+  typeAliases: ["site"],
   create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "website"));
 
@@ -101,7 +99,7 @@ export const websiteProjectType: ProjectType = {
 
   metadataFields: websiteMetadataFields,
 
-  resourceIgnoreFields: () => [kWebsite, kSite],
+  resourceIgnoreFields: () => [kWebsite, "site"],
 
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);

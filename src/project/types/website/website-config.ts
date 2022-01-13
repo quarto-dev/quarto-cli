@@ -20,13 +20,12 @@ import {
 } from "../../../config/metadata.ts";
 import { Format, Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
+import { kComments } from "../../../format/html/format-html-shared.ts";
 import { Sidebar } from "../../project-config.ts";
 
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 export const kWebsite = "website";
-// 'website' was previously 'site'
-export const kSite = "site";
 
 export const kSiteUrl = "site-url";
 export const kSitePath = "site-path";
@@ -119,6 +118,7 @@ type WebsiteConfigKey =
   | "body-header"
   | "body-footer"
   | "search"
+  | "comments"
   | "reader-mode";
 
 export function websiteConfigBoolean(
@@ -243,7 +243,7 @@ export function websiteRepoBranch(project?: ProjectConfig): string {
 }
 
 export function websiteMetadataFields(): Array<string | RegExp> {
-  return [kWebsite, kSite];
+  return [kWebsite, "site"];
 }
 
 export function isGithubRepoUrl(url: string): boolean {
@@ -342,7 +342,7 @@ export function websiteProjectConfig(
   if (siteMeta[kMarginFooter]) {
     siteMeta[kMarginFooter] = ensureArray(siteMeta[kMarginFooter]);
   }
-  config[kSite] = siteMeta;
+  config[kWebsite] = siteMeta;
 
   const sidebarRaw = siteMeta[kSiteSidebar];
   const sidebars =
@@ -367,6 +367,14 @@ export function websiteProjectConfig(
       sidebar[kSiteSidebarFooter] = ensureArray(sidebar[kSiteSidebarFooter]);
     }
   });
+
+  // move any 'comments' config in website into the main config so it is merged w/ formats
+  if (
+    websiteConfigMetadata(kComments, config) &&
+    (config[kComments] === undefined)
+  ) {
+    config[kComments] = websiteConfigMetadata(kComments, config);
+  }
 
   return Promise.resolve(config);
 }

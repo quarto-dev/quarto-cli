@@ -69,10 +69,11 @@ export async function buildAssets() {
 
   // these go first because they create files that will be consumed by YAMLJS
   await buildSchemaFile(resourceDir);
-  
+
   await buildCoreLib(resourceDir);
-  
+
   return Promise.all([
+    buildSchemaFile(resourceDir),
     buildQuartoOJS(resourceDir),
     buildYAMLJS(resourceDir),
   ]);

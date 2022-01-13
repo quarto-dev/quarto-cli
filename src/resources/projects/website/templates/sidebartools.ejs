@@ -1,7 +1,7 @@
 <% 
 // If there are more than 2 icons appearing in the tools menu,
 // wrap it to the next line
-let toolCount = tools.length;
+let toolCount = tools? tools.length : 0;
 if (darkToggle) {
   toolCount++;
 } 

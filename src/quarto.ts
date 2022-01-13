@@ -11,6 +11,7 @@ import {
   HelpCommand,
 } from "cliffy/command/mod.ts";
 
+import { mainRunner } from "./core/main.ts";
 import { commands } from "./command/command.ts";
 import {
   appendLogOptions,
@@ -19,7 +20,7 @@ import {
   logError,
   logOptions,
 } from "./core/log.ts";
-import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
+import { initSessionTempDir, cleanupSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
@@ -29,6 +30,7 @@ import {
   readSourceDevConfig,
   reconfigureQuarto,
 } from "./core/devconfig.ts";
+
 
 import { parse } from "flags/mod.ts";
 import { runScript } from "./command/run/run.ts";
@@ -92,12 +94,14 @@ export async function quarto(
 
   await quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
-
-  // cleanup
-  cleanup();
 }
 
 if (import.meta.main) {
+  // we'd like to do this:
+  // 
+  // await mainRunner(() => quarto(Deno.args, appendLogOptions));
+  //
+  // but it presently causes the bundler to generate bad JS.
   try {
     // install termination signal handlers
     if (Deno.build.os !== "windows") {

@@ -65,7 +65,7 @@ import { gitignoreEntries } from "./project-gitignore.ts";
 
 import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
-import { kSite, kWebsite } from "./types/website/website-config.ts";
+import { kWebsite } from "./types/website/website-config.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 
@@ -287,6 +287,7 @@ function migrateProjectConfig(projectConfig: ProjectConfig) {
   projectConfig = ld.cloneDeep(projectConfig);
 
   // migrate 'site' to 'website'
+  const kSite = "site";
   if (projectConfig.project[kProjectType] === kSite) {
     projectConfig.project[kProjectType] = kWebsite;
   }
