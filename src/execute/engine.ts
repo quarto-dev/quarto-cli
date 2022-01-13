@@ -7,7 +7,7 @@
 
 import { extname, join } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../core/lodash.ts";
 
 import {
   partitionYamlFrontMatter,

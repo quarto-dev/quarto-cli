@@ -7,7 +7,7 @@
 
 import { dirname, join } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 
 export type EjsData = {

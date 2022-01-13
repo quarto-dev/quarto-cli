@@ -6,7 +6,7 @@
 */
 
 import { join } from "path/mod.ts";
-import { ld } from "lodash/mod.ts";
+import { cloneDeep, uniqBy } from "../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { kHighlightStyle } from "../../config/constants.ts";
@@ -43,7 +43,7 @@ export async function resolveSassBundles(
   projectBundles?: SassBundle[],
   project?: ProjectContext,
 ) {
-  extras = ld.cloneDeep(extras);
+  extras = cloneDeep(extras);
 
   const mergedBundles: Record<string, SassBundle[]> = {};
 
@@ -99,7 +99,7 @@ export async function resolveSassBundles(
 
       // Provide a dark bundle for this
       const darkBundles = bundles.map((bundle) => {
-        bundle = ld.cloneDeep(bundle);
+        bundle = cloneDeep(bundle);
         bundle.user = bundle.dark?.user || bundle.user;
         bundle.quarto = bundle.dark?.quarto || bundle.quarto;
         bundle.framework = bundle.dark?.framework || bundle.framework;
@@ -209,7 +209,7 @@ async function resolveQuartoSyntaxHighlighting(
   style: "dark" | "light" | "default",
   defaultStyle?: "dark" | "light",
 ) {
-  extras = ld.cloneDeep(extras);
+  extras = cloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
   const mediaAttr = attribForThemeStyle(style, defaultStyle);
@@ -375,7 +375,7 @@ function processCssIntoExtras(cssPath: string, extras: FormatExtras) {
     }
 
     // Don't include duplicate variables
-    extras.html[kQuartoCssVariables] = ld.uniqBy(
+    extras.html[kQuartoCssVariables] = uniqBy(
       extras.html[kQuartoCssVariables],
       (val: string) => {
         return val;

@@ -10,7 +10,7 @@ import { join } from "path/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../lodash.ts";
 
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";

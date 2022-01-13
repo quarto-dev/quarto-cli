@@ -8,7 +8,7 @@
 import { existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 
 import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";

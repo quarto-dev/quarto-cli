@@ -8,7 +8,7 @@
 import { extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 
 import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
 import { md5Hash } from "../../core/hash.ts";

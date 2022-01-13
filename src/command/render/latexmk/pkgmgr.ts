@@ -5,7 +5,7 @@
  *
  */
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../../core/lodash.ts";
 
 import { ProcessResult } from "../../../core/process.ts";
 
