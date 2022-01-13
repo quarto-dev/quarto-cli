@@ -373,9 +373,6 @@ export function objectSchemaFromGlob(
 
 function annotateSchemaFromField(field: SchemaField, schema: Schema): Schema
 {
-  if (field.alias) {
-    schema = completeSchemaOverwrite(schema);
-  }
   if (field.enabled !== undefined) {
     schema = tagSchema(schema, {
       formats: field.enabled
@@ -412,6 +409,9 @@ export function convertFromFieldsObject(yaml: SchemaField[], obj?: Record<string
     let schema = convertFromYaml(field.schema);
     schema = annotateSchemaFromField(field, schema);
     result[field.name] = schema;
+    if (field.alias) {
+      result[field.alias] = schema;
+    }
   }
 
   return result;
@@ -495,6 +495,9 @@ export function objectRefSchemaFromGlob(
   for (const { schemaId, field } of schemaFieldsFromGlob(glob, testFun)) {
     let schema = refS(schemaId, schemaId); // FIXME this is a bad description
     properties[field.name] = schema;
+    if (field.alias) {
+      properties[field.alias] = schema;
+    }
   }
   return objectS({ properties });
 }
