@@ -8,7 +8,7 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
-import { ld } from "lodash/mod.ts";
+import * as ld from "../core/lodash.ts";
 
 import { resolvePathGlobs, safeExistsSync } from "../core/path.ts";
 import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";

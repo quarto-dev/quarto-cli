@@ -5,7 +5,7 @@
 *
 */
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../core/lodash.ts";
 
 import { exists } from "fs/exists.ts";
 import { join } from "path/mod.ts";

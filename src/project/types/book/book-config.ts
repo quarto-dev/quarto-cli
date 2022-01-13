@@ -8,7 +8,7 @@
 import { existsSync } from "fs/mod.ts";
 import { basename, join } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../../core/lodash.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
 import { FormatLanguage, Metadata } from "../../../config/types.ts";

@@ -8,7 +8,7 @@
 import { existsSync } from "fs/mod.ts";
 import { dirname, relative } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 

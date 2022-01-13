@@ -12,7 +12,7 @@ import { info, warning } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 
 import { kKeepMd } from "../../config/constants.ts";
 

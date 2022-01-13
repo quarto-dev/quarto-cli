@@ -9,7 +9,7 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { encode as base64Encode } from "encoding/base64.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../../core/lodash.ts";
 
 import {
   parsePandocTitle,

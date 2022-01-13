@@ -16,7 +16,7 @@ import {
   relative,
 } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 
 import { Document, DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 

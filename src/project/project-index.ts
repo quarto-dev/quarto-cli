@@ -8,7 +8,7 @@
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../core/lodash.ts";
 
 import { ProjectContext } from "./types.ts";
 import { Metadata } from "../config/types.ts";

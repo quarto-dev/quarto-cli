@@ -39,7 +39,7 @@ import {
 import { layoutFilter, layoutFilterParams } from "./layout.ts";
 import { pandocMetadataPath } from "./render-shared.ts";
 import { removePandocArgs } from "./flags.ts";
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { isWindows } from "../../core/platform.ts";

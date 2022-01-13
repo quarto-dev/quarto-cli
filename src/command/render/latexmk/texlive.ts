@@ -5,7 +5,7 @@
  *
  */
 import { info } from "log/mod.ts";
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../../core/lodash.ts";
 
 import { execProcess } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";

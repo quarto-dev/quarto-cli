@@ -14,7 +14,7 @@ import { sessionTempFile } from "./temp.ts";
 import { SassBundleLayers, SassLayer } from "../config/types.ts";
 import { dartCompile } from "./dart-sass.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { md5Hash } from "./hash.ts";
 

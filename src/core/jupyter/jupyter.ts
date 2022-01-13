@@ -13,7 +13,7 @@ import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 import { stringify, StringifyOptions } from "encoding/yaml.ts";
 import { partitionCellOptions } from "../partition-cell-options.ts";
-import { ld } from "lodash/mod.ts";
+import * as ld from "../lodash.ts";
 
 import { shortUuid } from "../uuid.ts";
 

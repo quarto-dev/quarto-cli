@@ -5,7 +5,7 @@
 *
 */
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "./lodash.ts";
 
 import { randomInt } from "./random.ts";
 
