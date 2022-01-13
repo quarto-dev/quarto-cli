@@ -9,24 +9,24 @@
 import { Metadata } from "../../../../config/types.ts";
 
 // The list of columns to display
-export const kColumns = "columns";
+export const kFields = "fields";
 
 // A record providing formatted names for columns
-export const kColumnNames = "column-names";
+export const kFieldNames = "field-names";
 
 // The list of columns to show as hyperlinks
-export const kColumnLinks = "column-links";
+export const kFieldLinks = "field-links";
 
 // The list of columns to include as sortable
-export const kColumnSort = "column-sort";
+export const kFieldSort = "field-sort";
 
 // a record providing a column to type mapping
-export const kColumnTypes = "column-types";
+export const kFieldTypes = "field-types";
 
 // A computed record that provides the name of the sort target
 // for a column (so that the columns can be sorted by a different)
 // value than what is displayed (for example, dates)
-export const kColumnSortTargets = "column-sort-targets";
+export const kFieldSortTargets = "field-sort-targets";
 
 // The number of rows to display per page
 export const kRowCount = "row-count";
@@ -55,11 +55,11 @@ export interface ListingDehydrated extends Record<string, unknown> {
 
 // The core listing type
 export interface Listing extends ListingDehydrated {
-  columns: string[];
-  [kColumnNames]: Record<string, string>;
-  [kColumnTypes]: Record<string, ColumnType>;
-  [kColumnLinks]: string[];
-  [kColumnSort]: string[];
+  fields: string[];
+  [kFieldNames]: Record<string, string>;
+  [kFieldTypes]: Record<string, ColumnType>;
+  [kFieldLinks]: string[];
+  [kFieldSort]: string[];
   [kRowCount]: number;
   [kShowFilter]: boolean;
   [kShowSort]: boolean;
@@ -69,7 +69,7 @@ export interface Listing extends ListingDehydrated {
   template?: string;
 
   // Computed values
-  [kColumnSortTargets]?: Record<string, string>;
+  [kFieldSortTargets]?: Record<string, string>;
   [kColumnCount]?: number;
 }
 

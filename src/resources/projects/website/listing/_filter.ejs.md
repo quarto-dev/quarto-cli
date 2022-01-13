@@ -15,7 +15,7 @@ const showSort = listing['show-sort'];
       </button>
       <ul class="dropdown-menu" aria-labelledby="listing-<%- listing.id %>-sort">
         <% for (const sortData of listing.utilities.sortableColumnData()) { %>
-          <li><button class="dropdown-item" type="button" onClick="window['quarto-listings']['<%- listing.id %>'].sort('<%-listing.utilities.sortTarget(sortData.listingSort.column) %>', { order: '<%= sortData.listingSort.direction %>'})"><%= listing.utilities.columnName(sortData.description) %></button></li>
+          <li><button class="dropdown-item" type="button" onClick="window['quarto-listings']['<%- listing.id %>'].sort('<%-listing.utilities.sortTarget(sortData.listingSort.column) %>', { order: '<%= sortData.listingSort.direction %>'})"><%= listing.utilities.fieldName(sortData.description) %></button></li>
         <% } %>
       </ul>
     </div>

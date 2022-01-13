@@ -1,20 +1,20 @@
 <%
 // Column information
-const cols = listing.columns;
+const fields = listing.fields;
 
 const showSort = listing["show-sort"] !== false;
 const imgHeight = listing['image-height'];
 
-const outputValue = (col) => {
-let value = item[col];
-if (col === "image") {
+const outputValue = (field) => {
+let value = item[field];
+if (field === "image") {
 if (item.image) {
-value = `<img src="${item[col]}" ${imgHeight ? ` height="${imgHeight}"` : ''}>`;
+value = `<img src="${item[field]}" ${imgHeight ? ` height="${imgHeight}"` : ''}>`;
 } else {
 value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight}px;"` : '' }>&nbsp;</div>`;
 }
 }
-return listing.utilities.outputLink(col, item, value);
+return listing.utilities.outputLink(item, field, value);
 }
 %>
 
@@ -24,12 +24,12 @@ return listing.utilities.outputLink(col, item, value);
 <table class="quarto-listing table">
 <thead>
   <tr>
-  <% for (col of cols) { %>
+  <% for (const field of fields) { %>
     <th>
     <% if (showSort) { %>
-    <a class="sort" data-sort="<%-listing.utilities.sortTarget(col)%>" onclick="return false;">
+    <a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="return false;">
     <% } %>
-    <%= listing.utilities.columnName(col) %>
+    <%= listing.utilities.fieldName(field) %>
     <% if (showSort) { %>
     </a>
     <% } %>
@@ -40,9 +40,9 @@ return listing.utilities.outputLink(col, item, value);
 <tbody class="list">
 <% for (item of items) { %>
   <tr>
-    <% for (col of cols){ %>
-      <td class="<%- col %><%-listing.utilities.sortClass(col) %>"<%- listing.utilities.sortAttr(col, item)%>>
-        <%= outputValue(col) %>
+    <% for (const field of fields){ %>
+      <td class="<%- field %><%-listing.utilities.sortClass(field) %>"<%- listing.utilities.sortAttr(item, field)%>>
+        <%= outputValue(field) %>
       </td>
     <% } %>
   </tr>

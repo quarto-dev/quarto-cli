@@ -19,10 +19,10 @@ import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
 import {
   ColumnType,
   kColumnCount,
-  kColumnLinks,
-  kColumnNames,
-  kColumnSort,
-  kColumnTypes,
+  kFieldLinks,
+  kFieldNames,
+  kFieldSort,
+  kFieldTypes,
   kImageAlign,
   kImageHeight,
   kRowCount,
@@ -57,8 +57,8 @@ export const kListing = "listing";
 const kDefaultListingType = ListingType.Default;
 const kDefaultContentsGlob = ["*"];
 const kDefaultId = "quarto-listing";
-const kDefaultTableColumns = ["date", "title", "author", "filename"];
-const kDefaultGridColumns = [
+const kDefaultTableFields = ["date", "title", "author", "filename"];
+const kDefaultGridFields = [
   "title",
   "subtitle",
   "author",
@@ -67,7 +67,7 @@ const kDefaultGridColumns = [
   "filename",
   "filemodified",
 ];
-const kDefaultColumns = [
+const kDefaultFields = [
   "date",
   "title",
   "author",
@@ -76,7 +76,7 @@ const kDefaultColumns = [
   "description",
 ];
 
-const defaultColumnNames = (format: Format) => {
+const defaultFieldNames = (format: Format) => {
   return {
     "image": " ",
     "date": format.language[kListingPageColumnDate] || "",
@@ -89,13 +89,13 @@ const defaultColumnNames = (format: Format) => {
   };
 };
 
-const kDefaultColumnTypes: Record<string, ColumnType> = {
+const kDefaultFieldTypes: Record<string, ColumnType> = {
   "date": "date",
   "filemodified": "date",
 };
-const kDefaultColumnLinks = ["title", "filename"];
+const kDefaultFieldLinks = ["title", "filename"];
 
-const kDefaultColumnSort = [
+const kDefaultFieldSort = [
   "title",
   "date",
   "author",
@@ -177,20 +177,20 @@ function hydrateListing(
     if (sources.has(ListingItemSource.metadata)) {
       return columnsForItems(items);
     } else {
-      return kDefaultTableColumns;
+      return kDefaultTableFields;
     }
   };
 
-  const columns = listing.type === ListingType.Table
+  const fields = listing.type === ListingType.Table
     ? columnsForTable(items)
-    : defaultColumns(listing.type);
+    : defaultFields(listing.type);
 
   const listingHydrated: Listing = {
-    columns,
-    [kColumnNames]: defaultColumnNames(format),
-    [kColumnTypes]: kDefaultColumnTypes,
-    [kColumnLinks]: kDefaultColumnLinks,
-    [kColumnSort]: kDefaultColumnSort,
+    fields,
+    [kFieldNames]: defaultFieldNames(format),
+    [kFieldTypes]: kDefaultFieldTypes,
+    [kFieldLinks]: kDefaultFieldLinks,
+    [kFieldSort]: kDefaultFieldSort,
     [kRowCount]: 100,
     [kShowFilter]: true,
     [kShowSort]: true,
@@ -206,9 +206,9 @@ function hydrateListing(
   }
 
   // Merge column types
-  listingHydrated[kColumnTypes] = {
-    ...listingHydrated[kColumnTypes],
-    ...listing[kColumnTypes] as Record<string, ColumnType>,
+  listingHydrated[kFieldTypes] = {
+    ...listingHydrated[kFieldTypes],
+    ...listing[kFieldTypes] as Record<string, ColumnType>,
   };
 
   return listingHydrated;
@@ -502,15 +502,15 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
   return undefined;
 }
 
-function defaultColumns(type: ListingType) {
+function defaultFields(type: ListingType) {
   switch (type) {
     case ListingType.Grid:
-      return kDefaultGridColumns;
+      return kDefaultGridFields;
     case ListingType.Table:
-      return kDefaultTableColumns;
+      return kDefaultTableFields;
     case ListingType.Default:
     default:
-      return kDefaultColumns;
+      return kDefaultFields;
   }
 }
 
