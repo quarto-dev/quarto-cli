@@ -28,6 +28,9 @@
     "binary-search-bounds": "https://cdn.skypack.dev/binary-search-bounds",
     "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5",
     "diff": "https://cdn.skypack.dev/diff",
-    "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.5.0"
+    "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.5.0",
+
+    "https://deno.land/std@0.105.0/": "https://deno.land/std@0.119.0/",
+    "https://deno.land/std@0.101.0/": "https://deno.land/std@0.119.0/"
   }
 }

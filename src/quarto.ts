@@ -14,9 +14,13 @@ import {
 import { mainRunner } from "./core/main.ts";
 import { commands } from "./command/command.ts";
 import {
-  appendLogOptions
+  appendLogOptions,
+  cleanupLogger,
+  initializeLogger,
+  logError,
+  logOptions,
 } from "./core/log.ts";
-import { initSessionTempDir } from "./core/temp.ts";
+import { initSessionTempDir, cleanupSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
@@ -93,5 +97,40 @@ export async function quarto(
 }
 
 if (import.meta.main) {
-  await mainRunner(() => quarto(Deno.args, appendLogOptions));
+  // we'd like to do this:
+  // 
+  // await mainRunner(() => quarto(Deno.args, appendLogOptions));
+  //
+  // but it presently causes the bundler to generate bad JS.
+  try {
+    // install termination signal handlers
+    if (Deno.build.os !== "windows") {
+      Deno.addSignalListener("SIGINT", abend);
+      Deno.addSignalListener("SIGTERM", abend);
+    }
+
+    await initializeLogger(logOptions(parse(Deno.args)));
+
+    // run quarto
+    await quarto(Deno.args, appendLogOptions);
+
+    await cleanupLogger();
+
+    // exit
+    Deno.exit(0);
+  } catch (e) {
+    if (e) {
+      logError(e);
+    }
+    abend();
+  }
+}
+
+function abend() {
+  cleanup();
+  Deno.exit(1);
+}
+
+function cleanup() {
+  cleanupSessionTempDir();
 }
