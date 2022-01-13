@@ -40,7 +40,11 @@ import {
   isHtmlOutput,
   isLatexOutput,
 } from "../../config/format.ts";
-import { isQuartoMetadata, metadataGetDeep } from "../../config/metadata.ts";
+import {
+  isIncludeMetadata,
+  isQuartoMetadata,
+  metadataGetDeep,
+} from "../../config/metadata.ts";
 import {
   pandocBinaryPath,
   resourcePath,
@@ -457,7 +461,7 @@ export async function runPandoc(
   for (const key of Object.keys(engineMetadata)) {
     const isChapterTitle = key === kTitle && projectIsBook(options.project);
 
-    if (!isQuartoMetadata(key) && !isChapterTitle) {
+    if (!isQuartoMetadata(key) && !isChapterTitle && !isIncludeMetadata(key)) {
       // if it's standard pandoc metadata and NOT contained in a format specific
       // override then use the engine metadata value
 
