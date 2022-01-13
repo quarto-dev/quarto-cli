@@ -7,7 +7,7 @@
 */
 
 import { basename, dirname, join, relative } from "path/mod.ts";
-import { ld } from "lodash/mod.ts";
+import { orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
@@ -128,7 +128,7 @@ export async function readListings(
       items: ListingItem[],
     ): ListingItem[] => {
       if (listing.sort && listing.sort.length > 0) {
-        return ld.orderBy(
+        return orderBy(
           items,
           listing.sort.map((l) => {
             return (item: ListingItem) => {

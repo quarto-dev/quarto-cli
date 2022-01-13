@@ -7,7 +7,7 @@
 */
 import { format as formatDate } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { ld } from "lodash/mod.ts";
+import { cloneDeep } from "../../../../core/lodash.ts";
 import {
   kListingPageOrderByDateAsc,
   kListingPageOrderByDateDesc,
@@ -192,7 +192,7 @@ export function reshapeListing(
   listing: Listing,
   format: Format,
 ) {
-  const reshaped = ld.cloneDeep(listing) as Listing;
+  const reshaped = cloneDeep(listing) as Listing;
   if (reshaped.type === ListingType.Grid) {
     // Compute the bootstrap column span of each card
     reshaped[kCardColumnSpan] = columnSpan(
