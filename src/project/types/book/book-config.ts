@@ -79,6 +79,7 @@ import {
 } from "../website/website-analytics.ts";
 import { RenderFlags } from "../../../command/render/types.ts";
 import { formatLanguage } from "../../../core/language.ts";
+import { kComments } from "../../../format/html/format-html-shared.ts";
 
 export const kBookChapters = "chapters";
 export const kBookAppendix = "appendices";
@@ -129,6 +130,7 @@ export async function bookProjectConfig(
     site[kSiteReaderMode] = book[kSiteReaderMode];
     site[kGoogleAnalytics] = book[kGoogleAnalytics];
     site[kCookieConsent] = book[kCookieConsent];
+    site[kComments] = book[kComments];
 
     // If there is an explicitly set footer use that
     if (book[kPageFooter]) {
