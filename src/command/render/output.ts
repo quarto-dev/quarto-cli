@@ -7,7 +7,7 @@
 
 import { dirname, extname, isAbsolute, join, relative } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";

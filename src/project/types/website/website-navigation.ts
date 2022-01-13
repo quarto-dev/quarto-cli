@@ -7,7 +7,7 @@
 
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../../core/lodash.ts";
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 

@@ -1,22 +1,24 @@
 {
-    "imports": {
-        "cliffy/": "https://deno.land/x/cliffy/",
-        "encoding/": "https://deno.land/std@0.119.0/encoding/",
-        "flags/": "https://deno.land/std@0.119.0/flags/",
-        "fmt/": "https://deno.land/std@0.119.0/fmt/",
-        "fs/": "https://deno.land/std@0.119.0/fs/",
-        "io/": "https://deno.land/std@0.119.0/io/",
-        "log/": "https://deno.land/std@0.119.0/log/",
-        "streams/": "https://deno.land/std@0.119.0/streams/",
-        "path/": "https://deno.land/std@0.119.0/path/",
-        "lodash/": "https://deno.land/x/deno_lodash/",
-        "async/": "https://deno.land/std@0.119.0/async/",
-        "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5",
-        "diff": "https://cdn.skypack.dev/diff",
-        "ajv": "https://cdn.skypack.dev/ajv",
-        "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
+  "imports": {
+    "async/": "https://deno.land/std@0.119.0/async/",
+    "encoding/": "https://deno.land/std@0.119.0/encoding/",
+    "flags/": "https://deno.land/std@0.119.0/flags/",
+    "fmt/": "https://deno.land/std@0.119.0/fmt/",
+    "fs/": "https://deno.land/std@0.119.0/fs/",
+    "io/": "https://deno.land/std@0.119.0/io/",
+    "log/": "https://deno.land/std@0.119.0/log/",
+    "path/": "https://deno.land/std@0.119.0/path/",
+    "streams/": "https://deno.land/std@0.119.0/streams/",
 
-	"https://deno.land/std@0.105.0/": "https://deno.land/std@0.119.0/",
-	"https://deno.land/std@0.101.0/": "https://deno.land/std@0.119.0/"
-    }
+    "cliffy/": "https://deno.land/x/cliffy@v0.19.3/",
+    "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
+	
+    "ajv": "https://cdn.skypack.dev/ajv@8.8.2",
+    "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5@2.19.0",
+    "diff": "https://cdn.skypack.dev/diff@5.0.0",
+    "lodash/": "https://cdn.skypack.dev/lodash@4.17.21/",
+
+    "https://deno.land/std@0.105.0/": "https://deno.land/std@0.119.0/",
+    "https://deno.land/std@0.101.0/": "https://deno.land/std@0.119.0/"
+  }
 }

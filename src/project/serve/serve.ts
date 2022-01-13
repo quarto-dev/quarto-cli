@@ -9,7 +9,8 @@ import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
+
 import { DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 
 import { openUrl } from "../../core/shell.ts";

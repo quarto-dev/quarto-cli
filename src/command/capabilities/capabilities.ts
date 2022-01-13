@@ -7,7 +7,7 @@
 
 import { basename, join } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
 import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
