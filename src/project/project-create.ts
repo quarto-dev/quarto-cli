@@ -24,7 +24,7 @@ import { ExecutionEngine } from "../execute/types.ts";
 
 import { projectConfigFile } from "./project-shared.ts";
 import { ensureGitignore } from "./project-gitignore.ts";
-import { kSite, kWebsite } from "./types/website/website-config.ts";
+import { kWebsite } from "./types/website/website-config.ts";
 
 export interface ProjectCreateOptions {
   dir: string;
@@ -58,7 +58,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
   info(":");
 
   // 'website' used to be 'site'
-  if (options.type === kSite) {
+  if (options.type === "site") {
     options.type = kWebsite;
   }
 
