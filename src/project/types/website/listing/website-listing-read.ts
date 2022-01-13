@@ -328,6 +328,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
   const filemodified = fileModifiedDate(input);
   const documentMeta = target?.markdown.yaml;
   const description = documentMeta?.description as string ||
+    documentMeta?.abstract as string ||
     findDescriptionMd(target?.markdown.markdown);
   const imageRaw = documentMeta?.image as string ||
     findPreviewImgMd(target?.markdown.markdown);
