@@ -22,9 +22,9 @@ jobs:
   configure:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{steps.config.outputs.version}}.${{ github.run_number }}
-      tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number }}
-      release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number }})
+      version: ${{steps.config.outputs.version}}.${{ github.run_number - 475}}
+      tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number - 475 }}
+      release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number - 475 }})
       changes: ${{ steps.config.outputs.changes }}  
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:

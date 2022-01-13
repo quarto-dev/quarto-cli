@@ -39,7 +39,7 @@ export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 
 
 # Quarto Info Version
-export QUARTO_VERSION=0.2
+export QUARTO_VERSION=0.3
 export QUARTO_NAME=Quarto
 
 # Configuration Target Directories
