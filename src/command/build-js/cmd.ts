@@ -14,16 +14,6 @@ import { execProcess } from "../../core/process.ts";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
 
-async function buildCoreLib(resourceDir: string) {
-  const src = await esbuildCompile(
-    "",
-    join(resourceDir, "../core/lib"),
-    ["index.ts"],
-    "esm",
-  );
-  await Deno.writeTextFileSync(join(resourceDir, "build/core-lib.js"), src!);
-}
-
 async function buildQuartoOJS(resourceDir: string) {
   const src = await esbuildCompile(
     "",
@@ -44,19 +34,24 @@ async function buildQuartoOJS(resourceDir: string) {
 }
 
 async function buildYAMLJS(resourceDir: string) {
-  const path = join(resourceDir, "editor/tools/yaml");
-  const automationSrc = await esbuildCompile(
+  const intelligenceSrc = await esbuildCompile(
     "",
-    path,
+    join(resourceDir, "../core/lib/yaml-intelligence"),
+    ["yaml-intelligence.ts"],
+    "esm",
+  );
+  Deno.writeTextFileSync(join(resourceDir, "editor/tools/yaml/yaml-intelligence.js"), intelligenceSrc!);
+
+  const finalBuild = await esbuildCompile(
+    "",
+    join(resourceDir, "editor/tools/yaml"),
     ["automation.js"],
     "iife",
   );
 
-  const files = [
-    "tree-sitter.js",
-  ].map((filename) => Deno.readTextFileSync(join(path, filename)));
-  files.push(automationSrc!);
-  return Deno.writeTextFile(join(path, "yaml.js"), files.join(""));
+  const treeSitter = Deno.readTextFileSync(join(resourceDir, "editor/tools/yaml/tree-sitter.js"));
+
+  Deno.writeTextFileSync(join(resourceDir, "editor/tools/yaml/yaml.js"), [treeSitter,finalBuild!].join(""));
 }
 
 export async function buildAssets() {
@@ -69,8 +64,6 @@ export async function buildAssets() {
 
   // these go first because they create files that will be consumed by YAMLJS
   await buildSchemaFile(resourceDir);
-
-  await buildCoreLib(resourceDir);
 
   return Promise.all([
     buildSchemaFile(resourceDir),
