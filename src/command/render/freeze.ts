@@ -17,7 +17,7 @@ import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { warning } from "log/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import { cloneDeep } from "../../core/lodash.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
 import { sessionTempFile } from "../../core/temp.ts";
@@ -49,7 +49,7 @@ export function freezeExecuteResult(
   result: ExecuteResult,
 ) {
   // resolve includes within executeResult
-  result = ld.cloneDeep(result) as ExecuteResult;
+  result = cloneDeep(result) as ExecuteResult;
   const resolveIncludes = (
     name: "include-in-header" | "include-before-body" | "include-after-body",
   ) => {

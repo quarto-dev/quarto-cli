@@ -5,7 +5,7 @@
 *
 */
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
 import { dirname, join, relative, resolve } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 

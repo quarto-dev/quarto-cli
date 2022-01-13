@@ -11,7 +11,7 @@ import { error, info } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { contentType, isHtmlContent } from "./mime.ts";
+import { contentType, isHtmlContent, kTextHtml } from "./mime.ts";
 import { logError } from "./log.ts";
 import { pathWithForwardSlashes } from "./path.ts";
 
@@ -24,7 +24,7 @@ export interface HttpFileRequestOptions {
     file: string,
     req: Request,
   ) => Promise<Uint8Array | undefined>;
-  on404?: (url: string) => { print?: boolean; body?: Uint8Array };
+  on404?: (url: string, req: Request) => { print?: boolean; body?: Uint8Array };
 }
 
 export function isFileRef(href: string) {
@@ -63,7 +63,7 @@ export function httpFileRequestHandler(
     } else if (e instanceof Deno.errors.NotFound) {
       const url = normalizeURL(req.url);
       const handle404 = options.on404
-        ? options.on404(url)
+        ? options.on404(url, req)
         : { print: true, body: encoder.encode("Not Found") };
       handle404.print = handle404.print &&
         !!options.printUrls &&
@@ -77,6 +77,9 @@ export function httpFileRequestHandler(
       return Promise.resolve(
         new Response(handle404.body, {
           status: 404,
+          headers: {
+            "Content-Type": kTextHtml,
+          },
         }),
       );
     } else {

@@ -9,7 +9,8 @@ import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "../../core/lodash.ts";
+
 import { DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 
 import { openUrl } from "../../core/shell.ts";
@@ -341,25 +342,36 @@ export async function serveProject(
     },
 
     // handle 404 by returing site custom 404 page
-    on404: (url: string) => {
+    on404: (url: string, req: Request) => {
       const print = !basename(url).startsWith("jupyter-");
-      let body: Uint8Array | undefined;
+      let body = new TextEncoder().encode("Not Found");
       const custom404 = join(serveOutputDir, kProject404File);
       if (existsSync(custom404)) {
         let content404 = Deno.readTextFileSync(custom404);
         // replace site-path references with / so they work in dev server mode
         const sitePath = websitePath(project?.config);
-        if (sitePath !== "/") {
+        if (sitePath !== "/" || isRStudioServer()) {
+          // if we are in rstudio server port proxied mode then replace
+          // including the port proxy
+          let replacePath = "/";
+          const referer = req.headers.get("referer");
+          if (isRStudioServer() && referer) {
+            const match = referer.match(/\/p\/.*?\//);
+            if (match) {
+              replacePath = match[0];
+            }
+          }
+
           content404 = content404.replaceAll(
             new RegExp('((?:content|ref|src)=")(' + sitePath + ")", "g"),
-            "$1/",
+            "$1" + replacePath,
           );
         }
         body = new TextEncoder().encode(content404);
       }
       return {
         print,
-        body,
+        body: watcher.injectClient(body),
       };
     },
   };

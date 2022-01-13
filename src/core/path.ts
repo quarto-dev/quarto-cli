@@ -12,7 +12,7 @@ import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 
-import { ld } from "lodash/mod.ts";
+import * as ld from "./lodash.ts";
 
 import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
