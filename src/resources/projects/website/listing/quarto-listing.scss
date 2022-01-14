@@ -27,6 +27,19 @@ ul.pagination {
   margin-left: auto;
 }
 
+.quarto-listing-sort {
+  margin-bottom: 1em;
+  margin-right: auto;
+  .input-group-text {
+    font-size: 0.8em;
+  }
+  width: 200px;
+}
+
+.quarto-listing-sort select.form-select {
+  font-size: 0.8em;
+}
+
 // Grid Listing Styling
 .quarto-grid-item {
   h4.title {

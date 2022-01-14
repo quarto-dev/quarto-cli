@@ -8,16 +8,25 @@ const showSort = listing['show-sort'];
 ```{=html}
 <div class="listing-actions-group">
   <% if (showSort) { %>
-    <div class="dropdown">
-      <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="listing-<%- listing.id %>-sort" data-bs-toggle="dropdown" aria-expanded="false">
-        <%= listing.utilities.localizedString("listing-page-order-by")%>
-      </button>
-      <ul class="dropdown-menu" aria-labelledby="listing-<%- listing.id %>-sort">
-        <% for (const sortData of listing.utilities.sortableFieldData()) { %>
-          <li><button class="dropdown-item" type="button" onClick="window['quarto-listings']['<%- listing.id %>'].sort('<%-listing.utilities.sortTarget(sortData.listingSort.field) %>', { order: '<%- sortData.listingSort.direction %>'})"><%= listing.utilities.fieldName(sortData.description) %></button></li>
-        <% } %>
-      </ul>
-    </div>
+   <div class="input-group input-group-sm quarto-listing-sort">
+     <span class="input-group-text" id="basic-addon1"><i class="bi bi-sort-down"></i></span>
+     <select
+      id="listing-<%- listing.id %>-sort"
+      class="form-select"
+      aria-label="<%- listing.utilities.localizedString("listing-page-order-by")%>"
+      onChange="window['quarto-listings']['<%- listing.id %>'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})"
+    >
+       <option>Default</option>
+       <% for (const sortData of listing.utilities.sortableFieldData()) { %>
+         <option
+          value="<%- sortData.listingSort.field %>"
+          data-direction="<%- sortData.listingSort.direction %>">
+          <%= sortData.description %>
+        </option>
+       <% } %>
+     </select>
+  </div>
+
   <% } %>
 
   <% if (showFilter) { %>
