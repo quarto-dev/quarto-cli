@@ -31,7 +31,7 @@ const outputMetadata = (item, field) => {
 </div>
 <% } %>
 <div class="body"><a href="<%- item.path %>" class="post-contents"><% if (fields.includes('title')) { %>
-<h2 class="title<%-listing.utilities.sortClass('title')%>" <%=listing.utilities.sortAttr(item, 'title')%>>
+<h2 class="no-anchor title<%-listing.utilities.sortClass('title')%>" <%=listing.utilities.sortAttr(item, 'title')%>>
 <%= item.title %>
 </h2>
 <% } %>

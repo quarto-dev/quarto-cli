@@ -42,6 +42,9 @@ export const kImageAlign = "image-align";
 // The number of columns to display (grid)
 export const kColumnCount = "column-count";
 
+// The maximum length of the description
+export const kMaxDescLength = "max-description-length";
+
 export interface ListingDescriptor {
   listing: Listing;
   items: ListingItem[];

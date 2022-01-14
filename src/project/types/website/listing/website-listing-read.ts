@@ -25,6 +25,7 @@ import {
   kFieldTypes,
   kImageAlign,
   kImageHeight,
+  kMaxDescLength,
   kRowCount,
   kShowFilter,
   kShowSort,
@@ -77,12 +78,10 @@ const kDefaultTableFields = [
 ];
 const kDefaultGridFields = [
   kFieldTitle,
-  kFieldSubtitle,
   kFieldAuthor,
+  kFieldDate,
   kFieldImage,
   kFieldDescription,
-  kFieldFileName,
-  kFieldFileModified,
 ];
 const kDefaultFields = [
   kFieldDate,
@@ -207,7 +206,7 @@ function hydrateListing(
   const defaultSort = listing.type !== ListingType.Custom
     ? kDefaultFieldSort
     : [];
-  const defaultLinks = listing.type !== ListingType.Custom
+  const defaultLinks = listing.type === ListingType.Table
     ? kDefaultFieldLinks
     : [];
 
@@ -225,10 +224,11 @@ function hydrateListing(
 
   // Populate base default values for types
   if (listing.type === ListingType.Grid) {
-    listingHydrated[kColumnCount] = 2;
-    listingHydrated[kImageHeight] = 120;
+    listingHydrated[kColumnCount] = listingHydrated[kColumnCount] || 2;
+    listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || 150;
+    listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
   } else if (listing.type === ListingType.Default) {
-    listingHydrated[kImageAlign] = "right";
+    listingHydrated[kImageAlign] = listingHydrated[kImageAlign] || "right";
   }
 
   // Merge column types

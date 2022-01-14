@@ -26,6 +26,7 @@ import {
   kFieldSort,
   kFieldSortTargets,
   kFieldTypes,
+  kMaxDescLength,
   kRowCount,
   Listing,
   ListingItem,
@@ -40,7 +41,6 @@ import {
 } from "./website-listing-read.ts";
 
 export const kDateFormat = "date-format";
-export const kMaxDescLength = "max-description-length";
 
 export const kCardColumnSpan = "card-column-span";
 

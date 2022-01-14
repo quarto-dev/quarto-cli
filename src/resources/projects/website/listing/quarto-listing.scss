@@ -23,12 +23,16 @@ ul.pagination {
 
 .quarto-listing-filter {
   margin-bottom: 1em;
-  width: 33%;
+  width: 20%;
   margin-left: auto;
 }
 
 // Grid Listing Styling
 .quarto-grid-item {
+  h4.title {
+    margin-top: 0;
+  }
+
   .card-footer {
     display: flex;
     justify-content: space-between;
@@ -57,12 +61,55 @@ ul.pagination {
     }
   }
 
+  a.post-contents {
+    color: $body-color;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+  }
+
   div.card-img-top {
     background-color: $gray-500;
     display: flex;
     justify-content: center;
     align-items: center;
     color: $white;
+  }
+
+  .card-attribution {
+    padding-top: 1em;
+    display: flex;
+    gap: 1em;
+  }
+
+  .card-attribution .date {
+    align-self: flex-end;
+  }
+
+  .card-attribution.justify {
+    justify-content: space-between;
+  }
+
+  .card-attribution.start {
+    justify-content: flex-start;
+  }
+
+  .card-attribution.end {
+    justify-content: flex-end;
+  }
+
+  .card-text {
+    font-size: 0.9em;
+  }
+
+  .card-text-small {
+    font-size: 0.8em;
+  }
+
+  .card-subtitle.subtitle {
+    font-size: 0.9em;
+    font-weight: 600;
+    padding-bottom: 0.5em;
   }
 }
 
