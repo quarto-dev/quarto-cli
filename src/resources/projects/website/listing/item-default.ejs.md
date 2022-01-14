@@ -8,7 +8,7 @@ const imageHeight = listing['image-height'];
 
 // Fields that don't have a known place to be displayed in this template
 const otherFields = fields.filter(field => {
-  return !["title", "image", "author", "subtitle", "description"].includes(field);
+  return !["title", "image", "date", "author", "subtitle", "description"].includes(field);
 });
 
 
@@ -31,17 +31,16 @@ const outputMetadata = (item, field) => {
 </div>
 <% } %>
 <div class="body"><a href="<%- item.path %>" class="post-contents"><% if (fields.includes('title')) { %>
-<h2 class="no-anchor title<%-listing.utilities.sortClass('title')%>" <%=listing.utilities.sortAttr(item, 'title')%>>
+<h3 class="no-anchor title<%-listing.utilities.sortClass('title')%>" <%=listing.utilities.sortAttr(item, 'title')%>>
 <%= item.title %>
-</h2>
+</h3>
 <% } %>
-<% if (fields.includes('author') && item.author) { %><p class="authors<%-listing.utilities.sortClass('author')%>"<%-listing.utilities.sortAttr(item, 'author')%>><%= item.author %></p><% } %>
 <% if (fields.includes('description')) { %><p class="description<%-listing.utilities.sortClass('description')%>"<%-listing.utilities.sortAttr(item, 'description')%>>
 <%= item.description %>
-</p>
-<% } %></a>
-</div>
+</p><% } %></a></div>
 <div class="metadata">
+<% if (fields.includes('date') && item.date) { %><div class="date<%-listing.utilities.sortClass('date')%>"<%-listing.utilities.sortAttr(item, 'date')%>><%= item.date %></div><% } %>
+<% if (fields.includes('author') && item.author) { %><div class="author<%-listing.utilities.sortClass('author')%>"<%-listing.utilities.sortAttr(item, 'author')%>><%= item.author %></div><% } %>
 <% for (const field of otherFields) { %>
 <% outputMetadata(item, field) %>
 <% } %>

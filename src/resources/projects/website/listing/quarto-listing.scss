@@ -135,39 +135,78 @@ table.quarto-listing td.image {
   }
 }
 
+.quarto-post.image-left {
+  flex-direction: row;
+}
+
+.quarto-post.image-right {
+  flex-direction: row-reverse;
+}
+
+@include media-breakpoint-down(md) {
+  .quarto-post.image-right,
+  .quarto-post.image-left {
+    gap: 0em;
+    flex-direction: column;
+  }
+
+  .quarto-post .metadata {
+    padding-bottom: 1em;
+    order: 1;
+  }
+
+  .quarto-post .body {
+    order: 3;
+  }
+
+  .quarto-post .thumbnail {
+    order: 2;
+  }
+}
+
 // Post (default) Styling
-.quarto-post {
+.list div:last-of-type {
+  border-bottom: none;
+}
+
+div.quarto-post {
   display: flex;
+  gap: 2em;
   margin-bottom: 1.5em;
+  border-bottom: 1px solid $border-color;
 
   .metadata {
-    flex-basis: 15%;
+    flex-basis: 20%;
     flex-grow: 0;
     margin-top: 0.2em;
+    flex-shrink: 10;
   }
 
   .thumbnail {
-    flex-basis: 25%;
+    flex-basis: 30%;
     flex-grow: 0;
+    flex-shrink: 0;
     img {
-      margin-top: 0.35em;
+      margin-top: 0.4em;
       width: 100%;
       object-fit: cover;
     }
   }
 
   .body {
-    flex-basis: 60%;
+    flex-basis: 45%;
     flex-grow: 1;
     flex-shrink: 0;
-    margin-left: 1em;
-    margin-right: 1em;
 
-    h2.title {
+    h3.title {
       margin-top: 0px;
       margin-bottom: 0px;
       border-bottom: none;
       padding-bottom: 0.3em;
+    }
+
+    .description {
+      font-size: 0.9em;
     }
   }
 
@@ -183,19 +222,10 @@ table.quarto-listing td.image {
   }
 
   .metadata {
-    padding-right: 2em;
     display: flex;
     flex-direction: column;
     font-size: 0.8em;
     font-family: $font-family-base;
     flex-basis: 33%;
   }
-}
-
-.quarto-post.image-left {
-  flex-direction: row;
-}
-
-.quarto-post.image-right {
-  flex-direction: row-reverse;
 }

@@ -40,8 +40,8 @@ const flexJustify = showAuthor && showDate ? "justify" : showAuthor ? "start" : 
 %>
 <% if (showAuthor || showDate) { %>
 <div class="card-attribution card-text-small <%-flexJustify%>">
-<% if (showAuthor) { %><div class="author"><%= item.author %></div><% } %>
-<% if (showDate) { %><div class="date"><%= item.date %></div><% } %></div>
+<% if (showAuthor) { %><div class="author<%-listing.utilities.sortClass('author')%>"<%=listing.utilities.sortAttr(item, 'author')%>><%= item.author %></div><% } %>
+<% if (showDate) { %><div class="date<%-listing.utilities.sortClass('date')%>"<%=listing.utilities.sortAttr(item, 'date')%>><%= item.date %></div><% } %></div>
 <% } %>
 
 <% if (otherFields.length > 0) { %>
