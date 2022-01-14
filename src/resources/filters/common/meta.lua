@@ -8,10 +8,10 @@ kIncludeAfter = "include-after"
 
 function ensureIncludes(meta, includes)
   if not meta[includes] then
-    meta[includes] = pandoc.MetaList({})
-  elseif meta[includes].t == "MetaInlines" or 
-         meta[includes].t == "MetaBlocks" then
-    meta[includes] = pandoc.MetaList({meta[includes]})
+    meta[includes] = pandoc.List({})
+  elseif pandoc.utils.type(meta[includes]) == "Inlines" or 
+         pandoc.utils.type(meta[includes]) == "Blocks" then
+    meta[includes] = pandoc.List({meta[includes]})
   end
 end
 
@@ -22,7 +22,7 @@ function addInclude(meta, format, includes, include)
   else
     blockFormat = format
   end  
-  meta[includes]:insert(pandoc.MetaBlocks(pandoc.RawBlock(blockFormat, include)))
+  meta[includes]:insert(pandoc.Blocks({ pandoc.RawBlock(blockFormat, include) }))
 end
 
 -- conditionally include a package
@@ -70,4 +70,17 @@ function metaInjectHtml(meta, func)
     end
     func(inject)
   end
+end
+
+
+function readMetaOptions(meta) 
+  local options = {}
+  for key,value in pairs(meta) do
+    if type(value) == "table" and value.clone ~= nil then
+      options[key] = value:clone()
+    else
+      options[key] = value
+    end 
+  end
+  return options
 end

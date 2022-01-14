@@ -31,7 +31,7 @@ end
 function readIncludeStrings(meta, includes)
   local strs = param(includes, {})
   for _,str in ipairs(strs) do
-    if str.t == "MetaBlocks" then
+    if pandoc.utils.type(str) == "Blocks" then
       meta[includes]:insert(str)
     else
       if type(str) == "table" then

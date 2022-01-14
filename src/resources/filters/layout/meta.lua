@@ -122,7 +122,7 @@ end
 function oneSidedColumnLayout(meta)
   local classoption = readOption(meta, 'classoption')
   if classoption == nil then
-    classoption = pandoc.MetaList({})
+    classoption = pandoc.List({})
   end
 
   -- set one sided if not sidedness not already set
@@ -142,7 +142,7 @@ end
 function columnGeometry(meta)
   -- customize the geometry
   if not meta.geometry then
-    meta.geometry = pandoc.MetaList({})
+    meta.geometry = pandoc.List({})
   end  
   local userDefinedGeometry = #meta.geometry ~= 0
 
@@ -170,10 +170,10 @@ function geometryForPaper(paperSize)
     if width ~= nil then
       return geometryFromPaperWidth(width)
     else
-      return pandoc.MetaList({})
+      return pandoc.List({})
     end
   else 
-    return pandoc.MetaList({})
+    return pandoc.List({})
   end
 end
 
@@ -187,7 +187,7 @@ function geometryFromPaperWidth(paperWidth)
 end
 
 function metaInlineStr(str) 
-  return pandoc.MetaInlines({pandoc.Str(str)})
+  return pandoc.Inlines({pandoc.Str(str)})
 end
 
 

@@ -5,7 +5,7 @@
 function readFilterOptions(meta, filter)
   local options = {}
   if type(meta[filter]) == "table" then
-    options = meta[filter]:clone()
+    options = readMetaOptions(meta[filter])
   end
   return options
 end

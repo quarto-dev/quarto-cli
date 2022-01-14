@@ -57,6 +57,7 @@ import {
   kSelfContainedMath,
   kStandalone,
   kWarning,
+  kWrap,
 } from "../config/constants.ts";
 
 import { Format } from "../config/types.ts";
@@ -90,6 +91,7 @@ export function createHtmlFormat(
     },
     pandoc: {
       [kStandalone]: true,
+      [kWrap]: "none",
       [kDefaultImageExtension]: "png",
     },
   });

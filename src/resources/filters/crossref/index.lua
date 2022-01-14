@@ -138,7 +138,7 @@ function writeFullIndex(indexFile)
     index.options = {}
     for k,v in pairs(crossref.options) do
       if type(v) == "table" then
-        if tisarray(v) and not v.t == "MetaInlines" then
+        if tisarray(v) and pandoc.utils.type(v) ~= "Inlines" then
           index.options[k] = v:map(function(item) return pandoc.utils.stringify(item) end)
         else
           index.options[k] = pandoc.utils.stringify(v)
