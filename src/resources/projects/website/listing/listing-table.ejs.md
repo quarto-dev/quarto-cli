@@ -29,7 +29,7 @@ const outputValue = (field) => {
 <% for (const field of fields) { %>
 <th>
 <% if (showSort) { %>
-<a class="sort" data-sort="<%=listing.utilities.sortTarget(field)%>" onclick="return false;">
+<a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="return false;">
 <% } %>
 <%= listing.utilities.fieldName(field) %>
 <% if (showSort) { %>
@@ -43,7 +43,7 @@ const outputValue = (field) => {
 <% for (item of items) { %>
 <tr>
 <% for (const field of fields){ %>
-<td class="<%= field %><%=listing.utilities.sortClass(field) %>"<%=listing.utilities.sortAttr(item, field)%>>
+<td class="<%- field %><%-listing.utilities.sortClass(field) %>"<%=listing.utilities.sortAttr(item, field)%>>
 <%= outputValue(field) %>
 </td>
 <% } %>
