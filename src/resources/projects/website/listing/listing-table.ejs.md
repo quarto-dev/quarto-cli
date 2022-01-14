@@ -23,7 +23,7 @@ const outputValue = (field) => {
 
 <% partial('\_filter.ejs.md', {listing}) %>
 
-<table class="quarto-listing table">
+<table class="quarto-listing-table table">
 <thead>
 <tr>
 <% for (const field of fields) { %>

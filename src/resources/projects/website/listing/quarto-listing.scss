@@ -126,7 +126,7 @@ ul.pagination {
 }
 
 // Table Listing Styling
-table.quarto-listing {
+table.quarto-listing-table {
   td.image {
     padding: 0px;
     img {
@@ -175,7 +175,7 @@ table.quarto-listing {
 }
 
 // Post (default) Styling
-.list div:last-of-type {
+.list.quarto-listing-default div:last-of-type {
   border-bottom: none;
 }
 

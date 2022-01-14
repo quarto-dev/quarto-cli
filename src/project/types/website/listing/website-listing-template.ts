@@ -111,7 +111,6 @@ export function templateMarkdownHandler(
   if (listing.type !== ListingType.Custom) {
     ejsParams.listing = reshapeListing(listing, format);
   }
-  console.log(ejsParams.listing);
 
   // Render the template into markdown
   const markdown = renderEjs(
