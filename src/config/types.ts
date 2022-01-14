@@ -105,7 +105,6 @@ import {
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
-  kListingPageOrderByStringAsc,
   kListings,
   kMarkdownHeadings,
   kMathjax,
@@ -483,7 +482,6 @@ export interface FormatLanguage {
   [kListingPageOrderByDateDesc]?: string;
   [kListingPageOrderByNumberAsc]?: string;
   [kListingPageOrderByNumberDesc]?: string;
-  [kListingPageOrderByStringAsc]?: string;
   [kListingPageColumnDate]?: string;
   [kListingPageColumnTitle]?: string;
   [kListingPageColumnDescription]?: string;

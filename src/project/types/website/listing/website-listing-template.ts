@@ -13,7 +13,6 @@ import {
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
-  kListingPageOrderByStringAsc,
 } from "../../../../config/constants.ts";
 import { Format } from "../../../../config/types.ts";
 
@@ -274,9 +273,7 @@ export function reshapeListing(
             field,
             direction: kSortAsc,
           },
-          description: `${reshaped[kFieldNames][field] || field} (${
-            format.language[kListingPageOrderByStringAsc]
-          })`,
+          description: `${reshaped[kFieldNames][field] || field}`,
         });
       }
     });

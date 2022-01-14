@@ -193,7 +193,6 @@ export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
 export const kListingPageOrderByNumberAsc = "listing-page-order-by-number-asc";
 export const kListingPageOrderByNumberDesc =
   "listing-page-order-by-number-desc";
-export const kListingPageOrderByStringAsc = "listing-page-order-by-string-asc";
 export const kListingPageColumnDate = "listing-page-column-date";
 export const kListingPageColumnTitle = "listing-page-column-title";
 export const kListingPageColumnDescription = "listing-page-column-description";
@@ -265,7 +264,6 @@ export const kLanguageDefaultsKeys = [
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
-  kListingPageOrderByStringAsc,
   kListingPageColumnDate,
   kListingPageColumnTitle,
   kListingPageColumnDescription,
