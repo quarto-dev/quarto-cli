@@ -112,6 +112,7 @@ export function templateMarkdownHandler(
   if (listing.type !== ListingType.Custom) {
     ejsParams.listing = reshapeListing(listing, format);
   }
+  console.log(ejsParams.listing);
 
   // Render the template into markdown
   const markdown = renderEjs(
@@ -219,11 +220,6 @@ export function reshapeListing(
 
   // Add template utilities
   const utilities = {} as Record<string, unknown>;
-  utilities.sortableColumns = () => {
-    return reshaped[kFieldSort].filter((col) => {
-      return reshaped.fields.includes(col);
-    });
-  };
   utilities.sortableFieldData = () => {
     const fieldSortData: Array<{
       listingSort: ListingSort;
