@@ -74,7 +74,6 @@ const kDefaultTableFields = [
   kFieldDate,
   kFieldTitle,
   kFieldAuthor,
-  kFieldFileName,
 ];
 const kDefaultGridFields = [
   kFieldTitle,

@@ -126,12 +126,22 @@ ul.pagination {
 }
 
 // Table Listing Styling
-table.quarto-listing td.image {
-  padding: 0px;
-  img {
-    width: 100%;
-    max-width: 50px;
-    object-fit: contain;
+table.quarto-listing {
+  td.image {
+    padding: 0px;
+    img {
+      width: 100%;
+      max-width: 50px;
+      object-fit: contain;
+    }
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  th a {
+    color: $body-color;
   }
 }
 

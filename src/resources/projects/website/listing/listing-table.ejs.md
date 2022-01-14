@@ -28,13 +28,7 @@ const outputValue = (field) => {
 <tr>
 <% for (const field of fields) { %>
 <th>
-<% if (showSort) { %>
-<a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="return false;">
-<% } %>
-<%= listing.utilities.fieldName(field) %>
-<% if (showSort) { %>
-</a>
-<% } %>
+<% if (showSort) { %><a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (showSort) { %></a><% } %>
 </th>
 <% } %>
 </tr>
