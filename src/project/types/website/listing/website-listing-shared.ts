@@ -12,16 +12,19 @@ import { Metadata } from "../../../../config/types.ts";
 export const kFields = "fields";
 
 // A record providing formatted names for columns
-export const kFieldNames = "field-names";
-
-// The list of columns to show as hyperlinks
-export const kFieldLinks = "field-links";
-
-// The list of columns to include as sortable
-export const kFieldSort = "field-sort";
+export const kFieldNames = "fields-name";
 
 // a record providing a column to type mapping
-export const kFieldTypes = "field-types";
+export const kFieldTypes = "fields-type";
+
+// The list of columns to show as hyperlinks
+export const kFieldLinks = "fields-link";
+
+// The list of required fields for this listing
+export const kFieldRequired = "fields-required";
+
+// The list of columns to include as sortable
+export const kFieldSort = "fields-sort";
 
 // A computed record that provides the name of the sort target
 // for a column (so that the columns can be sorted by a different)
