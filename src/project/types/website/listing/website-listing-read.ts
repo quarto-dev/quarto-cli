@@ -223,7 +223,7 @@ function hydrateListing(
 
   // Populate base default values for types
   if (listing.type === ListingType.Grid) {
-    listingHydrated[kColumnCount] = listingHydrated[kColumnCount] || 2;
+    listingHydrated[kColumnCount] = listingHydrated[kColumnCount] || 3;
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || 150;
     listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
   } else if (listing.type === ListingType.Default) {
