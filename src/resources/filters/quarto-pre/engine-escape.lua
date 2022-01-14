@@ -38,7 +38,7 @@ function engineLang(lang)
   end
 end
 
-local kHighlightClasses = pandoc.List({
+local kHighlightClasses = {
   "abc",
   "actionscript",
   "ada",
@@ -181,8 +181,13 @@ local kHighlightClasses = pandoc.List({
   "yacc",
   "yaml",
   "zsh"
-})
+}
 
 function isHighlightClass(class)
-  return kHighlightClasses:includes(class)
+  for _, v in ipairs (kHighlightClasses) do
+    if v == class then
+      return true
+    end
+  end
+  return false
 end
