@@ -30,6 +30,8 @@
     formats:
       [
         $pdf-all,
+        $html-doc,
+        $epub-all,
         $asciidoc-all,
         jats_publishing,
         jats_articleauthoring,
@@ -37,7 +39,13 @@
         ms,
         odt,
       ]
-  description: "Provides a summary of the document"
+  description: "Summary of document"
+
+- name: abstract-title
+  schema: string
+  tags:
+    formats: [$html-doc, $epub-all]
+  description: "Title used to label document abstract"
 
 - name: doi
   schema: string
