@@ -21,6 +21,7 @@ const outputMetadata = (item, field) => {
 %>
 
 <div class="quarto-post image-<%= imageAlign %>">
+<span class="original-value" data-original-value="${itemNumber}" style="display:none;"></span>
 <% if (fields.includes('image')) { %>
 <div class="thumbnail"><% if (item.image) { %>
 <a href="<%- item.path %>" class="post-contents">

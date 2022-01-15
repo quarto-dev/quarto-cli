@@ -34,12 +34,19 @@ const outputValue = (field) => {
 </tr>
 </thead>
 <tbody class="list">
+<% let counter = 0 %>
 <% for (item of items) { %>
+<% let originalCls = "original-value " %>
+<% let originalAttr = ` data-original-value='${counter++}'` %>
 <tr>
 <% for (const field of fields){ %>
-<td class="<%- field %><%-listing.utilities.sortClass(field) %>"<%=listing.utilities.sortAttr(item, field)%>>
+<td class="<%- originalCls %><%- field %><%-listing.utilities.sortClass(field) %>"<%= originalAttr %><%=listing.utilities.sortAttr(item, field)%>>
 <%= outputValue(field) %>
 </td>
+  <% 
+  originalCls = "";
+  originalAttr = "";
+  %>
 <% } %>
 </tr>
 <% } %>

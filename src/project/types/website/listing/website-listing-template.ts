@@ -400,11 +400,14 @@ export function templateJsScript(
     }
   };
 
-  const rowJs = `[${
-    columns.flatMap((field) => {
-      return formatItem(field);
-    }).join(",")
-  }]`;
+  const resolvedColumns = columns.flatMap((field) => {
+    return formatItem(field);
+  });
+  resolvedColumns.push(
+    `{ attr: 'data-original-value', name: 'original-value'}`,
+  );
+
+  const rowJs = `[${resolvedColumns.join(",")}]`;
 
   const jsScript = `
   window.document.addEventListener("DOMContentLoaded", function (_event) {
