@@ -119,6 +119,7 @@ import {
   kSearchNoResultsText,
   kSearchSubmitButtonTitle,
   kSectionDivs,
+  kSectionTitleAbstract,
   kSectionTitleAppendices,
   kSectionTitleFootnotes,
   kSelfContained,
@@ -405,6 +406,7 @@ export interface FormatLanguage {
   [kCalloutWarningCaption]?: string;
   [kCalloutImportantCaption]?: string;
   [kCalloutDangerCaption]?: string;
+  [kSectionTitleAbstract]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleAppendices]?: string;
   [kCodeSummary]?: string;

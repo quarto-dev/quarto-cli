@@ -135,6 +135,7 @@ export const kCalloutNoteCaption = "callout-note-caption";
 export const kCalloutWarningCaption = "callout-warning-caption";
 export const kCalloutImportantCaption = "callout-important-caption";
 export const kCalloutDangerCaption = "callout-danger-caption";
+export const kSectionTitleAbstract = "section-title-abstract";
 export const kSectionTitleFootnotes = "section-title-footnotes";
 export const kSectionTitleAppendices = "section-title-appendices";
 export const kCodeSummary = "code-summary";
@@ -193,6 +194,7 @@ export const kLanguageDefaultsKeys = [
   kCalloutWarningCaption,
   kCalloutImportantCaption,
   kCalloutDangerCaption,
+  kSectionTitleAbstract,
   kSectionTitleFootnotes,
   kSectionTitleAppendices,
   kCodeSummary,
@@ -307,6 +309,7 @@ export const kAuthor = "author";
 export const kDate = "date";
 export const kDoi = "doi";
 export const kAbstract = "abstract";
+export const kAbstractTitle = "abstract-title";
 export const kDescription = "description";
 export const kTocTitle = "toc-title";
 export const kLang = "lang";

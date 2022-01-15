@@ -36,6 +36,8 @@ import {
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import {
+  isEpubOutput,
+  isHtmlDocOutput,
   isHtmlFileOutput,
   isHtmlOutput,
   isLatexOutput,
@@ -72,6 +74,8 @@ import {
 } from "./defaults.ts";
 import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
+  kAbstract,
+  kAbstractTitle,
   kClassOption,
   kColorLinks,
   kDocumentClass,
@@ -90,6 +94,7 @@ import {
   kPageTitle,
   kQuartoVarsKey,
   kResources,
+  kSectionTitleAbstract,
   kTemplate,
   kTitle,
   kTitlePrefix,
@@ -198,6 +203,16 @@ export async function runPandoc(
         ? kTocTitleWebsite
         : kTocTitleDocument
     ];
+  }
+
+  // if there is an abtract then forward abtract-title
+  if (
+    options.format.metadata[kAbstract] &&
+    (isHtmlDocOutput(options.format.pandoc) ||
+      isEpubOutput(options.format.pandoc))
+  ) {
+    options.format.metadata[kAbstractTitle] =
+      options.format.language[kSectionTitleAbstract];
   }
 
   // see if there are extras
