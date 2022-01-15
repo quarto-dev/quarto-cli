@@ -38,6 +38,7 @@ import {
   kKeepSource,
   kKeepTex,
   kKeepYaml,
+  kLang,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -82,6 +83,7 @@ export function createHtmlFormat(
 ) {
   return createFormat("html", {
     metadata: {
+      [kLang]: "en",
       [kFigResponsive]: true,
     },
     execute: {
