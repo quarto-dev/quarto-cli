@@ -79,6 +79,7 @@ export function defaultWriterFormat(to: string): Format {
     case "markdown_strict":
     case "commonmark":
     case "commonmark_x":
+    case "markua":
       writerFormat = markdownFormat();
       pandocTo = to;
       break;
