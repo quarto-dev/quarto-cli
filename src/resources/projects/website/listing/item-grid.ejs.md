@@ -12,6 +12,12 @@ const align = listing["alignment"] || "left";
 // Cap Options
 const imgHeight = listing['image-height'];
 
+// shorthand checks
+const showField = (field) => {
+  return listing.fields.includes(field) && item[field] !== undefined;
+}
+
+
 // Fields that should be bucketized into the general listing at the bottom
 const otherFields = fields.filter(field => {
 return !["title", "image", "card-cap-text", "date", "author", "subtitle", "description", "filename", "filemodified"].includes(field);
@@ -22,27 +28,28 @@ return !["title", "image", "card-cap-text", "date", "author", "subtitle", "descr
 <div class="<%-`g-col-lg-${cardColumnSpan}`%> <%-`g-col-md-${cardColumnSpanMd}`%> g-col-24">
 <span class="original-value" data-original-value="${itemNumber}" style="display:none;"></span>
 <div class="quarto-grid-item card h-100 <%-`card-${align}`%>">
+<% if (fields.includes('image')) { %>
 <% if (item.image) { %><p class="card-img-top"><img src="<%- item.image %>"<%= imgHeight ? ` height="${imgHeight}"` : '' %> class="thumbnail-image card-img"></p>
 <% } else { %>
 <div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight}px;"` : '' %>><%= (item['card-cap-text']) ? listing.utilities.outputLink(item, 'card-cap-text') : "&nbsp;" %></div>
 <% } %>
+<% } %>
+<% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %>
 <div class="card-body"><a href="<%- item.path %>" class="post-contents">
-<% if (fields.includes('title') && item.title) { %><h5 class="no-anchor card-title title<%-listing.utilities.sortClass('title')%>"<%=listing.utilities.sortAttr(item, 'title')%>><%= listing.utilities.outputLink(item, 'title') %></h5><% } %>
-<% if (fields.includes('subtitle') && item.subtitle) { %>
+<% if (showField('title')) { %><h5 class="no-anchor card-title title<%-listing.utilities.sortClass('title')%>"<%=listing.utilities.sortAttr(item, 'title')%>><%= listing.utilities.outputLink(item, 'title') %></h5><% } %>
+<% if (showField('subtitle')) { %>
 <div class="card-subtitle subtitle<%-listing.utilities.sortClass('subtitle')%>"<%=listing.utilities.sortAttr(item, 'subtitle')%>><%= listing.utilities.outputLink(item, 'subtitle') %></div>
 <% } %>
-<% if (fields.includes('description') && item.description) { %>
+<% if (showField('description')) { %>
 <div class="card-text description<%-listing.utilities.sortClass('description')%>"<%=listing.utilities.sortAttr(item, 'description')%>><%= item.description %></div>
 <% } %>
 <% 
-const showAuthor = fields.includes('author') && item.author;
-const showDate = fields.includes('date') && item.date;
-const flexJustify = showAuthor && showDate ? "justify" : showAuthor ? "start" : "end";
+const flexJustify = showField('author') && showField('date') ? "justify" : showField('author') ? "start" : "end";
 %>
-<% if (showAuthor || showDate) { %>
+<% if (showField('author') || showField('date')) { %>
 <div class="card-attribution card-text-small <%-flexJustify%>">
-<% if (showAuthor) { %><div class="author<%-listing.utilities.sortClass('author')%>"<%=listing.utilities.sortAttr(item, 'author')%>><%= item.author %></div><% } %>
-<% if (showDate) { %><div class="date<%-listing.utilities.sortClass('date')%>"<%=listing.utilities.sortAttr(item, 'date')%>><%= item.date %></div><% } %></div>
+<% if (showField('author')) { %><div class="author<%-listing.utilities.sortClass('author')%>"<%=listing.utilities.sortAttr(item, 'author')%>><%= item.author %></div><% } %>
+<% if (showField('date')) { %><div class="date<%-listing.utilities.sortClass('date')%>"<%=listing.utilities.sortAttr(item, 'date')%>><%= item.date %></div><% } %></div>
 <% } %>
 
 <% if (otherFields.length > 0) { %>
@@ -57,6 +64,7 @@ const flexJustify = showAuthor && showDate ? "justify" : showAuthor ? "start" : 
 <% } %>
 
 </a></div>
+<% } %>
 
 <% if (fields.includes('filename') || fields.includes('filemodified')) { %>
 <div class="card-footer text-muted">

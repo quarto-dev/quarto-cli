@@ -90,9 +90,12 @@ ul.pagination {
   }
 
   .card-attribution {
-    padding-top: 1em;
     display: flex;
     gap: 1em;
+  }
+
+  .description {
+    padding-bottom: 1em;
   }
 
   .card-attribution .date {
