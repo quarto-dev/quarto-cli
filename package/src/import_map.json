@@ -9,6 +9,7 @@
     "log/": "https://deno.land/std@0.121.0/log/",
     "path/": "https://deno.land/std@0.121.0/path/",
     "streams/": "https://deno.land/std@0.121.0/streams/",
+    "uuid/": "https://deno.land/std@0.121.0/uuid/",
     "cliffy/": "https://deno.land/x/cliffy@v0.19.3/",
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
     "ajv": "https://cdn.skypack.dev/ajv@8.8.2",
