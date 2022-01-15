@@ -1,0 +1,19 @@
+{
+  "kind": "completions",
+  "context": {
+    "path": "~/Desktop/daily-log/2021-12-08/project-format-tag-tests/file1.qmd",
+    "filetype": "markdown",
+    "embedded": false,
+    "formats": [
+      "html"
+    ],
+    "project_formats": [],
+    "engine": "markdown",
+    "line": "  echo: true",
+    "code": "---\ntitle: \"Technical Writing\"\nengine: markdown\nformat: html\nexecute:\n  echo: true\n---\n\n# Hello.\n\n```{r}\n#| code-overflow: scroll\n#| \n```",
+    "position": {
+      "row": 5,
+      "column": 12
+    }
+  }
+}

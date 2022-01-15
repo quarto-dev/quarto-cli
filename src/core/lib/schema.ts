@@ -21,6 +21,9 @@ export interface Completion {
   // `schema` stores the concrete schema that yielded the completion.
   // We need to carry it explicitly because of combinators like oneOf
   schema?: Schema;
+
+  // the manually-generated documentation for the completion, if it exists
+  documentation?: string;
 }
 
 export function schemaType(schema: Schema) {

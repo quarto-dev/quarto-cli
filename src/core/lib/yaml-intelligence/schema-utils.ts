@@ -22,12 +22,20 @@ export interface QuartoJsonSchemas {
 
 let _schemas: QuartoJsonSchemas | undefined;
 
+// this is an escape hatch for the quarto CLI to install the schema
+// files appropriately.
+export function setSchemas(schemas: QuartoJsonSchemas) {
+  _schemas = schemas;
+}
+
 export async function getSchemas(): Promise<QuartoJsonSchemas> {
   if (_schemas) {
     return _schemas;
   }
+
+  // we're in the IDE
   const response = await fetch(getLocalPath("quarto-json-schemas.json"));
-  _schemas = response.json();
+  _schemas = (await response.json()) as QuartoJsonSchemas;
   return _schemas!;
 }
 
@@ -42,11 +50,11 @@ function matchPatternProperties(schema: Schema, key: string): Schema | false
   return false;
 }
 
-export async function navigateSchema(schema: Schema, path: string): Schema[] {
+export async function navigateSchema(schema: Schema, path: (number | string)[]): Promise<Schema[]> {
   const refs: Record<string, Schema> = {};
   const { definitions } = await getSchemas();
   
-  const inner = (subSchema, index) => {
+  const inner = (subSchema: Schema, index: number): Schema[] => {
     if (subSchema.$id) {
       refs[subSchema.$id] = subSchema;
     }
@@ -66,7 +74,7 @@ export async function navigateSchema(schema: Schema, path: string): Schema[] {
     }
     const st = schemaType(subSchema);
     if (st === "object") {
-      const key = path[index];
+      const key = path[index] as string;
       // does it match a properties key exactly? use it
       if (subSchema.properties && subSchema.properties[key]) {
         return inner(subSchema.properties[key], index + 1);
@@ -91,18 +99,18 @@ export async function navigateSchema(schema: Schema, path: string): Schema[] {
       }
       return [subSchema];
     } else if (st === "array") {
-      // arrays are uniformly typed, easy
+      // arrays are uniformly typed, easy, and we don't even need to use the path value.
       if (subSchema.items === undefined) {
         // no items schema, can't navigate to expected schema
         return [];
       }
       return inner(subSchema.items, index + 1);
     } else if (st === "anyOf") {
-      return subSchema.anyOf.map((ss) => inner(ss, index));
+      return subSchema.anyOf.map((ss: Schema) => inner(ss, index));
     } else if (st === "allOf") {
-      return subSchema.allOf.map((ss) => inner(ss, index));
+      return subSchema.allOf.map((ss: Schema) => inner(ss, index));
     } else if (st === "oneOf") {
-      return subSchema.oneOf.map((ss) => inner(ss, index));
+      return subSchema.oneOf.map((ss: Schema) => inner(ss, index));
     } else {
       // if path wanted to navigate deeper but this is a YAML
       // "terminal" (not a compound type) then this is not a valid

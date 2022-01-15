@@ -26,9 +26,11 @@ export function guessChunkOptionsFormat(options: string): "knitr" | "yaml"
     return "yaml";
   }
   
-  // If there is a line that does not end with a comma and does not have an equals,
-  // then this is actually a yaml (with possibly errors, so we want to report them)
-  if (chunkLines.some(l => !l.trimRight().endsWith(",") && (l.indexOf("=") === -1))) {
+  // If there is a non-empty line that does not end with a comma and
+  // does not have an equals, then this is actually a yaml (with
+  // possibly errors, so we want to report them)
+
+  if (chunkLines.some(l => l.trim() !== "" && !l.trimRight().endsWith(",") && (l.indexOf("=") === -1))) {
     return "yaml";
   }
 

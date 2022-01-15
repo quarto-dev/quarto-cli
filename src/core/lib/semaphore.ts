@@ -10,7 +10,7 @@ export class Semaphore
   value: number;
   tasks: any[];
   
-  constructor(value) {
+  constructor(value: number) {
     this.value = value;
     this.tasks = [];
   }
@@ -23,21 +23,17 @@ export class Semaphore
     }
   }
 
-  acquire() {
+  async acquire() {
     if (this.value > 0) {
       this.value -= 1;
-      let res;
-      const result = new Promise((resolve) => { res = resolve; });
-      res();
-      return result;
+      return;
     }
     const result = new Promise((resolve, reject) => {
       this.tasks.push({ resolve, reject });
     });
-    
-    return result.then(() => {
-      return this.acquire();
-    });
+
+    await result;
+    await this.acquire();
   }
 
   async runExclusive(fun: () => any) {

@@ -97,7 +97,7 @@ export interface LocalizedError {
   violatingObject: AnnotatedParse;
   instancePath: string;
   message: string;
-  location?: ErrorLocation;
+  location: ErrorLocation;
   niceError: TidyverseError;
   // deno-lint-ignore no-explicit-any
   ajvError?: any; // upstream error object from ajv
@@ -112,10 +112,16 @@ export function getVerbatimInput(error: LocalizedError)
 
 function navigate(
   path: string[],
-  annotation: AnnotatedParse,
+  annotation: AnnotatedParse | undefined,
   returnKey = false, // if true, then return the *key* entry as the final result rather than the *value* entry.
   pathIndex = 0,
 ): AnnotatedParse {
+  
+  // this looks a little strange, but it's easier to catch the error
+  // here than in the different cases below
+  if (annotation === undefined) {
+    throw new Error("Can't navigate an undefined annotation");
+  }
   if (pathIndex >= path.length) {
     return annotation;
   }
@@ -135,7 +141,7 @@ function navigate(
     const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
     for (let i = lastKeyIndex; i >= 0; i -= 2) {
       // for (let i = 0; i < components.length; i += 2) {
-      const key = components[i].result;
+      const key = components[i]!.result;
       if (key === searchKey) {
         if (returnKey && pathIndex === path.length - 1) {
           return navigate(path, components[i], returnKey, pathIndex + 1);

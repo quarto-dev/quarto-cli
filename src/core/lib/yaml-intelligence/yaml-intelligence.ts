@@ -5,7 +5,7 @@
 *
 */
 
-import { YamlIntelligenceContext } from "./types.ts";
+import { AutomationKind, YamlIntelligenceContext, LocateFromIndentationContext } from "./types.ts";
 
 import {
   buildAnnotated,
@@ -27,7 +27,7 @@ import { lines, rowColToIndex } from "../text.ts";
 import { Schema, Completion, schemaCompletions, schemaType, expandAliasesFrom } from "../schema.ts";
 import { Semaphore } from "../semaphore.ts";
 import { setupAjv } from "../yaml-schema.ts";
-import { breakQuartoMd } from "../break-quarto-md.ts";
+import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { partitionCellOptionsMapped, kLangCommentChars } from "../partition-cell-options.ts";
 
@@ -38,7 +38,7 @@ interface IDEContext {
 
 interface CompletionContext {
   schema: Schema;
-  path: string[];
+  path: (number | string)[];
   word: string;
   indent: number;
   commentPrefix: string;
@@ -55,8 +55,9 @@ interface ValidationResult {
 };
 
 function positionInTicks(context: YamlIntelligenceContext) {
+  // This calls lines() somewhat superfluously
+  const code = asMappedString(context.code);
   const {
-    code,
     position,
   } = context;
   const codeLines = lines(code.value);
@@ -68,9 +69,7 @@ function positionInTicks(context: YamlIntelligenceContext) {
 
 // trims "---" from start and end of code field in context
 function trimTicks(context: YamlIntelligenceContext): YamlIntelligenceContext {
-  let {
-    code,
-  } = context;
+  let code = asMappedString(context.code);
 
   if (code.value.startsWith("---")) {
     code = mappedString(code, [{ start: 3, end: code.value.length }]);
@@ -92,22 +91,15 @@ function trimTicks(context: YamlIntelligenceContext): YamlIntelligenceContext {
 }
 
 let hasInitSemaphore = new Semaphore(0);
-export async function validationFromGoodParseYAML(context: YamlIntelligenceContext): ValidationResult[] {
-  const {
-    code, // full contents of the buffer
-  } = context;
+export async function validationFromGoodParseYAML(context: YamlIntelligenceContext): Promise<ValidationResult[]> {
+  const code = asMappedString(context.code); // full contents of the buffer
 
-  if (code.value === undefined) {
-    throw new Error("Internal error: Expected a MappedString");
-  }
-
-  // wait on hasInitSemaphore
-  await hasInitSemaphore.runExclusive(async (_value) => {});
+  await hasInitSemaphore.runExclusive(async () => {});
 
   const result = await withValidator(context.schema, async (validator) => {
     const parser = await getTreeSitter();
 
-    for (const parseResult of attemptParsesAtLine(context, parser)) {
+    for (const parseResult of attemptParsesAtLine(context, parser) || []) {
       const lints = [];
       const {
         parse: tree,
@@ -157,17 +149,14 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     // if this is a yaml inside a language chunk, it will have a
     // comment prefix which we need to know about in order to
     // autocomplete linebreaks correctly.
-    commentPrefix,
   } = context;
 
-  commentPrefix = commentPrefix || "";
+  const commentPrefix = context.commentPrefix || "";
 
   const parser = await getTreeSitter();
-  let word;
-  if (line.slice(-1) === ":") {
-    word = "";
-  } else if (line.trimLeft()[0] === "-") {
-    word = "";
+  let word = "";
+  if (line.slice(-1) !== ":" &&
+    line.trimLeft()[0] !== "-") {
   } else {
     // take the last word after spaces
     word = line.split(" ").slice(-1)[0];
@@ -192,7 +181,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
   }
   const indent = line.trimEnd().length - line.trim().length;
 
-  const completeEmptyLineOnIndentation = async ({deletions, mappedCode}) => {
+  const completeEmptyLineOnIndentation = async (deletions: number, mappedCode: MappedString) => {
     // the valid parse we found puts us in a pure-whitespace line, so we should locate
     // entirely on indentation.
     const path = locateFromIndentation({
@@ -227,7 +216,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     const lineAfterDeletions = line.substring(0, line.length - deletions);
 
     if (lineAfterDeletions.trim().length === 0) {
-      const result = await completeEmptyLineOnIndentation({deletions, mappedCode});
+      const result = await completeEmptyLineOnIndentation(deletions, mappedCode);
       return result;
     } else {
       const doc = buildAnnotated(tree, mappedCode);
@@ -238,17 +227,17 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
         row: position.row,
         column: position.column - deletions,
       });
-      let { withError: locateFailed, value: path } = locateCursor(doc, index);
+      let { withError: locateFailed, value: maybePath } = locateCursor(doc, index);
       
       // revert to indentation-based location if location failed
       if (locateFailed) {
         // case of empty line 
         if (lineAfterDeletions.trim().length === 0) {
-          const result = await completeEmptyLineOnIndentation({deletions, mappedCode});
+          const result = await completeEmptyLineOnIndentation(deletions, mappedCode);
           return result;
         }
         
-        path = locateFromIndentation({
+        maybePath = locateFromIndentation({
           line: lineAfterDeletions,
           code: mappedCode.value,
           position: {
@@ -260,8 +249,10 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
         // non-empty case. Do we have a colon, in which case we must complete a value,
         // or do we not have a colon, in which case we must complete the keys
         // that are prefixes of the line contents?
-
       }
+
+      // appease the typechecker, who can't see that when locateFailed === false, value is good.
+      const path = maybePath!;
       
       if (path[path.length - 1] === word) {
         // we're in the middle of a completion and we located inside that value,
@@ -375,7 +366,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
             return true;
           }
           // handle format-enabling and -disabling tags
-          let formatTags = [];
+          let formatTags: string[] = [];
           if (c.type === "key") {
             let value = c.schema.properties[c.display];
             if (value === undefined) {
@@ -414,7 +405,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
               }
             }
           }
-          for (let tag of formatTags.filter(tag => tag.startsWith("!"))) {
+          for (let tag of formatTags.filter((tag: string) => tag.startsWith("!"))) {
             tag = tag.slice(1);
             for (const el of expandAliasesFrom([tag], aliases)) {
               enabledSet.delete(el);
@@ -453,15 +444,15 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
   };
 }
 
-async function automationFromGoodParseMarkdown(kind, context) {
+async function automationFromGoodParseMarkdown(kind: AutomationKind, context: YamlIntelligenceContext) {
   const {
     position,
     line,
   } = context;
 
-  const result = await breakQuartoMd(context.code);
+  const result = await breakQuartoMd(asMappedString(context.code));
 
-  const adjustedCellSize = (cell) => {
+  const adjustedCellSize = (cell: QuartoMdCell) => {
     const cellLines = lines(cell.source.value);
     let size = cellLines.length;
     if (cell.cell_type !== "raw" && cell.cell_type !== "markdown") {
@@ -480,7 +471,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
   if (kind === "completions") {
     let foundCell = undefined;
     for (const cell of result.cells) {
-      const size = adjustedCellSize(cell);
+      const size = lines(cell.source.value).length;
       if (size + cell.cellStartLine > position.row) {
         foundCell = cell;
         break;
@@ -507,6 +498,13 @@ async function automationFromGoodParseMarkdown(kind, context) {
       context = trimTicks(context);
 
       return automationFromGoodParseYAML(kind, context);
+    } else if (foundCell.cell_type === "math") {
+      throw new Error(
+        `internal error, don't know how to complete cell of type ${foundCell.cell_type}`,
+      );
+    } else if (foundCell.cell_type === "markdown") {
+      // we're inside a markdown, no completions
+      return false;
     } else if (foundCell.cell_type.language) {
       return automationFromGoodParseScript(kind, {
         ...context,
@@ -519,9 +517,6 @@ async function automationFromGoodParseMarkdown(kind, context) {
         line,
       });
       // complete the yaml inside a chunk
-    } else if (foundCell.cell_type === "markdown") {
-      // we're inside a markdown, no completions
-      return false;
     } else {
       throw new Error(
         `internal error, don't know how to complete cell of type ${foundCell.cell_type}`,
@@ -545,10 +540,11 @@ async function automationFromGoodParseMarkdown(kind, context) {
             line,
             position, // we don't need to adjust position because front matter only shows up at start of file.
           }),
-        );
-        if (innerLints) {
-          lints.push(...innerLints);
-        }
+        ) as ValidationResult[];
+        lints.push(...innerLints);
+      } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
+        // nothing to lint in markdown or math cells
+        continue;
       } else if (cell.cell_type.language) {
         const innerLints = await automationFromGoodParseScript(kind, {
           ...context,
@@ -560,10 +556,8 @@ async function automationFromGoodParseMarkdown(kind, context) {
             ...position,
             row: position.row - (linesSoFar + 1),
           },
-        });
-        if (innerLints) {
-          lints.push(...innerLints);
-        }
+        }) as ValidationResult[];
+        lints.push(...innerLints);
       }
 
       linesSoFar += adjustedCellSize(cell);
@@ -572,71 +566,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
   }
 }
 
-async function automationFromGoodParseScript(kind, context) {
-  const codeLines = rangedLines(context.code.value);
-  let language;
-  let codeStartLine;
-
-  if (!context.language) {
-    if (codeLines.length < 2) {
-      // need both language and code to autocomplete. length < 2 implies
-      // we're missing one of them at least: skip.
-      return false;
-    }
-    const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
-    if (!m) {
-      // couldn't recognize language in script, return false
-      return false;
-    }
-    codeStartLine = 1;
-    language = m[1];
-  } else {
-    codeStartLine = 0;
-    language = context.language;
-  }
-
-  const mappedCode = mappedString(
-    context.code,
-    [{
-      start: codeLines[codeStartLine].range.start,
-      end: codeLines[codeLines.length - 1].range.end,
-    }],
-  );
-
-  const {
-    yaml
-  } = await partitionCellOptionsMapped(language, mappedCode);
-  
-  if (yaml === undefined) {
-    return false;
-  }
-
-  const schemas = (await getSchemas()).schemas;
-  const schema = schemas.engines[context.engine || "markdown"];
-  const commentPrefix = kLangCommentChars[language] + "| ";
-
-  context = {
-    ...context,
-    line: context.line.slice(commentPrefix.length),
-    code: yaml,
-    commentPrefix,
-    // NB we get lucky here that the "inverse mapping" of the cursor
-    // position is easy enough to compute explicitly. This might not
-    // hold in the future...
-    position: {
-      // -1 subtract the "{language}" line if necessary
-      row: context.position.row - codeStartLine,
-      // subtract the "#| " entry
-      column: context.position.column - commentPrefix.length,
-    },
-    schema,
-    schemaName: language,
-  };
-
-  return automationFromGoodParseYAML(context);
-}
-
-async function automationFromGoodParseYAML(kind, context) {
+async function automationFromGoodParseYAML(kind: AutomationKind, context: YamlIntelligenceContext) {
   // user asked for autocomplete on "---": report none
   if ((kind === "completions") && positionInTicks(context)) {
     return false;
@@ -646,10 +576,14 @@ async function automationFromGoodParseYAML(kind, context) {
   // but includes the --- delimiters, so we trim those.
   context = trimTicks(context);
 
-  if (guessChunkOptionsFormat(context.code.value) === "knitr") {
+  if (guessChunkOptionsFormat(asMappedString(context.code).value) === "knitr") {
     // if the chunk options are in knitr format, don't validate or
     // autocomplete
-    return null;
+    if (kind === "validation") {
+      return [];
+    } else {
+      return false;
+    }
   }
 
   const func = (
@@ -660,8 +594,8 @@ async function automationFromGoodParseYAML(kind, context) {
   return func(context);
 }
 
-async function automationFromGoodParseScript(kind, context) {
-  const codeLines = rangedLines(context.code.value);
+async function automationFromGoodParseScript(kind: AutomationKind, context: YamlIntelligenceContext) {
+  const codeLines = rangedLines(asMappedString(context.code).value);
   let language;
   let codeStartLine;
 
@@ -696,7 +630,11 @@ async function automationFromGoodParseScript(kind, context) {
   } = await partitionCellOptionsMapped(language, mappedCode);
   
   if (yaml === undefined) {
-    return false;
+    if (kind === "completions") {
+      return false;
+    } else {
+      return [];
+    }
   }
 
   const schemas = (await getSchemas()).schemas;
@@ -721,12 +659,12 @@ async function automationFromGoodParseScript(kind, context) {
     schemaName: language,
   };
 
-  return automationFromGoodParseYAML(context);
+  return automationFromGoodParseYAML(kind, context);
 }
 
 // NB we keep this async for consistency
 // deno-lint-ignore require-await
-async function automationFileTypeDispatch(filetype, kind, context) {
+async function automationFileTypeDispatch(filetype: string, kind: AutomationKind, context: YamlIntelligenceContext) {
   switch (filetype) {
     case "markdown":
       return automationFromGoodParseMarkdown(kind, context);
@@ -739,18 +677,23 @@ async function automationFileTypeDispatch(filetype, kind, context) {
   }
 }
 
-async function getAutomation(kind, context) {
+function exportSmokeTest(kind: AutomationKind, context: YamlIntelligenceContext)
+{
+  console.error(JSON.stringify({ kind, context }, null, 2));
+}
+
+export async function getAutomation(kind: AutomationKind, context: YamlIntelligenceContext) {
   const extension = context.path.split(".").pop() || "";
   const schemas = (await getSchemas()).schemas;
   const schema = ({
     "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
-    "markdown": null, // can't be known ahead of time
-    "script": null,
+    "markdown": undefined, // can't be known ahead of time
+    "script": undefined,
   })[context.filetype];
   const schemaName = ({
     "yaml": extension === "qmd" ? "front-matter" : "config",
-    "markdown": null, // can't be known ahead of time
-    "script": null,
+    "markdown": undefined, // can't be known ahead of time
+    "script": undefined,
   })[context.filetype];
 
   const result = await automationFileTypeDispatch(context.filetype, kind, {
@@ -768,13 +711,13 @@ let mustInitSemaphore = new Semaphore(1);
 
 import Ajv from "../external/ajv-bundle.js";
 
-async function initAutomation(path)
+export async function initAutomation(path: string)
 {
   if (automationInit) {
     return;
   }
 
-  await mustInitSemaphore.runExclusive(async (_value) => {
+  await mustInitSemaphore.runExclusive(async () => {
     const before = performance.now();
     if (automationInit)
       return;
@@ -786,34 +729,47 @@ async function initAutomation(path)
     let schemaDefs = (await getSchemas()).definitions;
     for (const [key, value] of Object.entries(schemaDefs)) {
       await withValidator(value, async (_validator) => {
-        // console.log(`Schema ${key} loaded`);
       });
     }
     const after = performance.now();
     console.log(`Initialization time: ${after - before}ms`);
     hasInitSemaphore.release();
   });
+
+  await hasInitSemaphore.runExclusive(async () => {});
 }
 
 export const QuartoYamlEditorTools = {
+  // helpers to facilitate repro'ing in the browser
+  getAutomation: function(params: { context: YamlIntelligenceContext, kind: AutomationKind }) {
+    const {
+      context, kind
+    } = params;
+    return getAutomation(kind, context);
+  },
+  exportSmokeTest,
+  
   // deno-lint-ignore require-await
-  getCompletions: async function (context, path) {
+  getCompletions: async function (context: YamlIntelligenceContext, path: string) {
     try {
+      debugger;
       await initAutomation(path);
-      return getAutomation("completions", context);
+      return await getAutomation("completions", context);
     } catch (e) {
       console.log("Error found during autocomplete", e);
+      exportSmokeTest("completions", context);
       return null;
     }
   },
 
   // deno-lint-ignore require-await
-  getLint: async function (context, path) {
+  getLint: async function (context: YamlIntelligenceContext, path: string) {
     try {
       await initAutomation(path);
-      return getAutomation("validation", context);
+      return await getAutomation("validation", context);
     } catch (e) {
       console.log("Error found during linting", e);
+      exportSmokeTest("validation", context);
       return null;
     }
   },

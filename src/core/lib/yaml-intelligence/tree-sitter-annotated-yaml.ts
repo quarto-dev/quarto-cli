@@ -7,6 +7,7 @@
 
 import { lines, matchAll } from "../text.ts";
 import { AnnotatedParse } from "../yaml-schema.ts";
+import { MappedString } from "../mapped-text.ts";
 
 /**
  * given a tree from tree-sitter-yaml and the mappedString
@@ -20,10 +21,10 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
   const singletonBuild = (node: TreeSitterNode) => {
     return buildNode(node.firstChild);
   };
-  const buildNode = (node: TreeSitterNode) => {
+  const buildNode = (node: TreeSitterNode): AnnotatedParse => {
     if (node === null) {
       // This can come up with parse errors
-      return null;
+      return annotateEmpty(node.endIndex);
     }
     if (dispatch[node.type] === undefined) {
       throw new Error(`Internal error: don't know how to build node of type ${node.type}`);
@@ -41,7 +42,7 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
     };
   };
   
-  const annotate = (node: TreeSitterNode, result: any, components: AnnotatedParse[]): AnnotateParse => {
+  const annotate = (node: TreeSitterNode, result: any, components: AnnotatedParse[]): AnnotatedParse => {
     return {
       start: node.startIndex,
       end: node.endIndex,
@@ -62,12 +63,12 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
       if (!node.text.startsWith("|")) {
         throw new Error(`Internal error: can only build block_scalar if content starts with | (got "${node.text[0]}" instead)`);
       }
-      const lines = lines(node.text);
-      if (lines.length < 2) {
+      const ls = lines(node.text);
+      if (ls.length < 2) {
         throw new Error(`Internal error: can only handle block_scalar of multiline strings`);
       }
-      const indent = lines[1].length - lines[1].trimStart().length;
-      const result = lines.slice(1).map(l => l.slice(indent)).join("\n");
+      const indent = ls[1].length - ls[1].trimStart().length;
+      const result = ls.slice(1).map((l: string) => l.slice(indent)).join("\n");
       return annotate(node, result, []);
     },
     "block_sequence": (node) => {
@@ -79,7 +80,7 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
         }
         const component = buildNode(child);
         components.push(component);
-        result.push(component.result);
+        result.push(component && component.result);
       }
       return annotate(node, result, components);
     },
@@ -120,7 +121,7 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
       return annotate(node, v, []);
     },
     "flow_sequence": (node) => {
-      const result = [], components = [];
+      const result: any[] = [], components = [];
       for (let i = 0; i < node.childCount; ++i) {
         const child = node.child(i);
         if (child.type !== "flow_node") {
@@ -133,7 +134,7 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
       return annotate(node, result, components);
     },
     "block_mapping": (node) => {
-      const result = {}, components = [];
+      const result: Record<string, any> = {}, components: AnnotatedParse[] = [];
       for (let i = 0; i < node.childCount; ++i) {
         const child = node.child(i);
         let component;
@@ -154,8 +155,8 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
         const { key, value } = component.result;
         // FIXME what do we do in the presence of parse errors that result empty keys?
         // if (key === null) { }
-        result[key] = value;
-        components.push(...component.components);
+        result[String(key)] = value;
+        components.push(...(component.components!));
       }
       return annotate(node, result, components);
     },
@@ -226,15 +227,21 @@ export function navigate(path: string[], annotation: AnnotatedParse, pathIndex =
     const { components } = annotation;
     const searchKey = path[pathIndex];
     for (let i = 0; i < components.length; i += 2) {
-      const key = components[i].result;
+      const key = components[i]!.result;
       if (key === searchKey) {
-        return navigate(path, components[i + 1], pathIndex + 1);
+        if (i === components.length - 1) {
+          throw new Error("Internal error, key === searchKey shouldn't have happened at last array entry");
+        }
+        return navigate(path, components[i + 1]!, pathIndex + 1);
       }
     }
     throw new Error("Internal error: searchKey not found in mapping object");
   } else if (annotation.kind === "block_sequence") {
     const searchKey = Number(path[pathIndex]);
-    return navigate(path, annotation.components[searchKey], pathIndex + 1);
+    if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
+      throw new Error("Internal error: searchKey invalid");
+    }
+    return navigate(path, annotation.components[searchKey]!, pathIndex + 1);
   } else {
     throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
@@ -249,14 +256,14 @@ export function navigate(path: string[], annotation: AnnotatedParse, pathIndex =
 // correspond to the edges of an object, where position == range.end.
 export interface LocateCursorResult {
   withError: boolean;
-  value: AnnotatedParse
+  value?: (string | number)[]
 };
-export function locateCursor(annotation: AnnotatedParse, position): LocateCursorResult
+export function locateCursor(annotation: AnnotatedParse, position: number): LocateCursorResult
 {
   let failedLast = false;
   const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
   
-  function locate(node, pathSoFar) {
+  function locate(node: AnnotatedParse, pathSoFar: any[]): any[] {
     if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
       for (let i = 0; i < node.components.length; i += 2) {
         const keyC = node.components[i],
@@ -311,7 +318,7 @@ export function locateCursor(annotation: AnnotatedParse, position): LocateCursor
     const value = locate(annotation, []).flat(Infinity).reverse();
     return {
       withError: failedLast,
-      value
+      value: value as (string | number)[]
     };
   } catch (e) {
     if (e.message === kInternalLocateError) {

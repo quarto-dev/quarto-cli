@@ -9,16 +9,27 @@ import { getLocalPath } from "./paths.ts";
 import { MappedString, mappedString, asMappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { lines, rowColToIndex } from "../text.ts";
-import { YamlIntelligenceContext } from "./types.ts";
+import { YamlIntelligenceContext, LocateFromIndentationContext } from "./types.ts";
 
 let _parser: any;
 
-export async function getTreeSitter(): any {
+interface WithTreeSitter {
+  TreeSitter: any;
+}
+
+// this is an escape hatch for quarto's CLI to operate
+// the yaml-intelligence code outside of the IDE
+export async function setTreeSitter(parser: any) {
+  _parser = parser;
+}
+
+export async function getTreeSitter(): Promise<any> {
   if (_parser) {
     return _parser;
   }
 
-  const Parser = window.TreeSitter as any;
+  // this is super ugly and probably will break on the test suite...
+  const Parser = ((window as unknown) as WithTreeSitter).TreeSitter;
 
   await Parser.init();
 
@@ -36,17 +47,16 @@ export async function getTreeSitter(): any {
 export interface ParseAttemptResult {
   code: MappedString,
   parse: any,
-  deletion: number
+  deletions: number
 };
-export function* attemptParsesAtLine(context: YamlIntelligenceContext, parser: any): ParseAttemptResult | null {
+
+export function* attemptParsesAtLine(context: YamlIntelligenceContext, parser: any): Generator<ParseAttemptResult> {
   let {
-    code, // full contents of the buffer
-    position, // row/column of cursor (0-based)
+    position // row/column of cursor (0-based)
   } = context;
 
-  if (code.value === undefined) {
-    code = asMappedString(code);
-  }
+  // full contents of the buffer
+  const code = asMappedString(context.code);
 
   try {
     const tree = parser.parse(code.value);
@@ -59,7 +69,7 @@ export function* attemptParsesAtLine(context: YamlIntelligenceContext, parser: a
     }
   } catch (_e) {
     // bail on internal error from tree-sitter.
-    return null;
+    return;
   }
 
   const codeLines = rangedLines(code.value, true);
@@ -118,19 +128,19 @@ export function* attemptParsesAtLine(context: YamlIntelligenceContext, parser: a
   }
 }
 
-function getIndent(l) {
+function getIndent(l: string) {
   return l.length - l.trimStart().length;
 }
 
 export function getYamlIndentTree(code: string) {
-  const lines = lines(code);
+  const ls = lines(code);
   const predecessor: number[] = [];
   const indents: number[] = [];
 
   let indentation = -1;
   let prevPredecessor = -1;
-  for (let i = 0; i < lines.length; ++i) {
-    const line = lines[i];
+  for (let i = 0; i < ls.length; ++i) {
+    const line = ls[i];
     const lineIndent = getIndent(line);
     indents.push(lineIndent);
 
@@ -162,39 +172,36 @@ export function getYamlIndentTree(code: string) {
   };
 }
 
-export function locateFromIndentation(context: YamlIntelligenceContext): string[] {
+export function locateFromIndentation(context: LocateFromIndentationContext): (number | string)[] {
   let {
     line, // editing line up to the cursor
     code: mappedCode, // full contents of the buffer
     position, // row/column of cursor (0-based)
   } = context;
 
-  const code = code.value;
-  // // currently we don't need mappedstrings here, so we cast to string
-  // if (code.value !== undefined) {
-  //   code = code.value;
-  // }
+  // currently we don't need mappedstrings here, so we cast to string
+  const code = asMappedString(mappedCode).value;
 
   const { predecessor, indentation } = getYamlIndentTree(code);
 
-  const lines = core.lines(code);
+  const ls = lines(code);
   let lineNo = position.row;
   const path = [];
   const lineIndent = getIndent(line);
   while (lineNo !== -1) {
-    const trimmed = lines[lineNo].trim();
+    const trimmed = ls[lineNo].trim();
 
     // treat whitespace differently: find first non-whitespace line above it and compare indents
     if (trimmed.length === 0) {
       let prev = lineNo;
-      while (prev >= 0 && lines[prev].trim().length === 0) {
+      while (prev >= 0 && ls[prev].trim().length === 0) {
         prev--;
       }
       if (prev === -1) {
         // all whitespace..?! we give up.
         break;
       }
-      const prevIndent = getIndent(lines[prev]);
+      const prevIndent = getIndent(ls[prev]);
       if (prevIndent < lineIndent) {
         // we're indented deeper than the previous indent: Locate through that.
         lineNo = prev;
@@ -213,7 +220,7 @@ export function locateFromIndentation(context: YamlIntelligenceContext): string[
         path.push(trimmed.substring(0, trimmed.length - 1));
       } else if (trimmed.length !== 0) {
         // parse error?
-        return undefined;
+        throw new Error("Internal error: this shouldn't have happened");
       }
     }
     lineNo = predecessor[lineNo];
