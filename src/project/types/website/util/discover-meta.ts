@@ -57,6 +57,22 @@ export function findPreviewImg(
   return image;
 }
 
+// The general words per minute that we should use.
+// Typical adults supposedly 200-250 WPM
+// College students, 300 WPM
+// Technical content can be closer to 50-100 WPM
+// So 200 is a good middle ground estimate.
+const kWpm = 200;
+export function estimateReadingTimeMinutes(
+  markdown?: string,
+): number | undefined {
+  if (markdown) {
+    const wordCount = markdown.split(" ").length;
+    return wordCount / kWpm;
+  }
+  return 0;
+}
+
 export function findPreviewImgMd(markdown?: string): string | undefined {
   if (markdown) {
     // Look for an explictly tagged image
