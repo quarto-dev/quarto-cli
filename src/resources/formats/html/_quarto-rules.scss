@@ -141,6 +141,14 @@ h6:hover > .anchorjs-link,
   position: relative;
 }
 
+#title-block-header .abstract {
+  margin-block-start: 1rem;
+}
+
+#title-block-header .abstract .abstract-title {
+  font-weight: 600;
+}
+
 #title-block-header a {
   text-decoration: none;
 }
