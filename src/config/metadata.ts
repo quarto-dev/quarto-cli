@@ -19,6 +19,9 @@ import {
   kExecuteDefaults,
   kExecuteDefaultsKeys,
   kExecuteEnabled,
+  kHeaderIncludes,
+  kIncludeAfter,
+  kIncludeBefore,
   kKeepMd,
   kKeepTex,
   kLanguageDefaults,
@@ -139,6 +142,10 @@ export function isQuartoMetadata(key: string) {
     kExecuteDefaultsKeys.includes(key) ||
     kPandocDefaultsKeys.includes(key) ||
     kLanguageDefaultsKeys.includes(key);
+}
+
+export function isIncludeMetadata(key: string) {
+  return [kHeaderIncludes, kIncludeBefore, kIncludeAfter].includes(key);
 }
 
 export function metadataAsFormat(metadata: Metadata): Format {

@@ -533,10 +533,8 @@ export async function renderPandoc(
     project: context.project,
     args: recipe.args,
     metadata: executeResult.metadata,
-    flags: {
-      ...context.options.flags,
-      quiet: quiet || !!context.options.flags?.quiet,
-    },
+    quiet,
+    flags: context.options.flags,
   };
 
   // add offset if we are in a project

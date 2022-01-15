@@ -19,7 +19,7 @@ function engineEscape()
 
       -- handle escaped engines within a code block
       el.text = el.text:gsub("```" .. kEngineEscapePattern, function(engine, lang)
-        if #el.attr.classes == 0 or not isHighlightClass(#el.attr.classes[1]) then
+        if #el.attr.classes == 0 or not isHighlightClass(el.attr.classes[1]) then
           el.attr.classes:insert(1, engineLang(lang))
         end
         return "```" .. engine 
@@ -38,7 +38,7 @@ function engineLang(lang)
   end
 end
 
-local kHighlightClasses = pandoc.List({
+local kHighlightClasses = {
   "abc",
   "actionscript",
   "ada",
@@ -181,8 +181,13 @@ local kHighlightClasses = pandoc.List({
   "yacc",
   "yaml",
   "zsh"
-})
+}
 
 function isHighlightClass(class)
-  return kHighlightClasses:includes(class)
+  for _, v in ipairs (kHighlightClasses) do
+    if v == class then
+      return true
+    end
+  end
+  return false
 end

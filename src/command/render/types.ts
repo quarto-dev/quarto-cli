@@ -130,8 +130,11 @@ export interface PandocOptions {
   // optoinal project context
   project?: ProjectContext;
 
+  // quiet quarto pandoc informational output
+  quiet?: boolean;
+
   // command line flags (e.g. could be used
-  // to specify e.g. quiet or pdf engine)
+  // to specify e.g. pdf engine)
   flags?: RenderFlags;
 
   // optional offset from file to project dir

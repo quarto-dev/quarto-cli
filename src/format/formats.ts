@@ -79,6 +79,7 @@ export function defaultWriterFormat(to: string): Format {
     case "markdown_strict":
     case "commonmark":
     case "commonmark_x":
+    case "markua":
       writerFormat = markdownFormat();
       pandocTo = to;
       break;
@@ -224,11 +225,11 @@ function markdownFormat(): Format {
 function powerpointFormat(): Format {
   return createFormat("pptx", {
     render: {
-      [kPageWidth]: 9,
+      [kPageWidth]: 10,
       [kOutputDivs]: false,
     },
     execute: {
-      [kFigWidth]: 7.5,
+      [kFigWidth]: 11,
       [kFigHeight]: 5.5,
       [kEcho]: false,
       [kWarning]: false,

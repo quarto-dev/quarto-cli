@@ -36,11 +36,17 @@ import {
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import {
+  isEpubOutput,
+  isHtmlDocOutput,
   isHtmlFileOutput,
   isHtmlOutput,
   isLatexOutput,
 } from "../../config/format.ts";
-import { isQuartoMetadata, metadataGetDeep } from "../../config/metadata.ts";
+import {
+  isIncludeMetadata,
+  isQuartoMetadata,
+  metadataGetDeep,
+} from "../../config/metadata.ts";
 import {
   pandocBinaryPath,
   resourcePath,
@@ -68,6 +74,8 @@ import {
 } from "./defaults.ts";
 import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
+  kAbstract,
+  kAbstractTitle,
   kClassOption,
   kColorLinks,
   kDocumentClass,
@@ -86,6 +94,7 @@ import {
   kPageTitle,
   kQuartoVarsKey,
   kResources,
+  kSectionTitleAbstract,
   kTemplate,
   kTitle,
   kTitlePrefix,
@@ -196,6 +205,16 @@ export async function runPandoc(
     ];
   }
 
+  // if there is an abtract then forward abtract-title
+  if (
+    options.format.metadata[kAbstract] &&
+    (isHtmlDocOutput(options.format.pandoc) ||
+      isEpubOutput(options.format.pandoc))
+  ) {
+    options.format.metadata[kAbstractTitle] =
+      options.format.language[kSectionTitleAbstract];
+  }
+
   // see if there are extras
   const postprocessors: Array<(output: string) => Promise<void>> = [];
   const htmlPostprocessors: Array<
@@ -249,11 +268,11 @@ export async function runPandoc(
     // add a post-processor for fixing overflow-x in cell output display
     if (isHtmlFileOutput(options.format.pandoc)) {
       htmlPostprocessors.push(selectInputPostprocessor);
-    }
 
-    // add a resource discovery postProcessor if we are not in a website project
-    if (!projectIsWebsite(options.project)) {
-      htmlPostprocessors.push(discoverResourceRefs);
+      // add a resource discovery postProcessor if we are not in a website project
+      if (!projectIsWebsite(options.project)) {
+        htmlPostprocessors.push(discoverResourceRefs);
+      }
     }
 
     // Capture markdown that should be appended post body
@@ -457,7 +476,7 @@ export async function runPandoc(
   for (const key of Object.keys(engineMetadata)) {
     const isChapterTitle = key === kTitle && projectIsBook(options.project);
 
-    if (!isQuartoMetadata(key) && !isChapterTitle) {
+    if (!isQuartoMetadata(key) && !isChapterTitle && !isIncludeMetadata(key)) {
       // if it's standard pandoc metadata and NOT contained in a format specific
       // override then use the engine metadata value
 
@@ -539,7 +558,7 @@ export async function runPandoc(
   cmd.push(...pandocArgs);
 
   // print full resolved input to pandoc
-  if (!options.flags?.quiet) {
+  if (!options.quiet) {
     runPandocMessage(
       printArgs,
       printAllDefaults,

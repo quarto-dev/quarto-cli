@@ -9,15 +9,10 @@ function initOptions()
   return {
     Meta = function(meta)
       if meta ~= nil then
-        allOptions = readOptions(meta)
+        allOptions = readMetaOptions(meta)
       end
     end
   }
-end
-
--- reads the options
-function readOptions(meta) 
-  return meta:clone()
 end
 
 -- get option value

@@ -38,6 +38,7 @@ import {
   kKeepSource,
   kKeepTex,
   kKeepYaml,
+  kLang,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -57,6 +58,7 @@ import {
   kSelfContainedMath,
   kStandalone,
   kWarning,
+  kWrap,
 } from "../config/constants.ts";
 
 import { Format } from "../config/types.ts";
@@ -81,6 +83,7 @@ export function createHtmlFormat(
 ) {
   return createFormat("html", {
     metadata: {
+      [kLang]: "en",
       [kFigResponsive]: true,
     },
     execute: {
@@ -90,6 +93,7 @@ export function createHtmlFormat(
     },
     pandoc: {
       [kStandalone]: true,
+      [kWrap]: "none",
       [kDefaultImageExtension]: "png",
     },
   });

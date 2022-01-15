@@ -73,7 +73,10 @@ export function isHtmlOutput(
   }
 }
 
-export function isHtmlDocOutput(format: string) {
+export function isHtmlDocOutput(format?: string | FormatPandoc) {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
   return [
     "html",
     "html4",
