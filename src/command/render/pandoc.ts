@@ -253,11 +253,11 @@ export async function runPandoc(
     // add a post-processor for fixing overflow-x in cell output display
     if (isHtmlFileOutput(options.format.pandoc)) {
       htmlPostprocessors.push(selectInputPostprocessor);
-    }
 
-    // add a resource discovery postProcessor if we are not in a website project
-    if (!projectIsWebsite(options.project)) {
-      htmlPostprocessors.push(discoverResourceRefs);
+      // add a resource discovery postProcessor if we are not in a website project
+      if (!projectIsWebsite(options.project)) {
+        htmlPostprocessors.push(discoverResourceRefs);
+      }
     }
 
     // Capture markdown that should be appended post body
