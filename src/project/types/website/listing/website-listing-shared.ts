@@ -40,6 +40,8 @@ export const kShowSort = "show-sort";
 
 // The Image Height / Alignment
 export const kImageHeight = "image-height";
+
+// Only for the default style listing
 export const kImageAlign = "image-align";
 
 // The number of columns to display (grid)
@@ -66,6 +68,7 @@ export interface Listing extends ListingDehydrated {
   [kFieldTypes]: Record<string, ColumnType>;
   [kFieldLinks]: string[];
   [kFieldSort]: string[];
+  [kFieldRequired]: string[];
   [kRowCount]: number;
   [kShowFilter]: boolean;
   [kShowSort]: boolean;

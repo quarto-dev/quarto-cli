@@ -21,6 +21,7 @@ import {
   kColumnCount,
   kFieldLinks,
   kFieldNames,
+  kFieldRequired,
   kFieldSort,
   kFieldTypes,
   kImageAlign,
@@ -117,6 +118,8 @@ const kDefaultFieldSort = [
   kFieldFileName,
   kFieldFileModified,
 ];
+
+const kDefaultFieldRequired: string[] = [];
 
 export async function readListings(
   source: string,
@@ -215,6 +218,7 @@ function hydrateListing(
     [kFieldTypes]: kDefaultFieldTypes,
     [kFieldLinks]: defaultLinks,
     [kFieldSort]: defaultSort,
+    [kFieldRequired]: kDefaultFieldRequired,
     [kRowCount]: 100,
     [kShowFilter]: true,
     [kShowSort]: true,
@@ -278,6 +282,9 @@ async function readContents(
               items.forEach((item) => {
                 if (typeof (item) === "object") {
                   const listingItem = listItemFromMeta(item as Metadata);
+                  validateItem(listing, listingItem, (field: string) => {
+                    return `An item from the file '${file}' is missing the required field '${field}'.`;
+                  });
                   listingItemSources.add(ListingItemSource.metadata);
                   listingItems.push(listingItem);
                 } else {
@@ -288,6 +295,9 @@ async function readContents(
               });
             } else if (typeof (yaml) === "object") {
               const listingItem = listItemFromMeta(yaml as Metadata);
+              validateItem(listing, listingItem, (field: string) => {
+                return `The item defined in file '${file}' is missing the required field '${field}'.`;
+              });
               listingItemSources.add(ListingItemSource.metadata);
               listingItems.push(listingItem);
             } else {
@@ -297,6 +307,9 @@ async function readContents(
             }
           } else {
             const item = await listItemFromFile(file, project);
+            validateItem(listing, item, (field: string) => {
+              return `The file ${file} is missing the required field '${field}'.`;
+            });
             listingItemSources.add(ListingItemSource.document);
             listingItems.push(item);
           }
@@ -304,14 +317,47 @@ async function readContents(
       }
     } else {
       const listingItem = listItemFromMeta(content);
+      validateItem(listing, listingItem, (field: string) => {
+        return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
+      });
       listingItemSources.add(ListingItemSource.metadata);
       listingItems.push(listingItem);
     }
   }
+
   return {
     items: listingItems,
     sources: listingItemSources,
   };
+}
+
+// Validates that items have all the required fields
+function validateItem(
+  listing: ListingDehydrated,
+  item: ListingItem,
+  message: (field: string) => string,
+) {
+  const requiredFields = (listing: ListingDehydrated) => {
+    const fields = listing[kFieldRequired];
+    if (fields) {
+      if (Array.isArray(fields)) {
+        return fields;
+      } else {
+        return [fields];
+      }
+    } else {
+      return undefined;
+    }
+  };
+
+  const validationFields = requiredFields(listing);
+  if (validationFields) {
+    validationFields.forEach((requiredField: string) => {
+      if (item[requiredField] === undefined) {
+        throw new Error(message(requiredField));
+      }
+    });
+  }
 }
 
 function listItemFromMeta(meta: Metadata) {
