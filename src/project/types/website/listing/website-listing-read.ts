@@ -19,11 +19,11 @@ import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
 import {
   ColumnType,
   kColumnCount,
-  kFieldLinks,
-  kFieldNames,
-  kFieldRequired,
-  kFieldSort,
-  kFieldTypes,
+  kFieldsLink,
+  kFieldsName,
+  kFieldsRequired,
+  kFieldsSort,
+  kFieldsType,
   kImageAlign,
   kImageHeight,
   kMaxDescLength,
@@ -214,11 +214,11 @@ function hydrateListing(
 
   const listingHydrated: Listing = {
     fields,
-    [kFieldNames]: defaultFieldNames(format),
-    [kFieldTypes]: kDefaultFieldTypes,
-    [kFieldLinks]: defaultLinks,
-    [kFieldSort]: defaultSort,
-    [kFieldRequired]: kDefaultFieldRequired,
+    [kFieldsName]: defaultFieldNames(format),
+    [kFieldsType]: kDefaultFieldTypes,
+    [kFieldsLink]: defaultLinks,
+    [kFieldsSort]: defaultSort,
+    [kFieldsRequired]: kDefaultFieldRequired,
     [kRowCount]: 100,
     [kShowFilter]: true,
     [kShowSort]: true,
@@ -235,9 +235,9 @@ function hydrateListing(
   }
 
   // Merge column types
-  listingHydrated[kFieldTypes] = {
-    ...listingHydrated[kFieldTypes],
-    ...listing[kFieldTypes] as Record<string, ColumnType>,
+  listingHydrated[kFieldsType] = {
+    ...listingHydrated[kFieldsType],
+    ...listing[kFieldsType] as Record<string, ColumnType>,
   };
 
   return listingHydrated;
@@ -338,7 +338,7 @@ function validateItem(
   message: (field: string) => string,
 ) {
   const requiredFields = (listing: ListingDehydrated) => {
-    const fields = listing[kFieldRequired];
+    const fields = listing[kFieldsRequired];
     if (fields) {
       if (Array.isArray(fields)) {
         return fields;

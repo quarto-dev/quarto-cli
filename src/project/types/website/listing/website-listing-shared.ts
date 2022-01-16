@@ -12,24 +12,24 @@ import { Metadata } from "../../../../config/types.ts";
 export const kFields = "fields";
 
 // A record providing formatted names for columns
-export const kFieldNames = "fields-name";
+export const kFieldsName = "fields-name";
 
 // a record providing a column to type mapping
-export const kFieldTypes = "fields-type";
+export const kFieldsType = "fields-type";
 
 // The list of columns to show as hyperlinks
-export const kFieldLinks = "fields-link";
+export const kFieldsLink = "fields-link";
 
 // The list of required fields for this listing
-export const kFieldRequired = "fields-required";
+export const kFieldsRequired = "fields-required";
 
 // The list of columns to include as sortable
-export const kFieldSort = "fields-sort";
+export const kFieldsSort = "fields-sort";
 
 // A computed record that provides the name of the sort target
 // for a column (so that the columns can be sorted by a different)
 // value than what is displayed (for example, dates)
-export const kFieldSortTargets = "field-sort-targets";
+export const kFieldsSortTarget = "fields-sort-targets";
 
 // The number of rows to display per page
 export const kRowCount = "row-count";
@@ -64,11 +64,11 @@ export interface ListingDehydrated extends Record<string, unknown> {
 // The core listing type
 export interface Listing extends ListingDehydrated {
   fields: string[];
-  [kFieldNames]: Record<string, string>;
-  [kFieldTypes]: Record<string, ColumnType>;
-  [kFieldLinks]: string[];
-  [kFieldSort]: string[];
-  [kFieldRequired]: string[];
+  [kFieldsName]: Record<string, string>;
+  [kFieldsType]: Record<string, ColumnType>;
+  [kFieldsLink]: string[];
+  [kFieldsSort]: string[];
+  [kFieldsRequired]: string[];
   [kRowCount]: number;
   [kShowFilter]: boolean;
   [kShowSort]: boolean;
@@ -78,7 +78,7 @@ export interface Listing extends ListingDehydrated {
   template?: string;
 
   // Computed values
-  [kFieldSortTargets]?: Record<string, string>;
+  [kFieldsSortTarget]?: Record<string, string>;
   [kColumnCount]?: number;
 }
 

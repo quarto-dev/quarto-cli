@@ -19,12 +19,12 @@ import { Format } from "../../../../config/types.ts";
 import { renderEjs } from "../../../../core/ejs.ts";
 import {
   kColumnCount,
-  kFieldLinks,
-  kFieldNames,
   kFields,
-  kFieldSort,
-  kFieldSortTargets,
-  kFieldTypes,
+  kFieldsLink,
+  kFieldsName,
+  kFieldsSort,
+  kFieldsSortTarget,
+  kFieldsType,
   kMaxDescLength,
   kRowCount,
   Listing,
@@ -71,7 +71,7 @@ export function templateMarkdownHandler(
       // Read date formatting from an option, if present
       const dateFormat = listing[kDateFormat] as string;
 
-      const fieldTypes = listing[kFieldTypes];
+      const fieldTypes = listing[kFieldsType];
       for (const field of Object.keys(fieldTypes)) {
         if (fieldTypes[field] === kFieldDate) {
           const dateRaw = item[field];
@@ -179,8 +179,8 @@ export function resolveItemForTemplate(
   };
 
   // Add sortable values for fields of variant types
-  for (const field of Object.keys(listing[kFieldTypes])) {
-    const type = listing[kFieldTypes][field];
+  for (const field of Object.keys(listing[kFieldsType])) {
+    const type = listing[kFieldsType][field];
     if (item[field] !== undefined) {
       if (type === "date") {
         addSortable(item, field, (item[field] as Date).valueOf().toString());
@@ -191,7 +191,7 @@ export function resolveItemForTemplate(
   }
 
   // Add sortable values for fields that will be linked
-  for (const field of listing[kFieldLinks]) {
+  for (const field of listing[kFieldsLink]) {
     const val = item[field];
     if (val !== undefined) {
       addSortable(item, field, val as string);
@@ -214,7 +214,7 @@ export function reshapeListing(
     );
   }
   // Compute the sorting targets for the fields
-  reshaped[kFieldSortTargets] = computeSortingTargets(reshaped);
+  reshaped[kFieldsSortTarget] = computeSortingTargets(reshaped);
 
   // Add template utilities
   const utilities = {} as Record<string, unknown>;
@@ -224,16 +224,16 @@ export function reshapeListing(
       description: string;
     }> = [];
 
-    reshaped[kFieldSort].filter((field) => {
+    reshaped[kFieldsSort].filter((field) => {
       return reshaped.fields.includes(field);
     }).forEach((field) => {
-      if (reshaped[kFieldTypes][field] === "date") {
+      if (reshaped[kFieldsType][field] === "date") {
         fieldSortData.push({
           listingSort: {
             field,
             direction: kSortAsc,
           },
-          description: `${reshaped[kFieldNames][field] || field} (${
+          description: `${reshaped[kFieldsName][field] || field} (${
             format.language[kListingPageOrderByDateAsc]
           })`,
         });
@@ -243,17 +243,17 @@ export function reshapeListing(
             field,
             direction: kSortDesc,
           },
-          description: `${reshaped[kFieldNames][field] || field} (${
+          description: `${reshaped[kFieldsName][field] || field} (${
             format.language[kListingPageOrderByDateDesc]
           })`,
         });
-      } else if (reshaped[kFieldTypes][field] === "number") {
+      } else if (reshaped[kFieldsType][field] === "number") {
         fieldSortData.push({
           listingSort: {
             field,
             direction: kSortAsc,
           },
-          description: `${reshaped[kFieldNames][field] || field} (${
+          description: `${reshaped[kFieldsName][field] || field} (${
             format.language[kListingPageOrderByNumberAsc]
           })`,
         });
@@ -262,7 +262,7 @@ export function reshapeListing(
             field,
             direction: kSortDesc,
           },
-          description: `${reshaped[kFieldNames][field] || field} (${
+          description: `${reshaped[kFieldsName][field] || field} (${
             format.language[kListingPageOrderByNumberDesc]
           })`,
         });
@@ -272,7 +272,7 @@ export function reshapeListing(
             field,
             direction: kSortAsc,
           },
-          description: `${reshaped[kFieldNames][field] || field}`,
+          description: `${reshaped[kFieldsName][field] || field}`,
         });
       }
     });
@@ -281,10 +281,10 @@ export function reshapeListing(
   };
 
   utilities.fieldName = (field: string) => {
-    return reshaped[kFieldNames][field] || field;
+    return reshaped[kFieldsName][field] || field;
   };
   utilities.outputLink = (item: ListingItem, field: string, val?: string) => {
-    const fieldLinks = reshaped[kFieldLinks];
+    const fieldLinks = reshaped[kFieldsLink];
     const value = val || item[field];
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
@@ -294,7 +294,7 @@ export function reshapeListing(
     }
   };
   utilities.sortClass = (field: string) => {
-    const colSortTargets = reshaped[kFieldSortTargets];
+    const colSortTargets = reshaped[kFieldsSortTarget];
     if (!colSortTargets || colSortTargets[field] === field) {
       return "";
     } else {
@@ -302,7 +302,7 @@ export function reshapeListing(
     }
   };
   utilities.sortTarget = (field: string) => {
-    const colSortTargets = reshaped[kFieldSortTargets];
+    const colSortTargets = reshaped[kFieldsSortTarget];
     if (!colSortTargets || colSortTargets[field] === field) {
       return field;
     } else {
@@ -311,7 +311,7 @@ export function reshapeListing(
   };
   utilities.sortAttr = (item: ListingItem, field: string) => {
     item.sortableValues = item.sortableValues || {};
-    const colSortTargets = reshaped[kFieldSortTargets];
+    const colSortTargets = reshaped[kFieldsSortTarget];
     if (!colSortTargets || colSortTargets[field] === field) {
       return "";
     } else {
@@ -338,8 +338,8 @@ function computeSortingTargets(
 ): Record<string, string> {
   const sortingTargets: Record<string, string> = {};
   const columns = listing[kFields];
-  const columnLinks = listing[kFieldLinks];
-  const fieldTypes = listing[kFieldTypes];
+  const columnLinks = listing[kFieldsLink];
+  const fieldTypes = listing[kFieldsType];
   columns.forEach((field) => {
     // The data type of this column
     const fieldType = fieldTypes[field];
@@ -380,10 +380,10 @@ export function templateJsScript(
     : "";
 
   const useDataField = (field: string) => {
-    const type = listing[kFieldTypes][field];
+    const type = listing[kFieldsType][field];
     if (type === "date" || type === "number") {
       return true;
-    } else if (listing[kFieldLinks].includes(field)) {
+    } else if (listing[kFieldsLink].includes(field)) {
       return true;
     }
     return false;
