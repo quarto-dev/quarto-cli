@@ -32,7 +32,6 @@ import {
   kTwitterCard,
   kWebsite,
 } from "./website-config.ts";
-import { getDecodedAttribute } from "../../../core/html.ts";
 import { computePageTitle } from "./website-shared.ts";
 import {
   createMarkdownPipeline,
