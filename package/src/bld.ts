@@ -4,11 +4,9 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { parse } from "flags/mod.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { packageCommand } from "./cmd/pkg-cmd.ts";
 import { configure } from "./common/configure.ts";
-import { error } from "log/mod.ts";
 import { mainRunner } from "../../src/core/main.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
@@ -20,12 +18,7 @@ import {
 } from "./common/compile-quarto-latexmk.ts";
 import { makeInstallerWindows } from "./windows/installer.ts";
 
-import {
-  appendLogOptions,
-  cleanupLogger,
-  initializeLogger,
-  logOptions,
-} from "../../src/core/log.ts";
+import { appendLogOptions } from "../../src/core/log.ts";
 import {
   cycleDependenciesCommand,
   parseSwcLogCommand,

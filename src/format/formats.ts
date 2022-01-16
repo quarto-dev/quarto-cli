@@ -13,7 +13,6 @@ import {
   kFigWidth,
   kKeepYaml,
   kOutputDivs,
-  kOutputFile,
   kPageWidth,
   kPreferHtml,
   kVariant,
