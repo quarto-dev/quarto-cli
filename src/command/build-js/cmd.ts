@@ -6,11 +6,9 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
-import { join } from "path/mod.ts";
 import { copy } from "fs/copy.ts";
 import { createTempContext } from "../../core/temp.ts";
 
-import { lines } from "../../core/text.ts";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
 import { resourcePath } from "../../core/resources.ts";
