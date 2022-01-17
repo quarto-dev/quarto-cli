@@ -11,13 +11,9 @@
 import { getFrontMatterSchema } from "./front-matter.ts";
 import { getProjectConfigSchema } from "./project-config.ts";
 import { getEngineOptionsSchema } from "./chunk-metadata.ts";
-import { readYaml } from "../yaml.ts";
-import { schemaPath } from "./utils.ts";
 import { resourcePath } from "../resources.ts";
-import { idSchema } from "./common.ts";
-import { normalizeSchema, Schema, setSchemaDefinition, getSchemaDefinitionsObject } from "../lib/schema.ts";
+import { getSchemaDefinitionsObject } from "../lib/schema.ts";
 import { exportStandaloneValidators } from "./yaml-schema.ts";
-import { convertFromYaml } from "./from-yaml.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 import { TempContext } from "../temp.ts";
 

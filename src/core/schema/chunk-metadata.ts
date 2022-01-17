@@ -8,16 +8,15 @@
 */
 
 import { LocalizedError, AnnotatedParse } from "../lib/yaml-schema.ts";
-import { normalizeSchema, Schema } from "../lib/schema.ts";
+import { Schema } from "../lib/schema.ts";
 import { addValidatorErrorHandler } from "../lib/validator-queue.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
-import { schemaPath } from "./utils.ts";
 import { tidyverseFormatError, quotedStringColor, TidyverseError, addFileInfo, addInstancePathInfo } from "../lib/errors.ts";
 import { defineCached } from "./definitions.ts";
 
 function checkForEqualsInChunk(
-  error: LocalizedError, parse: AnnotatedParse, _schema: Schema
+  error: LocalizedError, _parse: AnnotatedParse, _schema: Schema
 )
 {
   if (typeof error.violatingObject.result !== "string")
@@ -39,9 +38,11 @@ function checkForEqualsInChunk(
   };
   addFileInfo(newError, error.source);
   addInstancePathInfo(newError, error.ajvError.instancePath);
-  
+
+  // deno-lint-ignore no-cond-assign
   if (m = badObject.match(/= *TRUE/i)) {
     newError.info.push(`Try using ${quotedStringColor(": true")} instead of ${quotedStringColor(m[0])}.`);
+  // deno-lint-ignore no-cond-assign
   } else if (m = badObject.match(/= *FALSE/i)) {
     newError.info.push(`Try using ${quotedStringColor(": false")} instead of ${quotedStringColor(m[0])}.`);
   } else if (badObject.match('=')) {
@@ -71,7 +72,7 @@ const jupyterEngineSchema = defineCached(() => makeEngineSchema("markdown"), "en
 
 export async function getEngineOptionsSchema(): Promise<Record<string, Schema>>
 {
-  let obj = {
+  const obj = {
     markdown: await markdownEngineSchema(),
     knitr: await knitrEngineSchema(),
     jupyter: await jupyterEngineSchema(),

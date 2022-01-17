@@ -41,6 +41,7 @@ export const IntegerSchema = {
   "description": "be an integral number",
 };
 
+// deno-lint-ignore no-explicit-any
 export function tagSchema(schema: Schema, tags: Record<string, any>): Schema
 {
   return {

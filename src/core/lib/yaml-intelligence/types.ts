@@ -28,7 +28,7 @@ export interface YamlIntelligenceContext {
   schema?: Schema;
   schemaName?: string;
   commentPrefix?: string;
-};
+}
 
 export interface LocateFromIndentationContext {
   code: string | MappedString;
@@ -37,5 +37,5 @@ export interface LocateFromIndentationContext {
     column: number
   };
   line: string;
-};
+}
 

@@ -14,7 +14,6 @@ import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error, info } from "log/mod.ts";
 import { ensureAjv } from "./yaml-schema.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
-import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";

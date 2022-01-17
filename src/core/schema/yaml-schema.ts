@@ -8,7 +8,6 @@
 import Ajv from "../lib/external/ajv-bundle.js";
 import { getAjvInstance, setupAjv, YAMLSchema } from "../lib/yaml-schema.ts";
 export { YAMLSchema } from "../lib/yaml-schema.ts";
-import { resourcePath } from "../resources.ts";
 import { MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { loadDefaultSchemaDefinitions } from "./definitions.ts";

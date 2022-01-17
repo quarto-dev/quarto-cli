@@ -10,18 +10,11 @@
 
 import {
   allOfSchema as allOfS,
-  completeSchema,
   describeSchema,
-  idSchema as withId,
-  NullSchema as nullS,
   objectSchema as objectS,
-  oneOfSchema as oneOfS,
-  regexSchema as regexS,
 } from "./common.ts";
 
 import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
-
-import { Schema } from "../lib/schema.ts";
 
 import {
   getFormatExecuteOptionsSchema,
@@ -29,13 +22,11 @@ import {
 
 import { makeFrontMatterFormatSchema, getFrontMatterFormatSchema } from "./front-matter.ts";
 
-import { getFormatSchema } from "./format-schemas.ts";
-import { pandocOutputFormats } from "./pandoc-output-formats.ts";
-
 import { schemaPath } from "./utils.ts";
 import { defineCached } from "./definitions.ts";
 
 export const getProjectConfigFieldsSchema = defineCached(
+  // deno-lint-ignore require-await
   async () => objectSchemaFromFieldsFile(schemaPath("project.yml")),
   "project-config-fields");
 

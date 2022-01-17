@@ -10,14 +10,19 @@
 // FIXME typings for this? It's tricky because of arity and type
 //       differences in the arguments
 export function memoize(
+  // deno-lint-ignore no-explicit-any
   f: (...args: any[]) => any,
+  // deno-lint-ignore no-explicit-any
   keyMemoizer: (...args: any) => string
+  // deno-lint-ignore no-explicit-any
 ): ((...args: any[]) => any)
 {
+  // deno-lint-ignore no-explicit-any
   const memo: Record<string, any> = {};
+  // deno-lint-ignore no-explicit-any
   const inner: ((...args: any[]) => any) = (...args: any[]) => {
-    let key = keyMemoizer(...args);
-    let v = memo[key];
+    const key = keyMemoizer(...args);
+    const v = memo[key];
     if (v !== undefined) {
       return v;
     }

@@ -43,7 +43,7 @@ export interface ErrorLocation {
     line: number,
     column: number,
   },
-};
+}
 
 export interface TidyverseError {
   heading: string,
@@ -52,7 +52,7 @@ export interface TidyverseError {
   fileName?: string,
   location?: ErrorLocation,
   sourceContext?: string
-};
+}
 
 export function tidyverseFormatError(msg: TidyverseError)
 {

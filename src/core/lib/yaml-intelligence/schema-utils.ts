@@ -18,7 +18,7 @@ export interface QuartoJsonSchemas {
   };
   aliases: Record<string, string[]>;
   definitions: Record<string, Schema>;
-};
+}
 
 let _schemas: QuartoJsonSchemas | undefined;
 

@@ -19,7 +19,6 @@ import {
   addFileInfo,
   ErrorLocation,
   TidyverseError,
-  locationString,
   quotedStringColor,
   addInstancePathInfo,
 } from "./errors.ts";
@@ -339,7 +338,7 @@ function localizeAndPruneErrors(
         ).length === 0,
     );
 
-    for (let { key: instancePath, values: errors } of errorsPerInstanceList) {
+    for (const { key: instancePath, values: errors } of errorsPerInstanceList) {
       // Find the broadest schemaPath errors
       let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
       errorsPerSchemaList = errorsPerSchemaList.filter(
@@ -486,7 +485,8 @@ export class YAMLSchema {
   errorHandlers: ((error: LocalizedError,
                    annotation: AnnotatedParse,
                    schema: Schema) => LocalizedError)[];
-  
+
+  // deno-lint-ignore no-explicit-any
   constructor(schema: Schema, compiledModule?: any) {
     this.errorHandlers = [];
     this.schema = schema;

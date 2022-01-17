@@ -17,8 +17,6 @@ import { readYaml } from "../yaml.ts";
 
 import { expandGlobSync } from "fs/expand_glob.ts";
 
-import { resourcePath } from "../resources.ts";
-
 import {
   Schema,
   getSchemaDefinition,
@@ -37,7 +35,6 @@ import {
   NullSchema as nullS,
   NumberSchema as numberS,
   objectSchema as objectS,
-  anySchema as anyS,
   refSchema as refS,
   arraySchema as arrayOfS,
   oneOfSchema as oneOfS,
@@ -53,9 +50,10 @@ import {
 } from "./common.ts";
 
 import { schemaPath } from "./utils.ts";
-
 import { memoize } from "../memoize.ts";
 
+
+// deno-lint-ignore no-explicit-any
 function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
 {
   if (yaml.additionalCompletions)
@@ -86,17 +84,20 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
   return result;
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromNull(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml["null"], nullS);
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromSchema(yaml: any): Schema
 {
   const schema = convertFromYaml(yaml.schema);
   return setBaseSchemaProperties(yaml, schema);
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromString(yaml: any): Schema
 {
   yaml = yaml["string"];
@@ -104,6 +105,7 @@ function convertFromString(yaml: any): Schema
   return setBaseSchemaProperties(yaml, schema);
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromPattern(yaml: any): Schema
 {
   yaml = yaml["pattern"];
@@ -115,94 +117,113 @@ function convertFromPattern(yaml: any): Schema
   }
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromPath(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml["path"], stringS);
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromNumber(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml["number"], numberS);
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromBoolean(yaml: any): Schema
 {
   return setBaseSchemaProperties(yaml["boolean"], booleanS);
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromRef(yaml: any): Schema
 {
   return refS(yaml.ref, yaml.description || `be ${yaml.ref}`);
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromMaybeArrayOf(yaml: any): Schema
 {
   const schema = convertFromYaml(yaml.maybeArrayOf);
   return oneOfS(schema, arrayOfS(schema));
-};
+}
 
+// deno-lint-ignore no-explicit-any
 function convertFromArrayOf(yaml: any): Schema
 {
   const schema = yaml.arrayOf;
   if (schema.schema) {
-    let result = arrayOfS(convertFromYaml(schema.schema));
+    const result = arrayOfS(convertFromYaml(schema.schema));
     return setBaseSchemaProperties(schema, result);
   } else {
     return arrayOfS(convertFromYaml(schema));
   }
-};
+}
 
+// deno-lint-ignore no-explicit-any
 function convertFromOneOf(yaml: any): Schema
 {
   const schema = yaml.oneOf;
   if (schema.schemas) {
-    let inner = schema.schemas.map((x: any) => convertFromYaml(x));
-    let result = oneOfS(...inner);
+    // deno-lint-ignore no-explicit-any
+    const inner = schema.schemas.map((x: any) => convertFromYaml(x));
+    const result = oneOfS(...inner);
     return setBaseSchemaProperties(schema, result);
   } else {
+    // deno-lint-ignore no-explicit-any
     return oneOfS(...schema.map((x: any) => convertFromYaml(x)));
   }
-};
+}
 
+// deno-lint-ignore no-explicit-any
 function convertFromAllOf(yaml: any): Schema
 {
   const schema = yaml.allOf;
   if (schema.schemas) {
-    let inner = schema.schemas.map((x: any) => convertFromYaml(x));
-    let result = allOfS(...inner);
+    // deno-lint-ignore no-explicit-any
+    const inner = schema.schemas.map((x: any) => convertFromYaml(x));
+    const result = allOfS(...inner);
     return setBaseSchemaProperties(schema, result);
   } else {
+    // deno-lint-ignore no-explicit-any
     return allOfS(...schema.map((x: any) => convertFromYaml(x)));
   }
-};
+}
 
+// deno-lint-ignore no-explicit-any
 function convertFromAnyOf(yaml: any): Schema
 {
   const schema = yaml.anyOf;
   if (schema.schemas) {
-    let result = anyOfS(...schema.schemas.map((x: any) => convertFromYaml(x)));
+    // deno-lint-ignore no-explicit-any
+    const result = anyOfS(...schema.schemas.map((x: any) => convertFromYaml(x)));
     return setBaseSchemaProperties(schema, result);
   } else {
+    // deno-lint-ignore no-explicit-any
     return anyOfS(...schema.map((x: any) => convertFromYaml(x)));
   }
-};
+}
 
+// deno-lint-ignore no-explicit-any
 function convertFromEnum(yaml: any): Schema
 {
   const schema = yaml["enum"];
   // testing for the existence of "schema.values" doesn't work
   // because "values" is an array method.
+  // deno-lint-ignore no-prototype-builtins
   if (schema.hasOwnProperty("values")) {
-    let result = enumS(...schema.values);
+    const result = enumS(...schema.values);
     return setBaseSchemaProperties(schema, result);
   } else {
     return enumS(...schema);
   }
-};
+}
 
+// deno-lint-ignore no-explicit-any
 function convertFromObject(yaml: any): Schema
 {
   const schema = yaml["object"];
+  // deno-lint-ignore no-explicit-any
   const params: Record<string, any> = {};
   if (schema.properties) {
     params.properties = Object.fromEntries(
@@ -237,8 +258,9 @@ function convertFromObject(yaml: any): Schema
   }
   
   return setBaseSchemaProperties(schema, objectS(params));
-};
+}
 
+// deno-lint-ignore no-explicit-any
 function lookup(yaml: any): Schema
 {
   if (!hasSchemaDefinition(yaml.resolveRef)) {
@@ -247,6 +269,7 @@ function lookup(yaml: any): Schema
   return getSchemaDefinition(yaml.resolveRef);
 }
 
+// deno-lint-ignore no-explicit-any
 export function convertFromYaml(yaml: any): Schema
 {
   // literals
@@ -277,6 +300,7 @@ export function convertFromYaml(yaml: any): Schema
   // object key checks:
   interface KV {
     key: string,
+    // deno-lint-ignore no-explicit-any
     value: (yaml: any) => Schema
   }
   const schemaObjectKeyFunctions: KV[] = [
@@ -323,8 +347,9 @@ export function objectSchemaFromFieldsFile(
   file: string,
   exclude?: (key: string) => boolean): Schema
 {
-  exclude = exclude ?? ((key: string) => false);
-  let properties: Record<string, Schema> = {};
+  exclude = exclude ?? ((_key: string) => false);
+  const properties: Record<string, Schema> = {};
+  // deno-lint-ignore no-explicit-any
   const global = readYaml(file) as any[];
   
   convertFromFieldsObject(global, properties);
@@ -352,14 +377,14 @@ export interface SchemaField {
   };
   // deno-lint-ignore no-explicit-any
   tags?: Record<string, any>;
-};
+}
 
 export function objectSchemaFromGlob(
   glob: string,
   exclude?: (key: string) => boolean): Schema
 {
-  exclude = exclude ?? ((key: string) => false);
-  let properties: Record<string, Schema> = {};
+  exclude = exclude ?? ((_key: string) => false);
+  const properties: Record<string, Schema> = {};
   for (const { path } of expandGlobSync(glob)) {
     convertFromFieldsObject(readYaml(path) as SchemaField[], properties);
   }
@@ -397,7 +422,7 @@ function annotateSchemaFromField(field: SchemaField, schema: Schema): Schema
 }
 
 export function schemaFromField(entry: SchemaField): Schema {
-  let schema = convertFromYaml(entry.schema);
+  const schema = convertFromYaml(entry.schema);
   return annotateSchemaFromField(entry, schema);
 }
 
@@ -462,8 +487,7 @@ export function objectRefSchemaFromContextGlob(
   testFun?: (field: SchemaField, path: string) => boolean
 ): Schema
 {
-  let regexp = globToRegExp(contextGlob);
-  let contexts = schemaRefContexts();
+  const regexp = globToRegExp(contextGlob);
 
   // Why is typescript thinking that testFun can be undefined
   // after the expression below?
@@ -476,8 +500,8 @@ export function objectRefSchemaFromContextGlob(
         return false;
       }
       
-      let pathContext = basename(path, ".yml");
-      let schemaContexts = ((field?.tags?.contexts || []) as string[]);
+      const pathContext = basename(path, ".yml");
+      const schemaContexts = ((field?.tags?.contexts || []) as string[]);
       
       if (pathContext.match(regexp)) {
         return true;
@@ -493,7 +517,7 @@ export function objectRefSchemaFromGlob(
   const properties: Record<string, Schema> = {};
 
   for (const { schemaId, field } of schemaFieldsFromGlob(glob, testFun)) {
-    let schema = refS(schemaId, schemaId); // FIXME this is a bad description
+    const schema = refS(schemaId, schemaId); // FIXME this is a bad description
     properties[field.name] = schema;
     if (field.alias) {
       properties[field.alias] = schema;
@@ -505,7 +529,6 @@ export function objectRefSchemaFromGlob(
 export async function buildSchemaResources()
 {
   const path = schemaPath("{cell-*,document-*,project}.yml");
-  const result = {};
   // precompile all of the field schemas
   for (const file of expandGlobSync(path)) {
     const yaml = readYaml(file.path) as SchemaField[];
@@ -515,6 +538,7 @@ export async function buildSchemaResources()
       // It's a footgun.
       const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
       const schema = withId(fieldSchema, schemaId);
+      // deno-lint-ignore require-await
       await withValidator(schema, async (_validator) => {
         setSchemaDefinition(schema);
       });

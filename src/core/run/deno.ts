@@ -5,10 +5,9 @@
 *
 */
 
-import { info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
-import { dirname, extname, join } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
 import { binaryPath, resourcePath } from "../resources.ts";

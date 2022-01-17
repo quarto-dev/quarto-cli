@@ -9,30 +9,24 @@
 
 import {
   allOfSchema as allOfS,
-  enumSchema as enumS,
   completeSchema,
   describeSchema,
-  idSchema as withId,
   NullSchema as nullS,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
   regexSchema as regexS,
-  refSchema
 } from "./common.ts";
 
 import { getFormatExecuteOptionsSchema } from "./execute.ts";
 
-import { schemaPath } from "./utils.ts";
-
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
-
-import { Schema } from "../lib/schema.ts";
 
 import { getFormatSchema } from "./format-schemas.ts";
 import { pandocOutputFormats } from "./pandoc-output-formats.ts";
 
 import { defineCached } from "./definitions.ts";
 
+// deno-lint-ignore require-await
 export async function makeFrontMatterFormatSchema(nonStrict = false) {
   const formatSchemaDescriptorList =
     pandocOutputFormats.map(({ name, hidden }) => {

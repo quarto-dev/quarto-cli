@@ -63,7 +63,7 @@ export function partitionCellOptions(
       source: source.slice(yamlLines.length),
       sourceStartLine: yamlLines.length,
     };
-  };
+  }
   
   let yaml = yamlLines.length > 0
     ? readYamlFromString(yamlLines.join("\n"))
@@ -87,7 +87,7 @@ export function partitionCellOptions(
 
 export async function parseAndValidateCellOptions(
   mappedYaml: MappedString,
-  language: string,
+  _language: string,
   validate = false,
   engine = ""
 ) {

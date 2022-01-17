@@ -8,6 +8,7 @@
 export class Semaphore
 {
   value: number;
+  // deno-lint-ignore no-explicit-any
   tasks: any[];
   
   constructor(value: number) {
@@ -36,6 +37,7 @@ export class Semaphore
     await this.acquire();
   }
 
+  // deno-lint-ignore no-explicit-any
   async runExclusive(fun: () => any) {
     await this.acquire();
     try {

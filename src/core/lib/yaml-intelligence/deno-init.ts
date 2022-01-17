@@ -11,7 +11,7 @@ import { resourcePath } from "../../resources.ts";
 
 import { Semaphore } from "../semaphore.ts";
 
-//@ts-ignore
+//@ts-ignore: importing from .js makes type-script unhappy
 import { TreeSitter, setWasmBinaryFile } from "../external/tree-sitter-deno.js";
 
 import { initAutomation } from "./yaml-intelligence.ts";
@@ -39,7 +39,8 @@ export async function init()
   const validatorModule = (await import(validatorModulePath)).default;
   setValidatorModule(validatorModule);
 
-  //@ts-ignore
+  //@ts-ignore: importing from .js makes type-script unhappy
+  //deno-lint-ignore no-explicit-any
   const treeSitter: any = TreeSitter;
   await treeSitter.init();
 

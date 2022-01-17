@@ -5,7 +5,7 @@
 *
 */
 
-import { AutomationKind, YamlIntelligenceContext, LocateFromIndentationContext } from "./types.ts";
+import { AutomationKind, YamlIntelligenceContext } from "./types.ts";
 
 import {
   buildAnnotated,
@@ -34,7 +34,7 @@ import { partitionCellOptionsMapped, kLangCommentChars } from "../partition-cell
 interface IDEContext {
   formats: string[];
   project_formats: string[];
-};
+}
 
 interface CompletionContext {
   schema: Schema;
@@ -43,7 +43,7 @@ interface CompletionContext {
   indent: number;
   commentPrefix: string;
   context: IDEContext;
-};
+}
 
 interface ValidationResult {
   "start.row": number;
@@ -52,7 +52,7 @@ interface ValidationResult {
   "end.column": number;
   "text": string;
   "type": string
-};
+}
 
 function positionInTicks(context: YamlIntelligenceContext) {
   // This calls lines() somewhat superfluously
@@ -90,11 +90,11 @@ function trimTicks(context: YamlIntelligenceContext): YamlIntelligenceContext {
   return context;
 }
 
-let hasInitSemaphore = new Semaphore(0);
+const hasInitSemaphore = new Semaphore(0);
 export async function validationFromGoodParseYAML(context: YamlIntelligenceContext): Promise<ValidationResult[]> {
-  const code = asMappedString(context.code); // full contents of the buffer
-
   await hasInitSemaphore.runExclusive(async () => {});
+
+  const code = asMappedString(context.code); // full contents of the buffer
 
   const result = await withValidator(context.schema, async (validator) => {
     const parser = await getTreeSitter();
@@ -141,7 +141,7 @@ export async function validationFromGoodParseYAML(context: YamlIntelligenceConte
 }
 
 async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
-  let {
+  const {
     line, // editing line up to the cursor
     position, // row/column of cursor (0-based)
     schema, // schema of yaml object
@@ -155,9 +155,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
 
   const parser = await getTreeSitter();
   let word = "";
-  if (line.slice(-1) !== ":" &&
-    line.trimLeft()[0] !== "-") {
-  } else {
+  if (line.slice(-1) !== ":" && line.trimLeft()[0] !== "-") {
     // take the last word after spaces
     word = line.split(" ").slice(-1)[0];
   }
@@ -308,7 +306,7 @@ export interface CompletionResult {
   token: string;
   completions: Completion[];
   cacheable: boolean
-};
+}w
 
 async function completions(obj: CompletionContext): Promise<CompletionResult> {
   const {
@@ -371,7 +369,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
             let value = c.schema.properties[c.display];
             if (value === undefined) {
               for (const key of Object.keys(c.schema.patternProperties)) {
-                let regexp = new RegExp(key);
+                const regexp = new RegExp(key);
                 if (c.display.match(regexp)) {
                   value = c.schema.patternProperties[key];
                   break;
@@ -566,6 +564,7 @@ async function automationFromGoodParseMarkdown(kind: AutomationKind, context: Ya
   }
 }
 
+// deno-lint-ignore require-await
 async function automationFromGoodParseYAML(kind: AutomationKind, context: YamlIntelligenceContext) {
   // user asked for autocomplete on "---": report none
   if ((kind === "completions") && positionInTicks(context)) {
@@ -707,7 +706,7 @@ export async function getAutomation(kind: AutomationKind, context: YamlIntellige
 }
 
 let automationInit = false;
-let mustInitSemaphore = new Semaphore(1);
+const mustInitSemaphore = new Semaphore(1);
 
 import Ajv from "../external/ajv-bundle.js";
 
@@ -723,11 +722,11 @@ export async function initAutomation(path: string)
       return;
     automationInit = true;
     setMainPath(path);
-    let ajv = new Ajv({ allErrors: true, inlineRefs: false, verbose: true, code: { optimize: false, source: true } });
+    const ajv = new Ajv({ allErrors: true, inlineRefs: false, verbose: true, code: { optimize: false, source: true } });
     setupAjv(ajv);
 
-    let schemaDefs = (await getSchemas()).definitions;
-    for (const [key, value] of Object.entries(schemaDefs)) {
+    const schemaDefs = (await getSchemas()).definitions;
+    for (const [_key, value] of Object.entries(schemaDefs)) {
       await withValidator(value, async (_validator) => {
       });
     }
@@ -749,10 +748,8 @@ export const QuartoYamlEditorTools = {
   },
   exportSmokeTest,
   
-  // deno-lint-ignore require-await
   getCompletions: async function (context: YamlIntelligenceContext, path: string) {
     try {
-      debugger;
       await initAutomation(path);
       return await getAutomation("completions", context);
     } catch (e) {
@@ -762,7 +759,6 @@ export const QuartoYamlEditorTools = {
     }
   },
 
-  // deno-lint-ignore require-await
   getLint: async function (context: YamlIntelligenceContext, path: string) {
     try {
       await initAutomation(path);

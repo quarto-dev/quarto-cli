@@ -11,24 +11,29 @@ import { rangedLines } from "../ranged-text.ts";
 import { lines, rowColToIndex } from "../text.ts";
 import { YamlIntelligenceContext, LocateFromIndentationContext } from "./types.ts";
 
+// deno-lint-ignore no-explicit-any
 let _parser: any;
 
 interface WithTreeSitter {
+  // deno-lint-ignore no-explicit-any
   TreeSitter: any;
 }
 
 // this is an escape hatch for quarto's CLI to operate
 // the yaml-intelligence code outside of the IDE
-export async function setTreeSitter(parser: any) {
+// deno-lint-ignore no-explicit-any
+export function setTreeSitter(parser: any) {
   _parser = parser;
 }
 
+// deno-lint-ignore no-explicit-any
 export async function getTreeSitter(): Promise<any> {
   if (_parser) {
     return _parser;
   }
 
-  // this is super ugly and probably will break on the test suite...
+  // this is imply to appease the type-checker, and should never run
+  // in the CLI.
   const Parser = ((window as unknown) as WithTreeSitter).TreeSitter;
 
   await Parser.init();
@@ -46,12 +51,14 @@ export async function getTreeSitter(): Promise<any> {
 
 export interface ParseAttemptResult {
   code: MappedString,
+  // deno-lint-ignore no-explicit-any
   parse: any,
   deletions: number
-};
+}
 
+// deno-lint-ignore no-explicit-any
 export function* attemptParsesAtLine(context: YamlIntelligenceContext, parser: any): Generator<ParseAttemptResult> {
-  let {
+  const {
     position // row/column of cursor (0-based)
   } = context;
 
@@ -173,7 +180,7 @@ export function getYamlIndentTree(code: string) {
 }
 
 export function locateFromIndentation(context: LocateFromIndentationContext): (number | string)[] {
-  let {
+  const {
     line, // editing line up to the cursor
     code: mappedCode, // full contents of the buffer
     position, // row/column of cursor (0-based)

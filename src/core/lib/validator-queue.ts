@@ -8,13 +8,13 @@
 import { YAMLSchema, LocalizedError, getVerbatimInput, AnnotatedParse } from "./yaml-schema.ts";
 import { PromiseQueue } from "./promise.ts";
 import { Schema } from "./schema.ts";
-import { tidyverseFormatError, TidyverseError, quotedStringColor, addFileInfo, addInstancePathInfo } from "./errors.ts";
+import { TidyverseError, quotedStringColor, addFileInfo, addInstancePathInfo } from "./errors.ts";
 
 const yamlValidators: Record<string, YAMLSchema> = {};
 const validatorQueues: Record<string, PromiseQueue<void>> = {};
 
 function checkForTypeMismatch(
-  error: LocalizedError, parse: AnnotatedParse, schema: Schema
+  error: LocalizedError, _parse: AnnotatedParse, _schema: Schema
 )
 {
   schema = error.ajvError.params.schema;
@@ -39,7 +39,7 @@ function checkForTypeMismatch(
 }
 
 function checkForBadBoolean(
-  error: LocalizedError, parse: AnnotatedParse, schema: Schema
+  error: LocalizedError, _parse: AnnotatedParse, schema: Schema
 )
 {
   schema = error.ajvError.params.schema;

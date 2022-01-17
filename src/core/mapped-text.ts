@@ -9,9 +9,6 @@ import { diffLines } from "diff";
 import { Range, rangedLines } from "./lib/ranged-text.ts";
 
 import {
-  asMappedString,
-  mappedConcat,
-  mappedIndexToRowCol,
   mappedString,
 } from "./lib/mapped-text.ts";
 

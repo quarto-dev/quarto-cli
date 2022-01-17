@@ -13,7 +13,10 @@ import { MappedString } from "../mapped-text.ts";
  * given a tree from tree-sitter-yaml and the mappedString
  * corresponding to the source, returns an AnnotatedParse 
  */
+
+// deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
+// deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
 
 export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString): AnnotatedParse | null
@@ -42,6 +45,7 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
     };
   };
   
+  // deno-lint-ignore no-explicit-any
   const annotate = (node: TreeSitterNode, result: any, components: AnnotatedParse[]): AnnotatedParse => {
     return {
       start: node.startIndex,
@@ -121,6 +125,7 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
       return annotate(node, v, []);
     },
     "flow_sequence": (node) => {
+      // deno-lint-ignore no-explicit-any
       const result: any[] = [], components = [];
       for (let i = 0; i < node.childCount; ++i) {
         const child = node.child(i);
@@ -134,6 +139,7 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
       return annotate(node, result, components);
     },
     "block_mapping": (node) => {
+      // deno-lint-ignore no-explicit-any
       const result: Record<string, any> = {}, components: AnnotatedParse[] = [];
       for (let i = 0; i < node.childCount; ++i) {
         const child = node.child(i);
@@ -257,12 +263,14 @@ export function navigate(path: string[], annotation: AnnotatedParse, pathIndex =
 export interface LocateCursorResult {
   withError: boolean;
   value?: (string | number)[]
-};
+}
+
 export function locateCursor(annotation: AnnotatedParse, position: number): LocateCursorResult
 {
   let failedLast = false;
   const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
-  
+
+  // deno-lint-ignore no-explicit-any
   function locate(node: AnnotatedParse, pathSoFar: any[]): any[] {
     if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
       for (let i = 0; i < node.components.length; i += 2) {

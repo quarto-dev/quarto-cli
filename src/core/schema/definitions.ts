@@ -49,7 +49,8 @@ export async function loadDefaultSchemaDefinitions()
 
 export async function loadSchemaDefinitions(file: string)
 {
-  let yaml = readYaml(file) as any[];
+  // deno-lint-ignore no-explicit-any
+  const yaml = readYaml(file) as any[];
 
   await ensureAjv();
   await Promise.all(yaml.map(async (yamlSchema) => {

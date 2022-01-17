@@ -26,7 +26,8 @@
 let Deno: any;
 try {
   Deno = globalThis.Deno;
-} catch (e) {}
+// deno-lint-ignore no-empty
+} catch (_e) {}
 
 // const { Deno } = globalThis as any;
 const noColor = typeof (Deno && Deno.noColor) === "boolean"

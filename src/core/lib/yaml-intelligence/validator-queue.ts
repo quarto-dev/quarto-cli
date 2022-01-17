@@ -25,6 +25,7 @@ function getSchemaName(schema: Schema): string {
   return schemaName as string;
 }
 
+// deno-lint-ignore no-explicit-any
 function getValidator(schema: Schema, validators?: any): YAMLSchema {
   const schemaName = getSchemaName(schema); // name of schema so we can look it up on the validator cache
 
@@ -38,9 +39,11 @@ function getValidator(schema: Schema, validators?: any): YAMLSchema {
   return validator;
 }
 
+// deno-lint-ignore no-explicit-any
 let _module: any;
 
 // not great, but needed escape hatch for the test suite to work in Deno.
+// deno-lint-ignore no-explicit-any
 export function setValidatorModule(mod: any)
 {
   _module = mod;

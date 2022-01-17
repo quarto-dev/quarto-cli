@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 // tree-sitter-deno.js
 //
 // A quixotic attempt at a deno version of tree-sitter, based on the
@@ -7,7 +8,6 @@
 //
 // it exports the Parser class as "TreeSitter", and exports an additional function
 // setWasmBinaryFile, which takes an Uint8Array with the WASM contents for tree-sitter.
-
 
 /*global Deno, WebAssembly, TextDecoder, noExitRuntime, performance, PATH */
 

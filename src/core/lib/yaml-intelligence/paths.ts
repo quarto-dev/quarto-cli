@@ -5,7 +5,7 @@
 *
 */
 
-let mainPath: string = "";
+let mainPath = "";
 
 export function setMainPath(path: string)
 {
