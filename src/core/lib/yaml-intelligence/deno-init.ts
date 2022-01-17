@@ -17,6 +17,7 @@ import { TreeSitter, setWasmBinaryFile } from "../external/tree-sitter-deno.js";
 import { initAutomation } from "./yaml-intelligence.ts";
 import { QuartoJsonSchemas, setSchemas } from "./schema-utils.ts";
 import { setTreeSitter } from "./parsing.ts";
+import { setValidatorModule } from "./validator-queue.ts";
 
 let _init = false;
 const hasInit = new Semaphore(0);
@@ -33,6 +34,10 @@ export async function init()
   ) as QuartoJsonSchemas);
 
   setWasmBinaryFile(Deno.readFileSync(resourcePath("editor/tools/yaml/tree-sitter.wasm")));
+
+  const validatorModulePath = resourcePath("editor/tools/yaml/standalone-schema-validators.js");
+  const validatorModule = (await import(validatorModulePath)).default;
+  setValidatorModule(validatorModule);
 
   //@ts-ignore
   const treeSitter: any = TreeSitter;

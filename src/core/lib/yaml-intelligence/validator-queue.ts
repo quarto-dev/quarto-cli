@@ -14,9 +14,6 @@ import { Schema } from "../schema.ts";
 import { YAMLSchema } from "../yaml-schema.ts";
 import { PromiseQueue } from "../promise.ts";
 
-// not great, but we need it for testing on deno side.
-import { resourcePath } from "../../resources.ts";
-
 const yamlValidators: Record<string, YAMLSchema> = {};
 const validatorQueues: Record<string, PromiseQueue> = {};
 
@@ -41,32 +38,20 @@ function getValidator(schema: Schema, validators?: any): YAMLSchema {
   return validator;
 }
 
-let _isDeno: boolean | undefined = undefined;
-function isDeno() {
-  if (_isDeno !== undefined) {
-    return _isDeno;
-  }
-  
-  try {
-    // force some "safe" Deno.* call here.
-    _isDeno = Deno.osRelease() !== undefined;
-  } catch (e) {
-    _isDeno = false;
-  }
-  return _isDeno;
+let _module: any;
+
+// not great, but needed escape hatch for the test suite to work in Deno.
+export function setValidatorModule(mod: any)
+{
+  _module = mod;
 }
 
-let _module: any;
 async function getValidatorModule()
 {
   if (_module)
     return _module;
-  if (isDeno()) {
-    _module = (await import(resourcePath("editor/tools/yaml/standalone-schema-validators.js"))).default;
-  } else {
-    const url = getLocalPath("standalone-schema-validators.js");
-    _module = (await import(url)).default;
-  }
+  const url = getLocalPath("standalone-schema-validators.js");
+  _module = (await import(url)).default;
   return _module;
 }
 
