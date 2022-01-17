@@ -14,7 +14,7 @@ import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { loadDefaultSchemaDefinitions } from "./definitions.ts";
 import { getSchemaDefinitionsObject } from "../lib/schema.ts";
 import { esbuildCompile } from "../esbuild.ts";
-import { sessionTempFile } from "../temp.ts";
+import { TempContext } from "../temp.ts";
 import { dirname } from "path/mod.ts";
 
 let ajvInit = false;
@@ -26,7 +26,7 @@ export async function ensureAjv() {
   }
 }
 
-export async function exportStandaloneValidators()
+export async function exportStandaloneValidators(temp: TempContext)
 {
   await ensureAjv();
   const entries: Record<string, string> = {};
@@ -38,7 +38,7 @@ export async function exportStandaloneValidators()
     entries[key] = schema.$id;
   }
   const rawCode = standaloneCode(getAjvInstance(), entries);
-  const rawFilePath = sessionTempFile({ suffix: ".js" });
+  const rawFilePath = temp.createFile({ suffix: ".js" });
   Deno.writeTextFileSync(rawFilePath, rawCode);
 
   // FIXME I don't quite understand why we need esbuild's workingDir

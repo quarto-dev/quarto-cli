@@ -8,68 +8,65 @@
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "path/mod.ts";
 import { copy } from "fs/copy.ts";
+import { createTempContext } from "../../core/temp.ts";
 
 import { lines } from "../../core/text.ts";
-import { execProcess } from "../../core/process.ts";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
+import { resourcePath } from "../../core/resources.ts";
 
-async function buildQuartoOJS(resourceDir: string) {
+async function buildQuartoOJS() {
   const src = await esbuildCompile(
     "",
-    join(resourceDir, "formats/html/ojs"),
+    resourcePath("formats/html/ojs"),
     ["quarto-ojs.js"],
     "esm",
   );
-  await Deno.writeTextFile(join(resourceDir, "build/quarto-ojs.js"), src!);
+  await Deno.writeTextFile(resourcePath("build/quarto-ojs.js"), src!);
 
   // FIXME ideally we'd use the one directly in build, but right now
   // we depend on the file being in a particular place (and with an
   // especially bad name).  We copy for now.
   return copy(
-    join(resourceDir, "build/quarto-ojs.js"),
-    join(resourceDir, "formats/html/ojs/esbuild-bundle.js"),
+    resourcePath("build/quarto-ojs.js"),
+    resourcePath("formats/html/ojs/esbuild-bundle.js"),
     { overwrite: true },
   );
 }
 
-async function buildYAMLJS(resourceDir: string) {
+async function buildYAMLJS() {
   const intelligenceSrc = await esbuildCompile(
     "",
-    join(resourceDir, "../core/lib/yaml-intelligence"),
+    resourcePath("../core/lib/yaml-intelligence"),
     ["yaml-intelligence.ts"],
     "esm",
   );
-  Deno.writeTextFileSync(join(resourceDir, "editor/tools/yaml/yaml-intelligence.js"), intelligenceSrc!);
+  Deno.writeTextFileSync(resourcePath("editor/tools/yaml/yaml-intelligence.js"), intelligenceSrc!);
 
   const finalBuild = await esbuildCompile(
     "",
-    join(resourceDir, "editor/tools/yaml"),
+    resourcePath("editor/tools/yaml"),
     ["automation.js"],
     "iife",
   );
 
-  const treeSitter = Deno.readTextFileSync(join(resourceDir, "editor/tools/yaml/tree-sitter.js"));
+  const treeSitter = Deno.readTextFileSync(resourcePath("editor/tools/yaml/tree-sitter.js"));
 
-  Deno.writeTextFileSync(join(resourceDir, "editor/tools/yaml/yaml.js"), [treeSitter,finalBuild!].join(""));
+  Deno.writeTextFileSync(resourcePath("editor/tools/yaml/yaml.js"), [treeSitter,finalBuild!].join(""));
 }
 
 export async function buildAssets() {
-  const result = await execProcess({
-    cmd: ["quarto", "--paths"],
-    stdout: "piped",
-  });
-
-  const [_binPath, resourceDir] = lines(result.stdout!);
-
-  // these go first because they create files that will be consumed by YAMLJS
-  await buildSchemaFile(resourceDir);
-
-  return Promise.all([
-    buildSchemaFile(resourceDir),
-    buildQuartoOJS(resourceDir),
-    buildYAMLJS(resourceDir),
-  ]);
+  const temp = createTempContext();
+  try {
+    // this has to come first because buildYAMLJS depends on it.
+    await Promise.all([
+      buildSchemaFile(temp),
+      buildQuartoOJS(),
+      buildYAMLJS(),
+    ]);
+  } finally {
+    temp.cleanup();
+  }
 }
 
 export const buildJsCommand = new Command()

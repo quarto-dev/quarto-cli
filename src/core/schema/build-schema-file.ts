@@ -19,8 +19,9 @@ import { normalizeSchema, Schema, setSchemaDefinition, getSchemaDefinitionsObjec
 import { exportStandaloneValidators } from "./yaml-schema.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 import { getFormatAliases } from "./format-aliases.ts";
+import { TempContext } from "../temp.ts";
 
-export async function buildSchemaFile(resourceDir: string) {
+export async function buildSchemaFile(temp: TempContext) {
   const frontMatter = await getFrontMatterSchema();
   const config = await getProjectConfigSchema();
   const engines = await getEngineOptionsSchema();
@@ -37,7 +38,7 @@ export async function buildSchemaFile(resourceDir: string) {
   const path = resourcePath("/editor/tools/yaml/quarto-json-schemas.json");
   
   const validatorPath = resourcePath("/editor/tools/yaml/standalone-schema-validators.js");
-  const validatorModule = await exportStandaloneValidators();
+  const validatorModule = await exportStandaloneValidators(temp);
 
   Deno.writeTextFileSync(validatorPath, validatorModule);
   return Deno.writeTextFile(path, str);
