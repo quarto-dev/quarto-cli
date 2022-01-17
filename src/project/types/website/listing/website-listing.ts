@@ -26,7 +26,6 @@ import {
 } from "../website-pipeline-md.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { kIncludeInHeader } from "../../../../config/constants.ts";
-import { sessionTempFile } from "../../../../core/temp.ts";
 import { sassLayer } from "../../../../core/sass.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
 import {
@@ -41,11 +40,13 @@ import {
 } from "./website-listing-template.ts";
 import { readListings } from "./website-listing-read.ts";
 import { categorySidebar } from "./website-listing-categories.ts";
+import { TempContext } from "../../../../core/temp.ts";
 
 export async function listingHtmlDependencies(
   source: string,
   project: ProjectContext,
   format: Format,
+  temp: TempContext,
   _extras: FormatExtras,
 ) {
   // Read and resolve listings from the metadata
@@ -113,7 +114,7 @@ export async function listingHtmlDependencies(
   };
 
   return {
-    [kIncludeInHeader]: [scriptFileForScripts(scripts)],
+    [kIncludeInHeader]: [scriptFileForScripts(scripts, temp)],
     [kHtmlPostprocessors]: listingPostProcessor,
     [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
     [kDependencies]: htmlDependencies,
@@ -227,8 +228,8 @@ function suggestColumn(doc: Document) {
   }
 }
 
-function scriptFileForScripts(scripts: string[]) {
-  const scriptFile = sessionTempFile({ suffix: ".html" });
+function scriptFileForScripts(scripts: string[], temp: TempContext) {
+  const scriptFile = temp.createFile({ suffix: "html" });
   const contents = `<script>\n${scripts.join("\n")}</script>`;
   Deno.writeTextFileSync(scriptFile, contents);
   return scriptFile;

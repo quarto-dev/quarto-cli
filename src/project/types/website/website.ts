@@ -174,6 +174,7 @@ export const websiteProjectType: ProjectType = {
         source,
         project,
         format,
+        temp,
         extras,
       );
       if (htmlListingDependencies) {
