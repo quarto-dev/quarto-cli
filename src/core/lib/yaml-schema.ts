@@ -492,12 +492,11 @@ export class YAMLSchema {
 
   // These are schema-specific error transformers to yield custom
   // error messages.
-  errorHandlers:
-    ((
-      error: LocalizedError,
-      annotation: AnnotatedParse,
-      schema: Schema,
-    ) => LocalizedError)[];
+  errorHandlers: ((
+    error: LocalizedError,
+    annotation: AnnotatedParse,
+    schema: Schema,
+  ) => LocalizedError)[];
 
   // deno-lint-ignore no-explicit-any
   constructor(schema: Schema, compiledModule?: any) {
