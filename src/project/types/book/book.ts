@@ -53,6 +53,7 @@ import { chapterInfoForInput, formatChapterHtmlNav } from "./book-chapters.ts";
 import { isMultiFileBookFormat, kBook } from "./book-shared.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
+import { TempContext } from "../../../core/temp.ts";
 
 const kSingleFileBook = "single-file-book";
 
@@ -153,6 +154,7 @@ export const bookProjectType: ProjectType = {
     source: string,
     flags: PandocFlags,
     format: Format,
+    temp: TempContext,
   ) => {
     // defaults for all formats
     let extras: FormatExtras = {
@@ -185,6 +187,7 @@ export const bookProjectType: ProjectType = {
         source,
         flags,
         format,
+        temp,
       );
 
       // merge

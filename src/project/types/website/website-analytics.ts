@@ -9,7 +9,7 @@ import { join } from "path/mod.ts";
 import { kTitle } from "../../../config/constants.ts";
 import { Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
-import { sessionTempFile } from "../../../core/temp.ts";
+import { TempContext } from "../../../core/temp.ts";
 import { ProjectContext } from "../../types.ts";
 import { kWebsite } from "./website-config.ts";
 
@@ -75,6 +75,7 @@ ${contents}
 // Generate the script to inject into the head for Google Analytics
 export function websiteAnalyticsScriptFile(
   project: ProjectContext,
+  temp: TempContext,
 ) {
   // Find the ga tag
   const siteMeta = project.config?.[kWebsite] as Metadata;
@@ -108,7 +109,7 @@ export function websiteAnalyticsScriptFile(
   if (gaConfig) {
     const script = analyticsScript(gaConfig);
     if (script) {
-      return scriptFile(script);
+      return scriptFile(script, temp);
     } else {
       return undefined;
     }
@@ -119,7 +120,10 @@ export function websiteAnalyticsScriptFile(
 
 // Generate the dependencies for cookie consent
 // see: https://www.cookieconsent.com
-export function cookieConsentDependencies(project: ProjectContext) {
+export function cookieConsentDependencies(
+  project: ProjectContext,
+  temp: TempContext,
+) {
   const siteMeta = project.config?.[kWebsite] as Metadata;
   if (siteMeta) {
     // The site title
@@ -158,6 +162,7 @@ export function cookieConsentDependencies(project: ProjectContext) {
       return {
         scriptFile: scriptFile(
           cookieConsentScript(configuration),
+          temp,
         ),
         dependency: {
           name: "cookie-consent",
@@ -356,8 +361,8 @@ cookieconsent.run({
   `;
 }
 
-function scriptFile(script: string) {
-  const gaScriptFile = sessionTempFile({ suffix: ".js" });
+function scriptFile(script: string, temp: TempContext) {
+  const gaScriptFile = temp.createFile({ suffix: ".js" });
   Deno.writeTextFileSync(gaScriptFile, script);
   return gaScriptFile;
 }

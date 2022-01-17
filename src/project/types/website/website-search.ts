@@ -41,7 +41,7 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 import { sassLayer } from "../../../core/sass.ts";
-import { sessionTempFile } from "../../../core/temp.ts";
+import { TempContext } from "../../../core/temp.ts";
 import { warning } from "log/mod.ts";
 import {
   cookieConsentEnabled,
@@ -403,10 +403,11 @@ export function websiteSearchSassBundle() {
 export function websiteSearchIncludeInHeader(
   project: ProjectContext,
   format: Format,
+  temp: TempContext,
 ) {
   // Generates a script tag that contains the options for configuring search
   // which is ready in quarto-search.js
-  const websiteSearchScript = sessionTempFile({ suffix: "html" });
+  const websiteSearchScript = temp.createFile({ suffix: "html" });
   const options = searchOptions(project) || {} as SearchOptions;
   options[kLanguageDefaults] = {} as FormatLanguage;
   Object.keys(format.language).forEach((key) => {

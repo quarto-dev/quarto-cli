@@ -15,6 +15,7 @@ import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 import { renderResultFinalOutput } from "./render.ts";
 import { render } from "./render-shared.ts";
 import { RenderResult } from "./types.ts";
+import { createTempContext } from "../../core/temp.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -160,15 +161,21 @@ export const renderCommand = new Command()
     let renderResultInput: string | undefined;
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
-        renderResultInput = relative(Deno.cwd(), walk.path) || ".";
-        renderResult = await render(renderResultInput, {
-          flags,
-          pandocArgs: args,
-        });
+        const temp = createTempContext();
+        try {
+          renderResultInput = relative(Deno.cwd(), walk.path) || ".";
+          renderResult = await render(renderResultInput, {
+            temp,
+            flags,
+            pandocArgs: args,
+          });
 
-        // check for error
-        if (renderResult.error) {
-          throw renderResult.error;
+          // check for error
+          if (renderResult.error) {
+            throw renderResult.error;
+          }
+        } finally {
+          temp.cleanup();
         }
       }
     }

@@ -75,6 +75,7 @@ import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-config.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
 import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
+import { createTempContext, TempContext } from "../../core/temp.ts";
 
 const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
 
@@ -83,6 +84,7 @@ export const kRenderDefault = "default";
 
 export async function serveProject(
   target: string | ProjectContext,
+  temp: TempContext,
   flags: RenderFlags,
   pandocArgs: string[],
   options: ServeOptions,
@@ -166,6 +168,7 @@ export async function serveProject(
   const renderResult = await renderProject(
     project,
     {
+      temp,
       progress: true,
       useFreezer: !renderBefore,
       flags,
@@ -182,7 +185,7 @@ export async function serveProject(
   const finalOutput = renderResultFinalOutput(renderResult);
 
   // create mirror of project for serving
-  const serveDir = copyProjectForServe(project, true);
+  const serveDir = copyProjectForServe(project, true, temp.createDir());
   const serveProject = (await projectContext(serveDir, flags, false, true))!;
 
   // append resource files from render results
@@ -236,8 +239,10 @@ export async function serveProject(
           new RegExp(`/${kQuartoRenderCommand}/(.*)$`),
         );
         if (match) {
+          const requestTemp = createTempContext();
           const path = join(project!.dir, match[1]);
           render(path, {
+            temp,
             flags,
             pandocArgs,
           }).then((result) => {
@@ -255,6 +260,8 @@ export async function serveProject(
               }
               info("Output created: " + finalOutput + "\n");
             }
+          }).finally(() => {
+            requestTemp.cleanup();
           });
         }
         return httpContentResponse("rendered");
@@ -295,11 +302,13 @@ export async function serveProject(
           if (!projType.projectFormatsOnly) {
             delete renderFlags?.to;
           }
+          const tempContext = createTempContext();
           try {
             result = await renderQueue.enqueue(() =>
               renderProject(
                 watcher.serveProject(),
                 {
+                  temp: tempContext,
                   useFreezer: true,
                   devServerReload: true,
                   flags: renderFlags,
@@ -315,6 +324,8 @@ export async function serveProject(
           } catch (e) {
             logError(e);
             renderError = e;
+          } finally {
+            tempContext.cleanup();
           }
         }
 

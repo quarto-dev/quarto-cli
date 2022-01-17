@@ -21,7 +21,7 @@ import {
 import { ProjectContext } from "../../project/types.ts";
 import { kDefaultHighlightStyle } from "./types.ts";
 
-import { sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { textHighlightThemePath } from "../../core/resources.ts";
 import { compileSass } from "../../core/sass.ts";
@@ -39,6 +39,7 @@ interface SassTarget {
 export async function resolveSassBundles(
   extras: FormatExtras,
   pandoc: FormatPandoc,
+  temp: TempContext,
   formatBundles?: SassBundle[],
   projectBundles?: SassBundle[],
   project?: ProjectContext,
@@ -118,10 +119,10 @@ export async function resolveSassBundles(
     }
 
     for (const target of targets) {
-      let cssPath = await compileSass(target.bundles);
+      let cssPath = await compileSass(target.bundles, temp);
 
       // look for a sentinel 'dark' value, extract variables
-      cssPath = processCssIntoExtras(cssPath, extras);
+      cssPath = processCssIntoExtras(cssPath, extras, temp);
 
       // Find any imported stylesheets or url references
       // (These could come from user scss that is merged into our theme, for example)
@@ -178,6 +179,7 @@ export async function resolveSassBundles(
   extras = await resolveQuartoSyntaxHighlighting(
     extras,
     pandoc,
+    temp,
     hasDarkStyles ? "light" : "default",
     defaultStyle,
   );
@@ -187,6 +189,7 @@ export async function resolveSassBundles(
     extras = await resolveQuartoSyntaxHighlighting(
       extras,
       pandoc,
+      temp,
       "dark",
       defaultStyle,
     );
@@ -206,6 +209,7 @@ export function cssHasDarkModeSentinel(css: string) {
 async function resolveQuartoSyntaxHighlighting(
   extras: FormatExtras,
   pandoc: FormatPandoc,
+  temp: TempContext,
   style: "dark" | "light" | "default",
   defaultStyle?: "dark" | "light",
 ) {
@@ -251,15 +255,19 @@ async function resolveQuartoSyntaxHighlighting(
         }
 
         // Compile the scss
-        const highlightCssPath = await compileSass([{
-          key: cssFileName,
-          quarto: {
-            defaults: "",
-            functions: "",
-            mixins: "",
-            rules: rules.join("\n"),
-          },
-        }], false);
+        const highlightCssPath = await compileSass(
+          [{
+            key: cssFileName,
+            quarto: {
+              defaults: "",
+              functions: "",
+              mixins: "",
+              rules: rules.join("\n"),
+            },
+          }],
+          temp,
+          false,
+        );
 
         // Find the quarto-html dependency and inject this stylesheet
         const extraDeps = extras.html?.[kDependencies];
@@ -304,8 +312,10 @@ function generateThemeCssVars(
           switch (textAttr) {
             case "text-color":
               lines.push(
-                `  --quarto-hl-${abbr}-color: ${textValues[textAttr] ||
-                  "inherit"};`,
+                `  --quarto-hl-${abbr}-color: ${
+                  textValues[textAttr] ||
+                  "inherit"
+                };`,
               );
               break;
           }
@@ -354,7 +364,11 @@ function generateThemeCssClasses(
 }
 
 // Processes CSS into format extras (scanning for variables and removing them)
-function processCssIntoExtras(cssPath: string, extras: FormatExtras) {
+function processCssIntoExtras(
+  cssPath: string,
+  extras: FormatExtras,
+  temp: TempContext,
+) {
   extras.html = extras.html || {};
   const css = Deno.readTextFileSync(cssPath);
 
@@ -384,7 +398,7 @@ function processCssIntoExtras(cssPath: string, extras: FormatExtras) {
 
     if (dirty) {
       const cleanedCss = css.replaceAll(kVariablesRegex, "");
-      const newCssPath = sessionTempFile({ suffix: ".css" });
+      const newCssPath = temp.createFile({ suffix: ".css" });
       Deno.writeTextFileSync(newCssPath, cleanedCss);
       return newCssPath;
     }

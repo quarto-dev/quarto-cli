@@ -23,7 +23,7 @@ import {
 import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 import {
   injectRevealConfig,
   optionsToKebab,
@@ -144,6 +144,7 @@ const revealPluginSchema = withId(
 export async function revealPluginExtras(
   format: Format,
   flags: PandocFlags,
+  temp: TempContext,
   revealUrl: string,
   revealDestDir: string,
 ) {
@@ -305,7 +306,7 @@ export async function revealPluginExtras(
   const linkTags = stylesheets.map((file) => {
     return `<link href="${file}" rel="stylesheet">`;
   }).join("\n");
-  const linkTagsInclude = sessionTempFile({ suffix: ".html" });
+  const linkTagsInclude = temp.createFile({ suffix: ".html" });
   Deno.writeTextFileSync(linkTagsInclude, linkTags);
   extras[kIncludeInHeader]?.push(linkTagsInclude);
 
@@ -425,8 +426,10 @@ function revealMenuTools(format: Format) {
   lines.push(...tools.map((tool, index) => {
     return `<li class="slide-tool-item${
       index === 0 ? " active" : ""
-    }" data-item="${index}"><a href="#" onclick="RevealMenuToolHandlers.${tool.handler}(event)"><kbd>${tool
-      .key || " "}</kbd> ${tool.title}</a></li>`;
+    }" data-item="${index}"><a href="#" onclick="RevealMenuToolHandlers.${tool.handler}(event)"><kbd>${
+      tool
+        .key || " "
+    }</kbd> ${tool.title}</a></li>`;
   }));
 
   lines.push("</ul>");

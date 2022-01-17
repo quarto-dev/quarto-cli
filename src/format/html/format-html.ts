@@ -12,7 +12,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import { renderEjs } from "../../core/ejs.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
 import {
@@ -90,10 +90,16 @@ export function htmlFormat(
           }
         }
       },
-      formatExtras: (input: string, flags: PandocFlags, format: Format) => {
+      formatExtras: (
+        input: string,
+        flags: PandocFlags,
+        format: Format,
+        _libDir: string,
+        temp: TempContext,
+      ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          htmlFormatExtras(format),
+          htmlFormatExtras(format, temp),
           themeFormatExtras(input, flags, format),
           { [kFilterParams]: htmlFilterParams },
         );
@@ -131,6 +137,7 @@ export interface HtmlFormatScssOptions {
 
 export function htmlFormatExtras(
   format: Format,
+  temp: TempContext,
   featureDefaults?: HtmlFormatFeatureDefaults,
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,
@@ -341,7 +348,7 @@ export function htmlFormatExtras(
 
   // hypothesis
   if (options.hypothesis) {
-    const hypothesisHeader = sessionTempFile({ suffix: ".html" });
+    const hypothesisHeader = temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(
       hypothesisHeader,
       renderEjs(
@@ -361,7 +368,7 @@ export function htmlFormatExtras(
   );
   if (quartoHtmlRequired) {
     // html orchestration script
-    const quartoHtmlScript = sessionTempFile();
+    const quartoHtmlScript = temp.createFile();
     Deno.writeTextFileSync(
       quartoHtmlScript,
       renderEjs(
@@ -383,7 +390,7 @@ export function htmlFormatExtras(
     }
     utterances["issue-term"] = utterances["issue-term"] || "pathname";
     utterances["theme"] = utterances["theme"] || "github-light";
-    const utterancesAfterBody = sessionTempFile({ suffix: ".html" });
+    const utterancesAfterBody = temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(
       utterancesAfterBody,
       renderEjs(

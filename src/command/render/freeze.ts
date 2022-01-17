@@ -15,12 +15,10 @@ import {
 } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
-import { warning } from "log/mod.ts";
-
 import { cloneDeep } from "../../core/lodash.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
-import { sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 import { md5Hash } from "../../core/hash.ts";
 import {
   copyMinimal,
@@ -91,6 +89,7 @@ export function freezeExecuteResult(
 export function defrostExecuteResult(
   source: string,
   output: string,
+  temp: TempContext,
   force = false,
 ) {
   const resultFile = freezeResultFile(source, output);
@@ -118,7 +117,7 @@ export function defrostExecuteResult(
         if (result.includes) {
           if (result.includes[name]) {
             result.includes[name] = result.includes[name]!.map((content) => {
-              const includeFile = sessionTempFile();
+              const includeFile = temp.createFile();
               Deno.writeTextFileSync(includeFile, content);
               return includeFile;
             });

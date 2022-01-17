@@ -72,7 +72,7 @@ import {
 
 import { languagesInMarkdown } from "../../core/jupyter/jupyter.ts";
 import { asHtmlId } from "../../core/html.ts";
-import { sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -91,6 +91,7 @@ export interface OjsCompileOptions {
   format: Format;
   markdown: MappedString;
   libDir: string;
+  temp: TempContext;
   project?: ProjectContext;
   ojsBlockLineNumbers: number[];
 }
@@ -867,7 +868,7 @@ export async function ojsCompile(
     `</script>`,
   ]
     .join("\n");
-  const includeAfterBodyFile = sessionTempFile();
+  const includeAfterBodyFile = options.temp.createFile();
   Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
 
   // we need to inline esbuild-bundle.js rather than link to it in order
@@ -881,6 +882,7 @@ export async function ojsCompile(
     },
     dirname(options.source),
     options.libDir,
+    options.temp,
   );
 
   const ojsBundleTempFiles = [];
@@ -898,7 +900,7 @@ export async function ojsCompile(
       `</script>`,
     ];
 
-    const filename = sessionTempFile();
+    const filename = options.temp.createFile();
     Deno.writeTextFileSync(filename, ojsBundle.join("\n"));
     ojsBundleTempFiles.push(filename);
   }
@@ -943,6 +945,7 @@ export async function ojsExecuteResult(
     markdown: mappedMarkdown,
     libDir: context.libDir,
     project: context.project,
+    temp: context.options.temp,
     ojsBlockLineNumbers,
   });
 

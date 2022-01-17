@@ -27,7 +27,7 @@ import {
 import { camelToKebab, kebabToCamel, mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
-import { sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 import { findParent } from "../../core/html.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
@@ -206,9 +206,10 @@ export function revealjsFormat() {
         flags: PandocFlags,
         format: Format,
         libDir: string,
+        temp: TempContext,
       ) => {
         // render styles template based on options
-        const stylesFile = sessionTempFile({ suffix: ".html" });
+        const stylesFile = temp.createFile({ suffix: ".html" });
         const styles = renderEjs(
           formatResourcePath("revealjs", "styles.html"),
           { [kScrollable]: format.metadata[kScrollable] },
@@ -249,7 +250,7 @@ export function revealjsFormat() {
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
-          htmlFormatExtras(format, {
+          htmlFormatExtras(format, temp, {
             tabby: true,
             anchors: false,
             copyCode: true,
@@ -297,7 +298,7 @@ export function revealjsFormat() {
         );
 
         // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, input, libDir);
+        const theme = await revealTheme(format, input, libDir, temp);
         extras.metadataOverride = {
           ...extras.metadataOverride,
           ...theme.metadata,
@@ -307,6 +308,7 @@ export function revealjsFormat() {
         const revealPluginExtrasConfig = await revealPluginExtras(
           format,
           flags,
+          temp,
           theme.revealUrl,
           theme.revealDestDir,
         );

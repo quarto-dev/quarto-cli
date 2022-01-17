@@ -15,12 +15,14 @@ import {
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { TempContext } from "../../core/temp.ts";
 
 export const kMarkdownBlockSeparator = "\n\n<!-- -->\n\n";
 export const kDefaultHighlightStyle = "arrow";
 
 // options for render
 export interface RenderOptions {
+  temp: TempContext;
   flags?: RenderFlags;
   pandocArgs?: string[];
   progress?: boolean;
@@ -123,6 +125,9 @@ export interface PandocOptions {
 
   // command line args for pandoc
   args: string[];
+
+  // temp context
+  temp: TempContext;
 
   // extra metadata to merge
   metadata?: Metadata;

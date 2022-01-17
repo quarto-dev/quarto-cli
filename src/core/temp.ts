@@ -5,6 +5,7 @@
 *
 */
 
+import { warning } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { removeIfExists } from "./path.ts";
@@ -15,23 +16,42 @@ export function initSessionTempDir() {
   tempDir = Deno.makeTempDirSync({ prefix: "quarto-session" });
 }
 
-export function sessionTempFile(options?: Deno.MakeTempOptions) {
-  return Deno.makeTempFileSync({ ...options, dir: tempDir });
-}
-
-export function sessionTempDir() {
-  return tempDir!;
-}
-
-export function createSessionTempDir(options?: Deno.MakeTempOptions) {
-  return Deno.makeTempDirSync({ ...options, dir: tempDir });
-}
-
 export function cleanupSessionTempDir() {
   if (tempDir) {
     removeIfExists(tempDir);
     tempDir = undefined;
   }
+}
+
+export interface TempContext {
+  createFile: (options?: Deno.MakeTempOptions) => string;
+  createDir: (options?: Deno.MakeTempOptions) => string;
+  cleanup: () => void;
+}
+
+export function createTempContext(options?: Deno.MakeTempOptions) {
+  let dir: string | undefined = Deno.makeTempDirSync({
+    ...options,
+    dir: tempDir,
+  });
+  return {
+    createFile: (options?: Deno.MakeTempOptions) => {
+      return Deno.makeTempFileSync({ ...options, dir });
+    },
+    createDir: (options?: Deno.MakeTempOptions) => {
+      return Deno.makeTempDirSync({ ...options, dir });
+    },
+    cleanup: () => {
+      if (dir) {
+        try {
+          removeIfExists(dir);
+        } catch (error) {
+          warning(`Error removing temp dir at ${dir}: ${error.message}`);
+        }
+        dir = undefined;
+      }
+    },
+  };
 }
 
 export function systemTempDir(name: string) {

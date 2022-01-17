@@ -8,7 +8,6 @@
 import { basename, join } from "path/mod.ts";
 
 import { copyFileIfNewer, copyMinimal, kSkipHidden } from "../../core/path.ts";
-import { createSessionTempDir } from "../../core/temp.ts";
 
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
@@ -19,10 +18,8 @@ import { engineIgnoreDirs } from "../../execute/engine.ts";
 export function copyProjectForServe(
   project: ProjectContext,
   copyOutput: boolean,
-  serveDir?: string,
+  serveDir: string,
 ) {
-  serveDir = serveDir || createSessionTempDir();
-
   // output dir
   const outputDir = projectOutputDir(project);
   // lib dir

@@ -103,7 +103,7 @@ import {
   kTocTitleWebsite,
   kVariables,
 } from "../../config/constants.ts";
-import { sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 import { discoverResourceRefs } from "../../core/html.ts";
 
 import {
@@ -231,6 +231,7 @@ export async function runPandoc(
         options.source,
         options.flags || {},
         options.format,
+        options.temp,
       ))
       : {};
 
@@ -240,6 +241,7 @@ export async function runPandoc(
         options.flags || {},
         options.format,
         options.libDir,
+        options.temp,
       ))
       : {};
 
@@ -249,6 +251,7 @@ export async function runPandoc(
       options.format,
       cwd,
       options.libDir,
+      options.temp,
       options.project,
     );
 
@@ -342,6 +345,7 @@ export async function runPandoc(
         allDefaults[kTemplate] = await patchHtmlTemplate(
           allDefaults.to,
           options.format,
+          options.temp,
           extras.html?.[kTemplatePatches],
           options.flags,
         );
@@ -385,7 +389,7 @@ export async function runPandoc(
     if (extras.html?.[kBodyEnvelope] && projectExtras.html?.[kBodyEnvelope]) {
       extras.html[kBodyEnvelope] = projectExtras.html[kBodyEnvelope];
     }
-    resolveBodyEnvelope(allDefaults, extras);
+    resolveBodyEnvelope(allDefaults, extras, options.temp);
 
     // add any filters
     allDefaults.filters = [
@@ -431,7 +435,7 @@ export async function runPandoc(
   }
 
   // filter results json file
-  const filterResultsFile = sessionTempFile();
+  const filterResultsFile = options.temp.createFile();
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
@@ -458,7 +462,7 @@ export async function runPandoc(
 
   // write the defaults file
   if (allDefaults) {
-    const defaultsFile = await writeDefaultsFile(allDefaults);
+    const defaultsFile = await writeDefaultsFile(allDefaults, options.temp);
     cmd.push("--defaults", defaultsFile);
   }
 
@@ -520,7 +524,10 @@ export async function runPandoc(
     keepSourceBlock(options.format, options.source);
 
   // write input to temp file and pass it to pandoc
-  const inputTemp = sessionTempFile({ prefix: "quarto-input", suffix: ".md" });
+  const inputTemp = options.temp.createFile({
+    prefix: "quarto-input",
+    suffix: ".md",
+  });
   Deno.writeTextFileSync(inputTemp, input);
   cmd.push(inputTemp);
 
@@ -540,7 +547,7 @@ export async function runPandoc(
   // This gives the semantics we want, as our metadata is 'logically' at the top of the
   // file and subsequent blocks within the file should indeed override it (as should
   // user invocations of --metadata-file or -M, which are included below in pandocArgs)
-  const metadataTemp = sessionTempFile({
+  const metadataTemp = options.temp.createFile({
     prefix: "quarto-metadata",
     suffix: ".yml",
   });
@@ -628,6 +635,7 @@ async function resolveExtras(
   format: Format,
   inputDir: string,
   libDir: string,
+  temp: TempContext,
   project?: ProjectContext,
 ) {
   // start with the merge
@@ -645,13 +653,14 @@ async function resolveExtras(
     extras = await resolveSassBundles(
       extras,
       format.pandoc,
+      temp,
       formatExtras.html?.[kSassBundles],
       projectExtras.html?.[kSassBundles],
       project,
     );
 
     // resolve dependencies
-    extras = resolveDependencies(extras, inputDir, libDir);
+    extras = resolveDependencies(extras, inputDir, libDir, temp);
   } else {
     delete extras.html;
   }
@@ -669,6 +678,7 @@ export function resolveDependencies(
   extras: FormatExtras,
   inputDir: string,
   libDir: string,
+  temp: TempContext,
 ) {
   // deep copy to not mutate caller's object
   extras = ld.cloneDeep(extras);
@@ -755,7 +765,7 @@ export function resolveDependencies(
     delete extras.html?.[kDependencies];
 
     // write to external file
-    const dependenciesHead = sessionTempFile({
+    const dependenciesHead = temp.createFile({
       prefix: "dependencies",
       suffix: ".html",
     });
@@ -768,7 +778,11 @@ export function resolveDependencies(
   return extras;
 }
 
-function resolveBodyEnvelope(pandoc: FormatPandoc, extras: FormatExtras) {
+function resolveBodyEnvelope(
+  pandoc: FormatPandoc,
+  extras: FormatExtras,
+  temp: TempContext,
+) {
   const envelope = extras.html?.[kBodyEnvelope];
   if (envelope) {
     const writeBodyFile = (
@@ -777,7 +791,7 @@ function resolveBodyEnvelope(pandoc: FormatPandoc, extras: FormatExtras) {
       content?: string,
     ) => {
       if (content) {
-        const file = sessionTempFile({ suffix: ".html" });
+        const file = temp.createFile({ suffix: ".html" });
         Deno.writeTextFileSync(file, content);
         if (!prepend) {
           pandoc[type] = (pandoc[type] || []).concat(file);

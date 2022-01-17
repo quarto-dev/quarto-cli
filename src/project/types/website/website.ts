@@ -60,6 +60,7 @@ import {
 import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 
 import { defaultProjectType } from "../project-default.ts";
+import { TempContext } from "../../../core/temp.ts";
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
   typeAliases: ["site"],
@@ -110,11 +111,12 @@ export const websiteProjectType: ProjectType = {
     source: string,
     flags: PandocFlags,
     format: Format,
+    temp: TempContext,
   ): Promise<FormatExtras> => {
     if (isHtmlOutput(format.pandoc)) {
       // navigation extras for bootstrap enabled formats
       const extras = formatHasBootstrap(format)
-        ? await websiteNavigationExtras(project, source, flags, format)
+        ? await websiteNavigationExtras(project, source, flags, format, temp)
         : {};
 
       // add some title related variables
@@ -179,12 +181,12 @@ export const websiteProjectType: ProjectType = {
       );
 
       // Add html analytics extras, if any
-      const analyticsDependency = websiteAnalyticsScriptFile(project);
+      const analyticsDependency = websiteAnalyticsScriptFile(project, temp);
       if (analyticsDependency) {
         extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
         extras[kIncludeInHeader]?.push(analyticsDependency);
       }
-      const cookieDep = cookieConsentDependencies(project);
+      const cookieDep = cookieConsentDependencies(project, temp);
       if (cookieDep) {
         // Inline script
         extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];

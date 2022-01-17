@@ -114,6 +114,7 @@ export interface PostProcessOptions {
   target: ExecutionTarget;
   format: Format;
   output: string;
+  tempDir: string;
   preserve?: Record<string, string>;
   quiet?: boolean;
 }
@@ -122,6 +123,7 @@ export interface PostProcessOptions {
 export interface RunOptions {
   input: string;
   render: boolean;
+  tempDir: string;
   port?: number;
   host?: string;
   quiet?: boolean;

@@ -14,6 +14,7 @@ import {
 } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
 import { ProjectConfig, ProjectContext } from "../types.ts";
+import { TempContext } from "../../core/temp.ts";
 
 export interface ProjectType {
   type: string;
@@ -34,6 +35,7 @@ export interface ProjectType {
     input: string,
     flags: PandocFlags,
     format: Format,
+    temp: TempContext,
   ) => Promise<FormatExtras>;
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;
