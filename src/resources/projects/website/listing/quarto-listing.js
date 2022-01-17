@@ -52,15 +52,19 @@ function filterListingCategory(category) {
         // filter to this category
         list.filter(function (item) {
           const itemValues = item.values();
-          const categories = itemValues.categories.split(",");
+          if (itemValues.categories !== null) {
+            const categories = itemValues.categories.split(",");
 
-          // TODO: update url hash
-          // TODO: NEED TO GET CATEGORIES INTO LIST!
-          // TODO: CONDITIONAL FILTERING (EG YAML PARAM)
-          // TODO: MOVING CATS CODE INTO BETTER ORGANIZATION OR LOCATION
-          // TODO: LOCALIZE CATEGORY TITLE
-          // TODO: SUPPORT WORD CLOUD STYLE CATEGORIES
-          return categories.includes(category);
+            // TODO: update url hash
+            // TODO: NEED TO GET CATEGORIES INTO LIST!
+            // TODO: CONDITIONAL FILTERING (EG YAML PARAM)
+            // TODO: MOVING CATS CODE INTO BETTER ORGANIZATION OR LOCATION
+            // TODO: LOCALIZE CATEGORY TITLE
+            // TODO: SUPPORT WORD CLOUD STYLE CATEGORIES
+            return categories.includes(category);
+          } else {
+            return false;
+          }
         });
       }
     }
