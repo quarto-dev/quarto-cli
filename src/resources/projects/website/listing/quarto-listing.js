@@ -25,7 +25,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 function getCategoryHash() {
   const currentUrl = new URL(window.location);
   const hash = currentUrl.hash ? currentUrl.hash.slice(1) : undefined;
-  if (hash.startsWith(kCategoryHashPrefix)) {
+  if (hash !== undefined && hash.startsWith(kCategoryHashPrefix)) {
     return hash.slice(kCategoryHashPrefix.length);
   } else {
     return undefined;
