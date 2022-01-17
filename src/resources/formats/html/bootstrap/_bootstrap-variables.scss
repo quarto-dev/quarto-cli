@@ -97,7 +97,7 @@ $sidebar-bg: if(variable-exists(light), $light, #fff) !default;
 $sidebar-fg: theme-contrast($sidebar-bg, $sidebar-bg) !default;
 $sidebar-hl: null;
 $sidebar-font-size: 0.875rem !default;
-$sidebar-font-size-section: 1rem !default;
+$sidebar-font-size-section: 0.875rem !default;
 $sidebar-font-size-collapse: 1rem !default;
 $sidebar-font-size-section-collapse: 1.1rem !default;
 
