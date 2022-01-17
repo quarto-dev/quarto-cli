@@ -189,7 +189,6 @@ function listingPostProcess(
 
   // Check for whether this page had sidebars and choose column as appropriate
   const defaultColumn = suggestColumn(doc);
-  console.log(defaultColumn);
 
   // Move each listing to the correct column
   let titleColumn: string | undefined = undefined;

@@ -5,7 +5,6 @@ const fields = listing.fields;
 // Image properties
 const imageAlign = listing['image-align'] || 'left';
 const imageHeight = listing['image-height'];
-console.log(imageHeight);
 
 // Fields that don't have a known place to be displayed in this template
 const otherFields = fields.filter(field => {
