@@ -28,7 +28,7 @@ return !["title", "image", "card-cap-text", "date", "author", "subtitle", "descr
 <div class="<%-`g-col-lg-${cardColumnSpan}`%> <%-`g-col-md-${cardColumnSpanMd}`%> g-col-24" <%- listing.utilities.metadataAttrs(item) %>>
 <div class="quarto-grid-item card h-100 <%-`card-${align}`%>">
 <% if (fields.includes('image')) { %>
-<% if (item.image) { %><p class="card-img-top"><img src="<%- item.image %>"<%= imgHeight ? ` height="${imgHeight}"` : '' %> class="thumbnail-image card-img"></p>
+<% if (item.image) { %><p class="card-img-top"><img src="<%- item.image %>"<%= imgHeight ? ` style="height: ${imgHeight};"` : '' %> class="thumbnail-image card-img"></p>
 <% } else { %>
 <div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight}px;"` : '' %>><%= (item['card-cap-text']) ? listing.utilities.outputLink(item, 'card-cap-text') : "&nbsp;" %></div>
 <% } %>

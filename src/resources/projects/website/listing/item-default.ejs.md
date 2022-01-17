@@ -5,6 +5,7 @@ const fields = listing.fields;
 // Image properties
 const imageAlign = listing['image-align'] || 'left';
 const imageHeight = listing['image-height'];
+console.log(imageHeight);
 
 // Fields that don't have a known place to be displayed in this template
 const otherFields = fields.filter(field => {
@@ -24,10 +25,10 @@ const outputMetadata = (item, field) => {
 <% if (fields.includes('image')) { %>
 <div class="thumbnail"><% if (item.image) { %>
 <a href="<%- item.path %>" class="post-contents">
-<img src="<%- item.image %>"<%- imageHeight ? ` height="${imageHeight}"` : '' %> class="thumbnail-image">
+<img src="<%- item.image %>"<%= imageHeight ? ` style="height: ${imageHeight};"` : '' %> class="thumbnail-image">
 </a>
 <% } else { %>
-<div class="thumbnail-image"<%= imageHeight ? ` style="height: ${imageHeight}px;"` : '' %>></div><% } %>
+<div class="thumbnail-image"<%= imageHeight ? ` style="height: ${imageHeight};"` : '' %>></div><% } %>
 </div>
 <% } %>
 <div class="body"><a href="<%- item.path %>" class="post-contents"><% if (fields.includes('title')) { %>

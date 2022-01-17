@@ -12,9 +12,9 @@ const outputValue = (field) => {
 let value = item[field];
 if (field === "image") {
 if (item.image) {
-value = `<img src="${item[field]}" ${imgHeight ? ` height="${imgHeight}"` : ''}>`;
+value = `<img src="${item[field]}" ${imgHeight ? ` style="height: ${imgHeight};"` : ''}>`;
 } else {
-value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight}px;"` : '' }>&nbsp;</div>`;
+value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight};"` : '' }>&nbsp;</div>`;
 }
 }
 return listing.utilities.outputLink(item, field, value);
