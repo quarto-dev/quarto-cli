@@ -23,7 +23,6 @@ import {
   kFieldsLink,
   kFieldsName,
   kFieldsSort,
-  kFieldsSortTarget,
   kFieldsType,
   kMaxDescLength,
   kRowCount,
@@ -213,8 +212,6 @@ export function reshapeListing(
       reshaped[kColumnCount] as number,
     );
   }
-  // Compute the sorting targets for the fields
-  reshaped[kFieldsSortTarget] = computeSortingTargets(reshaped);
 
   // Add template utilities
   const utilities = {} as Record<string, unknown>;
@@ -230,7 +227,7 @@ export function reshapeListing(
       if (reshaped[kFieldsType][field] === "date") {
         fieldSortData.push({
           listingSort: {
-            field,
+            field: sortAttrValue(field),
             direction: kSortAsc,
           },
           description: `${reshaped[kFieldsName][field] || field} (${
@@ -240,7 +237,7 @@ export function reshapeListing(
 
         fieldSortData.push({
           listingSort: {
-            field,
+            field: sortAttrValue(field),
             direction: kSortDesc,
           },
           description: `${reshaped[kFieldsName][field] || field} (${
@@ -250,7 +247,7 @@ export function reshapeListing(
       } else if (reshaped[kFieldsType][field] === "number") {
         fieldSortData.push({
           listingSort: {
-            field,
+            field: sortAttrValue(field),
             direction: kSortAsc,
           },
           description: `${reshaped[kFieldsName][field] || field} (${
@@ -259,7 +256,7 @@ export function reshapeListing(
         });
         fieldSortData.push({
           listingSort: {
-            field,
+            field: sortAttrValue(field),
             direction: kSortDesc,
           },
           description: `${reshaped[kFieldsName][field] || field} (${
@@ -267,9 +264,12 @@ export function reshapeListing(
           })`,
         });
       } else {
+        const sortField = useSortTarget(listing, field)
+          ? sortAttrValue(field)
+          : field;
         fieldSortData.push({
           listingSort: {
-            field,
+            field: sortField,
             direction: kSortAsc,
           },
           description: `${reshaped[kFieldsName][field] || field}`,
@@ -288,51 +288,41 @@ export function reshapeListing(
     const value = val || item[field];
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
-      return `<a href="${path}">${value}</a>`;
+      return `<a href="${path}" class="${field}">${value}</a>`;
     } else {
       return value;
     }
   };
-  utilities.sortClass = (field: string) => {
-    const colSortTargets = reshaped[kFieldsSortTarget];
-    if (!colSortTargets || colSortTargets[field] === field) {
-      return "";
-    } else {
-      return ` ${escape(colSortTargets[field])}`;
-    }
-  };
   utilities.sortTarget = (field: string) => {
-    const colSortTargets = reshaped[kFieldsSortTarget];
-    if (!colSortTargets || colSortTargets[field] === field) {
+    if (useSortTarget(listing, field)) {
+      return sortAttrValue(field);
+    } else {
       return field;
-    } else {
-      return colSortTargets[field];
-    }
-  };
-  utilities.sortAttr = (item: ListingItem, field: string) => {
-    item.sortableValues = item.sortableValues || {};
-    const colSortTargets = reshaped[kFieldsSortTarget];
-    if (!colSortTargets || colSortTargets[field] === field) {
-      return "";
-    } else {
-      return `data-${colSortTargets[field]}="${
-        escape(item.sortableValues[field])
-      }"`;
     }
   };
   let index = 0;
   utilities.metadataAttrs = (item: ListingItem) => {
     const attr: Record<string, string> = {};
+
     attr["index"] = (index++).toString();
     if (item.categories !== undefined) {
       attr["categories"] = (item.categories as string[]).join(",");
     }
 
+    // Add magic attributes for the sortable values
+    item.sortableValues = item.sortableValues || {};
+    for (const field of Object.keys(item.sortableValues)) {
+      if (useSortTarget(listing, field)) {
+        attr[sortAttrValue(field)] = escape(
+          item.sortableValues[field],
+        );
+      }
+    }
+
     const attrs = Object.keys(attr).map((key) => {
       const value = attr[key];
-      return `data-${key}=${value}`;
+      return `data-${key}='${value}'`;
     });
-
     return attrs.join(" ");
   };
   utilities.localizedString = (str: string) => {
@@ -343,35 +333,27 @@ export function reshapeListing(
   return reshaped;
 }
 
-// Determine the target value for sorting a field
-// Fields need a special sorting target if they are a non-string
-// data type (e.g. a number or date), or if they are going to be
-// linked (since the 'value' will be surrounded by the href tag, which
-// will interfere with sorthing)
-function computeSortingTargets(
-  listing: Listing,
-): Record<string, string> {
-  const sortingTargets: Record<string, string> = {};
-  const columns = listing[kFields];
-  const columnLinks = listing[kFieldsLink];
-  const fieldTypes = listing[kFieldsType];
-  columns.forEach((field) => {
-    // The data type of this column
-    const fieldType = fieldTypes[field];
-
-    // Figure out whether we should use a sort target or not
-    const useTarget = columnLinks.includes(field) ||
-      fieldType === "date" ||
-      fieldType === "number";
-
-    if (useTarget) {
-      sortingTargets[field] = `${field}-value`;
-    } else {
-      sortingTargets[field] = field;
-    }
-  });
-  return sortingTargets;
+function sortAttrValue(field: string) {
+  return `${field}-sort`;
 }
+
+const useSortTarget = (listing: Listing, field: string) => {
+  // Use data field for values that will be wrapped in links
+  const links = listing[kFieldsLink];
+  if (links.includes(field)) {
+    return true;
+  }
+
+  // Use data field for date and numbers
+  const type = listing[kFieldsType][field];
+  if (type === "date" || type === "number") {
+    return true;
+  } else if (listing[kFieldsLink].includes(field)) {
+    return true;
+  }
+
+  return false;
+};
 
 // Generates the script tag for this listing / template
 // This binds list.js to the listing, enabling
@@ -394,34 +376,18 @@ export function templateJsScript(
     pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" }`
     : "";
 
-  const useDataField = (field: string) => {
-    const type = listing[kFieldsType][field];
-    if (type === "date" || type === "number") {
-      return true;
-    } else if (listing[kFieldsLink].includes(field)) {
-      return true;
-    }
-    return false;
-  };
-
-  const formatItem = (field: string) => {
-    if (useDataField(field)) {
-      return [
-        `"${field}"`,
-        `{ attr: 'data-${field}-value', name: '${field}-value'}`,
-      ];
-    } else {
-      return `"${field}"`;
-    }
-  };
-
-  const resolvedColumns = columns.flatMap((field) => {
-    return formatItem(field);
+  const resolvedColumns = columns.map((field) => {
+    return `'${field}'`;
   });
   resolvedColumns.push(
     `{ data: ['index'] }`,
     `{ data: ['categories'] }`,
   );
+  for (const field of listing[kFieldsSort]) {
+    if (useSortTarget(listing, field)) {
+      resolvedColumns.push(`{ data: ['${sortAttrValue(field)}'] }`);
+    }
+  }
 
   const rowJs = `[${resolvedColumns.join(",")}]`;
 

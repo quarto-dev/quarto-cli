@@ -26,11 +26,6 @@ export const kFieldsRequired = "fields-required";
 // The list of columns to include as sortable
 export const kFieldsSort = "fields-sort";
 
-// A computed record that provides the name of the sort target
-// for a column (so that the columns can be sorted by a different)
-// value than what is displayed (for example, dates)
-export const kFieldsSortTarget = "fields-sort-targets";
-
 // The number of rows to display per page
 export const kRowCount = "row-count";
 
@@ -78,7 +73,6 @@ export interface Listing extends ListingDehydrated {
   template?: string;
 
   // Computed values
-  [kFieldsSortTarget]?: Record<string, string>;
   [kColumnCount]?: number;
 }
 

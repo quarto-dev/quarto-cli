@@ -35,9 +35,9 @@ return listing.utilities.outputLink(item, field, value);
 </thead>
 <tbody class="list">
 <% for (item of items) { %>
-<tr <%- listing.utilities.metadataAttrs(item) %>>
+<tr <%= listing.utilities.metadataAttrs(item) %>>
 <% for (const field of fields){ %>
-<td class="<%- field %><%-listing.utilities.sortClass(field) %>"<%=listing.utilities.sortAttr(item, field)%>>
+<td class="<%- field %>">
 <%= outputValue(field) %>
 </td>
 <% } %>
