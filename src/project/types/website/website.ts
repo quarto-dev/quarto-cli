@@ -61,6 +61,8 @@ import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 
 import { defaultProjectType } from "../project-default.ts";
 import { TempContext } from "../../../core/temp.ts";
+import { listingHtmlDependencies } from "./website-listing.ts";
+
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
   typeAliases: ["site"],
@@ -161,9 +163,24 @@ export const websiteProjectType: ProjectType = {
       // html metadata
       extras.html = extras.html || {};
       extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
+      extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
       extras.html[kHtmlPostprocessors]?.push(...[
         htmlResourceResolverPostprocessor(source, project),
       ]);
+
+      // listings HTML dependencies
+      const htmlListingDependencies = await listingHtmlDependencies(
+        source,
+        project,
+        format,
+        extras,
+      );
+      extras.html[kHtmlPostprocessors]?.push(
+        htmlListingDependencies[kHtmlPostprocessors],
+      );
+      extras.html[kMarkdownAfterBody]?.push(
+        htmlListingDependencies[kMarkdownAfterBody],
+      );
 
       // metadata html dependencies
       const htmlMetadataDependencies = metadataHtmlDependencies(
@@ -175,7 +192,6 @@ export const websiteProjectType: ProjectType = {
       extras.html[kHtmlPostprocessors]?.push(
         htmlMetadataDependencies[kHtmlPostprocessors],
       );
-      extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
       extras.html[kMarkdownAfterBody]?.push(
         htmlMetadataDependencies[kMarkdownAfterBody],
       );
