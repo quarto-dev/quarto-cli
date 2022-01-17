@@ -321,7 +321,6 @@ export function watchProject(
   const watchForChanges = async () => {
     for await (const event of watcher) {
       try {
-        console.log(event);
         // see if we need to handle this
         const result = await handleWatchEvent(event);
         if (result) {
