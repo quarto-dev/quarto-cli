@@ -22,7 +22,7 @@ export interface PollingFsWatcher extends AsyncIterable<Deno.FsEvent> {
 //          a previously seen file
 export function watchForFileChanges(
   files: string[] | (() => string[]),
-  pollingInterval = 100,
+  pollingInterval?: number,
 ): PollingFsWatcher {
   // function to resolve list of files to watch
   const fileList = () => {
@@ -39,12 +39,20 @@ export function watchForFileChanges(
     lastModified.set(file, existsSync(file) ? Deno.statSync(file).mtime : null)
   );
 
+  // if there is no polling interval then set it based on the initial
+  // number of files (it takes about 5ms to scan 200 files on a fast
+  // system, which is considered an acceptable level of overhead. set the
+  // interval to 200ms or the number of files, whichever is greater)
+  if (!pollingInterval) {
+    pollingInterval = Math.max(200, lastModified.size);
+  }
+
   return {
     async *[Symbol.asyncIterator]() {
       try {
         while (true) {
           // wait the polling interval
-          await sleep(pollingInterval);
+          await sleep(pollingInterval!);
 
           // lists of changed files
           const created: string[] = [];
