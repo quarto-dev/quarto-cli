@@ -7,10 +7,7 @@
 *
 */
 
-import {
-  asMappedString,
-  MappedString,
-} from "./lib/mapped-text.ts";
+import { asMappedString, MappedString } from "./lib/mapped-text.ts";
 
 import {
   langCommentChars,
@@ -64,7 +61,7 @@ export function partitionCellOptions(
       sourceStartLine: yamlLines.length,
     };
   }
-  
+
   let yaml = yamlLines.length > 0
     ? readYamlFromString(yamlLines.join("\n"))
     : undefined;
@@ -89,7 +86,7 @@ export async function parseAndValidateCellOptions(
   mappedYaml: MappedString,
   _language: string,
   validate = false,
-  engine = ""
+  engine = "",
 ) {
   if (mappedYaml.value.trim().length === 0) {
     return undefined;
@@ -124,7 +121,9 @@ export async function partitionCellOptionsMapped(
     sourceStartLine,
   } = await libPartitionCellOptionsMapped(language, outerSource);
 
-  if (guessChunkOptionsFormat((mappedYaml ?? asMappedString("")).value) === "yaml") {
+  if (
+    guessChunkOptionsFormat((mappedYaml ?? asMappedString("")).value) === "yaml"
+  ) {
     const yaml = await parseAndValidateCellOptions(
       mappedYaml ?? asMappedString(""),
       language,

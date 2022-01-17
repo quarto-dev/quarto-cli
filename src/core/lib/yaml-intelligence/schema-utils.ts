@@ -1,6 +1,6 @@
 /*
 * schemas.ts
-* 
+*
 * Copyright (C) 2022 by RStudio, PBC
 *
 */
@@ -39,9 +39,12 @@ export async function getSchemas(): Promise<QuartoJsonSchemas> {
   return _schemas!;
 }
 
-function matchPatternProperties(schema: Schema, key: string): Schema | false
-{
-  for (const [regexpStr, subschema] of Object.entries(schema.patternProperties || {})) {
+function matchPatternProperties(schema: Schema, key: string): Schema | false {
+  for (
+    const [regexpStr, subschema] of Object.entries(
+      schema.patternProperties || {},
+    )
+  ) {
     const prefixPattern = prefixes(new RegExp(regexpStr)) as RegExp;
     if (key.match(prefixPattern)) {
       return subschema;
@@ -50,10 +53,13 @@ function matchPatternProperties(schema: Schema, key: string): Schema | false
   return false;
 }
 
-export async function navigateSchema(schema: Schema, path: (number | string)[]): Promise<Schema[]> {
+export async function navigateSchema(
+  schema: Schema,
+  path: (number | string)[],
+): Promise<Schema[]> {
   const refs: Record<string, Schema> = {};
   const { definitions } = await getSchemas();
-  
+
   const inner = (subSchema: Schema, index: number): Schema[] => {
     if (subSchema.$id) {
       refs[subSchema.$id] = subSchema;
@@ -84,16 +90,16 @@ export async function navigateSchema(schema: Schema, path: (number | string)[]):
       if (patternPropMatch) {
         return inner(patternPropMatch, index + 1);
       }
-      
+
       // because we're using this in an autocomplete scenario, there's the "last entry is a prefix of a
       // valid key" special case.
       if (index !== path.length - 1) {
         return [];
       }
       const completions = Object.getOwnPropertyNames(subSchema.properties || {})
-            .filter(
-              (name) => name.startsWith(key),
-            );
+        .filter(
+          (name) => name.startsWith(key),
+        );
       if (completions.length === 0) {
         return [];
       }
@@ -117,6 +123,6 @@ export async function navigateSchema(schema: Schema, path: (number | string)[]):
       // schema to complete on.
       return [];
     }
-  }
+  };
   return inner(schema, 0).flat(Infinity);
 }

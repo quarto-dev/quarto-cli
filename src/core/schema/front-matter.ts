@@ -28,15 +28,16 @@ import { defineCached } from "./definitions.ts";
 
 // deno-lint-ignore require-await
 export async function makeFrontMatterFormatSchema(nonStrict = false) {
-  const formatSchemaDescriptorList =
-    pandocOutputFormats.map(({ name, hidden }) => {
+  const formatSchemaDescriptorList = pandocOutputFormats.map(
+    ({ name, hidden }) => {
       return {
         regex: `^${name}(\\+.+)?$`,
         schema: getFormatSchema(name),
         name,
-        hidden
+        hidden,
       };
-    });
+    },
+  );
   const formatSchemas = formatSchemaDescriptorList.map(
     ({ regex, schema }) => [regex, schema],
   );
@@ -45,7 +46,7 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
       const schema = regexS(regex, `be '${name}'`);
       if (hidden) {
         return schema;
-      } 
+      }
       return completeSchema(schema, {
         type: "value",
         display: "",
@@ -53,11 +54,12 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
         value: name,
         description: "",
       });
-    });
+    },
+  );
   const completionsObject = Object.fromEntries(
     formatSchemaDescriptorList
-      .filter( ({ hidden }) => !hidden)
-      .map(({ name }) => [name, ""])
+      .filter(({ hidden }) => !hidden)
+      .map(({ name }) => [name, ""]),
   );
 
   return oneOfS(
@@ -78,11 +80,13 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
 
 export const getFrontMatterFormatSchema = defineCached(
   () => makeFrontMatterFormatSchema(),
-  "front-matter-format");
+  "front-matter-format",
+);
 
 export const getNonStrictFrontMatterFormatSchema = defineCached(
   () => makeFrontMatterFormatSchema(true),
-  "front-matter-format-nonstrict");
+  "front-matter-format-nonstrict",
+);
 
 export const getFrontMatterSchema = defineCached(
   async () => {
@@ -104,5 +108,6 @@ export const getFrontMatterSchema = defineCached(
         executeObjSchema,
       ),
     );
-  }, "front-matter");
-
+  },
+  "front-matter",
+);

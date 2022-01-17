@@ -17,7 +17,7 @@ export interface Completion {
   description: string;
   // deno-lint-ignore camelcase
   suggest_on_accept: boolean;
-  
+
   // `schema` stores the concrete schema that yielded the completion.
   // We need to carry it explicitly because of combinators like oneOf
   schema?: Schema;
@@ -143,7 +143,9 @@ export function walkSchema<T>(schema: Schema, f: (a: Schema) => T) {
         }
       }
       if (schema.patternProperties) {
-        for (const key of Object.getOwnPropertyNames(schema.patternProperties)) {
+        for (
+          const key of Object.getOwnPropertyNames(schema.patternProperties)
+        ) {
           const s = schema.patternProperties[key];
           walkSchema(s, f);
         }
@@ -152,23 +154,23 @@ export function walkSchema<T>(schema: Schema, f: (a: Schema) => T) {
         walkSchema(schema.additionalProperties, f);
       }
       break;
-    // case "boolean":
-    // case "null":
-    // case "number":
-    // case "any":
-    // case "enum":
-    // case "string":
-    //   break;
-    // default:
-    //   log(`Skipping walk on schema of type ${t}`);
+      // case "boolean":
+      // case "null":
+      // case "number":
+      // case "any":
+      // case "enum":
+      // case "string":
+      //   break;
+      // default:
+      //   log(`Skipping walk on schema of type ${t}`);
   }
 }
 
 /**
-* normalizeSchema takes our version of a "json schema" (which includes
-* extra fields for autocomplete etc) and builds an actual JSON Schema
-* object that passes ajv's strict mode.
-*/
+ * normalizeSchema takes our version of a "json schema" (which includes
+ * extra fields for autocomplete etc) and builds an actual JSON Schema
+ * object that passes ajv's strict mode.
+ */
 
 export function normalizeSchema(schema: Schema): Schema {
   // FIXME this deep copy can probably be made more efficient
@@ -194,43 +196,43 @@ export function normalizeSchema(schema: Schema): Schema {
 
 const definitionsObject: Record<string, Schema> = {};
 
-export function hasSchemaDefinition(key: string): boolean
-{
+export function hasSchemaDefinition(key: string): boolean {
   return definitionsObject[key] !== undefined;
 }
 
-export function getSchemaDefinition(key: string): Schema
-{
+export function getSchemaDefinition(key: string): Schema {
   if (definitionsObject[key] === undefined) {
     throw new Error(`Internal Error: Schema ${key} not found.`);
   }
   return definitionsObject[key];
 }
 
-export function setSchemaDefinition(schema: Schema)
-{
+export function setSchemaDefinition(schema: Schema) {
   if (definitionsObject[schema.$id] === undefined) {
     definitionsObject[schema.$id] = schema;
   }
 }
 
-export function getSchemaDefinitionsObject(): Record<string, Schema>
-{
+export function getSchemaDefinitionsObject(): Record<string, Schema> {
   return Object.assign({}, definitionsObject);
 }
 
-export function expandAliasesFrom(lst: string[], defs: Record<string, string[]>): string[]
-{
+export function expandAliasesFrom(
+  lst: string[],
+  defs: Record<string, string[]>,
+): string[] {
   const aliases = defs;
   const result = [];
-  
+
   lst = lst.slice();
   for (let i = 0; i < lst.length; ++i) {
     const el = lst[i];
     if (el.startsWith("$")) {
       const v = aliases[el.slice(1)];
       if (v === undefined) {
-        throw new Error(`Internal Error: ${el} doesn't have an entry in the aliases map`);
+        throw new Error(
+          `Internal Error: ${el} doesn't have an entry in the aliases map`,
+        );
       }
       lst.push(...v);
     } else {

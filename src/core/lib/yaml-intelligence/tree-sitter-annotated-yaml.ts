@@ -1,6 +1,6 @@
 /*
 * tree-sitter-annotated-yaml.js
-* 
+*
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
@@ -11,7 +11,7 @@ import { MappedString } from "../mapped-text.ts";
 
 /**
  * given a tree from tree-sitter-yaml and the mappedString
- * corresponding to the source, returns an AnnotatedParse 
+ * corresponding to the source, returns an AnnotatedParse
  */
 
 // deno-lint-ignore no-explicit-any
@@ -19,8 +19,10 @@ type TreeSitterParse = any;
 // deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
 
-export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString): AnnotatedParse | null
-{
+export function buildAnnotated(
+  tree: TreeSitterParse,
+  mappedSource: MappedString,
+): AnnotatedParse | null {
   const singletonBuild = (node: TreeSitterNode) => {
     return buildNode(node.firstChild);
   };
@@ -30,7 +32,9 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
       return annotateEmpty(node.endIndex);
     }
     if (dispatch[node.type] === undefined) {
-      throw new Error(`Internal error: don't know how to build node of type ${node.type}`);
+      throw new Error(
+        `Internal error: don't know how to build node of type ${node.type}`,
+      );
     }
     return dispatch[node.type](node);
   };
@@ -41,23 +45,27 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
       end: position,
       result: null,
       kind: "<<EMPTY>>",
-      components: []
+      components: [],
     };
   };
-  
+
   // deno-lint-ignore no-explicit-any
-  const annotate = (node: TreeSitterNode, result: any, components: AnnotatedParse[]): AnnotatedParse => {
+  const annotate = (
+    node: TreeSitterNode,
+    result: any,
+    components: AnnotatedParse[],
+  ): AnnotatedParse => {
     return {
       start: node.startIndex,
       end: node.endIndex,
       result,
       kind: node.type, // NB this doesn't match js-yaml, so you need
-                       // to make sure your annotated walkers know
-                       // about tree-sitter and js-yaml both.
-      components
+      // to make sure your annotated walkers know
+      // about tree-sitter and js-yaml both.
+      components,
     };
   };
-  
+
   const dispatch: Record<string, (node: TreeSitterNode) => AnnotatedParse> = {
     "stream": singletonBuild,
     "document": singletonBuild,
@@ -65,11 +73,17 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
     "flow_node": singletonBuild,
     "block_scalar": (node) => {
       if (!node.text.startsWith("|")) {
-        throw new Error(`Internal error: can only build block_scalar if content starts with | (got "${node.text[0]}" instead)`);
+        throw new Error(
+          `Internal error: can only build block_scalar if content starts with | (got "${
+            node.text[0]
+          }" instead)`,
+        );
       }
       const ls = lines(node.text);
       if (ls.length < 2) {
-        throw new Error(`Internal error: can only handle block_scalar of multiline strings`);
+        throw new Error(
+          `Internal error: can only handle block_scalar of multiline strings`,
+        );
       }
       const indent = ls[1].length - ls[1].trimStart().length;
       const result = ls.slice(1).map((l: string) => l.slice(indent)).join("\n");
@@ -104,7 +118,11 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
       //
       // consistency, hobgoblins, little minds, etc
       const str = node.text.slice(1, -1);
-      const matches = [-2, ...Array.from(matchAll(str, /''/g)).map(x => x.index), str.length];
+      const matches = [
+        -2,
+        ...Array.from(matchAll(str, /''/g)).map((x) => x.index),
+        str.length,
+      ];
       const lst = [];
       for (let i = 0; i < matches.length - 1; ++i) {
         lst.push(str.substring(matches[i] + 2, matches[i + 1]));
@@ -151,10 +169,12 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
           const value = annotateEmpty(child.endIndex);
           component = annotate(child, {
             key: key.result,
-            value: value.result
+            value: value.result,
           }, [key, value]);
         } else if (child.type !== "block_mapping_pair") {
-          throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
+          throw new Error(
+            `Internal error: Expected a block_mapping_pair, got ${child.type} instead.`,
+          );
         } else {
           component = buildNode(child);
         }
@@ -169,11 +189,11 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
     "block_mapping_pair": (node) => {
       let key, value;
       if (node.childCount === 3) {
-        // when three children exist, we assume a good parse 
+        // when three children exist, we assume a good parse
         key = annotate(node.child(0), node.child(0).text, []);
         value = buildNode(node.child(2));
       } else if (node.childCount === 2) {
-        // when two children exist, we assume a bad parse with missing value 
+        // when two children exist, we assume a bad parse with missing value
         key = annotate(node.child(0), node.child(0).text, []);
         value = annotateEmpty(node.endIndex);
       } else {
@@ -181,16 +201,15 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
         key = annotateEmpty(node.endIndex);
         value = annotateEmpty(node.endIndex);
       }
-      
+
       return annotate(node, {
         key: key.result,
-        value: value.result
+        value: value.result,
       }, [key, value]);
-    }
+    },
   };
 
   const result = buildNode(tree.rootNode);
-
 
   // some tree-sitter "error-tolerant parses" are particularly bad
   // for us here. We must guard against "partial" parses where
@@ -216,16 +235,18 @@ export function buildAnnotated(tree: TreeSitterParse, mappedSource: MappedString
   if (lossage < 0.95) {
     return null;
   }
-  
+
   return result;
 }
-
 
 /** just like `src/core/schema/yaml-schema.ts:navigate`, but expects
  * the node kinds which come from tree-sitter-yaml parser
  */
-export function navigate(path: string[], annotation: AnnotatedParse, pathIndex = 0): AnnotatedParse
-{
+export function navigate(
+  path: string[],
+  annotation: AnnotatedParse,
+  pathIndex = 0,
+): AnnotatedParse {
   if (pathIndex >= path.length) {
     return annotation;
   }
@@ -236,7 +257,9 @@ export function navigate(path: string[], annotation: AnnotatedParse, pathIndex =
       const key = components[i]!.result;
       if (key === searchKey) {
         if (i === components.length - 1) {
-          throw new Error("Internal error, key === searchKey shouldn't have happened at last array entry");
+          throw new Error(
+            "Internal error, key === searchKey shouldn't have happened at last array entry",
+          );
         }
         return navigate(path, components[i + 1]!, pathIndex + 1);
       }
@@ -244,7 +267,10 @@ export function navigate(path: string[], annotation: AnnotatedParse, pathIndex =
     throw new Error("Internal error: searchKey not found in mapping object");
   } else if (annotation.kind === "block_sequence") {
     const searchKey = Number(path[pathIndex]);
-    if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
+    if (
+      isNaN(searchKey) || searchKey < 0 ||
+      searchKey >= annotation.components.length
+    ) {
       throw new Error("Internal error: searchKey invalid");
     }
     return navigate(path, annotation.components[searchKey]!, pathIndex + 1);
@@ -252,7 +278,6 @@ export function navigate(path: string[], annotation: AnnotatedParse, pathIndex =
     throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
 }
-
 
 // locateCursor is lenient wrt locating inside the last character of a
 // range (by using position <= foo instead of position < foo).  That
@@ -262,27 +287,30 @@ export function navigate(path: string[], annotation: AnnotatedParse, pathIndex =
 // correspond to the edges of an object, where position == range.end.
 export interface LocateCursorResult {
   withError: boolean;
-  value?: (string | number)[]
+  value?: (string | number)[];
 }
 
-export function locateCursor(annotation: AnnotatedParse, position: number): LocateCursorResult
-{
+export function locateCursor(
+  annotation: AnnotatedParse,
+  position: number,
+): LocateCursorResult {
   let failedLast = false;
-  const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
+  const kInternalLocateError =
+    "Internal error: cursor outside bounds in sequence locate?";
 
   // deno-lint-ignore no-explicit-any
   function locate(node: AnnotatedParse, pathSoFar: any[]): any[] {
     if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
       for (let i = 0; i < node.components.length; i += 2) {
         const keyC = node.components[i],
-              valueC = node.components[i+1];
+          valueC = node.components[i + 1];
         if (keyC.start <= position && position <= keyC.end) {
           return [keyC.result, pathSoFar];
         } else if (valueC.start <= position && position <= valueC.end) {
           return locate(valueC, [keyC.result, pathSoFar]);
         }
       }
-      
+
       // FIXME: decide what to do if cursor lands exactly on ":"?
 
       // if we "fell through the pair cracks", that is, if the cursor is inside a mapping
@@ -291,10 +319,12 @@ export function locateCursor(annotation: AnnotatedParse, position: number): Loca
       // case-by-base.
 
       failedLast = true;
-      
+
       return pathSoFar;
       // throw new Error("Internal error: cursor outside bounds in mapping locate?");
-    } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
+    } else if (
+      node.kind === "block_sequence" || node.kind === "flow_sequence"
+    ) {
       for (let i = 0; i < node.components.length; ++i) {
         const valueC = node.components[i];
         if (valueC.start <= position && position <= valueC.end) {
@@ -307,7 +337,7 @@ export function locateCursor(annotation: AnnotatedParse, position: number): Loca
           if (i === 0) {
             return pathSoFar;
           } else {
-            return [i-1, pathSoFar];
+            return [i - 1, pathSoFar];
           }
         }
       }
@@ -326,13 +356,13 @@ export function locateCursor(annotation: AnnotatedParse, position: number): Loca
     const value = locate(annotation, []).flat(Infinity).reverse();
     return {
       withError: failedLast,
-      value: value as (string | number)[]
+      value: value as (string | number)[],
     };
   } catch (e) {
     if (e.message === kInternalLocateError) {
       return {
         withError: true,
-        value: undefined
+        value: undefined,
       };
     } else {
       throw e;

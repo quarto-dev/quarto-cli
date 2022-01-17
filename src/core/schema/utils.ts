@@ -8,8 +8,6 @@
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
 
-export function schemaPath(path: string)
-{
+export function schemaPath(path: string) {
   return resourcePath(join("schema", path));
 }
-

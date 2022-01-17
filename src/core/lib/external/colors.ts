@@ -7,7 +7,7 @@
 //   In order for this to work in the RStudio IDE, we need to minimally edit
 //   the file to remove references to (?.) as an operator;
 //   globalThis also doesn't work in the IDE.
-//    
+//
 
 /**
  * ```ts
@@ -26,7 +26,7 @@
 let Deno: any;
 try {
   Deno = globalThis.Deno;
-// deno-lint-ignore no-empty
+  // deno-lint-ignore no-empty
 } catch (_e) {}
 
 // const { Deno } = globalThis as any;

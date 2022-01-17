@@ -15,20 +15,19 @@ import { formatLineRange, lines } from "./text.ts";
 import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
 
 import {
-  tidyverseFormatError,
   addFileInfo,
-  ErrorLocation,
-  TidyverseError,
-  quotedStringColor,
   addInstancePathInfo,
+  ErrorLocation,
+  quotedStringColor,
+  TidyverseError,
+  tidyverseFormatError,
 } from "./errors.ts";
 
 import * as colors from "./external/colors.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export interface AnnotatedParse
-{
+export interface AnnotatedParse {
   start: number;
   end: number;
   // deno-lint-ignore no-explicit-any
@@ -102,11 +101,11 @@ export interface LocalizedError {
   ajvError?: any; // upstream error object from ajv
 }
 
-export function getVerbatimInput(error: LocalizedError)
-{
+export function getVerbatimInput(error: LocalizedError) {
   return error.source.value.substring(
     error.violatingObject.start,
-    error.violatingObject.end);
+    error.violatingObject.end,
+  );
 }
 
 function navigate(
@@ -115,7 +114,6 @@ function navigate(
   returnKey = false, // if true, then return the *key* entry as the final result rather than the *value* entry.
   pathIndex = 0,
 ): AnnotatedParse {
-  
   // this looks a little strange, but it's easier to catch the error
   // here than in the different cases below
   if (annotation === undefined) {
@@ -149,7 +147,9 @@ function navigate(
         }
       }
     }
-    throw new Error(`Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`);
+    throw new Error(
+      `Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`,
+    );
   } else if (
     annotation.kind === "sequence" || annotation.kind === "block_sequence"
   ) {
@@ -181,7 +181,8 @@ function navigateSchema(
   // we have to check if the _current_ schema is an allOf, and just
   // iterate over all of them and concatenate. Maybe? :shrug: ?
   if (schema.allOf !== undefined) {
-    return schema.allOf.map((s: Schema) => navigateSchema(path, s, pathIndex)).flat();
+    return schema.allOf.map((s: Schema) => navigateSchema(path, s, pathIndex))
+      .flat();
   } else if (pathVal === "patternProperties" && schema.patternProperties) {
     const key = path[pathIndex + 1];
     const subSchema = schema.patternProperties[key];
@@ -410,7 +411,7 @@ function localizeAndPruneErrors(
         info: [],
         location: { start, end },
       };
-      
+
       // in the case of customized errors, use message we prepared earlier
       if (error.keyword.startsWith("_custom_")) {
         niceError = {
@@ -424,8 +425,11 @@ function localizeAndPruneErrors(
             heading: `(top-level error) ${error.message}`,
           };
         } else {
-          const errorSchema = (error.params && error.params.schema) || error.parentSchema;
-          const innerSchema = errorSchema ? [errorSchema] : navigateSchema(schemaPath.map(decodeURIComponent), schema);
+          const errorSchema = (error.params && error.params.schema) ||
+            error.parentSchema;
+          const innerSchema = errorSchema
+            ? [errorSchema]
+            : navigateSchema(schemaPath.map(decodeURIComponent), schema);
           if (innerSchema.length === 0) {
             // this is probably an internal error..
             niceError = {
@@ -436,10 +440,16 @@ function localizeAndPruneErrors(
             const idTag = ""; // FIXME until we have verbose options, this hurts the IDE output.
             // const idTag = (errorSchema && errorSchema.$id) ? ` ${colors.gray("(schema id: " + errorSchema.$id + ")")}` : "";
             const verbatimInput = quotedStringColor(
-              source.value.substring(violatingObject.start, violatingObject.end));
+              source.value.substring(
+                violatingObject.start,
+                violatingObject.end,
+              ),
+            );
             niceError = {
               ...niceError,
-              heading: `The value ${verbatimInput} must ${innerSchema.map(s => s.description).join(", ")}${idTag}.`,
+              heading: `The value ${verbatimInput} must ${
+                innerSchema.map((s) => s.description).join(", ")
+              }${idTag}.`,
             };
           }
         }
@@ -455,7 +465,7 @@ function localizeAndPruneErrors(
         location: { start, end },
         source,
         ajvError: error, // we include the full AJV error to allow downstream fine-tuning
-        niceError: niceError
+        niceError: niceError,
       });
     }
   }
@@ -482,9 +492,12 @@ export class YAMLSchema {
 
   // These are schema-specific error transformers to yield custom
   // error messages.
-  errorHandlers: ((error: LocalizedError,
-                   annotation: AnnotatedParse,
-                   schema: Schema) => LocalizedError)[];
+  errorHandlers:
+    ((
+      error: LocalizedError,
+      annotation: AnnotatedParse,
+      schema: Schema,
+    ) => LocalizedError)[];
 
   // deno-lint-ignore no-explicit-any
   constructor(schema: Schema, compiledModule?: any) {
@@ -497,37 +510,43 @@ export class YAMLSchema {
     }
   }
 
-  addHandler(handler: (error: LocalizedError,
-                       annotation: AnnotatedParse,
-                       schema: Schema) => LocalizedError)
-  {
+  addHandler(
+    handler: (
+      error: LocalizedError,
+      annotation: AnnotatedParse,
+      schema: Schema,
+    ) => LocalizedError,
+  ) {
     this.errorHandlers.push(handler);
   }
-  
+
   transformErrors(
     annotation: AnnotatedParse,
-    errors: LocalizedError[])
-  {
-    return errors.map(error => {
+    errors: LocalizedError[],
+  ) {
+    return errors.map((error) => {
       for (const handler of this.errorHandlers) {
         error = handler(error, annotation, this.schema);
       }
       return error;
     });
   }
-  
+
   validateParse(
     src: MappedString,
     annotation: AnnotatedParse,
   ) {
     let errors: LocalizedError[] = [];
     if (!this.validate(annotation.result)) {
-      errors = this.transformErrors(annotation, localizeAndPruneErrors(
+      errors = this.transformErrors(
         annotation,
-        this.validate.errors,
-        src,
-        this.schema,
-      ));
+        localizeAndPruneErrors(
+          annotation,
+          this.validate.errors,
+          src,
+          this.schema,
+        ),
+      );
       return {
         result: annotation.result,
         errors,

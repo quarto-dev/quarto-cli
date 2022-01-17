@@ -20,42 +20,39 @@ import { MappedString } from "./mapped-text.ts";
 // Where the style guide would suggest "have you tried x instead?"
 //
 // here, we will say "Try x instead."
-// 
+//
 
 // formats an info message according to the tidyverse style guide
-export function tidyverseInfo(msg: string)
-{
+export function tidyverseInfo(msg: string) {
   return `${colors.blue("ℹ")} ${msg}`;
 }
 
 // formats an error message according to the tidyverse style guide
-export function tidyverseError(msg: string)
-{
+export function tidyverseError(msg: string) {
   return `${colors.red("✖")} ${msg}`;
 }
 
 export interface ErrorLocation {
   start: {
-    line: number,
-    column: number,
-  },
+    line: number;
+    column: number;
+  };
   end: {
-    line: number,
-    column: number,
-  },
+    line: number;
+    column: number;
+  };
 }
 
 export interface TidyverseError {
-  heading: string,
-  error: string[],
-  info: string[],
-  fileName?: string,
-  location?: ErrorLocation,
-  sourceContext?: string
+  heading: string;
+  error: string[];
+  info: string[];
+  fileName?: string;
+  location?: ErrorLocation;
+  sourceContext?: string;
 }
 
-export function tidyverseFormatError(msg: TidyverseError)
-{
+export function tidyverseFormatError(msg: TidyverseError) {
   let { heading, error, info } = msg;
   if (msg.location) {
     heading = `${locationString(msg.location)} ${heading}`;
@@ -63,41 +60,42 @@ export function tidyverseFormatError(msg: TidyverseError)
   if (msg.fileName) {
     heading = `In file ${msg.fileName} ${heading}`;
   }
-  const strings =
-    [heading,
-     msg.sourceContext,
-     ...error.map(tidyverseError),
-     ...info.map(tidyverseInfo)];
+  const strings = [
+    heading,
+    msg.sourceContext,
+    ...error.map(tidyverseError),
+    ...info.map(tidyverseInfo),
+  ];
   return strings.join("\n");
 }
 
-export function quotedStringColor(msg: string)
-{
+export function quotedStringColor(msg: string) {
   // return colors.rgb24(msg, 0xff7f0e); // d3.schemeCategory10[1]
   return colors.rgb24(msg, 0xbcbd22); // d3.schemeCategory10[8]
 }
 
-export function addFileInfo(msg: TidyverseError, src: MappedString)
-{
+export function addFileInfo(msg: TidyverseError, src: MappedString) {
   if (src.fileName !== undefined) {
     msg.fileName = src.fileName;
   }
 }
 
-export function addInstancePathInfo(msg: TidyverseError, instancePath: string)
-{
-  if (instancePath !== '') {
+export function addInstancePathInfo(msg: TidyverseError, instancePath: string) {
+  if (instancePath !== "") {
     msg.info.push(`The error happened in the field ${instancePath}.`);
   }
 }
 
-export function locationString(loc: ErrorLocation)
-{
+export function locationString(loc: ErrorLocation) {
   const { start, end } = loc;
-  const locStr = (start.line === end.line
-    ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`
-    : `(line ${start.line + 1}, column ${start.column + 
-       1} through line ${end.line + 1}, column ${end.column + 1})`);
+  const locStr =
+    (start.line === end.line
+      ? `(line ${start.line + 1}, columns ${start.column + 1}--${
+        end.column + 1
+      })`
+      : `(line ${start.line + 1}, column ${
+        start.column +
+        1
+      } through line ${end.line + 1}, column ${end.column + 1})`);
   return locStr;
 }
-

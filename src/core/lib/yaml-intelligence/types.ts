@@ -14,7 +14,7 @@ export interface YamlIntelligenceContext {
   code: string | MappedString;
   position: {
     row: number;
-    column: number
+    column: number;
   };
   path: string;
   filetype: "yaml" | "markdown" | "script";
@@ -34,8 +34,7 @@ export interface LocateFromIndentationContext {
   code: string | MappedString;
   position: {
     row: number;
-    column: number
+    column: number;
   };
   line: string;
 }
-

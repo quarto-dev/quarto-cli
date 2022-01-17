@@ -12,8 +12,7 @@ import { convertFromYaml } from "./from-yaml.ts";
 import { schemaPath } from "./utils.ts";
 import { Schema, setSchemaDefinition } from "../lib/schema.ts";
 
-export function getSchemaSchemas(): Record<string, Schema>
-{
+export function getSchemaSchemas(): Record<string, Schema> {
   // deno-lint-ignore no-explicit-any
   const yaml = readYaml(schemaPath("schema.yml")) as Record<string, any>[];
   const dict: Record<string, Schema> = {};
@@ -24,4 +23,3 @@ export function getSchemaSchemas(): Record<string, Schema>
   }
   return dict;
 }
-

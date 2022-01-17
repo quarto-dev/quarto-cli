@@ -5,47 +5,65 @@
 *
 */
 
-import { YAMLSchema, LocalizedError, getVerbatimInput, AnnotatedParse } from "./yaml-schema.ts";
+import {
+  AnnotatedParse,
+  getVerbatimInput,
+  LocalizedError,
+  YAMLSchema,
+} from "./yaml-schema.ts";
 import { PromiseQueue } from "./promise.ts";
 import { Schema } from "./schema.ts";
-import { TidyverseError, quotedStringColor, addFileInfo, addInstancePathInfo } from "./errors.ts";
+import {
+  addFileInfo,
+  addInstancePathInfo,
+  quotedStringColor,
+  TidyverseError,
+} from "./errors.ts";
 
 const yamlValidators: Record<string, YAMLSchema> = {};
 const validatorQueues: Record<string, PromiseQueue<void>> = {};
 
 function checkForTypeMismatch(
-  error: LocalizedError, _parse: AnnotatedParse, _schema: Schema
-)
-{
+  error: LocalizedError,
+  _parse: AnnotatedParse,
+  _schema: Schema,
+) {
   schema = error.ajvError.params.schema;
   const verbatimInput = quotedStringColor(getVerbatimInput(error));
-  
+
   if (error.ajvError.keyword === "type") {
     // console.log(JSON.stringify(error, null, 2));
     const newError: TidyverseError = {
-      heading: `The value ${verbatimInput} must be a ${error.ajvError.params.type}.`,
-      error: [`The value ${verbatimInput} is a ${typeof error.violatingObject.result}.`],
+      heading:
+        `The value ${verbatimInput} must be a ${error.ajvError.params.type}.`,
+      error: [
+        `The value ${verbatimInput} is a ${typeof error.violatingObject
+          .result}.`,
+      ],
       info: [],
-      location: error.niceError.location
+      location: error.niceError.location,
     };
     addInstancePathInfo(newError, error.ajvError.instancePath);
     addFileInfo(newError, error.source);
     return {
       ...error,
-      niceError: newError
+      niceError: newError,
     };
   }
   return error;
 }
 
 function checkForBadBoolean(
-  error: LocalizedError, _parse: AnnotatedParse, schema: Schema
-)
-{
+  error: LocalizedError,
+  _parse: AnnotatedParse,
+  schema: Schema,
+) {
   schema = error.ajvError.params.schema;
-  if (!(typeof error.violatingObject.result === "string" &&
-    error.ajvError.keyword === "type" &&
-    schema?.type === "boolean")) {
+  if (
+    !(typeof error.violatingObject.result === "string" &&
+      error.ajvError.keyword === "type" &&
+      schema?.type === "boolean")
+  ) {
     return error;
   }
   const strValue = error.violatingObject.result;
@@ -65,20 +83,21 @@ function checkForBadBoolean(
 
   const heading = `The value ${verbatimInput} must be a boolean`;
   const errorMessage = `The value ${verbatimInput} is a string.`;
-  const suggestion1 = `Quarto uses YAML 1.2, which interprets booleans strictly.`;
+  const suggestion1 =
+    `Quarto uses YAML 1.2, which interprets booleans strictly.`;
   const suggestion2 = `Try using ${quotedStringColor(String(fix))} instead.`;
   const newError: TidyverseError = {
     heading,
     error: [errorMessage],
     info: [],
-    location: error.niceError.location
+    location: error.niceError.location,
   };
   addInstancePathInfo(newError, error.ajvError.instancePath);
   addFileInfo(newError, error.source);
   newError.info.push(suggestion1, suggestion2);
   return {
     ...error,
-    niceError: newError
+    niceError: newError,
   };
 }
 
@@ -107,7 +126,7 @@ function getValidator(schema: Schema): YAMLSchema {
   // FIXME where do we declare all of the standard validator error handlers?
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);
-  
+
   return validator;
 }
 
@@ -145,11 +164,13 @@ export async function withValidator<T>(
 
 export function addValidatorErrorHandler(
   schema: Schema,
-  handler: (error: LocalizedError,
-            parse: AnnotatedParse,
-            schema: Schema) => LocalizedError
+  handler: (
+    error: LocalizedError,
+    parse: AnnotatedParse,
+    schema: Schema,
+  ) => LocalizedError,
 ) {
   return withValidator(schema, (validator) => {
     validator.addHandler(handler);
-  })
+  });
 }

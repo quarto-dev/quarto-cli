@@ -1,12 +1,11 @@
 /**
-* mapped-text.ts
-*
-* Copyright (C) 2021 by RStudio, PBC
-*
-* FIXME consider making MappedString an actual subclass of String,
-* just with extra fields.
-*
-*/
+ * mapped-text.ts
+ *
+ * Copyright (C) 2021 by RStudio, PBC
+ *
+ * FIXME consider making MappedString an actual subclass of String,
+ * just with extra fields.
+ */
 
 import { glb } from "./binary-search.ts";
 
@@ -64,7 +63,7 @@ This provides a natural composition for mapped strings.
 export function mappedString(
   source: EitherString,
   pieces: StringChunk[],
-  fileName?: string
+  fileName?: string,
 ): MappedString {
   interface OffsetInfo {
     fromSource: boolean;
@@ -184,7 +183,7 @@ export function mappedString(
       originalString,
       map: previousMap,
       mapClosest: previousMapClosest,
-      fileName: previousFileName
+      fileName: previousFileName,
     } = source;
 
     const {
@@ -214,14 +213,14 @@ export function mappedString(
       originalString,
       map: composeMap,
       mapClosest: composeMapClosest,
-      fileName: previousFileName
+      fileName: previousFileName,
     };
   }
 }
 
 export function asMappedString(
   str: EitherString,
-  fileName?: string
+  fileName?: string,
 ): MappedString {
   if (typeof str === "string") {
     return {
@@ -229,10 +228,12 @@ export function asMappedString(
       originalString: str,
       map: (x: number) => x,
       mapClosest: (x: number) => x,
-      fileName
+      fileName,
     };
   } else if (fileName !== undefined) {
-    throw new Error("Internal error: can't change the fileName of an existing MappedString");
+    throw new Error(
+      "Internal error: can't change the fileName of an existing MappedString",
+    );
   } else {
     return str;
   }

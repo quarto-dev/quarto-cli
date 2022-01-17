@@ -14,15 +14,13 @@
 
 import {
   Completion,
+  getSchemaDefinition,
+  hasSchemaDefinition,
   Schema,
   schemaExhaustiveCompletions,
-  getSchemaDefinition,
-  hasSchemaDefinition
 } from "../lib/schema.ts";
 
-import {
-  mergeConfigs
-} from "../config.ts";
+import { mergeConfigs } from "../config.ts";
 
 export const BooleanSchema = {
   "type": "boolean",
@@ -42,11 +40,10 @@ export const IntegerSchema = {
 };
 
 // deno-lint-ignore no-explicit-any
-export function tagSchema(schema: Schema, tags: Record<string, any>): Schema
-{
+export function tagSchema(schema: Schema, tags: Record<string, any>): Schema {
   return {
     ...schema,
-    tags: mergeConfigs(schema?.tags ?? {}, tags)
+    tags: mergeConfigs(schema?.tags ?? {}, tags),
   };
 }
 

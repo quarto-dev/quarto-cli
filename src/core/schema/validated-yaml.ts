@@ -42,7 +42,6 @@ export function readAndValidateYamlFromFile(
   return readAndValidateYamlFromMappedString(contents, schema, errorMessage);
 }
 
-
 export async function readAndValidateYamlFromMappedString(
   mappedYaml: MappedString,
   schema: Schema,

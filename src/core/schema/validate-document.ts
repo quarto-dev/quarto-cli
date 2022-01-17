@@ -74,7 +74,7 @@ export async function validateDocumentFromSource(
   } else {
     firstContentCellIndex = 0;
   }
-    
+
   for (const cell of nb.cells.slice(firstContentCellIndex)) {
     if (
       cell.cell_type === "markdown" ||
@@ -110,6 +110,10 @@ export async function validateDocument(
   }
 
   return validateDocumentFromSource(
-    context.target.markdown, context.engine.name, error, info, context.target.source, 
+    context.target.markdown,
+    context.engine.name,
+    error,
+    info,
+    context.target.source,
   );
 }

@@ -28,12 +28,14 @@ export async function buildSchemaFile(temp: TempContext) {
       engines,
     },
     definitions: getSchemaDefinitionsObject(),
-    aliases: getFormatAliases()
+    aliases: getFormatAliases(),
   };
   const str = JSON.stringify(obj);
   const path = resourcePath("/editor/tools/yaml/quarto-json-schemas.json");
-  
-  const validatorPath = resourcePath("/editor/tools/yaml/standalone-schema-validators.js");
+
+  const validatorPath = resourcePath(
+    "/editor/tools/yaml/standalone-schema-validators.js",
+  );
   const validatorModule = await exportStandaloneValidators(temp);
 
   Deno.writeTextFileSync(validatorPath, validatorModule);

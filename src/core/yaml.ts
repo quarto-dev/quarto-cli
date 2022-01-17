@@ -133,7 +133,7 @@ export async function readAndValidateYamlFromMarkdown(
   if (yaml.length === 0) {
     return {};
   }
-  
+
   const mappedYaml = mappedConcat(yaml);
 
   // parse the yaml
@@ -146,7 +146,7 @@ export async function readAndValidateYamlFromMarkdown(
     // we must validate it, so we go the slow route
     return readAndValidateYamlFromMappedString(
       mappedYaml,
-      (await getFrontMatterSchema()),
+      await getFrontMatterSchema(),
       "YAML front matter validation failed",
     );
   }

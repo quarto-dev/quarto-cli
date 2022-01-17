@@ -12,7 +12,7 @@ import { resourcePath } from "../../resources.ts";
 import { Semaphore } from "../semaphore.ts";
 
 //@ts-ignore: importing from .js makes type-script unhappy
-import { TreeSitter, setWasmBinaryFile } from "../external/tree-sitter-deno.js";
+import { setWasmBinaryFile, TreeSitter } from "../external/tree-sitter-deno.js";
 
 import { initAutomation } from "./yaml-intelligence.ts";
 import { QuartoJsonSchemas, setSchemas } from "./schema-utils.ts";
@@ -21,8 +21,7 @@ import { setValidatorModule } from "./validator-queue.ts";
 
 let _init = false;
 const hasInit = new Semaphore(0);
-export async function init()
-{
+export async function init() {
   if (_init) {
     await hasInit.runExclusive(() => {});
     return;
@@ -30,12 +29,18 @@ export async function init()
   _init = true;
 
   setSchemas(JSON.parse(
-    Deno.readTextFileSync(resourcePath("editor/tools/yaml/quarto-json-schemas.json"))
+    Deno.readTextFileSync(
+      resourcePath("editor/tools/yaml/quarto-json-schemas.json"),
+    ),
   ) as QuartoJsonSchemas);
 
-  setWasmBinaryFile(Deno.readFileSync(resourcePath("editor/tools/yaml/tree-sitter.wasm")));
+  setWasmBinaryFile(
+    Deno.readFileSync(resourcePath("editor/tools/yaml/tree-sitter.wasm")),
+  );
 
-  const validatorModulePath = resourcePath("editor/tools/yaml/standalone-schema-validators.js");
+  const validatorModulePath = resourcePath(
+    "editor/tools/yaml/standalone-schema-validators.js",
+  );
   const validatorModule = (await import(validatorModulePath)).default;
   setValidatorModule(validatorModule);
 
@@ -45,12 +50,14 @@ export async function init()
   await treeSitter.init();
 
   const parser = new treeSitter();
-  const language = await treeSitter.Language.load(resourcePath("editor/tools/yaml/tree-sitter-yaml.wasm"));
+  const language = await treeSitter.Language.load(
+    resourcePath("editor/tools/yaml/tree-sitter-yaml.wasm"),
+  );
   parser.setLanguage(language);
-  
+
   setTreeSitter(parser);
-  
+
   // in Deno, this just needs to be any valid URL. We'll never actually use it.
-  await initAutomation("https://example.com/"); 
+  await initAutomation("https://example.com/");
   hasInit.release();
 }

@@ -19,19 +19,25 @@ import { dirname } from "path/mod.ts";
 let ajvInit = false;
 export async function ensureAjv() {
   if (!ajvInit) {
-    setupAjv(new Ajv({ allErrors: true, inlineRefs: false, verbose: true, code: { optimize: false, source: true } }));
+    setupAjv(
+      new Ajv({
+        allErrors: true,
+        inlineRefs: false,
+        verbose: true,
+        code: { optimize: false, source: true },
+      }),
+    );
     ajvInit = true;
     await loadDefaultSchemaDefinitions();
   }
 }
 
-export async function exportStandaloneValidators(temp: TempContext)
-{
+export async function exportStandaloneValidators(temp: TempContext) {
   await ensureAjv();
   const entries: Record<string, string> = {};
   const defs = getSchemaDefinitionsObject();
   const { standaloneCode } = Ajv;
-  
+
   for (const [key, schema] of Object.entries(defs)) {
     // console.log({ key, id: (schema as any).$id });
     entries[key] = schema.$id;
@@ -43,7 +49,11 @@ export async function exportStandaloneValidators(temp: TempContext)
   // FIXME I don't quite understand why we need esbuild's workingDir
   // to be that of the tempfile but it fails otherwise..
   const result = await esbuildCompile(
-    "", dirname(rawFilePath), ["--minify", rawFilePath], "esm");
+    "",
+    dirname(rawFilePath),
+    ["--minify", rawFilePath],
+    "esm",
+  );
   return result!;
 }
 

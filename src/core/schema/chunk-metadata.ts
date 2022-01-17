@@ -7,77 +7,115 @@
 *
 */
 
-import { LocalizedError, AnnotatedParse } from "../lib/yaml-schema.ts";
+import { AnnotatedParse, LocalizedError } from "../lib/yaml-schema.ts";
 import { Schema } from "../lib/schema.ts";
 import { addValidatorErrorHandler } from "../lib/validator-queue.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
-import { tidyverseFormatError, quotedStringColor, TidyverseError, addFileInfo, addInstancePathInfo } from "../lib/errors.ts";
+import {
+  addFileInfo,
+  addInstancePathInfo,
+  quotedStringColor,
+  TidyverseError,
+  tidyverseFormatError,
+} from "../lib/errors.ts";
 import { defineCached } from "./definitions.ts";
 
 function checkForEqualsInChunk(
-  error: LocalizedError, _parse: AnnotatedParse, _schema: Schema
-)
-{
-  if (typeof error.violatingObject.result !== "string")
+  error: LocalizedError,
+  _parse: AnnotatedParse,
+  _schema: Schema,
+) {
+  if (typeof error.violatingObject.result !== "string") {
     return error;
+  }
   const badObject = error.source.value.substring(
     error.violatingObject.start,
-    error.violatingObject.end);
+    error.violatingObject.end,
+  );
 
-  if (error.ajvError.keyword !== 'type')
+  if (error.ajvError.keyword !== "type") {
     return error;
+  }
   let m;
-  const heading = `${error.location}: ${quotedStringColor(badObject)} must be a YAML mapping.`;
+  const heading = `${error.location}: ${
+    quotedStringColor(badObject)
+  } must be a YAML mapping.`;
   const errorMsg = [`${quotedStringColor(badObject)} is a string.`];
-  
+
   const newError: TidyverseError = {
     heading,
     error: errorMsg,
-    info: []
+    info: [],
   };
   addFileInfo(newError, error.source);
   addInstancePathInfo(newError, error.ajvError.instancePath);
 
   // deno-lint-ignore no-cond-assign
   if (m = badObject.match(/= *TRUE/i)) {
-    newError.info.push(`Try using ${quotedStringColor(": true")} instead of ${quotedStringColor(m[0])}.`);
-  // deno-lint-ignore no-cond-assign
+    newError.info.push(
+      `Try using ${quotedStringColor(": true")} instead of ${
+        quotedStringColor(m[0])
+      }.`,
+    );
+    // deno-lint-ignore no-cond-assign
   } else if (m = badObject.match(/= *FALSE/i)) {
-    newError.info.push(`Try using ${quotedStringColor(": false")} instead of ${quotedStringColor(m[0])}.`);
-  } else if (badObject.match('=')) {
-    newError.info.push(`Try using ${quotedStringColor(":")} instead of ${quotedStringColor("=")}.`);
+    newError.info.push(
+      `Try using ${quotedStringColor(": false")} instead of ${
+        quotedStringColor(m[0])
+      }.`,
+    );
+  } else if (badObject.match("=")) {
+    newError.info.push(
+      `Try using ${quotedStringColor(":")} instead of ${
+        quotedStringColor("=")
+      }.`,
+    );
   } else {
     // it didn't match any, so don't change the error.
     return error;
   }
-  
+
   return {
     ...error,
-    message: tidyverseFormatError(newError)
+    message: tidyverseFormatError(newError),
   };
 }
 
 const makeEngineSchema = (engine: string): Schema =>
-  idSchema(objectRefSchemaFromContextGlob(
-    "cell-*",
-    (field: SchemaField, _path: string) => {
-      const engineTag = field?.tags?.engine;
-      return engineTag === undefined || engineTag === engine;
-    }), `engine-${engine}`);
+  idSchema(
+    objectRefSchemaFromContextGlob(
+      "cell-*",
+      (field: SchemaField, _path: string) => {
+        const engineTag = field?.tags?.engine;
+        return engineTag === undefined || engineTag === engine;
+      },
+    ),
+    `engine-${engine}`,
+  );
 
-const markdownEngineSchema = defineCached(() => makeEngineSchema("markdown"), "engine-markdown");
-const knitrEngineSchema = defineCached(() => makeEngineSchema("markdown"), "engine-knitr");
-const jupyterEngineSchema = defineCached(() => makeEngineSchema("markdown"), "engine-jupyter");
+const markdownEngineSchema = defineCached(
+  () => makeEngineSchema("markdown"),
+  "engine-markdown",
+);
+const knitrEngineSchema = defineCached(
+  () => makeEngineSchema("markdown"),
+  "engine-knitr",
+);
+const jupyterEngineSchema = defineCached(
+  () => makeEngineSchema("markdown"),
+  "engine-jupyter",
+);
 
-export async function getEngineOptionsSchema(): Promise<Record<string, Schema>>
-{
+export async function getEngineOptionsSchema(): Promise<
+  Record<string, Schema>
+> {
   const obj = {
     markdown: await markdownEngineSchema(),
     knitr: await knitrEngineSchema(),
     jupyter: await jupyterEngineSchema(),
   };
-  
+
   // FIXME how does this get to the IDE??
   await addValidatorErrorHandler(obj.knitr, checkForEqualsInChunk);
 

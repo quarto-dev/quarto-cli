@@ -13,10 +13,9 @@ export function memoize(
   // deno-lint-ignore no-explicit-any
   f: (...args: any[]) => any,
   // deno-lint-ignore no-explicit-any
-  keyMemoizer: (...args: any) => string
+  keyMemoizer: (...args: any) => string,
   // deno-lint-ignore no-explicit-any
-): ((...args: any[]) => any)
-{
+): ((...args: any[]) => any) {
   // deno-lint-ignore no-explicit-any
   const memo: Record<string, any> = {};
   // deno-lint-ignore no-explicit-any

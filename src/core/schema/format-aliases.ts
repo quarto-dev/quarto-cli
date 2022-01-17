@@ -15,18 +15,20 @@ import { expandAliasesFrom } from "../lib/schema.ts";
 // deno-lint-ignore no-explicit-any
 let formatAliases: any = undefined;
 
-export function getFormatAliases(): Record<string, string[]>
-{
+export function getFormatAliases(): Record<string, string[]> {
   if (formatAliases !== undefined) {
     return formatAliases;
   }
   // deno-lint-ignore no-explicit-any
-  formatAliases = (readYaml(join(resourcePath(), "schema/format-aliases.yml")) as Record<string, any>).aliases;
+  formatAliases =
+    (readYaml(join(resourcePath(), "schema/format-aliases.yml")) as Record<
+      string,
+      any
+    >).aliases;
   return formatAliases as Record<string, string[]>;
 }
 
-export function getExpandedFormatAliases(): Record<string, string[]>
-{
+export function getExpandedFormatAliases(): Record<string, string[]> {
   const aliases = getFormatAliases();
   const result: Record<string, string[]> = {};
   for (const [key, value] of Object.entries(aliases)) {
@@ -35,7 +37,6 @@ export function getExpandedFormatAliases(): Record<string, string[]>
   return result as Record<string, string[]>;
 }
 
-export function expandFormatAliases(lst: string[])
-{
+export function expandFormatAliases(lst: string[]) {
   return expandAliasesFrom(lst, getFormatAliases());
 }

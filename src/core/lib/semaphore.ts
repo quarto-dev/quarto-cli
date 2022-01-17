@@ -5,12 +5,11 @@
 *
 */
 
-export class Semaphore
-{
+export class Semaphore {
   value: number;
   // deno-lint-ignore no-explicit-any
   tasks: any[];
-  
+
   constructor(value: number) {
     this.value = value;
     this.tasks = [];

@@ -24,8 +24,9 @@ import { cleanupSessionTempDir } from "./temp.ts";
 //   cleanupHandlers.push(handler);
 // }
 
-export async function mainRunner(runner: (() => Promise<unknown>)): Promise<unknown>
-{
+export async function mainRunner(
+  runner: (() => Promise<unknown>),
+): Promise<unknown> {
   try {
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
@@ -48,7 +49,7 @@ export async function mainRunner(runner: (() => Promise<unknown>)): Promise<unkn
     }
     abend();
   }
-  
+
   // we never get here because of Deno.exit() on both sides
   // of the try{} clause, but the typescript compiler doesn't
   // like an async function without a return statement

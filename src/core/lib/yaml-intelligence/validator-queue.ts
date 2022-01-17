@@ -3,7 +3,7 @@
 *
 * FIXME: this has diverged from core/lib/validator-queue because of precompiled validators.
 *
-* Should we remove validator-queue from core/lib? 
+* Should we remove validator-queue from core/lib?
 *
 * Copyright (C) 2021 by RStudio, PBC
 *
@@ -44,21 +44,23 @@ let _module: any;
 
 // not great, but needed escape hatch for the test suite to work in Deno.
 // deno-lint-ignore no-explicit-any
-export function setValidatorModule(mod: any)
-{
+export function setValidatorModule(mod: any) {
   _module = mod;
 }
 
-async function getValidatorModule()
-{
-  if (_module)
+async function getValidatorModule() {
+  if (_module) {
     return _module;
+  }
   const url = getLocalPath("standalone-schema-validators.js");
   _module = (await import(url)).default;
   return _module;
 }
 
-export async function withValidator<T>(schema: Schema, fun: (validator: YAMLSchema) => Promise<T>): Promise<T> {
+export async function withValidator<T>(
+  schema: Schema,
+  fun: (validator: YAMLSchema) => Promise<T>,
+): Promise<T> {
   const schemaName = getSchemaName(schema); // name of schema so we can look it up on the validator cache
   if (validatorQueues[schemaName] === undefined) {
     validatorQueues[schemaName] = new PromiseQueue();

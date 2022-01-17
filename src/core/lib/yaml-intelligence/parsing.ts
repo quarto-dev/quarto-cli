@@ -1,15 +1,18 @@
 /*
 * parsing.ts
-* 
+*
 * Copyright (C) 2022 by RStudio, PBC
 *
 */
 
 import { getLocalPath } from "./paths.ts";
-import { MappedString, mappedString, asMappedString } from "../mapped-text.ts";
+import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { lines, rowColToIndex } from "../text.ts";
-import { YamlIntelligenceContext, LocateFromIndentationContext } from "./types.ts";
+import {
+  LocateFromIndentationContext,
+  YamlIntelligenceContext,
+} from "./types.ts";
 
 // deno-lint-ignore no-explicit-any
 let _parser: any;
@@ -42,7 +45,7 @@ export async function getTreeSitter(): Promise<any> {
 
   // FIXME check if this shouldn't be parameterized somehow.
   const YAML = await Parser.Language.load(
-    getLocalPath("tree-sitter-yaml.wasm")
+    getLocalPath("tree-sitter-yaml.wasm"),
   );
 
   _parser.setLanguage(YAML);
@@ -50,16 +53,19 @@ export async function getTreeSitter(): Promise<any> {
 }
 
 export interface ParseAttemptResult {
-  code: MappedString,
+  code: MappedString;
   // deno-lint-ignore no-explicit-any
-  parse: any,
-  deletions: number
+  parse: any;
+  deletions: number;
 }
 
 // deno-lint-ignore no-explicit-any
-export function* attemptParsesAtLine(context: YamlIntelligenceContext, parser: any): Generator<ParseAttemptResult> {
+export function* attemptParsesAtLine(
+  context: YamlIntelligenceContext,
+  parser: any,
+): Generator<ParseAttemptResult> {
   const {
-    position // row/column of cursor (0-based)
+    position, // row/column of cursor (0-based)
   } = context;
 
   // full contents of the buffer
@@ -179,7 +185,9 @@ export function getYamlIndentTree(code: string) {
   };
 }
 
-export function locateFromIndentation(context: LocateFromIndentationContext): (number | string)[] {
+export function locateFromIndentation(
+  context: LocateFromIndentationContext,
+): (number | string)[] {
   const {
     line, // editing line up to the cursor
     code: mappedCode, // full contents of the buffer

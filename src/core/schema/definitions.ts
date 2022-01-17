@@ -10,13 +10,20 @@ import { convertFromYaml } from "./from-yaml.ts";
 import { idSchema, refSchema } from "./common.ts";
 import { readYaml } from "../yaml.ts";
 import { ensureAjv } from "./yaml-schema.ts";
-import { normalizeSchema, Schema, hasSchemaDefinition, setSchemaDefinition } from "../lib/schema.ts";
+import {
+  hasSchemaDefinition,
+  normalizeSchema,
+  Schema,
+  setSchemaDefinition,
+} from "../lib/schema.ts";
 import { error } from "log/mod.ts";
 import { schemaPath } from "./utils.ts";
 import { buildSchemaResources } from "./from-yaml.ts";
 
-export function defineCached(thunk: () => Promise<Schema>, schemaId: string): (() => Promise<Schema>)
-{
+export function defineCached(
+  thunk: () => Promise<Schema>,
+  schemaId: string,
+): (() => Promise<Schema>) {
   let schema: Schema;
   return async () => {
     await ensureAjv();
@@ -27,12 +34,14 @@ export function defineCached(thunk: () => Promise<Schema>, schemaId: string): ((
       }
       await define(schema);
     }
-    return refSchema(schema!.$id as string, (schema!.description as string) || `be a {schema['$id']}`);
+    return refSchema(
+      schema!.$id as string,
+      (schema!.description as string) || `be a {schema['$id']}`,
+    );
   };
 }
 
-export async function define(schema: Schema)
-{
+export async function define(schema: Schema) {
   await ensureAjv();
   if (!hasSchemaDefinition(schema.$id)) {
     await withValidator(normalizeSchema(schema), (_validator) => {
@@ -41,14 +50,12 @@ export async function define(schema: Schema)
   }
 }
 
-export async function loadDefaultSchemaDefinitions()
-{
+export async function loadDefaultSchemaDefinitions() {
   await loadSchemaDefinitions(schemaPath("definitions.yml"));
   await buildSchemaResources();
 }
 
-export async function loadSchemaDefinitions(file: string)
-{
+export async function loadSchemaDefinitions(file: string) {
   // deno-lint-ignore no-explicit-any
   const yaml = readYaml(file) as any[];
 
