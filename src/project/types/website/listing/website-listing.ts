@@ -15,17 +15,16 @@ import {
   FormatExtras,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
-} from "../../../config/types.ts";
-import { resolvePathGlobs } from "../../../core/path.ts";
-import { inputTargetIndex } from "../../project-index.ts";
-import { ProjectContext } from "../../types.ts";
+} from "../../../../config/types.ts";
+import { resolvePathGlobs } from "../../../../core/path.ts";
+import { inputTargetIndex } from "../../../project-index.ts";
+import { ProjectContext } from "../../../types.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
-  PipelineMarkdown,
-} from "./website-pipeline-md.ts";
-import { renderEjs } from "../../../core/ejs.ts";
-import { resourcePath } from "../../../core/resources.ts";
+} from "../website-pipeline-md.ts";
+import { renderEjs } from "../../../../core/ejs.ts";
+import { resourcePath } from "../../../../core/resources.ts";
 
 // The core listing type
 export interface Listing {
@@ -168,12 +167,27 @@ function markdownHandler(
 ) {
   switch (listing.type) {
     case ListingType.Table:
-      return tableTypeHandler(listing, items);
+      return templateMarkdownHandler(
+        "projects/website/listing/listing-table.ejs.md",
+        listing,
+        items,
+      );
     case ListingType.Grid:
-      return gridTypeHandler(listing, items);
+      // Enable grid on the listing container
+      listing.classes.push("grid");
+
+      return templateMarkdownHandler(
+        "projects/website/listing/listing-grid.ejs.md",
+        listing,
+        items,
+      );
     case ListingType.Cards:
     default:
-      return cardTypeHandler(listing, items);
+      return templateMarkdownHandler(
+        "projects/website/listing/listing-card.ejs.md",
+        listing,
+        items,
+      );
   }
 }
 
@@ -196,93 +210,26 @@ function getListingContainer(doc: Document, listing: Listing) {
   return listingEl;
 }
 
-// The markdown that we'll generate for a card
-const cardMarkdown = (item: ListingItem) => {
-  return renderEjs(
-    resourcePath("projects/website/listing/card.ejs.md"),
-    { item },
-    false,
-  );
-};
-
-const cardTypeHandler = (listing: Listing, items: ListingItem[]) => {
-  const key = (item: ListingItem) => {
-    return `${listing.id}-${item.path}`;
+const templateMarkdownHandler = (
+  template: string,
+  listing: Listing,
+  items: ListingItem[],
+) => {
+  const generateMarkdown = () => {
+    return renderEjs(
+      resourcePath(template),
+      { items },
+      false,
+    );
   };
 
   return {
     getUnrendered() {
-      const unrendered: PipelineMarkdown = { blocks: {} };
-      items.forEach((item) => {
-        if (item.title) {
-          unrendered.blocks![key(item)] = cardMarkdown(item);
-        }
-      });
-      return unrendered;
-    },
-    processRendered(rendered: Record<string, Element>, doc: Document) {
-      const listingEl = getListingContainer(doc, listing);
-      items.forEach((item) => {
-        const renderedEl = rendered[key(item)];
-        if (renderedEl) {
-          for (const child of renderedEl.children) {
-            listingEl?.appendChild(child);
-          }
-        }
-      });
-    },
-  };
-};
-
-// The markdown that we'll generate for a card
-const gridCardMarkdown = (item: ListingItem) => {
-  return renderEjs(
-    resourcePath("projects/website/listing/grid-card.ejs.md"),
-    { item },
-    false,
-  );
-};
-
-const gridTypeHandler = (listing: Listing, items: ListingItem[]) => {
-  const key = (item: ListingItem) => {
-    return `${listing.id}-${item.path}`;
-  };
-
-  return {
-    getUnrendered() {
-      const unrendered: PipelineMarkdown = { blocks: {} };
-      items.forEach((item) => {
-        if (item.title) {
-          unrendered.blocks![key(item)] = gridCardMarkdown(item);
-        }
-      });
-      return unrendered;
-    },
-    processRendered(rendered: Record<string, Element>, doc: Document) {
-      const listingEl = getListingContainer(doc, listing);
-      listingEl?.classList.add("grid");
-
-      items.forEach((item) => {
-        const renderedEl = rendered[key(item)];
-        if (renderedEl) {
-          for (const child of renderedEl.children) {
-            listingEl?.appendChild(child);
-          }
-        }
-      });
-    },
-  };
-};
-
-const tableTypeHandler = (listing: Listing, items: ListingItem[]) => {
-  return {
-    getUnrendered() {
-      const unrendered: PipelineMarkdown = {
+      return {
         blocks: {
-          [listing.id]: tableMarkdown(items),
+          [listing.id]: generateMarkdown(),
         },
       };
-      return unrendered;
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       const listingEl = getListingContainer(doc, listing);
@@ -292,14 +239,6 @@ const tableTypeHandler = (listing: Listing, items: ListingItem[]) => {
       }
     },
   };
-};
-
-const tableMarkdown = (items: ListingItem[]) => {
-  return renderEjs(
-    resourcePath("projects/website/listing/table.ejs.md"),
-    { items },
-    false,
-  );
 };
 
 function resolveListingContents(source: string, listings: Listing[]) {

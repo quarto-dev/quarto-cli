@@ -61,7 +61,7 @@ import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 
 import { defaultProjectType } from "../project-default.ts";
 import { TempContext } from "../../../core/temp.ts";
-import { listingHtmlDependencies } from "./website-listing.ts";
+import { listingHtmlDependencies } from "./listing/website-listing.ts";
 
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
