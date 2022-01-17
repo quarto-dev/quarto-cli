@@ -44,6 +44,11 @@ export async function inputTargetIndex(
     return Promise.resolve(undefined);
   }
 
+  // filter it out if its not in the list of input files
+  if (!project.files.input.includes(Deno.realPathSync(inputFile))) {
+    return Promise.resolve(undefined);
+  }
+
   // check if this can be handled by one of our engines
   const engine = fileExecutionEngine(inputFile);
   if (engine === undefined) {

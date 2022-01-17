@@ -422,12 +422,17 @@ function navigationHtmlPostprocessor(
           link.setAttribute("href", offset + resolved.outputHref + hash);
         } else {
           // if this is a unresolvable markdown/ipynb link then print a warning
-          const targetFile = join(projectOutputDir(project), projRelativeHref);
-          if (
-            engineValidExtensions().includes(extname(targetFile)) &&
-            !safeExistsSync(join(projectOutputDir(project), projRelativeHref))
-          ) {
-            warning("Unable to resolve link target: " + projRelativeHref);
+          if (!safeExistsSync(join(project.dir, projRelativeHref))) {
+            const targetFile = join(
+              projectOutputDir(project),
+              projRelativeHref,
+            );
+            if (
+              engineValidExtensions().includes(extname(targetFile)) &&
+              !safeExistsSync(join(projectOutputDir(project), projRelativeHref))
+            ) {
+              warning("Unable to resolve link target: " + projRelativeHref);
+            }
           }
         }
       }
