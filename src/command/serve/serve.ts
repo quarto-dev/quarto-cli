@@ -6,6 +6,7 @@
 */
 
 import { ProcessResult, processSuccessResult } from "../../core/process.ts";
+import { createTempContext } from "../../core/temp.ts";
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { RunOptions } from "../../execute/types.ts";
@@ -17,14 +18,19 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
   if (engine?.run) {
     const target = await engine.target(options.input, options.quiet);
     if (target) {
-      if (options.render) {
-        const result = await render(target.input, {});
-        if (result.error) {
-          throw result.error;
+      const temp = createTempContext();
+      try {
+        if (options.render) {
+          const result = await render(target.input, { temp });
+          if (result.error) {
+            throw result.error;
+          }
         }
+        await engine.run({ ...options, input: target.input });
+        return processSuccessResult();
+      } finally {
+        temp.cleanup();
       }
-      await engine.run({ ...options, input: target.input });
-      return processSuccessResult();
     }
   }
 

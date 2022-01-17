@@ -14,7 +14,6 @@ import {
   kApplicationJupyterWidgetView,
   kTextHtml,
 } from "../mime.ts";
-import { sessionTempFile } from "../temp.ts";
 import { isDisplayData } from "./display-data.ts";
 import { JupyterNotebook, JupyterOutputDisplayData } from "./jupyter.ts";
 
@@ -81,6 +80,7 @@ export function extractJupyterWidgetDependencies(
 
 export function includesForJupyterWidgetDependencies(
   dependencies: JupyterWidgetDependencies[],
+  tempDir: string,
 ) {
   // combine all of the dependencies
   let haveJavascriptWidgets = false;
@@ -141,8 +141,8 @@ export function includesForJupyterWidgetDependencies(
 
   // create pandoc includes for our head and afterBody
   const widgetTempFile = (lines: string[]) => {
-    const tempFile = sessionTempFile(
-      { prefix: "jupyter-widgets-", suffix: ".html" },
+    const tempFile = Deno.makeTempFileSync(
+      { dir: tempDir, prefix: "jupyter-widgets-", suffix: ".html" },
     );
     Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");
     return tempFile;

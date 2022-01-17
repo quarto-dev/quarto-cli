@@ -43,6 +43,7 @@ export const serveCommand = new Command()
       render: options.render,
       port: options.port,
       host: options.host,
+      tempDir: Deno.makeTempDirSync(),
     });
 
     if (!result.success) {

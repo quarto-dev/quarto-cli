@@ -46,7 +46,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
 import { readLines } from "io/bufio.ts";
-import { sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -100,11 +100,17 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         },
         [kDefaultImageExtension]: "pdf",
       },
-      formatExtras: (_input: string, flags: PandocFlags, format: Format) => {
+      formatExtras: (
+        _input: string,
+        flags: PandocFlags,
+        format: Format,
+        _libDir: string,
+        temp: TempContext,
+      ) => {
         const extras: FormatExtras = {};
 
         // Post processed for dealing with latex output
-        extras.postprocessors = [pdfLatexPostProcessor(flags, format)];
+        extras.postprocessors = [pdfLatexPostProcessor(flags, format, temp)];
 
         // user may have overridden koma, check for that here
         const documentclass = format.metadata[kDocumentClass] as
@@ -211,7 +217,11 @@ const pdfBookExtension: BookExtension = {
 };
 type LineProcessor = (line: string) => string | undefined;
 
-function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
+function pdfLatexPostProcessor(
+  flags: PandocFlags,
+  format: Format,
+  temp: TempContext,
+) {
   return async (output: string) => {
     const lineProcessors: LineProcessor[] = [
       sidecaptionLineProcessor(),
@@ -253,11 +263,11 @@ function pdfLatexPostProcessor(flags: PandocFlags, format: Format) {
       lineProcessors.push(sideNoteLineProcessor());
     }
 
-    await processLines(output, lineProcessors);
+    await processLines(output, lineProcessors, temp);
     if (Object.keys(renderedCites).length > 0) {
       await processLines(output, [
         placePandocBibliographyEntries(renderedCites),
-      ]);
+      ], temp);
     }
   };
 }
@@ -280,9 +290,10 @@ function marginRefs(flags: PandocFlags, format: Format) {
 async function processLines(
   inputFile: string,
   lineProcessors: LineProcessor[],
+  temp: TempContext,
 ) {
   // The temp file we generate into
-  const outputFile = sessionTempFile({ suffix: ".tex" });
+  const outputFile = temp.createFile({ suffix: ".tex" });
   const file = await Deno.open(inputFile);
   try {
     for await (const line of readLines(file)) {

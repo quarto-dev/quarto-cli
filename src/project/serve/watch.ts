@@ -30,6 +30,7 @@ import { PromiseQueue } from "../../core/promise.ts";
 import { render } from "../../command/render/render-shared.ts";
 import { isRStudio } from "../../core/platform.ts";
 import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
+import { createTempContext } from "../../core/temp.ts";
 
 interface WatchChanges {
   config?: boolean;
@@ -139,35 +140,42 @@ export function watchProject(
               rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
             }
             // render
-            const result = await renderQueue.enqueue(() => {
-              if (inputs.length > 1) {
-                return renderProject(
-                  project!,
-                  {
-                    progress: true,
+            const tempContext = createTempContext();
+            try {
+              const result = await renderQueue.enqueue(() => {
+                if (inputs.length > 1) {
+                  return renderProject(
+                    project!,
+                    {
+                      temp: tempContext,
+                      progress: true,
+                      flags,
+                      pandocArgs,
+                    },
+                    inputs,
+                  );
+                } else {
+                  return render(inputs[0], {
+                    temp: tempContext,
                     flags,
-                    pandocArgs,
-                  },
-                  inputs,
-                );
-              } else {
-                return render(inputs[0], {
-                  flags,
-                  pandocArgs: pandocArgs,
-                });
-              }
-            });
+                    pandocArgs: pandocArgs,
+                  });
+                }
+              });
 
-            if (result.error) {
-              if (result.error.message) {
-                logError(result.error);
+              if (result.error) {
+                if (result.error.message) {
+                  logError(result.error);
+                }
+                return undefined;
+              } else {
+                return {
+                  config: false,
+                  output: true,
+                };
               }
-              return undefined;
-            } else {
-              return {
-                config: false,
-                output: true,
-              };
+            } finally {
+              tempContext.cleanup();
             }
           }
         }
@@ -212,6 +220,7 @@ export function watchProject(
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
   const reloadClients = ld.debounce(async (changes: WatchChanges) => {
+    const tempContext = createTempContext();
     try {
       // render project for non-output changes if we aren't aleady rendering on reload
       if (!changes.output && !renderingOnReload) {
@@ -220,6 +229,7 @@ export function watchProject(
           renderProject(
             project,
             {
+              temp: tempContext,
               useFreezer: true,
               devServerReload: true,
               flags,
@@ -277,6 +287,8 @@ export function watchProject(
       devServer.reloadClients(reloadTarget);
     } catch (e) {
       logError(e);
+    } finally {
+      tempContext.cleanup();
     }
   }, 100);
 

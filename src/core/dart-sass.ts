@@ -8,7 +8,7 @@ import { join } from "path/mod.ts";
 
 import { binaryPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
-import { sessionTempFile } from "./temp.ts";
+import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
 
 export function dartSassInstallDir() {
@@ -21,12 +21,13 @@ export async function dartSassVersion() {
 
 export async function dartCompile(
   input: string,
+  temp: TempContext,
   loadPaths?: string[],
   compressed?: boolean,
 ): Promise<string | undefined> {
   // Write the scss to a file
   // We were previously passing it via stdin, but that can be overflowed
-  const inputFilePath = sessionTempFile({ suffix: "scss" });
+  const inputFilePath = temp.createFile({ suffix: "scss" });
   Deno.writeTextFileSync(inputFilePath, input);
   const args = [
     inputFilePath,

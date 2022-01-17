@@ -255,7 +255,7 @@ export const jupyterEngine: ExecutionEngine = {
     let includes: PandocIncludes | undefined;
     let engineDependencies: Record<string, Array<unknown>> | undefined;
     if (options.dependencies) {
-      includes = executeResultIncludes(result.dependencies);
+      includes = executeResultIncludes(options.tempDir, result.dependencies);
     } else {
       const dependencies = executeResultEngineDependencies(result.dependencies);
       if (dependencies) {
@@ -290,6 +290,7 @@ export const jupyterEngine: ExecutionEngine = {
     if (options.dependencies) {
       const includeFiles = includesForJupyterWidgetDependencies(
         options.dependencies as JupyterWidgetDependencies[],
+        options.tempDir,
       );
       if (includeFiles.inHeader) {
         includes[kIncludeInHeader] = [includeFiles.inHeader];
@@ -353,12 +354,14 @@ interface JupyterTargetData {
 }
 
 function executeResultIncludes(
+  tempDir: string,
   widgetDependencies?: JupyterWidgetDependencies,
 ): PandocIncludes | undefined {
   if (widgetDependencies) {
     const includes: PandocIncludes = {};
     const includeFiles = includesForJupyterWidgetDependencies(
       [widgetDependencies],
+      tempDir,
     );
     if (includeFiles.inHeader) {
       includes[kIncludeInHeader] = [includeFiles.inHeader];

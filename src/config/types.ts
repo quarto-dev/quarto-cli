@@ -151,6 +151,7 @@ import {
   kOutputExt,
   kPageWidth,
 } from "./constants.ts";
+import { TempContext } from "../core/temp.ts";
 
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
@@ -256,6 +257,7 @@ export interface Format {
     flags: PandocFlags,
     format: Format,
     libDir: string,
+    temp: TempContext,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (
     file: string,

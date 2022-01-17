@@ -24,7 +24,6 @@ import { info } from "log/mod.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { createSessionTempDir } from "../../core/temp.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 import {
   dirAndStem,
@@ -133,6 +132,7 @@ import { resolveLanguageMetadata } from "../../core/language.ts";
 import { validateDocument } from "../../core/schema/validate-document.ts";
 import { getFrontMatterSchema } from "../../core/schema/front-matter.ts";
 import { renderProgress } from "./render-shared.ts";
+import { createTempContext } from "../../core/temp.ts";
 
 export async function renderFiles(
   files: string[],
@@ -143,6 +143,9 @@ export async function renderFiles(
 ): Promise<RenderFilesResult> {
   // provide default renderer
   pandocRenderer = pandocRenderer || defaultPandocRenderer(options, project);
+
+  // create temp context
+  const tempContext = createTempContext();
 
   try {
     // make a copy of options so we don't mutate caller context
@@ -244,6 +247,8 @@ export async function renderFiles(
       files: (await pandocRenderer.onComplete(true)).files,
       error: error || new Error(),
     };
+  } finally {
+    tempContext.cleanup();
   }
 }
 
@@ -306,31 +311,36 @@ export async function renderFormats(
   to = "all",
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
-  const contexts = await renderContexts(
-    file,
-    { flags: { to } },
-    false,
-    project,
-  );
-  const formats: Record<string, Format> = {};
-  Object.keys(contexts).forEach((formatName) => {
-    // get the format
-    const context = contexts[formatName];
-    const format = context.format;
-    // remove other formats
-    delete format.metadata.format;
-    // remove project level metadata
-    deleteProjectMetadata(format.metadata);
-    // resolve output-file
-    if (!format.pandoc[kOutputFile]) {
-      const [_dir, stem] = dirAndStem(file);
-      format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
-    }
-    // provide engine
-    format.execute[kEngine] = context.engine.name;
-    formats[formatName] = format;
-  });
-  return formats;
+  const tempContext = createTempContext();
+  try {
+    const contexts = await renderContexts(
+      file,
+      { temp: tempContext, flags: { to } },
+      false,
+      project,
+    );
+    const formats: Record<string, Format> = {};
+    Object.keys(contexts).forEach((formatName) => {
+      // get the format
+      const context = contexts[formatName];
+      const format = context.format;
+      // remove other formats
+      delete format.metadata.format;
+      // remove project level metadata
+      deleteProjectMetadata(format.metadata);
+      // resolve output-file
+      if (!format.pandoc[kOutputFile]) {
+        const [_dir, stem] = dirAndStem(file);
+        format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
+      }
+      // provide engine
+      format.execute[kEngine] = context.engine.name;
+      formats[formatName] = format;
+    });
+    return formats;
+  } finally {
+    tempContext.cleanup();
+  }
 }
 
 export async function renderExecute(
@@ -381,6 +391,7 @@ export async function renderExecute(
       const thawedResult = defrostExecuteResult(
         context.target.source,
         output,
+        context.options.temp,
         thaw === true,
       );
       if (thawedResult) {
@@ -415,7 +426,7 @@ export async function renderExecute(
   const executeResult = await context.engine.execute({
     target: context.target,
     resourceDir: resourcePath(),
-    tempDir: createSessionTempDir(),
+    tempDir: context.options.temp.createDir(),
     dependencies: resolveDependencies,
     libDir: context.libDir,
     format: context.format,
@@ -511,7 +522,7 @@ export async function renderPandoc(
         format,
         output: recipe.output,
         resourceDir: resourcePath(),
-        tempDir: createSessionTempDir(),
+        tempDir: context.options.temp.createDir(),
         libDir: context.libDir,
         dependencies: executeResult.engineDependencies[engineName],
         quiet: context.options.flags?.quiet,
@@ -532,6 +543,7 @@ export async function renderPandoc(
     format,
     project: context.project,
     args: recipe.args,
+    temp: context.options.temp,
     metadata: executeResult.metadata,
     quiet,
     flags: context.options.flags,
@@ -555,6 +567,7 @@ export async function renderPandoc(
       target: context.target,
       format,
       output: recipe.output,
+      tempDir: context.options.temp.createDir(),
       preserve: executeResult.preserve,
       quiet: context.options.flags?.quiet,
     });

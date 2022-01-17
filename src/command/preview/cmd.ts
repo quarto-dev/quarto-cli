@@ -20,6 +20,7 @@ import {
   serveProject,
 } from "../../project/serve/serve.ts";
 import { isRStudio } from "../../core/platform.ts";
+import { createTempContext } from "../../core/temp.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -213,14 +214,19 @@ export const previewCommand = new Command()
     // see if we are serving a project or a file
     if (Deno.statSync(file).isDirectory) {
       // project preview
-      await serveProject(file, flags, args, {
-        port: options.port,
-        host: options.host,
-        render: options.render,
-        browse: !!(options.browser && options.browse),
-        watchInputs: options.watchInputs,
-        navigate: options.navigate,
-      });
+      const tempContext = createTempContext();
+      try {
+        await serveProject(file, tempContext, flags, args, {
+          port: options.port,
+          host: options.host,
+          render: options.render,
+          browse: !!(options.browser && options.browse),
+          watchInputs: options.watchInputs,
+          navigate: options.navigate,
+        });
+      } finally {
+        tempContext.cleanup();
+      }
     } else {
       // single file preview
       if (

@@ -104,6 +104,7 @@ import {
   MarkdownPipeline,
 } from "./website-pipeline-md.ts";
 import { engineValidExtensions } from "../../../execute/engine.ts";
+import { TempContext } from "../../../core/temp.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -161,6 +162,7 @@ export async function websiteNavigationExtras(
   source: string,
   flags: PandocFlags,
   format: Format,
+  temp: TempContext,
 ): Promise<FormatExtras> {
   // find the relative path for this input
   const inputRelative = relative(project.dir, source);
@@ -180,7 +182,7 @@ export async function websiteNavigationExtras(
   if (searchDep) {
     dependencies.push(...searchDep);
     sassBundles.push(websiteSearchSassBundle());
-    includeInHeader.push(websiteSearchIncludeInHeader(project, format));
+    includeInHeader.push(websiteSearchIncludeInHeader(project, format, temp));
   }
 
   // Check to see whether the navbar or sidebar have been disabled on this page

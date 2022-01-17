@@ -7,6 +7,7 @@
 
 import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { TempContext } from "../core/temp.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
@@ -32,6 +33,7 @@ export interface ProjectContext {
     source: string,
     flags: PandocFlags,
     format: Format,
+    temp: TempContext,
   ) => Promise<FormatExtras>;
 }
 

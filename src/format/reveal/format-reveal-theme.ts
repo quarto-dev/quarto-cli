@@ -26,6 +26,7 @@ import { kRevealJsUrl } from "./format-reveal.ts";
 import { cssHasDarkModeSentinel } from "../../command/render/pandoc-html.ts";
 import { pandocVariablesToThemeScss } from "../html/format-html-scss.ts";
 import { quartoBaseLayer } from "../html/format-html-shared.ts";
+import { TempContext } from "../../core/temp.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -50,6 +51,7 @@ export async function revealTheme(
   format: Format,
   input: string,
   libDir: string,
+  temp: TempContext,
 ) {
   // metadata override to return
   const metadata: Metadata = {};
@@ -135,7 +137,7 @@ export async function revealTheme(
   };
 
   // compile sass
-  const css = await compileSass([bundleLayers]);
+  const css = await compileSass([bundleLayers], temp);
   Deno.copyFileSync(
     css,
     join(revealDestDir, "dist", "theme", "quarto.css"),

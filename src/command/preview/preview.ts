@@ -46,6 +46,7 @@ import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
+import { createTempContext, TempContext } from "../../core/temp.ts";
 
 interface PreviewOptions {
   port: number;
@@ -67,7 +68,12 @@ export async function preview(
 
   // render for preview (create function we can pass to watcher then call it)
   const render = async () => {
-    return await renderForPreview(file, flags, pandocArgs);
+    const temp = createTempContext();
+    try {
+      return await renderForPreview(file, temp, flags, pandocArgs);
+    } finally {
+      temp.cleanup();
+    }
   };
   const result = await render();
 
@@ -164,11 +170,13 @@ interface RenderForPreviewResult {
 
 async function renderForPreview(
   file: string,
+  temp: TempContext,
   flags: RenderFlags,
   pandocArgs: string[],
 ): Promise<RenderForPreviewResult> {
   // render
   const renderResult = await render(file, {
+    temp,
     flags,
     pandocArgs: pandocArgs,
   });

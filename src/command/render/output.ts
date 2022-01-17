@@ -14,7 +14,7 @@ import { dirAndStem, expandPath } from "../../core/path.ts";
 import { partitionYamlFrontMatter } from "../../core/yaml.ts";
 import { execProcess } from "../../core/process.ts";
 import { pandocBinaryPath } from "../../core/resources.ts";
-import { createSessionTempDir, sessionTempFile } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 
 import {
@@ -151,7 +151,7 @@ export function outputRecipe(
       // output to stdout: direct pandoc to write to a temp file then we'll
       // forward to stdout (necessary b/c a postprocesor may need to act on
       // the output before its complete)
-      updateOutput(sessionTempFile({ suffix: "." + ext }));
+      updateOutput(options.temp.createFile({ suffix: "." + ext }));
       completeActions.push(() => {
         writeFileToStdout(recipe.output);
         Deno.removeSync(recipe.output);
@@ -173,10 +173,11 @@ export function outputRecipe(
 export async function patchHtmlTemplate(
   templateName: string,
   format: Format,
+  temp: TempContext,
   patches?: Array<(template: string) => string>,
   flags?: RenderFlags,
 ) {
-  return await patchTemplate(templateName, (template) => {
+  return await patchTemplate(templateName, temp, (template) => {
     // extract/capture css
     let css = "";
     let patchedTemplate = template.replace(
@@ -319,6 +320,7 @@ function katexScript(url: string) {
 
 async function patchTemplate(
   format: string,
+  temp: TempContext,
   patch: (template: string) => string,
 ) {
   // get the default pandoc template for the format
@@ -332,7 +334,7 @@ async function patchTemplate(
     const patched = patch(result.stdout!);
 
     // write a temp file w/ the patched template
-    const templateDir = createSessionTempDir();
+    const templateDir = temp.createDir();
     const template = await Deno.makeTempFile(
       { suffix: kPatchedTemplateExt, dir: templateDir },
     );

@@ -9,7 +9,7 @@ import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 
 import { quartoCacheDir } from "./appdirs.ts";
-import { sessionTempFile } from "./temp.ts";
+import { TempContext } from "./temp.ts";
 
 import { SassBundleLayers, SassLayer } from "../config/types.ts";
 import { dartCompile } from "./dart-sass.ts";
@@ -44,6 +44,7 @@ export function outputVariable(
 
 export async function compileSass(
   bundles: SassBundleLayers[],
+  temp: TempContext,
   minified = true,
 ) {
   const imports = ld.uniq(bundles.flatMap((bundle) => {
@@ -125,6 +126,7 @@ export async function compileSass(
   return await compileWithCache(
     scssInput,
     loadPaths,
+    temp,
     minified,
     bundles.map((bundle) => bundle.key).join("|") + "-" +
       (minified ? "min" : "nomin"),
@@ -278,6 +280,7 @@ export function sassLayerDir(
 export async function compileWithCache(
   input: string,
   loadPaths: string[],
+  temp: TempContext,
   compressed?: boolean,
   cacheIdentifier?: string,
 ) {
@@ -304,7 +307,7 @@ export async function compileWithCache(
 
     // We need to refresh the cache
     if (writeCache) {
-      const cssOutput = await dartCompile(input, loadPaths, compressed);
+      const cssOutput = await dartCompile(input, temp, loadPaths, compressed);
       if (cssOutput) {
         Deno.writeTextFileSync(outputFilePath, cssOutput || "");
       }
@@ -313,9 +316,14 @@ export async function compileWithCache(
     }
     return outputFilePath;
   } else {
-    const outputFilePath = sessionTempFile({ suffix: "css" });
+    const outputFilePath = temp.createFile({ suffix: "css" });
     // Skip the cache and just compile
-    const cssOutput = await dartCompile(input, ld.uniq(loadPaths), compressed);
+    const cssOutput = await dartCompile(
+      input,
+      temp,
+      ld.uniq(loadPaths),
+      compressed,
+    );
     Deno.writeTextFileSync(outputFilePath, cssOutput || "");
     return outputFilePath;
   }

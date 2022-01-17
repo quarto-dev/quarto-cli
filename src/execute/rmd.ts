@@ -16,7 +16,6 @@ import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { kCodeLink } from "../config/constants.ts";
 
-import { sessionTempFile } from "../core/temp.ts";
 import {
   knitrCapabilities,
   knitrCapabilitiesMessage,
@@ -78,6 +77,7 @@ export const knitrEngine: ExecutionEngine = {
     return callR<ExecuteResult>(
       "execute",
       { ...options, target: undefined, input: options.target.input },
+      options.tempDir,
       options.quiet,
     );
   },
@@ -86,6 +86,7 @@ export const knitrEngine: ExecutionEngine = {
     return callR<DependenciesResult>(
       "dependencies",
       { ...options, target: undefined, input: options.target.input },
+      options.tempDir,
       options.quiet,
     );
   },
@@ -104,6 +105,7 @@ export const knitrEngine: ExecutionEngine = {
           preserve: undefined,
           input: options.target.input,
         },
+        options.tempDir,
         options.quiet,
         false,
       ).then(() => {
@@ -128,6 +130,7 @@ export const knitrEngine: ExecutionEngine = {
     return callR<void>(
       "run",
       options,
+      options.tempDir,
     );
   },
 };
@@ -135,12 +138,13 @@ export const knitrEngine: ExecutionEngine = {
 async function callR<T>(
   action: string,
   params: unknown,
+  tempDir: string,
   quiet?: boolean,
   reportError = true,
 ): Promise<T> {
   // create a temp file for writing the results
-  const resultsFile = sessionTempFile(
-    { prefix: "r-results", suffix: ".json" },
+  const resultsFile = Deno.makeTempFileSync(
+    { dir: tempDir, prefix: "r-results", suffix: ".json" },
   );
 
   const input = JSON.stringify({
