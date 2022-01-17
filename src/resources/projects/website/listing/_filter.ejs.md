@@ -16,7 +16,7 @@ const showSort = listing['show-sort'];
       aria-label="<%- listing.utilities.localizedString("listing-page-order-by")%>"
       onChange="window['quarto-listings']['<%- listing.id %>'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})"
     >
-       <option value="original-value" data-direction="asc">Default</option>
+       <option value="index" data-direction="asc">Default</option>
        <% for (const sortData of listing.utilities.sortableFieldData()) { %>
          <option
           value="<%- sortData.listingSort.field %>"

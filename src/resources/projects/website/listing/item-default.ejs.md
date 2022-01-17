@@ -20,8 +20,7 @@ const outputMetadata = (item, field) => {
 }
 %>
 
-<div class="quarto-post image-<%= imageAlign %>">
-<% partial('\_metadata.ejs.md', {itemNumber, item}) %>
+<div class="quarto-post image-<%= imageAlign %>" <%- listing.utilities.metadataAttrs(item) %>>
 <% if (fields.includes('image')) { %>
 <div class="thumbnail"><% if (item.image) { %>
 <a href="<%- item.path %>" class="post-contents">

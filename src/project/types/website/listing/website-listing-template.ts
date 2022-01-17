@@ -320,6 +320,21 @@ export function reshapeListing(
       }"`;
     }
   };
+  let index = 0;
+  utilities.metadataAttrs = (item: ListingItem) => {
+    const attr: Record<string, string> = {};
+    attr["index"] = (index++).toString();
+    if (item.categories !== undefined) {
+      attr["categories"] = (item.categories as string[]).join(",");
+    }
+
+    const attrs = Object.keys(attr).map((key) => {
+      const value = attr[key];
+      return `data-${key}=${value}`;
+    });
+
+    return attrs.join(" ");
+  };
   utilities.localizedString = (str: string) => {
     const localizedStrings = (format.language as Record<string, string>);
     return localizedStrings[str];
@@ -404,8 +419,8 @@ export function templateJsScript(
     return formatItem(field);
   });
   resolvedColumns.push(
-    `{ attr: 'data-original-value', name: 'original-value'}`,
-    `{ attr: 'data-categories', name: 'categories'}`,
+    `{ data: ['index'] }`,
+    `{ data: ['categories'] }`,
   );
 
   const rowJs = `[${resolvedColumns.join(",")}]`;

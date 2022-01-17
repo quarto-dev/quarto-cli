@@ -34,17 +34,14 @@ return listing.utilities.outputLink(item, field, value);
 </tr>
 </thead>
 <tbody class="list">
-<% let itemNumber = 0 %>
-<% let includeMeta = true %>
 <% for (item of items) { %>
-<tr>
+<tr <%- listing.utilities.metadataAttrs(item) %>>
 <% for (const field of fields){ %>
 <td class="<%- field %><%-listing.utilities.sortClass(field) %>"<%=listing.utilities.sortAttr(item, field)%>>
-<% if (includeMeta) { %><% partial('\_metadata.ejs.md', {itemNumber: itemNumber++, item}) %><% includeMeta = false %><% } %><%= outputValue(field) %>
+<%= outputValue(field) %>
 </td>
 <% } %>
 </tr>
-<% includeMeta = true %>
 <% } %>
 </tbody>
 </table>
