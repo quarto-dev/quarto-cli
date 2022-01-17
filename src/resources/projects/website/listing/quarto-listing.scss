@@ -40,6 +40,25 @@ ul.pagination {
   font-size: 0.8em;
 }
 
+// Category styling
+#quarto-margin-sidebar {
+  .quarto-listing-category {
+    padding-top: 0;
+  }
+  .quarto-listing-category-title {
+    font-weight: 600;
+  }
+}
+
+.quarto-listing-category {
+  .category {
+    cursor: pointer;
+  }
+  .category.active {
+    font-weight: 600;
+  }
+}
+
 // Grid Listing Styling
 .quarto-grid-item {
   h4.title {

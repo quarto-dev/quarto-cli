@@ -9,15 +9,15 @@ const showSort = listing["show-sort"] !== false;
 const imgHeight = listing['image-height'];
 
 const outputValue = (field) => {
-  let value = item[field];
-  if (field === "image") {
-    if (item.image) {
-      value = `<img src="${item[field]}" ${imgHeight ? ` height="${imgHeight}"` : ''}>`;
-    } else {
-      value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight}px;"` : '' }>&nbsp;</div>`;
-    }
-  }
-  return listing.utilities.outputLink(item, field, value);
+let value = item[field];
+if (field === "image") {
+if (item.image) {
+value = `<img src="${item[field]}" ${imgHeight ? ` height="${imgHeight}"` : ''}>`;
+} else {
+value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight}px;"` : '' }>&nbsp;</div>`;
+}
+}
+return listing.utilities.outputLink(item, field, value);
 }
 %>
 
@@ -34,21 +34,17 @@ const outputValue = (field) => {
 </tr>
 </thead>
 <tbody class="list">
-<% let counter = 0 %>
+<% let itemNumber = 0 %>
+<% let includeMeta = true %>
 <% for (item of items) { %>
-<% let originalCls = "original-value " %>
-<% let originalAttr = ` data-original-value='${counter++}'` %>
 <tr>
 <% for (const field of fields){ %>
-<td class="<%- originalCls %><%- field %><%-listing.utilities.sortClass(field) %>"<%= originalAttr %><%=listing.utilities.sortAttr(item, field)%>>
-<%= outputValue(field) %>
+<td class="<%- field %><%-listing.utilities.sortClass(field) %>"<%=listing.utilities.sortAttr(item, field)%>>
+<% if (includeMeta) { %><% partial('\_metadata.ejs.md', {itemNumber: itemNumber++, item}) %><% includeMeta = false %><% } %><%= outputValue(field) %>
 </td>
-  <% 
-  originalCls = "";
-  originalAttr = "";
-  %>
 <% } %>
 </tr>
+<% includeMeta = true %>
 <% } %>
 </tbody>
 </table>

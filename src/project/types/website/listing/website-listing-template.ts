@@ -405,6 +405,7 @@ export function templateJsScript(
   });
   resolvedColumns.push(
     `{ attr: 'data-original-value', name: 'original-value'}`,
+    `{ attr: 'data-categories', name: 'categories'}`,
   );
 
   const rowJs = `[${resolvedColumns.join(",")}]`;
@@ -418,6 +419,10 @@ export function templateJsScript(
 
     window['quarto-listings'] = window['quarto-listings'] || {};
     window['quarto-listings']['${id}'] = new List('${id}', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
   });
   `;
   return jsScript;

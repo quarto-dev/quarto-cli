@@ -29,12 +29,18 @@ import { kIncludeInHeader } from "../../../../config/constants.ts";
 import { sessionTempFile } from "../../../../core/temp.ts";
 import { sassLayer } from "../../../../core/sass.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
-import { Listing, ListingItem, ListingType } from "./website-listing-shared.ts";
+import {
+  Listing,
+  ListingDescriptor,
+  ListingItem,
+  ListingType,
+} from "./website-listing-shared.ts";
 import {
   templateJsScript,
   templateMarkdownHandler,
 } from "./website-listing-template.ts";
 import { readListings } from "./website-listing-read.ts";
+import { categorySidebar } from "./website-listing-categories.ts";
 
 export async function listingHtmlDependencies(
   source: string,
@@ -43,21 +49,21 @@ export async function listingHtmlDependencies(
   _extras: FormatExtras,
 ) {
   // Read and resolve listings from the metadata
-  const elaboratedListings = await readListings(source, project, format);
+  const listingDescriptors = await readListings(source, project, format);
 
   // If there no listings, don't inject the dependencies
-  if (elaboratedListings.length === 0) {
+  if (listingDescriptors.length === 0) {
     return undefined;
   }
 
   // Create the markdown pipeline for this set of listings
   const markdownHandlers: MarkdownPipelineHandler[] = [];
-  elaboratedListings.forEach((listingItem) => {
+  listingDescriptors.forEach((listingDescriptor) => {
     markdownHandlers.push(
       markdownHandler(
         format,
-        listingItem.listing,
-        listingItem.items,
+        listingDescriptor.listing,
+        listingDescriptor.items,
       ),
     );
   });
@@ -70,6 +76,7 @@ export async function listingHtmlDependencies(
   const kListingDependency = "quarto-listing";
   const jsPaths = [
     resourcePath("projects/website/listing/list.min.js"),
+    resourcePath("projects/website/listing/quarto-listing.js"),
   ];
   const htmlDependencies: FormatDependency[] = [{
     name: kListingDependency,
@@ -82,7 +89,7 @@ export async function listingHtmlDependencies(
   }];
 
   // Generate the inline script tags that configure list.js
-  const scripts = elaboratedListings.map((listingItem) => {
+  const scripts = listingDescriptors.map((listingItem) => {
     return templateJsScript(
       listingItem.listing.id,
       listingItem.listing,
@@ -98,9 +105,7 @@ export async function listingHtmlDependencies(
     // Do any other processing of the document
     listingPostProcess(
       doc,
-      elaboratedListings.map((elaboratedListing) => {
-        return elaboratedListing.listing;
-      }),
+      listingDescriptors,
     );
 
     // No resource references to add
@@ -172,14 +177,23 @@ function markdownHandler(
   }
 }
 
-function listingPostProcess(doc: Document, listings: Listing[]) {
+function listingPostProcess(
+  doc: Document,
+  listingDescriptors: ListingDescriptor[],
+) {
+  const { headingEl, categoriesEl } = categorySidebar(doc, listingDescriptors);
+  const rightSidebar = doc.getElementById(kMarginSidebarId);
+  rightSidebar?.appendChild(headingEl);
+  rightSidebar?.appendChild(categoriesEl);
+
   // Check for whether this page had sidebars and choose column as appropriate
   const defaultColumn = suggestColumn(doc);
+  console.log(defaultColumn);
 
   // Move each listing to the correct column
   let titleColumn: string | undefined = undefined;
-  listings.forEach((listing) => {
-    const userColumn = listing[kPageColumn] as string;
+  listingDescriptors.forEach((listingDescriptor) => {
+    const userColumn = listingDescriptor.listing[kPageColumn] as string;
     const targetColumn = userColumn ? `column-${userColumn}` : defaultColumn;
     if (titleColumn === undefined) {
       titleColumn = targetColumn;

@@ -26,7 +26,7 @@ return !["title", "image", "card-cap-text", "date", "author", "subtitle", "descr
 
 
 <div class="<%-`g-col-lg-${cardColumnSpan}`%> <%-`g-col-md-${cardColumnSpanMd}`%> g-col-24">
-<span class="original-value" data-original-value="${itemNumber}" style="display:none;"></span>
+<% partial('\_metadata.ejs.md', {itemNumber, item}) %>
 <div class="quarto-grid-item card h-100 <%-`card-${align}`%>">
 <% if (fields.includes('image')) { %>
 <% if (item.image) { %><p class="card-img-top"><img src="<%- item.image %>"<%= imgHeight ? ` height="${imgHeight}"` : '' %> class="thumbnail-image card-img"></p>
