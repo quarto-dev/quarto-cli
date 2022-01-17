@@ -1,4 +1,6 @@
 // deno-lint-ignore-file
+// deno-fmt-ignore-file
+//
 // tree-sitter-deno.js
 //
 // A quixotic attempt at a deno version of tree-sitter, based on the
