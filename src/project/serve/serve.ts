@@ -440,7 +440,11 @@ export async function serveProject(
   ) {
     (async () => {
       for await (const { request, respondWith } of Deno.serveHttp(conn)) {
-        respondWith(handler(request));
+        try {
+          respondWith(handler(request));
+        } catch (err) {
+          warning(err.message);
+        }
       }
     })();
   }
