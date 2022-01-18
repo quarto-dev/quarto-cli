@@ -28,7 +28,6 @@ function checkForTypeMismatch(
   _parse: AnnotatedParse,
   _schema: Schema,
 ) {
-  schema = error.ajvError.params.schema;
   const verbatimInput = quotedStringColor(getVerbatimInput(error));
 
   if (error.ajvError.keyword === "type") {
