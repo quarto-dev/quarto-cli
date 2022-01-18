@@ -18,9 +18,9 @@ latex-makeindex: texindy
 
 Document Language: \languagename
 
-\faApple is an apple!
+\faAirbnb is an apple!
 
-\faicon{audio-description}
+\faIcon{accusoft}
 
 This should test bibliography \index{Bibliography} generation [@adami2020]. I also think that @allaire has a good point here, but he can also be a clown \index{Clowns} from time to time.
 
