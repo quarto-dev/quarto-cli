@@ -43,6 +43,15 @@ ul.pagination {
   font-size: 0.8em;
 }
 
+.column-page-left {
+  div[class^="quarto-listing-"],
+  div[class*=" quarto-listing-"],
+  .listing-actions-group,
+  nav {
+    padding-right: 20px;
+  }
+}
+
 // Category styling
 #quarto-margin-sidebar {
   .quarto-listing-category {
@@ -246,7 +255,7 @@ div.quarto-post {
     flex-grow: 1;
     flex-shrink: 0;
 
-    h3.title {
+    h3.listing-title {
       margin-top: 0px;
       margin-bottom: 0px;
       border-bottom: none;

@@ -192,17 +192,18 @@ function listingPostProcess(
 
   // Move each listing to the correct column
   let titleColumn: string | undefined = undefined;
-  listingDescriptors.forEach((listingDescriptor) => {
+  for (const listingDescriptor of listingDescriptors) {
     const userColumn = listingDescriptor.listing[kPageColumn] as string;
-    const targetColumn = userColumn ? `column-${userColumn}` : defaultColumn;
-    if (titleColumn === undefined) {
-      titleColumn = targetColumn;
+    if (userColumn !== undefined) {
+      titleColumn = `column-${userColumn}`;
+      break;
     }
-  });
+  }
 
   // Move the main content element to the correct column
   const mainEl = doc.querySelector("main.content");
   if (mainEl) {
+    console.log(titleColumn || defaultColumn);
     mainEl.classList.add(titleColumn || defaultColumn);
   }
 }
@@ -214,14 +215,24 @@ const kMarginSidebarId = "quarto-margin-sidebar";
 // Suggests a default column by inspecting sidebars
 // if there are none or some, take up the extra space!
 function suggestColumn(doc: Document) {
-  const leftSidebar = doc.getElementById(kSidebarId);
-  const rightSidebar = doc.getElementById(kMarginSidebarId);
+  const hasContents = (id: string) => {
+    const el = doc.getElementById(id);
+    if (el) {
+      return el.innerText.trim() !== "";
+    } else {
+      return false;
+    }
+  };
+
+  const leftSidebar = hasContents(kSidebarId);
+  const rightSidebar = hasContents(kMarginSidebarId);
+
   if (leftSidebar && rightSidebar) {
     return "column-body";
-  } else if (leftSidebar && leftSidebar.innerText.trim() !== "") {
+  } else if (leftSidebar) {
     return "column-page-right";
-  } else if (rightSidebar && rightSidebar.innerText.trim() !== "") {
-    return "columm-page-left";
+  } else if (rightSidebar) {
+    return "column-page-left";
   } else {
     return "column-page";
   }
