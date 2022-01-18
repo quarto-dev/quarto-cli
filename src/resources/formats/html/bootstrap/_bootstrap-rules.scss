@@ -250,6 +250,13 @@ body.docked {
 }
 
 .column-page {
+  grid-column: page-start / page-end;
+  z-index: $zindex-pagelayout;
+  transform: translate3d(0, 0, 0);
+  @include column-spanning-element();
+}
+
+.column-page-inset {
   grid-column: page-start-inset / page-end-inset;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
