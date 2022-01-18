@@ -12,7 +12,7 @@ export function categorySidebar(
   doc: Document,
   listingDescriptors: ListingDescriptor[],
 ) {
-  // TODO LOCALIZE
+  // TODO: Localize
   // The heading
   const headingEl = doc.createElement("h5");
   headingEl.innerText = "Categories";
@@ -23,6 +23,7 @@ export function categorySidebar(
   const categoriesEl = categoryContainer(doc);
 
   // Add an 'All' category
+  // TODO: Localize
   const allEl = categoryElement(doc, itemCount(listingDescriptors), "All", "");
   categoriesEl.appendChild(allEl);
 

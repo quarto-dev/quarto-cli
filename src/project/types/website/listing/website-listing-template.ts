@@ -104,40 +104,47 @@ export function templateMarkdownHandler(
     },
   );
 
-  // For built in templates, provide the listing and items
-  // For custom templates, provide only the list of items
-  const ejsParams: Record<string, unknown> = {
-    items: reshapedItems,
-  };
-  ejsParams.listing = reshapeListing(listing, format);
-  if (listing.type === ListingType.Custom) {
-    if (listing.template) {
-      ejsParams.template = relative(template, listing.template);
+  const reshapedListing = reshapeListing(listing, format);
+
+  const paramsForType = (type: ListingType) => {
+    // For built in templates, provide the listing and items
+    // For custom templates, provide only the list of items
+    const ejsParams: Record<string, unknown> = {
+      items: reshapedItems,
+    };
+
+    if (type !== ListingType.Custom) {
+      ejsParams.listing = reshapedListing;
     } else {
-      throw new Error(
-        "To use a custom listing type, you must provide a template.",
-      );
+      ejsParams["metadataAttrs"] = reshapedListing.utilities.metadataAttrs;
     }
-  }
+    return ejsParams;
+  };
 
   // Render the filter
   const filterRendered = renderEjs(
     resourcePath("projects/website/listing/_filter.ejs.md"),
-    ejsParams,
+    {
+      items: reshapedItems,
+      listing: reshapedListing,
+    },
     false,
   );
 
   // Render the template
   const templateRendered = renderEjs(
     template,
-    ejsParams,
+    paramsForType(listing.type),
     false,
   );
 
   // Render the pagination
   const paginationRendered = renderEjs(
     resourcePath("projects/website/listing/_pagination.ejs.md"),
-    ejsParams,
+    {
+      items: reshapedItems,
+      listing: reshapedListing,
+    },
     false,
   );
 
@@ -226,13 +233,17 @@ export function resolveItemForTemplate(
   }
 }
 
+export interface ReshapedListing extends Listing {
+  utilities: Record<string, unknown>;
+}
+
 // Options may also need computation / resolution before being handed
 // off to the template. This function will do any computation on the options
 // so they're ready for the template
 export function reshapeListing(
   listing: Listing,
   format: Format,
-) {
+): ReshapedListing {
   const reshaped = cloneDeep(listing) as Listing;
   if (reshaped.type === ListingType.Grid) {
     // Compute the bootstrap column span of each card
@@ -294,7 +305,7 @@ export function reshapeListing(
       } else {
         const sortField = useSortTarget(listing, field)
           ? sortAttrValue(field)
-          : field;
+          : `listing-${field}`;
         fieldSortData.push({
           listingSort: {
             field: sortField,
@@ -358,7 +369,7 @@ export function reshapeListing(
     return localizedStrings[str];
   };
   reshaped.utilities = utilities;
-  return reshaped;
+  return reshaped as ReshapedListing;
 }
 
 function sortAttrValue(field: string) {
