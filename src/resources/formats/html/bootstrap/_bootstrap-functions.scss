@@ -19,9 +19,9 @@
   $white: rgb(255, 255, 255) !default;
 
   @if tone($bgColor) == "light" {
-    @return accessibleContrast($color, $black, $bgColor);
+    @return accessibleContrast($color, $black, $bgColor, $level);
   } @else {
-    @return accessibleContrast($color, $white, $bgColor);
+    @return accessibleContrast($color, $white, $bgColor, $level);
   }
 }
 

@@ -251,8 +251,7 @@ function createChangeHandler(
   }, 50);
 
   const sync = (result: RenderForPreviewResult) => {
-    const requiresSync = !watcher || !lastResult ||
-      !ld.isEqual(result, lastResult);
+    const requiresSync = !watcher || resultRequiresSync(result, lastResult);
     lastResult = result;
     if (requiresSync) {
       if (watcher) {
@@ -340,8 +339,6 @@ function previewWatcher(watches: Watch[]): Watcher {
         }
       } catch (e) {
         logError(e);
-      } finally {
-        watchForChanges();
       }
     }
   };
@@ -457,4 +454,16 @@ function pdfFileRequestHandler(
 
 function pdfReloadFiles(result: RenderForPreviewResult) {
   return [result.outputFile];
+}
+
+function resultRequiresSync(
+  result: RenderForPreviewResult,
+  lastResult?: RenderForPreviewResult,
+) {
+  if (!lastResult) {
+    return true;
+  }
+  return result.file !== lastResult.file ||
+    result.outputFile !== lastResult.outputFile ||
+    !ld.isEqual(result.resourceFiles, lastResult.resourceFiles);
 }
