@@ -231,6 +231,14 @@ export function locateFromIndentation(
         // we're indented deeper than the previous indent: Locate through that.
         lineNo = prev;
         continue;
+      } else if (prevIndent > lineIndent) {
+        // we're indented shallower than the previous indent. We need
+        // to locate through the first line that's shallower than us:
+        do {
+          prev--;
+        } while (prev >= 0 && (ls[prev].trim().length === 0 || getIndent(ls[prev]) >= lineIndent));
+        lineNo = prev;
+        continue;
       }
     }
     if (lineIndent >= indentation[lineNo]) {
