@@ -7,7 +7,8 @@ const showSort = listing['show-sort'];
 
 ```{=html}
 <div class="listing-actions-group">
-  <% if (showSort) { %>
+  <% const sortableFields = listing.utilities.sortableFieldData(); %>
+  <% if (showSort && sortableFields.length > 0) { %>
    <div class="input-group input-group-sm quarto-listing-sort">
      <span class="input-group-text" id="basic-addon1"><i class="bi bi-sort-down"></i></span>
      <select
@@ -17,7 +18,7 @@ const showSort = listing['show-sort'];
       onChange="window['quarto-listings']['<%- listing.id %>'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})"
     >
        <option value="index" data-direction="asc">Default</option>
-       <% for (const sortData of listing.utilities.sortableFieldData()) { %>
+       <% for (const sortData of sortableFields) { %>
          <option
           value="<%- sortData.listingSort.field %>"
           data-direction="<%- sortData.listingSort.direction %>">
@@ -26,6 +27,7 @@ const showSort = listing['show-sort'];
        <% } %>
      </select>
   </div>
+
 
   <% } %>
 
