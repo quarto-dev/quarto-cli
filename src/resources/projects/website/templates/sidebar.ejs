@@ -78,6 +78,7 @@ if (sidebar.title && !navbar) {
       <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
   <% } %>
 
+  <% if (sidebar.contents.length > 0) { %> 
   <div class="sidebar-menu-container"> 
   <ul class="list-unstyled mt-1">
   <% sidebar.contents.forEach(item => { %>
@@ -85,5 +86,6 @@ if (sidebar.title && !navbar) {
   <% }) %>
   </ul>
   </div>
+  <% } %>
 
 </nav>
