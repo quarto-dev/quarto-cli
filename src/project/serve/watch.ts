@@ -5,7 +5,14 @@
 *
 */
 
-import { extname, globToRegExp, join, relative, SEP } from "path/mod.ts";
+import {
+  dirname,
+  extname,
+  globToRegExp,
+  join,
+  relative,
+  SEP,
+} from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -36,6 +43,7 @@ import { isRStudio } from "../../core/platform.ts";
 import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { engineIgnoreDirs } from "../../execute/engine.ts";
+import { asArray } from "../../core/array.ts";
 
 interface WatchChanges {
   config?: boolean;
@@ -322,11 +330,25 @@ export function watchProject(
   }
 
   // initalize watchers
-  computeWatchers(project).forEach((watcherOptions) => {
-    const watcher = Deno.watchFs(watcherOptions.paths, watcherOptions.options);
+  const runWatcher = (watcherOptions: WatcherOptions) => {
+    const watchPaths = asArray(watcherOptions.paths);
+    const watcher = Deno.watchFs(watchPaths, watcherOptions.options);
     const watchForChanges = async () => {
       for await (const event of watcher) {
         try {
+          // if a new directory within a non-recursive watch is created then watch it recursively
+          // (note that the top-level directory is watched non-recursively so that we don't pick
+          // up hidden dirs, venv/renv dirs, etc.)
+          if (event.kind === "create" && !watcherOptions.options?.recursive) {
+            event.paths.forEach((path) => {
+              if (existsSync(path) && Deno.statSync(path).isDirectory) {
+                if (watchPaths.some((p) => p === dirname(path))) {
+                  runWatcher({ paths: path, options: { recursive: true } });
+                }
+              }
+            });
+          }
+
           // see if we need to handle this
           const result = await handleWatchEvent(event);
           if (result) {
@@ -338,7 +360,8 @@ export function watchProject(
       }
     };
     watchForChanges();
-  });
+  };
+  computeWatchers(project).forEach(runWatcher);
 
   // return watcher interface
   return Promise.resolve({
