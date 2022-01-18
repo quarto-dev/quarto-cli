@@ -13,6 +13,7 @@ import {
   attemptParsesAtLine,
   getTreeSitter,
   locateFromIndentation,
+  getYamlPredecessors
 } from "./parsing.ts";
 
 import { getSchemas, navigateSchema } from "./schema-utils.ts";
@@ -145,7 +146,10 @@ export async function validationFromGoodParseYAML(
     return [];
   });
 
-  return result;
+  const predecessors = getYamlPredecessors(code.value, context.position.row - 1);
+
+  // keep only the lints that are not in the predecessor path of the cursor
+  return result.filter(lint => predecessors.indexOf(lint["start.row"] - 1) === -1);
 }
 
 async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
@@ -616,6 +620,7 @@ async function automationFromGoodParseMarkdown(
 
       linesSoFar += adjustedCellSize(cell);
     }
+    
     return lints;
   }
 }

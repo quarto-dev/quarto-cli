@@ -10,8 +10,10 @@
     contexts: [document-execute]
   schema:
     anyOf:
-      - boolean
-      - enum: [fenced]
+      schemas:
+        - boolean
+        - enum: [fenced]
+      errorDescription: "be `true`, `false`, or `fenced`"
   description: |
     Include cell source code in rendered output. Specify `fenced` to include the cell delimiter 
     as part of the output.

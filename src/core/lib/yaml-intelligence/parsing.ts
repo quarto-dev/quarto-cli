@@ -145,6 +145,16 @@ function getIndent(l: string) {
   return l.length - l.trimStart().length;
 }
 
+export function getYamlPredecessors(code: string, row: number) {
+  const yamlIndentTree = getYamlIndentTree(code).predecessor;
+  const result = [];
+  while (row !== undefined && row !== -1 && row >= 0 && row < yamlIndentTree.length) {
+    result.push(row);
+    row = yamlIndentTree[row];
+  }
+  return result;
+}
+
 export function getYamlIndentTree(code: string) {
   const ls = lines(code);
   const predecessor: number[] = [];

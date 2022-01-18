@@ -26,7 +26,6 @@ unitTest("yaml-intelligence-unit-regression", async () => {
     const { kind, context, expected, expectedLength } = JSON.parse(Deno.readTextFileSync(fileName));
     const result = await getAutomation(kind, context);
 
-    console.log({kind, context, result});
     assert(result !== null);
     
     if (expected !== undefined) {

@@ -24,7 +24,7 @@ import { mergeConfigs } from "../config.ts";
 
 export const BooleanSchema = {
   "type": "boolean",
-  "description": "be a boolean value",
+  "description": "be `true` or `false`",
   "completions": ["true", "false"],
   "exhaustiveCompletions": true,
 };
@@ -86,7 +86,7 @@ export function enumSchema(...args: string[]) {
   return {
     "enum": args,
     "description": args.length > 1
-      ? `be one of: ${args.map((x) => "'" + x + "'").join(", ")}`
+      ? `be one of: ${args.map((x) => "`" + x + "`").join(", ")}`
       : `be '${args[0]}'`,
     "completions": args,
     "exhaustiveCompletions": true,

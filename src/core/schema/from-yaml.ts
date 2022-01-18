@@ -68,7 +68,6 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
 
   // FIXME in YAML schema, we call it description
   // in the JSON objects, we call that "documentation"
-
   if (yaml.description) {
     if (typeof yaml.description === "string") {
       schema = documentSchema(schema, yaml.description);
@@ -76,9 +75,13 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
       schema = documentSchema(schema, yaml.description.short);
     }
   }
-
+ 
   // make shallow copy so that downstream can assign to it
   const result = Object.assign({}, schema);
+
+  if (yaml.errorDescription) {
+    result.description = yaml.errorDescription;
+  }
 
   return result;
 }
