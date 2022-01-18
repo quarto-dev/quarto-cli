@@ -94,7 +94,6 @@ else
   export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/deno_dom/libplugin.so
 fi
 
-QUARTO_DENO_EXTRA_OPTIONS=""
 QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi --v8-flags=--noopt"
 
 ${SCRIPT_PATH}/deno ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_TARGET} "$@"
