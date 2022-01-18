@@ -19,6 +19,9 @@ ul.pagination {
 
 .listing-actions-group {
   display: flex;
+  .input-group-text {
+    background-color: $body-bg;
+  }
 }
 
 .quarto-listing-filter {
