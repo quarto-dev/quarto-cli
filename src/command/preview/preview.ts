@@ -340,8 +340,6 @@ function previewWatcher(watches: Watch[]): Watcher {
         }
       } catch (e) {
         logError(e);
-      } finally {
-        watchForChanges();
       }
     }
   };
