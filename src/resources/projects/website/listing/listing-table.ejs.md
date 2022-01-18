@@ -21,8 +21,6 @@ return listing.utilities.outputLink(item, field, value);
 }
 %>
 
-<% partial('\_filter.ejs.md', {listing}) %>
-
 <table class="quarto-listing-table table">
 <thead>
 <tr>
@@ -45,5 +43,3 @@ return listing.utilities.outputLink(item, field, value);
 <% } %>
 </tbody>
 </table>
-
-<% partial('\_pagination.ejs.md', {listing, items}) %>

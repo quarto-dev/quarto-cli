@@ -5,6 +5,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { relative } from "path/mod.ts";
 import { format as formatDate } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { cloneDeep, escape } from "../../../../core/lodash.ts";
@@ -37,6 +38,7 @@ import {
   kSortAsc,
   kSortDesc,
 } from "./website-listing-read.ts";
+import { resourcePath } from "../../../../core/resources.ts";
 
 export const kDateFormat = "date-format";
 
@@ -107,15 +109,41 @@ export function templateMarkdownHandler(
   const ejsParams: Record<string, unknown> = {
     items: reshapedItems,
   };
-  if (listing.type !== ListingType.Custom) {
-    ejsParams.listing = reshapeListing(listing, format);
+  ejsParams.listing = reshapeListing(listing, format);
+  if (listing.type === ListingType.Custom) {
+    if (listing.template) {
+      ejsParams.template = relative(template, listing.template);
+    } else {
+      throw new Error(
+        "To use a custom listing type, you must provide a template.",
+      );
+    }
   }
 
-  // Render the template into markdown
-  const markdown = renderEjs(
+  // Render the filter
+  const filterRendered = renderEjs(
+    resourcePath("projects/website/listing/_filter.ejs.md"),
+    ejsParams,
+    false,
+  );
+
+  // Render the template
+  const templateRendered = renderEjs(
     template,
     ejsParams,
     false,
+  );
+
+  // Render the pagination
+  const paginationRendered = renderEjs(
+    resourcePath("projects/website/listing/_pagination.ejs.md"),
+    ejsParams,
+    false,
+  );
+
+  // Render the template into markdown
+  const markdown = [filterRendered, templateRendered, paginationRendered].join(
+    "\n",
   );
 
   const pipelineId = (id: string) => {
