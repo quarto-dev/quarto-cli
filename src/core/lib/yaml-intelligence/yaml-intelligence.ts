@@ -325,7 +325,7 @@ export interface CompletionResult {
   completions: Completion[];
   cacheable: boolean;
 }
-w;
+
 
 async function completions(obj: CompletionContext): Promise<CompletionResult> {
   const {
