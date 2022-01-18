@@ -191,7 +191,7 @@ export function objectSchema(params: {
       "";
     completions.push({
       type: "key",
-      display: k,
+      display: "", // attempt to not show completion title.
       value: `${k}: `,
       description,
       suggest_on_accept: valueS && schemaExhaustiveCompletions(valueS),

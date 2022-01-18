@@ -7,10 +7,10 @@
 import { expandGlobSync } from "fs/mod.ts";
 import { unitTest } from "../../test.ts";
 
-import { assertEquals } from "testing/asserts.ts";
+import { assert, assertEquals } from "testing/asserts.ts";
 
 import { init } from "../../../src/core/lib/yaml-intelligence/deno-init.ts";
-import { getAutomation } from "../../../src/core/lib/yaml-intelligence/yaml-intelligence.ts";
+import { getAutomation, CompletionResult } from "../../../src/core/lib/yaml-intelligence/yaml-intelligence.ts";
 
 unitTest("yaml-intelligence-smoke-regression", async () => {
   await init();
@@ -23,8 +23,20 @@ unitTest("yaml-intelligence-smoke-regression", async () => {
 unitTest("yaml-intelligence-unit-regression", async () => {
   await init();
   for (const { path: fileName } of expandGlobSync("smoke/yaml-intelligence/checks/*.json")) {
-    const { kind, context, expected } = JSON.parse(Deno.readTextFileSync(fileName));
+    const { kind, context, expected, expectedLength } = JSON.parse(Deno.readTextFileSync(fileName));
     const result = await getAutomation(kind, context);
-    assertEquals(result, expected);
+
+    console.log({kind, context, result});
+    assert(result !== null);
+    
+    if (expected !== undefined) {
+      assertEquals(result, expected);
+    }
+    
+    if (kind === "completions") {
+      if (expectedLength !== undefined) {
+        assertEquals((result as CompletionResult).completions.length, expectedLength);
+      }
+    }
   }
 });

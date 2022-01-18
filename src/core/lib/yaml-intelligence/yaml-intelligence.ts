@@ -317,7 +317,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     }
   }
 
-  return false;
+  return noCompletions;
 }
 
 export interface CompletionResult {
@@ -326,6 +326,31 @@ export interface CompletionResult {
   cacheable: boolean;
 }
 
+const noCompletions = {
+  token: "",
+  completions: [],
+  cacheable: false
+};
+
+// a minimal uniqBy implementation so we don't need to pull in
+// the entirety of lodash.
+//
+// if keyFun returns undefined, elements are considered unique
+function uniqBy<T>(lst: T[], keyFun: (item: T) => (string | undefined)): T[]
+{
+  const itemSet = new Set<string>();
+  return lst.filter(item => {
+    const key = keyFun(item);
+    if (key === undefined) {
+      return true;
+    }
+    if (itemSet.has(key)) {
+      return false;
+    }
+    itemSet.add(key);
+    return true;
+  });
+}
 
 async function completions(obj: CompletionContext): Promise<CompletionResult> {
   const {
@@ -336,7 +361,9 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
     commentPrefix,
     context,
   } = obj;
-  const matchingSchemas = await navigateSchema(schema, path);
+  const matchingSchemas = uniqBy(
+    await navigateSchema(schema, path),
+    (schema: Schema) => schema.$id);
   const { aliases } = await getSchemas();
   const formats = [
     ...Array.from(context.formats),
@@ -345,7 +372,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
   ].filter((x) => aliases["pandoc-all"].indexOf(x) !== -1);
 
   // indent mappings and sequences automatically
-  const completions = matchingSchemas.map((schema) => {
+  let completions = matchingSchemas.map((schema) => {
     const result = schemaCompletions(schema);
     return result.map((completion) => {
       // we only change indentation on keys
@@ -452,6 +479,9 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
     });
   // completions.sort((a, b) => a.value.localeCompare(b.value));
 
+  // uniqBy the final completions array on their completion values.
+  
+  completions = uniqBy(completions, (completion) => completion.value);
   return {
     // token to replace
     token: word,
@@ -468,7 +498,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
 async function automationFromGoodParseMarkdown(
   kind: AutomationKind,
   context: YamlIntelligenceContext,
-) {
+): Promise<CompletionResult | ValidationResult[]> {
   const {
     position,
     line,
@@ -502,7 +532,7 @@ async function automationFromGoodParseMarkdown(
       }
     }
     if (foundCell === undefined) {
-      return false;
+      return noCompletions;
     }
     if (foundCell.cell_type === "raw") {
       const schema = (await getSchemas()).schemas["front-matter"];
@@ -517,7 +547,7 @@ async function automationFromGoodParseMarkdown(
       };
       // user asked for autocomplete on "---": report none
       if (positionInTicks(context)) {
-        return false;
+        return noCompletions;
       }
       context = trimTicks(context);
 
@@ -528,7 +558,7 @@ async function automationFromGoodParseMarkdown(
       );
     } else if (foundCell.cell_type === "markdown") {
       // we're inside a markdown, no completions
-      return false;
+      return noCompletions;
     } else if (foundCell.cell_type.language) {
       return automationFromGoodParseScript(kind, {
         ...context,
@@ -594,10 +624,10 @@ async function automationFromGoodParseMarkdown(
 async function automationFromGoodParseYAML(
   kind: AutomationKind,
   context: YamlIntelligenceContext,
-) {
+): Promise<CompletionResult | ValidationResult[]> {
   // user asked for autocomplete on "---": report none
   if ((kind === "completions") && positionInTicks(context)) {
-    return false;
+    return noCompletions;
   }
 
   // RStudio sends us here in Visual Editor mode for the YAML front matter
@@ -610,7 +640,7 @@ async function automationFromGoodParseYAML(
     if (kind === "validation") {
       return [];
     } else {
-      return false;
+      return noCompletions;
     }
   }
 
@@ -625,7 +655,7 @@ async function automationFromGoodParseYAML(
 async function automationFromGoodParseScript(
   kind: AutomationKind,
   context: YamlIntelligenceContext,
-) {
+): Promise<CompletionResult | ValidationResult[]> {
   const codeLines = rangedLines(asMappedString(context.code).value);
   let language;
   let codeStartLine;
@@ -634,12 +664,20 @@ async function automationFromGoodParseScript(
     if (codeLines.length < 2) {
       // need both language and code to autocomplete. length < 2 implies
       // we're missing one of them at least: skip.
-      return false;
+      if (kind === "completions") {
+        return noCompletions;
+      } else {
+        return [];
+      }
     }
     const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
     if (!m) {
-      // couldn't recognize language in script, return false
-      return false;
+      // couldn't recognize language in script, return no intelligence
+      if (kind === "completions") {
+        return noCompletions;
+      } else {
+        return [];
+      }
     }
     codeStartLine = 1;
     language = m[1];
@@ -662,7 +700,7 @@ async function automationFromGoodParseScript(
 
   if (yaml === undefined) {
     if (kind === "completions") {
-      return false;
+      return noCompletions;
     } else {
       return [];
     }
