@@ -211,6 +211,10 @@ function hydrateListing(
   const defaultLinks = listing.type === ListingType.Table
     ? kDefaultFieldLinks
     : [];
+  // Custom doesn't get filtering and sorting unless sort fields are defined
+  // or it is explicitly enabled
+  const enableFilterAndSort = listing.type !== ListingType.Custom ||
+    listing[kFieldsSort] !== undefined;
 
   const listingHydrated: Listing = {
     fields,
@@ -220,8 +224,8 @@ function hydrateListing(
     [kFieldsSort]: defaultSort,
     [kFieldsRequired]: kDefaultFieldRequired,
     [kRowCount]: 100,
-    [kShowFilter]: listing.type !== ListingType.Custom,
-    [kShowSort]: listing.type !== ListingType.Custom,
+    [kShowFilter]: enableFilterAndSort,
+    [kShowSort]: enableFilterAndSort,
     ...listing,
   };
 
