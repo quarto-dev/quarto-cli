@@ -220,8 +220,8 @@ function hydrateListing(
     [kFieldsSort]: defaultSort,
     [kFieldsRequired]: kDefaultFieldRequired,
     [kRowCount]: 100,
-    [kShowFilter]: true,
-    [kShowSort]: true,
+    [kShowFilter]: listing.type !== ListingType.Custom,
+    [kShowSort]: listing.type !== ListingType.Custom,
     ...listing,
   };
 
