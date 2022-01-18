@@ -6,7 +6,7 @@ format: pdf
 bibliography: references.bib
 cite-method: natbib
 header-includes: |
-  \usepackage{fontawesome}
+  \usepackage{fontawesome5}
   \usepackage{sansmath}
   \usepackage{makeidx}
   \makeindex
@@ -34,6 +34,7 @@ $$
 \end{sansmath}
 \newpage
 ```
+
 # Section 2
 
 Vestibulum \index{Latin}velit nisi, dapibus id cursus sit amet, tempor id ex. Duis gravida, dui a semper commodo, ligula mauris efficitur leo, mattis porttitor dui dolor vitae leo. Maecenas ullamcorper, nisi viverra consequat elementum, augue risus porttitor lectus, in accumsan nulla nibh id sapien. Cras augue odio, venenatis in euismod id, ultricies id lectus. Duis commodo velit elit. Sed sed finibus massa. Sed volutpat varius magna ac viverra. Aliquam a aliquam arcu, non consequat nunc. Curabitur egestas, urna vel pellentesque efficitur, elit justo viverra urna, et posuere urna nibh id purus. Praesent accumsan molestie sem, at feugiat\index{feugiat} velit aliquet ut. Integer libero felis, volutpat non eros vitae, lacinia venenatis risus.
