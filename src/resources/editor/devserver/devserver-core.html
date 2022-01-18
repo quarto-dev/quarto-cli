@@ -596,82 +596,84 @@
   
 
 <script type="text/javascript">
-  const logEntries = new Array(1000);
-  logEntries.offset = 0;
-  function recordLogEntry(entry) {
-    logEntries[logEntries.offset++] = entry;
-    logEntries.offset %= logEntries.length;
-  }
-  function getLogEntry(i) { // backwards, 0 is most recent
-      return logEntries[(logEntries.offset - 1 - i + logEntries.length) % logEntries.length];
-  }
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  let path = window.location.pathname;
-  if (!/\/$/.test(path)) path += "/";
-  const devServerSocket = new WebSocket(protocol + "//" + window.location.host + path);
-  devServerSocket.onopen = () => {
-    console.log('Socket connection open. Listening for events.');
-  };
-  function showError(msg) {
-    const ansiUp = new AnsiUp
-    const html = ansiUp.ansi_to_html(msg.trim());
-    const display = document.getElementById("quarto-log-error-display");
-    display.innerHTML = html;
-    MicroModal.show('quarto-log-error-modal', {
-      awaitCloseAnimation: true
-    });
-  }
-  // see if there is already an error to show
-  const renderError = document.getElementById("quarto-render-error");
-  if (renderError) {
-    showError(renderError.innerHTML.trim());
-  }
-  devServerSocket.onmessage = (msg) => {
-    if (msg.data.startsWith('reload')) {
-      devServerSocket.close();
-      let target = msg.data.replace(/^reload/, "").replace(/index\.html$/, "");
-      // prepend proxy path to target if we have one
-      if (target) {
-        const pathPrefix = 
-          window.location.pathname.match(/^.*?\/p\/\w+\//) ||
-          window.location.pathname.match(/^.*?\/user\/[\w\d]+\/proxy\/\d+\//);
-        if (pathPrefix) {
-          target = pathPrefix + target.slice(1);
-        }
-      }
-      if (target && (target !== window.location.pathname)) {
-        window.location.replace(target);
-      } else {
-        window.location.reload(true);
-      }
-    } else if (msg.data.startsWith('log:')) {
+  (function f() {
+    const logEntries = new Array(1000);
+    logEntries.offset = 0;
+    function recordLogEntry(entry) {
+      logEntries[logEntries.offset++] = entry;
+      logEntries.offset %= logEntries.length;
+    }
+    function getLogEntry(i) { // backwards, 0 is most recent
+        return logEntries[(logEntries.offset - 1 - i + logEntries.length) % logEntries.length];
+    }
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    let path = window.location.pathname;
+    if (!/\/$/.test(path)) path += "/";
+    const devServerSocket = new WebSocket(protocol + "//" + window.location.host + path);
+    devServerSocket.onopen = () => {
+      console.log('Socket connection open. Listening for events.');
+    };
+    function showError(msg) {
       const ansiUp = new AnsiUp
-      const log = JSON.parse(msg.data.substr(4));
-      recordLogEntry(log);
-      if (log.levelName === "ERROR") {
-        showError(log.msgFormatted)
-      } else {
-        // see if there is a knitr error to report
-        const kExecutionHalted = "Execution halted";
-        if (log.msg.indexOf(kExecutionHalted) !== -1) {
-          // scan backwards for beginning of error
-          const errorEntries = [getLogEntry(0).msgFormatted];
-          for (let i=1; i<logEntries.length; i++) {
-            const logEntry = getLogEntry(i);
-            if (logEntry) {
-              errorEntries.unshift(logEntry.msgFormatted);
-              if (logEntry.msg.indexOf("Quitting from lines") !== -1) {
-                showError(errorEntries.join(""));
-                break;
-              } else if (logEntry.msg.indexOf(kExecutionHalted) !== -1) {
+      const html = ansiUp.ansi_to_html(msg.trim());
+      const display = document.getElementById("quarto-log-error-display");
+      display.innerHTML = html;
+      MicroModal.show('quarto-log-error-modal', {
+        awaitCloseAnimation: true
+      });
+    }
+    // see if there is already an error to show
+    const renderError = document.getElementById("quarto-render-error");
+    if (renderError) {
+      showError(renderError.innerHTML.trim());
+    }
+    devServerSocket.onmessage = (msg) => {
+      if (msg.data.startsWith('reload')) {
+        devServerSocket.close();
+        let target = msg.data.replace(/^reload/, "").replace(/index\.html$/, "");
+        // prepend proxy path to target if we have one
+        if (target) {
+          const pathPrefix = 
+            window.location.pathname.match(/^.*?\/p\/\w+\//) ||
+            window.location.pathname.match(/^.*?\/user\/[\w\d]+\/proxy\/\d+\//);
+          if (pathPrefix) {
+            target = pathPrefix + target.slice(1);
+          }
+        }
+        if (target && (target !== window.location.pathname)) {
+          window.location.replace(target);
+        } else {
+          window.location.reload(true);
+        }
+      } else if (msg.data.startsWith('log:')) {
+        const ansiUp = new AnsiUp
+        const log = JSON.parse(msg.data.substr(4));
+        recordLogEntry(log);
+        if (log.levelName === "ERROR") {
+          showError(log.msgFormatted)
+        } else {
+          // see if there is a knitr error to report
+          const kExecutionHalted = "Execution halted";
+          if (log.msg.indexOf(kExecutionHalted) !== -1) {
+            // scan backwards for beginning of error
+            const errorEntries = [getLogEntry(0).msgFormatted];
+            for (let i=1; i<logEntries.length; i++) {
+              const logEntry = getLogEntry(i);
+              if (logEntry) {
+                errorEntries.unshift(logEntry.msgFormatted);
+                if (logEntry.msg.indexOf("Quitting from lines") !== -1) {
+                  showError(errorEntries.join(""));
+                  break;
+                } else if (logEntry.msg.indexOf(kExecutionHalted) !== -1) {
+                  break;
+                }
+              } else {
                 break;
               }
-            } else {
-              break;
             }
           }
         }
       }
-    }
-  };
+    };
+  })();
 </script>
