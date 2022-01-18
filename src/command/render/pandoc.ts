@@ -565,7 +565,7 @@ export async function runPandoc(
   cmd.push(...pandocArgs);
 
   // print full resolved input to pandoc
-  if (!options.quiet) {
+  if (!options.quiet && !options.flags?.quiet) {
     runPandocMessage(
       printArgs,
       printAllDefaults,

@@ -5,12 +5,23 @@
 *
 */
 
-import { extname, join, relative } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import {
+  dirname,
+  extname,
+  globToRegExp,
+  join,
+  relative,
+  SEP,
+} from "path/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
+import {
+  kSkipHidden,
+  pathWithForwardSlashes,
+  removeIfExists,
+} from "../../core/path.ts";
 import { md5Hash } from "../../core/hash.ts";
 
 import { logError } from "../../core/log.ts";
@@ -31,6 +42,8 @@ import { render } from "../../command/render/render-shared.ts";
 import { isRStudio } from "../../core/platform.ts";
 import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
 import { createTempContext } from "../../core/temp.ts";
+import { engineIgnoreDirs } from "../../execute/engine.ts";
+import { asArray } from "../../core/array.ts";
 
 interface WatchChanges {
   config?: boolean;
@@ -316,24 +329,39 @@ export function watchProject(
     setTimeout(pollForOutputChange, kPollingInterval);
   }
 
-  // watch project dir recursively
-  const watcher = Deno.watchFs(project.dir, { recursive: true });
-  const watchForChanges = async () => {
-    for await (const event of watcher) {
-      try {
-        // see if we need to handle this
-        const result = await handleWatchEvent(event);
-        if (result) {
-          await reloadClients(result);
+  // initalize watchers
+  const runWatcher = (watcherOptions: WatcherOptions) => {
+    const watchPaths = asArray(watcherOptions.paths);
+    const watcher = Deno.watchFs(watchPaths, watcherOptions.options);
+    const watchForChanges = async () => {
+      for await (const event of watcher) {
+        try {
+          // if a new directory within a non-recursive watch is created then watch it recursively
+          // (note that the top-level directory is watched non-recursively so that we don't pick
+          // up hidden dirs, venv/renv dirs, etc.)
+          if (event.kind === "create" && !watcherOptions.options?.recursive) {
+            event.paths.forEach((path) => {
+              if (existsSync(path) && Deno.statSync(path).isDirectory) {
+                if (watchPaths.some((p) => p === dirname(path))) {
+                  runWatcher({ paths: path, options: { recursive: true } });
+                }
+              }
+            });
+          }
+
+          // see if we need to handle this
+          const result = await handleWatchEvent(event);
+          if (result) {
+            await reloadClients(result);
+          }
+        } catch (e) {
+          logError(e);
         }
-      } catch (e) {
-        logError(e);
-      } finally {
-        watchForChanges();
       }
-    }
+    };
+    watchForChanges();
   };
-  watchForChanges();
+  computeWatchers(project).forEach(runWatcher);
 
   // return watcher interface
   return Promise.resolve({
@@ -351,6 +379,55 @@ export function watchProject(
       return serveProject;
     },
   });
+}
+
+interface WatcherOptions {
+  paths: string | string[];
+  options?: { recursive: boolean };
+}
+
+function computeWatchers(project: ProjectContext): Array<WatcherOptions> {
+  // enumerate top-level directories that aren't automatically ignored
+  const projectDirs: string[] = [];
+  for (
+    const walk of walkSync(
+      project.dir,
+      {
+        includeDirs: true,
+        includeFiles: false,
+        maxDepth: 1,
+        followSymlinks: false,
+        skip: [kSkipHidden].concat(
+          engineIgnoreDirs().map((ignore: string) =>
+            globToRegExp(join(project.dir, ignore) + SEP)
+          ),
+        ),
+      },
+    )
+  ) {
+    if (walk.path !== project.dir) {
+      projectDirs.push(walk.path);
+    }
+  }
+
+  // how many are there? if there are < 30 then we'll watch each one (thus sparing
+  // the system from having to recursively watch a bunch of hidden or venv
+  // directories). if there are > 30 we could run afowl of system file watch
+  // limits so we use just one watch at the root level
+  if (projectDirs.length <= 30) {
+    return [{
+      paths: project.dir,
+      options: { recursive: false },
+    }, {
+      paths: projectDirs,
+      options: { recursive: true },
+    }];
+  } else {
+    return [{
+      paths: project.dir,
+      options: { recursive: true },
+    }];
+  }
 }
 
 async function preventReload(
