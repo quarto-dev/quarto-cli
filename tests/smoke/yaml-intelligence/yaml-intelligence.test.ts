@@ -16,7 +16,11 @@ unitTest("yaml-intelligence-smoke-regression", async () => {
   await init();
   for (const { path: fileName } of expandGlobSync("smoke/yaml-intelligence/crashes/*.json")) {
     const { kind, context } = JSON.parse(Deno.readTextFileSync(fileName));
-    await getAutomation(kind, context);
+    try {
+      await getAutomation(kind, context);
+    } catch (_e) {
+      assert(false, "Smoke assertion failed");
+    }
   }
 });
 

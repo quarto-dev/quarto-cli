@@ -24,12 +24,12 @@ export function buildAnnotated(
   mappedSource: MappedString,
 ): AnnotatedParse | null {
   const singletonBuild = (node: TreeSitterNode) => {
-    return buildNode(node.firstChild);
+    return buildNode(node.firstChild, node.endIndex);
   };
-  const buildNode = (node: TreeSitterNode): AnnotatedParse => {
+  const buildNode = (node: TreeSitterNode, endIndex?: number): AnnotatedParse => {
     if (node === null) {
       // This can come up with parse errors
-      return annotateEmpty(node.endIndex);
+      return annotateEmpty(endIndex === undefined ? -1 : endIndex);
     }
     if (dispatch[node.type] === undefined) {
       throw new Error(
@@ -96,7 +96,7 @@ export function buildAnnotated(
         if (child.type !== "block_sequence_item") {
           continue;
         }
-        const component = buildNode(child);
+        const component = buildNode(child, node.endIndex);
         components.push(component);
         result.push(component && component.result);
       }
@@ -106,7 +106,7 @@ export function buildAnnotated(
       if (node.childCount < 2) {
         return annotateEmpty(node.endIndex);
       } else {
-        return buildNode(node.child(1));
+        return buildNode(node.child(1), node.endIndex);
       }
     },
     "double_quote_scalar": (node) => {
@@ -150,7 +150,7 @@ export function buildAnnotated(
         if (child.type !== "flow_node") {
           continue;
         }
-        const component = buildNode(child);
+        const component = buildNode(child, node.endIndex);
         components.push(component);
         result.push(component.result);
       }
@@ -176,7 +176,7 @@ export function buildAnnotated(
             `Internal error: Expected a block_mapping_pair, got ${child.type} instead.`,
           );
         } else {
-          component = buildNode(child);
+          component = buildNode(child, node.endIndex);
         }
         const { key, value } = component.result;
         // FIXME what do we do in the presence of parse errors that result empty keys?
@@ -191,7 +191,7 @@ export function buildAnnotated(
       if (node.childCount === 3) {
         // when three children exist, we assume a good parse
         key = annotate(node.child(0), node.child(0).text, []);
-        value = buildNode(node.child(2));
+        value = buildNode(node.child(2), node.endIndex);
       } else if (node.childCount === 2) {
         // when two children exist, we assume a bad parse with missing value
         key = annotate(node.child(0), node.child(0).text, []);
@@ -209,7 +209,7 @@ export function buildAnnotated(
     },
   };
 
-  const result = buildNode(tree.rootNode);
+  const result = buildNode(tree.rootNode, tree.rootNode.endIndex);
 
   // some tree-sitter "error-tolerant parses" are particularly bad
   // for us here. We must guard against "partial" parses where
