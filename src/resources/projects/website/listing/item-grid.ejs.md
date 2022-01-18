@@ -35,20 +35,20 @@ return !["title", "image", "card-cap-text", "date", "author", "subtitle", "descr
 <% } %>
 <% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %>
 <div class="card-body"><a href="<%- item.path %>" class="post-contents">
-<% if (showField('title')) { %><h5 class="no-anchor card-title"><%= listing.utilities.outputLink(item, 'title') %></h5><% } %>
+<% if (showField('title')) { %><h5 class="no-anchor card-title listing-title"><%= listing.utilities.outputLink(item, 'title') %></h5><% } %>
 <% if (showField('subtitle')) { %>
-<div class="card-subtitle"><%= listing.utilities.outputLink(item, 'subtitle') %></div>
+<div class="card-subtitle listing-subtitle"><%= listing.utilities.outputLink(item, 'subtitle') %></div>
 <% } %>
 <% if (showField('description')) { %>
-<div class="card-text description"><%= item.description %></div>
+<div class="card-text listing-description"><%= item.description %></div>
 <% } %>
 <% 
 const flexJustify = showField('author') && showField('date') ? "justify" : showField('author') ? "start" : "end";
 %>
 <% if (showField('author') || showField('date')) { %>
 <div class="card-attribution card-text-small <%-flexJustify%>">
-<% if (showField('author')) { %><div class="author"><%= item.author %></div><% } %>
-<% if (showField('date')) { %><div class="date"><%= item.date %></div><% } %></div>
+<% if (showField('author')) { %><div class="listing-author"><%= item.author %></div><% } %>
+<% if (showField('date')) { %><div class="listing-date"><%= item.date %></div><% } %></div>
 <% } %>
 
 <% if (otherFields.length > 0) { %>
@@ -68,12 +68,12 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 <% if (fields.includes('filename') || fields.includes('filemodified')) { %>
 <div class="card-footer text-muted">
 <% if (fields.includes('filename')) { %>
-<div class="card-filename">
+<div class="card-filename listing-filename">
 <%= item.filename ? listing.utilities.outputLink(item, 'filename') : "&nbsp;" %>
 </div>
 <% } %>
 <% if (fields.includes('filemodified')) { %>
-<div class="card-filemodified">
+<div class="card-filemodified listing-filemodified">
 <%= item.filemodified ? listing.utilities.outputLink(item, 'filemodified') : "&nbsp;"%>
 </div>
 <% } %>

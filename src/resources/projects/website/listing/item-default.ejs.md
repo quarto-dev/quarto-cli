@@ -15,7 +15,7 @@ const otherFields = fields.filter(field => {
 // Writes a metadata value
 const outputMetadata = (item, field) => {
   if (item[field] !== undefined) {
-    print(`<div class="metadata-value">${listing.utilities.outputLink(item, field)}</div>`);  
+    print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLink(item, field)}</div>`);  
   } 
 }
 %>
@@ -31,14 +31,14 @@ const outputMetadata = (item, field) => {
 </div>
 <% } %>
 <div class="body"><a href="<%- item.path %>" class="post-contents"><% if (fields.includes('title')) { %>
-<h3 class="no-anchor title"><%= item.title %></h3>
+<h3 class="no-anchor listing-title"><%= item.title %></h3>
 <% } %>
-<% if (fields.includes('description')) { %><p class="description">
+<% if (fields.includes('description')) { %><p class="listing-description">
 <%= item.description %>
 </p><% } %></a></div>
 <div class="metadata">
-<% if (fields.includes('date') && item.date) { %><div class="date"><%= item.date %></div><% } %>
-<% if (fields.includes('author') && item.author) { %><div class="author"><%= item.author %></div><% } %>
+<% if (fields.includes('date') && item.date) { %><div class="listing-date"><%= item.date %></div><% } %>
+<% if (fields.includes('author') && item.author) { %><div class="listing-author"><%= item.author %></div><% } %>
 <% for (const field of otherFields) { %>
 <% outputMetadata(item, field) %>
 <% } %>

@@ -334,7 +334,7 @@ export function reshapeListing(
 }
 
 function sortAttrValue(field: string) {
-  return `${field}-sort`;
+  return `listing-${field}-sort`;
 }
 
 const useSortTarget = (listing: Listing, field: string) => {
@@ -377,7 +377,7 @@ export function templateJsScript(
     : "";
 
   const resolvedColumns = columns.map((field) => {
-    return `'${field}'`;
+    return `'listing-${field}'`;
   });
   resolvedColumns.push(
     `{ data: ['index'] }`,

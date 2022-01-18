@@ -37,7 +37,7 @@ return listing.utilities.outputLink(item, field, value);
 <% for (item of items) { %>
 <tr <%= listing.utilities.metadataAttrs(item) %>>
 <% for (const field of fields){ %>
-<td class="<%- field %>">
+<td class="listing-<%- field %>">
 <%= outputValue(field) %>
 </td>
 <% } %>
