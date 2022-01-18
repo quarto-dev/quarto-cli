@@ -21,12 +21,24 @@ export function categorySidebar(
   // The categories
   const cats = accumCategories(listingDescriptors);
   const categoriesEl = categoryContainer(doc);
+
+  // Add an 'All' category
+  const allEl = categoryElement(doc, itemCount(listingDescriptors), "All", "");
+  categoriesEl.appendChild(allEl);
+
   for (const cat of Object.keys(cats).sort()) {
-    const catEl = categoryElement(doc, cat, cats[cat]);
+    const count = cats[cat];
+    const catEl = categoryElement(doc, count, cat);
     categoriesEl.appendChild(catEl);
   }
 
   return { headingEl, categoriesEl };
+}
+
+function itemCount(listingDescriptors: ListingDescriptor[]) {
+  return listingDescriptors.reduce((previous, listingDescriptor) => {
+    return previous + listingDescriptor.items.length;
+  }, 0);
 }
 
 function accumCategories(listingDescriptors: ListingDescriptor[]) {
@@ -50,10 +62,18 @@ function categoryContainer(doc: Document) {
   return container;
 }
 
-function categoryElement(doc: Document, category: string, count: number) {
+function categoryElement(
+  doc: Document,
+  count: number,
+  category: string,
+  value?: string,
+) {
   const categoryEl = doc.createElement("div");
   categoryEl.classList.add("category");
-  categoryEl.setAttribute("data-category", category);
+  categoryEl.setAttribute(
+    "data-category",
+    value !== undefined ? value : category,
+  );
   categoryEl.innerHTML = category +
     ` <span class="quarto-category-count">(${count})</span>`;
   return categoryEl;

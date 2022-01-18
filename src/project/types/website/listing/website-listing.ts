@@ -182,32 +182,43 @@ function listingPostProcess(
   doc: Document,
   listingDescriptors: ListingDescriptor[],
 ) {
-  const { headingEl, categoriesEl } = categorySidebar(doc, listingDescriptors);
-  const rightSidebar = doc.getElementById(kMarginSidebarId);
-  rightSidebar?.appendChild(headingEl);
-  rightSidebar?.appendChild(categoriesEl);
+  const firstListingValue = (key: string) => {
+    for (const listingDescriptor of listingDescriptors) {
+      const value = listingDescriptor.listing[key];
+      if (key !== undefined) {
+        return value;
+      }
+    }
+    return undefined;
+  };
+
+  // Find out if any listings require categories
+  const categories = firstListingValue(kCategories);
+
+  if (categories !== undefined) {
+    const { headingEl, categoriesEl } = categorySidebar(
+      doc,
+      listingDescriptors,
+    );
+    const rightSidebar = doc.getElementById(kMarginSidebarId);
+    rightSidebar?.appendChild(headingEl);
+    rightSidebar?.appendChild(categoriesEl);
+  }
+
+  // Find the first user specified column in the listings
+  const titleColumn = firstListingValue(kPageColumn) as string;
 
   // Check for whether this page had sidebars and choose column as appropriate
   const defaultColumn = suggestColumn(doc);
 
-  // Move each listing to the correct column
-  let titleColumn: string | undefined = undefined;
-  for (const listingDescriptor of listingDescriptors) {
-    const userColumn = listingDescriptor.listing[kPageColumn] as string;
-    if (userColumn !== undefined) {
-      titleColumn = `column-${userColumn}`;
-      break;
-    }
-  }
-
   // Move the main content element to the correct column
   const mainEl = doc.querySelector("main.content");
   if (mainEl) {
-    console.log(titleColumn || defaultColumn);
     mainEl.classList.add(titleColumn || defaultColumn);
   }
 }
 
+const kCategories = "categories";
 const kPageColumn = "page-column";
 const kSidebarId = "quarto-sidebar";
 const kMarginSidebarId = "quarto-margin-sidebar";
