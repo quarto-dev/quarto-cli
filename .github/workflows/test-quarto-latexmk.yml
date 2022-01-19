@@ -29,7 +29,7 @@ jobs:
           .\configure-windows.cmd
           cd package/src
           .\quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc
-          ../dist/bin/quarto-latexmk/x86_64-pc-windows-msvc/quarto-latexmk.exe --help
+          .\..\dist\bin\quarto-latexmk\x86_64-pc-windows-msvc\quarto-latexmk.exe --help
 
       - name: Test ${{ runner.os }}
         if: runner.os == 'macOS'
