@@ -140,7 +140,7 @@ export async function preview(
     (async () => {
       for await (const { request, respondWith } of Deno.serveHttp(conn)) {
         try {
-          respondWith(handler(request));
+          await respondWith(handler(request));
         } catch (err) {
           warning(err.message);
         }
