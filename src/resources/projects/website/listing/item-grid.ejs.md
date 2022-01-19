@@ -17,6 +17,8 @@ const showField = (field) => {
   return listing.fields.includes(field) && item[field] !== undefined;
 }
 
+// Capture the item number for utility functions that need it
+const itemNumber = listing.utilities.itemNumber();
 
 // Fields that should be bucketized into the general listing at the bottom
 const otherFields = fields.filter(field => {
@@ -28,7 +30,7 @@ return !["title", "image", "card-cap-text", "date", "author", "subtitle", "descr
 <div class="<%-`g-col-lg-${cardColumnSpan}`%> <%-`g-col-md-${cardColumnSpanMd}`%> g-col-24" <%= listing.utilities.metadataAttrs(item) %>>
 <div class="quarto-grid-item card h-100 <%-`card-${align}`%>">
 <% if (fields.includes('image')) { %>
-<% if (item.image) { %><p class="card-img-top"><img src="<%- item.image %>"<%= imgHeight ? ` style="height: ${imgHeight};"` : '' %> class="thumbnail-image card-img"></p>
+<% if (item.image) { %><p class="card-img-top"><%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img") %></p>
 <% } else { %>
 <div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight}px;"` : '' %>><%= (item['card-cap-text']) ? listing.utilities.outputLink(item, 'card-cap-text') : "&nbsp;" %></div>
 <% } %>

@@ -1,3 +1,5 @@
+const kProgressiveAttr = "data-src";
+
 window["quarto-listing-loaded"] = () => {
   // Process any existing hash
   const hash = getHash();
@@ -12,24 +14,15 @@ window["quarto-listing-loaded"] = () => {
     }
   }
   refreshPaginationHandlers();
-
   const listingIds = Object.keys(window["quarto-listings"]);
   for (const listingId of listingIds) {
     const list = window["quarto-listings"][listingId];
-
+    renderVisibleProgressiveImages(list);
     list.on("updated", function () {
-      setTimeout(refreshPaginationHandlers, 100);
+      renderVisibleProgressiveImages(list);
     });
   }
 };
-
-window.addEventListener(
-  "hashchange",
-  function () {
-    console.log(window.location);
-  },
-  false
-);
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Attach click handlers to categories
@@ -69,6 +62,25 @@ function refreshPaginationHandlers() {
       setTimeout(refreshPaginationHandlers);
       return false;
     };
+  }
+}
+
+function renderVisibleProgressiveImages(list) {
+  // Run through the visible items and render any progressive images
+  for (const item of list.visibleItems) {
+    const itemEl = item.elm;
+    if (itemEl) {
+      const progressiveImgs = itemEl.querySelectorAll(
+        `img[${kProgressiveAttr}]`
+      );
+      for (const progressiveImg of progressiveImgs) {
+        const srcValue = progressiveImg.getAttribute(kProgressiveAttr);
+        if (srcValue) {
+          progressiveImg.setAttribute("src", srcValue);
+        }
+        progressiveImg.removeAttribute(kProgressiveAttr);
+      }
+    }
   }
 }
 

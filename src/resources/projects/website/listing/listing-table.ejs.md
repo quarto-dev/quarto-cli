@@ -8,11 +8,11 @@ const showSort = listing["show-sort"] !== false;
 // The height for images
 const imgHeight = listing['image-height'];
 
-const outputValue = (field) => {
+const outputValue = (itemNumber, field) => {
 let value = item[field];
 if (field === "image") {
 if (item.image) {
-value = `<img src="${item[field]}" ${imgHeight ? ` style="height: ${imgHeight};"` : ''}>`;
+value = listing.utilities.img(itemNumber, item[field]);
 } else {
 value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight};"` : '' }>&nbsp;</div>`;
 }
@@ -32,11 +32,15 @@ return listing.utilities.outputLink(item, field, value);
 </tr>
 </thead>
 <tbody class="list">
-<% for (item of items) { %>
+<% for (item of items) { 
+  // Capture the item number for utility functions that need it
+  const itemNumber = listing.utilities.itemNumber();
+%>
+
 <tr <%= listing.utilities.metadataAttrs(item) %>>
 <% for (const field of fields){ %>
 <td class="listing-<%- field %>">
-<%= outputValue(field) %>
+<%= outputValue(itemNumber, field) %>
 </td>
 <% } %>
 </tr>

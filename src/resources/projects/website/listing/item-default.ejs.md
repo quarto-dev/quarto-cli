@@ -12,6 +12,9 @@ const otherFields = fields.filter(field => {
 });
 
 
+// Capture the item number for utility functions that need it
+const itemNumber = listing.utilities.itemNumber();
+
 // Writes a metadata value
 const outputMetadata = (item, field) => {
   if (item[field] !== undefined) {
@@ -24,7 +27,7 @@ const outputMetadata = (item, field) => {
 <% if (fields.includes('image')) { %>
 <div class="thumbnail"><% if (item.image) { %>
 <a href="<%- item.path %>" class="post-contents">
-<img src="<%- item.image %>"<%= imageHeight ? ` style="height: ${imageHeight};"` : '' %> class="thumbnail-image">
+  <%= listing.utilities.img(itemNumber, item.image, "thumnail-image") %>
 </a>
 <% } else { %>
 <div class="thumbnail-image"<%= imageHeight ? ` style="height: ${imageHeight};"` : '' %>></div><% } %>

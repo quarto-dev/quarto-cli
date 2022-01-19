@@ -24,6 +24,7 @@ import {
   kFieldsName,
   kFieldsSort,
   kFieldsType,
+  kImageHeight,
   kMaxDescLength,
   kRowCount,
   Listing,
@@ -343,6 +344,24 @@ export function reshapeListing(
       return field;
     }
   };
+  let itemNumber = 0;
+  utilities.itemNumber = () => {
+    return ++itemNumber;
+  };
+  utilities.img = (itemNumber: number, src: string, classes?: string) => {
+    const rowCount = listing[kRowCount];
+    const columnCount = listing[kColumnCount] || 1;
+    const itemsPerPage = rowCount * columnCount;
+
+    const classAttr = classes ? `class="${classes}"` : "";
+    const styleAttr = listing[kImageHeight]
+      ? `style="height: ${listing[kImageHeight]};"`
+      : "";
+    const srcAttr = itemNumber > itemsPerPage ? "data-src" : "src";
+
+    return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr}>`;
+  };
+
   let index = 0;
   utilities.metadataAttrs = (item: ListingItem) => {
     const attr: Record<string, string> = {};
