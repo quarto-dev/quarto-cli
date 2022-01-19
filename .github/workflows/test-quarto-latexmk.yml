@@ -22,21 +22,21 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Test Windows
+      - name: Test ${{ runner.os }}
         if: runner.os == 'Windows'
         run: |
           configure-windows.cmd
           package/src/quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc
           ./package/dist/bin/quarto-latexmk/x86_64-pc-windows-msvc/quarto-latexmk.exe --help
 
-      - name: Test macOS
+      - name: Test ${{ runner.os }}
         if: runner.os == 'macOS'
         run: |
           ./configure-macos.sh
           ./package/src/quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin
           ./package/dist/bin/quarto-latexmk/x86_64-apple-darwin/quarto-latexmk --help
 
-      - name: Test Windows
+      - name: Test ${{ runner.os }}
         if: runner.os == 'Linux'
         run: |
           ./configure-linux.sh
