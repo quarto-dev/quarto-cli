@@ -11,7 +11,7 @@ on:
     - cron: 0 * * * *
 
 jobs:
-  test-bundle:
+  build-quarto-latexmk:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,12 +31,12 @@ jobs:
         run: |
           ./configure-linux.sh
 
-      - name: Test Bundling
+      - name: Build quarto-latexmk
         id: create_bundle
         shell: bash
         run: |
         
-          # Do the bundle
+          # Build quarto-latexmk
           pushd package/src
 
           bundle_start=$(date +%s.%3N)
@@ -45,7 +45,7 @@ jobs:
           bundle_elapsed=$(printf '%.3f\n' $(echo "scale=3; $bundle_end - $bundle_start" | bc))
 
           # verify output
-          file = ../dist/bin/quarto-latexmk/x86_64-unknown-linux-gnu/quarto-latexmk
+          file=../dist/bin/quarto-latexmk/x86_64-unknown-linux-gnu/quarto-latexmk
           if [[ -f "$file" ]]; then
             echo "$file exists."
           else
