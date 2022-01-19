@@ -13,6 +13,7 @@ jobs:
     name: ${{ matrix.config.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         config:
           - {os: windows-latest}
