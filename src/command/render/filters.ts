@@ -23,6 +23,7 @@ import {
   kMergeIncludes,
   kOutputDivs,
   kReferenceLocation,
+  kTblColwidths,
   kTocTitleDocument,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
@@ -281,6 +282,10 @@ function quartoFilterParams(format: Format) {
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;
+  }
+  const tblColwidths = format.render[kTblColwidths];
+  if (tblColwidths !== undefined) {
+    params[kTblColwidths] = tblColwidths;
   }
   const figResponsive = format.metadata[kFigResponsive] === true;
   if (figResponsive) {

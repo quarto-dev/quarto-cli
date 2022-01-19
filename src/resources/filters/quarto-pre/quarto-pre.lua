@@ -41,6 +41,7 @@ import("../common/figures.lua")
 import("../common/tables.lua")
 import("../common/theorems.lua")
 import("../common/debug.lua")
+import("../common/format.lua")
 import("../common/string.lua")
 import("../common/list.lua")
 import("../common/lunacolors.lua")
@@ -53,7 +54,8 @@ import("shortcodes.lua")
 import("shortcodes-handlers.lua")
 import("outputs.lua")
 import("figures.lua")
-import("tables.lua")
+import("table-captions.lua")
+import("table-colwidth.lua")
 import("theorems.lua")
 import("resourcerefs.lua")
 import("resourcefiles.lua")
@@ -76,6 +78,8 @@ return {
   readIncludes(),
   initOptions(),
   shortCodes(),  
+  tableColwidthCell(),
+  tableColwidth(),
   hidden(),
   outputs(),
   combineFilters({
@@ -85,7 +89,7 @@ return {
     resourceRefs(),
     resourceFiles(),
     figures(),
-    tables(),
+    tableCaptions(),
     theorems(),
     callout(),
     lineNumbers(),

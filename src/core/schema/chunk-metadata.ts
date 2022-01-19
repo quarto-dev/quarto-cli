@@ -47,6 +47,7 @@ import {
   kLayoutNcol,
   kLayoutNrow,
   kOutput,
+  kTblColwidths,
   kWarning,
 } from "../../config/constants.ts";
 
@@ -62,7 +63,7 @@ const commonCellOptionsSchema = objectS({
     [kCodeFold]: oneOfS(StringS, BooleanS), // FIXME tighten code-fold strings
     [kCodeSummary]: StringS,
     [kCodeOverflow]: StringS, // FIXME should this be enumS("wrap", "scroll")?
-
+    [kTblColwidths]: anyOfS(BooleanS, enumS("auto"), arrayS(numericS)),
     [kCellFigScap]: StringS,
     [kCellFigLink]: StringS,
     [kCellFigAlign]: StringS,

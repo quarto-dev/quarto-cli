@@ -62,6 +62,7 @@ import {
   kOutputFile,
   kSelfContained,
   kServer,
+  kTblColwidths,
   kTheme,
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/types.ts";
@@ -1064,6 +1065,14 @@ async function resolveFormats(
       defaultWriterFormat(format),
       userFormat,
     );
+
+    // user value for tbl-colwidths should always win over default
+    // (as it may be an array while the default is a scalar and the
+    // mergeConfigs logic won't handle this correctly)
+    if (userFormat.render[kTblColwidths] !== undefined) {
+      mergedFormats[format].render[kTblColwidths] =
+        userFormat.render[kTblColwidths];
+    }
   });
 
   // filter on formats supported by this project
