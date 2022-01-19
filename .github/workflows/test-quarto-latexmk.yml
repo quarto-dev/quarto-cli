@@ -1,0 +1,44 @@
+# Test building the quarto-latexmk command
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+name: Test quarto-latexmk
+
+jobs:
+  quarto-latexmk:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }}
+
+    strategy:
+      matrix:
+        config:
+          - {os: windows-latest}
+          - {os: macOS-latest}
+          - {os: ubuntu-latest}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Test Windows
+        if: runner.os == 'Windows'
+        run: |
+          configure-windows.cmd
+          package/src/quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc
+          ./package/dist/bin/quarto-latexmk/x86_64-pc-windows-msvc/quarto-latexmk.exe --help
+
+      - name: Test macOS
+        if: runner.os == 'macOS'
+        run: |
+          ./configure-macos.sh
+          ./package/src/quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin
+          ./package/dist/bin/quarto-latexmk/x86_64-apple-darwin/quarto-latexmk --help
+
+      - name: Test Windows
+        if: runner.os == 'Linux'
+        run: |
+          ./configure-linux.sh
+          ./package/src/quarto-bld compile-quarto-latexmk --target x86_64-unknown-linux-gnu
+          ./package/dist/bin/quarto-latexmk/x86_64-unknown-linux-gnu/quarto-latexmk --help
