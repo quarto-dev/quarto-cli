@@ -30,7 +30,6 @@ import {
   schemaType,
 } from "../schema.ts";
 import { Semaphore } from "../semaphore.ts";
-import { setupAjv } from "../yaml-schema.ts";
 import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
 import { rangedLines } from "../ranged-text.ts";
 import {
@@ -792,8 +791,6 @@ export async function getAutomation(
 let automationInit = false;
 const mustInitSemaphore = new Semaphore(1);
 
-import Ajv from "../external/ajv-bundle.js";
-
 export async function initAutomation(path: string) {
   if (automationInit) {
     return;
@@ -806,13 +803,6 @@ export async function initAutomation(path: string) {
     }
     automationInit = true;
     setMainPath(path);
-    const ajv = new Ajv({
-      allErrors: true,
-      inlineRefs: false,
-      verbose: true,
-      code: { optimize: false, source: true },
-    });
-    setupAjv(ajv);
 
     const schemaDefs = (await getSchemas()).definitions;
     for (const [_key, value] of Object.entries(schemaDefs)) {
