@@ -1,7 +1,4 @@
 <style type="text/css">
-  .reveal-references {
-    display: none;
-  }
 
   .reveal div.sourceCode {
     margin: 0;
@@ -29,10 +26,31 @@
     overflow-y: auto;
   }
 
+  .reveal .footnotes {
+    height: 100%;
+    overflow-y: auto;
+  }
+
   .reveal .slide .absolute {
     position: absolute;
     display: block;
   }
+
+  .reveal .footnotes ol {
+    counter-reset: ol;
+    list-style-type: none; 
+    margin-left: 0;
+  }
+
+  .reveal .footnotes ol li:before {
+    counter-increment: ol;
+    content: counter(ol) ". "; 
+  }
+
+  .reveal .footnotes ol li > p:first-child {
+    display: inline-block;
+  }
+
 
   .reveal .slide ul,
   .reveal .slide ol {
