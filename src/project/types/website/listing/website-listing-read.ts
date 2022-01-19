@@ -72,6 +72,7 @@ const kDefaultListingType = ListingType.Default;
 const kDefaultContentsGlob = ["*"];
 const kDefaultId = "quarto-listing";
 const kDefaultTableFields = [
+  kFieldImage,
   kFieldDate,
   kFieldTitle,
   kFieldAuthor,
@@ -244,10 +245,12 @@ function hydrateListing(
   // Populate base default values for types
   if (listing.type === ListingType.Grid) {
     listingHydrated[kColumnCount] = listingHydrated[kColumnCount] || 3;
-    listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || 150;
+    listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "150px";
     listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
   } else if (listing.type === ListingType.Default) {
     listingHydrated[kImageAlign] = listingHydrated[kImageAlign] || "right";
+  } else if (listing.type === ListingType.Table) {
+    listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "40px";
   }
 
   // Merge column types
