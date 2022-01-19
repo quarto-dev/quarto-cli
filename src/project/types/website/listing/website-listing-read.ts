@@ -15,7 +15,11 @@ import { filterPaths } from "../../../../core/path.ts";
 import { inputTargetIndex } from "../../../project-index.ts";
 import { ProjectContext } from "../../../types.ts";
 
-import { findDescriptionMd, findPreviewImgMd } from "../util/discover-meta.ts";
+import {
+  estimateReadingTimeMinutes,
+  findDescriptionMd,
+  findPreviewImgMd,
+} from "../util/discover-meta.ts";
 import {
   ColumnType,
   kColumnCount,
@@ -44,6 +48,7 @@ import {
   kListingPageColumnDescription,
   kListingPageColumnFileModified,
   kListingPageColumnFileName,
+  kListingPageColumnReadingTime,
   kListingPageColumnSubtitle,
   kListingPageColumnTitle,
 } from "../../../../config/constants.ts";
@@ -62,6 +67,7 @@ export const kFieldFileName = "filename";
 export const kFieldDate = "date";
 export const kFieldImage = "image";
 export const kFieldDescription = "description";
+export const kFieldReadingTime = "readingtime";
 
 export const kSortAsc = "asc";
 export const kSortDesc = "desc";
@@ -72,7 +78,6 @@ const kDefaultListingType = ListingType.Default;
 const kDefaultContentsGlob = ["*"];
 const kDefaultId = "quarto-listing";
 const kDefaultTableFields = [
-  kFieldImage,
   kFieldDate,
   kFieldTitle,
   kFieldAuthor,
@@ -91,6 +96,7 @@ const kDefaultFields = [
   kFieldSubtitle,
   kFieldImage,
   kFieldDescription,
+  kFieldReadingTime,
 ];
 
 const defaultFieldNames = (format: Format) => {
@@ -103,12 +109,14 @@ const defaultFieldNames = (format: Format) => {
     [kFieldFileName]: format.language[kListingPageColumnFileName] || "",
     [kFieldFileModified]: format.language[kListingPageColumnFileModified] || "",
     [kFieldSubtitle]: format.language[kListingPageColumnSubtitle] || "",
+    [kFieldReadingTime]: format.language[kListingPageColumnReadingTime] || "",
   };
 };
 
 const kDefaultFieldTypes: Record<string, ColumnType> = {
   [kFieldDate]: "date",
   [kFieldFileModified]: "date",
+  [kFieldReadingTime]: "minutes",
 };
 const kDefaultFieldLinks = [kFieldTitle, kFieldFileName];
 
@@ -424,6 +432,10 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     ? documentMeta?.author
     : [documentMeta?.author];
 
+  const readingtime = target?.markdown
+    ? estimateReadingTimeMinutes(target.markdown.markdown)
+    : undefined;
+
   const item: ListingItem = {
     ...documentMeta,
     title: target?.title,
@@ -434,6 +446,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     path: `/${projectRelativePath}`,
     filename,
     filemodified,
+    readingtime,
   };
   return item;
 }

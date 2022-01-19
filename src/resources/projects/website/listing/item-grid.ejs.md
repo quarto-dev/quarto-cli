@@ -22,7 +22,7 @@ const itemNumber = listing.utilities.itemNumber();
 
 // Fields that should be bucketized into the general listing at the bottom
 const otherFields = fields.filter(field => {
-return !["title", "image", "card-cap-text", "date", "author", "subtitle", "description", "filename", "filemodified"].includes(field);
+return !["title", "image", "card-cap-text", "date", "author", "subtitle", "description", "filename", "filemodified", "readingtime"].includes(field);
 });
 %>
 
@@ -41,6 +41,8 @@ return !["title", "image", "card-cap-text", "date", "author", "subtitle", "descr
 <% if (showField('subtitle')) { %>
 <div class="card-subtitle listing-subtitle"><%= listing.utilities.outputLink(item, 'subtitle') %></div>
 <% } %>
+<% if (showField('readingtime')) { %><div class="listing-readingtime card-text text-muted"><%= item.readingtime %></div> <% } %>
+
 <% if (showField('description')) { %>
 <div class="card-text listing-description"><%= item.description %></div>
 <% } %>

@@ -8,7 +8,7 @@ const imageHeight = listing['image-height'];
 
 // Fields that don't have a known place to be displayed in this template
 const otherFields = fields.filter(field => {
-  return !["title", "image", "date", "author", "subtitle", "description"].includes(field);
+  return !["title", "image", "date", "author", "subtitle", "description", "readingtime"].includes(field);
 });
 
 
@@ -42,6 +42,7 @@ const outputMetadata = (item, field) => {
 <div class="metadata">
 <% if (fields.includes('date') && item.date) { %><div class="listing-date"><%= item.date %></div><% } %>
 <% if (fields.includes('author') && item.author) { %><div class="listing-author"><%= item.author %></div><% } %>
+<% if (fields.includes('readingtime') && item.readingtime) { %> <div class="listing-readingtime"><%= item.readingtime %></div> <% } %>
 <% for (const field of otherFields) { %>
 <% outputMetadata(item, field) %>
 <% } %>

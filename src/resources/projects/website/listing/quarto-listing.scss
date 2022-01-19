@@ -1,3 +1,8 @@
+/*-- scss:variables --*/
+
+$card-cap-bg: $gray-500 !default;
+$card-cap-color: $white !default;
+
 /*-- scss:rules --*/
 
 // General Pagination / Filter Control Styling
@@ -110,11 +115,11 @@ ul.pagination {
   }
 
   div.card-img-top {
-    background-color: $gray-500;
+    background-color: $card-cap-bg;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: $white;
+    color: $card-cap-color;
   }
 
   .card-attribution {

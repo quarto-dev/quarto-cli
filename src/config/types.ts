@@ -98,8 +98,10 @@ import {
   kListingPageColumnDescription,
   kListingPageColumnFileModified,
   kListingPageColumnFileName,
+  kListingPageColumnReadingTime,
   kListingPageColumnSubtitle,
   kListingPageColumnTitle,
+  kListingPageMinutesCompact,
   kListingPageOrderBy,
   kListingPageOrderByDateAsc,
   kListingPageOrderByDateDesc,
@@ -489,6 +491,8 @@ export interface FormatLanguage {
   [kListingPageColumnFileName]?: string;
   [kListingPageColumnFileModified]?: string;
   [kListingPageColumnSubtitle]?: string;
+  [kListingPageColumnReadingTime]?: string;
+  [kListingPageMinutesCompact]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

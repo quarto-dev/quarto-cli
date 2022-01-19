@@ -91,7 +91,7 @@ export interface ListingSort {
 }
 
 // Column Types
-export type ColumnType = "date" | "string" | "number";
+export type ColumnType = "date" | "string" | "number" | "minutes";
 
 // Sources that provide Listing Items
 export enum ListingItemSource {

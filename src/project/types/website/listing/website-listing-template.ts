@@ -9,6 +9,7 @@ import { format as formatDate } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { cloneDeep, escape } from "../../../../core/lodash.ts";
 import {
+  kListingPageMinutesCompact,
   kListingPageOrderByDateAsc,
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,
@@ -39,6 +40,7 @@ import {
   kSortDesc,
 } from "./website-listing-read.ts";
 import { resourcePath } from "../../../../core/resources.ts";
+import { localizedString } from "../../../../config/localization.ts";
 
 export const kDateFormat = "date-format";
 
@@ -91,6 +93,11 @@ export function templateMarkdownHandler(
               ? date.toLocaleString()
               : date.toLocaleDateString();
           }
+        } else if (fieldTypes[field] === "minutes") {
+          const val = item[field] as number;
+          record[field] = localizedString(format, kListingPageMinutesCompact, [
+            Math.floor(val).toString(),
+          ]);
         }
       }
 
@@ -225,6 +232,8 @@ export function resolveItemForTemplate(
         addSortable(item, field, (item[field] as Date).valueOf().toString());
       } else if (type === "number") {
         addSortable(item, field, (item[field] as number).toString());
+      } else if (type === "minutes") {
+        addSortable(item, field, (item[field] as number).toString());
       }
     }
   }
@@ -288,7 +297,10 @@ export function reshapeListing(
             format.language[kListingPageOrderByDateDesc]
           })`,
         });
-      } else if (reshaped[kFieldsType][field] === "number") {
+      } else if (
+        reshaped[kFieldsType][field] === "number" ||
+        reshaped[kFieldsType][field] === "minutes"
+      ) {
         fieldSortData.push({
           listingSort: {
             field: sortAttrValue(field),
@@ -323,7 +335,6 @@ export function reshapeListing(
 
     return fieldSortData;
   };
-
   utilities.fieldName = (field: string) => {
     return reshaped[kFieldsName][field] || field;
   };
@@ -408,7 +419,7 @@ const useSortTarget = (listing: Listing, field: string) => {
 
   // Use data field for date and numbers
   const type = listing[kFieldsType][field];
-  if (type === "date" || type === "number") {
+  if (type === "date" || type === "number" || type === "minutes") {
     return true;
   } else if (listing[kFieldsLink].includes(field)) {
     return true;
