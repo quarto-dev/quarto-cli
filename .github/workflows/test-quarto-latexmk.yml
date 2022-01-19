@@ -29,8 +29,10 @@ jobs:
           .\configure-windows.cmd
           cd package/src
           .\quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc --name tinitex
-          tree ..\dist\bin
-          ..\dist\bin\tinitex\x86_64-pc-windows-msvc\tinitex.exe --help
+          tree ..\dist\bin /f /a
+          cd ..\dist\bin\tinitex\x86_64-pc-windows-msvc
+          dir
+          .\tinitex.exe --help
 
       - name: Test ${{ runner.os }}
         if: runner.os == 'macOS'
