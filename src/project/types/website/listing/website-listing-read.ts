@@ -216,6 +216,18 @@ function hydrateListing(
   const enableFilterAndSort = listing.type !== ListingType.Custom ||
     listing[kFieldsSort] !== undefined;
 
+  const defaultRowCount = () => {
+    switch (listing.type) {
+      case ListingType.Table:
+        return 30;
+      case ListingType.Grid:
+        return 4;
+      default:
+      case ListingType.Default:
+        return 25;
+    }
+  };
+
   const listingHydrated: Listing = {
     fields,
     [kFieldsName]: defaultFieldNames(format),
@@ -223,7 +235,7 @@ function hydrateListing(
     [kFieldsLink]: defaultLinks,
     [kFieldsSort]: defaultSort,
     [kFieldsRequired]: kDefaultFieldRequired,
-    [kRowCount]: 100,
+    [kRowCount]: defaultRowCount(),
     [kShowFilter]: enableFilterAndSort,
     [kShowSort]: enableFilterAndSort,
     ...listing,
