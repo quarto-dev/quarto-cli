@@ -16,9 +16,12 @@ import {
   getYamlPredecessors
 } from "./parsing.ts";
 
+import { loadValidatorModule, withValidator } from "./validator-queue.ts";
+
+import { setInitializer, initState } from "./state.ts";
 import { getSchemas, navigateSchema } from "./schema-utils.ts";
-import { setMainPath } from "./paths.ts";
-import { withValidator } from "./validator-queue.ts";
+import { setMainPath, getLocalPath } from "./paths.ts";
+
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { lines, rowColToIndex } from "../text.ts";
@@ -96,11 +99,11 @@ function trimTicks(context: YamlIntelligenceContext): YamlIntelligenceContext {
   return context;
 }
 
-const hasInitSemaphore = new Semaphore(0);
 export async function validationFromGoodParseYAML(
   context: YamlIntelligenceContext,
 ): Promise<ValidationResult[]> {
-  await hasInitSemaphore.runExclusive(async () => {});
+  
+  await initState(); // FIXME do we need this?
 
   const code = asMappedString(context.code); // full contents of the buffer
 
@@ -788,34 +791,20 @@ export async function getAutomation(
   return result || null;
 }
 
-let automationInit = false;
-const mustInitSemaphore = new Semaphore(1);
+setInitializer(async () => {
+  const before = performance.now();
+  
+  await loadValidatorModule(
+    getLocalPath("standalone-schema-validators.js"));
 
-export async function initAutomation(path: string) {
-  if (automationInit) {
-    return;
+  const schemaDefs = (await getSchemas()).definitions;
+  for (const [_key, value] of Object.entries(schemaDefs)) {
+    await withValidator(value, async (_validator) => {
+    });
   }
-
-  await mustInitSemaphore.runExclusive(async () => {
-    const before = performance.now();
-    if (automationInit) {
-      return;
-    }
-    automationInit = true;
-    setMainPath(path);
-
-    const schemaDefs = (await getSchemas()).definitions;
-    for (const [_key, value] of Object.entries(schemaDefs)) {
-      await withValidator(value, async (_validator) => {
-      });
-    }
-    const after = performance.now();
-    console.log(`Initialization time: ${after - before}ms`);
-    hasInitSemaphore.release();
-  });
-
-  await hasInitSemaphore.runExclusive(async () => {});
-}
+  const after = performance.now();
+  console.log(`Initialization time: ${after - before}ms`);
+});
 
 export const QuartoYamlEditorTools = {
   // helpers to facilitate repro'ing in the browser
@@ -835,7 +824,8 @@ export const QuartoYamlEditorTools = {
     path: string,
   ) {
     try {
-      await initAutomation(path);
+      setMainPath(path);
+      await initState();
       return await getAutomation("completions", context);
     } catch (e) {
       console.log("Error found during autocomplete", e);
@@ -846,7 +836,8 @@ export const QuartoYamlEditorTools = {
 
   getLint: async function (context: YamlIntelligenceContext, path: string) {
     try {
-      await initAutomation(path);
+      setMainPath(path);
+      await initState();
       return await getAutomation("validation", context);
     } catch (e) {
       console.log("Error found during linting", e);

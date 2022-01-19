@@ -15,7 +15,7 @@ import { error, info } from "log/mod.ts";
 import { ensureAjv } from "./yaml-schema.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
-import { withValidator } from "../lib/validator-queue.ts";
+import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
 
 export async function validateDocumentFromSource(
@@ -58,7 +58,7 @@ export async function validateDocumentFromSource(
       const frontMatterSchema = await getFrontMatterSchema();
 
       await ensureAjv();
-      await withValidator(frontMatterSchema, (frontMatterValidator) => {
+      await withValidator(frontMatterSchema, async (frontMatterValidator) => {
         const fmValidation = frontMatterValidator.validateParseWithErrors(
           frontMatterText,
           annotation,

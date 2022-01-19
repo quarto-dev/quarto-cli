@@ -9,7 +9,7 @@
 
 import { AnnotatedParse, LocalizedError } from "../lib/yaml-schema.ts";
 import { Schema } from "../lib/schema.ts";
-import { addValidatorErrorHandler } from "../lib/validator-queue.ts";
+import { addValidatorErrorHandler } from "../lib/yaml-intelligence/validator-queue.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import {
@@ -99,11 +99,16 @@ const markdownEngineSchema = defineCached(
   "engine-markdown",
 );
 const knitrEngineSchema = defineCached(
-  () => makeEngineSchema("markdown"),
+  async () => {
+    const result = await makeEngineSchema("knitr");
+    // FIXME how does this get to the IDE?
+    await addValidatorErrorHandler(result, checkForEqualsInChunk);
+    return result;
+  },
   "engine-knitr",
 );
 const jupyterEngineSchema = defineCached(
-  () => makeEngineSchema("markdown"),
+  () => makeEngineSchema("jupyter"),
   "engine-jupyter",
 );
 
@@ -115,9 +120,6 @@ export async function getEngineOptionsSchema(): Promise<
     knitr: await knitrEngineSchema(),
     jupyter: await jupyterEngineSchema(),
   };
-
-  // FIXME how does this get to the IDE??
-  await addValidatorErrorHandler(obj.knitr, checkForEqualsInChunk);
 
   return obj;
 }

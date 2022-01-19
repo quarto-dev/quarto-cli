@@ -14,7 +14,7 @@ import { Schema } from "../lib/schema.ts";
 import { asMappedString, MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { ensureAjv } from "./yaml-schema.ts";
-import { withValidator } from "../lib/validator-queue.ts";
+import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
 
 // https://stackoverflow.com/a/41429145
@@ -49,7 +49,7 @@ export async function readAndValidateYamlFromMappedString(
 ): Promise<{ [key: string]: unknown }> {
   await ensureAjv();
 
-  const result = await withValidator(schema, (validator) => {
+  const result = await withValidator(schema, async (validator) => {
     const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
     const validateYaml = !(annotation.result?.["validate-yaml"] === false);
 

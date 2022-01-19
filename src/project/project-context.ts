@@ -106,11 +106,10 @@ export async function projectContext(
   );
   const originalDir = dir;
 
-  const configSchema = await getProjectConfigSchema();
-
   while (true) {
     const configFile = projectConfigFile(dir);
     if (configFile) {
+      const configSchema = await getProjectConfigSchema();
       // config files are the main file + any subfiles read
       const configFiles = [configFile];
 

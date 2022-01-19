@@ -17,20 +17,22 @@ import { FormatLanguage, Metadata } from "../config/types.ts";
 import { dirAndStem } from "./path.ts";
 import { resourcePath } from "./resources.ts";
 import { mergeConfigs } from "./config.ts";
-import { formatLanguageSchema } from "./schema/format-language.ts";
 import { readAndValidateYamlFromFile } from "./schema/validated-yaml.ts";
 import { RenderFlags } from "../command/render/types.ts";
+import { getSchemaDefinition } from "./lib/schema.ts";
 
 export async function readLanguageTranslations(
   translationFile: string,
   lang?: string,
 ): Promise<{ language: FormatLanguage; files: string[] }> {
+  
   // read and parse yaml if it exists (track files read)
   const files: string[] = [];
   const maybeReadYaml = async (file: string) => {
     if (existsSync(file)) {
       files.push(Deno.realPathSync(file));
       const errMsg = "Validation of format language object failed.";
+      const formatLanguageSchema = getSchemaDefinition("format-language");
       const result = await readAndValidateYamlFromFile(
         file,
         formatLanguageSchema,

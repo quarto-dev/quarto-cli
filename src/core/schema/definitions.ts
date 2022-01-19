@@ -5,7 +5,7 @@
 *
 */
 
-import { withValidator } from "../lib/validator-queue.ts";
+import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 import { idSchema, refSchema } from "./common.ts";
 import { readYaml } from "../yaml.ts";
@@ -44,7 +44,7 @@ export function defineCached(
 export async function define(schema: Schema) {
   await ensureAjv();
   if (!hasSchemaDefinition(schema.$id)) {
-    await withValidator(normalizeSchema(schema), (_validator) => {
+    await withValidator(normalizeSchema(schema), async (_validator) => {
       setSchemaDefinition(schema);
     });
   }
@@ -67,7 +67,7 @@ export async function loadSchemaDefinitions(file: string) {
       error(JSON.stringify(schema, null, 2));
       throw new Error(`Internal error: unnamed schema in definitions`);
     }
-    await withValidator(normalizeSchema(schema), (_validator) => {
+    await withValidator(normalizeSchema(schema), async (_validator) => {
       setSchemaDefinition(schema);
     });
   }));

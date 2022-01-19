@@ -502,6 +502,8 @@ export class YAMLSchema {
   constructor(schema: Schema, compiledModule?: any) {
     this.errorHandlers = [];
     this.schema = schema;
+    
+    // compiledModule is only undefined in `quarto build-js`
     if (compiledModule !== undefined) {
       this.validate = compiledModule[this.schema.$id || this.schema.$ref];
     } else {

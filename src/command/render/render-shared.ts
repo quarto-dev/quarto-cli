@@ -36,10 +36,17 @@ import {
 } from "../../core/platform.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 
+import { setInitializer, initState } from "../../core/lib/yaml-intelligence/state.ts";
+import { init as initYamlValidators } from "../../core/lib/yaml-intelligence/deno-init-no-tree-sitter.ts";
+
 export async function render(
   path: string,
   options: RenderOptions,
 ): Promise<RenderResult> {
+  // one time initialization of yaml validators
+  setInitializer(initYamlValidators());
+  await initState();
+
   // determine target context/files
   const context = await projectContext(path, options.flags);
 

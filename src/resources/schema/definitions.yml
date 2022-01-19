@@ -820,3 +820,64 @@
               text:
                 string:
                   description: The text describing the creator or contributor (for example, creator name).
+
+- object:
+    id: format-language
+    properties:
+      toc-title-document: string
+      toc-title-website: string
+      callout-tip-caption: string
+      callout-note-caption: string
+      callout-warning-caption: string
+      callout-important-caption: string
+      callout-danger-caption: string
+      section-title-abstract: string
+      section-title-footnotes: string
+      section-title-appendices: string
+      code-summary: string
+      code-tools-menu-caption: string
+      code-tools-show-all-code: string
+      code-tools-hide-all-code: string
+      code-tools-view-source: string
+      code-tools-source-code: string
+      search-no-results-text: string
+      copy-button-tooltip: string
+      repo-action-links-edit: string
+      repo-action-links-source: string
+      repo-action-links-issue: string
+      search-matching-documents-text: string
+      search-copy-link-title: string
+      search-hide-matches-text: string
+      search-more-match-text: string
+      search-more-matches-text: string
+      search-clear-button-title: string
+      search-detached-cancel-button-title: string
+      search-submit-button-title: string
+      crossref-fig-title: string
+      crossref-tbl-title: string
+      crossref-lst-title: string
+      crossref-thm-title: string
+      crossref-lem-title: string
+      crossref-cor-title: string
+      crossref-prp-title: string
+      crossref-cnj-title: string
+      crossref-def-title: string
+      crossref-exm-title: string
+      crossref-exr-title: string
+      crossref-fig-prefix: string
+      crossref-tbl-prefix: string
+      crossref-lst-prefix: string
+      crossref-sec-prefix: string
+      crossref-eq-prefix: string
+      crossref-thm-prefix: string
+      crossref-lem-prefix: string
+      crossref-cor-prefix: string
+      crossref-prp-prefix: string
+      crossref-cnj-prefix: string
+      crossref-def-prefix: string
+      crossref-exm-prefix: string
+      crossref-exr-prefix: string
+      crossref-lof-title: string
+      crossref-lot-title: string
+      crossref-lol-title: string
+    errorDescription: "be a format language description object"

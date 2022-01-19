@@ -12,6 +12,8 @@ import { createTempContext } from "../../core/temp.ts";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
 import { resourcePath } from "../../core/resources.ts";
+import { setInitializer, initState } from "../../core/lib/yaml-intelligence/state.ts";
+import { init as initYamlIntelligence } from "../../core/lib/yaml-intelligence/deno-init-no-tree-sitter.ts";
 
 async function buildQuartoOJS() {
   const src = await esbuildCompile(
@@ -75,5 +77,7 @@ export const buildJsCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, _path: string) => {
+    setInitializer(initYamlIntelligence(true));
+    await initState();
     await buildAssets();
   });

@@ -24,7 +24,7 @@ import {
   setSchemaDefinition,
 } from "../lib/schema.ts";
 
-import { withValidator } from "../lib/validator-queue.ts";
+import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
 
 import {
   allOfSchema as allOfS,
