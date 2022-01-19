@@ -14,6 +14,7 @@ import {
   kCodeLink,
   kCodeOverflow,
   kCodeTools,
+  kColumns,
   kDefaultImageExtension,
   kEcho,
   kError,
@@ -94,6 +95,7 @@ export function createHtmlFormat(
     pandoc: {
       [kStandalone]: true,
       [kWrap]: "none",
+      [kColumns]: 10000,
       [kDefaultImageExtension]: "png",
     },
   });

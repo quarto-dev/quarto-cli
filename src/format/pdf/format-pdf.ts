@@ -17,6 +17,7 @@ import {
   kCitationLocation,
   kCiteMethod,
   kClassOption,
+  kColumns,
   kDefaultImageExtension,
   kDocumentClass,
   kEcho,
@@ -94,6 +95,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
       pandoc: {
         [kPdfEngine]: "xelatex",
         standalone: true,
+        [kColumns]: 10000,
         variables: {
           graphics: true,
           tables: true,
