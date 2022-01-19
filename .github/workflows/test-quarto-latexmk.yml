@@ -29,7 +29,8 @@ jobs:
           .\configure-windows.cmd
           cd package/src
           .\quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc
-          .\..\dist\bin\quarto-latexmk\x86_64-pc-windows-msvc\quarto-latexmk.exe --help
+          tree ..\dist\bin
+          ..\dist\bin\quarto-latexmk\x86_64-pc-windows-msvc\quarto-latexmk.exe --help
 
       - name: Test ${{ runner.os }}
         if: runner.os == 'macOS'
@@ -37,6 +38,7 @@ jobs:
           ./configure-macos.sh
           cd package/src
           ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin
+          ls -R ../dist/bin
           ../dist/bin/quarto-latexmk/x86_64-apple-darwin/quarto-latexmk --help
 
       - name: Test ${{ runner.os }}
@@ -45,4 +47,5 @@ jobs:
           ./configure-linux.sh
           cd package/src
           ./quarto-bld compile-quarto-latexmk --target x86_64-unknown-linux-gnu
+          ls -R ../dist/bin
           ../dist/bin/quarto-latexmk/x86_64-unknown-linux-gnu/quarto-latexmk --help
