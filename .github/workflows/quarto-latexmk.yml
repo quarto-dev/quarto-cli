@@ -1,0 +1,68 @@
+# Gathers baseline performance data for the bundled version of Quarto Latexmk
+name: Quarto LaTeXmk Check
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    # only trigger on branches, not on tags
+    branches: [main]
+  schedule:
+    - cron: 0 * * * *
+
+jobs:
+  build-quarto-latexmk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          # checkout full tree
+          fetch-depth: 0
+
+      - name: Set Path
+        shell: bash
+        run: |
+          echo "$HOME/bin" >> $GITHUB_PATH
+      
+      - name: Configure Quarto
+        shell: bash
+        run: |
+          ./configure-linux.sh
+
+      - name: Build quarto-latexmk
+        id: create_bundle
+        shell: bash
+        run: |
+        
+          # Build quarto-latexmk
+          pushd package/src
+
+          bundle_start=$(date +%s.%3N)
+          ./quarto-bld compile-quarto-latexmk --target x86_64-unknown-linux-gnu
+          bundle_end=$(date +%s.%3N)
+          bundle_elapsed=$(printf '%.3f\n' $(echo "scale=3; $bundle_end - $bundle_start" | bc))
+
+          # verify output
+          file=../dist/bin/quarto-latexmk/x86_64-unknown-linux-gnu/quarto-latexmk
+          if [[ -f "$file" ]]; then
+            echo "$file exists."
+          else
+            echo "ERROR: $file DOES NOT EXIST"
+            exit 1
+          fi
+          
+          popd
+          # return the measures
+          echo "::set-output name=bundle_time::$bundle_elapsed"
+          echo "::set-output name=commit::$(git rev-parse --short $GITHUB_SHA)"
+
+      - name: Send Event
+        uses: ./.github/workflows/actions/amplitude
+        with:
+          api_key: ${{ secrets.amplitude_api_key }}
+          event: "Bundle"
+          success: true
+          duration: ${{ steps.create_bundle.outputs.bundle_time }}
+          commit: ${{ steps.create_bundle.outputs.commit }}
