@@ -32,7 +32,7 @@ return !["title", "image", "card-cap-text", "date", "author", "subtitle", "descr
 <% if (fields.includes('image')) { %>
 <% if (item.image) { %><p class="card-img-top"><%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img") %></p>
 <% } else { %>
-<div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight}px;"` : '' %>><%= (item['card-cap-text']) ? listing.utilities.outputLink(item, 'card-cap-text') : "&nbsp;" %></div>
+<div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight};"` : '' %>><%= (item['card-cap-text']) ? listing.utilities.outputLink(item, 'card-cap-text') : "&nbsp;" %></div>
 <% } %>
 <% } %>
 <% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %>
