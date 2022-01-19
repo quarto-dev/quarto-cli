@@ -40,12 +40,18 @@ jobs:
           pushd package/src
 
           bundle_start=$(date +%s.%3N)
-          ./quarto-bld compile-quarto-latexmk -target x86_64-unknown-linux-gnu
-          ./quarto-bld compile-quarto-latexmk -target x86_64-pc-windows-msvc
-          ./quarto-bld compile-quarto-latexmk -target x86_64-apple-darwin
-          ./quarto-bld compile-quarto-latexmk -target aarch64-apple-darwin
+          ./quarto-bld compile-quarto-latexmk --target x86_64-unknown-linux-gnu
           bundle_end=$(date +%s.%3N)
           bundle_elapsed=$(printf '%.3f\n' $(echo "scale=3; $bundle_end - $bundle_start" | bc))
+
+          # verify output
+          file = ../dist/bin/quarto-latexmk/x86_64-unknown-linux-gnu/quarto-latexmk
+          if [[ -f "$file" ]]; then
+            echo "$file exists."
+          else
+            echo "ERROR: $file DOES NOT EXIST"
+            exit 1
+          fi
           
           popd
           # return the measures
