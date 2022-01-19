@@ -44,10 +44,7 @@ ul.pagination {
 }
 
 .column-page-left {
-  div[class^="quarto-listing-"],
-  div[class*=" quarto-listing-"],
-  .listing-actions-group,
-  nav {
+  .quarto-listing {
     padding-right: 20px;
   }
 }

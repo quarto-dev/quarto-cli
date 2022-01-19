@@ -194,8 +194,7 @@ function listingPostProcess(
 
   // Find out if any listings require categories
   const categories = firstListingValue(kCategories);
-
-  if (categories !== undefined) {
+  if (categories) {
     const { headingEl, categoriesEl } = categorySidebar(
       doc,
       listingDescriptors,

@@ -5,7 +5,6 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { relative } from "path/mod.ts";
 import { format as formatDate } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { cloneDeep, escape } from "../../../../core/lodash.ts";
@@ -43,6 +42,8 @@ import { resourcePath } from "../../../../core/resources.ts";
 export const kDateFormat = "date-format";
 
 export const kCardColumnSpan = "card-column-span";
+
+export const kQuartoListingClass = "quarto-listing";
 
 // Create a markdown handler for the markdown pipeline
 // This will render an EJS template into markdown
@@ -180,6 +181,9 @@ export function templateMarkdownHandler(
       }
 
       // Append any requested classes
+      if (!listingEl?.classList.contains(kQuartoListingClass)) {
+        listingEl?.classList.add(kQuartoListingClass);
+      }
       if (listing.classes) {
         listing.classes.forEach((clz) => listingEl?.classList.add(clz));
       }
