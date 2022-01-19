@@ -123,7 +123,10 @@ export function createEbookFormat(ext: string): Format {
   return createFormat(ext, {
     formatExtras: () => {
       return {
-        [kIncludeInHeader]: [formatResourcePath("epub", "styles.html")],
+        [kIncludeInHeader]: [
+          formatResourcePath("html", "styles-callout.html"),
+          formatResourcePath("epub", "styles.html"),
+        ],
       };
     },
     render: {

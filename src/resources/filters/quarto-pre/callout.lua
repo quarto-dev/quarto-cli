@@ -57,7 +57,7 @@ function callout()
           return calloutLatex(div)
         elseif isDocxOutput() then
           return calloutDocx(div)
-        elseif isEpubOutput() then
+        elseif isEpubOutput() or isRevealJsOutput() then
           return epubCallout(div)
         else
           return simpleCallout(div)

@@ -279,7 +279,10 @@ export function revealjsFormat() {
               [kLinkCitations]: true,
             } as Metadata,
             metadataOverride,
-            [kIncludeInHeader]: [stylesFile],
+            [kIncludeInHeader]: [
+              formatResourcePath("html", "styles-callout.html"),
+              stylesFile,
+            ],
             html: {
               [kTemplatePatches]: [
                 extraConfigPatch,
