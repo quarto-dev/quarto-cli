@@ -28,24 +28,24 @@ jobs:
         run: |
           .\configure-windows.cmd
           cd package/src
-          .\quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc
+          .\quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc --name tinitex
           tree ..\dist\bin
-          ..\dist\bin\quarto-latexmk\x86_64-pc-windows-msvc\quarto-latexmk.exe --help
+          ..\dist\bin\tinitex\x86_64-pc-windows-msvc\tinitex.exe --help
 
       - name: Test ${{ runner.os }}
         if: runner.os == 'macOS'
         run: |
           ./configure-macos.sh
           cd package/src
-          ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin
+          ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin --name tinitex
           ls -R ../dist/bin
-          ../dist/bin/quarto-latexmk/x86_64-apple-darwin/quarto-latexmk --help
+          ../dist/bin/tinitex/x86_64-apple-darwin/tinitex --help
 
       - name: Test ${{ runner.os }}
         if: runner.os == 'Linux'
         run: |
           ./configure-linux.sh
           cd package/src
-          ./quarto-bld compile-quarto-latexmk --target x86_64-unknown-linux-gnu
+          ./quarto-bld compile-quarto-latexmk --target x86_64-unknown-linux-gnu --name tinitex
           ls -R ../dist/bin
-          ../dist/bin/quarto-latexmk/x86_64-unknown-linux-gnu/quarto-latexmk --help
+          ../dist/bin/tinitex/x86_64-unknown-linux-gnu/tinitex --help
