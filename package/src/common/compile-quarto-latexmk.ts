@@ -39,14 +39,14 @@ export function compileQuartoLatexmkCommand() {
       "--description <description...:string>",
       "The description of the compiled executable",
     )
-    .action((args) => {
+    .action(async (args) => {
       const configuration = readConfiguration();
       info("Using configuration:");
       info(configuration);
       info("");
 
       if (args.development) {
-        installQuartoLatexmk(configuration);
+        await installQuartoLatexmk(configuration);
       } else {
         const description = Array.isArray(args.description)
           ? args.description.join(" ")
@@ -56,7 +56,7 @@ export function compileQuartoLatexmkCommand() {
         const name = args.name || "quarto-latexmk";
         const targets = (args.targets || [Deno.build.target]) as string[];
 
-        compileQuartoLatexmk(
+        await compileQuartoLatexmk(
           configuration,
           targets,
           version,
