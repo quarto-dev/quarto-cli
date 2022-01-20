@@ -33,7 +33,7 @@
       This can be specified as:
 
       - `auto`: Apply markdown table column widths except when there is a
-        hyperlink in the table (which tends to throw off automatic  
+        hyperlink in the table (which tends to throw off automatic
         calculation of column widths based on the markdown text width of cells).
         (`auto` is the default for HTML output formats)
 
