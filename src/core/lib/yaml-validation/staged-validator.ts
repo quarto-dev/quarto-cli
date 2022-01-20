@@ -5,7 +5,7 @@
 *
 */
 
-import { Schema, getSchemaDefinition, hasSchemaDefinition } from "./schema.ts";
+import { getSchemaDefinition, hasSchemaDefinition, Schema } from "./schema.ts";
 import { validate } from "./validator.ts";
 
 // this is an interface from ajv which we're repeating here for build
@@ -44,8 +44,7 @@ let _module: any = undefined;
 
 let validatorModulePath = "";
 // FIXME there's still a race here if ensureValidatorModule gets called twice in quick succession...
-async function ensureValidatorModule()
-{
+async function ensureValidatorModule() {
   if (_module) {
     return _module;
   }
@@ -53,7 +52,7 @@ async function ensureValidatorModule()
   if (validatorModulePath === "") {
     throw new Error("Internal Error: validator module path is not set");
   }
-  
+
   const path = new URL(validatorModulePath, import.meta.url).href;
   const _mod = await import(path);
   _module = _mod.default;
@@ -63,15 +62,16 @@ async function ensureValidatorModule()
 // we can't hardcode this because it's different from IDE and CLI
 // and we're in core/lib so can't call resourcePath() anyway.
 export function setValidatorModulePath(
-  path: string
+  path: string,
 ) {
   validatorModulePath = path;
 }
 
-export function stagedValidator(schema: Schema):
-(schema: Schema) => Promise<ErrorObject[]> {
+export function stagedValidator(
+  schema: Schema,
+): (schema: Schema) => Promise<ErrorObject[]> {
   const schemaName: string = schema.$id || schema.$ref;
-  
+
   if (!hasSchemaDefinition(schemaName)) {
     throw new Error(`Internal error: can't find schema ${schemaName}`);
   }
@@ -84,7 +84,9 @@ export function stagedValidator(schema: Schema):
     await ensureValidatorModule();
     const validator = _module[schema.$id || schema.$ref];
     if (validator(value)) {
-      throw new Error(`Internal error: validators disagree on schema ${schema.$id}`);
+      throw new Error(
+        `Internal error: validators disagree on schema ${schema.$id}`,
+      );
     }
 
     // we don't call cloneDeep here to avoid pulling lodash into core/lib

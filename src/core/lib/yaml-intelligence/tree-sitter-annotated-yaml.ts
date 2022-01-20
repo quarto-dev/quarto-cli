@@ -26,7 +26,10 @@ export function buildAnnotated(
   const singletonBuild = (node: TreeSitterNode) => {
     return buildNode(node.firstChild, node.endIndex);
   };
-  const buildNode = (node: TreeSitterNode, endIndex?: number): AnnotatedParse => {
+  const buildNode = (
+    node: TreeSitterNode,
+    endIndex?: number,
+  ): AnnotatedParse => {
     if (node === null) {
       // This can come up with parse errors
       return annotateEmpty(endIndex === undefined ? -1 : endIndex);

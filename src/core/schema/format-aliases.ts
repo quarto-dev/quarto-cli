@@ -22,7 +22,7 @@ export function getFormatAliases(): Record<string, string[]> {
   formatAliases =
     (readYaml(join(resourcePath(), "schema/format-aliases.yml")) as Record<
       string,
-  // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
       any
     >).aliases;
   return formatAliases as Record<string, string[]>;

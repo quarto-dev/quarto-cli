@@ -11,28 +11,26 @@
 *
 */
 
-
-import { Schema, getSchemaDefinition, schemaType } from "./schema.ts";
+import { getSchemaDefinition, Schema, schemaType } from "./schema.ts";
 
 // deno-lint-ignore no-explicit-any
-function validateBoolean(value: any, _schema: Schema)
-{
-  return typeof value === 'boolean';
+function validateBoolean(value: any, _schema: Schema) {
+  return typeof value === "boolean";
 }
 
 // deno-lint-ignore no-explicit-any
-function validateNumber(value: any, _schema: Schema)
-{
-  return typeof value === 'number';
+function validateNumber(value: any, _schema: Schema) {
+  return typeof value === "number";
 }
 
 // deno-lint-ignore no-explicit-any
-function validateString(value: any, schema: Schema)
-{
-  if (typeof value !== 'string')
+function validateString(value: any, schema: Schema) {
+  if (typeof value !== "string") {
     return false;
-  if (schema.pattern === undefined)
+  }
+  if (schema.pattern === undefined) {
     return true;
+  }
   if (value.match(new RegExp(schema.pattern as string))) {
     return true;
   } else {
@@ -41,20 +39,17 @@ function validateString(value: any, schema: Schema)
 }
 
 // deno-lint-ignore no-explicit-any
-function validateNull(value: any, _schema: Schema)
-{
+function validateNull(value: any, _schema: Schema) {
   return value === null;
 }
 
 // deno-lint-ignore no-explicit-any
-function validateEnum(value: any, schema: Schema)
-{
+function validateEnum(value: any, schema: Schema) {
   return schema["enum"].indexOf(value) !== -1;
 }
 
 // deno-lint-ignore no-explicit-any
-function validateOneOf(value: any, schema: Schema)
-{
+function validateOneOf(value: any, schema: Schema) {
   let count = 0;
   for (const subSchema of schema.oneOf) {
     if (validate(value, subSchema)) {
@@ -68,8 +63,7 @@ function validateOneOf(value: any, schema: Schema)
 }
 
 // deno-lint-ignore no-explicit-any
-function validateAnyOf(value: any, schema: Schema)
-{
+function validateAnyOf(value: any, schema: Schema) {
   for (const subSchema of schema.anyOf) {
     if (validate(value, subSchema)) {
       return true;
@@ -80,8 +74,7 @@ function validateAnyOf(value: any, schema: Schema)
 }
 
 // deno-lint-ignore no-explicit-any
-function validateAllOf(value: any, schema: Schema)
-{
+function validateAllOf(value: any, schema: Schema) {
   for (const subSchema of schema.allOf) {
     if (!validate(value, subSchema)) {
       return false;
@@ -92,8 +85,7 @@ function validateAllOf(value: any, schema: Schema)
 }
 
 // deno-lint-ignore no-explicit-any
-function validateObject(value: any, schema: Schema)
-{
+function validateObject(value: any, schema: Schema) {
   if (typeof value !== "object" || Array.isArray(value) || value === null) {
     return false;
   }
@@ -139,20 +131,18 @@ function validateObject(value: any, schema: Schema)
 }
 
 // deno-lint-ignore no-explicit-any
-function validateArray(value: any, schema: Schema)
-{
+function validateArray(value: any, schema: Schema) {
   if (!Array.isArray(value)) {
     return false;
   }
   if (schema.items) {
-    return value.every(entry => validate(entry, schema.items));
+    return value.every((entry) => validate(entry, schema.items));
   }
   return true;
 }
 
 // deno-lint-ignore no-explicit-any
-export function validate(value: any, schema: Schema)
-{
+export function validate(value: any, schema: Schema) {
   // deno-lint-ignore no-explicit-any
   const validators: Record<string, (value: any, schema: Schema) => boolean> = {
     "boolean": validateBoolean,
@@ -164,7 +154,7 @@ export function validate(value: any, schema: Schema)
     "anyOf": validateAnyOf,
     "allOf": validateAllOf,
     "object": validateObject,
-    "array": validateArray
+    "array": validateArray,
   };
 
   while (schema.$ref) {

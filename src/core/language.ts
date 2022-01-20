@@ -25,7 +25,6 @@ export async function readLanguageTranslations(
   translationFile: string,
   lang?: string,
 ): Promise<{ language: FormatLanguage; files: string[] }> {
-  
   // read and parse yaml if it exists (track files read)
   const files: string[] = [];
   const maybeReadYaml = async (file: string) => {

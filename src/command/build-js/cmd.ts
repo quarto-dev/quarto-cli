@@ -15,26 +15,29 @@ import { resourcePath } from "../../core/resources.ts";
 import { simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
 
-function ensureAllowableIDESyntax(src: string, filename: string)
-{
+function ensureAllowableIDESyntax(src: string, filename: string) {
   const ast = parseES6(src, {
     ecmaVersion: "2020",
-    sourceType: "module"
+    sourceType: "module",
   });
   let failed = false;
   simple(ast, {
     // deno-lint-ignore no-explicit-any
     ChainExpression(_node: any) {
-      console.error(`Failure: Chain expression \`?.\` not allowed in ${filename}`);
+      console.error(
+        `Failure: Chain expression \`?.\` not allowed in ${filename}`,
+      );
       failed = true;
     },
     // deno-lint-ignore no-explicit-any
     LogicalExpression(node: any) {
-      if (node.operator === '??') {
-        console.error(`Failure: Nullish coalescing operator \`??\` not allows in ${filename}`);
+      if (node.operator === "??") {
+        console.error(
+          `Failure: Nullish coalescing operator \`??\` not allows in ${filename}`,
+        );
         failed = true;
       }
-    }
+    },
   });
   if (failed) {
     throw new Error("Found syntax that is not allowed");
@@ -69,7 +72,10 @@ async function buildYAMLJS() {
     ["yaml-intelligence.ts"],
     "esm",
   );
-  Deno.writeTextFileSync(resourcePath("editor/tools/yaml/yaml-intelligence.js"), intelligenceSrc!);
+  Deno.writeTextFileSync(
+    resourcePath("editor/tools/yaml/yaml-intelligence.js"),
+    intelligenceSrc!,
+  );
 
   ensureAllowableIDESyntax(intelligenceSrc!, "yaml-intelligence.js");
 
@@ -81,11 +87,16 @@ async function buildYAMLJS() {
   );
 
   ensureAllowableIDESyntax(finalBuild!, "automation.js");
-  const treeSitter = Deno.readTextFileSync(resourcePath("editor/tools/yaml/tree-sitter.js"));
+  const treeSitter = Deno.readTextFileSync(
+    resourcePath("editor/tools/yaml/tree-sitter.js"),
+  );
 
   ensureAllowableIDESyntax(treeSitter, "tree-sitter.js");
 
-  Deno.writeTextFileSync(resourcePath("editor/tools/yaml/yaml.js"), [treeSitter,finalBuild!].join(""));
+  Deno.writeTextFileSync(
+    resourcePath("editor/tools/yaml/yaml.js"),
+    [treeSitter, finalBuild!].join(""),
+  );
 }
 
 export async function buildAssets() {

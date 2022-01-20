@@ -5,8 +5,7 @@
 *
 */
 
-export class Timer
-{
+export class Timer {
   mark: number;
 
   constructor() {
@@ -17,7 +16,7 @@ export class Timer
   reset() {
     this.mark = performance.now();
   }
- 
+
   elapsed() {
     return performance.now() - this.mark;
   }

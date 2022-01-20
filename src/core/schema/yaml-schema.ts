@@ -51,7 +51,11 @@ export function getAjvInstance() {
 
 export async function ensureAjv() {
   if (!ajvInit) {
-    const path = new URL(resourcePath("../core/lib/external/ajv-bundle.js"), import.meta.url).href;
+    const path =
+      new URL(
+        resourcePath("../core/lib/external/ajv-bundle.js"),
+        import.meta.url,
+      ).href;
     const mod = await import(path);
     Ajv = mod.default;
     ajv = new Ajv({
@@ -60,7 +64,7 @@ export async function ensureAjv() {
       verbose: true,
       code: {
         optimize: false,
-        source: true
+        source: true,
       },
     });
     ajvInit = true;
@@ -76,7 +80,7 @@ export async function exportStandaloneValidators(temp: TempContext) {
 
   for (const [key, schema] of Object.entries(defs)) {
     entries[key] = schema.$id;
-    
+
     // compile the schemas
     ajv.compile(normalizeSchema(schema));
   }

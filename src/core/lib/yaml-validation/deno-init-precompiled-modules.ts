@@ -11,18 +11,17 @@
 
 import { resourcePath } from "../../resources.ts";
 import { setSchemaDefinition } from "./schema.ts";
-import { QuartoJsonSchemas, setSchemas, getSchemas } from "./schema-utils.ts";
+import { getSchemas, QuartoJsonSchemas, setSchemas } from "./schema-utils.ts";
 import { withValidator } from "./validator-queue.ts";
 import { setValidatorModulePath } from "./staged-validator.ts";
 
 export async function initPrecompiledModules() {
-
   setSchemas(JSON.parse(
     Deno.readTextFileSync(
       resourcePath("editor/tools/yaml/quarto-json-schemas.json"),
     ),
   ) as QuartoJsonSchemas);
-  
+
   setValidatorModulePath(resourcePath(
     "editor/tools/yaml/standalone-schema-validators.js",
   ));

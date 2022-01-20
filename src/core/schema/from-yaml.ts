@@ -75,7 +75,7 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
       schema = documentSchema(schema, yaml.description.short);
     }
   }
- 
+
   // make shallow copy so that downstream can assign to it
   const result = Object.assign({}, schema);
 

@@ -10,11 +10,12 @@
 
 import { Semaphore } from "../semaphore.ts";
 
-export function makeInitializer(thunk: () => Promise<unknown>): () => Promise<void>
-{
+export function makeInitializer(
+  thunk: () => Promise<unknown>,
+): () => Promise<void> {
   let initStarted = false;
   const hasInitSemaphore = new Semaphore(0);
-  
+
   return async () => {
     if (initStarted) {
       await hasInitSemaphore.runExclusive(async () => {});
@@ -29,8 +30,8 @@ export function makeInitializer(thunk: () => Promise<unknown>): () => Promise<vo
 let initializer: () => Promise<void> = () => {
   // can't call "err" here because we don't know if we're in the IDE or CLI
   // this should be an internal error anyway.
-  throw new Error("initializer not set!!")
-}
+  throw new Error("initializer not set!!");
+};
 
 export async function initState() {
   await initializer();
@@ -59,8 +60,7 @@ export async function initState() {
 // already have been set and will not be further touched.
 
 let hasSet = false;
-export function setInitializer(init: () => Promise<unknown>)
-{
+export function setInitializer(init: () => Promise<unknown>) {
   if (hasSet) {
     return;
   }

@@ -12,24 +12,26 @@ import { error } from "log/mod.ts";
 import { schemaPath } from "./utils.ts";
 import { buildSchemaResources } from "./from-yaml.ts";
 import {
-  withValidator,
   addValidatorErrorHandler,
-  ValidatorErrorHandlerFunction
+  ValidatorErrorHandlerFunction,
+  withValidator,
 } from "../lib/yaml-validation/validator-queue.ts";
 import {
+  getSchemaDefinition,
   hasSchemaDefinition,
   normalizeSchema,
   Schema,
   setSchemaDefinition,
-  getSchemaDefinition
 } from "../lib/yaml-validation/schema.ts";
 
 export function defineCached(
-  thunk: () => Promise<{ schema: Schema, errorHandlers: ValidatorErrorHandlerFunction[] }>,
+  thunk: () => Promise<
+    { schema: Schema; errorHandlers: ValidatorErrorHandlerFunction[] }
+  >,
   schemaId: string,
 ): (() => Promise<Schema>) {
   let schema: Schema;
-  
+
   return async () => {
     // when running on the CLI outside of quarto build-js, these
     // definitions will already exist.
@@ -40,7 +42,7 @@ export function defineCached(
         (schema!.description as string) || `be a {schema['$id']}`,
       );
     }
-    
+
     const result = await thunk();
     const { errorHandlers } = result;
     schema = result.schema;

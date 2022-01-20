@@ -7,7 +7,10 @@
 *
 */
 
-import { AnnotatedParse, LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
+import {
+  AnnotatedParse,
+  LocalizedError,
+} from "../lib/yaml-validation/yaml-schema.ts";
 import { Schema } from "../lib/yaml-validation/schema.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
@@ -88,9 +91,12 @@ const makeEngineSchema = (engine: string): Schema =>
       (field: SchemaField, _path: string) => {
         const engineTag = field?.tags?.engine;
         switch (typeof engineTag) {
-          case "undefined": return true;
-          case "string": return engineTag === engine;
-          case "object": return (engineTag as string[]).indexOf(engine) !== -1
+          case "undefined":
+            return true;
+          case "string":
+            return engineTag === engine;
+          case "object":
+            return (engineTag as string[]).indexOf(engine) !== -1;
           default:
             throw new Error(`Internal Error: bad engine tag ${engineTag}`);
         }
@@ -104,7 +110,7 @@ const markdownEngineSchema = defineCached(
   async () => {
     return {
       schema: makeEngineSchema("markdown"),
-      errorHandlers: []
+      errorHandlers: [],
     };
   },
   "engine-markdown",
@@ -123,7 +129,7 @@ const jupyterEngineSchema = defineCached(
   async () => {
     return {
       schema: makeEngineSchema("jupyter"),
-      errorHandlers: []
+      errorHandlers: [],
     };
   },
   "engine-jupyter",

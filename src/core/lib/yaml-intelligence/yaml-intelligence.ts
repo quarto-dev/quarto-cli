@@ -12,12 +12,12 @@ import { buildAnnotated, locateCursor } from "./tree-sitter-annotated-yaml.ts";
 import {
   attemptParsesAtLine,
   getTreeSitter,
+  getYamlPredecessors,
   locateFromIndentation,
-  getYamlPredecessors
 } from "./parsing.ts";
 
-import { setInitializer, initState } from "../yaml-validation/state.ts";
-import { setMainPath, getLocalPath } from "./paths.ts";
+import { initState, setInitializer } from "../yaml-validation/state.ts";
+import { getLocalPath, setMainPath } from "./paths.ts";
 import { setValidatorModulePath } from "../yaml-validation/staged-validator.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
@@ -39,7 +39,12 @@ import {
   setSchemaDefinition,
 } from "../yaml-validation/schema.ts";
 import { withValidator } from "../yaml-validation/validator-queue.ts";
-import { getSchemas, navigateSchema, QuartoJsonSchemas, setSchemas } from "../yaml-validation/schema-utils.ts";
+import {
+  getSchemas,
+  navigateSchema,
+  QuartoJsonSchemas,
+  setSchemas,
+} from "../yaml-validation/schema-utils.ts";
 
 interface IDEContext {
   formats: string[];
@@ -103,7 +108,6 @@ function trimTicks(context: YamlIntelligenceContext): YamlIntelligenceContext {
 export async function validationFromGoodParseYAML(
   context: YamlIntelligenceContext,
 ): Promise<ValidationResult[]> {
-  
   const code = asMappedString(context.code); // full contents of the buffer
 
   const result = await withValidator(context.schema, async (validator) => {
@@ -147,10 +151,15 @@ export async function validationFromGoodParseYAML(
     return [];
   });
 
-  const predecessors = getYamlPredecessors(code.value, context.position.row - 1);
+  const predecessors = getYamlPredecessors(
+    code.value,
+    context.position.row - 1,
+  );
 
   // keep only the lints that are not in the predecessor path of the cursor
-  return result.filter(lint => predecessors.indexOf(lint["start.row"] - 1) === -1);
+  return result.filter((lint) =>
+    predecessors.indexOf(lint["start.row"] - 1) === -1
+  );
 }
 
 async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
@@ -334,17 +343,16 @@ export interface CompletionResult {
 const noCompletions = {
   token: "",
   completions: [],
-  cacheable: false
+  cacheable: false,
 };
 
 // a minimal uniqBy implementation so we don't need to pull in
 // the entirety of lodash.
 //
 // if keyFun returns undefined, elements are considered unique
-function uniqBy<T>(lst: T[], keyFun: (item: T) => (string | undefined)): T[]
-{
+function uniqBy<T>(lst: T[], keyFun: (item: T) => (string | undefined)): T[] {
   const itemSet = new Set<string>();
-  return lst.filter(item => {
+  return lst.filter((item) => {
     const key = keyFun(item);
     if (key === undefined) {
       return true;
@@ -368,7 +376,8 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
   } = obj;
   const matchingSchemas = uniqBy(
     await navigateSchema(schema, path),
-    (schema: Schema) => schema.$id);
+    (schema: Schema) => schema.$id,
+  );
   const { aliases } = await getSchemas();
   const formats = [
     ...Array.from(context.formats),
@@ -485,7 +494,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
   // completions.sort((a, b) => a.value.localeCompare(b.value));
 
   // uniqBy the final completions array on their completion values.
-  
+
   completions = uniqBy(completions, (completion) => completion.value);
   return {
     // token to replace
@@ -621,7 +630,7 @@ async function automationFromGoodParseMarkdown(
 
       linesSoFar += adjustedCellSize(cell);
     }
-    
+
     return lints;
   }
 }
@@ -792,7 +801,7 @@ export async function getAutomation(
 
 const initializer = async () => {
   const before = performance.now();
-  
+
   setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
 
   const response = await fetch(getLocalPath("quarto-json-schemas.json"));
@@ -807,7 +816,7 @@ const initializer = async () => {
   }
   const after = performance.now();
   console.log(`Initialization time: ${after - before}ms`);
-}
+};
 
 export const QuartoYamlEditorTools = {
   // helpers to facilitate repro'ing in the browser

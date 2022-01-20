@@ -148,7 +148,9 @@ function getIndent(l: string) {
 export function getYamlPredecessors(code: string, row: number) {
   const yamlIndentTree = getYamlIndentTree(code).predecessor;
   const result = [];
-  while (row !== undefined && row !== -1 && row >= 0 && row < yamlIndentTree.length) {
+  while (
+    row !== undefined && row !== -1 && row >= 0 && row < yamlIndentTree.length
+  ) {
     result.push(row);
     row = yamlIndentTree[row];
   }
@@ -236,7 +238,10 @@ export function locateFromIndentation(
         // to locate through the first line that's shallower than us:
         do {
           prev--;
-        } while (prev >= 0 && (ls[prev].trim().length === 0 || getIndent(ls[prev]) >= lineIndent));
+        } while (
+          prev >= 0 &&
+          (ls[prev].trim().length === 0 || getIndent(ls[prev]) >= lineIndent)
+        );
         lineNo = prev;
         continue;
       }

@@ -25,7 +25,7 @@ import * as colors from "../external/colors.ts";
 
 import { getSchemaDefinition, Schema } from "./schema.ts";
 
-import { stagedValidator, ErrorObject } from "./staged-validator.ts";
+import { ErrorObject, stagedValidator } from "./staged-validator.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -37,7 +37,6 @@ export interface AnnotatedParse {
   kind: string;
   components: AnnotatedParse[];
 }
-
 
 export interface LocalizedError {
   source: MappedString;
@@ -480,7 +479,7 @@ export class YAMLSchema {
     annotation: AnnotatedParse,
   ) {
     const validationErrors = await this.validate(annotation.result);
-    
+
     if (validationErrors.length) {
       const localizedErrors = this.transformErrors(
         annotation,

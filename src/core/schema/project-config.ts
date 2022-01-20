@@ -30,7 +30,7 @@ export const getProjectConfigFieldsSchema = defineCached(
   async () => {
     return {
       schema: objectSchemaFromFieldsFile(schemaPath("project.yml")),
-      errorHandlers: []
+      errorHandlers: [],
     };
   },
   "project-config-fields",
@@ -57,7 +57,7 @@ export const getProjectConfigSchema = defineCached(
     );
     return {
       schema: describeSchema(result, "a project configuration object"),
-      errorHandlers: []
+      errorHandlers: [],
     };
   },
   "project-config",

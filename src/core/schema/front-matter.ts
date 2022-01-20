@@ -82,7 +82,7 @@ export const getFrontMatterFormatSchema = defineCached(
   async () => {
     return {
       schema: await makeFrontMatterFormatSchema(),
-      errorHandlers: []
+      errorHandlers: [],
     };
   },
   "front-matter-format",
@@ -92,7 +92,7 @@ export const getNonStrictFrontMatterFormatSchema = defineCached(
   async () => {
     return {
       schema: await makeFrontMatterFormatSchema(true),
-      errorHandlers: []
+      errorHandlers: [],
     };
   },
   "front-matter-format-nonstrict",
@@ -119,7 +119,7 @@ export const getFrontMatterSchema = defineCached(
           executeObjSchema,
         ),
       ),
-      errorHandlers: []
+      errorHandlers: [],
     };
   },
   "front-matter",
