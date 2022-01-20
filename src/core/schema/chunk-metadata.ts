@@ -101,20 +101,30 @@ const makeEngineSchema = (engine: string): Schema =>
   );
 
 const markdownEngineSchema = defineCached(
-  () => makeEngineSchema("markdown"),
+  async () => {
+    return {
+      schema: makeEngineSchema("markdown"),
+      errorHandlers: []
+    };
+  },
   "engine-markdown",
 );
 const knitrEngineSchema = defineCached(
   async () => {
     const result = await makeEngineSchema("knitr");
+
     // FIXME how does this get to the IDE?
-    await addValidatorErrorHandler(result, checkForEqualsInChunk);
-    return result;
+    return { schema: result, errorHandlers: [checkForEqualsInChunk] };
   },
   "engine-knitr",
 );
 const jupyterEngineSchema = defineCached(
-  () => makeEngineSchema("jupyter"),
+  async () => {
+    return {
+      schema: makeEngineSchema("jupyter"),
+      errorHandlers: []
+    };
+  },
   "engine-jupyter",
 );
 

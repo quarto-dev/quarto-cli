@@ -531,8 +531,8 @@ export async function buildSchemaResources() {
       const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
       const schema = withId(fieldSchema, schemaId);
       // deno-lint-ignore require-await
+      setSchemaDefinition(schema);
       await withValidator(schema, async (_validator) => {
-        setSchemaDefinition(schema);
       });
     }
   }

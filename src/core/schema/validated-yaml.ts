@@ -53,7 +53,7 @@ export async function readAndValidateYamlFromMappedString(
 
     const yaml = annotation.result;
     if (validateYaml) {
-      const valResult = validator.validateParse(mappedYaml, annotation);
+      const valResult = await validator.validateParse(mappedYaml, annotation);
       if (valResult.errors.length) {
         validator.reportErrorsInSource(
           {

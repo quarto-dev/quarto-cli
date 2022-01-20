@@ -12,9 +12,9 @@ import { assert, assertEquals } from "testing/asserts.ts";
 
 import { Semaphore } from "../../../src/core/lib/semaphore.ts";
 
-import { initTreeSitter } from "../../../src/core/lib/yaml-intelligence/deno-init-tree-sitter.ts";
-import { initPrecompiledModules } from "../../../src/core/lib/yaml-intelligence/deno-init-precompiled-modules.ts";
-import { setInitializer, makeInitializer, initState } from "../../../src/core/lib/yaml-intelligence/state.ts";
+import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
+import { initPrecompiledModules } from "../../../src/core/lib/yaml-validation/deno-init-precompiled-modules.ts";
+import { setInitializer, makeInitializer, initState } from "../../../src/core/lib/yaml-validation/state.ts";
 import { getAutomation, CompletionResult } from "../../../src/core/lib/yaml-intelligence/yaml-intelligence.ts";
 
 let initStarted = false;
@@ -34,7 +34,9 @@ unitTest("yaml-intelligence-smoke-regression", async () => {
     const { kind, context } = JSON.parse(Deno.readTextFileSync(fileName));
     try {
       await getAutomation(kind, context);
-    } catch (_e) {
+    } catch (e) {
+      console.log('\n\n');
+      console.log(e);
       assert(false, "Smoke assertion failed");
     }
   }

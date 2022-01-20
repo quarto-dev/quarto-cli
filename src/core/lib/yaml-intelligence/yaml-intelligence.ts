@@ -18,6 +18,7 @@ import {
 
 import { setInitializer, initState } from "../yaml-validation/state.ts";
 import { setMainPath, getLocalPath } from "./paths.ts";
+import { setValidatorModulePath } from "../yaml-validation/staged-validator.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
@@ -37,7 +38,7 @@ import {
   schemaCompletions,
   schemaType,
 } from "../yaml-validation/schema.ts";
-import { loadValidatorModule, withValidator } from "../yaml-validation/validator-queue.ts";
+import { withValidator } from "../yaml-validation/validator-queue.ts";
 import { getSchemas, navigateSchema, QuartoJsonSchemas, setSchemas } from "../yaml-validation/schema-utils.ts";
 
 interface IDEContext {
@@ -118,7 +119,7 @@ export async function validationFromGoodParseYAML(
       if (annotation === null) {
         continue;
       }
-      const validationResult = validator.validateParse(code, annotation);
+      const validationResult = await validator.validateParse(code, annotation);
 
       for (const error of validationResult.errors) {
         let text;
@@ -792,8 +793,7 @@ export async function getAutomation(
 const initializer = async () => {
   const before = performance.now();
   
-  await loadValidatorModule(
-    getLocalPath("standalone-schema-validators.js"));
+  setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
 
   const response = await fetch(getLocalPath("quarto-json-schemas.json"));
   const _schemas = (await response.json()) as QuartoJsonSchemas;

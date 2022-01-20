@@ -1,5 +1,5 @@
 /*
-* staged-validator-module.ts
+* staged-validator.ts
 *
 * Copyright (C) 2022 by RStudio, PBC
 *
@@ -39,18 +39,55 @@ export interface ErrorObject {
 
 type StagedValidatorResult = ErrorObject[];
 
-export function getTwoStageValidator(schemaName: string):
-(schema: Schema) => Promise<ErrorObject[]>
+// deno-lint-ignore no-explicit-any
+let _module: any = undefined;
+
+let validatorModulePath = "";
+// FIXME there's still a race here if ensureValidatorModule gets called twice in quick succession...
+async function ensureValidatorModule()
 {
+  if (_module) {
+    return _module;
+  }
+
+  if (validatorModulePath === "") {
+    throw new Error("Internal Error: validator module path is not set");
+  }
+  
+  const path = new URL(validatorModulePath, import.meta.url).href;
+  const _mod = await import(path);
+  _module = _mod.default;
+  return _module;
+}
+
+// we can't hardcode this because it's different from IDE and CLI
+// and we're in core/lib so can't call resourcePath() anyway.
+export function setValidatorModulePath(
+  path: string
+) {
+  validatorModulePath = path;
+}
+
+export function stagedValidator(schema: Schema):
+(schema: Schema) => Promise<ErrorObject[]> {
+  const schemaName: string = schema.$id || schema.$ref;
+  
   if (!hasSchemaDefinition(schemaName)) {
     throw new Error(`Internal error: can't find schema ${schemaName}`);
   }
-  let schema = getSchemaDefinition(schemaName);
+  schema = getSchemaDefinition(schemaName); // this resolves $ref schemas if they were such
 
   return async (value) => {
     if (validate(value, schema)) {
       return [];
     }
-    return [];
+    await ensureValidatorModule();
+    const validator = _module[schema.$id || schema.$ref];
+    if (validator(value)) {
+      throw new Error(`Internal error: validators disagree on schema ${schema.$id}`);
+    };
+
+    // we don't call cloneDeep here to avoid pulling lodash into core/lib
+    return JSON.parse(JSON.stringify(validator.errors)) as ErrorObject[];
   };
 }

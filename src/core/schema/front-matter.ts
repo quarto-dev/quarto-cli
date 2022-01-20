@@ -79,35 +79,49 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
 }
 
 export const getFrontMatterFormatSchema = defineCached(
-  () => makeFrontMatterFormatSchema(),
+  async () => {
+    return {
+      schema: await makeFrontMatterFormatSchema(),
+      errorHandlers: []
+    };
+  },
   "front-matter-format",
 );
 
 export const getNonStrictFrontMatterFormatSchema = defineCached(
-  () => makeFrontMatterFormatSchema(true),
+  async () => {
+    debugger;
+    return {
+      schema: await makeFrontMatterFormatSchema(true),
+      errorHandlers: []
+    };
+  },
   "front-matter-format-nonstrict",
 );
 
 export const getFrontMatterSchema = defineCached(
   async () => {
     const executeObjSchema = await getFormatExecuteOptionsSchema();
-    return oneOfS(
-      nullS,
-      allOfS(
-        objectS({
-          properties: {
-            execute: executeObjSchema,
-            format: (await getFrontMatterFormatSchema()),
-          },
-          description: "be a Quarto YAML front matter object",
-        }),
-        objectRefSchemaFromContextGlob(
-          "document-*",
-          (field: SchemaField) => field.name !== "format",
+    return {
+      schema: oneOfS(
+        nullS,
+        allOfS(
+          objectS({
+            properties: {
+              execute: executeObjSchema,
+              format: (await getFrontMatterFormatSchema()),
+            },
+            description: "be a Quarto YAML front matter object",
+          }),
+          objectRefSchemaFromContextGlob(
+            "document-*",
+            (field: SchemaField) => field.name !== "format",
+          ),
+          executeObjSchema,
         ),
-        executeObjSchema,
       ),
-    );
+      errorHandlers: []
+    };
   },
   "front-matter",
 );

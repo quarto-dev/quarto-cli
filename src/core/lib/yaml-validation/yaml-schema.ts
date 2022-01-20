@@ -12,8 +12,6 @@ import { mappedIndexToRowCol, MappedString } from "../mapped-text.ts";
 
 import { formatLineRange, lines } from "../text.ts";
 
-import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
-
 import {
   addFileInfo,
   addInstancePathInfo,
@@ -25,7 +23,9 @@ import {
 
 import * as colors from "../external/colors.ts";
 
-import { ErrorObject } from "./staged-validator-module.ts";
+import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
+
+import { stagedValidator, ErrorObject } from "./staged-validator.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -38,30 +38,6 @@ export interface AnnotatedParse {
   components: AnnotatedParse[];
 }
 
-// deno-lint-ignore no-explicit-any
-let ajv: any = undefined;
-
-/* we use a minimal dependency-injection setup here to decouple this
-   library from the Ajv dependency. This allows us core-lib not to
-   depend directly on Ajv, which in turn lets us use the UMD version
-   of Ajv in the Javascript runtime as well as deno.
-
-   Ideally, we'd do the same for the YAML parsers, which are different
-   in deno and in the browser. At some point, we might want to shim over
-   these two parsers and inject a common dependency into yaml-schema.
-
-   Right now, we do this indirectly by expecting an AnnotatedParse as
-   input to the validation class. It gets the job done but isn't very
-   clean.
-*/
-// deno-lint-ignore no-explicit-any
-export function setupAjv(_ajv: any) {
-  ajv = _ajv;
-}
-
-export function getAjvInstance() {
-  return ajv;
-}
 
 export interface LocalizedError {
   source: MappedString;
@@ -472,17 +448,10 @@ export class YAMLSchema {
   ) => LocalizedError)[];
 
   // deno-lint-ignore no-explicit-any
-  constructor(schema: Schema, compiledModule?: any) {
+  constructor(schema: Schema) {
     this.errorHandlers = [];
     this.schema = schema;
-    
-    // compiledModule is only undefined in `quarto build-js`
-    if (compiledModule !== undefined) {
-      // this.validate = compiledModule.getTwoStageValidator(this.schema.$id || this.schema.$ref);
-      this.validate = compiledModule[this.schema.$id || this.schema.$ref];
-    } else {
-      this.validate = ajv.compile(normalizeSchema(schema));
-    }
+    this.validate = stagedValidator(this.schema);
   }
 
   addHandler(
@@ -507,24 +476,25 @@ export class YAMLSchema {
     });
   }
 
-  validateParse(
+  async validateParse(
     src: MappedString,
     annotation: AnnotatedParse,
   ) {
-    let errors: LocalizedError[] = [];
-    if (!this.validate(annotation.result)) {
-      errors = this.transformErrors(
+    let validationErrors = await this.validate(annotation.result);
+    
+    if (validationErrors.length) {
+      let localizedErrors = this.transformErrors(
         annotation,
         localizeAndPruneErrors(
           annotation,
-          this.validate.errors,
+          validationErrors,
           src,
           this.schema,
         ),
       );
       return {
         result: annotation.result,
-        errors,
+        errors: localizedErrors,
       };
     } else {
       return {
@@ -601,7 +571,7 @@ export class YAMLSchema {
   // NB this needs explicit params for "error" and "log" because it might
   // get called from the IDE, where we lack quarto's "error" and "log"
   // infra
-  validateParseWithErrors(
+  async validateParseWithErrors(
     src: MappedString,
     annotation: AnnotatedParse,
     message: string,
@@ -610,7 +580,7 @@ export class YAMLSchema {
     // deno-lint-ignore no-explicit-any
     log: (a: string) => any,
   ) {
-    const result = this.validateParse(src, annotation);
+    const result = await this.validateParse(src, annotation);
     this.reportErrorsInSource(result, src, message, error, log);
     return result;
   }

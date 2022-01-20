@@ -11,7 +11,11 @@ import { readYaml } from "../yaml.ts";
 import { error } from "log/mod.ts";
 import { schemaPath } from "./utils.ts";
 import { buildSchemaResources } from "./from-yaml.ts";
-import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
+import {
+  withValidator,
+  addValidatorErrorHandler,
+  ValidatorErrorHandlerFunction
+} from "../lib/yaml-validation/validator-queue.ts";
 import {
   hasSchemaDefinition,
   normalizeSchema,
@@ -21,7 +25,7 @@ import {
 } from "../lib/yaml-validation/schema.ts";
 
 export function defineCached(
-  thunk: () => Promise<Schema>,
+  thunk: () => Promise<{ schema: Schema, errorHandlers: ValidatorErrorHandlerFunction[] }>,
   schemaId: string,
 ): (() => Promise<Schema>) {
   let schema: Schema;
@@ -36,14 +40,18 @@ export function defineCached(
         (schema!.description as string) || `be a {schema['$id']}`,
       );
     }
-
-    if (!hasSchemaDefinition(schemaId)) {
-      schema = await thunk();
-      if (schemaId !== schema!.$id as string) {
-        schema = idSchema(schema, schemaId);
-      }
-      await define(schema);
+    
+    let result = await thunk();
+    let { errorHandlers } = result;
+    schema = result.schema;
+    if (schemaId !== schema!.$id as string) {
+      schema = idSchema(schema, schemaId);
     }
+    await define(schema);
+    for (const fun of errorHandlers) {
+      await addValidatorErrorHandler(schema, fun);
+    }
+
     return refSchema(
       schema!.$id as string,
       (schema!.description as string) || `be a {schema['$id']}`,
@@ -53,8 +61,8 @@ export function defineCached(
 
 export async function define(schema: Schema) {
   if (!hasSchemaDefinition(schema.$id)) {
+    setSchemaDefinition(schema);
     await withValidator(normalizeSchema(schema), async (_validator) => {
-      setSchemaDefinition(schema);
     });
   }
 }
@@ -75,8 +83,8 @@ export async function loadSchemaDefinitions(file: string) {
       error(JSON.stringify(schema, null, 2));
       throw new Error(`Internal error: unnamed schema in definitions`);
     }
+    setSchemaDefinition(schema);
     await withValidator(normalizeSchema(schema), async (_validator) => {
-      setSchemaDefinition(schema);
     });
   }));
 }

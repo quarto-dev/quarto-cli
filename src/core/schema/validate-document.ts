@@ -57,7 +57,7 @@ export async function validateDocumentFromSource(
       const frontMatterSchema = await getFrontMatterSchema();
 
       await withValidator(frontMatterSchema, async (frontMatterValidator) => {
-        const fmValidation = frontMatterValidator.validateParseWithErrors(
+        const fmValidation = await frontMatterValidator.validateParseWithErrors(
           frontMatterText,
           annotation,
           "Validation of YAML front matter failed.",

@@ -12,7 +12,7 @@
 */
 
 
-import { Schema, getSchemaDefinition } from "./schema.ts";
+import { Schema, getSchemaDefinition, schemaType } from "./schema.ts";
 
 function validateBoolean(value: any, schema: Schema)
 {
@@ -63,7 +63,7 @@ function validateOneOf(value: any, schema: Schema)
 
 function validateAnyOf(value: any, schema: Schema)
 {
-  for (const subSchema of schema.oneOf) {
+  for (const subSchema of schema.anyOf) {
     if (validate(value, subSchema)) {
       return true;
     }
@@ -74,7 +74,7 @@ function validateAnyOf(value: any, schema: Schema)
 
 function validateAllOf(value: any, schema: Schema)
 {
-  for (const subSchema of schema.oneOf) {
+  for (const subSchema of schema.allOf) {
     if (!validate(value, subSchema)) {
       return false;
     }
@@ -85,12 +85,12 @@ function validateAllOf(value: any, schema: Schema)
 
 function validateObject(value: any, schema: Schema)
 {
-  if (typeof value !== "object") {
+  if (typeof value !== "object" || Array.isArray(value) || value === null) {
     return false;
   }
   const inspectedProps: Set<string> = new Set();
   if (schema.properties) {
-    for (const [key, subSchema] of schema.properties) {
+    for (const [key, subSchema] of Object.entries(schema.properties)) {
       if (value[key] && !validate(value[key], subSchema)) {
         return false;
       } else {
@@ -100,7 +100,7 @@ function validateObject(value: any, schema: Schema)
   }
   if (schema.patternProperties) {
     // there's probably a more efficient way to do this..
-    for (const [key, subSchema] of schema.patternProperties) {
+    for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
       const regexp = new RegExp(key);
       for (const [objectKey, val] of Object.entries(value)) {
         if (objectKey.match(regexp) && !validate(val, subSchema)) {
@@ -156,10 +156,10 @@ export function validate(value: any, schema: Schema)
   };
 
   if (schema.$ref || schema.$id) {
-    schema = getSchemaDefinition(schema);
+    schema = getSchemaDefinition(schema.$ref || schema.$id);
   }
-  if (validators[schema.type]) {
-    return validators[schema.type](value, schema);
+  if (validators[schemaType(schema)]) {
+    return validators[schemaType(schema)](value, schema);
   } else {
     throw new Error(`Don't know how to validate ${schema.type}`);
   }

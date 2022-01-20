@@ -108,13 +108,13 @@ function getSchemaName(schema: Schema): string {
 }
 
 // deno-lint-ignore no-explicit-any
-function getValidator(schema: Schema, validators?: any): YAMLSchema {
+function getValidator(schema: Schema): YAMLSchema {
   const schemaName = getSchemaName(schema); // name of schema so we can look it up on the validator cache
   if (yamlValidators[schemaName]) {
     return yamlValidators[schemaName];
   }
 
-  const validator = new YAMLSchema(schema, validators);
+  const validator = new YAMLSchema(schema);
 
   yamlValidators[schemaName] = validator;
 
@@ -123,20 +123,6 @@ function getValidator(schema: Schema, validators?: any): YAMLSchema {
   validator.addHandler(checkForBadBoolean);
 
   return validator;
-}
-
-// deno-lint-ignore no-explicit-any
-let _module: any = undefined;
-
-export async function loadValidatorModule(validatorModulePath: string)
-{
-  // don't load this twice
-  if (_module) {
-    return;
-  }
-  const path = new URL(validatorModulePath, import.meta.url).href;
-  const _mod = await import(path);
-  _module = _mod.default;
 }
 
 export async function withValidator<T>(
@@ -155,7 +141,7 @@ export async function withValidator<T>(
   // deno-lint-ignore require-await
   await queue.enqueue(async () => {
     try {
-      const validator = getValidator(schema, _module);
+      const validator = getValidator(schema);
       result = await fun(validator);
     } catch (e) {
       error = e;
@@ -169,13 +155,15 @@ export async function withValidator<T>(
   return result! as T;
 }
 
+export type ValidatorErrorHandlerFunction = (
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  schema: Schema,
+) => LocalizedError;
+
 export function addValidatorErrorHandler(
   schema: Schema,
-  handler: (
-    error: LocalizedError,
-    parse: AnnotatedParse,
-    schema: Schema,
-  ) => LocalizedError,
+  handler: ValidatorErrorHandlerFunction,
 ) {
   return withValidator(schema, async (validator) => {
     validator.addHandler(handler);

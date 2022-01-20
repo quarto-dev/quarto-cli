@@ -17,9 +17,11 @@ import { exportStandaloneValidators } from "./yaml-schema.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 import { TempContext } from "../temp.ts";
 import { ensureAjv } from "./yaml-schema.ts";
+import { buildSchemaResources } from "./from-yaml.ts";
 
 export async function buildSchemaFile(temp: TempContext) {
   await ensureAjv();
+  debugger;
   const frontMatter = await getFrontMatterSchema();
   const config = await getProjectConfigSchema();
   const engines = await getEngineOptionsSchema();

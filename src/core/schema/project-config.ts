@@ -27,7 +27,12 @@ import { defineCached } from "./definitions.ts";
 
 export const getProjectConfigFieldsSchema = defineCached(
   // deno-lint-ignore require-await
-  async () => objectSchemaFromFieldsFile(schemaPath("project.yml")),
+  async () => {
+    return {
+      schema: objectSchemaFromFieldsFile(schemaPath("project.yml")),
+      errorHandlers: []
+    };
+  },
   "project-config-fields",
 );
 
@@ -50,7 +55,10 @@ export const getProjectConfigSchema = defineCached(
       await makeFrontMatterFormatSchema(true), // we must make this nonStrict, see definition
       projectConfigFields,
     );
-    return describeSchema(result, "a project configuration object");
+    return {
+      schema: describeSchema(result, "a project configuration object"),
+      errorHandlers: []
+    };
   },
   "project-config",
 );
