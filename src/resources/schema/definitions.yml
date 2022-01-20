@@ -553,14 +553,14 @@
                   oneOf:
                     - enum:
                         [
-                          “primary”,
-                          “secondary”,
-                          “success”,
-                          “danger”,
-                          “warning”,
-                          “info”,
-                          “light”,
-                          “dark”,
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark",
                         ]
                     - string
                   description: "The navbar's background color (named or hex color)."
@@ -568,14 +568,14 @@
                   oneOf:
                     - enum:
                         [
-                          “primary”,
-                          “secondary”,
-                          “success”,
-                          “danger”,
-                          “warning”,
-                          “info”,
-                          “light”,
-                          “dark”,
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark",
                         ]
                     - string
                   description: "The navbar's foreground color (named or hex color)."
@@ -642,14 +642,14 @@
                     oneOf:
                       - enum:
                           [
-                            “primary”,
-                            “secondary”,
-                            “success”,
-                            “danger”,
-                            “warning”,
-                            “info”,
-                            “light”,
-                            “dark”,
+                            "primary",
+                            "secondary",
+                            "success",
+                            "danger",
+                            "warning",
+                            "info",
+                            "light",
+                            "dark",
                           ]
                       - string
                     description: "The sidebar's background color (named or hex color)."
@@ -657,14 +657,14 @@
                     oneOf:
                       - enum:
                           [
-                            “primary”,
-                            “secondary”,
-                            “success”,
-                            “danger”,
-                            “warning”,
-                            “info”,
-                            “light”,
-                            “dark”,
+                            "primary",
+                            "secondary",
+                            "success",
+                            "danger",
+                            "warning",
+                            "info",
+                            "light",
+                            "dark",
                           ]
                       - string
                     description: "The sidebar's foreground color (named or hex color)."
