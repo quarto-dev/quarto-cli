@@ -70,6 +70,8 @@ document:
 
   figures:
     title: "Figures"
+  tables:
+    title: "Tables"
   links:
     title: "Links"
   references:

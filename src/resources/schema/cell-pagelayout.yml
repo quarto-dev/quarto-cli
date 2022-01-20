@@ -30,7 +30,7 @@
 
 - name: fig-cap-location
   tags:
-    contexts: [document-layout]
+    contexts: [document-layout, document-figures]
     formats: [$html-files, $pdf-all]
   schema:
     enum: [top, bottom, margin]
@@ -39,7 +39,7 @@
 
 - name: tbl-cap-location
   tags:
-    contexts: [document-layout]
+    contexts: [document-layout, document-tables]
     formats: [$html-files, $pdf-all]
   schema:
     enum: [top, bottom, margin]
