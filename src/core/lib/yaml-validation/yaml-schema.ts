@@ -478,7 +478,8 @@ export class YAMLSchema {
     
     // compiledModule is only undefined in `quarto build-js`
     if (compiledModule !== undefined) {
-      this.validate = compiledModule.getTwoStageValidator(this.schema.$id || this.schema.$ref);
+      // this.validate = compiledModule.getTwoStageValidator(this.schema.$id || this.schema.$ref);
+      this.validate = compiledModule[this.schema.$id || this.schema.$ref];
     } else {
       this.validate = ajv.compile(normalizeSchema(schema));
     }
