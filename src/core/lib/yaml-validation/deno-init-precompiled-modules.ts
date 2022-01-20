@@ -11,9 +11,9 @@
 
 import { resourcePath } from "../../resources.ts";
 import { relative } from "path/mod.ts";
-import { setSchemaDefinition } from "../yaml-validation/schema.ts";
-import { QuartoJsonSchemas, setSchemas, getSchemas } from "../yaml-validation/schema-utils.ts";
-import { withValidator, loadValidatorModule } from "../yaml-validation/validator-queue.ts";
+import { setSchemaDefinition } from "./schema.ts";
+import { QuartoJsonSchemas, setSchemas, getSchemas } from "./schema-utils.ts";
+import { withValidator, loadValidatorModule } from "./validator-queue.ts";
 
 export async function initPrecompiledModules() {
 

@@ -16,7 +16,7 @@ import {
   getYamlPredecessors
 } from "./parsing.ts";
 
-import { setInitializer, initState } from "./state.ts";
+import { setInitializer, initState } from "../yaml-validation/state.ts";
 import { setMainPath, getLocalPath } from "./paths.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";

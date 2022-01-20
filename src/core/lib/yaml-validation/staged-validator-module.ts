@@ -40,11 +40,17 @@ export interface ErrorObject {
 type StagedValidatorResult = ErrorObject[];
 
 export function getTwoStageValidator(schemaName: string):
-(schema: Schema) => ErrorObject[]
+(schema: Schema) => Promise<ErrorObject[]>
 {
   if (!hasSchemaDefinition(schemaName)) {
     throw new Error(`Internal error: can't find schema ${schemaName}`);
   }
   let schema = getSchemaDefinition(schemaName);
-  return (_) => [];
+
+  return async (value) => {
+    if (validate(value, schema)) {
+      return [];
+    }
+    return [];
+  };
 }

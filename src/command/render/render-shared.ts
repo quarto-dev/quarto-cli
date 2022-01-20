@@ -36,8 +36,8 @@ import {
 } from "../../core/platform.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 
-import { setInitializer, initState } from "../../core/lib/yaml-intelligence/state.ts";
-import { initPrecompiledModules } from "../../core/lib/yaml-intelligence/deno-init-precompiled-modules.ts";
+import { setInitializer, initState } from "../../core/lib/yaml-validation/state.ts";
+import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
 
 export async function render(
   path: string,
