@@ -8,9 +8,13 @@ window["quarto-listing-loaded"] = () => {
       activateCategory(hash.category);
     }
 
-    // Filter the page number
-    if (hash.page) {
-      showPage(hash.page);
+    // Paginate a specific listing
+    const listingIds = Object.keys(window["quarto-listings"]);
+    for (const listingId of listingIds) {
+      const page = hash[getListingPageKey(listingId)];
+      if (page) {
+        showPage(listingId, page);
+      }
     }
   }
   refreshPaginationHandlers();
@@ -43,25 +47,34 @@ function setCategoryHash(category) {
   setHash({ category });
 }
 
-function setPageHash(page) {
+function setPageHash(listingId, page) {
   const currentHash = getHash() || {};
-  currentHash.page = page;
+  currentHash[getListingPageKey(listingId)] = page;
   setHash(currentHash);
+}
+
+function getListingPageKey(listingId) {
+  return `${listingId}-page`;
 }
 
 function refreshPaginationHandlers() {
   // Attach click handlers to pagination
-  const paginationEls = window.document.querySelectorAll(
-    ".pagination li.page-item:not(.disabled) .page.page-link"
-  );
 
-  for (const paginationEl of paginationEls) {
-    paginationEl.onclick = (sender) => {
-      setPageHash(sender.target.getAttribute("data-i"));
-      showPage(sender.target.getAttribute("data-i"));
-      setTimeout(refreshPaginationHandlers);
-      return false;
-    };
+  const listingIds = Object.keys(window["quarto-listings"]);
+  for (const listingId of listingIds) {
+    const listingEl = window.document.getElementById(listingId);
+    const paginationEls = listingEl.querySelectorAll(
+      ".pagination li.page-item:not(.disabled) .page.page-link"
+    );
+
+    for (const paginationEl of paginationEls) {
+      paginationEl.onclick = (sender) => {
+        setPageHash(listingId, sender.target.getAttribute("data-i"));
+        showPage(listingId, sender.target.getAttribute("data-i"));
+        setTimeout(refreshPaginationHandlers);
+        return false;
+      };
+    }
   }
 }
 
@@ -133,13 +146,10 @@ function setHash(obj) {
   window.history.pushState(null, null, `#${hash}`);
 }
 
-function showPage(page) {
-  const listingIds = Object.keys(window["quarto-listings"]);
-  for (const listingId of listingIds) {
-    const list = window["quarto-listings"][listingId];
-    if (list) {
-      list.show((page - 1) * list.page + 1, list.page);
-    }
+function showPage(listingId, page) {
+  const list = window["quarto-listings"][listingId];
+  if (list) {
+    list.show((page - 1) * list.page + 1, list.page);
   }
 }
 
