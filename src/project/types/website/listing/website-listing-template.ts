@@ -20,6 +20,8 @@ import { Format } from "../../../../config/types.ts";
 import { renderEjs } from "../../../../core/ejs.ts";
 import {
   kColumnCount,
+  kFieldDate,
+  kFieldFileModified,
   kFields,
   kFieldsLink,
   kFieldsName,
@@ -28,17 +30,13 @@ import {
   kImageHeight,
   kMaxDescLength,
   kRowCount,
+  kSortAsc,
+  kSortDesc,
   Listing,
   ListingItem,
   ListingSort,
   ListingType,
 } from "./website-listing-shared.ts";
-import {
-  kFieldDate,
-  kFieldFileModified,
-  kSortAsc,
-  kSortDesc,
-} from "./website-listing-read.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
 

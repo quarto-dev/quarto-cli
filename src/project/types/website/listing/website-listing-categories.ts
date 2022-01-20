@@ -5,17 +5,23 @@
 *
 */
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
+import {
+  kListingPageCategoryAll,
+  kListingPageColumnCategories,
+} from "../../../../config/constants.ts";
+import { localizedString } from "../../../../config/localization.ts";
+import { Format } from "../../../../config/types.ts";
 
 import { ListingDescriptor } from "./website-listing-shared.ts";
 
 export function categorySidebar(
   doc: Document,
   listingDescriptors: ListingDescriptor[],
+  format: Format,
 ) {
-  // TODO: Localize
   // The heading
   const headingEl = doc.createElement("h5");
-  headingEl.innerText = "Categories";
+  headingEl.innerText = localizedString(format, kListingPageColumnCategories);
   headingEl.classList.add("quarto-listing-category-title");
 
   // The categories
@@ -23,8 +29,12 @@ export function categorySidebar(
   const categoriesEl = categoryContainer(doc);
 
   // Add an 'All' category
-  // TODO: Localize
-  const allEl = categoryElement(doc, itemCount(listingDescriptors), "All", "");
+  const allEl = categoryElement(
+    doc,
+    itemCount(listingDescriptors),
+    localizedString(format, kListingPageCategoryAll),
+    "",
+  );
   categoriesEl.appendChild(allEl);
 
   for (const cat of Object.keys(cats).sort()) {

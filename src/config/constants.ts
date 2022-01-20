@@ -202,7 +202,9 @@ export const kListingPageColumnFileModified =
   "listing-page-column-filemodified";
 export const kListingPageColumnSubtitle = "listing-page-column-subtitle";
 export const kListingPageColumnReadingTime = "listing-page-column-readingtime";
+export const kListingPageColumnCategories = "listing-page-column-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
+export const kListingPageCategoryAll = "listing-page-category-all";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -274,7 +276,9 @@ export const kLanguageDefaultsKeys = [
   kListingPageColumnFileModified,
   kListingPageColumnSubtitle,
   kListingPageColumnReadingTime,
+  kListingPageColumnCategories,
   kListingPageMinutesCompact,
+  kListingPageCategoryAll,
 ];
 
 // 'defaults' fields

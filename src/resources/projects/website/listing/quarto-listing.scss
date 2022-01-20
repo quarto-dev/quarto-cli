@@ -3,6 +3,28 @@
 $card-cap-bg: $gray-500 !default;
 $card-cap-color: $white !default;
 
+$border-color: $gray-300 !default;
+$border-radius-sm: 0.2em !default;
+
+$text-muted: $gray-600 !default;
+
+/*-- scss:mixins --*/
+@mixin listing-category {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 4px;
+  row-gap: 4px;
+  .listing-category {
+    color: $text-muted;
+    border: solid 1px $border-color;
+    border-radius: $border-radius-sm;
+    text-transform: uppercase;
+    font-size: 0.75em;
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+}
+
 /*-- scss:rules --*/
 
 // General Pagination / Filter Control Styling
@@ -75,8 +97,9 @@ ul.pagination {
 
 // Grid Listing Styling
 .quarto-grid-item {
-  h4.title {
+  h5.title {
     margin-top: 0;
+    margin-bottom: 0;
   }
 
   .card-footer {
@@ -160,6 +183,11 @@ ul.pagination {
     font-size: 0.9em;
     font-weight: 600;
     padding-bottom: 0.5em;
+  }
+
+  .listing-categories {
+    @include listing-category();
+    padding-bottom: 5px;
   }
 }
 
@@ -287,5 +315,9 @@ div.quarto-post {
     font-size: 0.8em;
     font-family: $font-family-base;
     flex-basis: 33%;
+  }
+
+  .listing-categories {
+    @include listing-category();
   }
 }

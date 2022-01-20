@@ -29,9 +29,12 @@ import { kIncludeInHeader } from "../../../../config/constants.ts";
 import { sassLayer } from "../../../../core/sass.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
 import {
+  kFieldCategories,
+  kPageColumn,
   Listing,
   ListingDescriptor,
   ListingItem,
+  ListingSharedOptions,
   ListingType,
 } from "./website-listing-shared.ts";
 import {
@@ -50,7 +53,11 @@ export async function listingHtmlDependencies(
   _extras: FormatExtras,
 ) {
   // Read and resolve listings from the metadata
-  const listingDescriptors = await readListings(source, project, format);
+  const { listingDescriptors, options } = await readListings(
+    source,
+    project,
+    format,
+  );
 
   // If there no listings, don't inject the dependencies
   if (listingDescriptors.length === 0) {
@@ -107,6 +114,8 @@ export async function listingHtmlDependencies(
     listingPostProcess(
       doc,
       listingDescriptors,
+      options,
+      format,
     );
 
     // No resource references to add
@@ -181,23 +190,16 @@ function markdownHandler(
 function listingPostProcess(
   doc: Document,
   listingDescriptors: ListingDescriptor[],
+  options: ListingSharedOptions,
+  format: Format,
 ) {
-  const firstListingValue = (key: string) => {
-    for (const listingDescriptor of listingDescriptors) {
-      const value = listingDescriptor.listing[key];
-      if (key !== undefined) {
-        return value;
-      }
-    }
-    return undefined;
-  };
-
-  // Find out if any listings require categories
-  const categories = firstListingValue(kCategories);
+  // Render categories, if necessary
+  const categories = options[kFieldCategories];
   if (categories) {
     const { headingEl, categoriesEl } = categorySidebar(
       doc,
       listingDescriptors,
+      format,
     );
     const rightSidebar = doc.getElementById(kMarginSidebarId);
     rightSidebar?.appendChild(headingEl);
@@ -205,7 +207,7 @@ function listingPostProcess(
   }
 
   // Find the first user specified column in the listings
-  const titleColumn = firstListingValue(kPageColumn) as string;
+  const titleColumn = options[kPageColumn];
 
   // Check for whether this page had sidebars and choose column as appropriate
   const defaultColumn = suggestColumn(doc);
@@ -217,8 +219,6 @@ function listingPostProcess(
   }
 }
 
-const kCategories = "categories";
-const kPageColumn = "page-column";
 const kSidebarId = "quarto-sidebar";
 const kMarginSidebarId = "quarto-margin-sidebar";
 

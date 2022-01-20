@@ -23,27 +23,42 @@ import {
 import {
   ColumnType,
   kColumnCount,
+  kFieldAuthor,
+  kFieldCategories,
+  kFieldDate,
+  kFieldDescription,
+  kFieldFileModified,
+  kFieldFileName,
+  kFieldImage,
+  kFieldReadingTime,
   kFieldsLink,
   kFieldsName,
   kFieldsRequired,
   kFieldsSort,
   kFieldsType,
+  kFieldSubtitle,
+  kFieldTitle,
   kImageAlign,
   kImageHeight,
   kMaxDescLength,
+  kPageColumn,
   kRowCount,
   kShowFilter,
   kShowSort,
+  kSortAsc,
+  kSortDesc,
   Listing,
   ListingDehydrated,
   ListingDescriptor,
   ListingItem,
   ListingItemSource,
+  ListingSharedOptions,
   ListingSort,
   ListingType,
 } from "./website-listing-shared.ts";
 import {
   kListingPageColumnAuthor,
+  kListingPageColumnCategories,
   kListingPageColumnDate,
   kListingPageColumnDescription,
   kListingPageColumnFileModified,
@@ -58,19 +73,6 @@ import { projectYamlFiles } from "../../../project-context.ts";
 
 // The root listing key
 export const kListing = "listing";
-
-export const kFieldTitle = "title";
-export const kFieldSubtitle = "subtitle";
-export const kFieldAuthor = "author";
-export const kFieldFileModified = "filemodified";
-export const kFieldFileName = "filename";
-export const kFieldDate = "date";
-export const kFieldImage = "image";
-export const kFieldDescription = "description";
-export const kFieldReadingTime = "readingtime";
-
-export const kSortAsc = "asc";
-export const kSortDesc = "desc";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -110,6 +112,7 @@ const defaultFieldNames = (format: Format) => {
     [kFieldFileModified]: format.language[kListingPageColumnFileModified] || "",
     [kFieldSubtitle]: format.language[kListingPageColumnSubtitle] || "",
     [kFieldReadingTime]: format.language[kListingPageColumnReadingTime] || "",
+    [kFieldCategories]: format.language[kListingPageColumnCategories] || "",
   };
 };
 
@@ -134,19 +137,44 @@ export async function readListings(
   source: string,
   project: ProjectContext,
   format: Format,
-): Promise<ListingDescriptor[]> {
+): Promise<
+  { listingDescriptors: ListingDescriptor[]; options: ListingSharedOptions }
+> {
   // The listings and items for this source
   const listingItems: ListingDescriptor[] = [];
 
   // Read listing data from document metadata
   const listings = readDehydratedListings(source, format);
 
+  // Read any global properties from the listings
+  const firstListingValue = (key: string, defaultValue?: unknown) => {
+    for (const listing of listings) {
+      const value = listing[key];
+      if (value !== undefined) {
+        return value;
+      }
+    }
+    return defaultValue;
+  };
+  const sharedOptions: ListingSharedOptions = {
+    [kFieldCategories]: firstListingValue(kFieldCategories, true) as boolean,
+    [kPageColumn]: firstListingValue(kPageColumn, undefined) as
+      | string
+      | undefined,
+  };
+
   for (const listing of listings) {
     // Read the metadata for each of the listing files
     const { items, sources } = await readContents(source, project, listing);
 
     // Hydrate the listing
-    const listingHydrated = hydrateListing(format, listing, items, sources);
+    const listingHydrated = hydrateListing(
+      format,
+      listing,
+      items,
+      sources,
+      sharedOptions,
+    );
 
     // Sort the items (first array is of sort functions)
     // second array is of sort direction
@@ -170,13 +198,16 @@ export async function readListings(
     };
     const orderedItems = sortedAndFiltered(listingHydrated, items);
 
+    console.log(listingHydrated);
+    console.log(sharedOptions);
+
     // Add this listing and its items to the list
     listingItems.push({
       listing: listingHydrated,
       items: orderedItems,
     });
   }
-  return listingItems;
+  return { listingDescriptors: listingItems, options: sharedOptions };
 }
 
 function hydrateListing(
@@ -184,6 +215,7 @@ function hydrateListing(
   listing: ListingDehydrated,
   items: ListingItem[],
   sources: Set<ListingItemSource>,
+  options: ListingSharedOptions,
 ): Listing {
   const columnsForItems = (items: ListingItem[]): string[] => {
     const unionedItem = items.reduce((prev, current) => {
@@ -250,13 +282,24 @@ function hydrateListing(
     ...listing,
   };
 
+  const enableCategories = (listing: Listing) => {
+    if (options[kFieldCategories]) {
+      listing.fields = listing.fields || [];
+      if (!listing.fields.includes(kFieldCategories)) {
+        listing.fields.push(kFieldCategories);
+      }
+    }
+  };
+
   // Populate base default values for types
   if (listing.type === ListingType.Grid) {
     listingHydrated[kColumnCount] = listingHydrated[kColumnCount] || 3;
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "150px";
     listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
+    enableCategories(listingHydrated);
   } else if (listing.type === ListingType.Default) {
     listingHydrated[kImageAlign] = listingHydrated[kImageAlign] || "right";
+    enableCategories(listingHydrated);
   } else if (listing.type === ListingType.Table) {
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "40px";
   }

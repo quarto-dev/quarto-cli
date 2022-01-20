@@ -93,7 +93,9 @@ import {
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kListingPageCategoryAll,
   kListingPageColumnAuthor,
+  kListingPageColumnCategories,
   kListingPageColumnDate,
   kListingPageColumnDescription,
   kListingPageColumnFileModified,
@@ -492,7 +494,9 @@ export interface FormatLanguage {
   [kListingPageColumnFileModified]?: string;
   [kListingPageColumnSubtitle]?: string;
   [kListingPageColumnReadingTime]?: string;
+  [kListingPageColumnCategories]?: string;
   [kListingPageMinutesCompact]?: string;
+  [kListingPageCategoryAll]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

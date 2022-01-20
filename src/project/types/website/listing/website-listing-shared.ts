@@ -45,6 +45,24 @@ export const kColumnCount = "column-count";
 // The maximum length of the description
 export const kMaxDescLength = "max-description-length";
 
+// Fields
+export const kFieldTitle = "title";
+export const kFieldSubtitle = "subtitle";
+export const kFieldAuthor = "author";
+export const kFieldFileModified = "filemodified";
+export const kFieldFileName = "filename";
+export const kFieldDate = "date";
+export const kFieldImage = "image";
+export const kFieldDescription = "description";
+export const kFieldReadingTime = "readingtime";
+export const kFieldCategories = "categories";
+
+export const kPageColumn = "page-column";
+
+// Sort keys
+export const kSortAsc = "asc";
+export const kSortDesc = "desc";
+
 export interface ListingDescriptor {
   listing: Listing;
   items: ListingItem[];
@@ -54,6 +72,11 @@ export interface ListingDehydrated extends Record<string, unknown> {
   id: string;
   type: ListingType;
   contents: Array<string | Metadata>; // globs (or items)
+}
+
+export interface ListingSharedOptions {
+  [kFieldCategories]: boolean;
+  [kPageColumn]?: string;
 }
 
 // The core listing type
