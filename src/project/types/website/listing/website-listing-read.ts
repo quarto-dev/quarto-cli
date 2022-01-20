@@ -226,7 +226,7 @@ function hydrateListing(
     });
   };
 
-  const columnsForTable = (items: ListingItem[]): string[] => {
+  const fieldsForTable = (items: ListingItem[]): string[] => {
     // If the items have come from metadata, we should just show
     // all the columns in the table. Otherwise, we should use the
     // document default columns
@@ -238,7 +238,7 @@ function hydrateListing(
   };
 
   const fields = listing.type === ListingType.Table
-    ? columnsForTable(items)
+    ? fieldsForTable(items)
     : defaultFields(listing.type);
 
   // Sorting and linking are only available in built in templates
@@ -266,7 +266,7 @@ function hydrateListing(
     }
   };
 
-  const listingHydrated: Listing = {
+  const listingHydrated: Listing = cloneDeep({
     fields,
     [kFieldsName]: defaultFieldNames(format),
     [kFieldsType]: kDefaultFieldTypes,
@@ -277,7 +277,7 @@ function hydrateListing(
     [kShowFilter]: enableFilterAndSort,
     [kShowSort]: enableFilterAndSort,
     ...listing,
-  };
+  });
 
   const enableCategories = (listing: Listing) => {
     if (options[kFieldCategories]) {
