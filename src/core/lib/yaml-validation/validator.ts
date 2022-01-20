@@ -155,8 +155,8 @@ export function validate(value: any, schema: Schema)
     "array": validateArray
   };
 
-  if (schema.$ref || schema.$id) {
-    schema = getSchemaDefinition(schema.$ref || schema.$id);
+  while (schema.$ref) {
+    schema = getSchemaDefinition(schema.$ref);
   }
   if (validators[schemaType(schema)]) {
     return validators[schemaType(schema)](value, schema);
