@@ -14,12 +14,8 @@ import { Semaphore } from "../../../src/core/lib/semaphore.ts";
 
 import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
 import { initPrecompiledModules } from "../../../src/core/lib/yaml-validation/deno-init-precompiled-modules.ts";
-import { setInitializer, makeInitializer, initState } from "../../../src/core/lib/yaml-validation/state.ts";
+import { setInitializer, initState } from "../../../src/core/lib/yaml-validation/state.ts";
 import { getAutomation, CompletionResult } from "../../../src/core/lib/yaml-intelligence/yaml-intelligence.ts";
-
-let initStarted = false;
-const mustInitSemaphore = new Semaphore(1);
-const hasInitSemaphore = new Semaphore(0);
   
 async function fullInit() {
   await initPrecompiledModules();
