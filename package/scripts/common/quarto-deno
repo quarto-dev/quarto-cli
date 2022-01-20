@@ -41,7 +41,7 @@ else
 
 fi
 
-QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --v8-flags=--noopt"
+QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"
 
 # FIXME when we figure out the right way to do this, we'll prob run from a diff path
 
