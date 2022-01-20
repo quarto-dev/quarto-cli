@@ -538,6 +538,7 @@ function revealHtmlPostprocessor(format: Format) {
     const refs = doc.querySelector("#refs");
     if (refs) {
       applyClassesToParentSlide(refs, ["smaller", "scrollable"]);
+      removeClassesFromParentSlide(refs, ["center"]);
     }
 
     // insert footnotes title if there is one footnotes section
@@ -547,6 +548,7 @@ function revealHtmlPostprocessor(format: Format) {
       insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
       footnotesEl.classList.add("smaller");
       footnotesEl.classList.add("scrollable");
+      footnotesEl.classList.remove("center");
       removeFootnoteBacklinks(footnotesEl);
     }
 
@@ -670,10 +672,25 @@ function applyClassesToParentSlide(
   classes: string[],
   slideClass = "slide",
 ) {
-  const slideEl = findParent(el, (el: Element) => {
-    return el.classList.contains(slideClass);
-  });
+  const slideEl = findParentSlide(el, slideClass);
   if (slideEl) {
     classes.forEach((clz) => slideEl.classList.add(clz));
   }
+}
+
+function removeClassesFromParentSlide(
+  el: Element,
+  classes: string[],
+  slideClass = "slide",
+) {
+  const slideEl = findParentSlide(el, slideClass);
+  if (slideEl) {
+    classes.forEach((clz) => slideEl.classList.remove(clz));
+  }
+}
+
+function findParentSlide(el: Element, slideClass = "slide") {
+  return findParent(el, (el: Element) => {
+    return el.classList.contains(slideClass);
+  });
 }
