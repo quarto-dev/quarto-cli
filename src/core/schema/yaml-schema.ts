@@ -5,7 +5,6 @@
 *
 */
 
-import Ajv from "../lib/external/ajv-bundle.js";
 import { getAjvInstance, setupAjv, YAMLSchema } from "../lib/yaml-schema.ts";
 export { YAMLSchema } from "../lib/yaml-schema.ts";
 import { MappedString } from "../mapped-text.ts";
@@ -14,11 +13,17 @@ import { loadDefaultSchemaDefinitions } from "./definitions.ts";
 import { getSchemaDefinitionsObject } from "../lib/schema.ts";
 import { esbuildCompile } from "../esbuild.ts";
 import { TempContext } from "../temp.ts";
-import { dirname } from "path/mod.ts";
+import { dirname, relative } from "path/mod.ts";
+import { resourcePath } from "../resources.ts";
 
 let ajvInit = false;
+let Ajv: any = undefined;
+
 export async function ensureAjv() {
   if (!ajvInit) {
+    let path = new URL(resourcePath("../core/lib/external/ajv-bundle.js"), import.meta.url).href;
+    let mod = await import(path);
+    Ajv = mod.default;
     setupAjv(
       new Ajv({
         allErrors: true,
