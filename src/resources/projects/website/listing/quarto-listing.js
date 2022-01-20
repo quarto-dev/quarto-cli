@@ -3,11 +3,12 @@ const kProgressiveAttr = "data-src";
 window["quarto-listing-loaded"] = () => {
   // Process any existing hash
   const hash = getHash();
+
   if (hash) {
+    // If there is a category, switch to that
     if (hash.category) {
       activateCategory(hash.category);
     }
-
     // Paginate a specific listing
     const listingIds = Object.keys(window["quarto-listings"]);
     for (const listingId of listingIds) {
@@ -17,13 +18,24 @@ window["quarto-listing-loaded"] = () => {
       }
     }
   }
-  refreshPaginationHandlers();
+
   const listingIds = Object.keys(window["quarto-listings"]);
   for (const listingId of listingIds) {
+    // The actual list
     const list = window["quarto-listings"][listingId];
+
+    // Update the handlers for pagination events
+    refreshPaginationHandlers(listingId);
+
+    // Render any visible items that need it
     renderVisibleProgressiveImages(list);
+
+    // Whenever the list is updated, we also need to
+    // attach handlers to the new pagination elements
+    // and refresh any newly visible items.
     list.on("updated", function () {
       renderVisibleProgressiveImages(list);
+      setTimeout(() => refreshPaginationHandlers(listingId));
     });
   }
 };
@@ -57,24 +69,17 @@ function getListingPageKey(listingId) {
   return `${listingId}-page`;
 }
 
-function refreshPaginationHandlers() {
-  // Attach click handlers to pagination
-
-  const listingIds = Object.keys(window["quarto-listings"]);
-  for (const listingId of listingIds) {
-    const listingEl = window.document.getElementById(listingId);
-    const paginationEls = listingEl.querySelectorAll(
-      ".pagination li.page-item:not(.disabled) .page.page-link"
-    );
-
-    for (const paginationEl of paginationEls) {
-      paginationEl.onclick = (sender) => {
-        setPageHash(listingId, sender.target.getAttribute("data-i"));
-        showPage(listingId, sender.target.getAttribute("data-i"));
-        setTimeout(refreshPaginationHandlers);
-        return false;
-      };
-    }
+function refreshPaginationHandlers(listingId) {
+  const listingEl = window.document.getElementById(listingId);
+  const paginationEls = listingEl.querySelectorAll(
+    ".pagination li.page-item:not(.disabled) .page.page-link"
+  );
+  for (const paginationEl of paginationEls) {
+    paginationEl.onclick = (sender) => {
+      setPageHash(listingId, sender.target.getAttribute("data-i"));
+      showPage(listingId, sender.target.getAttribute("data-i"));
+      return false;
+    };
   }
 }
 

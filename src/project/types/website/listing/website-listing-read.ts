@@ -198,9 +198,6 @@ export async function readListings(
     };
     const orderedItems = sortedAndFiltered(listingHydrated, items);
 
-    console.log(listingHydrated);
-    console.log(sharedOptions);
-
     // Add this listing and its items to the list
     listingItems.push({
       listing: listingHydrated,
