@@ -108,6 +108,19 @@ ul.pagination {
   gap: 1.5em;
 }
 
+.quarto-grid-item.borderless {
+  border: none;
+  .listing-categories {
+    .listing-category:last-of-type,
+    .listing-category:first-of-type {
+      padding-left: 0;
+    }
+    .listing-category {
+      border: 0;
+    }
+  }
+}
+
 .quarto-grid-item {
   h5.title {
     margin-top: 0;
@@ -161,9 +174,12 @@ ul.pagination {
   }
 
   .card-attribution {
-    padding-top: 0.5em;
+    padding-top: 1em;
     display: flex;
     gap: 1em;
+    text-transform: uppercase;
+    color: $text-muted;
+    font-weight: 500;
   }
 
   .description {

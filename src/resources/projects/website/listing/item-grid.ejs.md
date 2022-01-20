@@ -12,6 +12,9 @@ const align = listing["alignment"] || "left";
 // Cap Options
 const imgHeight = listing['image-height'];
 
+// Borders
+const hideBorders = listing['card-border'] === false;
+
 // shorthand checks
 const showField = (field) => {
   return listing.fields.includes(field) && item[field] !== undefined;
@@ -28,7 +31,7 @@ return !["title", "image", "card-cap-text", "date", "author", "subtitle", "descr
 
 
 <div class="<%-`g-col-lg-${cardColumnSpan}`%> <%-`g-col-md-${cardColumnSpanMd}`%> g-col-24" <%= listing.utilities.metadataAttrs(item) %>>
-<div class="quarto-grid-item card h-100 <%-`card-${align}`%>">
+<div class="quarto-grid-item card h-100 <%-`card-${align}`%><%= hideBorders ? ' borderless' : '' %>">
 <% if (fields.includes('image')) { %>
 <% if (item.image) { %><p class="card-img-top"><%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img") %></p>
 <% } else { %>
