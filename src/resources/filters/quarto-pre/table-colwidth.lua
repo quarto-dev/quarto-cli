@@ -56,6 +56,15 @@ local function tblColwidthValues(tbl, tblColwidths)
         totalWidth = totalWidth + widths[i]
       end
 
+      -- if there are widths less then 1 then convert them to 100 scale
+      widths = tmap(widths, function(width)
+        if width <= 1 then
+          return width * 100
+        else
+          return width
+        end
+      end)
+
       -- normalize to 100 if the total is > 100
       if totalWidth > 100 then
         for i=1,#widths do 
@@ -104,7 +113,7 @@ function tableColwidth()
     Table = function(tbl)
      
       -- TODO: read from caption
-      -- TODO: test forwarding from jupyter
+    
 
       local colwidthValues = tblColwidthValues(tbl, tbl.attr.attributes[kTblColwidths])
       tbl.attr.attributes[kTblColwidths] = nil
