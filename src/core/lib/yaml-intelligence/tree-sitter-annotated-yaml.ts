@@ -49,9 +49,9 @@ export function buildAnnotated(
     };
   };
 
-  // deno-lint-ignore no-explicit-any
   const annotate = (
     node: TreeSitterNode,
+    // deno-lint-ignore no-explicit-any
     result: any,
     components: AnnotatedParse[],
   ): AnnotatedParse => {

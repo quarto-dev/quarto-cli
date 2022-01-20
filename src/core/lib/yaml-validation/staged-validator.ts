@@ -85,7 +85,7 @@ export function stagedValidator(schema: Schema):
     const validator = _module[schema.$id || schema.$ref];
     if (validator(value)) {
       throw new Error(`Internal error: validators disagree on schema ${schema.$id}`);
-    };
+    }
 
     // we don't call cloneDeep here to avoid pulling lodash into core/lib
     return JSON.parse(JSON.stringify(validator.errors)) as ErrorObject[];

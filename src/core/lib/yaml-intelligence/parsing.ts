@@ -59,9 +59,9 @@ export interface ParseAttemptResult {
   deletions: number;
 }
 
-// deno-lint-ignore no-explicit-any
 export function* attemptParsesAtLine(
   context: YamlIntelligenceContext,
+  // deno-lint-ignore no-explicit-any
   parser: any,
 ): Generator<ParseAttemptResult> {
   const {

@@ -28,6 +28,7 @@ export function setSchemas(schemas: QuartoJsonSchemas) {
 }
 
 // FIXME no longer needs to be async
+// deno-lint-ignore require-await
 export async function getSchemas(): Promise<QuartoJsonSchemas> {
   if (_schemas) {
     return _schemas;

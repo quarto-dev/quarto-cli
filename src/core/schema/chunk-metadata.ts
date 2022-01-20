@@ -9,7 +9,6 @@
 
 import { AnnotatedParse, LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 import { Schema } from "../lib/yaml-validation/schema.ts";
-import { addValidatorErrorHandler } from "../lib/yaml-validation/validator-queue.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import {
@@ -101,6 +100,7 @@ const makeEngineSchema = (engine: string): Schema =>
   );
 
 const markdownEngineSchema = defineCached(
+  // deno-lint-ignore require-await
   async () => {
     return {
       schema: makeEngineSchema("markdown"),
@@ -119,6 +119,7 @@ const knitrEngineSchema = defineCached(
   "engine-knitr",
 );
 const jupyterEngineSchema = defineCached(
+  // deno-lint-ignore require-await
   async () => {
     return {
       schema: makeEngineSchema("jupyter"),

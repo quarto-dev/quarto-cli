@@ -14,16 +14,19 @@
 
 import { Schema, getSchemaDefinition, schemaType } from "./schema.ts";
 
-function validateBoolean(value: any, schema: Schema)
+// deno-lint-ignore no-explicit-any
+function validateBoolean(value: any, _schema: Schema)
 {
   return typeof value === 'boolean';
 }
 
-function validateNumber(value: any, schema: Schema)
+// deno-lint-ignore no-explicit-any
+function validateNumber(value: any, _schema: Schema)
 {
   return typeof value === 'number';
 }
 
+// deno-lint-ignore no-explicit-any
 function validateString(value: any, schema: Schema)
 {
   if (typeof value !== 'string')
@@ -37,16 +40,19 @@ function validateString(value: any, schema: Schema)
   }
 }
 
-function validateNull(value: any, schema: Schema)
+// deno-lint-ignore no-explicit-any
+function validateNull(value: any, _schema: Schema)
 {
   return value === null;
 }
 
+// deno-lint-ignore no-explicit-any
 function validateEnum(value: any, schema: Schema)
 {
   return schema["enum"].indexOf(value) !== -1;
 }
 
+// deno-lint-ignore no-explicit-any
 function validateOneOf(value: any, schema: Schema)
 {
   let count = 0;
@@ -61,6 +67,7 @@ function validateOneOf(value: any, schema: Schema)
   return count === 1;
 }
 
+// deno-lint-ignore no-explicit-any
 function validateAnyOf(value: any, schema: Schema)
 {
   for (const subSchema of schema.anyOf) {
@@ -72,6 +79,7 @@ function validateAnyOf(value: any, schema: Schema)
   return false;
 }
 
+// deno-lint-ignore no-explicit-any
 function validateAllOf(value: any, schema: Schema)
 {
   for (const subSchema of schema.allOf) {
@@ -83,6 +91,7 @@ function validateAllOf(value: any, schema: Schema)
   return true;
 }
 
+// deno-lint-ignore no-explicit-any
 function validateObject(value: any, schema: Schema)
 {
   if (typeof value !== "object" || Array.isArray(value) || value === null) {
@@ -129,6 +138,7 @@ function validateObject(value: any, schema: Schema)
   return true;
 }
 
+// deno-lint-ignore no-explicit-any
 function validateArray(value: any, schema: Schema)
 {
   if (!Array.isArray(value)) {
@@ -140,8 +150,10 @@ function validateArray(value: any, schema: Schema)
   return true;
 }
 
+// deno-lint-ignore no-explicit-any
 export function validate(value: any, schema: Schema)
 {
+  // deno-lint-ignore no-explicit-any
   const validators: Record<string, (value: any, schema: Schema) => boolean> = {
     "boolean": validateBoolean,
     "number": validateNumber,

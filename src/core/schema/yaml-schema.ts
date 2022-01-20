@@ -17,7 +17,7 @@ import { loadDefaultSchemaDefinitions } from "./definitions.ts";
 import { getSchemaDefinitionsObject } from "../lib/yaml-validation/schema.ts";
 import { esbuildCompile } from "../esbuild.ts";
 import { TempContext } from "../temp.ts";
-import { dirname, relative } from "path/mod.ts";
+import { dirname } from "path/mod.ts";
 import { resourcePath } from "../resources.ts";
 
 let ajvInit = false;
@@ -51,8 +51,8 @@ export function getAjvInstance() {
 
 export async function ensureAjv() {
   if (!ajvInit) {
-    let path = new URL(resourcePath("../core/lib/external/ajv-bundle.js"), import.meta.url).href;
-    let mod = await import(path);
+    const path = new URL(resourcePath("../core/lib/external/ajv-bundle.js"), import.meta.url).href;
+    const mod = await import(path);
     Ajv = mod.default;
     ajv = new Ajv({
       allErrors: true,

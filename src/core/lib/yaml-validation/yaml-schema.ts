@@ -23,7 +23,7 @@ import {
 
 import * as colors from "../external/colors.ts";
 
-import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
+import { getSchemaDefinition, Schema } from "./schema.ts";
 
 import { stagedValidator, ErrorObject } from "./staged-validator.ts";
 
@@ -447,7 +447,6 @@ export class YAMLSchema {
     schema: Schema,
   ) => LocalizedError)[];
 
-  // deno-lint-ignore no-explicit-any
   constructor(schema: Schema) {
     this.errorHandlers = [];
     this.schema = schema;
@@ -480,10 +479,10 @@ export class YAMLSchema {
     src: MappedString,
     annotation: AnnotatedParse,
   ) {
-    let validationErrors = await this.validate(annotation.result);
+    const validationErrors = await this.validate(annotation.result);
     
     if (validationErrors.length) {
-      let localizedErrors = this.transformErrors(
+      const localizedErrors = this.transformErrors(
         annotation,
         localizeAndPruneErrors(
           annotation,

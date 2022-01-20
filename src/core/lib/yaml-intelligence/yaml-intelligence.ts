@@ -23,7 +23,6 @@ import { setValidatorModulePath } from "../yaml-validation/staged-validator.ts";
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { lines, rowColToIndex } from "../text.ts";
-import { Semaphore } from "../semaphore.ts";
 import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
 import { rangedLines } from "../ranged-text.ts";
 import {
@@ -832,7 +831,6 @@ export const QuartoYamlEditorTools = {
       setMainPath(path);
       setInitializer(initializer);
       await initState();
-      debugger;
       return await getAutomation("completions", context);
     } catch (e) {
       console.log("Error found during autocomplete", e);
@@ -846,7 +844,6 @@ export const QuartoYamlEditorTools = {
       setMainPath(path);
       setInitializer(initializer);
       await initState();
-      debugger;
       return await getAutomation("validation", context);
     } catch (e) {
       console.log("Error found during linting", e);

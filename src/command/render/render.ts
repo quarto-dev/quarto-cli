@@ -63,7 +63,7 @@ import {
   kOutputFile,
   kSelfContained,
   kServer,
-  kTblColwidths,
+  // kTblColwidths, unused?
   kTheme,
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/types.ts";

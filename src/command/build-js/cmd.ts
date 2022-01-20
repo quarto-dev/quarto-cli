@@ -17,16 +17,18 @@ import { parse as parseES6 } from "acorn/acorn";
 
 function ensureAllowableIDESyntax(src: string, filename: string)
 {
-  let ast = parseES6(src, {
+  const ast = parseES6(src, {
     ecmaVersion: "2020",
     sourceType: "module"
   });
   let failed = false;
   simple(ast, {
-    ChainExpression(node: any) {
+    // deno-lint-ignore no-explicit-any
+    ChainExpression(_node: any) {
       console.error(`Failure: Chain expression \`?.\` not allowed in ${filename}`);
       failed = true;
     },
+    // deno-lint-ignore no-explicit-any
     LogicalExpression(node: any) {
       if (node.operator === '??') {
         console.error(`Failure: Nullish coalescing operator \`??\` not allows in ${filename}`);

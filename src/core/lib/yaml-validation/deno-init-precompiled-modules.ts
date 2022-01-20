@@ -10,7 +10,6 @@
 */
 
 import { resourcePath } from "../../resources.ts";
-import { relative } from "path/mod.ts";
 import { setSchemaDefinition } from "./schema.ts";
 import { QuartoJsonSchemas, setSchemas, getSchemas } from "./schema-utils.ts";
 import { withValidator } from "./validator-queue.ts";
@@ -18,7 +17,6 @@ import { setValidatorModulePath } from "./staged-validator.ts";
 
 export async function initPrecompiledModules() {
 
-  let before = performance.now();
   setSchemas(JSON.parse(
     Deno.readTextFileSync(
       resourcePath("editor/tools/yaml/quarto-json-schemas.json"),

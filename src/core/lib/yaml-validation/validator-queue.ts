@@ -107,7 +107,6 @@ function getSchemaName(schema: Schema): string {
   return schemaName as string;
 }
 
-// deno-lint-ignore no-explicit-any
 function getValidator(schema: Schema): YAMLSchema {
   const schemaName = getSchemaName(schema); // name of schema so we can look it up on the validator cache
   if (yamlValidators[schemaName]) {
@@ -138,7 +137,6 @@ export async function withValidator<T>(
 
   let result: T | undefined;
   let error;
-  // deno-lint-ignore require-await
   await queue.enqueue(async () => {
     try {
       const validator = getValidator(schema);
@@ -165,6 +163,7 @@ export function addValidatorErrorHandler(
   schema: Schema,
   handler: ValidatorErrorHandlerFunction,
 ) {
+  // deno-lint-ignore require-await
   return withValidator(schema, async (validator) => {
     validator.addHandler(handler);
   });

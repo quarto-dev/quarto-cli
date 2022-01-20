@@ -37,4 +37,4 @@ export async function initTreeSitter() {
   setMainPath("https://example.com");
 
   setTreeSitter(parser);
-};
+}

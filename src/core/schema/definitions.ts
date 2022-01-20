@@ -41,8 +41,8 @@ export function defineCached(
       );
     }
     
-    let result = await thunk();
-    let { errorHandlers } = result;
+    const result = await thunk();
+    const { errorHandlers } = result;
     schema = result.schema;
     if (schemaId !== schema!.$id as string) {
       schema = idSchema(schema, schemaId);

@@ -90,7 +90,6 @@ export const getFrontMatterFormatSchema = defineCached(
 
 export const getNonStrictFrontMatterFormatSchema = defineCached(
   async () => {
-    debugger;
     return {
       schema: await makeFrontMatterFormatSchema(true),
       errorHandlers: []

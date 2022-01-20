@@ -184,8 +184,8 @@ function convertFromAllOf(yaml: any): Schema {
 function convertFromAnyOf(yaml: any): Schema {
   const schema = yaml.anyOf;
   if (schema.schemas) {
-    // deno-lint-ignore no-explicit-any
     const result = anyOfS(
+      // deno-lint-ignore no-explicit-any
       ...schema.schemas.map((x: any) => convertFromYaml(x)),
     );
     return setBaseSchemaProperties(schema, result);
@@ -530,7 +530,6 @@ export async function buildSchemaResources() {
       // It's a footgun.
       const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
       const schema = withId(fieldSchema, schemaId);
-      // deno-lint-ignore require-await
       setSchemaDefinition(schema);
       await withValidator(schema, async (_validator) => {
       });

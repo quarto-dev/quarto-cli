@@ -25,4 +25,4 @@ export class Timer
   report(msg: string) {
     console.log(`${msg}: ${(this.elapsed() / 1000)}s`);
   }
-};
+}
