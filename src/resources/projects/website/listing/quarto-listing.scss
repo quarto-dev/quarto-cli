@@ -87,6 +87,7 @@ ul.pagination {
     font-size: 0.875em;
   }
   .quarto-listing-category-title {
+    padding-top: 4em;
     font-weight: 600;
     padding-left: 0.5em;
     font-size: 0.875em;
@@ -103,6 +104,10 @@ ul.pagination {
 }
 
 // Grid Listing Styling
+.quarto-listing-grid {
+  gap: 1.5em;
+}
+
 .quarto-grid-item {
   h5.title {
     margin-top: 0;
@@ -117,12 +122,15 @@ ul.pagination {
       margin-bottom: 0;
     }
   }
+
   p.card-img-top {
     margin-bottom: 0;
   }
+
   img.thumbnail-image {
     object-fit: cover;
   }
+
   .card-other-values {
     margin-top: 0.5em;
     font-size: 0.8em;

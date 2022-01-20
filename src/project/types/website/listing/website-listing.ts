@@ -151,9 +151,6 @@ function markdownHandler(
         listing,
         items,
         format,
-        {
-          style: "--bs-gap: 1em;",
-        },
       );
     }
     case ListingType.Custom: {
