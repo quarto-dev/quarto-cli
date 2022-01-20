@@ -21,7 +21,6 @@ import { buildSchemaResources } from "./from-yaml.ts";
 
 export async function buildSchemaFile(temp: TempContext) {
   await ensureAjv();
-  debugger;
   const frontMatter = await getFrontMatterSchema();
   const config = await getProjectConfigSchema();
   const engines = await getEngineOptionsSchema();
