@@ -60,7 +60,7 @@ function checkForBadBoolean(
   if (
     !(typeof error.violatingObject.result === "string" &&
       error.ajvError.keyword === "type" &&
-      schema?.type === "boolean")
+      (schema && schema.type === "boolean"))
   ) {
     return error;
   }
