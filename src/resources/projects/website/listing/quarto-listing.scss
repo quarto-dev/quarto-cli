@@ -14,6 +14,8 @@ $text-muted: $gray-600 !default;
   flex-wrap: wrap;
   column-gap: 4px;
   row-gap: 4px;
+  padding-bottom: 5px;
+
   .listing-category {
     color: $text-muted;
     border: solid 1px $border-color;
@@ -187,7 +189,6 @@ ul.pagination {
 
   .listing-categories {
     @include listing-category();
-    padding-bottom: 5px;
   }
 }
 
