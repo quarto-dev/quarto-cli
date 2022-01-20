@@ -550,7 +550,7 @@
                   path:
                     description: "Path to a logo image that will be displayed to the left of the title."
                 background:
-                  oneOf:
+                  anyOf:
                     - enum:
                         [
                           "primary",
@@ -565,7 +565,7 @@
                     - string
                   description: "The navbar's background color (named or hex color)."
                 foreground:
-                  oneOf:
+                  anyOf:
                     - enum:
                         [
                           "primary",
@@ -639,7 +639,7 @@
                     description: "The style of sidebar (`docked` or `floating`)."
                     default: "floating"
                   background:
-                    oneOf:
+                    anyOf:
                       - enum:
                           [
                             "primary",
@@ -654,7 +654,7 @@
                       - string
                     description: "The sidebar's background color (named or hex color)."
                   foreground:
-                    oneOf:
+                    anyOf:
                       - enum:
                           [
                             "primary",
