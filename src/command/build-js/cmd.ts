@@ -12,6 +12,32 @@ import { createTempContext } from "../../core/temp.ts";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
 import { resourcePath } from "../../core/resources.ts";
+import { simple } from "acorn/walk";
+import { parse as parseES6 } from "acorn/acorn";
+
+function ensureAllowableIDESyntax(src: string, filename: string)
+{
+  let ast = parseES6(src, {
+    ecmaVersion: "2020",
+    sourceType: "module"
+  });
+  let failed = false;
+  simple(ast, {
+    ChainExpression(node: any) {
+      console.error(`Failure: Chain expression \`?.\` not allowed in ${filename}`);
+      failed = true;
+    },
+    LogicalExpression(node: any) {
+      if (node.operator === '??') {
+        console.error(`Failure: Nullish coalescing operator \`??\` not allows in ${filename}`);
+        failed = true;
+      }
+    }
+  });
+  if (failed) {
+    throw new Error("Found syntax that is not allowed");
+  }
+}
 
 async function buildQuartoOJS() {
   const src = await esbuildCompile(
@@ -21,6 +47,8 @@ async function buildQuartoOJS() {
     "esm",
   );
   await Deno.writeTextFile(resourcePath("build/quarto-ojs.js"), src!);
+
+  ensureAllowableIDESyntax(src!, "quarto-ojs.js");
 
   // FIXME ideally we'd use the one directly in build, but right now
   // we depend on the file being in a particular place (and with an
@@ -41,6 +69,8 @@ async function buildYAMLJS() {
   );
   Deno.writeTextFileSync(resourcePath("editor/tools/yaml/yaml-intelligence.js"), intelligenceSrc!);
 
+  ensureAllowableIDESyntax(intelligenceSrc!, "yaml-intelligence.js");
+
   const finalBuild = await esbuildCompile(
     "",
     resourcePath("editor/tools/yaml"),
@@ -48,7 +78,10 @@ async function buildYAMLJS() {
     "iife",
   );
 
+  ensureAllowableIDESyntax(finalBuild!, "automation.js");
   const treeSitter = Deno.readTextFileSync(resourcePath("editor/tools/yaml/tree-sitter.js"));
+
+  ensureAllowableIDESyntax(treeSitter, "tree-sitter.js");
 
   Deno.writeTextFileSync(resourcePath("editor/tools/yaml/yaml.js"), [treeSitter,finalBuild!].join(""));
 }
