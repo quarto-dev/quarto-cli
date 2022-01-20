@@ -2,16 +2,16 @@
 * validator.ts
 *
 * A minimalistic pure-yes-or-no YAML validator that we call before
-* importing the ajv precompiling modules which do good error reporting
-* (but take a long time to load)
+* importing the ajv precompiled modules (ajv precompiled modules do
+* good error reporting but take a long time to load).
 *
 * This only supports a small subset of JSON schema
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2022 by RStudio, PBC
 *
 */
 
-import { getSchemaDefinition } from "./definitions.ts";
+import { getSchemaDefinition } from "./schema.ts";
 
 function validateBoolean(value: any, schema: Schema)
 {

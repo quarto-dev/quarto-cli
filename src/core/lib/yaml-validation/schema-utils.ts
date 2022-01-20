@@ -5,16 +5,15 @@
 *
 */
 
-import { Schema, schemaType } from "../schema.ts";
+import { Schema, schemaType } from "./schema.ts";
 import { prefixes } from "../regexp.js";
-import { getLocalPath } from "./paths.ts";
 
 // FIXME typings for quarto-json-schemas.json
 export interface QuartoJsonSchemas {
   schemas: {
     "front-matter": Schema;
     config: Schema;
-    engines: Schema;
+    engines: Schema; // FIXME engines is not a single schema!!
   };
   aliases: Record<string, string[]>;
   definitions: Record<string, Schema>;
@@ -28,15 +27,13 @@ export function setSchemas(schemas: QuartoJsonSchemas) {
   _schemas = schemas;
 }
 
+// FIXME no longer needs to be async
 export async function getSchemas(): Promise<QuartoJsonSchemas> {
   if (_schemas) {
     return _schemas;
+  } else {
+    throw new Error("Internal error: schemas not set");
   }
-
-  // we're in the IDE
-  const response = await fetch(getLocalPath("quarto-json-schemas.json"));
-  _schemas = (await response.json()) as QuartoJsonSchemas;
-  return _schemas!;
 }
 
 function matchPatternProperties(schema: Schema, key: string): Schema | false {

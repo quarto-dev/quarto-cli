@@ -5,6 +5,8 @@
 *
 */
 
+// FIXME organization: this belongs in core/lib, not in core/lib/yaml-intelligence
+
 import {
   AnnotatedParse,
   getVerbatimInput,

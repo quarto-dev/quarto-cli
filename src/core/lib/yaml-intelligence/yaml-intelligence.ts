@@ -16,22 +16,12 @@ import {
   getYamlPredecessors
 } from "./parsing.ts";
 
-import { loadValidatorModule, withValidator } from "./validator-queue.ts";
-
 import { setInitializer, initState } from "./state.ts";
-import { getSchemas, navigateSchema } from "./schema-utils.ts";
 import { setMainPath, getLocalPath } from "./paths.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { lines, rowColToIndex } from "../text.ts";
-import {
-  Completion,
-  expandAliasesFrom,
-  Schema,
-  schemaCompletions,
-  schemaType,
-} from "../schema.ts";
 import { Semaphore } from "../semaphore.ts";
 import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
 import { rangedLines } from "../ranged-text.ts";
@@ -39,6 +29,16 @@ import {
   kLangCommentChars,
   partitionCellOptionsMapped,
 } from "../partition-cell-options.ts";
+
+import {
+  Completion,
+  expandAliasesFrom,
+  Schema,
+  schemaCompletions,
+  schemaType,
+} from "../yaml-validation/schema.ts";
+import { loadValidatorModule, withValidator } from "../yaml-validation/validator-queue.ts";
+import { getSchemas, navigateSchema, QuartoJsonSchemas, setSchemas } from "../yaml-validation/schema-utils.ts";
 
 interface IDEContext {
   formats: string[];
@@ -795,6 +795,11 @@ const initializer = async () => {
   await loadValidatorModule(
     getLocalPath("standalone-schema-validators.js"));
 
+  // we're in the IDE
+  const response = await fetch(getLocalPath("quarto-json-schemas.json"));
+  _schemas = (await response.json()) as QuartoJsonSchemas;
+  setSchemas(_schemas!);
+
   const schemaDefs = (await getSchemas()).definitions;
   for (const [_key, value] of Object.entries(schemaDefs)) {
     await withValidator(value, async (_validator) => {
@@ -817,6 +822,7 @@ export const QuartoYamlEditorTools = {
   },
   exportSmokeTest,
 
+  // entry points required by the IDE
   getCompletions: async function (
     context: YamlIntelligenceContext,
     path: string,

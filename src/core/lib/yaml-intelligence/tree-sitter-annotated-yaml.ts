@@ -6,8 +6,8 @@
 */
 
 import { lines, matchAll } from "../text.ts";
-import { AnnotatedParse } from "../yaml-schema.ts";
 import { MappedString } from "../mapped-text.ts";
+import { AnnotatedParse } from "../yaml-validation/yaml-schema.ts";
 
 /**
  * given a tree from tree-sitter-yaml and the mappedString
