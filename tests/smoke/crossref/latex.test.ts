@@ -26,7 +26,7 @@ const simpleTableRegexes = [
   /tbl\.~\\ref{tbl-letters}/,
 ];
 const subTableRegexes = [
-  /\\begin{table}[^]*?\\subcaption{\\label{tbl-first}First Table }[^]*?\\subcaption{\\label{tbl-second}Second Table }[^]*?\\end{table}/,
+  /\\begin{table}[^]*?\\subcaption{\\label{tbl-first}First Table}[^]*?\\subcaption{\\label{tbl-second}Second Table}[^]*?\\end{table}/,
   /tbl\.~\\ref{tbl-panel}/,
   /tbl\.~\\ref{tbl-second}/,
 ];
