@@ -37,6 +37,7 @@ import {
   formatFromMetadata,
   formatKeys,
   includedMetadata,
+  mergeFormatMetadata,
   metadataAsFormat,
 } from "../../config/metadata.ts";
 import {
@@ -883,7 +884,7 @@ export async function resolveFormatsFromMetadata(
     );
 
     // merge configs
-    const config = mergeConfigs(baseFormat, format);
+    const config = mergeFormatMetadata(baseFormat, format);
 
     // apply any metadata filter
     const resolveFormat = defaultWriterFormat(to).resolveFormat;
@@ -1046,7 +1047,7 @@ async function resolveFormats(
     }
 
     // combine user formats
-    const userFormat = mergeConfigs(
+    const userFormat = mergeFormatMetadata(
       projFormat || {},
       directoryFormat || {},
       inputFormat || {},
@@ -1061,18 +1062,10 @@ async function resolveFormats(
     }
 
     // do the merge
-    mergedFormats[format] = mergeConfigs(
+    mergedFormats[format] = mergeFormatMetadata(
       defaultWriterFormat(format),
       userFormat,
     );
-
-    // user value for tbl-colwidths should always win over default
-    // (as it may be an array while the default is a scalar and the
-    // mergeConfigs logic won't handle this correctly)
-    if (userFormat.render[kTblColwidths] !== undefined) {
-      mergedFormats[format].render[kTblColwidths] =
-        userFormat.render[kTblColwidths];
-    }
   });
 
   // filter on formats supported by this project
