@@ -1,5 +1,6 @@
 # Test building the quarto-latexmk command
 on:
+  workflow_dispatch:
   push:
     branches: main
   pull_request:
