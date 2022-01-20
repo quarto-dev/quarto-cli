@@ -795,9 +795,8 @@ const initializer = async () => {
   await loadValidatorModule(
     getLocalPath("standalone-schema-validators.js"));
 
-  // we're in the IDE
   const response = await fetch(getLocalPath("quarto-json-schemas.json"));
-  _schemas = (await response.json()) as QuartoJsonSchemas;
+  const _schemas = (await response.json()) as QuartoJsonSchemas;
   setSchemas(_schemas!);
 
   const schemaDefs = (await getSchemas()).definitions;
