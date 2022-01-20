@@ -1,7 +1,8 @@
 /*
-* deno-init.ts
+* deno-init-tree-sitter.ts
 *
-* code to initialize yaml intelligence on deno
+* code to initialize tree sitter on deno, necessary for the test suite to
+* run the same code as the IDE does.
 *
 * Copyright (C) 2022 by RStudio, PBC
 *
@@ -13,11 +14,10 @@ import { resourcePath } from "../../resources.ts";
 import { setWasmBinaryFile, TreeSitter } from "../external/tree-sitter-deno.js";
 import { setTreeSitter } from "./parsing.ts";
 
-import { init as initNoTreeSitter } from "./deno-init-no-tree-sitter.ts";
+import { setMainPath } from "./paths.ts";
 
-export const init = async () => {
+export async function initTreeSitter() {
   // run standard initialization...
-  await initNoTreeSitter(false)();
 
   // ... and then the tree-sitter specific bits;
   setWasmBinaryFile(
@@ -34,6 +34,8 @@ export const init = async () => {
     resourcePath("editor/tools/yaml/tree-sitter-yaml.wasm"),
   );
   parser.setLanguage(language);
+
+  setMainPath("https://example.com");
 
   setTreeSitter(parser);
 };

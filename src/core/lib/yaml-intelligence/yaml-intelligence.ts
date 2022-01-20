@@ -103,8 +103,6 @@ export async function validationFromGoodParseYAML(
   context: YamlIntelligenceContext,
 ): Promise<ValidationResult[]> {
   
-  await initState(); // FIXME do we need this?
-
   const code = asMappedString(context.code); // full contents of the buffer
 
   const result = await withValidator(context.schema, async (validator) => {
@@ -791,7 +789,7 @@ export async function getAutomation(
   return result || null;
 }
 
-setInitializer(async () => {
+const initializer = async () => {
   const before = performance.now();
   
   await loadValidatorModule(
@@ -804,7 +802,7 @@ setInitializer(async () => {
   }
   const after = performance.now();
   console.log(`Initialization time: ${after - before}ms`);
-});
+}
 
 export const QuartoYamlEditorTools = {
   // helpers to facilitate repro'ing in the browser
@@ -825,6 +823,7 @@ export const QuartoYamlEditorTools = {
   ) {
     try {
       setMainPath(path);
+      setInitializer(initializer);
       await initState();
       return await getAutomation("completions", context);
     } catch (e) {
@@ -837,6 +836,7 @@ export const QuartoYamlEditorTools = {
   getLint: async function (context: YamlIntelligenceContext, path: string) {
     try {
       setMainPath(path);
+      setInitializer(initializer);
       await initState();
       return await getAutomation("validation", context);
     } catch (e) {

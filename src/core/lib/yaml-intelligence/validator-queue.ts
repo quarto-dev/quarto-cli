@@ -135,9 +135,9 @@ export async function loadValidatorModule(validatorModulePath: string)
   if (_module) {
     return;
   }
-  const before = performance.now();
-  _module = (await import(validatorModulePath)).default;
-  const after = performance.now();
+  const path = new URL(validatorModulePath, import.meta.url).href;
+  const _mod = await import(path);
+  _module = _mod.default;
 }
 
 export async function withValidator<T>(

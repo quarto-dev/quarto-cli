@@ -10,25 +10,19 @@
 
 import { Semaphore } from "../semaphore.ts";
 
-function makeInitializer(thunk: () => Promise<unknown>): () => Promise<void>
+export function makeInitializer(thunk: () => Promise<unknown>): () => Promise<void>
 {
   let initStarted = false;
-  const mustInitSemaphore = new Semaphore(1);
   const hasInitSemaphore = new Semaphore(0);
-
+  
   return async () => {
     if (initStarted) {
       await hasInitSemaphore.runExclusive(async () => {});
       return;
     }
-    await mustInitSemaphore.runExclusive(async () => {
-      if (initStarted) {
-        return;
-      }
-      initStarted = true;
-      await thunk();
-      hasInitSemaphore.release();
-    });
+    initStarted = true;
+    await thunk();
+    hasInitSemaphore.release();
   };
 }
 

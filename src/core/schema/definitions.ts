@@ -15,6 +15,7 @@ import {
   normalizeSchema,
   Schema,
   setSchemaDefinition,
+  getSchemaDefinition
 } from "../lib/schema.ts";
 import { error } from "log/mod.ts";
 import { schemaPath } from "./utils.ts";
@@ -25,7 +26,18 @@ export function defineCached(
   schemaId: string,
 ): (() => Promise<Schema>) {
   let schema: Schema;
+  
   return async () => {
+    // when running on the CLI outside of quarto build-js, these
+    // definitions will already exist.
+    if (hasSchemaDefinition(schemaId)) {
+      schema = getSchemaDefinition(schemaId);
+      return refSchema(
+        schema!.$id as string,
+        (schema!.description as string) || `be a {schema['$id']}`,
+      );
+    }
+
     await ensureAjv();
     if (!hasSchemaDefinition(schemaId)) {
       schema = await thunk();
