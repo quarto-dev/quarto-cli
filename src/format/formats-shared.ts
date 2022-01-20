@@ -57,6 +57,7 @@ import {
   kPreferHtml,
   kSelfContainedMath,
   kStandalone,
+  kTblColwidths,
   kWarning,
   kWrap,
 } from "../config/constants.ts";
@@ -91,6 +92,9 @@ export function createHtmlFormat(
       [kFigWidth]: figwidth,
       [kFigHeight]: figheight,
     },
+    render: {
+      [kTblColwidths]: "auto",
+    },
     pandoc: {
       [kStandalone]: true,
       [kWrap]: "none",
@@ -121,7 +125,10 @@ export function createEbookFormat(ext: string): Format {
   return createFormat(ext, {
     formatExtras: () => {
       return {
-        [kIncludeInHeader]: [formatResourcePath("epub", "styles.html")],
+        [kIncludeInHeader]: [
+          formatResourcePath("html", "styles-callout.html"),
+          formatResourcePath("epub", "styles.html"),
+        ],
       };
     },
     render: {
@@ -189,6 +196,7 @@ function defaultFormat(): Format {
       [kCodeLink]: false,
       [kCodeLineNumbers]: false,
       [kCodeTools]: false,
+      [kTblColwidths]: true,
       [kMergeIncludes]: true,
       [kSelfContainedMath]: false,
       [kLatexAutoMk]: true,

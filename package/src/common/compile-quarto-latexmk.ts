@@ -39,21 +39,29 @@ export function compileQuartoLatexmkCommand() {
       "--description <description...:string>",
       "The description of the compiled executable",
     )
-    .action((args) => {
+    .action(async (args) => {
       const configuration = readConfiguration();
       info("Using configuration:");
       info(configuration);
       info("");
 
       if (args.development) {
-        installQuartoLatexmk(configuration);
+        await installQuartoLatexmk(configuration);
       } else {
-        compileQuartoLatexmk(
+        const description = Array.isArray(args.description)
+          ? args.description.join(" ")
+          : args.description || "Quarto Latexmk Engine";
+
+        const version = args.version || configuration.version;
+        const name = args.name || "quarto-latexmk";
+        const targets = (args.targets || [Deno.build.target]) as string[];
+
+        await compileQuartoLatexmk(
           configuration,
-          args.target,
-          args.version || "0.0.9",
-          args.name || "quarto-latexmk",
-          args.description.join(" ") || "Quarto Latexmk Engine",
+          targets,
+          version,
+          name,
+          description,
         );
       }
     });
@@ -98,6 +106,7 @@ export async function compileQuartoLatexmk(
     info(`version: ${version}`);
     info(`name: ${name}`);
     info(`description: ${description}`);
+    info("");
 
     // Backup a copy of the source
     Deno.copyFileSync(

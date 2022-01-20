@@ -127,6 +127,7 @@ import {
   kShiftHeadingLevelBy,
   kSlideLevel,
   kTableOfContents,
+  kTblColwidths,
   kTemplate,
   kTitlePrefix,
   kToc,
@@ -286,6 +287,7 @@ export interface FormatRender {
     toggle?: boolean;
     caption?: string;
   };
+  [kTblColwidths]?: "auto" | boolean | number[];
   [kMergeIncludes]?: boolean;
   [kSelfContainedMath]?: boolean;
   [kLatexAutoMk]?: boolean;

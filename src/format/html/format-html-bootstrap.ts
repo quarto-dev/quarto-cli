@@ -17,7 +17,6 @@ import {
   kLinkCitations,
   kReferenceLocation,
   kSectionDivs,
-  kSectionTitleFootnotes,
   kTheme,
 } from "../../config/constants.ts";
 import {
@@ -35,6 +34,7 @@ import { hasTableOfContents } from "../../config/toc.ts";
 
 import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
+  insertFootnotesTitle,
   kBootstrapDependencyName,
   kDocumentCss,
   kPageLayout,
@@ -370,16 +370,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       }
     } else if (footnotes.length === 1) {
       const footnotesEl = footnotes.item(0) as Element;
-      const h2 = doc.createElement("h2");
-      const title = format.language[kSectionTitleFootnotes];
-      if (typeof (title) == "string" && title !== "none") {
-        h2.innerHTML = title;
-      }
-      footnotesEl.insertBefore(h2, footnotesEl.firstChild);
-      const hr = footnotesEl.querySelector("hr");
-      if (hr) {
-        hr.remove();
-      }
+      insertFootnotesTitle(doc, footnotesEl, format.language);
     }
 
     // Purge the bibliography if we're using refs in margin

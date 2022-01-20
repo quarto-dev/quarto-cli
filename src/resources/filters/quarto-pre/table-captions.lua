@@ -1,4 +1,4 @@
--- tables.lua
+-- table-captions.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
 kTblCap = "tbl-cap"
@@ -16,7 +16,7 @@ local latexTablePatterns = pandoc.List({
 
 local latexCaptionPattern =  "(\\caption{)(.-)(}\n)"
 
-function tables() 
+function tableCaptions() 
   
   return {
    

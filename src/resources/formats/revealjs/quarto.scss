@@ -294,7 +294,8 @@ $panel-sidebar-padding: 0.5em;
 }
 
 .reveal.smaller .slides section,
-.reveal .slides section.smaller {
+.reveal .slides section.smaller,
+.reveal .slides section .callout {
   font-size: #{$presentation-font-smaller}em;
 }
 
@@ -370,7 +371,7 @@ $panel-sidebar-padding: 0.5em;
   color: $mainColor;
   border-radius: $border-radius;
   border: solid $border-width $border-color;
-  font-size: 0.8em;
+  font-size: 0.6em;
 }
 
 .tippy-box[data-theme~="quarto-reveal"] .tippy-arrow {
@@ -380,6 +381,32 @@ $panel-sidebar-padding: 0.5em;
 .tippy-box[data-placement^="bottom"] > .tippy-content {
   padding: 7px 10px;
   z-index: 1;
+}
+
+.reveal .callout.callout-style-simple .callout-body,
+.reveal .callout.callout-style-default .callout-body,
+.reveal .callout.callout-style-simple div.callout-caption,
+.reveal .callout.callout-style-default div.callout-caption {
+  font-size: inherit;
+}
+
+.reveal .callout.callout-style-default .callout-icon::before {
+  height: 2rem;
+  width: 2rem;
+  background-size: 2rem 2rem;
+}
+
+.reveal .callout.callout-captioned .callout-caption p {
+  margin-top: 0.5em;
+}
+
+.reveal .callout.callout-captioned .callout-icon::before {
+  margin-top: 1rem;
+}
+
+.reveal .callout.callout-captioned .callout-body > :last-child,
+.reveal .callout.callout-captioned .callout-body > div > :last-child {
+  margin-bottom: 1rem;
 }
 
 .reveal .panel-tabset [role="tab"] {
@@ -402,6 +429,9 @@ $panel-sidebar-padding: 0.5em;
 // whether the theme is dark or light
 @if (color.blackness($backgroundColor) > $code-block-theme-dark-threshhold) {
   /*! dark */
+  .reveal div.callout.callout-style-default .callout-caption {
+    color: #222;
+  }
 } @else {
   /*! light */
 }

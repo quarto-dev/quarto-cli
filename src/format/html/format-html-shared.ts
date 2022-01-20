@@ -11,11 +11,17 @@ import {
   kCapTop,
   kCodeOverflow,
   kLinkExternalIcon,
+  kSectionTitleFootnotes,
   kTblCapLoc,
 } from "../../config/constants.ts";
-import { Format, FormatDependency } from "../../config/types.ts";
+import {
+  Format,
+  FormatDependency,
+  FormatLanguage,
+} from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
+import { Document, Element } from "../../core/deno-dom.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -190,3 +196,28 @@ export const quartoDefaults = (format: Format) => {
   );
   return defaults.join("\n");
 };
+
+export function insertFootnotesTitle(
+  doc: Document,
+  footnotesEl: Element,
+  language: FormatLanguage,
+  level = 2,
+) {
+  const heading = doc.createElement("h" + level);
+  const title = language[kSectionTitleFootnotes];
+  if (typeof (title) == "string" && title !== "none") {
+    heading.innerHTML = title;
+  }
+  footnotesEl.insertBefore(heading, footnotesEl.firstChild);
+  const hr = footnotesEl.querySelector("hr");
+  if (hr) {
+    hr.remove();
+  }
+}
+
+export function removeFootnoteBacklinks(footnotesEl: Element) {
+  const backlinks = footnotesEl.querySelectorAll(".footnote-back");
+  for (const backlink of backlinks) {
+    backlink.remove();
+  }
+}

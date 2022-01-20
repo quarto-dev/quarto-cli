@@ -38,6 +38,10 @@ import {
   revealMuliplexPreviewFile,
   revealMultiplexExtras,
 } from "./format-reveal-multiplex.ts";
+import {
+  insertFootnotesTitle,
+  removeFootnoteBacklinks,
+} from "../html/format-html-shared.ts";
 
 const kRevealOptions = [
   "controls",
@@ -263,6 +267,7 @@ export function revealjsFormat() {
             parent: "section.slide",
             config: {
               offset: [0, 0],
+              maxWidth: 700,
             },
           }, {
             quartoBase: false,
@@ -275,7 +280,10 @@ export function revealjsFormat() {
               [kLinkCitations]: true,
             } as Metadata,
             metadataOverride,
-            [kIncludeInHeader]: [stylesFile],
+            [kIncludeInHeader]: [
+              formatResourcePath("html", "styles-callout.html"),
+              stylesFile,
+            ],
             html: {
               [kTemplatePatches]: [
                 extraConfigPatch,
@@ -527,21 +535,25 @@ function revealHtmlPostprocessor(format: Format) {
       citeEl.setAttribute("onclick", "return false;");
     }
 
-    // create hidden reveal-references div at the bottom of the document
-    // and move pandoc generated footnotes and bibliography into it
-    // (it will be used as the content source by reference popups)
-    const referencesDiv = doc.createElement("div");
-    referencesDiv.classList.add("reveal-references");
-    doc.body.appendChild(referencesDiv);
-    const endnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-    for (const endnoteSection of endnotes) {
-      referencesDiv.appendChild(endnoteSection);
-    }
+    // add scrollable to refs slide
     const refs = doc.querySelector("#refs");
     if (refs) {
-      referencesDiv.appendChild(refs);
+      applyClassesToParentSlide(refs, ["smaller", "scrollable"]);
+      removeClassesFromParentSlide(refs, ["center"]);
     }
 
+    // insert footnotes title if there is one footnotes section
+    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+    if (footnotes.length === 1) {
+      const footnotesEl = footnotes[0] as Element;
+      insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
+      footnotesEl.classList.add("smaller");
+      footnotesEl.classList.add("scrollable");
+      footnotesEl.classList.remove("center");
+      removeFootnoteBacklinks(footnotesEl);
+    }
+
+    // apply stretch to images as required
     applyStretch(doc, format.metadata[kAutoStretch] as boolean);
 
     return Promise.resolve([]);
@@ -654,4 +666,32 @@ function applyStretch(doc: Document, autoStretch: boolean) {
       }
     }
   }
+}
+
+function applyClassesToParentSlide(
+  el: Element,
+  classes: string[],
+  slideClass = "slide",
+) {
+  const slideEl = findParentSlide(el, slideClass);
+  if (slideEl) {
+    classes.forEach((clz) => slideEl.classList.add(clz));
+  }
+}
+
+function removeClassesFromParentSlide(
+  el: Element,
+  classes: string[],
+  slideClass = "slide",
+) {
+  const slideEl = findParentSlide(el, slideClass);
+  if (slideEl) {
+    classes.forEach((clz) => slideEl.classList.remove(clz));
+  }
+}
+
+function findParentSlide(el: Element, slideClass = "slide") {
+  return findParent(el, (el: Element) => {
+    return el.classList.contains(slideClass);
+  });
 }

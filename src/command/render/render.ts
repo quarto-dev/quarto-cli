@@ -37,6 +37,7 @@ import {
   formatFromMetadata,
   formatKeys,
   includedMetadata,
+  mergeFormatMetadata,
   metadataAsFormat,
 } from "../../config/metadata.ts";
 import {
@@ -62,6 +63,7 @@ import {
   kOutputFile,
   kSelfContained,
   kServer,
+  kTblColwidths,
   kTheme,
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/types.ts";
@@ -882,7 +884,7 @@ export async function resolveFormatsFromMetadata(
     );
 
     // merge configs
-    const config = mergeConfigs(baseFormat, format);
+    const config = mergeFormatMetadata(baseFormat, format);
 
     // apply any metadata filter
     const resolveFormat = defaultWriterFormat(to).resolveFormat;
@@ -1045,7 +1047,7 @@ async function resolveFormats(
     }
 
     // combine user formats
-    const userFormat = mergeConfigs(
+    const userFormat = mergeFormatMetadata(
       projFormat || {},
       directoryFormat || {},
       inputFormat || {},
@@ -1060,7 +1062,7 @@ async function resolveFormats(
     }
 
     // do the merge
-    mergedFormats[format] = mergeConfigs(
+    mergedFormats[format] = mergeFormatMetadata(
       defaultWriterFormat(format),
       userFormat,
     );

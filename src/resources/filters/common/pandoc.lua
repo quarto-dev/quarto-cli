@@ -157,6 +157,18 @@ function markdownToInlines(str)
   end
 end
 
+function stripTrailingSpace(inlines)
+  if #inlines > 0 then
+    if inlines[#inlines].t == "Space" then
+      return pandoc.List(tslice(inlines, 1, #inlines - 1))
+    else
+      return inlines
+    end
+  else
+    return inlines
+  end
+end
+
 -- non-breaking space
 function nbspString()
   return pandoc.Str '\u{a0}'
@@ -172,4 +184,3 @@ function resolveHeadingCaption(div)
     return nil
   end
 end
-

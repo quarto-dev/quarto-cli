@@ -17,36 +17,38 @@ export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
   return ld.mergeWith(
     config,
     ...configs,
-    (objValue: unknown, srcValue: unknown) => {
-      if (ld.isArray(objValue) || ld.isArray(srcValue)) {
-        // handle nulls
-        if (!objValue) {
-          return srcValue;
-        } else if (!srcValue) {
-          return objValue;
-          // coerce scalers to array
-        } else {
-          if (!ld.isArray(objValue)) {
-            objValue = [objValue];
-          }
-          if (!ld.isArray(srcValue)) {
-            srcValue = [srcValue];
-          }
-        }
-
-        const combined = (objValue as Array<unknown>).concat(
-          srcValue as Array<unknown>,
-        );
-        return ld.uniqBy(combined, (value: unknown) => {
-          if (typeof (value) === "function") {
-            return generateUuid();
-          } else {
-            return JSON.stringify(value);
-          }
-        });
-      }
-    },
+    mergeArrayCustomizer,
   );
+}
+
+export function mergeArrayCustomizer(objValue: unknown, srcValue: unknown) {
+  if (ld.isArray(objValue) || ld.isArray(srcValue)) {
+    // handle nulls
+    if (!objValue) {
+      return srcValue;
+    } else if (!srcValue) {
+      return objValue;
+      // coerce scalers to array
+    } else {
+      if (!ld.isArray(objValue)) {
+        objValue = [objValue];
+      }
+      if (!ld.isArray(srcValue)) {
+        srcValue = [srcValue];
+      }
+    }
+
+    const combined = (objValue as Array<unknown>).concat(
+      srcValue as Array<unknown>,
+    );
+    return ld.uniqBy(combined, (value: unknown) => {
+      if (typeof (value) === "function") {
+        return generateUuid();
+      } else {
+        return JSON.stringify(value);
+      }
+    });
+  }
 }
 
 export function camelToKebab(camel: string) {
