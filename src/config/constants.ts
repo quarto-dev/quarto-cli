@@ -193,16 +193,15 @@ export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
 export const kListingPageOrderByNumberAsc = "listing-page-order-by-number-asc";
 export const kListingPageOrderByNumberDesc =
   "listing-page-order-by-number-desc";
-export const kListingPageColumnDate = "listing-page-column-date";
-export const kListingPageColumnTitle = "listing-page-column-title";
-export const kListingPageColumnDescription = "listing-page-column-description";
-export const kListingPageColumnAuthor = "listing-page-column-author";
-export const kListingPageColumnFileName = "listing-page-column-filename";
-export const kListingPageColumnFileModified =
-  "listing-page-column-filemodified";
-export const kListingPageColumnSubtitle = "listing-page-column-subtitle";
-export const kListingPageColumnReadingTime = "listing-page-column-readingtime";
-export const kListingPageColumnCategories = "listing-page-column-categories";
+export const kListingPageFieldDate = "listing-page-field-date";
+export const kListingPageFieldTitle = "listing-page-field-title";
+export const kListingPageFieldDescription = "listing-page-field-description";
+export const kListingPageFieldAuthor = "listing-page-field-author";
+export const kListingPageFieldFileName = "listing-page-field-filename";
+export const kListingPageFieldFileModified = "listing-page-field-filemodified";
+export const kListingPageFieldSubtitle = "listing-page-field-subtitle";
+export const kListingPageFieldReadingTime = "listing-page-field-readingtime";
+export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
 export const kListingPageCategoryAll = "listing-page-category-all";
 
@@ -268,15 +267,15 @@ export const kLanguageDefaultsKeys = [
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
-  kListingPageColumnDate,
-  kListingPageColumnTitle,
-  kListingPageColumnDescription,
-  kListingPageColumnAuthor,
-  kListingPageColumnFileName,
-  kListingPageColumnFileModified,
-  kListingPageColumnSubtitle,
-  kListingPageColumnReadingTime,
-  kListingPageColumnCategories,
+  kListingPageFieldDate,
+  kListingPageFieldTitle,
+  kListingPageFieldDescription,
+  kListingPageFieldAuthor,
+  kListingPageFieldFileName,
+  kListingPageFieldFileModified,
+  kListingPageFieldSubtitle,
+  kListingPageFieldReadingTime,
+  kListingPageFieldCategories,
   kListingPageMinutesCompact,
   kListingPageCategoryAll,
 ];

@@ -7,7 +7,7 @@
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kListingPageCategoryAll,
-  kListingPageColumnCategories,
+  kListingPageFieldCategories,
 } from "../../../../config/constants.ts";
 import { localizedString } from "../../../../config/localization.ts";
 import { Format } from "../../../../config/types.ts";
@@ -21,7 +21,7 @@ export function categorySidebar(
 ) {
   // The heading
   const headingEl = doc.createElement("h5");
-  headingEl.innerText = localizedString(format, kListingPageColumnCategories);
+  headingEl.innerText = localizedString(format, kListingPageFieldCategories);
   headingEl.classList.add("quarto-listing-category-title");
 
   // The categories

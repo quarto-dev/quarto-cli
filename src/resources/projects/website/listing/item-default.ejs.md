@@ -36,24 +36,13 @@ const outputMetadata = (item, field) => {
 <div class="body"><a href="<%- item.path %>" class="post-contents"><% if (fields.includes('title')) { %>
 <h3 class="no-anchor listing-title"><%= item.title %></h3>
 <% } %>
-<% 
-  if (fields.includes('categories') && item.categories) { 
-%> 
+<% if (fields.includes('categories') && item.categories) { %> 
 <div class="listing-categories">
-<%    
-  for (const category of item.categories) {
-%>
+<% for (const category of item.categories) { %>
 <div class="listing-category"><%= category %></div>
-<%    
-  }
-%>
+<% } %>
 </div>
-<%  
-}
-%> 
-
-  
-
+<% } %> 
 <% if (fields.includes('description')) { %><p class="listing-description">
 <%= item.description %>
 </p><% } %></a></div>

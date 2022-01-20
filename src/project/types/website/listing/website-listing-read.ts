@@ -57,15 +57,15 @@ import {
   ListingType,
 } from "./website-listing-shared.ts";
 import {
-  kListingPageColumnAuthor,
-  kListingPageColumnCategories,
-  kListingPageColumnDate,
-  kListingPageColumnDescription,
-  kListingPageColumnFileModified,
-  kListingPageColumnFileName,
-  kListingPageColumnReadingTime,
-  kListingPageColumnSubtitle,
-  kListingPageColumnTitle,
+  kListingPageFieldAuthor,
+  kListingPageFieldCategories,
+  kListingPageFieldDate,
+  kListingPageFieldDescription,
+  kListingPageFieldFileModified,
+  kListingPageFieldFileName,
+  kListingPageFieldReadingTime,
+  kListingPageFieldSubtitle,
+  kListingPageFieldTitle,
 } from "../../../../config/constants.ts";
 import { isAbsoluteRef } from "../../../../core/http.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
@@ -104,15 +104,15 @@ const kDefaultFields = [
 const defaultFieldNames = (format: Format) => {
   return {
     [kFieldImage]: " ",
-    [kFieldDate]: format.language[kListingPageColumnDate] || "",
-    [kFieldTitle]: format.language[kListingPageColumnTitle] || "",
-    [kFieldDescription]: format.language[kListingPageColumnDescription] || "",
-    [kFieldAuthor]: format.language[kListingPageColumnAuthor] || "",
-    [kFieldFileName]: format.language[kListingPageColumnFileName] || "",
-    [kFieldFileModified]: format.language[kListingPageColumnFileModified] || "",
-    [kFieldSubtitle]: format.language[kListingPageColumnSubtitle] || "",
-    [kFieldReadingTime]: format.language[kListingPageColumnReadingTime] || "",
-    [kFieldCategories]: format.language[kListingPageColumnCategories] || "",
+    [kFieldDate]: format.language[kListingPageFieldDate] || "",
+    [kFieldTitle]: format.language[kListingPageFieldTitle] || "",
+    [kFieldDescription]: format.language[kListingPageFieldDescription] || "",
+    [kFieldAuthor]: format.language[kListingPageFieldAuthor] || "",
+    [kFieldFileName]: format.language[kListingPageFieldFileName] || "",
+    [kFieldFileModified]: format.language[kListingPageFieldFileModified] || "",
+    [kFieldSubtitle]: format.language[kListingPageFieldSubtitle] || "",
+    [kFieldReadingTime]: format.language[kListingPageFieldReadingTime] || "",
+    [kFieldCategories]: format.language[kListingPageFieldCategories] || "",
   };
 };
 

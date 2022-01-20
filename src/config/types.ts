@@ -94,15 +94,15 @@ import {
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kListingPageCategoryAll,
-  kListingPageColumnAuthor,
-  kListingPageColumnCategories,
-  kListingPageColumnDate,
-  kListingPageColumnDescription,
-  kListingPageColumnFileModified,
-  kListingPageColumnFileName,
-  kListingPageColumnReadingTime,
-  kListingPageColumnSubtitle,
-  kListingPageColumnTitle,
+  kListingPageFieldAuthor,
+  kListingPageFieldCategories,
+  kListingPageFieldDate,
+  kListingPageFieldDescription,
+  kListingPageFieldFileModified,
+  kListingPageFieldFileName,
+  kListingPageFieldReadingTime,
+  kListingPageFieldSubtitle,
+  kListingPageFieldTitle,
   kListingPageMinutesCompact,
   kListingPageOrderBy,
   kListingPageOrderByDateAsc,
@@ -486,15 +486,15 @@ export interface FormatLanguage {
   [kListingPageOrderByDateDesc]?: string;
   [kListingPageOrderByNumberAsc]?: string;
   [kListingPageOrderByNumberDesc]?: string;
-  [kListingPageColumnDate]?: string;
-  [kListingPageColumnTitle]?: string;
-  [kListingPageColumnDescription]?: string;
-  [kListingPageColumnAuthor]?: string;
-  [kListingPageColumnFileName]?: string;
-  [kListingPageColumnFileModified]?: string;
-  [kListingPageColumnSubtitle]?: string;
-  [kListingPageColumnReadingTime]?: string;
-  [kListingPageColumnCategories]?: string;
+  [kListingPageFieldDate]?: string;
+  [kListingPageFieldTitle]?: string;
+  [kListingPageFieldDescription]?: string;
+  [kListingPageFieldAuthor]?: string;
+  [kListingPageFieldFileName]?: string;
+  [kListingPageFieldFileModified]?: string;
+  [kListingPageFieldSubtitle]?: string;
+  [kListingPageFieldReadingTime]?: string;
+  [kListingPageFieldCategories]?: string;
   [kListingPageMinutesCompact]?: string;
   [kListingPageCategoryAll]?: string;
 
