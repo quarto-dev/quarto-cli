@@ -267,6 +267,7 @@ export function revealjsFormat() {
             parent: "section.slide",
             config: {
               offset: [0, 0],
+              maxWidth: 700,
             },
           }, {
             quartoBase: false,
