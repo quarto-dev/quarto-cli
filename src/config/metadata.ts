@@ -12,7 +12,7 @@ import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
-import { mergeConfigs } from "../core/config.ts";
+import { mergeArrayCustomizer } from "../core/config.ts";
 import { Schema } from "../core/lib/schema.ts";
 
 import {
@@ -34,6 +34,7 @@ import {
   kPandocMetadata,
   kRenderDefaults,
   kRenderDefaultsKeys,
+  kTblColwidths,
 } from "./constants.ts";
 import { Format, Metadata } from "./types.ts";
 
@@ -71,11 +72,11 @@ export async function includedMetadata(
     } else {
       return undefined;
     }
-  }));
+  })) as Array<Metadata>;
 
   // merge the result
   return {
-    metadata: mergeConfigs({}, ...filesMetadata),
+    metadata: mergeFormatMetadata({}, ...filesMetadata),
     files: yamlFiles,
   };
 }
@@ -109,7 +110,7 @@ export function formatFromMetadata(
   }
 
   // merge user config into default config
-  const mergedFormat = mergeConfigs(
+  const mergedFormat = mergeFormatMetadata(
     baseFormat,
     format,
   );
@@ -220,4 +221,29 @@ export function metadataGetDeep(metadata: Metadata, property: string) {
     }
   });
   return values;
+}
+
+// certain keys are unmergeable (e.g. because they are an array type
+// that should not be combined with other types)
+const kUnmergeableKeys = [kTblColwidths];
+
+export function mergeFormatMetadata<T>(
+  config: T,
+  ...configs: Array<T>
+) {
+  // copy all formats so we don't mutate them
+  config = ld.cloneDeep(config);
+  configs = ld.cloneDeep(configs);
+
+  return ld.mergeWith(
+    config,
+    ...configs,
+    (objValue: unknown, srcValue: unknown, key: string) => {
+      if (kUnmergeableKeys.includes(key)) {
+        return srcValue;
+      } else {
+        return mergeArrayCustomizer(objValue, srcValue);
+      }
+    },
+  );
 }

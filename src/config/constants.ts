@@ -53,6 +53,7 @@ export const kCodeLineNumbers = "code-line-numbers";
 export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";
+export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
@@ -112,6 +113,7 @@ export const kRenderDefaultsKeys = [
   kCodeLineNumbers,
   kCodeOverflow,
   kCodeTools,
+  kTblColwidths,
   kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,
@@ -343,6 +345,7 @@ export const kFigResponsive = "fig-responsive";
 export const kCapLoc = "cap-location";
 export const kFigCapLoc = "fig-cap-location";
 export const kTblCapLoc = "tbl-cap-location";
+
 export const kCapTop = "top";
 export const kCapBottom = "bottom";
 

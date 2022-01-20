@@ -73,6 +73,7 @@ import {
   kSelfContainedMath,
   kShiftHeadingLevelBy,
   kTableOfContents,
+  kTblColwidths,
   kTemplate,
   kTitlePrefix,
   kToc,
@@ -95,6 +96,7 @@ import {
 } from "../../config/constants.ts";
 
 import {
+  anyOfSchema as anyOfS,
   arraySchema as arrayS,
   BooleanSchema as BooleanS,
   enumSchema as enumS,
@@ -200,6 +202,7 @@ export const formatRenderOptionsSchema = objectS({
         },
       }),
     ),
+    [kTblColwidths]: anyOfS(BooleanS, enumS("auto"), arrayS(NumberS)),
     [kMergeIncludes]: BooleanS,
     [kSelfContainedMath]: BooleanS,
     [kLatexAutoMk]: BooleanS,

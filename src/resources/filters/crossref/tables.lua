@@ -103,14 +103,14 @@ function preprocessTable(el, parentId)
   if el.caption.long ~= nil then
     local last = el.caption.long[#el.caption.long]
     if last and #last.content > 0 then
-      local lastInline = last.content[#last.content]
-      local label = refLabel("tbl", lastInline)
-     
-      -- check for label
-      if label then
-        -- remove the id from the end
-        last.content = tslice(last.content, 1, #last.content-1)
-        
+       -- check for tbl label
+      local caption, attr = parseTableCaption(last.content)
+      if startsWith(attr.identifier, "tbl-") then
+        -- set the label and remove it from the caption
+        label = attr.identifier
+        attr.identifier = ""
+        last.content = createTableCaption(caption, attr)
+   
         -- provide error caption if there is none
         if #last.content == 0 then
           if parentId then

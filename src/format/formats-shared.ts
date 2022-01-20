@@ -57,6 +57,7 @@ import {
   kPreferHtml,
   kSelfContainedMath,
   kStandalone,
+  kTblColwidths,
   kWarning,
   kWrap,
 } from "../config/constants.ts";
@@ -90,6 +91,9 @@ export function createHtmlFormat(
       [kFigFormat]: "retina",
       [kFigWidth]: figwidth,
       [kFigHeight]: figheight,
+    },
+    render: {
+      [kTblColwidths]: "auto",
     },
     pandoc: {
       [kStandalone]: true,
@@ -192,6 +196,7 @@ function defaultFormat(): Format {
       [kCodeLink]: false,
       [kCodeLineNumbers]: false,
       [kCodeTools]: false,
+      [kTblColwidths]: true,
       [kMergeIncludes]: true,
       [kSelfContainedMath]: false,
       [kLatexAutoMk]: true,

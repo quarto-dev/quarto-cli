@@ -20,8 +20,6 @@ import {
   StringSchema as StringS,
 } from "./common.ts";
 
-import { getFrontMatterFormatSchema } from "./front-matter.ts";
-
 const sidebarEntrySchema = objectS({
   properties: {
     text: StringS,
