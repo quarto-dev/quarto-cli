@@ -21,7 +21,7 @@ $text-muted: $gray-600 !default;
     border: solid 1px $border-color;
     border-radius: $border-radius-sm;
     text-transform: uppercase;
-    font-size: 0.75em;
+    font-size: 0.65em;
     padding-left: 3px;
     padding-right: 3px;
   }
@@ -30,6 +30,10 @@ $text-muted: $gray-600 !default;
 /*-- scss:rules --*/
 
 // General Pagination / Filter Control Styling
+.listing-pagination {
+  padding-top: 0.5em;
+}
+
 ul.pagination {
   float: right;
   padding-left: 8px;
@@ -43,6 +47,9 @@ ul.pagination {
       color: $body-color;
       text-decoration: none;
     }
+  }
+  li:last-of-type {
+    padding-right: 0;
   }
 }
 
@@ -72,19 +79,17 @@ ul.pagination {
   font-size: 0.8em;
 }
 
-.column-page-left {
-  .quarto-listing {
-    padding-right: 20px;
-  }
-}
-
 // Category styling
 #quarto-margin-sidebar {
   .quarto-listing-category {
     padding-top: 0;
+    padding-left: 0.5em;
+    font-size: 0.875em;
   }
   .quarto-listing-category-title {
     font-weight: 600;
+    padding-left: 0.5em;
+    font-size: 0.875em;
   }
 }
 
