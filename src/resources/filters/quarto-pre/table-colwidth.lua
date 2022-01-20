@@ -56,15 +56,6 @@ local function tblColwidthValues(tbl, tblColwidths)
         totalWidth = totalWidth + widths[i]
       end
 
-      -- if there are widths less then 1 then convert them to 100 scale
-      widths = tmap(widths, function(width)
-        if width <= 1 then
-          return width * 100
-        else
-          return width
-        end
-      end)
-
       -- normalize to 100 if the total is > 100
       if totalWidth > 100 then
         for i=1,#widths do 
@@ -112,12 +103,28 @@ function tableColwidth()
    
     Table = function(tbl)
      
-      -- TODO: read from caption
-    
+      -- see if we have a tbl-colwidths attribute
+      local tblColwidths = nil
+      if tbl.caption.long ~= nil and #tbl.caption.long > 0 then
+        local caption = tbl.caption.long[#tbl.caption.long]
+       
+        local tblCaption, attr = parseTableCaption(caption.content)
+        tblColwidths = attr.attributes[kTblColwidths]
+        if tblColwidths ~= nil then
+          attr.attributes[kTblColwidths] = nil
+          tbl.caption.long[#tbl.caption.long] = pandoc.Plain(createTableCaption(tblCaption, attr))
+        end
+      end
 
-      local colwidthValues = tblColwidthValues(tbl, tbl.attr.attributes[kTblColwidths])
+      -- failing that check for an ambient attribute provided by a cell
+      if tblColwidths == nil then
+        tblColwidths = tbl.attr.attributes[kTblColwidths]
+      end
       tbl.attr.attributes[kTblColwidths] = nil
-      if colwidthValues then
+  
+      -- realize values and apply them
+      local colwidthValues = tblColwidthValues(tbl, tblColwidths)
+      if colwidthValues ~= nil then
         tbl = pandoc.utils.to_simple_table(tbl)
         tbl.widths = colwidthValues
         return pandoc.utils.from_simple_table(tbl)
