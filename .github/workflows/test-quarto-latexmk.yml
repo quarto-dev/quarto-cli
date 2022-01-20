@@ -1,0 +1,55 @@
+# Test building the quarto-latexmk command
+on:
+  workflow_dispatch:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+name: Test quarto-latexmk
+
+jobs:
+  quarto-latexmk:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: windows-latest}
+          - {os: macOS-latest}
+          - {os: ubuntu-latest}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Test ${{ runner.os }}
+        if: runner.os == 'Windows'
+        run: |
+          .\configure-windows.cmd
+          cd package/src
+          .\quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc --name tinitex
+          tree ..\dist\bin /f /a
+          cd ..\dist\bin\tinitex\x86_64-pc-windows-msvc
+          .\tinitex.exe --help
+
+      - name: Test ${{ runner.os }}
+        if: runner.os == 'macOS'
+        run: |
+          ./configure-macos.sh
+          cd package/src
+          ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin --name tinitex
+          ls -R ../dist/bin
+          ../dist/bin/tinitex/x86_64-apple-darwin/tinitex --help
+
+      - name: Test ${{ runner.os }}
+        if: runner.os == 'Linux'
+        run: |
+          ./configure-linux.sh
+          cd package/src
+          ./quarto-bld compile-quarto-latexmk --target x86_64-unknown-linux-gnu --name tinitex
+          ls -R ../dist/bin
+          ../dist/bin/tinitex/x86_64-unknown-linux-gnu/tinitex --help
