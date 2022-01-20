@@ -120,6 +120,7 @@ import {
   kLayoutVAlign,
   kOutput,
   kTblCapLoc,
+  kTblColwidths,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -283,6 +284,7 @@ export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
   kLayoutNcol,
   kLayoutNrow,
   kLayout,
+  kTblColwidths,
 ]);
 
 export const kJupyterCellStandardMetadataKeys = [
@@ -812,10 +814,12 @@ export function jupyterCellWithOptions(
     ...yaml,
   };
 
-  // if we have 'layout' and it's not a character then json encode it
-  if (options[kLayout] && typeof (options[kLayout]) !== "string") {
-    options[kLayout] = JSON.stringify(options[kLayout]);
-  }
+  // if we have layout or tbl-colwidths and it's not a string then json encode it
+  [kLayout, kTblColwidths].forEach((option) => {
+    if (options[option] && typeof (options[option]) !== "string") {
+      options[option] = JSON.stringify(options[option]);
+    }
+  });
 
   return {
     ...cell,
@@ -989,9 +993,7 @@ function mdFromCodeCell(
     cell.options[kOutput] === "asis" ||
     // specified globally with no output override for this cell
     (options.execute[kOutput] === "asis" &&
-      cell.options[kOutput] === undefined) ||
-    // all outputs are raw markdown
-    outputs.every((output) => isMarkdown(output, options));
+      cell.options[kOutput] === undefined);
 
   // markdown to return
   const md: string[] = [];
