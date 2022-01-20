@@ -12,7 +12,6 @@ import { rangedLines } from "../ranged-text.ts";
 import { getFrontMatterSchema } from "./front-matter.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error, info } from "log/mod.ts";
-import { ensureAjv } from "./yaml-schema.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
@@ -57,7 +56,6 @@ export async function validateDocumentFromSource(
     if (annotation.result?.validate !== false) {
       const frontMatterSchema = await getFrontMatterSchema();
 
-      await ensureAjv();
       await withValidator(frontMatterSchema, async (frontMatterValidator) => {
         const fmValidation = frontMatterValidator.validateParseWithErrors(
           frontMatterText,

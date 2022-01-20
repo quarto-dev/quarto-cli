@@ -9,7 +9,6 @@ import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 import { idSchema, refSchema } from "./common.ts";
 import { readYaml } from "../yaml.ts";
-import { ensureAjv } from "./yaml-schema.ts";
 import {
   hasSchemaDefinition,
   normalizeSchema,
@@ -38,7 +37,6 @@ export function defineCached(
       );
     }
 
-    await ensureAjv();
     if (!hasSchemaDefinition(schemaId)) {
       schema = await thunk();
       if (schemaId !== schema!.$id as string) {
@@ -54,7 +52,6 @@ export function defineCached(
 }
 
 export async function define(schema: Schema) {
-  await ensureAjv();
   if (!hasSchemaDefinition(schema.$id)) {
     await withValidator(normalizeSchema(schema), async (_validator) => {
       setSchemaDefinition(schema);
@@ -71,7 +68,6 @@ export async function loadSchemaDefinitions(file: string) {
   // deno-lint-ignore no-explicit-any
   const yaml = readYaml(file) as any[];
 
-  await ensureAjv();
   await Promise.all(yaml.map(async (yamlSchema) => {
     const schema = convertFromYaml(yamlSchema);
     if (schema.$id === undefined) {

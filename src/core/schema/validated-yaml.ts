@@ -13,7 +13,6 @@ import { info } from "log/mod.ts";
 import { Schema } from "../lib/schema.ts";
 import { asMappedString, MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
-import { ensureAjv } from "./yaml-schema.ts";
 import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
 import { LocalizedError } from "../lib/yaml-schema.ts";
 
@@ -47,7 +46,6 @@ export async function readAndValidateYamlFromMappedString(
   schema: Schema,
   errorMessage: string,
 ): Promise<{ [key: string]: unknown }> {
-  await ensureAjv();
 
   const result = await withValidator(schema, async (validator) => {
     const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
