@@ -16,6 +16,8 @@
     "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5@2.19.0",
     "diff": "https://cdn.skypack.dev/diff@5.0.0",
     "lodash/": "https://cdn.skypack.dev/lodash@4.17.21/",
+    "acorn/acorn": "https://cdn.skypack.dev/acorn@7.4.1",
+    "acorn/walk": "https://cdn.skypack.dev/acorn-walk@7.2.0",
     "https://deno.land/std@0.105.0/": "https://deno.land/std@0.121.0/",
     "https://deno.land/std@0.101.0/": "https://deno.land/std@0.121.0/"
   }
