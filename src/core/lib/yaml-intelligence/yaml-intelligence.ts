@@ -37,6 +37,7 @@ import {
   Schema,
   schemaCompletions,
   schemaType,
+  setSchemaDefinition,
 } from "../yaml-validation/schema.ts";
 import { withValidator } from "../yaml-validation/validator-queue.ts";
 import { getSchemas, navigateSchema, QuartoJsonSchemas, setSchemas } from "../yaml-validation/schema-utils.ts";
@@ -801,6 +802,7 @@ const initializer = async () => {
 
   const schemaDefs = (await getSchemas()).definitions;
   for (const [_key, value] of Object.entries(schemaDefs)) {
+    setSchemaDefinition(value);
     await withValidator(value, async (_validator) => {
     });
   }
@@ -830,6 +832,7 @@ export const QuartoYamlEditorTools = {
       setMainPath(path);
       setInitializer(initializer);
       await initState();
+      debugger;
       return await getAutomation("completions", context);
     } catch (e) {
       console.log("Error found during autocomplete", e);
@@ -843,6 +846,7 @@ export const QuartoYamlEditorTools = {
       setMainPath(path);
       setInitializer(initializer);
       await initState();
+      debugger;
       return await getAutomation("validation", context);
     } catch (e) {
       console.log("Error found during linting", e);
