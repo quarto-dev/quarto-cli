@@ -19,7 +19,7 @@ import { resourcePath } from "./resources.ts";
 import { mergeConfigs } from "./config.ts";
 import { readAndValidateYamlFromFile } from "./schema/validated-yaml.ts";
 import { RenderFlags } from "../command/render/types.ts";
-import { getSchemaDefinition } from "./lib/schema.ts";
+import { getSchemaDefinition } from "./lib/yaml-validation/schema.ts";
 
 export async function readLanguageTranslations(
   translationFile: string,

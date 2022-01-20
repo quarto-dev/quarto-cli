@@ -5,17 +5,14 @@
 *
 */
 
-// FIXME organization: this belongs in core/lib, not in core/lib/yaml-intelligence
-
 import {
   AnnotatedParse,
   getVerbatimInput,
   LocalizedError,
   YAMLSchema,
-} from "../yaml-schema.ts";
+} from "./yaml-schema.ts";
 import { PromiseQueue } from "../promise.ts";
-import { Schema } from "../schema.ts";
-import { getLocalPath } from "./paths.ts";
+import { Schema } from "./schema.ts";
 import {
   addFileInfo,
   addInstancePathInfo,

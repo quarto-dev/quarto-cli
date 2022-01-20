@@ -10,11 +10,11 @@
 import { existsSync } from "fs/exists.ts";
 import { errorOnce } from "../log.ts";
 import { info } from "log/mod.ts";
-import { Schema } from "../lib/schema.ts";
 import { asMappedString, MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
-import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
-import { LocalizedError } from "../lib/yaml-schema.ts";
+import { Schema } from "../lib/yaml-validation/schema.ts";
+import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
+import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 
 // https://stackoverflow.com/a/41429145
 export class ValidationError extends Error {

@@ -7,9 +7,9 @@
 *
 */
 
-import { AnnotatedParse, LocalizedError } from "../lib/yaml-schema.ts";
-import { Schema } from "../lib/schema.ts";
-import { addValidatorErrorHandler } from "../lib/yaml-intelligence/validator-queue.ts";
+import { AnnotatedParse, LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
+import { Schema } from "../lib/yaml-validation/schema.ts";
+import { addValidatorErrorHandler } from "../lib/yaml-validation/validator-queue.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import {
@@ -88,7 +88,13 @@ const makeEngineSchema = (engine: string): Schema =>
       "cell-*",
       (field: SchemaField, _path: string) => {
         const engineTag = field?.tags?.engine;
-        return engineTag === undefined || engineTag === engine;
+        switch (typeof engineTag) {
+          case "undefined": return true;
+          case "string": return engineTag === engine;
+          case "object": return (engineTag as string[]).indexOf(engine) !== -1
+          default:
+            throw new Error(`Internal Error: bad engine tag ${engineTag}`);
+        }
       },
     ),
     `engine-${engine}`,

@@ -5,12 +5,14 @@
 *
 */
 
-import { getAjvInstance, setupAjv, YAMLSchema } from "../lib/yaml-schema.ts";
-export { YAMLSchema } from "../lib/yaml-schema.ts";
+// FIXME needs renaming, is now only used at build-js time
+
+import { getAjvInstance, setupAjv, YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";
+export { YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";
 import { MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { loadDefaultSchemaDefinitions } from "./definitions.ts";
-import { getSchemaDefinitionsObject } from "../lib/schema.ts";
+import { getSchemaDefinitionsObject } from "../lib/yaml-validation/schema.ts";
 import { esbuildCompile } from "../esbuild.ts";
 import { TempContext } from "../temp.ts";
 import { dirname, relative } from "path/mod.ts";

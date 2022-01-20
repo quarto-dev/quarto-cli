@@ -11,7 +11,8 @@
 *
 */
 
-import { getSchemaDefinition } from "./schema.ts";
+
+import { Schema, getSchemaDefinition } from "./schema.ts";
 
 function validateBoolean(value: any, schema: Schema)
 {
@@ -136,6 +137,7 @@ function validateArray(value: any, schema: Schema)
   if (schema.items) {
     return value.every(entry => validate(entry, schema.items));
   }
+  return true;
 }
 
 export function validate(value: any, schema: Schema)

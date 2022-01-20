@@ -10,7 +10,7 @@
 import { readYaml } from "../yaml.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
-import { expandAliasesFrom } from "../lib/schema.ts";
+import { expandAliasesFrom } from "../lib/yaml-validation/schema.ts";
 
 // deno-lint-ignore no-explicit-any
 let formatAliases: any = undefined;

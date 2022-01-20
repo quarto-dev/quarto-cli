@@ -8,9 +8,9 @@
 *
 */
 
-import { mappedIndexToRowCol, MappedString } from "./mapped-text.ts";
+import { mappedIndexToRowCol, MappedString } from "../mapped-text.ts";
 
-import { formatLineRange, lines } from "./text.ts";
+import { formatLineRange, lines } from "../text.ts";
 
 import { getSchemaDefinition, normalizeSchema, Schema } from "./schema.ts";
 
@@ -21,9 +21,9 @@ import {
   quotedStringColor,
   TidyverseError,
   tidyverseFormatError,
-} from "./errors.ts";
+} from "../errors.ts";
 
-import * as colors from "./external/colors.ts";
+import * as colors from "../external/colors.ts";
 
 import { ErrorObject } from "./staged-validator-module.ts";
 

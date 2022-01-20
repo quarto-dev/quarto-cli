@@ -22,9 +22,9 @@ import {
   hasSchemaDefinition,
   Schema,
   setSchemaDefinition,
-} from "../lib/schema.ts";
+} from "../lib/yaml-validation/schema.ts";
 
-import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
+import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 
 import {
   allOfSchema as allOfS,

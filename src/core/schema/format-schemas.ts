@@ -7,7 +7,7 @@
 *
 */
 
-import { Schema } from "../lib/schema.ts";
+import { Schema } from "../lib/yaml-validation/schema.ts";
 
 import { expandFormatAliases } from "./format-aliases.ts";
 
@@ -43,6 +43,7 @@ function useSchema(schema: Schema, format: string) {
   return true;
 }
 
+// FIXME who's using this thing that isn't behind a defineCached call?
 export function getFormatSchema(format: string): Schema {
   const schema = objectRefSchemaFromContextGlob(
     "document-*",

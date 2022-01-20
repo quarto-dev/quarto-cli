@@ -5,20 +5,20 @@
 *
 */
 
-import { withValidator } from "../lib/yaml-intelligence/validator-queue.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 import { idSchema, refSchema } from "./common.ts";
 import { readYaml } from "../yaml.ts";
+import { error } from "log/mod.ts";
+import { schemaPath } from "./utils.ts";
+import { buildSchemaResources } from "./from-yaml.ts";
+import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import {
   hasSchemaDefinition,
   normalizeSchema,
   Schema,
   setSchemaDefinition,
   getSchemaDefinition
-} from "../lib/schema.ts";
-import { error } from "log/mod.ts";
-import { schemaPath } from "./utils.ts";
-import { buildSchemaResources } from "./from-yaml.ts";
+} from "../lib/yaml-validation/schema.ts";
 
 export function defineCached(
   thunk: () => Promise<Schema>,
