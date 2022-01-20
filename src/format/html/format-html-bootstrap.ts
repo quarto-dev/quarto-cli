@@ -17,7 +17,6 @@ import {
   kLinkCitations,
   kReferenceLocation,
   kSectionDivs,
-  kSectionTitleFootnotes,
   kTheme,
 } from "../../config/constants.ts";
 import {

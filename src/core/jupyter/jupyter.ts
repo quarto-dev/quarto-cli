@@ -1344,6 +1344,7 @@ function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsImage);
 }
 
+// deno-lint-ignore no-unused-vars
 function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
