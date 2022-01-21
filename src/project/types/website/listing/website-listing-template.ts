@@ -22,9 +22,9 @@ import {
   kFieldDate,
   kFieldDisplayNames,
   kFieldFileModified,
+  kFieldLinks,
   kFields,
   kFieldsFilter,
-  kFieldsLink,
   kFieldsSort,
   kFieldTypes,
   kGridColumns,
@@ -235,7 +235,7 @@ export function resolveItemForTemplate(
   }
 
   // Add sortable values for fields that will be linked
-  for (const field of listing[kFieldsLink]) {
+  for (const field of listing[kFieldLinks]) {
     const val = item[field];
     if (val !== undefined) {
       addSortable(item, field, val as string);
@@ -335,7 +335,7 @@ export function reshapeListing(
     return reshaped[kFieldDisplayNames][field] || field;
   };
   utilities.outputLink = (item: ListingItem, field: string, val?: string) => {
-    const fieldLinks = reshaped[kFieldsLink];
+    const fieldLinks = reshaped[kFieldLinks];
     const value = val || item[field];
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
@@ -405,7 +405,7 @@ function sortAttrValue(field: string) {
 
 const useSortTarget = (listing: Listing, field: string) => {
   // Use data field for values that will be wrapped in links
-  const links = listing[kFieldsLink];
+  const links = listing[kFieldLinks];
   if (links.includes(field)) {
     return true;
   }
@@ -414,7 +414,7 @@ const useSortTarget = (listing: Listing, field: string) => {
   const type = listing[kFieldTypes][field];
   if (type === "date" || type === "number" || type === "minutes") {
     return true;
-  } else if (listing[kFieldsLink].includes(field)) {
+  } else if (listing[kFieldLinks].includes(field)) {
     return true;
   }
 

@@ -18,7 +18,7 @@ export const kFieldDisplayNames = "field-display-names";
 export const kFieldTypes = "field-types";
 
 // The list of columns to show as hyperlinks
-export const kFieldsLink = "fields-link";
+export const kFieldLinks = "field-links";
 
 // The list of required fields for this listing
 export const kFieldsRequired = "fields-required";
@@ -98,7 +98,7 @@ export interface Listing extends ListingDehydrated {
   fields: string[];
   [kFieldDisplayNames]: Record<string, string>;
   [kFieldTypes]: Record<string, ColumnType>;
-  [kFieldsLink]: string[];
+  [kFieldLinks]: string[];
   [kFieldsSort]: string[];
   [kFieldsFilter]: string[];
   [kFieldsRequired]: string[];
