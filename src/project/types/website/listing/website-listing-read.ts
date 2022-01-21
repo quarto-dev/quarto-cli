@@ -36,9 +36,9 @@ import {
   kFieldsLink,
   kFieldsRequired,
   kFieldsSort,
-  kFieldsType,
   kFieldSubtitle,
   kFieldTitle,
+  kFieldTypes,
   kFilterUi,
   kGridColumns,
   kImageAlign,
@@ -305,7 +305,7 @@ function hydrateListing(
   const listingHydrated: Listing = cloneDeep({
     fields: hydratedFields,
     [kFieldDisplayNames]: {},
-    [kFieldsType]: kDefaultFieldTypes,
+    [kFieldTypes]: kDefaultFieldTypes,
     [kFieldsLink]: defaultLinks,
     [kFieldsSort]: defaultSort,
     [kFieldsFilter]: hydratedFields,
@@ -349,9 +349,9 @@ function hydrateListing(
   }
 
   // Merge column types
-  listingHydrated[kFieldsType] = {
-    ...listingHydrated[kFieldsType],
-    ...listing[kFieldsType] as Record<string, ColumnType>,
+  listingHydrated[kFieldTypes] = {
+    ...listingHydrated[kFieldTypes],
+    ...listing[kFieldTypes] as Record<string, ColumnType>,
   };
 
   // Merge display names

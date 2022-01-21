@@ -26,7 +26,7 @@ import {
   kFieldsFilter,
   kFieldsLink,
   kFieldsSort,
-  kFieldsType,
+  kFieldTypes,
   kGridColumns,
   kImageHeight,
   kMaxDescLength,
@@ -75,7 +75,7 @@ export function templateMarkdownHandler(
       // Read date formatting from an option, if present
       const dateFormat = listing[kDateFormat] as string;
 
-      const fieldTypes = listing[kFieldsType];
+      const fieldTypes = listing[kFieldTypes];
       for (const field of Object.keys(fieldTypes)) {
         if (fieldTypes[field] === kFieldDate) {
           const dateRaw = item[field];
@@ -221,8 +221,8 @@ export function resolveItemForTemplate(
   };
 
   // Add sortable values for fields of variant types
-  for (const field of Object.keys(listing[kFieldsType])) {
-    const type = listing[kFieldsType][field];
+  for (const field of Object.keys(listing[kFieldTypes])) {
+    const type = listing[kFieldTypes][field];
     if (item[field] !== undefined) {
       if (type === "date") {
         addSortable(item, field, (item[field] as Date).valueOf().toString());
@@ -273,7 +273,7 @@ export function reshapeListing(
     reshaped[kFieldsSort].filter((field) => {
       return reshaped.fields.includes(field);
     }).forEach((field) => {
-      if (reshaped[kFieldsType][field] === "date") {
+      if (reshaped[kFieldTypes][field] === "date") {
         fieldSortData.push({
           listingSort: {
             field: sortAttrValue(field),
@@ -294,8 +294,8 @@ export function reshapeListing(
           }`,
         });
       } else if (
-        reshaped[kFieldsType][field] === "number" ||
-        reshaped[kFieldsType][field] === "minutes"
+        reshaped[kFieldTypes][field] === "number" ||
+        reshaped[kFieldTypes][field] === "minutes"
       ) {
         fieldSortData.push({
           listingSort: {
@@ -411,7 +411,7 @@ const useSortTarget = (listing: Listing, field: string) => {
   }
 
   // Use data field for date and numbers
-  const type = listing[kFieldsType][field];
+  const type = listing[kFieldTypes][field];
   if (type === "date" || type === "number" || type === "minutes") {
     return true;
   } else if (listing[kFieldsLink].includes(field)) {

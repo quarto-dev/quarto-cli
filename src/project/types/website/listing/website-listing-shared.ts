@@ -15,7 +15,7 @@ export const kFields = "fields";
 export const kFieldDisplayNames = "field-display-names";
 
 // a record providing a column to type mapping
-export const kFieldsType = "fields-type";
+export const kFieldTypes = "field-types";
 
 // The list of columns to show as hyperlinks
 export const kFieldsLink = "fields-link";
@@ -97,7 +97,7 @@ export interface ListingSharedOptions {
 export interface Listing extends ListingDehydrated {
   fields: string[];
   [kFieldDisplayNames]: Record<string, string>;
-  [kFieldsType]: Record<string, ColumnType>;
+  [kFieldTypes]: Record<string, ColumnType>;
   [kFieldsLink]: string[];
   [kFieldsSort]: string[];
   [kFieldsFilter]: string[];
