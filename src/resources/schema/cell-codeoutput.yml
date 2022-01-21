@@ -1,6 +1,7 @@
 - name: eval
   tags:
     contexts: [document-execute]
+    execute-only: true
   schema: boolean
   default: true
   description: "Evaluate code cells (if `false` just echos the code into output)."
@@ -8,6 +9,7 @@
 - name: echo
   tags:
     contexts: [document-execute]
+    execute-only: true
   schema:
     anyOf:
       schemas:
