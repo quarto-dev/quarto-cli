@@ -25,7 +25,7 @@ const itemNumber = listing.utilities.itemNumber();
 
 // Fields that should be bucketized into the general listing at the bottom
 const otherFields = fields.filter(field => {
-return !["title", "image", "date", "author", "subtitle", "description", "filename", "filemodified", "readingtime", "categories"].includes(field);
+return !["title", "image", "date", "author", "subtitle", "description", "filename", "file-modified", "reading-time", "categories"].includes(field);
 });
 %>
 
@@ -40,7 +40,7 @@ return !["title", "image", "date", "author", "subtitle", "description", "filenam
 <% if (showField('subtitle')) { %>
 <div class="card-subtitle listing-subtitle"><a href="<%- item.path %>"><%= item.subtitle %></a></div>
 <% } %>
-<% if (showField('readingtime')) { %><div class="listing-readingtime card-text text-muted"><a href="<%- item.path %>"><%= item.readingtime %></a></div> <% } %>
+<% if (showField('reading-time')) { %><div class="listing-reading-time card-text text-muted"><a href="<%- item.path %>"><%= item['reading-time'] %></a></div> <% } %>
 <% if (fields.includes('categories') && item.categories) { %> 
 <div class="listing-categories">
 <% for (const category of item.categories) { %>
@@ -74,16 +74,16 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 </a></div>
 <% } %>
 
-<% if (fields.includes('filename') || fields.includes('filemodified')) { %>
+<% if (fields.includes('filename') || fields.includes('file-modified')) { %>
 <div class="card-footer text-muted">
 <% if (fields.includes('filename')) { %>
 <div class="card-filename listing-filename">
 <%= item.filename ? listing.utilities.outputLink(item, 'filename') : "&nbsp;" %>
 </div>
 <% } %>
-<% if (fields.includes('filemodified')) { %>
-<div class="card-filemodified listing-filemodified">
-<%= item.filemodified ? listing.utilities.outputLink(item, 'filemodified') : "&nbsp;"%>
+<% if (fields.includes('file-modified')) { %>
+<div class="card-file-modified listing-file-modified">
+<%= item['file-modified'] ? listing.utilities.outputLink(item, 'file-modified') : "&nbsp;"%>
 </div>
 <% } %>
 </div>

@@ -56,12 +56,12 @@ export const kTableColor = "table-color";
 export const kFieldTitle = "title";
 export const kFieldSubtitle = "subtitle";
 export const kFieldAuthor = "author";
-export const kFieldFileModified = "filemodified";
 export const kFieldFileName = "filename";
+export const kFieldFileModified = "file-modified";
 export const kFieldDate = "date";
 export const kFieldImage = "image";
 export const kFieldDescription = "description";
-export const kFieldReadingTime = "readingtime";
+export const kFieldReadingTime = "reading-time";
 export const kFieldCategories = "categories";
 
 export const kPageColumn = "page-column";
@@ -146,6 +146,6 @@ export interface ListingItem extends Record<string, unknown> {
   image?: string;
   path?: string;
   filename?: string;
-  filemodified?: Date;
+  [kFieldFileModified]?: Date;
   sortableValues?: Record<string, string>;
 }

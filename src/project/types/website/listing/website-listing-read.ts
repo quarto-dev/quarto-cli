@@ -486,8 +486,8 @@ function listItemFromMeta(meta: Metadata) {
   // If there is a path, try to complete the filename and
   // modified values
   if (meta.path !== undefined) {
-    meta.filename = basename(meta.path as string);
-    meta.filemodified = fileModifiedDate(meta.path as string);
+    meta[kFieldFileName] = basename(meta.path as string);
+    meta[kFieldFileModified] = fileModifiedDate(meta.path as string);
   }
 
   if (meta.author) {
@@ -531,15 +531,15 @@ async function listItemFromFile(input: string, project: ProjectContext) {
 
   const item: ListingItem = {
     ...documentMeta,
-    title: target?.title,
-    date,
-    author,
-    image,
-    description,
     path: `/${projectRelativePath}`,
-    filename,
-    filemodified,
-    readingtime,
+    [kFieldTitle]: target?.title,
+    [kFieldDate]: date,
+    [kFieldAuthor]: author,
+    [kFieldImage]: image,
+    [kFieldDescription]: description,
+    [kFieldFileName]: filename,
+    [kFieldFileModified]: filemodified,
+    [kFieldReadingTime]: readingtime,
   };
   return item;
 }

@@ -8,18 +8,17 @@ const imageHeight = listing['image-height'];
 
 // Fields that don't have a known place to be displayed in this template
 const otherFields = fields.filter(field => {
-  return !["title", "image", "date", "author", "subtitle", "description", "readingtime", "categories"].includes(field);
+return !["title", "image", "date", "author", "subtitle", "description", "reading-time", "categories"].includes(field);
 });
-
 
 // Capture the item number for utility functions that need it
 const itemNumber = listing.utilities.itemNumber();
 
 // Writes a metadata value
 const outputMetadata = (item, field) => {
-  if (item[field] !== undefined) {
-    print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLink(item, field)}</div>`);  
-  } 
+if (item[field] !== undefined) {
+print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLink(item, field)}</div>`);  
+ }
 }
 %>
 
@@ -49,10 +48,9 @@ const outputMetadata = (item, field) => {
 <div class="metadata">
 <% if (fields.includes('date') && item.date) { %><div class="listing-date"><%= item.date %></div><% } %>
 <% if (fields.includes('author') && item.author) { %><div class="listing-author"><%= item.author %></div><% } %>
-<% if (fields.includes('readingtime') && item.readingtime) { %> <div class="listing-readingtime"><%= item.readingtime %></div> <% } %>
+<% if (fields.includes('reading-time') && item['reading-time']) { %> <div class="listing-reading-time"><%= item['reading-time'] %></div> <% } %>
 <% for (const field of otherFields) { %>
 <% outputMetadata(item, field) %>
 <% } %>
 </div>
 </div>
-
