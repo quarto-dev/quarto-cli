@@ -225,11 +225,7 @@ const kMarginSidebarId = "quarto-margin-sidebar";
 function suggestColumn(doc: Document) {
   const hasContents = (id: string) => {
     const el = doc.getElementById(id);
-    if (el) {
-      return el.innerText.trim() !== "";
-    } else {
-      return false;
-    }
+    return el !== null;
   };
 
   const leftSidebar = hasContents(kSidebarId);
