@@ -26,6 +26,9 @@ export const kFieldsRequired = "fields-required";
 // The list of columns to include as sortable
 export const kFieldsSort = "fields-sort";
 
+// The list of columns to include as filterable
+export const kFieldsFilter = "fields-filter";
+
 // The number of rows to display per page
 export const kRowCount = "row-count";
 
@@ -93,6 +96,7 @@ export interface Listing extends ListingDehydrated {
   [kFieldsType]: Record<string, ColumnType>;
   [kFieldsLink]: string[];
   [kFieldsSort]: string[];
+  [kFieldsFilter]: string[];
   [kFieldsRequired]: string[];
   [kRowCount]: number;
   [kShowFilter]: boolean;

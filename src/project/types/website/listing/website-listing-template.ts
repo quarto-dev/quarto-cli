@@ -23,6 +23,7 @@ import {
   kFieldDate,
   kFieldFileModified,
   kFields,
+  kFieldsFilter,
   kFieldsLink,
   kFieldsName,
   kFieldsSort,
@@ -442,10 +443,16 @@ export function templateJsScript(
 
   const columns = listing[kFields] as string[] || [];
 
-  const pageJs = itemCount > pageCount
+  const pageOptions = itemCount > pageCount
     ? `${pageCount ? `page: ${pageCount}` : ""},
-    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" }`
+    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },`
     : "";
+
+  const filterOptions = `searchColumns: [${
+    listing[kFieldsFilter].map((field) => {
+      return `"listing-${field}"`;
+    }).join(",")
+  }],`;
 
   const resolvedColumns = columns.map((field) => {
     return `'listing-${field}'`;
@@ -466,7 +473,8 @@ export function templateJsScript(
   window.document.addEventListener("DOMContentLoaded", function (_event) {
     const options = {
       valueNames: ${rowJs},
-      ${pageJs}
+      ${pageOptions}
+      ${filterOptions}
     };
 
     window['quarto-listings'] = window['quarto-listings'] || {};

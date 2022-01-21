@@ -33,6 +33,7 @@ import {
   kFieldFileName,
   kFieldImage,
   kFieldReadingTime,
+  kFieldsFilter,
   kFieldsLink,
   kFieldsName,
   kFieldsRequired,
@@ -290,12 +291,23 @@ function hydrateListing(
     }
   };
 
+  const hydratedFields = [...fields];
+  if (
+    options[kFieldCategories] &&
+    (listing.type === ListingType.Grid || listing.type === ListingType.Default)
+  ) {
+    if (!hydratedFields.includes(kFieldCategories)) {
+      hydratedFields.push(kFieldCategories);
+    }
+  }
+
   const listingHydrated: Listing = cloneDeep({
-    fields,
+    fields: hydratedFields,
     [kFieldsName]: defaultFieldNames(format),
     [kFieldsType]: kDefaultFieldTypes,
     [kFieldsLink]: defaultLinks,
     [kFieldsSort]: defaultSort,
+    [kFieldsFilter]: hydratedFields,
     [kFieldsRequired]: kDefaultFieldRequired,
     [kRowCount]: defaultRowCount(),
     [kShowFilter]: enableFilterAndSort,
@@ -303,24 +315,13 @@ function hydrateListing(
     ...listing,
   });
 
-  const enableCategories = (listing: Listing) => {
-    if (options[kFieldCategories]) {
-      listing.fields = listing.fields || [];
-      if (!listing.fields.includes(kFieldCategories)) {
-        listing.fields.push(kFieldCategories);
-      }
-    }
-  };
-
   // Populate base default values for types
   if (listing.type === ListingType.Grid) {
     listingHydrated[kColumnCount] = listingHydrated[kColumnCount] || 3;
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "150px";
     listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
-    enableCategories(listingHydrated);
   } else if (listing.type === ListingType.Default) {
     listingHydrated[kImageAlign] = listingHydrated[kImageAlign] || "right";
-    enableCategories(listingHydrated);
   } else if (listing.type === ListingType.Table) {
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "40px";
   }
