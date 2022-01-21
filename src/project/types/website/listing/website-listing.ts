@@ -19,7 +19,7 @@ import {
   kMarkdownAfterBody,
   kSassBundles,
 } from "../../../../config/types.ts";
-import { resolvePathGlobs } from "../../../../core/path.ts";
+import { filterPaths } from "../../../../core/path.ts";
 import { inputTargetIndex } from "../../../project-index.ts";
 import { ProjectContext } from "../../../types.ts";
 import {
@@ -65,7 +65,11 @@ export async function listingHtmlDependencies(
   const listings = normalizeListingConfiguration(format);
 
   // Resolve the content globs
-  const listingsResolved = resolveListingContents(source, listings);
+  const listingsResolved = resolveListingContents(
+    source,
+    project,
+    listings,
+  );
 
   // Generate the list of items for this listing
   const listingItems: {
@@ -261,18 +265,28 @@ function listingPostProcess(doc: Document, listings: Listing[]) {
   }
 }
 
-function resolveListingContents(source: string, listings: Listing[]) {
+function resolveListingContents(
+  source: string,
+  project: ProjectContext,
+  listings: Listing[],
+) {
+  // Filter the source file out of the inputs
+  const inputsWithoutSource = project.files.input.filter((file) =>
+    file !== source
+  );
+
   return listings.map((listing) => {
-    const currentDir = dirname(source);
-
-    // Find matching files (excluding the source file for the listing page)
-    const resolvedGlobs = resolvePathGlobs(currentDir, listing.contents, [
-      source,
-    ]);
-
+    // Go through the contents globs and
+    // convert them to a regex and apply them
+    // to the input files
+    const files = filterPaths(
+      dirname(source),
+      inputsWithoutSource,
+      listing.contents,
+    );
     return {
       listing,
-      files: resolvedGlobs.include,
+      files: files.include.filter((file) => !files.exclude.includes(file)),
     };
   });
 }
