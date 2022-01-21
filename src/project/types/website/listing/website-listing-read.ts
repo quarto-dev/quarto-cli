@@ -21,7 +21,6 @@ import {
   findPreviewImgMd,
 } from "../util/discover-meta.ts";
 import {
-  CategoryStyle,
   ColumnType,
   kCategoryStyle,
   kColumnCount,
@@ -161,7 +160,7 @@ export async function readListings(
   };
 
   // Process categories
-  const categories = firstListingValue(kFieldCategories, true);
+  const categories = firstListingValue(kFieldCategories, false);
 
   const parseCategoryStyle = (categories: unknown) => {
     if (typeof (categories) === "string") {
