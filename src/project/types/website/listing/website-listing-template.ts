@@ -30,7 +30,7 @@ import {
   kFieldsType,
   kImageHeight,
   kMaxDescLength,
-  kRowCount,
+  kPageSize,
   kSortAsc,
   kSortDesc,
   Listing,
@@ -356,15 +356,12 @@ export function reshapeListing(
     return ++itemNumber;
   };
   utilities.img = (itemNumber: number, src: string, classes?: string) => {
-    const rowCount = listing[kRowCount];
-    const columnCount = listing[kColumnCount] || 1;
-    const itemsPerPage = rowCount * columnCount;
-
+    const pageSize = listing[kPageSize];
     const classAttr = classes ? `class="${classes}"` : "";
     const styleAttr = listing[kImageHeight]
       ? `style="height: ${listing[kImageHeight]};"`
       : "";
-    const srcAttr = itemNumber > itemsPerPage ? "data-src" : "src";
+    const srcAttr = itemNumber > pageSize ? "data-src" : "src";
 
     return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr}>`;
   };
@@ -432,16 +429,13 @@ export function templateJsScript(
   listing: Listing,
   itemCount: number,
 ) {
-  const columnCount = listing[kColumnCount] as number || 0;
-  const rowCount = listing[kRowCount] as number || 50;
+  const pageSize = listing[kPageSize] as number || 50;
 
   // If columns are present, factor that in
-  const pageCount = columnCount > 0 ? rowCount * columnCount : rowCount;
-
   const columns = listing[kFields] as string[] || [];
 
-  const pageOptions = itemCount > pageCount
-    ? `${pageCount ? `page: ${pageCount}` : ""},
+  const pageOptions = itemCount > pageSize
+    ? `${pageSize ? `page: ${pageSize}` : ""},
     pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },`
     : "";
 

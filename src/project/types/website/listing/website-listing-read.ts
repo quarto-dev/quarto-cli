@@ -40,15 +40,15 @@ import {
   kFieldsType,
   kFieldSubtitle,
   kFieldTitle,
+  kFilterUi,
   kImageAlign,
   kImageHeight,
   kMaxDescLength,
   kPageColumn,
-  kRowCount,
-  kShowFilter,
-  kShowSort,
+  kPageSize,
   kSortAsc,
   kSortDesc,
+  kSortUi,
   kTableColor,
   kTableHover,
   kTableStriped,
@@ -280,12 +280,12 @@ function hydrateListing(
   const enableFilterAndSort = listing.type !== ListingType.Custom ||
     listing[kFieldsSort] !== undefined;
 
-  const defaultRowCount = () => {
+  const defaultPageSize = () => {
     switch (listing.type) {
       case ListingType.Table:
         return 30;
       case ListingType.Grid:
-        return 4;
+        return 15;
       default:
       case ListingType.Default:
         return 25;
@@ -310,11 +310,22 @@ function hydrateListing(
     [kFieldsSort]: defaultSort,
     [kFieldsFilter]: hydratedFields,
     [kFieldsRequired]: kDefaultFieldRequired,
-    [kRowCount]: defaultRowCount(),
-    [kShowFilter]: enableFilterAndSort,
-    [kShowSort]: enableFilterAndSort,
+    [kPageSize]: defaultPageSize(),
+    [kFilterUi]: enableFilterAndSort,
+    [kSortUi]: enableFilterAndSort,
     ...listing,
   });
+
+  // Forward fields if listed in sort UI or Filter UI
+  const sortUi = listingHydrated[kSortUi];
+  if (sortUi && Array.isArray(sortUi)) {
+    listingHydrated[kFieldsSort] = sortUi;
+  }
+
+  const filterUi = listingHydrated[kFilterUi];
+  if (filterUi && Array.isArray(filterUi)) {
+    listingHydrated[kFieldsFilter] = filterUi;
+  }
 
   // Populate base default values for types
   if (listing.type === ListingType.Grid) {

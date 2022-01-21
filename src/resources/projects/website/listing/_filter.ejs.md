@@ -1,14 +1,14 @@
 <%
-const showFilter = listing['show-filter'];
-const showSort = listing['show-sort'];
+const filterUi = listing['filter-ui'];
+const sortUi = listing['sort-ui'];
 %>
 
-<% if (showSort || showFilter) { %>
+<% if (sortUi || filterUi) { %>
 
 ```{=html}
 <div class="listing-actions-group">
   <% const sortableFields = listing.utilities.sortableFieldData(); %>
-  <% if (showSort && sortableFields.length > 0) { %>
+  <% if (sortUi && sortableFields.length > 0) { %>
    <div class="input-group input-group-sm quarto-listing-sort">
      <span class="input-group-text" id="basic-addon1"><i class="bi bi-sort-down"></i></span>
      <select
@@ -32,7 +32,7 @@ const showSort = listing['show-sort'];
 
   <% } %>
 
-  <% if (showFilter) { %>
+  <% if (filterUi) { %>
     <div class="input-group input-group-sm quarto-listing-filter">
       <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
       <input type="text" class="search form-control" placeholder="Filter" />

@@ -3,7 +3,7 @@
 const fields = listing.fields;
 
 // Whether to enable sorting
-const showSort = listing["show-sort"] !== false;
+const sortUi = listing["sort-ui"] !== false;
 
 // The height for images
 const imgHeight = listing['image-height'];
@@ -31,7 +31,7 @@ return listing.utilities.outputLink(item, field, value);
 <tr>
 <% for (const field of fields) { %>
 <th>
-<% if (showSort) { %><a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (showSort) { %></a><% } %>
+<% if (sortUi) { %><a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (sortUi) { %></a><% } %>
 </th>
 <% } %>
 </tr>

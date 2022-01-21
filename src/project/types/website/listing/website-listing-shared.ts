@@ -30,11 +30,11 @@ export const kFieldsSort = "fields-sort";
 export const kFieldsFilter = "fields-filter";
 
 // The number of rows to display per page
-export const kRowCount = "row-count";
+export const kPageSize = "page-size";
 
 // Configuration of the filtering and sorting options
-export const kShowFilter = "show-filter";
-export const kShowSort = "show-sort";
+export const kFilterUi = "filter-ui";
+export const kSortUi = "sort-ui";
 
 // The Image Height / Alignment
 export const kImageHeight = "image-height";
@@ -102,9 +102,9 @@ export interface Listing extends ListingDehydrated {
   [kFieldsSort]: string[];
   [kFieldsFilter]: string[];
   [kFieldsRequired]: string[];
-  [kRowCount]: number;
-  [kShowFilter]: boolean;
-  [kShowSort]: boolean;
+  [kPageSize]: number;
+  [kFilterUi]: boolean;
+  [kSortUi]: boolean;
 
   sort?: ListingSort[];
   template?: string;
