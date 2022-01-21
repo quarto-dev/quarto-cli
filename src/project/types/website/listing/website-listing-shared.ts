@@ -12,7 +12,7 @@ import { Metadata } from "../../../../config/types.ts";
 export const kFields = "fields";
 
 // A record providing formatted names for columns
-export const kFieldsName = "fields-name";
+export const kFieldDisplayNames = "field-display-names";
 
 // a record providing a column to type mapping
 export const kFieldsType = "fields-type";
@@ -96,7 +96,7 @@ export interface ListingSharedOptions {
 // The core listing type
 export interface Listing extends ListingDehydrated {
   fields: string[];
-  [kFieldsName]: Record<string, string>;
+  [kFieldDisplayNames]: Record<string, string>;
   [kFieldsType]: Record<string, ColumnType>;
   [kFieldsLink]: string[];
   [kFieldsSort]: string[];

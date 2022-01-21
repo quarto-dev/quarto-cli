@@ -27,13 +27,13 @@ import {
   kFieldCategories,
   kFieldDate,
   kFieldDescription,
+  kFieldDisplayNames,
   kFieldFileModified,
   kFieldFileName,
   kFieldImage,
   kFieldReadingTime,
   kFieldsFilter,
   kFieldsLink,
-  kFieldsName,
   kFieldsRequired,
   kFieldsSort,
   kFieldsType,
@@ -105,7 +105,7 @@ const kDefaultFields = [
   kFieldDescription,
 ];
 
-const defaultFieldNames = (format: Format) => {
+const defaultFieldDisplayNames = (format: Format) => {
   return {
     [kFieldImage]: " ",
     [kFieldDate]: format.language[kListingPageFieldDate] || "",
@@ -304,7 +304,7 @@ function hydrateListing(
 
   const listingHydrated: Listing = cloneDeep({
     fields: hydratedFields,
-    [kFieldsName]: defaultFieldNames(format),
+    [kFieldDisplayNames]: {},
     [kFieldsType]: kDefaultFieldTypes,
     [kFieldsLink]: defaultLinks,
     [kFieldsSort]: defaultSort,
@@ -352,6 +352,12 @@ function hydrateListing(
   listingHydrated[kFieldsType] = {
     ...listingHydrated[kFieldsType],
     ...listing[kFieldsType] as Record<string, ColumnType>,
+  };
+
+  // Merge display names
+  listingHydrated[kFieldDisplayNames] = {
+    ...defaultFieldDisplayNames(format),
+    ...listing[kFieldDisplayNames] as Record<string, string>,
   };
 
   return listingHydrated;

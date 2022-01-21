@@ -20,11 +20,11 @@ import { Format } from "../../../../config/types.ts";
 import { renderEjs } from "../../../../core/ejs.ts";
 import {
   kFieldDate,
+  kFieldDisplayNames,
   kFieldFileModified,
   kFields,
   kFieldsFilter,
   kFieldsLink,
-  kFieldsName,
   kFieldsSort,
   kFieldsType,
   kGridColumns,
@@ -279,7 +279,7 @@ export function reshapeListing(
             field: sortAttrValue(field),
             direction: kSortAsc,
           },
-          description: `${reshaped[kFieldsName][field] || field} - ${
+          description: `${reshaped[kFieldDisplayNames][field] || field} - ${
             format.language[kListingPageOrderByDateAsc]
           }`,
         });
@@ -289,7 +289,7 @@ export function reshapeListing(
             field: sortAttrValue(field),
             direction: kSortDesc,
           },
-          description: `${reshaped[kFieldsName][field] || field} - ${
+          description: `${reshaped[kFieldDisplayNames][field] || field} - ${
             format.language[kListingPageOrderByDateDesc]
           }`,
         });
@@ -302,7 +302,7 @@ export function reshapeListing(
             field: sortAttrValue(field),
             direction: kSortAsc,
           },
-          description: `${reshaped[kFieldsName][field] || field} (${
+          description: `${reshaped[kFieldDisplayNames][field] || field} (${
             format.language[kListingPageOrderByNumberAsc]
           })`,
         });
@@ -311,7 +311,7 @@ export function reshapeListing(
             field: sortAttrValue(field),
             direction: kSortDesc,
           },
-          description: `${reshaped[kFieldsName][field] || field} (${
+          description: `${reshaped[kFieldDisplayNames][field] || field} (${
             format.language[kListingPageOrderByNumberDesc]
           })`,
         });
@@ -324,7 +324,7 @@ export function reshapeListing(
             field: sortField,
             direction: kSortAsc,
           },
-          description: `${reshaped[kFieldsName][field] || field}`,
+          description: `${reshaped[kFieldDisplayNames][field] || field}`,
         });
       }
     });
@@ -332,7 +332,7 @@ export function reshapeListing(
     return fieldSortData;
   };
   utilities.fieldName = (field: string) => {
-    return reshaped[kFieldsName][field] || field;
+    return reshaped[kFieldDisplayNames][field] || field;
   };
   utilities.outputLink = (item: ListingItem, field: string, val?: string) => {
     const fieldLinks = reshaped[kFieldsLink];
