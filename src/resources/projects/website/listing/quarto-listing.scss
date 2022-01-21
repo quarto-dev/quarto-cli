@@ -104,6 +104,27 @@ ul.pagination {
 }
 
 // Grid Listing Styling
+@for $colcount from 1 through 12 {
+  .quarto-listing-cols-#{$colcount} {
+    grid-template-columns: repeat($colcount, minmax(0, 1fr));
+    gap: 1.5em;
+  }
+
+  @include media-breakpoint-down(md) {
+    .quarto-listing-cols-#{$colcount} {
+      grid-template-columns: repeat(min(2, $colcount), minmax(0, 1fr));
+      gap: 1.5em;
+    }
+  }
+
+  @include media-breakpoint-down(sm) {
+    .quarto-listing-cols-#{$colcount} {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5em;
+    }
+  }
+}
+
 .quarto-listing-grid {
   gap: 1.5em;
 }
