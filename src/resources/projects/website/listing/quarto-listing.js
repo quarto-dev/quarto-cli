@@ -36,6 +36,9 @@ window["quarto-listing-loaded"] = () => {
     list.on("updated", function () {
       renderVisibleProgressiveImages(list);
       setTimeout(() => refreshPaginationHandlers(listingId));
+
+      // Show or hide the no matching message
+      toggleNoMatchingMessage(list);
     });
   }
 };
@@ -54,6 +57,22 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   }
 });
+
+function toggleNoMatchingMessage(list) {
+  const selector = `#${list.listContainer.id} .listing-no-matching`;
+  const noMatchingEl = window.document.querySelector(selector);
+  if (noMatchingEl) {
+    if (list.visibleItems.length === 0) {
+      console.log("REMOVE");
+      noMatchingEl.classList.remove("d-none");
+    } else {
+      console.log("ADD");
+      if (!noMatchingEl.classList.contains("d-none")) {
+        noMatchingEl.classList.add("d-none");
+      }
+    }
+  }
+}
 
 function setCategoryHash(category) {
   setHash({ category });

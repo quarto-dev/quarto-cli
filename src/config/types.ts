@@ -104,6 +104,7 @@ import {
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
   kListingPageMinutesCompact,
+  kListingPageNoMatches,
   kListingPageOrderBy,
   kListingPageOrderByDateAsc,
   kListingPageOrderByDateDesc,
@@ -499,6 +500,7 @@ export interface FormatLanguage {
   [kListingPageFieldCategories]?: string;
   [kListingPageMinutesCompact]?: string;
   [kListingPageCategoryAll]?: string;
+  [kListingPageNoMatches]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

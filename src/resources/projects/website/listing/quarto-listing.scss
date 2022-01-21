@@ -60,6 +60,7 @@ ul.pagination {
   }
 }
 
+// Filtering and Sorting
 .quarto-listing-filter {
   margin-bottom: 1em;
   width: 200px;
@@ -77,6 +78,12 @@ ul.pagination {
 
 .quarto-listing-sort select.form-select {
   font-size: 0.8em;
+}
+
+.listing-no-matching {
+  text-align: center;
+  padding-top: 100px;
+  font-size: 0.875em;
 }
 
 // Category styling

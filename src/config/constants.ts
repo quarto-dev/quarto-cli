@@ -205,6 +205,7 @@ export const kListingPageFieldReadingTime = "listing-page-field-readingtime";
 export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
 export const kListingPageCategoryAll = "listing-page-category-all";
+export const kListingPageNoMatches = "listing-page-no-matches";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -280,6 +281,7 @@ export const kLanguageDefaultsKeys = [
   kListingPageFieldCategories,
   kListingPageMinutesCompact,
   kListingPageCategoryAll,
+  kListingPageNoMatches,
 ];
 
 // 'defaults' fields
