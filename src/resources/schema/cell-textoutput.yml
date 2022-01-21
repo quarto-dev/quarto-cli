@@ -1,6 +1,7 @@
 - name: output
   tags:
     contexts: [document-execute]
+    execute-only: true
   schema:
     anyOf:
       - boolean
@@ -15,12 +16,14 @@
 - name: warning
   tags:
     contexts: [document-execute]
+    execute-only: true
   schema: boolean
   description: Including warnings in rendered output.
 
 - name: error
   tags:
     contexts: [document-execute]
+    execute-only: true
   schema: boolean
   default: false
   description: |
@@ -30,6 +33,7 @@
 - name: include
   tags:
     contexts: [document-execute]
+    execute-only: true
   schema: boolean
   default: false
   description: |

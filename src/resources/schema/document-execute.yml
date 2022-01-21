@@ -44,6 +44,8 @@
   description: Set Knitr options.
 
 - name: cache
+  tags:
+    execute-only: true
   schema:
     anyOf:
       - boolean
@@ -61,6 +63,8 @@
       of the cache even if has not been otherwise invalidated.
 
 - name: freeze
+  tags:
+    execute-only: true
   schema:
     anyOf:
       - boolean
