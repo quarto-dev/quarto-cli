@@ -12,17 +12,20 @@ import { getFrontMatterSchema } from "./front-matter.ts";
 import { getProjectConfigSchema } from "./project-config.ts";
 import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { resourcePath } from "../resources.ts";
-import { getSchemaDefinitionsObject } from "../lib/yaml-validation/schema.ts";
+import { getSchemaDefinitionsObject, setSchemaDefinition } from "../lib/yaml-validation/schema.ts";
 import { exportStandaloneValidators } from "./yaml-schema.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 import { TempContext } from "../temp.ts";
 import { ensureAjv } from "./yaml-schema.ts";
+
+import { revealPluginSchema } from "../../format/reveal/format-reveal-plugin.ts";
 
 export async function buildSchemaFile(temp: TempContext) {
   await ensureAjv();
   const frontMatter = await getFrontMatterSchema();
   const config = await getProjectConfigSchema();
   const engines = await getEngineOptionsSchema();
+  setSchemaDefinition(revealPluginSchema);
   const obj = {
     schemas: {
       "front-matter": frontMatter,

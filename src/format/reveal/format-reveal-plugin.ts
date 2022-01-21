@@ -124,7 +124,7 @@ const scriptSchema = oneOfS(
   }),
 );
 
-const revealPluginSchema = withId(
+export const revealPluginSchema = withId(
   objectS({
     properties: {
       path: StringS,
