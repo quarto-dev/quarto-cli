@@ -188,6 +188,7 @@ export const kCrossrefLofTitle = "crossref-lof-title";
 export const kCrossrefLotTitle = "crossref-lot-title";
 export const kCrossrefLolTitle = "crossref-lol-title";
 export const kListingPageOrderBy = "listing-page-order-by";
+export const kListingPageOrderByDefault = "listing-page-order-by-default";
 export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
 export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
 export const kListingPageOrderByNumberAsc = "listing-page-order-by-number-asc";
@@ -263,6 +264,7 @@ export const kLanguageDefaultsKeys = [
   kCrossrefLotTitle,
   kCrossrefLolTitle,
   kListingPageOrderBy,
+  kListingPageOrderByDefault,
   kListingPageOrderByDateAsc,
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,

@@ -107,6 +107,7 @@ import {
   kListingPageOrderBy,
   kListingPageOrderByDateAsc,
   kListingPageOrderByDateDesc,
+  kListingPageOrderByDefault,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
   kListings,
@@ -483,6 +484,7 @@ export interface FormatLanguage {
   [kCrossrefLolTitle]?: string;
   [kListingPageOrderBy]?: string;
   [kListingPageOrderByDateAsc]?: string;
+  [kListingPageOrderByDefault]?: string;
   [kListingPageOrderByDateDesc]?: string;
   [kListingPageOrderByNumberAsc]?: string;
   [kListingPageOrderByNumberDesc]?: string;

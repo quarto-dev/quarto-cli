@@ -279,9 +279,9 @@ export function reshapeListing(
             field: sortAttrValue(field),
             direction: kSortAsc,
           },
-          description: `${reshaped[kFieldsName][field] || field} (${
+          description: `${reshaped[kFieldsName][field] || field} - ${
             format.language[kListingPageOrderByDateAsc]
-          })`,
+          }`,
         });
 
         fieldSortData.push({
@@ -289,9 +289,9 @@ export function reshapeListing(
             field: sortAttrValue(field),
             direction: kSortDesc,
           },
-          description: `${reshaped[kFieldsName][field] || field} (${
+          description: `${reshaped[kFieldsName][field] || field} - ${
             format.language[kListingPageOrderByDateDesc]
-          })`,
+          }`,
         });
       } else if (
         reshaped[kFieldsType][field] === "number" ||
