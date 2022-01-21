@@ -21,7 +21,9 @@ import {
   findPreviewImgMd,
 } from "../util/discover-meta.ts";
 import {
+  CategoryStyle,
   ColumnType,
+  kCategoryStyle,
   kColumnCount,
   kFieldAuthor,
   kFieldCategories,
@@ -156,11 +158,33 @@ export async function readListings(
     }
     return defaultValue;
   };
+
+  // Process categories
+  const categories = firstListingValue(kFieldCategories, true);
+
+  const parseCategoryStyle = (categories: unknown) => {
+    if (typeof (categories) === "string") {
+      switch (categories) {
+        case "unnumbered":
+          return "category-unnumbered";
+        case "cloud":
+          return "category-cloud";
+        default:
+        case "default":
+          return "category-default";
+      }
+    } else {
+      return "category-default";
+    }
+  };
+  const categoryStyle = parseCategoryStyle(categories);
+
   const sharedOptions: ListingSharedOptions = {
-    [kFieldCategories]: firstListingValue(kFieldCategories, true) as boolean,
+    [kFieldCategories]: !!categories,
     [kPageColumn]: firstListingValue(kPageColumn, undefined) as
       | string
       | undefined,
+    [kCategoryStyle]: categoryStyle,
   };
 
   for (const listing of listings) {

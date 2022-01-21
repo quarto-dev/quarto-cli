@@ -103,6 +103,21 @@ ul.pagination {
   }
 }
 
+.quarto-listing-category.category-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  .category {
+    padding-right: 5px;
+  }
+
+  @for $count from 1 through 10 {
+    .category-cloud-#{$count} {
+      font-size: 0.55em + ($count * 0.2em);
+    }
+  }
+}
+
 // Grid Listing Styling
 @for $colcount from 1 through 12 {
   .quarto-listing-cols-#{$colcount} {

@@ -12,13 +12,21 @@ import {
 import { localizedString } from "../../../../config/localization.ts";
 import { Format } from "../../../../config/types.ts";
 
-import { ListingDescriptor } from "./website-listing-shared.ts";
+import {
+  CategoryStyle,
+  kCategoryStyle,
+  ListingDescriptor,
+  ListingSharedOptions,
+} from "./website-listing-shared.ts";
 
 export function categorySidebar(
   doc: Document,
   listingDescriptors: ListingDescriptor[],
   format: Format,
+  options: ListingSharedOptions,
 ) {
+  const categoryStyle: CategoryStyle = options[kCategoryStyle];
+
   // The heading
   const headingEl = doc.createElement("h5");
   headingEl.innerText = localizedString(format, kListingPageFieldCategories);
@@ -27,19 +35,45 @@ export function categorySidebar(
   // The categories
   const cats = accumCategories(listingDescriptors);
   const categoriesEl = categoryContainer(doc);
+  const totalCategories = itemCount(listingDescriptors);
+
+  // Mark the form
+  categoriesEl.classList.add(categoryStyle);
+
+  const defaultFormat = (category: string, count: number) => {
+    return category +
+      ` <span class="quarto-category-count">(${count})</span>`;
+  };
+
+  const cloudFormat = (category: string, count: number) => {
+    const size = Math.ceil((count / totalCategories) * 10);
+    return `<span class="quarto-category-count category-cloud-${size}">${category}</span>`;
+  };
+
+  const unnumberedFormat = (category: string, _count: number) => {
+    return `${category}`;
+  };
+
+  const formatFn = categoryStyle === "category-default"
+    ? defaultFormat
+    : categoryStyle === "category-cloud"
+    ? cloudFormat
+    : unnumberedFormat;
 
   // Add an 'All' category
-  const allEl = categoryElement(
-    doc,
-    itemCount(listingDescriptors),
-    localizedString(format, kListingPageCategoryAll),
-    "",
-  );
-  categoriesEl.appendChild(allEl);
+  if (categoryStyle === "category-default") {
+    const allCategory = localizedString(format, kListingPageCategoryAll);
+    const allEl = categoryElement(
+      doc,
+      allCategory,
+      formatFn(allCategory, totalCategories),
+    );
+    categoriesEl.appendChild(allEl);
+  }
 
   for (const cat of Object.keys(cats).sort()) {
     const count = cats[cat];
-    const catEl = categoryElement(doc, count, cat);
+    const catEl = categoryElement(doc, cat, formatFn(cat, count), cat);
     categoriesEl.appendChild(catEl);
   }
 
@@ -75,8 +109,8 @@ function categoryContainer(doc: Document) {
 
 function categoryElement(
   doc: Document,
-  count: number,
   category: string,
+  contents: string,
   value?: string,
 ) {
   const categoryEl = doc.createElement("div");
@@ -85,7 +119,6 @@ function categoryElement(
     "data-category",
     value !== undefined ? value : category,
   );
-  categoryEl.innerHTML = category +
-    ` <span class="quarto-category-count">(${count})</span>`;
+  categoryEl.innerHTML = contents;
   return categoryEl;
 }

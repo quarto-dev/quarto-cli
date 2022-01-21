@@ -58,6 +58,7 @@ export const kFieldReadingTime = "readingtime";
 export const kFieldCategories = "categories";
 
 export const kPageColumn = "page-column";
+export const kCategoryStyle = "category-style";
 
 // Sort keys
 export const kSortAsc = "asc";
@@ -74,9 +75,15 @@ export interface ListingDehydrated extends Record<string, unknown> {
   contents: Array<string | Metadata>; // globs (or items)
 }
 
+export type CategoryStyle =
+  | "category-default"
+  | "category-unnumbered"
+  | "category-cloud";
+
 export interface ListingSharedOptions {
   [kFieldCategories]: boolean;
   [kPageColumn]?: string;
+  [kCategoryStyle]: CategoryStyle;
 }
 
 // The core listing type

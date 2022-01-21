@@ -197,6 +197,7 @@ function listingPostProcess(
       doc,
       listingDescriptors,
       format,
+      options,
     );
     const rightSidebar = doc.getElementById(kMarginSidebarId);
     rightSidebar?.appendChild(headingEl);
