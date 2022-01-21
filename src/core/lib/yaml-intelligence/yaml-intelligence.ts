@@ -157,9 +157,15 @@ export async function validationFromGoodParseYAML(
   );
 
   // keep only the lints that are not in the predecessor path of the cursor
-  return result.filter((lint) =>
-    predecessors.indexOf(lint["start.row"] - 1) === -1
-  );
+  if (context.explicit === undefined) {
+    return result;
+  }
+  if (!context.explicit) {
+    return result.filter((lint) =>
+      predecessors.indexOf(lint["start.row"] - 1) === -1);
+  } else {
+    return result;
+  }
 }
 
 async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {

@@ -12,6 +12,5 @@ package/dist/**
 *~
 # autogen js build assets
 src/resources/editor/tools/yaml/yaml-intelligence.js
-src/resources/editor/tools/yaml/yaml.js
 # deno_std library
 src/resources/deno_std/cache

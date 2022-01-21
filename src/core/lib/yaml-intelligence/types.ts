@@ -28,6 +28,7 @@ export interface YamlIntelligenceContext {
   schema?: Schema;
   schemaName?: string;
   commentPrefix?: string;
+  explicit?: boolean;
 }
 
 export interface LocateFromIndentationContext {
