@@ -56,6 +56,18 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       setCategoryHash(category);
     };
   }
+
+  // Attach a click handler to the category title
+  // (there should be only one, but since it is a class name, handle N)
+  const categoryTitleEls = window.document.querySelectorAll(
+    ".quarto-listing-category-title"
+  );
+  for (const categoryTitleEl of categoryTitleEls) {
+    categoryTitleEl.onclick = () => {
+      activateCategory("");
+      setCategoryHash("");
+    };
+  }
 });
 
 function toggleNoMatchingMessage(list) {
