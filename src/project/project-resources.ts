@@ -9,6 +9,7 @@ import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import * as ld from "../core/lodash.ts";
+import { asArray } from "../core/array.ts";
 
 import { resolvePathGlobs, safeExistsSync } from "../core/path.ts";
 import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";
@@ -26,7 +27,7 @@ export function projectResourceFiles(
   dir: string,
   config: ProjectConfig,
 ): string[] {
-  let resourceGlobs = config.project[kProjectResources];
+  let resourceGlobs = asArray(config.project[kProjectResources]);
   const resourceFiles: string[] = [];
   const outputDir = config.project[kProjectOutputDir];
   if (outputDir) {
