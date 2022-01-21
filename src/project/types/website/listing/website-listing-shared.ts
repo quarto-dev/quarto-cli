@@ -43,7 +43,7 @@ export const kImageHeight = "image-height";
 export const kImageAlign = "image-align";
 
 // The number of columns to display (grid)
-export const kColumnCount = "column-count";
+export const kGridColumns = "grid-columns";
 
 // The maximum length of the description
 export const kMaxDescLength = "max-description-length";
@@ -110,7 +110,7 @@ export interface Listing extends ListingDehydrated {
   template?: string;
 
   // Computed values
-  [kColumnCount]?: number;
+  [kGridColumns]?: number;
 }
 
 // The type of listing

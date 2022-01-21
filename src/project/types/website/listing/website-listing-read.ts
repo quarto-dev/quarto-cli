@@ -23,7 +23,6 @@ import {
 import {
   ColumnType,
   kCategoryStyle,
-  kColumnCount,
   kFieldAuthor,
   kFieldCategories,
   kFieldDate,
@@ -41,6 +40,7 @@ import {
   kFieldSubtitle,
   kFieldTitle,
   kFilterUi,
+  kGridColumns,
   kImageAlign,
   kImageHeight,
   kMaxDescLength,
@@ -285,7 +285,7 @@ function hydrateListing(
       case ListingType.Table:
         return 30;
       case ListingType.Grid:
-        return 15;
+        return 18;
       default:
       case ListingType.Default:
         return 25;
@@ -329,7 +329,7 @@ function hydrateListing(
 
   // Populate base default values for types
   if (listing.type === ListingType.Grid) {
-    listingHydrated[kColumnCount] = listingHydrated[kColumnCount] || 3;
+    listingHydrated[kGridColumns] = listingHydrated[kGridColumns] || 3;
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "150px";
     listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
   } else if (listing.type === ListingType.Default) {

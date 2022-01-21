@@ -19,7 +19,6 @@ import { Format } from "../../../../config/types.ts";
 
 import { renderEjs } from "../../../../core/ejs.ts";
 import {
-  kColumnCount,
   kFieldDate,
   kFieldFileModified,
   kFields,
@@ -28,6 +27,7 @@ import {
   kFieldsName,
   kFieldsSort,
   kFieldsType,
+  kGridColumns,
   kImageHeight,
   kMaxDescLength,
   kPageSize,
@@ -258,7 +258,7 @@ export function reshapeListing(
   if (reshaped.type === ListingType.Grid) {
     // Compute the bootstrap column span of each card
     reshaped[kCardColumnSpan] = columnSpan(
-      reshaped[kColumnCount] as number,
+      reshaped[kGridColumns] as number,
     );
   }
 

@@ -1,5 +1,5 @@
 <%
-const cols = listing['column-count'];
+const cols = listing['grid-columns'];
 %>
 
 :::{.list .grid .quarto-listing-cols-<%=cols%>}
