@@ -34,8 +34,8 @@ import {
   kFieldLinks,
   kFieldReadingTime,
   kFieldsFilter,
+  kFieldSort,
   kFieldsRequired,
-  kFieldsSort,
   kFieldSubtitle,
   kFieldTitle,
   kFieldTypes,
@@ -278,7 +278,7 @@ function hydrateListing(
   // Custom doesn't get filtering and sorting unless sort fields are defined
   // or it is explicitly enabled
   const enableFilterAndSort = listing.type !== ListingType.Custom ||
-    listing[kFieldsSort] !== undefined;
+    listing[kSortUi] || listing[kFilterUi];
 
   const defaultPageSize = () => {
     switch (listing.type) {
@@ -307,7 +307,7 @@ function hydrateListing(
     [kFieldDisplayNames]: {},
     [kFieldTypes]: kDefaultFieldTypes,
     [kFieldLinks]: defaultLinks,
-    [kFieldsSort]: defaultSort,
+    [kFieldSort]: defaultSort,
     [kFieldsFilter]: hydratedFields,
     [kFieldsRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
@@ -319,7 +319,7 @@ function hydrateListing(
   // Forward fields if listed in sort UI or Filter UI
   const sortUi = listingHydrated[kSortUi];
   if (sortUi && Array.isArray(sortUi)) {
-    listingHydrated[kFieldsSort] = sortUi;
+    listingHydrated[kFieldSort] = sortUi;
   }
 
   const filterUi = listingHydrated[kFilterUi];

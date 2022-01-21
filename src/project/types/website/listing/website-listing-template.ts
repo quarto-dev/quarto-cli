@@ -25,7 +25,7 @@ import {
   kFieldLinks,
   kFields,
   kFieldsFilter,
-  kFieldsSort,
+  kFieldSort,
   kFieldTypes,
   kGridColumns,
   kImageHeight,
@@ -270,7 +270,7 @@ export function reshapeListing(
       description: string;
     }> = [];
 
-    reshaped[kFieldsSort].filter((field) => {
+    reshaped[kFieldSort].filter((field) => {
       return reshaped.fields.includes(field);
     }).forEach((field) => {
       if (reshaped[kFieldTypes][field] === "date") {
@@ -452,7 +452,7 @@ export function templateJsScript(
     `{ data: ['index'] }`,
     `{ data: ['categories'] }`,
   );
-  for (const field of listing[kFieldsSort]) {
+  for (const field of listing[kFieldSort]) {
     if (useSortTarget(listing, field)) {
       resolvedColumns.push(`{ data: ['${sortAttrValue(field)}'] }`);
     }
