@@ -83,7 +83,7 @@ export const kListing = "listing";
 // in the source document's directory)
 const kDefaultListingType = ListingType.Default;
 const kDefaultContentsGlob = ["*"];
-const kDefaultId = "quarto-listing";
+const kDefaultId = "listing";
 const kDefaultTableFields = [
   kFieldDate,
   kFieldTitle,
