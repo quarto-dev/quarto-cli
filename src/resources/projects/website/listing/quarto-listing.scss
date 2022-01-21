@@ -29,6 +29,10 @@ $text-muted: $gray-600 !default;
 
 /*-- scss:rules --*/
 
+.quarto-listing {
+  padding-bottom: 1em;
+}
+
 // General Pagination / Filter Control Styling
 .listing-pagination {
   padding-top: 0.5em;
