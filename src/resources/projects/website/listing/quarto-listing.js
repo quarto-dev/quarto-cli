@@ -63,10 +63,8 @@ function toggleNoMatchingMessage(list) {
   const noMatchingEl = window.document.querySelector(selector);
   if (noMatchingEl) {
     if (list.visibleItems.length === 0) {
-      console.log("REMOVE");
       noMatchingEl.classList.remove("d-none");
     } else {
-      console.log("ADD");
       if (!noMatchingEl.classList.contains("d-none")) {
         noMatchingEl.classList.add("d-none");
       }

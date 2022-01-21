@@ -8,6 +8,11 @@ const showSort = listing["show-sort"] !== false;
 // The height for images
 const imgHeight = listing['image-height'];
 
+// Striped?
+const stripedCls = listing['table-striped'] ? " table-striped" : "";
+const hoverCls = listing['table-hover'] ? " table-hover" : "";
+const darkCls = listing['table-color'] ? ` table-${listing['table-color']}` : "";
+
 const outputValue = (itemNumber, field) => {
 let value = item[field];
 if (field === "image") {
@@ -21,12 +26,12 @@ return listing.utilities.outputLink(item, field, value);
 }
 %>
 
-<table class="quarto-listing-table table">
+<table class="quarto-listing-table table<%- stripedCls %><%- hoverCls %><%- darkCls %>">
 <thead>
 <tr>
 <% for (const field of fields) { %>
 <th>
-<% if (showSort) { %><a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (showSort) { %></a><% } %>
+<% if (showSort) { %><a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (showSort) { %></a><% } %>
 </th>
 <% } %>
 </tr>

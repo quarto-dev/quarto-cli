@@ -49,6 +49,9 @@ import {
   kShowSort,
   kSortAsc,
   kSortDesc,
+  kTableColor,
+  kTableHover,
+  kTableStriped,
   Listing,
   ListingDehydrated,
   ListingDescriptor,
@@ -322,6 +325,16 @@ function hydrateListing(
     listingHydrated[kImageAlign] = listingHydrated[kImageAlign] || "right";
   } else if (listing.type === ListingType.Table) {
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "40px";
+    listingHydrated[kTableStriped] =
+      listingHydrated[kTableStriped] !== undefined
+        ? listingHydrated[kTableStriped]
+        : true;
+    listingHydrated[kTableHover] = listingHydrated[kTableHover] !== undefined
+      ? listingHydrated[kTableHover]
+      : true;
+    listingHydrated[kTableColor] = listingHydrated[kTableColor] !== undefined
+      ? listingHydrated[kTableColor]
+      : false;
   }
 
   // Merge column types
