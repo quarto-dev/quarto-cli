@@ -103,7 +103,6 @@ export interface Listing extends ListingDehydrated {
   [kShowSort]: boolean;
 
   sort?: ListingSort[];
-  classes?: string[];
   template?: string;
 
   // Computed values

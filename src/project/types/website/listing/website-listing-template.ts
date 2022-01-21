@@ -191,9 +191,6 @@ export function templateMarkdownHandler(
       if (!listingEl?.classList.contains(kQuartoListingClass)) {
         listingEl?.classList.add(kQuartoListingClass);
       }
-      if (listing.classes) {
-        listing.classes.forEach((clz) => listingEl?.classList.add(clz));
-      }
 
       // Add attributes
       if (attributes) {
