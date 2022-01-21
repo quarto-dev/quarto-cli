@@ -33,9 +33,9 @@ import {
   kFieldImage,
   kFieldLinks,
   kFieldReadingTime,
+  kFieldRequired,
   kFieldsFilter,
   kFieldSort,
-  kFieldsRequired,
   kFieldSubtitle,
   kFieldTitle,
   kFieldTypes,
@@ -309,7 +309,7 @@ function hydrateListing(
     [kFieldLinks]: defaultLinks,
     [kFieldSort]: defaultSort,
     [kFieldsFilter]: hydratedFields,
-    [kFieldsRequired]: kDefaultFieldRequired,
+    [kFieldRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
     [kFilterUi]: enableFilterAndSort,
     [kSortUi]: enableFilterAndSort,
@@ -458,7 +458,7 @@ function validateItem(
   message: (field: string) => string,
 ) {
   const requiredFields = (listing: ListingDehydrated) => {
-    const fields = listing[kFieldsRequired];
+    const fields = listing[kFieldRequired];
     if (fields) {
       if (Array.isArray(fields)) {
         return fields;

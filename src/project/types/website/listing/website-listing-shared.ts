@@ -21,7 +21,7 @@ export const kFieldTypes = "field-types";
 export const kFieldLinks = "field-links";
 
 // The list of required fields for this listing
-export const kFieldsRequired = "fields-required";
+export const kFieldRequired = "field-required";
 
 // The list of columns to include as sortable
 export const kFieldSort = "field-sort";
@@ -101,7 +101,7 @@ export interface Listing extends ListingDehydrated {
   [kFieldLinks]: string[];
   [kFieldSort]: string[];
   [kFieldsFilter]: string[];
-  [kFieldsRequired]: string[];
+  [kFieldRequired]: string[];
   [kPageSize]: number;
   [kFilterUi]: boolean;
   [kSortUi]: boolean;
