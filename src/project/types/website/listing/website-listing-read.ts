@@ -100,7 +100,6 @@ const kDefaultFields = [
   kFieldSubtitle,
   kFieldImage,
   kFieldDescription,
-  kFieldReadingTime,
 ];
 
 const defaultFieldNames = (format: Format) => {

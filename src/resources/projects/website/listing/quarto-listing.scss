@@ -201,11 +201,18 @@ ul.pagination {
     }
   }
 
-  a.post-contents {
-    color: $body-color;
+  div.post-contents {
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
     display: flex;
     flex-direction: column;
     text-decoration: none;
+    height: 100%;
+    .listing-description a {
+      color: $link-color;
+    }
   }
 
   div.card-img-top {
@@ -223,6 +230,8 @@ ul.pagination {
     text-transform: uppercase;
     color: $text-muted;
     font-weight: 500;
+    flex-grow: 10;
+    align-items: flex-end;
   }
 
   .description {
