@@ -256,9 +256,6 @@ export function locateFromIndentation(
       } else if (trimmed.endsWith(":")) {
         // mapping
         path.push(trimmed.substring(0, trimmed.length - 1));
-      } else if (trimmed.length !== 0) {
-        // parse error?
-        throw new Error("Internal error: this shouldn't have happened");
       }
     }
     lineNo = predecessor[lineNo];

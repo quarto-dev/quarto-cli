@@ -35,9 +35,8 @@ export function buildAnnotated(
       return annotateEmpty(endIndex === undefined ? -1 : endIndex);
     }
     if (dispatch[node.type] === undefined) {
-      throw new Error(
-        `Internal error: don't know how to build node of type ${node.type}`,
-      );
+      // we don't support this construction, but let's try not to crash.
+      return annotateEmpty(endIndex || node.endIndex || -1);
     }
     return dispatch[node.type](node);
   };
@@ -69,6 +68,28 @@ export function buildAnnotated(
     };
   };
 
+  const buildPair = (node: TreeSitterNode) => {
+    let key, value;
+    if (node.childCount === 3) {
+      // when three children exist, we assume a good parse
+      key = annotate(node.child(0), node.child(0).text, []);
+      value = buildNode(node.child(2), node.endIndex);
+    } else if (node.childCount === 2) {
+      // when two children exist, we assume a bad parse with missing value
+      key = annotate(node.child(0), node.child(0).text, []);
+      value = annotateEmpty(node.endIndex);
+    } else {
+      // otherwise, we assume a bad parse, return empty on both key and value
+      key = annotateEmpty(node.endIndex);
+      value = annotateEmpty(node.endIndex);
+    }
+
+    return annotate(node, {
+      key: key.result,
+      value: value.result,
+    }, [key, value]);
+  }
+  
   const dispatch: Record<string, (node: TreeSitterNode) => AnnotatedParse> = {
     "stream": singletonBuild,
     "document": singletonBuild,
@@ -76,17 +97,19 @@ export function buildAnnotated(
     "flow_node": singletonBuild,
     "block_scalar": (node) => {
       if (!node.text.startsWith("|")) {
-        throw new Error(
-          `Internal error: can only build block_scalar if content starts with | (got "${
-            node.text[0]
-          }" instead)`,
-        );
+        // throw new Error(
+        //   `Internal error: can only build block_scalar if content starts with | (got "${
+        //     node.text[0]
+        //   }" instead)`,
+        // );
+        return annotateEmpty(node.endIndex);
       }
       const ls = lines(node.text);
       if (ls.length < 2) {
-        throw new Error(
-          `Internal error: can only handle block_scalar of multiline strings`,
-        );
+        // throw new Error(
+        //   `Internal error: can only handle block_scalar of multiline strings`,
+        // );
+        return annotateEmpty(node.endIndex);
       }
       const indent = ls[1].length - ls[1].trimStart().length;
       const result = ls.slice(1).map((l: string) => l.slice(indent)).join("\n");
@@ -175,41 +198,38 @@ export function buildAnnotated(
             value: value.result,
           }, [key, value]);
         } else if (child.type !== "block_mapping_pair") {
-          throw new Error(
-            `Internal error: Expected a block_mapping_pair, got ${child.type} instead.`,
-          );
+          continue;
         } else {
           component = buildNode(child, node.endIndex);
         }
         const { key, value } = component.result;
-        // FIXME what do we do in the presence of parse errors that result empty keys?
+        // FIXME what do we do in the presence of parse errors that produce empty keys?
         // if (key === null) { }
         result[String(key)] = value;
         components.push(...(component.components!));
       }
       return annotate(node, result, components);
     },
-    "block_mapping_pair": (node) => {
-      let key, value;
-      if (node.childCount === 3) {
-        // when three children exist, we assume a good parse
-        key = annotate(node.child(0), node.child(0).text, []);
-        value = buildNode(node.child(2), node.endIndex);
-      } else if (node.childCount === 2) {
-        // when two children exist, we assume a bad parse with missing value
-        key = annotate(node.child(0), node.child(0).text, []);
-        value = annotateEmpty(node.endIndex);
-      } else {
-        // otherwise, we assume a bad parse, return empty on both key and value
-        key = annotateEmpty(node.endIndex);
-        value = annotateEmpty(node.endIndex);
+    "flow_pair": buildPair,
+    "flow_mapping": (node) => {
+      const result: Record<string, any> = {}, components: AnnotatedParse[] = [];
+      // skip flow_nodes at the boundary
+      for (let i = 0; i < node.childCount; ++i) {
+        const child = node.child(i);
+        if (child.type === "flow_node") {
+          continue;
+        }
+        if (child.type === "flow_pair") {
+          let component;
+          component = buildNode(child, node.endIndex);
+          const { key, value } = component.result;
+          result[String(key)] = value;
+          components.push(...(component.components!));
+        }
       }
-
-      return annotate(node, {
-        key: key.result,
-        value: value.result,
-      }, [key, value]);
+      return annotate(node, result, components);
     },
+    "block_mapping_pair": buildPair,
   };
 
   const result = buildNode(tree.rootNode, tree.rootNode.endIndex);
@@ -260,25 +280,29 @@ export function navigate(
       const key = components[i]!.result;
       if (key === searchKey) {
         if (i === components.length - 1) {
-          throw new Error(
-            "Internal error, key === searchKey shouldn't have happened at last array entry",
-          );
+          // throw new Error(
+          //   "Internal error, key === searchKey shouldn't have happened at last array entry",
+          // );
+          return annotation;
         }
         return navigate(path, components[i + 1]!, pathIndex + 1);
       }
     }
-    throw new Error("Internal error: searchKey not found in mapping object");
+    return annotation;
+    // throw new Error("Internal error: searchKey not found in mapping object");
   } else if (annotation.kind === "block_sequence") {
     const searchKey = Number(path[pathIndex]);
     if (
       isNaN(searchKey) || searchKey < 0 ||
       searchKey >= annotation.components.length
     ) {
-      throw new Error("Internal error: searchKey invalid");
+      return annotation;
+      // throw new Error("Internal error: searchKey invalid");
     }
     return navigate(path, annotation.components[searchKey]!, pathIndex + 1);
   } else {
-    throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
+    return annotation;
+    // throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
 }
 
