@@ -27,7 +27,7 @@ export const kFieldRequired = "field-required";
 export const kFieldSort = "field-sort";
 
 // The list of columns to include as filterable
-export const kFieldsFilter = "fields-filter";
+export const kFieldFilter = "field-filter";
 
 // The number of rows to display per page
 export const kPageSize = "page-size";
@@ -100,7 +100,7 @@ export interface Listing extends ListingDehydrated {
   [kFieldTypes]: Record<string, ColumnType>;
   [kFieldLinks]: string[];
   [kFieldSort]: string[];
-  [kFieldsFilter]: string[];
+  [kFieldFilter]: string[];
   [kFieldRequired]: string[];
   [kPageSize]: number;
   [kFilterUi]: boolean;

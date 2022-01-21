@@ -22,9 +22,9 @@ import {
   kFieldDate,
   kFieldDisplayNames,
   kFieldFileModified,
+  kFieldFilter,
   kFieldLinks,
   kFields,
-  kFieldsFilter,
   kFieldSort,
   kFieldTypes,
   kGridColumns,
@@ -440,7 +440,7 @@ export function templateJsScript(
     : "";
 
   const filterOptions = `searchColumns: [${
-    listing[kFieldsFilter].map((field) => {
+    listing[kFieldFilter].map((field) => {
       return `"listing-${field}"`;
     }).join(",")
   }],`;

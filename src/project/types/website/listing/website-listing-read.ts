@@ -30,11 +30,11 @@ import {
   kFieldDisplayNames,
   kFieldFileModified,
   kFieldFileName,
+  kFieldFilter,
   kFieldImage,
   kFieldLinks,
   kFieldReadingTime,
   kFieldRequired,
-  kFieldsFilter,
   kFieldSort,
   kFieldSubtitle,
   kFieldTitle,
@@ -308,7 +308,7 @@ function hydrateListing(
     [kFieldTypes]: kDefaultFieldTypes,
     [kFieldLinks]: defaultLinks,
     [kFieldSort]: defaultSort,
-    [kFieldsFilter]: hydratedFields,
+    [kFieldFilter]: hydratedFields,
     [kFieldRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
     [kFilterUi]: enableFilterAndSort,
@@ -324,7 +324,7 @@ function hydrateListing(
 
   const filterUi = listingHydrated[kFilterUi];
   if (filterUi && Array.isArray(filterUi)) {
-    listingHydrated[kFieldsFilter] = filterUi;
+    listingHydrated[kFieldFilter] = filterUi;
   }
 
   // Populate base default values for types
