@@ -13,6 +13,8 @@
     "cliffy/": "https://deno.land/x/cliffy@v0.19.3/",
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
+    "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.5.0",
+    "xmlp/": "https://deno.land/x/xmlp@v0.2.8/",
     "ajv": "https://cdn.skypack.dev/ajv@8.8.2",
     "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5@2.19.0",
     "diff": "https://cdn.skypack.dev/diff@5.0.0",
