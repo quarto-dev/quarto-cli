@@ -10,7 +10,5 @@ package/dist/**
 /tests/cov_profile
 /tests/cov_profile.lcov
 *~
-# autogen js build assets
-src/resources/editor/tools/yaml/yaml-intelligence.js
 # deno_std library
 src/resources/deno_std/cache
