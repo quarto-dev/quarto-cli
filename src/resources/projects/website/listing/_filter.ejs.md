@@ -41,6 +41,4 @@ const sortUi = listing['sort-ui'];
 </div>
 ```
 
-<div class="listing-no-matching d-none"><%- listing.utilities.localizedString("listing-page-no-matches")%></div>
-
 <% } %>
