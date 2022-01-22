@@ -136,14 +136,12 @@ export function templateMarkdownHandler(
       items: reshapedItems,
       listing: reshapedListing,
     },
-    false,
   );
 
   // Render the template
   const templateRendered = renderEjs(
     template,
     paramsForType(listing.type),
-    false,
   );
 
   // Render the pagination
@@ -153,7 +151,6 @@ export function templateMarkdownHandler(
       items: reshapedItems,
       listing: reshapedListing,
     },
-    false,
   );
 
   // Render the template into markdown
