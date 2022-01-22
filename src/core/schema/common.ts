@@ -194,7 +194,7 @@ export function objectSchema(params: {
       display: "", // attempt to not show completion title.
       value: `${k}: `,
       description,
-      suggest_on_accept: valueS && schemaExhaustiveCompletions(valueS),
+      suggest_on_accept: valueS?.completions?.length !== 0
     });
   }
 

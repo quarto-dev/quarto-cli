@@ -36,6 +36,7 @@ import {
   Schema,
   schemaCompletions,
   schemaType,
+  schemaAccepts,
   setSchemaDefinition,
 } from "../yaml-validation/schema.ts";
 import { withValidator } from "../yaml-validation/validator-queue.ts";
@@ -398,21 +399,24 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
       // we only change indentation on keys
       if (
         !completion.suggest_on_accept ||
-        completion.type === "value" ||
-        schemaType(completion.schema) !== "object"
+          completion.type === "value" ||
+          !schemaAccepts(completion.schema, "object")
       ) {
         return completion;
       }
 
       const key = completion.value.split(":")[0];
       const subSchema = completion.schema.properties[key];
-      if (schemaType(subSchema) === "object") {
+      
+      // quirk: if subschema accepts both object and array, we're
+      // choosing to complete into object
+      if (schemaAccepts(subSchema, "object")) {
         return {
           ...completion,
           value: completion.value + "\n" + commentPrefix +
             " ".repeat(indent + 2),
         };
-      } else if (schemaType(subSchema) === "array") {
+      } else if (schemaAccepts(subSchema, "array")) {
         return {
           ...completion,
           value: completion.value + "\n" + commentPrefix +

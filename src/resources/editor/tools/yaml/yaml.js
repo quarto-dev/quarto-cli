@@ -5723,6 +5723,21 @@ if (typeof exports === 'object') {
     initializer = makeInitializer(init);
     hasSet = true;
   }
+  function schemaAccepts(schema, testType) {
+    const t = schemaType(schema);
+    if (t === testType) {
+      return true;
+    }
+    switch (t) {
+      case "oneOf":
+        return schema.oneOf.some((s) => schemaAccepts(s, testType));
+      case "anyOf":
+        return schema.anyOf.some((s) => schemaAccepts(s, testType));
+      case "allOf":
+        return schema.allOf.every((s) => schemaAccepts(s, testType));
+    }
+    return false;
+  }
   function schemaType(schema) {
     const t = schema.type;
     if (t) {
@@ -6387,12 +6402,19 @@ if (typeof exports === 'object') {
                 heading: `Schema ${schemaPath}: ${error.message}`
               };
             } else {
-              const idTag = "";
-              const verbatimInput = quotedStringColor(source.value.substring(violatingObject.start, violatingObject.end));
-              niceError = {
-                ...niceError,
-                heading: `The value ${verbatimInput} must ${innerSchema.map((s) => s.description).join(", ")}${idTag}.`
-              };
+              const rawVerbatimInput = source.value.substring(violatingObject.start, violatingObject.end);
+              if (rawVerbatimInput.length === 0) {
+                niceError = {
+                  ...niceError,
+                  heading: `Empty value found where it must instead ${innerSchema.map((s) => s.description).join(", ")}.`
+                };
+              } else {
+                const verbatimInput = quotedStringColor(source.value.substring(violatingObject.start, violatingObject.end));
+                niceError = {
+                  ...niceError,
+                  heading: `The value ${verbatimInput} must ${innerSchema.map((s) => s.description).join(", ")}.`
+                };
+              }
             }
           }
         }
@@ -8699,17 +8721,17 @@ if (typeof exports === 'object') {
     let completions2 = matchingSchemas.map((schema2) => {
       const result = schemaCompletions(schema2);
       return result.map((completion) => {
-        if (!completion.suggest_on_accept || completion.type === "value" || schemaType(completion.schema) !== "object") {
+        if (!completion.suggest_on_accept || completion.type === "value" || !schemaAccepts(completion.schema, "object")) {
           return completion;
         }
         const key = completion.value.split(":")[0];
         const subSchema = completion.schema.properties[key];
-        if (schemaType(subSchema) === "object") {
+        if (schemaAccepts(subSchema, "object")) {
           return {
             ...completion,
             value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2)
           };
-        } else if (schemaType(subSchema) === "array") {
+        } else if (schemaAccepts(subSchema, "array")) {
           return {
             ...completion,
             value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2) + "- "
@@ -8968,7 +8990,7 @@ if (typeof exports === 'object') {
     console.error(JSON.stringify({ kind, context }, null, 2));
   }
   async function getAutomation(kind, context) {
-    const extension = context.path.split(".").pop() || "";
+    const extension = context.path === null ? "" : context.path.split(".").pop() || "";
     const schemas = (await getSchemas()).schemas;
     const schema = {
       "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,

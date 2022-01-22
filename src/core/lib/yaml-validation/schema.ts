@@ -26,6 +26,22 @@ export interface Completion {
   documentation?: string;
 }
 
+export function schemaAccepts(schema: Schema, testType: string) {
+  const t = schemaType(schema);
+  if (t === testType) {
+    return true;
+  }
+  switch (t) {
+    case "oneOf":
+      return schema.oneOf.some((s: Schema) => schemaAccepts(s, testType));
+    case "anyOf":
+      return schema.anyOf.some((s: Schema) => schemaAccepts(s, testType));
+    case "allOf":
+      return schema.allOf.every((s: Schema) => schemaAccepts(s, testType));
+  }
+  return false;
+}
+
 export function schemaType(schema: Schema) {
   const t = schema.type;
   if (t) {

@@ -97,21 +97,33 @@ function convertFromSchema(yaml: any): Schema {
   return setBaseSchemaProperties(yaml, schema);
 }
 
+// TODO we accept "string: pattern:" and "pattern: string:"
+//      that seems yucky.
+//
 // deno-lint-ignore no-explicit-any
 function convertFromString(yaml: any): Schema {
-  yaml = yaml["string"];
-  const schema = yaml.pattern ? regexSchema(yaml.pattern) : stringS;
-  return setBaseSchemaProperties(yaml, schema);
+  if (yaml["string"].pattern) {
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(
+        yaml["string"],
+        regexSchema(yaml["string"].pattern)));
+  } else {
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(
+        yaml["string"], stringS));
+  }
 }
 
 // deno-lint-ignore no-explicit-any
 function convertFromPattern(yaml: any): Schema {
-  yaml = yaml["pattern"];
-  if (typeof yaml === "string") {
-    return regexSchema(yaml);
+  if (typeof yaml.pattern === "string") {
+    return setBaseSchemaProperties(yaml, regexSchema(yaml.pattern));
   } else {
-    const schema = regexSchema(yaml.regex);
-    return setBaseSchemaProperties(yaml, schema);
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.pattern, regexSchema(yaml.pattern.regex)));
   }
 }
 
@@ -138,60 +150,66 @@ function convertFromRef(yaml: any): Schema {
 // deno-lint-ignore no-explicit-any
 function convertFromMaybeArrayOf(yaml: any): Schema {
   const schema = convertFromYaml(yaml.maybeArrayOf);
-  return oneOfS(schema, arrayOfS(schema));
+  return setBaseSchemaProperties(yaml, oneOfS(schema, arrayOfS(schema)));
 }
 
 // deno-lint-ignore no-explicit-any
 function convertFromArrayOf(yaml: any): Schema {
-  const schema = yaml.arrayOf;
-  if (schema.schema) {
-    const result = arrayOfS(convertFromYaml(schema.schema));
-    return setBaseSchemaProperties(schema, result);
+  if (yaml.arrayOf.schema) {
+    const result = arrayOfS(convertFromYaml(yaml.arrayOf.schema));
+    return setBaseSchemaProperties(
+      yaml, setBaseSchemaProperties(yaml.arrayOf, result));
   } else {
-    return arrayOfS(convertFromYaml(schema));
+    return setBaseSchemaProperties(
+      yaml, arrayOfS(convertFromYaml(yaml.arrayOf)));
   }
 }
 
 // deno-lint-ignore no-explicit-any
 function convertFromOneOf(yaml: any): Schema {
-  const schema = yaml.oneOf;
-  if (schema.schemas) {
+  if (yaml.oneOf.schemas) {
     // deno-lint-ignore no-explicit-any
-    const inner = schema.schemas.map((x: any) => convertFromYaml(x));
-    const result = oneOfS(...inner);
-    return setBaseSchemaProperties(schema, result);
+    const inner = yaml.oneOf.schemas.map((x: any) => convertFromYaml(x));
+    const schema = oneOfS(...inner);
+    return setBaseSchemaProperties(
+      yaml, setBaseSchemaProperties(yaml.oneOf, schema));
   } else {
     // deno-lint-ignore no-explicit-any
-    return oneOfS(...schema.map((x: any) => convertFromYaml(x)));
+    const inner = yaml.oneOf.map((x: any) => convertFromYaml(x));
+    const schema = oneOfS(...inner);
+    return setBaseSchemaProperties(yaml, schema);
   }
 }
 
 // deno-lint-ignore no-explicit-any
 function convertFromAllOf(yaml: any): Schema {
-  const schema = yaml.allOf;
-  if (schema.schemas) {
+  if (yaml.allOf.schemas) {
     // deno-lint-ignore no-explicit-any
-    const inner = schema.schemas.map((x: any) => convertFromYaml(x));
-    const result = allOfS(...inner);
-    return setBaseSchemaProperties(schema, result);
+    const inner = yaml.allOf.schemas.map((x: any) => convertFromYaml(x));
+    const schema = allOfS(...inner);
+    return setBaseSchemaProperties(
+      yaml, setBaseSchemaProperties(yaml.allOf, schema));
   } else {
     // deno-lint-ignore no-explicit-any
-    return allOfS(...schema.map((x: any) => convertFromYaml(x)));
+    const inner = yaml.allOf.map((x: any) => convertFromYaml(x));
+    const schema = allOfS(...inner);
+    return setBaseSchemaProperties(yaml, schema);
   }
 }
 
 // deno-lint-ignore no-explicit-any
 function convertFromAnyOf(yaml: any): Schema {
-  const schema = yaml.anyOf;
-  if (schema.schemas) {
-    const result = anyOfS(
-      // deno-lint-ignore no-explicit-any
-      ...schema.schemas.map((x: any) => convertFromYaml(x)),
-    );
-    return setBaseSchemaProperties(schema, result);
+  if (yaml.anyOf.schemas) {
+    // deno-lint-ignore no-explicit-any
+    const inner = yaml.anyOf.schemas.map((x: any) => convertFromYaml(x));
+    const schema = anyOfS(...inner);
+    return setBaseSchemaProperties(
+      yaml, setBaseSchemaProperties(yaml.anyOf, schema));
   } else {
     // deno-lint-ignore no-explicit-any
-    return anyOfS(...schema.map((x: any) => convertFromYaml(x)));
+    const inner = yaml.anyOf.map((x: any) => convertFromYaml(x));
+    const schema = anyOfS(...inner);
+    return setBaseSchemaProperties(yaml, schema);
   }
 }
 
@@ -202,10 +220,10 @@ function convertFromEnum(yaml: any): Schema {
   // because "values" is an array method.
   // deno-lint-ignore no-prototype-builtins
   if (schema.hasOwnProperty("values")) {
-    const result = enumS(...schema.values);
-    return setBaseSchemaProperties(schema, result);
+    return setBaseSchemaProperties(
+      yaml, setBaseSchemaProperties(yaml["enum"], enumS(...schema.values)));
   } else {
-    return enumS(...schema);
+    return setBaseSchemaProperties(yaml, enumS(...schema));
   }
 }
 
