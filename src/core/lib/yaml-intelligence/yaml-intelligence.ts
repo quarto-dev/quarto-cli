@@ -782,7 +782,7 @@ export async function getAutomation(
   kind: AutomationKind,
   context: YamlIntelligenceContext,
 ) {
-  const extension = context.path.split(".").pop() || "";
+  const extension = context.path === null ? "" : (context.path.split(".").pop() || "");
   const schemas = (await getSchemas()).schemas;
   const schema = ({
     "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,

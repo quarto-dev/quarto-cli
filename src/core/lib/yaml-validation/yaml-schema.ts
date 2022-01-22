@@ -385,20 +385,33 @@ function localizeAndPruneErrors(
               heading: `Schema ${schemaPath}: ${error.message}`,
             };
           } else {
-            const idTag = ""; // FIXME until we have verbose options, this hurts the IDE output.
-            // const idTag = (errorSchema && errorSchema.$id) ? ` ${colors.gray("(schema id: " + errorSchema.$id + ")")}` : "";
-            const verbatimInput = quotedStringColor(
-              source.value.substring(
-                violatingObject.start,
-                violatingObject.end,
-              ),
+            const rawVerbatimInput = source.value.substring(
+              violatingObject.start,
+              violatingObject.end,
             );
-            niceError = {
-              ...niceError,
-              heading: `The value ${verbatimInput} must ${
+            if (rawVerbatimInput.length === 0) {
+              niceError = {
+                ...niceError,
+                heading: `Empty value found where it must instead ${
                 innerSchema.map((s) => s.description).join(", ")
-              }${idTag}.`,
-            };
+                }.`
+              };
+            } else {
+              // TODO until we have verbose options, this hurts the IDE output.
+              // const idTag = (errorSchema && errorSchema.$id) ? ` ${colors.gray("(schema id: " + errorSchema.$id + ")")}` : "";
+              const verbatimInput = quotedStringColor(
+                source.value.substring(
+                  violatingObject.start,
+                  violatingObject.end,
+                ),
+              );
+              niceError = {
+                ...niceError,
+                heading: `The value ${verbatimInput} must ${
+                innerSchema.map((s) => s.description).join(", ")
+                }.`,
+              };
+            }
           }
         }
       }

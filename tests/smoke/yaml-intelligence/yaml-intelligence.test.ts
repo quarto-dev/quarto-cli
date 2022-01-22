@@ -31,8 +31,9 @@ unitTest("yaml-intelligence-smoke-regression", async () => {
     try {
       await getAutomation(kind, context);
     } catch (e) {
-      console.log('\n\n');
-      console.log(e);
+      console.error('\n\n');
+      console.error("Regression failure, case:", fileName);
+      console.error(e);
       assert(false, "Smoke assertion failed");
     }
   }
@@ -43,19 +44,25 @@ unitTest("yaml-intelligence-unit-regression", async () => {
   await initState();
   
   for (const { path: fileName } of expandGlobSync("smoke/yaml-intelligence/checks/*.json")) {
-    const { kind, context, expected, expectedLength } = JSON.parse(Deno.readTextFileSync(fileName));
+    const input = JSON.parse(Deno.readTextFileSync(fileName));
+    const { kind, context, expected, expectedLength } = input;
     const result = await getAutomation(kind, context);
 
     assert(result !== null);
-    
-    if (expected !== undefined) {
-      assertEquals(result, expected);
-    }
-    
-    if (kind === "completions") {
-      if (expectedLength !== undefined) {
-        assertEquals((result as CompletionResult).completions.length, expectedLength);
+
+    try {
+      if (expected !== undefined) {
+        assertEquals(result, expected);
       }
+      
+      if (kind === "completions") {
+        if (expectedLength !== undefined) {
+          assertEquals((result as CompletionResult).completions.length, expectedLength);
+        }
+      }
+    } catch (e) {
+      console.error("\n\nRegression failure, case:", fileName);
+      throw e;
     }
   }
 });

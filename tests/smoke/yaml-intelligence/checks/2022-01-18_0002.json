@@ -10,11 +10,11 @@
     "project_formats": [],
     "engine": "markdown",
     "line": "---",
-    "code": "---\ntitle: \"knitr chunk options ignore test\"\nformat:\n  html:\n    \n---\n\n# Will this skip validation?\n\n```{r}\n#| rmdworkflow,\n#| echo = FALSE,\n#| fig.cap = \"A diagram illustrating how an R Markdown document\n#|   is converted to the final output document.\",\n#| out.width = \"100%\"\n\nrnorm(100)\n```\n",
+    "code": "---\ntitle: \"knitr chunk options ignore test\"\nformat:\n  html\n    \n---\n\n# Will this skip validation?\n\n```{r}\n#| rmdworkflow,\n#| echo = FALSE,\n#| fig.cap = \"A diagram illustrating how an R Markdown document\n#|   is converted to the final output document.\",\n#| out.width = \"100%\"\n\nrnorm(100)\n```\n",
     "position": {
       "row": 5,
       "column": 3
     }
   },
-  "expected": []
+   "expected": []
 }

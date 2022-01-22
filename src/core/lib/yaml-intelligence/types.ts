@@ -16,7 +16,7 @@ export interface YamlIntelligenceContext {
     row: number;
     column: number;
   };
-  path: string;
+  path: null | string;
   filetype: "yaml" | "markdown" | "script";
   embedded: boolean;
   formats: string[];
