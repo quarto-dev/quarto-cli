@@ -281,6 +281,9 @@ ul.pagination {
 
 .quarto-grid-item.card-right {
   text-align: right;
+  .listing-categories {
+    justify-content: flex-end;
+  }
 }
 
 .quarto-grid-item.card-left {
@@ -289,6 +292,12 @@ ul.pagination {
 
 .quarto-grid-item.card-center {
   text-align: center;
+  .listing-description {
+    text-align: justify;
+  }
+  .listing-categories {
+    justify-content: center;
+  }
 }
 
 // Table Listing Styling

@@ -7,13 +7,13 @@ const cardColumnSpan = listing['card-column-span'] || 8;
 const cardColumnSpanMd = Math.max(cardColumnSpan, 12)
 
 // Card alignment
-const align = listing["alignment"] || "left";
+const align = listing["grid-alignment"] || "left";
 
 // Cap Options
 const imgHeight = listing['image-height'];
 
 // Borders
-const hideBorders = listing['card-border'] === false;
+const hideBorders = listing['grid-border'] === false;
 
 // shorthand checks
 const showField = (field) => {
@@ -35,17 +35,10 @@ return !["title", "image", "date", "author", "subtitle", "description", "filenam
 <% if (fields.includes('image')) { %>
 <% if (item.image) { %><p class="card-img-top"><a href="<%- item.path %>"><%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img") %></a></p>
 <% } else { %><a href="<%- item.path %>"><div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight};"` : '' %>></div></a><% } %><% } %>
-<% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %><div class="card-body post-contents">
-<% if (showField('title')) { %><a href="<%- item.path %>"><h5 class="no-anchor card-title listing-title"><%= listing.utilities.outputLink(item, 'title') %></h5></a><% } %>
-<% if (showField('subtitle')) { %>
-<div class="card-subtitle listing-subtitle"><a href="<%- item.path %>"><%= item.subtitle %></a></div>
-<% } %>
-<% if (showField('reading-time')) { %><div class="listing-reading-time card-text text-muted"><a href="<%- item.path %>"><%= item['reading-time'] %></a></div> <% } %>
-<% if (fields.includes('categories') && item.categories) { %> 
-<div class="listing-categories">
-<% for (const category of item.categories) { %>
-<div class="listing-category"><a href="<%- item.path %>"><%= category %></a></div>
-<% } %>
+<% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %>
+<div class="card-body post-contents">
+<% if (showField('title')) { %><a href="<%- item.path %>"><h5 class="no-anchor card-title listing-title"><%= item.title %></h5></a><% } %><% if (showField('subtitle')) { %><div class="card-subtitle listing-subtitle"><a href="<%- item.path %>"><%= item.subtitle %></a></div><% } %><% if (showField('reading-time')) { %><div class="listing-reading-time card-text text-muted"><a href="<%- item.path %>"><%= item['reading-time'] %></a></div> <% } %>
+<% if (fields.includes('categories') && item.categories) { %><div class="listing-categories"><% for (const category of item.categories) { %><div class="listing-category"><a href="<%- item.path %>"><%= category %></a></div><% } %>
 </div>
 <% } %> 
 <% if (showField('description')) { %>
