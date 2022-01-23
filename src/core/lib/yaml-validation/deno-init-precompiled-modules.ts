@@ -26,7 +26,7 @@ export async function initPrecompiledModules() {
     "editor/tools/yaml/standalone-schema-validators.js",
   ));
 
-  const schemaDefs = (await getSchemas()).definitions;
+  const schemaDefs = getSchemas().definitions;
   for (const [_key, value] of Object.entries(schemaDefs)) {
     setSchemaDefinition(value);
     // FIXME pretty sure this isn't doing anything now that we have two-stage validators.

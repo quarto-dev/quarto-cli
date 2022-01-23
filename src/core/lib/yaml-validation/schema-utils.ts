@@ -1,5 +1,5 @@
 /*
-* schemas.ts
+* schema-utils.ts
 *
 * Copyright (C) 2022 by RStudio, PBC
 *
@@ -29,7 +29,7 @@ export function setSchemas(schemas: QuartoJsonSchemas) {
 
 // FIXME no longer needs to be async
 // deno-lint-ignore require-await
-export async function getSchemas(): Promise<QuartoJsonSchemas> {
+export function getSchemas(): QuartoJsonSchemas {
   if (_schemas) {
     return _schemas;
   } else {
@@ -51,28 +51,13 @@ function matchPatternProperties(schema: Schema, key: string): Schema | false {
   return false;
 }
 
-export function syncNavigateSchema(
+export function navigateSchema(
   schema: Schema,
-  path: (number | string)[],
-  definitions: Record<string, Schema>
+  path: (number | string)[]
 ): Schema[]
 {
-  const refs: Record<string, Schema> = {};
   const inner = (subSchema: Schema, index: number): Schema[] => {
-    if (subSchema.$id) {
-      refs[subSchema.$id] = subSchema;
-    }
-    if (subSchema.$ref) {
-      if (refs[subSchema.$ref]) {
-        subSchema = refs[subSchema.$ref];
-      } else if (definitions[subSchema.$ref]) {
-        subSchema = definitions[subSchema.$ref];
-      } else {
-        throw new Error(
-          `Internal error: schema reference ${subSchema.$ref} not found in internal refs or definitions`,
-        );
-      }
-    }
+    subSchema = resolveSchema(subSchema);
     if (index === path.length) {
       return [subSchema];
     }
@@ -125,11 +110,45 @@ export function syncNavigateSchema(
   return inner(schema, 0).flat(Infinity);
 }
 
-export async function navigateSchema(
-  schema: Schema,
-  path: (number | string)[],
-): Promise<Schema[]>
-{
-  const { definitions } = await getSchemas();
-  return syncNavigateSchema(schema, path, definitions);
+export function resolveSchema(schema: Schema) {
+  // common fast path
+  if (schema.$ref === undefined) {
+    return schema;
+  }
+  
+  const { definitions } = getSchemas();
+  
+  // this is on the chancy side of clever, but we're going to be extra
+  // careful here and use the cycle-detecting trick. This code runs
+  // in the IDE and I _really_ don't want to accidentally freeze them.
+  
+  let cursor1: Schema = schema;
+  let cursor2: Schema = schema;
+  const next = (cursor: Schema) => {
+    const result = definitions[cursor.$ref];
+    if (result === undefined) {
+      throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
+    }
+    return result;
+  }
+
+  while (cursor1.$ref !== undefined) {
+    cursor1 = next(cursor1);
+    if (cursor1.$ref === undefined) {
+      return cursor1;
+    }
+    cursor2 = next(cursor2);
+    if (cursor2.$ref === undefined) {
+      return cursor2;
+    }
+    cursor2 = next(cursor2);
+    if (cursor2.$ref === undefined) {
+      return cursor2;
+    }
+    if (cursor1.$ref === cursor2.$ref) {
+      throw new Error(`reference cycle detected at ${cursor1.$ref}`);
+    }
+  }
+  
+  return cursor1;
 }

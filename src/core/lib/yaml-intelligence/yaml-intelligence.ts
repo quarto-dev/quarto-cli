@@ -43,7 +43,7 @@ import { withValidator } from "../yaml-validation/validator-queue.ts";
 import {
   getSchemas,
   navigateSchema,
-  syncNavigateSchema,
+  resolveSchema,
   QuartoJsonSchemas,
   setSchemas,
 } from "../yaml-validation/schema-utils.ts";
@@ -379,26 +379,26 @@ function dropCompletionsFromSchema(
   obj: CompletionContext,
   completion: Completion)
 {
-  const {
-    schema: matchingSchema
-  } = completion;
+  let matchingSchema = resolveSchema(completion.schema);
   const {
     path
   } = obj;
-  
-  if (matchingSchema.tags === undefined) {
+
+  if (completion.type === "value") {
     return false;
   }
-  if (matchingSchema.tags["execute-only"] === undefined) {
+  // drop ": " from the key completion
+  let subPath = [completion.value.slice(0, -2)]; 
+
+  let matchingSubSchemas = navigateSchema(matchingSchema, subPath);
+  if (matchingSubSchemas.length === 0) {
     return false;
   }
 
-  // // don't complete on schemas that have "execute-only" but
-  // // paths that start on path fragments other than "execute"
-  // if (!path.startsWith("execute")) {
-  //   return true;
-  // }
-  // return false;
+  // don't complete on schemas that have "execute-only" but
+  // paths that start on path fragments other than "execute"
+  return !(path.length > 0 && path[0] === "execute") &&
+    matchingSubSchemas.every((s: Schema) => s.tags && s.tags["execute-only"]);
 }
 
 async function completions(obj: CompletionContext): Promise<CompletionResult> {
@@ -410,12 +410,11 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
     commentPrefix,
     context,
   } = obj;
-  const { definitions } = await getSchemas();
   const matchingSchemas = uniqBy(
-    syncNavigateSchema(schema, path, definitions),
+    navigateSchema(schema, path),
     (schema: Schema) => schema.$id,
   );
-  const { aliases } = await getSchemas();
+  const { aliases } = getSchemas();
   const formats = [
     ...Array.from(context.formats),
     ...Array.from(context.project_formats),
@@ -452,7 +451,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
 
         const key = completion.value.split(":")[0];
 
-        const matchingSubSchemas = syncNavigateSchema(completion.schema, [key], definitions);
+        const matchingSubSchemas = navigateSchema(completion.schema, [key]);
         
         // quirk: if subschemas accept both object and array, we're
         // choosing to complete into object
@@ -605,7 +604,7 @@ async function automationFromGoodParseMarkdown(
       return noCompletions;
     }
     if (foundCell.cell_type === "raw") {
-      const schema = (await getSchemas()).schemas["front-matter"];
+      const schema = getSchemas().schemas["front-matter"];
       // complete the yaml front matter
       context = {
         ...context,
@@ -659,7 +658,7 @@ async function automationFromGoodParseMarkdown(
             ...context,
             filetype: "yaml",
             code: cell.source,
-            schema: (await getSchemas()).schemas["front-matter"],
+            schema: getSchemas().schemas["front-matter"],
             schemaName: "front-matter",
             line,
             position, // we don't need to adjust position because front matter only shows up at start of file.
@@ -777,7 +776,7 @@ async function automationFromGoodParseScript(
     }
   }
 
-  const schemas = (await getSchemas()).schemas;
+  const schemas = getSchemas().schemas;
   const schema = schemas.engines[context.engine || "markdown"];
   const commentPrefix = kLangCommentChars[language] + "| ";
 
@@ -833,7 +832,7 @@ export async function getAutomation(
   context: YamlIntelligenceContext,
 ) {
   const extension = context.path === null ? "" : (context.path.split(".").pop() || "");
-  const schemas = (await getSchemas()).schemas;
+  const schemas = getSchemas().schemas;
   const schema = ({
     "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
     "markdown": undefined, // can't be known ahead of time
@@ -864,7 +863,7 @@ const initializer = async () => {
   const _schemas = (await response.json()) as QuartoJsonSchemas;
   setSchemas(_schemas!);
 
-  const schemaDefs = (await getSchemas()).definitions;
+  const schemaDefs = getSchemas().definitions;
   for (const [_key, value] of Object.entries(schemaDefs)) {
     setSchemaDefinition(value);
     await withValidator(value, async (_validator) => {
