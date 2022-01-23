@@ -99,7 +99,7 @@ function navigate(
       `Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`,
     );
   } else if (
-    annotation.kind === "sequence" || annotation.kind === "block_sequence"
+    ["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1
   ) {
     const searchKey = Number(path[pathIndex]);
     return navigate(
