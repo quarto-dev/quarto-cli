@@ -317,6 +317,8 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       }
       toc.remove();
       tocTarget.replaceWith(toc);
+    } else {
+      tocTarget?.remove();
     }
 
     // add .table class to pandoc tables
@@ -382,10 +384,18 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     }
 
     // Note whether we need a narrow or wide margin layout
-    if (columnLayouts.length > 0) {
-      doc.body.classList.add("slimcontent");
+    const leftSidebar = doc.getElementById("quarto-sidebar");
+    const hasLeftContent = leftSidebar && leftSidebar.children.length > 0;
+    const rightSidebar = doc.getElementById("quarto-margin-sidebar");
+    const hasRightContent = rightSidebar && rightSidebar.children.length > 0;
+    if (rightSidebar && !hasRightContent) {
+      rightSidebar.remove();
+    }
+
+    if (columnLayouts.length > 0 && hasLeftContent) {
       // wide margin b/c there are margin elements
-    } else if (doc.getElementById("quarto-margin-sidebar")) {
+      doc.body.classList.add("slimcontent");
+    } else if (hasRightContent) {
       // there is a toc, default layout
     } else {
       // no toc, narrow

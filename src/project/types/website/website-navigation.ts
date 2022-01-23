@@ -197,8 +197,7 @@ export async function websiteNavigationExtras(
   const sidebar = sidebarForHref(href);
 
   const nav: Record<string, unknown> = {
-    needMargin: hasTableOfContents(flags, format) ||
-      navigation.pageMargin?.footer || navigation.pageMargin?.header,
+    hasToc: hasTableOfContents(flags, format),
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
