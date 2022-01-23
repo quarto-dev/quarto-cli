@@ -51,13 +51,13 @@ function matchPatternProperties(schema: Schema, key: string): Schema | false {
   return false;
 }
 
-export async function navigateSchema(
+export function syncNavigateSchema(
   schema: Schema,
   path: (number | string)[],
-): Promise<Schema[]> {
+  definitions: Record<string, Schema>
+): Schema[]
+{
   const refs: Record<string, Schema> = {};
-  const { definitions } = await getSchemas();
-
   const inner = (subSchema: Schema, index: number): Schema[] => {
     if (subSchema.$id) {
       refs[subSchema.$id] = subSchema;
@@ -123,4 +123,13 @@ export async function navigateSchema(
     }
   };
   return inner(schema, 0).flat(Infinity);
+}
+
+export async function navigateSchema(
+  schema: Schema,
+  path: (number | string)[],
+): Promise<Schema[]>
+{
+  const { definitions } = await getSchemas();
+  return syncNavigateSchema(schema, path, definitions);
 }

@@ -8459,9 +8459,8 @@ if (typeof exports === 'object') {
     }
     return false;
   }
-  async function navigateSchema2(schema, path) {
+  function syncNavigateSchema(schema, path, definitions) {
     const refs = {};
-    const { definitions } = await getSchemas();
     const inner = (subSchema, index) => {
       if (subSchema.$id) {
         refs[subSchema.$id] = subSchema;
@@ -8703,6 +8702,20 @@ if (typeof exports === 'object') {
       return true;
     });
   }
+  function dropCompletionsFromSchema(obj, completion) {
+    const {
+      schema: matchingSchema
+    } = completion;
+    const {
+      path
+    } = obj;
+    if (matchingSchema.tags === void 0) {
+      return false;
+    }
+    if (matchingSchema.tags["execute-only"] === void 0) {
+      return false;
+    }
+  }
   async function completions(obj) {
     const {
       schema,
@@ -8712,7 +8725,8 @@ if (typeof exports === 'object') {
       commentPrefix,
       context
     } = obj;
-    const matchingSchemas = uniqBy(await navigateSchema2(schema, path), (schema2) => schema2.$id);
+    const { definitions } = await getSchemas();
+    const matchingSchemas = uniqBy(syncNavigateSchema(schema, path, definitions), (schema2) => schema2.$id);
     const { aliases } = await getSchemas();
     const formats = [
       ...Array.from(context.formats),
@@ -8720,18 +8734,18 @@ if (typeof exports === 'object') {
     ].filter((x) => aliases["pandoc-all"].indexOf(x) !== -1);
     let completions2 = matchingSchemas.map((schema2) => {
       const result = schemaCompletions(schema2);
-      return result.map((completion) => {
+      return result.filter((completion) => !dropCompletionsFromSchema(obj, completion)).map((completion) => {
         if (!completion.suggest_on_accept || completion.type === "value" || !schemaAccepts(completion.schema, "object")) {
           return completion;
         }
         const key = completion.value.split(":")[0];
-        const subSchema = completion.schema.properties[key];
-        if (schemaAccepts(subSchema, "object")) {
+        const matchingSubSchemas = syncNavigateSchema(completion.schema, [key], definitions);
+        if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "object"))) {
           return {
             ...completion,
             value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2)
           };
-        } else if (schemaAccepts(subSchema, "array")) {
+        } else if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "array"))) {
           return {
             ...completion,
             value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2) + "- "
@@ -8763,8 +8777,7 @@ if (typeof exports === 'object') {
       } else if (c.type === "value") {
         formatTags = c.schema && c.schema.tags && c.schema.tags.formats || [];
       } else {
-        console.log(`Unexpected completion type ${c.type}`);
-        return true;
+        return false;
       }
       const enabled2 = formatTags.filter((tag) => !tag.startsWith("!"));
       const enabledSet = new Set();
@@ -9023,7 +9036,6 @@ if (typeof exports === 'object') {
       });
     }
     const after = performance.now();
-    console.log(`Initialization time: ${after - before}ms`);
   };
   var QuartoYamlEditorTools = {
     getAutomation: function(params) {

@@ -43,6 +43,7 @@ import { withValidator } from "../yaml-validation/validator-queue.ts";
 import {
   getSchemas,
   navigateSchema,
+  syncNavigateSchema,
   QuartoJsonSchemas,
   setSchemas,
 } from "../yaml-validation/schema-utils.ts";
@@ -372,6 +373,34 @@ function uniqBy<T>(lst: T[], keyFun: (item: T) => (string | undefined)): T[] {
   });
 }
 
+// Currently, the only special case we have is for "execute-only" tags
+// in paths that don't start with execute.
+function dropCompletionsFromSchema(
+  obj: CompletionContext,
+  completion: Completion)
+{
+  const {
+    schema: matchingSchema
+  } = completion;
+  const {
+    path
+  } = obj;
+  
+  if (matchingSchema.tags === undefined) {
+    return false;
+  }
+  if (matchingSchema.tags["execute-only"] === undefined) {
+    return false;
+  }
+
+  // // don't complete on schemas that have "execute-only" but
+  // // paths that start on path fragments other than "execute"
+  // if (!path.startsWith("execute")) {
+  //   return true;
+  // }
+  // return false;
+}
+
 async function completions(obj: CompletionContext): Promise<CompletionResult> {
   const {
     schema,
@@ -381,8 +410,9 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
     commentPrefix,
     context,
   } = obj;
+  const { definitions } = await getSchemas();
   const matchingSchemas = uniqBy(
-    await navigateSchema(schema, path),
+    syncNavigateSchema(schema, path, definitions),
     (schema: Schema) => schema.$id,
   );
   const { aliases } = await getSchemas();
@@ -395,37 +425,53 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
   // indent mappings and sequences automatically
   let completions = matchingSchemas.map((schema) => {
     const result = schemaCompletions(schema);
-    return result.map((completion) => {
-      // we only change indentation on keys
-      if (
-        !completion.suggest_on_accept ||
-          completion.type === "value" ||
-          !schemaAccepts(completion.schema, "object")
-      ) {
-        return completion;
-      }
+      // in case you're wondering why we filter on completion.schema
+      // here rather than on schema a few lines above, that's because
+      // schema combinators need to be resolved to the actual schemas
+      // with completions before we can extract tags and use them. Consider
+      // that schema can be
+      //
+      // anyOf:
+      //   - some-schema-without-tags
+      //   - some-schema-with-tags
+      //
+      // and some completion.schema will hold some-schema-with-tags
+      // (and other will hold some-schema-without-tags). We need to
+      // decide to drop on the inner, "specific" schemas.
+    return result
+      .filter((completion) => !dropCompletionsFromSchema(obj, completion))
+      .map((completion) => {
+        // we only change indentation on keys
+        if (
+          !completion.suggest_on_accept ||
+            completion.type === "value" ||
+            !schemaAccepts(completion.schema, "object")
+        ) {
+          return completion;
+        }
 
-      const key = completion.value.split(":")[0];
-      const subSchema = completion.schema.properties[key];
-      
-      // quirk: if subschema accepts both object and array, we're
-      // choosing to complete into object
-      if (schemaAccepts(subSchema, "object")) {
-        return {
-          ...completion,
-          value: completion.value + "\n" + commentPrefix +
-            " ".repeat(indent + 2),
-        };
-      } else if (schemaAccepts(subSchema, "array")) {
-        return {
-          ...completion,
-          value: completion.value + "\n" + commentPrefix +
-            " ".repeat(indent + 2) + "- ",
-        };
-      } else {
-        return completion;
-      }
-    });
+        const key = completion.value.split(":")[0];
+
+        const matchingSubSchemas = syncNavigateSchema(completion.schema, [key], definitions);
+        
+        // quirk: if subschemas accept both object and array, we're
+        // choosing to complete into object
+        if (matchingSubSchemas.some((subSchema: Schema) => schemaAccepts(subSchema, "object"))) {
+          return {
+            ...completion,
+            value: completion.value + "\n" + commentPrefix +
+              " ".repeat(indent + 2),
+          };
+        } else if (matchingSubSchemas.some((subSchema: Schema) => schemaAccepts(subSchema, "array"))) {
+          return {
+            ...completion,
+            value: completion.value + "\n" + commentPrefix +
+              " ".repeat(indent + 2) + "- ",
+          };
+        } else {
+          return completion;
+        }
+      });
   }).flat()
     .filter((c) => c.value.startsWith(word))
     .filter((c) => {
@@ -436,6 +482,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
       // handle format-enabling and -disabling tags
       let formatTags: string[] = [];
       if (c.type === "key") {
+        // c.schema is known to be an object here.
         let value = c.schema.properties[c.display];
         if (value === undefined) {
           for (const key of Object.keys(c.schema.patternProperties)) {
