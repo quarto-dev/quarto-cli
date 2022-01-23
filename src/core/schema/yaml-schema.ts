@@ -88,7 +88,7 @@ export async function exportStandaloneValidators(temp: TempContext) {
   const rawFilePath = temp.createFile({ suffix: ".js" });
   Deno.writeTextFileSync(rawFilePath, rawCode);
 
-  // FIXME I don't quite understand why we need esbuild's workingDir
+  // TODO I don't quite understand why we need esbuild's workingDir
   // to be that of the tempfile but it fails otherwise..
   const result = await esbuildCompile(
     "",

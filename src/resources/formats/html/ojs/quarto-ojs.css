@@ -58,7 +58,7 @@ div.cell + section, div.cell + h1, div.cell + h2, div.cell + h3, div.cell + h4, 
    class as well, in case someone else uses hljs and wishes to put
    their own highlighting.
 
-   FIXME: Note that to make our highlighting consistent, we're
+   TODO Note that to make our highlighting consistent, we're
    overriding the "im" class to present like a keyword. I should make
    sure this looks right everywhere, but I don't know how to test it
    comprehensively.
@@ -103,7 +103,7 @@ input[type="checkbox"] {
   flex-wrap: wrap !important;
 }
 
-/* likely that this only makes sense with bootstrap. FIXME check with charles */
+/* likely that this only makes sense with bootstrap. TODO check with charles */
 .observablehq table {
   font-size: 0.9em !important;
 }

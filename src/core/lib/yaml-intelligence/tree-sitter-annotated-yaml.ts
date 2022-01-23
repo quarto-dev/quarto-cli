@@ -157,7 +157,7 @@ export function buildAnnotated(
       return annotate(node, result, []);
     },
     "plain_scalar": (node) => {
-      // FIXME yuck, the yaml rules are ugly. I'm sure we'll get this wrong at first, oh well.
+      // TODO yuck, the yaml rules are ugly. We're using JSON.parse as a proxy but that's probably not exact.
       function getV() {
         try {
           return JSON.parse(node.text); // this catches things like numbers, which YAML wants to convert to actual numbers
@@ -203,7 +203,7 @@ export function buildAnnotated(
           component = buildNode(child, node.endIndex);
         }
         const { key, value } = component.result;
-        // FIXME what do we do in the presence of parse errors that produce empty keys?
+        // TODO what do we do in the presence of parse errors that produce empty keys?
         // if (key === null) { }
         result[String(key)] = value;
         components.push(...(component.components!));
@@ -338,7 +338,7 @@ export function locateCursor(
         }
       }
 
-      // FIXME: decide what to do if cursor lands exactly on ":"?
+      // TODO decide what to do if cursor lands exactly on ":"?
 
       // if we "fell through the pair cracks", that is, if the cursor is inside a mapping
       // but not inside any of the actual mapping pairs, then we stop the location at the

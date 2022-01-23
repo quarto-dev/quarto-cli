@@ -646,7 +646,7 @@ async function automationFromGoodParseMarkdown(
       );
     }
   } else {
-    // FIXME the logic here is pretty similar to the one in completions, but
+    // TODO the logic here is pretty similar to the one in completions, but
     // just different enough to make refactoring annoying.
     let linesSoFar = 0;
     const lints = [];

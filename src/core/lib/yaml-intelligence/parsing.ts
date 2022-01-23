@@ -43,7 +43,6 @@ export async function getTreeSitter(): Promise<any> {
 
   _parser = new Parser();
 
-  // FIXME check if this shouldn't be parameterized somehow.
   const YAML = await Parser.Language.load(
     getLocalPath("tree-sitter-yaml.wasm"),
   );

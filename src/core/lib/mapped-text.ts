@@ -3,8 +3,6 @@
  *
  * Copyright (C) 2021 by RStudio, PBC
  *
- * FIXME consider making MappedString an actual subclass of String,
- * just with extra fields.
  */
 
 import { glb } from "./binary-search.ts";

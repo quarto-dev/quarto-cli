@@ -138,9 +138,6 @@ import {
   kVariant,
   kWarning,
   kWebtex,
-} from "../config/constants.ts"; // FIXME: huh? compare to the import below.
-
-import {
   kError,
   kFigFormat,
   kFigHeight,
@@ -150,8 +147,9 @@ import {
   kKeepTex,
   kOutputDivs,
   kOutputExt,
-  kPageWidth,
+  kPageWidth
 } from "./constants.ts";
+
 import { TempContext } from "../core/temp.ts";
 
 export const kDependencies = "dependencies";

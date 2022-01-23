@@ -283,7 +283,7 @@ export function convertFromYaml(yaml: any): Schema {
   // literals
   const literalValues = [
     ["object", objectS()],
-    ["path", stringS], // FIXME we should do this one differently to record the autocompletion difference
+    ["path", stringS], // FIXME we should treat this one differently to record the autocompletion difference
     ["string", stringS],
     ["number", numberS],
     ["boolean", booleanS],
@@ -544,7 +544,7 @@ export async function buildSchemaResources() {
     const yaml = readYaml(file.path) as SchemaField[];
     const entries = Object.entries(convertFromFieldsObject(yaml));
     for (const [fieldName, fieldSchema] of entries) {
-      // FIXME this id has to be defined consistently with schemaFieldsFromGlob.
+      // TODO this id has to be defined consistently with schemaFieldsFromGlob.
       // It's a footgun.
       const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
       const schema = withId(fieldSchema, schemaId);

@@ -8,7 +8,7 @@
 import { Schema, schemaType } from "./schema.ts";
 import { prefixes } from "../regexp.js";
 
-// FIXME typings for quarto-json-schemas.json
+// TODO typings for quarto-json-schemas.json
 export interface QuartoJsonSchemas {
   schemas: {
     "front-matter": Schema;
@@ -27,8 +27,6 @@ export function setSchemas(schemas: QuartoJsonSchemas) {
   _schemas = schemas;
 }
 
-// FIXME no longer needs to be async
-// deno-lint-ignore require-await
 export function getSchemas(): QuartoJsonSchemas {
   if (_schemas) {
     return _schemas;

@@ -80,7 +80,7 @@ export function schemaExhaustiveCompletions(schema: Schema) {
 }
 
 export function schemaCompletions(schema: Schema): Completion[] {
-  // FIXME this is slightly inefficient since recursions call
+  // TODO this is slightly inefficient since recursions call
   // normalize() multiple times
 
   // deno-lint-ignore no-explicit-any
@@ -189,7 +189,7 @@ export function walkSchema<T>(schema: Schema, f: (a: Schema) => T) {
  */
 
 export function normalizeSchema(schema: Schema): Schema {
-  // FIXME this deep copy can probably be made more efficient
+  // TODO this deep copy can probably be made more efficient
   const result = JSON.parse(JSON.stringify(schema));
 
   walkSchema(result, (schema) => {

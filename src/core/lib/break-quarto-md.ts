@@ -73,7 +73,7 @@ export async function breakQuartoMd(
     index: number,
   ) => {
     if (lineBuffer.length) {
-      // FIXME: understand why was this here. This makes our line
+      // TODO understand why was this here. This makes our line
       // count computations wrong
       //
       // if (lineBuffer[lineBuffer.length - 1].substring === "") {
@@ -112,7 +112,7 @@ export async function breakQuartoMd(
             cell.source,
             validate,
           );
-        // FIXME I'd prefer for this not to depend on sourceStartLine now
+        // TODO I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
         const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
         let strUpToLastBreak = "";
@@ -201,7 +201,7 @@ export async function breakQuartoMd(
         await flushLineBuffer("math", i);
       } else {
         if (inYaml || inCode || inCodeCell) {
-          // FIXME: signal a parse error?
+          // TODO signal a parse error?
           // for now, we just skip.
         } else {
           await flushLineBuffer("markdown", i);

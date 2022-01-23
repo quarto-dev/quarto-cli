@@ -117,7 +117,7 @@ function getValidator(schema: Schema): YAMLSchema {
 
   yamlValidators[schemaName] = validator;
 
-  // FIXME where do we declare all of the standard validator error handlers?
+  // TODO where should we declare all of the standard validator error handlers?
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);
 

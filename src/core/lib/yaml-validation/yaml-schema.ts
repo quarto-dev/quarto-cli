@@ -447,9 +447,9 @@ interface ValidatedParseResult {
 // requests over any one schema.
 
 export class YAMLSchema {
-  schema: Schema; // FIXME: I haven't found typescript typings for JSON Schema
+  schema: Schema; // TODO I haven't found typescript typings for JSON Schema
   // deno-lint-ignore no-explicit-any
-  validate: any; // FIXME: find the typing for this
+  validate: any; // TODO find the typing for this
 
   // These are schema-specific error transformers to yield custom
   // error messages.

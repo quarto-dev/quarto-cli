@@ -133,7 +133,7 @@ export function allOfSchema(...args: Schema[]) {
   };
 }
 
-// FIXME: add dynamic check for requiredProps being a subset of the
+// TODO add dynamic check for requiredProps being a subset of the
 // keys in properties
 export function objectSchema(params: {
   properties?: { [k: string]: Schema };
@@ -143,7 +143,7 @@ export function objectSchema(params: {
   additionalProperties?: Schema;
   description?: string;
   // deno-lint-ignore no-explicit-any
-  baseSchema?: any; // FIXME this should have the type of the result of objectSchema()
+  baseSchema?: any; // TODO this should have the type of the result of objectSchema()
   completions?: { [k: string]: string };
 } = {}) {
   let {
@@ -238,7 +238,7 @@ export function objectSchema(params: {
     }
 
     if (additionalProperties !== undefined) {
-      // FIXME Review. This is likely to be confusing, but I think
+      // TODO Review. This is likely to be confusing, but I think
       // it's the correct semantics for subclassing
       if (result.additionalProperties === false) {
         throw new Error(

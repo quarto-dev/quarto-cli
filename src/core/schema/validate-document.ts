@@ -35,7 +35,7 @@ export async function validateDocumentFromSource(
   }
   const firstCell = nb.cells[0];
   let firstContentCellIndex;
-  // FIXME this is a syntax error check: we should separate
+  // TODO this is a syntax error check: we should separate
   // syntax errors from validation.
   if (firstCell.source.value.startsWith("---")) {
     firstContentCellIndex = 1;

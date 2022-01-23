@@ -7,7 +7,7 @@
 *
 */
 
-// FIXME typings for this? It's tricky because of arity and type
+// TODO typings for this? It's tricky because of arity and type
 //       differences in the arguments
 export function memoize(
   // deno-lint-ignore no-explicit-any

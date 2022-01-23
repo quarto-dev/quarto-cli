@@ -28,7 +28,7 @@ export interface QuartoMdCell {
   source: MappedString;
   sourceVerbatim: MappedString;
 
-  sourceOffset: number; // FIXME these might be unnecessary now. Check back
+  sourceOffset: number; // TODO these might be unnecessary now. Check back
   sourceStartLine: number;
 
   // line number of the start of the cell in the file, 0-based.
@@ -101,13 +101,13 @@ export async function breakQuartoMd(
             cell.source,
             validate,
           );
-        // FIXME I'd prefer for this not to depend on sourceStartLine now
+        // TODO I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
         const breaks = Array.from(cell.source.value.matchAll(/\r?\n/g));
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
           if (breaks.length) {
-            // FIXME matchAll apparently breaks typechecking?
+            // TODO matchAll apparently breaks typechecking?
             // "error: TS2538 [ERROR]: Type 'RegExpMatchArray' cannot be used as an index type.
             const lastBreak =
               // deno-lint-ignore no-explicit-any
@@ -194,7 +194,7 @@ export async function breakQuartoMd(
         await flushLineBuffer("math", i);
       } else {
         if (inYaml || inCode || inCodeCell) {
-          // FIXME: signal a parse error?
+          // TODO: signal a parse error?
           // for now, we just skip.
         } else {
           await flushLineBuffer("markdown", i);
