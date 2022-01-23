@@ -46,6 +46,7 @@ export const pandocOutputFormats = [
   { name: "markdown_mmd", hidden: false },
   { name: "markdown_phpextra", hidden: false },
   { name: "markdown_strict", hidden: false },
+  { name: "markua", hidden: false },
   { name: "mediawiki", hidden: false },
   { name: "ms", hidden: false },
   { name: "muse", hidden: false },
