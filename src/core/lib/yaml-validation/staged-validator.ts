@@ -44,7 +44,7 @@ let _module: any = undefined;
 
 let validatorModulePath = "";
 // FIXME there's still a race here if ensureValidatorModule gets called twice in quick succession...
-async function ensureValidatorModule() {
+export async function ensureValidatorModule() {
   if (_module) {
     return _module;
   }

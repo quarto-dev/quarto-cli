@@ -8741,13 +8741,32 @@ if (typeof exports === 'object') {
   async function completions(obj) {
     const {
       schema,
-      path,
-      word,
       indent,
       commentPrefix,
       context
     } = obj;
-    const matchingSchemas = uniqBy(navigateSchema2(schema, path), (schema2) => schema2.$id);
+    let word = obj.word;
+    let path = obj.path;
+    let matchingSchemas = uniqBy(navigateSchema2(schema, path), (schema2) => schema2.$id);
+    if (matchingSchemas.length === 0) {
+      const candidateSchemas = uniqBy(navigateSchema2(schema, path.slice(0, -1)), (schema2) => schema2.$id);
+      if (candidateSchemas.length === 0) {
+        return {
+          token: word,
+          completions: [],
+          cacheable: true
+        };
+      } else {
+        matchingSchemas = candidateSchemas;
+        word = String(path[path.length - 1]);
+        path = path.slice(0, -1);
+        obj = {
+          ...obj,
+          word,
+          path
+        };
+      }
+    }
     const { aliases } = getSchemas();
     const formats = [
       ...Array.from(context.formats),
@@ -9047,6 +9066,7 @@ if (typeof exports === 'object') {
   var initializer2 = async () => {
     const before = performance.now();
     setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
+    await ensureValidatorModule();
     const response = await fetch(getLocalPath("quarto-json-schemas.json"));
     const _schemas2 = await response.json();
     setSchemas(_schemas2);

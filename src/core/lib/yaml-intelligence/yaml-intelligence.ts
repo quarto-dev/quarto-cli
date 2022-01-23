@@ -18,7 +18,7 @@ import {
 
 import { initState, setInitializer } from "../yaml-validation/state.ts";
 import { getLocalPath, setMainPath } from "./paths.ts";
-import { setValidatorModulePath } from "../yaml-validation/staged-validator.ts";
+import { setValidatorModulePath, ensureValidatorModule } from "../yaml-validation/staged-validator.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
@@ -404,16 +404,41 @@ function dropCompletionsFromSchema(
 async function completions(obj: CompletionContext): Promise<CompletionResult> {
   const {
     schema,
-    path,
-    word,
     indent,
     commentPrefix,
     context,
   } = obj;
-  const matchingSchemas = uniqBy(
+  let word = obj.word;
+  let path = obj.path;
+  
+  let matchingSchemas = uniqBy(
     navigateSchema(schema, path),
     (schema: Schema) => schema.$id,
   );
+  if (matchingSchemas.length === 0) {
+    // attempt to match against partial word
+    const candidateSchemas = uniqBy(
+      navigateSchema(schema, path.slice(0, -1)),
+      (schema: Schema) => schema.$id);
+    if (candidateSchemas.length === 0) {
+      return {
+        token: word,
+        completions: [],
+        cacheable: true
+      };
+    } else {
+      // found a match: crop path and go on.
+      matchingSchemas = candidateSchemas;
+      word = String(path[path.length - 1]);
+      path = path.slice(0, -1);
+      obj = {
+        ...obj,
+        word,
+        path
+      };
+    }
+  }
+  
   const { aliases } = getSchemas();
   const formats = [
     ...Array.from(context.formats),
@@ -858,6 +883,10 @@ const initializer = async () => {
   const before = performance.now();
 
   setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
+  
+  // for now we force the IDE to load the module ahead of time to not get
+  // a pause at unpredictable times.
+  await ensureValidatorModule();
 
   const response = await fetch(getLocalPath("quarto-json-schemas.json"));
   const _schemas = (await response.json()) as QuartoJsonSchemas;
