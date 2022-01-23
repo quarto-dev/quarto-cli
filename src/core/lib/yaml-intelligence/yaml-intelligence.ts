@@ -456,8 +456,7 @@ async function completions(obj: CompletionContext): Promise<CompletionResult> {
         formatTags = (c.schema && c.schema.tags && c.schema.tags.formats) || [];
       } else {
         // weird completion type?
-        console.log(`Unexpected completion type ${c.type}`);
-        return true;
+        return false;
       }
 
       const enabled = formatTags.filter((tag) => !tag.startsWith("!"));
@@ -825,7 +824,6 @@ const initializer = async () => {
     });
   }
   const after = performance.now();
-  console.log(`Initialization time: ${after - before}ms`);
 };
 
 export const QuartoYamlEditorTools = {
