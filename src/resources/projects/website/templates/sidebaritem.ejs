@@ -3,7 +3,11 @@
   <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%= item.text %></a>
 </li>
 <% } else if (item.contents && item.text) { %>  
-  <% sectionId = item.sectionId %>
+  <%
+    // the section ID will ultimately be used in a selector, so the 
+    // '.' means query selector will match an abbreviated ID with a class matching
+    // what follows the dot. 
+    sectionId = item.sectionId.replace(".", ""); %>
   <% isCollapsed = collapse <= depth  && !item.expanded %>
 
   <ul class="list-unstyled sidebar-section depth<%-depth%>">
