@@ -16,6 +16,7 @@ $grid-body-maxsize-float-wide: calc(800px - #{2 * $grid-screen-inset-padding});
 $grid-body-maxsize-docked-wide: calc(
   1000px - #{2 * $grid-screen-inset-padding}
 );
+$grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
 
 @mixin page-columns {
   display: grid;
@@ -100,6 +101,28 @@ $grid-body-maxsize-docked-wide: calc(
     [screen-end];
 }
 
+@mixin page-columns-float-listing-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] $grid-screen-inset-padding
+    [screen-start-inset] 5fr
+    [page-start] minmax(50px, 150px)
+    [page-start-inset] minmax(25px, 50px)
+    [body-start-outset] minmax(25px, 50px)
+    [body-start] 1.5em
+    [body-content-start] minmax(
+      $grid-body-minsize,
+      $grid-body-maxsize-float-wide
+    )
+    [body-content-end] 1.5em
+    [body-end] minmax(25px, 50px)
+    [body-end-outset] minmax(25px, 50px)
+    [page-end-inset] minmax(50px, 150px)
+    [page-end] 5fr
+    [screen-end-inset] $grid-screen-inset-padding
+    [screen-end];
+}
+
 // medium 976 down
 @mixin page-columns-float-mid {
   @include page-columns();
@@ -145,6 +168,22 @@ $grid-body-maxsize-docked-wide: calc(
     )
     [body-content-end] 1.5em
     [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] $grid-screen-inset-padding
+    [screen-end];
+}
+
+@mixin page-columns-float-listing-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] $grid-screen-inset-padding
+    [screen-start-inset] 5fr
+    [page-start page-start-inset body-start-outset body-start] 1em
+    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 25px
+    [page-end-inset] minmax(75px, 150px)
+    [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
 }
@@ -213,6 +252,27 @@ $grid-body-maxsize-docked-wide: calc(
     [screen-end];
 }
 
+@mixin page-columns-docked-listing-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] $grid-screen-inset-padding
+    [screen-start-inset page-start] minmax(50px, 100px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax(
+      $grid-body-minsize,
+      $grid-body-maxsize-docked-wide
+    )
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 100px)
+    [page-end] 5fr
+    [screen-end-inset] $grid-screen-inset-padding
+    [screen-end];
+}
+
 @mixin page-columns-docked-mid {
   @include page-columns();
   grid-template-columns:
@@ -257,6 +317,23 @@ $grid-body-maxsize-docked-wide: calc(
     )
     [body-content-end] 1.5em
     [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] $grid-screen-inset-padding
+    [screen-end];
+}
+
+@mixin page-columns-docked-listing-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] $grid-screen-inset-padding
+    [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] minmax(
+      $grid-body-minsize,
+      $grid-body-maxsize-mid
+    )
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(25px, 50px)
+    [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
 }
@@ -339,6 +416,37 @@ $grid-body-maxsize-docked-wide: calc(
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] $grid-screen-inset-padding
+    [screen-end];
+}
+
+// Listing content grid definitions
+@mixin page-columns-listing-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] $grid-screen-inset-padding
+    [screen-start-inset page-start] minmax(50px, 100px)
+    [page-start-inset] 50px
+    [body-start-outset] 50px
+    [body-start] 1.5em
+    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-listing)
+    [body-content-end] 3em
+    [body-end] 50px
+    [body-end-outset] 50px
+    [page-end-inset] minmax(0px, 250px)
+    [page-end] 1fr
+    [screen-end-inset] $grid-screen-inset-padding
+    [screen-end];
+}
+
+@mixin page-columns-listing-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] $grid-screen-inset-padding
+    [screen-start-inset page-start page-start-inset body-start-outset] 5fr
+    [body-start] 1.5em
+    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-listing)
+    [body-content-end body-end body-end-outset page-end-inset page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
 }

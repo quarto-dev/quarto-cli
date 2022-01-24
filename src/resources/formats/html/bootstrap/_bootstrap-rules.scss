@@ -37,6 +37,12 @@ main.page-columns > section:first-of-type > h2:first-of-type {
     }
   }
 
+  body.listing:not(.floating):not(.docked) {
+    .page-columns {
+      @include page-columns-listing-wide();
+    }
+  }
+
   body.floating {
     .page-columns {
       @include page-columns-float-wide();
@@ -67,9 +73,21 @@ main.page-columns > section:first-of-type > h2:first-of-type {
     }
   }
 
+  body.docked.listing {
+    .page-columns {
+      @include page-columns-docked-listing-wide();
+    }
+  }
+
   body.floating.slimcontent {
     .page-columns {
       @include page-columns-float-slimcontent-wide();
+    }
+  }
+
+  body.floating.listing {
+    .page-columns {
+      @include page-columns-float-listing-wide();
     }
   }
 }
@@ -90,6 +108,12 @@ main.page-columns > section:first-of-type > h2:first-of-type {
   body.slimcontent:not(.floating):not(.docked) {
     .page-columns {
       @include page-columns-slimcontent-mid();
+    }
+  }
+
+  body.listing:not(.floating):not(.docked) {
+    .page-columns {
+      @include page-columns-listing-mid();
     }
   }
 
@@ -123,9 +147,21 @@ main.page-columns > section:first-of-type > h2:first-of-type {
     }
   }
 
+  body.docked.listing {
+    .page-columns {
+      @include page-columns-docked-listing-mid();
+    }
+  }
+
   body.floating.slimcontent {
     .page-columns {
       @include page-columns-float-slimcontent-mid();
+    }
+  }
+
+  body.floating.listing {
+    .page-columns {
+      @include page-columns-float-listing-mid();
     }
   }
 }
