@@ -397,6 +397,15 @@ img.img-fluid.column-screen-inset-shaded {
   }
 }
 
+// Panel Grid (custom grid for our panel system)
+.panel-grid {
+  display: grid;
+  grid-template-rows: repeat(1, 1fr);
+  grid-template-columns: repeat(24, 1fr);
+  gap: 1em;
+  @include make-cssgrid(24);
+}
+
 // Rest of rules
 body {
   @if variable-exists(margin-top) {

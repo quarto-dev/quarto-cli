@@ -112,8 +112,6 @@ $footer-right-font-size: $footer-font-size !default;
 // Disable default grid system and switch to CSS grid
 $enable-grid-classes: false;
 $enable-cssgrid: true;
-$grid-gutter-width: 0;
-$grid-columns: 24;
 
 $zindex-pagelayout: #{zindex-drop - 2};
 
