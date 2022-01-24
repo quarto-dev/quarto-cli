@@ -125,15 +125,15 @@ export function outputRecipe(
           Deno.readTextFileSync(input),
         );
         if (inputMd) {
+          const output = Deno.readTextFileSync(recipe.output);
           const outputMd = partitionYamlFrontMatter(
             Deno.readTextFileSync(recipe.output),
           );
-          if (outputMd) {
-            Deno.writeTextFileSync(
-              recipe.output,
-              inputMd.yaml + "\n\n" + outputMd.markdown,
-            );
-          }
+          const markdown = outputMd?.markdown || output;
+          Deno.writeTextFileSync(
+            recipe.output,
+            inputMd.yaml + "\n\n" + markdown,
+          );
         }
       });
     }

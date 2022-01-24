@@ -76,10 +76,14 @@ export function defaultWriterFormat(to: string): Format {
     case "markdown_github":
     case "markdown_mmd":
     case "markdown_strict":
-    case "commonmark":
-    case "commonmark_x":
     case "markua":
       writerFormat = markdownFormat();
+      pandocTo = to;
+      break;
+
+    case "commonmark":
+    case "commonmark_x":
+      writerFormat = commonmarkFormat(to);
       pandocTo = to;
       break;
 
@@ -212,7 +216,18 @@ function gfmFormat(): Format {
       to: "gfm",
     },
     render: {
-      [kVariant]: "+footnotes",
+      [kVariant]: "+footnotes-yaml_metadata_block",
+    },
+  });
+}
+
+function commonmarkFormat(to: string) {
+  return createFormat("md", markdownFormat(), {
+    pandoc: {
+      to,
+    },
+    render: {
+      [kVariant]: "-yaml_metadata_block",
     },
   });
 }
