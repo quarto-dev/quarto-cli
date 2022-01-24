@@ -158,6 +158,7 @@ import { TempContext } from "../core/temp.ts";
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
 export const kHtmlPostprocessors = "html-postprocessors";
+export const kHtmlFinalizers = "html-finalizers";
 export const kTemplatePatches = "template-patches";
 export const kBodyEnvelope = "body-envelope";
 export const kTextHighlightingMode = "text-highlighting-mode";
@@ -239,6 +240,9 @@ export interface FormatExtras {
     [kTemplatePatches]?: Array<(template: string) => string>;
     [kHtmlPostprocessors]?: Array<
       (doc: Document) => Promise<string[]>
+    >;
+    [kHtmlFinalizers]?: Array<
+      (doc: Document) => Promise<void>
     >;
     [kTextHighlightingMode]?: "light" | "dark" | "none" | undefined;
     [kQuartoCssVariables]?: string[];
