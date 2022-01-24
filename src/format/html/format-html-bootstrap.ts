@@ -586,9 +586,12 @@ const referenceMarginProcessor: MarginNodeProcessor = {
         // First try to grab a the citation or footnote.
         const refId = target.slice(1);
         const refContentsEl = doc.getElementById(refId);
-        if (refContentsEl && el.parentElement) {
+
+        // The parent is a figcaption that contains the reference.
+        // The parent.parent is the figure
+        if (refContentsEl && el.parentElement?.parentElement) {
           addContentToMarginContainerForEl(
-            el.parentElement,
+            el.parentElement.parentElement,
             refContentsEl.cloneNode(true),
             doc,
           );

@@ -119,6 +119,12 @@ export function resolvePathGlobs(
     // ending w/ a slash means everything in the dir
     if (glob.endsWith("/")) {
       glob = glob + "**/*";
+    } else {
+      // literal relative reference to any directory means everything in the dir
+      const fullPath = join(root, glob);
+      if (existsSync(fullPath) && Deno.statSync(fullPath).isDirectory) {
+        glob = glob + "/**/*";
+      }
     }
 
     if (!glob.startsWith("/")) {
