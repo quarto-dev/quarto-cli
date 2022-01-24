@@ -9,7 +9,7 @@ import { dirname, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
@@ -95,6 +95,7 @@ import {
   kQuartoVarsKey,
   kResources,
   kSectionTitleAbstract,
+  kSyntaxDefinitions,
   kTemplate,
   kTitle,
   kTitlePrefix,
@@ -458,6 +459,15 @@ export async function runPandoc(
     removeArgs.set("--number-sections", false);
     removeArgs.set("--number-offset", true);
     pandocArgs = removePandocArgs(pandocArgs, removeArgs);
+  }
+
+  // add any built-in syntax defintiion files
+  allDefaults[kSyntaxDefinitions] = allDefaults[kSyntaxDefinitions] || [];
+  const syntaxDefinitions = expandGlobSync(
+    join(resourcePath(join("pandoc", "syntax-definitions")), "*.xml"),
+  );
+  for (const syntax of syntaxDefinitions) {
+    allDefaults[kSyntaxDefinitions]?.push(syntax.path);
   }
 
   // write the defaults file
