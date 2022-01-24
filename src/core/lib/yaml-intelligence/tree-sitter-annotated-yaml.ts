@@ -88,8 +88,8 @@ export function buildAnnotated(
       key: key.result,
       value: value.result,
     }, [key, value]);
-  }
-  
+  };
+
   const dispatch: Record<string, (node: TreeSitterNode) => AnnotatedParse> = {
     "stream": singletonBuild,
     "document": singletonBuild,

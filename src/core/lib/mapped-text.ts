@@ -2,7 +2,6 @@
  * mapped-text.ts
  *
  * Copyright (C) 2021 by RStudio, PBC
- *
  */
 
 import { glb } from "./binary-search.ts";

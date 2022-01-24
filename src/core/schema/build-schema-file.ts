@@ -12,7 +12,10 @@ import { getFrontMatterSchema } from "./front-matter.ts";
 import { getProjectConfigSchema } from "./project-config.ts";
 import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { resourcePath } from "../resources.ts";
-import { getSchemaDefinitionsObject, setSchemaDefinition } from "../lib/yaml-validation/schema.ts";
+import {
+  getSchemaDefinitionsObject,
+  setSchemaDefinition,
+} from "../lib/yaml-validation/schema.ts";
 import { exportStandaloneValidators } from "./yaml-schema.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 import { TempContext } from "../temp.ts";

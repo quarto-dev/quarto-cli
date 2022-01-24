@@ -51,9 +51,8 @@ function matchPatternProperties(schema: Schema, key: string): Schema | false {
 
 export function navigateSchema(
   schema: Schema,
-  path: (number | string)[]
-): Schema[]
-{
+  path: (number | string)[],
+): Schema[] {
   const inner = (subSchema: Schema, index: number): Schema[] => {
     subSchema = resolveSchema(subSchema);
     if (index === path.length) {
@@ -113,13 +112,13 @@ export function resolveSchema(schema: Schema) {
   if (schema.$ref === undefined) {
     return schema;
   }
-  
+
   const { definitions } = getSchemas();
-  
+
   // this is on the chancy side of clever, but we're going to be extra
   // careful here and use the cycle-detecting trick. This code runs
   // in the IDE and I _really_ don't want to accidentally freeze them.
-  
+
   let cursor1: Schema = schema;
   let cursor2: Schema = schema;
   const next = (cursor: Schema) => {
@@ -128,7 +127,7 @@ export function resolveSchema(schema: Schema) {
       throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
     }
     return result;
-  }
+  };
 
   while (cursor1.$ref !== undefined) {
     cursor1 = next(cursor1);
@@ -147,6 +146,6 @@ export function resolveSchema(schema: Schema) {
       throw new Error(`reference cycle detected at ${cursor1.$ref}`);
     }
   }
-  
+
   return cursor1;
 }

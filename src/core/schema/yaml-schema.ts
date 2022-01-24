@@ -51,11 +51,10 @@ export function getAjvInstance() {
 
 export async function ensureAjv() {
   if (!ajvInit) {
-    const path =
-      new URL(
-        resourcePath("../core/lib/external/ajv-bundle.js"),
-        import.meta.url,
-      ).href;
+    const path = new URL(
+      resourcePath("../core/lib/external/ajv-bundle.js"),
+      import.meta.url,
+    ).href;
     const mod = await import(path);
     Ajv = mod.default;
     ajv = new Ajv({

@@ -18,7 +18,10 @@ import {
 
 import { initState, setInitializer } from "../yaml-validation/state.ts";
 import { getLocalPath, setMainPath } from "./paths.ts";
-import { setValidatorModulePath, ensureValidatorModule } from "../yaml-validation/staged-validator.ts";
+import {
+  ensureValidatorModule,
+  setValidatorModulePath,
+} from "../yaml-validation/staged-validator.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
@@ -34,16 +37,16 @@ import {
   Completion,
   expandAliasesFrom,
   Schema,
-  schemaCompletions,
   schemaAccepts,
+  schemaCompletions,
   setSchemaDefinition,
 } from "../yaml-validation/schema.ts";
 import { withValidator } from "../yaml-validation/validator-queue.ts";
 import {
   getSchemas,
   navigateSchema,
-  resolveSchema,
   QuartoJsonSchemas,
+  resolveSchema,
   setSchemas,
 } from "../yaml-validation/schema-utils.ts";
 
@@ -163,7 +166,8 @@ export async function validationFromGoodParseYAML(
   }
   if (!context.explicit) {
     return result.filter((lint) =>
-      predecessors.indexOf(lint["start.row"] - 1) === -1);
+      predecessors.indexOf(lint["start.row"] - 1) === -1
+    );
   } else {
     return result;
   }
@@ -376,18 +380,18 @@ function uniqBy<T>(lst: T[], keyFun: (item: T) => (string | undefined)): T[] {
 // in paths that don't start with execute.
 function dropCompletionsFromSchema(
   obj: CompletionContext,
-  completion: Completion)
-{
+  completion: Completion,
+) {
   const matchingSchema = resolveSchema(completion.schema);
   const {
-    path
+    path,
   } = obj;
 
   if (completion.type === "value") {
     return false;
   }
   // drop ": " from the key completion
-  const subPath = [completion.value.slice(0, -2)]; 
+  const subPath = [completion.value.slice(0, -2)];
 
   const matchingSubSchemas = navigateSchema(matchingSchema, subPath);
   if (matchingSubSchemas.length === 0) {
@@ -400,7 +404,6 @@ function dropCompletionsFromSchema(
     matchingSubSchemas.every((s: Schema) => s.tags && s.tags["execute-only"]);
 }
 
-
 function completions(obj: CompletionContext): CompletionResult {
   const {
     schema,
@@ -410,7 +413,7 @@ function completions(obj: CompletionContext): CompletionResult {
   } = obj;
   let word = obj.word;
   let path = obj.path;
-  
+
   let matchingSchemas = uniqBy(
     navigateSchema(schema, path),
     (schema: Schema) => schema.$id,
@@ -419,12 +422,13 @@ function completions(obj: CompletionContext): CompletionResult {
     // attempt to match against partial word
     const candidateSchemas = uniqBy(
       navigateSchema(schema, path.slice(0, -1)),
-      (schema: Schema) => schema.$id);
+      (schema: Schema) => schema.$id,
+    );
     if (candidateSchemas.length === 0) {
       return {
         token: word,
         completions: [],
-        cacheable: true
+        cacheable: true,
       };
     } else {
       // found a match: crop path and go on.
@@ -434,11 +438,11 @@ function completions(obj: CompletionContext): CompletionResult {
       obj = {
         ...obj,
         word,
-        path
+        path,
       };
     }
   }
-  
+
   const { aliases } = getSchemas();
   const formats = [
     ...Array.from(context.formats),
@@ -449,27 +453,27 @@ function completions(obj: CompletionContext): CompletionResult {
   // indent mappings and sequences automatically
   let completions = matchingSchemas.map((schema) => {
     const result = schemaCompletions(schema);
-      // in case you're wondering why we filter on completion.schema
-      // here rather than on schema a few lines above, that's because
-      // schema combinators need to be resolved to the actual schemas
-      // with completions before we can extract tags and use them. Consider
-      // that schema can be
-      //
-      // anyOf:
-      //   - some-schema-without-tags
-      //   - some-schema-with-tags
-      //
-      // and some completion.schema will hold some-schema-with-tags
-      // (and other will hold some-schema-without-tags). We need to
-      // decide to drop on the inner, "specific" schemas.
+    // in case you're wondering why we filter on completion.schema
+    // here rather than on schema a few lines above, that's because
+    // schema combinators need to be resolved to the actual schemas
+    // with completions before we can extract tags and use them. Consider
+    // that schema can be
+    //
+    // anyOf:
+    //   - some-schema-without-tags
+    //   - some-schema-with-tags
+    //
+    // and some completion.schema will hold some-schema-with-tags
+    // (and other will hold some-schema-without-tags). We need to
+    // decide to drop on the inner, "specific" schemas.
     return result
       .filter((completion) => !dropCompletionsFromSchema(obj, completion))
       .map((completion) => {
         // we only change indentation on keys
         if (
           !completion.suggest_on_accept ||
-            completion.type === "value" ||
-            !schemaAccepts(completion.schema, "object")
+          completion.type === "value" ||
+          !schemaAccepts(completion.schema, "object")
         ) {
           return completion;
         }
@@ -477,16 +481,24 @@ function completions(obj: CompletionContext): CompletionResult {
         const key = completion.value.split(":")[0];
 
         const matchingSubSchemas = navigateSchema(completion.schema, [key]);
-        
+
         // quirk: if subschemas accept both object and array, we're
         // choosing to complete into object
-        if (matchingSubSchemas.some((subSchema: Schema) => schemaAccepts(subSchema, "object"))) {
+        if (
+          matchingSubSchemas.some((subSchema: Schema) =>
+            schemaAccepts(subSchema, "object")
+          )
+        ) {
           return {
             ...completion,
             value: completion.value + "\n" + commentPrefix +
               " ".repeat(indent + 2),
           };
-        } else if (matchingSubSchemas.some((subSchema: Schema) => schemaAccepts(subSchema, "array"))) {
+        } else if (
+          matchingSubSchemas.some((subSchema: Schema) =>
+            schemaAccepts(subSchema, "array")
+          )
+        ) {
           return {
             ...completion,
             value: completion.value + "\n" + commentPrefix +
@@ -856,7 +868,9 @@ export async function getAutomation(
   kind: AutomationKind,
   context: YamlIntelligenceContext,
 ) {
-  const extension = context.path === null ? "" : (context.path.split(".").pop() || "");
+  const extension = context.path === null
+    ? ""
+    : (context.path.split(".").pop() || "");
   const schemas = getSchemas().schemas;
   const schema = ({
     "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
@@ -881,7 +895,7 @@ export async function getAutomation(
 
 const initializer = async () => {
   setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
-  
+
   // for now we force the IDE to load the module ahead of time to not get
   // a pause at unpredictable times.
   await ensureValidatorModule();

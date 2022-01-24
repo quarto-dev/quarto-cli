@@ -99,7 +99,8 @@ function navigate(
       `Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`,
     );
   } else if (
-    ["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1
+    ["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !==
+      -1
   ) {
     const searchKey = Number(path[pathIndex]);
     return navigate(
@@ -393,8 +394,8 @@ function localizeAndPruneErrors(
               niceError = {
                 ...niceError,
                 heading: `Empty value found where it must instead ${
-                innerSchema.map((s) => s.description).join(", ")
-                }.`
+                  innerSchema.map((s) => s.description).join(", ")
+                }.`,
               };
             } else {
               // TODO until we have verbose options, this hurts the IDE output.
@@ -408,7 +409,7 @@ function localizeAndPruneErrors(
               niceError = {
                 ...niceError,
                 heading: `The value ${verbatimInput} must ${
-                innerSchema.map((s) => s.description).join(", ")
+                  innerSchema.map((s) => s.description).join(", ")
                 }.`,
               };
             }
