@@ -37,7 +37,7 @@ const divQmd = crossref("figure-syntax-div.qmd", "html");
 const verify: Verify = {
   name: "Compare output",
   verify: (_outputs: ExecuteOutput[]) => {
-    const extractBodyRegex = /<body>((.|\n)*)<\/body>/;
+    const extractBodyRegex = /<body.*?>((.|\n)*)<\/body>/;
 
     const imgText = Deno.readTextFileSync(imgQmd.output.outputPath);
     const imgBody = extractBodyRegex.exec(imgText);

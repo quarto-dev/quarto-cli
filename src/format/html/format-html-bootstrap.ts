@@ -24,6 +24,7 @@ import {
   FormatExtras,
   kBodyEnvelope,
   kDependencies,
+  kHtmlFinalizers,
   kHtmlPostprocessors,
   kSassBundles,
   Metadata,
@@ -183,9 +184,19 @@ export function boostrapExtras(
       [kHtmlPostprocessors]: [
         bootstrapHtmlPostprocessor(flags, format),
       ],
+      [kHtmlFinalizers]: [
+        bootstrapHtmlFinalizer(),
+      ],
     },
   };
 }
+
+// Find any elements that are using fancy layouts (columns)
+const getColumnLayoutElements = (doc: Document) => {
+  return doc.querySelectorAll(
+    '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
+  );
+};
 
 function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
   return (doc: Document): Promise<string[]> => {
@@ -218,10 +229,8 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     }
     processMarginNodes(doc, marginProcessors);
 
-    // Find any elements that are using fancy layouts (columns)
-    const columnLayouts = doc.querySelectorAll(
-      '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
-    );
+    const columnLayouts = getColumnLayoutElements(doc);
+
     // If there are any of these elements, we need to be sure that their
     // parents have acess to the grid system, so make the parent full screen width
     // and apply the grid system to it (now the child 'column-' element can be positioned
@@ -383,6 +392,13 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       }
     }
 
+    // no resource refs
+    return Promise.resolve([]);
+  };
+}
+
+function bootstrapHtmlFinalizer() {
+  return (doc: Document): Promise<void> => {
     // Note whether we need a narrow or wide margin layout
     const leftSidebar = doc.getElementById("quarto-sidebar");
     const hasLeftContent = leftSidebar && leftSidebar.children.length > 0;
@@ -391,19 +407,26 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     if (rightSidebar && !hasRightContent) {
       rightSidebar.remove();
     }
+    const hasColumnElements = getColumnLayoutElements(doc).length > 0;
 
-    if (columnLayouts.length > 0 && hasLeftContent) {
-      // wide margin b/c there are margin elements
-      doc.body.classList.add("slimcontent");
-    } else if (hasRightContent) {
-      // there is a toc, default layout
+    if (hasColumnElements) {
+      if (hasLeftContent) {
+        // Slim down the content area so there are sizable margins
+        // for the column element
+        doc.body.classList.add("slimcontent");
+      } else {
+        // Use the default layout, so don't add any classes
+      }
     } else {
-      // no toc, narrow
-      doc.body.classList.add("fullcontent");
+      if (!hasLeftContent && !hasRightContent) {
+        doc.body.classList.add("fullcontent");
+      } else {
+        // Use the deafult layout, don't add any classes
+      }
     }
 
     // no resource refs
-    return Promise.resolve([]);
+    return Promise.resolve();
   };
 }
 
