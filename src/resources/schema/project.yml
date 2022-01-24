@@ -63,7 +63,8 @@
           path:
             description: "Book references file"
         appendices:
-          arrayOf: path
+          arrayOf:
+            ref: chapter-item
           description: "Book appendix files"
         output-file:
           path:

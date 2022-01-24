@@ -19,7 +19,7 @@
 - name: link-external-filter
   tags:
     formats: [$html-doc, revealjs]
-  schema: boolean
+  schema: string
   description:
     short: "A regular expression that can be used to determine whether a link is an internal link."
     long: |

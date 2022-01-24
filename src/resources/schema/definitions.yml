@@ -180,7 +180,7 @@
         margin,
       ]
 
-- oneOf:
+- anyOf:
     id: navigation-item
     schemas:
       - path
@@ -190,6 +190,14 @@
               string:
                 description: |
                   Link to file contained with the project or external URL
+            url:
+              string:
+                description: |
+                  Alias for href
+            file:
+              string:
+                description: |
+                  Alias for href
             text:
               string:
                 description: |
@@ -775,20 +783,33 @@
               additionalProperties: false
         description: "Publish twitter card metadata"
 
+- id: chapter-item
+  anyOf:
+    - ref: navigation-item
+    - record:
+        part:
+          path:
+            description: "Path to part input file"
+        chapters:
+          arrayOf:
+            ref: navigation-item
+          description: "Path to chapter input file"
+
 - arrayOf:
     id: chapter-list
     schema:
-      oneOf:
-        - path
+      anyOf:
+        - ref: navigation-item
         - object:
             properties:
               part:
                 path:
                   description: "Path to part input file"
               chapters:
-                arrayOf: path
+                arrayOf:
+                  ref: navigation-item
                 description: "Path to chapter input file"
-            required: [part, chapter]
+            required: all
             additionalProperties: false
 
 - string:

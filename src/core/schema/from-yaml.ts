@@ -245,6 +245,32 @@ function convertFromEnum(yaml: any): Schema {
   }
 }
 
+function convertFromRecord(yaml: any): Schema {
+  if (yaml.record.properties) {
+    // deno-lint-ignore no-explicit-any
+    
+    const schema = convertFromObject({
+      "object": {
+        "properties": yaml.record.properties,
+        "additionalProperties": false,
+        "required": "all"
+      }
+    });
+    return setBaseSchemaProperties(
+      yaml, setBaseSchemaProperties(yaml.record, schema));
+  } else {
+    // deno-lint-ignore no-explicit-any
+    const schema = convertFromObject({
+      "object": {
+        "properties": yaml.record,
+        "additionalProperties": false,
+        "required": "all"
+      }
+    });
+    return setBaseSchemaProperties(yaml, schema);
+  }
+}
+
 // deno-lint-ignore no-explicit-any
 function convertFromObject(yaml: any): Schema {
   const schema = yaml["object"];
@@ -341,6 +367,7 @@ export function convertFromYaml(yaml: any): Schema {
     { key: "object", value: convertFromObject },
     { key: "oneOf", value: convertFromOneOf },
     { key: "path", value: convertFromPath },
+    { key: "record", value: convertFromRecord },
     { key: "ref", value: convertFromRef },
     { key: "resolveRef", value: lookup },
     { key: "string", value: convertFromString },
