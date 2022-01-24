@@ -587,11 +587,24 @@ const referenceMarginProcessor: MarginNodeProcessor = {
         const refId = target.slice(1);
         const refContentsEl = doc.getElementById(refId);
 
+        // Walks up the parent stack until a figure element is found
+        const findCaptionEl = (el: Element): Element | undefined => {
+          if (el.parentElement?.tagName === "FIGCAPTION") {
+            return el.parentElement;
+          } else if (el.parentElement) {
+            return findCaptionEl(el.parentElement);
+          } else {
+            return undefined;
+          }
+        };
+
         // The parent is a figcaption that contains the reference.
         // The parent.parent is the figure
-        if (refContentsEl && el.parentElement?.parentElement) {
+        const parentCaptionEl = findCaptionEl(el);
+        console.log(parentCaptionEl?.tagName);
+        if (refContentsEl && parentCaptionEl) {
           addContentToMarginContainerForEl(
-            el.parentElement.parentElement,
+            parentCaptionEl,
             refContentsEl.cloneNode(true),
             doc,
           );

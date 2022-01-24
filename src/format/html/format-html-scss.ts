@@ -30,6 +30,11 @@ import {
   kWebsite,
 } from "../../project/types/website/website-config.ts";
 import {
+  bootstrapFunctions,
+  bootstrapMixins,
+  bootstrapResourceDir,
+  bootstrapRules,
+  bootstrapVariables,
   kBootstrapDependencyName,
   quartoBootstrapCustomizationLayer,
   quartoBootstrapFunctions,
@@ -41,6 +46,7 @@ import {
   quartoGlobalCssVariableRules,
   quartoLinkExternalRules,
   quartoRules,
+  sassUtilFunctions,
 } from "./format-html-shared.ts";
 
 export interface Themes {
@@ -56,23 +62,19 @@ function layerQuartoScss(
   darkLayer?: SassLayer,
   darkDefault?: boolean,
 ): SassBundle {
-  const bootstrapDistDir = formatResourcePath(
-    "html",
-    join("bootstrap", "dist"),
+  // The bootstrap framework functions
+  const frameworkFunctions = [
+    bootstrapFunctions(),
+    sassUtilFunctions("color-contrast.scss"),
+  ].join(
+    "\n",
   );
 
-  // The core bootstrap styles
-  const boostrapRules = join(
-    bootstrapDistDir,
-    "scss",
-    "bootstrap.scss",
-  );
-
-  const sassUtil = (name: string) => {
-    const path = join(bootstrapDistDir, "sass-utils", name);
-    return Deno.readTextFileSync(path);
-  };
-  const sassUtils = [sassUtil("color-contrast.scss")].join("\n");
+  // The bootstrap framework variables
+  const frameworkVariables = [
+    bootstrapVariables(),
+    pandocVariablesToThemeScss(format.metadata),
+  ].join("\n");
 
   return {
     dependency,
@@ -95,12 +97,12 @@ function layerQuartoScss(
       ].join("\n"),
     },
     framework: {
-      defaults: pandocVariablesToThemeScss(format.metadata),
-      functions: sassUtils,
-      mixins: "",
-      rules: Deno.readTextFileSync(boostrapRules),
+      defaults: frameworkVariables,
+      functions: frameworkFunctions,
+      mixins: bootstrapMixins(),
+      rules: bootstrapRules(),
     },
-    loadPaths: [dirname(boostrapRules)],
+    loadPaths: [bootstrapResourceDir()],
     dark: darkLayer
       ? {
         user: darkLayer,
