@@ -311,7 +311,7 @@ function convertFromObject(yaml: any): Schema {
     params.completions = schema["completions"];
   }
 
-  return setBaseSchemaProperties(schema, objectS(params));
+  return setBaseSchemaProperties(yaml, setBaseSchemaProperties(schema, objectS(params)));
 }
 
 // deno-lint-ignore no-explicit-any

@@ -12,10 +12,9 @@
     execute-only: true
   schema:
     anyOf:
-      schemas:
-        - boolean
-        - enum: [fenced]
-      errorDescription: "be `true`, `false`, or `fenced`"
+      - boolean
+      - enum: [fenced]
+    errorDescription: "be `true`, `false`, or `fenced`"
   description: |
     Include cell source code in rendered output. Specify `fenced` to include the cell delimiter 
     as part of the output.

@@ -1,104 +1,95 @@
-- enum:
-    id: math-methods
+- id: math-methods
+  enum:
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
 
-- arrayOf:
-    id: pandoc-format-request-headers
-    schema:
-      arrayOf:
-        schema: string
-        length: 2
+- id: pandoc-format-request-headers
+  arrayOf:
+    arrayOf:
+      schema: string
+      length: 2
 
-- oneOf:
-    id: pandoc-format-output-file
-    schemas:
+- id: pandoc-format-output-file
+  oneOf:
+    - path
+    - enum:
+        values: [null]
+        hidden: true
+
+- id: pandoc-format-filters
+  arrayOf:
+    oneOf:
       - path
-      - "null":
-          hidden: true
+      - record:
+          type: string
+          path: path
+      - record:
+          type:
+            enum: [citeproc]
 
-- arrayOf:
-    id: pandoc-format-filters
-    schema:
-      oneOf:
-        - path
-        - object:
-            properties:
-              type: string
-              path: path
-            required: [type, path]
-        - object:
-            properties:
-              type:
-                enum: [citeproc]
-            required: [type]
+- id: page-column
+  enum: [
+    body,
+    body-outset,
+    body-outset-left,
+    body-outset-right,
+    page,
+    page-left,
+    page-right,
+    page-inset-left,
+    page-inset-right,
+    screen,
+    screen-left,
+    screen-right,
+    screen-rightcolumn,
+    screen-inset,
+    screen-inset-shaded,
+    screen-inset-left,
+    screen-inset-right,
+    margin,
+  ]
 
-- enum:
-    id: page-column
-    values:
-      [
-        body,
-        body-outset,
-        body-outset-left,
-        body-outset-right,
-        page,
-        page-left,
-        page-right,
-        page-inset-left,
-        page-inset-right,
-        screen,
-        screen-left,
-        screen-right,
-        screen-rightcolumn,
-        screen-inset,
-        screen-inset-shaded,
-        screen-inset-left,
-        screen-inset-right,
-        margin,
-      ]
+- id: navigation-item
+  anyOf:
+    - path
+    - object:
+        properties:
+          href:
+            string:
+              description: |
+                Link to file contained with the project or external URL
+          url:
+            hidden: true
+            string:
+              description: |
+                Alias for href
+          file:
+            hidden: true
+            string:
+              description: |
+                Alias for href
+          text:
+            string:
+              description: |
+                Text to display for navigation item (defaults to the
+                document title if not provided)
+          icon:
+            string:
+              description:
+                short: Name of bootstrap icon (e.g. "github", "twitter", "share")
+                long: |
+                  Name of bootstrap icon (e.g. "github", "twitter", "share")
+                  See <https://icons.getbootstrap.com/> for a list of available icons
+          aria-label:
+            string:
+              description: "Accessible label for the navigation item."
+          menu:
+            arrayOf:
+              schema:
+                ref: navigation-item
+        additionalProperties: false
 
-- anyOf:
-    id: navigation-item
-    schemas:
-      - path
-      - object:
-          properties:
-            href:
-              string:
-                description: |
-                  Link to file contained with the project or external URL
-            url:
-              hidden: true
-              string:
-                description: |
-                  Alias for href
-            file:
-              hidden: true
-              string:
-                description: |
-                  Alias for href
-            text:
-              string:
-                description: |
-                  Text to display for navigation item (defaults to the
-                  document title if not provided)
-            icon:
-              string:
-                description:
-                  short: Name of bootstrap icon (e.g. "github", "twitter", "share")
-                  long: |
-                    Name of bootstrap icon (e.g. "github", "twitter", "share")
-                    See <https://icons.getbootstrap.com/> for a list of available icons
-            aria-label:
-              string:
-                description: "Accessible label for the navigation item."
-            menu:
-              arrayOf:
-                schema:
-                  ref: navigation-item
-          additionalProperties: false
-
-- object:
-    id: tool-item
+- id: tool-item
+  object:
     properties:
       icon:
         string:
@@ -116,8 +107,8 @@
           schema:
             ref: navigation-item
 
-- object:
-    id: comments
+- id: comments
+  object:
     additionalProperties: false
     properties:
       utterances:
@@ -281,8 +272,8 @@
                     description: The URL for the sidebar application which displays annotations.
                     default: "https://hypothes.is/app.html"
 
-- object:
-    id: social-metadata
+- id: social-metadata
+  object:
     properties:
       title:
         string:
@@ -315,27 +306,25 @@
         number:
           description: "Image height (pixels)"
 
-- oneOf:
-    id: page-footer-region
-    schemas:
-      - string
-      - arrayOf:
-          ref: navigation-item
+- id: page-footer-region
+  oneOf:
+    - string
+    - arrayOf:
+        ref: navigation-item
 
-- arrayOf:
-    id: sidebar-contents
-    schema:
-      anyOf:
-        - ref: navigation-item
-        - path
-        - object:
-            properties:
-              section: string
-              contents:
-                ref: sidebar-contents
+- id: sidebar-contents
+  arrayOf:
+    anyOf:
+      - ref: navigation-item
+      - path
+      - object:
+          properties:
+            section: string
+            contents:
+              ref: sidebar-contents
 
-- object:
-    id: base-website
+- id: base-website
+  object:
     properties:
       title:
         string:
@@ -673,55 +662,53 @@
             ref: navigation-item
           description: "Path to chapter input file"
 
-- arrayOf:
-    id: chapter-list
-    schema:
-      anyOf:
-        - ref: navigation-item
-        - object:
-            properties:
-              part:
-                string:
-                  description: "Part title or path to input file"
-              chapters:
-                arrayOf:
-                  ref: navigation-item
-                description: "Path to chapter input file"
-            required: all
-            additionalProperties: false
+- id: chapter-list
+  arrayOf:
+    anyOf:
+      - ref: navigation-item
+      - object:
+          properties:
+            part:
+              string:
+                description: "Part title or path to input file"
+            chapters:
+              arrayOf:
+                ref: navigation-item
+              description: "Path to chapter input file"
+          required: all
+          additionalProperties: false
 
-- string:
-    id: crossref-labels-schema
+- id: crossref-labels-schema
+  string:
     completions:
       - alpha
       - arabic
       - roman
 
-- oneOf:
-    id: epub-contributor
-    schemas:
-      - string
-      - maybeArrayOf:
-          object:
-            properties:
-              role:
-                string:
-                  description:
-                    short: The role of this creator or contributor.
-                    long: |
-                      The role of this creator or contributor using 
-                      [MARC relators](https://loc.gov/marc/relators/relaterm.html). Human readable
-                      translations to commonly used relators (e.g. 'author', 'editor') will 
-                      attempt to be automatically translated.
-              file-as:
-                string:
-                  description: An alternate version of the creator or contributor text used for alphabatizing.
-              text:
-                string:
-                  description: The text describing the creator or contributor (for example, creator name).
+- id: epub-contributor
+  oneOf:
+    - string
+    - maybeArrayOf:
+        object:
+          properties:
+            role:
+              string:
+                description:
+                  short: The role of this creator or contributor.
+                  long: |
+                    The role of this creator or contributor using 
+                    [MARC relators](https://loc.gov/marc/relators/relaterm.html). Human readable
+                    translations to commonly used relators (e.g. 'author', 'editor') will 
+                    attempt to be automatically translated.
+            file-as:
+              string:
+                description: An alternate version of the creator or contributor text used for alphabatizing.
+            text:
+              string:
+                description: The text describing the creator or contributor (for example, creator name).
 
-- object:
-    id: format-language
+- id: format-language
+  object:
     properties:
       toc-title-document: string
       toc-title-website: string
