@@ -46,6 +46,7 @@ export interface RunPandocResult {
   htmlPostprocessors: Array<
     (doc: Document) => Promise<string[]>
   >;
+  htmlFinalizers?: Array<(doc: Document) => Promise<void>>;
 }
 
 export interface RenderResourceFiles {

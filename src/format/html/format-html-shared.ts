@@ -58,6 +58,47 @@ export const clipboardDependency = () => {
   return dependency;
 };
 
+export const bootstrapFunctions = () => {
+  return Deno.readTextFileSync(
+    join(bootstrapResourceDir(), "_functions.scss"),
+  );
+};
+
+export const bootstrapMixins = () => {
+  return Deno.readTextFileSync(
+    join(bootstrapResourceDir(), "_mixins.scss"),
+  );
+};
+
+export const bootstrapVariables = () => {
+  return Deno.readTextFileSync(
+    join(bootstrapResourceDir(), "_variables.scss"),
+  );
+};
+
+export const bootstrapRules = () => {
+  return Deno.readTextFileSync(
+    join(bootstrapResourceDir(), "bootstrap.scss"),
+  );
+};
+
+export const bootstrapResourceDir = () => {
+  return formatResourcePath(
+    "html",
+    join("bootstrap", "dist", "scss"),
+  );
+};
+
+export const sassUtilFunctions = (name: string) => {
+  const bootstrapDistDir = formatResourcePath(
+    "html",
+    join("bootstrap", "dist"),
+  );
+
+  const path = join(bootstrapDistDir, "sass-utils", name);
+  return Deno.readTextFileSync(path);
+};
+
 export const quartoRules = () =>
   Deno.readTextFileSync(formatResourcePath(
     "html",

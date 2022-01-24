@@ -197,8 +197,7 @@ export async function websiteNavigationExtras(
   const sidebar = sidebarForHref(href);
 
   const nav: Record<string, unknown> = {
-    needMargin: hasTableOfContents(flags, format) ||
-      navigation.pageMargin?.footer || navigation.pageMargin?.header,
+    hasToc: hasTableOfContents(flags, format),
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
@@ -752,7 +751,9 @@ function sidebarForHref(href: string) {
 
 function containsHref(href: string, items: SidebarItem[]) {
   for (let i = 0; i < items.length; i++) {
-    if (Object.keys(items[i]).includes("contents")) {
+    if (items[i].href && items[i].href === href) {
+      return true;
+    } else if (Object.keys(items[i]).includes("contents")) {
       const subItems = items[i].contents || [];
       const subItemsHasHref = containsHref(href, subItems);
       if (subItemsHasHref) {

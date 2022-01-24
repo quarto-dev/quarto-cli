@@ -197,9 +197,12 @@ nav .nav-item.compact .nav-link {
   margin-bottom: 0.4em;
 }
 
-.sidebar-navigation ul.sidebar-section.depth2 .sidebar-section-item {
+.sidebar-navigation ul.sidebar-section:not(.depth1) .sidebar-section-item {
   text-transform: none;
   font-weight: normal;
+}
+.sidebar-navigation ul.sidebar-section:not(.depth1) li {
+  margin-top: -2px;
 }
 
 .sidebar-navigation ul.sidebar-section .sidebar-item-contents {

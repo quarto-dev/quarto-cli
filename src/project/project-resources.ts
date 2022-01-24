@@ -11,7 +11,11 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import * as ld from "../core/lodash.ts";
 import { asArray } from "../core/array.ts";
 
-import { resolvePathGlobs, safeExistsSync } from "../core/path.ts";
+import {
+  copyFileIfNewer,
+  resolvePathGlobs,
+  safeExistsSync,
+} from "../core/path.ts";
 import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";
 
 import {
@@ -68,10 +72,7 @@ export function copyResourceFile(
   }
 
   ensureDirSync(dirname(destFile));
-  copySync(srcFile, destFile, {
-    overwrite: true,
-    preserveTimestamps: true,
-  });
+  copyFileIfNewer(srcFile, destFile);
 
   if (extname(srcFile).toLowerCase() === ".css") {
     handleCssReferences(rootDir, srcFile, destFile);
