@@ -7,7 +7,8 @@
     // the section ID will ultimately be used in a selector, so the 
     // '.' means query selector will match an abbreviated ID with a class matching
     // what follows the dot. 
-    sectionId = item.sectionId.replace(".", ""); %>
+    sectionId = item.sectionId ? item.sectionId.replace(".", "") : undefined ; 
+  %> 
   <% isCollapsed = collapse <= depth  && !item.expanded %>
 
   <ul class="list-unstyled sidebar-section depth<%-depth%>">
