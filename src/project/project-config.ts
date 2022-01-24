@@ -105,7 +105,7 @@ export interface SidebarItem extends NavItem {
 
 export interface SidebarTool {
   // label/contents
-  icon: string;
+  icon?: string;
   text?: string;
   menu?: NavbarItem[];
 

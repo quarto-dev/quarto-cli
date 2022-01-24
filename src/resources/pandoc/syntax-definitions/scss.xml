@@ -34,7 +34,7 @@ Changelog:
 
 -->
 
-<language name="SCSS" version="13" kateversion="5.53" section="Markup" extensions="*.scss" indenter="cstyle" mimetype="text/css" author="Wilbert Berendsen (wilbert@kde.nl)" license="LGPL" priority="10">
+<language name="SCSS" version="13" kateversion="5.53" section="Markup" extensions="*.scss" indenter="cstyle" mimetype="text/css" author="Wilbert Berendsen (wilbert@kde.nl)" license="LGPL">
 
     <highlighting>
         <list name="properties">
