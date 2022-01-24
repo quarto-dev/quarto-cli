@@ -23,7 +23,7 @@
           path:
             description: "HTML library (JS/CSS/etc.) directory"
         resources:
-          arrayOf:
+          maybeArrayOf:
             schema: path
             description: "Additional file resources to be copied to output directory"
 
