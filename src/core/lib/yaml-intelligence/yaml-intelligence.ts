@@ -35,7 +35,6 @@ import {
   expandAliasesFrom,
   Schema,
   schemaCompletions,
-  schemaType,
   schemaAccepts,
   setSchemaDefinition,
 } from "../yaml-validation/schema.ts";
@@ -193,7 +192,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     // we're in a pure-whitespace line, we should locate entirely based on indentation
     const path = locateFromIndentation(context);
     const indent = line.length;
-    const rawCompletions = await completions({
+    const rawCompletions = completions({
       schema,
       path,
       word,
@@ -208,7 +207,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
   }
   const indent = line.trimEnd().length - line.trim().length;
 
-  const completeEmptyLineOnIndentation = async (
+  const completeEmptyLineOnIndentation = (
     deletions: number,
     mappedCode: MappedString,
   ) => {
@@ -223,7 +222,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       },
     });
     // we're in an empty line, so the only valid completions are object keys
-    const rawCompletions = await completions({
+    const rawCompletions = completions({
       schema,
       path,
       word,
@@ -246,7 +245,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     const lineAfterDeletions = line.substring(0, line.length - deletions);
 
     if (lineAfterDeletions.trim().length === 0) {
-      const result = await completeEmptyLineOnIndentation(
+      const result = completeEmptyLineOnIndentation(
         deletions,
         mappedCode,
       );
@@ -301,7 +300,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
         path.pop();
       }
 
-      const rawCompletions = await completions({
+      const rawCompletions = completions({
         schema,
         path,
         word,
@@ -379,7 +378,7 @@ function dropCompletionsFromSchema(
   obj: CompletionContext,
   completion: Completion)
 {
-  let matchingSchema = resolveSchema(completion.schema);
+  const matchingSchema = resolveSchema(completion.schema);
   const {
     path
   } = obj;
@@ -388,9 +387,9 @@ function dropCompletionsFromSchema(
     return false;
   }
   // drop ": " from the key completion
-  let subPath = [completion.value.slice(0, -2)]; 
+  const subPath = [completion.value.slice(0, -2)]; 
 
-  let matchingSubSchemas = navigateSchema(matchingSchema, subPath);
+  const matchingSubSchemas = navigateSchema(matchingSchema, subPath);
   if (matchingSubSchemas.length === 0) {
     return false;
   }
@@ -401,7 +400,8 @@ function dropCompletionsFromSchema(
     matchingSubSchemas.every((s: Schema) => s.tags && s.tags["execute-only"]);
 }
 
-async function completions(obj: CompletionContext): Promise<CompletionResult> {
+
+function completions(obj: CompletionContext): CompletionResult {
   const {
     schema,
     indent,
@@ -880,8 +880,6 @@ export async function getAutomation(
 }
 
 const initializer = async () => {
-  const before = performance.now();
-
   setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
   
   // for now we force the IDE to load the module ahead of time to not get
@@ -898,7 +896,6 @@ const initializer = async () => {
     await withValidator(value, async (_validator) => {
     });
   }
-  const after = performance.now();
 };
 
 export const QuartoYamlEditorTools = {

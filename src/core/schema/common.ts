@@ -17,7 +17,6 @@ import {
   getSchemaDefinition,
   hasSchemaDefinition,
   Schema,
-  schemaExhaustiveCompletions,
 } from "../lib/yaml-validation/schema.ts";
 
 import { mergeConfigs } from "../config.ts";

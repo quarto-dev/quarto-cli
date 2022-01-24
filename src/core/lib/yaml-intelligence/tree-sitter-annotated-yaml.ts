@@ -212,6 +212,7 @@ export function buildAnnotated(
     },
     "flow_pair": buildPair,
     "flow_mapping": (node) => {
+      // deno-lint-ignore no-explicit-any
       const result: Record<string, any> = {}, components: AnnotatedParse[] = [];
       // skip flow_nodes at the boundary
       for (let i = 0; i < node.childCount; ++i) {
@@ -220,8 +221,7 @@ export function buildAnnotated(
           continue;
         }
         if (child.type === "flow_pair") {
-          let component;
-          component = buildNode(child, node.endIndex);
+          const component = buildNode(child, node.endIndex);
           const { key, value } = component.result;
           result[String(key)] = value;
           components.push(...(component.components!));
