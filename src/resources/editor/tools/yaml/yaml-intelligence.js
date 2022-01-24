@@ -342,8 +342,7 @@ function buildAnnotated(tree, mappedSource2) {
           continue;
         }
         if (child.type === "flow_pair") {
-          let component;
-          component = buildNode(child, node.endIndex);
+          const component = buildNode(child, node.endIndex);
           const { key, value } = component.result;
           result2[String(key)] = value;
           components.push(...component.components);
@@ -3782,7 +3781,7 @@ async function completionsFromGoodParseYAML(context) {
   if (line.trim().length === 0) {
     const path = locateFromIndentation(context);
     const indent2 = line.length;
-    const rawCompletions = await completions({
+    const rawCompletions = completions({
       schema,
       path,
       word,
@@ -3794,7 +3793,7 @@ async function completionsFromGoodParseYAML(context) {
     return rawCompletions;
   }
   const indent = line.trimEnd().length - line.trim().length;
-  const completeEmptyLineOnIndentation = async (deletions, mappedCode) => {
+  const completeEmptyLineOnIndentation = (deletions, mappedCode) => {
     const path = locateFromIndentation({
       line: line.slice(0, -deletions),
       code: mappedCode.value,
@@ -3803,7 +3802,7 @@ async function completionsFromGoodParseYAML(context) {
         column: position.column - deletions
       }
     });
-    const rawCompletions = await completions({
+    const rawCompletions = completions({
       schema,
       path,
       word,
@@ -3822,7 +3821,7 @@ async function completionsFromGoodParseYAML(context) {
     } = parseResult;
     const lineAfterDeletions = line.substring(0, line.length - deletions);
     if (lineAfterDeletions.trim().length === 0) {
-      const result = await completeEmptyLineOnIndentation(deletions, mappedCode);
+      const result = completeEmptyLineOnIndentation(deletions, mappedCode);
       return result;
     } else {
       const doc = buildAnnotated(tree, mappedCode);
@@ -3852,7 +3851,7 @@ async function completionsFromGoodParseYAML(context) {
       if (path[path.length - 1] === word) {
         path.pop();
       }
-      const rawCompletions = await completions({
+      const rawCompletions = completions({
         schema,
         path,
         word,
@@ -3890,21 +3889,21 @@ function uniqBy(lst, keyFun) {
   });
 }
 function dropCompletionsFromSchema(obj, completion) {
-  let matchingSchema = resolveSchema(completion.schema);
+  const matchingSchema = resolveSchema(completion.schema);
   const {
     path
   } = obj;
   if (completion.type === "value") {
     return false;
   }
-  let subPath = [completion.value.slice(0, -2)];
-  let matchingSubSchemas = navigateSchema2(matchingSchema, subPath);
+  const subPath = [completion.value.slice(0, -2)];
+  const matchingSubSchemas = navigateSchema2(matchingSchema, subPath);
   if (matchingSubSchemas.length === 0) {
     return false;
   }
   return !(path.length > 0 && path[0] === "execute") && matchingSubSchemas.every((s) => s.tags && s.tags["execute-only"]);
 }
-async function completions(obj) {
+function completions(obj) {
   const {
     schema,
     indent,
@@ -4230,7 +4229,6 @@ async function getAutomation(kind, context) {
   return result || null;
 }
 var initializer2 = async () => {
-  const before = performance.now();
   setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
   await ensureValidatorModule();
   const response = await fetch(getLocalPath("quarto-json-schemas.json"));
@@ -4242,7 +4240,6 @@ var initializer2 = async () => {
     await withValidator(value, async (_validator) => {
     });
   }
-  const after = performance.now();
 };
 var QuartoYamlEditorTools = {
   getAutomation: function(params) {
