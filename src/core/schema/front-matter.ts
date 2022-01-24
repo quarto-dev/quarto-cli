@@ -22,14 +22,23 @@ import { getFormatExecuteOptionsSchema } from "./execute.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 
 import { getFormatSchema } from "./format-schemas.ts";
-import { pandocOutputFormats } from "./pandoc-output-formats.ts";
+import { pandocListFormats } from "../pandoc/pandoc-formats.ts";
 
 import { defineCached } from "./definitions.ts";
 
 // deno-lint-ignore require-await
 export async function makeFrontMatterFormatSchema(nonStrict = false) {
-  const formatSchemaDescriptorList = pandocOutputFormats.map(
-    ({ name, hidden }) => {
+  const hideFormat = (format: string) => {
+    const hideList = ["html", "epub", "docbook"];
+    const hidden = hideList.some(h => format.startsWith(h) &&
+      format.length > h.length);
+    return { name: format, hidden };
+  }
+  const formatSchemaDescriptorList = (await pandocListFormats()).map(
+    (format) => {
+      const {
+        name, hidden
+      } = hideFormat(format)
       return {
         regex: `^${name}(\\+.+)?$`,
         schema: getFormatSchema(name),
