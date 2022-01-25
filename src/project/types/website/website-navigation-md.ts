@@ -211,7 +211,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       const sidebarItemEls = doc.querySelectorAll(
-        "li.sidebar-item > a",
+        ".sidebar-item:not(.sidebar-section) .sidebar-item-text",
       );
       for (let i = 0; i < sidebarItemEls.length; i++) {
         const link = sidebarItemEls[i] as Element;
@@ -224,7 +224,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
       }
 
       const sidebarSectionEls = doc.querySelectorAll(
-        "ul.sidebar-section a.sidebar-section-item",
+        "sidebar-item.sidebar-item-section .sidebar-item-text",
       );
       for (let i = 0; i < sidebarSectionEls.length; i++) {
         const link = sidebarSectionEls[i] as Element;
