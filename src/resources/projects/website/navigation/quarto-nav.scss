@@ -189,6 +189,10 @@ $sidebar-items-gap-spacing: 0.2em;
 $sidebar-section-indent: 0.5em;
 $sidebar-section-bottom-margin: 0.2em;
 
+.sidebar.sidebar-navigation > * {
+  padding-top: 1em;
+}
+
 .sidebar-item {
   margin-bottom: $sidebar-items-gap-spacing;
 }
