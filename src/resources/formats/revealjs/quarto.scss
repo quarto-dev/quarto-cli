@@ -233,6 +233,23 @@ section.has-dark-background {
   max-height: 500px;
 }
 
+.reveal blockquote {
+  display: block;
+  position: relative;
+  color: $border-color;
+  width: unset;
+  margin: var(--r-block-margin) auto;
+  padding: 0.625rem 1.75rem;
+  border-left: 0.25rem solid $text-muted;
+  font-style: normal;
+  background: none;
+  box-shadow: none;
+}
+.reveal blockquote p:first-child,
+.reveal blockquote p:last-child {
+  display: inline;
+}
+
 $panel-sidebar-width: 270px;
 $panel-sidebar-padding: 0.5em;
 
