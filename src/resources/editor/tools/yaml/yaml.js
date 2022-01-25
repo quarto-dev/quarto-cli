@@ -8774,10 +8774,8 @@ if (typeof exports === 'object') {
     if (matchingSubSchemas.length === 0) {
       return false;
     }
-    if (path.length === 0)
-      return false;
     const executeOnly = matchingSubSchemas.every((s) => s.tags && s.tags["execute-only"]);
-    if (path[0] === "execute") {
+    if (path.length > 0 && path[0] === "execute") {
       return !executeOnly;
     } else {
       return executeOnly;

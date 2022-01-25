@@ -399,11 +399,8 @@ function dropCompletionsFromSchema(
     return false;
   }
 
-  if (path.length === 0)
-    return false;
-
   const executeOnly = matchingSubSchemas.every((s: Schema) => s.tags && s.tags["execute-only"]);
-  if (path[0] === "execute") {
+  if (path.length > 0 && path[0] === "execute") {
     // don't complete on schemas that do not have "execute-only" but
     // paths that start on path fragments of "execute"
     return !executeOnly;
