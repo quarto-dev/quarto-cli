@@ -486,7 +486,6 @@ function completions(obj: CompletionContext): CompletionResult {
         }
 
         const key = completion.value.split(":")[0];
-
         const matchingSubSchemas = navigateSchema(completion.schema, [key]);
 
         let matchingTypes = 0;
@@ -533,6 +532,21 @@ function completions(obj: CompletionContext): CompletionResult {
       });
   }).flat()
     .filter((c) => c.value.startsWith(word))
+    .filter((c) => {
+      if (c.type === "value") {
+        return !(c.schema && c.schema.tags && c.schema.tags.hidden);
+      } else if (c.type === "key") {
+        const key = c.value.split(":")[0];
+        const matchingSubSchemas = navigateSchema(c.schema, [key]);
+        if (matchingSubSchemas.length === 0) {
+          return true;
+        }
+        return !(matchingSubSchemas.every(s => s.tags && s.tags.hidden));
+      } else {
+        // should never get here.
+        return true;
+      }
+    })
     .filter((c) => {
       if (formats.length === 0) {
         // don't filter on tags if there's no detected formats anywhere.

@@ -61,9 +61,12 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
   if (yaml.id) {
     schema = withId(schema, yaml.id);
   }
-  if (yaml.hidden === false) {
+  if (yaml.hidden === true) {
     // don't complete anything through a `hidden` field
     schema = completeSchemaOverwrite(schema);
+    schema = tagSchema(schema, {
+      "hidden": true
+    });
   }
   if (yaml.tags) {
     schema = tagSchema(schema, yaml.tags);
@@ -479,6 +482,11 @@ function annotateSchemaFromField(field: SchemaField, schema: Schema): Schema {
     } else if (typeof field.description === "object") {
       schema = documentSchema(schema, field.description.short);
     }
+  }
+  if (field.hidden) {
+    schema = tagSchema(schema, {
+      "hidden": true
+    });
   }
   return schema;
 }

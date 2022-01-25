@@ -181,6 +181,7 @@ export function objectSchema(params: {
     const maybeDescriptions: (undefined | string | { $ref: string })[] = [
       completionsParam?.[k]
     ];
+    let hidden = false;
     if (schema !== undefined) {
       if (schema.documentation) {
         // if a ref schema has documentation, use that directly.
@@ -195,6 +196,9 @@ export function objectSchema(params: {
         
         let described = false;
         const visitor = (schema: Schema) => {
+          if (schema?.hidden) {
+            hidden = true;
+          }
           if (described) {
             return;
           }
@@ -215,6 +219,9 @@ export function objectSchema(params: {
           maybeDescriptions.push({ $ref: schema?.$ref });
         }
       }
+    }
+    if (hidden) {
+      continue;
     }
     let description: (string | { $ref: string }) = "";
     for (const md of maybeDescriptions) {

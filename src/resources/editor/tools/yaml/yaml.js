@@ -8916,6 +8916,19 @@ if (typeof exports === 'object') {
         }
       });
     }).flat().filter((c) => c.value.startsWith(word)).filter((c) => {
+      if (c.type === "value") {
+        return !(c.schema && c.schema.tags && c.schema.tags.hidden);
+      } else if (c.type === "key") {
+        const key = c.value.split(":")[0];
+        const matchingSubSchemas = navigateSchema2(c.schema, [key]);
+        if (matchingSubSchemas.length === 0) {
+          return true;
+        }
+        return !matchingSubSchemas.every((s) => s.tags && s.tags.hidden);
+      } else {
+        return true;
+      }
+    }).filter((c) => {
       if (formats.length === 0) {
         return true;
       }
