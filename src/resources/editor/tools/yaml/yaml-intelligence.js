@@ -3646,6 +3646,49 @@ function navigateSchema2(schema, path) {
   };
   return inner(schema, 0).flat(Infinity);
 }
+function navigateSchemaSingle(schema, path) {
+  const ensurePathFragment = (fragment, expected) => {
+    if (fragment !== expected) {
+      throw new Error(`Internal Error in navigateSchemaSingle: ${fragment} !== ${expected}`);
+    }
+  };
+  const inner = (subschema, index) => {
+    if (subschema === void 0) {
+      throw new Error(`Internal Error in navigateSchemaSingle: invalid path navigation`);
+    }
+    if (index === path.length) {
+      return subschema;
+    }
+    const st = schemaType(subschema);
+    switch (st) {
+      case "anyOf":
+        ensurePathFragment(path[index], "anyOf");
+        return inner(subschema.anyOf[path[index + 1]], index + 2);
+      case "allOf":
+        ensurePathFragment(path[index], "allOf");
+        return inner(subschema.allOf[path[index + 1]], index + 2);
+      case "oneOf":
+        ensurePathFragment(path[index], "oneOf");
+        return inner(subschema.oneOf[path[index + 1]], index + 2);
+      case "arrayOf":
+        ensurePathFragment(path[index], "arrayOf");
+        return inner(subschema.arrayOf.schema, index + 2);
+      case "object":
+        ensurePathFragment(path[index], "object");
+        if (path[index + 1] === "properties") {
+          return inner(subschema.properties[path[index + 2]], index + 3);
+        } else if (path[index + 1] === "patternProperties") {
+          return inner(subschema.patternProperties[path[index + 2]], index + 3);
+        } else if (path[index + 1] === "additionalProperties") {
+          return inner(subschema.additionalProperties, index + 2);
+        } else {
+          throw new Error(`Internal Error in navigateSchemaSingle: bad path fragment ${path[index]} in object navigation`);
+        }
+      default:
+        throw new Error(`Internal Error in navigateSchemaSingle: can't navigate schema type ${st}`);
+    }
+  };
+}
 function resolveDescription(s) {
   if (typeof s === "string") {
     return s;
@@ -3661,19 +3704,12 @@ function resolveDescription(s) {
     return "";
   }
 }
-function resolveSchema(schema) {
-  if (schema.$ref === void 0) {
+function resolveSchemaThroughFunction(schema, hasRef, next) {
+  if (!hasRef(schema)) {
     return schema;
   }
   let cursor1 = schema;
   let cursor2 = schema;
-  const next = (cursor) => {
-    const result = getSchemaDefinition(cursor.$ref);
-    if (result === void 0) {
-      throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
-    }
-    return result;
-  };
   while (cursor1.$ref !== void 0) {
     cursor1 = next(cursor1);
     if (cursor1.$ref === void 0) {
@@ -3693,8 +3729,29 @@ function resolveSchema(schema) {
   }
   return cursor1;
 }
+function resolveSchema(schema) {
+  if (schema.$ref === void 0) {
+    return schema;
+  }
+  const hasRef = (cursor) => {
+    return cursor.$ref !== void 0;
+  };
+  const next = (cursor) => {
+    const result = getSchemaDefinition(cursor.$ref);
+    if (result === void 0) {
+      throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
+    }
+    return result;
+  };
+  return resolveSchemaThroughFunction(schema, hasRef, next);
+}
 function schemaCompletions(schema) {
   schema = resolveSchema(schema);
+  schema = resolveSchemaThroughFunction(schema, (schema2) => {
+    return schema2.tags && schema2.tags["complete-from"];
+  }, (schema2) => {
+    return navigateSchemaSingle(schema2, schema2.tags["complete-from"]);
+  });
   const normalize = (completions2) => {
     const result = (completions2 || []).map((c) => {
       if (typeof c === "string") {

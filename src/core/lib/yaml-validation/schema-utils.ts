@@ -64,6 +64,12 @@ function matchPatternProperties(schema: Schema, key: string): Schema | false {
   return false;
 }
 
+// Note that we have _two_ schema navigation functions which behave
+// differently.
+//
+// navigateSchema is used to resolve inner schema in error messages it
+// navigates to sets of schema from the schema path given by ajv
+
 export function navigateSchema(
   schema: Schema,
   path: (number | string)[],
@@ -122,6 +128,57 @@ export function navigateSchema(
   return inner(schema, 0).flat(Infinity);
 }
 
+// in contrast to navigateSchema, navigateSchemaSingle returns always
+// a single schema.  It is used to walk the actual concrete schemas ("take
+// _this specific anyOf_ entry, then that specific key", and give me
+// the resulting schema")
+
+export function navigateSchemaSingle(schema: Schema, path: (number | string)[]): Schema
+{
+  const ensurePathFragment = (fragment: (number | string), expected: (number | string)) => {
+    if (fragment !== expected) {
+      throw new Error(`Internal Error in navigateSchemaSingle: ${fragment} !== ${expected}`);
+    }
+  }
+  
+  const inner = (subschema: Schema, index: number): Schema => {
+    if (subschema === undefined) {
+      throw new Error(`Internal Error in navigateSchemaSingle: invalid path navigation`);
+    }
+    if (index === path.length) {
+      return subschema;
+    }
+    const st = schemaType(subschema);
+    switch (st) {
+      case "anyOf":
+        ensurePathFragment(path[index], "anyOf");
+        return inner(subschema.anyOf[path[index + 1]], index + 2);
+      case "allOf":
+        ensurePathFragment(path[index], "allOf");
+        return inner(subschema.allOf[path[index + 1]], index + 2);
+      case "oneOf":
+        ensurePathFragment(path[index], "oneOf");
+        return inner(subschema.oneOf[path[index + 1]], index + 2);
+      case "arrayOf":
+        ensurePathFragment(path[index], "arrayOf");
+        return inner(subschema.arrayOf.schema, index + 2);
+      case "object":
+        ensurePathFragment(path[index], "object");
+        if (path[index + 1] === "properties") {
+          return inner(subschema.properties[path[index + 2]], index + 3);
+        } else if (path[index + 1] === "patternProperties") {
+          return inner(subschema.patternProperties[path[index + 2]], index + 3);
+        } else if (path[index + 1] === "additionalProperties") {
+          return inner(subschema.additionalProperties, index + 2);
+        } else {
+          throw new Error(`Internal Error in navigateSchemaSingle: bad path fragment ${path[index]} in object navigation`);
+        }
+      default:
+        throw new Error(`Internal Error in navigateSchemaSingle: can't navigate schema type ${st}`);
+    }
+  }
+}
+
 export function maybeResolveSchema(schema: Schema): Schema | undefined {
   try {
     return resolveSchema(schema);
@@ -147,25 +204,25 @@ export function resolveDescription(s: string | { $ref: string }): string
   }
 }
 
-export function resolveSchema(schema: Schema) {
-  // common fast path
-  if (schema.$ref === undefined) {
+export function resolveSchemaThroughFunction(
+  schema: Schema,
+  hasRef: (schema: Schema) => boolean,
+  next: (schema: Schema) => Schema): Schema
+{
+  if (!hasRef(schema)) {
     return schema;
   }
-
+  
   // this is on the chancy side of clever, but we're going to be extra
   // careful here and use the cycle-detecting trick. This code runs
   // in the IDE and I _really_ don't want to accidentally freeze them.
+  //
+  // I'm sufficiently dismayed by badly-written emacs modes that randomly
+  // freeze on me from some unforeseen looping condition that I want
+  // to go out of my way to avoid this for our users.
 
   let cursor1: Schema = schema;
   let cursor2: Schema = schema;
-  const next = (cursor: Schema) => {
-    const result = getSchemaDefinition(cursor.$ref);
-    if (result === undefined) {
-      throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
-    }
-    return result;
-  };
 
   while (cursor1.$ref !== undefined) {
     cursor1 = next(cursor1);
@@ -188,8 +245,42 @@ export function resolveSchema(schema: Schema) {
   return cursor1;
 }
 
+export function resolveSchema(schema: Schema) {
+  // common fast path
+  if (schema.$ref === undefined) {
+    return schema;
+  }
+
+  const hasRef = (cursor: Schema) => {
+    return cursor.$ref !== undefined;
+  }
+  
+  const next = (cursor: Schema) => {
+    const result = getSchemaDefinition(cursor.$ref);
+    if (result === undefined) {
+      throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
+    }
+    return result;
+  };
+
+  return resolveSchemaThroughFunction(schema, hasRef, next);
+}
+
 export function schemaCompletions(schema: Schema): Completion[] {
+  // first resolve through $ref
   schema = resolveSchema(schema);
+
+  // then resolve through "complete-from" schema tags
+  schema = resolveSchemaThroughFunction(
+    schema,
+    (schema: Schema) => {
+      return schema.tags && schema.tags["complete-from"];
+    },
+    (schema: Schema) => {
+      return navigateSchemaSingle(schema, schema.tags["complete-from"]);
+    }
+  );
+  
   // TODO this is slightly inefficient since recursions call
   // normalize() multiple times
 
@@ -215,7 +306,7 @@ export function schemaCompletions(schema: Schema): Completion[] {
     });
     return result;
   };
-
+  
   if (schema.completions && schema.completions.length) {
     return normalize(schema.completions);
   }
