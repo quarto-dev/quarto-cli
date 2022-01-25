@@ -19,6 +19,8 @@ import {
   Schema,
 } from "../lib/yaml-validation/schema.ts";
 
+import { maybeResolveSchema } from "../lib/yaml-validation/schema-utils.ts";
+
 import { mergeConfigs } from "../config.ts";
 
 export const BooleanSchema = {
@@ -174,29 +176,49 @@ export function objectSchema(params: {
     return Object.getOwnPropertyNames(obj).map((k) => obj[k]);
   };
 
-  for (
-    const k of Object.getOwnPropertyNames(
-      completionsParam || properties,
-    )
-  ) {
-    let valueS = properties[k];
-    if (hasSchemaDefinition(valueS?.$ref)) {
-      valueS = getSchemaDefinition(valueS?.$ref);
+  for (const k of Object.getOwnPropertyNames(completionsParam || properties)) {
+    let schema = properties[k];
+    const maybeDescriptions: (undefined | string | { $ref: string })[] = [
+      completionsParam?.[k]
+    ];
+    if (schema !== undefined) {
+      if (schema.documentation) {
+        // if a ref schema has documentation, use that directly.
+        maybeDescriptions.push(schema?.documentation?.short);
+        maybeDescriptions.push(schema?.documentation);
+      } else {
+        // in the case of recursive schemas, a back reference to a schema
+        // that hasn't been registered yet is bound to fail.  In that
+        // case, maybeResolveSchema will return undefined, and we
+        // potentially store a special description entry, deferring the
+        // resolution to runtime.
+        schema = maybeResolveSchema(schema);
+        if (schema === undefined) {
+          if (schema?.$ref) {
+            maybeDescriptions.push({ $ref: properties[k].ref });
+          }
+        } else {
+          maybeDescriptions.push(schema?.documentation?.short);
+          maybeDescriptions.push(schema?.documentation);
+        }
+      }
     }
-
-    const description = valueS?.documentation?.short ??
-      valueS?.documentation ??
-      completionsParam?.[k] ??
-      "";
+    let description: (string | { $ref: string }) = "";
+    for (const md of maybeDescriptions) {
+      if (md !== undefined) {
+        description = md;
+        break;
+      }
+    }
     completions.push({
       type: "key",
       display: "", // attempt to not show completion title.
       value: `${k}: `,
       description,
-      suggest_on_accept: valueS?.completions?.length !== 0,
+      suggest_on_accept: schema?.completions?.length !== 0,
     });
   }
-
+  
   if (baseSchema) {
     if (baseSchema.type !== "object") {
       throw new Error("Internal Error: can only extend other object Schema");

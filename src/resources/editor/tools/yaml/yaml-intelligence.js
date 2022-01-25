@@ -879,6 +879,21 @@ function schemaAccepts(schema, testType) {
   }
   return false;
 }
+function schemaAcceptsScalar(schema) {
+  const t = schemaType(schema);
+  if (["object", "array"].indexOf(t) !== -1) {
+    return false;
+  }
+  switch (t) {
+    case "oneOf":
+      return schema.oneOf.some((s) => schemaAcceptsScalar(s));
+    case "anyOf":
+      return schema.anyOf.some((s) => schemaAcceptsScalar(s));
+    case "allOf":
+      return schema.allOf.every((s) => schemaAcceptsScalar(s));
+  }
+  return true;
+}
 function schemaType(schema) {
   const t = schema.type;
   if (t) {
@@ -897,46 +912,6 @@ function schemaType(schema) {
     return "enum";
   }
   return "any";
-}
-function schemaCompletions(schema) {
-  const normalize = (completions2) => {
-    const result = (completions2 || []).map((c) => {
-      if (typeof c === "string") {
-        return {
-          type: "value",
-          display: c,
-          value: c,
-          description: "",
-          suggest_on_accept: false,
-          schema
-        };
-      }
-      return {
-        ...c,
-        schema
-      };
-    });
-    return result;
-  };
-  if (schema.completions && schema.completions.length) {
-    return normalize(schema.completions);
-  }
-  switch (schemaType(schema)) {
-    case "array":
-      if (schema.items) {
-        return schemaCompletions(schema.items);
-      } else {
-        return [];
-      }
-    case "anyOf":
-      return schema.anyOf.map(schemaCompletions).flat();
-    case "oneOf":
-      return schema.oneOf.map(schemaCompletions).flat();
-    case "allOf":
-      return schema.allOf.map(schemaCompletions).flat();
-    default:
-      return [];
-  }
 }
 var definitionsObject = {};
 function hasSchemaDefinition(key) {
@@ -3602,7 +3577,15 @@ function prefixes(regexp) {
 }
 
 // ../yaml-validation/schema-utils.ts
-var _schemas;
+var _schemas = {
+  schemas: {
+    "front-matter": void 0,
+    config: void 0,
+    engines: void 0
+  },
+  aliases: {},
+  definitions: {}
+};
 function setSchemas(schemas) {
   _schemas = schemas;
 }
@@ -3663,15 +3646,29 @@ function navigateSchema2(schema, path) {
   };
   return inner(schema, 0).flat(Infinity);
 }
+function resolveDescription(s) {
+  if (typeof s === "string") {
+    return s;
+  }
+  const valueS = resolveSchema(s.$ref);
+  if (valueS.documentation) {
+    if (valueS.documentation.short) {
+      return valueS.documentation.short;
+    } else {
+      return valueS.documentation;
+    }
+  } else {
+    return "";
+  }
+}
 function resolveSchema(schema) {
   if (schema.$ref === void 0) {
     return schema;
   }
-  const { definitions } = getSchemas();
   let cursor1 = schema;
   let cursor2 = schema;
   const next = (cursor) => {
-    const result = definitions[cursor.$ref];
+    const result = getSchemaDefinition(cursor.$ref);
     if (result === void 0) {
       throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
     }
@@ -3695,6 +3692,48 @@ function resolveSchema(schema) {
     }
   }
   return cursor1;
+}
+function schemaCompletions(schema) {
+  schema = resolveSchema(schema);
+  const normalize = (completions2) => {
+    const result = (completions2 || []).map((c) => {
+      if (typeof c === "string") {
+        return {
+          type: "value",
+          display: c,
+          value: c,
+          description: "",
+          suggest_on_accept: false,
+          schema
+        };
+      }
+      return {
+        ...c,
+        description: resolveDescription(c.description),
+        schema
+      };
+    });
+    return result;
+  };
+  if (schema.completions && schema.completions.length) {
+    return normalize(schema.completions);
+  }
+  switch (schemaType(schema)) {
+    case "array":
+      if (schema.items) {
+        return schemaCompletions(schema.items);
+      } else {
+        return [];
+      }
+    case "anyOf":
+      return schema.anyOf.map(schemaCompletions).flat();
+    case "oneOf":
+      return schema.oneOf.map(schemaCompletions).flat();
+    case "allOf":
+      return schema.allOf.map(schemaCompletions).flat();
+    default:
+      return [];
+  }
 }
 
 // yaml-intelligence.ts
@@ -3901,7 +3940,14 @@ function dropCompletionsFromSchema(obj, completion) {
   if (matchingSubSchemas.length === 0) {
     return false;
   }
-  return !(path.length > 0 && path[0] === "execute") && matchingSubSchemas.every((s) => s.tags && s.tags["execute-only"]);
+  if (path.length === 0)
+    return false;
+  const executeOnly = matchingSubSchemas.every((s) => s.tags && s.tags["execute-only"]);
+  if (path[0] === "execute") {
+    return !executeOnly;
+  } else {
+    return executeOnly;
+  }
 }
 function completions(obj) {
   const {
@@ -3945,6 +3991,23 @@ function completions(obj) {
       }
       const key = completion.value.split(":")[0];
       const matchingSubSchemas = navigateSchema2(completion.schema, [key]);
+      let matchingTypes = 0;
+      if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "object"))) {
+        matchingTypes += 1;
+      }
+      if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "array"))) {
+        matchingTypes += 1;
+      }
+      if (matchingSubSchemas.some((subSchema) => schemaAcceptsScalar(subSchema))) {
+        matchingTypes += 1;
+      }
+      if (matchingTypes > 1) {
+        return {
+          ...completion,
+          suggest_on_accept: false,
+          value: completion.value
+        };
+      }
       if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "object"))) {
         return {
           ...completion,

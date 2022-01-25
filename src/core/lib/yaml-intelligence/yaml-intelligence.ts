@@ -38,7 +38,7 @@ import {
   expandAliasesFrom,
   Schema,
   schemaAccepts,
-  schemaCompletions,
+  schemaAcceptsScalar,
   setSchemaDefinition,
 } from "../yaml-validation/schema.ts";
 import { withValidator } from "../yaml-validation/validator-queue.ts";
@@ -47,6 +47,7 @@ import {
   navigateSchema,
   QuartoJsonSchemas,
   resolveSchema,
+  schemaCompletions,
   setSchemas,
 } from "../yaml-validation/schema-utils.ts";
 
@@ -398,10 +399,19 @@ function dropCompletionsFromSchema(
     return false;
   }
 
-  // don't complete on schemas that have "execute-only" but
-  // paths that start on path fragments other than "execute"
-  return !(path.length > 0 && path[0] === "execute") &&
-    matchingSubSchemas.every((s: Schema) => s.tags && s.tags["execute-only"]);
+  if (path.length === 0)
+    return false;
+
+  const executeOnly = matchingSubSchemas.every((s: Schema) => s.tags && s.tags["execute-only"]);
+  if (path[0] === "execute") {
+    // don't complete on schemas that do not have "execute-only" but
+    // paths that start on path fragments of "execute"
+    return !executeOnly;
+  } else {
+    // don't complete on schemas that have "execute-only" but
+    // paths that start on path fragments other than "execute"
+    return executeOnly;
+  }
 }
 
 function completions(obj: CompletionContext): CompletionResult {
@@ -482,8 +492,24 @@ function completions(obj: CompletionContext): CompletionResult {
 
         const matchingSubSchemas = navigateSchema(completion.schema, [key]);
 
-        // quirk: if subschemas accept both object and array, we're
-        // choosing to complete into object
+        let matchingTypes = 0;
+        if (matchingSubSchemas.some((subSchema: Schema) => schemaAccepts(subSchema, "object"))) {
+          matchingTypes += 1;
+        }
+        if (matchingSubSchemas.some((subSchema: Schema) => schemaAccepts(subSchema, "array"))) {
+          matchingTypes += 1;
+        }
+        if (matchingSubSchemas.some((subSchema: Schema) => schemaAcceptsScalar(subSchema))) {
+          matchingTypes += 1;
+        }
+        if (matchingTypes > 1) {
+          return {
+            ...completion,
+            suggest_on_accept: false,
+            value: completion.value,
+          };
+        }
+        
         if (
           matchingSubSchemas.some((subSchema: Schema) =>
             schemaAccepts(subSchema, "object")

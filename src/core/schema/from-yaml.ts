@@ -150,7 +150,7 @@ function convertFromBoolean(yaml: any): Schema {
 
 // deno-lint-ignore no-explicit-any
 function convertFromRef(yaml: any): Schema {
-  return refS(yaml.ref, yaml.description || `be ${yaml.ref}`);
+  return setBaseSchemaProperties(yaml, refS(yaml.ref, `be ${yaml.ref}`));
 }
 
 // deno-lint-ignore no-explicit-any

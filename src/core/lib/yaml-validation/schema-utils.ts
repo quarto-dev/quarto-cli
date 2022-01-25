@@ -5,8 +5,15 @@
 *
 */
 
-import { Schema, schemaType } from "./schema.ts";
+import { Schema, schemaType, Completion, getSchemaDefinition } from "./schema.ts";
 import { prefixes } from "../regexp.js";
+
+// NB: QuartoJsonSchemas is meant for serialization of the entire body of schemas
+// For actual schema use in quarto, use either the definitions in core/schema
+// or call getSchemaDefinition(). _in particular_, the definitions field in _schemas
+// might be stale!
+//
+// TODO this probably needs a good refactoring, but you've been warned.
 
 // TODO typings for quarto-json-schemas.json
 export interface QuartoJsonSchemas {
@@ -19,7 +26,15 @@ export interface QuartoJsonSchemas {
   definitions: Record<string, Schema>;
 }
 
-let _schemas: QuartoJsonSchemas | undefined;
+let _schemas: QuartoJsonSchemas = {
+  schemas: {
+    "front-matter": undefined,
+    config: undefined,
+    engines: undefined
+  },
+  aliases: {},
+  definitions: {}
+};
 
 // this is an escape hatch for the quarto CLI to install the schema
 // files appropriately.
@@ -107,13 +122,36 @@ export function navigateSchema(
   return inner(schema, 0).flat(Infinity);
 }
 
+export function maybeResolveSchema(schema: Schema): Schema | undefined {
+  try {
+    return resolveSchema(schema);
+  } catch (e) {
+    return undefined;
+  }
+}
+
+export function resolveDescription(s: string | { $ref: string }): string
+{
+  if (typeof s === "string") {
+    return s;
+  }
+  const valueS = resolveSchema(s.$ref);
+  if (valueS.documentation) {
+    if (valueS.documentation.short) {
+      return valueS.documentation.short as string;
+    } else {
+      return valueS.documentation as string;
+    }
+  } else {
+    return "";
+  }
+}
+
 export function resolveSchema(schema: Schema) {
   // common fast path
   if (schema.$ref === undefined) {
     return schema;
   }
-
-  const { definitions } = getSchemas();
 
   // this is on the chancy side of clever, but we're going to be extra
   // careful here and use the cycle-detecting trick. This code runs
@@ -122,7 +160,7 @@ export function resolveSchema(schema: Schema) {
   let cursor1: Schema = schema;
   let cursor2: Schema = schema;
   const next = (cursor: Schema) => {
-    const result = definitions[cursor.$ref];
+    const result = getSchemaDefinition(cursor.$ref);
     if (result === undefined) {
       throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
     }
@@ -148,4 +186,54 @@ export function resolveSchema(schema: Schema) {
   }
 
   return cursor1;
+}
+
+export function schemaCompletions(schema: Schema): Completion[] {
+  schema = resolveSchema(schema);
+  // TODO this is slightly inefficient since recursions call
+  // normalize() multiple times
+
+  // deno-lint-ignore no-explicit-any
+  const normalize = (completions: any) => {
+    // deno-lint-ignore no-explicit-any
+    const result = (completions || []).map((c: any) => {
+      if (typeof c === "string") {
+        return {
+          type: "value",
+          display: c,
+          value: c,
+          description: "",
+          suggest_on_accept: false,
+          schema,
+        };
+      }
+      return {
+        ...c,
+        description: resolveDescription(c.description),
+        schema,
+      };
+    });
+    return result;
+  };
+
+  if (schema.completions && schema.completions.length) {
+    return normalize(schema.completions);
+  }
+
+  switch (schemaType(schema)) {
+    case "array":
+      if (schema.items) {
+        return schemaCompletions(schema.items);
+      } else {
+        return [];
+      }
+    case "anyOf":
+      return schema.anyOf.map(schemaCompletions).flat();
+    case "oneOf":
+      return schema.oneOf.map(schemaCompletions).flat();
+    case "allOf":
+      return schema.allOf.map(schemaCompletions).flat();
+    default:
+      return [];
+  }
 }
