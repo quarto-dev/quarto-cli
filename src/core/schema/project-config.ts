@@ -18,6 +18,7 @@ import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
 import { getFormatExecuteOptionsSchema } from "./execute.ts";
 
 import {
+  getFrontMatterSchema,
   getFrontMatterFormatSchema,
   makeFrontMatterFormatSchema,
 } from "./front-matter.ts";
@@ -52,7 +53,7 @@ export const getProjectConfigSchema = defineCached(
         description: "be a Quarto YAML front matter object",
       }),
       execute,
-      await makeFrontMatterFormatSchema(true), // we must make this nonStrict, see definition
+      await getFrontMatterSchema(),
       projectConfigFields,
     );
     return {

@@ -212,7 +212,7 @@ export function objectSchema(params: {
           // TODO catch only the lookup exception
         }
         if (!described && schema?.$ref) {
-          maybeDescriptions.push({ $ref: properties[k].ref });
+          maybeDescriptions.push({ $ref: schema?.$ref });
         }
       }
     }
