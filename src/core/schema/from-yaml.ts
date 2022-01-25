@@ -65,6 +65,9 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
     // don't complete anything through a `hidden` field
     schema = completeSchemaOverwrite(schema);
   }
+  if (yaml.tags) {
+    schema = tagSchema(schema, yaml.tags);
+  }
 
   // FIXME in YAML schema, we call it description
   // in the JSON objects, we call that "documentation"
@@ -150,13 +153,19 @@ function convertFromBoolean(yaml: any): Schema {
 
 // deno-lint-ignore no-explicit-any
 function convertFromRef(yaml: any): Schema {
-  return refS(yaml.ref, yaml.description || `be ${yaml.ref}`);
+  return setBaseSchemaProperties(yaml, refS(yaml.ref, `be ${yaml.ref}`));
 }
 
 // deno-lint-ignore no-explicit-any
 function convertFromMaybeArrayOf(yaml: any): Schema {
-  const schema = convertFromYaml(yaml.maybeArrayOf);
-  return setBaseSchemaProperties(yaml, oneOfS(schema, arrayOfS(schema)));
+  const inner = convertFromYaml(yaml.maybeArrayOf);
+  const schema = tagSchema(
+    oneOfS(inner, arrayOfS(inner)),
+    {
+      "complete-from": ["oneOf", 0] // complete from `schema` completions, ignoring arrayOf
+    });
+
+  return setBaseSchemaProperties(yaml, schema);
 }
 
 // deno-lint-ignore no-explicit-any

@@ -157,6 +157,7 @@ nav .nav-item.compact .nav-link {
   text-decoration: none;
 }
 
+// Sidebar tools
 .sidebar-navigation .sidebar-tool {
   opacity: 0.7;
   font-size: 0.875rem;
@@ -179,64 +180,35 @@ nav .nav-item.compact .nav-link {
   padding-top: 0.3em;
 }
 
-.sidebar-section .bi {
+.sidebar-navigation .sidebar-tool.dropdown-toggle::after {
+  display: none;
+}
+
+// Sidebar navigation items
+$sidebar-items-gap-spacing: 0.2em;
+$sidebar-section-indent: 0.5em;
+$sidebar-section-bottom-margin: 0.2em;
+
+.sidebar-item {
+  margin-bottom: $sidebar-items-gap-spacing;
+}
+
+.sidebar-section {
+  margin-top: $sidebar-items-gap-spacing;
+  padding-left: $sidebar-section-indent;
+  padding-bottom: $sidebar-section-bottom-margin;
+}
+
+.sidebar-item .sidebar-item-container {
+  // Positions the link and dongle
+  display: flex;
+  justify-content: space-between;
+}
+
+.sidebar-item .sidebar-item-toggle .bi {
+  // The dongle for opening and closing sections
   font-size: 0.7rem;
   text-align: center;
-}
-
-.sidebar-navigation .sidebar-section.depth1 {
-  padding-top: 0rem;
-  padding-bottom: 0.1rem;
-}
-
-.sidebar-navigation .sidebar-section.depth1 > li:first-of-type {
-  padding-top: 0.1rem;
-}
-
-.sidebar-navigation .sidebar-section.depth1 > li > div > ul {
-  margin-bottom: 0.4em;
-}
-
-.sidebar-navigation ul.sidebar-section:not(.depth1) .sidebar-section-item {
-  text-transform: none;
-  font-weight: normal;
-}
-.sidebar-navigation ul.sidebar-section:not(.depth1) li {
-  margin-top: -2px;
-}
-
-.sidebar-navigation ul.sidebar-section .sidebar-item-contents {
-  padding-left: 0.5rem;
-}
-
-.sidebar-navigation .sidebar-section-item {
-  font-size: $sidebar-font-size-section;
-  padding-bottom: 1px;
-}
-
-.sidebar-navigation .sidebar-section:not(.depth1) .sidebar-section-item {
-  padding-bottom: 0px;
-}
-
-.sidebar-navigation .sidebar-section-item > a {
-  padding: 0;
-}
-
-.sidebar-navigation .sidebar-section-item > .sidebar-section-link {
-  padding-top: 4px;
-  padding-bottom: 3px;
-}
-
-.btn.sidebar-section-item {
-  border: none;
-  background-color: transparent;
-}
-
-.sidebar-navigation .sidebar-item {
-  padding-left: 0px;
-  padding-right: 0px;
-  padding-bottom: 0.25rem;
-  font-weight: 400;
 }
 
 .sidebar-navigation .sidebar-divider {
@@ -244,10 +216,6 @@ nav .nav-item.compact .nav-link {
   margin-right: 0;
   margin-top: 0;
   margin-bottom: 0.25rem;
-}
-
-.sidebar-navigation .sidebar-tool.dropdown-toggle::after {
-  display: none;
 }
 
 // Toggle the top secondar navigation bar
@@ -333,8 +301,7 @@ nav.sidebar.sidebar-navigation {
 @include media-breakpoint-down(lg) {
   .sidebar-navigation .sidebar-item a,
   .nav-page .nav-page-text,
-  .sidebar-navigation,
-  .sidebar-navigation .sidebar-menu-container a {
+  .sidebar-navigation {
     font-size: $sidebar-font-size-collapse;
   }
 
@@ -403,6 +370,10 @@ nav.sidebar.sidebar-navigation {
   }
   .nav-page .nav-page-text,
   .sidebar-navigation .sidebar-section .sidebar-item {
+    font-size: $sidebar-font-size-section;
+  }
+
+  .sidebar-navigation .sidebar-item {
     font-size: $sidebar-font-size;
   }
 
@@ -462,18 +433,9 @@ nav.sidebar.sidebar-navigation {
   flex-direction: column;
 }
 
-.sidebar nav.docked .sidebar-menu-container {
-  flex-grow: 1;
-}
-
 #quarto-sidebar {
   width: 100%;
   padding-right: 1em;
-}
-
-#quarto-sidebar .sidebar-menu-container {
-  padding-top: 14px;
-  flex-grow: 2;
 }
 
 .quarto-sidebar-footer {

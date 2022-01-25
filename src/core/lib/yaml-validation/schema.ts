@@ -14,7 +14,7 @@ export interface Completion {
   display: string;
   type: "key" | "value";
   value: string;
-  description: string;
+  description: string | { $ref: string };
   // deno-lint-ignore camelcase
   suggest_on_accept: boolean;
 
@@ -40,6 +40,23 @@ export function schemaAccepts(schema: Schema, testType: string) {
       return schema.allOf.every((s: Schema) => schemaAccepts(s, testType));
   }
   return false;
+}
+
+export function schemaAcceptsScalar(schema: Schema) {
+  const t = schemaType(schema);
+  if (["object", "array"].indexOf(t) !== -1) {
+    return false;
+  }
+  switch (t) {
+    case "oneOf":
+      return schema.oneOf.some((s: Schema) => schemaAcceptsScalar(s));
+    case "anyOf":
+      return schema.anyOf.some((s: Schema) => schemaAcceptsScalar(s));
+    case "allOf":
+      return schema.allOf.every((s: Schema) => schemaAcceptsScalar(s));
+  }
+  return true;
+  
 }
 
 export function schemaType(schema: Schema) {
@@ -76,54 +93,6 @@ export function schemaExhaustiveCompletions(schema: Schema) {
       return true;
     default:
       return schema.exhaustiveCompletions || false;
-  }
-}
-
-export function schemaCompletions(schema: Schema): Completion[] {
-  // TODO this is slightly inefficient since recursions call
-  // normalize() multiple times
-
-  // deno-lint-ignore no-explicit-any
-  const normalize = (completions: any) => {
-    // deno-lint-ignore no-explicit-any
-    const result = (completions || []).map((c: any) => {
-      if (typeof c === "string") {
-        return {
-          type: "value",
-          display: c,
-          value: c,
-          description: "",
-          suggest_on_accept: false,
-          schema,
-        };
-      }
-      return {
-        ...c,
-        schema,
-      };
-    });
-    return result;
-  };
-
-  if (schema.completions && schema.completions.length) {
-    return normalize(schema.completions);
-  }
-
-  switch (schemaType(schema)) {
-    case "array":
-      if (schema.items) {
-        return schemaCompletions(schema.items);
-      } else {
-        return [];
-      }
-    case "anyOf":
-      return schema.anyOf.map(schemaCompletions).flat();
-    case "oneOf":
-      return schema.oneOf.map(schemaCompletions).flat();
-    case "allOf":
-      return schema.allOf.map(schemaCompletions).flat();
-    default:
-      return [];
   }
 }
 

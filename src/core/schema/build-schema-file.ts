@@ -12,6 +12,7 @@ import { getFrontMatterSchema } from "./front-matter.ts";
 import { getProjectConfigSchema } from "./project-config.ts";
 import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { resourcePath } from "../resources.ts";
+import { getSchemas, QuartoJsonSchemas } from "../lib/yaml-validation/schema-utils.ts";
 import {
   getSchemaDefinitionsObject,
   setSchemaDefinition,
@@ -20,24 +21,17 @@ import { exportStandaloneValidators } from "./yaml-schema.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 import { TempContext } from "../temp.ts";
 import { ensureAjv } from "./yaml-schema.ts";
-
 import { revealPluginSchema } from "../../format/reveal/format-reveal-plugin.ts";
 
 export async function buildSchemaFile(temp: TempContext) {
   await ensureAjv();
-  const frontMatter = await getFrontMatterSchema();
-  const config = await getProjectConfigSchema();
-  const engines = await getEngineOptionsSchema();
+  const obj = getSchemas();
+  obj.aliases = getFormatAliases();
+  obj.schemas["front-matter"] = await getFrontMatterSchema();
+  obj.schemas.config = await getProjectConfigSchema();
+  obj.schemas.engines = await getEngineOptionsSchema();
   setSchemaDefinition(revealPluginSchema);
-  const obj = {
-    schemas: {
-      "front-matter": frontMatter,
-      config,
-      engines,
-    },
-    definitions: getSchemaDefinitionsObject(),
-    aliases: getFormatAliases(),
-  };
+  obj.definitions = getSchemaDefinitionsObject();
   const str = JSON.stringify(obj);
   const path = resourcePath("/editor/tools/yaml/quarto-json-schemas.json");
 
