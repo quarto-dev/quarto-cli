@@ -48,9 +48,9 @@ export const kGridColumns = "grid-columns";
 // The maximum length of the description
 export const kMaxDescLength = "max-description-length";
 
+// Table options
 export const kTableStriped = "table-striped";
 export const kTableHover = "table-hover";
-export const kTableColor = "table-color";
 
 // Fields
 export const kFieldTitle = "title";

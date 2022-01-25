@@ -7,17 +7,17 @@ const cardColumnSpan = listing['card-column-span'] || 8;
 const cardColumnSpanMd = Math.max(cardColumnSpan, 12)
 
 // Card alignment
-const align = listing["grid-alignment"] || "left";
+const align = listing["grid-item-alignment"] || "left";
+
+// Borders
+const hideBorders = listing['grid-item-border'] === false;
 
 // Cap Options
 const imgHeight = listing['image-height'];
 
-// Borders
-const hideBorders = listing['grid-border'] === false;
-
 // shorthand checks
 const showField = (field) => {
-  return listing.fields.includes(field) && item[field] !== undefined;
+return listing.fields.includes(field) && item[field] !== undefined;
 }
 
 // Capture the item number for utility functions that need it
@@ -28,7 +28,6 @@ const otherFields = fields.filter(field => {
 return !["title", "image", "date", "author", "subtitle", "description", "filename", "file-modified", "reading-time", "categories"].includes(field);
 });
 %>
-
 
 <div class="g-col-1" <%= listing.utilities.metadataAttrs(item) %>>
 <div class="quarto-grid-item card h-100 <%-`card-${align}`%><%= hideBorders ? ' borderless' : '' %>">
@@ -54,6 +53,7 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 <% } %>
 
 <% if (otherFields.length > 0) { %>
+
 <table class="card-other-values">
 <% for (const field of otherFields) { %>
 <tr>
@@ -68,6 +68,7 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 <% } %>
 
 <% if (fields.includes('filename') || fields.includes('file-modified')) { %>
+
 <div class="card-footer text-muted">
 <% if (fields.includes('filename')) { %>
 <div class="card-filename listing-filename">

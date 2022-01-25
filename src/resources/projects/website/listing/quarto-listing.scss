@@ -344,6 +344,10 @@ table.quarto-listing-table {
   }
 }
 
+table.quarto-listing-table.table-hover td {
+  cursor: pointer;
+}
+
 .quarto-post.image-left {
   flex-direction: row;
 }

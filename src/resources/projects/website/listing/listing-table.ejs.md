@@ -10,8 +10,16 @@ const imgHeight = listing['image-height'];
 
 // Striped?
 const stripedCls = listing['table-striped'] ? " table-striped" : "";
+
+// hover
 const hoverCls = listing['table-hover'] ? " table-hover" : "";
-const darkCls = listing['table-color'] ? ` table-${listing['table-color']}` : "";
+const onclick = (item) => {
+if (listing['table-hover']) {
+return ` onclick="href = this.querySelector('a').getAttribute('href');\n if (href) { window.location=href ; return false; }"`;
+} else {
+return "";
+}
+}
 
 const outputValue = (itemNumber, field) => {
 let value = item[field];
@@ -26,7 +34,7 @@ return listing.utilities.outputLink(item, field, value);
 }
 %>
 
-<table class="quarto-listing-table table<%- stripedCls %><%- hoverCls %><%- darkCls %>">
+<table class="quarto-listing-table table<%- stripedCls %><%- hoverCls %>">
 <thead>
 <tr>
 <% for (const field of fields) { %>
@@ -42,7 +50,7 @@ return listing.utilities.outputLink(item, field, value);
   const itemNumber = listing.utilities.itemNumber();
 %>
 
-<tr <%= listing.utilities.metadataAttrs(item) %>>
+<tr <%= listing.utilities.metadataAttrs(item) %><%= onclick(item) %>>
 <% for (const field of fields){ %>
 <td class="listing-<%- field %>">
 <%= outputValue(itemNumber, field) %>

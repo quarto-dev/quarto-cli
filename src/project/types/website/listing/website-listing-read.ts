@@ -49,7 +49,6 @@ import {
   kSortAsc,
   kSortDesc,
   kSortUi,
-  kTableColor,
   kTableHover,
   kTableStriped,
   Listing,
@@ -339,12 +338,9 @@ function hydrateListing(
     listingHydrated[kTableStriped] =
       listingHydrated[kTableStriped] !== undefined
         ? listingHydrated[kTableStriped]
-        : true;
+        : false;
     listingHydrated[kTableHover] = listingHydrated[kTableHover] !== undefined
       ? listingHydrated[kTableHover]
-      : true;
-    listingHydrated[kTableColor] = listingHydrated[kTableColor] !== undefined
-      ? listingHydrated[kTableColor]
       : false;
   }
 
