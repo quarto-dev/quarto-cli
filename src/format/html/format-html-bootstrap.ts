@@ -41,7 +41,7 @@ import {
   kPageLayout,
   kPageLayoutArticle,
   kPageLayoutCustom,
-  kPageLayoutListing,
+  kPageLayoutFull,
   kPageLayoutNone,
 } from "./format-html-shared.ts";
 
@@ -98,7 +98,7 @@ export function formatHasPageLayout(format: Format) {
 export function formatHasArticlePageLayout(format: Format) {
   return format.metadata[kPageLayout] === undefined ||
     format.metadata[kPageLayout] === kPageLayoutArticle ||
-    format.metadata[kPageLayout] === kPageLayoutListing;
+    format.metadata[kPageLayout] === kPageLayoutFull;
 }
 
 export function formatHasCustomPageLayout(format: Format) {
