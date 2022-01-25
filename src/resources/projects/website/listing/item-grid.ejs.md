@@ -99,9 +99,5 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 </div>
 <% } %>
 </div>
-
 <% } %>
-
-</div>
-</a>
-</div>
+</div></a></div>
