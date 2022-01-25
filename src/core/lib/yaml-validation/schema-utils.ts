@@ -204,13 +204,31 @@ export function resolveDescription(s: string | { $ref: string }): string
   }
 }
 
-export function resolveSchemaThroughFunction(
+export function resolveSchema(
   schema: Schema,
-  hasRef: (schema: Schema) => boolean,
-  next: (schema: Schema) => Schema): Schema
+  visit?: (schema: Schema) => void,
+  hasRef?: (schema: Schema) => boolean,
+  next?: (schema: Schema) => Schema): Schema
 {
+  if (hasRef === undefined) {
+    hasRef = (cursor: Schema) => {
+      return cursor.$ref !== undefined;
+    }
+  }
   if (!hasRef(schema)) {
     return schema;
+  }
+  if (visit === undefined) {
+    visit = (schema: Schema) => {};
+  }
+  if (next === undefined) {
+    next = (cursor: Schema) => {
+      const result = getSchemaDefinition(cursor.$ref);
+      if (result === undefined) {
+        throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
+      }
+      return result;
+    };
   }
   
   // this is on the chancy side of clever, but we're going to be extra
@@ -223,47 +241,29 @@ export function resolveSchemaThroughFunction(
 
   let cursor1: Schema = schema;
   let cursor2: Schema = schema;
-
-  while (cursor1.$ref !== undefined) {
+  let stopped = false;
+  do {
     cursor1 = next(cursor1);
-    if (cursor1.$ref === undefined) {
-      return cursor1;
+    visit(cursor1);
+    // we don't early exit here. instead, we stop cursor2 and let cursor1 catch up.
+    // This way, visit(cursor1) covers everything in order.
+    if (hasRef(cursor2)) { 
+      cursor2 = next(cursor2);
+    } else {
+      stopped = true;
     }
-    cursor2 = next(cursor2);
-    if (cursor2.$ref === undefined) {
-      return cursor2;
+    // move cursor2 twice as fast to detect cycles.
+    if (hasRef(cursor2)) { 
+      cursor2 = next(cursor2);
+    } else {
+      stopped = true;
     }
-    cursor2 = next(cursor2);
-    if (cursor2.$ref === undefined) {
-      return cursor2;
+    if (!stopped && cursor1 === cursor2) {
+      throw new Error(`reference cycle detected at ${JSON.stringify(cursor1)}`);
     }
-    if (cursor1.$ref === cursor2.$ref) {
-      throw new Error(`reference cycle detected at ${cursor1.$ref}`);
-    }
-  }
-
-  return cursor1;
-}
-
-export function resolveSchema(schema: Schema) {
-  // common fast path
-  if (schema.$ref === undefined) {
-    return schema;
-  }
-
-  const hasRef = (cursor: Schema) => {
-    return cursor.$ref !== undefined;
-  }
+  } while (hasRef(cursor1));
   
-  const next = (cursor: Schema) => {
-    const result = getSchemaDefinition(cursor.$ref);
-    if (result === undefined) {
-      throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
-    }
-    return result;
-  };
-
-  return resolveSchemaThroughFunction(schema, hasRef, next);
+  return cursor1;
 }
 
 export function schemaCompletions(schema: Schema): Completion[] {
@@ -271,8 +271,9 @@ export function schemaCompletions(schema: Schema): Completion[] {
   schema = resolveSchema(schema);
 
   // then resolve through "complete-from" schema tags
-  schema = resolveSchemaThroughFunction(
+  schema = resolveSchema(
     schema,
+    (schema: Schema) => {}, // visit
     (schema: Schema) => {
       return schema.tags && schema.tags["complete-from"];
     },
@@ -328,3 +329,4 @@ export function schemaCompletions(schema: Schema): Completion[] {
       return [];
   }
 }
+

@@ -3704,50 +3704,54 @@ function resolveDescription(s) {
     return "";
   }
 }
-function resolveSchemaThroughFunction(schema, hasRef, next) {
+function resolveSchema(schema, visit, hasRef, next) {
+  if (hasRef === void 0) {
+    hasRef = (cursor) => {
+      return cursor.$ref !== void 0;
+    };
+  }
   if (!hasRef(schema)) {
     return schema;
   }
+  if (visit === void 0) {
+    visit = (schema2) => {
+    };
+  }
+  if (next === void 0) {
+    next = (cursor) => {
+      const result = getSchemaDefinition(cursor.$ref);
+      if (result === void 0) {
+        throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
+      }
+      return result;
+    };
+  }
   let cursor1 = schema;
   let cursor2 = schema;
-  while (cursor1.$ref !== void 0) {
+  let stopped = false;
+  do {
     cursor1 = next(cursor1);
-    if (cursor1.$ref === void 0) {
-      return cursor1;
+    visit(cursor1);
+    if (hasRef(cursor2)) {
+      cursor2 = next(cursor2);
+    } else {
+      stopped = true;
     }
-    cursor2 = next(cursor2);
-    if (cursor2.$ref === void 0) {
-      return cursor2;
+    if (hasRef(cursor2)) {
+      cursor2 = next(cursor2);
+    } else {
+      stopped = true;
     }
-    cursor2 = next(cursor2);
-    if (cursor2.$ref === void 0) {
-      return cursor2;
+    if (!stopped && cursor1 === cursor2) {
+      throw new Error(`reference cycle detected at ${JSON.stringify(cursor1)}`);
     }
-    if (cursor1.$ref === cursor2.$ref) {
-      throw new Error(`reference cycle detected at ${cursor1.$ref}`);
-    }
-  }
+  } while (hasRef(cursor1));
   return cursor1;
-}
-function resolveSchema(schema) {
-  if (schema.$ref === void 0) {
-    return schema;
-  }
-  const hasRef = (cursor) => {
-    return cursor.$ref !== void 0;
-  };
-  const next = (cursor) => {
-    const result = getSchemaDefinition(cursor.$ref);
-    if (result === void 0) {
-      throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
-    }
-    return result;
-  };
-  return resolveSchemaThroughFunction(schema, hasRef, next);
 }
 function schemaCompletions(schema) {
   schema = resolveSchema(schema);
-  schema = resolveSchemaThroughFunction(schema, (schema2) => {
+  schema = resolveSchema(schema, (schema2) => {
+  }, (schema2) => {
     return schema2.tags && schema2.tags["complete-from"];
   }, (schema2) => {
     return navigateSchemaSingle(schema2, schema2.tags["complete-from"]);

@@ -19,7 +19,7 @@ import {
   Schema,
 } from "../lib/yaml-validation/schema.ts";
 
-import { maybeResolveSchema } from "../lib/yaml-validation/schema-utils.ts";
+import { resolveSchema } from "../lib/yaml-validation/schema-utils.ts";
 
 import { mergeConfigs } from "../config.ts";
 
@@ -177,7 +177,7 @@ export function objectSchema(params: {
   };
 
   for (const k of Object.getOwnPropertyNames(completionsParam || properties)) {
-    let schema = properties[k];
+    const schema = properties[k];
     const maybeDescriptions: (undefined | string | { $ref: string })[] = [
       completionsParam?.[k]
     ];
@@ -192,14 +192,27 @@ export function objectSchema(params: {
         // case, maybeResolveSchema will return undefined, and we
         // potentially store a special description entry, deferring the
         // resolution to runtime.
-        schema = maybeResolveSchema(schema);
-        if (schema === undefined) {
-          if (schema?.$ref) {
-            maybeDescriptions.push({ $ref: properties[k].ref });
+        
+        let described = false;
+        const visitor = (schema: Schema) => {
+          if (described) {
+            return;
           }
-        } else {
-          maybeDescriptions.push(schema?.documentation?.short);
-          maybeDescriptions.push(schema?.documentation);
+          if (schema?.documentation?.short) {
+            maybeDescriptions.push(schema?.documentation?.short);
+            described = true;
+          } else if (schema?.documentation) {
+            maybeDescriptions.push(schema?.documentation);
+            described = true;
+          }
+        };
+        try {
+          resolveSchema(schema, visitor);
+        } catch (e) {
+          // TODO catch only the lookup exception
+        }
+        if (!described && schema?.$ref) {
+          maybeDescriptions.push({ $ref: properties[k].ref });
         }
       }
     }
