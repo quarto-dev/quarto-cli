@@ -24,6 +24,7 @@ import("ojs.lua")
 import("reveal.lua")
 import("tikz.lua")
 import("meta.lua")
+import("delink.lua")
 import("../common/base64.lua")
 import("../common/params.lua")
 import("../common/table.lua")
@@ -44,7 +45,8 @@ return {
     responsive(),
     ipynb(),
     reveal(),
-    tikz()
+    tikz(),
+    delink()
   }),
   ojs(),
   quartoPostMetaInject(),
