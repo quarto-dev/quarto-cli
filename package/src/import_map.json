@@ -1,6 +1,7 @@
 {
   "imports": {
     "async/": "https://deno.land/std@0.122.0/async/",
+    "datetime/": "https://deno.land/std@0.122.0/datetime/",
     "encoding/": "https://deno.land/std@0.122.0/encoding/",
     "flags/": "https://deno.land/std@0.122.0/flags/",
     "fmt/": "https://deno.land/std@0.122.0/fmt/",
