@@ -24,6 +24,7 @@ $text-muted: $gray-600 !default;
     font-size: 0.65em;
     padding-left: 3px;
     padding-right: 3px;
+    cursor: pointer;
   }
 }
 
@@ -423,7 +424,7 @@ div.quarto-post {
     }
   }
 
-  a.post-contents {
+  a {
     color: $body-color;
     display: flex;
     flex-direction: column;

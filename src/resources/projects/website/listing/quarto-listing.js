@@ -1,4 +1,12 @@
 const kProgressiveAttr = "data-src";
+let categoriesLoaded = false;
+
+window.quartoListingCategory = (category) => {
+  if (categoriesLoaded) {
+    activateCategory(category);
+    setCategoryHash(category);
+  }
+};
 
 window["quarto-listing-loaded"] = () => {
   // Process any existing hash
@@ -68,6 +76,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       setCategoryHash("");
     };
   }
+
+  categoriesLoaded = true;
 });
 
 function toggleNoMatchingMessage(list) {
