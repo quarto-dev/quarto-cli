@@ -1,6 +1,8 @@
 <% if (item.href && item.text && !item.contents) { %>
 <li class="sidebar-item">
-  <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%= item.text %></a>
+  <div class="sidebar-item-container"> 
+  <a href="<%- item.href %>" class="sidebar-item-text <%- item.active ? "active" : "" %>"><%= item.text %></a>
+  </div>
 </li>
 <% } else if (item.contents && item.text) { %>  
   <%
@@ -11,38 +13,23 @@
   %> 
   <% isCollapsed = collapse <= depth  && !item.expanded %>
 
-  <ul class="list-unstyled sidebar-section depth<%-depth%>">
-    <li>
-          <% if (item.href) { %>
-          <div class="d-inline-flex w-100 <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
-            <div class="sidebar-section-link me-auto">
-            <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%= item.text %></a>
-            </div>
-            <a class="text-start <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
-              <div><i class="bi bi-chevron-right ms-2"></i></div>
-            </a>
-          </div>
-          <% } else { %>
-            <div class="d-inline-flex w-100 <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
-              <div class="sidebar-section-link w-100">
-              <a class="sidebar-section-item d-inline-flex text-start  <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><%= item.text %></a>
-              </div>
-              <a class="sidebar-section-item d-inline-flex text-start  <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
-                <div><i class="bi bi-chevron-right ms-2"></i></div>
-              </a>
-            </div>
-          <% }  %>
-
-      
-      <div class="collapse  <%- isCollapsed ? "" : "show" %>" id="<%- sectionId %>">
-        <ul class="list-unstyled sidebar-item-contents">
-        <% item.contents.forEach(subItem => { %>
-          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor }) %>
-         <% }) %>
-        </ul>
-      </div>
-    </li>
-  </ul>
+  <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+      <% if (item.href) { %>
+        <a href="<%- item.href %>" class="sidebar-item-text <%- item.active ? "active" : "" %>"><%= item.text %></a>
+      <% } else { %> 
+        <a class="sidebar-item-text text-start  <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><%= item.text %></a>
+      <% }  %>      
+      <a class="sidebar-item-toggle text-start <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="<%- sectionId %>" class="collapse list-unstyled sidebar-section depth<%-depth%> <%- isCollapsed ? "" : "show" %>">  
+      <% item.contents.forEach(subItem => { %>
+        <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor }) %>
+       <% }) %>
+    </ul>
+  </li>
 <% } else if (item.text && item.text.match(/^\-+$/)) { %>
 <li class="px-0"><hr class="sidebar-divider hi <%- borderColor %>"></li>
 <% } %>
