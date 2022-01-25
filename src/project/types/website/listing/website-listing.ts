@@ -15,6 +15,7 @@ import {
   FormatDependency,
   FormatExtras,
   kDependencies,
+  kHtmlFinalizers,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
@@ -122,9 +123,15 @@ export async function listingHtmlDependencies(
     return Promise.resolve([]);
   };
 
+  const listingFinalizer = (doc: Document) => {
+    listingFinalize(doc, options);
+    return Promise.resolve();
+  };
+
   return {
     [kIncludeInHeader]: [scriptFileForScripts(scripts, temp)],
     [kHtmlPostprocessors]: listingPostProcessor,
+    [kHtmlFinalizers]: listingFinalizer,
     [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
     [kDependencies]: htmlDependencies,
     [kSassBundles]: [listingSassBundle()],
@@ -203,7 +210,12 @@ function listingPostProcess(
     rightSidebar?.appendChild(headingEl);
     rightSidebar?.appendChild(categoriesEl);
   }
+}
 
+function listingFinalize(
+  doc: Document,
+  options: ListingSharedOptions,
+) {
   // Find the first user specified column in the listings
   const titleColumn = options[kPageColumn];
 
@@ -225,7 +237,19 @@ const kMarginSidebarId = "quarto-margin-sidebar";
 function suggestColumn(doc: Document) {
   const hasContents = (id: string) => {
     const el = doc.getElementById(id);
-    return el !== null;
+    // Does the element exist
+    if (el === null) {
+      return false;
+    }
+
+    // Does it have any element children?
+    if (el.children.length > 0) {
+      return false;
+    }
+
+    // If it doesn't have any element children
+    // see if there is any text
+    return !!el.innerText.trim();
   };
 
   const leftSidebar = hasContents(kSidebarId);

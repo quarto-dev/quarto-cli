@@ -19,6 +19,7 @@ import {
   Format,
   FormatExtras,
   kDependencies,
+  kHtmlFinalizers,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
@@ -164,6 +165,7 @@ export const websiteProjectType: ProjectType = {
       // html metadata
       extras.html = extras.html || {};
       extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
+      extras.html[kHtmlFinalizers] = extras.html[kHtmlFinalizers] || [];
       extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
       extras.html[kHtmlPostprocessors]?.push(...[
         htmlResourceResolverPostprocessor(source, project),
@@ -181,6 +183,10 @@ export const websiteProjectType: ProjectType = {
         extras.html[kHtmlPostprocessors]?.push(
           htmlListingDependencies[kHtmlPostprocessors],
         );
+        extras.html[kHtmlFinalizers]?.push(
+          htmlListingDependencies[kHtmlFinalizers],
+        );
+
         extras.html[kMarkdownAfterBody]?.push(
           htmlListingDependencies[kMarkdownAfterBody],
         );
