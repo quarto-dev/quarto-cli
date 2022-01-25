@@ -244,7 +244,7 @@ function suggestColumn(doc: Document) {
 
     // Does it have any element children?
     if (el.children.length > 0) {
-      return false;
+      return true;
     }
 
     // If it doesn't have any element children
