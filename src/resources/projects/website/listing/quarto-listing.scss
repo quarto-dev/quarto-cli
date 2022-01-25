@@ -11,8 +11,6 @@ $text-muted: $gray-600 !default;
 @mixin listing-category {
   display: flex;
   flex-wrap: wrap;
-  column-gap: 4px;
-  row-gap: 4px;
   padding-bottom: 5px;
 
   .listing-category {
@@ -24,6 +22,8 @@ $text-muted: $gray-600 !default;
     padding-left: 3px;
     padding-right: 3px;
     cursor: pointer;
+    margin-right: 4px;
+    margin-bottom: 4px;
   }
 }
 
