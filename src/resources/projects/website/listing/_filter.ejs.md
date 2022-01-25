@@ -10,7 +10,7 @@ const sortUi = listing['sort-ui'];
   <% const sortableFields = listing.utilities.sortableFieldData(); %>
   <% if (sortUi && sortableFields.length > 0) { %>
    <div class="input-group input-group-sm quarto-listing-sort">
-     <span class="input-group-text" id="basic-addon1"><i class="bi bi-sort-down"></i></span>
+     <span class="input-group-text"><i class="bi bi-sort-down"></i></span>
      <select
       id="listing-<%- listing.id %>-sort"
       class="form-select"
@@ -34,7 +34,7 @@ const sortUi = listing['sort-ui'];
 
   <% if (filterUi) { %>
     <div class="input-group input-group-sm quarto-listing-filter">
-      <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
       <input type="text" class="search form-control" placeholder="Filter" />
     </div>
   <% } %>
