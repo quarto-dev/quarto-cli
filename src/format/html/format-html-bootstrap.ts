@@ -418,7 +418,7 @@ function bootstrapHtmlFinalizer() {
         // Use the default layout, so don't add any classes
       }
     } else {
-      if (!hasLeftContent && !hasRightContent) {
+      if (!hasRightContent) {
         doc.body.classList.add("fullcontent");
       } else {
         // Use the deafult layout, don't add any classes
