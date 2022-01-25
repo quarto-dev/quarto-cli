@@ -67,6 +67,7 @@ export function categorySidebar(
       doc,
       allCategory,
       formatFn(allCategory, totalCategories),
+      "",
     );
     categoriesEl.appendChild(allEl);
   }
