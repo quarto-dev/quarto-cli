@@ -27,6 +27,10 @@ export interface HttpFileRequestOptions {
   on404?: (url: string, req: Request) => { print?: boolean; body?: Uint8Array };
 }
 
+export function isAbsoluteRef(href: string) {
+  return /^(?:http|https)\:\/\/.+/.test(href);
+}
+
 export function isFileRef(href: string) {
   return !/^\w+:/.test(href) && !href.startsWith("#");
 }

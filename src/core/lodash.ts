@@ -21,6 +21,8 @@ import ld_uniq from "lodash/uniq";
 import ld_uniqBy from "lodash/uniqBy";
 import ld_isObject from "lodash/isObject";
 import ld_isEqual from "lodash/isEqual";
+import ld_orderBy from "lodash/orderBy";
+import ld_escape from "lodash/escape";
 
 export const cloneDeep = ld_cloneDeep;
 export const debounce = ld_debounce;
@@ -36,3 +38,5 @@ export const uniq = ld_uniq;
 export const uniqBy = ld_uniqBy;
 export const isObject = ld_isObject;
 export const isEqual = ld_isEqual;
+export const orderBy = ld_orderBy;
+export const escape = ld_escape;

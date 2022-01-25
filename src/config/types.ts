@@ -93,6 +93,24 @@ import {
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kListingPageCategoryAll,
+  kListingPageFieldAuthor,
+  kListingPageFieldCategories,
+  kListingPageFieldDate,
+  kListingPageFieldDescription,
+  kListingPageFieldFileModified,
+  kListingPageFieldFileName,
+  kListingPageFieldReadingTime,
+  kListingPageFieldSubtitle,
+  kListingPageFieldTitle,
+  kListingPageMinutesCompact,
+  kListingPageNoMatches,
+  kListingPageOrderBy,
+  kListingPageOrderByDateAsc,
+  kListingPageOrderByDateDesc,
+  kListingPageOrderByDefault,
+  kListingPageOrderByNumberAsc,
+  kListingPageOrderByNumberDesc,
   kListings,
   kMarkdownHeadings,
   kMathjax,
@@ -465,6 +483,24 @@ export interface FormatLanguage {
   [kCrossrefLofTitle]?: string;
   [kCrossrefLotTitle]?: string;
   [kCrossrefLolTitle]?: string;
+  [kListingPageOrderBy]?: string;
+  [kListingPageOrderByDateAsc]?: string;
+  [kListingPageOrderByDefault]?: string;
+  [kListingPageOrderByDateDesc]?: string;
+  [kListingPageOrderByNumberAsc]?: string;
+  [kListingPageOrderByNumberDesc]?: string;
+  [kListingPageFieldDate]?: string;
+  [kListingPageFieldTitle]?: string;
+  [kListingPageFieldDescription]?: string;
+  [kListingPageFieldAuthor]?: string;
+  [kListingPageFieldFileName]?: string;
+  [kListingPageFieldFileModified]?: string;
+  [kListingPageFieldSubtitle]?: string;
+  [kListingPageFieldReadingTime]?: string;
+  [kListingPageFieldCategories]?: string;
+  [kListingPageMinutesCompact]?: string;
+  [kListingPageCategoryAll]?: string;
+  [kListingPageNoMatches]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

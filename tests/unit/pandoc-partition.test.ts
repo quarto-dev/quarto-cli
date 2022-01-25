@@ -5,6 +5,7 @@
 *
 */
 import { assert } from "testing/asserts.ts";
+import { Metadata } from "../../src/config/types.ts";
 import { partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
 import { unitTest } from "../test.ts";
 
@@ -16,10 +17,21 @@ unitTest("partitionYaml", () => {
   const markdownstr = `${frontMatter}\n${headingText}${markdown}`;
   const partmd = partitionMarkdown(markdownstr);
 
+  const metadataMatches = (yaml?: Metadata) => {
+    if (yaml) {
+      return yaml.title === "foo" && Object.keys(yaml).length === 1;
+    } else {
+      return false;
+    }
+  };
+
   // Tests of the result
   assert(partmd.containsRefs, "Refs Div not found");
   assert(partmd.markdown === markdown, "Partitioned markdown doesn't match");
-  assert(partmd.yaml === frontMatter, "Partitioned front matter doesn't match");
+  assert(
+    metadataMatches(partmd.yaml),
+    "Partitioned front matter doesn't match",
+  );
   assert(
     partmd.headingText === "Hello World",
     "Heading text not parsed properly",

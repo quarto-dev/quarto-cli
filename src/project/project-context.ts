@@ -30,7 +30,7 @@ import {
   ProjectContext,
 } from "./types.ts";
 
-import { readYaml } from "../core/yaml.ts";
+import { isYamlPath, readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
@@ -509,6 +509,39 @@ export function toInputRelativePaths(
   return collection;
 }
 
+export function projectYamlFiles(dir: string): string[] {
+  const files: string[] = [];
+
+  // Be sure to ignore directory and paths that we shouldn't inspect
+  const projIgnoreGlobs = projectHiddenIgnoreGlob(dir);
+
+  // Walk through the directory discovering YAML files
+  for (
+    const walk of walkSync(dir, {
+      includeDirs: true,
+      // this was done b/c some directories e.g. renv/packrat and potentially python
+      // virtualenvs include symblinks to R or Python libraries that are in turn
+      // circular. much safer to not follow symlinks!
+      followSymlinks: false,
+      skip: [kSkipHidden].concat(
+        projIgnoreGlobs.map((ignore) => globToRegExp(join(dir, ignore) + SEP)),
+      ),
+    })
+  ) {
+    if (walk.isFile && isYamlPath(walk.path)) {
+      files.push(walk.path);
+    }
+  }
+  return files;
+}
+
+function projectHiddenIgnoreGlob(dir: string) {
+  return projectIgnoreGlobs(dir) // standard ignores for all projects
+    .concat(["**/_*", "**/_*/**"]) // underscore prefx
+    .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
+    .concat(["**/README.?([Rrq])md"]); // README
+}
+
 function projectInputFiles(
   dir: string,
   metadata?: ProjectConfig,
@@ -519,10 +552,8 @@ function projectInputFiles(
 
   const outputDir = metadata?.project[kProjectOutputDir];
 
-  const projIgnoreGlobs = projectIgnoreGlobs(dir) // standard ignores for all projects
-    .concat(["**/_*", "**/_*/**"]) // underscore prefx
-    .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
-    .concat(["**/README.?([Rrq])md"]); // README
+  // Ignore project standard and hidden files
+  const projIgnoreGlobs = projectHiddenIgnoreGlob(dir);
 
   // map to regex
   const projectIgnores = projIgnoreGlobs.map((glob) =>
