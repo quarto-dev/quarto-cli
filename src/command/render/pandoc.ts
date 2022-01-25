@@ -29,6 +29,7 @@ import {
   FormatPandoc,
   kBodyEnvelope,
   kDependencies,
+  kHtmlFinalizers,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
@@ -221,6 +222,7 @@ export async function runPandoc(
   const htmlPostprocessors: Array<
     (doc: Document) => Promise<string[]>
   > = [];
+  const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
@@ -268,6 +270,9 @@ export async function runPandoc(
 
     // save post-processors
     htmlPostprocessors.push(...(extras.html?.[kHtmlPostprocessors] || []));
+
+    // Save finalizers
+    htmlFinalizers.push(...(extras.html?.[kHtmlFinalizers] || []));
 
     // add a post-processor for fixing overflow-x in cell output display
     if (isHtmlFileOutput(options.format.pandoc)) {
@@ -615,6 +620,9 @@ export async function runPandoc(
       postprocessors,
       htmlPostprocessors: isHtmlOutput(options.format.pandoc)
         ? htmlPostprocessors
+        : [],
+      htmlFinalizers: isHtmlDocOutput(options.format.pandoc)
+        ? htmlFinalizers
         : [],
     };
   } else {

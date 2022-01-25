@@ -20,13 +20,13 @@ function panelLayout()
             tappend(div.attr.classes, {
               "g-col-24",
               "g-col-lg-20",
-              "mx-auto"
+              "g-start-lg-2"
             })
           end
           -- return wrapped in a raw
           return pandoc.Div({ div }, pandoc.Attr("", { 
             layoutClass,
-            "grid"
+            "panel-grid"
           }))
         end
       end

@@ -3,12 +3,16 @@
   <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%= item.text %></a>
 </li>
 <% } else if (item.contents && item.text) { %>  
-  <% sectionId = item.sectionId %>
+  <%
+    // the section ID will ultimately be used in a selector, so the 
+    // '.' means query selector will match an abbreviated ID with a class matching
+    // what follows the dot. 
+    sectionId = item.sectionId ? item.sectionId.replace(".", "") : undefined ; 
+  %> 
   <% isCollapsed = collapse <= depth  && !item.expanded %>
 
   <ul class="list-unstyled sidebar-section depth<%-depth%>">
-    <li class="">
-        <div class="me-auto">
+    <li>
           <% if (item.href) { %>
           <div class="d-inline-flex w-100 <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
             <div class="sidebar-section-link me-auto">
@@ -17,14 +21,18 @@
             <a class="text-start <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
               <div><i class="bi bi-chevron-right ms-2"></i></div>
             </a>
-            </div>
+          </div>
           <% } else { %>
-            <a class="sidebar-section-item d-inline-flex text-start w-100 <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
-              <div class="me-auto <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>"><%= item.text %></div>
-            <div><i class="bi bi-chevron-right ms-2"></i></div>
-            </a>
+            <div class="d-inline-flex w-100 <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
+              <div class="sidebar-section-link w-100">
+              <a class="sidebar-section-item d-inline-flex text-start  <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><%= item.text %></a>
+              </div>
+              <a class="sidebar-section-item d-inline-flex text-start  <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
+                <div><i class="bi bi-chevron-right ms-2"></i></div>
+              </a>
+            </div>
           <% }  %>
-        </div>
+
       
       <div class="collapse  <%- isCollapsed ? "" : "show" %>" id="<%- sectionId %>">
         <ul class="list-unstyled sidebar-item-contents">

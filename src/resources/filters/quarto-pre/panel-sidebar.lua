@@ -133,7 +133,7 @@ function bootstrapSidebar()
   return {
     rowAttr = function(classes)
       local attr = pandoc.Attr("", {
-        "grid", 
+        "panel-grid", 
         "layout-sidebar",
         "ms-md-0"
       })
@@ -155,8 +155,6 @@ function bootstrapSidebar()
         "g-col-lg-17",
         "pt-3",
         "pt-lg-0",
-        "ps-0",
-        "ps-lg-3"
       })
     end
   }

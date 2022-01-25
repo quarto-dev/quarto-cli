@@ -263,14 +263,17 @@ export async function cleanupLogger() {
 }
 
 export function logError(e: Error) {
+  let message = e.message ? (`${e.name}: ${e.message}`) : "";
+
+  // include the stack if this is a debug build
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-  // Suppress the stack if this isn't a local / debug built
-  if (isDebug) {
-    error(e.stack);
-  } else {
-    if (e.message) {
-      error(`${e.name}: ${e.message}`);
-    }
+  if (isDebug && e.stack) {
+    message = message + "\n\n" + e.stack;
+  }
+
+  // show message if we have one
+  if (message) {
+    error(message);
   }
 }
 

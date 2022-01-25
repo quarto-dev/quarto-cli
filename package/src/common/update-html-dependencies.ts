@@ -441,6 +441,25 @@ async function updateBootstrapFromBslib(
       info(`Moving ${from} to ${to}`);
       Deno.renameSync(from, to);
 
+      // Fix up the Boostrap rules files
+      info(
+        "Rewriting bootstrap.scss to exclude functions, mixins, and variables.",
+      );
+      const bootstrapFilter = [
+        '@import "functions";',
+        '@import "variables";',
+        '@import "mixins";',
+      ];
+      const bootstrapScssFile = join(to, "bootstrap.scss");
+      const bootstrapScssContents = lines(
+        Deno.readTextFileSync(bootstrapScssFile),
+      ).filter((line: string) => {
+        return !bootstrapFilter.includes(line);
+      }).join("\n");
+      Deno.writeTextFileSync(bootstrapScssFile, bootstrapScssContents);
+      info("done.");
+      info("");
+
       // Copy utils
       info("Copying scss files");
       const utilsFrom = join(repo.dir, "inst", "sass-utils");

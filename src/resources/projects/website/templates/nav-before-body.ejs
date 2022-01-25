@@ -100,9 +100,11 @@
 <% } %>
 
 <!-- margin-sidebar -->
-<% if (nav.layout === "article" && nav.needMargin) { %>
+<% if (nav.layout === "article") { %>
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+      <% if (nav.hasToc) { %>
       <div id="quarto-toc-target"></div>
+      <% } %>
     </div>
 <% } %>
 

@@ -587,9 +587,14 @@ export async function renderPandoc(
   const htmlPostProcessors = canHtmlPostProcess
     ? pandocResult.htmlPostprocessors
     : [];
+  const htmlFinalizers = canHtmlPostProcess
+    ? pandocResult.htmlFinalizers || []
+    : [];
+
   const resourceRefs = await runHtmlPostprocessors(
     pandocOptions,
     htmlPostProcessors,
+    htmlFinalizers,
   );
 
   // run generic postprocessors
@@ -933,9 +938,10 @@ async function runHtmlPostprocessors(
   htmlPostprocessors: Array<
     (doc: Document) => Promise<string[]>
   >,
+  htmlFinalizers: Array<(doc: Document) => Promise<void>>,
 ): Promise<string[]> {
   const resourceRefs: string[] = [];
-  if (htmlPostprocessors.length > 0) {
+  if (htmlPostprocessors.length > 0 || htmlFinalizers.length > 0) {
     const outputFile = isAbsolute(options.output)
       ? options.output
       : join(dirname(options.source), options.output);
@@ -946,6 +952,14 @@ async function runHtmlPostprocessors(
       const postprocessor = htmlPostprocessors[i];
       resourceRefs.push(...(await postprocessor(doc)));
     }
+
+    // After the post processing is complete, allow any finalizers
+    // an opportunity at the document
+    for (let i = 0; i < htmlFinalizers.length; i++) {
+      const finalizer = htmlFinalizers[i];
+      await finalizer(doc);
+    }
+
     const htmlOutput = (doctypeMatch ? doctypeMatch[0] + "\n" : "") +
       doc.documentElement?.outerHTML!;
     Deno.writeTextFileSync(outputFile, htmlOutput);
