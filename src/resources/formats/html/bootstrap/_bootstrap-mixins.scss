@@ -16,6 +16,7 @@ $grid-body-maxsize-float-wide: calc(800px - #{2 * $grid-screen-inset-padding});
 $grid-body-maxsize-docked-wide: calc(
   1000px - #{2 * $grid-screen-inset-padding}
 );
+$grid-body-maxsize-plain-wide: calc(850px - #{2 * $grid-screen-inset-padding});
 $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
 
 @mixin page-columns {
@@ -354,7 +355,7 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-start] 1.5em
     [body-content-start] minmax(
       $grid-body-minsize,
-      $grid-body-maxsize-docked-wide
+      $grid-body-maxsize-plain-wide
     )
     [body-content-end] 1.5em
     [body-end] 35px
@@ -397,7 +398,7 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-start] 1.5em
     [body-content-start] minmax(
       $grid-body-minsize,
-      $grid-body-maxsize-docked-wide
+      $grid-body-maxsize-plain-wide
     )
     [body-content-end] 1.5em
     [body-end] 35px
