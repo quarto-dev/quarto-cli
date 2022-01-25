@@ -2,10 +2,6 @@
 // Fields
 const fields = listing.fields;
 
-// The column span for cards
-const cardColumnSpan = listing['card-column-span'] || 8;
-const cardColumnSpanMd = Math.max(cardColumnSpan, 12)
-
 // Card alignment
 const align = listing["grid-item-alignment"] || "left";
 
@@ -30,26 +26,47 @@ return !["title", "image", "date", "author", "subtitle", "description", "filenam
 %>
 
 <div class="g-col-1" <%= listing.utilities.metadataAttrs(item) %>>
+<a href="<%- item.path %>" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 <%-`card-${align}`%><%= hideBorders ? ' borderless' : '' %>">
+
 <% if (fields.includes('image')) { %>
-<% if (item.image) { %><p class="card-img-top"><a href="<%- item.path %>"><%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img") %></a></p>
-<% } else { %><a href="<%- item.path %>"><div class="card-img-top"<%= imgHeight ? ` style="height: ${imgHeight};"` : '' %>></div></a><% } %><% } %>
+
+<% if (item.image) { %>
+
+<p class="card-img-top">
+<%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img") %>
+</p>
+<% } else { %>
+<div class="card-img-bg" <%= imgHeight ? ` style="height: ${imgHeight};"` : '' %>>&nbsp;</div>
+<% } %> 
+<% } %>
 <% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %>
 <div class="card-body post-contents">
-<% if (showField('title')) { %><a href="<%- item.path %>"><h5 class="no-anchor card-title listing-title"><%= item.title %></h5></a><% } %><% if (showField('subtitle')) { %><div class="card-subtitle listing-subtitle"><a href="<%- item.path %>"><%= item.subtitle %></a></div><% } %><% if (showField('reading-time')) { %><div class="listing-reading-time card-text text-muted"><a href="<%- item.path %>"><%= item['reading-time'] %></a></div> <% } %>
-<% if (fields.includes('categories') && item.categories) { %><div class="listing-categories"><% for (const category of item.categories) { %><div class="listing-category"><a href="<%- item.path %>"><%= category %></a></div><% } %>
+<% if (showField('title')) { %><h5 class="no-anchor card-title listing-title"><%= item.title %></h5><% } %>
+<% if (showField('subtitle')) { %><div class="card-subtitle listing-subtitle"><%= item.subtitle %></div><% } %>
+<% if (showField('reading-time')) { %><div class="listing-reading-time card-text text-muted"><%= item['reading-time'] %></div> <% } %>
+
+<% if (fields.includes('categories') && item.categories) { %>
+
+<div class="listing-categories">
+  <% for (const category of item.categories) { %>
+<div class="listing-category" onclick="window.quartoListingCategory('<%=category%>'); return false;"><%= category %></div>
+  <% } %>
 </div>
-<% } %> 
+
+<% } %>
 <% if (showField('description')) { %>
-<div class="card-text listing-description"><%= item.description %></div>
+
+<div class="card-text listing-description delink"><%= item.description %></div>
 <% } %>
 <% 
 const flexJustify = showField('author') && showField('date') ? "justify" : showField('author') ? "start" : "end";
 %>
 <% if (showField('author') || showField('date')) { %>
 <div class="card-attribution card-text-small <%-flexJustify%>">
-<% if (showField('author')) { %><div class="listing-author"><a href="<%- item.path %>"><%= item.author %></a></div><% } %>
-<% if (showField('date')) { %><div class="listing-date"><a href="<%- item.path %>"><%= item.date %></a></div><% } %></div>
+<% if (showField('author')) { %><div class="listing-author"><%= item.author %></div><% } %>
+<% if (showField('date')) { %><div class="listing-date"><%= item.date %></div><% } %>
+</div>
 <% } %>
 
 <% if (otherFields.length > 0) { %>
@@ -62,22 +79,23 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 </tr>
 <% } %>
 </table>
+
 <% } %>
 
-</a></div>
+</div>
 <% } %>
 
 <% if (fields.includes('filename') || fields.includes('file-modified')) { %>
 
-<div class="card-footer text-muted">
+<div class="card-footer">
 <% if (fields.includes('filename')) { %>
 <div class="card-filename listing-filename">
-<%= item.filename ? listing.utilities.outputLink(item, 'filename') : "&nbsp;" %>
+<%= item.filename ? item.filename : "&nbsp;" %>
 </div>
 <% } %>
 <% if (fields.includes('file-modified')) { %>
 <div class="card-file-modified listing-file-modified">
-<%= item['file-modified'] ? listing.utilities.outputLink(item, 'file-modified') : "&nbsp;"%>
+<%= item['file-modified'] ? item['file-modified'] : "&nbsp;"%>
 </div>
 <% } %>
 </div>
@@ -85,4 +103,5 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 <% } %>
 
 </div>
+</a>
 </div>

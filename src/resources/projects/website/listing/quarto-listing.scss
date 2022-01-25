@@ -1,7 +1,6 @@
 /*-- scss:variables --*/
 
 $card-cap-bg: $gray-500 !default;
-$card-cap-color: $white !default;
 
 $border-color: $gray-300 !default;
 $border-radius-sm: 0.2em !default;
@@ -171,6 +170,16 @@ ul.pagination {
   }
 }
 
+.quarto-grid-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.quarto-grid-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
 .quarto-grid-item {
   h5.title {
     margin-top: 0;
@@ -209,25 +218,15 @@ ul.pagination {
   }
 
   div.post-contents {
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
     display: flex;
     flex-direction: column;
     text-decoration: none;
     height: 100%;
-    .listing-description a {
-      color: $link-color;
-    }
   }
 
-  div.card-img-top {
+  div.card-img-bg {
     background-color: $card-cap-bg;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: $card-cap-color;
+    flex-shrink: 0;
   }
 
   .card-attribution {
