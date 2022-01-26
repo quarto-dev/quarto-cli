@@ -249,6 +249,22 @@ function languageFilterParams(language: FormatLanguage) {
       params[key] = language[key];
     }
   });
+  // default prefixes based on titles
+  [
+    "fig",
+    "tbl",
+    "lst",
+    "thm",
+    "lem",
+    "cor",
+    "prp",
+    "cnj",
+    "def",
+    "exm",
+    "exr",
+  ].forEach((type) => {
+    params[`crossref-${type}-prefix`] = language[`crossref-${type}-title`];
+  });
   return params;
 }
 

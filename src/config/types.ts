@@ -28,32 +28,18 @@ import {
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
   kCopyButtonTooltip,
-  kCrossrefCnjPrefix,
   kCrossrefCnjTitle,
-  kCrossrefCorPrefix,
   kCrossrefCorTitle,
-  kCrossrefDefPrefix,
   kCrossrefDefTitle,
   kCrossrefEqPrefix,
-  kCrossrefExmPrefix,
   kCrossrefExmTitle,
-  kCrossrefExrPrefix,
   kCrossrefExrTitle,
-  kCrossrefFigPrefix,
   kCrossrefFigTitle,
-  kCrossrefLemPrefix,
   kCrossrefLemTitle,
-  kCrossrefLofTitle,
-  kCrossrefLolTitle,
-  kCrossrefLotTitle,
-  kCrossrefLstPrefix,
   kCrossrefLstTitle,
   kCrossrefPrfTitle,
-  kCrossrefPrpPrefix,
   kCrossrefSecPrefix,
-  kCrossrefTblPrefix,
   kCrossrefTblTitle,
-  kCrossrefThmPrefix,
   kCrossrefThmTitle,
   kCss,
   kEcho,
@@ -467,22 +453,8 @@ export interface FormatLanguage {
   [kCrossrefDefTitle]?: string;
   [kCrossrefExmTitle]?: string;
   [kCrossrefExrTitle]?: string;
-  [kCrossrefFigPrefix]?: string;
-  [kCrossrefTblPrefix]?: string;
-  [kCrossrefLstPrefix]?: string;
   [kCrossrefSecPrefix]?: string;
   [kCrossrefEqPrefix]?: string;
-  [kCrossrefThmPrefix]?: string;
-  [kCrossrefLemPrefix]?: string;
-  [kCrossrefCorPrefix]?: string;
-  [kCrossrefPrpPrefix]?: string;
-  [kCrossrefCnjPrefix]?: string;
-  [kCrossrefDefPrefix]?: string;
-  [kCrossrefExmPrefix]?: string;
-  [kCrossrefExrPrefix]?: string;
-  [kCrossrefLofTitle]?: string;
-  [kCrossrefLotTitle]?: string;
-  [kCrossrefLolTitle]?: string;
   [kListingPageOrderBy]?: string;
   [kListingPageOrderByDateAsc]?: string;
   [kListingPageOrderByDefault]?: string;
