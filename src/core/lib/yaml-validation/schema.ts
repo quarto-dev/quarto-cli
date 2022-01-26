@@ -56,13 +56,12 @@ export function schemaAcceptsScalar(schema: Schema) {
       return schema.allOf.every((s: Schema) => schemaAcceptsScalar(s));
   }
   return true;
-  
 }
 
-export function schemaType(schema: Schema) {
+export function schemaType(schema: Schema): string {
   const t = schema.type;
   if (t) {
-    return t;
+    return t as string;
   }
   if (schema.anyOf) {
     return "anyOf";
@@ -96,9 +95,22 @@ export function schemaExhaustiveCompletions(schema: Schema) {
   }
 }
 
-export function walkSchema<T>(schema: Schema, f: (a: Schema) => T) {
-  f(schema);
+// deno-lint-ignore no-explicit-any
+export function walkSchema<T>(schema: Schema, f: ((a: Schema) => any) | Record<string, (a: Schema) => any>) {
   const t = schemaType(schema);
+  if (typeof f === "function") {
+    if (f(schema) === true) {
+      // if callback returns true, don't recurse
+      return;
+    }
+  } else {
+    if (f[t] !== undefined) {
+      if (f[t](schema) === true) {
+      // if callback returns true, don't recurse
+      return;
+      }
+    }
+  }
   switch (t) {
     case "array":
       if (schema.items) {
@@ -139,15 +151,6 @@ export function walkSchema<T>(schema: Schema, f: (a: Schema) => T) {
         walkSchema(schema.additionalProperties, f);
       }
       break;
-      // case "boolean":
-      // case "null":
-      // case "number":
-      // case "any":
-      // case "enum":
-      // case "string":
-      //   break;
-      // default:
-      //   log(`Skipping walk on schema of type ${t}`);
   }
 }
 

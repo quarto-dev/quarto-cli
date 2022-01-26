@@ -5738,21 +5738,6 @@ if (typeof exports === 'object') {
     }
     return false;
   }
-  function schemaAcceptsScalar(schema) {
-    const t = schemaType(schema);
-    if (["object", "array"].indexOf(t) !== -1) {
-      return false;
-    }
-    switch (t) {
-      case "oneOf":
-        return schema.oneOf.some((s) => schemaAcceptsScalar(s));
-      case "anyOf":
-        return schema.anyOf.some((s) => schemaAcceptsScalar(s));
-      case "allOf":
-        return schema.allOf.every((s) => schemaAcceptsScalar(s));
-    }
-    return true;
-  }
   function schemaType(schema) {
     const t = schema.type;
     if (t) {
@@ -5772,10 +5757,60 @@ if (typeof exports === 'object') {
     }
     return "any";
   }
-  var definitionsObject = {};
-  function hasSchemaDefinition(key) {
-    return definitionsObject[key] !== void 0;
+  function walkSchema(schema, f) {
+    const t = schemaType(schema);
+    if (typeof f === "function") {
+      if (f(schema) === true) {
+        return;
+      }
+    } else {
+      if (f[t] !== void 0) {
+        if (f[t](schema) === true) {
+          return;
+        }
+      }
+    }
+    switch (t) {
+      case "array":
+        if (schema.items) {
+          walkSchema(schema.items, f);
+        }
+        break;
+      case "anyOf":
+        for (const s of schema.anyOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "oneOf":
+        for (const s of schema.oneOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "allOf":
+        for (const s of schema.allOf) {
+          walkSchema(s, f);
+        }
+        break;
+      case "object":
+        if (schema.properties) {
+          for (const key of Object.getOwnPropertyNames(schema.properties)) {
+            const s = schema.properties[key];
+            walkSchema(s, f);
+          }
+        }
+        if (schema.patternProperties) {
+          for (const key of Object.getOwnPropertyNames(schema.patternProperties)) {
+            const s = schema.patternProperties[key];
+            walkSchema(s, f);
+          }
+        }
+        if (schema.additionalProperties) {
+          walkSchema(schema.additionalProperties, f);
+        }
+        break;
+    }
   }
+  var definitionsObject = {};
   function getSchemaDefinition(key) {
     if (definitionsObject[key] === void 0) {
       throw new Error(`Internal Error: Schema ${key} not found.`);
@@ -5802,829 +5837,6 @@ if (typeof exports === 'object') {
       } else {
         result.push(el);
       }
-    }
-    return result;
-  }
-  function validateBoolean(value, _schema) {
-    return typeof value === "boolean";
-  }
-  function validateNumber(value, _schema) {
-    return typeof value === "number";
-  }
-  function validateString(value, schema) {
-    if (typeof value !== "string") {
-      return false;
-    }
-    if (schema.pattern === void 0) {
-      return true;
-    }
-    if (value.match(new RegExp(schema.pattern))) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  function validateNull(value, _schema) {
-    return value === null;
-  }
-  function validateEnum(value, schema) {
-    return schema["enum"].indexOf(value) !== -1;
-  }
-  function validateOneOf(value, schema) {
-    let count = 0;
-    for (const subSchema of schema.oneOf) {
-      if (validate(value, subSchema)) {
-        count += 1;
-        if (count > 1) {
-          return false;
-        }
-      }
-    }
-    return count === 1;
-  }
-  function validateAnyOf(value, schema) {
-    for (const subSchema of schema.anyOf) {
-      if (validate(value, subSchema)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  function validateAllOf(value, schema) {
-    for (const subSchema of schema.allOf) {
-      if (!validate(value, subSchema)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  function validateObject(value, schema) {
-    if (typeof value !== "object" || Array.isArray(value) || value === null) {
-      return false;
-    }
-    const inspectedProps = new Set();
-    if (schema.properties) {
-      for (const [key, subSchema] of Object.entries(schema.properties)) {
-        if (value[key] && !validate(value[key], subSchema)) {
-          return false;
-        } else {
-          inspectedProps.add(key);
-        }
-      }
-    }
-    if (schema.patternProperties) {
-      for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
-        const regexp = new RegExp(key);
-        for (const [objectKey, val] of Object.entries(value)) {
-          if (objectKey.match(regexp) && !validate(val, subSchema)) {
-            return false;
-          } else {
-            inspectedProps.add(objectKey);
-          }
-        }
-      }
-    }
-    if (schema.additionalProperties) {
-      for (const [objectKey, val] of Object.entries(value)) {
-        if (inspectedProps.has(objectKey)) {
-          continue;
-        }
-        if (!validate(val, schema.additionalProperties)) {
-          return false;
-        }
-      }
-    }
-    for (const reqKey of schema.required || []) {
-      if (value[reqKey] === void 0) {
-        return false;
-      }
-    }
-    return true;
-  }
-  function validateArray(value, schema) {
-    if (!Array.isArray(value)) {
-      return false;
-    }
-    if (schema.items) {
-      return value.every((entry) => validate(entry, schema.items));
-    }
-    return true;
-  }
-  function validate(value, schema) {
-    const validators = {
-      "boolean": validateBoolean,
-      "number": validateNumber,
-      "string": validateString,
-      "null": validateNull,
-      "enum": validateEnum,
-      "oneOf": validateOneOf,
-      "anyOf": validateAnyOf,
-      "allOf": validateAllOf,
-      "object": validateObject,
-      "array": validateArray
-    };
-    while (schema.$ref) {
-      schema = getSchemaDefinition(schema.$ref);
-    }
-    if (validators[schemaType(schema)]) {
-      return validators[schemaType(schema)](value, schema);
-    } else {
-      throw new Error(`Don't know how to validate ${schema.type}`);
-    }
-  }
-  var _module = void 0;
-  var validatorModulePath = "";
-  async function ensureValidatorModule() {
-    if (_module) {
-      return _module;
-    }
-    if (validatorModulePath === "") {
-      throw new Error("Internal Error: validator module path is not set");
-    }
-    const path = new URL(validatorModulePath, import_meta.url).href;
-    const _mod = await import(path);
-    _module = _mod.default;
-    return _module;
-  }
-  function setValidatorModulePath(path) {
-    validatorModulePath = path;
-  }
-  function stagedValidator(schema) {
-    const schemaName = schema.$id || schema.$ref;
-    if (!hasSchemaDefinition(schemaName)) {
-      throw new Error(`Internal error: can't find schema ${schemaName}`);
-    }
-    schema = getSchemaDefinition(schemaName);
-    return async (value) => {
-      if (validate(value, schema)) {
-        return [];
-      }
-      await ensureValidatorModule();
-      const validator = _module[schema.$id || schema.$ref];
-      if (validator(value)) {
-        throw new Error(`Internal error: validators disagree on schema ${schema.$id}`);
-      }
-      return JSON.parse(JSON.stringify(validator.errors));
-    };
-  }
-  function guessChunkOptionsFormat(options) {
-    const noIndentOrColon = /^[^:\s]+[^:]+$/;
-    const chunkLines = lines(options);
-    if (chunkLines.filter((l) => l.match(noIndentOrColon)).length === 0) {
-      return "yaml";
-    }
-    if (chunkLines.some((l) => l.trim() !== "" && !l.trimRight().endsWith(",") && l.indexOf("=") === -1)) {
-      return "yaml";
-    }
-    return "knitr";
-  }
-  function mappedSource(source, substrs) {
-    const params = [];
-    for (const { range } of substrs) {
-      params.push(range);
-    }
-    return mappedString(source, params);
-  }
-  async function partitionCellOptionsMapped(language, source, _validate = false, _engine = "") {
-    const commentChars = langCommentChars(language);
-    const optionPrefix = optionCommentPrefix(commentChars[0]);
-    const optionSuffix = commentChars[1] || "";
-    const optionsSource = [];
-    const yamlLines = [];
-    let endOfYaml = 0;
-    for (const line of rangedLines(source.value, true)) {
-      if (line.substring.startsWith(optionPrefix)) {
-        if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
-          let yamlOption = line.substring.substring(optionPrefix.length);
-          if (optionSuffix) {
-            yamlOption = yamlOption.trimRight();
-            yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
-          }
-          endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
-          const rangedYamlOption = {
-            substring: yamlOption,
-            range: {
-              start: line.range.start + optionPrefix.length,
-              end: endOfYaml
-            }
-          };
-          yamlLines.push(rangedYamlOption);
-          optionsSource.push(line);
-          continue;
-        }
-      }
-      break;
-    }
-    const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
-    return {
-      yaml: mappedYaml,
-      optionsSource,
-      source: mappedString(source, [{
-        start: endOfYaml,
-        end: source.value.length
-      }]),
-      sourceStartLine: yamlLines.length
-    };
-  }
-  function langCommentChars(lang) {
-    const chars = kLangCommentChars[lang] || "#";
-    if (!Array.isArray(chars)) {
-      return [chars];
-    } else {
-      return chars;
-    }
-  }
-  function optionCommentPrefix(comment) {
-    return comment + "| ";
-  }
-  var kLangCommentChars = {
-    r: "#",
-    python: "#",
-    julia: "#",
-    scala: "//",
-    matlab: "%",
-    csharp: "//",
-    fsharp: "//",
-    c: ["/*", "*/"],
-    css: ["/*", "*/"],
-    sas: ["*", ";"],
-    powershell: "#",
-    bash: "#",
-    sql: "--",
-    mysql: "--",
-    psql: "--",
-    lua: "--",
-    cpp: "//",
-    cc: "//",
-    stan: "#",
-    octave: "#",
-    fortran: "!",
-    fortran95: "!",
-    awk: "#",
-    gawk: "#",
-    stata: "*",
-    java: "//",
-    groovy: "//",
-    sed: "#",
-    perl: "#",
-    ruby: "#",
-    tikz: "%",
-    js: "//",
-    d3: "//",
-    node: "//",
-    sass: "//",
-    coffee: "#",
-    go: "//",
-    asy: "//",
-    haskell: "--",
-    dot: "//",
-    ojs: "//"
-  };
-  async function breakQuartoMd(src, validate2 = false) {
-    const nb = {
-      cells: []
-    };
-    const yamlRegEx = /^---\s*$/;
-    const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
-    const startCodeRegEx = /^```/;
-    const endCodeRegEx = /^```\s*$/;
-    const delimitMathBlockRegEx = /^\$\$/;
-    let language = "";
-    let cellStartLine = 0;
-    const lineBuffer = [];
-    const flushLineBuffer = async (cell_type, index) => {
-      if (lineBuffer.length) {
-        const mappedChunks = [];
-        for (const line of lineBuffer) {
-          mappedChunks.push(line.range);
-        }
-        const source = mappedString(src, mappedChunks);
-        const cell = {
-          cell_type: cell_type === "code" ? { language } : cell_type,
-          source,
-          sourceOffset: 0,
-          sourceStartLine: 0,
-          sourceVerbatim: source,
-          cellStartLine
-        };
-        cellStartLine = index + 1;
-        if (cell_type === "code" && (language === "ojs" || language === "dot")) {
-          const { yaml, source: source2, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
-          const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
-          let strUpToLastBreak = "";
-          if (sourceStartLine > 0) {
-            if (breaks.length) {
-              const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
-              strUpToLastBreak = cell.source.value.substring(0, lastBreak);
-            } else {
-              strUpToLastBreak = cell.source.value;
-            }
-          }
-          cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
-          cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
-            "```{ojs}\n",
-            { start: 0, end: cell.sourceVerbatim.value.length },
-            "\n```"
-          ]);
-          cell.source = source2;
-          cell.options = yaml;
-          cell.sourceStartLine = sourceStartLine;
-        }
-        if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
-          nb.cells.push(cell);
-        }
-        lineBuffer.splice(0, lineBuffer.length);
-      }
-    };
-    let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
-    const srcLines = rangedLines(src.value, true);
-    for (let i = 0; i < srcLines.length; ++i) {
-      const line = srcLines[i];
-      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
-        if (inYaml) {
-          lineBuffer.push(line);
-          await flushLineBuffer("raw", i);
-          inYaml = false;
-        } else {
-          await flushLineBuffer("markdown", i);
-          lineBuffer.push(line);
-          inYaml = true;
-        }
-      } else if (startCodeCellRegEx.test(line.substring)) {
-        const m = line.substring.match(startCodeCellRegEx);
-        language = m[1];
-        await flushLineBuffer("markdown", i);
-        inCodeCell = true;
-      } else if (endCodeRegEx.test(line.substring)) {
-        if (inCodeCell) {
-          inCodeCell = false;
-          await flushLineBuffer("code", i);
-        } else {
-          inCode = !inCode;
-          lineBuffer.push(line);
-        }
-      } else if (startCodeRegEx.test(line.substring)) {
-        inCode = true;
-        lineBuffer.push(line);
-      } else if (delimitMathBlockRegEx.test(line.substring)) {
-        if (inMathBlock) {
-          await flushLineBuffer("math", i);
-        } else {
-          if (inYaml || inCode || inCodeCell) {
-          } else {
-            await flushLineBuffer("markdown", i);
-          }
-        }
-        inMathBlock = !inMathBlock;
-        lineBuffer.push(line);
-      } else {
-        lineBuffer.push(line);
-      }
-    }
-    await flushLineBuffer("markdown", srcLines.length);
-    return nb;
-  }
-  function mdTrimEmptyLines(lines2) {
-    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines2 = lines2.slice(firstNonEmpty);
-    let lastNonEmpty = -1;
-    for (let i = lines2.length - 1; i >= 0; i--) {
-      if (lines2[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines2 = lines2.slice(0, lastNonEmpty + 1);
-    }
-    return lines2;
-  }
-  function getVerbatimInput(error) {
-    return error.source.value.substring(error.violatingObject.start, error.violatingObject.end);
-  }
-  function navigate(path, annotation, returnKey = false, pathIndex = 0) {
-    if (annotation === void 0) {
-      throw new Error("Can't navigate an undefined annotation");
-    }
-    if (pathIndex >= path.length) {
-      return annotation;
-    }
-    if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
-      const { components } = annotation;
-      const searchKey = path[pathIndex];
-      const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
-      for (let i = lastKeyIndex; i >= 0; i -= 2) {
-        const key = components[i].result;
-        if (key === searchKey) {
-          if (returnKey && pathIndex === path.length - 1) {
-            return navigate(path, components[i], returnKey, pathIndex + 1);
-          } else {
-            return navigate(path, components[i + 1], returnKey, pathIndex + 1);
-          }
-        }
-      }
-      throw new Error(`Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`);
-    } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
-      const searchKey = Number(path[pathIndex]);
-      return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
-    } else {
-      throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
-    }
-  }
-  function navigateSchema(path, schema, pathIndex = 0) {
-    if (schema.$ref) {
-      schema = getSchemaDefinition(schema.$ref);
-    }
-    if (pathIndex >= path.length - 1) {
-      return [schema];
-    }
-    const pathVal = path[pathIndex];
-    if (schema.allOf !== void 0) {
-      return schema.allOf.map((s) => navigateSchema(path, s, pathIndex)).flat();
-    } else if (pathVal === "patternProperties" && schema.patternProperties) {
-      const key = path[pathIndex + 1];
-      const subSchema = schema.patternProperties[key];
-      return navigateSchema(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "properties" && schema.properties) {
-      const key = path[pathIndex + 1];
-      const subSchema = schema.properties[key];
-      return navigateSchema(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "anyOf" && schema.anyOf) {
-      const key = Number(path[pathIndex + 1]);
-      const subSchema = schema.anyOf[key];
-      return navigateSchema(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "oneOf" && schema.oneOf) {
-      const key = Number(path[pathIndex + 1]);
-      const subSchema = schema.oneOf[key];
-      return navigateSchema(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "items" && schema.items) {
-      const subSchema = schema.items;
-      return navigateSchema(path, subSchema, pathIndex + 1);
-    } else {
-      return [];
-    }
-  }
-  function isProperPrefix(a, b) {
-    return b.length > a.length && b.substring(0, a.length) === a;
-  }
-  function groupBy(lst, f) {
-    const record = {};
-    const result = [];
-    for (const el of lst) {
-      const key = f(el);
-      if (record[key] === void 0) {
-        const lst2 = [];
-        const entry = {
-          key,
-          values: lst2
-        };
-        record[key] = lst2;
-        result.push(entry);
-      }
-      record[key].push(el);
-    }
-    return result;
-  }
-  function groupByEntries(entries) {
-    const result = [];
-    for (const { values } of entries) {
-      result.push(...values);
-    }
-    return result;
-  }
-  function narrowOneOfError(oneOf, suberrors) {
-    const subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
-    const onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
-    if (onlyAdditionalProperties.length) {
-      return onlyAdditionalProperties[0].values;
-    }
-    return [];
-  }
-  function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
-    const result = [];
-    const locF = mappedIndexToRowCol(source);
-    let errorsPerInstanceList = groupBy(validationErrors, (error) => error.instancePath);
-    do {
-      const newErrors = [];
-      errorsPerInstanceList = errorsPerInstanceList.filter(({ key: pathA }) => errorsPerInstanceList.filter(({ key: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
-      for (const { key: instancePath, values: errors } of errorsPerInstanceList) {
-        let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
-        errorsPerSchemaList = errorsPerSchemaList.filter(({ key: pathA }) => errorsPerSchemaList.filter(({ key: pathB }) => isProperPrefix(pathB, pathA)).length === 0);
-        for (const error of groupByEntries(errorsPerSchemaList)) {
-          if (error.hasBeenTransformed) {
-            continue;
-          }
-          if (error.keyword === "oneOf") {
-            error.hasBeenTransformed = true;
-            newErrors.push(...narrowOneOfError(error, errors));
-          } else if (error.keyword === "additionalProperties") {
-            error.hasBeenTransformed = true;
-            newErrors.push({
-              ...error,
-              instancePath: `${instancePath}/${error.params.additionalProperty}`,
-              keyword: "_custom_invalidProperty",
-              message: `property ${error.params.additionalProperty} not allowed in object`,
-              params: {
-                ...error.params,
-                originalError: error
-              },
-              schemaPath: error.schemaPath.slice(0, -21)
-            });
-          }
-        }
-      }
-      if (newErrors.length) {
-        errorsPerInstanceList.push(...groupBy(newErrors, (error) => error.instancePath));
-      } else {
-        break;
-      }
-    } while (true);
-    for (const { key: instancePath, values: allErrors } of errorsPerInstanceList) {
-      const path = instancePath.split("/").slice(1);
-      const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
-      for (const error of errors) {
-        const returnKey = error.keyword === "_custom_invalidProperty";
-        const violatingObject = navigate(path, annotation, returnKey);
-        const schemaPath = error.schemaPath.split("/").slice(1);
-        let start = { line: 0, column: 0 };
-        let end = { line: 0, column: 0 };
-        if (source.value.length) {
-          start = locF(violatingObject.start);
-          end = locF(violatingObject.end);
-        }
-        let niceError = {
-          heading: "",
-          error: [],
-          info: [],
-          location: { start, end }
-        };
-        if (error.keyword.startsWith("_custom_")) {
-          niceError = {
-            ...niceError,
-            heading: error.message === void 0 ? "" : error.message
-          };
-        } else {
-          if (instancePath === "") {
-            niceError = {
-              ...niceError,
-              heading: `(top-level error) ${error.message}`
-            };
-          } else {
-            const errorSchema = error.params && error.params.schema || error.parentSchema;
-            const innerSchema = errorSchema ? [errorSchema] : navigateSchema(schemaPath.map(decodeURIComponent), schema);
-            if (innerSchema.length === 0) {
-              niceError = {
-                ...niceError,
-                heading: `Schema ${schemaPath}: ${error.message}`
-              };
-            } else {
-              const rawVerbatimInput = source.value.substring(violatingObject.start, violatingObject.end);
-              if (rawVerbatimInput.length === 0) {
-                niceError = {
-                  ...niceError,
-                  heading: `Empty value found where it must instead ${innerSchema.map((s) => s.description).join(", ")}.`
-                };
-              } else {
-                const verbatimInput = quotedStringColor(source.value.substring(violatingObject.start, violatingObject.end));
-                niceError = {
-                  ...niceError,
-                  heading: `The value ${verbatimInput} must ${innerSchema.map((s) => s.description).join(", ")}.`
-                };
-              }
-            }
-          }
-        }
-        niceError.location = { start, end };
-        addFileInfo(niceError, source);
-        addInstancePathInfo(niceError, instancePath);
-        result.push({
-          instancePath,
-          message: error.message === void 0 ? "" : error.message,
-          violatingObject,
-          location: { start, end },
-          source,
-          ajvError: error,
-          niceError
-        });
-      }
-    }
-    result.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
-    return result;
-  }
-  var YAMLSchema = class {
-    constructor(schema) {
-      this.errorHandlers = [];
-      this.schema = schema;
-      this.validate = stagedValidator(this.schema);
-    }
-    addHandler(handler) {
-      this.errorHandlers.push(handler);
-    }
-    transformErrors(annotation, errors) {
-      return errors.map((error) => {
-        for (const handler of this.errorHandlers) {
-          error = handler(error, annotation, this.schema);
-        }
-        return error;
-      });
-    }
-    async validateParse(src, annotation) {
-      const validationErrors = await this.validate(annotation.result);
-      if (validationErrors.length) {
-        const localizedErrors = this.transformErrors(annotation, localizeAndPruneErrors(annotation, validationErrors, src, this.schema));
-        return {
-          result: annotation.result,
-          errors: localizedErrors
-        };
-      } else {
-        return {
-          result: annotation.result,
-          errors: []
-        };
-      }
-    }
-    reportErrorsInSource(result, src, message, error, log) {
-      if (result.errors.length) {
-        const locF = mappedIndexToRowCol(src);
-        const nLines = lines(src.originalString).length;
-        error(message);
-        for (const err of result.errors) {
-          let startO = err.violatingObject.start;
-          let endO = err.violatingObject.end;
-          while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
-            startO++;
-          }
-          while (src.mapClosest(endO) > src.mapClosest(startO) && src.originalString[src.mapClosest(endO)].match(/\s/)) {
-            endO--;
-          }
-          const start = locF(startO);
-          const end = locF(endO);
-          const {
-            prefixWidth,
-            lines: lines2
-          } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
-          const contextLines = [];
-          for (const { lineNumber, content, rawLine } of lines2) {
-            contextLines.push(content);
-            if (lineNumber >= start.line && lineNumber <= end.line) {
-              const startColumn = lineNumber > start.line ? 0 : start.column;
-              const endColumn = lineNumber < end.line ? rawLine.length : end.column;
-              contextLines.push(" ".repeat(prefixWidth + startColumn) + blue("~".repeat(endColumn - startColumn + 1)));
-            }
-          }
-          err.niceError.sourceContext = contextLines.join("\n");
-          log(tidyverseFormatError(err.niceError));
-        }
-      }
-      return result;
-    }
-    async validateParseWithErrors(src, annotation, message, error, log) {
-      const result = await this.validateParse(src, annotation);
-      this.reportErrorsInSource(result, src, message, error, log);
-      return result;
-    }
-  };
-  var PromiseQueue = class {
-    constructor() {
-      this.queue = new Array();
-      this.running = false;
-    }
-    enqueue(promise, clearPending = false) {
-      return new Promise((resolve, reject) => {
-        if (clearPending) {
-          this.queue.splice(0, this.queue.length);
-        }
-        this.queue.push({
-          promise,
-          resolve,
-          reject
-        });
-        this.dequeue();
-      });
-    }
-    dequeue() {
-      if (this.running) {
-        return false;
-      }
-      const item = this.queue.shift();
-      if (!item) {
-        return false;
-      }
-      try {
-        this.running = true;
-        item.promise().then((value) => {
-          this.running = false;
-          item.resolve(value);
-          this.dequeue();
-        }).catch((err) => {
-          this.running = false;
-          item.reject(err);
-          this.dequeue();
-        });
-      } catch (err) {
-        this.running = false;
-        item.reject(err);
-        this.dequeue();
-      }
-      return true;
-    }
-  };
-  var yamlValidators = {};
-  var validatorQueues = {};
-  function checkForTypeMismatch(error, _parse, _schema) {
-    const verbatimInput = quotedStringColor(getVerbatimInput(error));
-    if (error.ajvError.keyword === "type") {
-      const newError = {
-        heading: `The value ${verbatimInput} must be a ${error.ajvError.params.type}.`,
-        error: [
-          `The value ${verbatimInput} is a ${typeof error.violatingObject.result}.`
-        ],
-        info: [],
-        location: error.niceError.location
-      };
-      addInstancePathInfo(newError, error.ajvError.instancePath);
-      addFileInfo(newError, error.source);
-      return {
-        ...error,
-        niceError: newError
-      };
-    }
-    return error;
-  }
-  function checkForBadBoolean(error, _parse, schema) {
-    schema = error.ajvError.params.schema;
-    if (!(typeof error.violatingObject.result === "string" && error.ajvError.keyword === "type" && (schema && schema.type === "boolean"))) {
-      return error;
-    }
-    const strValue = error.violatingObject.result;
-    const verbatimInput = quotedStringColor(getVerbatimInput(error));
-    const yesses = new Set("y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON".split("|"));
-    const nos = new Set("n|N|no|No|NO|false|False|FALSE|off|Off|OFF".split("|"));
-    let fix;
-    if (yesses.has(strValue)) {
-      fix = true;
-    } else if (nos.has(strValue)) {
-      fix = false;
-    } else {
-      return error;
-    }
-    const heading = `The value ${verbatimInput} must be a boolean`;
-    const errorMessage = `The value ${verbatimInput} is a string.`;
-    const suggestion1 = `Quarto uses YAML 1.2, which interprets booleans strictly.`;
-    const suggestion2 = `Try using ${quotedStringColor(String(fix))} instead.`;
-    const newError = {
-      heading,
-      error: [errorMessage],
-      info: [],
-      location: error.niceError.location
-    };
-    addInstancePathInfo(newError, error.ajvError.instancePath);
-    addFileInfo(newError, error.source);
-    newError.info.push(suggestion1, suggestion2);
-    return {
-      ...error,
-      niceError: newError
-    };
-  }
-  function getSchemaName(schema) {
-    const schemaName = schema["$id"] || schema["$ref"];
-    if (schemaName === void 0) {
-      throw new Error("Expected schema to be named");
-    }
-    return schemaName;
-  }
-  function getValidator(schema) {
-    const schemaName = getSchemaName(schema);
-    if (yamlValidators[schemaName]) {
-      return yamlValidators[schemaName];
-    }
-    const validator = new YAMLSchema(schema);
-    yamlValidators[schemaName] = validator;
-    validator.addHandler(checkForTypeMismatch);
-    validator.addHandler(checkForBadBoolean);
-    return validator;
-  }
-  async function withValidator(schema, fun) {
-    const schemaName = getSchemaName(schema);
-    if (validatorQueues[schemaName] === void 0) {
-      validatorQueues[schemaName] = new PromiseQueue();
-    }
-    const queue = validatorQueues[schemaName];
-    let result;
-    let error;
-    await queue.enqueue(async () => {
-      try {
-        const validator = getValidator(schema);
-        result = await fun(validator);
-      } catch (e) {
-        error = e;
-      }
-    });
-    if (error !== void 0) {
-      throw error;
     }
     return result;
   }
@@ -8446,7 +7658,7 @@ if (typeof exports === 'object') {
     }
     return false;
   }
-  function navigateSchema2(schema, path) {
+  function navigateSchema(schema, path) {
     const inner = (subSchema, index) => {
       subSchema = resolveSchema(subSchema);
       if (index === path.length) {
@@ -8636,6 +7848,830 @@ if (typeof exports === 'object') {
       default:
         return [];
     }
+  }
+  function validateBoolean(value, _schema) {
+    return typeof value === "boolean";
+  }
+  function validateNumber(value, _schema) {
+    return typeof value === "number";
+  }
+  function validateString(value, schema) {
+    if (typeof value !== "string") {
+      return false;
+    }
+    if (schema.pattern === void 0) {
+      return true;
+    }
+    if (value.match(new RegExp(schema.pattern))) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  function validateNull(value, _schema) {
+    return value === null;
+  }
+  function validateEnum(value, schema) {
+    return schema["enum"].indexOf(value) !== -1;
+  }
+  function validateOneOf(value, schema) {
+    let count = 0;
+    for (const subSchema of schema.oneOf) {
+      if (validate(value, subSchema)) {
+        count += 1;
+        if (count > 1) {
+          return false;
+        }
+      }
+    }
+    return count === 1;
+  }
+  function validateAnyOf(value, schema) {
+    for (const subSchema of schema.anyOf) {
+      if (validate(value, subSchema)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function validateAllOf(value, schema) {
+    for (const subSchema of schema.allOf) {
+      if (!validate(value, subSchema)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  function validateObject(value, schema) {
+    if (typeof value !== "object" || Array.isArray(value) || value === null) {
+      return false;
+    }
+    const inspectedProps = new Set();
+    const ownProperties = new Set(Object.getOwnPropertyNames(value));
+    if (schema.properties) {
+      for (const [key, subSchema] of Object.entries(schema.properties)) {
+        if (ownProperties.has(key) && !validate(value[key], subSchema)) {
+          return false;
+        } else {
+          inspectedProps.add(key);
+        }
+      }
+    }
+    if (schema.patternProperties) {
+      for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
+        const regexp = new RegExp(key);
+        for (const [objectKey, val] of Object.entries(value)) {
+          if (objectKey.match(regexp) && !validate(val, subSchema)) {
+            return false;
+          } else {
+            inspectedProps.add(objectKey);
+          }
+        }
+      }
+    }
+    if (schema.additionalProperties) {
+      for (const [objectKey, val] of Object.entries(value)) {
+        if (inspectedProps.has(objectKey)) {
+          continue;
+        }
+        if (!validate(val, schema.additionalProperties)) {
+          return false;
+        }
+      }
+    }
+    for (const reqKey of schema.required || []) {
+      if (value[reqKey] === void 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+  function validateArray(value, schema) {
+    if (!Array.isArray(value)) {
+      return false;
+    }
+    if (schema.items) {
+      return value.every((entry) => validate(entry, schema.items));
+    }
+    return true;
+  }
+  function validate(value, schema) {
+    if (schema === false) {
+      return false;
+    }
+    if (schema === true) {
+      return true;
+    }
+    const validators = {
+      "boolean": validateBoolean,
+      "number": validateNumber,
+      "string": validateString,
+      "null": validateNull,
+      "enum": validateEnum,
+      "oneOf": validateOneOf,
+      "anyOf": validateAnyOf,
+      "allOf": validateAllOf,
+      "object": validateObject,
+      "array": validateArray
+    };
+    schema = resolveSchema(schema);
+    if (validators[schemaType(schema)]) {
+      return validators[schemaType(schema)](value, schema);
+    } else {
+      throw new Error(`Don't know how to validate ${schema.type}`);
+    }
+  }
+  var _module = void 0;
+  var validatorModulePath = "";
+  async function ensureValidatorModule() {
+    if (_module) {
+      return _module;
+    }
+    if (validatorModulePath === "") {
+      throw new Error("Internal Error: validator module path is not set");
+    }
+    const path = new URL(validatorModulePath, import_meta.url).href;
+    const _mod = await import(path);
+    _module = _mod.default;
+    return _module;
+  }
+  function setValidatorModulePath(path) {
+    validatorModulePath = path;
+  }
+  function stagedValidator(schema) {
+    schema = resolveSchema(schema);
+    return async (value) => {
+      if (validate(value, schema)) {
+        return [];
+      }
+      await ensureValidatorModule();
+      const validator = _module[schema.$id];
+      if (validator(value)) {
+        throw new Error(`Internal error: validators disagree on schema ${schema.$id}`);
+      }
+      return JSON.parse(JSON.stringify(validator.errors));
+    };
+  }
+  function guessChunkOptionsFormat(options) {
+    const noIndentOrColon = /^[^:\s]+[^:]+$/;
+    const chunkLines = lines(options);
+    if (chunkLines.filter((l) => l.match(noIndentOrColon)).length === 0) {
+      return "yaml";
+    }
+    if (chunkLines.some((l) => l.trim() !== "" && !l.trimRight().endsWith(",") && l.indexOf("=") === -1)) {
+      return "yaml";
+    }
+    return "knitr";
+  }
+  function mappedSource(source, substrs) {
+    const params = [];
+    for (const { range } of substrs) {
+      params.push(range);
+    }
+    return mappedString(source, params);
+  }
+  async function partitionCellOptionsMapped(language, source, _validate = false, _engine = "") {
+    const commentChars = langCommentChars(language);
+    const optionPrefix = optionCommentPrefix(commentChars[0]);
+    const optionSuffix = commentChars[1] || "";
+    const optionsSource = [];
+    const yamlLines = [];
+    let endOfYaml = 0;
+    for (const line of rangedLines(source.value, true)) {
+      if (line.substring.startsWith(optionPrefix)) {
+        if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
+          let yamlOption = line.substring.substring(optionPrefix.length);
+          if (optionSuffix) {
+            yamlOption = yamlOption.trimRight();
+            yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
+          }
+          endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
+          const rangedYamlOption = {
+            substring: yamlOption,
+            range: {
+              start: line.range.start + optionPrefix.length,
+              end: endOfYaml
+            }
+          };
+          yamlLines.push(rangedYamlOption);
+          optionsSource.push(line);
+          continue;
+        }
+      }
+      break;
+    }
+    const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
+    return {
+      yaml: mappedYaml,
+      optionsSource,
+      source: mappedString(source, [{
+        start: endOfYaml,
+        end: source.value.length
+      }]),
+      sourceStartLine: yamlLines.length
+    };
+  }
+  function langCommentChars(lang) {
+    const chars = kLangCommentChars[lang] || "#";
+    if (!Array.isArray(chars)) {
+      return [chars];
+    } else {
+      return chars;
+    }
+  }
+  function optionCommentPrefix(comment) {
+    return comment + "| ";
+  }
+  var kLangCommentChars = {
+    r: "#",
+    python: "#",
+    julia: "#",
+    scala: "//",
+    matlab: "%",
+    csharp: "//",
+    fsharp: "//",
+    c: ["/*", "*/"],
+    css: ["/*", "*/"],
+    sas: ["*", ";"],
+    powershell: "#",
+    bash: "#",
+    sql: "--",
+    mysql: "--",
+    psql: "--",
+    lua: "--",
+    cpp: "//",
+    cc: "//",
+    stan: "#",
+    octave: "#",
+    fortran: "!",
+    fortran95: "!",
+    awk: "#",
+    gawk: "#",
+    stata: "*",
+    java: "//",
+    groovy: "//",
+    sed: "#",
+    perl: "#",
+    ruby: "#",
+    tikz: "%",
+    js: "//",
+    d3: "//",
+    node: "//",
+    sass: "//",
+    coffee: "#",
+    go: "//",
+    asy: "//",
+    haskell: "--",
+    dot: "//",
+    ojs: "//"
+  };
+  async function breakQuartoMd(src, validate2 = false) {
+    const nb = {
+      cells: []
+    };
+    const yamlRegEx = /^---\s*$/;
+    const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
+    const startCodeRegEx = /^```/;
+    const endCodeRegEx = /^```\s*$/;
+    const delimitMathBlockRegEx = /^\$\$/;
+    let language = "";
+    let cellStartLine = 0;
+    const lineBuffer = [];
+    const flushLineBuffer = async (cell_type, index) => {
+      if (lineBuffer.length) {
+        const mappedChunks = [];
+        for (const line of lineBuffer) {
+          mappedChunks.push(line.range);
+        }
+        const source = mappedString(src, mappedChunks);
+        const cell = {
+          cell_type: cell_type === "code" ? { language } : cell_type,
+          source,
+          sourceOffset: 0,
+          sourceStartLine: 0,
+          sourceVerbatim: source,
+          cellStartLine
+        };
+        cellStartLine = index + 1;
+        if (cell_type === "code" && (language === "ojs" || language === "dot")) {
+          const { yaml, source: source2, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
+          const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
+          let strUpToLastBreak = "";
+          if (sourceStartLine > 0) {
+            if (breaks.length) {
+              const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
+              strUpToLastBreak = cell.source.value.substring(0, lastBreak);
+            } else {
+              strUpToLastBreak = cell.source.value;
+            }
+          }
+          cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
+          cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
+            "```{ojs}\n",
+            { start: 0, end: cell.sourceVerbatim.value.length },
+            "\n```"
+          ]);
+          cell.source = source2;
+          cell.options = yaml;
+          cell.sourceStartLine = sourceStartLine;
+        }
+        if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
+          nb.cells.push(cell);
+        }
+        lineBuffer.splice(0, lineBuffer.length);
+      }
+    };
+    let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
+    const srcLines = rangedLines(src.value, true);
+    for (let i = 0; i < srcLines.length; ++i) {
+      const line = srcLines[i];
+      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
+        if (inYaml) {
+          lineBuffer.push(line);
+          await flushLineBuffer("raw", i);
+          inYaml = false;
+        } else {
+          await flushLineBuffer("markdown", i);
+          lineBuffer.push(line);
+          inYaml = true;
+        }
+      } else if (startCodeCellRegEx.test(line.substring)) {
+        const m = line.substring.match(startCodeCellRegEx);
+        language = m[1];
+        await flushLineBuffer("markdown", i);
+        inCodeCell = true;
+      } else if (endCodeRegEx.test(line.substring)) {
+        if (inCodeCell) {
+          inCodeCell = false;
+          await flushLineBuffer("code", i);
+        } else {
+          inCode = !inCode;
+          lineBuffer.push(line);
+        }
+      } else if (startCodeRegEx.test(line.substring)) {
+        inCode = true;
+        lineBuffer.push(line);
+      } else if (delimitMathBlockRegEx.test(line.substring)) {
+        if (inMathBlock) {
+          await flushLineBuffer("math", i);
+        } else {
+          if (inYaml || inCode || inCodeCell) {
+          } else {
+            await flushLineBuffer("markdown", i);
+          }
+        }
+        inMathBlock = !inMathBlock;
+        lineBuffer.push(line);
+      } else {
+        lineBuffer.push(line);
+      }
+    }
+    await flushLineBuffer("markdown", srcLines.length);
+    return nb;
+  }
+  function mdTrimEmptyLines(lines2) {
+    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
+    if (firstNonEmpty === -1) {
+      return [];
+    }
+    lines2 = lines2.slice(firstNonEmpty);
+    let lastNonEmpty = -1;
+    for (let i = lines2.length - 1; i >= 0; i--) {
+      if (lines2[i].trim().length > 0) {
+        lastNonEmpty = i;
+        break;
+      }
+    }
+    if (lastNonEmpty > -1) {
+      lines2 = lines2.slice(0, lastNonEmpty + 1);
+    }
+    return lines2;
+  }
+  function getVerbatimInput(error) {
+    return error.source.value.substring(error.violatingObject.start, error.violatingObject.end);
+  }
+  function navigate(path, annotation, returnKey = false, pathIndex = 0) {
+    if (annotation === void 0) {
+      throw new Error("Can't navigate an undefined annotation");
+    }
+    if (pathIndex >= path.length) {
+      return annotation;
+    }
+    if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
+      const { components } = annotation;
+      const searchKey = path[pathIndex];
+      const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
+      for (let i = lastKeyIndex; i >= 0; i -= 2) {
+        const key = components[i].result;
+        if (key === searchKey) {
+          if (returnKey && pathIndex === path.length - 1) {
+            return navigate(path, components[i], returnKey, pathIndex + 1);
+          } else {
+            return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+          }
+        }
+      }
+      throw new Error(`Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`);
+    } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
+      const searchKey = Number(path[pathIndex]);
+      return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
+    } else {
+      throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
+    }
+  }
+  function navigateSchema2(path, schema, pathIndex = 0) {
+    if (schema.$ref) {
+      schema = getSchemaDefinition(schema.$ref);
+    }
+    if (pathIndex >= path.length - 1) {
+      return [schema];
+    }
+    const pathVal = path[pathIndex];
+    if (schema.allOf !== void 0) {
+      return schema.allOf.map((s) => navigateSchema2(path, s, pathIndex)).flat();
+    } else if (pathVal === "patternProperties" && schema.patternProperties) {
+      const key = path[pathIndex + 1];
+      const subSchema = schema.patternProperties[key];
+      return navigateSchema2(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "properties" && schema.properties) {
+      const key = path[pathIndex + 1];
+      const subSchema = schema.properties[key];
+      return navigateSchema2(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "anyOf" && schema.anyOf) {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.anyOf[key];
+      return navigateSchema2(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "oneOf" && schema.oneOf) {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.oneOf[key];
+      return navigateSchema2(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "items" && schema.items) {
+      const subSchema = schema.items;
+      return navigateSchema2(path, subSchema, pathIndex + 1);
+    } else {
+      return [];
+    }
+  }
+  function isProperPrefix(a, b) {
+    return b.length > a.length && b.substring(0, a.length) === a;
+  }
+  function groupBy(lst, f) {
+    const record = {};
+    const result = [];
+    for (const el of lst) {
+      const key = f(el);
+      if (record[key] === void 0) {
+        const lst2 = [];
+        const entry = {
+          key,
+          values: lst2
+        };
+        record[key] = lst2;
+        result.push(entry);
+      }
+      record[key].push(el);
+    }
+    return result;
+  }
+  function groupByEntries(entries) {
+    const result = [];
+    for (const { values } of entries) {
+      result.push(...values);
+    }
+    return result;
+  }
+  function narrowOneOfError(oneOf, suberrors) {
+    const subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
+    const onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
+    if (onlyAdditionalProperties.length) {
+      return onlyAdditionalProperties[0].values;
+    }
+    return [];
+  }
+  function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
+    const result = [];
+    const locF = mappedIndexToRowCol(source);
+    let errorsPerInstanceList = groupBy(validationErrors, (error) => error.instancePath);
+    do {
+      const newErrors = [];
+      errorsPerInstanceList = errorsPerInstanceList.filter(({ key: pathA }) => errorsPerInstanceList.filter(({ key: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
+      for (const { key: instancePath, values: errors } of errorsPerInstanceList) {
+        let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
+        errorsPerSchemaList = errorsPerSchemaList.filter(({ key: pathA }) => errorsPerSchemaList.filter(({ key: pathB }) => isProperPrefix(pathB, pathA)).length === 0);
+        for (const error of groupByEntries(errorsPerSchemaList)) {
+          if (error.hasBeenTransformed) {
+            continue;
+          }
+          if (error.keyword === "oneOf") {
+            error.hasBeenTransformed = true;
+            newErrors.push(...narrowOneOfError(error, errors));
+          } else if (error.keyword === "additionalProperties") {
+            error.hasBeenTransformed = true;
+            newErrors.push({
+              ...error,
+              instancePath: `${instancePath}/${error.params.additionalProperty}`,
+              keyword: "_custom_invalidProperty",
+              message: `property ${error.params.additionalProperty} not allowed in object`,
+              params: {
+                ...error.params,
+                originalError: error
+              },
+              schemaPath: error.schemaPath.slice(0, -21)
+            });
+          }
+        }
+      }
+      if (newErrors.length) {
+        errorsPerInstanceList.push(...groupBy(newErrors, (error) => error.instancePath));
+      } else {
+        break;
+      }
+    } while (true);
+    for (const { key: instancePath, values: allErrors } of errorsPerInstanceList) {
+      const path = instancePath.split("/").slice(1);
+      const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
+      for (const error of errors) {
+        const returnKey = error.keyword === "_custom_invalidProperty";
+        const violatingObject = navigate(path, annotation, returnKey);
+        const schemaPath = error.schemaPath.split("/").slice(1);
+        let start = { line: 0, column: 0 };
+        let end = { line: 0, column: 0 };
+        if (source.value.length) {
+          start = locF(violatingObject.start);
+          end = locF(violatingObject.end);
+        }
+        let niceError = {
+          heading: "",
+          error: [],
+          info: [],
+          location: { start, end }
+        };
+        if (error.keyword.startsWith("_custom_")) {
+          niceError = {
+            ...niceError,
+            heading: error.message === void 0 ? "" : error.message
+          };
+        } else {
+          if (instancePath === "") {
+            niceError = {
+              ...niceError,
+              heading: `(top-level error) ${error.message}`
+            };
+          } else {
+            const errorSchema = error.params && error.params.schema || error.parentSchema;
+            const innerSchema = errorSchema ? [errorSchema] : navigateSchema2(schemaPath.map(decodeURIComponent), schema);
+            if (innerSchema.length === 0) {
+              niceError = {
+                ...niceError,
+                heading: `Schema ${schemaPath}: ${error.message}`
+              };
+            } else {
+              const rawVerbatimInput = source.value.substring(violatingObject.start, violatingObject.end);
+              if (rawVerbatimInput.length === 0) {
+                niceError = {
+                  ...niceError,
+                  heading: `Empty value found where it must instead ${innerSchema.map((s) => s.description).join(", ")}.`
+                };
+              } else {
+                const verbatimInput = quotedStringColor(source.value.substring(violatingObject.start, violatingObject.end));
+                niceError = {
+                  ...niceError,
+                  heading: `The value ${verbatimInput} must ${innerSchema.map((s) => s.description).join(", ")}.`
+                };
+              }
+            }
+          }
+        }
+        niceError.location = { start, end };
+        addFileInfo(niceError, source);
+        addInstancePathInfo(niceError, instancePath);
+        result.push({
+          instancePath,
+          message: error.message === void 0 ? "" : error.message,
+          violatingObject,
+          location: { start, end },
+          source,
+          ajvError: error,
+          niceError
+        });
+      }
+    }
+    result.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
+    return result;
+  }
+  var YAMLSchema = class {
+    constructor(schema) {
+      this.errorHandlers = [];
+      this.schema = schema;
+      this.validate = stagedValidator(this.schema);
+    }
+    addHandler(handler) {
+      this.errorHandlers.push(handler);
+    }
+    transformErrors(annotation, errors) {
+      return errors.map((error) => {
+        for (const handler of this.errorHandlers) {
+          error = handler(error, annotation, this.schema);
+        }
+        return error;
+      });
+    }
+    async validateParse(src, annotation) {
+      const validationErrors = await this.validate(annotation.result);
+      if (validationErrors.length) {
+        const localizedErrors = this.transformErrors(annotation, localizeAndPruneErrors(annotation, validationErrors, src, this.schema));
+        return {
+          result: annotation.result,
+          errors: localizedErrors
+        };
+      } else {
+        return {
+          result: annotation.result,
+          errors: []
+        };
+      }
+    }
+    reportErrorsInSource(result, src, message, error, log) {
+      if (result.errors.length) {
+        const locF = mappedIndexToRowCol(src);
+        const nLines = lines(src.originalString).length;
+        error(message);
+        for (const err of result.errors) {
+          let startO = err.violatingObject.start;
+          let endO = err.violatingObject.end;
+          while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
+            startO++;
+          }
+          while (src.mapClosest(endO) > src.mapClosest(startO) && src.originalString[src.mapClosest(endO)].match(/\s/)) {
+            endO--;
+          }
+          const start = locF(startO);
+          const end = locF(endO);
+          const {
+            prefixWidth,
+            lines: lines2
+          } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+          const contextLines = [];
+          for (const { lineNumber, content, rawLine } of lines2) {
+            contextLines.push(content);
+            if (lineNumber >= start.line && lineNumber <= end.line) {
+              const startColumn = lineNumber > start.line ? 0 : start.column;
+              const endColumn = lineNumber < end.line ? rawLine.length : end.column;
+              contextLines.push(" ".repeat(prefixWidth + startColumn) + blue("~".repeat(endColumn - startColumn + 1)));
+            }
+          }
+          err.niceError.sourceContext = contextLines.join("\n");
+          log(tidyverseFormatError(err.niceError));
+        }
+      }
+      return result;
+    }
+    async validateParseWithErrors(src, annotation, message, error, log) {
+      const result = await this.validateParse(src, annotation);
+      this.reportErrorsInSource(result, src, message, error, log);
+      return result;
+    }
+  };
+  var PromiseQueue = class {
+    constructor() {
+      this.queue = new Array();
+      this.running = false;
+    }
+    enqueue(promise, clearPending = false) {
+      return new Promise((resolve, reject) => {
+        if (clearPending) {
+          this.queue.splice(0, this.queue.length);
+        }
+        this.queue.push({
+          promise,
+          resolve,
+          reject
+        });
+        this.dequeue();
+      });
+    }
+    dequeue() {
+      if (this.running) {
+        return false;
+      }
+      const item = this.queue.shift();
+      if (!item) {
+        return false;
+      }
+      try {
+        this.running = true;
+        item.promise().then((value) => {
+          this.running = false;
+          item.resolve(value);
+          this.dequeue();
+        }).catch((err) => {
+          this.running = false;
+          item.reject(err);
+          this.dequeue();
+        });
+      } catch (err) {
+        this.running = false;
+        item.reject(err);
+        this.dequeue();
+      }
+      return true;
+    }
+  };
+  var yamlValidators = {};
+  var validatorQueues = {};
+  function checkForTypeMismatch(error, _parse, _schema) {
+    const verbatimInput = quotedStringColor(getVerbatimInput(error));
+    if (error.ajvError.keyword === "type") {
+      const newError = {
+        heading: `The value ${verbatimInput} must be a ${error.ajvError.params.type}.`,
+        error: [
+          `The value ${verbatimInput} is a ${typeof error.violatingObject.result}.`
+        ],
+        info: [],
+        location: error.niceError.location
+      };
+      addInstancePathInfo(newError, error.ajvError.instancePath);
+      addFileInfo(newError, error.source);
+      return {
+        ...error,
+        niceError: newError
+      };
+    }
+    return error;
+  }
+  function checkForBadBoolean(error, _parse, schema) {
+    schema = error.ajvError.params.schema;
+    if (!(typeof error.violatingObject.result === "string" && error.ajvError.keyword === "type" && (schema && schema.type === "boolean"))) {
+      return error;
+    }
+    const strValue = error.violatingObject.result;
+    const verbatimInput = quotedStringColor(getVerbatimInput(error));
+    const yesses = new Set("y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON".split("|"));
+    const nos = new Set("n|N|no|No|NO|false|False|FALSE|off|Off|OFF".split("|"));
+    let fix;
+    if (yesses.has(strValue)) {
+      fix = true;
+    } else if (nos.has(strValue)) {
+      fix = false;
+    } else {
+      return error;
+    }
+    const heading = `The value ${verbatimInput} must be a boolean`;
+    const errorMessage = `The value ${verbatimInput} is a string.`;
+    const suggestion1 = `Quarto uses YAML 1.2, which interprets booleans strictly.`;
+    const suggestion2 = `Try using ${quotedStringColor(String(fix))} instead.`;
+    const newError = {
+      heading,
+      error: [errorMessage],
+      info: [],
+      location: error.niceError.location
+    };
+    addInstancePathInfo(newError, error.ajvError.instancePath);
+    addFileInfo(newError, error.source);
+    newError.info.push(suggestion1, suggestion2);
+    return {
+      ...error,
+      niceError: newError
+    };
+  }
+  function getSchemaName(schema) {
+    const schemaName = schema["$id"] || schema["$ref"];
+    if (schemaName === void 0) {
+      throw new Error("Expected schema to be named");
+    }
+    return schemaName;
+  }
+  function getValidator(schema) {
+    const schemaName = getSchemaName(schema);
+    if (yamlValidators[schemaName]) {
+      return yamlValidators[schemaName];
+    }
+    const validator = new YAMLSchema(schema);
+    yamlValidators[schemaName] = validator;
+    validator.addHandler(checkForTypeMismatch);
+    validator.addHandler(checkForBadBoolean);
+    return validator;
+  }
+  async function withValidator(schema, fun) {
+    const schemaName = getSchemaName(schema);
+    if (validatorQueues[schemaName] === void 0) {
+      validatorQueues[schemaName] = new PromiseQueue();
+    }
+    const queue = validatorQueues[schemaName];
+    let result;
+    let error;
+    await queue.enqueue(async () => {
+      try {
+        const validator = getValidator(schema);
+        result = await fun(validator);
+      } catch (e) {
+        error = e;
+      }
+    });
+    if (error !== void 0) {
+      throw error;
+    }
+    return result;
   }
   function positionInTicks(context) {
     const code2 = asMappedString(context.code);
@@ -8836,7 +8872,7 @@ if (typeof exports === 'object') {
       return false;
     }
     const subPath = [completion.value.slice(0, -2)];
-    const matchingSubSchemas = navigateSchema2(matchingSchema, subPath);
+    const matchingSubSchemas = navigateSchema(matchingSchema, subPath);
     if (matchingSubSchemas.length === 0) {
       return false;
     }
@@ -8856,9 +8892,9 @@ if (typeof exports === 'object') {
     } = obj;
     let word = obj.word;
     let path = obj.path;
-    let matchingSchemas = uniqBy(navigateSchema2(schema, path), (schema2) => schema2.$id);
+    let matchingSchemas = uniqBy(navigateSchema(schema, path), (schema2) => schema2.$id);
     if (matchingSchemas.length === 0) {
-      const candidateSchemas = uniqBy(navigateSchema2(schema, path.slice(0, -1)), (schema2) => schema2.$id);
+      const candidateSchemas = uniqBy(navigateSchema(schema, path.slice(0, -1)), (schema2) => schema2.$id);
       if (candidateSchemas.length === 0) {
         return {
           token: word,
@@ -8888,18 +8924,47 @@ if (typeof exports === 'object') {
           return completion;
         }
         const key = completion.value.split(":")[0];
-        const matchingSubSchemas = navigateSchema2(completion.schema, [key]);
-        let matchingTypes = 0;
-        if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "object"))) {
-          matchingTypes += 1;
-        }
-        if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "array"))) {
-          matchingTypes += 1;
-        }
-        if (matchingSubSchemas.some((subSchema) => schemaAcceptsScalar(subSchema))) {
-          matchingTypes += 1;
-        }
-        if (matchingTypes > 1) {
+        const matchingSubSchemas = navigateSchema(completion.schema, [key]);
+        const canSuggestOnAccept = (ss) => {
+          const matchingTypes = new Set();
+          walkSchema(ss, (s) => {
+            const t = schemaType(s);
+            switch (t) {
+              case "object":
+                matchingTypes.add("object");
+                return true;
+              case "array":
+                matchingTypes.add("array");
+                return true;
+              case "oneOf":
+              case "anyOf":
+              case "allOf":
+                return false;
+              default:
+                matchingTypes.add("scalar");
+            }
+          });
+          if (matchingTypes.size > 1) {
+            return false;
+          }
+          ;
+          let arraySubSchemas = [];
+          walkSchema(ss, {
+            "array": (s) => {
+              arraySubSchemas.push(s);
+              return true;
+            },
+            "object": (s) => true
+          });
+          return arraySubSchemas.every((s) => {
+            if (s.items === void 0) {
+              return true;
+            } else {
+              return canSuggestOnAccept(s.items);
+            }
+          });
+        };
+        if (!matchingSubSchemas.every((ss) => canSuggestOnAccept(ss))) {
           return {
             ...completion,
             suggest_on_accept: false,
@@ -8925,7 +8990,7 @@ if (typeof exports === 'object') {
         return !(c.schema && c.schema.tags && c.schema.tags.hidden);
       } else if (c.type === "key") {
         const key = c.value.split(":")[0];
-        const matchingSubSchemas = navigateSchema2(c.schema, [key]);
+        const matchingSubSchemas = navigateSchema(c.schema, [key]);
         if (matchingSubSchemas.length === 0) {
           return true;
         }

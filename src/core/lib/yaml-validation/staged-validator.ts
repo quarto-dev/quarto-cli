@@ -6,6 +6,7 @@
 */
 
 import { getSchemaDefinition, hasSchemaDefinition, Schema } from "./schema.ts";
+import { resolveSchema } from "./schema-utils.ts";
 import { validate } from "./validator.ts";
 
 // this is an interface from ajv which we're repeating here for build
@@ -70,19 +71,14 @@ export function setValidatorModulePath(
 export function stagedValidator(
   schema: Schema,
 ): (schema: Schema) => Promise<ErrorObject[]> {
-  const schemaName: string = schema.$id || schema.$ref;
-
-  if (!hasSchemaDefinition(schemaName)) {
-    throw new Error(`Internal error: can't find schema ${schemaName}`);
-  }
-  schema = getSchemaDefinition(schemaName); // this resolves $ref schemas if they were such
+  schema = resolveSchema(schema);
 
   return async (value) => {
     if (validate(value, schema)) {
       return [];
     }
     await ensureValidatorModule();
-    const validator = _module[schema.$id || schema.$ref];
+    const validator = _module[schema.$id];
     if (validator(value)) {
       throw new Error(
         `Internal error: validators disagree on schema ${schema.$id}`,

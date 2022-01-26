@@ -40,7 +40,10 @@ import {
   schemaAccepts,
   schemaAcceptsScalar,
   setSchemaDefinition,
+  schemaType,
+  walkSchema
 } from "../yaml-validation/schema.ts";
+
 import { withValidator } from "../yaml-validation/validator-queue.ts";
 import {
   getSchemas,
@@ -488,17 +491,60 @@ function completions(obj: CompletionContext): CompletionResult {
         const key = completion.value.split(":")[0];
         const matchingSubSchemas = navigateSchema(completion.schema, [key]);
 
-        let matchingTypes = 0;
-        if (matchingSubSchemas.some((subSchema: Schema) => schemaAccepts(subSchema, "object"))) {
-          matchingTypes += 1;
+        // the following rule is correct and necessary, but quite
+        // ugly.
+        //
+        // The idea is we never want to set `suggest_on_accept: true` on a
+        // completion that can ask for more than one type. This can
+        // occur in two types of situations.
+        // 
+        // First, the matching subschema itself can have more than one type of completion
+        // (scalar, object, or array). Second, if the completion is in an array,
+        // then we need to check if the array item schema itself is valid
+
+        const canSuggestOnAccept = (ss: Schema): boolean => {
+          const matchingTypes: Set<string> = new Set();
+          
+          walkSchema(ss, (s) => {
+            const t = schemaType(s);
+            switch (t) {
+              case "object":
+                matchingTypes.add("object");
+                return true;
+              case "array":
+                matchingTypes.add("array");
+                return true;
+              case "oneOf":
+              case "anyOf":
+              case "allOf":
+                return false;
+              default:
+                matchingTypes.add("scalar");
+            }
+          });
+          if (matchingTypes.size > 1) {
+            return false;
+          };
+          
+          let arraySubSchemas: Schema[] = [];
+          // now find all array subschema to recurse on
+          walkSchema(ss, {
+            "array": (s) => {
+              arraySubSchemas.push(s);
+              return true;
+            },
+            "object": (s) => true
+          });
+          return arraySubSchemas.every(s => {
+            if (s.items === undefined) {
+              return true;
+            } else {
+              return canSuggestOnAccept(s.items);
+            }
+          });
         }
-        if (matchingSubSchemas.some((subSchema: Schema) => schemaAccepts(subSchema, "array"))) {
-          matchingTypes += 1;
-        }
-        if (matchingSubSchemas.some((subSchema: Schema) => schemaAcceptsScalar(subSchema))) {
-          matchingTypes += 1;
-        }
-        if (matchingTypes > 1) {
+        
+        if (!matchingSubSchemas.every(ss => canSuggestOnAccept(ss))) {
           return {
             ...completion,
             suggest_on_accept: false,

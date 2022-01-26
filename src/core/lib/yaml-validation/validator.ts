@@ -12,6 +12,7 @@
 */
 
 import { getSchemaDefinition, Schema, schemaType } from "./schema.ts";
+import { resolveSchema } from "./schema-utils.ts";
 
 // deno-lint-ignore no-explicit-any
 function validateBoolean(value: any, _schema: Schema) {
@@ -90,9 +91,12 @@ function validateObject(value: any, schema: Schema) {
     return false;
   }
   const inspectedProps: Set<string> = new Set();
+  const ownProperties: Set<string> = new Set(Object.getOwnPropertyNames(value));
   if (schema.properties) {
     for (const [key, subSchema] of Object.entries(schema.properties)) {
-      if (value[key] && !validate(value[key], subSchema)) {
+      // can't check for truthiness here because value might be falsey
+      // and yet we still need to check it.
+      if (ownProperties.has(key) && !validate(value[key], subSchema)) {
         return false;
       } else {
         inspectedProps.add(key);
@@ -143,6 +147,12 @@ function validateArray(value: any, schema: Schema) {
 
 // deno-lint-ignore no-explicit-any
 export function validate(value: any, schema: Schema) {
+  if (schema === false) {
+    return false;
+  }
+  if (schema === true) {
+    return true;
+  }
   // deno-lint-ignore no-explicit-any
   const validators: Record<string, (value: any, schema: Schema) => boolean> = {
     "boolean": validateBoolean,
@@ -157,9 +167,7 @@ export function validate(value: any, schema: Schema) {
     "array": validateArray,
   };
 
-  while (schema.$ref) {
-    schema = getSchemaDefinition(schema.$ref);
-  }
+  schema = resolveSchema(schema);
   if (validators[schemaType(schema)]) {
     return validators[schemaType(schema)](value, schema);
   } else {
