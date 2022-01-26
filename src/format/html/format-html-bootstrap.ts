@@ -636,7 +636,6 @@ const referenceMarginProcessor: MarginNodeProcessor = {
         // The parent is a figcaption that contains the reference.
         // The parent.parent is the figure
         const parentCaptionEl = findCaptionEl(el);
-        console.log(parentCaptionEl?.tagName);
         if (refContentsEl && parentCaptionEl) {
           addContentToMarginContainerForEl(
             parentCaptionEl,
