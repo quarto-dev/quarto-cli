@@ -113,7 +113,7 @@ $footer-right-font-size: $footer-font-size !default;
 $enable-grid-classes: false;
 $enable-cssgrid: true;
 
-$zindex-pagelayout: #{zindex-drop - 2};
+$zindex-pagelayout: 998;
 
 $popover-bg: if(variable-exists(body-bg), $body-bg, null) !default;
 $input-bg: if(variable-exists(body-bg), $body-bg, null) !default;
