@@ -351,8 +351,12 @@ function localizeAndPruneErrors(
       const violatingObject = navigate(path, annotation, returnKey);
       const schemaPath = error.schemaPath.split("/").slice(1);
 
-      const start = locF(violatingObject.start);
-      const end = locF(violatingObject.end);
+      let start = { line: 0, column: 0 };
+      let end = { line: 0, column: 0 };
+      if (source.value.length) {
+        start = locF(violatingObject.start);
+        end = locF(violatingObject.end);
+      }
 
       let niceError = {
         heading: "",
