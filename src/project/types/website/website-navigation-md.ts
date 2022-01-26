@@ -202,42 +202,45 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
         const markdown: Record<string, string> = {};
         sidebarItems.forEach((item) => {
           if (item.text) {
-            markdown[`${kSidebarIdPrefix}${item.href || item.text}`] =
-              item.text;
+            // Place sections using ID, place items using href
+            if (item.sectionId) {
+              markdown[`${kSidebarIdPrefix}${item.sectionId}`] = item.text;
+            } else {
+              markdown[`${kSidebarIdPrefix}${item.href + "" + item.text}`] =
+                item.text;
+            }
           }
         });
+
         return { inlines: markdown };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       const sidebarItemEls = doc.querySelectorAll(
-        ".sidebar-item:not(.sidebar-section) .sidebar-item-text",
+        ".sidebar-item:not(.sidebar-item-section) .sidebar-item-text",
       );
       for (let i = 0; i < sidebarItemEls.length; i++) {
         const link = sidebarItemEls[i] as Element;
         const href = link.getAttribute("href");
         const sidebarText =
-          rendered[`${kSidebarIdPrefix}${href || link.innerText}`];
+          rendered[`${kSidebarIdPrefix}${href + "" + link.innerText}`];
         if (sidebarText) {
           link.innerHTML = sidebarText.innerHTML;
         }
       }
 
       const sidebarSectionEls = doc.querySelectorAll(
-        "sidebar-item.sidebar-item-section .sidebar-item-text",
+        ".sidebar-item.sidebar-item-section .sidebar-item-text",
       );
       for (let i = 0; i < sidebarSectionEls.length; i++) {
         const link = sidebarSectionEls[i] as Element;
-        const href = link.getAttribute("href");
-        const div = link.querySelector("div.sidebar-section-item");
+        const target = link.getAttribute("data-bs-target");
 
-        if (div) {
-          const id = href || div.innerText;
-          if (id) {
-            const sectionText = rendered[`${kSidebarIdPrefix}${id}`];
-            if (sectionText) {
-              div.innerHTML = sectionText.innerHTML;
-            }
+        if (target) {
+          const id = target.slice(1);
+          const sectionText = rendered[`${kSidebarIdPrefix}${id}`];
+          if (sectionText) {
+            link.innerHTML = sectionText.innerHTML;
           }
         }
       }
