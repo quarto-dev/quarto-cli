@@ -73,6 +73,10 @@ export const renderCommand = new Command()
     "Force refresh of execution cache.",
   )
   .option(
+    "--no-clean",
+    "Do not clean project output-dir prior to render",
+  )
+  .option(
     "--debug",
     "Leave intermediate files in place after render.",
   )
@@ -103,6 +107,10 @@ export const renderCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input?: string, args?: string[]) => {
     args = args || [];
+
+    // remove implicit clean argument (re-injected based on what the user
+    // actually passes in flags.ts)
+    delete options.clean;
 
     // if an option got defined then this was mis-parsed as an 'option'
     // rather than an 'arg' because no input was passed. reshuffle

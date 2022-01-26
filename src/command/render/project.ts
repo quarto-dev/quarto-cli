@@ -120,6 +120,25 @@ export async function renderProject(
   // determine whether pre and post render steps should show progress
   const progress = !!options.progress || (files.length > 1);
 
+  // if there is an output dir then remove it if clean is specified
+  const projOutputDir = context.config?.project?.[kProjectOutputDir];
+  if (
+    renderAll && (typeof (projOutputDir) === "string") &&
+    (options.flags?.clean == true)
+  ) {
+    const realProjectDir = Deno.realPathSync(context.dir);
+    let realOutputDir = join(realProjectDir, projOutputDir);
+    if (existsSync(realOutputDir)) {
+      realOutputDir = Deno.realPathSync(realOutputDir);
+      if (
+        (realOutputDir !== realProjectDir) &&
+        realOutputDir.startsWith(realProjectDir)
+      ) {
+        removeIfExists(realOutputDir);
+      }
+    }
+  }
+
   // run pre-render step if we are rendering all files
   if (files.length > 0 && context.config?.project?.[kProjectPreRender]) {
     await runPreRender(
