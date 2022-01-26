@@ -351,6 +351,7 @@ export const kAbstract = "abstract";
 export const kAbstractTitle = "abstract-title";
 export const kDescription = "description";
 export const kTocTitle = "toc-title";
+export const kTocLocation = "toc-location";
 export const kLang = "lang";
 
 export const kServer = "server";

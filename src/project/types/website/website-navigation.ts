@@ -97,6 +97,7 @@ import {
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
+  kTocLocation,
 } from "../../../config/constants.ts";
 import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
 import {
@@ -198,9 +199,11 @@ export async function websiteNavigationExtras(
 
   const nav: Record<string, unknown> = {
     hasToc: hasTableOfContents(flags, format),
+    [kTocLocation]: format.metadata[kTocLocation] || "right",
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
+    sidebarStyle: sidebarStyle(),
     footer: navigation.footer,
   };
 
@@ -446,7 +449,9 @@ function navigationHtmlPostprocessor(
     if (numberSections === false) {
       // Look through sidebar items and remove the chapter number (and separator)
       // and replace with the title only
-      const sidebarItems = doc.querySelectorAll("li.sidebar-item a");
+      const sidebarItems = doc.querySelectorAll(
+        ".sidebar-item .sidebar-item-text",
+      );
       for (let i = 0; i < sidebarItems.length; i++) {
         const sidebarItem = sidebarItems[i] as Element;
         removeChapterNumber(sidebarItem);
@@ -746,6 +751,14 @@ function sidebarForHref(href: string) {
         return sidebar;
       }
     }
+  }
+}
+
+function sidebarStyle() {
+  if (navigation.sidebars.length > 0) {
+    return navigation.sidebars[0].style;
+  } else {
+    return undefined;
   }
 }
 

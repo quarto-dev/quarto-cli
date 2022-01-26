@@ -95,15 +95,15 @@
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-<%- nav.layout %><%- nav.navbar ? ' page-navbar': ''%>">
 
 <!-- sidebar -->
-<% if (nav.sidebar) { %>
-  <% partial('sidebar.ejs', { sidebar: nav.sidebar, navbar: !!nav.navbar }) %>
+<% if (nav.sidebar || nav['toc-location'] === "left") { %>
+  <% partial('sidebar.ejs', { sidebar: nav.sidebar, sidebarStyle: nav.sidebarStyle, navbar: !!nav.navbar, toc: nav['toc-location'] === "left" }) %>
 <% } %>
 
 <!-- margin-sidebar -->
 <% if (nav.layout === "article" || nav.layout === "full") { %>
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-      <% if (nav.hasToc) { %>
-      <div id="quarto-toc-target"></div>
+      <% if (nav.hasToc && nav['toc-location'] !== "left") { %>
+        <div id="quarto-toc-target"></div>
       <% } %>
     </div>
 <% } %>
