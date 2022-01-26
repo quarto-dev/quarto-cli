@@ -21,8 +21,8 @@ import { quarto } from "../../../src/quarto.ts";
 const syntaxQmd = crossref("syntax.qmd", "html");
 testRender(syntaxQmd.input, "html", false, [
   ensureFileRegexMatches(syntaxQmd.output.outputPath, [
-    /<div class="figtest-default">[^]*?>fig.&nbsp;1<[^]*?<\/div>/,
-    /<div class="figtest-capitalized">[^]*?>Fig.&nbsp;1<[^]*?<\/div>/,
+    /<div class="figtest-default">[^]*?>Figure&nbsp;1<[^]*?<\/div>/,
+    /<div class="figtest-capitalized">[^]*?>Figure&nbsp;1<[^]*?<\/div>/,
     /<div class="figtest-prefix">[^]*?>Figure&nbsp;1<[^]*?<\/div>/,
     /<div class="figtest-noprefix">[^]*?>1<[^]*?<\/div>/,
   ], [

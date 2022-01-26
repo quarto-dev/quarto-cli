@@ -22,5 +22,5 @@ renderVerifyLatexOutput(docs("latex-output/captionless-margin-image.qmd"), [
 renderVerifyLatexOutput(docs("latex-output/figure-div.qmd"), [
   /{\\centering/,
   /\\caption{\\label{fig-foo}This is the figure}/,
-  /See fig\.~\\ref{fig-foo} for more\./,
+  /See Figure~\\ref{fig-foo} for more\./,
 ]);

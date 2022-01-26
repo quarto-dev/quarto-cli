@@ -15,7 +15,7 @@ testRender(chaptersQmd.input, "html", false, [
     "div#fig-elephant > figure > figcaption.figure-caption",
   ]),
   ensureFileRegexMatches(chaptersQmd.output.outputPath, [
-    /fig\.&nbsp;1.1/,
+    /Figure&nbsp;1.1/,
     /Figure 1.1: Elephant/,
   ], [
     /\?@fig-/,

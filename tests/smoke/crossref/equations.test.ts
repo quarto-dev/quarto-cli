@@ -15,7 +15,7 @@ testRender(equationsQmd.input, "html", false, [
     "span#eq-black-scholes > span.math",
   ]),
   ensureFileRegexMatches(equationsQmd.output.outputPath, [
-    /eq\.&nbsp;1/,
+    /Equation&nbsp;1/,
   ], [
     /\?@eq-/,
   ]),

@@ -13,27 +13,27 @@ const allQmd = crossref("all.qmd", "latex");
 
 const simpleFigRegexes = [
   /\\begin{figure}[^]*?\\caption{\\label{fig-elephant}[^]*?\\end{figure}/,
-  /fig\.~\\ref{fig-elephant}/,
+  /Figure~\\ref{fig-elephant}/,
 ];
 const subFigRegexes = [
   /\\begin{figure}[^]*?\\subcaption{\\label{fig-surus}Surus}[^]*?\\subcaption{\\label{fig-abbas}Abbas}[^]*?\\end{figure}/,
-  /fig\.~\\ref{fig-elephants}/,
-  /fig\.~\\ref{fig-abbas}/,
+  /Figure~\\ref{fig-elephants}/,
+  /Figure~\\ref{fig-abbas}/,
 ];
 
 const simpleTableRegexes = [
   /\\begin{longtable}[^]*?\\caption{\\label{tbl-letters}[^]*?\\end{longtable}/,
-  /tbl\.~\\ref{tbl-letters}/,
+  /Table~\\ref{tbl-letters}/,
 ];
 const subTableRegexes = [
   /\\begin{table}[^]*?\\subcaption{\\label{tbl-first}First Table}[^]*?\\subcaption{\\label{tbl-second}Second Table}[^]*?\\end{table}/,
-  /tbl\.~\\ref{tbl-panel}/,
-  /tbl\.~\\ref{tbl-second}/,
+  /Table~\\ref{tbl-panel}/,
+  /Table~\\ref{tbl-second}/,
 ];
 
 const theoremRegexes = [
   /\\begin{theorem}[^]*?\\label{thm-line}[^]*?\\end{theorem}/,
-  /thm\.~\\ref{thm-line}/,
+  /Theorem~\\ref{thm-line}/,
 ];
 
 testRender(allQmd.input, "latex", true, [

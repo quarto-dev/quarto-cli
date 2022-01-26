@@ -16,7 +16,7 @@ testRender(therQmd.input, "html", false, [
     "div#thm-line span.theorem-title",
   ]),
   ensureFileRegexMatches(therQmd.output.outputPath, [
-    /thm\.&nbsp;1/,
+    /Theorem&nbsp;1/,
     /Theorem 1 \(Line\)/,
   ], [
     /\?@thm-/,
@@ -38,9 +38,9 @@ const selectors = types.map((type) => {
 });
 const matches: RegExp[] = [];
 types.forEach((type) => {
-  matches.push(RegExp(`${type[1]}\\.&nbsp;1`));
+  matches.push(RegExp(`${type[0]}&nbsp;1`));
   matches.push(RegExp(`${type[0]} 1 \\(${type[0]}\\)`));
-  matches.push(RegExp(`${type[1]}\\.&nbsp;1`));
+  matches.push(RegExp(`${type[0]}&nbsp;1`));
 });
 const noMatches = types.map((type) => {
   return RegExp(`\\?${type[1]}-`);
