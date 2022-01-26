@@ -5,6 +5,7 @@
 *
 */
 
+import { warning } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -20,6 +21,12 @@ let cachedJupyterCaps: JupyterCapabilities | undefined;
 
 export async function jupyterCapabilities() {
   if (!cachedJupyterCaps) {
+    // if there is an explicit python requested then use it
+    cachedJupyterCaps = await getQuartoJupyterCapabilities();
+    if (cachedJupyterCaps) {
+      return cachedJupyterCaps;
+    }
+
     // if we are on windows and have PY_PYTHON defined then use the launcher
     if (isWindows() && pyPython()) {
       cachedJupyterCaps = await getPyLauncherJupyterCapabilities();
@@ -45,7 +52,42 @@ export async function jupyterCapabilities() {
   return cachedJupyterCaps;
 }
 
+function getQuartoJupyterCapabilities() {
+  const quartoJupyter = Deno.env.get("QUARTO_PYTHON");
+  if (quartoJupyter) {
+    if (existsSync(quartoJupyter)) {
+      let quartoJupyterBin: string | undefined = quartoJupyter;
+      if (Deno.statSync(quartoJupyter).isDirectory) {
+        const bin = ["python3", "python", "python3.exe", "python.exe"]
+          .find((bin) => {
+            return existsSync(join(quartoJupyter, bin));
+          });
+        if (bin) {
+          quartoJupyterBin = join(quartoJupyter, bin);
+        } else {
+          quartoJupyterBin = undefined;
+        }
+      }
+      if (quartoJupyterBin) {
+        return getJupyterCapabilities([quartoJupyterBin]);
+      }
+    }
+    warning(
+      "Specified QUARTO_JUPYTER '" + quartoJupyter + "' does not exist.",
+    );
+    return undefined;
+  } else {
+    return undefined;
+  }
+}
+
 export async function jupyterCapabilitiesNoConda() {
+  // if there is an explicit python requested then use it
+  const caps = await getQuartoJupyterCapabilities();
+  if (caps && !caps.conda) {
+    return caps;
+  }
+
   if (isWindows()) {
     return await getPyLauncherJupyterCapabilities();
   } else {
