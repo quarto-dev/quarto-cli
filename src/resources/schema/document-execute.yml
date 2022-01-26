@@ -12,6 +12,7 @@
       - boolean
       - string
       - object:
+          hidden: true # don't complete through a single-key object
           properties:
             kernelspec:
               object:
