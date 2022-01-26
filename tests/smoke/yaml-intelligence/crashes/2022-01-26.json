@@ -1,0 +1,20 @@
+{
+  "kind": "validation",
+  "context": {
+    "path": "~/Desktop/fmt.qmd",
+    "filetype": "script",
+    "embedded": true,
+    "formats": [],
+    "project_formats": [
+      "html"
+    ],
+    "engine": "knitr",
+    "line": "#| ",
+    "code": "{r}\n#| ",
+    "position": {
+      "row": 1,
+      "column": 3
+    },
+    "explicit": false
+  }
+}

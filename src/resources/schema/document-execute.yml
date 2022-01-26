@@ -6,7 +6,6 @@
   description: "Engine used for executable code blocks."
 
 - name: jupyter
-  hidden: true
   schema:
     oneOf:
       - boolean
@@ -26,11 +25,10 @@
                   name:
                     string:
                       description: The name of the kernel.
-                required: [name, language, display_name]
+                required: all
   description: Configures the Jupyter engine.
 
 - name: knitr
-  hidden: true
   schema:
     oneOf:
       - boolean
@@ -42,6 +40,7 @@
             opts_chunk:
               object:
                 description: Knitr chunk options.
+          additionalProperties: false
   description: Set Knitr options.
 
 - name: cache
