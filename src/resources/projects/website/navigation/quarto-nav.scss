@@ -587,6 +587,12 @@ body:not(.floating) .nav-footer {
   }
 }
 
+@include media-breakpoint-down(md) {
+  .nav-footer-center {
+    margin-top: 3em;
+  }
+}
+
 .nav-footer-right {
   margin-left: auto;
 }
