@@ -82,7 +82,8 @@ export function addFileInfo(msg: TidyverseError, src: MappedString) {
 
 export function addInstancePathInfo(msg: TidyverseError, instancePath: string) {
   if (instancePath !== "") {
-    msg.info.push(`The error happened in the field ${instancePath}.`);
+    const niceInstancePath = instancePath.trim().slice(1).split("/").map(s => colors.blue(s)).join(":");
+    msg.info.push(`The error happened in location ${niceInstancePath}.`);
   }
 }
 
