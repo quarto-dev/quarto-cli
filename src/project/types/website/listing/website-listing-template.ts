@@ -27,7 +27,6 @@ import {
   kFields,
   kFieldSort,
   kFieldTypes,
-  kGridColumns,
   kImageHeight,
   kMaxDescLength,
   kPageSize,
@@ -42,8 +41,6 @@ import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
 
 export const kDateFormat = "date-format";
-
-export const kCardColumnSpan = "card-column-span";
 
 export const kQuartoListingClass = "quarto-listing";
 
@@ -252,12 +249,6 @@ export function reshapeListing(
   format: Format,
 ): ReshapedListing {
   const reshaped = cloneDeep(listing) as Listing;
-  if (reshaped.type === ListingType.Grid) {
-    // Compute the bootstrap column span of each card
-    reshaped[kCardColumnSpan] = columnSpan(
-      reshaped[kGridColumns] as number,
-    );
-  }
 
   // Add template utilities
   const utilities = {} as Record<string, unknown>;
@@ -474,27 +465,6 @@ export function templateJsScript(
   });
   `;
   return jsScript;
-}
-
-// Forces a user input column value into the appropriate
-// grid span bucket
-const kGridColSize = 24;
-const kGridValidSpans = [2, 3, 4, 6, 8, 12, 24];
-function columnSpan(columns: number) {
-  const rawValue = kGridColSize / columns;
-  for (let i = 0; i < kGridValidSpans.length; i++) {
-    const validSpan = kGridValidSpans[i];
-    if (rawValue === validSpan) {
-      return rawValue;
-    } else if (
-      i < kGridValidSpans.length && rawValue < kGridValidSpans[i + 1]
-    ) {
-      return validSpan;
-    } else if (i === kGridValidSpans.length - 1) {
-      return kGridValidSpans[i];
-    }
-  }
-  return rawValue;
 }
 
 function truncateText(text: string, length: number) {
