@@ -41,7 +41,7 @@ export const kPageLayout = "page-layout";
 export const kPageLayoutArticle = "article";
 export const kPageLayoutCustom = "custom";
 export const kPageLayoutNone = "none";
-export const kPageLayoutFull = "full";
+export const kPageLayoutAuto = "auto";
 export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
@@ -261,5 +261,20 @@ export function removeFootnoteBacklinks(footnotesEl: Element) {
   const backlinks = footnotesEl.querySelectorAll(".footnote-back");
   for (const backlink of backlinks) {
     backlink.remove();
+  }
+}
+
+export function setMainColumn(doc: Document, column: string) {
+  const mainEl = doc.querySelector("main.content");
+  if (mainEl) {
+    // Clear existing column
+    for (const clz of mainEl.classList) {
+      if (clz.startsWith("column-")) {
+        mainEl.classList.remove(clz);
+      }
+    }
+
+    // Set the new column
+    mainEl.classList.add(column);
   }
 }

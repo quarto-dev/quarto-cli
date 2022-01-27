@@ -40,9 +40,10 @@ import {
   kDocumentCss,
   kPageLayout,
   kPageLayoutArticle,
+  kPageLayoutAuto,
   kPageLayoutCustom,
-  kPageLayoutFull,
   kPageLayoutNone,
+  setMainColumn,
 } from "./format-html-shared.ts";
 
 export function formatHasBootstrap(format: Format) {
@@ -95,10 +96,13 @@ export function formatHasPageLayout(format: Format) {
     format.metadata[kPageLayout] !== kPageLayoutNone;
 }
 
+export function formatHasAutoLayout(format: Format) {
+  return format.metadata[kPageLayout] === kPageLayoutAuto;
+}
+
 export function formatHasArticlePageLayout(format: Format) {
   return format.metadata[kPageLayout] === undefined ||
-    format.metadata[kPageLayout] === kPageLayoutArticle ||
-    format.metadata[kPageLayout] === kPageLayoutFull;
+    format.metadata[kPageLayout] === kPageLayoutArticle;
 }
 
 export function formatHasCustomPageLayout(format: Format) {
@@ -187,7 +191,7 @@ export function boostrapExtras(
         bootstrapHtmlPostprocessor(flags, format),
       ],
       [kHtmlFinalizers]: [
-        bootstrapHtmlFinalizer(),
+        bootstrapHtmlFinalizer(format),
       ],
     },
   };
@@ -399,8 +403,13 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
   };
 }
 
-function bootstrapHtmlFinalizer() {
+function bootstrapHtmlFinalizer(format: Format) {
   return (doc: Document): Promise<void> => {
+    const autoLayout = formatHasAutoLayout(format);
+    if (autoLayout) {
+      const column = suggestColumn(doc);
+      setMainColumn(doc, column);
+    }
     // Note whether we need a narrow or wide margin layout
     const leftSidebar = doc.getElementById("quarto-sidebar");
     const hasLeftContent = leftSidebar && leftSidebar.children.length > 0;
@@ -766,3 +775,39 @@ const findOutermostParentElOfType = (
     return undefined;
   }
 };
+
+// Suggests a default column by inspecting sidebars
+// if there are none or some, take up the extra space!
+function suggestColumn(doc: Document) {
+  const hasContents = (id: string) => {
+    const el = doc.getElementById(id);
+    // Does the element exist
+    if (el === null) {
+      return false;
+    }
+
+    // Does it have any element children?
+    if (el.children.length > 0) {
+      return true;
+    }
+
+    // If it doesn't have any element children
+    // see if there is any text
+    return !!el.innerText.trim();
+  };
+
+  const leftSidebar = hasContents(kSidebarId);
+  const rightSidebar = hasContents(kMarginSidebarId);
+
+  if (leftSidebar && rightSidebar) {
+    return "column-body";
+  } else if (leftSidebar) {
+    return "column-page-right";
+  } else if (rightSidebar) {
+    return "column-page-left";
+  } else {
+    return "column-page";
+  }
+}
+const kSidebarId = "quarto-sidebar";
+const kMarginSidebarId = "quarto-margin-sidebar";
