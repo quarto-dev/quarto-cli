@@ -36,10 +36,17 @@ import {
 } from "../../core/platform.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 
+import { setInitializer, initState } from "../../core/lib/yaml-validation/state.ts";
+import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
+
 export async function render(
   path: string,
   options: RenderOptions,
 ): Promise<RenderResult> {
+  // one time initialization of yaml validators
+  setInitializer(initPrecompiledModules);
+  await initState();
+
   // determine target context/files
   const context = await projectContext(path, options.flags);
 

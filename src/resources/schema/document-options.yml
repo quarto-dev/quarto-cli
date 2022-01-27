@@ -1,0 +1,289 @@
+- name: reference-doc
+  tags:
+    formats: [$office-all, odt]
+  schema: path
+  description: |
+    Use the specified file as a style reference in producing a docx, 
+    pptx, or odt file.
+
+- name: theme
+  tags:
+    formats: [$html-doc, revealjs]
+  schema:
+    oneOf:
+      - string
+      - arrayOf: string
+      - object:
+          properties:
+            light:
+              maybeArrayOf:
+                string:
+                  description: The light theme name, theme scss file, or a mix of both.
+            dark:
+              maybeArrayOf:
+                string:
+                  description: The dark theme name, theme scss file, or a mix of both.
+  description: Theme name, theme scss file, or a mix of both.
+
+- name: minimal
+  schema: boolean
+  default: false
+  tags:
+    formats: [$html-doc]
+  description: Disables the built in html features like theming, anchor sections, code block behavior, and more.
+
+- name: document-css
+  schema: boolean
+  hidden: true
+  default: true
+  tags:
+    formats: [$html-files]
+  description: Enables inclusion of Pandoc default CSS for this document.
+
+- name: css
+  tags:
+    formats: [$html-all]
+  schema:
+    maybeArrayOf: path
+  description: "One or more CSS style sheets."
+
+- name: anchor-sections
+  schema: boolean
+  default: true
+  tags:
+    formats: [$html-doc]
+  description: Enables hover over a section title to see an anchor link.
+
+- name: html-math-method
+  tags:
+    formats: [$html-all]
+  schema:
+    oneOf:
+      - ref: math-methods
+      - object:
+          properties:
+            method:
+              ref: math-methods
+            url: string
+          required: [method]
+  description:
+    short: "Method use to render math in HTML output"
+    long: "Method use to render math in HTML output (`plain`, `webtex`, `gladtex`, `mathml`, `mathjax`, `katex`)"
+
+- name: section-divs
+  tags:
+    formats: [$html-files]
+  schema: boolean
+  default: true
+  description: |
+    Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`
+    rather than the heading itself.
+
+- name: identifier-prefix
+  tags:
+    formats: [$html-files, $docbook-all, $markdown-all, haddock]
+  schema: string
+  description:
+    short: "Specify a prefix to be added to all identifiers and internal links."
+    long: |
+      Specify a prefix to be added to all identifiers and internal links in HTML and
+      DocBook output, and to footnote numbers in Markdown and Haddock output. 
+      This is useful for preventing duplicate identifiers when generating fragments
+      to be included in other pages.
+
+- name: email-obfuscation
+  tags:
+    formats: [$html-files]
+  schema:
+    enum: [none, references, javascript]
+  default: none
+  description:
+    short: "Method for obfuscating mailto: links in HTML documents."
+    long: |
+      Specify a method for obfuscating `mailto:` links in HTML documents.
+      `none` leaves `mailto:` links as they are.  `javascript` obfuscates
+      them using JavaScript. `references` obfuscates them by printing their
+      letters as decimal or hexadecimal character references.  The default
+      is `none`.
+
+- name: html-q-tags
+  tags:
+    formats: [$html-all]
+  schema: boolean
+  default: false
+  description: "Use `<q>` tags for quotes in HTML."
+
+- name: pdf-engine
+  tags:
+    formats: [$pdf-all, ms, context]
+  schema:
+    string:
+      completions:
+        - pdflatex
+        - lualatex
+        - xelatex
+        - latexmk
+        - tectonic
+        - wkhtmltopdf
+        - weasyprint
+        - prince
+        - context
+        - pdfroff
+  description:
+    short: "Use the specified engine when producing PDF output."
+    long: |
+      Use the specified engine when producing PDF output. If the engine is not
+      in your PATH, the full path of the engine may be specified here. If this
+      option is not specified, Quarto uses the following defaults
+      depending on the output format in use:
+
+      - `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,
+        `tectonic`, `latexmk`)
+      - `context`: `context`
+      - `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;
+        see [print-css.rocks](https://print-css.rocks) for a good
+        introduction to PDF generation from HTML/CSS.)
+      - `ms`:  `pdfroff`
+
+- name: pdf-engine-opt
+  tags:
+    formats: [$pdf-all, ms, context]
+  schema: string
+  description:
+    short: "Use the given string as a command-line argument to the `pdf-engine`."
+    long: |
+      Use the given string as a command-line argument to the pdf-engine.
+      For example, to use a persistent directory foo for latexmk’s auxiliary
+      files, use `pdf-engine-opt: -outdir=foo`. Note that no check for 
+      duplicate options is done.
+
+- name: beamerarticle
+  schema: boolean
+  tags:
+    formats: [beamer]
+  description: Whether to produce a Beamer article from this presentation.
+
+- name: beameroption
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: Add an extra Beamer option using `\setbeameroption{}`.
+
+- name: aspectratio
+  schema:
+    oneOf:
+      - 43
+      - 169
+      - 1610
+      - 149
+      - 141
+      - 54
+      - 32
+  tags:
+    formats: [beamer]
+  description: The aspect ratio for this presentation.
+
+- name: logo
+  schema: path
+  tags:
+    formats: [beamer]
+  description: The logo image for slides.
+
+- name: titlegraphic
+  schema: path
+  tags:
+    formats: [beamer]
+  description: The image for the title slide.
+
+- name: navigation
+  schema:
+    enum: [empty, frame, vertical, horizontal]
+  tags:
+    formats: [beamer]
+  description: Controls navigation symbols for the presentation (`empty`, `frame`, `vertical`, or `horizontal`)
+
+- name: section-titles
+  schema: boolean
+  tags:
+    formats: [beamer]
+  default: true
+  description: Whether to enable title pages for new sections.
+
+- name: colortheme
+  schema: string
+  tags:
+    formats: [beamer]
+  description: The Beamer color theme for this presentation.
+
+- name: fonttheme
+  schema: string
+  tags:
+    formats: [beamer]
+  description: The Beamer font theme for this presentation.
+
+- name: innertheme
+  schema: string
+  tags:
+    formats: [beamer]
+  description: The Beamer inner theme for this presentation.
+
+- name: outertheme
+  schema: string
+  tags:
+    formats: [beamer]
+  description: The Beamer outer theme for this presentation.
+
+- name: themeoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [beamer]
+  description: Options passed to LaTeX Beamer themes.
+
+- name: section
+  schema: number
+  tags:
+    formats: [man]
+  description: The section number in man pages.
+
+- name: variant
+  tags:
+    formats: [$markdown-all]
+  schema: string
+  description: |
+    Enable and disable extensions for markdown output (e.g. "+emoji")
+
+- name: markdown-headings
+  tags:
+    formats: [$markdown-all, ipynb]
+  schema:
+    enum: [setext, atx]
+  default: atx
+  description: |
+    Specify whether to use `atx` (`#`-prefixed) or
+    `setext` (underlined) headings for level 1 and 2
+    headings.
+
+- name: keep-yaml
+  tags:
+    formats: [$markdown-all]
+  schema: boolean
+  default: false
+  description: "Preserve the original YAML front matter in rendered markdown"
+
+- name: ipynb-output
+  tags:
+    formats: [ipynb]
+  schema:
+    enum: [none, all, best]
+  default: best
+  description:
+    short: "Determines which ipynb cell output formats are rendered."
+    long: |
+      Determines which ipynb cell output formats are rendered. `all` means
+      that all of the data formats included in the original are
+      preserved.  `none` means that the contents of data cells
+      are omitted.  `best` causes pandoc to try to pick the
+      richest data block in each output cell that is compatible
+      with the output format. The default is `best`.

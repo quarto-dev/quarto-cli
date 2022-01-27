@@ -1,0 +1,127 @@
+- name: eval
+  tags:
+    contexts: [document-execute]
+    execute-only: true
+  schema: boolean
+  default: true
+  description: "Evaluate code cells (if `false` just echos the code into output)."
+
+- name: echo
+  tags:
+    contexts: [document-execute]
+    execute-only: true
+  schema:
+    anyOf:
+      - boolean
+      - enum: [fenced]
+    errorDescription: "be `true`, `false`, or `fenced`"
+  description: |
+    Include cell source code in rendered output. Specify `fenced` to include the cell delimiter 
+    as part of the output.
+
+- name: code-fold
+  tags:
+    contexts: [document-code]
+    formats: [$html-all]
+  schema:
+    oneOf:
+      - boolean
+      - enum: [show]
+  default: false
+  description:
+    short: "Collapse code into an HTML `<details>` tag so the user can display it on-demand."
+    long: |
+      Collapse code into an HTML `<details>` tag so the user can display it on-demand.
+      Specify `show` to have the code initiallly visible.
+
+- name: code-summary
+  tags:
+    contexts: [document-code]
+    formats: [$html-all]
+  schema: string
+  default: "Code"
+  description: "Summary text to use for code blocks collapsed using `code-fold`"
+
+- name: code-overflow
+  tags:
+    contexts: [document-code]
+    formats: [$html-all]
+  schema:
+    enum: [scroll, wrap]
+  default: scroll
+  description: "Choose whether to `scroll` or `wrap` when code lines are too wide for their container."
+
+- name: code-line-numbers
+  tags:
+    contexts: [document-code]
+    formats: [$html-all, docx, ms, $pdf-all]
+  schema: boolean
+  default: false
+  description: "Include line numbers in code block output."
+
+- name: lst-label
+  schema: string
+  description: "Unique label for code listing (used in cross references)"
+
+- name: lst-cap
+  schema: string
+  description: "Caption for code listing"
+
+- name: tidy
+  tags:
+    engine: knitr
+  schema: boolean
+  default: false
+  description: "Whether to reformat R code."
+
+- name: tidy-opts
+  tags:
+    engine: knitr
+  schema:
+    arrayOf: string
+  description: "List of options to pass to `tidy` handler"
+
+- name: collapse
+  tags:
+    engine: knitr
+  schema: boolean
+  default: false
+  description: |
+    Collapse all the source and output blocks from one code chunk into a single block
+
+- name: prompt
+  tags:
+    engine: knitr
+  schema: boolean
+  default: false
+  description:
+    short: "Whether to add the prompt characters in R code."
+    long: |
+      Whether to add the prompt characters in R
+      code. See `prompt` and `continue` on the help page `?base::options`. Note
+      that adding prompts can make it difficult for readers to copy R code from
+      the output, so `prompt: false` may be a better choice. This option may not
+      work well when the `engine` is not `R`
+      ([#1274](https://github.com/yihui/knitr/issues/1274)).
+
+- name: highlight
+  tags:
+    engine: knitr
+  schema: boolean
+  default: false
+  hidden: true
+  description: "Whether to syntax highlight the source code"
+
+- name: class-source
+  tags:
+    engine: knitr
+  schema:
+    maybeArrayOf: string
+  description: "Class name(s) for source code blocks"
+
+- name: attr-source
+  tags:
+    engine: knitr
+  schema:
+    maybeArrayOf: string
+  description: "Attribute(s) for source code blocks"

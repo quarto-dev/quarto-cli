@@ -1,0 +1,132 @@
+- name: engine
+  hidden: true
+  schema:
+    string:
+      completions: [jupyter, knitr]
+  description: "Engine used for executable code blocks."
+
+- name: jupyter
+  schema:
+    oneOf:
+      - boolean
+      - string
+      - object:
+          hidden: true # don't complete through a single-key object
+          properties:
+            kernelspec:
+              object:
+                properties:
+                  display_name:
+                    string:
+                      description: The name to display in the UI.
+                  language:
+                    string:
+                      description: The name of the language the kernel implements.
+                  name:
+                    string:
+                      description: The name of the kernel.
+                required: all
+  description: Configures the Jupyter engine.
+
+- name: knitr
+  schema:
+    oneOf:
+      - boolean
+      - object:
+          properties:
+            opts_knit:
+              object:
+                description: Knit options.
+            opts_chunk:
+              object:
+                description: Knitr chunk options.
+          additionalProperties: false
+  description: Set Knitr options.
+
+- name: cache
+  tags:
+    execute-only: true
+  schema:
+    anyOf:
+      - boolean
+      - enum: [refresh]
+  default: false
+  description:
+    short: "Cache results of computations."
+    long: |
+      Cache results of computations (using the [knitr cache](https://yihui.org/knitr/demo/cache/) 
+      for R documents, and [Jupyter Cache](https://jupyter-cache.readthedocs.io/en/latest/) 
+      for Jupyter documents).
+
+      Note that cache invalidation is triggered by changes in chunk source code 
+      (or other cache attributes you've defined). Use `refresh` to force a refresh
+      of the cache even if has not been otherwise invalidated.
+
+- name: freeze
+  tags:
+    execute-only: true
+  schema:
+    anyOf:
+      - boolean
+      - enum: [auto]
+  default: false
+  description:
+    short: "Re-use previous computational output when rendering"
+    long: |
+      Option to denote that computational documents should never be re-rendered during
+      a global project render (`freeze: true`), or alternatively only be re-rendered
+      when their source file changes (`freeze: auto`).
+
+- name: server
+  hidden: true
+  schema:
+    oneOf:
+      - enum: [shiny]
+      - object:
+          properties:
+            type:
+              enum: [shiny]
+              description: Type of server to run behind the document (e.g. `shiny`)
+            ojs-export:
+              maybeArrayOf: string
+              description: OJS variables to export to server.
+            ojs-import:
+              maybeArrayOf: string
+              description: Server reactive values to import into OJS.
+  description: Document server
+
+- name: daemon
+  hidden: true
+  schema:
+    oneOf: [number, boolean]
+  default: 300
+  description:
+    short: "Run Jupyter kernels within a peristent daemon (to mitigate kernel startup time)."
+    long: |
+      Run Jupyter kernels within a peristent daemon (to mitigate kernel startup time).
+      By default a daemon with a timeout of 300 seconds will be used. Set `daemon`
+      to another timeout value or to `false` to disable it altogether.
+
+- name: daemon-restart
+  schema: boolean
+  hidden: true
+  default: false
+  description: "Restart any running Jupyter daemon before rendering."
+
+- name: enabled
+  schema: boolean
+  default: true
+  hidden: true
+  description: "Enable code cell execution."
+
+- name: ipynb
+  schema: boolean
+  default: false
+  hidden: true
+  description: "Execute code cell execution in Jupyter notebooks."
+
+- name: debug
+  hidden: true
+  schema: boolean
+  default: false
+  description: "Show code-execution related debug information."

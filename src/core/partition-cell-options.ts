@@ -6,10 +6,9 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import {
-  asMappedString,
-  MappedString,
-} from "./lib/mapped-text.ts";
+
+import { asMappedString, MappedString } from "./lib/mapped-text.ts";
+
 import {
   langCommentChars,
   optionCommentPrefix,
@@ -20,7 +19,9 @@ import { readYamlFromString } from "./yaml.ts";
 import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
 import { warnOnce } from "./log.ts";
 
-import { getLanguageOptionsSchema } from "./schema/chunk-metadata.ts";
+import { getEngineOptionsSchema } from "./schema/chunk-metadata.ts";
+
+import { guessChunkOptionsFormat } from "./lib/guess-chunk-options-format.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -52,6 +53,15 @@ export function partitionCellOptions(
     break;
   }
 
+  if (guessChunkOptionsFormat(yamlLines.join("\n")) === "knitr") {
+    return {
+      yaml: undefined,
+      optionsSource,
+      source: source.slice(yamlLines.length),
+      sourceStartLine: yamlLines.length,
+    };
+  }
+
   let yaml = yamlLines.length > 0
     ? readYamlFromString(yamlLines.join("\n"))
     : undefined;
@@ -74,15 +84,16 @@ export function partitionCellOptions(
 
 export async function parseAndValidateCellOptions(
   mappedYaml: MappedString,
-  language: string,
+  _language: string,
   validate = false,
+  engine = "",
 ) {
   if (mappedYaml.value.trim().length === 0) {
     return undefined;
   }
 
-  const languageOptionsSchema = await getLanguageOptionsSchema();
-  const schema = languageOptionsSchema[language];
+  const engineOptionsSchema = await getEngineOptionsSchema();
+  const schema = engineOptionsSchema[engine];
 
   if (schema === undefined || !validate) {
     return readYamlFromString(mappedYaml.value);
@@ -91,7 +102,7 @@ export async function parseAndValidateCellOptions(
   return readAndValidateYamlFromMappedString(
     mappedYaml,
     schema,
-    `Validation of YAML ${language} chunk options failed`,
+    `Validation of YAML chunk options for engine ${engine} failed`,
   );
 }
 
@@ -101,6 +112,7 @@ export async function partitionCellOptionsMapped(
   language: string,
   outerSource: MappedString,
   validate = false,
+  engine = "",
 ) {
   const {
     yaml: mappedYaml,
@@ -109,16 +121,28 @@ export async function partitionCellOptionsMapped(
     sourceStartLine,
   } = await libPartitionCellOptionsMapped(language, outerSource);
 
-  const yaml = await parseAndValidateCellOptions(
-    mappedYaml ?? asMappedString(""),
-    language,
-    validate,
-  );
+  if (
+    guessChunkOptionsFormat((mappedYaml ?? asMappedString("")).value) === "yaml"
+  ) {
+    const yaml = await parseAndValidateCellOptions(
+      mappedYaml ?? asMappedString(""),
+      language,
+      validate,
+      engine,
+    );
 
-  return {
-    yaml: yaml as Record<string, unknown> | undefined,
-    optionsSource,
-    source,
-    sourceStartLine,
-  };
+    return {
+      yaml: yaml as Record<string, unknown> | undefined,
+      optionsSource,
+      source,
+      sourceStartLine,
+    };
+  } else {
+    return {
+      yaml: undefined,
+      optionsSource,
+      source,
+      sourceStartLine,
+    };
+  }
 }

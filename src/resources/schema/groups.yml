@@ -1,0 +1,104 @@
+cell:
+  attributes:
+    title: "Attributes"
+  codeoutput:
+    title: "Code Output"
+  textoutput:
+    title: "Cell Output"
+  figure:
+    title: "Figures"
+  table:
+    title: "Tables"
+  layout:
+    title: "Panel Layout"
+  pagelayout:
+    title: "Page Columns"
+  cache:
+    title: "Cache"
+  include:
+    title: "Include"
+# from: https://github.com/jgm/pandoc/blob/426342f00d13eb6a899961715961975b113f9792/MANUAL.txt
+document:
+  attributes:
+    title: "Title & Author"
+  options:
+    title: "Format Options"
+  toc:
+    title: "Table of Contents"
+  numbering:
+    title: "Numbering"
+  slides:
+    title: "Slides"
+  reveal-content:
+    title: "Slide Content"
+  reveal-tools:
+    title: "Slide Tools"
+  reveal-transitions:
+    title: "Transitions"
+  reveal-navigation:
+    title: "Navigation"
+  reveal-print:
+    title: "Print to PDF"
+  reveal-media:
+    title: "Media"
+  reveal-layout:
+    title: "Slide Layout"
+  reveal-hidden:
+    title: "Reveal Hidden"
+  epub:
+    title: "ePub Options"
+  fonts:
+    title: "Fonts"
+  colors:
+    title: "Colors"
+  layout:
+    title: "Layout"
+  formatting:
+    title: "Formatting"
+  code:
+    title: "Code"
+  execute:
+    title: "Execution"
+    description: |
+      Execution options should be specified within the `execute` key. For example:
+
+      ```yaml
+      execute:
+        echo: false
+        warning: false
+      ```
+
+  figures:
+    title: "Figures"
+  tables:
+    title: "Tables"
+  links:
+    title: "Links"
+  references:
+    title: "Citations"
+  footnotes:
+    title: "Footnotes"
+  crossref:
+    title: "Crossrefs"
+  language:
+    title: "Language"
+  comments:
+    title: "Comments"
+  includes:
+    title: "Includes"
+  metadata:
+    title: "Metadata"
+  render:
+    title: "Rendering"
+  latexmk:
+    title: "Latexmk"
+  website:
+    title: "Website"
+  pdfa:
+    title: "PDF/A"
+  text:
+    title: "Text Output"
+  library:
+    title: "Library"
+  hidden:
+    title: "Hidden"

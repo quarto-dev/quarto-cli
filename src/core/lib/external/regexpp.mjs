@@ -1,3 +1,5 @@
+// deno-lint-ignore-file
+// deno-fmt-ignore-file
 /*! @author Toru Nagashima <https://github.com/mysticatea> */
 
 

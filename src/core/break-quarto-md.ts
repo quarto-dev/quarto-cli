@@ -9,11 +9,7 @@
 */
 
 import { lines } from "./lib/text.ts";
-import {
-  Range,
-  rangedLines,
-  RangedSubstring,
-} from "./lib/ranged-text.ts";
+import { Range, rangedLines, RangedSubstring } from "./lib/ranged-text.ts";
 import { MappedString, mappedString } from "./lib/mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
@@ -32,11 +28,11 @@ export interface QuartoMdCell {
   source: MappedString;
   sourceVerbatim: MappedString;
 
-  sourceOffset: number; // FIXME these might be unnecessary now. Check back
+  sourceOffset: number; // TODO these might be unnecessary now. Check back
   sourceStartLine: number;
 
   // line number of the start of the cell in the file, 0-based.
-  // 
+  //
   // NB this number means slightly different things depending on the
   // cell type. for markdown and raw cells, it's literally the first
   // line in the file corresponding to the cell. for code cells,
@@ -72,7 +68,7 @@ export async function breakQuartoMd(
   const lineBuffer: RangedSubstring[] = [];
   const flushLineBuffer = async (
     cell_type: "markdown" | "code" | "raw" | "math",
-    index: number
+    index: number,
   ) => {
     if (lineBuffer.length) {
       if (lineBuffer[lineBuffer.length - 1].substring === "") {
@@ -94,7 +90,7 @@ export async function breakQuartoMd(
         sourceOffset: 0,
         sourceStartLine: 0,
         sourceVerbatim: source,
-        cellStartLine: index
+        cellStartLine: index,
       };
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
@@ -105,16 +101,16 @@ export async function breakQuartoMd(
             cell.source,
             validate,
           );
-        // FIXME I'd prefer for this not to depend on sourceStartLine now
+        // TODO I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
         const breaks = Array.from(cell.source.value.matchAll(/\r?\n/g));
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
           if (breaks.length) {
-            // FIXME matchAll apparently breaks typechecking?
+            // TODO matchAll apparently breaks typechecking?
             // "error: TS2538 [ERROR]: Type 'RegExpMatchArray' cannot be used as an index type.
             const lastBreak =
-            // deno-lint-ignore no-explicit-any
+              // deno-lint-ignore no-explicit-any
               breaks[Math.min(sourceStartLine - 1, breaks.length - 1)] as any;
             const pos = lastBreak.index + lastBreak[0].length;
             strUpToLastBreak = cell.source.value.substring(0, pos);
@@ -153,7 +149,7 @@ export async function breakQuartoMd(
     inCode = false;
 
   const srcLines = rangedLines(src.value);
-  
+
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
     // yaml front matter
@@ -198,7 +194,7 @@ export async function breakQuartoMd(
         await flushLineBuffer("math", i);
       } else {
         if (inYaml || inCode || inCodeCell) {
-          // FIXME: signal a parse error?
+          // TODO: signal a parse error?
           // for now, we just skip.
         } else {
           await flushLineBuffer("markdown", i);

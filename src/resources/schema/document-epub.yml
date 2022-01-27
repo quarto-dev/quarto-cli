@@ -1,0 +1,220 @@
+
+- name: identifier
+  tags:
+    formats: [$epub-all]
+  schema: 
+    oneOf:
+      - string
+      - object:
+          properties:
+            text:
+              string:
+                description: The identifier value.
+            schema:
+              enum: ['ISBN-10', 'GTIN-13', 'UPC', 
+              'ISMN-10', 'DOI', 'LCCN', 'GTIN-14', 
+              'ISBN-13', 'Legal deposit number', 
+              'URN', 'OCLC', 'ISMN-13', 
+              'ISBN-A', 'JP', 'OLCC'
+              ]
+              description: The identifier schema (e.g. `DOI`, `ISBN-A`, etc.)
+  description: The identifier for this publication.
+
+- name: creator
+  tags:
+    formats: [$epub-all]
+  schema:
+    ref: epub-contributor
+  description: Creators of this publication.
+
+- name: contributor
+  tags:
+    formats: [$epub-all]
+  schema:
+    ref: epub-contributor
+  description: Contributors to this publication.
+
+- name: subject
+  tags:
+    formats: [$epub-all]
+  schema:
+    oneOf:
+      - string
+      - object:
+          properties:
+            text:
+              string:
+                description: The subject text.
+            authority:
+              string:
+                description: An EPUB reserved authority value.
+            term:
+              string:
+                description: The subject term (defined by the schema).
+  description: The subject of the publication.
+
+- name: type
+  tags:
+    formats: [$epub-all]
+  schema: string
+  description: 
+    short: Text describing the specialized type of this publication.
+    long: |
+      Text describing the specialized type of this publication.
+
+      An informative registry of specialized EPUB Publication 
+      types for use with this element is maintained in the 
+      [TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), 
+      but Authors may use any text string as a value.
+
+- name: format
+  tags:
+    formats: [$epub-all]
+  schema: string
+  description: Text describing the format of this publication.
+
+- name: relation
+  tags:
+    formats: [$epub-all]
+  schema: string
+  description: Text describing the relation of this publication.
+
+- name: coverage
+  tags:
+    formats: [$epub-all]
+  schema: string
+  description: Text describing the coverage of this publication.
+
+- name: rights
+  tags:
+    formats: [$epub-all]
+  schema: string
+  description: Text describing the rights of this publication.
+  
+- name: belongs-to-collection
+  tags:
+    formats: [$epub-all]
+  schema: string
+  description: Identifies the name of a collection to which the EPUB Publication belongs.
+
+- name: group-position
+  tags:
+    formats: [$epub-all]
+  schema: number
+  description: | 
+    Indicates the numeric position in which this publication 
+    belongs relative to other works belonging to the same 
+    `belongs-to-collection` field.
+
+- name: page-progression-direction
+  tags:
+    formats: [$epub-all]
+  schema: 
+    enum: [ltr, rtl]
+  description: Sets the global direction in which content flows (`ltr` or `rtl`)
+
+- name: ibooks
+  tags:
+    formats: [$epub-all]
+  schema: 
+    object:
+      properties:
+        version:
+          string:
+            description: What is new in this version of the book.
+        specified-fonts:
+          boolean:
+            description: Whether this book provides embedded fonts in a flowing or fixed layout book.
+        scroll-axis:
+          enum: [vertical, horizontal, default]
+          description: The scroll direction for this book (`vertical`, `horizontal`, or `default`)
+
+
+- name: epub-metadata
+  tags:
+    formats: [$epub-all]
+  schema: path
+  description:
+    short: |
+      Look in the specified XML file for metadata for the EPUB.
+      The file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).
+    long: |
+      Look in the specified XML file for metadata for the EPUB.
+      The file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).
+      For example:
+
+      ```xml
+      <dc:rights>Creative Commons</dc:rights>
+      <dc:language>es-AR</dc:language>
+      ```
+
+      By default, pandoc will include the following metadata elements:
+      `<dc:title>` (from the document title), `<dc:creator>` (from the
+      document authors), `<dc:date>` (from the document date, which should
+      be in [ISO 8601 format]), `<dc:language>` (from the `lang`
+      variable, or, if is not set, the locale), and `<dc:identifier
+      id="BookId">` (a randomly generated UUID). Any of these may be
+      overridden by elements in the metadata file.
+
+      Note: if the source document is Markdown, a YAML metadata block
+      in the document can be used instead.
+
+
+- name: epub-subdirectory
+  tags:
+    formats: [$epub-all]
+  schema:
+    oneOf: [path, null]
+  default: EPUB
+  description: |
+    Specify the subdirectory in the OCF container that is to hold the
+    EPUB-specific contents. The default is `EPUB`. To put the EPUB 
+    contents in the top level, use an empty string.
+
+- name: epub-fonts
+  tags:
+    formats: [$epub-all]
+  schema:
+    arrayOf: path
+  description:
+    short: "Embed the specified fonts in the EPUB"
+    long: |
+      Embed the specified fonts in the EPUB. Wildcards can also be used: for example,
+      `DejaVuSans-*.ttf`. To use the embedded fonts, you will need to add declarations
+      like the following to your CSS:
+
+      ```css
+      @font-face {
+        font-family: DejaVuSans;
+        font-style: normal;
+        font-weight: normal;
+        src:url("DejaVuSans-Regular.ttf");
+      }
+      ```
+
+- name: epub-chapter-level
+  tags:
+    formats: [$epub-all]
+  schema: number
+  default: 1
+  description:
+    short: |
+      Specify the heading level at which to split the EPUB into separate
+      chapter files.
+    long: |
+      Specify the heading level at which to split the EPUB into separate
+      chapter files. The default is to split into chapters at level-1
+      headings. This option only affects the internal composition of the
+      EPUB, not the way chapters and sections are displayed to users. Some
+      readers may be slow if the chapter files are too large, so for large
+      documents with few level-1 headings, one might want to use a chapter
+      level of 2 or 3.
+
+- name: epub-cover-image
+  tags:
+    formats: [$epub-all]
+  schema: path
+  description: |
+    Use the specified image as the EPUB cover. It is recommended
+    that the image be less than 1000px in width and height.
+    

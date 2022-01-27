@@ -7,130 +7,142 @@
 *
 */
 
-import { normalizeSchema, Schema } from "../lib/schema.ts";
-
 import {
-  anyOfSchema as anyOfS,
-  arraySchema as arrayS,
-  BooleanSchema as BooleanS,
-  enumSchema as enumS,
-  idSchema as withId,
-  NullSchema as NullS,
-  numericSchema as numericS,
-  objectSchema as objectS,
-  oneOfSchema as oneOfS,
-  StringSchema as StringS,
-} from "./common.ts";
-
+  AnnotatedParse,
+  LocalizedError,
+} from "../lib/yaml-validation/yaml-schema.ts";
+import { Schema } from "../lib/yaml-validation/schema.ts";
+import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
+import { idSchema } from "./common.ts";
 import {
-  kCellClasses,
-  kCellFigAlign,
-  kCellFigAlt,
-  kCellFigCap,
-  kCellFigEnv,
-  kCellFigLink,
-  kCellFigPos,
-  kCellFigScap,
-  kCellFigSubCap,
-  kCellLabel,
-  kCellLstCap,
-  kCellLstLabel,
-  kCellMdIndent,
-  kCellPanel,
-  kCodeFold,
-  kCodeOverflow,
-  kCodeSummary,
-  kEcho,
-  kError,
-  kEval,
-  kInclude,
-  kLayoutNcol,
-  kLayoutNrow,
-  kOutput,
-  kTblColwidths,
-  kWarning,
-} from "../../config/constants.ts";
+  addFileInfo,
+  addInstancePathInfo,
+  quotedStringColor,
+  TidyverseError,
+  tidyverseFormatError,
+} from "../lib/errors.ts";
+import { defineCached } from "./definitions.ts";
 
-const commonCellOptionsSchema = objectS({
-  properties: {
-    [kCellLabel]: StringS,
-    [kCellFigCap]: anyOfS(StringS, arrayS(StringS)),
-    [kCellFigSubCap]: anyOfS(StringS, arrayS(StringS), BooleanS),
-    [kCellLstLabel]: StringS,
-    [kCellLstCap]: StringS,
-    [kCellClasses]: StringS,
-    [kCellPanel]: StringS,
-    [kCodeFold]: oneOfS(StringS, BooleanS), // FIXME tighten code-fold strings
-    [kCodeSummary]: StringS,
-    [kCodeOverflow]: StringS, // FIXME should this be enumS("wrap", "scroll")?
-    [kTblColwidths]: anyOfS(BooleanS, enumS("auto"), arrayS(numericS)),
-    [kCellFigScap]: StringS,
-    [kCellFigLink]: StringS,
-    [kCellFigAlign]: StringS,
-    [kCellFigEnv]: StringS,
-    [kCellFigPos]: StringS,
-    [kCellFigAlt]: StringS,
-
-    [kEval]: anyOfS(BooleanS, NullS),
-    [kError]: BooleanS,
-    [kEcho]: anyOfS(BooleanS, enumS("fenced")),
-    [kOutput]: anyOfS(BooleanS, enumS("all", "asis")),
-    [kInclude]: BooleanS,
-
-    [kLayoutNcol]: numericS({
-      "type": "integer",
-      "minimum": 1,
-    }),
-    [kLayoutNrow]: numericS({
-      "type": "integer",
-      "minimum": 1,
-    }),
-  },
-});
-
-export const ojsCellOptionsSchema = withId(
-  objectS({
-    baseSchema: commonCellOptionsSchema,
-    properties: {
-      classes: arrayS(StringS),
-    },
-    description: "be an OJS cell options object",
-  }),
-  "ojs",
-);
-
-export const jupyterCellOptionsSchema = withId(
-  objectS({
-    baseSchema: commonCellOptionsSchema,
-    properties: {
-      [kCellMdIndent]: StringS,
-      [kWarning]: BooleanS,
-    },
-    description: "be a Jupyter cell options object",
-  }),
-  "python",
-);
-
-export const rCellOptionsSchema = withId(commonCellOptionsSchema, "r");
-
-export function getLanguageOptionsSchema(
-  normalized?: boolean,
-): Promise<Record<string, Schema>> {
-  // currently this could be sync but eventually it'll be just like the
-  // other schema, produced from YAML and hence async
-
-  // FIXME put this behind a cache; it's super inefficient.
-  if (normalized) {
-    return Promise.resolve({
-      "ojs": normalizeSchema(ojsCellOptionsSchema),
-      "python": normalizeSchema(jupyterCellOptionsSchema),
-      "r": normalizeSchema(rCellOptionsSchema),
-    });
-  } else {
-    return Promise.resolve({
-      "ojs": ojsCellOptionsSchema,
-      "python": jupyterCellOptionsSchema,
-      "r": rCellOptionsSchema,
-    });
+function checkForEqualsInChunk(
+  error: LocalizedError,
+  _parse: AnnotatedParse,
+  _schema: Schema,
+) {
+  if (typeof error.violatingObject.result !== "string") {
+    return error;
   }
+  const badObject = error.source.value.substring(
+    error.violatingObject.start,
+    error.violatingObject.end,
+  );
+
+  if (error.ajvError.keyword !== "type") {
+    return error;
+  }
+  let m;
+  const heading = `${error.location}: ${
+    quotedStringColor(badObject)
+  } must be a YAML mapping.`;
+  const errorMsg = [`${quotedStringColor(badObject)} is a string.`];
+
+  const newError: TidyverseError = {
+    heading,
+    error: errorMsg,
+    info: [],
+  };
+  addFileInfo(newError, error.source);
+  addInstancePathInfo(newError, error.ajvError.instancePath);
+
+  // deno-lint-ignore no-cond-assign
+  if (m = badObject.match(/= *TRUE/i)) {
+    newError.info.push(
+      `Try using ${quotedStringColor(": true")} instead of ${
+        quotedStringColor(m[0])
+      }.`,
+    );
+    // deno-lint-ignore no-cond-assign
+  } else if (m = badObject.match(/= *FALSE/i)) {
+    newError.info.push(
+      `Try using ${quotedStringColor(": false")} instead of ${
+        quotedStringColor(m[0])
+      }.`,
+    );
+  } else if (badObject.match("=")) {
+    newError.info.push(
+      `Try using ${quotedStringColor(":")} instead of ${
+        quotedStringColor("=")
+      }.`,
+    );
+  } else {
+    // it didn't match any, so don't change the error.
+    return error;
+  }
+
+  return {
+    ...error,
+    message: tidyverseFormatError(newError),
+  };
+}
+
+const makeEngineSchema = (engine: string): Schema =>
+  idSchema(
+    objectRefSchemaFromContextGlob(
+      "cell-*",
+      (field: SchemaField, _path: string) => {
+        const engineTag = field?.tags?.engine;
+        switch (typeof engineTag) {
+          case "undefined":
+            return true;
+          case "string":
+            return engineTag === engine;
+          case "object":
+            return (engineTag as string[]).indexOf(engine) !== -1;
+          default:
+            throw new Error(`Internal Error: bad engine tag ${engineTag}`);
+        }
+      },
+    ),
+    `engine-${engine}`,
+  );
+
+const markdownEngineSchema = defineCached(
+  // deno-lint-ignore require-await
+  async () => {
+    return {
+      schema: makeEngineSchema("markdown"),
+      errorHandlers: [],
+    };
+  },
+  "engine-markdown",
+);
+const knitrEngineSchema = defineCached(
+  async () => {
+    const result = await makeEngineSchema("knitr");
+
+    // FIXME how does this get to the IDE?
+    return { schema: result, errorHandlers: [checkForEqualsInChunk] };
+  },
+  "engine-knitr",
+);
+const jupyterEngineSchema = defineCached(
+  // deno-lint-ignore require-await
+  async () => {
+    return {
+      schema: makeEngineSchema("jupyter"),
+      errorHandlers: [],
+    };
+  },
+  "engine-jupyter",
+);
+
+export async function getEngineOptionsSchema(): Promise<
+  Record<string, Schema>
+> {
+  const obj = {
+    markdown: await markdownEngineSchema(),
+    knitr: await knitrEngineSchema(),
+    jupyter: await jupyterEngineSchema(),
+  };
+
+  return obj;
 }

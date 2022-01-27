@@ -1,0 +1,17 @@
+{
+  "kind": "validation",
+  "context": {
+    "path": "~/Desktop/daily-log/2022-01-06/_quarto.yml",
+    "filetype": "yaml",
+    "embedded": false,
+    "formats": [],
+    "project_formats": [],
+    "engine": null,
+    "line": "  html:",
+    "code": "title: \"knitr chunk options ignore test\"\n\nbook:\n  title: \"book-preview\"\n  author: \"jane doe\"\n  date: \"1/11/2022\"\n  chapters:\n    - index.qmd\n    - intro.qmd\n    - summary.qmd\n  \nformat:\n  html:\n    theme: cosmo\n    css: styles\n    toc: true\n",
+    "position": {
+      "row": 12,
+      "column": 7
+    }
+  }
+}

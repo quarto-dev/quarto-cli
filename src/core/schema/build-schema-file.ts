@@ -9,31 +9,37 @@
 */
 
 import { getFrontMatterSchema } from "./front-matter.ts";
-import { getConfigSchema } from "./config.ts";
-import { getLanguageOptionsSchema } from "./chunk-metadata.ts";
-import { readYaml } from "../yaml.ts";
+import { getProjectConfigSchema } from "./project-config.ts";
+import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { resourcePath } from "../resources.ts";
-import { join } from "path/mod.ts";
-import { idSchema } from "./common.ts";
-import { normalizeSchema, Schema } from "../lib/schema.ts";
-import { convertFromYaml } from "./from-yaml.ts";
+import { getSchemas, QuartoJsonSchemas } from "../lib/yaml-validation/schema-utils.ts";
+import {
+  getSchemaDefinitionsObject,
+  setSchemaDefinition,
+} from "../lib/yaml-validation/schema.ts";
+import { exportStandaloneValidators } from "./yaml-schema.ts";
+import { getFormatAliases } from "./format-aliases.ts";
+import { TempContext } from "../temp.ts";
+import { ensureAjv } from "./yaml-schema.ts";
+import { revealPluginSchema } from "../../format/reveal/format-reveal-plugin.ts";
 
-export async function buildSchemaFile(resourceDir: string) {
-  let yamlDefinitions = readYaml(resourcePath("/schema/definitions.yml")) as Record<string, any>;
-  const defObj: Record<string, Schema> = {};
-  for (const [name, yamlSchema] of Object.entries(yamlDefinitions)) {
-    defObj[name] = normalizeSchema(idSchema(convertFromYaml(yamlSchema), name));
-  }
-  const obj = {
-    schemas: {
-      "front-matter": await getFrontMatterSchema(),
-      "config": await getConfigSchema(),
-      "languages": await getLanguageOptionsSchema(),
-    },
-    definitions: defObj
-  };
-  const str = JSON.stringify(obj, null, 2);
-  const path = join(resourceDir, "/editor/tools/yaml/quarto-json-schemas.json");
+export async function buildSchemaFile(temp: TempContext) {
+  await ensureAjv();
+  const obj = getSchemas();
+  obj.aliases = getFormatAliases();
+  obj.schemas["front-matter"] = await getFrontMatterSchema();
+  obj.schemas.config = await getProjectConfigSchema();
+  obj.schemas.engines = await getEngineOptionsSchema();
+  setSchemaDefinition(revealPluginSchema);
+  obj.definitions = getSchemaDefinitionsObject();
+  const str = JSON.stringify(obj);
+  const path = resourcePath("/editor/tools/yaml/quarto-json-schemas.json");
 
+  const validatorPath = resourcePath(
+    "/editor/tools/yaml/standalone-schema-validators.js",
+  );
+  const validatorModule = await exportStandaloneValidators(temp);
+
+  Deno.writeTextFileSync(validatorPath, validatorModule);
   return Deno.writeTextFile(path, str);
 }

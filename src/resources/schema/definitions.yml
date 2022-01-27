@@ -1,59 +1,769 @@
-math-methods:
+- id: math-methods
   enum:
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
 
-pandoc-format-request-headers:
+- id: pandoc-format-request-headers
   arrayOf:
     arrayOf:
       schema: string
       length: 2
 
-pandoc-format-output-file:
+- id: pandoc-format-output-file
   oneOf:
     - path
-    - "null":
+    - enum:
+        values: [null]
         hidden: true
 
-pandoc-format-filters:
+- id: pandoc-format-filters
   arrayOf:
     oneOf:
       - path
-      - object:
-          properties:
-            type: string
-            path: path
-          required: [type, path]
-      - object:
-          properties:
-            type:
-              enum: [citeproc]
-          required: [type]
-  
-page-column:
-  enum:
-    values:
-      [
-        body,
-        body-outset,
-        body-outset-left,
-        body-outset-right,
-        page,
-        page-left,
-        page-right,
-        screen,
-        screen-left,
-        screen-right,
-        screen-rightcolumn,
-        screen-inset,
-        screen-inset-shaded,
-        screen-inset-left,
-        screen-inset-right,
-        margin,
-      ]
+      - record:
+          type: string
+          path: path
+      - record:
+          type:
+            enum: [citeproc]
 
-crossref-labels-schema:
+- id: page-column
+  enum: [
+    body,
+    body-outset,
+    body-outset-left,
+    body-outset-right,
+    page,
+    page-left,
+    page-right,
+    page-inset-left,
+    page-inset-right,
+    screen,
+    screen-left,
+    screen-right,
+    screen-rightcolumn,
+    screen-inset,
+    screen-inset-shaded,
+    screen-inset-left,
+    screen-inset-right,
+    margin,
+  ]
+
+- id: navigation-item
+  anyOf:
+    - path
+    - object:
+        properties:
+          href:
+            string:
+              description: |
+                Link to file contained with the project or external URL
+          url:
+            hidden: true
+            string:
+              description: |
+                Alias for href
+          file:
+            hidden: true
+            string:
+              description: |
+                Alias for href
+          text:
+            string:
+              description: |
+                Text to display for navigation item (defaults to the
+                document title if not provided)
+          icon:
+            string:
+              description:
+                short: Name of bootstrap icon (e.g. "github", "twitter", "share")
+                long: |
+                  Name of bootstrap icon (e.g. "github", "twitter", "share")
+                  See <https://icons.getbootstrap.com/> for a list of available icons
+          aria-label:
+            string:
+              description: "Accessible label for the navigation item."
+          menu:
+            arrayOf:
+              schema:
+                ref: navigation-item
+        additionalProperties: false
+
+- id: tool-item
+  object:
+    properties:
+      icon:
+        string:
+          description:
+            short: Name of bootstrap icon (e.g. "github", "twitter", "share")
+            long: |
+              Name of bootstrap icon (e.g. "github", "twitter", "share")
+              See <https://icons.getbootstrap.com/> for a list of available icons
+      href:
+        string:
+          description: |
+            Link to file contained with the project or external URL
+      menu:
+        arrayOf:
+          schema:
+            ref: navigation-item
+
+- id: comments
+  object:
+    additionalProperties: false
+    properties:
+      utterances:
+        object:
+          properties:
+            repo:
+              string:
+                description: The Github repo that will be used to store comments.
+            label:
+              string:
+                description: The label that will be assigned to issues created by Utterances.
+            theme:
+              string:
+                description:
+                  short: The Github theme that should be used for Utterances.
+                  long: |
+                    The Github theme that should be used for Utterances
+                    (`github-light`, `github-dark`, `github-dark-orange`,
+                    `icy-dark`, `dark-blue`, `photon-dark`, `body-light`,
+                    or `gruvbox-dark`)
+                completions:
+                  - github-light
+                  - github-dark
+                  - github-dark-orange
+                  - icy-dark
+                  - dark-blue
+                  - photon-dark
+                  - body-light
+                  - gruvbox-dark
+              issue-term:
+                string:
+                  description:
+                    short: How posts should be mapped to Github issues
+                    long: |
+                      How posts should be mapped to Github issues
+                      (`pathname`, `url`, `title` or `og:title`)
+                  completions:
+                    - pathname
+                    - url
+                    - title
+                    - og:title
+          required: [repo]
+      hypothesis:
+        oneOf:
+          - boolean
+          - object:
+              properties:
+                openSidebar:
+                  boolean:
+                    default: false
+                    description: Controls whether the sidebar opens automatically on startup.
+                showHighlights:
+                  oneOf:
+                    - boolean
+                    - enum: ["always", "never"]
+                  default: "always"
+                  description: Controls whether the in-document highlights are shown by default (`always` or `never`)
+                theme:
+                  enum: ["classic", "clean"]
+                  default: classic
+                  description: Controls the overall look of the sidebar (`classic` or `clean`)
+                enableExperimentalNewNoteButton:
+                  boolean:
+                    default: false
+                    description: |
+                      Controls whether the experimental New Note button 
+                      should be shown in the notes tab in the sidebar.
+                usernameUrl:
+                  schema: string
+                  description: |
+                    Specify a URL to direct a user to, 
+                    in a new tab. when they click on the annotation author 
+                    link in the header of an annotation.
+                services:
+                  arrayOf:
+                    object:
+                      properties:
+                        apiUrl:
+                          string:
+                            description: The base URL of the service API.
+                        authority:
+                          string:
+                            description: The domain name which the annotation service is associated with.
+                        grantToken:
+                          string:
+                            description: An OAuth 2 grant token which the client can send to the service in order to get an access token for making authenticated requests to the service.
+                        allowLeavingGroups:
+                          boolean:
+                            default: true
+                            description: A flag indicating whether users should be able to leave groups of which they are a member.
+                        enableShareLinks:
+                          boolean:
+                            default: true
+                            description: A flag indicating whether annotation cards should show links that take the user to see an annotation in context.
+                        groups:
+                          oneOf:
+                            - enum: ["$rpc:requestGroups"]
+                            - arrayOf: string
+                          description: An array of Group IDs or the literal string `$rpc:requestGroups`
+                        icon:
+                          string:
+                            description: The URL to an image for the annotation service. This image will appear to the left of the name of the currently selected group.
+                      required: [apiUrl, authority, grantToken]
+                      description: |
+                        Alternative annotation services which the client should 
+                        connect to instead of connecting to the public Hypothesis 
+                        service at hypothes.is.
+                branding:
+                  object:
+                    properties:
+                      accentColor:
+                        string:
+                          description: Secondary color for elements of the commenting UI.
+                      appBackgroundColor:
+                        string:
+                          description: The main background color of the commenting UI.
+                      ctaBackgroundColor:
+                        string:
+                          description: The background color for call to action buttons.
+                      selectionFontFamily:
+                        string:
+                          description: The font family for selection text in the annotation card.
+                      annotationFontFamily:
+                        string:
+                          description: The font family for the actual annotation value that the user writes about the page or selection.
+                    description: Settings to adjust the commenting sidebar's look and feel.
+                externalContainerSelector:
+                  string:
+                    description: A CSS selector specifying the containing element into which the sidebar iframe will be placed.
+                focus:
+                  object:
+                    properties:
+                      user:
+                        object:
+                          properties:
+                            username:
+                              string:
+                                description: The username of the user to focus on.
+                            userid:
+                              string:
+                                description: The userid of the user to focus on.
+                            displayName:
+                              string:
+                                description: The display name of the user to focus on.
+                    required: [user]
+                  description: Defines a focused filter set for the available annotations on a page.
+                requestConfigFromFrame:
+                  object:
+                    properties:
+                      origin:
+                        string:
+                          description: Host url and port number of receiving iframe
+                      ancestorLevel:
+                        number:
+                          description: Number of nested iframes deep the client is relative from the receiving iframe.
+                assetRoot:
+                  string:
+                    description: The root URL from which assets are loaded.
+                sidebarAppUrl:
+                  string:
+                    description: The URL for the sidebar application which displays annotations.
+                    default: "https://hypothes.is/app.html"
+
+- id: social-metadata
+  object:
+    properties:
+      title:
+        string:
+          description:
+            short: "The title of the page"
+            long: |
+              The title of the page. Note that by default Quarto will automatically 
+              use the title metadata from the page. Specify this field if you’d like 
+              to override the title for this provider.
+      description:
+        string:
+          description:
+            short: "A short description of the content."
+            long: |
+              A short description of the content. Note that by default Quarto will
+              automatically  use the description metadata from the page. Specify this
+              field if you’d like to override the description for this provider.
+      image:
+        path:
+          description:
+            short: "The path to a preview image for the content."
+            long: |
+              The path to a preview image for the content. By default, Quarto will use
+              the `image` value from the website or book metadata. If you provide an 
+              image, you may also optionally provide an `image-width` and `image-height`.
+      image-width:
+        number:
+          description: "Image width (pixels)"
+      image-height:
+        number:
+          description: "Image height (pixels)"
+
+- id: page-footer-region
+  oneOf:
+    - string
+    - arrayOf:
+        ref: navigation-item
+
+- id: sidebar-contents
+  arrayOf:
+    anyOf:
+      - ref: navigation-item
+      - path
+      - object:
+          properties:
+            section: string
+            contents:
+              ref: sidebar-contents
+
+- id: base-website
+  object:
+    properties:
+      title:
+        string:
+          description: "Website title"
+      site-url:
+        string:
+          description: "Base URL for published website"
+      site-path:
+        string:
+          description: |
+            Path to site (defaults to '/'). Not required if you specify `site-url`.
+      repo-url:
+        string:
+          description: "Base URL for website source code repository"
+      repo-branch:
+        string:
+          description: "Branch of website source code (defaults to `main`)"
+      repo-actions:
+        maybeArrayOf:
+          enum: [none, edit, source, issue]
+          description:
+            short: "Links to source repository actions"
+            long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
+
+      search:
+        oneOf:
+          - boolean
+          - object:
+              properties:
+                location:
+                  enum: [navbar, sidebar]
+                  description: "Location for search widget (`navbar` or `sidebar`)"
+                type:
+                  enum: [overlay, textbox]
+                  description: "Type of search UI (`overlay` or `textbox`)"
+                limit:
+                  schema: number
+                  description: "Number of matches to display (defaults to 20)"
+                collapse-after:
+                  schema: number
+                  description: "Matches after which to collapse additional results"
+                copy-button:
+                  schema: boolean
+                  description: "Provide button for copying search link"
+                algolia:
+                  object:
+                    properties:
+                      index-name:
+                        schema: string
+                        description: "The name of the index to use when performing a search"
+                      application-id:
+                        schema: string
+                        description: "The unique ID used by Algolia to identify your application"
+                      search-only-api-key:
+                        schema: string
+                        description: "The Search-Only API key to use to connect to Algolia"
+                      analytics-events:
+                        boolean:
+                          description: "Enable tracking of Algolia analytics events"
+                      show-logo:
+                        boolean:
+                          description: "Enable the display of the Algolia logo in the search results footer."
+                      index-fields:
+                        object:
+                          properties:
+                            href:
+                              schema: string
+                              description: "Field that contains the URL of index entries"
+                            title:
+                              schema: string
+                              description: "Field that contains the title of index entries"
+                            text:
+                              schema: string
+                              description: "Field that contains the text of index entries"
+                            section:
+                              schema: string
+                              description: "Field that contains the section of index entries"
+                          additionalProperties: false
+                      params:
+                        object:
+                          description: "Additional parameters to pass when executing a search"
+                    additionalProperties: false
+                  description: "Use external Algolia search index"
+              additionalProperties: false
+        description: "Provide full text search for website"
+
+      navbar:
+        oneOf:
+          - boolean
+          - object:
+              properties:
+                title:
+                  oneOf:
+                    - string
+                    - boolean
+                  description: "The navbar title. Uses the project title if none is specified."
+                logo:
+                  path:
+                    description: "Path to a logo image that will be displayed to the left of the title."
+                background:
+                  anyOf:
+                    - enum:
+                        [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark",
+                        ]
+                    - string
+                  description: "The navbar's background color (named or hex color)."
+                foreground:
+                  anyOf:
+                    - enum:
+                        [
+                          "primary",
+                          "secondary",
+                          "success",
+                          "danger",
+                          "warning",
+                          "info",
+                          "light",
+                          "dark",
+                        ]
+                    - string
+                  description: "The navbar's foreground color (named or hex color)."
+                search:
+                  boolean:
+                    description: "Include a search box in the navbar."
+                pinned:
+                  boolean:
+                    description: "Always show the navbar (keeping it pinned)."
+                    default: false
+                collapse:
+                  boolean:
+                    description: "Collapse the navbar into a menu when the display becomes narrow."
+                    default: true
+                collapse-below:
+                  enum: [sm, md, lg, xl, xxl]
+                  description: "The responsive breakpoint below which the navbar will collapse into a menu."
+                  default: "lg"
+                left:
+                  arrayOf:
+                    ref: navigation-item
+                  description: "List of items for the left side of the navbar."
+                right:
+                  arrayOf:
+                    ref: navigation-item
+                  description: "List of items for the right side of the navbar."
+        description: "Top navigation options"
+
+      sidebar:
+        oneOf:
+          - boolean
+          - maybeArrayOf:
+              object:
+                properties:
+                  id:
+                    string:
+                      description: "The identifier for this sidebar."
+                  title:
+                    oneOf:
+                      - string
+                      - boolean
+                    description: "The sidebar title. Uses the project title if none is specified."
+                  subtitle:
+                    string:
+                      description: "The subtitle for this sidebar."
+                  logo:
+                    path:
+                      description: "Path to a logo image that will be displayed in the sidebar."
+                  search:
+                    boolean:
+                      description: "Include a search control in the sidebar."
+                  tools:
+                    arrayOf:
+                      ref: tool-item
+                    description: "List of sidebar tools"
+                  contents:
+                    ref: sidebar-contents
+                    description: "List of items for the sidebar"
+                  style:
+                    enum: ["docked", "floating"]
+                    description: "The style of sidebar (`docked` or `floating`)."
+                    default: "floating"
+                  background:
+                    anyOf:
+                      - enum:
+                          [
+                            "primary",
+                            "secondary",
+                            "success",
+                            "danger",
+                            "warning",
+                            "info",
+                            "light",
+                            "dark",
+                          ]
+                      - string
+                    description: "The sidebar's background color (named or hex color)."
+                  foreground:
+                    anyOf:
+                      - enum:
+                          [
+                            "primary",
+                            "secondary",
+                            "success",
+                            "danger",
+                            "warning",
+                            "info",
+                            "light",
+                            "dark",
+                          ]
+                      - string
+                    description: "The sidebar's foreground color (named or hex color)."
+                  alignment:
+                    enum: ["left", "right", "center"]
+                    description: "Alignment of the items within the sidebar (`left`, `right`, or `center`)"
+                  collapse-level:
+                    number:
+                      description: "The depth at which the sidebar contents should be collapsed by default."
+                      default: 2
+                  pinned:
+                    boolean:
+                      description: "When collapsed, pin the collapsed sidebar to the top of the page."
+                  header:
+                    maybeArrayOf: string
+                    description: "Markdown to place above sidebar content (text or file path)"
+                  footer:
+                    maybeArrayOf: string
+                    description: "Markdown to place below sidebar content (text or file path)"
+        description: "Side navigation options"
+
+      margin-header:
+        maybeArrayOf: string
+        description: "Markdown to place above margin content (text or file path)"
+      margin-footer:
+        maybeArrayOf: string
+        description: "Markdown to place below margin content (text or file path)"
+      page-navigation:
+        boolean:
+          description: "Provide next and previous article links in footer"
+      page-footer:
+        oneOf:
+          - string
+          - object:
+              properties:
+                left:
+                  ref: page-footer-region
+                  description: "Footer left content"
+                right:
+                  ref: page-footer-region
+                  description: "Footer right content"
+                center:
+                  ref: page-footer-region
+                  description: "Footer center content"
+                border:
+                  oneOf:
+                    - boolean
+                    - string
+                  description: "Footer border (`true`, `false`, or a border color)"
+                background:
+                  schema: string
+                  description: "Footer background color"
+                foreground:
+                  schema: string
+                  description: "Footer foreground color"
+              additionalProperties: false
+        description: "Shared page footer"
+      image:
+        path:
+          description: |
+            Default site thumbnail image for `twitter` /`open-graph`
+
+      comments:
+        schema:
+          ref: comments
+
+      open-graph:
+        oneOf:
+          - boolean
+          - object:
+              super:
+                resolveRef: social-metadata
+              properties:
+                locale:
+                  string:
+                    description: "Locale of open graph metadata"
+                site-name:
+                  string:
+                    description:
+                      short: "Name that should be displayed for the overall site"
+                      long: |
+                        Name that should be displayed for the overall site. If not explicitly 
+                        provided in the `open-graph` metadata, Quarto will use the website or
+                        book `title` by default.
+              additionalProperties: false
+        description: "Publish open graph metadata"
+      twitter-card:
+        oneOf:
+          - boolean
+          - object:
+              super:
+                resolveRef: social-metadata
+              properties:
+                card-style:
+                  enum: [summary, summary_large_image]
+                  description:
+                    short: "Card style"
+                    long: |
+                      Card style (`summary` or `summary_large_image`). If this is not provided, the best style will automatically
+                      selected based upon other metadata. You can learn more about Twitter Card
+                      styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).
+                creator:
+                  string:
+                    description: "`@username` of the content creator (must be a quoted string)"
+                site:
+                  string:
+                    description: "`@username` of the website (must be a quoted string)"
+              additionalProperties: false
+        description: "Publish twitter card metadata"
+
+- id: chapter-item
+  anyOf:
+    - ref: navigation-item
+    - record:
+        part:
+          path:
+            description: "Path to part input file"
+        chapters:
+          arrayOf:
+            ref: navigation-item
+          description: "Path to chapter input file"
+
+- id: chapter-list
+  arrayOf:
+    anyOf:
+      - ref: navigation-item
+      - object:
+          properties:
+            part:
+              string:
+                description: "Part title or path to input file"
+            chapters:
+              arrayOf:
+                ref: navigation-item
+              description: "Path to chapter input file"
+          required: all
+          additionalProperties: false
+
+- id: crossref-labels-schema
   string:
     completions:
       - alpha
       - arabic
       - roman
+
+- id: epub-contributor
+  oneOf:
+    - string
+    - maybeArrayOf:
+        object:
+          properties:
+            role:
+              string:
+                description:
+                  short: The role of this creator or contributor.
+                  long: |
+                    The role of this creator or contributor using 
+                    [MARC relators](https://loc.gov/marc/relators/relaterm.html). Human readable
+                    translations to commonly used relators (e.g. 'author', 'editor') will 
+                    attempt to be automatically translated.
+            file-as:
+              string:
+                description: An alternate version of the creator or contributor text used for alphabatizing.
+            text:
+              string:
+                description: The text describing the creator or contributor (for example, creator name).
+
+- id: format-language
+  object:
+    properties:
+      toc-title-document: string
+      toc-title-website: string
+      callout-tip-caption: string
+      callout-note-caption: string
+      callout-warning-caption: string
+      callout-important-caption: string
+      callout-danger-caption: string
+      section-title-abstract: string
+      section-title-footnotes: string
+      section-title-appendices: string
+      code-summary: string
+      code-tools-menu-caption: string
+      code-tools-show-all-code: string
+      code-tools-hide-all-code: string
+      code-tools-view-source: string
+      code-tools-source-code: string
+      search-no-results-text: string
+      copy-button-tooltip: string
+      repo-action-links-edit: string
+      repo-action-links-source: string
+      repo-action-links-issue: string
+      search-matching-documents-text: string
+      search-copy-link-title: string
+      search-hide-matches-text: string
+      search-more-match-text: string
+      search-more-matches-text: string
+      search-clear-button-title: string
+      search-detached-cancel-button-title: string
+      search-submit-button-title: string
+      crossref-fig-title: string
+      crossref-tbl-title: string
+      crossref-lst-title: string
+      crossref-thm-title: string
+      crossref-lem-title: string
+      crossref-cor-title: string
+      crossref-prp-title: string
+      crossref-cnj-title: string
+      crossref-def-title: string
+      crossref-exm-title: string
+      crossref-exr-title: string
+      crossref-fig-prefix: string
+      crossref-tbl-prefix: string
+      crossref-lst-prefix: string
+      crossref-sec-prefix: string
+      crossref-eq-prefix: string
+      crossref-thm-prefix: string
+      crossref-lem-prefix: string
+      crossref-cor-prefix: string
+      crossref-prp-prefix: string
+      crossref-cnj-prefix: string
+      crossref-def-prefix: string
+      crossref-exm-prefix: string
+      crossref-exr-prefix: string
+      crossref-lof-title: string
+      crossref-lot-title: string
+      crossref-lol-title: string
+    errorDescription: "be a format language description object"

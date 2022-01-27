@@ -6,77 +6,111 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
-import { join } from "path/mod.ts";
 import { copy } from "fs/copy.ts";
+import { createTempContext } from "../../core/temp.ts";
 
-import { lines } from "../../core/text.ts";
-import { execProcess } from "../../core/process.ts";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
+import { resourcePath } from "../../core/resources.ts";
+import { simple } from "acorn/walk";
+import { parse as parseES6 } from "acorn/acorn";
 
-async function buildCoreLib(resourceDir: string) {
-  const src = await esbuildCompile(
-    "",
-    join(resourceDir, "../core/lib"),
-    ["index.ts"],
-    "esm",
-  );
-  await Deno.writeTextFileSync(join(resourceDir, "build/core-lib.js"), src!);
+function ensureAllowableIDESyntax(src: string, filename: string) {
+  const ast = parseES6(src, {
+    ecmaVersion: "2020",
+    sourceType: "module",
+  });
+  let failed = false;
+  simple(ast, {
+    // deno-lint-ignore no-explicit-any
+    ChainExpression(_node: any) {
+      console.error(
+        `Failure: Chain expression \`?.\` not allowed in ${filename}`,
+      );
+      failed = true;
+    },
+    // deno-lint-ignore no-explicit-any
+    LogicalExpression(node: any) {
+      if (node.operator === "??") {
+        console.error(
+          `Failure: Nullish coalescing operator \`??\` not allows in ${filename}`,
+        );
+        failed = true;
+      }
+    },
+  });
+  if (failed) {
+    throw new Error("Found syntax that is not allowed");
+  }
 }
 
-async function buildQuartoOJS(resourceDir: string) {
+async function buildQuartoOJS() {
   const src = await esbuildCompile(
     "",
-    join(resourceDir, "formats/html/ojs"),
+    resourcePath("formats/html/ojs"),
     ["quarto-ojs.js"],
     "esm",
   );
-  await Deno.writeTextFile(join(resourceDir, "build/quarto-ojs.js"), src!);
+  await Deno.writeTextFile(resourcePath("build/quarto-ojs.js"), src!);
+
+  ensureAllowableIDESyntax(src!, "quarto-ojs.js");
 
   // FIXME ideally we'd use the one directly in build, but right now
   // we depend on the file being in a particular place (and with an
   // especially bad name).  We copy for now.
   return copy(
-    join(resourceDir, "build/quarto-ojs.js"),
-    join(resourceDir, "formats/html/ojs/esbuild-bundle.js"),
+    resourcePath("build/quarto-ojs.js"),
+    resourcePath("formats/html/ojs/esbuild-bundle.js"),
     { overwrite: true },
   );
 }
 
-async function buildYAMLJS(resourceDir: string) {
-  const path = join(resourceDir, "editor/tools/yaml");
-  const automationSrc = await esbuildCompile(
+async function buildYAMLJS() {
+  const intelligenceSrc = await esbuildCompile(
     "",
-    path,
+    resourcePath("../core/lib/yaml-intelligence"),
+    ["yaml-intelligence.ts"],
+    "esm",
+  );
+  Deno.writeTextFileSync(
+    resourcePath("editor/tools/yaml/yaml-intelligence.js"),
+    intelligenceSrc!,
+  );
+
+  ensureAllowableIDESyntax(intelligenceSrc!, "yaml-intelligence.js");
+
+  const finalBuild = await esbuildCompile(
+    "",
+    resourcePath("editor/tools/yaml"),
     ["automation.js"],
     "iife",
   );
 
-  const files = [
-    "tree-sitter.js",
-    "external/ajv7.bundle.js",
-    "ajv-stub.js",
-  ].map((filename) => Deno.readTextFileSync(join(path, filename)));
-  files.push(automationSrc!);
-  return Deno.writeTextFile(join(path, "yaml.js"), files.join(""));
+  ensureAllowableIDESyntax(finalBuild!, "automation.js");
+  const treeSitter = Deno.readTextFileSync(
+    resourcePath("editor/tools/yaml/tree-sitter.js"),
+  );
+
+  ensureAllowableIDESyntax(treeSitter, "tree-sitter.js");
+
+  Deno.writeTextFileSync(
+    resourcePath("editor/tools/yaml/yaml.js"),
+    [treeSitter, finalBuild!].join(""),
+  );
 }
 
 export async function buildAssets() {
-  const result = await execProcess({
-    cmd: ["quarto", "--paths"],
-    stdout: "piped",
-  });
-
-  const [_binPath, resourceDir] = lines(result.stdout!);
-
-  // this has to come first because buildYAMLJS depends on it.
-  await buildCoreLib(resourceDir);
-
-  await Promise.all([
-    buildSchemaFile(resourceDir),
-    buildQuartoOJS(resourceDir),
-    buildYAMLJS(resourceDir),
-  ]);
+  const temp = createTempContext();
+  try {
+    // this has to come first because buildYAMLJS depends on it.
+    await Promise.all([
+      buildSchemaFile(temp),
+      buildQuartoOJS(),
+      buildYAMLJS(),
+    ]);
+  } finally {
+    temp.cleanup();
+  }
 }
 
 export const buildJsCommand = new Command()

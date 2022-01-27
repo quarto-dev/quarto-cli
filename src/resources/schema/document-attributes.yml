@@ -1,0 +1,124 @@
+- name: title
+  schema: string
+  description: "Document title"
+
+- name: subtitle
+  schema: string
+  tags:
+    formats: [$pdf-all, $html-all, context, muse, odt]
+  description: "Identifies the subtitle of the document."
+
+- name: date
+  schema: string
+  description: "Document date"
+
+- name: author
+  schema:
+    maybeArrayOf: string
+  description: "Author or authors of the document"
+
+- name: affiliation
+  schema: object
+  tags:
+    formats: [$jats-all]
+  description:
+    short: The list of organizations with which contributors are affiliated.
+    long: |
+      The list of organizations with which contributors are
+      affiliated. Each institution is added as an [`<aff>`] element to
+      the author's contrib-group. See the Pandoc [JATS documentation](https://pandoc.org/jats.html) 
+      for details on `affiliation` fields.
+
+- name: copyright
+  schema: object
+  tags:
+    formats: [$jats-all]
+  description:
+    short: "Licensing and copyright information."
+    long: |
+      Licensing and copyright information. This information is
+      rendered via the [`<permissions>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/permissions.html) element.
+      The variables `type`, `link`, and `text` should always be used
+      together. See the Pandoc [JATS documentation](https://pandoc.org/jats.html)
+      for details on `copyright` fields.
+
+- name: article
+  schema: object
+  tags:
+    formats: [$jats-all]
+  description:
+    short: "Information concerning the article that identifies or describes it."
+    long: |
+      Information concerning the article that identifies or describes
+      it. The key-value pairs within this map are typically used
+      within the [`<article-meta>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-meta.html) element.
+      See the Pandoc [JATS documentation](https://pandoc.org/jats.html) for details on `article` fields.
+
+- name: journal
+  schema: object
+  tags:
+    formats: [$jats-all]
+  description:
+    short: Information on the journal in which the article is published.
+    long: |
+      Information on the journal in which the article is published.
+      See the Pandoc [JATS documentation](https://pandoc.org/jats.html) for details on `journal` fields.
+
+- name: institute
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$html-pres, beamer]
+  description: Author affiliations for the presentation.
+
+- name: abstract
+  schema: string
+  tags:
+    formats:
+      [
+        $pdf-all,
+        $html-doc,
+        $epub-all,
+        $asciidoc-all,
+        $jats-all,
+        context,
+        ms,
+        odt,
+      ]
+  description: "Summary of document"
+
+- name: abstract-title
+  schema: string
+  tags:
+    formats: [$html-doc, $epub-all]
+  description: "Title used to label document abstract"
+
+- name: notes
+  schema: string
+  tags:
+    formats: [$jats-all]
+  description: |
+    Additional notes concerning the whole article. Added to the
+    article's frontmatter via the [`<notes>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/notes.html) element.
+
+- name: tags
+  schema:
+    arrayOf: string
+  tags:
+    formats: [$jats-all]
+  description: List of keywords. Items are used as contents of the
+    [`<kwd>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd.html) element; the elements are grouped in a
+    [`<kwd-group>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd-group.html) with the
+    [`kwd-group-type`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/kwd-group-type.html) value `author`.
+
+- name: doi
+  schema: string
+  tags:
+    formats: [$html-doc]
+  description: Displays the document Digital Object Identifier in the header.
+
+- name: thanks
+  schema: string
+  tags:
+    formats: [$pdf-all]
+  description: The contents of an acknowledgments footnote after the document title.

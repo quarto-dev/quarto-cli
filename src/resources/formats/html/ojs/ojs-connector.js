@@ -33,7 +33,7 @@ class EmptyInspector {
   fulfilled(_value, _name) {
   }
   rejected(_error, _name) {
-    // FIXME we should probably communicate this upstream somehow.
+    // TODO we should probably communicate this upstream somehow.
   }
 }
 
@@ -75,7 +75,7 @@ async function defaultResolveImportPath(path) {
   const metadataURL = `https://api.observablehq.com/document/${source}`;
   const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
 
-  /* FIXME: This should be the implementation we use, once/if observable
+  /* TODO This should be the implementation we use, once/if observable
   starts reporting notebook license on their metadata.
 
   const metadata = await fetch(metadataURL, { mode: 'no-cors' });
@@ -419,7 +419,7 @@ export class OJSConnector {
     let change;
     const obs = this.library.Generators.observe((change_) => {
       change = change_;
-      // FIXME: do something about destruction
+      // TODO do something about destruction
     });
     module.variable().define(name, obs);
     return change;

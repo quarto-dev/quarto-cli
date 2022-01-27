@@ -1,0 +1,220 @@
+- name: progress
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "Display a presentation progress bar"
+
+- name: history
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Push each slide change to the browser history
+
+- name: navigation-mode
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [linear, vertical, grid]
+  default: linear
+  description:
+    short: "Navigation progression"
+    long: |
+      Changes the behavior of navigation directions.
+
+      `linear`:
+      Removes the up/down arrows. Left/right arrows step through all
+      slides (both horizontal and vertical).
+
+      `vertical`:
+      Left/right arrow keys step between horizontal slides, up/down
+      arrow keys step between vertical slides. Space key steps through
+      all slides (both horizontal and vertical).
+
+      `grid`:
+      When this is enabled, stepping left/right from a vertical stack
+      to an adjacent vertical stack will land you at the same vertical
+      index.
+
+- name: touch
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Enable touch navigation on devices with touch input
+
+- name: keyboard
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "Enable keyboard shortcuts for navigation"
+
+- name: mouse-wheel
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: "Enable slide navigation via mouse wheel"
+
+- name: hide-inactive-cursor
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "Hide cursor if inactive"
+
+- name: hide-cursor-time
+  tags:
+    formats: [revealjs]
+  schema: number
+  default: 5000
+  description: "Time before the cursor is hidden (in ms)"
+
+- name: loop
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: "Loop the presentation"
+
+- name: shuffle
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: "Randomize the order of slides each time the presentation loads"
+
+- name: controls
+  tags:
+    formats: [revealjs]
+  schema:
+    anyOf:
+      - boolean
+      - enum: [auto]
+  default: auto
+  description:
+    short: "Show arrow controls for navigating through slides"
+    long: |
+      Show arrow controls for navigating through slides (defaults to
+      `auto`, which will show controls when vertical slides are present
+      or when the deck is embedded in an iframe).
+
+- name: controls-layout
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [edges, bottom-right]
+  default: edges
+  description: "Location for navigation controls (`edges` or `bottom-right`)"
+
+- name: controls-tutorial
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: "Help the user learn the controls by providing visual hints."
+
+- name: controls-back-arrows
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [faded, hidden, visible]
+  default: faded
+  description: |
+    Visibility rule for backwards navigation arrows; `faded`, `hidden`
+    or `visible`
+
+- name: auto-slide
+  tags:
+    formats: [revealjs]
+  schema:
+    oneOf:
+      - number
+      - false
+  default: 0
+  description: "Automatically progress all slides at the specified interval"
+
+- name: auto-slide-stoppable
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "Stop auto-sliding after user input"
+
+- name: auto-slide-method
+  tags:
+    formats: [revealjs]
+  schema: string
+  default: navigateNext
+  description: "Navigation method to use when auto sliding (defaults to navigateNext)"
+
+- name: default-timing
+  tags:
+    formats: [revealjs]
+  schema: number
+  description: "Expected average seconds per slide (used by pacing timer in speaker view)"
+
+- name: pause
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Flags whether it should be possible to pause the presentation (blackout)
+
+- name: help
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Show a help overlay when the `?` key is pressed
+
+- name: hash
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "Add the current slide to the URL hash"
+
+- name: hash-type
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [number, title]
+  default: title
+  description: "URL hash type (`number` or `title`)"
+
+- name: hash-one-based-index
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Use 1 based indexing for hash links to match slide number
+
+- name: respond-to-hash-changes
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: |
+    Monitor the hash and change slides accordingly
+
+- name: fragment-in-url
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: "Include the current fragment in the URL"
+
+- name: slide-tone
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: "Play a subtle sound when changing slides"

@@ -22,6 +22,9 @@ import {
 import { isRStudio } from "../../core/platform.ts";
 import { createTempContext } from "../../core/temp.ts";
 
+import { setInitializer, initState } from "../../core/lib/yaml-validation/state.ts";
+import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
+
 export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
@@ -123,6 +126,10 @@ export const previewCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, file: string, args: string[]) => {
+    // one-time initialization of yaml validation modules
+    setInitializer(initPrecompiledModules);
+    await initState();
+
     file = file || Deno.cwd();
     if (!existsSync(file)) {
       throw new Error(`${file} not found`);

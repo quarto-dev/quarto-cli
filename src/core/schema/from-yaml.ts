@@ -9,47 +9,71 @@
 
 import { readAnnotatedYamlFromString } from "./annotated-yaml.ts";
 
+import { globToRegExp } from "path/glob.ts";
+
 import { error } from "log/mod.ts";
+import { basename } from "path/mod.ts";
+import { readYaml } from "../yaml.ts";
+
+import { expandGlobSync } from "fs/expand_glob.ts";
 
 import {
-  Schema
-} from "../lib/schema.ts";
+  getSchemaDefinition,
+  hasSchemaDefinition,
+  Schema,
+  setSchemaDefinition,
+} from "../lib/yaml-validation/schema.ts";
+
+import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 
 import {
-  idSchema as withId,
-  StringSchema as stringS,
+  allOfSchema as allOfS,
+  anyOfSchema as anyOfS,
+  arraySchema as arrayOfS,
   BooleanSchema as booleanS,
+  completeSchema,
+  completeSchemaOverwrite,
+  documentSchema,
+  enumSchema as enumS,
+  idSchema as withId,
   NullSchema as nullS,
   NumberSchema as numberS,
   objectSchema as objectS,
-  anySchema as anyS,
-  refSchema as refS,
-  arraySchema as arrayOfS,
   oneOfSchema as oneOfS,
-  anyOfSchema as anyOfS,
-  enumSchema as enumS,
-  documentSchema,
-  completeSchema,
-  completeSchemaOverwrite,
+  refSchema as refS,
+  regexSchema,
+  StringSchema as stringS,
+  tagSchema,
   valueSchema,
 } from "./common.ts";
 
-function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
-{
-  if (yaml.additionalCompletions)
-    schema = completeSchema(schema, yaml.additionalCompletions);
-  if (yaml.completions)
-    schema = completeSchemaOverwrite(schema, yaml.completions);
-  if (yaml.id)
+import { schemaPath } from "./utils.ts";
+import { memoize } from "../memoize.ts";
+
+// deno-lint-ignore no-explicit-any
+function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
+  if (yaml.additionalCompletions) {
+    schema = completeSchema(schema, ...yaml.additionalCompletions);
+  }
+  if (yaml.completions) {
+    schema = completeSchemaOverwrite(schema, ...yaml.completions);
+  }
+  if (yaml.id) {
     schema = withId(schema, yaml.id);
-  if (yaml.hidden === false) {
+  }
+  if (yaml.hidden === true) {
     // don't complete anything through a `hidden` field
     schema = completeSchemaOverwrite(schema);
+    schema = tagSchema(schema, {
+      "hidden": true
+    });
+  }
+  if (yaml.tags) {
+    schema = tagSchema(schema, yaml.tags);
   }
 
   // FIXME in YAML schema, we call it description
   // in the JSON objects, we call that "documentation"
-
   if (yaml.description) {
     if (typeof yaml.description === "string") {
       schema = documentSchema(schema, yaml.description);
@@ -57,107 +81,224 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema
       schema = documentSchema(schema, yaml.description.short);
     }
   }
-  
-  // FIXME handle hidden here
-  return schema;
-}
 
-function convertFromNull(yaml: any, _dict: Record<string, Schema>): Schema
-{
-  return setBaseSchemaProperties(yaml, nullS);
-}
+  // make shallow copy so that downstream can assign to it
+  const result = Object.assign({}, schema);
 
-function convertFromString(yaml: any, _dict: Record<string, Schema>): Schema
-{
-  return setBaseSchemaProperties(yaml, stringS);
-}
-
-function convertFromPath(yaml: any, _dict: Record<string, Schema>): Schema
-{
-  return setBaseSchemaProperties(yaml, stringS);
-}
-
-function convertFromNumber(yaml: any, _dict: Record<string, Schema>): Schema
-{
-  return setBaseSchemaProperties(yaml, numberS);
-}
-
-function convertFromBoolean(yaml: any, _dict: Record<string, Schema>): Schema
-{
-  return setBaseSchemaProperties(yaml, booleanS);
-}
-
-function convertFromRef(yaml: any, _dict: Record<string, Schema>): Schema
-{
-  return refS(yaml.ref, yaml.description || "");
-}
-
-function convertFromMaybeArrayOf(yaml: any, dict: Record<string, Schema>): Schema
-{
-  const schema = convertFromYaml(yaml.maybeArrayOf, dict);
-  return oneOfS(schema, arrayOfS(schema));
-};
-
-function convertFromArrayOf(yaml: any, dict: Record<string, Schema>): Schema
-{
-  const schema = yaml.arrayOf;
-  if (schema.schema) {
-    let result = arrayOfS(convertFromYaml(schema.schema, dict));
-    return setBaseSchemaProperties(schema, result);
-  } else {
-    return arrayOfS(convertFromYaml(schema, dict));
+  if (yaml.errorDescription) {
+    result.description = yaml.errorDescription;
   }
-};
 
-function convertFromOneOf(yaml: any, dict: Record<string, Schema>): Schema
-{
-  const schema = yaml.oneOf;
-  if (schema.schemas) {
-    let inner = schema.schemas.map((x: any) => convertFromYaml(x, dict));
-    let result = oneOfS(...inner);
-    return setBaseSchemaProperties(schema, result);
+  return result;
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromNull(yaml: any): Schema {
+  return setBaseSchemaProperties(yaml["null"], nullS);
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromSchema(yaml: any): Schema {
+  const schema = convertFromYaml(yaml.schema);
+  return setBaseSchemaProperties(yaml, schema);
+}
+
+// TODO we accept "string: pattern:" and "pattern: string:"
+//      that seems yucky.
+//
+// deno-lint-ignore no-explicit-any
+function convertFromString(yaml: any): Schema {
+  if (yaml["string"].pattern) {
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(
+        yaml["string"],
+        regexSchema(yaml["string"].pattern),
+      ),
+    );
   } else {
-    return oneOfS(...schema.map((x: any) => convertFromYaml(x, dict)));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(
+        yaml["string"],
+        stringS,
+      ),
+    );
   }
-};
+}
 
-function convertFromAnyOf(yaml: any, dict: Record<string, Schema>): Schema
-{
-  const schema = yaml.anyOf;
-  if (schema.schemas) {
-    let result = anyOfS(...schema.schemas.map((x: any) => convertFromYaml(x, dict)));
-    return setBaseSchemaProperties(schema, result);
+// deno-lint-ignore no-explicit-any
+function convertFromPattern(yaml: any): Schema {
+  if (typeof yaml.pattern === "string") {
+    return setBaseSchemaProperties(yaml, regexSchema(yaml.pattern));
   } else {
-    return anyOfS(...schema.map((x: any) => convertFromYaml(x, dict)));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.pattern, regexSchema(yaml.pattern.regex)),
+    );
   }
-};
+}
 
-function convertFromEnum(yaml: any, _dict: Record<string, Schema>): Schema
-{
+// deno-lint-ignore no-explicit-any
+function convertFromPath(yaml: any): Schema {
+  return setBaseSchemaProperties(yaml["path"], stringS);
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromNumber(yaml: any): Schema {
+  return setBaseSchemaProperties(yaml["number"], numberS);
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromBoolean(yaml: any): Schema {
+  return setBaseSchemaProperties(yaml["boolean"], booleanS);
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromRef(yaml: any): Schema {
+  return setBaseSchemaProperties(yaml, refS(yaml.ref, `be ${yaml.ref}`));
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromMaybeArrayOf(yaml: any): Schema {
+  const inner = convertFromYaml(yaml.maybeArrayOf);
+  const schema = tagSchema(
+    oneOfS(inner, arrayOfS(inner)),
+    {
+      "complete-from": ["oneOf", 0] // complete from `schema` completions, ignoring arrayOf
+    });
+
+  return setBaseSchemaProperties(yaml, schema);
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromArrayOf(yaml: any): Schema {
+  if (yaml.arrayOf.schema) {
+    const result = arrayOfS(convertFromYaml(yaml.arrayOf.schema));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.arrayOf, result),
+    );
+  } else {
+    return setBaseSchemaProperties(
+      yaml,
+      arrayOfS(convertFromYaml(yaml.arrayOf)),
+    );
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromOneOf(yaml: any): Schema {
+  if (yaml.oneOf.schemas) {
+    // deno-lint-ignore no-explicit-any
+    const inner = yaml.oneOf.schemas.map((x: any) => convertFromYaml(x));
+    const schema = oneOfS(...inner);
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.oneOf, schema),
+    );
+  } else {
+    // deno-lint-ignore no-explicit-any
+    const inner = yaml.oneOf.map((x: any) => convertFromYaml(x));
+    const schema = oneOfS(...inner);
+    return setBaseSchemaProperties(yaml, schema);
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromAllOf(yaml: any): Schema {
+  if (yaml.allOf.schemas) {
+    // deno-lint-ignore no-explicit-any
+    const inner = yaml.allOf.schemas.map((x: any) => convertFromYaml(x));
+    const schema = allOfS(...inner);
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.allOf, schema),
+    );
+  } else {
+    // deno-lint-ignore no-explicit-any
+    const inner = yaml.allOf.map((x: any) => convertFromYaml(x));
+    const schema = allOfS(...inner);
+    return setBaseSchemaProperties(yaml, schema);
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromAnyOf(yaml: any): Schema {
+  if (yaml.anyOf.schemas) {
+    // deno-lint-ignore no-explicit-any
+    const inner = yaml.anyOf.schemas.map((x: any) => convertFromYaml(x));
+    const schema = anyOfS(...inner);
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.anyOf, schema),
+    );
+  } else {
+    // deno-lint-ignore no-explicit-any
+    const inner = yaml.anyOf.map((x: any) => convertFromYaml(x));
+    const schema = anyOfS(...inner);
+    return setBaseSchemaProperties(yaml, schema);
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromEnum(yaml: any): Schema {
   const schema = yaml["enum"];
   // testing for the existence of "schema.values" doesn't work
   // because "values" is an array method.
+  // deno-lint-ignore no-prototype-builtins
   if (schema.hasOwnProperty("values")) {
-    let result = enumS(...schema.values);
-    return setBaseSchemaProperties(schema, result);
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml["enum"], enumS(...schema.values)),
+    );
   } else {
-    return enumS(...schema);
+    return setBaseSchemaProperties(yaml, enumS(...schema));
   }
-};
+}
 
-function convertFromObject(yaml: any, dict: Record<string, Schema>): Schema
-{
+function convertFromRecord(yaml: any): Schema {
+  if (yaml.record.properties) {
+    // deno-lint-ignore no-explicit-any
+    
+    const schema = convertFromObject({
+      "object": {
+        "properties": yaml.record.properties,
+        "additionalProperties": false,
+        "required": "all"
+      }
+    });
+    return setBaseSchemaProperties(
+      yaml, setBaseSchemaProperties(yaml.record, schema));
+  } else {
+    // deno-lint-ignore no-explicit-any
+    const schema = convertFromObject({
+      "object": {
+        "properties": yaml.record,
+        "additionalProperties": false,
+        "required": "all"
+      }
+    });
+    return setBaseSchemaProperties(yaml, schema);
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+function convertFromObject(yaml: any): Schema {
   const schema = yaml["object"];
+  // deno-lint-ignore no-explicit-any
   const params: Record<string, any> = {};
   if (schema.properties) {
     params.properties = Object.fromEntries(
       Object.entries(schema.properties)
-        .map(([key, value]) => [key, convertFromYaml(value, dict)]));
+        .map(([key, value]) => [key, convertFromYaml(value)]),
+    );
   }
   if (schema.patternProperties) {
     params.patternProperties = Object.fromEntries(
       Object.entries(schema.properties)
-        .map(([key, value]) => [key, convertFromYaml(value, dict)]));
+        .map(([key, value]) => [key, convertFromYaml(value)]),
+    );
   }
   if (schema.additionalProperties !== undefined) {
     // we special-case `false` here because as a schema, `false` means
@@ -166,11 +307,12 @@ function convertFromObject(yaml: any, dict: Record<string, Schema>): Schema
       params.additionalProperties = false;
     } else {
       params.additionalProperties = convertFromYaml(
-        schema.additionalProperties, dict);
+        schema.additionalProperties,
+      );
     }
   }
   if (schema["super"]) {
-    params.baseSchema = convertFromYaml(schema["super"], dict);
+    params.baseSchema = convertFromYaml(schema["super"]);
   }
   if (schema["required"] === "all") {
     params.required = Object.keys(schema.properties || {});
@@ -180,26 +322,24 @@ function convertFromObject(yaml: any, dict: Record<string, Schema>): Schema
   if (schema["completions"]) {
     params.completions = schema["completions"];
   }
-  
-  return setBaseSchemaProperties(schema, objectS(params));
-};
 
-function lookup(yaml: any, dict: Record<string, Schema>): Schema
-{
-  if (dict[yaml.resolveRef] === undefined) {
-    throw new Error(`lookup of key ${yaml.resolveRef} failed`);
-  }
-  return dict[yaml.resolveRef];
+  return setBaseSchemaProperties(yaml, setBaseSchemaProperties(schema, objectS(params)));
 }
 
-export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schema
-{
-  dict = dict ?? {};
+// deno-lint-ignore no-explicit-any
+function lookup(yaml: any): Schema {
+  if (!hasSchemaDefinition(yaml.resolveRef)) {
+    throw new Error(`lookup of key ${yaml.resolveRef} in definitions failed`);
+  }
+  return getSchemaDefinition(yaml.resolveRef);
+}
 
+// deno-lint-ignore no-explicit-any
+export function convertFromYaml(yaml: any): Schema {
   // literals
   const literalValues = [
     ["object", objectS()],
-    ["path", stringS], // FIXME we should do this one differently to record the autocompletion difference
+    ["path", stringS], // FIXME we should treat this one differently to record the autocompletion difference
     ["string", stringS],
     ["number", numberS],
     ["boolean", booleanS],
@@ -223,11 +363,13 @@ export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schem
 
   // object key checks:
   interface KV {
-    key: string,
-    value: (yaml: any, lookup: Record<string, Schema>) => Schema
+    key: string;
+    // deno-lint-ignore no-explicit-any
+    value: (yaml: any) => Schema;
   }
   const schemaObjectKeyFunctions: KV[] = [
     { key: "anyOf", value: convertFromAnyOf },
+    { key: "allOf", value: convertFromAllOf },
     { key: "boolean", value: convertFromBoolean },
     { key: "arrayOf", value: convertFromArrayOf },
     { key: "enum", value: convertFromEnum },
@@ -237,28 +379,240 @@ export function convertFromYaml(yaml: any, dict?: Record<string, Schema>): Schem
     { key: "object", value: convertFromObject },
     { key: "oneOf", value: convertFromOneOf },
     { key: "path", value: convertFromPath },
+    { key: "record", value: convertFromRecord },
     { key: "ref", value: convertFromRef },
     { key: "resolveRef", value: lookup },
     { key: "string", value: convertFromString },
+    { key: "pattern", value: convertFromPattern },
+    { key: "schema", value: convertFromSchema },
   ];
   for (const { key: objectKey, value: fun } of schemaObjectKeyFunctions) {
     try {
       if (yaml[objectKey as string] !== undefined) {
-        return fun(yaml, dict);
+        return fun(yaml);
       }
     } catch (e) {
-      error({yaml});
+      error({ yaml });
       throw e;
     }
   }
 
   error(JSON.stringify(yaml, null, 2));
-  throw new Error("Internal Error: Cannot convert object; this should have failed validation.");
+  throw new Error(
+    "Internal Error: Cannot convert object; this should have failed validation.",
+  );
 }
 
-export function convertFromYAMLString(src: string)
-{
+export function convertFromYAMLString(src: string) {
   const yaml = readAnnotatedYamlFromString(src);
-  
-  return convertFromYaml(yaml, {});
+
+  return convertFromYaml(yaml);
+}
+
+export function objectSchemaFromFieldsFile(
+  file: string,
+  exclude?: (key: string) => boolean,
+): Schema {
+  exclude = exclude ?? ((_key: string) => false);
+  const properties: Record<string, Schema> = {};
+  // deno-lint-ignore no-explicit-any
+  const global = readYaml(file) as any[];
+
+  convertFromFieldsObject(global, properties);
+  for (const key of Object.keys(properties)) {
+    if (exclude(key)) {
+      delete properties[key];
+    }
+  }
+
+  return objectS({ properties });
+}
+
+export interface SchemaField {
+  name: string;
+  schema: Schema;
+  hidden?: boolean;
+  // deno-lint-ignore no-explicit-any
+  "default"?: any;
+  alias?: string;
+  disabled?: string[];
+  enabled?: string[];
+  description: string | {
+    short: string;
+    long: string;
+  };
+  // deno-lint-ignore no-explicit-any
+  tags?: Record<string, any>;
+}
+
+export function objectSchemaFromGlob(
+  glob: string,
+  exclude?: (key: string) => boolean,
+): Schema {
+  exclude = exclude ?? ((_key: string) => false);
+  const properties: Record<string, Schema> = {};
+  for (const { path } of expandGlobSync(glob)) {
+    convertFromFieldsObject(readYaml(path) as SchemaField[], properties);
+  }
+  for (const key of Object.keys(properties)) {
+    if (exclude(key)) {
+      delete properties[key];
+    }
+  }
+  return objectS({ properties });
+}
+
+function annotateSchemaFromField(field: SchemaField, schema: Schema): Schema {
+  if (field.enabled !== undefined) {
+    schema = tagSchema(schema, {
+      formats: field.enabled,
+    });
+  }
+  if (field.disabled !== undefined) {
+    schema = tagSchema(schema, {
+      formats: (field.disabled as string[]).map((x) => `!${x}`),
+    });
+  }
+  if (field.tags) {
+    schema = tagSchema(schema, field.tags);
+  }
+  if (field.description) {
+    if (typeof field.description === "string") {
+      schema = documentSchema(schema, field.description);
+    } else if (typeof field.description === "object") {
+      schema = documentSchema(schema, field.description.short);
+    }
+  }
+  if (field.hidden) {
+    schema = tagSchema(schema, {
+      "hidden": true
+    });
+  }
+  return schema;
+}
+
+export function schemaFromField(entry: SchemaField): Schema {
+  const schema = convertFromYaml(entry.schema);
+  return annotateSchemaFromField(entry, schema);
+}
+
+export function convertFromFieldsObject(
+  yaml: SchemaField[],
+  obj?: Record<string, Schema>,
+): Record<string, Schema> {
+  const result = obj ?? {};
+
+  for (const field of yaml) {
+    let schema = convertFromYaml(field.schema);
+    schema = annotateSchemaFromField(field, schema);
+    result[field.name] = schema;
+    if (field.alias) {
+      result[field.alias] = schema;
+    }
+  }
+
+  return result;
+}
+
+interface SchemaFieldIdDescriptor {
+  schemaId: string;
+  field: SchemaField;
+}
+
+export function schemaFieldsFromGlob(
+  globPath: string,
+  testFun?: (entry: SchemaField, path: string) => boolean,
+): SchemaFieldIdDescriptor[] {
+  const result = [];
+  testFun = testFun ?? ((_e, _p) => true);
+  for (const file of expandGlobSync(globPath)) {
+    for (const field of readYaml(file.path) as SchemaField[]) {
+      const fieldName = field.name;
+      const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
+      if (testFun(field, file.path)) {
+        result.push({
+          schemaId,
+          field,
+        });
+      }
+    }
+  }
+  return result;
+}
+
+export const schemaRefContexts = memoize(() => {
+  const groups = readYaml(schemaPath("groups.yml")) as Record<
+    string,
+    Record<string, Record<string, string>>
+  >;
+  const result = [];
+
+  for (const [topLevel, sub] of Object.entries(groups)) {
+    for (const key of Object.keys(sub)) {
+      result.push(`${topLevel}-${key}`);
+    }
+  }
+  return result;
+}, () => "const") as (() => Schema);
+
+export function objectRefSchemaFromContextGlob(
+  contextGlob: string,
+  testFun?: (field: SchemaField, path: string) => boolean,
+): Schema {
+  const regexp = globToRegExp(contextGlob);
+
+  // Why is typescript thinking that testFun can be undefined
+  // after the expression below?
+  //
+  // testFun = testFun ?? ((_field, _path) => true);
+  return objectRefSchemaFromGlob(
+    schemaPath("{document,cell}-*.yml"),
+    (field: SchemaField, path: string) => {
+      if (testFun !== undefined && !testFun(field, path)) {
+        return false;
+      }
+
+      const pathContext = basename(path, ".yml");
+      const schemaContexts = ((field?.tags?.contexts || []) as string[]);
+
+      if (pathContext.match(regexp)) {
+        return true;
+      }
+      return schemaContexts.some((c) => c.match(regexp));
+    },
+  );
+}
+
+export function objectRefSchemaFromGlob(
+  glob: string,
+  testFun?: (field: SchemaField, path: string) => boolean,
+): Schema {
+  const properties: Record<string, Schema> = {};
+
+  for (const { schemaId, field } of schemaFieldsFromGlob(glob, testFun)) {
+    const schema = refS(schemaId, schemaId); // FIXME this is a bad description
+    properties[field.name] = schema;
+    if (field.alias) {
+      properties[field.alias] = schema;
+    }
+  }
+  return objectS({ properties });
+}
+
+export async function buildSchemaResources() {
+  const path = schemaPath("{cell-*,document-*,project}.yml");
+  // precompile all of the field schemas
+  for (const file of expandGlobSync(path)) {
+    const yaml = readYaml(file.path) as SchemaField[];
+    const entries = Object.entries(convertFromFieldsObject(yaml));
+    for (const [fieldName, fieldSchema] of entries) {
+      // TODO this id has to be defined consistently with schemaFieldsFromGlob.
+      // It's a footgun.
+      const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
+      const schema = withId(fieldSchema, schemaId);
+      setSchemaDefinition(schema);
+      await withValidator(schema, async (_validator) => {
+      });
+    }
+  }
 }

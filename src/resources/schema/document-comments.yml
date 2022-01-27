@@ -1,0 +1,5 @@
+- name: comments
+  tags:
+    formats: [$html-files]
+  schema:
+    ref: comments

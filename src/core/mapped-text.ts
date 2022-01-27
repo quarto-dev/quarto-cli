@@ -1,19 +1,13 @@
 /**
-* mapped-text.ts
-*
-* Copyright (C) 2021 by RStudio, PBC
-*
-*/
+ * mapped-text.ts
+ *
+ * Copyright (C) 2021 by RStudio, PBC
+ */
 
 import { diffLines } from "diff";
 import { Range, rangedLines } from "./lib/ranged-text.ts";
 
-import {
-  asMappedString,
-  mappedConcat,
-  mappedIndexToRowCol,
-  mappedString,
-} from "./lib/mapped-text.ts";
+import { mappedString } from "./lib/mapped-text.ts";
 
 import * as mt from "./lib/mapped-text.ts";
 
@@ -62,5 +56,5 @@ export function mappedDiff(
     }
   }
 
-  return mappedString(source, resultChunks);
+  return mappedString(source, resultChunks, source.fileName);
 }

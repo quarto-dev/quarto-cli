@@ -8,13 +8,13 @@
 */
 
 import { existsSync } from "fs/exists.ts";
-import { error, info } from "log/mod.ts";
-import { Schema } from "../lib/schema.ts";
+import { errorOnce } from "../log.ts";
+import { info } from "log/mod.ts";
 import { asMappedString, MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
-import { ensureAjv } from "./yaml-schema.ts";
-import { withValidator } from "../lib/validator-queue.ts";
-import { LocalizedError } from "../lib/yaml-schema.ts";
+import { Schema } from "../lib/yaml-validation/schema.ts";
+import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
+import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 
 // https://stackoverflow.com/a/41429145
 export class ValidationError extends Error {
@@ -37,7 +37,7 @@ export function readAndValidateYamlFromFile(
     throw new Error(`YAML file ${file} not found.`);
   }
 
-  const contents = asMappedString(Deno.readTextFileSync(file));
+  const contents = asMappedString(Deno.readTextFileSync(file), file);
   return readAndValidateYamlFromMappedString(contents, schema, errorMessage);
 }
 
@@ -46,15 +46,13 @@ export async function readAndValidateYamlFromMappedString(
   schema: Schema,
   errorMessage: string,
 ): Promise<{ [key: string]: unknown }> {
-  await ensureAjv();
-
-  const result = await withValidator(schema, (validator) => {
+  const result = await withValidator(schema, async (validator) => {
     const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
     const validateYaml = !(annotation.result?.["validate-yaml"] === false);
 
     const yaml = annotation.result;
     if (validateYaml) {
-      const valResult = validator.validateParse(mappedYaml, annotation);
+      const valResult = await validator.validateParse(mappedYaml, annotation);
       if (valResult.errors.length) {
         validator.reportErrorsInSource(
           {
@@ -63,7 +61,11 @@ export async function readAndValidateYamlFromMappedString(
           },
           mappedYaml!,
           errorMessage,
-          error,
+          (msg) => {
+            if (!errorOnce(msg)) {
+              info(""); // line break
+            }
+          },
           info,
         );
       }

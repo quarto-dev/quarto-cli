@@ -1,0 +1,101 @@
+- name: incremental
+  tags:
+    formats: [pptx, beamer, $html-pres]
+  schema: boolean
+  default: false
+  description: |
+    Make list items in slide shows display incrementally (one by one). 
+    The default is for lists to be displayed all at once.
+
+- name: slide-level
+  tags:
+    formats: [pptx, beamer, $html-pres]
+  schema: number
+  default: 2
+  description:
+    short: |
+      Specifies that headings with the specified level create slides.
+      Headings above this level in the hierarchy are used to divide 
+      the slide show into sections.
+    long: |
+      Specifies that headings with the specified level create slides.
+      Headings above this level in the hierarchy are used to divide 
+      the slide show into sections; headings below this level create 
+      subheads within a slide. Valid values are 0-6. If a slide level
+      of 0 is specified, slides will not be split automatically on 
+      headings, and horizontal rules must be used to indicate slide 
+      boundaries. If a slide level is not specified explicitly, the
+      slide level will be set automatically based on the contents of
+      the document
+
+- name: slide-number
+  tags:
+    formats: [revealjs]
+  schema:
+    oneOf:
+      - boolean
+      - enum: ["h.v", "h/v", "c", "c/t"]
+  default: false
+  description:
+    short: "Display the page number of the current slide"
+    long: |
+      Display the page number of the current slide
+
+      - `true`:    Show slide number
+      - `false`:   Hide slide number
+
+      Can optionally be set as a string that specifies the number formatting:
+
+      - `h.v`:   Horizontal . vertical slide number
+      - `h/v`:   Horizontal / vertical slide number
+      - `c`:   Flattened slide number
+      - `c/t`:   Flattened slide number / total slides (default)
+
+- name: show-slide-number
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [all, print, speaker]
+  default: all
+  description: "Contexts in which the slide number appears (`all`, `print`, or `speaker`)"
+
+- name: title-slide-attributes
+  schema:
+  tags:
+    formats: [revealjs]
+  description:
+    short: Additional attributes for the title slide of a reveal.js presentation.
+    long: |
+      Additional attributes for the title slide of a reveal.js presentation as a map of 
+      attribute names and values. For example
+
+      ```yaml
+        title-slide-attributes:
+            data-background-image: /path/to/title_image.png
+            data-background-size: contain      
+      ```
+
+      (Note that the data- prefix is required here, as it isn’t added automatically.)
+
+- name: center-title-slide
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "Vertical centering of title slide"
+
+- name: show-notes
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Make speaker notes visible to all viewers
+
+- name: rtl
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Change the presentation direction to be RTL

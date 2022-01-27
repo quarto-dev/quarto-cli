@@ -34,7 +34,7 @@
   postprocess <- function(input, format, output, preserved_chunks) {
 
     # check for html output
-    isHTML <- knitr::is_html_output(format$pandoc$to)
+    isHTML <- knitr::is_html_output(format$pandoc$to, c("markdown", "epub"))
 
     # bail if we don't have any perserved chunks and aren't doing code linking
     code_link <- isHTML && isTRUE(format$render$`code-link`)

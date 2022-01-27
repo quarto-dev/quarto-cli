@@ -1,0 +1,32 @@
+- name: link-external-icon
+  tags:
+    formats: [$html-doc, revealjs]
+  schema: boolean
+  description: "Show a special icon next to links that leave the current site."
+
+- name: link-external-icon
+  tags:
+    formats: [$html-doc, revealjs]
+  schema: boolean
+  description: "Show a special icon next to links that leave the current site."
+
+- name: link-external-newwindow
+  tags:
+    formats: [$html-doc, revealjs]
+  schema: boolean
+  description: "Open external links in a new browser window or tab (rather than navigating the current tab)."
+
+- name: link-external-filter
+  tags:
+    formats: [$html-doc, revealjs]
+  schema: string
+  description:
+    short: "A regular expression that can be used to determine whether a link is an internal link."
+    long: |
+      A regular expression that can be used to determine whether a link is an internal link. For example, 
+      the following will treat links that start with http://www.quarto.org as internal links (and others
+      will be considered external):
+
+      ```
+      ^(?:http:|https:)\/\/www\.quarto\.org\/custom
+      ```

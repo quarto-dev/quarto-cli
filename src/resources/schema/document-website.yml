@@ -1,0 +1,41 @@
+- name: search
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  default: true
+  description: Setting this to false prevents this document from being included in searches.
+
+- name: aliases
+  schema:
+    arrayOf: string
+  tags:
+    formats: [$html-doc]
+  description: URLs that alias this document, when included in a website.
+
+- name: image
+  schema: path
+  tags:
+    formats: [$html-doc]
+  description:
+    short: The path to a preview image for this document.
+    long: |
+      The path to a preview image for this content. By default, 
+      Quarto will use the image value from the site: metadata. 
+      If you provide an image, you may also optionally provide 
+      an image-width and image-height to improve 
+      the appearance of your Twitter Card.
+
+      If image is not provided, Quarto will automatically attempt 
+      to locate a preview image.
+
+- name: image-height
+  schema: string
+  tags:
+    formats: [$html-doc]
+  description: The height of the preview image for this document.
+
+- name: image-width
+  schema: string
+  tags:
+    formats: [$html-doc]
+  description: The width of the preview image for this document.

@@ -1,0 +1,23 @@
+- name: reveal-js-url
+  schema: path
+  tags:
+    formats: [revealjs]
+  description: Directory containing reveal.js files.
+
+- name: s5-url
+  schema: string
+  tags:
+    formats: [s5]
+  description: The base url for s5 presentations.
+
+- name: slidy-url
+  schema: string
+  tags:
+    formats: [slidy]
+  description: The base url for Slidy presentations.
+
+- name: slideous-url
+  schema: string
+  tags:
+    formats: [slideous]
+  description: The base url for Slideous presentations.

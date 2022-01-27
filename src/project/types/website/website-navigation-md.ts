@@ -4,7 +4,6 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { existsSync } from "fs/exists.ts";
 import { extname } from "path/mod.ts";
 import { Document, Element } from "../../../core/deno-dom.ts";
 

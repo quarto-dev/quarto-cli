@@ -1,0 +1,17 @@
+{
+  "kind": "completions",
+  "context": {
+    "path": "~/Desktop/daily-log/2022-01-06/_quarto.yml",
+    "filetype": "yaml",
+    "embedded": false,
+    "formats": [],
+    "project_formats": [],
+    "engine": null,
+    "line": "fil",
+    "code": "title: \"knitr chunk options ignore test\"\n\necho: true\n\nfil\n\nformat:\n  html:\n    html-math-method: mathjax\n      \n    theme: cosmo\n    css: styles\n    toc: true\n",
+    "position": {
+      "row": 4,
+      "column": 3
+    }
+  }
+}

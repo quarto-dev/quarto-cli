@@ -1,0 +1,20 @@
+- name: pdf-separate-fragments
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: "Prints each fragment on a separate slide"
+
+- name: pdf-page-height-offset
+  tags:
+    formats: [revealjs]
+  schema: number
+  default: -1
+  description:
+    short: "Offset used to reduce the height of content within exported PDF pages."
+    long: |
+      Offset used to reduce the height of content within exported PDF pages.
+      This exists to account for environment differences based on how you
+      print to PDF. CLI printing options, like phantomjs and wkpdf, can end
+      on precisely the total height of the document whereas in-browser
+      printing has to end one pixel before.

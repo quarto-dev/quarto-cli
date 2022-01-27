@@ -1,0 +1,37 @@
+- name: logo
+  tags:
+    formats: [revealjs]
+  schema: path
+  description: "Logo image (placed in bottom right corner of slides)"
+
+- name: footer
+  tags:
+    formats: [revealjs]
+  schema: string
+  description:
+    short: "Footer to include on all slides"
+    long: |
+      Footer to include on all slides. Can also be set per-slide by including a
+      div with class `.footer` on the slide.
+
+- name: scrollable
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description:
+    short: "Allow content that overflows slides vertically to scroll"
+    long: |
+      Allow content that overflows slides vertically to scroll. This can also
+      be set per-slide by including the `.scrollable` class on the slide title.
+
+- name: smaller
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description:
+    short: "Use a smaller default font for slide content"
+    long: |
+      Use a smaller default font for slide content. This can also
+      be set per-slide by including the `.smaller` class on the slide title.

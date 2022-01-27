@@ -2382,20 +2382,15 @@ function createRuntime() {
     interpret(src, targetElementId, inline) {
       let targetElement;
       const getElement = () => {
-        console.log("getElement called");
         targetElement = document.getElementById(targetElementId);
         let subFigId;
         if (!targetElement) {
           subFigId = getSubfigId(targetElementId);
           targetElement = document.getElementById(subFigId);
           if (!targetElement) {
-            console.error("Ran out of subfigures for element", targetElementId);
-            console.error("This will fail.");
             throw new Error("Ran out of quarto subfigures.");
           }
         }
-        console.log("getElement will return", targetElement);
-        console.log("state: ", { targetElementId, subFigId });
         return targetElement;
       };
       const makeElement = () => {

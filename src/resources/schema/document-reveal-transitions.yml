@@ -1,0 +1,103 @@
+- name: transition
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [none, fade, slide, convex, concave, zoom]
+  default: none
+  description:
+    short: "Transition style for slides"
+    long: |
+      Transition style for slides backgrounds.
+      (`none`, `fade`, `slide`, `convex`, `concave`, or `zoom`)
+
+- name: transition-speed
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [default, fast, slow]
+  default: default
+  description: Slide transition speed (`default`, `fast`, or `slow`)
+
+- name: background-transition
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [none, fade, slide, convex, concave, zoom]
+  default: none
+  description:
+    short: Transition style for full page slide backgrounds
+    long: |
+      Transition style for full page slide backgrounds.
+      (`none`, `fade`, `slide`, `convex`, `concave`, or `zoom`)
+
+- name: fragments
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: Turns fragments on and off globally
+
+- name: auto-animate
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: Globally enable/disable auto-animate (enabled by default)
+
+- name: auto-animate-easing
+  tags:
+    formats: [revealjs]
+  schema: string
+  default: ease
+  description:
+    short: Default CSS easing function for auto-animation
+    long: |
+      Default CSS easing function for auto-animation.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-duration
+  tags:
+    formats: [revealjs]
+  schema: number
+  default: 1.0
+  description:
+    short: Duration (in seconds) of auto-animate transition
+    long: |
+      Duration (in seconds) of auto-animate transition.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-unmatched
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description:
+    short: Auto-animate unmatched elements.
+    long: |
+      Auto-animate unmatched elements.
+      Can be overridden per-slide or per-element via attributes.
+
+- name: auto-animate-styles
+  tags:
+    formats: [revealjs]
+  schema:
+    arrayOf:
+      enum:
+        [
+          opacity,
+          color,
+          background-color,
+          padding,
+          font-size,
+          line-height,
+          letter-spacing,
+          border-width,
+          border-color,
+          border-radius,
+          outline,
+          outline-offset,
+        ]
+  description:
+    short: |
+      CSS properties that can be auto-animated (positional styles like top, left, etc.
+      are always animated).

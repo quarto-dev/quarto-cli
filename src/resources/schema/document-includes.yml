@@ -1,0 +1,122 @@
+- name: header-includes
+  disabled: [$office-all, $jats-all, ipynb]
+  schema: string
+  description: Content to include at the end of the document header.
+
+- name: include-before
+  disabled: [$office-all, $jats-all, ipynb]
+  schema: string
+  description: Content to include at the beginning of the document body (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command in LaTeX).
+
+- name: include-after
+  disabled: [$office-all, $jats-all, ipynb]
+  schema: string
+  description: Content to include at the end of the document body (before the `</body>` tag in HTML, or the `\end{document}` command in LaTeX).
+
+- name: include-before-body
+  disabled: [$office-all, $jats-all, ipynb]
+  schema:
+    maybeArrayOf: path
+  description: |
+    Include contents of files, verbatim, at the beginning of the document body
+    (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command 
+    in LaTeX).
+
+- name: include-after-body
+  disabled: [$office-all, $jats-all, ipynb]
+  schema:
+    maybeArrayOf: path
+  description: |
+    Include contents of files, verbatim, at the end of the document body (before
+    the `</body>` tag in HTML, or the `\end{document}` command in LaTeX).
+
+- name: include-in-header
+  disabled: [$office-all, $jats-all, ipynb]
+  schema:
+    maybeArrayOf: path
+  description: |
+    Include contents of files, verbatim, at the end of the header. This can
+    be used, for example, to include special CSS or JavaScript in HTML 
+    documents.
+
+- name: resources
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$html-all]
+  description: Path (or glob) to files to publish with this document.
+
+- name: headertext
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [context]
+  description:
+    short: Text to be in a running header.
+    long: |
+      Text to be in a running header.
+
+      Provide a single option or up to four options for different placements 
+      (odd page inner, odd page outer, even page innner, even page outer).
+
+- name: footertext
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [context]
+  description:
+    short: Text to be in a running footer.
+    long: |
+      Text to be in a running footer.
+
+      Provide a single option or up to four options for different placements 
+      (odd page inner, odd page outer, even page innner, even page outer).
+
+      See [ConTeXt Headers and Footers](https://wiki.contextgarden.net/Headers_and_Footers) for more information.
+
+- name: includesource
+  schema: boolean
+  tags:
+    formats: [context]
+  default: false
+  description: Whether to include all source documents as file attachments in the PDF file.
+
+- name: footer
+  schema: string
+  tags:
+    formats: [man]
+  description: The footer for man pages.
+
+- name: header
+  schema: string
+  tags:
+    formats: [man]
+  description: The header for man pages.
+
+- name: metadata-file
+  schema: path
+  hidden: true
+  description:
+    short: "Include file with YAML metadata"
+    long: |
+      Read metadata from the supplied YAML (or JSON) file. This
+      option can be used with every input format, but string scalars
+      in the YAML file will always be parsed as Markdown. Generally,
+      the input will be handled the same as in YAML metadata blocks.
+      Metadata values specified inside the document, or by using `-M`, 
+      overwrite values specified with this option.
+
+- name: metadata-files
+  schema:
+    arrayOf: path
+  description:
+    short: "Include files with YAML metadata"
+    long: |
+      Read metadata from the supplied YAML (or JSON) files. This
+      option can be used with every input format, but string scalars
+      in the YAML file will always be parsed as Markdown. Generally,
+      the input will be handled the same as in YAML metadata blocks.
+      Values in files specified later in the list will be preferred
+      over those specified earlier. Metadata values specified inside 
+      the document, or by using `-M`, overwrite values specified with
+      this option.

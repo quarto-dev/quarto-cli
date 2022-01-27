@@ -288,7 +288,7 @@ class QuartoOJSConnector extends OJSConnector {
             // force line numbers to show
             preDiv.classList.add("numberSource");
             const missingRef = ojsAst.references.find(n => n.name === varName);
-            // FIXME when missingRef === undefined, it likely means an unresolved
+            // TODO when missingRef === undefined, it likely means an unresolved
             // import reference. For now we will leave things as is, but
             // this needs better handling.
             if (missingRef !== undefined) {
@@ -350,7 +350,7 @@ class QuartoOJSConnector extends OJSConnector {
           : elementCreator;
         targetElement.appendChild(element);
 
-        // FIXME the unofficial interpreter always calls viewexpression observers
+        // TODO the unofficial interpreter always calls viewexpression observers
         // twice, one with the name, and the next with 'viewof $name'.
         // we check for 'viewof ' here and hide the element we're creating.
         // this behavior appears inconsistent with OHQ's interpreter, so we
@@ -699,7 +699,7 @@ export function createRuntime() {
       // grab a new id accidentally.
       let targetElement;
       const getElement = () => {
-        console.log("getElement called");
+        // console.log("getElement called");
         targetElement = document.getElementById(targetElementId);
         let subFigId;
         if (!targetElement) {
@@ -707,13 +707,13 @@ export function createRuntime() {
           subFigId = getSubfigId(targetElementId);
           targetElement = document.getElementById(subFigId);
           if (!targetElement) {
-            console.error("Ran out of subfigures for element", targetElementId);
-            console.error("This will fail.");
+            // console.error("Ran out of subfigures for element", targetElementId);
+            // console.error("This will fail.");
             throw new Error("Ran out of quarto subfigures.");
           }
         }
-        console.log("getElement will return", targetElement);
-        console.log("state: ", { targetElementId, subFigId });
+        // console.log("getElement will return", targetElement);
+        // console.log("state: ", { targetElementId, subFigId });
         return targetElement;
       };
 
@@ -807,7 +807,7 @@ export function createRuntime() {
   return result;
 }
 
-// FIXME: "obs" or "ojs"? Inconsistent naming.
+// TODO "obs" or "ojs"? Inconsistent naming.
 window._ojs = {
   ojsConnector: undefined,
 

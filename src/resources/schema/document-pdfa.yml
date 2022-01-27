@@ -1,0 +1,50 @@
+- name: pdfa
+  schema:
+    oneOf:
+      - boolean
+      - string
+  tags:
+    formats: [context]
+  description:
+    short: Adds the necessary setup to the document preamble to generate PDF/A of the type specified.
+    long: |
+      Adds the necessary setup to the document preamble to generate PDF/A of the type specified.
+
+      If the value is set to `true`, `1b:2005` will be used as default.
+
+      To successfully generate PDF/A the required
+      ICC color profiles have to be available and the content and all
+      included files (such as images) have to be standard conforming.
+      The ICC profiles and output intent may be specified using the
+      variables `pdfaiccprofile` and `pdfaintent`.  See also [ConTeXt
+      PDFA](https://wiki.contextgarden.net/PDF/A) for more details.
+
+- name: pdfaiccprofile
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [context]
+  description:
+    short: |
+      When used in conjunction with `pdfa`, specifies the ICC profile to use 
+      in the PDF, e.g. `default.cmyk`.
+    long: |
+      When used in conjunction with `pdfa`, specifies the ICC profile to use 
+      in the PDF, e.g. `default.cmyk`.
+
+      If left unspecified, `sRGB.icc` is used as default. May be repeated to 
+      include multiple profiles. Note that the profiles have to be available 
+      on the system. They can be obtained from 
+      [ConTeXt ICC Profiles](https://wiki.contextgarden.net/PDFX#ICC_profiles).
+
+- name: pdfaintent
+  schema: string
+  tags:
+    formats: [context]
+  description:
+    short: When used in conjunction with `pdfa`, specifies the output intent for the colors.
+    long: |
+      When used in conjunction with `pdfa`, specifies the output intent for
+      the colors, for example `ISO coated v2 300\letterpercent\space (ECI)`
+
+      If left unspecified, `sRGB IEC61966-2.1` is used as default.

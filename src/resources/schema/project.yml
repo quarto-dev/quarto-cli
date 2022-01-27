@@ -5,7 +5,7 @@
         type:
           enum: [website, book, site]
           completions: [website, book]
-          description: "Project type"
+          description: "Project type (`default`, `website`, or `book`)"
         render:
           arrayOf: path
           description: "Files to render (defaults to all files)"
@@ -23,41 +23,69 @@
           path:
             description: "HTML library (JS/CSS/etc.) directory"
         resources:
-          arrayOf: path
-          description: "Additional file resources to be copied to output directory"
+          maybeArrayOf:
+            schema: path
+            description: "Additional file resources to be copied to output directory"
 
-- name: site
+- name: website
+  schema:
+    ref: base-website
+
+- name: book
   schema:
     object:
+      super:
+        resolveRef: base-website
       properties:
         title:
           string:
-            description: "Website title"
-        site-url:
+            description: "Book title"
+        subtitle:
           string:
-            description: "Base URL for published website"
-        repo-url:
-          string:
-            descripiton: "Base URL for website source code repository"
-        repo-branch:
-          string:
-            description: "Branch of website source code (defaults to `main`)"
-        repo-actions:
+            description: "Book subtitle"
+        author:
           maybeArrayOf:
-            enum: [none, edit, source, issue]
-            description: "Links to source repository actions"
-        # TODO: navbar
-        # TODO: sidebar
-        page-navigation:
-          boolean:
-            description: "Provide next and previous article links in footer"
-        # TODO: page-footer
-        margin-header:
-          maybeArrayOf: string
-          description: "Markdown to place above margin content (text or file path)"
-        margin-footer:
-          maybeArrayOf: string
-          description: "Markdown to place below margin content (text or file path)"
-        ## TODO: search
-        ## TODO: open-graph
-        ## TODO: twitter-card
+            schema: string
+            description: "Author or authors of the book"
+        date:
+          string:
+            description: "Book publication date"
+        abstract:
+          string:
+            description: "Book abstract"
+        description:
+          string:
+            description: "Description metadata for HTML version of book"
+        chapters:
+          ref: chapter-list
+          description: "Book part and chapter files"
+        references:
+          path:
+            description: "Book references file"
+        appendices:
+          arrayOf:
+            ref: chapter-item
+          description: "Book appendix files"
+        output-file:
+          path:
+            description: "Base name for single-file output (e.g. PDF, ePub)"
+        cover-image:
+          path:
+            description: "Cover image (used in HTML and ePub formats)"
+        sharing:
+          maybeArrayOf:
+            enum: [twitter, facebook, linkedin]
+            description: |
+              Sharing buttons to include on navbar or sidebar
+              (one or more of `twitter`, `facebook`, `linkedin`)
+        downloads:
+          maybeArrayOf:
+            enum: [pdf, epub, docx]
+            description: |
+              Download buttons for other formats to include on navbar or sidebar
+              (one or more of `pdf`, `epub`, and `docx)
+        tools:
+          arrayOf:
+            schema:
+              ref: navigation-item
+            description: "Custom tools for navbar or sidebar"

@@ -8,11 +8,11 @@
 *
 */
 
-import { parse } from "encoding/yaml.ts";
+import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 import { MappedString } from "../mapped-text.ts";
-import { AnnotatedParse } from "../lib/yaml-schema.ts";
+import { AnnotatedParse } from "../lib/yaml-validation/yaml-schema.ts";
 
-export type { AnnotatedParse } from "../lib/yaml-schema.ts";
+export type { AnnotatedParse } from "../lib/yaml-validation/yaml-schema.ts";
 
 export function readAnnotatedYamlFromMappedString(yml: MappedString) {
   return readAnnotatedYamlFromString(yml.value);
@@ -64,7 +64,7 @@ export function readAnnotatedYamlFromString(yml: string) {
     }
   }
 
-  parse(yml, { listener });
+  parse(yml, { listener, schema: JSON_SCHEMA });
 
   if (results.length === 0) {
     return {

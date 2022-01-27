@@ -9,20 +9,17 @@
 
 import { readYaml } from "../yaml.ts";
 import { convertFromYaml } from "./from-yaml.ts";
-import { resourcePath } from "../resources.ts";
-import { join } from "path/mod.ts";
-import { Schema } from "../lib/schema.ts";
+import { schemaPath } from "./utils.ts";
+import { Schema, setSchemaDefinition } from "../lib/yaml-validation/schema.ts";
 
-export function getSchemaSchemas(): Record<string, Schema>
-{
-  const yaml = readYaml(join(resourcePath(), "/schema/schema.yml")) as Record<string, any>[];
+export function getSchemaSchemas(): Record<string, Schema> {
+  // deno-lint-ignore no-explicit-any
+  const yaml = readYaml(schemaPath("schema.yml")) as Record<string, any>[];
   const dict: Record<string, Schema> = {};
   for (const obj of yaml) {
-    const result = convertFromYaml(obj, dict);
-    if (result.$id) {
-      dict[result.$id as string] = result;
-    }
+    const schema = convertFromYaml(obj);
+    setSchemaDefinition(schema);
+    dict[schema.$id] = schema;
   }
   return dict;
 }
-

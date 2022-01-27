@@ -1,0 +1,233 @@
+- name: documentclass
+  schema:
+    string:
+      completions:
+        - scrartcl
+        - scrbook
+        - scrreprt
+        - scrlttr2
+        - article
+        - book
+        - report
+        - memoir
+  tags:
+    formats: [$pdf-all]
+  default: scrartcl
+  description: The document class.
+
+- name: classoption
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$html-files, $pdf-all]
+  description:
+    short: Options for the document class,
+    long: |
+      For LaTeX/PDF output, the options set for the document
+      class.
+
+      For HTML output using KaTeX, you can render display
+      math equations flush left using `classoption: fleqn`
+
+- name: pagestyle
+  schema:
+    string:
+      completions:
+        - plain
+        - empty
+        - headings
+  tags:
+    formats: [$pdf-all]
+  default: plain
+  description: Control the `\pagestyle{}` for the document.
+
+- name: papersize
+  schema: string
+  tags:
+    formats: [$pdf-all]
+  description: The paper size for the document.
+
+- name: layout
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [context]
+  description:
+    short: The options for margins and text layout for this document.
+    long: |
+      The options for margins and text layout for this document.
+
+      See [ConTeXt Layout](https://wiki.contextgarden.net/Layout) for additional information.
+
+- name: page-layout
+  schema:
+    enum: [article, full, custom, none]
+  default: article
+  tags:
+    formats: [$html-doc]
+  description: The page layout to use for this document (`article`, `full`, `custom`, or `none`)
+
+- name: page-width
+  tags:
+    formats: [docx, $odt-all]
+  schema: number
+  description:
+    short: |
+      Target page width for output (used to compute columns widths for `layout` divs)
+    long: |
+      Target page width for output (used to compute columns widths for `layout` divs).
+      Defaults to 6.5 inches, which corresponds to default letter page settings in 
+      docx and odt.
+
+- name: max-width
+  schema: string
+  tags:
+    formats: [$html-files]
+  description: Adds a css `max-width` to the body Element.
+
+- name: margin-left
+  schema: string
+  tags:
+    formats: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the left margin of the document.
+    long: |
+      For HTML output, sets the `margin-left` property on the Body element.
+
+      For LaTeX output, sets the left margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the left margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the left page margin.
+
+- name: margin-right
+  schema: string
+  tags:
+    formats: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the right margin of the document.
+    long: |
+      For HTML output, sets the `margin-right` property on the Body element.
+
+      For LaTeX output, sets the right margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the right margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the right page margin.
+
+- name: margin-top
+  schema: string
+  tags:
+    formats: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the top margin of the document.
+    long: |
+      For HTML output, sets the `margin-top` property on the Body element.
+
+      For LaTeX output, sets the top margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the top margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the top page margin.
+
+- name: margin-bottom
+  schema: string
+  tags:
+    formats: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the bottom margin of the document.
+    long: |
+      For HTML output, sets the `margin-bottom` property on the Body element.
+
+      For LaTeX output, sets the bottom margin if `geometry` is not 
+      used (otherwise `geometry` overrides this value)
+
+      For ConTeXt output, sets the bottom margin if `layout` is not used, 
+      otherwise `layout` overrides these.
+
+      For `wkhtmltopdf` sets the bottom page margin.
+
+- name: geometry
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$pdf-all]
+  description:
+    short: Options for the geometry package.
+    long: |
+      Options for the [geometry](https://ctan.org/pkg/geometry) package. For example:
+
+      ```yaml
+      geometry:
+        - top=30mm
+        - left=20mm
+        - heightrounded
+      ```
+
+- name: hyperrefoptions
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$pdf-all]
+  description:
+    short: Options for the hyperref package.
+    long: |
+      Options for the [hyperref](https://ctan.org/pkg/hyperref) package. For example:
+
+      ```yaml
+      hyperrefoptions:
+        - linktoc=all
+        - pdfwindowui
+        - pdfpagemode=FullScreen      
+      ```
+
+- name: indent
+  schema:
+    oneOf:
+      - boolean
+      - string
+  tags:
+    formats: [$pdf-all, ms]
+  default: false
+  description:
+    short: Whether to use document class settings for indentation.
+    long: |
+      Wheher to use document class settings for indentation. If the document 
+      class settings are not used, the default LaTeX template removes indentation 
+      and adds space between paragraphs
+
+      For groff (`ms`) documents, the paragraph indent, for example, `2m`.
+
+- name: block-headings
+  schema: boolean
+  tags:
+    formats: [$pdf-all]
+  description:
+    short: Make `\paragraph` and `\subparagraph` free-standing rather than run-in.
+    long: |
+      Make `\paragraph` and `\subparagraph` (fourth- and
+      fifth-level headings, or fifth- and sixth-level with book
+      classes) free-standing rather than run-in; requires further
+      formatting to distinguish from `\subsubsection` (third- or
+      fourth-level headings). Instead of using this option,
+      [KOMA-Script](https://ctan.org/pkg/koma-script) can adjust headings 
+      more extensively:
+
+      ```yaml
+      header-includes: |
+        \RedeclareSectionCommand[
+          beforeskip=-10pt plus -2pt minus -1pt,
+          afterskip=1sp plus -1sp minus 1sp,
+          font=\normalfont\itshape]{paragraph}
+        \RedeclareSectionCommand[
+          beforeskip=-10pt plus -2pt minus -1pt,
+          afterskip=1sp plus -1sp minus 1sp,
+          font=\normalfont\scshape,
+          indent=0pt]{subparagraph}
+      ```

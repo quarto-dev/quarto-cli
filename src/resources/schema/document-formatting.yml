@@ -1,0 +1,42 @@
+- name: indenting
+  schema:
+    maybeArrayOf:
+      string:
+        completions:
+          - yes
+          - no
+          - none
+          - small
+          - medium
+          - big
+          - first
+          - next
+          - odd
+          - even
+          - normal
+  tags:
+    formats: [context]
+  description:
+    short: Set the indentation of paragraphs with one or more options.
+    long: |
+      Set the indentation of paragraphs with one or more options.
+
+      See [ConTeXt Indentation](https://wiki.contextgarden.net/Indentation) for additional information.
+
+- name: adjusting
+  schema:
+    enum: [l, r, c, b]
+  tags:
+    formats: [man]
+  description: Adjusts text to the left (`l`), right (`r`), center (`c`), or both (`b`) margins.
+
+- name: hyphenate
+  schema: boolean
+  default: true
+  tags:
+    formats: [man]
+  description:
+    short: Whether to hyphenate text at line breaks even in words that do not contain hyphens.
+    long: |
+      Whether to hyphenate text at line breaks even in words that do not contain 
+      hyphens if it is necessary to do so to lay out words on a line without excessive spacing

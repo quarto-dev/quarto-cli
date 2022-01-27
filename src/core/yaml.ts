@@ -96,7 +96,6 @@ export function readYamlFromMarkdown(
   }
 }
 
-// deno-lint-ignore require-await
 export async function readAndValidateYamlFromMarkdown(
   eitherMarkdown: EitherString,
 ): Promise<{ [key: string]: unknown }> {

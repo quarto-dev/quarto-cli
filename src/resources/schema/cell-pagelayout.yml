@@ -1,0 +1,47 @@
+- name: column
+  schema:
+    ref: page-column
+  description:
+    short: "Page column for output"
+    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for output"
+
+- name: fig-column
+  schema:
+    ref: page-column
+  description:
+    short: "Page column for figure output"
+    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for figure output"
+
+- name: tbl-column
+  schema:
+    ref: page-column
+  description:
+    short: "Page column for table output"
+    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for table output"
+
+- name: cap-location
+  tags:
+    contexts: [document-layout]
+    formats: [$html-files, $pdf-all]
+  schema:
+    enum: [top, bottom, margin]
+  default: inline
+  description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
+
+- name: fig-cap-location
+  tags:
+    contexts: [document-layout, document-figures]
+    formats: [$html-files, $pdf-all]
+  schema:
+    enum: [top, bottom, margin]
+  default: inline
+  description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
+
+- name: tbl-cap-location
+  tags:
+    contexts: [document-layout, document-tables]
+    formats: [$html-files, $pdf-all]
+  schema:
+    enum: [top, bottom, margin]
+  default: inline
+  description: "Where to place table captions (`top`, `bottom`, or `margin`)"

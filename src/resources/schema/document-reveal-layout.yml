@@ -1,0 +1,68 @@
+- name: auto-stretch
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "For slides with a single top-level image, automatically stretch it to fill the slide."
+
+- name: width
+  tags:
+    formats: [revealjs]
+  schema:
+    oneOf: [number, string]
+  default: 1050
+  description:
+    short: "The 'normal' width of the presentation"
+    long: |
+      The "normal" width of the presentation, aspect ratio will
+      be preserved when the presentation is scaled to fit different
+      resolutions. Can be specified using percentage units.
+
+- name: height
+  tags:
+    formats: [revealjs]
+  schema:
+    oneOf: [number, string]
+  default: 700
+  description:
+    short: "The 'normal' height of the presentation"
+    long: |
+      The "normal" height of the presentation, aspect ratio will
+      be preserved when the presentation is scaled to fit different
+      resolutions. Can be specified using percentage units.
+
+- name: margin
+  tags:
+    formats: [revealjs]
+  schema: number
+  default: 0.1
+  description: "Factor of the display size that should remain empty around the content"
+
+- name: min-scale
+  tags:
+    formats: [revealjs]
+  schema: number
+  default: 0.2
+  description: "Bounds for smallest possible scale to apply to content"
+
+- name: max-scale
+  tags:
+    formats: [revealjs]
+  schema: number
+  default: 2.0
+  description: "Bounds for largest possible scale to apply to content"
+
+- name: center
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: "Vertical centering of slides"
+
+- name: disable-layout
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Disables the default reveal.js slide layout (scaling and centering)

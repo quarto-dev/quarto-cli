@@ -1,0 +1,30 @@
+- name: label
+  schema: string
+  description:
+    short: "Unique label for code cell"
+    long: |
+      Unique label for code cell. Used when other code needs to refer to the cell 
+      (e.g. for cross references `fig-samples` or `tbl-summary`)
+
+- name: classes
+  schema: string
+  description: "Classes to apply to cell container"
+
+- name: tags
+  tags:
+    engine: jupyter
+  schema:
+    arrayOf: string
+  description: "Array of tags for notebook cell"
+
+- name: id
+  tags:
+    engine: jupyter
+  schema: string
+  description:
+    short: "Notebook cell identifier"
+    long: |
+      Notebook cell identifier. Note that if there is no cell `id` then `label` 
+      will be used as the cell `id` if it is present.
+      See <https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html>
+      for additionanl details on cell ids.

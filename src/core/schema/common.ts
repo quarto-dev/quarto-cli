@@ -1,25 +1,31 @@
 /*
 * common.ts
 *
-* Common JSON Schema objects
+* Common JSON Schema objects that make up a schema combinator library.
+*
+* These are not strictly JSON Schemas (they have extra fields for
+* auto-completions, etc) but core/lib/schema.ts includes a
+* `normalizeSchema()` call that takes a schema produced here and
+* returns a valid JSON Schema object.
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
 
-// we build up our little schema combinator library here.
-// Right now it just emits a JSON schema but this is setting up for
-// when we want to enrich our schema with other things like documentation etc
-
 import {
   Completion,
+  getSchemaDefinition,
+  hasSchemaDefinition,
   Schema,
-  schemaExhaustiveCompletions,
-} from "../lib/schema.ts";
+} from "../lib/yaml-validation/schema.ts";
+
+import { resolveSchema } from "../lib/yaml-validation/schema-utils.ts";
+
+import { mergeConfigs } from "../config.ts";
 
 export const BooleanSchema = {
   "type": "boolean",
-  "description": "be a boolean value",
+  "description": "be `true` or `false`",
   "completions": ["true", "false"],
   "exhaustiveCompletions": true,
 };
@@ -33,6 +39,14 @@ export const IntegerSchema = {
   "type": "integer",
   "description": "be an integral number",
 };
+
+// deno-lint-ignore no-explicit-any
+export function tagSchema(schema: Schema, tags: Record<string, any>): Schema {
+  return {
+    ...schema,
+    tags: mergeConfigs(schema?.tags ?? {}, tags),
+  };
+}
 
 export function numericSchema(obj: {
   "type": "integer" | "number";
@@ -73,19 +87,24 @@ export function enumSchema(...args: string[]) {
   return {
     "enum": args,
     "description": args.length > 1
-      ? `be one of: ${args.map((x) => "'" + x + "'").join(", ")}`
+      ? `be one of: ${args.map((x) => "`" + x + "`").join(", ")}`
       : `be '${args[0]}'`,
     "completions": args,
     "exhaustiveCompletions": true,
   };
 }
 
-export function regexSchema(arg: string, description: string) {
-  return {
+export function regexSchema(arg: string, description?: string) {
+  const result: Schema = {
     "type": "string",
     "pattern": arg,
-    description
   };
+  if (description) {
+    result.description = description;
+  } else {
+    result.description = `be a string that satisfies regex "${arg}"`;
+  }
+  return result;
 }
 
 export function oneOfSchema(...args: Schema[]) {
@@ -115,7 +134,7 @@ export function allOfSchema(...args: Schema[]) {
   };
 }
 
-// FIXME: add dynamic check for requiredProps being a subset of the
+// TODO add dynamic check for requiredProps being a subset of the
 // keys in properties
 export function objectSchema(params: {
   properties?: { [k: string]: Schema };
@@ -125,7 +144,7 @@ export function objectSchema(params: {
   additionalProperties?: Schema;
   description?: string;
   // deno-lint-ignore no-explicit-any
-  baseSchema?: any; // FIXME this should have the type of the result of objectSchema()
+  baseSchema?: any; // TODO this should have the type of the result of objectSchema()
   completions?: { [k: string]: string };
 } = {}) {
   let {
@@ -157,22 +176,69 @@ export function objectSchema(params: {
     return Object.getOwnPropertyNames(obj).map((k) => obj[k]);
   };
 
-  for (
-    const k of Object.getOwnPropertyNames(
-      completionsParam || properties,
-    )
-  ) {
-    const valueS = properties[k];
-
+  for (const k of Object.getOwnPropertyNames(completionsParam || properties)) {
+    const schema = properties[k];
+    const maybeDescriptions: (undefined | string | { $ref: string })[] = [
+      completionsParam?.[k]
+    ];
+    let hidden = false;
+    if (schema !== undefined) {
+      if (schema.documentation) {
+        // if a ref schema has documentation, use that directly.
+        maybeDescriptions.push(schema?.documentation?.short);
+        maybeDescriptions.push(schema?.documentation);
+      } else {
+        // in the case of recursive schemas, a back reference to a schema
+        // that hasn't been registered yet is bound to fail.  In that
+        // case, maybeResolveSchema will return undefined, and we
+        // potentially store a special description entry, deferring the
+        // resolution to runtime.
+        
+        let described = false;
+        const visitor = (schema: Schema) => {
+          if (schema?.hidden) {
+            hidden = true;
+          }
+          if (described) {
+            return;
+          }
+          if (schema?.documentation?.short) {
+            maybeDescriptions.push(schema?.documentation?.short);
+            described = true;
+          } else if (schema?.documentation) {
+            maybeDescriptions.push(schema?.documentation);
+            described = true;
+          }
+        };
+        try {
+          resolveSchema(schema, visitor);
+        } catch (e) {
+          // TODO catch only the lookup exception
+        }
+        if (!described && schema?.$ref) {
+          maybeDescriptions.push({ $ref: schema?.$ref });
+        }
+      }
+    }
+    if (hidden) {
+      continue;
+    }
+    let description: (string | { $ref: string }) = "";
+    for (const md of maybeDescriptions) {
+      if (md !== undefined) {
+        description = md;
+        break;
+      }
+    }
     completions.push({
       type: "key",
-      display: k,
+      display: "", // attempt to not show completion title.
       value: `${k}: `,
-      description: completionsParam?.[k] || "",
-      suggest_on_accept: valueS && schemaExhaustiveCompletions(valueS),
+      description,
+      suggest_on_accept: schema?.completions?.length !== 0,
     });
   }
-
+  
   if (baseSchema) {
     if (baseSchema.type !== "object") {
       throw new Error("Internal Error: can only extend other object Schema");
@@ -192,7 +258,11 @@ export function objectSchema(params: {
     }
 
     result.properties = Object.assign({}, result.properties, properties);
-    result.patternProperties = Object.assign({}, result.patternProperties, patternProperties);
+    result.patternProperties = Object.assign(
+      {},
+      result.patternProperties,
+      patternProperties,
+    );
 
     if (required) {
       result.required = (result.required ?? []).slice();
@@ -209,7 +279,7 @@ export function objectSchema(params: {
     }
 
     if (additionalProperties !== undefined) {
-      // FIXME Review. This is likely to be confusing, but I think
+      // TODO Review. This is likely to be confusing, but I think
       // it's the correct semantics for subclassing
       if (result.additionalProperties === false) {
         throw new Error(
@@ -242,7 +312,7 @@ export function objectSchema(params: {
     if (patternProperties) {
       result.patternProperties = patternProperties;
     }
-    
+
     if (required && required.length > 0) {
       result.required = required;
     }
@@ -301,7 +371,10 @@ export function completeSchema(schema: Schema, ...completions: Completion[]) {
   return result;
 }
 
-export function completeSchemaOverwrite(schema: Schema, ...completions: Completion[]) {
+export function completeSchemaOverwrite(
+  schema: Schema,
+  ...completions: Completion[]
+) {
   const result = Object.assign({}, schema);
   result.completions = completions;
   return result;
@@ -322,8 +395,12 @@ export function refSchema($ref: string, description: string) {
   };
 }
 
-export function valueSchema(val: number | boolean | string) {
+export function valueSchema(
+  val: number | boolean | string,
+  description?: string,
+) {
   return {
-    "enum": [ val ] // enum takes non-strings too (!)
+    "enum": [val], // enum takes non-strings too (!)
+    "description": description ?? `be ${JSON.stringify(val)}`,
   };
 }

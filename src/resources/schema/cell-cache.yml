@@ -1,0 +1,96 @@
+- name: cache
+  tags:
+    engine: knitr
+  schema: boolean
+  default: false
+  description:
+    short: "Whether to cache a code chunk."
+    long: |
+      Whether to cache a code chunk. When evaluating
+      code chunks for the second time, the cached chunks are skipped (unless they
+      have been modified), but the objects created in these chunks are loaded from
+      previously saved databases (`.rdb` and `.rdx` files), and these files are
+      saved when a chunk is evaluated for the first time, or when cached files are
+      not found (e.g., you may have removed them by hand). Note that the filename
+      consists of the chunk label with an MD5 digest of the R code and chunk
+      options of the code chunk, which means any changes in the chunk will produce
+      a different MD5 digest, and hence invalidate the cache.
+
+- name: cache-path
+  tags:
+    engine: knitr
+  schema: path
+  description: "A prefix to be used to generate the paths of cache files"
+
+- name: cache-vars
+  tags:
+    engine: knitr
+  schema:
+    maybeArrayOf: string
+  description:
+    short: "Variable names to be saved in the cache database."
+    long: |
+      Variable names to be saved in
+      the cache database. By default, all variables created in the current chunks
+      are identified and saved, but you may want to manually specify the variables
+      to be saved, because the automatic detection of variables may not be robust,
+      or you may want to save only a subset of variables.
+
+- name: cache-globals
+  tags:
+    engine: knitr
+  schema: string
+  description:
+    short: "Variables names that are not created from the current chunk"
+    long: |
+      Variables names that are not created from the current chunk.
+
+      This option is mainly for `autodep: true` to work more precisely---a chunk
+      `B` depends on chunk `A` when any of `B`'s global variables are `A`'s local 
+      variables. In case the automatic detection of global variables in a chunk 
+      fails, you may manually specify the names of global variables via this option.
+      In addition, `cache-globals: false` means detecting all variables in a code
+      chunk, no matter if they are global or local variables.
+
+- name: cache-lazy
+  tags:
+    engine: knitr
+  schema: boolean
+  default: true
+  description:
+    short: "Whether to `lazyLoad()` or directly `load()` objects"
+    long: |
+      Whether to `lazyLoad()` or directly `load()` objects. For very large objects, 
+      lazyloading may not work, so `cache-lazy: false` may be desirable (see
+      [#572](https://github.com/yihui/knitr/issues/572)).
+
+- name: cache-rebuild
+  tags:
+    engine: knitr
+  schema: boolean
+  default: false
+  description: "Force rebuild of cache for chunk"
+
+- name: cache-comments
+  tags:
+    engine: knitr
+  schema: boolean
+  default: true
+  description: "Prevent comment changes from invalidating the cache for a chunk"
+
+- name: dependson
+  tags:
+    engine: knitr
+  schema:
+    oneOf:
+      - maybeArrayOf: string
+      - maybeArrayOf: number
+  description: |
+    Explicitly specify cache dependencies for this chunk (one or more chunk labels)
+
+- name: autodep
+  tags:
+    engine: knitr
+  schema: boolean
+  default: false
+  description: "Detect cache dependencies automatically via usage of global variables"

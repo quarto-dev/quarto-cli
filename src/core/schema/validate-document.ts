@@ -12,23 +12,22 @@ import { rangedLines } from "../ranged-text.ts";
 import { getFrontMatterSchema } from "./front-matter.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error, info } from "log/mod.ts";
-import { ensureAjv } from "./yaml-schema.ts";
-import { LocalizedError } from "../lib/yaml-schema.ts";
-import { getLanguageOptionsSchema } from "./chunk-metadata.ts";
+import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
-import { withValidator } from "../lib/validator-queue.ts";
+import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
-
 
 export async function validateDocumentFromSource(
   src: string,
+  engine: string,
   // deno-lint-ignore no-explicit-any
   error: (msg: string) => any,
   // deno-lint-ignore no-explicit-any
   info: (msg: string) => any,
+  filename?: string,
 ): Promise<LocalizedError[]> {
   const result: LocalizedError[] = [];
-  const nb = await breakQuartoMd(asMappedString(src));
+  const nb = await breakQuartoMd(asMappedString(src, filename));
 
   if (nb.cells.length < 1) {
     // no cells -> no validation
@@ -36,7 +35,7 @@ export async function validateDocumentFromSource(
   }
   const firstCell = nb.cells[0];
   let firstContentCellIndex;
-  // FIXME this is a syntax error check: we should separate
+  // TODO this is a syntax error check: we should separate
   // syntax errors from validation.
   if (firstCell.source.value.startsWith("---")) {
     firstContentCellIndex = 1;
@@ -54,27 +53,26 @@ export async function validateDocumentFromSource(
       }],
     );
     const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
-    const frontMatterSchema = await getFrontMatterSchema(true);
+    if (annotation.result?.validate !== false) {
+      const frontMatterSchema = await getFrontMatterSchema();
 
-    await ensureAjv();
-    await withValidator(frontMatterSchema, (frontMatterValidator) => {
-      const fmValidation = frontMatterValidator.validateParseWithErrors(
-        frontMatterText,
-        annotation,
-        "Validation of YAML front matter failed.",
-        error,
-        info,
-      );
-      if (fmValidation && fmValidation.errors.length) {
-        result.push(...fmValidation.errors);
-      }
-    });
+      await withValidator(frontMatterSchema, async (frontMatterValidator) => {
+        const fmValidation = await frontMatterValidator.validateParseWithErrors(
+          frontMatterText,
+          annotation,
+          "Validation of YAML front matter failed.",
+          error,
+          info,
+        );
+        if (fmValidation && fmValidation.errors.length) {
+          result.push(...fmValidation.errors);
+        }
+      });
+    }
   } else {
     firstContentCellIndex = 0;
   }
-  
-  const languageOptionsSchema = await getLanguageOptionsSchema(true);
-  
+
   for (const cell of nb.cells.slice(firstContentCellIndex)) {
     if (
       cell.cell_type === "markdown" ||
@@ -86,14 +84,9 @@ export async function validateDocumentFromSource(
     }
 
     const lang = cell.cell_type.language;
-    const schema = languageOptionsSchema[lang];
-    if (schema === undefined) {
-      // not a language with schemas
-      continue;
-    }
 
     try {
-      await partitionCellOptionsMapped(lang, cell.source, true);
+      await partitionCellOptionsMapped(lang, cell.source, true, engine);
     } catch (e) {
       if (e instanceof ValidationError) {
         result.push(...e.validationErrors);
@@ -114,5 +107,11 @@ export async function validateDocument(
     return [];
   }
 
-  return validateDocumentFromSource(context.target.markdown, error, info);
+  return validateDocumentFromSource(
+    context.target.markdown,
+    context.engine.name,
+    error,
+    info,
+    context.target.source,
+  );
 }

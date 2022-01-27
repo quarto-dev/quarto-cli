@@ -1,0 +1,19 @@
+{
+  "kind": "validation",
+  "context": {
+    "path": "~/Desktop/daily-log/2022-01-22/bibliography-flow-mapping-bug.qmd",
+    "filetype": "markdown",
+    "embedded": false,
+    "formats": [
+      "html"
+    ],
+    "project_formats": [],
+    "engine": "knitr",
+    "line": "",
+    "code": "---\ntitle: \"Untitled\"\nformat: html\neditor: visual\nbibliography: [4,5]\n\n---\n\n## Quarto\n\nQuarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.\n\n## Running Code\n\nWhen you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:\n\n```{r}\n1 + 1\n```\n\nYou can add options to executable code like this\n\n```{r}\n#| echo: false\n2 * 2\n```\n\nThe `echo: false` option disables the printing of code (only output is displayed).\n",
+    "position": {
+      "row": 5,
+      "column": 0
+    }
+  }
+}

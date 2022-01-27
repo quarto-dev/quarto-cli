@@ -1,0 +1,163 @@
+- name: crossref
+  schema:
+    object:
+      properties:
+        chapters:
+          boolean:
+            description: Use top level sections (H1) in this document as chapters.
+            default: false
+        title-delim:
+          string:
+            description: The delimiter used between the prefix and the caption.
+        fig-title:
+          string:
+            description: The title prefix used for figure captions.
+        tbl-title:
+          string:
+            description: The title prefix used for table captions.
+        eq-title:
+          string:
+            description: The title prefix used for equation captions.
+        lst-title:
+          string:
+            description: The title prefix used for listing captions.
+        thm-title:
+          string:
+            description: The title prefix used for theorem captions.
+        lem-title:
+          string:
+            description: The title prefix used for lemma captions.
+        cor-title:
+          string:
+            description: The title prefix used for corollary captions.
+        prp-title:
+          string:
+            description: The title prefix used for proposition captions.
+        cnj-title:
+          string:
+            description: The title prefix used for conjecture captions.
+        def-title:
+          string:
+            description: The title prefix used for definition captions.
+        exm-title:
+          string:
+            description: The title prefix used for example captions.
+        exr-title:
+          string:
+            description: The title prefix used for exercise captions.
+        fig-prefix:
+          string:
+            description: The prefix used for an inline reference to a figure.
+        tbl-prefix:
+          string:
+            description: The prefix used for an inline reference to a table.
+        eq-prefix:
+          string:
+            description: The prefix used for an inline reference to an equation.
+        sec-prefix:
+          string:
+            description: The prefix used for an inline reference to a section.
+        lst-prefix:
+          string:
+            description: The prefix used for an inline reference to a listing.
+        thm-prefix:
+          string:
+            description: The prefix used for an inline reference to a theorem.
+        lem-prefix:
+          string:
+            description: The prefix used for an inline reference to a lemma.
+        cor-prefix:
+          string:
+            description: The prefix used for an inline reference to a corollary.
+        prp-prefix:
+          string:
+            description: The prefix used for an inline reference to a proposition.
+        cnj-prefix:
+          string:
+            description: The prefix used for an inline reference to a conjecture.
+        def-prefix:
+          string:
+            description: The prefix used for an inline reference to a definition.
+        exm-prefix:
+          string:
+            description: The prefix used for an inline reference to an example.
+        exr-prefix:
+          string:
+            description: The prefix used for an inline reference to an exercise.
+
+        fig-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for figures.
+
+        tbl-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for tables.
+
+        eq-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for equations.
+
+        sec-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for sections.
+
+        lst-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for listings.
+
+        thm-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for theorems.
+
+        lem-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for lemmas.
+
+        cor-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for corollaries.
+
+        prp-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for propositions.
+
+        cnj-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for conjectures.
+
+        def-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for definitions.
+
+        exm-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for examples.
+
+        exr-labels:
+          ref: crossref-labels-schema
+          description: The numbering scheme used for exercises.
+
+        lof-title:
+          string:
+            description: The title used for the list of figures.
+
+        lot-title:
+          string:
+            description: The title used for the list of tables.
+
+        lol-title:
+          string:
+            description: The title used for the list of listings.
+
+        labels:
+          ref: crossref-labels-schema
+          description: The number scheme used for references.
+
+        subref-labels:
+          ref: crossref-labels-schema
+          description: The number scheme used for sub references.
+
+        ref-hyperlink:
+          boolean:
+            default: true
+            description: Whether cross references should be hyper-linked.

@@ -1,0 +1,102 @@
+- name: fontcolor
+  schema: string
+  tags:
+    formats: [$html-files]
+  description: Sets the CSS `color` property.
+
+- name: linkcolor
+  schema: string
+  tags:
+    formats: [$html-files, context, $pdf-all]
+  description:
+    short: Sets the color of hyperlinks in the document.
+    long: |
+      For HTML output, sets the CSS `color` property on all links.
+
+      For LaTeX output, The color used for internal links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+      For ConTeXt output, sets the color for both external links and links within the document.
+
+- name: monobackgroundcolor
+  schema: string
+  tags:
+    formats: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+  description: Sets the CSS `background-color` property on code elements and adds extra padding.
+
+- name: backgroundcolor
+  schema: string
+  tags:
+    formats: [$html-files]
+  description: |
+    Sets the CSS `background-color` property on the html element.
+
+- name: filecolor
+  schema: string
+  tags:
+    formats: [$pdf-all]
+  description:
+    short: The color used for external links using color options allowed by `xcolor`
+    long: |
+      The color used for external links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: citecolor
+  schema: string
+  tags:
+    formats: [$pdf-all]
+  description:
+    short: The color used for citation links using color options allowed by `xcolor`
+    long: |
+      The color used for citation links using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: urlcolor
+  schema: string
+  tags:
+    formats: [$pdf-all]
+  description:
+    short: The color used for linked URLs using color options allowed by `xcolor`
+    long: |
+      The color used for linked URLs using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: toccolor
+  schema: string
+  tags:
+    formats: [$pdf-all]
+  description:
+    short: The color used for links in the Table of Contents using color options allowed by `xcolor`
+    long: |
+      The color used for links in the Table of Contents using color options
+      allowed by [`xcolor`](https://ctan.org/pkg/xcolor), 
+      including the `dvipsnames`, `svgnames`, and
+      `x11names` lists.
+
+- name: colorlinks
+  schema: boolean
+  tags:
+    formats: [$pdf-all]
+  default: true
+  description: |
+    Add color to link text, automatically enabled if any of 
+    `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.
+
+- name: contrastcolor
+  schema: string
+  tags:
+    formats: [context]
+  description:
+    short: Color for links to other content within the document.
+    long: |
+      Color for links to other content within the document. 
+
+      See [ConTeXt Color](https://wiki.contextgarden.net/Color) for additional information.
