@@ -25,8 +25,9 @@ export const defaultProjectType: ProjectType = {
       scaffold: (engine: string, kernel?: string, packages?: string[]) => {
         const file: ProjectScaffoldFile[] = [{
           name: title,
-          content:
-            "This is a Quarto document. To learn more about Quarto visit <https://quarto.org>.",
+          content: `## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.`,
           title,
         }];
         // add some additional content if we were a jupyter engine document created w/
@@ -36,23 +37,24 @@ export const defaultProjectType: ProjectType = {
           (!kernel || kernel.startsWith("python")) &&
           packages
         ) {
-          if (packages.includes("pandas")) {
-            file[0].noEngineContent = true;
-            file[0].content += `
+          file[0].content += `
+  
+## Running Code
 
-## Data Frames
-
-Render data frames with:
+You can embed executable code like this:
 
 \`\`\`{python}
-import pandas as pd
+1 + 1
+\`\`\`
 
-d = {'one' : [1., 2., 3., 4.],
-     'two' : [4., 3., 2., 1.]}
-df = pd.DataFrame(d)
-df.to_html(index = False)
-\`\`\``;
-          }
+You can add options to executable code like this
+
+\`\`\`{python}
+#| echo: false
+2 * 2
+\`\`\`
+
+The \`echo: false\` option disables the printing of code (only output is displayed).`;
           if (packages.includes("matplotlib")) {
             file[0].noEngineContent = true;
             file[0].content += `
