@@ -392,7 +392,7 @@ knitr_hooks <- function(format, resourceDir) {
   knit_hooks$output <- delegating_output_hook("output", c("stdout"))
   knit_hooks$warning <- delegating_output_hook("warning", c("stderr"))
   knit_hooks$message <- delegating_output_hook("message", c("stderr"))
-  knit_hooks$plot <- knitr_plot_hook(knitr:::is_html_output(format$pandoc$to))
+  knit_hooks$plot <- knitr_plot_hook(format)
   knit_hooks$error <- delegating_output_hook("error", c("error"))
   
   list(
@@ -401,7 +401,12 @@ knitr_hooks <- function(format, resourceDir) {
   )
 }
 
-knitr_plot_hook <- function(htmlOutput) {
+knitr_plot_hook <- function(format) {
+
+  htmlOutput <- knitr:::is_html_output(format$pandoc$to)
+  latexOutput <- knitr:::is_latex_output()
+  defaultFigPos <- format$render[["fig-pos"]]
+
   function(x, options) {
     
     # are we using animation (if we are then ignore all but the last fig)
@@ -451,9 +456,16 @@ knitr_plot_hook <- function(htmlOutput) {
     if (!identical(fig.env, "figure")) {
       keyvalue <- c(keyvalue, sprintf("fig-env='%s'", fig.env))
     }
-    fig.pos <- options[['fig.pos']]
+    fig.pos <- options[['fig.pos']] 
     if (nzchar(fig.pos)) {
       keyvalue <- c(keyvalue, sprintf("fig-pos='%s'", fig.pos))
+    # if we are echoing code, there is no default fig-pos, and
+    # we are not using a layout then automatically set fig-pos to 'H'
+    } else if (latexOutput &&
+               isTRUE(options[["echo"]]) &&
+               length(names(options)[startsWith(names(options), "layout")]) == 0 &&
+               is.null(defaultFigPos)) {
+      keyvalue <- c(keyvalue, "fig-pos='H'")
     }
     fig.alt <- options[["fig.alt"]]
     if (!is.null(fig.alt) && nzchar(fig.alt)) {

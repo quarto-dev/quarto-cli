@@ -12,6 +12,8 @@ import {
   kCodeLineNumbers,
   kCodeSummary,
   kFigAlign,
+  kFigEnv,
+  kFigPos,
   kFigResponsive,
   kHeaderIncludes,
   kIncludeAfter,
@@ -295,6 +297,15 @@ function quartoFilterParams(format: Format) {
   if (figAlign) {
     params[kFigAlign] = figAlign;
   }
+  const figPos = format.render[kFigPos];
+  if (figPos) {
+    params[kFigPos] = figPos;
+  }
+  const figEnv = format.render[kFigEnv];
+  if (figEnv) {
+    params[kFigEnv] = figEnv;
+  }
+
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;

@@ -48,6 +48,8 @@ export const kOutputExt = "output-ext";
 export const kOutputDivs = "output-divs";
 export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
+export const kFigEnv = "fig-env";
+export const kFigPos = "fig-pos";
 export const kCodeFold = "code-fold";
 export const kCodeLineNumbers = "code-line-numbers";
 export const kCodeOverflow = "code-overflow";
@@ -108,6 +110,8 @@ export const kRenderDefaultsKeys = [
   kPreferHtml,
   kPageWidth,
   kFigAlign,
+  kFigPos,
+  kFigEnv,
   kCodeFold,
   kCodeLink,
   kCodeLineNumbers,

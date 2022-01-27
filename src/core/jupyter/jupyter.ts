@@ -683,6 +683,7 @@ export interface JupyterToMarkdownOptions {
   toPresentation?: boolean;
   figFormat?: string;
   figDpi?: number;
+  figPos?: string | null;
 }
 
 export interface JupyterToMarkdownResult {
@@ -1210,6 +1211,17 @@ function mdFromCodeCell(
         md.push("}\n");
       }
 
+      // for latex, provide fig-pos='H' if there is no other setting of fig-pos
+      // and code is being included w/ the figure
+      if (
+        options.toLatex &&
+        !options.figPos && !cell.options[kCellFigPos] &&
+        !hasLayoutOptions(cell) &&
+        includeCode(cell, options)
+      ) {
+        cell.options[kCellFigPos] = "H";
+      }
+
       // broadcast figure options
       const figureOptions: JupyterOutputFigureOptions = {};
       const broadcastFigureOption = (
@@ -1238,6 +1250,9 @@ function mdFromCodeCell(
       figureOptions[kCellFigEnv] = broadcastFigureOption(kCellFigEnv);
       figureOptions[kCellFigPos] = broadcastFigureOption(kCellFigPos);
       figureOptions[kCellFigAlt] = broadcastFigureOption(kCellFigAlt);
+
+      // if there isn't a cell or document level fig-pos and
+      // we are including output then automatically set fig-pos='H'
 
       // produce output
       if (output.output_type === "stream") {
@@ -1319,6 +1334,10 @@ function mdFromCodeCell(
   }
 
   return md;
+}
+
+function hasLayoutOptions(cell: JupyterCellWithOptions) {
+  return Object.keys(cell.options).some((key) => key.startsWith("layout"));
 }
 
 function isDisplayDataType(

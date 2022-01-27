@@ -53,6 +53,8 @@ import {
   kExecuteIpynb,
   kFigAlign,
   kFigDpi,
+  kFigEnv,
+  kFigPos,
   kFilterParams,
   kFilters,
   kFreeze,
@@ -287,6 +289,8 @@ export interface FormatRender {
   [kOutputExt]?: string;
   [kPageWidth]?: number;
   [kFigAlign]?: "left" | "right" | "center" | "default";
+  [kFigPos]?: string | null;
+  [kFigEnv]?: string | null;
   [kCodeFold]?: "none" | "show" | "hide" | boolean;
   [kCodeOverflow]?: "wrap" | "scroll";
   [kCodeLink]?: boolean;
