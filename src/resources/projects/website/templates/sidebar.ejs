@@ -1,40 +1,41 @@
-<% 
+<nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation <%- sidebarStyle || "" %> overflow-auto">
 
-let styleCss = sidebar.style === "docked" ? "docked" : "floating";
-let borderColor = sidebar['border-color'] ? "border-" + sidebar['border-color'] : "";
+  <% if (sidebar) { %>
+  <% 
+    let borderColor = sidebar['border-color'] ? "border-" + sidebar['border-color'] : "";
 
-let alignCss = ""
-if (sidebar.align === "center") {
-  alignCss = "text-center";
-} else if (sidebar.align === "right") {
-  alignCss = "text-end";
-} else {
-  alignCss = "text-left";
-}
+    let alignCss = ""
+    if (sidebar.align === "center") {
+      alignCss = "text-center";
+    } else if (sidebar.align === "right") {
+      alignCss = "text-end";
+    } else {
+      alignCss = "text-left";
+    }
 
-// Whether there are tools that should be displayed to the user
-let needsTools = !!(sidebar.tools || (sidebar.search && sidebar.search === 'overlay') || sidebar.darkToggle);
-// Where the tools should be added (depending upon what elements are present, the tools)
-// may be displayed in different locations, so this will determine where to display the tools
-// "logo", "title", "search", "fallthrough"
+    // Whether there are tools that should be displayed to the user
+    let needsTools = !sidebar || !!(sidebar.tools || (sidebar.search && sidebar.search === 'overlay') || sidebar.darkToggle);
+    // Where the tools should be added (depending upon what elements are present, the tools)
+    // may be displayed in different locations, so this will determine where to display the tools
+    // "logo", "title", "search", "fallthrough"
 
-let toolsLocation;
-// Under the title if that will be displayed
-if (sidebar.title && !navbar) {
-  toolsLocation = "title";
-} else if (sidebar.logo) {
-  toolsLocation = "logo";
-} else if (sidebar.search && sidebar.search !== "overlay") {
-  toolsLocation = "search";
-} else {
-  toolsLocation = "fallthrough";
-}
-%>
+    let toolsLocation;
+    // Under the title if that will be displayed
+    if (sidebar.title && !navbar) {
+      toolsLocation = "title";
+    } else if (sidebar.logo) {
+      toolsLocation = "logo";
+    } else if (sidebar.search && sidebar.search !== "overlay") {
+      toolsLocation = "search";
+    } else {
+      toolsLocation = "fallthrough";
+    }
+  %>
 
-<nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation <%- styleCss %> overflow-auto">
-  
-   <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
-  <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
+
+    
+  <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
+    <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
       <a href="/">
       <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
@@ -42,7 +43,7 @@ if (sidebar.title && !navbar) {
     <% } %>
     <% if (needsTools && toolsLocation === "logo") { %>
       <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
-     <% } %> 
+    <% } %> 
     
     <% if (!navbar) { %>
     <% if (sidebar.title) { %>
@@ -58,32 +59,39 @@ if (sidebar.title && !navbar) {
     </div>
     <% } %>
     <% } %>
-
-  </div>
-  <% } %>
-
-  <% if (sidebar.search) { %>
-    <div class="<%- sidebar.search === "overlay" ? "d-flex " : "" %>mt-2 flex-shrink-0 align-items-center">
-      <% if (sidebar.search !== "overlay") { %>
-      <div class="sidebar-search">
-      <% partial('navsearch.ejs',  { classes: '' }) %>
       </div>
-      <% } %>
-      <% if (needsTools && toolsLocation === "search") { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
-      <% } %>  
-    </div>
-  <% } %>
-  <% if (needsTools && toolsLocation === "fallthrough") { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
-  <% } %>
+    <% } %>
 
-  <div class="sidebar-menu-container"> 
-  <ul class="list-unstyled mt-1">
-  <% sidebar.contents.forEach(item => { %>
-      <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
-  <% }) %>
-  </ul>
-  </div>
+    <% if (sidebar.search) { %>
+      <div class="<%- sidebar.search === "overlay" ? "d-flex " : "" %>mt-2 flex-shrink-0 align-items-center">
+        <% if (sidebar.search !== "overlay") { %>
+        <div class="sidebar-search">
+        <% partial('navsearch.ejs',  { classes: '' }) %>
+        </div>
+        <% } %>
+        <% if (needsTools && toolsLocation === "search") { %>
+        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+        <% } %>  
+      </div>
+    <% } %>
+    <% if (needsTools && toolsLocation === "fallthrough") { %>
+        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+    <% } %>
+
+    <% if (sidebar.contents.length > 0) { %> 
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+    <% sidebar.contents.forEach(item => { %>
+        <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
+    <% }) %>
+    </ul>
+    </div>
+    <% } %>
+  <% } %>
+   
+  <% if (toc) { %>
+    <% console.log("TOC BRO"); %>
+    <div id="quarto-toc-target"></div>
+  <% } %>
 
 </nav>

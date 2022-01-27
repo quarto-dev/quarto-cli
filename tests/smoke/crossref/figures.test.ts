@@ -23,9 +23,9 @@ testRender(simpleQmd.input, "html", false, [
     /Figure 2: Famous Elephants/,
     /\(a\) Surus/,
     /\(b\) Abbas/,
-    /fig\.&nbsp;1/,
-    /fig\.&nbsp;2/,
-    /fig\.&nbsp;2 \(b\)/,
+    /Figure&nbsp;1/,
+    /Figure&nbsp;2/,
+    /Figure&nbsp;2 \(b\)/,
   ], [
     /\?@fig-/,
   ]),
@@ -40,7 +40,7 @@ if (Deno.build.os !== "windows") {
     ]),
     ensureFileRegexMatches(pythonQmd.output.outputPath, [
       /Figure 1: Plot/,
-      /fig\.&nbsp;1/,
+      /Figure&nbsp;1/,
     ], [
       /\?@fig-/,
     ]),
@@ -55,8 +55,8 @@ if (Deno.build.os !== "windows") {
     ]),
     ensureFileRegexMatches(pythonSubfigQmd.output.outputPath, [
       /Figure 1: Plots/,
-      /fig\.&nbsp;1/,
-      /fig\.&nbsp;1 \(b\)/,
+      /Figure&nbsp;1/,
+      /Figure&nbsp;1 \(b\)/,
       /\(a\) Plot 1/,
       /\(b\) Plot 2/,
     ], [
@@ -73,7 +73,7 @@ testRender(knitrQmd.input, "html", false, [
   ]),
   ensureFileRegexMatches(knitrQmd.output.outputPath, [
     /Figure 1: Plot/,
-    /fig\.&nbsp;1/,
+    /Figure&nbsp;1/,
   ], [
     /\?@fig-/,
   ]),

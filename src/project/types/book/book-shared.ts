@@ -72,7 +72,7 @@ export function isBookIndexPage(target?: string): boolean {
 
 export function isNumberedChapter(partitioned: PartitionedMarkdown) {
   if (partitioned?.yaml) {
-    const yaml = readYamlFromMarkdown(partitioned?.yaml);
+    const yaml = partitioned?.yaml;
     if (typeof yaml[kTitle] === "string") {
       const parsedTitle = parsePandocTitle(yaml[kTitle] as string);
       return !parsedTitle.attr?.classes.includes("unnumbered");

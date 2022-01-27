@@ -29,8 +29,8 @@ testRender(optionsQmd.input, "html", false, [
 const numberingQmd = crossref("numbering.qmd", "html");
 testRender(numberingQmd.input, "html", false, [
   ensureFileRegexMatches(numberingQmd.output.outputPath, [
-    /fig\.&nbsp;x/,
-    /tbl\.&nbsp;A/,
+    /Figure&nbsp;x/,
+    /Table&nbsp;A/,
     /Figure x: Elephant/,
     /Table A: My Caption/,
     /Figure y: Famous Elephants/,

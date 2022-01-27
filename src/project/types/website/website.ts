@@ -19,8 +19,10 @@ import {
   Format,
   FormatExtras,
   kDependencies,
+  kHtmlFinalizers,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
+  kSassBundles,
   PandocFlags,
 } from "../../../config/types.ts";
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
@@ -61,6 +63,8 @@ import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 
 import { defaultProjectType } from "../project-default.ts";
 import { TempContext } from "../../../core/temp.ts";
+import { listingHtmlDependencies } from "./listing/website-listing.ts";
+
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
   typeAliases: ["site"],
@@ -161,9 +165,45 @@ export const websiteProjectType: ProjectType = {
       // html metadata
       extras.html = extras.html || {};
       extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
+      extras.html[kHtmlFinalizers] = extras.html[kHtmlFinalizers] || [];
+      extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
       extras.html[kHtmlPostprocessors]?.push(...[
         htmlResourceResolverPostprocessor(source, project),
       ]);
+
+      // listings HTML dependencies
+      const htmlListingDependencies = await listingHtmlDependencies(
+        source,
+        project,
+        format,
+        temp,
+        extras,
+      );
+      if (htmlListingDependencies) {
+        extras.html[kHtmlPostprocessors]?.push(
+          htmlListingDependencies[kHtmlPostprocessors],
+        );
+        extras.html[kHtmlFinalizers]?.push(
+          htmlListingDependencies[kHtmlFinalizers],
+        );
+
+        extras.html[kMarkdownAfterBody]?.push(
+          htmlListingDependencies[kMarkdownAfterBody],
+        );
+        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+        extras[kIncludeInHeader]!.push(
+          ...htmlListingDependencies[kIncludeInHeader],
+        );
+        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+        extras.html[kSassBundles]!.push(
+          ...htmlListingDependencies[kSassBundles],
+        );
+
+        extras.html[kDependencies] = extras.html[kDependencies] || [];
+        extras.html[kDependencies]?.push(
+          ...htmlListingDependencies[kDependencies],
+        );
+      }
 
       // metadata html dependencies
       const htmlMetadataDependencies = metadataHtmlDependencies(
@@ -175,7 +215,6 @@ export const websiteProjectType: ProjectType = {
       extras.html[kHtmlPostprocessors]?.push(
         htmlMetadataDependencies[kHtmlPostprocessors],
       );
-      extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
       extras.html[kMarkdownAfterBody]?.push(
         htmlMetadataDependencies[kMarkdownAfterBody],
       );

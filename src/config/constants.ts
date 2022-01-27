@@ -48,6 +48,8 @@ export const kOutputExt = "output-ext";
 export const kOutputDivs = "output-divs";
 export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
+export const kFigEnv = "fig-env";
+export const kFigPos = "fig-pos";
 export const kCodeFold = "code-fold";
 export const kCodeLineNumbers = "code-line-numbers";
 export const kCodeOverflow = "code-overflow";
@@ -108,6 +110,8 @@ export const kRenderDefaultsKeys = [
   kPreferHtml,
   kPageWidth,
   kFigAlign,
+  kFigPos,
+  kFigEnv,
   kCodeFold,
   kCodeLink,
   kCodeLineNumbers,
@@ -187,6 +191,25 @@ export const kCrossrefExrPrefix = "crossref-exr-prefix";
 export const kCrossrefLofTitle = "crossref-lof-title";
 export const kCrossrefLotTitle = "crossref-lot-title";
 export const kCrossrefLolTitle = "crossref-lol-title";
+export const kListingPageOrderBy = "listing-page-order-by";
+export const kListingPageOrderByDefault = "listing-page-order-by-default";
+export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
+export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
+export const kListingPageOrderByNumberAsc = "listing-page-order-by-number-asc";
+export const kListingPageOrderByNumberDesc =
+  "listing-page-order-by-number-desc";
+export const kListingPageFieldDate = "listing-page-field-date";
+export const kListingPageFieldTitle = "listing-page-field-title";
+export const kListingPageFieldDescription = "listing-page-field-description";
+export const kListingPageFieldAuthor = "listing-page-field-author";
+export const kListingPageFieldFileName = "listing-page-field-filename";
+export const kListingPageFieldFileModified = "listing-page-field-filemodified";
+export const kListingPageFieldSubtitle = "listing-page-field-subtitle";
+export const kListingPageFieldReadingTime = "listing-page-field-readingtime";
+export const kListingPageFieldCategories = "listing-page-field-categories";
+export const kListingPageMinutesCompact = "listing-page-minutes-compact";
+export const kListingPageCategoryAll = "listing-page-category-all";
+export const kListingPageNoMatches = "listing-page-no-matches";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -245,6 +268,24 @@ export const kLanguageDefaultsKeys = [
   kCrossrefLofTitle,
   kCrossrefLotTitle,
   kCrossrefLolTitle,
+  kListingPageOrderBy,
+  kListingPageOrderByDefault,
+  kListingPageOrderByDateAsc,
+  kListingPageOrderByDateDesc,
+  kListingPageOrderByNumberAsc,
+  kListingPageOrderByNumberDesc,
+  kListingPageFieldDate,
+  kListingPageFieldTitle,
+  kListingPageFieldDescription,
+  kListingPageFieldAuthor,
+  kListingPageFieldFileName,
+  kListingPageFieldFileModified,
+  kListingPageFieldSubtitle,
+  kListingPageFieldReadingTime,
+  kListingPageFieldCategories,
+  kListingPageMinutesCompact,
+  kListingPageCategoryAll,
+  kListingPageNoMatches,
 ];
 
 // 'defaults' fields
@@ -314,6 +355,7 @@ export const kAbstract = "abstract";
 export const kAbstractTitle = "abstract-title";
 export const kDescription = "description";
 export const kTocTitle = "toc-title";
+export const kTocLocation = "toc-location";
 export const kLang = "lang";
 
 export const kServer = "server";

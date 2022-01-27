@@ -38,8 +38,8 @@ function figures()
       
     end,
 
-    -- propagate fig-alt
     Image = function(image)
+      -- propagate fig-alt
       if isHtmlOutput() then
         -- read the fig-alt text and set the image alt
         local altText = attribute(image, kFigAlt, nil);
@@ -47,6 +47,16 @@ function figures()
           image.attr.attributes["alt"] = altText
           image.attr.attributes[kFigAlt] = nil
           return image
+        end
+      -- provide default fig-pos or fig-env if specified
+      elseif isLatexOutput() then
+        local figPos = param(kFigPos)
+        if figPos and not image.attr.attributes[kFigPos] then
+          image.attr.attributes[kFigPos] = figPos
+        end
+        local figEnv = param(kFigEnv)
+        if figEnv and not image.attr.attributes[kFigEnv] then
+          image.attr.attributes[kFigEnv] = figPos
         end
       else 
         return image

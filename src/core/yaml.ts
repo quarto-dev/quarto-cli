@@ -6,6 +6,7 @@
 */
 
 import { existsSync } from "fs/exists.ts";
+import { extname } from "path/mod.ts";
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 import { lines, matchAll, normalizeNewlines } from "./text.ts";
@@ -31,6 +32,10 @@ const kRegExYAML =
 
 const kRegxHTMLComment = /<!--[\W\w]*?-->/gm;
 const kRegexFencedCode = /^([\t >]*`{3,})[^`\n]*\n[\W\w]*?\n\1\s*$/gm;
+
+export function isYamlPath(file: string) {
+  return [".yaml", ".yml"].includes(extname(file));
+}
 
 export function readYaml(file: string) {
   if (existsSync(file)) {

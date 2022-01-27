@@ -15,7 +15,7 @@ testRender(sectionsQmd.input, "html", false, [
     "section#sec-introduction h2",
   ]),
   ensureFileRegexMatches(sectionsQmd.output.outputPath, [
-    /sec\.&nbsp;1/,
+    /Section&nbsp;1/,
   ], [
     /\?@sec-/,
   ]),

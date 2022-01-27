@@ -30,6 +30,7 @@ import {
   kExecuteIpynb,
   kFigDpi,
   kFigFormat,
+  kFigPos,
   kIncludeAfterBody,
   kIncludeInHeader,
   kKeepHidden,
@@ -248,6 +249,7 @@ export const jupyterEngine: ExecutionEngine = {
         toPresentation: isPresentationOutput(options.format.pandoc),
         figFormat: options.format.execute[kFigFormat],
         figDpi: options.format.execute[kFigDpi],
+        figPos: options.format.render[kFigPos],
       },
     );
 

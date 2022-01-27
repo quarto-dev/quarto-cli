@@ -19,9 +19,9 @@ testRender(tablesQmd.input, "html", false, [
   ensureFileRegexMatches(tablesQmd.output.outputPath, [
     /Table 1: My Caption/,
     /Table 2: Main Caption/,
-    /tbl\.&nbsp;1/,
-    /tbl\.&nbsp;2/,
-    /tbl\.&nbsp;2 \(b\)/,
+    /Table&nbsp;1/,
+    /Table&nbsp;2/,
+    /Table&nbsp;2 \(b\)/,
     /\(a\) First Table/,
     /\(b\) Second Table/,
   ], [
@@ -37,7 +37,7 @@ testRender(knitrTablesQmd.input, "html", false, [
   ]),
   ensureFileRegexMatches(knitrTablesQmd.output.outputPath, [
     /Table 1: Tables/,
-    /tbl\.&nbsp;1 \(a\)/,
+    /Table&nbsp;1 \(a\)/,
     /\(a\) Cars/,
     /\(b\) Pressure/,
   ], [

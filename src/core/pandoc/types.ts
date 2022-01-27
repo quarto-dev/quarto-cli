@@ -5,6 +5,8 @@
 *
 */
 
+import { Metadata } from "../../config/types.ts";
+
 export interface PandocAttr {
   id: string;
   classes: string[];
@@ -12,7 +14,7 @@ export interface PandocAttr {
 }
 
 export interface PartitionedMarkdown {
-  yaml?: string;
+  yaml?: Metadata;
   headingText?: string;
   headingAttr?: PandocAttr;
   containsRefs: boolean;

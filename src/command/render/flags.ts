@@ -230,6 +230,16 @@ export function parseRenderFlags(args: string[]) {
         flags.executeCache = "refresh";
         break;
 
+      case "--clean":
+        arg = argsStack.shift();
+        flags.clean = true;
+        break;
+
+      case "--no-clean":
+        arg = argsStack.shift();
+        flags.clean = false;
+        break;
+
       case "--debug":
         flags.debug = true;
         arg = argsStack.shift();
@@ -289,6 +299,11 @@ export function parseRenderFlags(args: string[]) {
         arg = argsStack.shift();
         break;
     }
+  }
+
+  // re-inject implicit true args (e.g. clean)
+  if (flags.clean === undefined) {
+    flags.clean = true;
   }
 
   return flags;
@@ -355,6 +370,8 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--cache", false);
   removeArgs.set("--no-cache", false);
   removeArgs.set("--cache-refresh", false);
+  removeArgs.set("--clean", false);
+  removeArgs.set("--no-clean", false);
   removeArgs.set("--debug", false);
   removeArgs.set("--metadata-file", true);
   removeArgs.set("--latex-makeindex-opt", true);

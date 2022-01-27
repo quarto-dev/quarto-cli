@@ -14,6 +14,7 @@ import { asHtmlId } from "../core/html.ts";
 
 import { readInputTargetIndex } from "./project-index.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
+import { shortUuid } from "../core/uuid.ts";
 
 export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
@@ -146,8 +147,14 @@ export function normalizeSidebarItem(
       } else {
         item.text = section;
       }
-      item.sectionId = "quarto-sidebar-section-" + asHtmlId(section);
+      item.sectionId = kQuartoSidebarPrefix + asHtmlId(section);
       delete item.section;
+    }
+
+    if (item.contents && !item.sectionId) {
+      // If the item does not have a sectionId, synthesize one
+      // Since this item has contents
+      item.sectionId = kQuartoSidebarPrefix + shortUuid();
     }
 
     // handle subitems
@@ -163,6 +170,8 @@ export function normalizeSidebarItem(
 
   return item;
 }
+
+const kQuartoSidebarPrefix = "quarto-sidebar-section-";
 
 export function resolveHrefAttribute(
   item: { href?: string; file?: string; url?: string },

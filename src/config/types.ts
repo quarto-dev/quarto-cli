@@ -28,32 +28,18 @@ import {
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
   kCopyButtonTooltip,
-  kCrossrefCnjPrefix,
   kCrossrefCnjTitle,
-  kCrossrefCorPrefix,
   kCrossrefCorTitle,
-  kCrossrefDefPrefix,
   kCrossrefDefTitle,
   kCrossrefEqPrefix,
-  kCrossrefExmPrefix,
   kCrossrefExmTitle,
-  kCrossrefExrPrefix,
   kCrossrefExrTitle,
-  kCrossrefFigPrefix,
   kCrossrefFigTitle,
-  kCrossrefLemPrefix,
   kCrossrefLemTitle,
-  kCrossrefLofTitle,
-  kCrossrefLolTitle,
-  kCrossrefLotTitle,
-  kCrossrefLstPrefix,
   kCrossrefLstTitle,
   kCrossrefPrfTitle,
-  kCrossrefPrpPrefix,
   kCrossrefSecPrefix,
-  kCrossrefTblPrefix,
   kCrossrefTblTitle,
-  kCrossrefThmPrefix,
   kCrossrefThmTitle,
   kCss,
   kEcho,
@@ -67,6 +53,8 @@ import {
   kExecuteIpynb,
   kFigAlign,
   kFigDpi,
+  kFigEnv,
+  kFigPos,
   kFilterParams,
   kFilters,
   kFreeze,
@@ -93,6 +81,24 @@ import {
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kListingPageCategoryAll,
+  kListingPageFieldAuthor,
+  kListingPageFieldCategories,
+  kListingPageFieldDate,
+  kListingPageFieldDescription,
+  kListingPageFieldFileModified,
+  kListingPageFieldFileName,
+  kListingPageFieldReadingTime,
+  kListingPageFieldSubtitle,
+  kListingPageFieldTitle,
+  kListingPageMinutesCompact,
+  kListingPageNoMatches,
+  kListingPageOrderBy,
+  kListingPageOrderByDateAsc,
+  kListingPageOrderByDateDesc,
+  kListingPageOrderByDefault,
+  kListingPageOrderByNumberAsc,
+  kListingPageOrderByNumberDesc,
   kListings,
   kMarkdownHeadings,
   kMathjax,
@@ -281,6 +287,8 @@ export interface FormatRender {
   [kOutputExt]?: string;
   [kPageWidth]?: number;
   [kFigAlign]?: "left" | "right" | "center" | "default";
+  [kFigPos]?: string | null;
+  [kFigEnv]?: string | null;
   [kCodeFold]?: "none" | "show" | "hide" | boolean;
   [kCodeOverflow]?: "wrap" | "scroll";
   [kCodeLink]?: boolean;
@@ -447,22 +455,26 @@ export interface FormatLanguage {
   [kCrossrefDefTitle]?: string;
   [kCrossrefExmTitle]?: string;
   [kCrossrefExrTitle]?: string;
-  [kCrossrefFigPrefix]?: string;
-  [kCrossrefTblPrefix]?: string;
-  [kCrossrefLstPrefix]?: string;
   [kCrossrefSecPrefix]?: string;
   [kCrossrefEqPrefix]?: string;
-  [kCrossrefThmPrefix]?: string;
-  [kCrossrefLemPrefix]?: string;
-  [kCrossrefCorPrefix]?: string;
-  [kCrossrefPrpPrefix]?: string;
-  [kCrossrefCnjPrefix]?: string;
-  [kCrossrefDefPrefix]?: string;
-  [kCrossrefExmPrefix]?: string;
-  [kCrossrefExrPrefix]?: string;
-  [kCrossrefLofTitle]?: string;
-  [kCrossrefLotTitle]?: string;
-  [kCrossrefLolTitle]?: string;
+  [kListingPageOrderBy]?: string;
+  [kListingPageOrderByDateAsc]?: string;
+  [kListingPageOrderByDefault]?: string;
+  [kListingPageOrderByDateDesc]?: string;
+  [kListingPageOrderByNumberAsc]?: string;
+  [kListingPageOrderByNumberDesc]?: string;
+  [kListingPageFieldDate]?: string;
+  [kListingPageFieldTitle]?: string;
+  [kListingPageFieldDescription]?: string;
+  [kListingPageFieldAuthor]?: string;
+  [kListingPageFieldFileName]?: string;
+  [kListingPageFieldFileModified]?: string;
+  [kListingPageFieldSubtitle]?: string;
+  [kListingPageFieldReadingTime]?: string;
+  [kListingPageFieldCategories]?: string;
+  [kListingPageMinutesCompact]?: string;
+  [kListingPageCategoryAll]?: string;
+  [kListingPageNoMatches]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

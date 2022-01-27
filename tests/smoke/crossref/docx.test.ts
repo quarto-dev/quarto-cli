@@ -33,7 +33,7 @@ const simpleFigRegexes = [
   bookmarkStart("fig-elephant"),
   anchor("fig-elephant"),
   text("Figure 1: Elephant"),
-  text("fig. 1"),
+  text("Figure 1"),
 ];
 
 const tableRegexes = [
@@ -66,8 +66,8 @@ const subFigRegexes = [
   anchor("fig-abbas"),
   anchor("fig-surus"),
   text("Figure 2: Famous Elephants"),
-  text("fig. 2"),
-  text("fig. 2 (b)"),
+  text("Figure 2"),
+  text("Figure 2 (b)"),
 ];
 
 testRender(allQmd.input, "docx", true, [

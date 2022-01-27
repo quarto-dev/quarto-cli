@@ -1,0 +1,448 @@
+/*-- scss:variables --*/
+
+$card-cap-bg: $gray-500 !default;
+
+$border-color: $gray-300 !default;
+$border-radius-sm: 0.2em !default;
+
+$text-muted: $gray-600 !default;
+
+/*-- scss:mixins --*/
+@mixin listing-category {
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 5px;
+
+  .listing-category {
+    color: $text-muted;
+    border: solid 1px $border-color;
+    border-radius: $border-radius-sm;
+    text-transform: uppercase;
+    font-size: 0.65em;
+    padding-left: 3px;
+    padding-right: 3px;
+    cursor: pointer;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+}
+
+/*-- scss:rules --*/
+
+.quarto-listing {
+  padding-bottom: 1em;
+}
+
+// General Pagination / Filter Control Styling
+.listing-pagination {
+  padding-top: 0.5em;
+}
+
+ul.pagination {
+  float: right;
+  padding-left: 8px;
+  padding-top: 0.5em;
+  li {
+    padding-right: 0.75em;
+  }
+  li.disabled,
+  li.active {
+    a {
+      color: $body-color;
+      text-decoration: none;
+    }
+  }
+  li:last-of-type {
+    padding-right: 0;
+  }
+}
+
+.listing-actions-group {
+  display: flex;
+  .input-group-text {
+    background-color: $body-bg;
+  }
+}
+
+// Filtering and Sorting
+.quarto-listing-filter {
+  margin-bottom: 1em;
+  width: 200px;
+  margin-left: auto;
+}
+
+.quarto-listing-sort {
+  margin-bottom: 1em;
+  margin-right: auto;
+  .input-group-text {
+    font-size: 0.8em;
+  }
+  width: auto;
+}
+
+.quarto-listing-sort select.form-select {
+  font-size: 0.8em;
+}
+
+.listing-no-matching {
+  text-align: center;
+  padding-top: 2em;
+  padding-bottom: 3em;
+  font-size: 1em;
+}
+
+// Category styling
+#quarto-margin-sidebar {
+  .quarto-listing-category {
+    padding-top: 0;
+    padding-left: 0.5em;
+    font-size: 0.875em;
+  }
+  .quarto-listing-category-title {
+    cursor: pointer;
+    padding-top: 4em;
+    font-weight: 600;
+    padding-left: 0.5em;
+    font-size: 0.875em;
+  }
+}
+
+.quarto-listing-category {
+  .category {
+    cursor: pointer;
+  }
+  .category.active {
+    font-weight: 600;
+  }
+}
+
+.quarto-listing-category.category-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  .category {
+    padding-right: 5px;
+  }
+
+  @for $count from 1 through 10 {
+    .category-cloud-#{$count} {
+      font-size: 0.55em + ($count * 0.2em);
+    }
+  }
+}
+
+// Grid Listing Styling
+@for $colcount from 1 through 12 {
+  .quarto-listing-cols-#{$colcount} {
+    grid-template-columns: repeat($colcount, minmax(0, 1fr));
+    gap: 1.5em;
+  }
+
+  @include media-breakpoint-down(md) {
+    .quarto-listing-cols-#{$colcount} {
+      grid-template-columns: repeat(min(2, $colcount), minmax(0, 1fr));
+      gap: 1.5em;
+    }
+  }
+
+  @include media-breakpoint-down(sm) {
+    .quarto-listing-cols-#{$colcount} {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5em;
+    }
+  }
+}
+
+.quarto-listing-grid {
+  gap: 1.5em;
+}
+
+.quarto-grid-item.borderless {
+  border: none;
+  .listing-categories {
+    .listing-category:last-of-type,
+    .listing-category:first-of-type {
+      padding-left: 0;
+    }
+    .listing-category {
+      border: 0;
+    }
+  }
+}
+
+.quarto-grid-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.quarto-grid-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.quarto-grid-item {
+  h5.title {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    p {
+      margin-bottom: 0;
+    }
+  }
+
+  p.card-img-top {
+    margin-bottom: 0;
+  }
+
+  img.thumbnail-image {
+    object-fit: cover;
+  }
+
+  .card-other-values {
+    margin-top: 0.5em;
+    font-size: 0.8em;
+    tr {
+      margin-bottom: 0.5em;
+    }
+    tr > td:first-of-type {
+      font-weight: 600;
+      padding-right: 1em;
+      padding-left: 1em;
+      vertical-align: top;
+    }
+  }
+
+  div.post-contents {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    height: 100%;
+  }
+
+  div.card-img-bg {
+    background-color: $card-cap-bg;
+    flex-shrink: 0;
+  }
+
+  .card-attribution {
+    padding-top: 1em;
+    display: flex;
+    gap: 1em;
+    text-transform: uppercase;
+    color: $text-muted;
+    font-weight: 500;
+    flex-grow: 10;
+    align-items: flex-end;
+  }
+
+  .description {
+    padding-bottom: 1em;
+  }
+
+  .card-attribution .date {
+    align-self: flex-end;
+  }
+
+  .card-attribution.justify {
+    justify-content: space-between;
+  }
+
+  .card-attribution.start {
+    justify-content: flex-start;
+  }
+
+  .card-attribution.end {
+    justify-content: flex-end;
+  }
+
+  .card-text {
+    font-size: 0.9em;
+  }
+
+  .card-text-small {
+    font-size: 0.8em;
+  }
+
+  .card-subtitle.subtitle {
+    font-size: 0.9em;
+    font-weight: 600;
+    padding-bottom: 0.5em;
+  }
+
+  .listing-categories {
+    @include listing-category();
+  }
+}
+
+.quarto-grid-item.card-right {
+  text-align: right;
+  .listing-categories {
+    justify-content: flex-end;
+  }
+}
+
+.quarto-grid-item.card-left {
+  text-align: left;
+}
+
+.quarto-grid-item.card-center {
+  text-align: center;
+  .listing-description {
+    text-align: justify;
+  }
+  .listing-categories {
+    justify-content: center;
+  }
+}
+
+// Table Listing Styling
+table.quarto-listing-table {
+  td.image {
+    padding: 0px;
+    img {
+      width: 100%;
+      max-width: 50px;
+      object-fit: contain;
+    }
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  th a {
+    color: inherit;
+  }
+
+  th a.asc:after {
+    margin-bottom: -2px;
+    margin-left: 5px;
+    display: inline-block;
+    height: 1rem;
+    width: 1rem;
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up" viewBox="0 0 16 16"><path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/></svg>');
+    content: "";
+  }
+
+  th a.desc:after {
+    margin-bottom: -2px;
+    margin-left: 5px;
+    display: inline-block;
+    height: 1rem;
+    width: 1rem;
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16"><path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/></svg>');
+    content: "";
+  }
+}
+
+table.quarto-listing-table.table-hover td {
+  cursor: pointer;
+}
+
+.quarto-post.image-left {
+  flex-direction: row;
+}
+
+.quarto-post.image-right {
+  flex-direction: row-reverse;
+}
+
+@include media-breakpoint-down(md) {
+  .quarto-post.image-right,
+  .quarto-post.image-left {
+    gap: 0em;
+    flex-direction: column;
+  }
+
+  .quarto-post .metadata {
+    padding-bottom: 1em;
+    order: 1;
+  }
+
+  .quarto-post .body {
+    order: 3;
+  }
+
+  .quarto-post .thumbnail {
+    order: 2;
+  }
+}
+
+// Post (default) Styling
+.list.quarto-listing-default div:last-of-type {
+  border-bottom: none;
+}
+
+div.quarto-post {
+  display: flex;
+  gap: 2em;
+  margin-bottom: 1.5em;
+  border-bottom: 1px solid $border-color;
+
+  .metadata {
+    flex-basis: 20%;
+    flex-grow: 0;
+    margin-top: 0.2em;
+    flex-shrink: 10;
+  }
+
+  .thumbnail {
+    flex-basis: 30%;
+    flex-grow: 0;
+    flex-shrink: 0;
+    img {
+      margin-top: 0.4em;
+      width: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .body {
+    flex-basis: 45%;
+    flex-grow: 1;
+    flex-shrink: 0;
+
+    h3.listing-title {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      border-bottom: none;
+      padding-bottom: 0.3em;
+    }
+
+    .description {
+      font-size: 0.9em;
+    }
+  }
+
+  a {
+    color: $body-color;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+
+    div.description {
+      flex-shrink: 0;
+    }
+  }
+
+  .metadata {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8em;
+    font-family: $font-family-base;
+    flex-basis: 33%;
+  }
+
+  .listing-categories {
+    @include listing-category();
+  }
+}

@@ -5,7 +5,14 @@
 *
 */
 
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  globToRegExp,
+  join,
+  relative,
+} from "path/mod.ts";
 
 import { copySync } from "fs/copy.ts";
 import { ensureDirSync, walkSync } from "fs/mod.ts";
@@ -101,39 +108,32 @@ export interface ResolvedPathGlobs {
   exclude: string[];
 }
 
+export function filterPaths(
+  root: string,
+  paths: string[],
+  globs: string[],
+): ResolvedPathGlobs {
+  // filter the list of globs
+  // using the paths
+  const expandGlobs = (targetGlobs: string[]) => {
+    const expanded: string[] = [];
+    for (const glob of targetGlobs) {
+      const regex = globToRegExp(`${root}/${glob}`);
+      const matchingFiles = paths.filter((path) => {
+        return regex.test(path);
+      });
+      expanded.push(...matchingFiles);
+    }
+    return ld.uniq(expanded);
+  };
+  return resolveGlobs(root, globs, expandGlobs);
+}
+
 export function resolvePathGlobs(
   root: string,
   globs: string[],
   exclude: string[],
 ): ResolvedPathGlobs {
-  // preprocess the globs for **, negation -> exclude, etc
-  const includeGlobs: string[] = [];
-  const excludeGlobs: string[] = [];
-
-  // deal with implicit ** syntax and ability to escape negation (!)
-  const asFullGlob = (glob: string) => {
-    // handle negation
-    if (glob.startsWith("\\!")) {
-      glob = glob.slice(1);
-    }
-    // ending w/ a slash means everything in the dir
-    if (glob.endsWith("/")) {
-      glob = glob + "**/*";
-    } else {
-      // literal relative reference to any directory means everything in the dir
-      const fullPath = join(root, glob);
-      if (existsSync(fullPath) && Deno.statSync(fullPath).isDirectory) {
-        glob = glob + "/**/*";
-      }
-    }
-
-    if (!glob.startsWith("/")) {
-      return "**/" + glob;
-    } else {
-      return join(root, glob.slice(1));
-    }
-  };
-
   // expand a set of globs
   const expandGlobs = (targetGlobs: string[]) => {
     const expanded: string[] = [];
@@ -149,25 +149,7 @@ export function resolvePathGlobs(
     }
     return ld.uniq(expanded);
   };
-
-  // divide globs into include and exclude
-  for (const glob of globs) {
-    if (glob.startsWith("!")) {
-      excludeGlobs.push(asFullGlob(glob.slice(1)));
-    } else {
-      includeGlobs.push(asFullGlob(glob));
-    }
-  }
-
-  // run the globs
-  const includeFiles = expandGlobs(includeGlobs);
-  const excludeFiles = expandGlobs(excludeGlobs);
-
-  // return lists
-  return {
-    include: includeFiles,
-    exclude: excludeFiles,
-  };
+  return resolveGlobs(root, globs, expandGlobs);
 }
 
 export function pathWithForwardSlashes(path: string) {
@@ -233,4 +215,56 @@ export function copyFileIfNewer(srcFile: string, destFile: string) {
       preserveTimestamps: true,
     });
   }
+}
+export function resolveGlobs(
+  root: string,
+  globs: string[],
+  expandGlobs: (targetGlobs: string[]) => string[],
+): ResolvedPathGlobs {
+  // preprocess the globs for **, negation -> exclude, etc
+  const includeGlobs: string[] = [];
+  const excludeGlobs: string[] = [];
+
+  // deal with implicit ** syntax and ability to escape negation (!)
+  const asFullGlob = (glob: string) => {
+    // handle negation
+    if (glob.startsWith("\\!")) {
+      glob = glob.slice(1);
+    }
+    // ending w/ a slash means everything in the dir
+    if (glob.endsWith("/")) {
+      glob = glob + "**/*";
+    } else {
+      // literal relative reference to any directory means everything in the dir
+      const fullPath = join(root, glob);
+      if (existsSync(fullPath) && Deno.statSync(fullPath).isDirectory) {
+        glob = glob + "/**/*";
+      }
+    }
+
+    if (!glob.startsWith("/")) {
+      return "**/" + glob;
+    } else {
+      return join(root, glob.slice(1));
+    }
+  };
+
+  // divide globs into include and exclude
+  for (const glob of globs) {
+    if (glob.startsWith("!")) {
+      excludeGlobs.push(asFullGlob(glob.slice(1)));
+    } else {
+      includeGlobs.push(asFullGlob(glob));
+    }
+  }
+
+  // run the globs
+  const includeFiles = expandGlobs(includeGlobs);
+  const excludeFiles = expandGlobs(excludeGlobs);
+
+  // return lists
+  return {
+    include: includeFiles,
+    exclude: excludeFiles,
+  };
 }
