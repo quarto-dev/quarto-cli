@@ -28,7 +28,10 @@ import {
 import { resourcePath } from "../../../../core/resources.ts";
 import { kIncludeInHeader } from "../../../../config/constants.ts";
 import { sassLayer } from "../../../../core/sass.ts";
-import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
+import {
+  kBootstrapDependencyName,
+  setMainColumn,
+} from "../../../../format/html/format-html-shared.ts";
 import {
   kFieldCategories,
   kPageColumn,
@@ -217,54 +220,15 @@ function listingFinalize(
   options: ListingSharedOptions,
 ) {
   // Find the first user specified column in the listings
-  const titleColumn = options[kPageColumn];
-
-  // Check for whether this page had sidebars and choose column as appropriate
-  const defaultColumn = suggestColumn(doc);
+  const listingColumn = options[kPageColumn];
 
   // Move the main content element to the correct column
-  const mainEl = doc.querySelector("main.content");
-  if (mainEl) {
-    mainEl.classList.add(titleColumn || defaultColumn);
+  if (listingColumn) {
+    setMainColumn(doc, listingColumn);
   }
 }
 
-const kSidebarId = "quarto-sidebar";
 const kMarginSidebarId = "quarto-margin-sidebar";
-
-// Suggests a default column by inspecting sidebars
-// if there are none or some, take up the extra space!
-function suggestColumn(doc: Document) {
-  const hasContents = (id: string) => {
-    const el = doc.getElementById(id);
-    // Does the element exist
-    if (el === null) {
-      return false;
-    }
-
-    // Does it have any element children?
-    if (el.children.length > 0) {
-      return true;
-    }
-
-    // If it doesn't have any element children
-    // see if there is any text
-    return !!el.innerText.trim();
-  };
-
-  const leftSidebar = hasContents(kSidebarId);
-  const rightSidebar = hasContents(kMarginSidebarId);
-
-  if (leftSidebar && rightSidebar) {
-    return "column-body";
-  } else if (leftSidebar) {
-    return "column-page-right";
-  } else if (rightSidebar) {
-    return "column-page-left";
-  } else {
-    return "column-page";
-  }
-}
 
 function scriptFileForScripts(scripts: string[], temp: TempContext) {
   const scriptFile = temp.createFile({ suffix: "html" });

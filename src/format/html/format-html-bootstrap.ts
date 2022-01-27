@@ -43,6 +43,7 @@ import {
   kPageLayoutCustom,
   kPageLayoutFull,
   kPageLayoutNone,
+  setMainColumn,
 } from "./format-html-shared.ts";
 
 export function formatHasBootstrap(format: Format) {
@@ -87,7 +88,7 @@ function darkModeDefault(metadata?: Metadata): boolean | undefined {
 }
 
 export function formatPageLayout(format: Format) {
-  return format.metadata[kPageLayout] || kPageLayoutArticle;
+  return format.metadata[kPageLayout] as string || kPageLayoutArticle;
 }
 
 export function formatHasPageLayout(format: Format) {
@@ -95,13 +96,17 @@ export function formatHasPageLayout(format: Format) {
     format.metadata[kPageLayout] !== kPageLayoutNone;
 }
 
-export function formatHasArticlePageLayout(format: Format) {
+export function formatHasFullLayout(format: Format) {
+  return format.metadata[kPageLayout] === kPageLayoutFull;
+}
+
+export function formatHasArticleLayout(format: Format) {
   return format.metadata[kPageLayout] === undefined ||
     format.metadata[kPageLayout] === kPageLayoutArticle ||
     format.metadata[kPageLayout] === kPageLayoutFull;
 }
 
-export function formatHasCustomPageLayout(format: Format) {
+export function formatHasCustomLayout(format: Format) {
   return format.metadata[kPageLayout] == kPageLayoutCustom;
 }
 
@@ -144,9 +149,10 @@ export function boostrapExtras(
     });
   };
 
-  const bodyEnvelope = formatHasArticlePageLayout(format)
+  const pageLayout = formatPageLayout(format);
+  const bodyEnvelope = formatHasArticleLayout(format)
     ? {
-      before: renderTemplate("before-body-article.ejs", kPageLayoutArticle),
+      before: renderTemplate("before-body-article.ejs", pageLayout),
       afterPreamble: renderTemplate(
         "after-body-article-preamble.ejs",
         kPageLayoutArticle,
@@ -156,7 +162,7 @@ export function boostrapExtras(
         kPageLayoutArticle,
       ),
     }
-    : formatHasCustomPageLayout(format)
+    : formatHasCustomLayout(format)
     ? {
       before: renderTemplate("before-body-custom.ejs", kPageLayoutCustom),
       afterPreamble: renderTemplate(
@@ -187,7 +193,7 @@ export function boostrapExtras(
         bootstrapHtmlPostprocessor(flags, format),
       ],
       [kHtmlFinalizers]: [
-        bootstrapHtmlFinalizer(),
+        bootstrapHtmlFinalizer(format),
       ],
     },
   };
@@ -208,65 +214,11 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       title.classList.add("display-7");
     }
 
-    // Process captions that may appear in the margin
-    processMarginCaptions(doc);
-
-    // Group margin elements by their parents and wrap them in a container
-    // Be sure to ignore containers which are already processed
-    // and should be left alone
-    const marginProcessors: MarginNodeProcessor[] = [
-      simpleMarginProcessor,
-    ];
-    // If margin footnotes are enabled move them
-    const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
-      flags[kReferenceLocation] === "margin";
-    if (refsInMargin) {
-      marginProcessors.push(footnoteMarginProcessor);
-    }
-
-    // If margin cites are enabled, move them
-    const citesInMargin = format.metadata[kCitationLocation] === "margin";
-    if (citesInMargin) {
-      marginProcessors.push(referenceMarginProcessor);
-    }
-    processMarginNodes(doc, marginProcessors);
-
-    const columnLayouts = getColumnLayoutElements(doc);
-
-    // If there are any of these elements, we need to be sure that their
-    // parents have acess to the grid system, so make the parent full screen width
-    // and apply the grid system to it (now the child 'column-' element can be positioned
-    // anywhere in the grid system)
-    if (columnLayouts && columnLayouts.length > 0) {
-      const ensureInGrid = (el: Element, setLayout: boolean) => {
-        // Add the grid system. Children of the grid system
-        // are placed into the body-content column by default
-        // (CSS implements this)
-        if (!el.classList.contains("page-columns")) {
-          el.classList.add("page-columns");
-        }
-
-        // Mark full width
-        if (setLayout && !el.classList.contains("page-full")) {
-          el.classList.add("page-full");
-        }
-
-        // Process parents up to the main tag
-        if (el.tagName !== "MAIN") {
-          const parent = el.parentElement;
-          if (parent) {
-            ensureInGrid(parent, true);
-          }
-        }
-      };
-
-      columnLayouts.forEach((node) => {
-        const el = node as Element;
-        if (el.parentElement) {
-          ensureInGrid(el.parentElement, true);
-        }
-      });
-    }
+    const { citesInMargin, refsInMargin } = processColumnElements(
+      doc,
+      format,
+      flags,
+    );
 
     // add 'lead' to subtitle
     const subtitle = doc.querySelector("header > .subtitle");
@@ -399,8 +351,14 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
   };
 }
 
-function bootstrapHtmlFinalizer() {
+function bootstrapHtmlFinalizer(format: Format) {
   return (doc: Document): Promise<void> => {
+    const fullLayout = formatHasFullLayout(format);
+    if (fullLayout) {
+      const column = suggestColumn(doc);
+      console.log(column);
+      setMainColumn(doc, column);
+    }
     // Note whether we need a narrow or wide margin layout
     const leftSidebar = doc.getElementById("quarto-sidebar");
     const hasLeftContent = leftSidebar && leftSidebar.children.length > 0;
@@ -429,6 +387,84 @@ function bootstrapHtmlFinalizer() {
 
     // no resource refs
     return Promise.resolve();
+  };
+}
+function processColumnElements(
+  doc: Document,
+  format: Format,
+  flags: PandocFlags,
+) {
+  // Margin and column elements are only functional in article based layouts
+  if (!formatHasArticleLayout(format)) {
+    return {
+      citesInMargin: false,
+      refsInMargin: false,
+    };
+  }
+
+  // Process captions that may appear in the margin
+  processMarginCaptions(doc);
+
+  // Group margin elements by their parents and wrap them in a container
+  // Be sure to ignore containers which are already processed
+  // and should be left alone
+  const marginProcessors: MarginNodeProcessor[] = [
+    simpleMarginProcessor,
+  ];
+  // If margin footnotes are enabled move them
+  const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
+    flags[kReferenceLocation] === "margin";
+  if (refsInMargin) {
+    marginProcessors.push(footnoteMarginProcessor);
+  }
+
+  // If margin cites are enabled, move them
+  const citesInMargin = format.metadata[kCitationLocation] === "margin";
+  if (citesInMargin) {
+    marginProcessors.push(referenceMarginProcessor);
+  }
+  processMarginNodes(doc, marginProcessors);
+
+  const columnLayouts = getColumnLayoutElements(doc);
+
+  // If there are any of these elements, we need to be sure that their
+  // parents have acess to the grid system, so make the parent full screen width
+  // and apply the grid system to it (now the child 'column-' element can be positioned
+  // anywhere in the grid system)
+  if (columnLayouts && columnLayouts.length > 0) {
+    const ensureInGrid = (el: Element, setLayout: boolean) => {
+      // Add the grid system. Children of the grid system
+      // are placed into the body-content column by default
+      // (CSS implements this)
+      if (!el.classList.contains("page-columns")) {
+        el.classList.add("page-columns");
+      }
+
+      // Mark full width
+      if (setLayout && !el.classList.contains("page-full")) {
+        el.classList.add("page-full");
+      }
+
+      // Process parents up to the main tag
+      if (el.tagName !== "MAIN") {
+        const parent = el.parentElement;
+        if (parent) {
+          ensureInGrid(parent, true);
+        }
+      }
+    };
+
+    columnLayouts.forEach((node) => {
+      const el = node as Element;
+      if (el.parentElement) {
+        ensureInGrid(el.parentElement, true);
+      }
+    });
+  }
+
+  return {
+    citesInMargin,
+    refsInMargin,
   };
 }
 
@@ -766,3 +802,39 @@ const findOutermostParentElOfType = (
     return undefined;
   }
 };
+
+// Suggests a default column by inspecting sidebars
+// if there are none or some, take up the extra space!
+function suggestColumn(doc: Document) {
+  const hasContents = (id: string) => {
+    const el = doc.getElementById(id);
+    // Does the element exist
+    if (el === null) {
+      return false;
+    }
+
+    // Does it have any element children?
+    if (el.children.length > 0) {
+      return true;
+    }
+
+    // If it doesn't have any element children
+    // see if there is any text
+    return !!el.innerText.trim();
+  };
+
+  const leftSidebar = hasContents(kSidebarId);
+  const rightSidebar = hasContents(kMarginSidebarId);
+
+  if (leftSidebar && rightSidebar) {
+    return "column-body";
+  } else if (leftSidebar) {
+    return "column-page-right";
+  } else if (rightSidebar) {
+    return "column-page-left";
+  } else {
+    return "column-page";
+  }
+}
+const kSidebarId = "quarto-sidebar";
+const kMarginSidebarId = "quarto-margin-sidebar";

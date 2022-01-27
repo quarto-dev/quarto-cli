@@ -314,38 +314,38 @@
       <context name="find-lang-fenced-code" attribute="Normal Text" lineEndContext="#pop">
         <!-- Apply syntax highlighting to fenced code blocks for some languages -->
         <RegExpr attribute="Fenced Code" context="#pop!code" String="&fcode;&end;"/>
-        <RegExpr attribute="Fenced Code" context="#pop!bash-code" String="&fcode;\s*(?:bash(?:rc|_profile|_login|_logout)?|shell|sh|zsh|profile|PKGBUILD|APKBUILD|ebuild|eclass|nix)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!cpp-code" String="&fcode;\s*(?:[ch]pp|[ch]\+\+|[ch]xx|h?cc|hh|cuh?|ino|pde|moc)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!csharp-code" String="&fcode;\s*(?:cs|csharp|c\#)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!cmake-code" String="&fcode;\s*(?:cmake|CMakeLists(?:\.txt)?)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!css-code" String="&fcode;\s*css&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!c-code" String="&fcode;\s*[ch]&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!doxygen-code" String="&fcode;\s*doxygen&end;" insensitive="true"/> <!-- Block comment of Doxygen -->
-        <RegExpr attribute="Fenced Code" context="#pop!email-code" String="&fcode;\s*(?:email|emlx?|mbo?x)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!go-code" String="&fcode;\s*go(?:lang)?&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!hamlet-code" String="&fcode;\s*[wxs]?hamlet&end;" insensitive="true"/> <!-- Included in the Haskell definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!haskell-code" String="&fcode;\s*(?:haskell|c?hs|hs\-boot)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!html-code" String="&fcode;\s*(?:[sx]?html?|inc|tmpl|tpl)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!java-code" String="&fcode;\s*(?:java|bsh)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!javascript-code" String="&fcode;\s*(?:javascript|m?js|es6|kwinscript|julius)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!jsx-code" String="&fcode;\s*(?:jsx|tsx|(?:java|type)script\-react)&end;" insensitive="true"/> <!-- Included in the HTML definition. Also apply for TSX. -->
-        <RegExpr attribute="Fenced Code" context="#pop!json-code" String="&fcode;\s*(?:json5?|gltf)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!yaml-code" String="&fcode;\s*(?:ya?ml)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!matlab-code" String="&fcode;\s*matlab&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!markdown-code" String="&fcode;\s*(?:markdown|m?md)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!mustache-code" String="&fcode;\s*(?:handlebars|hbs|mustache|mst|ractive|hogan|hulk)&end;" insensitive="true"/> <!-- Included in the HTML definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*(?:perl|p[lm]|pod|psgi|vcl)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!php-code" String="&fcode;\s*(?:php[3457t]?|wml|phtml?|aw|ctp)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!python-code" String="&fcode;\s*(?:python[23]?|py[23w]?|[rc]py|sconstruct|gypi?)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!qml-code" String="&fcode;\s*qml(?:types)?&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!r-code" String="&fcode;\s*(?:r|rprofile|rscript)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!raku-code" String="&fcode;\s*(?:raku(?:mod|doc|test)?|perl6|p[lm]?6|pod6|nqp)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!rest-code" String="&fcode;\s*(?:rst|rest|restructuredtext)&end;" insensitive="true"/> <!-- Included in the CMake definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!ruby-code" String="&fcode;\s*(?:ruby|rbx?|rjs|rake|f?cgi|gemspec|irbrc|ru|prawn|Appraisals|(?:Rake|Cap|Chef|Gem|Guard|Hobo|Vagrant||Rant|Berks|Thor|Puppet)file|rxml|(?:xml|js)\.erb)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!rust-code" String="&fcode;\s*(?:rust|rs)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!mysql-code" String="&fcode;\s*(?:mysql|sql|ddl)&end;" insensitive="true"/> <!-- Included in the PHP definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!typescript-code" String="&fcode;\s*(?:typescript|ts)&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!xml-code" String="&fcode;\s*(?:xml|xsd|xspf|tld|jsp|c?pt|dtml|rss|opml|svg|daml|rdf|ui|kcfg|qrc|wsdl|scxml|xbel|dae|sch|brd|docbook)&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!bash-code" String="&fcode;\s*\{?\.?(?:bash(?:rc|_profile|_login|_logout)?|shell|sh|zsh|profile|PKGBUILD|APKBUILD|ebuild|eclass|nix).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!cpp-code" String="&fcode;\s*\{?\.?(?:[ch]pp|[ch]\+\+|[ch]xx|h?cc|hh|cuh?|ino|pde|moc).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!csharp-code" String="&fcode;\s*\{?\.?(?:cs|csharp|c\#).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!cmake-code" String="&fcode;\s*\{?\.?(?:cmake|CMakeLists(?:\.txt)?).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!css-code" String="&fcode;\s*\{?\.?css.*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!c-code" String="&fcode;\s*\{?\.?[ch].*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!doxygen-code" String="&fcode;\s*\{?\.?doxygen.*&end;" insensitive="true"/> <!-- Block comment of Doxygen -->
+        <RegExpr attribute="Fenced Code" context="#pop!email-code" String="&fcode;\s*\{?\.?(?:email|emlx?|mbo?x).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!go-code" String="&fcode;\s*\{?\.?go(?:lang)?.*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!hamlet-code" String="&fcode;\s*\{?\.?[wxs]?hamlet.*&end;" insensitive="true"/> <!-- Included in the Haskell definition -->
+        <RegExpr attribute="Fenced Code" context="#pop!haskell-code" String="&fcode;\s*\{?\.?(?:haskell|c?hs|hs\-boot).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!html-code" String="&fcode;\s*\{?\.?(?:[sx]?html?|inc|tmpl|tpl).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!java-code" String="&fcode;\s*\{?\.?(?:java|bsh).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!javascript-code" String="&fcode;\s*\{?\.?(?:javascript|m?js|es6|kwinscript|julius).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!jsx-code" String="&fcode;\s*\{?\.?(?:jsx|tsx|(?:java|type)script\-react).*&end;" insensitive="true"/> <!-- Included in the HTML definition. Also apply for TSX. -->
+        <RegExpr attribute="Fenced Code" context="#pop!json-code" String="&fcode;\s*\{?\.?(?:json5?|gltf).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!yaml-code" String="&fcode;\s*\{?\.?(?:ya?ml).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!matlab-code" String="&fcode;\s*\{?\.?matlab.*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!markdown-code" String="&fcode;\s*\{?\.?(?:markdown|m?md).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!mustache-code" String="&fcode;\s*\{?\.?(?:handlebars|hbs|mustache|mst|ractive|hogan|hulk).*&end;" insensitive="true"/> <!-- Included in the HTML definition -->
+        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*\{?\.?(?:perl|p[lm]|pod|psgi|vcl).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!php-code" String="&fcode;\s*\{?\.?(?:php[3457t]?|wml|phtml?|aw|ctp).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!python-code" String="&fcode;\s*\{?\.?(?:python[23]?|py[23w]?|[rc]py|sconstruct|gypi?).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!qml-code" String="&fcode;\s*\{?\.?qml(?:types)?.*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!r-code" String="&fcode;\s*\{?\.?(?:r|rprofile|rscript).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!raku-code" String="&fcode;\s*\{?\.?(?:raku(?:mod|doc|test)?|perl6|p[lm]?6|pod6|nqp).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!rest-code" String="&fcode;\s*\{?\.?(?:rst|rest|restructuredtext).*&end;" insensitive="true"/> <!-- Included in the CMake definition -->
+        <RegExpr attribute="Fenced Code" context="#pop!ruby-code" String="&fcode;\s*\{?\.?(?:ruby|rbx?|rjs|rake|f?cgi|gemspec|irbrc|ru|prawn|Appraisals|(?:Rake|Cap|Chef|Gem|Guard|Hobo|Vagrant||Rant|Berks|Thor|Puppet)file|rxml|(?:xml|js)\.erb).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!rust-code" String="&fcode;\s*\{?\.?(?:rust|rs).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!mysql-code" String="&fcode;\s*\{?\.?(?:mysql|sql|ddl).*&end;" insensitive="true"/> <!-- Included in the PHP definition -->
+        <RegExpr attribute="Fenced Code" context="#pop!typescript-code" String="&fcode;\s*\{?\.?(?:typescript|ts).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!xml-code" String="&fcode;\s*\{?\.?(?:xml|xsd|xspf|tld|jsp|c?pt|dtml|rss|opml|svg|daml|rdf|ui|kcfg|qrc|wsdl|scxml|xbel|dae|sch|brd|docbook).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!code" String="&fcode;.*$"/>
       </context>
       <context name="code" attribute="Code" lineEndContext="#stay"> <!-- Unknown language -->

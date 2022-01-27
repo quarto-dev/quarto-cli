@@ -244,69 +244,69 @@ body.docked {
   grid-row: content-top / page-bottom;
 }
 
-.content {
+.page-columns .content {
   grid-column: body-content-start / body-content-end;
   grid-row: content-top / content-bottom;
   align-content: flex-start;
 }
 
-.page-navigation {
+.page-columns .page-navigation {
   grid-column: body-content-start / body-content-end;
   grid-row: content-bottom / page-bottom;
 }
 
-.footer {
+.page-columns .footer {
   grid-column: screen-start / screen-end;
   grid-row: contents-bottom / page-bottom;
 }
 
-.column-body {
+.page-columns .column-body {
   grid-column: body-content-start / body-content-end;
 }
 
-.column-body-outset {
+.page-columns .column-body-outset {
   grid-column: body-start-outset / body-end-outset;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-body-outset-left {
+.page-columns .column-body-outset-left {
   grid-column: body-start-outset / body-content-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-body-outset-right {
+.page-columns .column-body-outset-right {
   grid-column: body-content-start / body-end-outset;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-page {
+.page-columns .column-page {
   grid-column: page-start / page-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-page-inset {
+.page-columns .column-page-inset {
   grid-column: page-start-inset / page-end-inset;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-page-inset-left {
+.page-columns .column-page-inset-left {
   grid-column: page-start-inset / body-content-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-page-inset-right {
+.page-columns .column-page-inset-right {
   grid-column: body-content-start / page-end-inset;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
@@ -316,14 +316,14 @@ body.docked {
   }
 }
 
-.column-page-left {
+.page-columns .column-page-left {
   grid-column: page-start / body-content-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-page-right {
+.page-columns .column-page-right {
   grid-column: body-content-start / page-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
@@ -333,49 +333,49 @@ body.docked {
   }
 }
 
-.column-screen-inset {
+.page-columns .column-screen-inset {
   grid-column: screen-start-inset / screen-end-inset;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-screen-inset-left {
+.page-columns .column-screen-inset-left {
   grid-column: screen-start-inset / body-content-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-screen-inset-right {
+.page-columns .column-screen-inset-right {
   grid-column: body-content-start / screen-end-inset;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-screen {
+.page-columns .column-screen {
   grid-column: screen-start / screen-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-screen-left {
+.page-columns .column-screen-left {
   grid-column: screen-start / body-content-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-screen-right {
+.page-columns .column-screen-right {
   grid-column: body-start / screen-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
 }
 
-.column-screen-inset-shaded {
+.page-columns .column-screen-inset-shaded {
   grid-column: screen-start / screen-end;
   padding: 1em;
   background: $light;
