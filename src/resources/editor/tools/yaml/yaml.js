@@ -8580,8 +8580,9 @@ if (typeof exports === 'object') {
   var yamlValidators = {};
   var validatorQueues = {};
   function checkForTypeMismatch(error, _parse, _schema) {
-    const verbatimInput = quotedStringColor(getVerbatimInput(error));
-    if (error.ajvError.keyword === "type") {
+    const rawVerbatimInput = getVerbatimInput(error);
+    const verbatimInput = quotedStringColor(rawVerbatimInput);
+    if (error.ajvError.keyword === "type" && rawVerbatimInput.length > 0) {
       const newError = {
         heading: `The value ${verbatimInput} must be a ${error.ajvError.params.type}.`,
         error: [

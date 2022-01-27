@@ -28,9 +28,10 @@ function checkForTypeMismatch(
   _parse: AnnotatedParse,
   _schema: Schema,
 ) {
-  const verbatimInput = quotedStringColor(getVerbatimInput(error));
+  const rawVerbatimInput = getVerbatimInput(error);
+  const verbatimInput = quotedStringColor(rawVerbatimInput);
 
-  if (error.ajvError.keyword === "type") {
+  if (error.ajvError.keyword === "type" && rawVerbatimInput.length > 0) {
     const newError: TidyverseError = {
       heading:
         `The value ${verbatimInput} must be a ${error.ajvError.params.type}.`,
