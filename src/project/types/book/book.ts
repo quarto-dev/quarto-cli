@@ -178,10 +178,6 @@ export const bookProjectType: ProjectType = {
         };
       }
 
-      // ensure toc unless explicitly disabled
-      if (!disabledTableOfContents(format)) {
-        flags = { ...flags, toc: true };
-      }
       const websiteExtras = await websiteProjectType.formatExtras!(
         context,
         source,

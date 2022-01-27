@@ -151,7 +151,7 @@
   if (debug)
     message("[knitr engine]: writing results")
   resultJson <- jsonlite::toJSON(auto_unbox = TRUE, result)
-  xfun:::write_utf8(paste(resultJson, collapse = "\n"), request$result)
+  xfun:::write_utf8(paste(resultJson, collapse = "\n"), request[["results"]])
   if (debug)
     message("[knitr engine]: exiting")
 }
