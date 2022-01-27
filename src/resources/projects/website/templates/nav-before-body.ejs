@@ -69,7 +69,7 @@
     </nav>
 <% } %>
 
-<% if (nav.sidebar && nav.layout && (nav.layout === "article" || nav.layout === "full")) { %>
+<% if (nav.sidebar && nav.layout) { %>
   <% let textCss = nav.sidebar.type ? nav.sidebar.type === "dark" ? " text-light" : " text-dark" :  "" %>
   <nav class="quarto-secondary-nav<%= textCss %>" 
         data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" 

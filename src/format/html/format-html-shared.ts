@@ -265,16 +265,19 @@ export function removeFootnoteBacklinks(footnotesEl: Element) {
 }
 
 export function setMainColumn(doc: Document, column: string) {
-  const mainEl = doc.querySelector("main.content");
-  if (mainEl) {
-    // Clear existing column
-    for (const clz of mainEl.classList) {
-      if (clz.startsWith("column-")) {
-        mainEl.classList.remove(clz);
+  const selectors = ["main.content", ".page-navigation"];
+  selectors.forEach((selector) => {
+    const el = doc.querySelector(selector);
+    if (el) {
+      // Clear existing column
+      for (const clz of el.classList) {
+        if (clz.startsWith("column-")) {
+          el.classList.remove(clz);
+        }
       }
-    }
 
-    // Set the new column
-    mainEl.classList.add(column);
-  }
+      // Set the new column
+      el.classList.add(column);
+    }
+  });
 }

@@ -31,11 +31,16 @@ import {
   PandocFlags,
   SassBundle,
 } from "../../../config/types.ts";
-import { hasTableOfContents } from "../../../config/toc.ts";
+import {
+  disabledTableOfContents,
+  hasTableOfContents,
+} from "../../../config/toc.ts";
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import {
   formatDarkMode,
+  formatHasCustomLayout,
+  formatHasPageLayout,
   formatPageLayout,
 } from "../../../format/html/format-html-bootstrap.ts";
 
@@ -165,6 +170,24 @@ export async function websiteNavigationExtras(
   format: Format,
   temp: TempContext,
 ): Promise<FormatExtras> {
+  const usesCustomLayout = !formatHasPageLayout(format) ||
+    formatHasCustomLayout(format);
+
+  const hasToc = () => {
+    // The user has explicitly disabled
+    if (disabledTableOfContents(format)) {
+      return false;
+    } else if (hasTableOfContents(flags, format)) {
+      // The user has explicitly enabled
+      return true;
+    } else if (usesCustomLayout) {
+      // This is a custom layout or none
+      return false;
+    } else {
+      return true;
+    }
+  };
+
   // find the relative path for this input
   const inputRelative = relative(project.dir, source);
 
@@ -190,7 +213,7 @@ export async function websiteNavigationExtras(
   const disableNavbar = format.metadata[kSiteNavbar] !== undefined &&
     format.metadata[kSiteNavbar] === false;
   const disableSidebar = format.metadata[kSiteSidebar] !== undefined &&
-    format.metadata[kSiteSidebar] === false;
+      format.metadata[kSiteSidebar] === false || usesCustomLayout;
 
   // determine body envelope
   const target = await resolveInputTarget(project, inputRelative);
@@ -198,7 +221,7 @@ export async function websiteNavigationExtras(
   const sidebar = sidebarForHref(href);
 
   const nav: Record<string, unknown> = {
-    hasToc: hasTableOfContents(flags, format),
+    hasToc: hasToc(),
     [kTocLocation]: format.metadata[kTocLocation] || "right",
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
@@ -209,7 +232,7 @@ export async function websiteNavigationExtras(
 
   // Determine the previous and next page
   const pageNavigation = nextAndPrevious(href, sidebar);
-  if (navigation.pageNavigation) {
+  if (navigation.pageNavigation && !usesCustomLayout) {
     nav.prevPage = pageNavigation.prevPage;
     nav.nextPage = pageNavigation.nextPage;
 
