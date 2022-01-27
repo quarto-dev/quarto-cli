@@ -27,11 +27,14 @@
   description: Hyperlink target for the figure
 
 - name: fig-align
+  tags:
+    contexts: [document-figures]
+    formats: [docx, rtf, $odt-all, $pdf-all, $html-all]
   schema:
     maybeArrayOf:
       enum: [default, left, right, center]
   default: default
-  description: Horizontal alignment for the figure (`default`, `left`, `right`, or `center`)
+  description: Figure horizontal alignment (`default`, `left`, `right`, or `center`)
 
 - name: fig-alt
   tags:
@@ -44,6 +47,7 @@
 - name: fig-env
   tags:
     formats: [$pdf-all]
+    contexts: [document-figures]
   schema:
     maybeArrayOf: string
   description: LaTeX environment for figure output
@@ -51,9 +55,17 @@
 - name: fig-pos
   tags:
     formats: [$pdf-all]
+    contexts: [document-figures]
   schema:
     maybeArrayOf: string
-  description: LaTeX figure position arrangement to be used in `\begin{figure}[]`.
+  description:
+    short: LaTeX figure position arrangement to be used in `\begin{figure}[]`.
+    long: |
+      LaTeX figure position arrangement to be used in `\begin{figure}[]`.
+
+      Computational figure output that is accompanied by the code 
+      that produced it is given a default value of `fig-pos="H"` (so 
+      that the code and figure are not inordinately separated).
 
 - name: fig-scap
   tags:
