@@ -69,7 +69,7 @@
     </nav>
 <% } %>
 
-<% if (nav.sidebar && nav.layout) { %>
+<% if (nav.sidebar && nav.layout && (nav.layout === "article" || nav.layout === "full")) { %>
   <% let textCss = nav.sidebar.type ? nav.sidebar.type === "dark" ? " text-light" : " text-dark" :  "" %>
   <nav class="quarto-secondary-nav<%= textCss %>" 
         data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" 
@@ -92,7 +92,13 @@
 <% if (nav.layout) { %>
 
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-<%- nav.layout %><%- nav.navbar ? ' page-navbar': ''%>">
+<% 
+let gridClasses = "";
+if (nav.layout === "article" || nav.layout === "full") {
+  gridClasses = " page-columns page-rows-contents";
+} 
+%>
+<div id="quarto-content" class="quarto-container<%- gridClasses %> page-layout-<%- nav.layout %><%- nav.navbar ? ' page-navbar': ''%>">
 
 <!-- sidebar -->
 <% if (nav.sidebar || nav['toc-location'] === "left") { %>

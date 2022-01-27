@@ -263,3 +263,18 @@ export function removeFootnoteBacklinks(footnotesEl: Element) {
     backlink.remove();
   }
 }
+
+export function setMainColumn(doc: Document, column: string) {
+  const mainEl = doc.querySelector("main.content");
+  if (mainEl) {
+    // Clear existing column
+    for (const clz of mainEl.classList) {
+      if (clz.startsWith("column-")) {
+        mainEl.classList.remove(clz);
+      }
+    }
+
+    // Set the new column
+    mainEl.classList.add(column);
+  }
+}
