@@ -70,7 +70,7 @@ knitr_hooks <- function(format, resourceDir) {
     
     # use gifski as default animation hook for non-latex output
     if (identical(fig.show, "animate")) {
-      if (!knitr:::is_latex_output() && is.null(options[["animation.hook"]])) {
+      if (!is_latex_output(format$pandoc$to) && is.null(options[["animation.hook"]])) {
         options[["animation.hook"]] <- "gifski"
       }
       
@@ -404,7 +404,7 @@ knitr_hooks <- function(format, resourceDir) {
 knitr_plot_hook <- function(format) {
 
   htmlOutput <- knitr:::is_html_output(format$pandoc$to)
-  latexOutput <- knitr:::is_latex_output()
+  latexOutput <- is_latex_output(format$pandoc$to)
   defaultFigPos <- format$render[["fig-pos"]]
 
   function(x, options) {
@@ -512,7 +512,7 @@ knitr_plot_hook <- function(format) {
       options[["fig.subcap"]] <- NULL
       
       # check for latex
-      if (knitr:::is_latex_output()) {
+      if (is_latex_output(format$pandoc$to)) {
         
         # include dependency on animate package
         knitr::knit_meta_add(list(
@@ -917,5 +917,8 @@ latex_animation <- function(x, options) {
           sub(sprintf('%d$', fig.num), '', xfun::sans_ext(x)), 1L, fig.num)
 }
 
+is_latex_output <- function(to) {
+  knitr:::is_latex_output() || identical(to, "pdf")
+}
 
 
