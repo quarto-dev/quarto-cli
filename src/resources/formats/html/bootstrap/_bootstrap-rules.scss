@@ -244,7 +244,7 @@ body.docked {
   grid-row: content-top / page-bottom;
 }
 
-.page-column .content {
+.page-columns .content {
   grid-column: body-content-start / body-content-end;
   grid-row: content-top / content-bottom;
   align-content: flex-start;
