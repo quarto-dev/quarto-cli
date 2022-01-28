@@ -34,7 +34,6 @@ import {
 } from "../../../../format/html/format-html-shared.ts";
 import {
   kFieldCategories,
-  kPageColumn,
   Listing,
   ListingDescriptor,
   ListingItem,
@@ -126,15 +125,9 @@ export async function listingHtmlDependencies(
     return Promise.resolve([]);
   };
 
-  const listingFinalizer = (doc: Document) => {
-    listingFinalize(doc, options);
-    return Promise.resolve();
-  };
-
   return {
     [kIncludeInHeader]: [scriptFileForScripts(scripts, temp)],
     [kHtmlPostprocessors]: listingPostProcessor,
-    [kHtmlFinalizers]: listingFinalizer,
     [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
     [kDependencies]: htmlDependencies,
     [kSassBundles]: [listingSassBundle()],
@@ -212,19 +205,6 @@ function listingPostProcess(
     const rightSidebar = doc.getElementById(kMarginSidebarId);
     rightSidebar?.appendChild(headingEl);
     rightSidebar?.appendChild(categoriesEl);
-  }
-}
-
-function listingFinalize(
-  doc: Document,
-  options: ListingSharedOptions,
-) {
-  // Find the first user specified column in the listings
-  const listingColumn = options[kPageColumn];
-
-  // Move the main content element to the correct column
-  if (listingColumn) {
-    setMainColumn(doc, listingColumn);
   }
 }
 

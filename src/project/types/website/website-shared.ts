@@ -114,6 +114,21 @@ export function websiteNavigationConfig(project: ProjectContext) {
       ? [sidebar]
       : undefined) as Sidebar[] | undefined;
 
+  // Ensure that sidebars have the complete values that are expected
+  if (sidebars && sidebars[0]) {
+    if (sidebars[0].style === undefined) {
+      sidebars[0].style = "floating";
+    }
+
+    if (sidebars[0].contents === undefined) {
+      sidebars[0].contents = [];
+    }
+
+    if (sidebars[0].tools === undefined) {
+      sidebars[0].tools = [];
+    }
+  }
+
   // if there is more than one sidebar then propagate options from the
   // first sidebar to the others
   if (sidebars && sidebars.length > 1) {

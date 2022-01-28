@@ -64,7 +64,7 @@ export const kFieldDescription = "description";
 export const kFieldReadingTime = "reading-time";
 export const kFieldCategories = "categories";
 
-export const kPageColumn = "page-column";
+// Shared options
 export const kCategoryStyle = "category-style";
 
 // Sort keys
@@ -89,7 +89,6 @@ export type CategoryStyle =
 
 export interface ListingSharedOptions {
   [kFieldCategories]: boolean;
-  [kPageColumn]?: string;
   [kCategoryStyle]: CategoryStyle;
 }
 

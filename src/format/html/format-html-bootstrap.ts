@@ -42,7 +42,6 @@ import {
   kPageLayoutArticle,
   kPageLayoutCustom,
   kPageLayoutFull,
-  kPageLayoutNone,
   setMainColumn,
 } from "./format-html-shared.ts";
 
@@ -91,11 +90,6 @@ export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
 }
 
-export function formatHasPageLayout(format: Format) {
-  return format.metadata[kPageLayout] === undefined ||
-    format.metadata[kPageLayout] !== kPageLayoutNone;
-}
-
 export function formatHasFullLayout(format: Format) {
   return format.metadata[kPageLayout] === kPageLayoutFull;
 }
@@ -104,10 +98,6 @@ export function formatHasArticleLayout(format: Format) {
   return format.metadata[kPageLayout] === undefined ||
     format.metadata[kPageLayout] === kPageLayoutArticle ||
     format.metadata[kPageLayout] === kPageLayoutFull;
-}
-
-export function formatHasCustomLayout(format: Format) {
-  return format.metadata[kPageLayout] == kPageLayoutCustom;
 }
 
 export function bootstrapFormatDependency() {
@@ -162,8 +152,7 @@ export function boostrapExtras(
         kPageLayoutArticle,
       ),
     }
-    : formatHasCustomLayout(format)
-    ? {
+    : {
       before: renderTemplate("before-body-custom.ejs", kPageLayoutCustom),
       afterPreamble: renderTemplate(
         "after-body-custom-preamble.ejs",
@@ -173,8 +162,7 @@ export function boostrapExtras(
         "after-body-custom-postamble.ejs",
         kPageLayoutCustom,
       ),
-    }
-    : undefined;
+    };
 
   return {
     pandoc: {
@@ -356,7 +344,6 @@ function bootstrapHtmlFinalizer(format: Format) {
     const fullLayout = formatHasFullLayout(format);
     if (fullLayout) {
       const column = suggestColumn(doc);
-      console.log(column);
       setMainColumn(doc, column);
     }
     // Note whether we need a narrow or wide margin layout
