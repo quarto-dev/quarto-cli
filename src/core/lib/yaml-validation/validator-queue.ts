@@ -46,7 +46,6 @@ export async function withValidator<T>(
   schema: Schema,
   fun: (validator: YAMLSchema) => Promise<T>,
 ): Promise<T> {
-  debugger;
   const schemaName = getSchemaName(schema); // name of schema so we can look it up on the validator cache
   if (validatorQueues[schemaName] === undefined) {
     validatorQueues[schemaName] = new PromiseQueue();
