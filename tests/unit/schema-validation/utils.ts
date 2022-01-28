@@ -28,12 +28,12 @@ export async function fullInit() {
 
   const compiledSchemaCache: Record<string, any> = {};
 
-  // setObtainFullValidator((schema) => {
-  //   if (compiledSchemaCache[schema.$id] === undefined) {
-  //     compiledSchemaCache[schema.$id] = compileSchema(schema);
-  //   }
-  //   return compiledSchemaCache[schema.$id];
-  // });
+  setObtainFullValidator((schema) => {
+    if (compiledSchemaCache[schema.$id] === undefined) {
+      compiledSchemaCache[schema.$id] = compileSchema(schema);
+    }
+    return compiledSchemaCache[schema.$id];
+  });
 }
 
 export async function yamlValidationUnitTest(
