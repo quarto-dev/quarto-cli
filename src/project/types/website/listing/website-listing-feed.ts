@@ -88,13 +88,6 @@ export async function createFeed(
   options: ListingFeedOptions,
   format: Format,
 ) {
-  // The path to the feed file
-  const [dir, stem] = dirAndStem(source);
-  const targetFile = options.type === "full"
-    ? `${stem}.xml.staged`
-    : `${stem}.xml`;
-  const feedPath = join(dir, targetFile);
-
   // First, be sure that we have a site URL, otherwise we can't
   // create a valid feed
   const siteUrl = websiteBaseurl(project.config);
@@ -129,6 +122,80 @@ export async function createFeed(
     items.push(...descriptor.items);
   }
 
+  // The path to the feed file
+  const [dir, stem] = dirAndStem(source);
+  const targetExt = options.type === "full" ? "xml.staged" : "xml";
+  const targetFile = `${stem}.${targetExt}`;
+  const feedPath = join(dir, targetFile);
+
+  // Categories to render
+  const categoriesToRender = options[kFieldCategories]?.map((category) => {
+    return {
+      category,
+      file: join(dir, `${stem}-${category.toLocaleLowerCase()}.${targetExt}`),
+    };
+  });
+
+  const feedFiles: string[] = [];
+  // Render the main feed
+  await renderFeed(feed, items, options, format, targetFile);
+  feedFiles.push(feedPath);
+
+  // Render the categories feed
+  if (categoriesToRender) {
+    for (const categoryToRender of categoriesToRender) {
+      await renderCategoryFeed(
+        categoryToRender.category,
+        feed,
+        items,
+        options,
+        format,
+        categoryToRender.file,
+      );
+      feedFiles.push(categoryToRender.file);
+    }
+  }
+
+  return feedFiles;
+}
+
+async function renderCategoryFeed(
+  category: string,
+  feed: FeedMetadata,
+  items: ListingItem[],
+  options: ListingFeedOptions,
+  format: Format,
+  feedPath: string,
+) {
+  // Category title
+  const feedMeta = { ...feed };
+  feedMeta.title = `${feedMeta.title} - ${category}`;
+
+  const categoryItems = items.filter((item) => {
+    const categories = item[kFieldCategories];
+    if (categories) {
+      return (categories as string[]).includes(category);
+    } else {
+      return false;
+    }
+  });
+
+  await renderFeed(
+    feed,
+    categoryItems,
+    options,
+    format,
+    feedPath,
+  );
+}
+
+async function renderFeed(
+  feed: FeedMetadata,
+  items: ListingItem[],
+  options: ListingFeedOptions,
+  format: Format,
+  feedPath: string,
+) {
   // Prepare the items to generate a feed
   const feedItems = prepareItems(items, options).map((item) => {
     const title = item.title || format.language[kUntitled];
@@ -154,15 +221,8 @@ export async function createFeed(
     } as FeedItem;
   });
 
-  // The feed files that have been generated
-  const feedFiles: string[] = [];
-
   // Compute the file to write to
   await generateFeed(feed, feedItems, feedPath);
-
-  feedFiles.push(feedPath);
-
-  return feedFiles;
 }
 
 async function generateFeed(

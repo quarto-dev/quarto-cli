@@ -102,6 +102,7 @@ export interface ListingFeedOptions {
   [kType]?: "partial" | "full";
   [kLanguage]?: string;
   [kDescription]?: string;
+  [kFieldCategories]?: string[];
 }
 
 export interface ListingSharedOptions {
