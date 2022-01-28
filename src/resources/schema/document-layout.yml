@@ -61,11 +61,11 @@
 
 - name: page-layout
   schema:
-    enum: [article, full, custom, none]
+    enum: [article, full, custom]
   default: article
   tags:
     formats: [$html-doc]
-  description: The page layout to use for this document (`article`, `full`, `custom`, or `none`)
+  description: The page layout to use for this document (`article`, `full`, or `custom`)
 
 - name: page-width
   tags:
