@@ -11,7 +11,7 @@ import { unitTest } from "../test.ts";
 
 unitTest(
   "environment",
-  () => {
+  async () => {
     const d = "B4CE1323-5ED7-43A8-AEF0-4409F42CF3C8";
     const path = getenv("D684CD56-D4DF-476D-ACB7-7E5D404BC743", d);
     assertEquals(

@@ -11,11 +11,16 @@ import { readYaml } from "../yaml.ts";
 import { error } from "log/mod.ts";
 import { schemaPath } from "./utils.ts";
 import { buildSchemaResources } from "./from-yaml.ts";
+
+import {
+  ValidatorErrorHandlerFunction,
+} from "../lib/yaml-validation/errors.ts";
+
 import {
   addValidatorErrorHandler,
-  ValidatorErrorHandlerFunction,
   withValidator,
 } from "../lib/yaml-validation/validator-queue.ts";
+
 import {
   getSchemaDefinition,
   hasSchemaDefinition,
@@ -51,7 +56,7 @@ export function defineCached(
     }
     await define(schema);
     for (const fun of errorHandlers) {
-      await addValidatorErrorHandler(schema, fun);
+      addValidatorErrorHandler(schema, fun);
     }
 
     return refSchema(

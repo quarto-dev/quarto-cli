@@ -4968,7 +4968,8 @@ if (typeof exports === 'object') {
       heading = `${locationString(msg.location)} ${heading}`;
     }
     if (msg.fileName) {
-      heading = `In file ${msg.fileName} ${heading}`;
+      heading = `In file ${msg.fileName}
+${heading}`;
     }
     const strings = [
       heading,
@@ -4994,8 +4995,15 @@ if (typeof exports === 'object') {
   }
   function locationString(loc) {
     const { start, end } = loc;
-    const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
-    return locStr;
+    if (start.line === end.line) {
+      if (start.column === end.column) {
+        return `(line ${start.line + 1}, column ${start.column + 1})`;
+      } else {
+        return `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`;
+      }
+    } else {
+      return `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
+    }
   }
   function lines(text) {
     return text.split(/\r?\n/);
@@ -7998,6 +8006,7 @@ if (typeof exports === 'object') {
   function setValidatorModulePath(path) {
     validatorModulePath = path;
   }
+  var obtainFullValidator = (schema) => void 0;
   function stagedValidator(schema) {
     schema = resolveSchema(schema);
     return async (value) => {
@@ -8005,7 +8014,10 @@ if (typeof exports === 'object') {
         return [];
       }
       await ensureValidatorModule();
-      const validator = _module[schema.$id];
+      const validator = _module[schema.$id] || obtainFullValidator(schema);
+      if (validator === void 0) {
+        throw new Error(`Internal error: ${schema.$id} not compiled and schema compiler not available`);
+      }
       if (validator(value)) {
         throw new Error(`Internal error: validators disagree on schema ${schema.$id}`);
       }
@@ -8577,14 +8589,85 @@ if (typeof exports === 'object') {
       return true;
     }
   };
-  var yamlValidators = {};
-  var validatorQueues = {};
-  function checkForTypeMismatch(error, _parse, _schema) {
+  function isEmptyValue(error) {
+    const rawVerbatimInput = getVerbatimInput(error);
+    return rawVerbatimInput.trim().length === 0;
+  }
+  function getLastFragment(instancePath) {
+    const splitPath = instancePath.split("/");
+    if (splitPath.length === 0) {
+      return void 0;
+    }
+    const lastFragment = splitPath[splitPath.length - 1];
+    if (lastFragment === "") {
+      return void 0;
+    }
+    const maybeNumber = Number(lastFragment);
+    if (!isNaN(maybeNumber)) {
+      return maybeNumber;
+    }
+    return lastFragment;
+  }
+  function reindent(str) {
+    return str;
+  }
+  function innerDescription(error, parse, schema) {
+    const schemaPath = error.ajvError.schemaPath.split("/").slice(1);
+    const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
+    const innerSchema = errorSchema ? [errorSchema] : navigateSchema(schemaPath.map(decodeURIComponent), schema);
+    return innerSchema.map((s) => s.description).join(", ");
+  }
+  function formatHeading(error, parse, schema) {
+    const rawVerbatimInput = getVerbatimInput(error);
+    const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
+    const empty = isEmptyValue(error);
+    const lastFragment = getLastFragment(error.instancePath);
+    switch (typeof lastFragment) {
+      case "undefined":
+        if (empty) {
+          return "YAML object is missing.";
+        } else {
+          const innerDesc2 = innerDescription(error, parse, schema);
+          return `YAML object ${verbatimInput} must instead ${innerDesc2}`;
+        }
+      case "number":
+        const innerDesc = innerDescription(error, parse, schema);
+        if (empty) {
+          return `Array entry is empty but it must instead ${innerDesc}.`;
+        } else {
+          return `Array entry ${verbatimInput} must instead ${innerDesc}.`;
+        }
+      case "string": {
+        const formatLastFragment = blue(lastFragment);
+        const innerDesc2 = innerDescription(error, parse, schema);
+        if (empty) {
+          return `Field ${formatLastFragment} is empty but it must instead ${innerDesc2}`;
+        } else {
+          return `Field ${formatLastFragment} is ${verbatimInput} but it must instead ${innerDesc2}`;
+        }
+      }
+    }
+  }
+  function improveErrorHeading(error, parse, schema) {
+    return {
+      ...error,
+      niceError: {
+        ...error.niceError,
+        heading: formatHeading(error, parse, schema)
+      }
+    };
+  }
+  function setDefaultErrorHandlers(validator) {
+    validator.addHandler(improveErrorHeading);
+    validator.addHandler(checkForTypeMismatch);
+    validator.addHandler(checkForBadBoolean);
+  }
+  function checkForTypeMismatch(error, parse, schema) {
     const rawVerbatimInput = getVerbatimInput(error);
     const verbatimInput = quotedStringColor(rawVerbatimInput);
     if (error.ajvError.keyword === "type" && rawVerbatimInput.length > 0) {
       const newError = {
-        heading: `The value ${verbatimInput} must be a ${error.ajvError.params.type}.`,
+        heading: formatHeading(error, parse, schema),
         error: [
           `The value ${verbatimInput} is a ${typeof error.violatingObject.result}.`
         ],
@@ -8600,7 +8683,7 @@ if (typeof exports === 'object') {
     }
     return error;
   }
-  function checkForBadBoolean(error, _parse, schema) {
+  function checkForBadBoolean(error, parse, schema) {
     schema = error.ajvError.params.schema;
     if (!(typeof error.violatingObject.result === "string" && error.ajvError.keyword === "type" && (schema && schema.type === "boolean"))) {
       return error;
@@ -8617,12 +8700,11 @@ if (typeof exports === 'object') {
     } else {
       return error;
     }
-    const heading = `The value ${verbatimInput} must be a boolean`;
     const errorMessage = `The value ${verbatimInput} is a string.`;
     const suggestion1 = `Quarto uses YAML 1.2, which interprets booleans strictly.`;
     const suggestion2 = `Try using ${quotedStringColor(String(fix))} instead.`;
     const newError = {
-      heading,
+      heading: formatHeading(error, parse, schema),
       error: [errorMessage],
       info: [],
       location: error.niceError.location
@@ -8635,6 +8717,8 @@ if (typeof exports === 'object') {
       niceError: newError
     };
   }
+  var yamlValidators = {};
+  var validatorQueues = {};
   function getSchemaName(schema) {
     const schemaName = schema["$id"] || schema["$ref"];
     if (schemaName === void 0) {
@@ -8649,11 +8733,11 @@ if (typeof exports === 'object') {
     }
     const validator = new YAMLSchema(schema);
     yamlValidators[schemaName] = validator;
-    validator.addHandler(checkForTypeMismatch);
-    validator.addHandler(checkForBadBoolean);
+    setDefaultErrorHandlers(validator);
     return validator;
   }
   async function withValidator(schema, fun) {
+    debugger;
     const schemaName = getSchemaName(schema);
     if (validatorQueues[schemaName] === void 0) {
       validatorQueues[schemaName] = new PromiseQueue();

@@ -58,7 +58,7 @@ export function tidyverseFormatError(msg: TidyverseError) {
     heading = `${locationString(msg.location)} ${heading}`;
   }
   if (msg.fileName) {
-    heading = `In file ${msg.fileName} ${heading}`;
+    heading = `In file ${msg.fileName}\n${heading}`;
   }
   const strings = [
     heading,
@@ -82,21 +82,26 @@ export function addFileInfo(msg: TidyverseError, src: MappedString) {
 
 export function addInstancePathInfo(msg: TidyverseError, instancePath: string) {
   if (instancePath !== "") {
-    const niceInstancePath = instancePath.trim().slice(1).split("/").map(s => colors.blue(s)).join(":");
+    const niceInstancePath = instancePath.trim().slice(1).split("/").map((s) =>
+      colors.blue(s)
+    ).join(":");
     msg.info.push(`The error happened in location ${niceInstancePath}.`);
   }
 }
 
 export function locationString(loc: ErrorLocation) {
   const { start, end } = loc;
-  const locStr =
-    (start.line === end.line
-      ? `(line ${start.line + 1}, columns ${start.column + 1}--${
+  if (start.line === end.line) {
+    if (start.column === end.column) {
+      return `(line ${start.line + 1}, column ${start.column + 1})`;
+    } else {
+      return `(line ${start.line + 1}, columns ${start.column + 1}--${
         end.column + 1
-      })`
-      : `(line ${start.line + 1}, column ${
-        start.column +
-        1
-      } through line ${end.line + 1}, column ${end.column + 1})`);
-  return locStr;
+      })`;
+    }
+  } else {
+    return `(line ${start.line + 1}, column ${start.column + 1} through line ${
+      end.line + 1
+    }, column ${end.column + 1})`;
+  }
 }

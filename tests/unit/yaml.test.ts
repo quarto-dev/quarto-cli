@@ -18,7 +18,7 @@ other:
     - bar
 `;
 
-unitTest("yaml", () => {
+unitTest("yaml", async () => {
   const yaml = readYamlFromString(yamlStr) as Metadata;
 
   // Tests of the result

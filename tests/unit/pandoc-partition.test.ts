@@ -9,7 +9,7 @@ import { Metadata } from "../../src/config/types.ts";
 import { partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
 import { unitTest } from "../test.ts";
 
-unitTest("partitionYaml", () => {
+unitTest("partitionYaml", async () => {
   const frontMatter = "---\ntitle: foo\n---";
   const headingText = "## Hello World {#cool .foobar foo=bar}";
   const markdown = "\n\nThis is a paragraph\n\n:::{#refs}\n:::\n";

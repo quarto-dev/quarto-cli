@@ -10,7 +10,7 @@ import { guessChunkOptionsFormat } from "../../src/core/lib/guess-chunk-options-
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
 
-unitTest("guess-chunk-options-format-test", () => {
+unitTest("guess-chunk-options-format-test", async () => {
   const knitrOptionsChunk = `rmdworkflow,
 echo = FALSE,
 fig.cap = "A diagram illustrating how an R Markdown document

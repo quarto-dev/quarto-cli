@@ -16,6 +16,7 @@ import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
+import { relative } from "path/mod.ts";
 
 export async function validateDocumentFromSource(
   src: string,
@@ -27,6 +28,10 @@ export async function validateDocumentFromSource(
   filename?: string,
 ): Promise<LocalizedError[]> {
   const result: LocalizedError[] = [];
+
+  if (filename?.startsWith("/")) {
+    filename = relative(Deno.cwd(), filename);
+  }
   const nb = await breakQuartoMd(asMappedString(src, filename));
 
   if (nb.cells.length < 1) {
