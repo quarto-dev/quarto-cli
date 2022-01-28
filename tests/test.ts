@@ -73,7 +73,7 @@ export interface ExecuteOutput {
 
 export function unitTest(
   name: string,
-  ver: VoidFunction,
+  ver: () => Promise<unknown>, // VoidFunction,
 ) {
   test({
     name,
@@ -85,9 +85,8 @@ export function unitTest(
     verify: [
       {
         name: `${name}`,
-        verify: (_outputs: ExecuteOutput[]) => {
-          ver();
-          return Promise.resolve();
+        verify: async (_outputs: ExecuteOutput[]) => {
+          await ver();
         },
       },
     ],

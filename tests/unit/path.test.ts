@@ -21,7 +21,8 @@ import { docs } from "../utils.ts";
 const workingDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
 const emptyDir = join(workingDir, "empty");
 
-unitTest("path - removeIfExists", () => {
+// deno-lint-ignore require-await
+unitTest("path - removeIfExists", async () => {
   Deno.mkdirSync(emptyDir);
   removeIfExists(emptyDir);
   assert(!existsSync(emptyDir), "Directory not removed");
@@ -33,7 +34,8 @@ unitTest("path - removeIfExists", () => {
   }
 });
 
-unitTest("path - removeIfEmptyDir", () => {
+// deno-lint-ignore require-await
+unitTest("path - removeIfEmptyDir", async () => {
   Deno.mkdirSync(emptyDir);
   removeIfEmptyDir(emptyDir);
   assert(!existsSync(emptyDir), "Empty directory was not removed");
@@ -52,7 +54,8 @@ interface DirStem {
   dir: string;
   stem: string;
 }
-unitTest("path - dirAndStem", () => {
+// deno-lint-ignore require-await
+unitTest("path - dirAndStem", async () => {
   const dirStemTests: DirStem[] = [
     {
       path: "foo/bar.txt",
@@ -96,7 +99,7 @@ interface GlobTest {
 }
 const globPath = docs("globs");
 
-unitTest("path - resolvePathGlobs", () => {
+unitTest("path - resolvePathGlobs", async () => {
   const globTests: GlobTest[] = [{
     name: "simple recursive qmd",
     globs: ["*.qmd"],

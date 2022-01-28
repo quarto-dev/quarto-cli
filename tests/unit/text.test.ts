@@ -8,7 +8,7 @@ import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
 import { lines } from "../../src/core/text.ts";
 
-unitTest("text - lines()", () => {
+unitTest("text - lines()", async () => {
   const texts = ["a", "b", "c"];
   const splits = ["\n", "\r\n"];
   splits.forEach((split) => {
