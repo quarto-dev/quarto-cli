@@ -33,15 +33,78 @@ export function findMissingFontsAndPackages(
 export function needsRecompilation(log: string) {
   if (existsSync(log)) {
     const logContents = Deno.readTextFileSync(log);
-    return logMatchers.some((matcher) => {
+
+    // First look for an explicit request to recompile
+    const explicitMatches = explicitMatchers.some((matcher) => {
       return logContents.match(matcher);
     });
+
+    // If there are no explicit requests to re-compile
+    // Look for unresolved 'resolving' matches
+    if (explicitMatches) {
+      return true;
+    } else {
+      const unresolvedMatches = resolvingMatchers.some((resolvingMatcher) => {
+        // First see if there is a message indicating a match of something that
+        // might subsequently resolve
+        resolvingMatcher.unresolvedMatch.lastIndex = 0;
+        let unresolvedMatch = resolvingMatcher.unresolvedMatch.exec(
+          logContents,
+        );
+        const unresolvedMatches = [];
+
+        while (unresolvedMatch) {
+          // Now look for a message indicating that the issue
+          // has been resolved
+          const resolvedRegex = new RegExp(
+            resolvingMatcher.resolvedMatch.replace(
+              kCaptureToken,
+              unresolvedMatch[1],
+            ),
+            "gm",
+          );
+
+          if (!logContents.match(resolvedRegex)) {
+            unresolvedMatches.push(unresolvedMatch[1]);
+          }
+
+          // Continue looking for other unresolved matches
+          unresolvedMatch = resolvingMatcher.unresolvedMatch.exec(
+            logContents,
+          );
+        }
+
+        if (unresolvedMatches.length > 0) {
+          // There is an unresolved match
+          return true;
+        } else {
+          // There is not an unresolved match
+          return false;
+        }
+      });
+      return !!unresolvedMatches;
+    }
   }
   return false;
 }
-const logMatchers = [
+const explicitMatchers = [
   /(Rerun to get |Please \(re\)run | Rerun LaTeX\.)/, // explicitly request recompile
-  /xpos seems to be \\@mn@currxpos/, // this is using a margin type layout and elements still haven't gotten final positions
+];
+
+// Resolving matchers are matchers that may resolve later in the log
+// So inspect the for the first match, then if there is a match,
+// inspect for the second match, which will indicate that the issue has
+// been resolved.
+// For example:
+// Package marginnote Info: xpos seems to be \@mn@currxpos  on input line 213.   <- unpositioned element
+// Package marginnote Info: xpos seems to be 367.46002pt on input line 213.      <- positioned later in the log
+const kCaptureToken = "${unresolvedCapture}";
+const resolvingMatchers = [
+  {
+    unresolvedMatch: /^.*xpos seems to be \\@mn@currxpos.*?line ([0-9]*)\.$/gm,
+    resolvedMatch:
+      `^.*xpos seems to be [0-9]*\.[0-9]*pt.*?line ${kCaptureToken}\.$`,
+  },
 ];
 
 // Finds missing hyphenation files (these appear as warnings in the log file)

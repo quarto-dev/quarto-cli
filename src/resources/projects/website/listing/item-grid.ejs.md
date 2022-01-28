@@ -3,7 +3,7 @@
 const fields = listing.fields;
 
 // Card alignment
-const align = listing["grid-item-alignment"] || "left";
+const align = listing["grid-item-align"] || "left";
 
 // Borders
 const hideBorders = listing['grid-item-border'] === false;

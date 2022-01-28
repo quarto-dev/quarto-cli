@@ -209,6 +209,18 @@ body,
   grid-column: body-content-start / body-content-end;
 }
 
+.page-columns.column-page > * {
+  grid-column: page-start / page-end;
+}
+
+.page-columns.column-page-left > * {
+  grid-column: page-start / body-content-end;
+}
+
+.page-columns.column-page-right > * {
+  grid-column: body-content-start / page-end;
+}
+
 // Automatically creates new rows
 .page-rows {
   grid-auto-rows: auto;

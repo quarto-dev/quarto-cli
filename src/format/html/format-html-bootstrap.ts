@@ -826,11 +826,22 @@ function suggestColumn(doc: Document) {
   const leftSidebar = hasContents(kSidebarId);
   const rightSidebar = hasContents(kMarginSidebarId);
 
-  if (leftSidebar && rightSidebar) {
+  const columnClasses = getColumnClasses(doc);
+  const leftContent = [...fullOccludeClz, ...leftOccludeClz].some((clz) => {
+    return columnClasses.has(clz);
+  });
+  const rightContent = [...fullOccludeClz, ...rightOccludeClz].some((clz) => {
+    return columnClasses.has(clz);
+  });
+
+  const leftUsed = leftSidebar || leftContent;
+  const rightUsed = rightSidebar || rightContent;
+
+  if (leftUsed && rightUsed) {
     return "column-body";
-  } else if (leftSidebar) {
+  } else if (leftUsed) {
     return "column-page-right";
-  } else if (rightSidebar) {
+  } else if (rightUsed) {
     return "column-page-left";
   } else {
     return "column-page";
@@ -838,3 +849,39 @@ function suggestColumn(doc: Document) {
 }
 const kSidebarId = "quarto-sidebar";
 const kMarginSidebarId = "quarto-margin-sidebar";
+
+const fullOccludeClz = [
+  "column-page",
+  "column-screen",
+  "column-screen-inset",
+];
+const leftOccludeClz = [
+  "column-page-left",
+  "column-screen-inset-left",
+  "column-screen-left",
+];
+const rightOccludeClz = [
+  "column-margin",
+  "column-page-right",
+  "column-screen-inset-right",
+  "column-screen-right",
+  "margin-caption",
+  "margin-ref",
+];
+
+const getColumnClasses = (doc: Document) => {
+  const classes = new Set<string>();
+  const colNodes = getColumnLayoutElements(doc);
+  for (const colNode of colNodes) {
+    const colEl = colNode as Element;
+    colEl.classList.forEach((clz) => {
+      if (
+        clz === "margin-caption" || clz === "margin-ref" ||
+        clz.startsWith("column-")
+      ) {
+        classes.add(clz);
+      }
+    });
+  }
+  return classes;
+};
