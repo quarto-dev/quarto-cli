@@ -19,11 +19,11 @@
   },
     "expected": [
 	{
-	    "end.column": 7,
+	    "end.column": 6,
 	    "end.row": 3,
-	    "start.column": 7,
+	    "start.column": 2,
 	    "start.row": 3,
-	    "text": "Field \u001b[34mhtml\u001b[39m is empty but it must instead be exactly one of: an object, 'default'",
+	    "text": "Key \u001b[34mhtml\u001b[39m has empty value but it must instead be exactly one of: an object, 'default'",
 	    "type": "error"
 	}
     ]

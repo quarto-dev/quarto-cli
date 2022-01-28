@@ -1,4 +1,4 @@
-import { ensureAjv, YAMLSchema } from "../../../src/core/schema/yaml-schema.ts";
+import { ensureAjv } from "../../../src/core/schema/yaml-schema.ts";
 import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
 import { asMappedString } from "../../../src/core/mapped-text.ts";
 
@@ -11,6 +11,8 @@ import {
 } from "../../../src/core/lib/yaml-validation/state.ts";
 import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schema.ts";
 import { yamlValidationUnitTest } from "./utils.ts";
+
+import { YAMLSchema } from "../../../src/core/lib/yaml-validation/yaml-schema.ts";
 
 yamlValidationUnitTest("schema-validation-hello-world", async () => {
   const src = `
