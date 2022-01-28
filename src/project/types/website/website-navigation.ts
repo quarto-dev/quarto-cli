@@ -39,8 +39,7 @@ import {
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import {
   formatDarkMode,
-  formatHasCustomLayout,
-  formatHasPageLayout,
+  formatHasArticleLayout,
   formatPageLayout,
 } from "../../../format/html/format-html-bootstrap.ts";
 
@@ -170,9 +169,7 @@ export async function websiteNavigationExtras(
   format: Format,
   temp: TempContext,
 ): Promise<FormatExtras> {
-  const usesCustomLayout = !formatHasPageLayout(format) ||
-    formatHasCustomLayout(format);
-
+  const usesCustomLayout = !formatHasArticleLayout(format);
   const hasToc = () => {
     // The user has explicitly disabled
     if (disabledTableOfContents(format)) {

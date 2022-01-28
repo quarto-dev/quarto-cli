@@ -40,7 +40,6 @@ export const kMinimal = "minimal";
 export const kPageLayout = "page-layout";
 export const kPageLayoutArticle = "article";
 export const kPageLayoutCustom = "custom";
-export const kPageLayoutNone = "none";
 export const kPageLayoutFull = "full";
 export const kComments = "comments";
 export const kHypothesis = "hypothesis";
