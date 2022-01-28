@@ -60,13 +60,11 @@ export async function withValidator<T>(
       const validator = getValidator(schema);
       result = await fun(validator);
     } catch (e) {
-      console.log("catch");
       error = e;
     }
   });
 
   if (error !== undefined) {
-    console.log("There was an error!", error);
     throw error;
   }
 
