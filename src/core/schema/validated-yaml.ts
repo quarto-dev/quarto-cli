@@ -15,6 +15,7 @@ import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { Schema } from "../lib/yaml-validation/schema.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
+import { relative } from "path/mod.ts";
 
 // https://stackoverflow.com/a/41429145
 export class ValidationError extends Error {
@@ -37,7 +38,12 @@ export function readAndValidateYamlFromFile(
     throw new Error(`YAML file ${file} not found.`);
   }
 
-  const contents = asMappedString(Deno.readTextFileSync(file), file);
+  let shortFileName = file;
+  if (shortFileName.startsWith("/")) {
+    shortFileName = relative(Deno.cwd(), shortFileName);
+  }
+
+  const contents = asMappedString(Deno.readTextFileSync(file), shortFileName);
   return readAndValidateYamlFromMappedString(contents, schema, errorMessage);
 }
 

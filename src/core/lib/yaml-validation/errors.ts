@@ -16,9 +16,7 @@ import {
   YAMLSchema,
 } from "./yaml-schema.ts";
 
-import {
-  Schema
-} from "./schema.ts";
+import { Schema } from "./schema.ts";
 
 import {
   addFileInfo,
@@ -31,7 +29,6 @@ import { lines } from "../text.ts";
 
 import { navigateSchema } from "./schema-utils.ts";
 
-
 export type ValidatorErrorHandlerFunction = (
   error: LocalizedError,
   parse: AnnotatedParse,
@@ -42,8 +39,7 @@ function isEmptyValue(error: LocalizedError) {
   return rawVerbatimInput.trim().length === 0;
 }
 
-function getLastFragment(instancePath: string): undefined | number | string
-{
+function getLastFragment(instancePath: string): undefined | number | string {
   const splitPath = instancePath.split("/");
   if (splitPath.length === 0) {
     return undefined;
@@ -62,7 +58,7 @@ function getLastFragment(instancePath: string): undefined | number | string
 /* reindent: produce a minimally-indented version
 of the yaml string given.
 
-Woooo boy, this is messy. 
+Woooo boy, this is messy.
 
 Consider the following example in a chunk.
 
@@ -90,8 +86,7 @@ information.
 
 function reindent(
   str: string,
-)
-{
+) {
   // TO BE FINISHED WHILE WE HANDLE THE ABOVE COMMENT
   return str;
 }
@@ -99,10 +94,11 @@ function reindent(
 function innerDescription(
   error: LocalizedError,
   parse: AnnotatedParse,
-  schema: Schema): string
-{
+  schema: Schema,
+): string {
   const schemaPath = error.ajvError.schemaPath.split("/").slice(1);
-  const errorSchema = (error.ajvError.params && error.ajvError.params.schema) || error.ajvError.parentSchema;
+  const errorSchema = (error.ajvError.params && error.ajvError.params.schema) ||
+    error.ajvError.parentSchema;
   const innerSchema = errorSchema
     ? [errorSchema]
     : navigateSchema(schemaPath.map(decodeURIComponent), schema);
@@ -112,8 +108,8 @@ function innerDescription(
 function formatHeading(
   error: LocalizedError,
   parse: AnnotatedParse,
-  schema: Schema): string
-{
+  schema: Schema,
+): string {
   const rawVerbatimInput = getVerbatimInput(error);
   const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
 
@@ -151,19 +147,17 @@ function improveErrorHeading(
   error: LocalizedError,
   parse: AnnotatedParse,
   schema: Schema,
-): LocalizedError
-{
+): LocalizedError {
   return {
     ...error,
     niceError: {
       ...error.niceError,
-      heading: formatHeading(error, parse, schema)
-    }
+      heading: formatHeading(error, parse, schema),
+    },
   };
 }
 
-export function setDefaultErrorHandlers(validator: YAMLSchema)
-{
+export function setDefaultErrorHandlers(validator: YAMLSchema) {
   validator.addHandler(improveErrorHeading);
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);

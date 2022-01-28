@@ -52,13 +52,25 @@ export function readAnnotatedYamlFromString(yml: string) {
       // trim spaces if needed
       const leftTrim = rawRange.length - rawRange.trimLeft().length;
       const rightTrim = rawRange.length - rawRange.trimRight().length;
-      results.push({
-        start: openPosition + leftTrim,
-        end: position - rightTrim,
-        result: result,
-        components,
-        kind,
-      });
+
+      if (rawRange.trim().length === 0) {
+        // special case for when string is empty
+        results.push({
+          start: position - rightTrim,
+          end: position - rightTrim,
+          result: result,
+          components,
+          kind,
+        });
+      } else {
+        results.push({
+          start: openPosition + leftTrim,
+          end: position - rightTrim,
+          result: result,
+          components,
+          kind,
+        });
+      }
     } else {
       stack.push({ position });
     }

@@ -92,7 +92,8 @@ function tidyverseFormatError(msg) {
     heading = `${locationString(msg.location)} ${heading}`;
   }
   if (msg.fileName) {
-    heading = `In file ${msg.fileName} ${heading}`;
+    heading = `In file ${msg.fileName}
+${heading}`;
   }
   const strings = [
     heading,
@@ -118,8 +119,15 @@ function addInstancePathInfo(msg, instancePath) {
 }
 function locationString(loc) {
   const { start, end } = loc;
-  const locStr = start.line === end.line ? `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})` : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
-  return locStr;
+  if (start.line === end.line) {
+    if (start.column === end.column) {
+      return `(line ${start.line + 1}, column ${start.column + 1})`;
+    } else {
+      return `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`;
+    }
+  } else {
+    return `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
+  }
 }
 
 // ../text.ts
@@ -3908,12 +3916,10 @@ async function withValidator(schema, fun) {
       const validator = getValidator(schema);
       result = await fun(validator);
     } catch (e) {
-      console.log("catch");
       error = e;
     }
   });
   if (error !== void 0) {
-    console.log("There was an error!", error);
     throw error;
   }
   return result;
