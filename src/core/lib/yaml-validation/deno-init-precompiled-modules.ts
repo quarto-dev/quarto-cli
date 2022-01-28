@@ -9,6 +9,7 @@
 *
 */
 
+import { toFileUrl } from "path/mod.ts";
 import { resourcePath } from "../../resources.ts";
 import { setSchemaDefinition } from "./schema.ts";
 import { getSchemas, QuartoJsonSchemas, setSchemas } from "./schema-utils.ts";
@@ -22,9 +23,11 @@ export async function initPrecompiledModules() {
     ),
   ) as QuartoJsonSchemas);
 
-  setValidatorModulePath(resourcePath(
-    "editor/tools/yaml/standalone-schema-validators.js",
-  ));
+  setValidatorModulePath(
+    toFileUrl(resourcePath(
+      "editor/tools/yaml/standalone-schema-validators.js",
+    )).href,
+  );
 
   const schemaDefs = getSchemas().definitions;
   for (const [_key, value] of Object.entries(schemaDefs)) {
