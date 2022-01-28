@@ -10,7 +10,7 @@
 
 import { YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";
 export { YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";
-import { normalizeSchema } from "../lib/yaml-validation/schema.ts";
+import { normalizeSchema, Schema } from "../lib/yaml-validation/schema.ts";
 import { MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { loadDefaultSchemaDefinitions } from "./definitions.ts";
@@ -49,6 +49,10 @@ export function getAjvInstance() {
   return ajv;
 }
 
+export function getAjvModule() {
+  return ajv;
+}
+
 export async function ensureAjv() {
   if (!ajvInit) {
     const path = new URL(
@@ -69,6 +73,10 @@ export async function ensureAjv() {
     ajvInit = true;
     await loadDefaultSchemaDefinitions();
   }
+}
+
+export function compileSchema(schema: Schema): any {
+  return ajv.compile(normalizeSchema(schema));
 }
 
 export async function exportStandaloneValidators(temp: TempContext) {

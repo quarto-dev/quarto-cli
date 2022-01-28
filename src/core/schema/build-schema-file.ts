@@ -12,7 +12,10 @@ import { getFrontMatterSchema } from "./front-matter.ts";
 import { getProjectConfigSchema } from "./project-config.ts";
 import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { resourcePath } from "../resources.ts";
-import { getSchemas, QuartoJsonSchemas } from "../lib/yaml-validation/schema-utils.ts";
+import {
+  getSchemas,
+  QuartoJsonSchemas,
+} from "../lib/yaml-validation/schema-utils.ts";
 import {
   getSchemaDefinitionsObject,
   setSchemaDefinition,

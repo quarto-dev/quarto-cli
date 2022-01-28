@@ -68,6 +68,19 @@ export function setValidatorModulePath(
   validatorModulePath = path;
 }
 
+
+// "any" here is actually the complicated function from ajv
+// which mutates its own function callable, so I don't know
+// how to get a good typing for it
+export function setObtainFullValidator(
+  compiler: ((schema: Schema) => any)
+) {
+  obtainFullValidator = compiler;
+}
+
+let obtainFullValidator: ((schema: Schema) => any) =
+  (schema: Schema) => undefined;
+
 export function stagedValidator(
   schema: Schema,
 ): (schema: Schema) => Promise<ErrorObject[]> {
@@ -78,7 +91,12 @@ export function stagedValidator(
       return [];
     }
     await ensureValidatorModule();
-    const validator = _module[schema.$id];
+    const validator = _module[schema.$id] || obtainFullValidator(schema);
+    if (validator === undefined) {
+      throw new Error(
+        `Internal error: ${schema.$id} not compiled and schema compiler not available`
+      );
+    }
     if (validator(value)) {
       throw new Error(
         `Internal error: validators disagree on schema ${schema.$id}`,
