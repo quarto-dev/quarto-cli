@@ -44,7 +44,6 @@ import {
   kImageAlign,
   kImageHeight,
   kMaxDescLength,
-  kPageColumn,
   kPageSize,
   kSortAsc,
   kSortDesc,
@@ -182,9 +181,6 @@ export async function readListings(
 
   const sharedOptions: ListingSharedOptions = {
     [kFieldCategories]: !!categories,
-    [kPageColumn]: firstListingValue(kPageColumn, undefined) as
-      | string
-      | undefined,
     [kCategoryStyle]: categoryStyle,
   };
 

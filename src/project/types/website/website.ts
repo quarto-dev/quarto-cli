@@ -183,10 +183,6 @@ export const websiteProjectType: ProjectType = {
         extras.html[kHtmlPostprocessors]?.push(
           htmlListingDependencies[kHtmlPostprocessors],
         );
-        extras.html[kHtmlFinalizers]?.push(
-          htmlListingDependencies[kHtmlFinalizers],
-        );
-
         extras.html[kMarkdownAfterBody]?.push(
           htmlListingDependencies[kMarkdownAfterBody],
         );
