@@ -4914,12 +4914,12 @@ if (typeof exports === 'object') {
     }
     return left;
   }
-  var Deno;
+  var Deno2;
   try {
-    Deno = globalThis.Deno;
+    Deno2 = globalThis.Deno;
   } catch (_e) {
   }
-  var noColor = typeof (Deno && Deno.noColor) === "boolean" ? Deno.noColor : true;
+  var noColor = typeof (Deno2 && Deno2.noColor) === "boolean" ? Deno2.noColor : true;
   var enabled = !noColor;
   function code(open, close) {
     return {
@@ -4930,9 +4930,6 @@ if (typeof exports === 'object') {
   }
   function run(str, code2) {
     return enabled ? `${code2.open}${str.replace(code2.regexp, code2.open)}${code2.close}` : str;
-  }
-  function red(str) {
-    return run(str, code([31], 39));
   }
   function blue(str) {
     return run(str, code([34], 39));
@@ -4956,29 +4953,6 @@ if (typeof exports === 'object') {
     "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
     "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"
   ].join("|"), "g");
-  function tidyverseInfo(msg) {
-    return `${blue("\u2139")} ${msg}`;
-  }
-  function tidyverseError(msg) {
-    return `${red("\u2716")} ${msg}`;
-  }
-  function tidyverseFormatError(msg) {
-    let { heading, error, info } = msg;
-    if (msg.location) {
-      heading = `${locationString(msg.location)} ${heading}`;
-    }
-    if (msg.fileName) {
-      heading = `In file ${msg.fileName}
-${heading}`;
-    }
-    const strings = [
-      heading,
-      msg.sourceContext,
-      ...error.map(tidyverseError),
-      ...info.map(tidyverseInfo)
-    ];
-    return strings.join("\n");
-  }
   function quotedStringColor(msg) {
     return rgb24(msg, 12369186);
   }
@@ -4993,18 +4967,7 @@ ${heading}`;
       msg.info.push(`The error happened in location ${niceInstancePath}.`);
     }
   }
-  function locationString(loc) {
-    const { start, end } = loc;
-    if (start.line === end.line) {
-      if (start.column === end.column) {
-        return `(line ${start.line + 1}, column ${start.column + 1})`;
-      } else {
-        return `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`;
-      }
-    } else {
-      return `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
-    }
-  }
+  var errorsReported = new Set();
   function lines(text) {
     return text.split(/\r?\n/);
   }
@@ -8283,12 +8246,15 @@ ${heading}`;
           }
         }
       }
-      throw new Error(`Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`);
+      return annotation;
     } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
       const searchKey = Number(path[pathIndex]);
+      if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
+        return annotation;
+      }
       return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
     } else {
-      throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
+      return annotation;
     }
   }
   function navigateSchema2(path, schema, pathIndex = 0) {
@@ -8405,6 +8371,10 @@ ${heading}`;
       for (const error of errors) {
         const returnKey = error.keyword === "_custom_invalidProperty";
         const violatingObject = navigate(path, annotation, returnKey);
+        if (violatingObject === void 0) {
+          console.error(`Couldn't localize error ${JSON.stringify(error)}`);
+          continue;
+        }
         const schemaPath = error.schemaPath.split("/").slice(1);
         let start = { line: 0, column: 0 };
         let end = { line: 0, column: 0 };
@@ -8507,18 +8477,14 @@ ${heading}`;
       if (result.errors.length) {
         const locF = mappedIndexToRowCol(src);
         const nLines = lines(src.originalString).length;
-        error(message);
+        if (message.length) {
+          error(message);
+        }
         for (const err of result.errors) {
-          let startO = err.violatingObject.start;
-          let endO = err.violatingObject.end;
-          while (src.mapClosest(startO) < src.originalString.length - 1 && src.originalString[src.mapClosest(startO)].match(/\s/)) {
-            startO++;
-          }
-          while (src.mapClosest(endO) > src.mapClosest(startO) && src.originalString[src.mapClosest(endO)].match(/\s/)) {
-            endO--;
-          }
-          const start = locF(startO);
-          const end = locF(endO);
+          const {
+            start,
+            end
+          } = err.location;
           const {
             prefixWidth,
             lines: lines2
@@ -8533,7 +8499,7 @@ ${heading}`;
             }
           }
           err.niceError.sourceContext = contextLines.join("\n");
-          log(tidyverseFormatError(err.niceError));
+          log(err.niceError);
         }
       }
       return result;
@@ -8614,7 +8580,7 @@ ${heading}`;
   function innerDescription(error, parse, schema) {
     const schemaPath = error.ajvError.schemaPath.split("/").slice(1);
     const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
-    const innerSchema = errorSchema ? [errorSchema] : navigateSchema(schemaPath.map(decodeURIComponent), schema);
+    const innerSchema = errorSchema ? [errorSchema] : navigateSchema2(schemaPath.map(decodeURIComponent), schema);
     return innerSchema.map((s) => s.description).join(", ");
   }
   function formatHeading(error, parse, schema) {
@@ -8633,17 +8599,17 @@ ${heading}`;
       case "number":
         const innerDesc = innerDescription(error, parse, schema);
         if (empty) {
-          return `Array entry is empty but it must instead ${innerDesc}.`;
+          return `Array entry ${lastFragment + 1} is empty but it must instead ${innerDesc}.`;
         } else {
-          return `Array entry ${verbatimInput} must instead ${innerDesc}.`;
+          return `Array entry ${lastFragment + 1} has value ${verbatimInput} must instead ${innerDesc}.`;
         }
       case "string": {
         const formatLastFragment = blue(lastFragment);
         const innerDesc2 = innerDescription(error, parse, schema);
         if (empty) {
-          return `Field ${formatLastFragment} is empty but it must instead ${innerDesc2}`;
+          return `Key ${formatLastFragment} has empty value but it must instead ${innerDesc2}`;
         } else {
-          return `Field ${formatLastFragment} is ${verbatimInput} but it must instead ${innerDesc2}`;
+          return `Key ${formatLastFragment} has value ${verbatimInput} but it must instead ${innerDesc2}`;
         }
       }
     }
@@ -8657,7 +8623,27 @@ ${heading}`;
       }
     };
   }
+  function expandEmptySpan(error, parse, schema) {
+    if (error.location.start.line !== error.location.end.line || error.location.start.column !== error.location.end.column || !isEmptyValue(error) || typeof getLastFragment(error.instancePath) === "undefined") {
+      return error;
+    }
+    const lastKey = navigate(error.instancePath.split("/").slice(1), parse, true);
+    const locF = mappedIndexToRowCol(error.source);
+    const location = {
+      start: locF(lastKey.start),
+      end: locF(lastKey.end)
+    };
+    return {
+      ...error,
+      location,
+      niceError: {
+        ...error.niceError,
+        location
+      }
+    };
+  }
   function setDefaultErrorHandlers(validator) {
+    validator.addHandler(expandEmptySpan);
     validator.addHandler(improveErrorHeading);
     validator.addHandler(checkForTypeMismatch);
     validator.addHandler(checkForBadBoolean);

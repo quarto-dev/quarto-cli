@@ -263,7 +263,8 @@ export async function cleanupLogger() {
 }
 
 export function logError(e: Error) {
-  let message = e.message ? (`${e.name}: ${e.message}`) : "";
+  let message = ((e as any).fullMessage) ??
+    (e.message ? (`${e.name}: ${e.message}`) : "");
 
   // include the stack if this is a debug build
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true";

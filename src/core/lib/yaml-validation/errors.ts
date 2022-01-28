@@ -27,13 +27,16 @@ import {
 
 import { lines } from "../text.ts";
 
-import { navigateSchema } from "./schema-utils.ts";
+import { navigate, navigateSchema } from "./yaml-schema.ts";
+
+import { mappedIndexToRowCol } from "../mapped-text.ts";
 
 export type ValidatorErrorHandlerFunction = (
   error: LocalizedError,
   parse: AnnotatedParse,
   schema: Schema,
 ) => LocalizedError;
+
 function isEmptyValue(error: LocalizedError) {
   const rawVerbatimInput = getVerbatimInput(error);
   return rawVerbatimInput.trim().length === 0;
@@ -102,7 +105,7 @@ function innerDescription(
   const innerSchema = errorSchema
     ? [errorSchema]
     : navigateSchema(schemaPath.map(decodeURIComponent), schema);
-  return innerSchema.map((s) => s.description).join(", ");
+  return innerSchema.map((s: Schema) => s.description).join(", ");
 }
 
 function formatHeading(
@@ -127,17 +130,21 @@ function formatHeading(
     case "number": // array
       const innerDesc = innerDescription(error, parse, schema);
       if (empty) {
-        return `Array entry is empty but it must instead ${innerDesc}.`;
+        return `Array entry ${
+          lastFragment + 1
+        } is empty but it must instead ${innerDesc}.`;
       } else {
-        return `Array entry ${verbatimInput} must instead ${innerDesc}.`;
+        return `Array entry ${
+          lastFragment + 1
+        } has value ${verbatimInput} must instead ${innerDesc}.`;
       }
     case "string": { // object
       const formatLastFragment = colors.blue(lastFragment);
       const innerDesc = innerDescription(error, parse, schema);
       if (empty) {
-        return `Field ${formatLastFragment} is empty but it must instead ${innerDesc}`;
+        return `Key ${formatLastFragment} has empty value but it must instead ${innerDesc}`;
       } else {
-        return `Field ${formatLastFragment} is ${verbatimInput} but it must instead ${innerDesc}`;
+        return `Key ${formatLastFragment} has value ${verbatimInput} but it must instead ${innerDesc}`;
       }
     }
   }
@@ -157,7 +164,45 @@ function improveErrorHeading(
   };
 }
 
+// in cases where the span of an error message is empty, we artificially
+// expand the span so that the error is printed somewhat more legibly.
+function expandEmptySpan(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  schema: Schema,
+): LocalizedError {
+  if (
+    error.location.start.line !== error.location.end.line ||
+    error.location.start.column !== error.location.end.column ||
+    !isEmptyValue(error) ||
+    (typeof getLastFragment(error.instancePath) === "undefined")
+  ) {
+    return error;
+  }
+
+  const lastKey = navigate(
+    error.instancePath.split("/").slice(1),
+    parse,
+    true,
+  )!;
+  const locF = mappedIndexToRowCol(error.source);
+  const location = {
+    start: locF(lastKey.start),
+    end: locF(lastKey.end),
+  };
+
+  return {
+    ...error,
+    location,
+    niceError: {
+      ...error.niceError,
+      location,
+    },
+  };
+}
+
 export function setDefaultErrorHandlers(validator: YAMLSchema) {
+  validator.addHandler(expandEmptySpan);
   validator.addHandler(improveErrorHeading);
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);

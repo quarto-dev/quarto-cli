@@ -262,50 +262,6 @@ export function buildAnnotated(
   return result;
 }
 
-/** just like `src/core/schema/yaml-schema.ts:navigate`, but expects
- * the node kinds which come from tree-sitter-yaml parser
- */
-export function navigate(
-  path: string[],
-  annotation: AnnotatedParse,
-  pathIndex = 0,
-): AnnotatedParse {
-  if (pathIndex >= path.length) {
-    return annotation;
-  }
-  if (annotation.kind === "block_mapping") {
-    const { components } = annotation;
-    const searchKey = path[pathIndex];
-    for (let i = 0; i < components.length; i += 2) {
-      const key = components[i]!.result;
-      if (key === searchKey) {
-        if (i === components.length - 1) {
-          // throw new Error(
-          //   "Internal error, key === searchKey shouldn't have happened at last array entry",
-          // );
-          return annotation;
-        }
-        return navigate(path, components[i + 1]!, pathIndex + 1);
-      }
-    }
-    return annotation;
-    // throw new Error("Internal error: searchKey not found in mapping object");
-  } else if (annotation.kind === "block_sequence") {
-    const searchKey = Number(path[pathIndex]);
-    if (
-      isNaN(searchKey) || searchKey < 0 ||
-      searchKey >= annotation.components.length
-    ) {
-      return annotation;
-      // throw new Error("Internal error: searchKey invalid");
-    }
-    return navigate(path, annotation.components[searchKey]!, pathIndex + 1);
-  } else {
-    return annotation;
-    // throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
-  }
-}
-
 // locateCursor is lenient wrt locating inside the last character of a
 // range (by using position <= foo instead of position < foo).  That
 // happens because tree-sitter's robust parsing sometimes returns

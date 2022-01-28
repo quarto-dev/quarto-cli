@@ -9,7 +9,6 @@
 // except for "parseAndValidate".
 
 import { YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";
-export { YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";
 import { normalizeSchema, Schema } from "../lib/yaml-validation/schema.ts";
 import { MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";

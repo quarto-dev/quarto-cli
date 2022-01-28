@@ -56,12 +56,14 @@ export function getVerbatimInput(error: LocalizedError) {
   );
 }
 
-function navigate(
+// this supports AnnotatedParse results built
+// from deno yaml as well as tree-sitter.
+export function navigate(
   path: string[],
   annotation: AnnotatedParse | undefined,
   returnKey = false, // if true, then return the *key* entry as the final result rather than the *value* entry.
   pathIndex = 0,
-): AnnotatedParse {
+): AnnotatedParse | undefined {
   // this looks a little strange, but it's easier to catch the error
   // here than in the different cases below
   if (annotation === undefined) {
@@ -85,7 +87,6 @@ function navigate(
     // we then loop backwards
     const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
     for (let i = lastKeyIndex; i >= 0; i -= 2) {
-      // for (let i = 0; i < components.length; i += 2) {
       const key = components[i]!.result;
       if (key === searchKey) {
         if (returnKey && pathIndex === path.length - 1) {
@@ -95,14 +96,21 @@ function navigate(
         }
       }
     }
-    throw new Error(
-      `Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`,
-    );
+    return annotation;
+    // throw new Error(
+    //   `Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`,
+    // );
   } else if (
     ["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !==
       -1
   ) {
     const searchKey = Number(path[pathIndex]);
+    if (
+      isNaN(searchKey) || searchKey < 0 ||
+      searchKey >= annotation.components.length
+    ) {
+      return annotation;
+    }
     return navigate(
       path,
       annotation.components[searchKey],
@@ -110,11 +118,12 @@ function navigate(
       pathIndex + 1,
     );
   } else {
-    throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
+    return annotation;
+    // throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
 }
 
-function navigateSchema(
+export function navigateSchema(
   path: string[],
   schema: Schema,
   pathIndex = 0,
@@ -349,6 +358,12 @@ function localizeAndPruneErrors(
     for (const error of errors) {
       const returnKey = error.keyword === "_custom_invalidProperty";
       const violatingObject = navigate(path, annotation, returnKey);
+      if (violatingObject === undefined) {
+        // there was a problem with navigation, so error localization is impossible.
+        // signal an error to the console and give up.
+        console.error(`Couldn't localize error ${JSON.stringify(error)}`);
+        continue;
+      }
       const schemaPath = error.schemaPath.split("/").slice(1);
 
       let start = { line: 0, column: 0 };
@@ -529,32 +544,19 @@ export class YAMLSchema {
     message: string,
     // deno-lint-ignore no-explicit-any
     error: (a: string) => any,
-    // deno-lint-ignore no-explicit-any
-    log: (a: string) => any,
+    log: (a: TidyverseError) => unknown,
   ) {
     if (result.errors.length) {
       const locF = mappedIndexToRowCol(src);
       const nLines = lines(src.originalString).length;
-      error(message);
+      if (message.length) {
+        error(message);
+      }
       for (const err of result.errors) {
-        // log(err.message);
-        // attempt to trim whitespace from error report
-        let startO = err.violatingObject.start;
-        let endO = err.violatingObject.end;
-        while (
-          (src.mapClosest(startO)! < src.originalString.length - 1) &&
-          src.originalString[src.mapClosest(startO)!].match(/\s/)
-        ) {
-          startO++;
-        }
-        while (
-          (src.mapClosest(endO)! > src.mapClosest(startO)!) &&
-          src.originalString[src.mapClosest(endO)!].match(/\s/)
-        ) {
-          endO--;
-        }
-        const start = locF(startO);
-        const end = locF(endO);
+        const {
+          start,
+          end,
+        } = err.location;
         const {
           prefixWidth,
           lines,
@@ -578,7 +580,7 @@ export class YAMLSchema {
           }
         }
         err.niceError.sourceContext = contextLines.join("\n");
-        log(tidyverseFormatError(err.niceError));
+        log(err.niceError);
       }
     }
     return result;
@@ -593,8 +595,7 @@ export class YAMLSchema {
     message: string,
     // deno-lint-ignore no-explicit-any
     error: (a: string) => any,
-    // deno-lint-ignore no-explicit-any
-    log: (a: string) => any,
+    log: (a: TidyverseError) => unknown,
   ) {
     const result = await this.validateParse(src, annotation);
     this.reportErrorsInSource(result, src, message, error, log);

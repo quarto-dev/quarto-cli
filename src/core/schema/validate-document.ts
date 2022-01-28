@@ -18,6 +18,10 @@ import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
 import { relative } from "path/mod.ts";
 
+import { reportOnce } from "../lib/errors.ts";
+
+import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
+
 export async function validateDocumentFromSource(
   src: string,
   engine: string,
@@ -67,7 +71,7 @@ export async function validateDocumentFromSource(
           annotation,
           "Validation of YAML front matter failed.",
           error,
-          info,
+          reportOnce((err: TidyverseError) => info(tidyverseFormatError(err))),
         );
         if (fmValidation && fmValidation.errors.length) {
           result.push(...fmValidation.errors);

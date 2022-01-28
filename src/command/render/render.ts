@@ -20,7 +20,7 @@ import * as ld from "../../core/lodash.ts";
 
 import { Document, DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 
-import { info } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
@@ -130,7 +130,11 @@ import {
 } from "../../config/format.ts";
 import { resolveLanguageMetadata } from "../../core/language.ts";
 
-import { validateDocument } from "../../core/schema/validate-document.ts";
+import {
+  validateDocument,
+  validateDocumentFromSource,
+} from "../../core/schema/validate-document.ts";
+
 import { getFrontMatterSchema } from "../../core/schema/front-matter.ts";
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
@@ -173,13 +177,48 @@ export async function renderFiles(
         );
       }
 
+      let contexts: Record<string, RenderContext> | undefined;
+
+      const fatalExceptionNiceMessage = {
+        fullMessage: "Render failed due to invalid YAML.",
+      };
+
       // get contexts
-      const contexts = await renderContexts(
-        file,
-        options,
-        true,
-        project,
-      );
+      try {
+        contexts = await renderContexts(
+          file,
+          options,
+          true,
+          project,
+        );
+      } catch (e) {
+        // bad YAML can cause failure before validation. We
+        // reconstruct the context as best we can and try to validate.
+        // note that this ignores "validate-yaml: false"
+
+        const engine = fileExecutionEngine(file);
+        if (!engine) {
+          throw new Error("Unable to render " + file);
+        }
+        const target = await engine.target(file, options.flags?.quiet);
+        if (!target) {
+          throw new Error("Unable to render " + file);
+        }
+
+        const validationResult = await validateDocumentFromSource(
+          target.markdown,
+          engine.name,
+          error,
+          info,
+          file,
+        );
+        if (validationResult.length) {
+          throw fatalExceptionNiceMessage;
+        }
+
+        // rethrow if no validation error happened.
+        throw e;
+      }
 
       for (const format of Object.keys(contexts)) {
         const context = contexts[format];
@@ -204,7 +243,7 @@ export async function renderFiles(
         if (validate !== false) {
           const validationResult = await validateDocument(context);
           if (validationResult.length) {
-            throw new Error("YAML validation failed - exiting.");
+            throw fatalExceptionNiceMessage;
           }
         }
 

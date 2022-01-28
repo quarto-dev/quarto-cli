@@ -22,14 +22,30 @@ import { MappedString } from "./mapped-text.ts";
 // here, we will say "Try x instead."
 //
 
+function platformHasNonAsciiCharacters(): boolean {
+  try {
+    return Deno.build.os !== "windows";
+  } catch (e) {
+    return false;
+  }
+}
+
 // formats an info message according to the tidyverse style guide
 export function tidyverseInfo(msg: string) {
-  return `${colors.blue("ℹ")} ${msg}`;
+  if (platformHasNonAsciiCharacters()) {
+    return `${colors.blue("ℹ")} ${msg}`;
+  } else {
+    return `${colors.blue("i")} ${msg}`;
+  }
 }
 
 // formats an error message according to the tidyverse style guide
 export function tidyverseError(msg: string) {
-  return `${colors.red("✖")} ${msg}`;
+  if (platformHasNonAsciiCharacters()) {
+    return `${colors.red("✖")} ${msg}`;
+  } else {
+    return `${colors.red("x")} ${msg}`;
+  }
 }
 
 export interface ErrorLocation {
@@ -52,7 +68,7 @@ export interface TidyverseError {
   sourceContext?: string;
 }
 
-export function tidyverseFormatError(msg: TidyverseError) {
+export function tidyverseFormatError(msg: TidyverseError): string {
   let { heading, error, info } = msg;
   if (msg.location) {
     heading = `${locationString(msg.location)} ${heading}`;
@@ -104,4 +120,26 @@ export function locationString(loc: ErrorLocation) {
       end.line + 1
     }, column ${end.column + 1})`;
   }
+}
+
+function errorKey(err: TidyverseError): string {
+  const positionKey = (pos: { line: number; column: number }): string =>
+    `${pos.line}-${pos.column}`;
+  return `${err.fileName || ""}-${positionKey(err.location!.start)}-${
+    positionKey(err.location!.end)
+  }`;
+}
+
+const errorsReported: Set<string> = new Set();
+export function reportOnce(
+  reporter: ((err: TidyverseError) => unknown),
+): (err: TidyverseError) => unknown {
+  return (err: TidyverseError) => {
+    const key = errorKey(err);
+    if (errorsReported.has(key)) {
+      return;
+    }
+    errorsReported.add(key);
+    reporter(err);
+  };
 }
