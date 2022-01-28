@@ -108,7 +108,7 @@ if (nav.layout === "article" || nav.layout === "full") {
 <!-- margin-sidebar -->
 <% if (nav.layout === "article" || nav.layout === "full") { %>
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-      <% if (nav.hasToc && nav['toc-location'] !== "left") { %>
+      <% if (nav.hasToc && nav['toc-location'] === "right") { %>
         <div id="quarto-toc-target"></div>
       <% } %>
     </div>

@@ -18,13 +18,6 @@
       be at the end of the document, use the option
       `pdf-engine-opt: --no-toc-relocation`.
 
-- name: toc-float
-  schema: boolean
-  default: true
-  tags:
-    formats: [$html-doc]
-  description: Use a floating table of contents for this document.
-
 - name: toc-depth
   tags:
     formats: ["!man", "!$docbook-all", "!$jats-all"]
@@ -32,6 +25,16 @@
   description: |
     Specify the number of section levels to include in the table of contents.
     The default is 3
+
+- name: toc-location
+  schema:
+    enum: ["body", "left", "right"]
+  default: "right"
+  tags:
+    formats: [$html-doc]
+  description: |
+    Location for table of contents (`body`, `left`, or `right`). 
+    Defaults to `right`.
 
 - name: toc-title
   schema: string

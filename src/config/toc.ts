@@ -8,11 +8,9 @@
 import { kTableOfContents, kToc } from "./constants.ts";
 import { Format, PandocFlags } from "./types.ts";
 
-export const kTocFloat = "toc-float";
-
 export function hasTableOfContents(flags: PandocFlags, format: Format) {
-  return !!((flags[kToc] || format.pandoc[kToc] ||
-    format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false));
+  return !!(flags[kToc] || format.pandoc[kToc] ||
+    format.pandoc[kTableOfContents]);
 }
 
 export function disabledTableOfContents(format: Format) {
