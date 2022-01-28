@@ -28,6 +28,7 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 export const kWebsite = "website";
 
 export const kSiteUrl = "site-url";
+export const kSiteDescription = "site-description";
 export const kSitePath = "site-path";
 export const kSiteTitle = "title";
 export const kSiteFavicon = "favicon";
@@ -106,6 +107,7 @@ type WebsiteConfigKey =
   | "favicon"
   | "site-url"
   | "site-path"
+  | "site-description"
   | "repo-url"
   | "repo-branch"
   | "repo-actions"
@@ -197,6 +199,12 @@ export function websiteTitle(project?: ProjectConfig): string | undefined {
 
 export function websiteBaseurl(project?: ProjectConfig): string | undefined {
   return websiteConfigString(kSiteUrl, project);
+}
+
+export function websiteDescription(
+  project?: ProjectConfig,
+): string | undefined {
+  return websiteConfigString(kSiteDescription, project);
 }
 
 export function websitePath(project?: ProjectConfig): string {

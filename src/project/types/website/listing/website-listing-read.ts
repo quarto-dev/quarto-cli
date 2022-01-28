@@ -23,6 +23,7 @@ import {
 import {
   ColumnType,
   kCategoryStyle,
+  kFeed,
   kFieldAuthor,
   kFieldCategories,
   kFieldDate,
@@ -53,6 +54,7 @@ import {
   Listing,
   ListingDehydrated,
   ListingDescriptor,
+  ListingFeedOptions,
   ListingItem,
   ListingItemSource,
   ListingSharedOptions,
@@ -183,6 +185,19 @@ export async function readListings(
     [kFieldCategories]: !!categories,
     [kCategoryStyle]: categoryStyle,
   };
+
+  const feed = firstListingValue(kFeed, undefined);
+  if (feed !== undefined) {
+    if (typeof (feed) === "object") {
+      // If is an object, forward it along
+      sharedOptions[kFeed] = feed as ListingFeedOptions;
+    } else if (feed) {
+      // If its truthy, forward the default feed
+      sharedOptions[kFeed] = {
+        type: "partial",
+      };
+    }
+  }
 
   for (const listing of listings) {
     // Read the metadata for each of the listing files

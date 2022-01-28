@@ -171,7 +171,7 @@ export const websiteProjectType: ProjectType = {
         htmlResourceResolverPostprocessor(source, project),
       ]);
 
-      // listings HTML dependencies
+      // listings extras
       const htmlListingDependencies = await listingHtmlDependencies(
         source,
         project,
@@ -282,6 +282,10 @@ export async function websitePostRender(
 
   // write redirecting index.html if there is none
   ensureIndexPage(context);
+
+  // 'Resolve' any listing RSS feeds that are staged
+  // Look for staged RSS feed files and inject full content into them
+  // exemplar: updateSearchIndex
 
   // generate any page aliases
   await updateAliases(context, outputFiles, incremental);

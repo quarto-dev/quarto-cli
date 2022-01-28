@@ -6,7 +6,9 @@
 *
 */
 
+import { kTitle } from "../../../../config/constants.ts";
 import { Metadata } from "../../../../config/types.ts";
+import { kImage } from "../website-config.ts";
 
 // The list of columns to display
 export const kFields = "fields";
@@ -71,6 +73,13 @@ export const kCategoryStyle = "category-style";
 export const kSortAsc = "asc";
 export const kSortDesc = "desc";
 
+// Feed options
+export const kFeed = "feed";
+export const kItems = "items";
+export const kType = "type";
+export const kLanguage = "language";
+export const kDescription = "description";
+
 export interface ListingDescriptor {
   listing: Listing;
   items: ListingItem[];
@@ -87,9 +96,18 @@ export type CategoryStyle =
   | "category-unnumbered"
   | "category-cloud";
 
+export interface ListingFeedOptions {
+  [kTitle]?: string;
+  [kItems]?: number;
+  [kType]?: "partial" | "full";
+  [kLanguage]?: string;
+  [kDescription]?: string;
+}
+
 export interface ListingSharedOptions {
   [kFieldCategories]: boolean;
   [kCategoryStyle]: CategoryStyle;
+  [kFeed]?: ListingFeedOptions;
 }
 
 // The core listing type

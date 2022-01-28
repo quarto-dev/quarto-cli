@@ -6,7 +6,7 @@
 *
 */
 
-import { basename } from "path/mod.ts";
+import { basename, relative } from "path/mod.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -30,9 +30,9 @@ import { kIncludeInHeader } from "../../../../config/constants.ts";
 import { sassLayer } from "../../../../core/sass.ts";
 import {
   kBootstrapDependencyName,
-  setMainColumn,
 } from "../../../../format/html/format-html-shared.ts";
 import {
+  kFeed,
   kFieldCategories,
   Listing,
   ListingDescriptor,
@@ -47,6 +47,7 @@ import {
 import { readListings } from "./website-listing-read.ts";
 import { categorySidebar } from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
+import { createFeed } from "./website-listing-feed.ts";
 
 export async function listingHtmlDependencies(
   source: string,
@@ -78,6 +79,7 @@ export async function listingHtmlDependencies(
       ),
     );
   });
+
   const pipeline = createMarkdownPipeline(
     `quarto-listing-pipeline`,
     markdownHandlers,
@@ -109,7 +111,7 @@ export async function listingHtmlDependencies(
   });
 
   // Create the post processor
-  const listingPostProcessor = (doc: Document) => {
+  const listingPostProcessor = async (doc: Document) => {
     // Process the rendered listings into the document
     pipeline.processRenderedMarkdown(doc);
 
@@ -121,8 +123,24 @@ export async function listingHtmlDependencies(
       format,
     );
 
+    const resources: string[] = [];
+    if (options[kFeed]) {
+      const feedAbsPaths = await createFeed(
+        source,
+        project,
+        listingDescriptors,
+        options[kFeed]!,
+        format,
+      );
+      if (feedAbsPaths) {
+        feedAbsPaths.forEach((feedAbsPath) => {
+          resources.push(relative(project.dir, feedAbsPath));
+        });
+      }
+    }
+
     // No resource references to add
-    return Promise.resolve([]);
+    return Promise.resolve(resources);
   };
 
   return {
