@@ -344,7 +344,6 @@ function bootstrapHtmlFinalizer(format: Format) {
     const fullLayout = formatHasFullLayout(format);
     if (fullLayout) {
       const column = suggestColumn(doc);
-      console.log(column);
       setMainColumn(doc, column);
     }
     // Note whether we need a narrow or wide margin layout
