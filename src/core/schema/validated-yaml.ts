@@ -16,6 +16,7 @@ import { Schema } from "../lib/yaml-validation/schema.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 import { relative } from "path/mod.ts";
+import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 
 // https://stackoverflow.com/a/41429145
 export class ValidationError extends Error {
@@ -72,7 +73,9 @@ export async function readAndValidateYamlFromMappedString(
               info(""); // line break
             }
           },
-          info,
+          (a: TidyverseError) => {
+            info(tidyverseFormatError(a));
+          },
         );
       }
       return {
