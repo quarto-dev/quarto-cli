@@ -18,7 +18,6 @@ import {
   ErrorLocation,
   quotedStringColor,
   TidyverseError,
-  tidyverseFormatError,
 } from "../errors.ts";
 
 import * as colors from "../external/colors.ts";
@@ -547,7 +546,7 @@ export class YAMLSchema {
     log: (a: TidyverseError) => unknown,
   ) {
     if (result.errors.length) {
-      const locF = mappedIndexToRowCol(src);
+      const _locF = mappedIndexToRowCol(src);
       const nLines = lines(src.originalString).length;
       if (message.length) {
         error(message);

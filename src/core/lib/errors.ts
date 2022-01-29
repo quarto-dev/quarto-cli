@@ -25,7 +25,7 @@ import { MappedString } from "./mapped-text.ts";
 function platformHasNonAsciiCharacters(): boolean {
   try {
     return Deno.build.os !== "windows";
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 }
