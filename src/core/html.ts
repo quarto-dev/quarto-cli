@@ -12,6 +12,7 @@ import { Document, Element } from "./deno-dom.ts";
 import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
 import { isFileRef } from "./http.ts";
 import { cssFileRefs } from "./css.ts";
+import { HtmlPostProcessResult } from "../command/render/types.ts";
 
 export function asHtmlId(text: string) {
   return pandocAutoIdentifier(text, false);
@@ -55,7 +56,9 @@ export const kHtmlResourceTags: Record<string, string[]> = {
   "section": ["data-background-image", "data-background-video"],
 };
 
-export function discoverResourceRefs(doc: Document): Promise<string[]> {
+export function discoverResourceRefs(
+  doc: Document,
+): Promise<HtmlPostProcessResult> {
   // first handle tags
   const refs: string[] = [];
   Object.keys(kHtmlResourceTags).forEach((tag) => {
@@ -71,7 +74,7 @@ export function discoverResourceRefs(doc: Document): Promise<string[]> {
       refs.push(...cssFileRefs(style.innerHTML));
     }
   }
-  return Promise.resolve(refs);
+  return Promise.resolve({ resources: refs, supporting: [] });
 }
 
 export function processFileResourceRefs(

@@ -44,6 +44,10 @@ import {
   kPageLayoutFull,
   setMainColumn,
 } from "./format-html-shared.ts";
+import {
+  HtmlPostProcessResult,
+  kHtmlEmptyPostProcessResult,
+} from "../../command/render/types.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
@@ -195,7 +199,7 @@ const getColumnLayoutElements = (doc: Document) => {
 };
 
 function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
-  return (doc: Document): Promise<string[]> => {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
@@ -335,7 +339,7 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
     }
 
     // no resource refs
-    return Promise.resolve([]);
+    return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
 

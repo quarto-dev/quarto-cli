@@ -17,6 +17,7 @@ import { projectOffset } from "../../project-shared.ts";
 import { relative } from "path/mod.ts";
 import { inputFileHref } from "./website-shared.ts";
 import { websitePath } from "./website-config.ts";
+import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 
 export function htmlResourceResolverPostprocessor(
   source: string,
@@ -26,11 +27,11 @@ export function htmlResourceResolverPostprocessor(
   const offset = projectOffset(project, source);
   const href = inputFileHref(sourceRelative);
 
-  return (doc: Document) => {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
     const forceRoot = href === "/404.html" ? websitePath(project.config) : null;
     // resolve resource refs
     const refs = resolveResourceRefs(doc, offset, forceRoot);
-    return Promise.resolve(refs);
+    return Promise.resolve({ resources: refs, supporting: [] });
   };
 }
 

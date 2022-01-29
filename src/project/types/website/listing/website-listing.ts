@@ -15,7 +15,6 @@ import {
   FormatDependency,
   FormatExtras,
   kDependencies,
-  kHtmlFinalizers,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
@@ -48,6 +47,7 @@ import { readListings } from "./website-listing-read.ts";
 import { categorySidebar } from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { createFeed } from "./website-listing-feed.ts";
+import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
 
 export async function listingHtmlDependencies(
   source: string,
@@ -111,7 +111,9 @@ export async function listingHtmlDependencies(
   });
 
   // Create the post processor
-  const listingPostProcessor = async (doc: Document) => {
+  const listingPostProcessor = async (
+    doc: Document,
+  ): Promise<HtmlPostProcessResult> => {
     // Process the rendered listings into the document
     pipeline.processRenderedMarkdown(doc);
 
@@ -123,7 +125,7 @@ export async function listingHtmlDependencies(
       format,
     );
 
-    const resources: string[] = [];
+    const supporting: string[] = [];
     if (options[kFeed]) {
       const feedAbsPaths = await createFeed(
         source,
@@ -134,13 +136,13 @@ export async function listingHtmlDependencies(
       );
       if (feedAbsPaths) {
         feedAbsPaths.forEach((feedAbsPath) => {
-          resources.push(relative(project.dir, feedAbsPath));
+          supporting.push(feedAbsPath);
         });
       }
     }
 
     // No resource references to add
-    return Promise.resolve(resources);
+    return Promise.resolve({ resources: [], supporting });
   };
 
   return {

@@ -72,6 +72,10 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-config.ts";
+import {
+  HtmlPostProcessResult,
+  kHtmlEmptyPostProcessResult,
+} from "../../command/render/types.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -461,7 +465,7 @@ function htmlFormatPostprocessor(
     ? format.metadata[kAnchorSections] !== false
     : format.metadata[kAnchorSections] || false;
 
-  return (doc: Document): Promise<string[]> => {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
     // process all of the code blocks
     const codeBlocks = doc.querySelectorAll("pre.sourceCode");
     for (let i = 0; i < codeBlocks.length; i++) {
@@ -539,7 +543,7 @@ function htmlFormatPostprocessor(
     }
 
     // no resource refs
-    return Promise.resolve([]);
+    return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
 

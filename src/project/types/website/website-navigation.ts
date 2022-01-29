@@ -110,6 +110,10 @@ import {
 } from "./website-pipeline-md.ts";
 import { engineValidExtensions } from "../../../execute/engine.ts";
 import { TempContext } from "../../../core/temp.ts";
+import {
+  HtmlPostProcessResult,
+  kHtmlEmptyPostProcessResult,
+} from "../../../command/render/types.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -357,7 +361,7 @@ function navigationHtmlPostprocessor(
   const offset = projectOffset(project, source);
   const href = inputFileHref(sourceRelative);
 
-  return async (doc: Document) => {
+  return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // Process any markdown rendered through the render envelope
     markdownPipeline.processRenderedMarkdown(doc);
 
@@ -483,7 +487,7 @@ function navigationHtmlPostprocessor(
         removeChapterNumber(titleEl);
       }
     }
-    return Promise.resolve([]);
+    return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
 

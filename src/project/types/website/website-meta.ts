@@ -39,6 +39,10 @@ import {
 } from "./website-pipeline-md.ts";
 import { findPreviewImg } from "./util/discover-meta.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
+import {
+  HtmlPostProcessResult,
+  kHtmlEmptyPostProcessResult,
+} from "../../../command/render/types.ts";
 
 const kCard = "card";
 
@@ -76,7 +80,7 @@ export function metadataHtmlPostProcessor(
   extras: FormatExtras,
   pipeline: MarkdownPipeline,
 ) {
-  return (doc: Document): Promise<string[]> => {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
     // read document level metadata
     const pageMeta = pageMetadata(format, extras);
 
@@ -175,7 +179,7 @@ export function metadataHtmlPostProcessor(
     // Process any pipelined markdown
     pipeline.processRenderedMarkdown(doc);
 
-    return Promise.resolve([]);
+    return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
 
