@@ -10,6 +10,7 @@ import { extname } from "path/mod.ts";
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 import { lines, matchAll, normalizeNewlines } from "./text.ts";
+import { ErrorEx } from "./error.ts";
 import { getFrontMatterSchema } from "./schema/front-matter.ts";
 
 import {
@@ -207,4 +208,10 @@ export function removeYamlDelimitersMapped(
   yaml = skipRegexp(yaml, /^---/);
   yaml = skipRegexp(yaml, /---\s*$/);
   return yaml;
+}
+
+export class YAMLValidationError extends ErrorEx {
+  constructor(message: string) {
+    super("YAMLValidationError", message, false, false);
+  }
 }

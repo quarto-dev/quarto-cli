@@ -14,6 +14,7 @@ import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
 import { error, getLogger, setup, warning } from "log/mod.ts";
+import { asErrorEx } from "./error.ts";
 
 export interface LogOptions {
   log?: string;
@@ -262,14 +263,17 @@ export async function cleanupLogger() {
   logger.handlers = [];
 }
 
-export function logError(e: Error) {
-  let message = ((e as any).fullMessage) ??
-    (e.message ? (`${e.name}: ${e.message}`) : "");
+export function logError(e: unknown) {
+  // normalize
+  const err = asErrorEx(e);
 
-  // include the stack if this is a debug build
+  // print error name if requested
+  let message = err.printName ? `${err.name}: ${err.message}` : err.message;
+
+  // print the stack if requested and if this is a debug build
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-  if (isDebug && e.stack) {
-    message = message + "\n\n" + e.stack;
+  if (isDebug && err.stack && err.printStack) {
+    message = message + "\n\n" + err.stack;
   }
 
   // show message if we have one

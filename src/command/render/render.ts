@@ -138,6 +138,7 @@ import {
 import { getFrontMatterSchema } from "../../core/schema/front-matter.ts";
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
+import { YAMLValidationError } from "../../core/yaml.ts";
 
 export async function renderFiles(
   files: string[],
@@ -179,9 +180,9 @@ export async function renderFiles(
 
       let contexts: Record<string, RenderContext> | undefined;
 
-      const fatalExceptionNiceMessage = {
-        fullMessage: "Render failed due to invalid YAML.",
-      };
+      const yamlValidationError = new YAMLValidationError(
+        "Render failed due to invalid YAML.",
+      );
 
       // get contexts
       try {
@@ -213,7 +214,7 @@ export async function renderFiles(
           file,
         );
         if (validationResult.length) {
-          throw fatalExceptionNiceMessage;
+          throw yamlValidationError;
         }
 
         // rethrow if no validation error happened.
@@ -243,7 +244,7 @@ export async function renderFiles(
         if (validate !== false) {
           const validationResult = await validateDocument(context);
           if (validationResult.length) {
-            throw fatalExceptionNiceMessage;
+            throw yamlValidationError;
           }
         }
 
