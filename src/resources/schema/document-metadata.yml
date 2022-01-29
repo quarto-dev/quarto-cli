@@ -23,6 +23,18 @@
     formats: [$office-all]
   description: "The document category."
 
+- name: title-meta
+  schema: string
+  tags:
+    formats: [$pdf-all]
+  description: "Sets the title metadata for the document"
+
+- name: pagetitle
+  tags:
+    formats: [$html-files]
+  schema: string
+  description: "Sets the title metadata for the document"
+
 - name: title-prefix
   tags:
     formats: [$html-files]
@@ -30,12 +42,6 @@
   description: |
     Specify STRING as a prefix at the beginning of the title that appears in 
     the HTML header (but not in the title as it appears at the beginning of the body)
-
-- name: title-meta
-  schema: string
-  tags:
-    formats: [$pdf-all]
-  description: "Sets the title metadata for the document"
 
 - name: description-meta
   schema: string
