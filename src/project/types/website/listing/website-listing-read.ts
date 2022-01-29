@@ -6,7 +6,7 @@
 *
 */
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, isGlob, join, relative } from "path/mod.ts";
 import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -376,14 +376,31 @@ async function readContents(
     ...yamlFiles,
   ];
 
-  for (const content of listing.contents) {
-    if (typeof (content) === "string") {
-      // This is a path (glob)-  compare itw
-      const files = filterPaths(
+  const filterListingFiles = (globOrPath: string) => {
+    if (isGlob(globOrPath)) {
+      // If this is a glob, expand it
+      return filterPaths(
         dirname(source),
         possibleListingFiles,
-        [content],
+        [globOrPath],
       );
+    } else {
+      // This is not a glob, filter to an exact match
+      const fullPath = join(dirname(source), globOrPath);
+      const matchingFiles = possibleListingFiles.filter((file) => {
+        return file === fullPath;
+      });
+      return {
+        include: matchingFiles,
+        exclude: [],
+      };
+    }
+  };
+
+  for (const content of listing.contents) {
+    if (typeof (content) === "string") {
+      // Find the files we should use based upon this glob or path
+      const files = filterListingFiles(content);
 
       for (const file of files.include) {
         if (!files.exclude.includes(file)) {
