@@ -172,9 +172,15 @@ function renderHtmlFigure(el, render)
       el.attr.attributes[k] = nil
     end
   end
-  
-  -- create figure div
-  local figureDiv = pandoc.Div({}, pandoc.Attr(el.attr.identifier))
+  local figureAttr = {}
+  local style = el.attr.attributes["style"]
+  if style then
+    figureAttr["style"] = style
+    el.attributes["style"] = nil
+  end
+
+  -- create figure div (
+  local figureDiv = pandoc.Div({}, pandoc.Attr(el.attr.identifier, {}, figureAttr))
   
   -- remove identifier (it is now on the div)
   el.attr.identifier = ""
