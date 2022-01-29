@@ -54,6 +54,7 @@ export function templateMarkdownHandler(
   listing: Listing,
   items: ListingItem[],
   format: Format,
+  cache: boolean,
   attributes?: Record<string, string>,
 ) {
   // Process the items into simple key value pairs, applying
@@ -139,6 +140,8 @@ export function templateMarkdownHandler(
   const templateRendered = renderEjs(
     template,
     paramsForType(listing.type),
+    true,
+    cache,
   );
 
   // Render the pagination

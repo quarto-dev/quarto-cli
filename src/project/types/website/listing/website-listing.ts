@@ -146,6 +146,7 @@ function markdownHandler(
         listing,
         items,
         format,
+        true,
       );
     }
     case ListingType.Grid: {
@@ -154,6 +155,7 @@ function markdownHandler(
         listing,
         items,
         format,
+        true,
       );
     }
     case ListingType.Custom: {
@@ -173,6 +175,7 @@ function markdownHandler(
         listing,
         items,
         format,
+        false,
       );
     }
     case ListingType.Default:
@@ -182,6 +185,7 @@ function markdownHandler(
         listing,
         items,
         format,
+        true,
       );
     }
   }

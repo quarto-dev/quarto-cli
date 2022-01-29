@@ -18,9 +18,10 @@ export function renderEjs(
   file: string,
   data: unknown,
   removeEmptyLines = true,
+  cache = true,
 ): string {
   // compile template
-  const template = compileTemplate(file, removeEmptyLines);
+  const template = compileTemplate(file, removeEmptyLines, cache);
 
   // render it, passing an include function for partials
   return lines(template(data).trimLeft())
@@ -29,8 +30,12 @@ export function renderEjs(
 }
 
 const compiledTemplates = new Map<string, unknown>();
-function compileTemplate(file: string, removeEmptyLines: boolean) {
-  if (!compiledTemplates.has(file)) {
+function compileTemplate(
+  file: string,
+  removeEmptyLines: boolean,
+  cache = true,
+) {
+  if (!cache || !compiledTemplates.has(file)) {
     const template =
       `<% const partial = (file, data) => print(include(file, data)); %>
       ${Deno.readTextFileSync(file)}`;
