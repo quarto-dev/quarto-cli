@@ -546,7 +546,7 @@ export class YAMLSchema {
     log: (a: TidyverseError) => unknown,
   ) {
     if (result.errors.length) {
-      const _locF = mappedIndexToRowCol(src);
+      const locF = mappedIndexToRowCol(src);
       const nLines = lines(src.originalString).length;
       if (message.length) {
         error(message);
