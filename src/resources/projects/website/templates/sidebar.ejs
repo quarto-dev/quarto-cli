@@ -14,7 +14,7 @@
     }
 
     // Whether there are tools that should be displayed to the user
-    let needsTools = !sidebar || !!(sidebar.tools || (sidebar.search && sidebar.search === 'overlay') || sidebar.darkToggle);
+    let needsTools = !sidebar || !!(sidebar.tools.length > 0 || (sidebar.search && sidebar.search === 'overlay') || sidebar.darkToggle);
     // Where the tools should be added (depending upon what elements are present, the tools)
     // may be displayed in different locations, so this will determine where to display the tools
     // "logo", "title", "search", "fallthrough"
