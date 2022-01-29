@@ -146,6 +146,26 @@ export function fileExecutionEngine(file: string) {
   }
 }
 
+export async function fileExecutionEngineAndTarget(
+  file: string,
+  quiet?: boolean,
+) {
+  const engine = fileExecutionEngine(file);
+  if (!engine) {
+    throw new Error("Unable to render " + file);
+  }
+
+  const target = await engine.target(file, quiet);
+  if (!target) {
+    throw new Error("Unable to render " + file);
+  }
+
+  return {
+    engine,
+    target,
+  };
+}
+
 function engineForMarkdownWithNoLanguages(markdown: string) {
   if (markdown.match(/`r[ #]([^`]+)\s*`/)) {
     return knitrEngine;

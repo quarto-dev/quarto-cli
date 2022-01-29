@@ -69,7 +69,7 @@ import { Format, FormatPandoc } from "../../config/types.ts";
 import {
   executionEngine,
   executionEngineKeepMd,
-  fileExecutionEngine,
+  fileExecutionEngineAndTarget,
 } from "../../execute/engine.ts";
 
 import { defaultWriterFormat } from "../../format/formats.ts";
@@ -178,13 +178,8 @@ export async function renderFiles(
         );
       }
 
-      let contexts: Record<string, RenderContext> | undefined;
-
-      const yamlValidationError = new YAMLValidationError(
-        "Render failed due to invalid YAML.",
-      );
-
       // get contexts
+      let contexts: Record<string, RenderContext> | undefined;
       try {
         contexts = await renderContexts(
           file,
@@ -196,16 +191,10 @@ export async function renderFiles(
         // bad YAML can cause failure before validation. We
         // reconstruct the context as best we can and try to validate.
         // note that this ignores "validate-yaml: false"
-
-        const engine = fileExecutionEngine(file);
-        if (!engine) {
-          throw new Error("Unable to render " + file);
-        }
-        const target = await engine.target(file, options.flags?.quiet);
-        if (!target) {
-          throw new Error("Unable to render " + file);
-        }
-
+        const { engine, target } = await fileExecutionEngineAndTarget(
+          file,
+          options.flags?.quiet,
+        );
         const validationResult = await validateDocumentFromSource(
           target.markdown,
           engine.name,
@@ -214,11 +203,11 @@ export async function renderFiles(
           file,
         );
         if (validationResult.length) {
-          throw yamlValidationError;
+          throw new RenderInvalidYAMLError();
+        } else {
+          // rethrow if no validation error happened.
+          throw e;
         }
-
-        // rethrow if no validation error happened.
-        throw e;
       }
 
       for (const format of Object.keys(contexts)) {
@@ -244,7 +233,7 @@ export async function renderFiles(
         if (validate !== false) {
           const validationResult = await validateDocument(context);
           if (validationResult.length) {
-            throw yamlValidationError;
+            throw new RenderInvalidYAMLError();
           }
         }
 
@@ -302,16 +291,10 @@ export async function renderContexts(
   // clone options (b/c we will modify them)
   options = ld.cloneDeep(options) as RenderOptions;
 
-  // determine the computation engine and any alternate input file
-  const engine = fileExecutionEngine(file);
-  if (!engine) {
-    throw new Error("Unable to render " + file);
-  }
-
-  const target = await engine.target(file, options.flags?.quiet);
-  if (!target) {
-    throw new Error("Unable to render " + file);
-  }
+  const { engine, target } = await fileExecutionEngineAndTarget(
+    file,
+    options.flags?.quiet,
+  );
 
   // resolve render target
   const formats = await resolveFormats(target, engine, options, project);
@@ -1196,4 +1179,10 @@ function mergeQuartoConfigs(
     fixupFormat(config),
     ...configs.map((c) => fixupFormat(c)),
   );
+}
+
+class RenderInvalidYAMLError extends YAMLValidationError {
+  constructor() {
+    super("Render failed due to invalid YAML.");
+  }
 }
