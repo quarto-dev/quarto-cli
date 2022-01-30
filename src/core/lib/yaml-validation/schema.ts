@@ -96,7 +96,10 @@ export function schemaExhaustiveCompletions(schema: Schema) {
 }
 
 // deno-lint-ignore no-explicit-any
-export function walkSchema<T>(schema: Schema, f: ((a: Schema) => any) | Record<string, (a: Schema) => any>) {
+export function walkSchema<T>(
+  schema: Schema,
+  f: ((a: Schema) => any) | Record<string, (a: Schema) => any>,
+) {
   const t = schemaType(schema);
   if (typeof f === "function") {
     if (f(schema) === true) {
@@ -106,8 +109,8 @@ export function walkSchema<T>(schema: Schema, f: ((a: Schema) => any) | Record<s
   } else {
     if (f[t] !== undefined) {
       if (f[t](schema) === true) {
-      // if callback returns true, don't recurse
-      return;
+        // if callback returns true, don't recurse
+        return;
       }
     }
   }
@@ -176,6 +179,9 @@ export function normalizeSchema(schema: Schema): Schema {
     }
     if (schema.tags) {
       delete schema.tags;
+    }
+    if (schema.errorMessage) {
+      delete schema.errorMessage;
     }
   });
 

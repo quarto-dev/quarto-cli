@@ -13,6 +13,7 @@ import {
   AnnotatedParse,
   getVerbatimInput,
   LocalizedError,
+  navigate,
   YAMLSchema,
 } from "./yaml-schema.ts";
 
@@ -27,9 +28,11 @@ import {
 
 import { lines } from "../text.ts";
 
-import { navigate, navigateSchema } from "./yaml-schema.ts";
+import { navigateSchemaByInstancePath } from "./schema-navigation.ts";
 
 import { mappedIndexToRowCol } from "../mapped-text.ts";
+
+import { locationString } from "../errors.ts";
 
 export type ValidatorErrorHandlerFunction = (
   error: LocalizedError,
@@ -104,7 +107,7 @@ function innerDescription(
     error.ajvError.parentSchema;
   const innerSchema = errorSchema
     ? [errorSchema]
-    : navigateSchema(schemaPath.map(decodeURIComponent), schema);
+    : navigateSchemaByInstancePath(schemaPath.map(decodeURIComponent), schema);
   return innerSchema.map((s: Schema) => s.description).join(", ");
 }
 
@@ -206,6 +209,7 @@ export function setDefaultErrorHandlers(validator: YAMLSchema) {
   validator.addHandler(improveErrorHeading);
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);
+  validator.addHandler(schemaDefinedErrors);
 }
 
 function checkForTypeMismatch(
@@ -281,4 +285,63 @@ function checkForBadBoolean(
     ...error,
     niceError: newError,
   };
+}
+
+// a custom errorMessage is either a string
+// or a Record<string, string> that dispatches on type of error
+//
+type CustomErrorMessage = string | Record<string, string>;
+
+function createErrorFragments(error: LocalizedError) {
+  const rawVerbatimInput = getVerbatimInput(error);
+  const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
+
+  let pathFragments = error.instancePath
+    .trim()
+    .slice(1)
+    .split("/").map((s) => colors.blue(s));
+
+  return {
+    location: locationString(error.location),
+    fullPath: pathFragments.join(":"),
+    key: pathFragments[pathFragments.length - 1],
+    value: verbatimInput,
+  };
+}
+
+function schemaDefinedErrors(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  schema: Schema,
+): LocalizedError {
+  const subSchema = navigateSchemaByInstancePath(
+    schema,
+    error.instancePath.split("/").slice(1),
+  );
+  if (subSchema.length === 0) {
+    return error;
+  }
+  if (subSchema[0].errorMessage === undefined) {
+    return error;
+  }
+  if (typeof subSchema[0].errorMessage !== "string") {
+    return error;
+  }
+
+  // FIXME what to do if more than one schema has custom error messages?
+  // currently, we choose one arbitrarily
+
+  let result = subSchema[0].errorMessage;
+  for (const [k, v] of Object.entries(createErrorFragments(error))) {
+    result = result.replace("${" + k + "}", v);
+  }
+
+  return {
+    ...error,
+    niceError: {
+      ...error.niceError,
+      heading: result,
+    },
+  };
+  return result;
 }

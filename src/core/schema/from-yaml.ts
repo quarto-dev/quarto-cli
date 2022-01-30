@@ -65,7 +65,7 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
     // don't complete anything through a `hidden` field
     schema = completeSchemaOverwrite(schema);
     schema = tagSchema(schema, {
-      "hidden": true
+      "hidden": true,
     });
   }
   if (yaml.tags) {
@@ -87,6 +87,10 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
 
   if (yaml.errorDescription) {
     result.description = yaml.errorDescription;
+  }
+
+  if (yaml.errorMessage) {
+    result.errorMessage = yaml.errorMessage;
   }
 
   return result;
@@ -165,8 +169,9 @@ function convertFromMaybeArrayOf(yaml: any): Schema {
   const schema = tagSchema(
     oneOfS(inner, arrayOfS(inner)),
     {
-      "complete-from": ["oneOf", 0] // complete from `schema` completions, ignoring arrayOf
-    });
+      "complete-from": ["oneOf", 0], // complete from `schema` completions, ignoring arrayOf
+    },
+  );
 
   return setBaseSchemaProperties(yaml, schema);
 }
@@ -260,24 +265,26 @@ function convertFromEnum(yaml: any): Schema {
 function convertFromRecord(yaml: any): Schema {
   if (yaml.record.properties) {
     // deno-lint-ignore no-explicit-any
-    
+
     const schema = convertFromObject({
       "object": {
         "properties": yaml.record.properties,
         "additionalProperties": false,
-        "required": "all"
-      }
+        "required": "all",
+      },
     });
     return setBaseSchemaProperties(
-      yaml, setBaseSchemaProperties(yaml.record, schema));
+      yaml,
+      setBaseSchemaProperties(yaml.record, schema),
+    );
   } else {
     // deno-lint-ignore no-explicit-any
     const schema = convertFromObject({
       "object": {
         "properties": yaml.record,
         "additionalProperties": false,
-        "required": "all"
-      }
+        "required": "all",
+      },
     });
     return setBaseSchemaProperties(yaml, schema);
   }
@@ -323,7 +330,10 @@ function convertFromObject(yaml: any): Schema {
     params.completions = schema["completions"];
   }
 
-  return setBaseSchemaProperties(yaml, setBaseSchemaProperties(schema, objectS(params)));
+  return setBaseSchemaProperties(
+    yaml,
+    setBaseSchemaProperties(schema, objectS(params)),
+  );
 }
 
 // deno-lint-ignore no-explicit-any
@@ -485,7 +495,7 @@ function annotateSchemaFromField(field: SchemaField, schema: Schema): Schema {
   }
   if (field.hidden) {
     schema = tagSchema(schema, {
-      "hidden": true
+      "hidden": true,
     });
   }
   return schema;

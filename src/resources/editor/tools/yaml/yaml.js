@@ -4967,6 +4967,18 @@ if (typeof exports === 'object') {
       msg.info.push(`The error happened in location ${niceInstancePath}.`);
     }
   }
+  function locationString(loc) {
+    const { start, end } = loc;
+    if (start.line === end.line) {
+      if (start.column === end.column) {
+        return `(line ${start.line + 1}, column ${start.column + 1})`;
+      } else {
+        return `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`;
+      }
+    } else {
+      return `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
+    }
+  }
   var errorsReported = new Set();
   function lines(text) {
     return text.split(/\r?\n/);
@@ -7601,35 +7613,38 @@ if (typeof exports === 'object') {
     regexp = regexp.slice(1, -1);
     return new RegExp("^" + prefixesFromParse(parseRegExpLiteral(new RegExp(regexp))) + "$");
   }
-  var _schemas = {
-    schemas: {
-      "front-matter": void 0,
-      config: void 0,
-      engines: void 0
-    },
-    aliases: {},
-    definitions: {}
-  };
-  function setSchemas(schemas) {
-    _schemas = schemas;
-  }
-  function getSchemas() {
-    if (_schemas) {
-      return _schemas;
+  function navigateSchemaBySchemaPath(path, schema, pathIndex = 0) {
+    schema = resolveSchema(schema);
+    if (pathIndex >= path.length - 1) {
+      return [schema];
+    }
+    const pathVal = path[pathIndex];
+    if (schema.allOf !== void 0) {
+      return schema.allOf.map((s) => navigateSchemaBySchemaPath(path, s, pathIndex)).flat();
+    } else if (pathVal === "patternProperties" && schema.patternProperties) {
+      const key = path[pathIndex + 1];
+      const subSchema = schema.patternProperties[key];
+      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "properties" && schema.properties) {
+      const key = path[pathIndex + 1];
+      const subSchema = schema.properties[key];
+      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "anyOf" && schema.anyOf) {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.anyOf[key];
+      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "oneOf" && schema.oneOf) {
+      const key = Number(path[pathIndex + 1]);
+      const subSchema = schema.oneOf[key];
+      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
+    } else if (pathVal === "items" && schema.items) {
+      const subSchema = schema.items;
+      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 1);
     } else {
-      throw new Error("Internal error: schemas not set");
+      return [];
     }
   }
-  function matchPatternProperties(schema, key) {
-    for (const [regexpStr, subschema] of Object.entries(schema.patternProperties || {})) {
-      const prefixPattern = prefixes(new RegExp(regexpStr));
-      if (key.match(prefixPattern)) {
-        return subschema;
-      }
-    }
-    return false;
-  }
-  function navigateSchema(schema, path) {
+  function navigateSchemaByInstancePath(schema, path) {
     const inner = (subSchema, index) => {
       subSchema = resolveSchema(subSchema);
       if (index === path.length) {
@@ -7670,15 +7685,15 @@ if (typeof exports === 'object') {
     };
     return inner(schema, 0).flat(Infinity);
   }
-  function navigateSchemaSingle(schema, path) {
+  function navigateSchemaBySchemaPathSingle(schema, path) {
     const ensurePathFragment = (fragment, expected) => {
       if (fragment !== expected) {
-        throw new Error(`Internal Error in navigateSchemaSingle: ${fragment} !== ${expected}`);
+        throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`);
       }
     };
     const inner = (subschema, index) => {
       if (subschema === void 0) {
-        throw new Error(`Internal Error in navigateSchemaSingle: invalid path navigation`);
+        throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`);
       }
       if (index === path.length) {
         return subschema;
@@ -7706,12 +7721,40 @@ if (typeof exports === 'object') {
           } else if (path[index + 1] === "additionalProperties") {
             return inner(subschema.additionalProperties, index + 2);
           } else {
-            throw new Error(`Internal Error in navigateSchemaSingle: bad path fragment ${path[index]} in object navigation`);
+            throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: bad path fragment ${path[index]} in object navigation`);
           }
         default:
-          throw new Error(`Internal Error in navigateSchemaSingle: can't navigate schema type ${st}`);
+          throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`);
       }
     };
+  }
+  function matchPatternProperties(schema, key) {
+    for (const [regexpStr, subschema] of Object.entries(schema.patternProperties || {})) {
+      const prefixPattern = prefixes(new RegExp(regexpStr));
+      if (key.match(prefixPattern)) {
+        return subschema;
+      }
+    }
+    return false;
+  }
+  var _schemas = {
+    schemas: {
+      "front-matter": void 0,
+      config: void 0,
+      engines: void 0
+    },
+    aliases: {},
+    definitions: {}
+  };
+  function setSchemas(schemas) {
+    _schemas = schemas;
+  }
+  function getSchemas() {
+    if (_schemas) {
+      return _schemas;
+    } else {
+      throw new Error("Internal error: schemas not set");
+    }
   }
   function resolveDescription(s) {
     if (typeof s === "string") {
@@ -7778,7 +7821,7 @@ if (typeof exports === 'object') {
     }, (schema2) => {
       return schema2.tags && schema2.tags["complete-from"];
     }, (schema2) => {
-      return navigateSchemaSingle(schema2, schema2.tags["complete-from"]);
+      return navigateSchemaBySchemaPathSingle(schema2, schema2.tags["complete-from"]);
     });
     const normalize = (completions2) => {
       const result = (completions2 || []).map((c) => {
@@ -8257,39 +8300,6 @@ if (typeof exports === 'object') {
       return annotation;
     }
   }
-  function navigateSchema2(path, schema, pathIndex = 0) {
-    if (schema.$ref) {
-      schema = getSchemaDefinition(schema.$ref);
-    }
-    if (pathIndex >= path.length - 1) {
-      return [schema];
-    }
-    const pathVal = path[pathIndex];
-    if (schema.allOf !== void 0) {
-      return schema.allOf.map((s) => navigateSchema2(path, s, pathIndex)).flat();
-    } else if (pathVal === "patternProperties" && schema.patternProperties) {
-      const key = path[pathIndex + 1];
-      const subSchema = schema.patternProperties[key];
-      return navigateSchema2(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "properties" && schema.properties) {
-      const key = path[pathIndex + 1];
-      const subSchema = schema.properties[key];
-      return navigateSchema2(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "anyOf" && schema.anyOf) {
-      const key = Number(path[pathIndex + 1]);
-      const subSchema = schema.anyOf[key];
-      return navigateSchema2(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "oneOf" && schema.oneOf) {
-      const key = Number(path[pathIndex + 1]);
-      const subSchema = schema.oneOf[key];
-      return navigateSchema2(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "items" && schema.items) {
-      const subSchema = schema.items;
-      return navigateSchema2(path, subSchema, pathIndex + 1);
-    } else {
-      return [];
-    }
-  }
   function isProperPrefix(a, b) {
     return b.length > a.length && b.substring(0, a.length) === a;
   }
@@ -8401,7 +8411,7 @@ if (typeof exports === 'object') {
             };
           } else {
             const errorSchema = error.params && error.params.schema || error.parentSchema;
-            const innerSchema = errorSchema ? [errorSchema] : navigateSchema2(schemaPath.map(decodeURIComponent), schema);
+            const innerSchema = errorSchema ? [errorSchema] : navigateSchemaBySchemaPath(schemaPath.map(decodeURIComponent), schema);
             if (innerSchema.length === 0) {
               niceError = {
                 ...niceError,
@@ -8580,7 +8590,7 @@ if (typeof exports === 'object') {
   function innerDescription(error, parse, schema) {
     const schemaPath = error.ajvError.schemaPath.split("/").slice(1);
     const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
-    const innerSchema = errorSchema ? [errorSchema] : navigateSchema2(schemaPath.map(decodeURIComponent), schema);
+    const innerSchema = errorSchema ? [errorSchema] : navigateSchemaBySchemaPath(schemaPath.map(decodeURIComponent), schema);
     return innerSchema.map((s) => s.description).join(", ");
   }
   function formatHeading(error, parse, schema) {
@@ -8647,6 +8657,7 @@ if (typeof exports === 'object') {
     validator.addHandler(improveErrorHeading);
     validator.addHandler(checkForTypeMismatch);
     validator.addHandler(checkForBadBoolean);
+    validator.addHandler(schemaDefinedErrors);
   }
   function checkForTypeMismatch(error, parse, schema) {
     const rawVerbatimInput = getVerbatimInput(error);
@@ -8702,6 +8713,33 @@ if (typeof exports === 'object') {
       ...error,
       niceError: newError
     };
+  }
+  function createErrorFragments(error) {
+    const rawVerbatimInput = getVerbatimInput(error);
+    const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
+    let pathFragments = error.instancePath.trim().slice(1).split("/").map((s) => blue(s));
+    return {
+      location: locationString(error.location),
+      fullPath: pathFragments.join(":"),
+      key: pathFragments[pathFragments.length - 1],
+      value: verbatimInput
+    };
+  }
+  function schemaDefinedErrors(error, parse, schema) {
+    const subSchema = navigateSchemaBySchemaPath(schema, error.ajvError.schemaPath.split("/").slice(1));
+    console.log(error.ajvError.schemaPath.split("/").slice(1));
+    console.log(JSON.stringify(subSchema, null, 2));
+    if (schema.errorMessage === void 0) {
+      return error;
+    }
+    if (typeof schema.errorMessage !== "string") {
+      return error;
+    }
+    let result = schema.errorMessage;
+    for (const [k, v] of Object.entries(createErrorFragments(error))) {
+      result = result.replace("${" + k + "}", v);
+    }
+    return result;
   }
   var yamlValidators = {};
   var validatorQueues = {};
@@ -8942,7 +8980,7 @@ if (typeof exports === 'object') {
       return false;
     }
     const subPath = [completion.value.slice(0, -2)];
-    const matchingSubSchemas = navigateSchema(matchingSchema, subPath);
+    const matchingSubSchemas = navigateSchemaByInstancePath(matchingSchema, subPath);
     if (matchingSubSchemas.length === 0) {
       return false;
     }
@@ -8962,9 +9000,9 @@ if (typeof exports === 'object') {
     } = obj;
     let word = obj.word;
     let path = obj.path;
-    let matchingSchemas = uniqBy(navigateSchema(schema, path), (schema2) => schema2.$id);
+    let matchingSchemas = uniqBy(navigateSchemaByInstancePath(schema, path), (schema2) => schema2.$id);
     if (matchingSchemas.length === 0) {
-      const candidateSchemas = uniqBy(navigateSchema(schema, path.slice(0, -1)), (schema2) => schema2.$id);
+      const candidateSchemas = uniqBy(navigateSchemaByInstancePath(schema, path.slice(0, -1)), (schema2) => schema2.$id);
       if (candidateSchemas.length === 0) {
         return {
           token: word,
@@ -8994,7 +9032,7 @@ if (typeof exports === 'object') {
           return completion;
         }
         const key = completion.value.split(":")[0];
-        const matchingSubSchemas = navigateSchema(completion.schema, [key]);
+        const matchingSubSchemas = navigateSchemaByInstancePath(completion.schema, [key]);
         const canSuggestOnAccept = (ss) => {
           const matchingTypes = new Set();
           walkSchema(ss, (s) => {
@@ -9017,7 +9055,6 @@ if (typeof exports === 'object') {
           if (matchingTypes.size > 1) {
             return false;
           }
-          ;
           let arraySubSchemas = [];
           walkSchema(ss, {
             "array": (s) => {
@@ -9060,7 +9097,7 @@ if (typeof exports === 'object') {
         return !(c.schema && c.schema.tags && c.schema.tags.hidden);
       } else if (c.type === "key") {
         const key = c.value.split(":")[0];
-        const matchingSubSchemas = navigateSchema(c.schema, [key]);
+        const matchingSubSchemas = navigateSchemaByInstancePath(c.schema, [key]);
         if (matchingSubSchemas.length === 0) {
           return true;
         }

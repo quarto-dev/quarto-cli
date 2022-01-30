@@ -26,19 +26,24 @@ import { pandocListFormats } from "../pandoc/pandoc-formats.ts";
 
 import { defineCached } from "./definitions.ts";
 
+import { errorMessageSchema } from "./common.ts";
+
 // deno-lint-ignore require-await
 export async function makeFrontMatterFormatSchema(nonStrict = false) {
   const hideFormat = (format: string) => {
     const hideList = ["html", "epub", "docbook"];
-    const hidden = hideList.some(h => format.startsWith(h) &&
-      format.length > h.length);
+    const hidden = hideList.some((h) =>
+      format.startsWith(h) &&
+      format.length > h.length
+    );
     return { name: format, hidden };
-  }
+  };
   const formatSchemaDescriptorList = (await pandocListFormats()).map(
     (format) => {
       const {
-        name, hidden
-      } = hideFormat(format)
+        name,
+        hidden,
+      } = hideFormat(format);
       return {
         regex: `^${name}(\\+.+)?$`,
         schema: getFormatSchema(name),
@@ -71,19 +76,22 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
       .map(({ name }) => [name, ""]),
   );
 
-  return oneOfS(
-    describeSchema(
-      oneOfS(...plusFormatStringSchemas),
-      "the name of a pandoc-supported output format",
+  return errorMessageSchema(
+    oneOfS(
+      describeSchema(
+        oneOfS(...plusFormatStringSchemas),
+        "the name of a pandoc-supported output format",
+      ),
+      regexS("^hugo(\\+.+)?$", "be 'hugo'"),
+      allOfS(
+        objectS({
+          patternProperties: Object.fromEntries(formatSchemas),
+          completions: completionsObject,
+          additionalProperties: nonStrict,
+        }),
+      ),
     ),
-    regexS("^hugo(\\+.+)?$", "be 'hugo'"),
-    allOfS(
-      objectS({
-        patternProperties: Object.fromEntries(formatSchemas),
-        completions: completionsObject,
-        additionalProperties: nonStrict,
-      }),
-    ),
+    "${value} is not a valid output format.",
   );
 }
 

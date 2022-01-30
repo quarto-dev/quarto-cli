@@ -39,15 +39,17 @@ import {
   Schema,
   schemaAccepts,
   schemaAcceptsScalar,
-  setSchemaDefinition,
   schemaType,
-  walkSchema
+  setSchemaDefinition,
+  walkSchema,
 } from "../yaml-validation/schema.ts";
 
 import { withValidator } from "../yaml-validation/validator-queue.ts";
+
+import { navigateSchemaByInstancePath as navigateSchema } from "../yaml-validation/schema-navigation.ts";
+
 import {
   getSchemas,
-  navigateSchema,
   QuartoJsonSchemas,
   resolveSchema,
   schemaCompletions,
@@ -402,7 +404,9 @@ function dropCompletionsFromSchema(
     return false;
   }
 
-  const executeOnly = matchingSubSchemas.every((s: Schema) => s.tags && s.tags["execute-only"]);
+  const executeOnly = matchingSubSchemas.every((s: Schema) =>
+    s.tags && s.tags["execute-only"]
+  );
   if (path.length > 0 && path[0] === "execute") {
     // don't complete on schemas that do not have "execute-only" but
     // paths that start on path fragments of "execute"
@@ -497,14 +501,14 @@ function completions(obj: CompletionContext): CompletionResult {
         // The idea is we never want to set `suggest_on_accept: true` on a
         // completion that can ask for more than one type. This can
         // occur in two types of situations.
-        // 
+        //
         // First, the matching subschema itself can have more than one type of completion
         // (scalar, object, or array). Second, if the completion is in an array,
         // then we need to check if the array item schema itself is valid
 
         const canSuggestOnAccept = (ss: Schema): boolean => {
           const matchingTypes: Set<string> = new Set();
-          
+
           walkSchema(ss, (s) => {
             const t = schemaType(s);
             switch (t) {
@@ -524,8 +528,8 @@ function completions(obj: CompletionContext): CompletionResult {
           });
           if (matchingTypes.size > 1) {
             return false;
-          };
-          
+          }
+
           let arraySubSchemas: Schema[] = [];
           // now find all array subschema to recurse on
           walkSchema(ss, {
@@ -533,25 +537,25 @@ function completions(obj: CompletionContext): CompletionResult {
               arraySubSchemas.push(s);
               return true;
             },
-            "object": (s) => true
+            "object": (s) => true,
           });
-          return arraySubSchemas.every(s => {
+          return arraySubSchemas.every((s) => {
             if (s.items === undefined) {
               return true;
             } else {
               return canSuggestOnAccept(s.items);
             }
           });
-        }
-        
-        if (!matchingSubSchemas.every(ss => canSuggestOnAccept(ss))) {
+        };
+
+        if (!matchingSubSchemas.every((ss) => canSuggestOnAccept(ss))) {
           return {
             ...completion,
             suggest_on_accept: false,
             value: completion.value,
           };
         }
-        
+
         if (
           matchingSubSchemas.some((subSchema: Schema) =>
             schemaAccepts(subSchema, "object")
@@ -587,7 +591,7 @@ function completions(obj: CompletionContext): CompletionResult {
         if (matchingSubSchemas.length === 0) {
           return true;
         }
-        return !(matchingSubSchemas.every(s => s.tags && s.tags.hidden));
+        return !(matchingSubSchemas.every((s) => s.tags && s.tags.hidden));
       } else {
         // should never get here.
         return true;

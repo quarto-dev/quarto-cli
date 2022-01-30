@@ -179,7 +179,7 @@ export function objectSchema(params: {
   for (const k of Object.getOwnPropertyNames(completionsParam || properties)) {
     const schema = properties[k];
     const maybeDescriptions: (undefined | string | { $ref: string })[] = [
-      completionsParam?.[k]
+      completionsParam?.[k],
     ];
     let hidden = false;
     if (schema !== undefined) {
@@ -193,7 +193,7 @@ export function objectSchema(params: {
         // case, maybeResolveSchema will return undefined, and we
         // potentially store a special description entry, deferring the
         // resolution to runtime.
-        
+
         let described = false;
         const visitor = (schema: Schema) => {
           if (schema?.hidden) {
@@ -238,7 +238,7 @@ export function objectSchema(params: {
       suggest_on_accept: schema?.completions?.length !== 0,
     });
   }
-  
+
   if (baseSchema) {
     if (baseSchema.type !== "object") {
       throw new Error("Internal Error: can only extend other object Schema");
@@ -384,6 +384,13 @@ export function idSchema(schema: Schema, id: string) {
   const result = Object.assign({}, schema);
   result["$id"] = id;
   return result;
+}
+
+export function errorMessageSchema(schema: Schema, errorMessage: string) {
+  return {
+    ...schema,
+    errorMessage,
+  };
 }
 
 // JSON schemas don't even allow $ref to have descriptions,

@@ -26,6 +26,8 @@ import { getSchemaDefinition, Schema } from "./schema.ts";
 
 import { ErrorObject, stagedValidator } from "./staged-validator.ts";
 
+import { navigateSchemaBySchemaPath } from "./schema-navigation.ts";
+
 ////////////////////////////////////////////////////////////////////////////////
 
 export interface AnnotatedParse {
@@ -119,48 +121,6 @@ export function navigate(
   } else {
     return annotation;
     // throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
-  }
-}
-
-export function navigateSchema(
-  path: string[],
-  schema: Schema,
-  pathIndex = 0,
-): Schema[] {
-  if (schema.$ref) {
-    schema = getSchemaDefinition(schema.$ref);
-  }
-  if (pathIndex >= path.length - 1) {
-    return [schema];
-  }
-  const pathVal = path[pathIndex];
-  // allOf doesn't appear to trigger a new path in the schemapath, so
-  // we have to check if the _current_ schema is an allOf, and just
-  // iterate over all of them and concatenate. Maybe? :shrug: ?
-  if (schema.allOf !== undefined) {
-    return schema.allOf.map((s: Schema) => navigateSchema(path, s, pathIndex))
-      .flat();
-  } else if (pathVal === "patternProperties" && schema.patternProperties) {
-    const key = path[pathIndex + 1];
-    const subSchema = schema.patternProperties[key];
-    return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "properties" && schema.properties) {
-    const key = path[pathIndex + 1];
-    const subSchema = schema.properties[key];
-    return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "anyOf" && schema.anyOf) {
-    const key = Number(path[pathIndex + 1]);
-    const subSchema = schema.anyOf[key];
-    return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "oneOf" && schema.oneOf) {
-    const key = Number(path[pathIndex + 1]);
-    const subSchema = schema.oneOf[key];
-    return navigateSchema(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "items" && schema.items) {
-    const subSchema = schema.items;
-    return navigateSchema(path, subSchema, pathIndex + 1);
-  } else {
-    return [];
   }
 }
 
@@ -396,7 +356,10 @@ function localizeAndPruneErrors(
             error.parentSchema;
           const innerSchema = errorSchema
             ? [errorSchema]
-            : navigateSchema(schemaPath.map(decodeURIComponent), schema);
+            : navigateSchemaBySchemaPath(
+              schemaPath.map(decodeURIComponent),
+              schema,
+            );
           if (innerSchema.length === 0) {
             // this is probably an internal error..
             niceError = {
