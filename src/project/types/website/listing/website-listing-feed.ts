@@ -139,9 +139,15 @@ export async function createFeed(
 
   // Categories to render
   const categoriesToRender = options[kFieldCategories]?.map((category) => {
+    const finalAbsPath = join(
+      dir,
+      `${stem}-${category.toLocaleLowerCase()}.xml`,
+    );
+    const finalRelPath = relative(project.dir, finalAbsPath);
     return {
       category,
       file: join(dir, `${stem}-${category.toLocaleLowerCase()}.${stagedExt}`),
+      finalFile: finalRelPath,
     };
   });
 
@@ -154,12 +160,12 @@ export async function createFeed(
   if (categoriesToRender) {
     for (const categoryToRender of categoriesToRender) {
       await renderCategoryFeed(
-        categoryToRender.category,
+        doc,
+        categoryToRender,
         feed,
         items,
         options,
         format,
-        categoryToRender.file,
       );
       feedFiles.push(categoryToRender.file);
     }
@@ -178,32 +184,34 @@ function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {
 }
 
 async function renderCategoryFeed(
-  category: string,
+  doc: Document,
+  categoryToRender: { category: string; file: string; finalFile: string },
   feed: FeedMetadata,
   items: ListingItem[],
   options: ListingFeedOptions,
   format: Format,
-  feedPath: string,
 ) {
   // Category title
   const feedMeta = { ...feed };
-  feedMeta.title = `${feedMeta.title} - ${category}`;
+  feedMeta.title = `${feedMeta.title} - ${categoryToRender.category}`;
 
   const categoryItems = items.filter((item) => {
     const categories = item[kFieldCategories];
     if (categories) {
-      return (categories as string[]).includes(category);
+      return (categories as string[]).includes(categoryToRender.category);
     } else {
       return false;
     }
   });
+
+  addLinkTagToDocument(doc, feedMeta, categoryToRender.finalFile);
 
   await renderFeed(
     feed,
     categoryItems,
     options,
     format,
-    feedPath,
+    categoryToRender.file,
   );
 }
 
