@@ -35,6 +35,7 @@ import {
   kFieldCategories,
   Listing,
   ListingDescriptor,
+  ListingFeedOptions,
   ListingItem,
   ListingSharedOptions,
   ListingType,
@@ -127,12 +128,17 @@ export async function listingHtmlDependencies(
 
     const supporting: string[] = [];
     if (options[kFeed]) {
+      const listingOptions = {
+        type: "partial",
+        ...options[kFeed],
+      } as ListingFeedOptions;
+
       const feedAbsPaths = await createFeed(
         doc,
         source,
         project,
         listingDescriptors,
-        options[kFeed]!,
+        listingOptions,
         format,
       );
       if (feedAbsPaths) {

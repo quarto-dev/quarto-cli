@@ -8,6 +8,7 @@
 import { join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { uniqBy } from "../../../../core/lodash.ts";
 import { Format } from "../../../../config/types.ts";
@@ -30,7 +31,13 @@ import {
   ListingFeedOptions,
   ListingItem,
 } from "./website-listing-shared.ts";
-import { dirAndStem } from "../../../../core/path.ts";
+import {
+  dirAndStem,
+  expandPath,
+  resolvePathGlobs,
+} from "../../../../core/path.ts";
+import { ProjectOutputFile } from "../../types.ts";
+import { kListing } from "./website-listing-read.ts";
 
 // Feed Options
 /*
@@ -126,10 +133,7 @@ export async function createFeed(
 
   // The path to the feed file
   const [dir, stem] = dirAndStem(source);
-  const stagedExt = options.type === "full" ? "xml.staged" : "xml";
-
-  const stagedFile = `${stem}.${stagedExt}`;
-  const feedPath = join(dir, stagedFile);
+  const stagedPath = feedPath(dir, stem, options.type === "full");
 
   const finalPath = join(dir, `${stem}.xml`);
   const projectRelativeFinalPath = relative(project.dir, finalPath);
@@ -139,22 +143,25 @@ export async function createFeed(
 
   // Categories to render
   const categoriesToRender = options[kFieldCategories]?.map((category) => {
-    const finalAbsPath = join(
-      dir,
-      `${stem}-${category.toLocaleLowerCase()}.xml`,
+    const finalRelPath = relative(
+      project.dir,
+      feedPath(dir, `${stem}-${category.toLocaleLowerCase()}`, false),
     );
-    const finalRelPath = relative(project.dir, finalAbsPath);
     return {
       category,
-      file: join(dir, `${stem}-${category.toLocaleLowerCase()}.${stagedExt}`),
+      file: feedPath(
+        dir,
+        `${stem}-${category.toLocaleLowerCase()}`,
+        options.type === "full",
+      ),
       finalFile: finalRelPath,
     };
   });
 
   const feedFiles: string[] = [];
   // Render the main feed
-  await renderFeed(feed, items, options, format, stagedFile);
-  feedFiles.push(feedPath);
+  await renderFeed(feed, items, options, format, stagedPath);
+  feedFiles.push(stagedPath);
 
   // Render the categories feed
   if (categoriesToRender) {
@@ -172,6 +179,32 @@ export async function createFeed(
   }
 
   return feedFiles;
+}
+
+export function completeStagedFullFeeds(
+  context: ProjectContext,
+  outputFiles: ProjectOutputFile[],
+  incremental: boolean,
+) {
+  outputFiles.forEach((outputFile) => {
+    if (outputFile.format.metadata[kListing]) {
+      // There is a listing here, look for unresolved feed files
+      const [dir, stem] = dirAndStem(outputFile.file);
+      const files = resolvePathGlobs(dir, [`${stem}*.${kStagedExt}`], []);
+      for (const feedFile of files.include) {
+        // TODO: Read and replace contents of the feed file
+      }
+    }
+  });
+}
+
+const kStagedExt = "xml.staged";
+const kFinalExt = "xml";
+
+function feedPath(dir: string, stem: string, staged: boolean) {
+  const ext = staged ? kStagedExt : kFinalExt;
+  const file = `${stem}.${ext}`;
+  return join(dir, file);
 }
 
 function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {

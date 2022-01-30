@@ -99,7 +99,7 @@ export type CategoryStyle =
 export interface ListingFeedOptions {
   [kTitle]?: string;
   [kItems]?: number;
-  [kType]?: "partial" | "full";
+  [kType]: "partial" | "full";
   [kLanguage]?: string;
   [kDescription]?: string;
   [kFieldCategories]?: string[];

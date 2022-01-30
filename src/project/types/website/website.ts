@@ -64,6 +64,7 @@ import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 import { defaultProjectType } from "../project-default.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { listingHtmlDependencies } from "./listing/website-listing.ts";
+import { completeStagedFullFeeds } from "./listing/website-listing-feed.ts";
 
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
@@ -279,6 +280,9 @@ export async function websitePostRender(
 
   // update search index
   updateSearchIndex(context, outputFiles, incremental);
+
+  // Any full content feeds need to be 'completed'
+  completeStagedFullFeeds(context, outputFiles, incremental);
 
   // write redirecting index.html if there is none
   ensureIndexPage(context);
