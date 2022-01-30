@@ -61,6 +61,25 @@
 
 - name: title-slide-attributes
   schema:
+    object:
+      properties:
+        data-background-image:
+          string:
+            description: URL or path to the background image.
+        data-background-size:
+          string:
+            description: CSS background size (defaults to `cover`)
+        data-background-position:
+          string:
+            description: CSS background position (defaults to `center`)
+        data-background-repeat:
+          string:
+            description: CSS background repeat (defaults to `no-repeat`)
+        data-background-opacity:
+          string:
+            description: |
+              Opacity of the background image on a 0-1 scale. 
+              0 is transparent and 1 is fully opaque.
   tags:
     formats: [revealjs]
   description:
