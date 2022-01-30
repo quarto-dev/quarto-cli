@@ -3756,7 +3756,7 @@ function reindent(str) {
 function innerDescription(error, parse, schema) {
   const schemaPath = error.ajvError.schemaPath.split("/").slice(1);
   const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
-  const innerSchema = errorSchema ? [errorSchema] : navigateSchemaBySchemaPath(schemaPath.map(decodeURIComponent), schema);
+  const innerSchema = errorSchema ? [errorSchema] : navigateSchemaByInstancePath(schemaPath.map(decodeURIComponent), schema);
   return innerSchema.map((s) => s.description).join(", ");
 }
 function formatHeading(error, parse, schema) {
@@ -3892,19 +3892,27 @@ function createErrorFragments(error) {
   };
 }
 function schemaDefinedErrors(error, parse, schema) {
-  const subSchema = navigateSchemaBySchemaPath(schema, error.ajvError.schemaPath.split("/").slice(1));
-  console.log(error.ajvError.schemaPath.split("/").slice(1));
-  console.log(JSON.stringify(subSchema, null, 2));
-  if (schema.errorMessage === void 0) {
+  const subSchema = navigateSchemaByInstancePath(schema, error.instancePath.split("/").slice(1));
+  if (subSchema.length === 0) {
     return error;
   }
-  if (typeof schema.errorMessage !== "string") {
+  if (subSchema[0].errorMessage === void 0) {
     return error;
   }
-  let result = schema.errorMessage;
+  if (typeof subSchema[0].errorMessage !== "string") {
+    return error;
+  }
+  let result = subSchema[0].errorMessage;
   for (const [k, v] of Object.entries(createErrorFragments(error))) {
     result = result.replace("${" + k + "}", v);
   }
+  return {
+    ...error,
+    niceError: {
+      ...error.niceError,
+      heading: result
+    }
+  };
   return result;
 }
 
