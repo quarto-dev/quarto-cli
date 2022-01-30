@@ -5,8 +5,9 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
+import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { uniqBy } from "../../../../core/lodash.ts";
 import { Format } from "../../../../config/types.ts";
@@ -82,6 +83,7 @@ interface FeedItem {
 }
 
 export async function createFeed(
+  doc: Document,
   source: string,
   project: ProjectContext,
   descriptors: ListingDescriptor[],
@@ -124,21 +126,28 @@ export async function createFeed(
 
   // The path to the feed file
   const [dir, stem] = dirAndStem(source);
-  const targetExt = options.type === "full" ? "xml.staged" : "xml";
-  const targetFile = `${stem}.${targetExt}`;
-  const feedPath = join(dir, targetFile);
+  const stagedExt = options.type === "full" ? "xml.staged" : "xml";
+
+  const stagedFile = `${stem}.${stagedExt}`;
+  const feedPath = join(dir, stagedFile);
+
+  const finalPath = join(dir, `${stem}.xml`);
+  const projectRelativeFinalPath = relative(project.dir, finalPath);
+
+  // Add a link to the feed
+  addLinkTagToDocument(doc, feed, projectRelativeFinalPath);
 
   // Categories to render
   const categoriesToRender = options[kFieldCategories]?.map((category) => {
     return {
       category,
-      file: join(dir, `${stem}-${category.toLocaleLowerCase()}.${targetExt}`),
+      file: join(dir, `${stem}-${category.toLocaleLowerCase()}.${stagedExt}`),
     };
   });
 
   const feedFiles: string[] = [];
   // Render the main feed
-  await renderFeed(feed, items, options, format, targetFile);
+  await renderFeed(feed, items, options, format, stagedFile);
   feedFiles.push(feedPath);
 
   // Render the categories feed
@@ -157,6 +166,15 @@ export async function createFeed(
   }
 
   return feedFiles;
+}
+
+function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {
+  const linkEl = doc.createElement("link");
+  linkEl.setAttribute("rel", "alternate");
+  linkEl.setAttribute("type", "application/rss+xml");
+  linkEl.setAttribute("title", feed.title);
+  linkEl.setAttribute("href", path);
+  doc.head.appendChild(linkEl);
 }
 
 async function renderCategoryFeed(

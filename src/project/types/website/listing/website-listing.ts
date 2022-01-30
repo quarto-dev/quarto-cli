@@ -6,7 +6,7 @@
 *
 */
 
-import { basename, relative } from "path/mod.ts";
+import { basename } from "path/mod.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -128,6 +128,7 @@ export async function listingHtmlDependencies(
     const supporting: string[] = [];
     if (options[kFeed]) {
       const feedAbsPaths = await createFeed(
+        doc,
         source,
         project,
         listingDescriptors,
