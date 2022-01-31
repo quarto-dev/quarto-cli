@@ -18,7 +18,7 @@ function foldCode()
               if fold == "show" then
                 open = " open"
               end
-              local beginPara = pandoc.Para({
+              local beginPara = pandoc.Plain({
                 pandoc.RawInline("html", "<details" .. open .. ">\n<summary>"),
               })
               tappend(beginPara.content, markdownToInlines(summary))
