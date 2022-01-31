@@ -1,5 +1,6 @@
 <% if (nav.layout) { %>
 
+<% if (nav.prevPage || nav.nextPage) { %> 
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
     <% if (nav.prevPage) { %>
@@ -19,6 +20,7 @@
   </div>
 
 </nav>
+<% } %>
 
 </div> <!-- /content -->
 
