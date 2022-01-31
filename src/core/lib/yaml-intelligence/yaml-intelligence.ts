@@ -165,11 +165,15 @@ export async function validationFromGoodParseYAML(
     return [];
   });
 
+  if (code.value === "") {
+    return result;
+  }
   const locF = mappedIndexToRowCol(code);
   const ls = Array
     .from(lineOffsets(code.value))
     .map((offset) => locF(offset).line);
-  const toOriginSourceLines = (targetSourceLine) => ls[targetSourceLine];
+  const toOriginSourceLines = (targetSourceLine: number) =>
+    ls[targetSourceLine];
 
   const predecessors = getYamlPredecessors(
     code.value,

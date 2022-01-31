@@ -8832,6 +8832,9 @@ if (typeof exports === 'object') {
       }
       return [];
     });
+    if (code2.value === "") {
+      return result;
+    }
     const locF = mappedIndexToRowCol(code2);
     const ls = Array.from(lineOffsets(code2.value)).map((offset) => locF(offset).line);
     const toOriginSourceLines = (targetSourceLine) => ls[targetSourceLine];
