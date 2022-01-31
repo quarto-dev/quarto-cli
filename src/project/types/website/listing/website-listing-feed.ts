@@ -126,7 +126,14 @@ export async function createFeed(
   const feedFiles: string[] = [];
 
   // Render the main feed
-  const rendered = await renderFeed(feed, items, options, project, stagedPath);
+  const rendered = await renderFeed(
+    siteUrl,
+    feed,
+    items,
+    options,
+    project,
+    stagedPath,
+  );
   if (rendered) {
     // Add a link to the feed
     // But we should put the correct unstaged / final link in the document
@@ -157,6 +164,7 @@ export async function createFeed(
   if (categoriesToRender) {
     for (const categoryToRender of categoriesToRender) {
       const rendered = await renderCategoryFeed(
+        siteUrl,
         categoryToRender,
         feed,
         items,
@@ -265,6 +273,7 @@ export function completeStagedFeeds(
 }
 
 async function renderCategoryFeed(
+  siteUrl: string,
   categoryToRender: { category: string; file: string; finalFile: string },
   feed: FeedMetadata,
   items: ListingItem[],
@@ -285,6 +294,7 @@ async function renderCategoryFeed(
   });
 
   return await renderFeed(
+    siteUrl,
     feed,
     categoryItems,
     options,
@@ -294,6 +304,7 @@ async function renderCategoryFeed(
 }
 
 async function renderFeed(
+  siteUrl: string,
   feed: FeedMetadata,
   items: ListingItem[],
   options: ListingFeedOptions,
@@ -306,7 +317,7 @@ async function renderFeed(
   for (const item of prepareItems(items, options)) {
     const inputTarget = await resolveInputTarget(project, item.path!, false);
 
-    const link = `${feed.link}${inputTarget?.outputHref}`;
+    const link = `${siteUrl}${inputTarget?.outputHref}`;
 
     const title = inputTarget?.outputHref
       ? placeholder(inputTarget?.outputHref)
@@ -498,6 +509,7 @@ function readRenderedContents(
   // Strip unacceptable elements
   const stripSelectors = [
     '*[aria-hidden="true"]', // Feeds should not contain aria hidden elements
+    "button.code-copy-button", // Code copy buttons looks weird and don't work
   ];
   stripSelectors.forEach((sel) => {
     const nodes = doc.querySelectorAll(sel);
