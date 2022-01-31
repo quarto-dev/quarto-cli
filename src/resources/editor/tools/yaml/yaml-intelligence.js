@@ -56,21 +56,6 @@ function run(str, code2) {
 function blue(str) {
   return run(str, code([34], 39));
 }
-function clampAndTruncate(n, max = 255, min = 0) {
-  return Math.trunc(Math.max(Math.min(n, max), min));
-}
-function rgb24(str, color) {
-  if (typeof color === "number") {
-    return run(str, code([38, 2, color >> 16 & 255, color >> 8 & 255, color & 255], 39));
-  }
-  return run(str, code([
-    38,
-    2,
-    clampAndTruncate(color.r),
-    clampAndTruncate(color.g),
-    clampAndTruncate(color.b)
-  ], 39));
-}
 var ANSI_PATTERN = new RegExp([
   "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
   "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"
@@ -78,7 +63,7 @@ var ANSI_PATTERN = new RegExp([
 
 // ../errors.ts
 function quotedStringColor(msg) {
-  return rgb24(msg, 12369186);
+  return msg;
 }
 function addFileInfo(msg, src) {
   if (src.fileName !== void 0) {
@@ -4017,12 +4002,15 @@ async function validationFromGoodParseYAML(context) {
     }
     return [];
   });
-  const predecessors = getYamlPredecessors(code2.value, context.position.row - 1);
+  const locF = mappedIndexToRowCol(code2);
+  const ls = Array.from(lineOffsets(code2.value)).map((offset) => locF(offset).line);
+  const toOriginSourceLines = (targetSourceLine) => ls[targetSourceLine];
+  const predecessors = getYamlPredecessors(code2.value, context.position.row - 1).map(toOriginSourceLines);
   if (context.explicit === void 0) {
     return result;
   }
   if (!context.explicit) {
-    return result.filter((lint) => predecessors.indexOf(lint["start.row"] - 1) === -1);
+    return result.filter((lint) => predecessors.indexOf(lint["start.row"]) === -1);
   } else {
     return result;
   }

@@ -56,6 +56,10 @@ import {
   setSchemas,
 } from "../yaml-validation/schema-utils.ts";
 
+import { mappedIndexToRowCol } from "../mapped-text.ts";
+
+import { lineOffsets } from "../text.ts";
+
 interface IDEContext {
   formats: string[];
   project_formats: string[];
@@ -161,10 +165,16 @@ export async function validationFromGoodParseYAML(
     return [];
   });
 
+  const locF = mappedIndexToRowCol(code);
+  const ls = Array
+    .from(lineOffsets(code.value))
+    .map((offset) => locF(offset).line);
+  const toOriginSourceLines = (targetSourceLine) => ls[targetSourceLine];
+
   const predecessors = getYamlPredecessors(
     code.value,
     context.position.row - 1,
-  );
+  ).map(toOriginSourceLines);
 
   // keep only the lints that are not in the predecessor path of the cursor
   if (context.explicit === undefined) {
@@ -172,7 +182,7 @@ export async function validationFromGoodParseYAML(
   }
   if (!context.explicit) {
     return result.filter((lint) =>
-      predecessors.indexOf(lint["start.row"] - 1) === -1
+      predecessors.indexOf(lint["start.row"]) === -1
     );
   } else {
     return result;
