@@ -26,7 +26,7 @@ export async function validateDocumentFromSource(
   src: string,
   engine: string,
   // deno-lint-ignore no-explicit-any
-  error: (msg: string) => any,
+  errorFn: (msg: string) => any,
   // deno-lint-ignore no-explicit-any
   info: (msg: string) => any,
   filename?: string,
@@ -70,8 +70,10 @@ export async function validateDocumentFromSource(
           frontMatterText,
           annotation,
           "Validation of YAML front matter failed.",
-          error,
-          reportOnce((err: TidyverseError) => info(tidyverseFormatError(err))),
+          errorFn,
+          reportOnce((err: TidyverseError) =>
+            error(tidyverseFormatError(err), { colorize: false })
+          ),
         );
         if (fmValidation && fmValidation.errors.length) {
           result.push(...fmValidation.errors);

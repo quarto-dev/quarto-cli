@@ -87,7 +87,8 @@ export function tidyverseFormatError(msg: TidyverseError): string {
 
 export function quotedStringColor(msg: string) {
   // return colors.rgb24(msg, 0xff7f0e); // d3.schemeCategory10[1]
-  return colors.rgb24(msg, 0xbcbd22); // d3.schemeCategory10[8]
+  // return colors.rgb24(msg, 0xbcbd22); // d3.schemeCategory10[8]
+  return msg;
 }
 
 export function addFileInfo(msg: TidyverseError, src: MappedString) {

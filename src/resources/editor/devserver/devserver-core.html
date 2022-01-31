@@ -9,9 +9,7 @@
         <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
       </header>
       <div class="modal__content" id="quarto-log-error-modal-content">
-        <pre tabindex="1" id="quarto-log-error-display">
-
-        </pre>
+        <pre tabindex="1" id="quarto-log-error-display"></pre>
       </div>
       <footer class="modal__footer">
       </footer>
@@ -621,9 +619,15 @@
       const ansiUp = new AnsiUp
       const html = ansiUp.ansi_to_html(msg.trim());
       const display = document.getElementById("quarto-log-error-display");
-      display.innerHTML = html;
+      if (display.innerHTML) {
+        display.innerHTML = display.innerHTML + "<br/>" +  html;
+      } else {
+        display.innerHTML = html
+      }
+     
       MicroModal.show('quarto-log-error-modal', {
-        awaitCloseAnimation: true
+        awaitCloseAnimation: true,
+        onClose: () => { display.innerHTML = ""; }
       });
     }
     // see if there is already an error to show

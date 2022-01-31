@@ -7,6 +7,7 @@
 *
 */
 
+import { error } from "log/mod.ts";
 import { existsSync } from "fs/exists.ts";
 import { errorOnce } from "../log.ts";
 import { info } from "log/mod.ts";
@@ -74,7 +75,7 @@ export async function readAndValidateYamlFromMappedString(
             }
           },
           (a: TidyverseError) => {
-            info(tidyverseFormatError(a));
+            error(tidyverseFormatError(a), { colorize: false });
           },
         );
       }
