@@ -7,8 +7,7 @@
 
 import { join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
-import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { existsSync } from "fs/mod.ts";
+import { Document, DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { uniqBy } from "../../../../core/lodash.ts";
 import { Format } from "../../../../config/types.ts";
@@ -31,27 +30,10 @@ import {
   ListingFeedOptions,
   ListingItem,
 } from "./website-listing-shared.ts";
-import {
-  dirAndStem,
-  expandPath,
-  resolvePathGlobs,
-} from "../../../../core/path.ts";
+import { dirAndStem, resolvePathGlobs } from "../../../../core/path.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { kListing } from "./website-listing-read.ts";
-
-// Feed Options
-/*
-
-listing:
-  feed:
-    items: <number> || 20
-    type: partial | full
-
-Creates a listing composed of all the items in the current page, sorted by date
-
-
-
-*/
+import { resolveInputTarget } from "../../../project-index.ts";
 
 // TODO: Localize
 const kUntitled = "untitled";
@@ -115,11 +97,15 @@ export async function createFeed(
     format.metadata[kDescription] as string ||
     websiteDescription(project.config) || format.language[kUntitled] as string;
 
+  // Form the path to this document
+  const projectRelInput = relative(project.dir, source);
+  const inputTarget = await resolveInputTarget(project, projectRelInput, false);
+
   // Create feed metadata
   const feed: FeedMetadata = {
     title: feedTitle,
     description: feedDescription,
-    link: siteUrl,
+    link: `${siteUrl}/${inputTarget?.outputHref}`,
     generator: `quarto-${quartoConfig.version()}`,
     lastBuildDate: new Date().toUTCString(),
     language: options.language,
@@ -131,15 +117,24 @@ export async function createFeed(
     items.push(...descriptor.items);
   }
 
-  // The path to the feed file
+  // The core feed file is generated 'staged' with placeholders for
+  // content that should be replaced with rendered version of the content
+  // from fully rendered documents.
   const [dir, stem] = dirAndStem(source);
   const stagedPath = feedPath(dir, stem, options.type === "full");
 
-  const finalPath = join(dir, `${stem}.xml`);
-  const projectRelativeFinalPath = relative(project.dir, finalPath);
+  const feedFiles: string[] = [];
 
-  // Add a link to the feed
-  addLinkTagToDocument(doc, feed, projectRelativeFinalPath);
+  // Render the main feed
+  const rendered = await renderFeed(feed, items, options, project, stagedPath);
+  if (rendered) {
+    // Add a link to the feed
+    // But we should put the correct unstaged / final link in the document
+    const finalPath = join(dir, `${stem}.xml`);
+    const projectRelativeFinalPath = relative(project.dir, finalPath);
+    feedFiles.push(stagedPath);
+    addLinkTagToDocument(doc, feed, projectRelativeFinalPath);
+  }
 
   // Categories to render
   const categoriesToRender = options[kFieldCategories]?.map((category) => {
@@ -158,71 +153,123 @@ export async function createFeed(
     };
   });
 
-  const feedFiles: string[] = [];
-  // Render the main feed
-  await renderFeed(feed, items, options, format, stagedPath);
-  feedFiles.push(stagedPath);
-
   // Render the categories feed
   if (categoriesToRender) {
     for (const categoryToRender of categoriesToRender) {
-      await renderCategoryFeed(
-        doc,
+      const rendered = await renderCategoryFeed(
         categoryToRender,
         feed,
         items,
         options,
-        format,
+        project,
       );
-      feedFiles.push(categoryToRender.file);
+
+      if (rendered) {
+        addLinkTagToDocument(doc, feed, categoryToRender.finalFile);
+        feedFiles.push(categoryToRender.file);
+      }
     }
   }
 
   return feedFiles;
 }
 
-export function completeStagedFullFeeds(
+export function completeStagedFeeds(
   context: ProjectContext,
   outputFiles: ProjectOutputFile[],
-  incremental: boolean,
+  _incremental: boolean,
 ) {
+  // Go through any output files and fix up any feeds associated with them
   outputFiles.forEach((outputFile) => {
+    // Does this output file contain a listing?
     if (outputFile.format.metadata[kListing]) {
       // There is a listing here, look for unresolved feed files
       const [dir, stem] = dirAndStem(outputFile.file);
-      const files = resolvePathGlobs(dir, [`${stem}*.${kStagedExt}`], []);
+
+      // Any feed files for this output file
+      const files = resolvePathGlobs(dir, [`${stem}${kStagedFileGlob}`], []);
+
+      // Go through each of the feed files and replace any placeholders
+      // with content from the rendered documents
+      const siteUrl = websiteBaseurl(context.config);
+      if (siteUrl === undefined) {
+        throw new Error(
+          "Unexpectedly asked to complete staged feed for a project without a `site-url`!",
+        );
+      }
+      const contentReader = renderedContentReader(siteUrl!);
+
       for (const feedFile of files.include) {
-        // TODO: Read and replace contents of the feed file
+        // Info about this feed file
+        const [feedDir, feedStem] = dirAndStem(feedFile);
+
+        // Whether the staged file should be filled with full contents of the file
+        const fullContents = feedFile.endsWith(kFullStagedExt);
+
+        // Read the staged file contents and replace any
+        // content with the rendered version from the document
+        let feedContents = Deno.readTextFileSync(feedFile);
+        const tagWithReplacements = [
+          {
+            tag: "title",
+            regex: kTitleRegex,
+            replaceValue: (rendered: RenderedContents) => {
+              return rendered.title;
+            },
+          },
+          {
+            tag: "description",
+            regex: kDescRegex,
+            replaceValue: (rendered: RenderedContents) => {
+              if (fullContents) {
+                return `<![CDATA[ ${rendered.fullContents} ]]>`;
+              } else {
+                return `<![CDATA[ ${rendered.firstPara} ]]>`;
+              }
+            },
+          },
+        ];
+
+        tagWithReplacements.forEach((tagWithReplacement) => {
+          const regex = tagWithReplacement.regex;
+          const tag = tagWithReplacement.tag;
+          regex.lastIndex = 0;
+
+          let match = regex.exec(feedContents);
+          while (match) {
+            const relativePath = match[1];
+            const absolutePath = join(feedDir, relativePath);
+            const contents = contentReader(absolutePath);
+
+            const replaceStr = placholderForReplace(tag, relativePath);
+            if (contents.title) {
+              feedContents = feedContents.replace(
+                replaceStr,
+                `<${tag}>${tagWithReplacement.replaceValue(contents)}</${tag}>`,
+              );
+            }
+            match = regex.exec(feedContents);
+          }
+          regex.lastIndex = 0;
+        });
+
+        // Move the completed feed to its final location
+        Deno.writeTextFileSync(
+          join(feedDir, `${feedStem}.${kFinalExt}`),
+          feedContents,
+        );
+        Deno.removeSync(feedFile);
       }
     }
   });
 }
 
-const kStagedExt = "xml.staged";
-const kFinalExt = "xml";
-
-function feedPath(dir: string, stem: string, staged: boolean) {
-  const ext = staged ? kStagedExt : kFinalExt;
-  const file = `${stem}.${ext}`;
-  return join(dir, file);
-}
-
-function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {
-  const linkEl = doc.createElement("link");
-  linkEl.setAttribute("rel", "alternate");
-  linkEl.setAttribute("type", "application/rss+xml");
-  linkEl.setAttribute("title", feed.title);
-  linkEl.setAttribute("href", path);
-  doc.head.appendChild(linkEl);
-}
-
 async function renderCategoryFeed(
-  doc: Document,
   categoryToRender: { category: string; file: string; finalFile: string },
   feed: FeedMetadata,
   items: ListingItem[],
   options: ListingFeedOptions,
-  format: Format,
+  project: ProjectContext,
 ) {
   // Category title
   const feedMeta = { ...feed };
@@ -237,13 +284,11 @@ async function renderCategoryFeed(
     }
   });
 
-  addLinkTagToDocument(doc, feedMeta, categoryToRender.finalFile);
-
-  await renderFeed(
+  return await renderFeed(
     feed,
     categoryItems,
     options,
-    format,
+    project,
     categoryToRender.file,
   );
 }
@@ -252,14 +297,23 @@ async function renderFeed(
   feed: FeedMetadata,
   items: ListingItem[],
   options: ListingFeedOptions,
-  format: Format,
+  project: ProjectContext,
   feedPath: string,
 ) {
   // Prepare the items to generate a feed
-  const feedItems = prepareItems(items, options).map((item) => {
-    const title = item.title || format.language[kUntitled];
-    const link = item.path!;
-    const description = item.description || "";
+  const feedItems: FeedItem[] = [];
+
+  for (const item of prepareItems(items, options)) {
+    const inputTarget = await resolveInputTarget(project, item.path!, false);
+
+    const link = `${feed.link}${inputTarget?.outputHref}`;
+
+    const title = inputTarget?.outputHref
+      ? placeholder(inputTarget?.outputHref)
+      : "";
+    const description = inputTarget?.outputHref
+      ? placeholder(inputTarget?.outputHref)
+      : "";
     const categories = (Array.isArray(item[kFieldCategories])
       ? item[kFieldCategories]
       : []) as string[];
@@ -267,8 +321,7 @@ async function renderFeed(
       ? item[kFieldAuthor]
       : []) as string[];
     const pubDate = item.date ? new Date(item.date) : new Date();
-
-    return {
+    feedItems.push({
       title,
       link,
       description,
@@ -277,11 +330,16 @@ async function renderFeed(
       guid: link,
       image: item[kFieldImage],
       pubDate,
-    } as FeedItem;
-  });
+    });
+  }
 
-  // Compute the file to write to
-  await generateFeed(feed, feedItems, feedPath);
+  if (feedItems.length > 0) {
+    // Compute the file to write to
+    await generateFeed(feed, feedItems, feedPath);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 async function generateFeed(
@@ -345,4 +403,112 @@ function prepareItems(items: ListingItem[], options: ListingFeedOptions) {
   } else {
     return sortedItems;
   }
+}
+
+function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {
+  const linkEl = doc.createElement("link");
+  linkEl.setAttribute("rel", "alternate");
+  linkEl.setAttribute("type", "application/rss+xml");
+  linkEl.setAttribute("title", feed.title);
+  linkEl.setAttribute("href", path);
+  doc.head.appendChild(linkEl);
+}
+
+const kFullStagedExt = "feed-full-staged";
+const kPartialStageExt = "feed-staged";
+const kFinalExt = "xml";
+const kStagedFileGlob = "*.feed-*-staged";
+
+function placeholder(outputHref: string) {
+  return `{B4F502887207:${outputHref}}`;
+}
+
+function placholderForReplace(tag: string, outputHref: string) {
+  return `<${tag}>{B4F502887207\:${outputHref}}<\/${tag}>`;
+}
+
+// Regular expressions that we'll use to find unresolved content
+const kTitleRegex = tagplaceholderRegex("title");
+const kDescRegex = tagplaceholderRegex("description");
+
+function tagplaceholderRegex(tag: string) {
+  return new RegExp(`<${tag}>{B4F502887207\:(.*?)}<\/${tag}>`, "gm");
+}
+
+function feedPath(dir: string, stem: string, full: boolean) {
+  const ext = full ? kFullStagedExt : kPartialStageExt;
+  const file = `${stem}.${ext}`;
+  return join(dir, file);
+}
+
+interface RenderedContents {
+  title: string | undefined;
+  firstPara: string | undefined;
+  fullContents: string | undefined;
+}
+
+const renderedContentReader = (siteUrl: string) => {
+  const renderedContent: Record<string, RenderedContents> = {};
+  return (filePath: string): RenderedContents => {
+    if (!renderedContent[filePath]) {
+      renderedContent[filePath] = readRenderedContents(filePath, siteUrl);
+    }
+    return renderedContent[filePath];
+  };
+};
+
+function readRenderedContents(
+  filePath: string,
+  siteUrl: string,
+): RenderedContents {
+  const htmlInput = Deno.readTextFileSync(filePath);
+  const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+
+  const mainEl = doc.querySelector("main.content");
+
+  // Capture the rendered title and remove it from the content
+  const titleEl = doc.getElementById("title-block-header");
+  const titleText = titleEl?.querySelector("h1.title")?.innerText;
+  if (titleEl) {
+    titleEl.remove();
+  }
+
+  // Remove any navigation elements from the content region
+  const navEls = doc.querySelectorAll("nav");
+  if (navEls) {
+    for (const navEl of navEls) {
+      navEl.remove();
+    }
+  }
+
+  // Convert any images to have absolute paths
+  const imgNodes = doc.querySelectorAll("img");
+  if (imgNodes) {
+    for (const imgNode of imgNodes) {
+      const imgEl = imgNode as Element;
+      const src = imgEl.getAttribute("src");
+      if (src) {
+        if (src.startsWith("http:") || src.startsWith("https:")) {
+          imgEl.setAttribute("src", `${siteUrl}${src}`);
+        }
+      }
+    }
+  }
+
+  // Strip unacceptable elements
+  const stripSelectors = [
+    '*[aria-hidden="true"]', // Feeds should not contain aria hidden elements
+  ];
+  stripSelectors.forEach((sel) => {
+    const nodes = doc.querySelectorAll(sel);
+    nodes?.forEach((node) => {
+      node.remove();
+    });
+  });
+
+  return {
+    title: titleText,
+    fullContents: mainEl?.innerHTML,
+    firstPara: mainEl?.querySelector("p")?.innerHTML,
+  };
 }

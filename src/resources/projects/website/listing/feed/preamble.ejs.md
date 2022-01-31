@@ -4,7 +4,6 @@
       xmlns:media="http://search.yahoo.com/mrss/" 
       xmlns:content="http://purl.org/rss/1.0/modules/content/" 
       xmlns:dc="http://purl.org/dc/elements/1.1/" 
-      xmlns:distill="https://distill.pub/journal/" 
       version="2.0">
 <channel>
 
@@ -12,6 +11,6 @@
 <link><%- feed.link %></link>
 <atom:link href="<%- feed.link %>" rel="self" type="application/rss+xml"/>
 <description><%= feed.description %></description>
-<language><%= feed.language %></language>
+<% if (feed.language) { %><language><%= feed.language %></language><% } %>
 <generator><%= feed.generator %></generator>
 <lastBuildDate><%= feed.lastBuildDate %></lastBuildDate>

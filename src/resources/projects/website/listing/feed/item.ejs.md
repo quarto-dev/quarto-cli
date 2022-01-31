@@ -9,7 +9,7 @@
   <category><%= category %></category>
   <% } %>
   <guid><%= item.guid %></guid>
-  <pubDate><%= item.pubDate %></pubDate>
+  <pubDate><%= item.pubDate.toUTCString() %></pubDate>
   <% if (item.image) { %>
     <% 
     const imgWidthAttr = item.imageHeight ? ` width="${item.imageWidth}` : '';
