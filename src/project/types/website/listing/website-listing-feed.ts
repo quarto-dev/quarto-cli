@@ -524,6 +524,7 @@ function readRenderedContents(
     });
   });
 
+  // Process code to apply styles for syntax highlighting
   const highlightingMap = defaultSyntaxHighlightingClassMap();
   const spanNodes = doc.querySelectorAll("code span");
   for (const spanNode of spanNodes) {
@@ -538,9 +539,40 @@ function readRenderedContents(
     }
   }
 
+  // Process math using webtex
+  const trimMath = (str: string) => {
+    // Text of math is prefixed by the below
+    if (str.length > 4 && (str.startsWith("\\[") || str.startsWith("\\("))) {
+      const trimStart = str.slice(2);
+      return trimStart.slice(0, trimStart.length - 2);
+    } else {
+      return str;
+    }
+  };
+
+  const mathNodes = doc.querySelectorAll("span.math");
+  for (const mathNode of mathNodes) {
+    const mathEl = mathNode as Element;
+    const math = trimMath(mathEl.innerText);
+    const imgEl = doc.createElement("IMG");
+    imgEl.setAttribute(
+      "src",
+      kWebTexUrl(math),
+    );
+    mathNode.parentElement?.replaceChild(imgEl, mathNode);
+  }
+
   return {
     title: titleText,
     fullContents: mainEl?.innerHTML,
     firstPara: mainEl?.querySelector("p")?.innerHTML,
   };
 }
+
+const kWebTexUrl = (
+  math: string,
+  type: "png" | "svg" | "gif" | "emf" | "pdf" = "png",
+) => {
+  const encodedMath = encodeURI(math);
+  return `https://latex.codecogs.com/${type}.latex?${encodedMath}`;
+};
