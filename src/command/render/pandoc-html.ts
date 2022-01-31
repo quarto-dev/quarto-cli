@@ -409,7 +409,7 @@ const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
 
 // Generates key values for CSS text highlighing variables
-function generateCssKeyValues(textValues: Record<string, unknown>) {
+export function generateCssKeyValues(textValues: Record<string, unknown>) {
   const lines: string[] = [];
   Object.keys(textValues).forEach((textAttr) => {
     switch (textAttr) {
@@ -442,6 +442,34 @@ function generateCssKeyValues(textValues: Record<string, unknown>) {
     }
   });
   return lines;
+}
+
+export function defaultSyntaxHighlightingClassMap() {
+  const classToStyleMapping: Record<string, string[]> = {};
+
+  // Read the highlight style (theme name)
+  const theme = kDefaultHighlightStyle;
+  const themeRaw = readTheme(theme, "default");
+  if (themeRaw) {
+    const themeJson = JSON.parse(themeRaw);
+
+    // Generates CSS rules based upon the syntax highlighting rules in a theme file
+    const textStyles = themeJson["text-styles"] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    if (textStyles) {
+      Object.keys(textStyles).forEach((styleName) => {
+        const abbr = kAbbrevs[styleName];
+        if (abbr !== undefined) {
+          const textValues = textStyles[styleName];
+          const cssValues = generateCssKeyValues(textValues);
+          classToStyleMapping[abbr] = cssValues;
+        }
+      });
+    }
+  }
+  return classToStyleMapping;
 }
 
 // From  https://github.com/jgm/skylighting/blob/a1d02a0db6260c73aaf04aae2e6e18b569caacdc/skylighting-core/src/Skylighting/Format/HTML.hs#L117-L147

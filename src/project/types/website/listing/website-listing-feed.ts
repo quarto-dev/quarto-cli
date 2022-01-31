@@ -34,6 +34,9 @@ import { dirAndStem, resolvePathGlobs } from "../../../../core/path.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { kListing } from "./website-listing-read.ts";
 import { resolveInputTarget } from "../../../project-index.ts";
+import {
+  defaultSyntaxHighlightingClassMap,
+} from "../../../../command/render/pandoc-html.ts";
 
 // TODO: Localize
 const kUntitled = "untitled";
@@ -462,7 +465,10 @@ const renderedContentReader = (siteUrl: string) => {
   const renderedContent: Record<string, RenderedContents> = {};
   return (filePath: string): RenderedContents => {
     if (!renderedContent[filePath]) {
-      renderedContent[filePath] = readRenderedContents(filePath, siteUrl);
+      renderedContent[filePath] = readRenderedContents(
+        filePath,
+        siteUrl,
+      );
     }
     return renderedContent[filePath];
   };
@@ -517,6 +523,20 @@ function readRenderedContents(
       node.remove();
     });
   });
+
+  const highlightingMap = defaultSyntaxHighlightingClassMap();
+  const spanNodes = doc.querySelectorAll("code span");
+  for (const spanNode of spanNodes) {
+    const spanEl = spanNode as Element;
+
+    for (const clz of spanEl.classList) {
+      const styles = highlightingMap[clz];
+      if (styles) {
+        spanEl.setAttribute("style", styles.join(";\n"));
+        break;
+      }
+    }
+  }
 
   return {
     title: titleText,
