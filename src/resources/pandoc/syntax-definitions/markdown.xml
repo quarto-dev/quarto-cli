@@ -327,7 +327,7 @@
         <RegExpr attribute="Fenced Code" context="#pop!haskell-code" String="&fcode;\s*\{?\.?(?:haskell|c?hs|hs\-boot).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!html-code" String="&fcode;\s*\{?\.?(?:[sx]?html?|inc|tmpl|tpl).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!java-code" String="&fcode;\s*\{?\.?(?:java|bsh).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!javascript-code" String="&fcode;\s*\{?\.?(?:javascript|m?js|es6|kwinscript|julius).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!javascript-code" String="&fcode;\s*\{?\.?(?:javascript|[mo]?js|es6|kwinscript|julius).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!jsx-code" String="&fcode;\s*\{?\.?(?:jsx|tsx|(?:java|type)script\-react).*&end;" insensitive="true"/> <!-- Included in the HTML definition. Also apply for TSX. -->
         <RegExpr attribute="Fenced Code" context="#pop!json-code" String="&fcode;\s*\{?\.?(?:json5?|gltf).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!yaml-code" String="&fcode;\s*\{?\.?(?:ya?ml).*&end;" insensitive="true"/>
