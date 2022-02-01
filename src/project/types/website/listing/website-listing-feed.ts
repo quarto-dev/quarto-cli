@@ -42,9 +42,6 @@ import {
 import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType, imageSize } from "../../../../core/image.ts";
 
-// TODO: Localize
-const kUntitled = "untitled";
-
 export const kDefaultItems = 20;
 
 interface FeedImage {
@@ -102,12 +99,19 @@ export async function createFeed(
     return;
   }
 
+  const feedTitle = options.title || websiteTitle(project.config);
+  if (!feedTitle) {
+    // There is no `title`
+    warning(
+      "Unable to create a feed as the required `site > title` property is missing from this project.",
+    );
+    return;
+  }
+
   // Find the feed metadata
-  const feedTitle = options.title || websiteTitle(project.config) ||
-    format.language[kUntitled] as string;
   const feedDescription = options.description ||
     format.metadata[kDescription] as string ||
-    websiteDescription(project.config) || format.language[kUntitled] as string;
+    websiteDescription(project.config) || "";
 
   // Form the path to this document
   const projectRelInput = relative(project.dir, source);
