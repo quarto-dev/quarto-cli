@@ -423,13 +423,9 @@ async function renderFeed(
     feedItems.push(feedItem);
   }
 
-  if (feedItems.length > 0) {
-    // Compute the file to write to
-    await generateFeed(feed, feedItems, feedPath);
-    return true;
-  } else {
-    return false;
-  }
+  // Compute the file to write to
+  await generateFeed(feed, feedItems, feedPath);
+  return true;
 }
 
 async function generateFeed(
