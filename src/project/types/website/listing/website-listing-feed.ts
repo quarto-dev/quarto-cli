@@ -256,65 +256,70 @@ export function completeStagedFeeds(
           // Info about this feed file
           const [feedDir, feedStem] = dirAndStem(feedFile);
 
-          // Whether the staged file should be filled with full contents of the file
-          const fullContents = feedFile.endsWith(kFullStagedExt);
+          try {
+            // Whether the staged file should be filled with full contents of the file
+            const fullContents = feedFile.endsWith(kFullStagedExt);
 
-          // Read the staged file contents and replace any
-          // content with the rendered version from the document
-          let feedContents = Deno.readTextFileSync(feedFile);
-          const tagWithReplacements = [
-            {
-              tag: "title",
-              regex: kTitleRegex,
-              replaceValue: (rendered: RenderedContents) => {
-                return rendered.title;
+            // Read the staged file contents and replace any
+            // content with the rendered version from the document
+            let feedContents = Deno.readTextFileSync(feedFile);
+            const tagWithReplacements = [
+              {
+                tag: "title",
+                regex: kTitleRegex,
+                replaceValue: (rendered: RenderedContents) => {
+                  return rendered.title;
+                },
               },
-            },
-            {
-              tag: "description",
-              regex: kDescRegex,
-              replaceValue: (rendered: RenderedContents) => {
-                if (fullContents) {
-                  return `<![CDATA[ ${rendered.fullContents} ]]>`;
-                } else {
-                  return `<![CDATA[ ${rendered.firstPara} ]]>`;
-                }
+              {
+                tag: "description",
+                regex: kDescRegex,
+                replaceValue: (rendered: RenderedContents) => {
+                  if (fullContents) {
+                    return `<![CDATA[ ${rendered.fullContents} ]]>`;
+                  } else {
+                    return `<![CDATA[ ${rendered.firstPara} ]]>`;
+                  }
+                },
               },
-            },
-          ];
+            ];
 
-          tagWithReplacements.forEach((tagWithReplacement) => {
-            const regex = tagWithReplacement.regex;
-            const tag = tagWithReplacement.tag;
-            regex.lastIndex = 0;
+            tagWithReplacements.forEach((tagWithReplacement) => {
+              const regex = tagWithReplacement.regex;
+              const tag = tagWithReplacement.tag;
+              regex.lastIndex = 0;
 
-            let match = regex.exec(feedContents);
-            while (match) {
-              const relativePath = match[1];
-              const absolutePath = join(feedDir, relativePath);
-              const contents = contentReader(absolutePath);
-              if (contents) {
-                const replaceStr = placholderForReplace(tag, relativePath);
-                if (contents.title) {
-                  feedContents = feedContents.replace(
-                    replaceStr,
-                    `<${tag}>${
-                      tagWithReplacement.replaceValue(contents)
-                    }</${tag}>`,
-                  );
+              let match = regex.exec(feedContents);
+              while (match) {
+                const relativePath = match[1];
+                const absolutePath = join(feedDir, relativePath);
+                const contents = contentReader(absolutePath);
+                if (contents) {
+                  const replaceStr = placholderForReplace(tag, relativePath);
+                  if (contents.title) {
+                    feedContents = feedContents.replace(
+                      replaceStr,
+                      `<${tag}>${
+                        tagWithReplacement.replaceValue(contents)
+                      }</${tag}>`,
+                    );
+                  }
                 }
+                match = regex.exec(feedContents);
               }
-              match = regex.exec(feedContents);
-            }
-            regex.lastIndex = 0;
-          });
+              regex.lastIndex = 0;
+            });
 
-          // Move the completed feed to its final location
-          Deno.writeTextFileSync(
-            join(feedDir, `${feedStem}.${kFinalExt}`),
-            feedContents,
-          );
-          Deno.removeSync(feedFile);
+            // Move the completed feed to its final location
+            Deno.writeTextFileSync(
+              join(feedDir, `${feedStem}.${kFinalExt}`),
+              feedContents,
+            );
+          } catch {
+            warnOnce(`Unable to generate feed '${feedStem}.xml'`);
+          } finally {
+            Deno.removeSync(feedFile);
+          }
         }
       }
     });
@@ -552,17 +557,11 @@ const renderedContentReader = (project: ProjectContext, siteUrl: string) => {
   const renderedContent: Record<string, RenderedContents> = {};
   return (filePath: string): RenderedContents => {
     if (!renderedContent[filePath]) {
-      try {
-        renderedContent[filePath] = readRenderedContents(
-          filePath,
-          siteUrl,
-          project,
-        );
-      } catch {
-        warnOnce(
-          `Couldn't read the file ${filePath} when attempting to generate a feed. Please render the full project to ensure all rendered files are available.`,
-        );
-      }
+      renderedContent[filePath] = readRenderedContents(
+        filePath,
+        siteUrl,
+        project,
+      );
     }
     return renderedContent[filePath];
   };
