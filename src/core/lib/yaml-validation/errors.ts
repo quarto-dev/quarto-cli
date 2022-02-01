@@ -9,6 +9,8 @@
 
 import * as colors from "../external/colors.ts";
 
+import { editDistance } from "../text.ts";
+
 import {
   AnnotatedParse,
   getVerbatimInput,
@@ -22,17 +24,20 @@ import { Schema } from "./schema.ts";
 import {
   addFileInfo,
   addInstancePathInfo,
+  locationString,
   quotedStringColor,
   TidyverseError,
 } from "../errors.ts";
-
-import { lines } from "../text.ts";
 
 import { navigateSchemaByInstancePath } from "./schema-navigation.ts";
 
 import { mappedIndexToRowCol } from "../mapped-text.ts";
 
-import { locationString } from "../errors.ts";
+import { possibleSchemaKeys } from "./schema-utils.ts";
+
+import { schemaCompletions } from "./schema-utils.ts";
+
+import { resolveSchema } from "./schema-utils.ts";
 
 export type ValidatorErrorHandlerFunction = (
   error: LocalizedError,
@@ -158,6 +163,12 @@ function improveErrorHeading(
   parse: AnnotatedParse,
   schema: Schema,
 ): LocalizedError {
+  if (error.ajvError.keyword === "_custom_invalidProperty") {
+    // TODO this check is supposed to be "don't mess with errors where
+    // the violating object is in key position". I think my condition
+    // catches everything but I'm not positive.
+    return error;
+  }
   return {
     ...error,
     niceError: {
@@ -209,6 +220,7 @@ export function setDefaultErrorHandlers(validator: YAMLSchema) {
   validator.addHandler(improveErrorHeading);
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);
+  validator.addHandler(checkForSimilarKey);
   validator.addHandler(schemaDefinedErrors);
 }
 
@@ -343,5 +355,66 @@ function schemaDefinedErrors(
       heading: result,
     },
   };
-  return result;
+}
+
+export function checkForSimilarKey(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  schema: Schema,
+): LocalizedError {
+  const lastFragment = String(getLastFragment(error.instancePath));
+
+  const errorSchema = (error.ajvError.params && error.ajvError.params.schema) ||
+    error.ajvError.parentSchema;
+  if (errorSchema === undefined) {
+    return error;
+  }
+
+  // we need to complete through the _unnormalized_ schema, because
+  // the one reported by ajv has no additional metadata..
+  const unnormalizedErrorSchema = resolveSchema({ $ref: errorSchema.$id });
+
+  const keys = possibleSchemaKeys(unnormalizedErrorSchema);
+  if (keys.length === 0) {
+    return error;
+  }
+
+  let bestKey: string[] | undefined;
+  let bestDistance = Infinity;
+  for (const key of keys) {
+    const d = editDistance(key, lastFragment);
+    if (d < bestDistance) {
+      bestKey = [key];
+      bestDistance = d;
+    } else if (d === bestDistance) {
+      bestKey!.push(key);
+      bestDistance = d;
+    }
+  }
+
+  // TODO we need a defensible way of determining a cutoff here.
+  // One idea is to turn this into a hypothesis test, checking random
+  // english words against a dictionary and looking at the distribution
+  // of edit distances. Presently, we hack.
+
+  // if best edit distance is more than 30% of the word, don't suggest
+  if (bestDistance * 0.3 > lastFragment.length) {
+    return error;
+  }
+
+  const suggestions = bestKey!.map((s: string) => colors.blue(s));
+  if (suggestions.length === 1) {
+    error.niceError.info.push(`Did you mean ${suggestions[0]}?`);
+  } else if (suggestions.length === 2) {
+    error.niceError.info.push(
+      `Did you mean ${suggestions[0]} or ${suggestions[1]}?`,
+    );
+  } else {
+    suggestions[suggestions.length - 1] = `or ${
+      suggestions[suggestions.length - 1]
+    }`;
+    error.niceError.info.push(`Did you mean ${suggestions.join(", ")}?`);
+  }
+
+  return error;
 }
