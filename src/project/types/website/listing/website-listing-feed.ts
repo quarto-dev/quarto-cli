@@ -351,6 +351,10 @@ async function renderCategoryFeed(
     encodeURI(categoryToRender.category);
   feedMeta.title = `${feedMeta.title} - ${categoryToRender.category}`;
   feedMeta.feedLink = categoryToRender.feedLink;
+  if (feedMeta.image) {
+    feedMeta.image.link = feedMeta.link;
+    feedMeta.image.title = feedMeta.title;
+  }
 
   // Find the most recent item (if any)
   const mostRecent = mostRecentItem(filteredItems);
@@ -646,6 +650,14 @@ function readRenderedContents(
         break;
       }
     }
+  }
+
+  // Apply a code background color
+  const codeStyle = "background: #f1f3f5;";
+  const codeBlockNodes = doc.querySelectorAll("div.sourceCode");
+  for (const codeBlockNode of codeBlockNodes) {
+    const codeBlockEl = codeBlockNode as Element;
+    codeBlockEl.setAttribute("style", codeStyle);
   }
 
   // Process math using webtex
