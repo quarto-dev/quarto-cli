@@ -2902,6 +2902,7 @@ function navigateSchemaBySchemaPathSingle(schema, path) {
         throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`);
     }
   };
+  return inner(schema, 0);
 }
 function matchPatternProperties(schema, key) {
   for (const [regexpStr, subschema] of Object.entries(schema.patternProperties || {})) {

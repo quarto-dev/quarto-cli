@@ -7,7 +7,7 @@
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
 import { lines } from "../../src/core/text.ts";
-import { editDistance } from "../../src/core/text.ts";
+import { editDistance } from "../../src/core/lib/text.ts";
 
 unitTest("text - lines()", async () => {
   const texts = ["a", "b", "c"];
