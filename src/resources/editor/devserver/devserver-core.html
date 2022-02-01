@@ -615,15 +615,19 @@
     devServerSocket.onopen = () => {
       console.log('Socket connection open. Listening for events.');
     };
+    // append for errors that occur within the error window
+    let lastError = 0;
+    const kErrorWindow = 2500;
     function showError(msg) {
       const ansiUp = new AnsiUp
       const html = ansiUp.ansi_to_html(msg.trim());
       const display = document.getElementById("quarto-log-error-display");
-      if (display.innerHTML) {
+      if (display.innerHTML && ((Date.now() - lastError) < kErrorWindow)) {
         display.innerHTML = display.innerHTML + "<br/>" +  html;
       } else {
         display.innerHTML = html
       }
+      lastError = Date.now()
      
       MicroModal.show('quarto-log-error-modal', {
         awaitCloseAnimation: true,
