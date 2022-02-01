@@ -108,14 +108,23 @@ export async function renderProject(
   files = files || context.files.input;
 
   // See if the project type needs to add additional render files
+  // that should be rendered as a side effect of rendering the file(s)
+  // in the render list.
   // We don't add supplemental files when this is a dev server reload
   // to improve render performance
-  if (projType.supplementRender && !options.devServerReload) {
-    const additionalFiles = projType.supplementRender(files);
-    if (additionalFiles) {
-      files.push(...additionalFiles);
+  const projectSupplementalFiles = (renderFiles: string[]) => {
+    if (projType.supplementRender && !options.devServerReload) {
+      return projType.supplementRender(
+        context,
+        renderFiles,
+        incremental,
+      );
+    } else {
+      return [];
     }
-  }
+  };
+  const supplementalFiles = projectSupplementalFiles(files);
+  files.push(...supplementalFiles);
 
   // projResults to return
   const projResults: RenderResult = {
@@ -434,6 +443,14 @@ export async function renderProject(
         );
       }
     }
+
+    // Mark any rendered files as supplemental if that
+    // is how they got into the render list
+    projResults.files.forEach((file) => {
+      if (supplementalFiles.includes(join(projDir, file.input))) {
+        file.supplemental = true;
+      }
+    });
 
     return projResults;
   } finally {

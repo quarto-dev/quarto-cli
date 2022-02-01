@@ -735,14 +735,18 @@ export function renderResultFinalOutput(
   relativeToInputDir?: string,
 ) {
   // final output defaults to the first output of the first result
-  let result = renderResults.files[0];
+  // that isn't a supplemental render file (a file that wasn't explicitly
+  // rendered but that was a side effect of rendering some other file)
+  let result = renderResults.files.find((file) => {
+    return !file.supplemental;
+  });
   if (!result) {
     return undefined;
   }
 
   // see if we can find an index.html instead
   for (const fileResult of renderResults.files) {
-    if (fileResult.file === "index.html") {
+    if (fileResult.file === "index.html" && !fileResult.supplemental) {
       result = fileResult;
       break;
     }

@@ -80,6 +80,7 @@ export interface RenderResultFile {
   file: string;
   supporting?: string[];
   resourceFiles: string[];
+  supplemental?: boolean;
 }
 
 export interface RenderedFile {

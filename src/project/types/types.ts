@@ -58,7 +58,9 @@ export interface ProjectType {
     context: ProjectContext,
   ) => PandocRenderer;
   supplementRender?: (
+    project: ProjectContext,
     files: string[],
+    incremental: boolean,
   ) => string[];
   postRender?: (
     context: ProjectContext,
