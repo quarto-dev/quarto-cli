@@ -54,8 +54,8 @@ interface FeedImage {
 
 interface FeedMetadata {
   title: string;
-  link: string;
-  feedLink: string;
+  link: string; // links to the page that is hosting the feed
+  feedLink: string; // links to the feed itself (for example to provide atom with a link)
   description: string;
   image?: FeedImage;
   language?: string;
@@ -168,6 +168,7 @@ export async function createFeed(
         options.type === "full",
       ),
       finalFile: finalRelPath,
+      feedLink: `${siteUrl}/${finalRelPath}`,
     };
   });
 
@@ -285,7 +286,12 @@ export function completeStagedFeeds(
 
 async function renderCategoryFeed(
   siteUrl: string,
-  categoryToRender: { category: string; file: string; finalFile: string },
+  categoryToRender: {
+    category: string;
+    file: string;
+    finalFile: string;
+    feedLink: string;
+  },
   feed: FeedMetadata,
   items: ListingItem[],
   options: ListingFeedOptions,
@@ -293,10 +299,12 @@ async function renderCategoryFeed(
 ) {
   // Category title
   const feedMeta = { ...feed };
+
+  // Add the category filter
   feedMeta.link = feedMeta.link + "#category=" +
     encodeURI(categoryToRender.category);
   feedMeta.title = `${feedMeta.title} - ${categoryToRender.category}`;
-  feedMeta.feedLink = `${siteUrl}/${categoryToRender.finalFile}`;
+  feedMeta.feedLink = categoryToRender.feedLink;
 
   const categoryItems = items.filter((item) => {
     const categories = item[kFieldCategories];
