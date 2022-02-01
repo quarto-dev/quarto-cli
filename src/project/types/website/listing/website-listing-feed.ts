@@ -5,7 +5,7 @@
 *
 */
 
-import { join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 import { Document, DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
@@ -37,6 +37,7 @@ import { resolveInputTarget } from "../../../project-index.ts";
 import {
   defaultSyntaxHighlightingClassMap,
 } from "../../../../command/render/pandoc-html.ts";
+import { projectOutputDir } from "../../../project-shared.ts";
 
 // TODO: Localize
 const kUntitled = "untitled";
@@ -208,7 +209,7 @@ export function completeStagedFeeds(
           "Unexpectedly asked to complete staged feed for a project without a `site-url`!",
         );
       }
-      const contentReader = renderedContentReader(siteUrl!);
+      const contentReader = renderedContentReader(context, siteUrl!);
 
       for (const feedFile of files.include) {
         // Info about this feed file
@@ -335,6 +336,11 @@ async function renderFeed(
       ? item[kFieldAuthor]
       : []) as string[];
     const pubDate = item.date ? new Date(item.date) : new Date();
+
+    const image = item[kFieldImage]
+      ? absoluteUrl(siteUrl, item[kFieldImage])
+      : item[kFieldImage];
+
     feedItems.push({
       title,
       link,
@@ -342,7 +348,7 @@ async function renderFeed(
       categories,
       authors,
       guid: link,
-      image: item[kFieldImage],
+      image,
       pubDate,
     });
   }
@@ -461,13 +467,14 @@ interface RenderedContents {
   fullContents: string | undefined;
 }
 
-const renderedContentReader = (siteUrl: string) => {
+const renderedContentReader = (project: ProjectContext, siteUrl: string) => {
   const renderedContent: Record<string, RenderedContents> = {};
   return (filePath: string): RenderedContents => {
     if (!renderedContent[filePath]) {
       renderedContent[filePath] = readRenderedContents(
         filePath,
         siteUrl,
+        project,
       );
     }
     return renderedContent[filePath];
@@ -477,9 +484,13 @@ const renderedContentReader = (siteUrl: string) => {
 function readRenderedContents(
   filePath: string,
   siteUrl: string,
+  project: ProjectContext,
 ): RenderedContents {
   const htmlInput = Deno.readTextFileSync(filePath);
   const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+
+  const fileRelPath = relative(projectOutputDir(project), filePath);
+  const fileRelFolder = dirname(fileRelPath);
 
   const mainEl = doc.querySelector("main.content");
 
@@ -503,11 +514,12 @@ function readRenderedContents(
   if (imgNodes) {
     for (const imgNode of imgNodes) {
       const imgEl = imgNode as Element;
-      const src = imgEl.getAttribute("src");
+      let src = imgEl.getAttribute("src");
       if (src) {
-        if (src.startsWith("http:") || src.startsWith("https:")) {
-          imgEl.setAttribute("src", `${siteUrl}${src}`);
+        if (!src.startsWith("/")) {
+          src = join(fileRelFolder, src);
         }
+        imgEl.setAttribute("src", absoluteUrl(siteUrl, src));
       }
     }
   }
@@ -524,6 +536,18 @@ function readRenderedContents(
     });
   });
 
+  // Strip unacceptable attributes
+  const stripAttrs = [
+    "role",
+  ];
+  stripAttrs.forEach((attr) => {
+    const nodes = doc.querySelectorAll(`[${attr}]`);
+    nodes?.forEach((node) => {
+      const el = node as Element;
+      el.removeAttribute(attr);
+    });
+  });
+
   // Process code to apply styles for syntax highlighting
   const highlightingMap = defaultSyntaxHighlightingClassMap();
   const spanNodes = doc.querySelectorAll("code span");
@@ -533,7 +557,7 @@ function readRenderedContents(
     for (const clz of spanEl.classList) {
       const styles = highlightingMap[clz];
       if (styles) {
-        spanEl.setAttribute("style", styles.join(";\n"));
+        spanEl.setAttribute("style", styles.join("\n"));
         break;
       }
     }
@@ -575,4 +599,12 @@ const kWebTexUrl = (
 ) => {
   const encodedMath = encodeURI(math);
   return `https://latex.codecogs.com/${type}.latex?${encodedMath}`;
+};
+
+const absoluteUrl = (siteUrl: string, url: string) => {
+  if (url.startsWith("http:") || url.startsWith("https:")) {
+    return url;
+  } else {
+    return `${siteUrl}/${url}`;
+  }
 };
