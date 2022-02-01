@@ -41,6 +41,7 @@ import {
 } from "../../../../command/render/pandoc-html.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType, imageSize } from "../../../../core/image.ts";
+import { warnOnce } from "../../../../core/log.ts";
 
 export const kDefaultItems = 20;
 
@@ -292,15 +293,16 @@ export function completeStagedFeeds(
               const relativePath = match[1];
               const absolutePath = join(feedDir, relativePath);
               const contents = contentReader(absolutePath);
-
-              const replaceStr = placholderForReplace(tag, relativePath);
-              if (contents.title) {
-                feedContents = feedContents.replace(
-                  replaceStr,
-                  `<${tag}>${
-                    tagWithReplacement.replaceValue(contents)
-                  }</${tag}>`,
-                );
+              if (contents) {
+                const replaceStr = placholderForReplace(tag, relativePath);
+                if (contents.title) {
+                  feedContents = feedContents.replace(
+                    replaceStr,
+                    `<${tag}>${
+                      tagWithReplacement.replaceValue(contents)
+                    }</${tag}>`,
+                  );
+                }
               }
               match = regex.exec(feedContents);
             }
@@ -550,11 +552,17 @@ const renderedContentReader = (project: ProjectContext, siteUrl: string) => {
   const renderedContent: Record<string, RenderedContents> = {};
   return (filePath: string): RenderedContents => {
     if (!renderedContent[filePath]) {
-      renderedContent[filePath] = readRenderedContents(
-        filePath,
-        siteUrl,
-        project,
-      );
+      try {
+        renderedContent[filePath] = readRenderedContents(
+          filePath,
+          siteUrl,
+          project,
+        );
+      } catch {
+        warnOnce(
+          `Couldn't read the file ${filePath} when attempting to generate a feed. Please render the full project to ensure all rendered files are available.`,
+        );
+      }
     }
     return renderedContent[filePath];
   };

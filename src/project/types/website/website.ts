@@ -63,7 +63,10 @@ import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 
 import { defaultProjectType } from "../project-default.ts";
 import { TempContext } from "../../../core/temp.ts";
-import { listingHtmlDependencies } from "./listing/website-listing.ts";
+import {
+  listingHtmlDependencies,
+  listingSupplementalFiles,
+} from "./listing/website-listing.ts";
 import { completeStagedFeeds } from "./listing/website-listing-feed.ts";
 
 export const websiteProjectType: ProjectType = {
@@ -109,6 +112,19 @@ export const websiteProjectType: ProjectType = {
 
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);
+  },
+
+  supplementRender: (
+    project: ProjectContext,
+    files: string[],
+    incremental: boolean,
+  ) => {
+    const listingSupplements = listingSupplementalFiles(
+      project,
+      files,
+      incremental,
+    );
+    return listingSupplements;
   },
 
   formatExtras: async (
