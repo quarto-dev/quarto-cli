@@ -98,3 +98,55 @@ export function formatLineRange(
     lines: result,
   };
 }
+
+// O(n1 * n2) naive edit string distance, don't use this on big texts!
+export function editDistance(w1: string, w2: string): number {
+  const cost = (c: string): number => {
+    if ("_-".indexOf(c) !== -1) {
+      return 1;
+    }
+    return 10;
+  };
+  const cost2 = (c1: string, c2: string): number => {
+    if (c1 === c2) {
+      return 0;
+    }
+    if ("_-".indexOf(c1) !== -1 && "_-".indexOf(c2) !== -1) {
+      return 1;
+    }
+    if (c1.toLocaleLowerCase() === c2.toLocaleLowerCase()) {
+      return 1;
+    }
+    const cc1 = c1.charCodeAt(0);
+    const cc2 = c2.charCodeAt(0);
+
+    if (cc1 >= 48 && cc1 <= 57 && cc2 >= 48 && cc2 <= 57) {
+      return 1;
+    }
+
+    return 10;
+  };
+
+  const s1 = w1.length + 1;
+  const s2 = w2.length + 1;
+  let v = new Int32Array(s1 * s2);
+  for (let i = 0; i < s1; ++i) {
+    for (let j = 0; j < s2; ++j) {
+      if (i === 0 && j === 0) {
+        continue;
+      } else if (i === 0) {
+        v[i * s2 + j] = v[i * s2 + (j - 1)] + cost(w2[j - 1]);
+      } else if (j === 0) {
+        v[i * s2 + j] = v[(i - 1) * s2 + j] + cost(w1[i - 1]);
+      } else {
+        v[i * s2 + j] = Math.min(
+          v[(i - 1) * s2 + (j - 1)] + cost2(w1[i - 1], w2[j - 1]),
+          v[i * s2 + (j - 1)] + cost(w2[j - 1]),
+          v[(i - 1) * s2 + j] + cost(w1[i - 1]),
+        );
+      }
+    }
+  }
+
+  return v[(w1.length + 1) * (w2.length + 1) - 1];
+}

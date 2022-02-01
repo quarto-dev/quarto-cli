@@ -5024,6 +5024,48 @@ if (typeof exports === 'object') {
       lines: result
     };
   }
+  function editDistance(w1, w2) {
+    const cost = (c) => {
+      if ("_-".indexOf(c) !== -1) {
+        return 1;
+      }
+      return 10;
+    };
+    const cost2 = (c1, c2) => {
+      if (c1 === c2) {
+        return 0;
+      }
+      if ("_-".indexOf(c1) !== -1 && "_-".indexOf(c2) !== -1) {
+        return 1;
+      }
+      if (c1.toLocaleLowerCase() === c2.toLocaleLowerCase()) {
+        return 1;
+      }
+      const cc1 = c1.charCodeAt(0);
+      const cc2 = c2.charCodeAt(0);
+      if (cc1 >= 48 && cc1 <= 57 && cc2 >= 48 && cc2 <= 57) {
+        return 1;
+      }
+      return 10;
+    };
+    const s1 = w1.length + 1;
+    const s2 = w2.length + 1;
+    let v = new Int32Array(s1 * s2);
+    for (let i = 0; i < s1; ++i) {
+      for (let j = 0; j < s2; ++j) {
+        if (i === 0 && j === 0) {
+          continue;
+        } else if (i === 0) {
+          v[i * s2 + j] = v[i * s2 + (j - 1)] + cost(w2[j - 1]);
+        } else if (j === 0) {
+          v[i * s2 + j] = v[(i - 1) * s2 + j] + cost(w1[i - 1]);
+        } else {
+          v[i * s2 + j] = Math.min(v[(i - 1) * s2 + (j - 1)] + cost2(w1[i - 1], w2[j - 1]), v[i * s2 + (j - 1)] + cost(w2[j - 1]), v[(i - 1) * s2 + j] + cost(w1[i - 1]));
+        }
+      }
+    }
+    return v[(w1.length + 1) * (w2.length + 1) - 1];
+  }
   function buildAnnotated(tree, mappedSource2) {
     const singletonBuild = (node) => {
       return buildNode(node.firstChild, node.endIndex);
@@ -7712,6 +7754,7 @@ if (typeof exports === 'object') {
           throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`);
       }
     };
+    return inner(schema, 0);
   }
   function matchPatternProperties(schema, key) {
     for (const [regexpStr, subschema] of Object.entries(schema.patternProperties || {})) {
@@ -7847,6 +7890,9 @@ if (typeof exports === 'object') {
       default:
         return [];
     }
+  }
+  function possibleSchemaKeys(schema) {
+    return schemaCompletions(schema).filter((c) => c.type === "key").map((c) => c.value.split(":")[0]);
   }
   function validateBoolean(value, _schema) {
     return typeof value === "boolean";
@@ -8610,6 +8656,9 @@ if (typeof exports === 'object') {
     }
   }
   function improveErrorHeading(error, parse, schema) {
+    if (error.ajvError.keyword === "_custom_invalidProperty") {
+      return error;
+    }
     return {
       ...error,
       niceError: {
@@ -8642,6 +8691,7 @@ if (typeof exports === 'object') {
     validator.addHandler(improveErrorHeading);
     validator.addHandler(checkForTypeMismatch);
     validator.addHandler(checkForBadBoolean);
+    validator.addHandler(checkForSimilarKey);
     validator.addHandler(schemaDefinedErrors);
   }
   function checkForTypeMismatch(error, parse, schema) {
@@ -8732,7 +8782,43 @@ if (typeof exports === 'object') {
         heading: result
       }
     };
-    return result;
+  }
+  function checkForSimilarKey(error, parse, schema) {
+    const lastFragment = String(getLastFragment(error.instancePath));
+    const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
+    if (errorSchema === void 0) {
+      return error;
+    }
+    const unnormalizedErrorSchema = resolveSchema({ $ref: errorSchema.$id });
+    const keys = possibleSchemaKeys(unnormalizedErrorSchema);
+    if (keys.length === 0) {
+      return error;
+    }
+    let bestKey;
+    let bestDistance = Infinity;
+    for (const key of keys) {
+      const d = editDistance(key, lastFragment);
+      if (d < bestDistance) {
+        bestKey = [key];
+        bestDistance = d;
+      } else if (d === bestDistance) {
+        bestKey.push(key);
+        bestDistance = d;
+      }
+    }
+    if (bestDistance * 0.3 > lastFragment.length) {
+      return error;
+    }
+    const suggestions = bestKey.map((s) => blue(s));
+    if (suggestions.length === 1) {
+      error.niceError.info.push(`Did you mean ${suggestions[0]}?`);
+    } else if (suggestions.length === 2) {
+      error.niceError.info.push(`Did you mean ${suggestions[0]} or ${suggestions[1]}?`);
+    } else {
+      suggestions[suggestions.length - 1] = `or ${suggestions[suggestions.length - 1]}`;
+      error.niceError.info.push(`Did you mean ${suggestions.join(", ")}?`);
+    }
+    return error;
   }
   var yamlValidators = {};
   var validatorQueues = {};

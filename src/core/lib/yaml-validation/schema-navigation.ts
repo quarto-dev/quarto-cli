@@ -188,6 +188,7 @@ export function navigateSchemaBySchemaPathSingle(
         );
     }
   };
+  return inner(schema, 0);
 }
 
 function matchPatternProperties(schema: Schema, key: string): Schema | false {
