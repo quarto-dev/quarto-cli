@@ -56,7 +56,7 @@
 
 - name: html-math-method
   tags:
-    formats: [$html-all]
+    formats: [$html-doc, $epub-all, gfm, hugo]
   schema:
     oneOf:
       - ref: math-methods
@@ -68,7 +68,11 @@
           required: [method]
   description:
     short: "Method use to render math in HTML output"
-    long: "Method use to render math in HTML output (`plain`, `webtex`, `gladtex`, `mathml`, `mathjax`, `katex`)"
+    long: |
+      Method use to render math in HTML output (`plain`, `webtex`, `gladtex`, `mathml`, `mathjax`, `katex`).
+
+      See the Pandoc documentation on [Math Rendering in HTML](https://pandoc.org/MANUAL.html#math-rendering-in-html)
+      for additional details.
 
 - name: section-divs
   tags:
