@@ -626,6 +626,10 @@ $code-block-bg-color: color.adjust(
   padding-top: 1em;
 }
 
+.tab-content > .tab-pane:not(.active) {
+  display: none !important;
+}
+
 div.sourceCode {
   // Clear code background if is not specified
   @if $code-block-bg {
