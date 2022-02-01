@@ -194,7 +194,7 @@ export async function readListings(
     } else if (feed) {
       // If its truthy, forward the default feed
       sharedOptions[kFeed] = {
-        type: "partial",
+        type: "full",
       };
     }
   }
