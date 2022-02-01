@@ -9,7 +9,7 @@
 
 <title><%= feed.title %></title>
 <link><%- feed.link %></link>
-<atom:link href="<%- feed.link %>" rel="self" type="application/rss+xml"/>
+<atom:link href="<%- feed.feedLink %>" rel="self" type="application/rss+xml"/>
 <description><%= feed.description %></description>
 <% if (feed.language) { %><language><%= feed.language %></language><% } %>
 <generator><%= feed.generator %></generator>

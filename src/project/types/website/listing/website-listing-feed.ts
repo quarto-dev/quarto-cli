@@ -55,6 +55,7 @@ interface FeedImage {
 interface FeedMetadata {
   title: string;
   link: string;
+  feedLink: string;
   description: string;
   image?: FeedImage;
   language?: string;
@@ -105,11 +106,18 @@ export async function createFeed(
   const projectRelInput = relative(project.dir, source);
   const inputTarget = await resolveInputTarget(project, projectRelInput, false);
 
+  const [dir, stem] = dirAndStem(source);
+  const finalRelPath = relative(
+    project.dir,
+    join(dir, `${stem}.xml`),
+  );
+
   // Create feed metadata
   const feed: FeedMetadata = {
     title: feedTitle,
     description: feedDescription,
     link: `${siteUrl}/${inputTarget?.outputHref}`,
+    feedLink: `${siteUrl}/${finalRelPath}`,
     generator: `quarto-${quartoConfig.version()}`,
     lastBuildDate: new Date().toUTCString(),
     language: options.language,
@@ -124,7 +132,6 @@ export async function createFeed(
   // The core feed file is generated 'staged' with placeholders for
   // content that should be replaced with rendered version of the content
   // from fully rendered documents.
-  const [dir, stem] = dirAndStem(source);
   const stagedPath = feedPath(dir, stem, options.type === "full");
 
   const feedFiles: string[] = [];
@@ -151,7 +158,7 @@ export async function createFeed(
   const categoriesToRender = options[kFieldCategories]?.map((category) => {
     const finalRelPath = relative(
       project.dir,
-      feedPath(dir, `${stem}-${category.toLocaleLowerCase()}`, false),
+      join(dir, `${stem}-${category.toLocaleLowerCase()}.xml`),
     );
     return {
       category,
@@ -286,7 +293,10 @@ async function renderCategoryFeed(
 ) {
   // Category title
   const feedMeta = { ...feed };
+  feedMeta.link = feedMeta.link + "#category=" +
+    encodeURI(categoryToRender.category);
   feedMeta.title = `${feedMeta.title} - ${categoryToRender.category}`;
+  feedMeta.feedLink = `${siteUrl}/${categoryToRender.finalFile}`;
 
   const categoryItems = items.filter((item) => {
     const categories = item[kFieldCategories];
@@ -299,7 +309,7 @@ async function renderCategoryFeed(
 
   return await renderFeed(
     siteUrl,
-    feed,
+    feedMeta,
     categoryItems,
     options,
     project,
@@ -435,7 +445,7 @@ function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {
 }
 
 const kFullStagedExt = "feed-full-staged";
-const kPartialStageExt = "feed-staged";
+const kPartialStageExt = "feed-partial-staged";
 const kFinalExt = "xml";
 const kStagedFileGlob = "*.feed-*-staged";
 
