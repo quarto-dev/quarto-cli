@@ -558,6 +558,15 @@ function readRenderedContents(
     });
   });
 
+  // String unacceptable links
+  const relativeLinkSel = 'a[href^="#"]';
+  const linkNodes = doc.querySelectorAll(relativeLinkSel);
+  linkNodes.forEach((linkNode) => {
+    const nodesToMove = linkNode.childNodes;
+    linkNode.after(...nodesToMove);
+    linkNode.remove();
+  });
+
   // Process code to apply styles for syntax highlighting
   const highlightingMap = defaultSyntaxHighlightingClassMap();
   const spanNodes = doc.querySelectorAll("code span");
