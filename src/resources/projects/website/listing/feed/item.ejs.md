@@ -12,9 +12,10 @@
   <pubDate><%= item.pubDate.toUTCString() %></pubDate>
   <% if (item.image) { %>
     <% 
-    const imgWidthAttr = item.imageHeight ? ` width="${item.imageWidth}` : '';
-    const imgHeightAttr = item.imageHeight ? ` height="${item.imageHeight}` : '';
+    const imgWidthAttr = item.imageHeight ? ` width="${item.imageWidth}"` : '';
+    const imgHeightAttr = item.imageHeight ? ` height="${item.imageHeight}"` : '';
+    const imgTypeAttr = item.imageContentType ? ` type="${item.imageContentType}"`: '';
     %>
-  <media:content url="<%- item.image %>" medium="image" type="image/png"<%- imgHeightAttr %><%- imgWidthAttr %>/>
+  <media:content url="<%- item.image %>" medium="image"<%= imgTypeAttr %><%= imgHeightAttr %><%= imgWidthAttr %>/>
   <% } %>
 </item>

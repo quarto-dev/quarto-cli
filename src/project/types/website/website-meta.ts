@@ -5,7 +5,6 @@
 *
 */
 
-import { existsSync } from "fs/exists.ts";
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import { kDescription, kSubtitle, kTitle } from "../../../config/constants.ts";
@@ -17,7 +16,6 @@ import {
 } from "../../../config/types.ts";
 import { Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
-import PngImage from "../../../core/png.ts";
 import { ProjectContext } from "../../types.ts";
 import {
   kCardStyle,
@@ -43,6 +41,7 @@ import {
   HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
 } from "../../../command/render/types.ts";
+import { imageSize } from "../../../core/image.ts";
 
 const kCard = "card";
 
@@ -333,21 +332,6 @@ function imageMetadata(
       height: size?.height,
       width: size?.width,
     };
-  }
-}
-
-function imageSize(path: string) {
-  if (path !== undefined) {
-    if (path.endsWith(".png")) {
-      if (existsSync(path)) {
-        const imageData = Deno.readFileSync(path);
-        const png = new PngImage(imageData);
-        return {
-          height: png.height,
-          width: png.width,
-        };
-      }
-    }
   }
 }
 

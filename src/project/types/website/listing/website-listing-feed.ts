@@ -38,6 +38,7 @@ import {
   defaultSyntaxHighlightingClassMap,
 } from "../../../../command/render/pandoc-html.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
+import { imageContentType, imageSize } from "../../../../core/image.ts";
 
 // TODO: Localize
 const kUntitled = "untitled";
@@ -74,6 +75,9 @@ interface FeedItem {
   guid: string;
   pubDate: Date;
   image?: string;
+  imageHeight?: string;
+  imageWidth?: string;
+  imageContentType?: string;
 }
 
 export async function createFeed(
@@ -339,36 +343,45 @@ async function renderFeed(
   for (const item of prepareItems(items, options)) {
     const inputTarget = await resolveInputTarget(project, item.path!, false);
 
-    const link = `${siteUrl}${inputTarget?.outputHref}`;
-
+    // Core feed item
     const title = inputTarget?.outputHref
       ? placeholder(inputTarget?.outputHref)
       : "";
+    const link = `${siteUrl}${inputTarget?.outputHref}`;
     const description = inputTarget?.outputHref
       ? placeholder(inputTarget?.outputHref)
       : "";
-    const categories = (Array.isArray(item[kFieldCategories])
-      ? item[kFieldCategories]
-      : []) as string[];
-    const authors = (Array.isArray(item[kFieldAuthor])
-      ? item[kFieldAuthor]
-      : []) as string[];
     const pubDate = item.date ? new Date(item.date) : new Date();
-
-    const image = item[kFieldImage]
-      ? absoluteUrl(siteUrl, item[kFieldImage])
-      : item[kFieldImage];
-
-    feedItems.push({
+    const feedItem: FeedItem = {
       title,
       link,
       description,
-      categories,
-      authors,
       guid: link,
-      image,
       pubDate,
-    });
+    };
+
+    // Categories
+    if (Array.isArray(item[kFieldCategories])) {
+      feedItem.categories = item[kFieldCategories];
+    }
+
+    // Author
+    if (Array.isArray(item[kFieldAuthor])) {
+      feedItem.authors = item[kFieldAuthor];
+    }
+
+    // Image Data
+    if (item[kFieldImage]) {
+      feedItem.image = absoluteUrl(siteUrl, item[kFieldImage]);
+      const imagePath = join(project.dir, item[kFieldImage]);
+      feedItem.imageContentType = imageContentType(imagePath);
+      const size = imageSize(imagePath);
+      if (size) {
+        feedItem.imageHeight = size.height.toString();
+        feedItem.imageWidth = size.width.toString();
+      }
+    }
+    feedItems.push(feedItem);
   }
 
   if (feedItems.length > 0) {
