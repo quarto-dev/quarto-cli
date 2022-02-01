@@ -26,7 +26,6 @@ export function imageSize(path: string) {
 
 export function imageContentType(path: string) {
   const ext = extname(path);
-  console.log(ext);
   return kimageTypes[ext];
 }
 

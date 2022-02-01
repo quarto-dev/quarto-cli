@@ -103,6 +103,7 @@ export interface ListingFeedOptions {
   [kLanguage]?: string;
   [kDescription]?: string;
   [kFieldCategories]?: string[];
+  [kImage]?: string;
 }
 
 export interface ListingSharedOptions {

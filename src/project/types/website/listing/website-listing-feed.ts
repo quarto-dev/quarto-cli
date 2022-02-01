@@ -16,8 +16,10 @@ import { quartoConfig } from "../../../../core/quarto.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { ProjectContext } from "../../../types.ts";
 import {
+  kImage,
   websiteBaseurl,
   websiteDescription,
+  websiteImage,
   websiteTitle,
 } from "../website-config.ts";
 import {
@@ -50,6 +52,7 @@ interface FeedImage {
   url: string;
   link?: string;
   height?: number;
+  width?: number;
   description?: string;
 }
 
@@ -116,21 +119,46 @@ export async function createFeed(
     join(dir, `${stem}.xml`),
   );
 
-  // Create feed metadata
-  const feed: FeedMetadata = {
-    title: feedTitle,
-    description: feedDescription,
-    link: `${siteUrl}/${inputTarget?.outputHref}`,
-    feedLink: `${siteUrl}/${finalRelPath}`,
-    generator: `quarto-${quartoConfig.version()}`,
-    lastBuildDate: new Date().toUTCString(),
-    language: options.language,
-  };
+  const link = absoluteUrl(siteUrl, inputTarget?.outputHref!);
+  const feedLink = absoluteUrl(siteUrl, finalRelPath);
 
   // Merge all the items
   const items: ListingItem[] = [];
   for (const descriptor of descriptors) {
     items.push(...descriptor.items);
+  }
+  const filteredItems = prepareItems(items, options);
+
+  // Find the most recent item (if any)
+  const mostRecent = mostRecentItem(filteredItems);
+
+  // Create feed metadata
+  const feed: FeedMetadata = {
+    title: feedTitle,
+    description: feedDescription,
+    link,
+    feedLink,
+    generator: `quarto-${quartoConfig.version()}`,
+    lastBuildDate: (mostRecent && mostRecent.date)
+      ? new Date(mostRecent.date).toUTCString()
+      : new Date().toUTCString(),
+    language: options.language,
+  };
+
+  // Add any image metadata
+  const image = options.image || format.metadata[kImage] as string ||
+    websiteImage(project.config);
+  if (image) {
+    feed.image = {
+      title: feedTitle,
+      link: link,
+      url: absoluteUrl(siteUrl, image),
+    };
+    const size = imageSize(image);
+    if (size) {
+      feed.image.height = size.height;
+      feed.image.width = size.width;
+    }
   }
 
   // The core feed file is generated 'staged' with placeholders for
@@ -144,8 +172,7 @@ export async function createFeed(
   const rendered = await renderFeed(
     siteUrl,
     feed,
-    items,
-    options,
+    filteredItems,
     project,
     stagedPath,
   );
@@ -301,6 +328,16 @@ async function renderCategoryFeed(
   options: ListingFeedOptions,
   project: ProjectContext,
 ) {
+  const categoryItems = items.filter((item) => {
+    const categories = item[kFieldCategories];
+    if (categories) {
+      return (categories as string[]).includes(categoryToRender.category);
+    } else {
+      return false;
+    }
+  });
+  const filteredItems = prepareItems(categoryItems, options);
+
   // Category title
   const feedMeta = { ...feed };
 
@@ -310,20 +347,16 @@ async function renderCategoryFeed(
   feedMeta.title = `${feedMeta.title} - ${categoryToRender.category}`;
   feedMeta.feedLink = categoryToRender.feedLink;
 
-  const categoryItems = items.filter((item) => {
-    const categories = item[kFieldCategories];
-    if (categories) {
-      return (categories as string[]).includes(categoryToRender.category);
-    } else {
-      return false;
-    }
-  });
+  // Find the most recent item (if any)
+  const mostRecent = mostRecentItem(filteredItems);
+  feedMeta.lastBuildDate = (mostRecent && mostRecent.date)
+    ? new Date(mostRecent.date).toUTCString()
+    : new Date().toUTCString();
 
   return await renderFeed(
     siteUrl,
     feedMeta,
-    categoryItems,
-    options,
+    filteredItems,
     project,
     categoryToRender.file,
   );
@@ -333,14 +366,13 @@ async function renderFeed(
   siteUrl: string,
   feed: FeedMetadata,
   items: ListingItem[],
-  options: ListingFeedOptions,
   project: ProjectContext,
   feedPath: string,
 ) {
   // Prepare the items to generate a feed
   const feedItems: FeedItem[] = [];
 
-  for (const item of prepareItems(items, options)) {
+  for (const item of items) {
     const inputTarget = await resolveInputTarget(project, item.path!, false);
 
     // Core feed item
@@ -362,7 +394,7 @@ async function renderFeed(
 
     // Categories
     if (Array.isArray(item[kFieldCategories])) {
-      feedItem.categories = item[kFieldCategories];
+      feedItem.categories = item[kFieldCategories] as string[];
     }
 
     // Author
@@ -371,9 +403,10 @@ async function renderFeed(
     }
 
     // Image Data
-    if (item[kFieldImage]) {
-      feedItem.image = absoluteUrl(siteUrl, item[kFieldImage]);
-      const imagePath = join(project.dir, item[kFieldImage]);
+    if (item[kFieldImage] && typeof (item[kFieldImage] === "string")) {
+      const image = item[kFieldImage] as string;
+      feedItem.image = absoluteUrl(siteUrl, image);
+      const imagePath = join(project.dir, image);
       feedItem.imageContentType = imageContentType(imagePath);
       const size = imageSize(imagePath);
       if (size) {
@@ -434,7 +467,6 @@ async function generateFeed(
 
 function prepareItems(items: ListingItem[], options: ListingFeedOptions) {
   const validItems = items.filter((item) => {
-    // TODO: Should we warn or error when we skip an item that doesn't have a path
     return (item.title !== undefined && item.path !== undefined);
   });
 
@@ -454,6 +486,17 @@ function prepareItems(items: ListingItem[], options: ListingFeedOptions) {
   } else {
     return sortedItems;
   }
+}
+
+function mostRecentItem(items: ListingItem[]) {
+  const sortedItems = items.sort((a, b) => {
+    const aTime = a.date ? a.date.getTime() : 0;
+    const bTime = b.date ? b.date.getTime() : 0;
+    return bTime - aTime;
+  });
+
+  const mostRecentItem = sortedItems.length > 0 ? sortedItems[0] : undefined;
+  return mostRecentItem;
 }
 
 function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {

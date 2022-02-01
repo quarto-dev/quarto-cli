@@ -544,7 +544,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
 
   const date = documentMeta?.date
     ? new Date(documentMeta.date as string)
-    : filemodified;
+    : undefined;
   const author = Array.isArray(documentMeta?.author)
     ? documentMeta?.author
     : [documentMeta?.author];

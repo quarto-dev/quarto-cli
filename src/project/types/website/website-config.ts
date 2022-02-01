@@ -104,6 +104,7 @@ export interface OpenGraphConfig {
 
 type WebsiteConfigKey =
   | "title"
+  | "image"
   | "favicon"
   | "site-url"
   | "site-path"
@@ -199,6 +200,10 @@ export function websiteTitle(project?: ProjectConfig): string | undefined {
 
 export function websiteBaseurl(project?: ProjectConfig): string | undefined {
   return websiteConfigString(kSiteUrl, project);
+}
+
+export function websiteImage(project?: ProjectConfig): string | undefined {
+  return websiteConfigString(kImage, project);
 }
 
 export function websiteDescription(

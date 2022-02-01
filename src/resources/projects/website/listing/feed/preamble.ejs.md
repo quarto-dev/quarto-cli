@@ -12,5 +12,12 @@
 <atom:link href="<%- feed.feedLink %>" rel="self" type="application/rss+xml"/>
 <description><%= feed.description %></description>
 <% if (feed.language) { %><language><%= feed.language %></language><% } %>
+<% if (feed.image) { %><image>
+<url><%= feed.image.url %></url>
+<title><%= feed.image.title %></title>
+<link><%= feed.image.link %></link>
+<% if (feed.image.height) { %><height><%= feed.image.height %></height><% } %>
+<% if (feed.image.width) { %><width><%= feed.image.width %></width><% } %>
+</image><% } %>
 <generator><%= feed.generator %></generator>
 <lastBuildDate><%= feed.lastBuildDate %></lastBuildDate>
