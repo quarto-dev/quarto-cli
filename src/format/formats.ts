@@ -11,6 +11,7 @@ import {
   kFigFormat,
   kFigHeight,
   kFigWidth,
+  kHtmlMathMethod,
   kKeepYaml,
   kOutputDivs,
   kPageWidth,
@@ -197,7 +198,7 @@ function hugoFormat(): Format {
     render: {
       [kKeepYaml]: true,
       [kPreferHtml]: true,
-      [kVariant]: "+definition_lists+footnotes+smart",
+      [kVariant]: "+definition_lists+footnotes+smart+tex_math_dollars",
     },
     execute: {
       [kFigFormat]: "retina",
@@ -206,6 +207,7 @@ function hugoFormat(): Format {
     },
     pandoc: {
       to: "gfm",
+      [kHtmlMathMethod]: "webtex",
     },
   });
 }
@@ -214,9 +216,10 @@ function gfmFormat(): Format {
   return createFormat("md", markdownFormat(), {
     pandoc: {
       to: "gfm",
+      [kHtmlMathMethod]: "webtex",
     },
     render: {
-      [kVariant]: "+footnotes-yaml_metadata_block",
+      [kVariant]: "+footnotes+tex_math_dollars-yaml_metadata_block",
     },
   });
 }

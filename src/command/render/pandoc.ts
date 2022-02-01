@@ -84,6 +84,7 @@ import {
   kFilterParams,
   kFrom,
   kHighlightStyle,
+  kHtmlMathMethod,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -466,13 +467,21 @@ export async function runPandoc(
     pandocArgs = removePandocArgs(pandocArgs, removeArgs);
   }
 
-  // add any built-in syntax defintiion files
+  // add any built-in syntax definition files
   allDefaults[kSyntaxDefinitions] = allDefaults[kSyntaxDefinitions] || [];
   const syntaxDefinitions = expandGlobSync(
     join(resourcePath(join("pandoc", "syntax-definitions")), "*.xml"),
   );
   for (const syntax of syntaxDefinitions) {
     allDefaults[kSyntaxDefinitions]?.push(syntax.path);
+  }
+
+  // provide default webtex url
+  if (allDefaults[kHtmlMathMethod] === "webtex") {
+    allDefaults[kHtmlMathMethod] = {
+      method: "webtex",
+      url: "https://latex.codecogs.com/svg.latex?",
+    };
   }
 
   // write the defaults file
