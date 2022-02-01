@@ -107,6 +107,16 @@ export async function renderProject(
   // default for files if not specified
   files = files || context.files.input;
 
+  // See if the project type needs to add additional render files
+  // We don't add supplemental files when this is a dev server reload
+  // to improve render performance
+  if (projType.supplementRender && !options.devServerReload) {
+    const additionalFiles = projType.supplementRender(files);
+    if (additionalFiles) {
+      files.push(...additionalFiles);
+    }
+  }
+
   // projResults to return
   const projResults: RenderResult = {
     baseDir: projDir,
