@@ -75,8 +75,8 @@ interface FeedItem {
   guid: string;
   pubDate: Date;
   image?: string;
-  imageHeight?: string;
-  imageWidth?: string;
+  imageHeight?: number;
+  imageWidth?: number;
   imageContentType?: string;
 }
 
@@ -160,8 +160,9 @@ export async function createFeed(
     };
     const size = imageSize(image);
     if (size) {
-      feed.image.height = size.height;
-      feed.image.width = size.width;
+      const [height, width] = feedImageSize(size.height, size.width);
+      feed.image.height = height;
+      feed.image.width = width;
     }
   }
 
@@ -414,8 +415,9 @@ async function renderFeed(
       feedItem.imageContentType = imageContentType(imagePath);
       const size = imageSize(imagePath);
       if (size) {
-        feedItem.imageHeight = size.height.toString();
-        feedItem.imageWidth = size.width.toString();
+        const [height, width] = feedImageSize(size.height, size.width);
+        feedItem.imageHeight = height;
+        feedItem.imageWidth = width;
       }
     }
     feedItems.push(feedItem);
@@ -693,5 +695,23 @@ const absoluteUrl = (siteUrl: string, url: string) => {
     return url;
   } else {
     return `${siteUrl}/${url}`;
+  }
+};
+
+// See https://validator.w3.org/feed/docs/rss2.html#ltimagegtSubelementOfLtchannelgt
+const kMaxWidth = 144;
+const kMaxHeight = 400;
+
+const feedImageSize = (height: number, width: number) => {
+  const heightScale = kMaxHeight / height;
+  const widthScale = kMaxWidth / width;
+  if (heightScale >= 1 && widthScale >= 1) {
+    return [height, width];
+  } else {
+    const scaleFactor = heightScale < widthScale ? heightScale : widthScale;
+    return [
+      Math.round(height * scaleFactor),
+      Math.round(width * scaleFactor),
+    ];
   }
 };
