@@ -20,7 +20,8 @@ export interface ProjectType {
   type: string;
   typeAliases?: string[];
   inheritsType?: string;
-  create: (title: string) => ProjectCreate;
+  templates?: string[];
+  create: (title: string, template?: string) => ProjectCreate;
   config?: (
     projectDir: string,
     config: ProjectConfig,

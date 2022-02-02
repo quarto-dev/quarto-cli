@@ -37,6 +37,7 @@ export interface ProjectCreateOptions {
   venv?: boolean;
   condaenv?: boolean;
   envPackages?: string[];
+  template?: string;
 }
 
 export async function projectCreate(options: ProjectCreateOptions) {
@@ -64,7 +65,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   // call create on the project type
   const projType = projectType(options.type);
-  const projCreate = projType.create(options.title);
+  const projCreate = projType.create(options.title, options.template);
 
   // create the initial project config
   const quartoConfig = renderEjs(projCreate.configTemplate, {
