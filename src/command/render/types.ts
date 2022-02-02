@@ -44,10 +44,22 @@ export interface RunPandocResult {
   resources: string[];
   postprocessors?: Array<(output: string) => Promise<void>>;
   htmlPostprocessors: Array<
-    (doc: Document) => Promise<string[]>
+    (doc: Document) => Promise<HtmlPostProcessResult>
   >;
   htmlFinalizers?: Array<(doc: Document) => Promise<void>>;
 }
+
+export interface HtmlPostProcessResult {
+  // Relative paths to resources
+  resources: string[];
+  // Supporting files should be absolute paths to the files or directories
+  supporting: string[];
+}
+
+export const kHtmlEmptyPostProcessResult = {
+  resources: [],
+  supporting: [],
+};
 
 export interface RenderResourceFiles {
   globs: string[];
@@ -68,6 +80,7 @@ export interface RenderResultFile {
   file: string;
   supporting?: string[];
   resourceFiles: string[];
+  supplemental?: boolean;
 }
 
 export interface RenderedFile {

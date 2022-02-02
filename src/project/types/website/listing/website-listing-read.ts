@@ -23,6 +23,7 @@ import {
 import {
   ColumnType,
   kCategoryStyle,
+  kFeed,
   kFieldAuthor,
   kFieldCategories,
   kFieldDate,
@@ -53,6 +54,7 @@ import {
   Listing,
   ListingDehydrated,
   ListingDescriptor,
+  ListingFeedOptions,
   ListingItem,
   ListingItemSource,
   ListingSharedOptions,
@@ -183,6 +185,19 @@ export async function readListings(
     [kFieldCategories]: !!categories,
     [kCategoryStyle]: categoryStyle,
   };
+
+  const feed = firstListingValue(kFeed, undefined);
+  if (feed !== undefined) {
+    if (typeof (feed) === "object") {
+      // If is an object, forward it along
+      sharedOptions[kFeed] = feed as ListingFeedOptions;
+    } else if (feed) {
+      // If its truthy, forward the default feed
+      sharedOptions[kFeed] = {
+        type: "full",
+      };
+    }
+  }
 
   for (const listing of listings) {
     // Read the metadata for each of the listing files
@@ -529,7 +544,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
 
   const date = documentMeta?.date
     ? new Date(documentMeta.date as string)
-    : filemodified;
+    : undefined;
   const author = Array.isArray(documentMeta?.author)
     ? documentMeta?.author
     : [documentMeta?.author];

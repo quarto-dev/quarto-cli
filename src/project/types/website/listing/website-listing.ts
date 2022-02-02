@@ -6,7 +6,7 @@
 *
 */
 
-import { basename } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -15,7 +15,6 @@ import {
   FormatDependency,
   FormatExtras,
   kDependencies,
-  kHtmlFinalizers,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
@@ -30,12 +29,13 @@ import { kIncludeInHeader } from "../../../../config/constants.ts";
 import { sassLayer } from "../../../../core/sass.ts";
 import {
   kBootstrapDependencyName,
-  setMainColumn,
 } from "../../../../format/html/format-html-shared.ts";
 import {
+  kFeed,
   kFieldCategories,
   Listing,
   ListingDescriptor,
+  ListingFeedOptions,
   ListingItem,
   ListingSharedOptions,
   ListingType,
@@ -47,6 +47,56 @@ import {
 import { readListings } from "./website-listing-read.ts";
 import { categorySidebar } from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
+import { createFeed } from "./website-listing-feed.ts";
+import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
+import {
+  cacheListingProjectData,
+  clearListingProjectData,
+  listingProjectData,
+} from "./website-listing-project.ts";
+import { filterPaths } from "../../../../core/path.ts";
+import { uniqBy } from "../../../../core/lodash.ts";
+
+export function listingSupplementalFiles(
+  project: ProjectContext,
+  files: string[],
+  incremental: boolean,
+) {
+  if (incremental) {
+    // This is incremental, so use the cache to supplement
+    // any listing pages that would contain any of the
+    // files being rendered
+    const listingProjData = listingProjectData(project);
+    const listingMap = listingProjData.listingMap || {};
+
+    const listingFiles = Object.keys(listingMap);
+
+    // For each listing, rerun the globs in contents
+    // against the rendered file list. If a glob matches
+    // we should render that listing file, because that means
+    // the file being rendered is included (or is a new file that will)
+    // be included in the listing page.
+    const matching = listingFiles.filter((listingFile) => {
+      const globs = listingMap[listingFile];
+      if (filterPaths(project.dir, files, globs).include.length > 0) {
+        return true;
+      }
+    });
+    if (matching.length > 0) {
+      const supplementalFiles = matching.map((listingRelativePath) => {
+        return join(project.dir, listingRelativePath);
+      });
+      return uniqBy(supplementalFiles);
+    } else {
+      return [];
+    }
+  } else {
+    // This is a full render, clear the cache
+    // (a brute force form of garbage collection)
+    clearListingProjectData(project);
+    return [];
+  }
+}
 
 export async function listingHtmlDependencies(
   source: string,
@@ -67,6 +117,13 @@ export async function listingHtmlDependencies(
     return undefined;
   }
 
+  // Record the rendering of this listing in our 'listing cache'
+  cacheListingProjectData(
+    project,
+    relative(project.dir, source),
+    listingDescriptors,
+  );
+
   // Create the markdown pipeline for this set of listings
   const markdownHandlers: MarkdownPipelineHandler[] = [];
   listingDescriptors.forEach((listingDescriptor) => {
@@ -78,6 +135,7 @@ export async function listingHtmlDependencies(
       ),
     );
   });
+
   const pipeline = createMarkdownPipeline(
     `quarto-listing-pipeline`,
     markdownHandlers,
@@ -109,7 +167,9 @@ export async function listingHtmlDependencies(
   });
 
   // Create the post processor
-  const listingPostProcessor = (doc: Document) => {
+  const listingPostProcessor = async (
+    doc: Document,
+  ): Promise<HtmlPostProcessResult> => {
     // Process the rendered listings into the document
     pipeline.processRenderedMarkdown(doc);
 
@@ -121,8 +181,30 @@ export async function listingHtmlDependencies(
       format,
     );
 
+    const supporting: string[] = [];
+    if (options[kFeed]) {
+      const listingOptions = {
+        type: "full",
+        ...options[kFeed],
+      } as ListingFeedOptions;
+
+      const feedAbsPaths = await createFeed(
+        doc,
+        source,
+        project,
+        listingDescriptors,
+        listingOptions,
+        format,
+      );
+      if (feedAbsPaths) {
+        feedAbsPaths.forEach((feedAbsPath) => {
+          supporting.push(feedAbsPath);
+        });
+      }
+    }
+
     // No resource references to add
-    return Promise.resolve([]);
+    return Promise.resolve({ resources: [], supporting });
   };
 
   return {

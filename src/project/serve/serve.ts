@@ -496,7 +496,7 @@ async function serveFiles(
             inputFile,
             project,
           );
-          files.push(...await resolver(doc));
+          files.push(...(await resolver(doc)).resources);
         }
 
         // partition markdown and read globs

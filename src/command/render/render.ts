@@ -76,7 +76,7 @@ import { defaultWriterFormat } from "../../format/formats.ts";
 
 import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 
-import { PandocOptions, RenderFlags } from "./types.ts";
+import { HtmlPostProcessResult, PandocOptions, RenderFlags } from "./types.ts";
 import { runPandoc } from "./pandoc.ts";
 import { removePandocToArg, resolveParams } from "./flags.ts";
 import { renderCleanup } from "./cleanup.ts";
@@ -614,7 +614,7 @@ export async function renderPandoc(
     ? pandocResult.htmlFinalizers || []
     : [];
 
-  const resourceRefs = await runHtmlPostprocessors(
+  const htmlPostProcessResult = await runHtmlPostprocessors(
     pandocOptions,
     htmlPostProcessors,
     htmlFinalizers,
@@ -668,6 +668,13 @@ export async function renderPandoc(
       }
     }
   }
+  if (
+    htmlPostProcessResult.supporting &&
+    htmlPostProcessResult.supporting.length > 0
+  ) {
+    supporting = supporting || [];
+    supporting.push(...htmlPostProcessResult.supporting);
+  }
 
   renderCleanup(
     context.target.input,
@@ -708,7 +715,7 @@ export async function renderPandoc(
     file: projectPath(finalOutput),
     resourceFiles: {
       globs: pandocResult.resources,
-      files: resourceFiles.concat(resourceRefs),
+      files: resourceFiles.concat(htmlPostProcessResult.resources),
     },
     selfContained: selfContained,
   };
@@ -728,14 +735,18 @@ export function renderResultFinalOutput(
   relativeToInputDir?: string,
 ) {
   // final output defaults to the first output of the first result
-  let result = renderResults.files[0];
+  // that isn't a supplemental render file (a file that wasn't explicitly
+  // rendered but that was a side effect of rendering some other file)
+  let result = renderResults.files.find((file) => {
+    return !file.supplemental;
+  });
   if (!result) {
     return undefined;
   }
 
   // see if we can find an index.html instead
   for (const fileResult of renderResults.files) {
-    if (fileResult.file === "index.html") {
+    if (fileResult.file === "index.html" && !fileResult.supplemental) {
       result = fileResult;
       break;
     }
@@ -959,11 +970,14 @@ export function filesDirLibDir(input: string) {
 async function runHtmlPostprocessors(
   options: PandocOptions,
   htmlPostprocessors: Array<
-    (doc: Document) => Promise<string[]>
+    (doc: Document) => Promise<HtmlPostProcessResult>
   >,
   htmlFinalizers: Array<(doc: Document) => Promise<void>>,
-): Promise<string[]> {
-  const resourceRefs: string[] = [];
+): Promise<HtmlPostProcessResult> {
+  const postProcessResult: HtmlPostProcessResult = {
+    resources: [],
+    supporting: [],
+  };
   if (htmlPostprocessors.length > 0 || htmlFinalizers.length > 0) {
     const outputFile = isAbsolute(options.output)
       ? options.output
@@ -973,7 +987,10 @@ async function runHtmlPostprocessors(
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
     for (let i = 0; i < htmlPostprocessors.length; i++) {
       const postprocessor = htmlPostprocessors[i];
-      resourceRefs.push(...(await postprocessor(doc)));
+      const result = await postprocessor(doc);
+
+      postProcessResult.resources.push(...result.resources);
+      postProcessResult.supporting.push(...result.supporting);
     }
 
     // After the post processing is complete, allow any finalizers
@@ -987,7 +1004,7 @@ async function runHtmlPostprocessors(
       doc.documentElement?.outerHTML!;
     Deno.writeTextFileSync(outputFile, htmlOutput);
   }
-  return resourceRefs;
+  return postProcessResult;
 }
 
 async function resolveFormats(

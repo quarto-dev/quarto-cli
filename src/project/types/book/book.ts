@@ -34,7 +34,11 @@ import {
 } from "../../../config/constants.ts";
 import { disabledTableOfContents } from "../../../config/toc.ts";
 
-import { PandocOptions } from "../../../command/render/types.ts";
+import {
+  HtmlPostProcessResult,
+  kHtmlEmptyPostProcessResult,
+  PandocOptions,
+} from "../../../command/render/types.ts";
 
 import { ProjectCreate, ProjectType } from "../types.ts";
 import { ProjectContext } from "../../types.ts";
@@ -211,7 +215,7 @@ export const bookProjectType: ProjectType = {
 };
 
 function bookHtmlPostprocessor() {
-  return (doc: Document): Promise<string[]> => {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
     // find the cover image
     const coverImage = doc.querySelector(".quarto-cover-image");
     // if the very next element is a section, move it into the section below the header
@@ -221,7 +225,7 @@ function bookHtmlPostprocessor() {
       nextEl.firstChild.after(coverImage?.parentNode);
     }
 
-    return Promise.resolve([]);
+    return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
 

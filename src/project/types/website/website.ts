@@ -63,7 +63,11 @@ import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 
 import { defaultProjectType } from "../project-default.ts";
 import { TempContext } from "../../../core/temp.ts";
-import { listingHtmlDependencies } from "./listing/website-listing.ts";
+import {
+  listingHtmlDependencies,
+  listingSupplementalFiles,
+} from "./listing/website-listing.ts";
+import { completeStagedFeeds } from "./listing/website-listing-feed.ts";
 
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
@@ -108,6 +112,19 @@ export const websiteProjectType: ProjectType = {
 
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);
+  },
+
+  supplementRender: (
+    project: ProjectContext,
+    files: string[],
+    incremental: boolean,
+  ) => {
+    const listingSupplements = listingSupplementalFiles(
+      project,
+      files,
+      incremental,
+    );
+    return listingSupplements;
   },
 
   formatExtras: async (
@@ -171,7 +188,7 @@ export const websiteProjectType: ProjectType = {
         htmlResourceResolverPostprocessor(source, project),
       ]);
 
-      // listings HTML dependencies
+      // listings extras
       const htmlListingDependencies = await listingHtmlDependencies(
         source,
         project,
@@ -280,8 +297,15 @@ export async function websitePostRender(
   // update search index
   updateSearchIndex(context, outputFiles, incremental);
 
+  // Any full content feeds need to be 'completed'
+  completeStagedFeeds(context, outputFiles, incremental);
+
   // write redirecting index.html if there is none
   ensureIndexPage(context);
+
+  // 'Resolve' any listing RSS feeds that are staged
+  // Look for staged RSS feed files and inject full content into them
+  // exemplar: updateSearchIndex
 
   // generate any page aliases
   await updateAliases(context, outputFiles, incremental);

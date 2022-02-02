@@ -12,6 +12,10 @@ import { projectTypeResourcePath } from "../../../core/resources.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { ProjectContext } from "../../types.ts";
 import { kWebsite } from "./website-config.ts";
+import {
+  HtmlPostProcessResult,
+  kHtmlEmptyPostProcessResult,
+} from "../../../command/render/types.ts";
 
 // tracking id for google analytics
 // GA3 calls this 'tracking id'
@@ -175,7 +179,7 @@ export function cookieConsentDependencies(
             path: cssPath,
           }],
         },
-        htmlPostProcessor: (doc: Document) => {
+        htmlPostProcessor: (doc: Document): Promise<HtmlPostProcessResult> => {
           const anchorId = "open_preferences_center";
           // See if there is already a prefs link - if there isn't,
           // inject one
@@ -201,7 +205,7 @@ export function cookieConsentDependencies(
               footer.appendChild(anchorContainer);
             }
           }
-          return Promise.resolve([]);
+          return Promise.resolve(kHtmlEmptyPostProcessResult);
         },
       };
     } else {

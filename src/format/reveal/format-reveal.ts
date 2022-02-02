@@ -42,6 +42,10 @@ import {
   insertFootnotesTitle,
   removeFootnoteBacklinks,
 } from "../html/format-html-shared.ts";
+import {
+  HtmlPostProcessResult,
+  kHtmlEmptyPostProcessResult,
+} from "../../command/render/types.ts";
 
 const kRevealOptions = [
   "controls",
@@ -426,7 +430,7 @@ function revealMarkdownAfterBody(format: Format) {
 }
 
 function revealHtmlPostprocessor(format: Format) {
-  return (doc: Document): Promise<string[]> => {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
     // if we are using 'number' as our hash type then remove the
     // title slide id
     if (format.metadata[kHashType] === "number") {
@@ -556,7 +560,7 @@ function revealHtmlPostprocessor(format: Format) {
     // apply stretch to images as required
     applyStretch(doc, format.metadata[kAutoStretch] as boolean);
 
-    return Promise.resolve([]);
+    return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
 

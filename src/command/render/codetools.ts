@@ -7,7 +7,11 @@
 
 import { Document, Element } from "../../core/deno-dom.ts";
 
-import { kMarkdownBlockSeparator } from "./types.ts";
+import {
+  HtmlPostProcessResult,
+  kHtmlEmptyPostProcessResult,
+  kMarkdownBlockSeparator,
+} from "./types.ts";
 import { Format } from "../../config/types.ts";
 import {
   kCodeTools,
@@ -87,7 +91,7 @@ export function keepSourceBlock(format: Format, source: string) {
 }
 
 export function codeToolsPostprocessor(format: Format) {
-  return (doc: Document): Promise<string[]> => {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
     if (format.render[kKeepSource]) {
       // fixup the lines in embedded source
       const lines = doc.querySelectorAll(
@@ -255,7 +259,7 @@ export function codeToolsPostprocessor(format: Format) {
       }
     }
 
-    return Promise.resolve([]);
+    return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
 

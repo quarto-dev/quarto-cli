@@ -11,6 +11,7 @@ import { kPageWidth } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcePath } from "../../core/resources.ts";
+import { HtmlPostProcessResult, kHtmlEmptyPostProcessResult } from "./types.ts";
 
 export function layoutFilter() {
   return resourcePath("filters/layout/layout.lua");
@@ -25,7 +26,9 @@ export function layoutFilterParams(format: Format) {
   return params;
 }
 
-export function selectInputPostprocessor(doc: Document): Promise<string[]> {
+export function selectInputPostprocessor(
+  doc: Document,
+): Promise<HtmlPostProcessResult> {
   // look for cell-output-display (these will have overflow-x set on them which we
   // will want to disable if there are seledct inputs inside)
   const outputs = doc.querySelectorAll(".cell-output-display");
@@ -36,5 +39,5 @@ export function selectInputPostprocessor(doc: Document): Promise<string[]> {
       output.classList.add("no-overflow-x");
     }
   }
-  return Promise.resolve([]);
+  return Promise.resolve(kHtmlEmptyPostProcessResult);
 }
