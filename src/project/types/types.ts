@@ -83,7 +83,10 @@ export interface ProjectCreate {
     kernel?: string,
     packages?: string[],
   ) => ProjectScaffoldFile[];
-  supporting?: string[];
+  supporting?: (string | {
+    from: string;
+    to: string;
+  })[];
 }
 
 export interface ProjectScaffoldFile {
@@ -91,4 +94,7 @@ export interface ProjectScaffoldFile {
   content: string;
   noEngineContent?: boolean;
   title?: string;
+  yaml?: string;
+  subdirectory?: string;
+  supporting?: string[];
 }

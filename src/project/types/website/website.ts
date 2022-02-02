@@ -69,33 +69,16 @@ import {
 } from "./listing/website-listing.ts";
 import { completeStagedFeeds } from "./listing/website-listing-feed.ts";
 
+export const kSiteTemplateDefault = "default";
+export const kSiteTemplateBlog = "blog";
+
 export const websiteProjectType: ProjectType = {
   type: kWebsite,
   typeAliases: ["site"],
-  create: (title: string): ProjectCreate => {
+  templates: [kSiteTemplateDefault, kSiteTemplateBlog],
+  create: (title: string, template?: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "website"));
-
-    return {
-      configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
-      resourceDir,
-      scaffold: () => [
-        {
-          name: "index",
-          content:
-            "This is a Quarto website.\n\nTo learn more about Quarto websites visit <https://quarto.org/docs/websites>.",
-          title,
-        },
-        {
-          name: "about",
-          content: "About this site",
-          title: "About",
-        },
-      ],
-
-      supporting: [
-        "styles.css",
-      ],
-    };
+    return websiteTemplate(resourceDir, title, template);
   },
 
   libDir: "site_libs",
@@ -326,4 +309,96 @@ export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
         doctype: doctypeMatch ? doctypeMatch[0] : undefined,
       };
     });
+}
+
+function websiteTemplate(
+  resourceDir: string,
+  title: string,
+  template?: string,
+) {
+  if (template === kSiteTemplateBlog) {
+    const today = new Date();
+    const secondPostDateStr = today.toLocaleDateString();
+    today.setDate(today.getDate() - 3);
+    const firstPostDateStr = today.toLocaleDateString();
+
+    return {
+      configTemplate: join(
+        resourceDir,
+        "templates",
+        "blog",
+        "_quarto-blog.ejs.yml",
+      ),
+      resourceDir,
+      scaffold: () => [
+        {
+          name: "index",
+          content: "",
+          noEngineContent: true,
+          title,
+          yaml:
+            'listing:\n  - contents: posts/**/*.qmd\n    sort: "date desc"\n    type: default\n    categories: true',
+        },
+        {
+          name: "index",
+          subdirectory: "posts/welcome",
+          title: "Welcome To My Blog",
+          content: "This is the first post in a Quarto blog.\n\nWelcome!",
+          noEngineContent: true,
+          yaml:
+            `author: "Tristan O'Malley"\ndate: "${firstPostDateStr}"\ncategories: [portfolios, data science, dygraphs]\nimage: "post1.jpg"`,
+          supporting: [
+            join(resourceDir, "templates", "blog", "post1.jpg"),
+          ],
+        },
+        {
+          name: "index",
+          subdirectory: "posts/computational-output",
+          title: "Computational Output",
+          content: "This is the most recent post in a Quarto blog.\n\nWelcome!",
+          yaml:
+            `author: "Harlow Malloc"\ndate: "${secondPostDateStr}"\ncategories: [strategy, dygraphs]\nimage: "post2.jpg"`,
+          supporting: [
+            join(resourceDir, "templates", "blog", "post2.jpg"),
+          ],
+        },
+        {
+          name: "about",
+          content: "About this blog",
+          title: "About",
+          noEngineContent: true,
+        },
+      ],
+
+      supporting: [
+        "styles.css",
+        {
+          from: join("templates", "blog", "_metadata.yml"),
+          to: join("posts", "_metadata.yml"),
+        },
+      ],
+    };
+  } else {
+    return {
+      configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
+      resourceDir,
+      scaffold: () => [
+        {
+          name: "index",
+          content:
+            "This is a Quarto website.\n\nTo learn more about Quarto websites visit <https://quarto.org/docs/websites>.",
+          title,
+        },
+        {
+          name: "about",
+          content: "About this site",
+          title: "About",
+        },
+      ],
+
+      supporting: [
+        "styles.css",
+      ],
+    };
+  }
 }
