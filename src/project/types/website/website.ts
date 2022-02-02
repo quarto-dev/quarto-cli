@@ -337,29 +337,30 @@ function websiteTemplate(
           noEngineContent: true,
           title,
           yaml:
-            'listing:\n  - contents: posts/**/*.qmd\n    sort: "date desc"\n    type: default\n    categories: true',
+            'listing:\n  contents: posts/**/*.qmd\n  sort: "date desc"\n  type: default\n  categories: true\n  feed: true',
         },
         {
           name: "index",
           subdirectory: "posts/welcome",
           title: "Welcome To My Blog",
-          content: "This is the first post in a Quarto blog.\n\nWelcome!",
+          content:
+            "This is the first post in a Quarto blog. Welcome!\n\n![](thumbnail.jpg)\n\nSince this post doesn't specify an explicit `image`, the first image in the post will be used in the listing page of posts.",
           noEngineContent: true,
           yaml:
-            `author: "Tristan O'Malley"\ndate: "${firstPostDateStr}"\ncategories: [portfolios, data science, dygraphs]\nimage: "post1.jpg"`,
+            `author: "Tristan O'Malley"\ndate: "${firstPostDateStr}"\ncategories: [news]`,
           supporting: [
-            join(resourceDir, "templates", "blog", "post1.jpg"),
+            join(resourceDir, "templates", "blog", "thumbnail.jpg"),
           ],
         },
         {
           name: "index",
-          subdirectory: "posts/computational-output",
-          title: "Computational Output",
-          content: "This is the most recent post in a Quarto blog.\n\nWelcome!",
+          subdirectory: "posts/post-with-code",
+          title: "Post With Code",
+          content: "This is a post with executable code.",
           yaml:
-            `author: "Harlow Malloc"\ndate: "${secondPostDateStr}"\ncategories: [strategy, dygraphs]\nimage: "post2.jpg"`,
+            `author: "Harlow Malloc"\ndate: "${secondPostDateStr}"\ncategories: [news, code, analysis]\nimage: "image.jpg"`,
           supporting: [
-            join(resourceDir, "templates", "blog", "post2.jpg"),
+            join(resourceDir, "templates", "blog", "image.jpg"),
           ],
         },
         {

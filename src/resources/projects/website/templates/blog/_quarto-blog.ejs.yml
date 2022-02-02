@@ -9,10 +9,11 @@ website:
       - href: index<%= ext %>
         text: Home
       - about<%= ext %>
+  site-url: "https://example.com/blog"
 
 format:
   html:
-    theme: cosmo
+    theme: united
     css: styles.css
 
 <% if(editor){ %>editor: <%= editor %><% } %>
