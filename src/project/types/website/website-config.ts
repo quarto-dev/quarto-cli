@@ -28,7 +28,6 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 export const kWebsite = "website";
 
 export const kSiteUrl = "site-url";
-export const kSiteDescription = "site-description";
 export const kSitePath = "site-path";
 export const kSiteTitle = "title";
 export const kSiteFavicon = "favicon";
@@ -105,10 +104,10 @@ export interface OpenGraphConfig {
 type WebsiteConfigKey =
   | "title"
   | "image"
+  | "description"
   | "favicon"
   | "site-url"
   | "site-path"
-  | "site-description"
   | "repo-url"
   | "repo-branch"
   | "repo-actions"
@@ -209,7 +208,7 @@ export function websiteImage(project?: ProjectConfig): string | undefined {
 export function websiteDescription(
   project?: ProjectConfig,
 ): string | undefined {
-  return websiteConfigString(kSiteDescription, project);
+  return websiteConfigString(kDescription, project);
 }
 
 export function websitePath(project?: ProjectConfig): string {
