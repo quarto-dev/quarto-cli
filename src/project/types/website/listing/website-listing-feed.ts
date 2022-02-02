@@ -565,6 +565,9 @@ const renderedContentReader = (project: ProjectContext, siteUrl: string) => {
   };
 };
 
+// This reads a rendered HTML file and extracts its contents.
+// The contents will be cleaned to make them conformant to any
+// RSS validators (I used W3 validator to identify problematic HTML)
 function readRenderedContents(
   filePath: string,
   siteUrl: string,
@@ -674,7 +677,6 @@ function readRenderedContents(
       return str;
     }
   };
-
   const mathNodes = doc.querySelectorAll("span.math");
   for (const mathNode of mathNodes) {
     const mathEl = mathNode as Element;
