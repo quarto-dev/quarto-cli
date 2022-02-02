@@ -333,3 +333,7 @@ ul.task-list {
 .layout-sidebar .tab-content {
   border: none;
 }
+
+.tab-content > .page-columns.active {
+  display: grid;
+}
