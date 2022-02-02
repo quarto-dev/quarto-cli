@@ -1,0 +1,19 @@
+project:
+  type: website
+
+website:
+  title: "<%= title %>"
+  navbar:
+    background: primary
+    left:
+      - href: index<%= ext %>
+        text: Home
+      - about<%= ext %>
+  site-url: "https://example.com/blog"
+
+format:
+  html:
+    theme: united
+    css: styles.css
+
+<% if(editor){ %>editor: <%= editor %><% } %>

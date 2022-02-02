@@ -20,7 +20,8 @@ export interface ProjectType {
   type: string;
   typeAliases?: string[];
   inheritsType?: string;
-  create: (title: string) => ProjectCreate;
+  templates?: string[];
+  create: (title: string, template?: string) => ProjectCreate;
   config?: (
     projectDir: string,
     config: ProjectConfig,
@@ -82,7 +83,10 @@ export interface ProjectCreate {
     kernel?: string,
     packages?: string[],
   ) => ProjectScaffoldFile[];
-  supporting?: string[];
+  supporting?: (string | {
+    from: string;
+    to: string;
+  })[];
 }
 
 export interface ProjectScaffoldFile {
@@ -90,4 +94,7 @@ export interface ProjectScaffoldFile {
   content: string;
   noEngineContent?: boolean;
   title?: string;
+  yaml?: string;
+  subdirectory?: string;
+  supporting?: string[];
 }

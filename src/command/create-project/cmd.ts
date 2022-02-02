@@ -13,6 +13,8 @@ import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
 import {
+  parseProjectType,
+  projectType,
   projectTypeAliases,
   projectTypes,
 } from "../../project/types/project-types.ts";
@@ -38,21 +40,10 @@ export const createProjectCommand = new Command()
   .option(
     "--type <type:string>",
     `Project type (${kProjectTypes.join(", ")})`,
-    {
-      value: (value: string): string => {
-        // strip off subtype
-        value = value.split(":")[0];
-
-        if (kProjectTypesAndAliases.indexOf(value || "default") === -1) {
-          throw new Error(
-            `Project type must be one of ${
-              kProjectTypes.join(", ")
-            }, but got "${value}".`,
-          );
-        }
-        return value;
-      },
-    },
+  )
+  .option(
+    "--template <type:string>",
+    `Use a specific project template`,
   )
   .option(
     "--engine <engine:string>",
@@ -145,9 +136,38 @@ export const createProjectCommand = new Command()
       ? options.withCondaenv.split(",").map((pkg: string) => pkg.trim())
       : undefined;
 
+    // Parse the project type and template
+    const { type, template } = parseProjectType(options.type);
+    const projectTemplate = options.template || template;
+
+    // Validate the type
+    if (kProjectTypesAndAliases.indexOf(type) === -1) {
+      throw new Error(
+        `Project type must be one of ${
+          kProjectTypes.join(", ")
+        }, but got "${type}".`,
+      );
+    }
+
+    // Validate the template
+    const projType = projectType(type);
+    if (projectTemplate && !projType.templates?.includes(projectTemplate)) {
+      if (projType.templates) {
+        throw new Error(
+          `Project template must be one of ${
+            projType.templates.join(", ")
+          }, but got "${projectTemplate}".`,
+        );
+      } else {
+        throw new Error(
+          `The project type ${type} does not support any templates.`,
+        );
+      }
+    }
+
     await projectCreate({
       dir,
-      type: options.type,
+      type: type,
       title: options.title || basename(dir),
       scaffold: !!options.scaffold,
       engine: engine[0] || kMarkdownEngine,
@@ -156,5 +176,6 @@ export const createProjectCommand = new Command()
       venv: !!options.withVenv,
       condaenv: !!options.withCondaenv,
       envPackages,
+      template: projectTemplate,
     });
   });
