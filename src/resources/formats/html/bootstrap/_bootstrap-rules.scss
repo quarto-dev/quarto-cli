@@ -619,7 +619,6 @@ $code-block-bg-color: color.adjust(
 
 .tab-pane div.sourceCode {
   margin-top: 0px;
-  margin-bottom: 0px;
 }
 
 .tab-pane > p {
@@ -1019,7 +1018,7 @@ div.hanging-indent {
 
 .callout:not(.callout-captioned) .callout-body > :last-child,
 .callout:not(.callout-captioned) .callout-body > div > :last-child {
-  margin-bottom: 0;
+  margin-bottom: 0.25rem;
 }
 
 $code-block-border-left-color: $table-border-color !default;
