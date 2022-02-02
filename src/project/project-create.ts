@@ -201,7 +201,9 @@ function projectMarkdownFile(
   }
 
   // write jupyter kernel if necessary
-  lines.push(...engine.defaultYaml(kernel));
+  if (!noEngineContent) {
+    lines.push(...engine.defaultYaml(kernel));
+  }
 
   // end yaml
   lines.push("---", "");
