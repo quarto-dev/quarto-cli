@@ -222,7 +222,6 @@ export async function createFeed(
       );
 
       if (rendered) {
-        addLinkTagToDocument(doc, feed, categoryToRender.finalFile);
         feedFiles.push(categoryToRender.file);
       }
     }
@@ -355,7 +354,6 @@ async function renderCategoryFeed(
   // Add the category filter
   feedMeta.link = feedMeta.link + "#category=" +
     encodeURI(categoryToRender.category);
-  feedMeta.title = `${feedMeta.title} - ${categoryToRender.category}`;
   feedMeta.feedLink = categoryToRender.feedLink;
   if (feedMeta.image) {
     feedMeta.image.link = feedMeta.link;
