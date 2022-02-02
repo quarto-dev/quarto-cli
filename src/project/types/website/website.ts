@@ -337,7 +337,7 @@ function websiteTemplate(
           noEngineContent: true,
           title,
           yaml:
-            'listing:\n  contents: posts/**/*.qmd\n  sort: "date desc"\n  type: default\n  categories: true\n  feed: true',
+            'listing:\n  contents: posts/**/*.qmd\n  sort: "date desc"\n  type: default\n  categories: true',
         },
         {
           name: "index",

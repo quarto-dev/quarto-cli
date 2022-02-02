@@ -9,7 +9,6 @@ website:
       - href: index<%= ext %>
         text: Home
       - about<%= ext %>
-  site-url: "https://example.com/blog"
 
 format:
   html:
