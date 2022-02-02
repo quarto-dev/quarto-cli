@@ -184,7 +184,7 @@ export async function listingHtmlDependencies(
     const supporting: string[] = [];
     if (options[kFeed]) {
       const listingOptions = {
-        type: "partial",
+        type: "full",
         ...options[kFeed],
       } as ListingFeedOptions;
 
