@@ -68,6 +68,7 @@ import {
   listingSupplementalFiles,
 } from "./listing/website-listing.ts";
 import { completeStagedFeeds } from "./listing/website-listing-feed.ts";
+import { aboutHtmlDependencies } from "./about/website-about.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -198,6 +199,25 @@ export const websiteProjectType: ProjectType = {
         extras.html[kDependencies] = extras.html[kDependencies] || [];
         extras.html[kDependencies]?.push(
           ...htmlListingDependencies[kDependencies],
+        );
+      }
+
+      // about extras
+      const aboutDependencies = await aboutHtmlDependencies(
+        source,
+        project,
+        format,
+        temp,
+        extras,
+      );
+      if (aboutDependencies) {
+        extras.html[kHtmlPostprocessors]?.push(
+          aboutDependencies[kHtmlPostprocessors],
+        );
+
+        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+        extras.html[kSassBundles]!.push(
+          ...aboutDependencies[kSassBundles],
         );
       }
 

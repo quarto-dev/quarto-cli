@@ -1010,12 +1010,12 @@ function resolveSidebarRef(navItem: NavbarItem) {
   }
 }
 
-async function navigationItem(
+export async function navigationItem(
   project: ProjectContext,
   navItem: NavbarItem | string,
   level = 0,
   sidebarMenus = false,
-) {
+): Promise<NavbarItem> {
   // make a copy we can mutate
   navItem = ld.cloneDeep(navItem);
 

@@ -1,0 +1,46 @@
+/*-- scss:rules --*/
+
+div.jolla {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10%;
+
+  .about-image {
+    height: 10em;
+    width: 10em;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1.5em;
+  }
+
+  .about-sep {
+    width: 60%;
+  }
+
+  main {
+    text-align: center;
+  }
+
+  .about-links {
+    display: flex;
+    column-gap: 20px;
+  }
+
+  .about-link:hover {
+    color: $link-color;
+  }
+
+  .about-link {
+    color: lighten($body-color, 20%);
+    text-decoration: none;
+    :hover {
+      color: $link-color;
+    }
+    padding: 0.25em 0.5em;
+    border: solid 1px;
+    border-radius: 4px;
+  }
+}
