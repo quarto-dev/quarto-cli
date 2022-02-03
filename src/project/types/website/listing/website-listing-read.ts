@@ -334,13 +334,18 @@ function hydrateListing(
     ...listing,
   });
 
-  // Apply a default sort if the title field is present
+  // Apply a default sort if the title field is present and the sources contain documents
   const sort: ListingSort[] | undefined = hydratedFields.includes(kFieldTitle)
     ? [{ field: "title", direction: "asc" }]
     : undefined;
-  if (sort && !listingHydrated.sort) {
+  if (
+    sort && !listingHydrated.sort && sources.has(ListingItemSource.document)
+  ) {
     listingHydrated.sort = sort;
   }
+
+  // TODO: If the user requests to sort by field that doesn't exist
+  // throw an error (and provide a helpful message)
 
   // Forward fields if listed in sort UI or Filter UI
   const sortUi = listingHydrated[kSortUi];
