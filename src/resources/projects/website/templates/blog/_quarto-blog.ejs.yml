@@ -12,7 +12,7 @@ website:
 
 format:
   html:
-    theme: cosmo
+    theme: united
     css: styles.css
 
 <% if(editor){ %>editor: <%= editor %><% } %>

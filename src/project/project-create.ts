@@ -37,6 +37,7 @@ export interface ProjectCreateOptions {
   venv?: boolean;
   condaenv?: boolean;
   envPackages?: string[];
+  template?: string;
 }
 
 export async function projectCreate(options: ProjectCreateOptions) {
@@ -64,7 +65,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   // call create on the project type
   const projType = projectType(options.type);
-  const projCreate = projType.create(options.title);
+  const projCreate = projType.create(options.title, options.template);
 
   // create the initial project config
   const quartoConfig = renderEjs(projCreate.configTemplate, {
@@ -104,6 +105,9 @@ export async function projectCreate(options: ProjectCreateOptions) {
         options.kernel,
         scaffold.title,
         scaffold.noEngineContent,
+        scaffold.yaml,
+        scaffold.subdirectory,
+        scaffold.supporting,
       );
       if (md) {
         info("- Created " + md, { indent: 2 });
@@ -114,11 +118,22 @@ export async function projectCreate(options: ProjectCreateOptions) {
   // copy supporting files
   if (projCreate.supporting) {
     for (const supporting of projCreate.supporting) {
-      const src = join(projCreate.resourceDir, supporting);
-      const dest = join(options.dir, supporting);
+      let src;
+      let dest;
+      let displayName;
+      if (typeof (supporting) === "string") {
+        src = join(projCreate.resourceDir, supporting);
+        dest = join(options.dir, supporting);
+        displayName = supporting;
+      } else {
+        src = join(projCreate.resourceDir, supporting.from);
+        dest = join(options.dir, supporting.to);
+        displayName = supporting.to;
+      }
+
       ensureDirSync(dirname(dest));
       Deno.copyFileSync(src, dest);
-      info("- Created " + supporting, { indent: 2 });
+      info("- Created " + displayName, { indent: 2 });
     }
   }
 
@@ -171,6 +186,9 @@ function projectMarkdownFile(
   kernel?: string,
   title?: string,
   noEngineContent?: boolean,
+  yaml?: string,
+  subdirectory?: string,
+  supporting?: string[],
 ): string | undefined {
   // yaml/title
   const lines: string[] = ["---"];
@@ -178,8 +196,14 @@ function projectMarkdownFile(
     lines.push(`title: "${title}"`);
   }
 
+  if (yaml) {
+    lines.push(yaml);
+  }
+
   // write jupyter kernel if necessary
-  lines.push(...engine.defaultYaml(kernel));
+  if (!noEngineContent) {
+    lines.push(...engine.defaultYaml(kernel));
+  }
 
   // end yaml
   lines.push("---", "");
@@ -203,10 +227,29 @@ function projectMarkdownFile(
 
   // write file and return it's name
   name = name + engine.defaultExt;
-  const path = join(dir, name);
+
+  const ensureSubDir = (dir: string, name: string, subdirectory?: string) => {
+    if (subdirectory) {
+      const newDir = join(dir, subdirectory);
+      ensureDirSync(newDir);
+      return join(newDir, name);
+    } else {
+      return join(dir, name);
+    }
+  };
+
+  const path = ensureSubDir(dir, name, subdirectory);
   if (!existsSync(path)) {
     Deno.writeTextFileSync(path, lines.join("\n") + "\n");
-    return name;
+
+    // Write supporting files
+    supporting?.forEach((from) => {
+      const name = basename(from);
+      const target = join(dirname(path), name);
+      Deno.copyFileSync(from, target);
+    });
+
+    return subdirectory ? join(subdirectory, name) : name;
   } else {
     return undefined;
   }

@@ -18,6 +18,22 @@ function kTypes() {
   ];
 }
 
+export function parseProjectType(
+  projType?: string,
+): { type: string; template?: string } {
+  if (projType) {
+    const parts = projType.split(":");
+    return {
+      type: parts[0],
+      template: parts.length > 1 ? parts[1] : undefined,
+    };
+  } else {
+    return {
+      type: "default",
+    };
+  }
+}
+
 export function projectTypes(): string[] {
   return kTypes().map((type) => type.type);
 }
