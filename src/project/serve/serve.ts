@@ -302,6 +302,10 @@ export async function serveProject(
           if (!projType.projectFormatsOnly) {
             delete renderFlags?.to;
           }
+          // if to is 'all' then choose html
+          if (renderFlags?.to == "all") {
+            renderFlags.to = isHtmlContent(file) ? "html" : "pdf";
+          }
           const tempContext = createTempContext();
           try {
             result = await renderQueue.enqueue(() =>
