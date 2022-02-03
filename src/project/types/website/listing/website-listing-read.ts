@@ -252,10 +252,13 @@ function hydrateListing(
 ): Listing {
   const fieldsForItems = (items: ListingItem[]): string[] => {
     const unionedItem = items.reduce((prev, current) => {
-      return {
-        ...prev,
-        ...current,
-      };
+      const item = { ...prev };
+      for (const key of Object.keys(current)) {
+        if (current[key] !== undefined) {
+          item[key] = current[key];
+        }
+      }
+      return item;
     }, {});
     return Object.keys(unionedItem).filter((key) => {
       return unionedItem[key] !== undefined;
