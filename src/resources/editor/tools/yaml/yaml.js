@@ -7892,10 +7892,32 @@ if (typeof exports === 'object') {
     }
   }
   function possibleSchemaKeys(schema) {
-    return schemaCompletions(schema).filter((c) => c.type === "key").map((c) => c.value.split(":")[0]);
+    const precomputedCompletions = schemaCompletions(schema).filter((c) => c.type === "key").map((c) => c.value.split(":")[0]);
+    if (precomputedCompletions.length) {
+      return precomputedCompletions;
+    }
+    const results = [];
+    walkSchema(schema, {
+      "object": (s) => {
+        results.push(...Object.keys(s.properties || {}));
+        return true;
+      },
+      "array": (s) => true
+    });
+    return results;
   }
   function possibleSchemaValues(schema) {
-    return schemaCompletions(schema).filter((c) => c.type === "value").map((c) => c.value.split(":")[0]);
+    const precomputedCompletions = schemaCompletions(schema).filter((c) => c.type === "value").map((c) => c.value.split(":")[0]);
+    const results = [];
+    walkSchema(schema, {
+      "enum": (s) => {
+        results.push(...s["enum"].map(String));
+        return true;
+      },
+      "array": (s) => true,
+      "object": (s) => true
+    });
+    return results;
   }
   function validateBoolean(value, _schema) {
     return typeof value === "boolean";
@@ -8677,14 +8699,18 @@ if (typeof exports === 'object') {
   }
   function getErrorSchema(error, parse, schema) {
     const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
-    if (errorSchema === void 0 || errorSchema.$id === void 0) {
+    if (errorSchema === void 0) {
       if (schema.$id) {
         return resolveSchema({ $ref: schema.$id });
       } else {
         return schema;
       }
     } else {
-      return resolveSchema({ $ref: errorSchema.$id });
+      if (errorSchema.$id) {
+        return resolveSchema({ $ref: errorSchema.$id });
+      } else {
+        return errorSchema;
+      }
     }
   }
   function innerDescription(error, parse, schema) {
@@ -8857,6 +8883,7 @@ if (typeof exports === 'object') {
     };
   }
   function checkForNearbyCorrection(error, parse, schema) {
+    debugger;
     const errorSchema = getErrorSchema(error, parse, schema);
     const corrections = [];
     let errVal = "";
@@ -8882,6 +8909,7 @@ if (typeof exports === 'object') {
     let bestDistance = Infinity;
     for (const correction of corrections) {
       const d = editDistance(correction, errVal);
+      console.log(d, correction, errVal);
       if (d < bestDistance) {
         bestCorrection = [correction];
         bestDistance = d;
@@ -8895,12 +8923,12 @@ if (typeof exports === 'object') {
     }
     const suggestions = bestCorrection.map((s) => blue(s));
     if (suggestions.length === 1) {
-      error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${suggestions[0]}?`;
+      error.niceError.info[`did-you-mean-${keyOrValue}`] = `Did you mean ${suggestions[0]}?`;
     } else if (suggestions.length === 2) {
-      error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${suggestions[0]} or ${suggestions[1]}?`;
+      error.niceError.info[`did-you-mean-${keyOrValue}`] = `Did you mean ${suggestions[0]} or ${suggestions[1]}?`;
     } else {
       suggestions[suggestions.length - 1] = `or ${suggestions[suggestions.length - 1]}`;
-      error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${suggestions.join(", ")}?`;
+      error.niceError.info[`did-you-mean-${keyOrValue}`] = `Did you mean ${suggestions.join(", ")}?`;
     }
     return error;
   }
@@ -8986,6 +9014,11 @@ if (typeof exports === 'object') {
           let text;
           if (error.niceError && error.niceError.heading) {
             text = error.niceError.heading;
+            if (error.niceError.info["did-you-mean-key"]) {
+              text = text + " (" + error.niceError.info["did-you-mean-key"] + ")";
+            } else if (error.niceError.info["did-you-mean-value"]) {
+              text = text + " (" + error.niceError.info["did-you-mean-value"] + ")";
+            }
           } else {
             text = error.message;
           }

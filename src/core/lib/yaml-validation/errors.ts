@@ -129,7 +129,7 @@ function getErrorSchema(
 ): Schema {
   const errorSchema = (error.ajvError.params && error.ajvError.params.schema) ||
     error.ajvError.parentSchema;
-  if (errorSchema === undefined || errorSchema.$id === undefined) {
+  if (errorSchema === undefined) {
     if (schema.$id) {
       // we need to get information from the _unnormalized_ schema, because
       // the one reported by ajv has no additional metadata.
@@ -139,9 +139,14 @@ function getErrorSchema(
       return schema;
     }
   } else {
-    // we need to get information from the _unnormalized_ schema, because
-    // the one reported by ajv has no additional metadata.
-    return resolveSchema({ $ref: errorSchema.$id });
+    if (errorSchema.$id) {
+      // we need to get information from the _unnormalized_ schema, because
+      // the one reported by ajv has no additional metadata.
+      return resolveSchema({ $ref: errorSchema.$id });
+    } else {
+      // this could mean an unnormalized schema...
+      return errorSchema;
+    }
   }
 }
 
@@ -433,6 +438,7 @@ function checkForNearbyCorrection(
   parse: AnnotatedParse,
   schema: Schema,
 ): LocalizedError {
+  debugger;
   const errorSchema = getErrorSchema(error, parse, schema);
   const corrections: string[] = [];
 
@@ -464,6 +470,7 @@ function checkForNearbyCorrection(
   let bestDistance = Infinity;
   for (const correction of corrections) {
     const d = editDistance(correction, errVal);
+    console.log(d, correction, errVal);
     if (d < bestDistance) {
       bestCorrection = [correction];
       bestDistance = d;
@@ -485,18 +492,18 @@ function checkForNearbyCorrection(
 
   const suggestions = bestCorrection!.map((s: string) => colors.blue(s));
   if (suggestions.length === 1) {
-    error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${
+    error.niceError.info[`did-you-mean-${keyOrValue}`] = `Did you mean ${
       suggestions[0]
     }?`;
   } else if (suggestions.length === 2) {
-    error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${
+    error.niceError.info[`did-you-mean-${keyOrValue}`] = `Did you mean ${
       suggestions[0]
     } or ${suggestions[1]}?`;
   } else {
     suggestions[suggestions.length - 1] = `or ${
       suggestions[suggestions.length - 1]
     }`;
-    error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${
+    error.niceError.info[`did-you-mean-${keyOrValue}`] = `Did you mean ${
       suggestions.join(", ")
     }?`;
   }

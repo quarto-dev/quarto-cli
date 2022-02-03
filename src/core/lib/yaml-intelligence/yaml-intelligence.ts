@@ -144,6 +144,12 @@ export async function validationFromGoodParseYAML(
         if (error.niceError && error.niceError.heading) {
           // use a new nice error if available
           text = error.niceError.heading;
+          if (error.niceError.info["did-you-mean-key"]) {
+            text = text + " (" + error.niceError.info["did-you-mean-key"] + ")";
+          } else if (error.niceError.info["did-you-mean-value"]) {
+            text = text + " (" + error.niceError.info["did-you-mean-value"] +
+              ")";
+          }
         } else {
           // default to ajv msg otherwise
           text = error.message;

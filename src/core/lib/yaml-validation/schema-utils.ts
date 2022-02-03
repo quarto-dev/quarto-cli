@@ -10,6 +10,7 @@ import {
   getSchemaDefinition,
   Schema,
   schemaType,
+  walkSchema,
 } from "./schema.ts";
 import { prefixes } from "../regexp.js";
 
@@ -213,11 +214,47 @@ export function schemaCompletions(schema: Schema): Completion[] {
 }
 
 export function possibleSchemaKeys(schema: Schema): string[] {
-  return schemaCompletions(schema).filter((c) => c.type === "key")
-    .map((c) => c.value.split(":")[0]);
+  const precomputedCompletions = schemaCompletions(schema).filter((c) =>
+    c.type === "key"
+  ).map((c) => c.value.split(":")[0]);
+  if (precomputedCompletions.length) {
+    return precomputedCompletions;
+  }
+
+  // FIXME we likely got unlucky and were handed an unnamed schema
+  // from inside an ajv error.
+
+  const results: string[] = [];
+  // we do a best-effort thing here.
+  walkSchema(schema, {
+    "object": (s) => {
+      results.push(...Object.keys(s.properties || {}));
+      return true;
+    },
+    "array": (s) => true,
+  });
+  return results;
 }
 
 export function possibleSchemaValues(schema: Schema): string[] {
-  return schemaCompletions(schema).filter((c) => c.type === "value")
+  const precomputedCompletions = schemaCompletions(schema).filter((c) =>
+    c.type === "value"
+  )
     .map((c) => c.value.split(":")[0]);
+
+  // FIXME we likely got unlucky and were handed an unnamed schema
+  // from inside an ajv error.
+
+  const results: string[] = [];
+  // we do a best-effort thing here.
+  walkSchema(schema, {
+    "enum": (s) => {
+      results.push(...s["enum"].map(String));
+      return true;
+    },
+    // don't recurse into anything that introduces instancePath values
+    "array": (s) => true,
+    "object": (s) => true,
+  });
+  return results;
 }
