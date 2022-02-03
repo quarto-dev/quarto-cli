@@ -4964,7 +4964,6 @@ if (typeof exports === 'object') {
       return `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
     }
   }
-  var errorsReported = new Set();
   function lines(text) {
     return text.split(/\r?\n/);
   }

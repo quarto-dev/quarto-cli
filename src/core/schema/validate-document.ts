@@ -32,6 +32,7 @@ export async function validateDocumentFromSource(
   filename?: string,
 ): Promise<LocalizedError[]> {
   const result: LocalizedError[] = [];
+  const reportSet: Set<string> = new Set();
 
   if (filename?.startsWith("/")) {
     filename = relative(Deno.cwd(), filename);
@@ -71,8 +72,10 @@ export async function validateDocumentFromSource(
           annotation,
           "Validation of YAML front matter failed.",
           errorFn,
-          reportOnce((err: TidyverseError) =>
-            error(tidyverseFormatError(err), { colorize: false })
+          reportOnce(
+            (err: TidyverseError) =>
+              error(tidyverseFormatError(err), { colorize: false }),
+            reportSet,
           ),
         );
         if (fmValidation && fmValidation.errors.length) {

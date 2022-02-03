@@ -131,10 +131,11 @@ function errorKey(err: TidyverseError): string {
   }`;
 }
 
-const errorsReported: Set<string> = new Set();
 export function reportOnce(
   reporter: ((err: TidyverseError) => unknown),
+  reportSet?: Set<string>,
 ): (err: TidyverseError) => unknown {
+  const errorsReported = reportSet || new Set();
   return (err: TidyverseError) => {
     const key = errorKey(err);
     if (errorsReported.has(key)) {

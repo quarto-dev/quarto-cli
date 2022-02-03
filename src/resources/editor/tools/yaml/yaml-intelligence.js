@@ -88,7 +88,6 @@ function locationString(loc) {
     return `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`;
   }
 }
-var errorsReported = new Set();
 
 // ../text.ts
 function lines(text) {
