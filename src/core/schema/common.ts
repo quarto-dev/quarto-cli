@@ -23,6 +23,8 @@ import { resolveSchema } from "../lib/yaml-validation/schema-utils.ts";
 
 import { mergeConfigs } from "../config.ts";
 
+import { CaseConvention, resolveCaseConventionRegex } from "../lib/text.ts";
+
 export const BooleanSchema = {
   "type": "boolean",
   "description": "be `true` or `false`",
@@ -146,6 +148,7 @@ export function objectSchema(params: {
   // deno-lint-ignore no-explicit-any
   baseSchema?: any; // TODO this should have the type of the result of objectSchema()
   completions?: { [k: string]: string };
+  namingConvention?: CaseConvention[] | "ignore";
 } = {}) {
   let {
     properties,
@@ -156,11 +159,32 @@ export function objectSchema(params: {
     baseSchema,
     exhaustive,
     completions: completionsParam,
+    namingConvention,
   } = params;
 
   required = required || [];
   properties = properties || {};
   patternProperties = patternProperties || {};
+  const tags: Record<string, any> = {};
+  let tagsAreSet = false;
+  let propertyNames: Schema | undefined;
+
+  const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
+
+  if (namingConvention !== "ignore") {
+    const { pattern, list } = resolveCaseConventionRegex(
+      objectKeys,
+      namingConvention,
+    );
+    if (pattern !== undefined) {
+      propertyNames = {
+        "type": "string",
+        pattern,
+      };
+      tags["case-convention"] = list;
+      tagsAreSet = true;
+    }
+  }
 
   const hasDescription = description !== undefined;
   description = description || "be an object";
@@ -176,7 +200,7 @@ export function objectSchema(params: {
     return Object.getOwnPropertyNames(obj).map((k) => obj[k]);
   };
 
-  for (const k of Object.getOwnPropertyNames(completionsParam || properties)) {
+  for (const k of objectKeys) {
     const schema = properties[k];
     const maybeDescriptions: (undefined | string | { $ref: string })[] = [
       completionsParam?.[k],
@@ -295,6 +319,25 @@ export function objectSchema(params: {
         result.additionalProperties = additionalProperties;
       }
     }
+
+    if (propertyNames !== undefined) {
+      if (result.propertyNames !== undefined) {
+        // this is a convoluted-but-unavoidable way to say "create a regexp that is
+        // the conjunction of these two regexps" using javascript-allowed regexes.
+        // by de morgan's laws, A AND B = !(!A or !B)
+
+        const not = (s: string) => `^(?!${s})`;
+        const or = (s1: string, s2: string) => `(${s1}|${s2})`;
+        const and = (s1: string, s2: string) => not(or(not(s1), not(s2)));
+
+        result.propertyNames = {
+          type: "string",
+          pattern: and(propertyNames.pattern, result.propertyNames.pattern),
+        };
+      } else {
+        result.propertyNames = propertyNames;
+      }
+    }
   } else {
     result = {
       "type": "object",
@@ -329,8 +372,15 @@ export function objectSchema(params: {
     if (additionalProperties !== undefined) {
       result.additionalProperties = additionalProperties;
     }
+
+    if (propertyNames !== undefined) {
+      result.propertyNames = propertyNames;
+    }
   }
 
+  if (tagsAreSet) {
+    result.tags = tags;
+  }
   return result;
 }
 

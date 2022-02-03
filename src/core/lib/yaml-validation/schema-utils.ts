@@ -216,3 +216,8 @@ export function possibleSchemaKeys(schema: Schema): string[] {
   return schemaCompletions(schema).filter((c) => c.type === "key")
     .map((c) => c.value.split(":")[0]);
 }
+
+export function possibleSchemaValues(schema: Schema): string[] {
+  return schemaCompletions(schema).filter((c) => c.type === "value")
+    .map((c) => c.value.split(":")[0]);
+}

@@ -9,8 +9,6 @@
 
 import * as colors from "../external/colors.ts";
 
-import { editDistance } from "../text.ts";
-
 import {
   AnnotatedParse,
   getVerbatimInput,
@@ -33,17 +31,39 @@ import { navigateSchemaByInstancePath } from "./schema-navigation.ts";
 
 import { mappedIndexToRowCol } from "../mapped-text.ts";
 
-import { possibleSchemaKeys } from "./schema-utils.ts";
+import {
+  possibleSchemaKeys,
+  possibleSchemaValues,
+  resolveSchema,
+  schemaCompletions,
+} from "./schema-utils.ts";
 
-import { schemaCompletions } from "./schema-utils.ts";
+import {
+  CaseConvention,
+  detectCaseConvention,
+  editDistance,
+  normalizeCaseConvention,
+} from "../text.ts";
 
-import { resolveSchema } from "./schema-utils.ts";
+import { getBadKey } from "./ajv-error.ts";
+
+////////////////////////////////////////////////////////////////////////////////
 
 export type ValidatorErrorHandlerFunction = (
   error: LocalizedError,
   parse: AnnotatedParse,
   schema: Schema,
 ) => LocalizedError;
+
+export function setDefaultErrorHandlers(validator: YAMLSchema) {
+  validator.addHandler(expandEmptySpan);
+  validator.addHandler(improveErrorHeadingForValueErrors);
+  validator.addHandler(checkForTypeMismatch);
+  validator.addHandler(checkForBadBoolean);
+  validator.addHandler(identifyKeyErrors);
+  validator.addHandler(checkForNearbyCorrection);
+  validator.addHandler(schemaDefinedErrors);
+}
 
 function isEmptyValue(error: LocalizedError) {
   const rawVerbatimInput = getVerbatimInput(error);
@@ -102,6 +122,29 @@ function reindent(
   return str;
 }
 
+function getErrorSchema(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  schema: Schema,
+): Schema {
+  const errorSchema = (error.ajvError.params && error.ajvError.params.schema) ||
+    error.ajvError.parentSchema;
+  if (errorSchema === undefined || errorSchema.$id === undefined) {
+    if (schema.$id) {
+      // we need to get information from the _unnormalized_ schema, because
+      // the one reported by ajv has no additional metadata.
+      return resolveSchema({ $ref: schema.$id });
+    } else {
+      // this could mean an unnormalized schema...
+      return schema;
+    }
+  } else {
+    // we need to get information from the _unnormalized_ schema, because
+    // the one reported by ajv has no additional metadata.
+    return resolveSchema({ $ref: errorSchema.$id });
+  }
+}
+
 function innerDescription(
   error: LocalizedError,
   parse: AnnotatedParse,
@@ -113,10 +156,20 @@ function innerDescription(
   const innerSchema = errorSchema
     ? [errorSchema]
     : navigateSchemaByInstancePath(schemaPath.map(decodeURIComponent), schema);
+
   return innerSchema.map((s: Schema) => s.description).join(", ");
 }
 
-function formatHeading(
+function formatHeadingForKeyError(
+  _error: LocalizedError,
+  _parse: AnnotatedParse,
+  _schema: Schema,
+  key: string,
+): string {
+  return `property name ${colors.blue(key)} is invalid`;
+}
+
+function formatHeadingForValueError(
   error: LocalizedError,
   parse: AnnotatedParse,
   schema: Schema,
@@ -158,12 +211,37 @@ function formatHeading(
   }
 }
 
-function improveErrorHeading(
+function identifyKeyErrors(
   error: LocalizedError,
   parse: AnnotatedParse,
   schema: Schema,
 ): LocalizedError {
-  if (error.ajvError.keyword === "_custom_invalidProperty") {
+  let badKey = getBadKey(error.ajvError);
+  if (badKey) {
+    addInstancePathInfo(
+      error.niceError,
+      error.ajvError.instancePath + "/" + badKey,
+    );
+    error.niceError.heading = formatHeadingForKeyError(
+      error,
+      parse,
+      schema,
+      badKey,
+    );
+  }
+
+  return error;
+}
+
+function improveErrorHeadingForValueErrors(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  schema: Schema,
+): LocalizedError {
+  if (
+    error.ajvError.keyword === "_custom_invalidProperty" ||
+    error.ajvError.keyword === "propertyNames"
+  ) {
     // TODO this check is supposed to be "don't mess with errors where
     // the violating object is in key position". I think my condition
     // catches everything but I'm not positive.
@@ -173,7 +251,7 @@ function improveErrorHeading(
     ...error,
     niceError: {
       ...error.niceError,
-      heading: formatHeading(error, parse, schema),
+      heading: formatHeadingForValueError(error, parse, schema),
     },
   };
 }
@@ -215,15 +293,6 @@ function expandEmptySpan(
   };
 }
 
-export function setDefaultErrorHandlers(validator: YAMLSchema) {
-  validator.addHandler(expandEmptySpan);
-  validator.addHandler(improveErrorHeading);
-  validator.addHandler(checkForTypeMismatch);
-  validator.addHandler(checkForBadBoolean);
-  validator.addHandler(checkForSimilarKey);
-  validator.addHandler(schemaDefinedErrors);
-}
-
 function checkForTypeMismatch(
   error: LocalizedError,
   parse: AnnotatedParse,
@@ -234,12 +303,12 @@ function checkForTypeMismatch(
 
   if (error.ajvError.keyword === "type" && rawVerbatimInput.length > 0) {
     const newError: TidyverseError = {
-      heading: formatHeading(error, parse, schema),
+      heading: formatHeadingForValueError(error, parse, schema),
       error: [
         `The value ${verbatimInput} is a ${typeof error.violatingObject
           .result}.`,
       ],
-      info: [],
+      info: {},
       location: error.niceError.location,
     };
     addInstancePathInfo(newError, error.ajvError.instancePath);
@@ -285,14 +354,16 @@ function checkForBadBoolean(
     `Quarto uses YAML 1.2, which interprets booleans strictly.`;
   const suggestion2 = `Try using ${quotedStringColor(String(fix))} instead.`;
   const newError: TidyverseError = {
-    heading: formatHeading(error, parse, schema),
+    heading: formatHeadingForValueError(error, parse, schema),
     error: [errorMessage],
-    info: [],
+    info: {},
     location: error.niceError.location,
   };
   addInstancePathInfo(newError, error.ajvError.instancePath);
   addFileInfo(newError, error.source);
-  newError.info.push(suggestion1, suggestion2);
+  newError.info["yaml-version-1.2"] = suggestion1;
+  newError.info["suggestion-fix"] = suggestion1;
+
   return {
     ...error,
     niceError: newError,
@@ -357,37 +428,47 @@ function schemaDefinedErrors(
   };
 }
 
-export function checkForSimilarKey(
+function checkForNearbyCorrection(
   error: LocalizedError,
   parse: AnnotatedParse,
   schema: Schema,
 ): LocalizedError {
-  const lastFragment = String(getLastFragment(error.instancePath));
+  const errorSchema = getErrorSchema(error, parse, schema);
+  const corrections: string[] = [];
 
-  const errorSchema = (error.ajvError.params && error.ajvError.params.schema) ||
-    error.ajvError.parentSchema;
-  if (errorSchema === undefined) {
+  let errVal = "";
+  let keyOrValue = "";
+  const key = getBadKey(error.ajvError);
+
+  if (key) {
+    errVal = key;
+    corrections.push(...possibleSchemaKeys(errorSchema));
+    keyOrValue = "key";
+  } else {
+    // deno-lint-ignore no-explicit-any
+    const val = navigate(error.instancePath.split("/").slice(1), parse);
+
+    if (typeof val!.result !== "string") {
+      // error didn't happen in a string, can't suggest corrections.
+      return error;
+    }
+    errVal = val!.result;
+    corrections.push(...possibleSchemaValues(errorSchema));
+    keyOrValue = "value";
+  }
+  if (corrections.length === 0) {
     return error;
   }
 
-  // we need to complete through the _unnormalized_ schema, because
-  // the one reported by ajv has no additional metadata..
-  const unnormalizedErrorSchema = resolveSchema({ $ref: errorSchema.$id });
-
-  const keys = possibleSchemaKeys(unnormalizedErrorSchema);
-  if (keys.length === 0) {
-    return error;
-  }
-
-  let bestKey: string[] | undefined;
+  let bestCorrection: string[] | undefined;
   let bestDistance = Infinity;
-  for (const key of keys) {
-    const d = editDistance(key, lastFragment);
+  for (const correction of corrections) {
+    const d = editDistance(correction, errVal);
     if (d < bestDistance) {
-      bestKey = [key];
+      bestCorrection = [correction];
       bestDistance = d;
     } else if (d === bestDistance) {
-      bestKey!.push(key);
+      bestCorrection!.push(correction);
       bestDistance = d;
     }
   }
@@ -398,22 +479,26 @@ export function checkForSimilarKey(
   // of edit distances. Presently, we hack.
 
   // if best edit distance is more than 30% of the word, don't suggest
-  if (bestDistance * 0.3 > lastFragment.length) {
+  if (bestDistance * 0.3 > errVal.length * 10) {
     return error;
   }
 
-  const suggestions = bestKey!.map((s: string) => colors.blue(s));
+  const suggestions = bestCorrection!.map((s: string) => colors.blue(s));
   if (suggestions.length === 1) {
-    error.niceError.info.push(`Did you mean ${suggestions[0]}?`);
+    error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${
+      suggestions[0]
+    }?`;
   } else if (suggestions.length === 2) {
-    error.niceError.info.push(
-      `Did you mean ${suggestions[0]} or ${suggestions[1]}?`,
-    );
+    error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${
+      suggestions[0]
+    } or ${suggestions[1]}?`;
   } else {
     suggestions[suggestions.length - 1] = `or ${
       suggestions[suggestions.length - 1]
     }`;
-    error.niceError.info.push(`Did you mean ${suggestions.join(", ")}?`);
+    error.niceError.info["did-you-mean-${keyOrValue}"] = `Did you mean ${
+      suggestions.join(", ")
+    }?`;
   }
 
   return error;

@@ -24,7 +24,9 @@ import * as colors from "../external/colors.ts";
 
 import { getSchemaDefinition, Schema } from "./schema.ts";
 
-import { ErrorObject, stagedValidator } from "./staged-validator.ts";
+import { stagedValidator } from "./staged-validator.ts";
+
+import { ErrorObject, getBadKey } from "./ajv-error.ts";
 
 import { navigateSchemaBySchemaPath } from "./schema-navigation.ts";
 
@@ -211,7 +213,7 @@ function localizeAndPruneErrors(
   source: MappedString,
   schema: Schema,
 ) {
-  const result: LocalizedError[] = [];
+  let result: LocalizedError[] = [];
 
   const locF = mappedIndexToRowCol(source);
 
@@ -240,9 +242,20 @@ function localizeAndPruneErrors(
   // We can't escape this error report because we need "allErrors" to be reported
   // to create good lints.
 
+  const expandedPath = (ajvError: ErrorObject): string => {
+    const badPath = getBadKey(ajvError);
+    if (badPath) {
+      return ajvError.instancePath + "/" + badPath;
+    } else {
+      return ajvError.instancePath;
+    }
+  };
+
+  // we group by on expanded key to avoid hiding invalid property errors
+  // when there are _further_ errors deeper in the instance
   let errorsPerInstanceList = groupBy(
     validationErrors,
-    (error) => error.instancePath,
+    expandedPath,
   );
 
   do {
@@ -301,8 +314,11 @@ function localizeAndPruneErrors(
   } while (true);
 
   for (
-    const { key: instancePath, values: allErrors } of errorsPerInstanceList
+    const { values: allErrors } of errorsPerInstanceList
   ) {
+    // confusingly, we can't use the instance path from the groupBy, because
+    // that potentially includes the "badKey" we used in the groupby
+    const { instancePath } = allErrors[0];
     const path = instancePath.split("/").slice(1);
 
     // now, we keep only the errors with _schemaPaths_ that are the most _general_
@@ -314,9 +330,37 @@ function localizeAndPruneErrors(
       ).length > 0)
     );
 
-    for (const error of errors) {
-      const returnKey = error.keyword === "_custom_invalidProperty";
-      const violatingObject = navigate(path, annotation, returnKey);
+    for (const errorForSchemaLookup of errors) {
+      // FIXME The algorithm for localizing the error here is just broken.
+      // We could fix it by actually doing the right thing, but we're dropping
+      // ajv soon anyway, so we are going to come up with a heuristic that
+      // assigns importance to the errors based on the keyword and
+      // reports only the most important.
+      //
+      // this will certainly do the wrong thing in the presence of complex
+      // schema combinators
+
+      const errorImportance: Record<string, number> = {
+        "propertyNames": -10,
+      };
+
+      const instanceErrors = allErrors.filter(({ schemaPath }) =>
+        schemaPath.startsWith(errorForSchemaLookup.schemaPath)
+      );
+
+      instanceErrors.sort((errorA, errorB) => {
+        return (errorImportance[errorA.keyword] || 0) -
+          (errorImportance[errorB.keyword] || 0);
+      });
+      const error = instanceErrors[0];
+
+      const returnKey = error.keyword === "_custom_invalidProperty" ||
+        error.keyword === "propertyNames";
+
+      const violatingObject = error.keyword === "propertyNames"
+        ? navigate([...path, error.params.propertyName], annotation, returnKey)
+        : navigate(path, annotation, returnKey);
+
       if (violatingObject === undefined) {
         // there was a problem with navigation, so error localization is impossible.
         // signal an error to the console and give up.
@@ -332,10 +376,10 @@ function localizeAndPruneErrors(
         end = locF(violatingObject.end);
       }
 
-      let niceError = {
+      let niceError: TidyverseError = {
         heading: "",
         error: [],
-        info: [],
+        info: {},
         location: { start, end },
       };
 
@@ -412,6 +456,26 @@ function localizeAndPruneErrors(
       });
     }
   }
+
+  // if an object entirely covers another object, drop it.
+  //
+  // this will also drop two errors with the same span.
+  // That's probably ok, but might not be.
+  result = result.filter((outer) => {
+    if (
+      result.some((inner) => {
+        if (inner === outer) {
+          return false;
+        }
+        return (outer.violatingObject.start <= inner.violatingObject.start &&
+          inner.violatingObject.end <= outer.violatingObject.end);
+      })
+    ) {
+      return false;
+    } else {
+      return true;
+    }
+  });
 
   result.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
   return result;
@@ -537,7 +601,7 @@ export class YAMLSchema {
               : end.column);
             contextLines.push(
               " ".repeat(prefixWidth + startColumn) +
-                colors.blue("~".repeat(endColumn - startColumn + 1)),
+                "~".repeat(endColumn - startColumn + 1),
             );
           }
         }

@@ -126,6 +126,13 @@ function validateObject(value: any, schema: Schema) {
       }
     }
   }
+  if (schema.propertyNames) {
+    for (const key of ownProperties) {
+      if (!validate(key, schema.propertyNames)) {
+        return false;
+      }
+    }
+  }
   for (const reqKey of schema.required || []) {
     if (value[reqKey] === undefined) {
       return false;
@@ -171,6 +178,6 @@ export function validate(value: any, schema: Schema) {
   if (validators[schemaType(schema)]) {
     return validators[schemaType(schema)](value, schema);
   } else {
-    throw new Error(`Don't know how to validate ${schema.type}`);
+    throw new Error(`Don't know how to validate type ${schema.type}`);
   }
 }

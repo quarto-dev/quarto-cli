@@ -62,7 +62,7 @@ export interface ErrorLocation {
 export interface TidyverseError {
   heading: string;
   error: string[];
-  info: string[];
+  info: Record<string, string>; // use tag for infos to only display one error of each tag
   fileName?: string;
   location?: ErrorLocation;
   sourceContext?: string;
@@ -80,15 +80,14 @@ export function tidyverseFormatError(msg: TidyverseError): string {
     heading,
     msg.sourceContext,
     ...error.map(tidyverseError),
-    ...info.map(tidyverseInfo),
+    ...Object.values(info).map(tidyverseInfo),
+    "",
   ];
   return strings.join("\n");
 }
 
 export function quotedStringColor(msg: string) {
-  // return colors.rgb24(msg, 0xff7f0e); // d3.schemeCategory10[1]
-  // return colors.rgb24(msg, 0xbcbd22); // d3.schemeCategory10[8]
-  return msg;
+  return colors.blue(msg);
 }
 
 export function addFileInfo(msg: TidyverseError, src: MappedString) {
@@ -102,7 +101,8 @@ export function addInstancePathInfo(msg: TidyverseError, instancePath: string) {
     const niceInstancePath = instancePath.trim().slice(1).split("/").map((s) =>
       colors.blue(s)
     ).join(":");
-    msg.info.push(`The error happened in location ${niceInstancePath}.`);
+    msg.info["instance-path-location"] =
+      `The error happened in location ${niceInstancePath}.`;
   }
 }
 

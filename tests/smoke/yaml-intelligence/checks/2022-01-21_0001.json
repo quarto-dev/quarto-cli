@@ -23,7 +23,7 @@
 	    "end.row": 3,
 	    "start.column": 2,
 	    "start.row": 3,
-	    "text": "Key \u001b[34mhtml\u001b[39m has empty value but it must instead be exactly one of: an object, 'default'",
+	    "text": "Key \u001b[34mhtml\u001b[39m has empty value but it must instead be an object",
 	    "type": "error"
 	}
     ]

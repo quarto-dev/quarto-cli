@@ -48,31 +48,25 @@ function checkForEqualsInChunk(
   const newError: TidyverseError = {
     heading,
     error: errorMsg,
-    info: [],
+    info: {},
   };
   addFileInfo(newError, error.source);
   addInstancePathInfo(newError, error.ajvError.instancePath);
 
   // deno-lint-ignore no-cond-assign
   if (m = badObject.match(/= *TRUE/i)) {
-    newError.info.push(
-      `Try using ${quotedStringColor(": true")} instead of ${
-        quotedStringColor(m[0])
-      }.`,
-    );
+    newError.info["suggestion-fix"] = `Try using ${
+      quotedStringColor(": true")
+    } instead of ${quotedStringColor(m[0])}.`;
     // deno-lint-ignore no-cond-assign
   } else if (m = badObject.match(/= *FALSE/i)) {
-    newError.info.push(
-      `Try using ${quotedStringColor(": false")} instead of ${
-        quotedStringColor(m[0])
-      }.`,
-    );
+    newError.info["suggestion-fix"] = `Try using ${
+      quotedStringColor(": false")
+    } instead of ${quotedStringColor(m[0])}.`;
   } else if (badObject.match("=")) {
-    newError.info.push(
-      `Try using ${quotedStringColor(":")} instead of ${
-        quotedStringColor("=")
-      }.`,
-    );
+    newError.info["suggestion-fix"] = `Try using ${
+      quotedStringColor(":")
+    } instead of ${quotedStringColor("=")}.`;
   } else {
     // it didn't match any, so don't change the error.
     return error;

@@ -16,7 +16,7 @@ export function normalizeNewlines(text: string) {
   return lines(text).join("\n");
 }
 
-// NB we can't use actual matchAll here because we need to support old
+// NB we can't use JS matchAll or replaceAll here because we need to support old
 // Chromium in the IDE
 //
 // NB this mutates the regexp.
@@ -149,4 +149,140 @@ export function editDistance(w1: string, w2: string): number {
   }
 
   return v[(w1.length + 1) * (w2.length + 1) - 1];
+}
+
+// we have to allow trailing underscores in the regexes below. They're
+// used by Pandoc to pass fields to downstream processors external
+// to Pandoc.
+const kebabCase = "^[a-z0-9]+[a-z0-9]*(-[a-z0-9]+)*_?$";
+const snakeCase = "^[a-z0-9]+[a-z0-9]*(_[a-z0-9]+)*_?$";
+const camelCase = "^[a-z0-9]+[a-z0-9]*([A-Z][a-z0-9]+)*_?$";
+
+export type CaseConvention =
+  | "camelCase"
+  | "capitalizationCase"
+  | "underscore_case"
+  | "snake_case"
+  | "dash-case"
+  | "kebab-case";
+
+export function detectCaseConvention(
+  key: string,
+): CaseConvention | undefined {
+  if (key.toLocaleLowerCase() !== key) {
+    return "capitalizationCase";
+  }
+  if (key.indexOf("_") !== -1) {
+    return "underscore_case";
+  }
+  if (key.indexOf("-") !== -1) {
+    return "dash-case";
+  }
+  return undefined;
+}
+
+export function resolveCaseConventionRegex(
+  keys: string[],
+  conventions?: CaseConvention[],
+): {
+  pattern?: string;
+  list: string[];
+} {
+  const regexMap: Record<CaseConvention, string> = {
+    "camelCase": camelCase,
+    "capitalizationCase": camelCase,
+    "underscore_case": snakeCase,
+    "snake_case": snakeCase,
+    "dash-case": kebabCase,
+    "kebab-case": kebabCase,
+  };
+
+  if (conventions !== undefined) {
+    if (conventions.length === 0) {
+      throw new Error(
+        "Internal Error: resolveCaseConventionRegex requires nonempty `conventions`",
+      );
+    }
+    // conventions were specified, we use them
+    return {
+      pattern: conventions.map((c) => `(${c})`).join("|"),
+      list: conventions,
+    };
+  }
+
+  // no conventions were specified, we sniff all keys to disallow near-misses
+  const disallowedNearMisses: string[] = [];
+  const foundConventions: Set<CaseConvention> = new Set();
+  for (const key of keys) {
+    let found = detectCaseConvention(key);
+    if (found) {
+      foundConventions.add(found);
+    }
+    switch (found) {
+      case "capitalizationCase":
+        disallowedNearMisses.push(toUnderscoreCase(key), toDashCase(key));
+        break;
+      case "dash-case":
+        disallowedNearMisses.push(
+          toUnderscoreCase(key),
+          toCapitalizationCase(key),
+        );
+        break;
+      case "underscore_case":
+        disallowedNearMisses.push(
+          toDashCase(key),
+          toCapitalizationCase(key),
+        );
+        break;
+    }
+  }
+
+  if (foundConventions.size === 0) {
+    // if no evidence of any keys was found, return undefined so
+    // that no required names regex is set.
+    return {
+      pattern: undefined,
+      list: [],
+    };
+  }
+
+  return {
+    pattern: `^(?!(${disallowedNearMisses.join("|")}))`,
+    list: Array.from(foundConventions),
+  };
+}
+
+export function toDashCase(str: string): string {
+  return toUnderscoreCase(str).replace(/_/g, "-");
+}
+
+export function toUnderscoreCase(str: string): string {
+  return str.replace(
+    /([A-Z]+)/g,
+    (_match: string, p1: string) => `-${p1}`,
+  ).replace(/-/g, "_").split("_").filter((x) => x.length).join("_")
+    .toLocaleLowerCase();
+}
+
+export function toCapitalizationCase(str: string): string {
+  return toUnderscoreCase(str).replace(
+    /_(.)/g,
+    (_match: string, p1: string) => p1.toLocaleUpperCase(),
+  );
+}
+
+export function normalizeCaseConvention(str: string): CaseConvention {
+  const map: Record<string, CaseConvention> = {
+    "capitalizationCase": "capitalizationCase",
+    "camelCase": "capitalizationCase",
+    "underscore_case": "underscore_case",
+    "snake_case": "underscore_case",
+    "dash-case": "dash-case",
+    "kebab-case": "dash-case",
+  };
+  const result = map[str];
+  if (result === undefined) {
+    throw new Error(`Internal Error: ${str} is not a valid case convention`);
+  }
+  return result;
 }
