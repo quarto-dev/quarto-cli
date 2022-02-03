@@ -326,6 +326,14 @@ function hydrateListing(
     ...listing,
   });
 
+  // Apply a default sort if the title field is present
+  const sort: ListingSort[] | undefined = hydratedFields.includes(kFieldTitle)
+    ? [{ field: "title", direction: "asc" }]
+    : undefined;
+  if (sort && !listingHydrated.sort) {
+    listingHydrated.sort = sort;
+  }
+
   // Forward fields if listed in sort UI or Filter UI
   const sortUi = listingHydrated[kSortUi];
   if (sortUi && Array.isArray(sortUi)) {
