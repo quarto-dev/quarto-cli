@@ -1,6 +1,6 @@
 <!-- -*- mode: gfm -*- -->
 
-## Quarto
+# Quarto
 
 Quarto is an open-source scientific and technical publishing system built on [Pandoc](https://pandoc.org). Quarto documents are authored using [markdown](https://en.wikipedia.org/wiki/Markdown), an easy to write plain text format.
 
@@ -18,7 +18,7 @@ In addition to the core capabilities of Pandoc, Quarto includes:
 
 Learn more about Quarto at <https://quarto.org>.
 
-### Development Version
+## Development Version
 
 To install the development version of the Quarto CLI, clone the quarto-cli repository then run the configure script for your platform (`configure-linux.sh`, `configure-macos.sh`, or `configure-windows.cmd`). For example:
 
@@ -35,6 +35,6 @@ cd quarto-cli
 git pull
 ```
 
-### License
+## License
 
 Quarto is open source software licensed under v2 of the GNU GPL (<https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html>).
