@@ -27,9 +27,30 @@ export async function ensureValidatorModule() {
   }
 
   const path = new URL(validatorModulePath, import.meta.url).href;
-  const _mod = await import(path);
-  _module = _mod.default;
-  return _module;
+  try {
+    const _mod = await import(path);
+    _module = _mod.default;
+    return _module;
+  } catch (e) {
+    // the IDE webworker support doesn't include modules, so we need
+    // to do this the old-fashioned way.
+    const response = await fetch(path.slice(0, -3) + ".cjs");
+    const text = await response.text();
+
+    // self instead of window because we're in a web worker scope here.
+
+    // deno-lint-ignore no-explicit-any
+    (self as any).exports = {};
+
+    // self.eval instead of eval, because https://esbuild.github.io/content-types/#direct-eval
+    // deno-lint-ignore no-explicit-any
+    (self as any).eval(text); // oh yeah we're doing this.
+    // deno-lint-ignore no-explicit-any
+    _module = (self as any).exports.default;
+    // deno-lint-ignore no-explicit-any
+    delete (self as any).exports;
+    return _module;
+  }
 }
 
 // we can't hardcode this because it's different from IDE and CLI

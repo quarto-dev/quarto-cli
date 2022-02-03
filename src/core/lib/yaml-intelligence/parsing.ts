@@ -35,9 +35,9 @@ export async function getTreeSitter(): Promise<any> {
     return _parser;
   }
 
-  // this is imply to appease the type-checker, and should never run
+  // this is to appease the type-checker, and should never run
   // in the CLI.
-  const Parser = ((window as unknown) as WithTreeSitter).TreeSitter;
+  const Parser = ((self as unknown) as WithTreeSitter).TreeSitter;
 
   await Parser.init();
 

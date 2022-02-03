@@ -12,7 +12,7 @@ export async function esbuildCompile(
   input: string,
   workingDir: string,
   args?: string[],
-  format?: "esm" | "iife",
+  format?: "esm" | "cjs" | "iife",
 ): Promise<string | undefined> {
   format = format ?? "esm";
   const fullArgs = [

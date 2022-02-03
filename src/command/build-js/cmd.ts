@@ -66,18 +66,37 @@ async function buildQuartoOJS() {
 }
 
 async function buildYAMLJS() {
+  const webWorkerSrc = await esbuildCompile(
+    "",
+    resourcePath("../core/lib/yaml-intelligence"),
+    ["web-worker.ts"],
+    "iife",
+  );
+  ensureAllowableIDESyntax(webWorkerSrc!, "web-worker.js");
+
+  const standaloneSchemaCJS = await esbuildCompile(
+    "",
+    resourcePath("editor/tools/yaml"),
+    ["standalone-schema-validators.js"],
+    "cjs",
+  );
+  ensureAllowableIDESyntax(standaloneSchemaCJS!, "yaml-intelligence.cjs");
+  Deno.writeTextFileSync(
+    resourcePath("editor/tools/yaml/standalone-schema-validators.cjs"),
+    standaloneSchemaCJS!,
+  );
+
   const intelligenceSrc = await esbuildCompile(
     "",
     resourcePath("../core/lib/yaml-intelligence"),
-    ["yaml-intelligence.ts"],
+    ["ide-main.ts"],
     "esm",
   );
+  ensureAllowableIDESyntax(intelligenceSrc!, "yaml-intelligence.js");
   Deno.writeTextFileSync(
     resourcePath("editor/tools/yaml/yaml-intelligence.js"),
     intelligenceSrc!,
   );
-
-  ensureAllowableIDESyntax(intelligenceSrc!, "yaml-intelligence.js");
 
   const finalBuild = await esbuildCompile(
     "",
@@ -90,12 +109,16 @@ async function buildYAMLJS() {
   const treeSitter = Deno.readTextFileSync(
     resourcePath("editor/tools/yaml/tree-sitter.js"),
   );
-
   ensureAllowableIDESyntax(treeSitter, "tree-sitter.js");
 
   Deno.writeTextFileSync(
     resourcePath("editor/tools/yaml/yaml.js"),
-    [treeSitter, finalBuild!].join(""),
+    [finalBuild!].join(""),
+  );
+
+  Deno.writeTextFileSync(
+    resourcePath("editor/tools/yaml/web-worker.js"),
+    [treeSitter, webWorkerSrc!].join(""),
   );
 }
 
@@ -103,8 +126,9 @@ export async function buildAssets() {
   const temp = createTempContext();
   try {
     // this has to come first because buildYAMLJS depends on it.
+    await buildSchemaFile(temp);
+
     await Promise.all([
-      buildSchemaFile(temp),
       buildQuartoOJS(),
       buildYAMLJS(),
     ]);

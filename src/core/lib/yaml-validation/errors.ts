@@ -470,7 +470,6 @@ function checkForNearbyCorrection(
   let bestDistance = Infinity;
   for (const correction of corrections) {
     const d = editDistance(correction, errVal);
-    console.log(d, correction, errVal);
     if (d < bestDistance) {
       bestCorrection = [correction];
       bestDistance = d;

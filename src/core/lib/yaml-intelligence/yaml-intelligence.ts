@@ -1001,7 +1001,9 @@ export async function getAutomation(
 }
 
 const initializer = async () => {
-  setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
+  setValidatorModulePath(
+    getLocalPath("standalone-schema-validators.js"),
+  );
 
   // for now we force the IDE to load the module ahead of time to not get
   // a pause at unpredictable times.
@@ -1019,46 +1021,34 @@ const initializer = async () => {
   }
 };
 
-export const QuartoYamlEditorTools = {
-  // helpers to facilitate repro'ing in the browser
-  getAutomation: function (
-    params: { context: YamlIntelligenceContext; kind: AutomationKind },
-  ) {
-    const {
-      context,
-      kind,
-    } = params;
-    return getAutomation(kind, context);
-  },
-  exportSmokeTest,
+export async function getCompletions(
+  context: YamlIntelligenceContext,
+  path: string,
+) {
+  try {
+    setMainPath(path);
+    setInitializer(initializer);
+    await initState();
+    return await getAutomation("completions", context);
+  } catch (e) {
+    console.log("Error found during autocomplete", e);
+    exportSmokeTest("completions", context);
+    return null;
+  }
+}
 
-  // entry points required by the IDE
-  getCompletions: async function (
-    context: YamlIntelligenceContext,
-    path: string,
-  ) {
-    try {
-      setMainPath(path);
-      setInitializer(initializer);
-      await initState();
-      return await getAutomation("completions", context);
-    } catch (e) {
-      console.log("Error found during autocomplete", e);
-      exportSmokeTest("completions", context);
-      return null;
-    }
-  },
-
-  getLint: async function (context: YamlIntelligenceContext, path: string) {
-    try {
-      setMainPath(path);
-      setInitializer(initializer);
-      await initState();
-      return await getAutomation("validation", context);
-    } catch (e) {
-      console.log("Error found during linting", e);
-      exportSmokeTest("validation", context);
-      return null;
-    }
-  },
-};
+export async function getLint(
+  context: YamlIntelligenceContext,
+  path: string,
+) {
+  try {
+    setMainPath(path);
+    setInitializer(initializer);
+    await initState();
+    return await getAutomation("validation", context);
+  } catch (e) {
+    console.log("Error found during linting", e);
+    exportSmokeTest("validation", context);
+    return null;
+  }
+}
