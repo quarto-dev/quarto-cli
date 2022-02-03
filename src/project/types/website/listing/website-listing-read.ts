@@ -250,7 +250,7 @@ function hydrateListing(
   sources: Set<ListingItemSource>,
   options: ListingSharedOptions,
 ): Listing {
-  const columnsForItems = (items: ListingItem[]): string[] => {
+  const fieldsForItems = (items: ListingItem[]): string[] => {
     const unionedItem = items.reduce((prev, current) => {
       return {
         ...prev,
@@ -261,21 +261,29 @@ function hydrateListing(
       return unionedItem[key] !== undefined;
     });
   };
+  const itemFields = fieldsForItems(items);
 
-  const fieldsForTable = (items: ListingItem[]): string[] => {
+  const fieldsForTable = (
+    itemFields: string[],
+  ): string[] => {
     // If the items have come from metadata, we should just show
     // all the columns in the table. Otherwise, we should use the
     // document default columns
     if (sources.has(ListingItemSource.metadata)) {
-      return columnsForItems(items);
+      return itemFields;
     } else {
       return kDefaultTableFields;
     }
   };
 
-  const fields = listing.type === ListingType.Table
-    ? fieldsForTable(items)
+  const suggestedFields = listing.type === ListingType.Table
+    ? fieldsForTable(itemFields)
     : defaultFields(listing.type);
+
+  // Don't include fields that the items don't have
+  const fields = suggestedFields.filter((field) => {
+    return itemFields.includes(field);
+  });
 
   // Sorting and linking are only available in built in templates
   // right now, so don't expose these fields defaults in custom
