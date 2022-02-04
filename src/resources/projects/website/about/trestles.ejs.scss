@@ -47,6 +47,9 @@ div.trestles {
     .about-links {
       display: flex;
       column-gap: 20px;
+      @include media-breakpoint-down(lg) {
+        padding-bottom: 1.5em;
+      }
     }
   
     .about-link:hover {
