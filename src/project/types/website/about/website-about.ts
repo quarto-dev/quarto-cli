@@ -19,7 +19,7 @@ import { renderEjs } from "../../../../core/ejs.ts";
 import { dirAndStem } from "../../../../core/path.ts";
 import { quartoConfig } from "../../../../core/quarto.ts";
 import { projectTypeResourcePath } from "../../../../core/resources.ts";
-import { sassLayerStr } from "../../../../core/sass.ts";
+import { sassLayerFile, sassLayerStr } from "../../../../core/sass.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
 import { NavItem } from "../../../project-config.ts";
@@ -80,25 +80,33 @@ export async function aboutHtmlDependencies(
 ) {
   // Compute the about page information
   const aboutPage = await readAbout(source, project, format);
-  if (!aboutPage) {
-    return undefined;
-  }
 
-  // About pages do not allow TOCs
-  format.pandoc[kToc] = false;
+  if (aboutPage) {
+    // About pages do not allow TOCs
+    format.pandoc[kToc] = false;
+  }
 
   // Compute any scss that should be included
-  const sassBundles = [];
-  const templateBundle = templateScss(aboutPage);
-  if (templateBundle) {
-    sassBundles.push(templateBundle);
-  }
+  const scssPath = join(
+    projectTypeResourcePath("website"),
+    `about/about.scss`,
+  );
+  const aboutLayer = sassLayerFile(scssPath);
+  const sassBundles = [
+    {
+      dependency: kBootstrapDependencyName,
+      key: scssPath,
+      quarto: {
+        name: `quarto-about.css`,
+        ...aboutLayer,
+      },
+    },
+  ];
 
   return {
-    //    [kIncludeInHeader]: [scriptFileForScripts(scripts, temp)],
-    [kHtmlPostprocessors]: aboutPagePostProcessor(aboutPage),
-    //    [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
-    //    [kDependencies]: htmlDependencies,
+    [kHtmlPostprocessors]: aboutPage
+      ? aboutPagePostProcessor(aboutPage)
+      : undefined,
     [kSassBundles]: sassBundles,
   };
 }
@@ -227,33 +235,6 @@ function templatePath(
     ];
   } else {
     return [join(dirname(source), template), true];
-  }
-}
-
-function templateScss(aboutPage: AboutPage) {
-  const [dir, stem] = dirAndStem(aboutPage.template);
-  const scssFileName = `${stem}.scss`;
-
-  const scssPath = join(dir, scssFileName);
-  if (existsSync(scssPath)) {
-    const renderedScss = renderEjs(
-      scssPath,
-      { options: aboutPage.options },
-      true,
-      !aboutPage.custom && !quartoConfig.isDebug(),
-    );
-
-    const layer = sassLayerStr(renderedScss, scssPath);
-    return {
-      dependency: kBootstrapDependencyName,
-      key: scssPath,
-      quarto: {
-        name: `quarto-about-${stem}.css`,
-        ...layer,
-      },
-    };
-  } else {
-    return undefined;
   }
 }
 

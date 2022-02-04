@@ -217,9 +217,10 @@ export const websiteProjectType: ProjectType = {
           extras,
         );
         if (aboutDependencies) {
-          extras.html[kHtmlPostprocessors]?.push(
-            aboutDependencies[kHtmlPostprocessors],
-          );
+          const aboutPostProcessor = aboutDependencies[kHtmlPostprocessors];
+          if (aboutPostProcessor) {
+            extras.html[kHtmlPostprocessors]?.push(aboutPostProcessor);
+          }
 
           extras.html[kSassBundles] = extras.html[kSassBundles] || [];
           extras.html[kSassBundles]!.push(

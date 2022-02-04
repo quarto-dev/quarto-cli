@@ -1,0 +1,370 @@
+/*-- scss:rules --*/
+
+// Jolla
+
+div.jolla {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10%;
+
+  .about-image {
+    height: 10em;
+    width: 10em;
+    object-fit: cover;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1.5em;
+    border-radius: 50%;
+  }
+
+  h2 {
+    border-bottom: none;
+  }
+
+  .about-sep {
+    width: 60%;
+  }
+
+  main {
+    text-align: center;
+  }
+
+  .about-links {
+    display: flex;
+
+    @include media-breakpoint-up(md) {
+      flex-direction: row;
+      column-gap: 20px;
+    }
+    @include media-breakpoint-down(md) {
+      flex-direction: column;
+      row-gap: 1em;
+      width: 100%;
+    }
+  }
+
+  .about-link:hover {
+    color: $link-color;
+  }
+
+  .about-link {
+    @include media-breakpoint-up(md) {
+      font-size: 0.8em;
+      padding: 0.25em 0.5em;
+      border-radius: 4px;
+    }
+
+    @include media-breakpoint-down(md) {
+      font-size: 1.1em;
+      padding: 0.5em 0.5em;
+      text-align: center;
+      border-radius: 6px;
+    }
+
+    color: lighten($body-color, 20%);
+    text-decoration: none;
+    :hover {
+      color: $link-color;
+    }
+
+    border: solid 1px;
+
+    i.bi {
+      margin-right: 0.15em;
+    }
+  }
+}
+
+// Solana
+div.solana {
+  display: flex !important;
+  flex-direction: column;
+  padding-top: 3em !important;
+
+  .entity {
+    display: flex !important;
+
+    @include media-breakpoint-up(lg) {
+      flex-direction: row;
+    }
+    @include media-breakpoint-down(lg) {
+      flex-direction: column-reverse;
+      align-items: center;
+      text-align: center;
+    }
+
+    align-items: start;
+    justify-content: space-between;
+
+    .entity-contents {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .about-image {
+      height: 15em;
+      object-fit: cover;
+      border-radius: 8px;
+      @include media-breakpoint-down(lg) {
+        margin-bottom: 1.5em;
+      }
+    }
+
+    .about-sep {
+      margin-bottom: 1.5em;
+      margin-top: 0;
+    }
+
+    .about-link:hover {
+      color: $link-color;
+    }
+
+    .about-links {
+      display: flex;
+      column-gap: 20px;
+    }
+
+    .about-link {
+      font-size: 1em;
+      color: theme-fade($body-color, $body-bg, 10%);
+      text-decoration: none;
+      padding: 0.25em 0.75em;
+      border: solid 1px;
+      border-radius: 4px;
+      :hover {
+        color: $link-color;
+      }
+      i.bi {
+        margin-right: 0.25em;
+      }
+    }
+  }
+
+  .contents {
+    flex-basis: 0;
+    flex-grow: 1;
+    @include media-breakpoint-up(lg) {
+      margin-top: -3em;
+    }
+    @include media-breakpoint-down(lg) {
+      margin-top: 1.5em;
+    }
+    main.content {
+      margin-top: 0;
+    }
+    h2 {
+      border-bottom: none;
+    }
+  }
+}
+
+// Trestles
+div.trestles {
+  display: flex !important;
+  flex-direction: row;
+  padding-top: 3em !important;
+
+  @include media-breakpoint-down(lg) {
+    flex-direction: column;
+    padding-top: 0em !important;
+  }
+
+  .entity {
+    @include media-breakpoint-up(lg) {
+      max-width: 42%;
+      flex: 0 0 42%;
+    }
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    .about-image {
+      width: 15em;
+      object-fit: cover;
+      margin-bottom: 1.5em;
+      border-radius: 8px;
+
+      @include media-breakpoint-up(lg) {
+        margin-top: 2rem;
+      }
+      @include media-breakpoint-down(lg) {
+        margin-top: 1em;
+      }
+    }
+
+    .about-sep {
+      width: 60%;
+      margin-bottom: 1.5em;
+    }
+
+    .about-links {
+      display: flex;
+      column-gap: 20px;
+      @include media-breakpoint-down(lg) {
+        padding-bottom: 1.5em;
+      }
+    }
+
+    .about-link:hover {
+      color: $link-color;
+    }
+
+    .about-link {
+      font-size: 0.8em;
+      color: lighten($body-color, 20%);
+      text-decoration: none;
+      :hover {
+        color: $link-color;
+      }
+      padding: 0.25em 0.5em;
+      border: solid 1px;
+      border-radius: 4px;
+    }
+  }
+
+  .contents {
+    flex-basis: 0;
+    flex-grow: 1;
+
+    h2 {
+      border-bottom: none;
+    }
+
+    @include media-breakpoint-up(lg) {
+      border-left: solid 1px $border-color;
+      padding-left: 1.5em;
+    }
+
+    main.content {
+      margin-top: 0;
+    }
+  }
+}
+
+// Marquee
+div.marquee {
+  margin-top: 0;
+  padding-top: 0 !important;
+
+  .about-image {
+    width: 100%;
+    max-height: 550px;
+
+    margin-bottom: 1.5em;
+    object-fit: cover;
+  }
+
+  h2 {
+    border-bottom: none;
+  }
+
+  .about-footer {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .about-sep {
+    width: 60%;
+  }
+
+  .about-links {
+    display: flex;
+    column-gap: 20px;
+  }
+
+  .about-link:hover {
+    color: $link-color;
+  }
+
+  .about-link {
+    font-size: 0.8em;
+    color: lighten($body-color, 20%);
+    text-decoration: none;
+    :hover {
+      color: $link-color;
+    }
+    padding: 0.25em 0.5em;
+    i.bi {
+      margin-right: 0.15em;
+    }
+  }
+}
+
+// Broadside
+div.broadside {
+  display: flex;
+  flex-direction: column;
+
+  .about-main {
+    display: flex !important;
+    padding-top: 0 !important;
+    @include media-breakpoint-up(lg) {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    @include media-breakpoint-down(lg) {
+      flex-direction: column;
+    }
+
+    .entity {
+      @include media-breakpoint-down(lg) {
+        flex-shrink: 0;
+        width: 100%;
+        height: 450px;
+        margin-bottom: 1.5em;
+        background-size: cover;
+        background-repeat: no-repeat;
+      }
+      @include media-breakpoint-up(lg) {
+        flex: 0 10 50%;
+        margin-right: 1.5em;
+        width: 100%;
+        height: 100%;
+        background-size: 100%;
+        background-repeat: no-repeat;
+      }
+    }
+
+    .contents {
+      padding-top: 14px;
+      flex: 0 0 50%;
+    }
+  }
+
+  h2 {
+    border-bottom: none;
+  }
+
+  .about-links {
+    display: flex;
+    column-gap: 20px;
+    justify-content: center;
+  }
+
+  .about-sep {
+    margin-top: 1.5em;
+    width: 60%;
+    align-self: center;
+  }
+
+  .about-link:hover {
+    color: $link-color;
+  }
+
+  .about-link {
+    font-size: 0.8em;
+    color: lighten($body-color, 20%);
+    text-decoration: none;
+    :hover {
+      color: $link-color;
+    }
+    padding: 0.25em 0.5em;
+    i.bi {
+      margin-right: 0.15em;
+    }
+  }
+}
