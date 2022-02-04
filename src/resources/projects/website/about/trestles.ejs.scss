@@ -12,13 +12,13 @@ div.trestles {
   flex-direction: row;
   padding-top: 3em !important;
 
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(lg) {
     flex-direction: column;
     padding-top: 0em !important;
   }
   
   .entity {
-    @include media-breakpoint-up(md) {
+    @include media-breakpoint-up(lg) {
       max-width: 42%;
       flex: 0 0 42%;
     }
@@ -30,21 +30,20 @@ div.trestles {
     .about-image {
       width: 15em;
       object-fit: cover;
-      margin-left: auto;
-      margin-right: auto;
       margin-bottom: 1.5em;
       @include media-breakpoint-up(lg) {
         margin-top: 2rem;
       }
-      @include media-breakpoint-down(md) {
+      @include media-breakpoint-down(lg) {
         margin-top: 1em;
       }
     }
-  
+
     .about-sep {
       width: 60%;
       margin-bottom: 1.5em;
     }  
+
     .about-links {
       display: flex;
       column-gap: 20px;
@@ -71,7 +70,11 @@ div.trestles {
     flex-basis: 0;
     flex-grow: 1;
 
-    @include media-breakpoint-up(md) {
+    h2 {
+      border-bottom: none;
+     }
+  
+    @include media-breakpoint-up(lg) {
       border-left: solid 1px $border-color;
       padding-left: 1.5em;
     }

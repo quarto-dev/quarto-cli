@@ -29,10 +29,11 @@ div.solana {
     }
   
     .about-sep {
-      width: 60%;
       margin-bottom: 1.5em;
       margin-top: 0;
     }  
+
+   
     .about-links {
       display: flex;
       column-gap: 20px;
@@ -61,6 +62,10 @@ div.solana {
     main.content {
       margin-top: 0;
     }
+    h2 {
+      border-bottom: none;
+    }
+
   }
 
 }
