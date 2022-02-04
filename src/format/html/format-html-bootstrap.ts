@@ -73,7 +73,7 @@ export function formatDarkMode(format: Format): boolean | undefined {
   return undefined;
 }
 
-function darkModeDefault(metadata?: Metadata): boolean | undefined {
+export function darkModeDefault(metadata?: Metadata): boolean | undefined {
   if (metadata !== undefined) {
     const theme = metadata[kTheme];
     if (theme && typeof (theme) === "object") {
