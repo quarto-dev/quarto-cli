@@ -1029,7 +1029,10 @@ function mdFromCodeCell(
   }
 
   // css classes
-  if (cell.options[kCellClasses] || cell.options[kCellPanel]) {
+  if (
+    cell.options[kCellClasses] || cell.options[kCellPanel] ||
+    cell.options[kCellColumn]
+  ) {
     const cellClasses = cell.options[kCellClasses]! || new Array<string>();
     const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
     if (typeof cell.options[kCellPanel] === "string") {
