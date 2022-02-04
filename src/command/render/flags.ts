@@ -215,6 +215,11 @@ export function parseRenderFlags(args: string[]) {
         flags.executeDebug = true;
         break;
 
+      case "--use-freezer":
+        arg = argsStack.shift();
+        flags.useFreezer = true;
+        break;
+
       case "--cache":
         arg = argsStack.shift();
         flags.executeCache = true;
@@ -367,6 +372,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--no-execute-daemon", false);
   removeArgs.set("--execute-daemon-restart", false);
   removeArgs.set("--execute-debug", false);
+  removeArgs.set("--use-freezer", false);
   removeArgs.set("--cache", false);
   removeArgs.set("--no-cache", false);
   removeArgs.set("--cache-refresh", false);

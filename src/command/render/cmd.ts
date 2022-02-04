@@ -65,6 +65,10 @@ export const renderCommand = new Command()
     "Show debug output for Jupyter kernel.",
   )
   .option(
+    "--use-freezer",
+    "Force use of frozen computations for an incremental file render.",
+  )
+  .option(
     "--cache",
     "Cache execution output (--no-cache to prevent cache).",
   )
@@ -176,6 +180,7 @@ export const renderCommand = new Command()
             temp,
             flags,
             pandocArgs: args,
+            useFreezer: flags.useFreezer === true,
           });
 
           // check for error

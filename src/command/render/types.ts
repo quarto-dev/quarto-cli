@@ -170,6 +170,7 @@ export interface RenderFlags extends PandocFlags {
   executeDaemon?: number;
   executeDaemonRestart?: boolean;
   executeDebug?: boolean;
+  useFreezer?: boolean;
   metadata?: { [key: string]: unknown };
   pandocMetadata?: { [key: string]: unknown };
   params?: { [key: string]: unknown };
