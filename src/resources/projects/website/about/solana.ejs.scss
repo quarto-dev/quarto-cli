@@ -14,7 +14,16 @@ div.solana {
 
   .entity {
     display: flex !important;
-    flex-direction: row;
+    
+    @include media-breakpoint-up(lg) {
+      flex-direction: row;
+    }
+    @include media-breakpoint-down(lg) {
+      flex-direction: column-reverse;
+      align-items: center;
+      text-align: center;
+    }
+
     align-items: start;
     justify-content: space-between;
 
@@ -30,21 +39,24 @@ div.solana {
         width: 15em;
         border-radius: 50%;
       <% } %>
+      @include media-breakpoint-down(lg) {
+        margin-bottom: 1.5em;
+      }
     }
   
     .about-sep {
       margin-bottom: 1.5em;
       margin-top: 0;
     }  
-
+   
+    .about-link:hover {
+      color: $link-color;
+    }
+  
    
     .about-links {
       display: flex;
       column-gap: 20px;
-    }
-  
-    .about-link:hover {
-      color: $link-color;
     }
   
     .about-link {
@@ -66,7 +78,12 @@ div.solana {
   .contents {
     flex-basis: 0;
     flex-grow: 1;
+    @include media-breakpoint-up(lg) {
     margin-top: -3em;
+    }
+    @include media-breakpoint-down(lg) {
+      margin-top: 1.5em;
+    }
     main.content {
       margin-top: 0;
     }
