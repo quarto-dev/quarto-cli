@@ -21,7 +21,7 @@ import { renderEjs } from "../../../../core/ejs.ts";
 import { dirAndStem } from "../../../../core/path.ts";
 import { quartoConfig } from "../../../../core/quarto.ts";
 import { projectTypeResourcePath } from "../../../../core/resources.ts";
-import { sassLayerFile } from "../../../../core/sass.ts";
+import { sassLayerFile, sassLayerStr } from "../../../../core/sass.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
 import { NavItem } from "../../../project-config.ts";
@@ -176,13 +176,18 @@ function templatePath(
 
 function templateScss(aboutPage: AboutPage) {
   const [dir, stem] = dirAndStem(aboutPage.template);
-  const scssFileName = stem.endsWith(".ejs")
-    ? `${stem.slice(0, stem.length - 4)}.scss`
-    : `${stem}.scss`;
+  const scssFileName = `${stem}.scss`;
 
   const scssPath = join(dir, scssFileName);
   if (existsSync(scssPath)) {
-    const layer = sassLayerFile(scssPath);
+    const renderedScss = renderEjs(
+      scssPath,
+      { options: aboutPage.options },
+      true,
+      !aboutPage.custom && !quartoConfig.isDebug(),
+    );
+
+    const layer = sassLayerStr(renderedScss, scssPath);
     return {
       dependency: kBootstrapDependencyName,
       key: scssPath,

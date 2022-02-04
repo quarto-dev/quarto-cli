@@ -201,10 +201,14 @@ export function sassLayerFile(theme: string): SassLayer {
   // It is not a built in theme, so read the theme file and parse it.
   const rawContents = Deno.readTextFileSync(theme);
 
+  return sassLayerStr(rawContents, theme);
+}
+
+export function sassLayerStr(rawContents: string, errorHint?: string) {
   // Verify that the scss file has required boundaries
   if (!kLayerBoundaryTest.test(rawContents)) {
     throw new Error(
-      `The file ${theme} doesn't contain at least one layer boundary (/*-- scss:defaults --*/, /*-- scss:rules --*/, /*-- scss:mixins --*/ or /*-- scss:functions --*/)`,
+      `The file ${errorHint} doesn't contain at least one layer boundary (/*-- scss:defaults --*/, /*-- scss:rules --*/, /*-- scss:mixins --*/ or /*-- scss:functions --*/)`,
     );
   }
 

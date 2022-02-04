@@ -1,3 +1,9 @@
+<% if ( options.background) { %>
+/*-- scss:variables --*/
+$body-bg: <%- options.background%> !default;
+$body-color: theme-contrast($body-bg, $body-bg) !default;
+<% } %>
+
 /*-- scss:rules --*/
 
 div.jolla {
