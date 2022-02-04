@@ -9,6 +9,8 @@ import { assert } from "testing/asserts.ts";
 import { Metadata } from "../../src/config/types.ts";
 import { readYamlFromString } from "../../src/core/yaml.ts";
 
+import { readAnnotatedYamlFromString } from "../../src/core/schema/annotated-yaml.ts";
+
 const yamlStr = `
 project:
   type: website
@@ -31,4 +33,25 @@ unitTest("yaml", async () => {
       ((yaml.other as Metadata).array as string[]).length === 2,
     "Other array key not read properly",
   );
+});
+
+const circularYml = "foo: &foo\n  bar: *foo";
+
+unitTest("yaml-circular-should-fail", async () => {
+  try {
+    readYamlFromString(circularYml);
+    assert(false, "circular structure should have raised");
+  } catch (e) {
+  }
+  try {
+    readAnnotatedYamlFromString(circularYml);
+    assert(false, "circular structure should have raised");
+  } catch (e) {
+  }
+});
+
+const sharedYml = "foo:\n  bar: &bar\n    baz: bah\n  baz: *bar";
+unitTest("yaml-shared-should-pass", async () => {
+  readYamlFromString(sharedYml);
+  readYamlFromString(circularYml);
 });

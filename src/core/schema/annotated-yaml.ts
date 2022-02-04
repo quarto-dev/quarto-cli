@@ -90,5 +90,7 @@ export function readAnnotatedYamlFromString(yml: string) {
       `Internal Error - expected a single result, got ${results.length} instead`,
     );
   }
+
+  JSON.stringify(results[0]); // this will throw on circular structures
   return results[0];
 }
