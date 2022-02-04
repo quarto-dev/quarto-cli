@@ -26,6 +26,10 @@ div.solana {
     .about-image {
       height: 15em;
       object-fit: cover;
+      <% if (options.rounded) { %> 
+        width: 15em;
+        border-radius: 50%;
+      <% } %>
     }
   
     .about-sep {
@@ -44,21 +48,25 @@ div.solana {
     }
   
     .about-link {
-      font-size: 0.8em;
-      color: lighten($body-color, 20%);
+      font-size: 1em;
+      color: theme-fade($body-color, $body-bg, 10%);
       text-decoration: none;
+      padding: 0.25em 0.75em;
+      border: solid 1px;
+      border-radius: 4px;
       :hover {
         color: $link-color;
       }
-      padding: 0.25em 0.5em;
-      border: solid 1px;
-      border-radius: 4px;
+      i.bi {
+        margin-right: .25em;
+      }
     }
   }
 
   .contents {
     flex-basis: 0;
     flex-grow: 1;
+    margin-top: -3em;
     main.content {
       margin-top: 0;
     }
