@@ -79,12 +79,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   const getColorSchemeSentinel = () => {
     if (!isFileUrl()) {
-      return window.localStorage.getItem("quarto-color-scheme");
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
     } else {
       return localAlternateSentinel;
     }
   }
-  let localAlternateSentinel = null;
+  let localAlternateSentinel = <%= darkModeDefault ? "'alternate'" : "'default'" %>;
   
   // Dark / light mode switch
   window.quartoToggleColorScheme = () => {

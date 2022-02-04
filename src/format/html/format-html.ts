@@ -48,6 +48,7 @@ import { createHtmlFormat } from "./../formats-shared.ts";
 
 import {
   boostrapExtras,
+  darkModeDefault,
   formatDarkMode,
   formatHasBootstrap,
 } from "./format-html-bootstrap.ts";
@@ -222,6 +223,7 @@ export function htmlFormatExtras(
   }
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
+  options.darkModeDefault = darkModeDefault(format.metadata);
   options.linkExternalIcon = format.render[kLinkExternalIcon];
   options.linkExternalNewwindow = format.render[kLinkExternalNewwindow];
   options.linkExternalFilter = format.render[kLinkExternalFilter];

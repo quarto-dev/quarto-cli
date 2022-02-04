@@ -1184,6 +1184,7 @@ $callouts: (
   @include media-breakpoint-down(md) {
     padding-left: 0;
     padding-right: 0;
+    padding-bottom: 0.5em;
   }
 }
 
@@ -1200,6 +1201,7 @@ $callouts: (
 .navbar-collapse .quarto-color-scheme-toggle {
   padding-left: 0.6rem;
   padding-right: 0;
+  margin-top: -6px;
 }
 
 .sidebar-navigation {
