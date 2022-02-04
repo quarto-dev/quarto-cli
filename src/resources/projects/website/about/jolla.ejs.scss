@@ -1,9 +1,5 @@
-<% if ( options.background) { %>
 /*-- scss:variables --*/
-$body-bg: <%- options.background%> !default;
-$body-color: theme-contrast($body-bg, $body-bg) !default;
-$link-color: theme-contrast($primary, $body-bg, "A") !default;
-<% } %>
+<%= options.scssVars() %>
 
 /*-- scss:rules --*/
 
@@ -17,10 +13,15 @@ div.jolla {
     height: 10em;
     width: 10em;
     object-fit: cover;
-    border-radius: 50%;
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 1.5em;
+    <% if (options["image-shape"] === "round") { %> 
+      border-radius: 50%;
+    <% } else if (options["image-shape"] === "rounded") { %>
+      border-radius: 8px;
+    <% } %>
+
   }
 
   h2 {

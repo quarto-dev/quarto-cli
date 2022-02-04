@@ -1,9 +1,5 @@
-<% if ( options.background) { %>
 /*-- scss:variables --*/
-$body-bg: <%- options.background%> !default;
-$body-color: theme-contrast($body-bg, $body-bg) !default;
-$link-color: theme-contrast($primary, $body-bg, "A") !default;
-<% } %>
+<%= options.scssVars() %>
 
 /*-- scss:rules --*/
 
@@ -31,6 +27,13 @@ div.trestles {
       width: 15em;
       object-fit: cover;
       margin-bottom: 1.5em;
+      <% if (options["image-shape"] === "round") { %> 
+        height: 15em;
+        border-radius: 50%;
+      <% } else if (options["image-shape"] === "rounded") { %>
+        border-radius: 8px;
+      <% } %>
+
       @include media-breakpoint-up(lg) {
         margin-top: 2rem;
       }

@@ -31,14 +31,25 @@ const kAbout = "about";
 const kTemplate = "template";
 const kLinks = "links";
 
+const kImageShape = "image-shape";
+const kImageShapeSquare = "square";
+const kImageShapeRound = "round";
+const kImageShapeRounded = "rounded";
+
 // TODO: navitems in md pipeline?
 
+const kTemplateJolla = "jolla";
+const kTemplateTrestles = "trestles";
+const kTemplateSolana = "solana";
+const kTemplateMarquee = "marquee";
+const kTemplateBroadside = "broadside";
+
 const kTemplates = [
-  "jolla",
-  "trestles",
-  "solana",
-  "marquee",
-  "broadside",
+  kTemplateJolla,
+  kTemplateTrestles,
+  kTemplateSolana,
+  kTemplateMarquee,
+  kTemplateBroadside,
 ];
 
 type Href = string;
@@ -149,6 +160,50 @@ async function readAbout(
         }
       }
 
+      if (aboutPage.options[kImageShape] === undefined) {
+        if (aboutTemplate === kTemplateJolla) {
+          aboutPage.options[kImageShape] = kImageShapeRound;
+        } else if (aboutTemplate === kTemplateSolana) {
+          aboutPage.options[kImageShape] = kImageShapeRounded;
+        } else if (aboutTemplate === kTemplateTrestles) {
+          aboutPage.options[kImageShape] = kImageShapeRounded;
+        }
+      }
+
+      aboutPage.options.scssVars = () => {
+        // Background color
+        const varLines: string[] = [];
+        const background = aboutPage.options["background"];
+        if (background) {
+          if (background === "navbar") {
+            varLines.push("$body-bg: $navbar-bg;");
+          } else {
+            varLines.push(`$body-bg: ${background};`);
+          }
+        }
+
+        // Text Color
+        const color = aboutPage.options["color"];
+        if (color) {
+          varLines.push(`$body-color: ${color};`);
+        } else if (background) {
+          varLines.push(
+            "$body-color: theme-contrast($body-bg, $body-bg);",
+          );
+        }
+
+        // Link Color
+        const linkColor = aboutPage.options["link-color"];
+        if (linkColor) {
+          varLines.push(`$link-color: ${linkColor};`);
+        } else if (background) {
+          varLines.push(
+            '$link-color: theme-contrast($primary, $body-bg, "A");',
+          );
+        }
+
+        return varLines.join("\n");
+      };
       return aboutPage;
     } else {
       return undefined;

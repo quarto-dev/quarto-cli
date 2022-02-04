@@ -1,9 +1,5 @@
-<% if ( options.background) { %>
 /*-- scss:variables --*/
-$body-bg: <%- options.background%> !default;
-$body-color: theme-contrast($body-bg, $body-bg) !default;
-$link-color: theme-contrast($primary, $body-bg, "A") !default;
-<% } %>
+<%= options.scssVars() %>
 
 /*-- scss:rules --*/
 
@@ -14,13 +10,13 @@ div.marquee {
   .about-image {
     width: 100%;
     max-height: 550px;
-    object-fit: cover;
-    margin-bottom: 1.5em;
 
+    margin-bottom: 1.5em;
+    object-fit: cover;
   }
 
   h2 {
-     border-bottom: none;
+    border-bottom: none;
   }
 
   .about-footer {
@@ -51,7 +47,7 @@ div.marquee {
     }
     padding: 0.25em 0.5em;
     i.bi {
-      margin-right: .15em;
+      margin-right: 0.15em;
     }
   }
 }

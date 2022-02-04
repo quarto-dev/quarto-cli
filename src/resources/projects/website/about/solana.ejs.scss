@@ -1,9 +1,5 @@
-<% if ( options.background) { %>
 /*-- scss:variables --*/
-$body-bg: <%- options.background%> !default;
-$body-color: theme-contrast($body-bg, $body-bg) !default;
-$link-color: theme-contrast($primary, $body-bg, "A") !default;
-<% } %>
+<%= options.scssVars() %>
 
 /*-- scss:rules --*/
 
@@ -35,9 +31,11 @@ div.solana {
     .about-image {
       height: 15em;
       object-fit: cover;
-      <% if (options.rounded) { %> 
+      <% if (options["image-shape"] === "round") { %> 
         width: 15em;
         border-radius: 50%;
+      <% } else if (options["image-shape"] === "rounded") { %>
+        border-radius: 8px;
       <% } %>
       @include media-breakpoint-down(lg) {
         margin-bottom: 1.5em;

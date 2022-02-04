@@ -1,16 +1,11 @@
-<% if ( options.background) { %>
 /*-- scss:variables --*/
-$body-bg: <%- options.background%> !default;
-$body-color: theme-contrast($body-bg, $body-bg) !default;
-$link-color: theme-contrast($primary, $body-bg, "A") !default;
-<% } %>
+<%= options.scssVars() %>
 
 /*-- scss:rules --*/
 
 div.broadside {
   display: flex;
   flex-direction: column;
-  
 
   .about-main {
     display: flex !important;
@@ -19,11 +14,10 @@ div.broadside {
       flex-direction: row;
       align-items: flex-start;
     }
-  
+
     @include media-breakpoint-down(lg) {
       flex-direction: column;
     }
-    
 
     .entity {
       @include media-breakpoint-down(lg) {
@@ -43,7 +37,7 @@ div.broadside {
         background-repeat: no-repeat;
       }
     }
-     
+
     .contents {
       padding-top: 14px;
       flex: 0 0 50%;
@@ -51,14 +45,13 @@ div.broadside {
   }
 
   h2 {
-     border-bottom: none;
+    border-bottom: none;
   }
 
   .about-links {
     display: flex;
     column-gap: 20px;
     justify-content: center;
-
   }
 
   .about-sep {
@@ -66,7 +59,6 @@ div.broadside {
     width: 60%;
     align-self: center;
   }
-
 
   .about-link:hover {
     color: $link-color;
@@ -81,8 +73,7 @@ div.broadside {
     }
     padding: 0.25em 0.5em;
     i.bi {
-      margin-right: .15em;
+      margin-right: 0.15em;
     }
-
   }
 }
