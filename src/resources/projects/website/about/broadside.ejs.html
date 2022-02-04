@@ -1,8 +1,13 @@
-<div class="jolla">
-  <% if (about.image) { %><img src="<%= about.image %>" class="about-image" /><%
-  } %><%= about.title %><%= about.body %>
-  <hr class="about-sep" />
+<div class="broadside column-page">
+  <div class="about-main">
+    <div
+      class="entity"
+      style="background-image: url('<%= about.image %>')"
+    ></div>
+    <div class="contents"><%= about.title %><%= about.body %></div>
+  </div>
   <% if (about.links) { %>
+  <hr class="about-sep" />
   <div class="about-links">
     <% for (const link of about.links) { %>
     <a href="<%= link.href %>" class="about-link">
