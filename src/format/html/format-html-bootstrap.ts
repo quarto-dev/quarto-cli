@@ -182,10 +182,10 @@ export function boostrapExtras(
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        bootstrapHtmlPostprocessor(flags, format),
+        bootstrapHtmlPostprocessor(),
       ],
       [kHtmlFinalizers]: [
-        bootstrapHtmlFinalizer(format),
+        bootstrapHtmlFinalizer(format, flags),
       ],
     },
   };
@@ -198,19 +198,13 @@ const getColumnLayoutElements = (doc: Document) => {
   );
 };
 
-function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
+function bootstrapHtmlPostprocessor() {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
       title.classList.add("display-7");
     }
-
-    const { citesInMargin, refsInMargin } = processColumnElements(
-      doc,
-      format,
-      flags,
-    );
 
     // add 'lead' to subtitle
     const subtitle = doc.querySelector("header > .subtitle");
@@ -317,6 +311,19 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       }
     }
 
+    // no resource refs
+    return Promise.resolve(kHtmlEmptyPostProcessResult);
+  };
+}
+
+function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
+  return (doc: Document): Promise<void> => {
+    const { citesInMargin, refsInMargin } = processColumnElements(
+      doc,
+      format,
+      flags,
+    );
+
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)
     const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
@@ -338,13 +345,6 @@ function bootstrapHtmlPostprocessor(flags: PandocFlags, format: Format) {
       }
     }
 
-    // no resource refs
-    return Promise.resolve(kHtmlEmptyPostProcessResult);
-  };
-}
-
-function bootstrapHtmlFinalizer(format: Format) {
-  return (doc: Document): Promise<void> => {
     const fullLayout = formatHasFullLayout(format);
     if (fullLayout) {
       const column = suggestColumn(doc);
@@ -423,21 +423,31 @@ function processColumnElements(
   // and apply the grid system to it (now the child 'column-' element can be positioned
   // anywhere in the grid system)
   if (columnLayouts && columnLayouts.length > 0) {
+    const processEl = (el: Element) => {
+      if (el.tagName === "DIV" && el.id === "quarto-content") {
+        return false;
+      } else if (el.tagName === "BODY") {
+        return false;
+      } else {
+        return true;
+      }
+    };
+
     const ensureInGrid = (el: Element, setLayout: boolean) => {
-      // Add the grid system. Children of the grid system
-      // are placed into the body-content column by default
-      // (CSS implements this)
-      if (!el.classList.contains("page-columns")) {
-        el.classList.add("page-columns");
-      }
+      if (processEl(el)) {
+        // Add the grid system. Children of the grid system
+        // are placed into the body-content column by default
+        // (CSS implements this)
+        if (!el.classList.contains("page-columns")) {
+          el.classList.add("page-columns");
+        }
 
-      // Mark full width
-      if (setLayout && !el.classList.contains("page-full")) {
-        el.classList.add("page-full");
-      }
+        // Mark full width
+        if (setLayout && !el.classList.contains("page-full")) {
+          el.classList.add("page-full");
+        }
 
-      // Process parents up to the main tag
-      if (el.tagName !== "MAIN") {
+        // Process parents up to the main tag
         const parent = el.parentElement;
         if (parent) {
           ensureInGrid(parent, true);

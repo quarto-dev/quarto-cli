@@ -6,7 +6,7 @@
 *
 */
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
 

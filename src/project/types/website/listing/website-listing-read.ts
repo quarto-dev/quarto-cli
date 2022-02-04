@@ -252,10 +252,13 @@ function hydrateListing(
 ): Listing {
   const fieldsForItems = (items: ListingItem[]): string[] => {
     const unionedItem = items.reduce((prev, current) => {
-      return {
-        ...prev,
-        ...current,
-      };
+      const item = { ...prev };
+      for (const key of Object.keys(current)) {
+        if (current[key] !== undefined) {
+          item[key] = current[key];
+        }
+      }
+      return item;
     }, {});
     return Object.keys(unionedItem).filter((key) => {
       return unionedItem[key] !== undefined;
@@ -334,13 +337,18 @@ function hydrateListing(
     ...listing,
   });
 
-  // Apply a default sort if the title field is present
+  // Apply a default sort if the title field is present and the sources contain documents
   const sort: ListingSort[] | undefined = hydratedFields.includes(kFieldTitle)
     ? [{ field: "title", direction: "asc" }]
     : undefined;
-  if (sort && !listingHydrated.sort) {
+  if (
+    sort && !listingHydrated.sort && sources.has(ListingItemSource.document)
+  ) {
     listingHydrated.sort = sort;
   }
+
+  // TODO: If the user requests to sort by field that doesn't exist
+  // throw an error (and provide a helpful message)
 
   // Forward fields if listed in sort UI or Filter UI
   const sortUi = listingHydrated[kSortUi];
