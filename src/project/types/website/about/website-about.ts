@@ -6,11 +6,8 @@
 */
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, join } from "path/mod.ts";
-import {
-  HtmlPostProcessResult,
-  kHtmlEmptyPostProcessResult,
-} from "../../../../command/render/types.ts";
+import { dirname, join } from "path/mod.ts";
+import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
 import {
   Format,
   FormatExtras,
@@ -21,7 +18,7 @@ import { renderEjs } from "../../../../core/ejs.ts";
 import { dirAndStem } from "../../../../core/path.ts";
 import { quartoConfig } from "../../../../core/quarto.ts";
 import { projectTypeResourcePath } from "../../../../core/resources.ts";
-import { sassLayerFile, sassLayerStr } from "../../../../core/sass.ts";
+import { sassLayerStr } from "../../../../core/sass.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
 import { NavItem } from "../../../project-config.ts";
