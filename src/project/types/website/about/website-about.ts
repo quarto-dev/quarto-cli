@@ -8,6 +8,7 @@ import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
+import { kToc } from "../../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -71,6 +72,9 @@ export async function aboutHtmlDependencies(
   if (!aboutPage) {
     return undefined;
   }
+
+  // About pages do not allow TOCs
+  format.pandoc[kToc] = false;
 
   // Compute any scss that should be included
   const sassBundles = [];
