@@ -75,9 +75,9 @@
           icon:
             string:
               description:
-                short: Name of bootstrap icon (e.g. "github", "twitter", "share")
+                short: Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
                 long: |
-                  Name of bootstrap icon (e.g. "github", "twitter", "share")
+                  Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
                   See <https://icons.getbootstrap.com/> for a list of available icons
           aria-label:
             string:
@@ -94,9 +94,9 @@
       icon:
         string:
           description:
-            short: Name of bootstrap icon (e.g. "github", "twitter", "share")
+            short: Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
             long: |
-              Name of bootstrap icon (e.g. "github", "twitter", "share")
+              Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
               See <https://icons.getbootstrap.com/> for a list of available icons
       href:
         string:

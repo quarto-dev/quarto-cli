@@ -195,6 +195,12 @@ export function schemaCompletions(schema: Schema): Completion[] {
     return normalize(schema.completions);
   }
 
+  if (
+    schema.tags && schema.tags.completions && schema.tags.completions.length
+  ) {
+    return normalize(schema.tags.completions);
+  }
+
   switch (schemaType(schema)) {
     case "array":
       if (schema.items) {
@@ -208,9 +214,96 @@ export function schemaCompletions(schema: Schema): Completion[] {
       return schema.oneOf.map(schemaCompletions).flat();
     case "allOf":
       return schema.allOf.map(schemaCompletions).flat();
+    case "object":
+      // we actually mutate the schema here to avoid recomputing.
+      schema.completions = getObjectCompletions(schema);
+      return normalize(schema.completions);
     default:
       return [];
   }
+}
+
+function getObjectCompletions(schema: Schema): Completion[] {
+  const completionsParam = schema.tags && schema.tags.completions;
+  const properties = schema.properties;
+  const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
+  const uniqueValues = (lst: Completion[]) => {
+    const obj: Record<string, Completion> = {};
+    for (const c of lst) {
+      obj[c.value] = c;
+    }
+    return Object.getOwnPropertyNames(obj).map((k) => obj[k]);
+  };
+
+  const completions: Completion[] = [];
+  for (const k of objectKeys) {
+    const schema = properties[k];
+    const maybeDescriptions: (undefined | string | { $ref: string })[] = [
+      completionsParam && completionsParam[k],
+    ];
+    let hidden = false;
+    if (schema !== undefined) {
+      if (schema.documentation) {
+        // if a ref schema has documentation, use that directly.
+        maybeDescriptions.push(
+          schema && schema.documentation && schema.documentation.short,
+        );
+        maybeDescriptions.push(schema && schema.documentation);
+      } else {
+        // in the case of recursive schemas, a back reference to a schema
+        // that hasn't been registered yet is bound to fail.  In that
+        // case, maybeResolveSchema will return undefined, and we
+        // potentially store a special description entry, deferring the
+        // resolution to runtime.
+        let described = false;
+        const visitor = (schema: Schema) => {
+          if (schema && schema.hidden) {
+            hidden = true;
+          }
+          if (described) {
+            return;
+          }
+          if (schema && schema.documentation && schema.documentation.short) {
+            maybeDescriptions.push(
+              schema && schema.documentation && schema.documentation.short,
+            );
+            described = true;
+          } else if (schema && schema.documentation) {
+            maybeDescriptions.push(schema && schema.documentation);
+            described = true;
+          }
+        };
+        try {
+          resolveSchema(schema, visitor);
+        } catch (e) {
+          // TODO catch only the lookup exception
+        }
+        if (!described && schema && schema.$ref) {
+          maybeDescriptions.push({ $ref: schema && schema.$ref });
+        }
+      }
+    }
+    if (hidden) {
+      continue;
+    }
+    let description: (string | { $ref: string }) = "";
+    for (const md of maybeDescriptions) {
+      if (md !== undefined) {
+        description = md;
+        break;
+      }
+    }
+    completions.push({
+      type: "key",
+      display: "", // attempt to not show completion title.
+      value: `${k}: `,
+      description,
+      suggest_on_accept: schema && schema.completions &&
+        schema.completions.length !== 0,
+    });
+  }
+
+  return completions;
 }
 
 export function possibleSchemaKeys(schema: Schema): string[] {

@@ -7915,6 +7915,9 @@ if (typeof exports === 'object') {
     if (schema.completions && schema.completions.length) {
       return normalize(schema.completions);
     }
+    if (schema.tags && schema.tags.completions && schema.tags.completions.length) {
+      return normalize(schema.tags.completions);
+    }
     switch (schemaType(schema)) {
       case "array":
         if (schema.items) {
@@ -7928,9 +7931,80 @@ if (typeof exports === 'object') {
         return schema.oneOf.map(schemaCompletions).flat();
       case "allOf":
         return schema.allOf.map(schemaCompletions).flat();
+      case "object":
+        schema.completions = getObjectCompletions(schema);
+        return normalize(schema.completions);
       default:
         return [];
     }
+  }
+  function getObjectCompletions(schema) {
+    const completionsParam = schema.tags && schema.tags.completions;
+    const properties = schema.properties;
+    const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
+    const uniqueValues = (lst) => {
+      const obj = {};
+      for (const c of lst) {
+        obj[c.value] = c;
+      }
+      return Object.getOwnPropertyNames(obj).map((k) => obj[k]);
+    };
+    const completions2 = [];
+    for (const k of objectKeys) {
+      const schema2 = properties[k];
+      const maybeDescriptions = [
+        completionsParam && completionsParam[k]
+      ];
+      let hidden = false;
+      if (schema2 !== void 0) {
+        if (schema2.documentation) {
+          maybeDescriptions.push(schema2 && schema2.documentation && schema2.documentation.short);
+          maybeDescriptions.push(schema2 && schema2.documentation);
+        } else {
+          let described = false;
+          const visitor = (schema3) => {
+            if (schema3 && schema3.hidden) {
+              hidden = true;
+            }
+            if (described) {
+              return;
+            }
+            if (schema3 && schema3.documentation && schema3.documentation.short) {
+              maybeDescriptions.push(schema3 && schema3.documentation && schema3.documentation.short);
+              described = true;
+            } else if (schema3 && schema3.documentation) {
+              maybeDescriptions.push(schema3 && schema3.documentation);
+              described = true;
+            }
+          };
+          try {
+            resolveSchema(schema2, visitor);
+          } catch (e) {
+          }
+          if (!described && schema2 && schema2.$ref) {
+            maybeDescriptions.push({ $ref: schema2 && schema2.$ref });
+          }
+        }
+      }
+      if (hidden) {
+        continue;
+      }
+      let description = "";
+      for (const md of maybeDescriptions) {
+        if (md !== void 0) {
+          description = md;
+          break;
+        }
+      }
+      completions2.push({
+        type: "key",
+        display: "",
+        value: `${k}: `,
+        description,
+        suggest_on_accept: schema2 && schema2.completions && schema2.completions.length !== 0
+      });
+    }
+    return completions2;
   }
   function possibleSchemaKeys(schema) {
     const precomputedCompletions = schemaCompletions(schema).filter((c) => c.type === "key").map((c) => c.value.split(":")[0]);

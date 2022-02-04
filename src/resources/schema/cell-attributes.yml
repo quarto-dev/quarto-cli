@@ -27,4 +27,4 @@
       Notebook cell identifier. Note that if there is no cell `id` then `label` 
       will be used as the cell `id` if it is present.
       See <https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html>
-      for additionanl details on cell ids.
+      for additional details on cell ids.

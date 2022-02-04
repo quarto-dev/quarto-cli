@@ -75,6 +75,7 @@ function setBaseSchemaProperties(yaml: any, schema: Schema): Schema {
   // FIXME in YAML schema, we call it description
   // in the JSON objects, we call that "documentation"
   if (yaml.description) {
+    schema = tagSchema(schema, { description: yaml.description });
     if (typeof yaml.description === "string") {
       schema = documentSchema(schema, yaml.description);
     } else if (typeof yaml.description === "object") {
@@ -492,6 +493,9 @@ function annotateSchemaFromField(field: SchemaField, schema: Schema): Schema {
     } else if (typeof field.description === "object") {
       schema = documentSchema(schema, field.description.short);
     }
+    schema = tagSchema(schema, {
+      description: field.description,
+    });
   }
   if (field.hidden) {
     schema = tagSchema(schema, {
