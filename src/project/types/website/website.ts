@@ -173,52 +173,55 @@ export const websiteProjectType: ProjectType = {
       ]);
 
       // listings extras
-      const htmlListingDependencies = await listingHtmlDependencies(
-        source,
-        project,
-        format,
-        temp,
-        extras,
-      );
-      if (htmlListingDependencies) {
-        extras.html[kHtmlPostprocessors]?.push(
-          htmlListingDependencies[kHtmlPostprocessors],
+      const hasBootstrap = formatHasBootstrap(format);
+      if (hasBootstrap) {
+        const htmlListingDependencies = await listingHtmlDependencies(
+          source,
+          project,
+          format,
+          temp,
+          extras,
         );
-        extras.html[kMarkdownAfterBody]?.push(
-          htmlListingDependencies[kMarkdownAfterBody],
-        );
-        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
-        extras[kIncludeInHeader]!.push(
-          ...htmlListingDependencies[kIncludeInHeader],
-        );
-        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-        extras.html[kSassBundles]!.push(
-          ...htmlListingDependencies[kSassBundles],
-        );
+        if (htmlListingDependencies) {
+          extras.html[kHtmlPostprocessors]?.push(
+            htmlListingDependencies[kHtmlPostprocessors],
+          );
+          extras.html[kMarkdownAfterBody]?.push(
+            htmlListingDependencies[kMarkdownAfterBody],
+          );
+          extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+          extras[kIncludeInHeader]!.push(
+            ...htmlListingDependencies[kIncludeInHeader],
+          );
+          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+          extras.html[kSassBundles]!.push(
+            ...htmlListingDependencies[kSassBundles],
+          );
 
-        extras.html[kDependencies] = extras.html[kDependencies] || [];
-        extras.html[kDependencies]?.push(
-          ...htmlListingDependencies[kDependencies],
-        );
-      }
+          extras.html[kDependencies] = extras.html[kDependencies] || [];
+          extras.html[kDependencies]?.push(
+            ...htmlListingDependencies[kDependencies],
+          );
+        }
 
-      // about extras
-      const aboutDependencies = await aboutHtmlDependencies(
-        source,
-        project,
-        format,
-        temp,
-        extras,
-      );
-      if (aboutDependencies) {
-        extras.html[kHtmlPostprocessors]?.push(
-          aboutDependencies[kHtmlPostprocessors],
+        // about extras
+        const aboutDependencies = await aboutHtmlDependencies(
+          source,
+          project,
+          format,
+          temp,
+          extras,
         );
+        if (aboutDependencies) {
+          extras.html[kHtmlPostprocessors]?.push(
+            aboutDependencies[kHtmlPostprocessors],
+          );
 
-        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-        extras.html[kSassBundles]!.push(
-          ...aboutDependencies[kSassBundles],
-        );
+          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+          extras.html[kSassBundles]!.push(
+            ...aboutDependencies[kSassBundles],
+          );
+        }
       }
 
       // metadata html dependencies
