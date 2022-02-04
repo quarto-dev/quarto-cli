@@ -113,16 +113,16 @@ export async function listingHtmlDependencies(
   );
 
   // If there no listings, don't inject the dependencies
-  if (listingDescriptors.length === 0) {
-    return undefined;
-  }
+  const pageHasListings = listingDescriptors.length > 0;
 
   // Record the rendering of this listing in our 'listing cache'
-  cacheListingProjectData(
-    project,
-    relative(project.dir, source),
-    listingDescriptors,
-  );
+  if (pageHasListings) {
+    cacheListingProjectData(
+      project,
+      relative(project.dir, source),
+      listingDescriptors,
+    );
+  }
 
   // Create the markdown pipeline for this set of listings
   const markdownHandlers: MarkdownPipelineHandler[] = [];
@@ -147,7 +147,7 @@ export async function listingHtmlDependencies(
     resourcePath("projects/website/listing/list.min.js"),
     resourcePath("projects/website/listing/quarto-listing.js"),
   ];
-  const htmlDependencies: FormatDependency[] = [{
+  const listingDependencies: FormatDependency[] = [{
     name: kListingDependency,
     scripts: jsPaths.map((path) => {
       return {
@@ -158,13 +158,15 @@ export async function listingHtmlDependencies(
   }];
 
   // Generate the inline script tags that configure list.js
-  const scripts = listingDescriptors.map((listingItem) => {
-    return templateJsScript(
-      listingItem.listing.id,
-      listingItem.listing,
-      listingItem.items.length,
-    );
-  });
+  const generateScriptListJsScript = () => {
+    return listingDescriptors.map((listingItem) => {
+      return templateJsScript(
+        listingItem.listing.id,
+        listingItem.listing,
+        listingItem.items.length,
+      );
+    });
+  };
 
   // Create the post processor
   const listingPostProcessor = async (
@@ -208,11 +210,17 @@ export async function listingHtmlDependencies(
   };
 
   return {
-    [kIncludeInHeader]: [scriptFileForScripts(scripts, temp)],
-    [kHtmlPostprocessors]: listingPostProcessor,
-    [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
-    [kDependencies]: htmlDependencies,
     [kSassBundles]: [listingSassBundle()],
+    [kDependencies]: pageHasListings ? listingDependencies : [],
+    [kMarkdownAfterBody]: pageHasListings
+      ? pipeline.markdownAfterBody()
+      : undefined,
+    [kIncludeInHeader]: pageHasListings
+      ? [
+        scriptFileForScripts(generateScriptListJsScript(), temp),
+      ]
+      : [],
+    [kHtmlPostprocessors]: pageHasListings ? listingPostProcessor : undefined,
   };
 }
 

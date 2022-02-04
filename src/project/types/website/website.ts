@@ -183,12 +183,16 @@ export const websiteProjectType: ProjectType = {
           extras,
         );
         if (htmlListingDependencies) {
-          extras.html[kHtmlPostprocessors]?.push(
-            htmlListingDependencies[kHtmlPostprocessors],
-          );
-          extras.html[kMarkdownAfterBody]?.push(
-            htmlListingDependencies[kMarkdownAfterBody],
-          );
+          const listingPostProcessor =
+            htmlListingDependencies[kHtmlPostprocessors];
+          if (listingPostProcessor) {
+            extras.html[kHtmlPostprocessors]?.push(listingPostProcessor);
+          }
+
+          const listingAfterBody = htmlListingDependencies[kMarkdownAfterBody];
+          if (listingAfterBody) {
+            extras.html[kMarkdownAfterBody]?.push(listingAfterBody);
+          }
           extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
           extras[kIncludeInHeader]!.push(
             ...htmlListingDependencies[kIncludeInHeader],
