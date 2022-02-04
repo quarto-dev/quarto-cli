@@ -1,0 +1,26 @@
+<div class="solana column-body">
+
+  <div class="entity">
+    <div class="entity-contents">
+    <%= about.title %>
+    <hr class="about-sep" />
+    <% if (about.links) { %>
+      <div class="about-links">
+        <% for (const link of about.links) { %>
+        <a href="<%= link.href %>" class="about-link">
+          <% if (link.icon) { %>
+          <i class="bi <%= link.icon %>"></i>
+          <% } %> <%= link.text %>
+        </a>
+        <% } %>
+      </div>
+    <% } %>  
+    </div>
+    <% if (about.image) { %><img
+      src="<%= about.image %>"
+      class="about-image"
+    /><% } %>
+  </div>
+
+  <div class="contents"><%= about.body %></div>
+</div>

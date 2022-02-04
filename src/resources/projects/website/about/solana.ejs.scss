@@ -7,43 +7,31 @@ $link-color: theme-contrast($primary, $body-bg, "A") !default;
 
 /*-- scss:rules --*/
 
-div.trestles {
+div.solana {
   display: flex !important;
-  flex-direction: row;
+  flex-direction: column;
   padding-top: 3em !important;
 
-  @include media-breakpoint-down(md) {
-    flex-direction: column;
-    padding-top: 0em !important;
-  }
-  
   .entity {
-    @include media-breakpoint-up(md) {
-      max-width: 42%;
-      flex: 0 0 42%;
-    }
     display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    flex-direction: row;
+    align-items: start;
+    justify-content: space-between;
+
+    .entity-contents {
+      display: flex;
+      flex-direction: column;
+    }
 
     .about-image {
-      width: 15em;
+      height: 15em;
       object-fit: cover;
-      margin-left: auto;
-      margin-right: auto;
-      margin-bottom: 1.5em;
-      @include media-breakpoint-up(lg) {
-        margin-top: 2rem;
-      }
-      @include media-breakpoint-down(md) {
-        margin-top: 1em;
-      }
     }
   
     .about-sep {
       width: 60%;
       margin-bottom: 1.5em;
+      margin-top: 0;
     }  
     .about-links {
       display: flex;
@@ -70,12 +58,6 @@ div.trestles {
   .contents {
     flex-basis: 0;
     flex-grow: 1;
-
-    @include media-breakpoint-up(md) {
-      border-left: solid 1px $border-color;
-      padding-left: 1.5em;
-    }
-
     main.content {
       margin-top: 0;
     }
