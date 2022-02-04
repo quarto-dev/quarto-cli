@@ -2,6 +2,7 @@
 /*-- scss:variables --*/
 $body-bg: <%- options.background%> !default;
 $body-color: theme-contrast($body-bg, $body-bg) !default;
+$link-color: theme-contrast($primary, $body-bg, "A") !default;
 <% } %>
 
 /*-- scss:rules --*/
@@ -40,6 +41,7 @@ div.jolla {
   }
 
   .about-link {
+    font-size: 0.8em;
     color: lighten($body-color, 20%);
     text-decoration: none;
     :hover {
