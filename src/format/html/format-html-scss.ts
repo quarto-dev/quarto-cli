@@ -394,6 +394,11 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
         ),
       );
     }
+  } else {
+    // If there is no sidebar, default to body color for any sidebar that may appear
+    variables.push(
+      `$sidebar-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;`,
+    );
   }
 
   const footer = (metadata[kWebsite] as Metadata)?.[kPageFooter] as Metadata;
