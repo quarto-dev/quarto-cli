@@ -42,7 +42,17 @@ export function readYaml(file: string) {
   if (existsSync(file)) {
     const decoder = new TextDecoder("utf-8");
     const yml = Deno.readFileSync(file);
-    return parse(decoder.decode(yml), { schema: JSON_SCHEMA });
+    const result = parse(decoder.decode(yml), { schema: JSON_SCHEMA });
+    try {
+      JSON.stringify(result);
+      return result;
+    } catch (e) {
+      throw new Error(
+        `Circular structures not allowed.\nFile ${file}\n${
+          e.message.split("\n").slice(1).join("\n")
+        }`,
+      );
+    }
   } else {
     throw new Error(`YAML file ${file} not found.`);
   }
