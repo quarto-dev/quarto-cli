@@ -1,10 +1,9 @@
 <div class="solana column-body">
-
-  <div class="entity">
+  <div class="about-entity">
     <div class="entity-contents">
-    <%= about.title %>
-    <hr class="about-sep" />
-    <% if (about.links) { %>
+      <%= about.title %>
+      <hr class="about-sep" />
+      <% if (about.links) { %>
       <div class="about-links">
         <% for (const link of about.links) { %>
         <a href="<%= link.href %>" class="about-link">
@@ -14,7 +13,7 @@
         </a>
         <% } %>
       </div>
-    <% } %>  
+      <% } %>
     </div>
     <% if (about.image) { %><img
       src="<%= about.image %>"
@@ -22,5 +21,5 @@
     /><% } %>
   </div>
 
-  <div class="contents"><%= about.body %></div>
+  <div class="about-contents"><%= about.body %></div>
 </div>

@@ -88,7 +88,7 @@ div.solana {
   flex-direction: column;
   padding-top: 3em !important;
 
-  .entity {
+  .about-entity {
     display: flex !important;
 
     @include media-breakpoint-up(lg) {
@@ -134,7 +134,7 @@ div.solana {
     }
   }
 
-  .contents {
+  .about-contents {
     flex-basis: 0;
     flex-grow: 1;
     @include media-breakpoint-up(lg) {
@@ -163,7 +163,7 @@ div.trestles {
     padding-top: 0em !important;
   }
 
-  .entity {
+  .about-entity {
     @include media-breakpoint-up(lg) {
       max-width: 42%;
       flex: 0 0 42%;
@@ -202,7 +202,7 @@ div.trestles {
     }
   }
 
-  .contents {
+  .about-contents {
     flex-basis: 0;
     flex-grow: 1;
 
@@ -277,7 +277,7 @@ div.broadside {
       flex-direction: column;
     }
 
-    .entity {
+    .about-entity {
       @include media-breakpoint-down(lg) {
         flex-shrink: 0;
         width: 100%;
@@ -296,7 +296,7 @@ div.broadside {
       }
     }
 
-    .contents {
+    .about-contents {
       padding-top: 14px;
       flex: 0 0 50%;
     }
