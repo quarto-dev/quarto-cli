@@ -4,6 +4,8 @@
   @include media-breakpoint-up(md) {
     flex-direction: row;
     column-gap: 20px;
+    row-gap: 10px;
+    flex-wrap: wrap;
   }
   @include media-breakpoint-down(md) {
     flex-direction: column;
