@@ -13,6 +13,7 @@ This directory includes a set of built-in translations, including:
 | `_language-de.yml` | German            |
 | `_language-pt.yml` | Portuguese        |
 | `_language-ru.yml` | Russian           |
+| `_language-tr.yml` | Turkish           |
 
 The use of these translations is triggered by the [`lang`](https://pandoc.org/MANUAL.html#language-variables) Pandoc metadata variable, which identifies the main language of the document using IETF language tags (following the [BCP 47](https://tools.ietf.org/html/bcp47) standard), such as `en` or `en-GB`. The [Language subtag lookup](https://r12a.github.io/app-subtags/) tool can look up or verify these tags.
 
