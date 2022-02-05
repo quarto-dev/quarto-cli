@@ -235,7 +235,6 @@ function createChangeHandler(
 ): ChangeHandler {
   const renderQueue = new PromiseQueue();
   let watcher: Watcher | undefined;
-  let lastResult = result;
 
   // render handler
   const renderHandler = ld.debounce(async () => {
@@ -262,43 +261,40 @@ function createChangeHandler(
   }, 50);
 
   const sync = (result: RenderForPreviewResult) => {
-    const requiresSync = !watcher || resultRequiresSync(result, lastResult);
-    lastResult = result;
-    if (requiresSync) {
-      if (watcher) {
-        watcher.stop();
-      }
-
-      const watches: Watch[] = [];
-      if (renderOnChange) {
-        watches.push({
-          files: [result.file],
-          handler: renderHandler,
-        });
-      }
-
-      // reload on output or resource changed (but wait for
-      // the render queue to finish, as sometimes pdfs are
-      // modified and even removed by pdflatex during render)
-      const reloadFiles = isHtmlContent(result.outputFile)
-        ? htmlReloadFiles(result)
-        : pdfReloadFiles(result);
-      const reloadTarget = isHtmlContent(result.outputFile)
-        ? ""
-        : "/" + kPdfJsInitialPath;
-
-      watches.push({
-        files: reloadFiles,
-        handler: ld.debounce(async () => {
-          await renderQueue.enqueue(async () => {
-            await reloader.reloadClients(reloadTarget);
-          });
-        }, 50),
-      });
-
-      watcher = previewWatcher(watches);
-      watcher.start();
+    if (watcher) {
+      watcher.stop();
+      watcher = undefined;
     }
+
+    const watches: Watch[] = [];
+    if (renderOnChange) {
+      watches.push({
+        files: [result.file],
+        handler: renderHandler,
+      });
+    }
+
+    // reload on output or resource changed (but wait for
+    // the render queue to finish, as sometimes pdfs are
+    // modified and even removed by pdflatex during render)
+    const reloadFiles = isHtmlContent(result.outputFile)
+      ? htmlReloadFiles(result)
+      : pdfReloadFiles(result);
+    const reloadTarget = isHtmlContent(result.outputFile)
+      ? ""
+      : "/" + kPdfJsInitialPath;
+
+    watches.push({
+      files: reloadFiles,
+      handler: ld.debounce(async () => {
+        await renderQueue.enqueue(async () => {
+          await reloader.reloadClients(reloadTarget);
+        });
+      }, 50),
+    });
+
+    watcher = previewWatcher(watches);
+    watcher.start();
   };
   sync(result);
   return {
@@ -465,16 +461,4 @@ function pdfFileRequestHandler(
 
 function pdfReloadFiles(result: RenderForPreviewResult) {
   return [result.outputFile];
-}
-
-function resultRequiresSync(
-  result: RenderForPreviewResult,
-  lastResult?: RenderForPreviewResult,
-) {
-  if (!lastResult) {
-    return true;
-  }
-  return result.file !== lastResult.file ||
-    result.outputFile !== lastResult.outputFile ||
-    !ld.isEqual(result.resourceFiles, lastResult.resourceFiles);
 }
