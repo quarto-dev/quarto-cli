@@ -76,7 +76,8 @@
 .quarto-layout-cell table {
   display: inline-table;
 }
-.quarto-layout-cell-subref figcaption {
+.quarto-layout-cell-subref figcaption,
+figure .quarto-layout-row figure figcaption {
   text-align: center;
   font-style: italic;
 }
