@@ -355,13 +355,18 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     const hasLeftContent = leftSidebar && leftSidebar.children.length > 0;
     const rightSidebar = doc.getElementById("quarto-margin-sidebar");
     const hasRightContent = rightSidebar && rightSidebar.children.length > 0;
-    if (rightSidebar && !hasRightContent) {
+    const hasMarginContent =
+      doc.querySelectorAll(".column-margin").length > 0 ||
+      doc.querySelectorAll(".margin-caption").length > 0 ||
+      doc.querySelectorAll(".margin-ref").length > 0;
+
+    if (rightSidebar && !hasRightContent && !hasMarginContent) {
       rightSidebar.remove();
     }
     const hasColumnElements = getColumnLayoutElements(doc).length > 0;
 
     if (hasColumnElements) {
-      if (hasLeftContent) {
+      if (hasLeftContent && hasMarginContent) {
         // Slim down the content area so there are sizable margins
         // for the column element
         doc.body.classList.add("slimcontent");
