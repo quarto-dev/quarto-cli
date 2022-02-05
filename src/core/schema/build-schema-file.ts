@@ -165,9 +165,6 @@ async function patchMarkdownDescriptions() {
       } else if (typeof fixedDescription?.short === "string") {
         s.documentation = fixedDescription.short;
       }
-      if (s.$id === "quarto-resource-cell-codeoutput-echo") {
-        console.log(JSON.stringify(s, null, 2));
-      }
     });
   }
 }
