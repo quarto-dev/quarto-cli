@@ -660,7 +660,7 @@ const referenceMarginProcessor: MarginNodeProcessor = {
     if (el.hasAttribute("href")) {
       const target = el.getAttribute("href");
       if (target) {
-        // First try to grab a the citation or footnote.
+        // First try to grab a the citation.
         const refId = target.slice(1);
         const refContentsEl = doc.getElementById(refId);
 
@@ -675,6 +675,16 @@ const referenceMarginProcessor: MarginNodeProcessor = {
           }
         };
 
+        const findNonSpanParentEl = (el: Element): Element | undefined => {
+          if (el.parentElement && el.parentElement.tagName !== "SPAN") {
+            return el.parentElement;
+          } else if (el.parentElement) {
+            return findNonSpanParentEl(el.parentElement);
+          } else {
+            return undefined;
+          }
+        };
+
         // The parent is a figcaption that contains the reference.
         // The parent.parent is the figure
         const parentCaptionEl = findCaptionEl(el);
@@ -684,6 +694,15 @@ const referenceMarginProcessor: MarginNodeProcessor = {
             refContentsEl.cloneNode(true),
             doc,
           );
+        } else if (refContentsEl) {
+          const nonSpanParent = findNonSpanParentEl(el);
+          if (nonSpanParent) {
+            addContentToMarginContainerForEl(
+              nonSpanParent,
+              refContentsEl,
+              doc,
+            );
+          }
         }
       }
     }
