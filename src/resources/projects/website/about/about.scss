@@ -1,3 +1,44 @@
+/*-- scss:mixins --*/
+@mixin responsive-buttons {
+  display: flex;
+  @include media-breakpoint-up(md) {
+    flex-direction: row;
+    column-gap: 20px;
+  }
+  @include media-breakpoint-down(md) {
+    flex-direction: column;
+    row-gap: 1em;
+    width: 100%;
+  }
+}
+
+@mixin responsive-button {
+  @include media-breakpoint-up(md) {
+    font-size: 0.8em;
+    padding: 0.25em 0.5em;
+    border-radius: 4px;
+  }
+
+  @include media-breakpoint-down(md) {
+    font-size: 1.1em;
+    padding: 0.5em 0.5em;
+    text-align: center;
+    border-radius: 6px;
+  }
+
+  color: lighten($body-color, 20%);
+  text-decoration: none;
+  :hover {
+    color: $link-color;
+  }
+
+  border: solid 1px;
+
+  i.bi {
+    margin-right: 0.15em;
+  }
+}
+
 /*-- scss:rules --*/
 
 // Jolla
@@ -31,48 +72,11 @@ div.jolla {
   }
 
   .about-links {
-    display: flex;
-
-    @include media-breakpoint-up(md) {
-      flex-direction: row;
-      column-gap: 20px;
-    }
-    @include media-breakpoint-down(md) {
-      flex-direction: column;
-      row-gap: 1em;
-      width: 100%;
-    }
-  }
-
-  .about-link:hover {
-    color: $link-color;
+    @include responsive-buttons();
   }
 
   .about-link {
-    @include media-breakpoint-up(md) {
-      font-size: 0.8em;
-      padding: 0.25em 0.5em;
-      border-radius: 4px;
-    }
-
-    @include media-breakpoint-down(md) {
-      font-size: 1.1em;
-      padding: 0.5em 0.5em;
-      text-align: center;
-      border-radius: 6px;
-    }
-
-    color: lighten($body-color, 20%);
-    text-decoration: none;
-    :hover {
-      color: $link-color;
-    }
-
-    border: solid 1px;
-
-    i.bi {
-      margin-right: 0.15em;
-    }
+    @include responsive-button();
   }
 }
 
@@ -100,6 +104,9 @@ div.solana {
     .entity-contents {
       display: flex;
       flex-direction: column;
+      @include media-breakpoint-down(md) {
+        width: 100%;
+      }
     }
 
     .about-image {
@@ -116,28 +123,12 @@ div.solana {
       margin-top: 0;
     }
 
-    .about-link:hover {
-      color: $link-color;
-    }
-
     .about-links {
-      display: flex;
-      column-gap: 20px;
+      @include responsive-buttons();
     }
 
     .about-link {
-      font-size: 1em;
-      color: theme-fade($body-color, $body-bg, 10%);
-      text-decoration: none;
-      padding: 0.25em 0.75em;
-      border: solid 1px;
-      border-radius: 4px;
-      :hover {
-        color: $link-color;
-      }
-      i.bi {
-        margin-right: 0.25em;
-      }
+      @include responsive-button();
     }
   }
 
@@ -200,27 +191,12 @@ div.trestles {
     }
 
     .about-links {
-      display: flex;
-      column-gap: 20px;
-      @include media-breakpoint-down(lg) {
-        padding-bottom: 1.5em;
-      }
-    }
-
-    .about-link:hover {
-      color: $link-color;
+      @include responsive-buttons();
+      padding-bottom: 1.5em;
     }
 
     .about-link {
-      font-size: 0.8em;
-      color: lighten($body-color, 20%);
-      text-decoration: none;
-      :hover {
-        color: $link-color;
-      }
-      padding: 0.25em 0.5em;
-      border: solid 1px;
-      border-radius: 4px;
+      @include responsive-button();
     }
   }
 
@@ -271,24 +247,13 @@ div.marquee {
   }
 
   .about-links {
-    display: flex;
-    column-gap: 20px;
-  }
-
-  .about-link:hover {
-    color: $link-color;
+    @include responsive-buttons();
   }
 
   .about-link {
-    font-size: 0.8em;
-    color: lighten($body-color, 20%);
-    text-decoration: none;
-    :hover {
-      color: $link-color;
-    }
-    padding: 0.25em 0.5em;
-    i.bi {
-      margin-right: 0.15em;
+    @include responsive-button();
+    @include media-breakpoint-up(lg) {
+      border: none;
     }
   }
 }
@@ -339,32 +304,22 @@ div.broadside {
     border-bottom: none;
   }
 
-  .about-links {
-    display: flex;
-    column-gap: 20px;
-    justify-content: center;
-  }
-
   .about-sep {
     margin-top: 1.5em;
     width: 60%;
     align-self: center;
   }
 
-  .about-link:hover {
-    color: $link-color;
+  .about-links {
+    @include responsive-buttons();
+    justify-content: center;
+    column-gap: 20px;
   }
 
   .about-link {
-    font-size: 0.8em;
-    color: lighten($body-color, 20%);
-    text-decoration: none;
-    :hover {
-      color: $link-color;
-    }
-    padding: 0.25em 0.5em;
-    i.bi {
-      margin-right: 0.15em;
+    @include responsive-button();
+    @include media-breakpoint-up(lg) {
+      border: none;
     }
   }
 }
