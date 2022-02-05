@@ -47,6 +47,7 @@ import { projectContext } from "../../project/project-context.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
+import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 
 interface PreviewOptions {
   port: number;
@@ -245,6 +246,16 @@ function createChangeHandler(
       }, true);
     } catch (e) {
       if (e.message) {
+        // jupyter notebooks being edited in juptyerlab sometimes get an
+        // "Unexpected end of JSON input" error that remedies itself (so we ignore).
+        // this may be a result of an intermediate save result?
+        if (
+          isJupyterNotebook(result.file) &&
+          e.message.indexOf("Unexpected end of JSON input") !== -1
+        ) {
+          return;
+        }
+
         logError(e);
       }
     }
