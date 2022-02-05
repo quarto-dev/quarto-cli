@@ -86,7 +86,7 @@ function writeGitignore(dir: string, lines: string[]) {
   if (!existsSync(gitattributes)) {
     Deno.writeTextFileSync(
       gitattributes,
-      "*.qmd linguist-language=markdown" + lineEnding,
+      "*.qmd linguist-language=RMarkdown" + lineEnding,
     );
   }
 }
