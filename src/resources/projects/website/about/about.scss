@@ -134,6 +134,7 @@ div.solana {
     .about-links {
       @include responsive-buttons();
       justify-content: left;
+      padding-bottom: 1.2em;
     }
 
     .about-link {
@@ -181,13 +182,6 @@ div.trestles {
       width: 15em;
       object-fit: cover;
       margin-bottom: 1.5em;
-
-      @include media-breakpoint-up(lg) {
-        margin-top: 2rem;
-      }
-      @include media-breakpoint-down(lg) {
-        margin-top: 1em;
-      }
     }
     @include image-shapes();
 
