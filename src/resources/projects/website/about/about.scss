@@ -41,6 +41,16 @@
   }
 }
 
+@mixin image-shapes {
+  img.round {
+    border-radius: 50%;
+  }
+
+  img.rounded {
+    border-radius: 8px;
+  }
+}
+
 /*-- scss:rules --*/
 
 // Jolla
@@ -58,8 +68,8 @@ div.jolla {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 1.5em;
-    border-radius: 50%;
   }
+  @include image-shapes();
 
   h2 {
     border-bottom: none;
@@ -114,11 +124,11 @@ div.solana {
     .about-image {
       height: 15em;
       object-fit: cover;
-      border-radius: 8px;
       @include media-breakpoint-down(lg) {
         margin-bottom: 1.5em;
       }
     }
+    @include image-shapes();
 
     .about-sep {
       margin-bottom: 1.5em;
@@ -177,7 +187,6 @@ div.trestles {
       width: 15em;
       object-fit: cover;
       margin-bottom: 1.5em;
-      border-radius: 8px;
 
       @include media-breakpoint-up(lg) {
         margin-top: 2rem;
@@ -186,6 +195,7 @@ div.trestles {
         margin-top: 1em;
       }
     }
+    @include image-shapes();
 
     .about-sep {
       width: 60%;
@@ -233,6 +243,7 @@ div.marquee {
     margin-bottom: 1.5em;
     object-fit: cover;
   }
+  @include image-shapes();
 
   h2 {
     border-bottom: none;
