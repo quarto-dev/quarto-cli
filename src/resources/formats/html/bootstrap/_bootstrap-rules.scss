@@ -13,9 +13,9 @@ body {
 }
 
 // If we're applying display: grid, we're losing our display: border-box
-// behavior, so we need to reset top margin
-main.page-columns > section:first-of-type > h2:first-of-type {
-  margin-top: 0.5rem;
+// behavior, so we need to reset bottom margin for title block
+main.page-columns > header > h1.title {
+  margin-bottom: 0;
 }
 
 @include media-breakpoint-up(lg) {
