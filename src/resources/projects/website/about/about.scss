@@ -4,7 +4,7 @@
   @include media-breakpoint-up(md) {
     flex-direction: row;
     column-gap: 20px;
-    row-gap: 10px;
+    row-gap: 15px;
     flex-wrap: wrap;
   }
   @include media-breakpoint-down(md) {
@@ -12,6 +12,7 @@
     row-gap: 1em;
     width: 100%;
   }
+  justify-content: center;
 }
 
 @mixin responsive-button {

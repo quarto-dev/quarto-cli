@@ -1,5 +1,4 @@
 <% const imgClz = about.options['image-shape'] ? `
-${about.options['image-shape']}` : ""; console.log(about); %> <% if
-(about.image) { %>
+${about.options['image-shape']}` : ""; %> <% if (about.image) { %>
 <img src="<%= about.image %>" class="about-image<%= imgClz %>" />
 <%}%>

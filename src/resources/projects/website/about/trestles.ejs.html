@@ -1,9 +1,7 @@
 <div class="trestles">
   <div class="about-entity">
-    <% partial('_image.ejs.html', { about }) %> <%= about.title %><%= about.body
-    %><%= about.title %>
-    <hr class="about-sep" />
-    <% partial('_links.ejs.html', { about }) %>
+    <% partial('_image.ejs.html', { about }) %><%= about.title %> <%
+    partial('_links.ejs.html', { about }) %>
   </div>
   <div class="about-contents"><%= about.body %></div>
 </div>
