@@ -1,9 +1,6 @@
 <div class="marquee">
   <% partial('_image.ejs.html', { about }) %> <%= about.title %><%= about.body
   %><%= about.title %><%= about.body %> <% if (about.links) { %>
-  <div class="about-footer">
-    <hr class="about-sep" />
-    <% partial('_links.ejs.html', { about }) %>
-  </div>
+  <div class="about-footer"><% partial('_links.ejs.html', { about }) %></div>
   <% } %>
 </div>

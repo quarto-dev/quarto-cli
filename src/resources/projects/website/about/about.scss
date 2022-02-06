@@ -191,11 +191,6 @@ div.trestles {
     }
     @include image-shapes();
 
-    .about-sep {
-      width: 60%;
-      margin-bottom: 1.5em;
-    }
-
     .about-links {
       @include responsive-buttons();
       justify-content: center;
@@ -247,6 +242,7 @@ div.marquee {
     display: flex;
     align-items: center;
     flex-direction: column;
+    padding-top: 1.5em;
   }
 
   .about-sep {
