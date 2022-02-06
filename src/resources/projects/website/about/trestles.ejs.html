@@ -1,21 +1,9 @@
 <div class="trestles">
   <div class="about-entity">
-    <% if (about.image) { %><img
-      src="<%= about.image %>"
-      class="about-image"
-    /><% } %><%= about.title %>
+    <% partial('_image.ejs.html', { about }) %> <%= about.title %><%= about.body
+    %><%= about.title %>
     <hr class="about-sep" />
-    <% if (about.links) { %>
-    <div class="about-links">
-      <% for (const link of about.links) { %>
-      <a href="<%= link.href %>" class="about-link">
-        <% if (link.icon) { %>
-        <i class="bi <%= link.icon %>"></i>
-        <% } %> <%= link.text %>
-      </a>
-      <% } %>
-    </div>
-    <% } %>
+    <% partial('_links.ejs.html', { about }) %>
   </div>
   <div class="about-contents"><%= about.body %></div>
 </div>

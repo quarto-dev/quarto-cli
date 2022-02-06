@@ -1,0 +1,11 @@
+<% if (about.links) { %>
+<div class="about-links">
+  <% for (const link of about.links) { %>
+  <a href="<%= link.href %>" class="about-link">
+    <% if (link.icon) { %>
+    <i class="bi <%= link.icon %>"></i>
+    <% } %> <%= link.text %>
+  </a>
+  <% } %>
+</div>
+<% } %>

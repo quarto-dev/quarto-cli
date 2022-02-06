@@ -4,18 +4,7 @@
       class="about-entity"
       style="background-image: url('<%= about.image %>')"
     ></div>
-    <div class="about-contents"><%= about.title %><%= about.body %></div>
+    <div class="about-wecontents"><%= about.title %><%= about.body %></div>
   </div>
-  <% if (about.links) { %>
-  <hr class="about-sep" />
-  <div class="about-links">
-    <% for (const link of about.links) { %>
-    <a href="<%= link.href %>" class="about-link">
-      <% if (link.icon) { %>
-      <i class="bi <%= link.icon %>"></i>
-      <% } %> <%= link.text %>
-    </a>
-    <% } %>
-  </div>
-  <% } %>
+  <% partial('_links.ejs.html', { about }) %>
 </div>

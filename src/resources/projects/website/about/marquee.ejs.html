@@ -1,17 +1,9 @@
 <div class="marquee">
-  <% if (about.image) { %><img src="<%= about.image %>" class="about-image" /><%
-  } %><%= about.title %><%= about.body %> <% if (about.links) { %>
+  <% partial('_image.ejs.html', { about }) %> <%= about.title %><%= about.body
+  %><%= about.title %><%= about.body %> <% if (about.links) { %>
   <div class="about-footer">
     <hr class="about-sep" />
-    <div class="about-links">
-      <% for (const link of about.links) { %>
-      <a href="<%= link.href %>" class="about-link">
-        <% if (link.icon) { %>
-        <i class="bi <%= link.icon %>"></i>
-        <% } %> <%= link.text %>
-      </a>
-      <% } %>
-    </div>
+    <% partial('_links.ejs.html', { about }) %>
   </div>
   <% } %>
 </div>
