@@ -317,6 +317,7 @@ div.broadside {
     @include responsive-buttons();
     justify-content: center;
     column-gap: 20px;
+    padding-top: 1.5em;
   }
 
   .about-link {
