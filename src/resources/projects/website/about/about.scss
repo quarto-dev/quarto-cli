@@ -1,28 +1,28 @@
 /*-- scss:mixins --*/
 @mixin responsive-buttons {
   display: flex;
-  @include media-breakpoint-up(md) {
+  @include media-breakpoint-up(lg) {
     flex-direction: row;
-    column-gap: 20px;
+    column-gap: 0.8em;
     row-gap: 15px;
     flex-wrap: wrap;
   }
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(lg) {
     flex-direction: column;
     row-gap: 1em;
     width: 100%;
+    padding-bottom: 1.5em;
   }
-  justify-content: center;
 }
 
 @mixin responsive-button {
-  @include media-breakpoint-up(md) {
+  @include media-breakpoint-up(lg) {
     font-size: 0.8em;
     padding: 0.25em 0.5em;
     border-radius: 4px;
   }
 
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(lg) {
     font-size: 1.1em;
     padding: 0.5em 0.5em;
     text-align: center;
@@ -131,13 +131,9 @@ div.solana {
     }
     @include image-shapes();
 
-    .about-sep {
-      margin-bottom: 1.5em;
-      margin-top: 0;
-    }
-
     .about-links {
       @include responsive-buttons();
+      justify-content: left;
     }
 
     .about-link {
@@ -146,14 +142,10 @@ div.solana {
   }
 
   .about-contents {
+    padding-right: 1.5em;
+
     flex-basis: 0;
     flex-grow: 1;
-    @include media-breakpoint-up(lg) {
-      margin-top: -3em;
-    }
-    @include media-breakpoint-down(lg) {
-      margin-top: 1.5em;
-    }
     main.content {
       margin-top: 0;
     }
@@ -183,6 +175,7 @@ div.trestles {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    padding-right: 1em;
 
     .about-image {
       width: 15em;
@@ -205,7 +198,7 @@ div.trestles {
 
     .about-links {
       @include responsive-buttons();
-      padding-bottom: 1.5em;
+      justify-content: center;
     }
 
     .about-link {
