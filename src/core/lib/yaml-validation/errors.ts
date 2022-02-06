@@ -438,7 +438,6 @@ function checkForNearbyCorrection(
   parse: AnnotatedParse,
   schema: Schema,
 ): LocalizedError {
-  debugger;
   const errorSchema = getErrorSchema(error, parse, schema);
   const corrections: string[] = [];
 
