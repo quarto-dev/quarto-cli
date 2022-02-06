@@ -370,11 +370,13 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
         // Slim down the content area so there are sizable margins
         // for the column element
         doc.body.classList.add("slimcontent");
-      } else {
+      } else if (hasRightContent || hasMarginContent) {
         // Use the default layout, so don't add any classes
+      } else {
+        doc.body.classList.add("fullcontent");
       }
     } else {
-      if (!hasRightContent) {
+      if (!hasRightContent && !hasMarginContent) {
         doc.body.classList.add("fullcontent");
       } else {
         // Use the deafult layout, don't add any classes
