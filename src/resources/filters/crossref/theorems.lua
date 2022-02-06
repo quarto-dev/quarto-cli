@@ -113,7 +113,7 @@ function theorems()
               tappend(span.content, name)
               span.content:insert(pandoc.Str(")"))
             end
-            tappend(span.content, { pandoc.Str(".", pandoc.Space())})
+            tappend(span.content, { pandoc.Str(". ")})
             if #el.content > 0 and #el.content[1].content > 0 then
               el.content[1].content:insert(1, span)
             end
