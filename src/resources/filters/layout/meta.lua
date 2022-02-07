@@ -67,6 +67,12 @@ function layoutMetaInject()
             )
           end)
 
+          metaInjectLatex(meta, function(inject)
+            inject(
+              "\\@ifundefined{shadecolor}{\\definecolor{shadecolor}{rgb}{.97, .97, .97}}"
+            )
+          end)
+
           -- set color options for code blocks ('Shaded')
           -- shadecolor is defined by pandoc
           local options = {
