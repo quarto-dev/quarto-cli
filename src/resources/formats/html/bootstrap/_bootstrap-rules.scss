@@ -323,7 +323,6 @@ body.docked {
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   figcaption {
-    text-align: right;
     @include column-spanning-element();
   }
 }
@@ -340,7 +339,6 @@ body.docked {
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   figcaption {
-    text-align: right;
     @include column-spanning-element();
   }
 }

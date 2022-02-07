@@ -212,8 +212,10 @@ div.trestles {
 
 // Marquee
 div.marquee {
-  margin-top: 0;
-  padding-top: 0 !important;
+  .about-contents {
+    display: flex;
+    flex-direction: column;
+  }
 
   .about-image {
     max-height: 550px;
@@ -226,19 +228,10 @@ div.marquee {
     border-bottom: none;
   }
 
-  .about-footer {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    padding-top: 1.5em;
-  }
-
-  .about-sep {
-    width: 60%;
-  }
-
   .about-links {
     @include responsive-buttons();
+    justify-content: center;
+    padding-top: 1.5em;
   }
 
   .about-link {
