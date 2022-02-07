@@ -48,6 +48,7 @@ import { pathWithForwardSlashes } from "../../core/path.ts";
 import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
+import { watchForFileChanges } from "../../core/watch.ts";
 
 interface PreviewOptions {
   port: number;
@@ -235,6 +236,7 @@ function createChangeHandler(
 ): ChangeHandler {
   const renderQueue = new PromiseQueue();
   let watcher: Watcher | undefined;
+  let lastResult = result;
 
   // render handler
   const renderHandler = ld.debounce(async () => {
@@ -261,40 +263,43 @@ function createChangeHandler(
   }, 50);
 
   const sync = (result: RenderForPreviewResult) => {
-    if (watcher) {
-      watcher.stop();
-      watcher = undefined;
-    }
+    const requiresSync = !watcher || resultRequiresSync(result, lastResult);
+    lastResult = result;
+    if (requiresSync) {
+      if (watcher) {
+        watcher.stop();
+      }
 
-    const watches: Watch[] = [];
-    if (renderOnChange) {
-      watches.push({
-        files: [result.file],
-        handler: renderHandler,
-      });
-    }
-
-    // reload on output or resource changed (but wait for
-    // the render queue to finish, as sometimes pdfs are
-    // modified and even removed by pdflatex during render)
-    const reloadFiles = isHtmlContent(result.outputFile)
-      ? htmlReloadFiles(result)
-      : pdfReloadFiles(result);
-    const reloadTarget = isHtmlContent(result.outputFile)
-      ? ""
-      : "/" + kPdfJsInitialPath;
-
-    watches.push({
-      files: reloadFiles,
-      handler: ld.debounce(async () => {
-        await renderQueue.enqueue(async () => {
-          await reloader.reloadClients(reloadTarget);
+      const watches: Watch[] = [];
+      if (renderOnChange) {
+        watches.push({
+          files: [result.file],
+          handler: renderHandler,
         });
-      }, 50),
-    });
+      }
 
-    watcher = previewWatcher(watches);
-    watcher.start();
+      // reload on output or resource changed (but wait for
+      // the render queue to finish, as sometimes pdfs are
+      // modified and even removed by pdflatex during render)
+      const reloadFiles = isHtmlContent(result.outputFile)
+        ? htmlReloadFiles(result)
+        : pdfReloadFiles(result);
+      const reloadTarget = isHtmlContent(result.outputFile)
+        ? ""
+        : "/" + kPdfJsInitialPath;
+
+      watches.push({
+        files: reloadFiles,
+        handler: ld.debounce(async () => {
+          await renderQueue.enqueue(async () => {
+            await reloader.reloadClients(reloadTarget);
+          });
+        }, 50),
+      });
+
+      watcher = previewWatcher(watches);
+      watcher.start();
+    }
   };
   sync(result);
   return {
@@ -328,7 +333,7 @@ function previewWatcher(watches: Watch[]): Watcher {
 
   // create the watcher
   const files = watches.flatMap((watch) => watch.files);
-  const fsWatcher = Deno.watchFs(files);
+  const fsWatcher = watchForFileChanges(files);
   const watchForChanges = async () => {
     for await (const event of fsWatcher) {
       try {
@@ -461,4 +466,16 @@ function pdfFileRequestHandler(
 
 function pdfReloadFiles(result: RenderForPreviewResult) {
   return [result.outputFile];
+}
+
+function resultRequiresSync(
+  result: RenderForPreviewResult,
+  lastResult?: RenderForPreviewResult,
+) {
+  if (!lastResult) {
+    return true;
+  }
+  return result.file !== lastResult.file ||
+    result.outputFile !== lastResult.outputFile ||
+    !ld.isEqual(result.resourceFiles, lastResult.resourceFiles);
 }

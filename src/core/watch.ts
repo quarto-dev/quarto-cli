@@ -11,6 +11,7 @@ import { error } from "log/mod.ts";
 import { sleep } from "./async.ts";
 
 export interface PollingFsWatcher extends AsyncIterable<Deno.FsEvent> {
+  close: () => void;
   [Symbol.asyncIterator](): AsyncIterableIterator<Deno.FsEvent>;
 }
 
@@ -42,15 +43,20 @@ export function watchForFileChanges(
   // if there is no polling interval then set it based on the initial
   // number of files (it takes about 5ms to scan 200 files on a fast
   // system, which is considered an acceptable level of overhead. set the
-  // interval to 200ms or the number of files, whichever is greater)
+  // interval to 150ms or the number of files, whichever is greater)
   if (!pollingInterval) {
     pollingInterval = Math.max(200, lastModified.size);
   }
 
+  let stop = false;
+
   return {
+    close: () => {
+      stop = true;
+    },
     async *[Symbol.asyncIterator]() {
       try {
-        while (true) {
+        while (!stop) {
           // wait the polling interval
           await sleep(pollingInterval!);
 
