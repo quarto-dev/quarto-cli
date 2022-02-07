@@ -8,6 +8,7 @@ website:
     left:
       - href: index<%= ext %>
         text: Home
+    right:
       - about<%= ext %>
 
 format:

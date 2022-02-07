@@ -1,0 +1,23 @@
+<% 
+const imgClz = about.options['image-shape'] ? `
+  ${about.options['image-shape']}` : ""; 
+
+const imageSize = () => {
+  const width = about.options['image-width'];
+  if (width !== undefined) {
+    if (about.options['image-shape'] === "round") {
+      return `style='height: ${width}; width: ${width};'`;
+    } else {
+      return `style='width: ${width};'`;
+    }
+  } else {
+    return "";
+  }
+}
+
+const customClz = imgOpts.classes !== undefined ? imgOpts.classes : "";
+
+  %> 
+<% if (about.image) { %>
+<img src="<%= about.image %>" class="about-image<%= imgClz %> <%= customClz %>" <%= imageSize() %> />
+<%}%>

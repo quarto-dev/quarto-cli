@@ -1,0 +1,317 @@
+/*-- scss:mixins --*/
+@mixin responsive-buttons {
+  display: flex;
+  @include media-breakpoint-up(lg) {
+    flex-direction: row;
+    column-gap: 0.8em;
+    row-gap: 15px;
+    flex-wrap: wrap;
+  }
+  @include media-breakpoint-down(lg) {
+    flex-direction: column;
+    row-gap: 1em;
+    width: 100%;
+    padding-bottom: 1.5em;
+  }
+}
+
+@mixin responsive-button {
+  @include media-breakpoint-up(lg) {
+    font-size: 0.8em;
+    padding: 0.25em 0.5em;
+    border-radius: 4px;
+  }
+
+  @include media-breakpoint-down(lg) {
+    font-size: 1.1em;
+    padding: 0.5em 0.5em;
+    text-align: center;
+    border-radius: 6px;
+  }
+
+  color: lighten($body-color, 20%);
+  text-decoration: none;
+  &:hover {
+    color: $link-color;
+  }
+
+  border: solid 1px;
+
+  i.bi {
+    margin-right: 0.15em;
+  }
+}
+
+@mixin image-shapes {
+  img.round {
+    border-radius: 50%;
+  }
+
+  img.rounded {
+    border-radius: 10px;
+  }
+}
+
+/*-- scss:rules --*/
+
+// Jolla
+
+div.jolla {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10%;
+
+  .about-image {
+    object-fit: cover;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1.5em;
+  }
+  @include image-shapes();
+
+  h2 {
+    border-bottom: none;
+  }
+
+  .about-sep {
+    width: 60%;
+  }
+
+  main {
+    text-align: center;
+  }
+
+  .about-links {
+    @include responsive-buttons();
+  }
+
+  .about-link {
+    @include responsive-button();
+  }
+}
+
+// Solana
+div.solana {
+  display: flex !important;
+  flex-direction: column;
+  padding-top: 3em !important;
+
+  .about-entity {
+    display: flex !important;
+
+    @include media-breakpoint-up(lg) {
+      flex-direction: row;
+    }
+    @include media-breakpoint-down(lg) {
+      flex-direction: column-reverse;
+      align-items: center;
+      text-align: center;
+    }
+
+    align-items: start;
+    justify-content: space-between;
+
+    .entity-contents {
+      display: flex;
+      flex-direction: column;
+      @include media-breakpoint-down(md) {
+        width: 100%;
+      }
+    }
+
+    .about-image {
+      object-fit: cover;
+      @include media-breakpoint-down(lg) {
+        margin-bottom: 1.5em;
+      }
+    }
+    @include image-shapes();
+
+    .about-links {
+      @include responsive-buttons();
+      justify-content: left;
+      padding-bottom: 1.2em;
+    }
+
+    .about-link {
+      @include responsive-button();
+    }
+  }
+
+  .about-contents {
+    padding-right: 1.5em;
+
+    flex-basis: 0;
+    flex-grow: 1;
+    main.content {
+      margin-top: 0;
+    }
+    h2 {
+      border-bottom: none;
+    }
+  }
+}
+
+// Trestles
+div.trestles {
+  display: flex !important;
+  flex-direction: row;
+  padding-top: 3em !important;
+
+  @include media-breakpoint-down(lg) {
+    flex-direction: column;
+    padding-top: 0em !important;
+  }
+
+  .about-entity {
+    @include media-breakpoint-up(lg) {
+      //max-width: 42%;
+      flex: 0 0 42%;
+    }
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-right: 1em;
+
+    .about-image {
+      object-fit: cover;
+      margin-bottom: 1.5em;
+    }
+    @include image-shapes();
+
+    .about-links {
+      @include responsive-buttons();
+      justify-content: center;
+    }
+
+    .about-link {
+      @include responsive-button();
+    }
+  }
+
+  .about-contents {
+    flex-basis: 0;
+    flex-grow: 1;
+
+    h2 {
+      border-bottom: none;
+    }
+
+    @include media-breakpoint-up(lg) {
+      border-left: solid 1px $border-color;
+      padding-left: 1.5em;
+    }
+
+    main.content {
+      margin-top: 0;
+    }
+  }
+}
+
+// Marquee
+div.marquee {
+  margin-top: 0;
+  padding-top: 0 !important;
+
+  .about-image {
+    max-height: 550px;
+    margin-bottom: 1.5em;
+    object-fit: cover;
+  }
+  @include image-shapes();
+
+  h2 {
+    border-bottom: none;
+  }
+
+  .about-footer {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding-top: 1.5em;
+  }
+
+  .about-sep {
+    width: 60%;
+  }
+
+  .about-links {
+    @include responsive-buttons();
+  }
+
+  .about-link {
+    @include responsive-button();
+    @include media-breakpoint-up(lg) {
+      border: none;
+    }
+  }
+}
+
+// Broadside
+div.broadside {
+  display: flex;
+  flex-direction: column;
+
+  .about-main {
+    display: flex !important;
+    padding-top: 0 !important;
+    @include media-breakpoint-up(lg) {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    @include media-breakpoint-down(lg) {
+      flex-direction: column;
+    }
+
+    .about-entity {
+      @include media-breakpoint-down(lg) {
+        flex-shrink: 0;
+        width: 100%;
+        height: 450px;
+        margin-bottom: 1.5em;
+        background-size: cover;
+        background-repeat: no-repeat;
+      }
+      @include media-breakpoint-up(lg) {
+        flex: 0 10 50%;
+        margin-right: 1.5em;
+        width: 100%;
+        height: 100%;
+        background-size: 100%;
+        background-repeat: no-repeat;
+      }
+    }
+
+    .about-contents {
+      padding-top: 14px;
+      flex: 0 0 50%;
+    }
+  }
+
+  h2 {
+    border-bottom: none;
+  }
+
+  .about-sep {
+    margin-top: 1.5em;
+    width: 60%;
+    align-self: center;
+  }
+
+  .about-links {
+    @include responsive-buttons();
+    justify-content: center;
+    column-gap: 20px;
+    padding-top: 1.5em;
+  }
+
+  .about-link {
+    @include responsive-button();
+    @include media-breakpoint-up(lg) {
+      border: none;
+    }
+  }
+}
