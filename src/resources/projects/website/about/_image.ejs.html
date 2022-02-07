@@ -14,7 +14,10 @@ const imageSize = () => {
     return "";
   }
 }
+
+const customClz = imgOpts.classes !== undefined ? imgOpts.classes : "";
+
   %> 
 <% if (about.image) { %>
-<img src="<%= about.image %>" class="about-image<%= imgClz %>" <%= imageSize() %> />
+<img src="<%= about.image %>" class="about-image<%= imgClz %> <%= customClz %>" <%= imageSize() %> />
 <%}%>

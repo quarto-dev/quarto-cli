@@ -1,6 +1,8 @@
 <div class="marquee">
-  <% partial('_image.ejs.html', { about }) %> <%= about.title %><%= about.body
-  %><%= about.title %><%= about.body %> <% if (about.links) { %>
-  <div class="about-footer"><% partial('_links.ejs.html', { about }) %></div>
+  <% partial('_image.ejs.html', { about, imgOpts: {classes: 'column-screen'} }) %> <%= about.title %><%= about.body
+  %> <% if (about.links) { %>
+  <div class="about-footer">
+    <% partial('_links.ejs.html', { about }) %>
+  </div>
   <% } %>
 </div>
