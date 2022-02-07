@@ -393,8 +393,13 @@ function websiteTemplate(
         },
         {
           name: "about",
-          content: "About this blog",
           title: "About",
+          content: "About this blog",
+          yaml:
+            `about:\n  template: jolla\n  image: profile.jpg\n  links:\n    - icon: twitter\n      text: Twitter\n      href: https://www.twitter.com\n    - icon: linkedin\n      text: LinkedIn\n      href: https://www.linkedin.com\n    - icon: github\n      text: Github\n      href: https://www.github.com\n`,
+          supporting: [
+            join(resourceDir, "templates", "blog", "profile.jpg"),
+          ],
           noEngineContent: true,
         },
       ],
