@@ -31,6 +31,8 @@ const kAbout = "about";
 const kTemplate = "template";
 const kLinks = "links";
 
+const kImageWidth = "image-width";
+
 const kImageShape = "image-shape";
 const kImageShapeSquare = "square";
 const kImageShapeRound = "round";
@@ -175,6 +177,20 @@ async function readAbout(
           aboutPage.options[kImageShape] = kImageShapeRounded;
         } else if (aboutTemplate === kTemplateTrestles) {
           aboutPage.options[kImageShape] = kImageShapeRounded;
+        }
+      }
+
+      if (aboutPage.options[kImageWidth] === undefined) {
+        if (aboutTemplate === kTemplateJolla) {
+          aboutPage.options[kImageWidth] = "15em";
+        } else if (aboutTemplate === kTemplateSolana) {
+          aboutPage.options[kImageWidth] = "15em";
+        } else if (aboutTemplate === kTemplateTrestles) {
+          aboutPage.options[kImageWidth] = "20em";
+        } else if (aboutTemplate === kTemplateMarquee) {
+          aboutPage.options[kImageWidth] = "100%";
+        } else if (aboutTemplate === kTemplateBroadside) {
+          aboutPage.options[kImageWidth] = "15em";
         }
       }
 

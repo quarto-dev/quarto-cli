@@ -48,7 +48,7 @@
   }
 
   img.rounded {
-    border-radius: 8px;
+    border-radius: 10px;
   }
 }
 
@@ -63,8 +63,6 @@ div.jolla {
   margin-top: 10%;
 
   .about-image {
-    height: 10em;
-    width: 10em;
     object-fit: cover;
     margin-left: auto;
     margin-right: auto;
@@ -123,7 +121,6 @@ div.solana {
     }
 
     .about-image {
-      height: 15em;
       object-fit: cover;
       @include media-breakpoint-down(lg) {
         margin-bottom: 1.5em;
@@ -169,7 +166,7 @@ div.trestles {
 
   .about-entity {
     @include media-breakpoint-up(lg) {
-      max-width: 42%;
+      //max-width: 42%;
       flex: 0 0 42%;
     }
     display: flex !important;
@@ -179,7 +176,6 @@ div.trestles {
     padding-right: 1em;
 
     .about-image {
-      width: 15em;
       object-fit: cover;
       margin-bottom: 1.5em;
     }
@@ -220,9 +216,7 @@ div.marquee {
   padding-top: 0 !important;
 
   .about-image {
-    width: 100%;
     max-height: 550px;
-
     margin-bottom: 1.5em;
     object-fit: cover;
   }
