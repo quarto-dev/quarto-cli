@@ -31,7 +31,7 @@
 
   color: lighten($body-color, 20%);
   text-decoration: none;
-  :hover {
+  &:hover {
     color: $link-color;
   }
 
