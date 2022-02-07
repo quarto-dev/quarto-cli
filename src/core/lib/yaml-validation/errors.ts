@@ -45,7 +45,11 @@ import {
   normalizeCaseConvention,
 } from "../text.ts";
 
+import { schemaType } from "./validator/types.ts";
+
 import { getBadKey } from "./ajv-error.ts";
+
+import { schemaDescription } from "../../schema/common.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -127,27 +131,8 @@ function getErrorSchema(
   parse: AnnotatedParse,
   schema: Schema,
 ): Schema {
-  const errorSchema = (error.ajvError.params && error.ajvError.params.schema) ||
-    error.ajvError.parentSchema;
-  if (errorSchema === undefined) {
-    if (schema.$id) {
-      // we need to get information from the _unnormalized_ schema, because
-      // the one reported by ajv has no additional metadata.
-      return resolveSchema({ $ref: schema.$id });
-    } else {
-      // this could mean an unnormalized schema...
-      return schema;
-    }
-  } else {
-    if (errorSchema.$id) {
-      // we need to get information from the _unnormalized_ schema, because
-      // the one reported by ajv has no additional metadata.
-      return resolveSchema({ $ref: errorSchema.$id });
-    } else {
-      // this could mean an unnormalized schema...
-      return errorSchema;
-    }
-  }
+  // FINISHME this should go away when we replace ajv, so we just appease the typechecker here.
+  return schema;
 }
 
 function innerDescription(
@@ -160,9 +145,9 @@ function innerDescription(
     error.ajvError.parentSchema;
   const innerSchema = errorSchema
     ? [errorSchema]
-    : navigateSchemaByInstancePath(schemaPath.map(decodeURIComponent), schema);
+    : navigateSchemaByInstancePath(schema, schemaPath.map(decodeURIComponent));
 
-  return innerSchema.map((s: Schema) => s.description).join(", ");
+  return innerSchema.map(schemaDescription).join(", ");
 }
 
 function formatHeadingForKeyError(
@@ -335,7 +320,7 @@ function checkForBadBoolean(
   if (
     !(typeof error.violatingObject.result === "string" &&
       error.ajvError.keyword === "type" &&
-      (schema && schema.type === "boolean"))
+      (schemaType(schema) === "boolean"))
   ) {
     return error;
   }

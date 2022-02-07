@@ -34,11 +34,11 @@ import { isSelfContained } from "../../command/render/render.ts";
 
 import {
   arraySchema as arrayS,
-  BooleanSchema as BooleanS,
+  booleanSchema as booleanS,
   idSchema as withId,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
-  StringSchema as StringS,
+  stringSchema as stringS,
 } from "../../core/schema/common.ts";
 
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
@@ -113,27 +113,26 @@ interface RevealPluginScript {
 }
 
 const scriptSchema = oneOfS(
-  StringS,
+  stringS,
   objectS({
     properties: {
-      path: StringS,
-      "async": BooleanS,
+      path: stringS,
+      "async": booleanS,
     },
     required: ["path"],
     // FIXME is this an exhaustive schema?
   }),
 );
-
 export const revealPluginSchema = withId(
   objectS({
     properties: {
-      path: StringS,
-      name: StringS,
-      register: BooleanS,
+      path: stringS,
+      name: stringS,
+      register: booleanS,
       script: oneOfS(scriptSchema, arrayS(scriptSchema)),
-      stylesheet: oneOfS(StringS, arrayS(StringS)),
+      stylesheet: oneOfS(stringS, arrayS(stringS)),
       // FIXME what's the schema for metadata?
-      [kSelfContained]: BooleanS,
+      [kSelfContained]: booleanS,
     },
     required: ["name"],
     // FIXME is this an exhaustive schema?

@@ -16,15 +16,28 @@ import {
   ValidatorErrorHandlerFunction,
 } from "./errors.ts";
 
+import { RefSchema, schemaType } from "./validator/types.ts";
+
 const yamlValidators: Record<string, YAMLSchema> = {};
-const validatorQueues: Record<string, PromiseQueue<void>> = {};
 
 function getSchemaName(schema: Schema): string {
-  const schemaName = schema["$id"] || schema["$ref"];
-  if (schemaName === undefined) {
+  if (schema === true || schema === false) {
     throw new Error("Expected schema to be named");
   }
-  return schemaName as string;
+
+  let schemaName = schema["$id"];
+  if (schemaName !== undefined) {
+    return schemaName;
+  }
+
+  if (schemaType(schema) === "ref") {
+    schemaName = (schema as RefSchema)["$ref"];
+  }
+  if (schemaName !== undefined) {
+    return schemaName;
+  }
+
+  throw new Error("Expected schema to be named");
 }
 
 function getValidator(schema: Schema): YAMLSchema {
@@ -47,21 +60,14 @@ export async function withValidator<T>(
   fun: (validator: YAMLSchema) => Promise<T>,
 ): Promise<T> {
   const schemaName = getSchemaName(schema); // name of schema so we can look it up on the validator cache
-  if (validatorQueues[schemaName] === undefined) {
-    validatorQueues[schemaName] = new PromiseQueue();
-  }
-  const queue = validatorQueues[schemaName]!;
-
   let result: T | undefined;
   let error;
-  await queue.enqueue(async () => {
-    try {
-      const validator = getValidator(schema);
-      result = await fun(validator);
-    } catch (e) {
-      error = e;
-    }
-  });
+  try {
+    const validator = getValidator(schema);
+    result = await fun(validator);
+  } catch (e) {
+    error = e;
+  }
 
   if (error !== undefined) {
     throw error;

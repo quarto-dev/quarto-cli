@@ -25,25 +25,60 @@ import { mergeConfigs } from "../config.ts";
 
 import { CaseConvention, resolveCaseConventionRegex } from "../lib/text.ts";
 
-export const BooleanSchema = {
+import {
+  AllOfSchema,
+  AnyOfSchema,
+  ArraySchema,
+  BooleanSchema,
+  ConcreteSchema,
+  EnumSchema,
+  NullSchema,
+  NumberSchema,
+  ObjectSchema,
+  OneOfSchema,
+  RefSchema,
+  schemaType,
+  StringSchema,
+} from "../lib/yaml-validation/validator/types.ts";
+
+////////////////////////////////////////////////////////////////////////////////
+
+export const booleanSchema: BooleanSchema = {
   "type": "boolean",
   "description": "be `true` or `false`",
   "completions": ["true", "false"],
   "exhaustiveCompletions": true,
 };
 
-export const NumberSchema = {
+export const numberSchema: NumberSchema = {
   "type": "number",
   "description": "be a number",
 };
 
-export const IntegerSchema = {
+export const integerSchema: NumberSchema = {
   "type": "integer",
   "description": "be an integral number",
 };
 
+export const stringSchema: StringSchema = {
+  "type": "string",
+  "description": "be a string",
+};
+
+// NB this is different from a schema that accepts nothing
+// this schema accepts `null`
+export const nullSchema: NullSchema = {
+  "type": "null",
+  "description": "be the null value",
+  "completions": ["null"],
+  "exhaustiveCompletions": true,
+};
+
 // deno-lint-ignore no-explicit-any
-export function tagSchema(schema: Schema, tags: Record<string, any>): Schema {
+export function tagSchema<T extends ConcreteSchema>(
+  schema: T,
+  tags: Record<string, any>,
+): T {
   return {
     ...schema,
     tags: mergeConfigs(schema?.tags ?? {}, tags),
@@ -58,35 +93,22 @@ export function numericSchema(obj: {
   "exclusiveMaximum"?: number;
   "multipleOf"?: number;
   "description"?: string;
-}) {
+}): NumberSchema {
   return Object.assign({
     description: "be a number",
   }, obj);
 }
 
-export const StringSchema = {
-  "type": "string",
-  "description": "be a string",
-};
+// export const anySchema = {
+//   "description": "be anything",
+// };
 
-export const anySchema = {
-  "description": "be anything",
-};
-
-// NB this is different from a schema that accepts nothing
-// this schema accepts `null`
-export const NullSchema = {
-  "type": "null",
-  "description": "be the null value",
-  "completions": ["null"],
-  "exhaustiveCompletions": true,
-};
-
-export function enumSchema(...args: string[]) {
+export function enumSchema(...args: string[]): EnumSchema {
   if (args.length === 0) {
     throw new Error("Internal Error: Empty enum schema not supported.");
   }
   return {
+    "type": "enum",
     "enum": args,
     "description": args.length > 1
       ? `be one of: ${args.map((x) => "`" + x + "`").join(", ")}`
@@ -96,7 +118,7 @@ export function enumSchema(...args: string[]) {
   };
 }
 
-export function regexSchema(arg: string, description?: string) {
+export function regexSchema(arg: string, description?: string): StringSchema {
   const result: Schema = {
     "type": "string",
     "pattern": arg,
@@ -109,29 +131,45 @@ export function regexSchema(arg: string, description?: string) {
   return result;
 }
 
-export function oneOfSchema(...args: Schema[]) {
+export function schemaDescription(schema: Schema): string {
+  if (schema === true) {
+    return `be anything`;
+  } else if (schema === false) {
+    return `be no possible value`;
+    // this is clunky phrasing because
+    // of `be ...` requirement for
+    // descriptions
+  } else {
+    return schema.description || `be ${schemaType(schema)}`;
+  }
+}
+
+export function oneOfSchema(...args: Schema[]): OneOfSchema {
   return {
+    "type": "oneOf",
     "oneOf": args,
     "description": `be exactly one of: ${
-      args.map((x) => x.description.slice(3)).join(", ")
+      args.map((x) => schemaDescription(x).slice(3)).join(", ")
     }`,
   };
 }
 
-export function anyOfSchema(...args: Schema[]) {
+export function anyOfSchema(...args: Schema[]): AnyOfSchema {
   return {
+    "type": "anyOf",
     "anyOf": args,
     "description": `be at least one of: ${
-      args.map((x) => x.description.slice(3)).join(", ")
+      args.map((x) => schemaDescription(x).slice(3)).join(", ")
     }`,
   };
 }
 
-export function allOfSchema(...args: Schema[]) {
+export function allOfSchema(...args: Schema[]): AllOfSchema {
   return {
+    "type": "allOf",
     "allOf": args,
     "description": `be all of: ${
-      args.map((x) => x.description.slice(3)).join(", ")
+      args.map((x) => schemaDescription(x).slice(3)).join(", ")
     }`,
   };
 }
@@ -146,10 +184,10 @@ export function objectSchema(params: {
   additionalProperties?: Schema;
   description?: string;
   // deno-lint-ignore no-explicit-any
-  baseSchema?: any; // TODO this should have the type of the result of objectSchema()
+  baseSchema?: ObjectSchema;
   completions?: { [k: string]: string };
   namingConvention?: CaseConvention[] | "ignore";
-} = {}) {
+} = {}): ObjectSchema {
   let {
     properties,
     patternProperties,
@@ -253,18 +291,7 @@ export function objectSchema(params: {
 
     if (propertyNames !== undefined) {
       if (result.propertyNames !== undefined) {
-        // this is a convoluted-but-unavoidable way to say "create a regexp that is
-        // the conjunction of these two regexps" using javascript-allowed regexes.
-        // by de morgan's laws, A AND B = !(!A or !B)
-
-        const not = (s: string) => `^(?!${s})`;
-        const or = (s1: string, s2: string) => `(${s1}|${s2})`;
-        const and = (s1: string, s2: string) => not(or(not(s1), not(s2)));
-
-        result.propertyNames = {
-          type: "string",
-          pattern: and(propertyNames.pattern, result.propertyNames.pattern),
-        };
+        result.propertyNames = allOfSchema(propertyNames, result.propertyNames);
       } else {
         result.propertyNames = propertyNames;
       }
@@ -315,12 +342,13 @@ export function objectSchema(params: {
   return result;
 }
 
-export function arraySchema(items?: Schema) {
+export function arraySchema(items?: Schema): ArraySchema {
   if (items) {
     return {
       "type": "array",
-      "description": `be an array of values, where each element should ` +
-        items.description,
+      "description": `be an array of values, where each element must ${
+        schemaDescription(items)
+      }`,
       items,
     };
   } else {
@@ -331,20 +359,29 @@ export function arraySchema(items?: Schema) {
   }
 }
 
-export function documentSchema(schema: Schema, doc: string) {
+export function documentSchema<T extends ConcreteSchema>(
+  schema: T,
+  doc: string,
+): T {
   const result = Object.assign({}, schema);
   result.documentation = doc;
   return result;
 }
 
 // this overrides the automatic description
-export function describeSchema(schema: Schema, description: string) {
+export function describeSchema<T extends ConcreteSchema>(
+  schema: T,
+  description: string,
+): T {
   const result = Object.assign({}, schema);
   result.description = `be ${description}`;
   return result;
 }
 
-export function completeSchema(schema: Schema, ...completions: Completion[]) {
+export function completeSchema<T extends ConcreteSchema>(
+  schema: T,
+  ...completions: string[]
+): T {
   const result = Object.assign({}, schema);
   const prevCompletions = (schema.completions ?? []).slice();
   prevCompletions.push(...completions);
@@ -352,22 +389,25 @@ export function completeSchema(schema: Schema, ...completions: Completion[]) {
   return result;
 }
 
-export function completeSchemaOverwrite(
-  schema: Schema,
-  ...completions: Completion[]
-) {
+export function completeSchemaOverwrite<T extends ConcreteSchema>(
+  schema: T,
+  ...completions: string[]
+): T {
   const result = Object.assign({}, schema);
   result.completions = completions;
   return result;
 }
 
-export function idSchema(schema: Schema, id: string) {
+export function idSchema<T extends ConcreteSchema>(schema: T, id: string): T {
   const result = Object.assign({}, schema);
   result["$id"] = id;
   return result;
 }
 
-export function errorMessageSchema(schema: Schema, errorMessage: string) {
+export function errorMessageSchema<T extends ConcreteSchema>(
+  schema: T,
+  errorMessage: string,
+): T {
   return {
     ...schema,
     errorMessage,
@@ -376,8 +416,9 @@ export function errorMessageSchema(schema: Schema, errorMessage: string) {
 
 // JSON schemas don't even allow $ref to have descriptions,
 // but we use it here to allow our automatic description creation
-export function refSchema($ref: string, description: string) {
+export function refSchema($ref: string, description: string): RefSchema {
   return {
+    "type": "ref",
     $ref,
     description,
   };
@@ -386,8 +427,9 @@ export function refSchema($ref: string, description: string) {
 export function valueSchema(
   val: number | boolean | string,
   description?: string,
-) {
+): EnumSchema {
   return {
+    "type": "enum",
     "enum": [val], // enum takes non-strings too (!)
     "description": description ?? `be ${JSON.stringify(val)}`,
   };

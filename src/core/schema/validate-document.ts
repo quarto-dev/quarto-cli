@@ -21,6 +21,9 @@ import { relative } from "path/mod.ts";
 import { reportOnce } from "../lib/errors.ts";
 
 import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
+import { isObject } from "../lodash.ts";
+
+import { JSONValue } from "../lib/yaml-validation/validator/types.ts";
 
 export async function validateDocumentFromSource(
   src: string,
@@ -63,7 +66,13 @@ export async function validateDocumentFromSource(
       }],
     );
     const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
-    if (annotation.result?.validate !== false) {
+
+    if (
+      annotation.result === null ||
+      !isObject(annotation.result) ||
+      ((annotation.result as { [key: string]: JSONValue })["validate-yaml"] !==
+        false)
+    ) {
       const frontMatterSchema = await getFrontMatterSchema();
 
       await withValidator(frontMatterSchema, async (frontMatterValidator) => {

@@ -18,24 +18,24 @@ import {
 
 import {
   addValidatorErrorHandler,
-  withValidator,
 } from "../lib/yaml-validation/validator-queue.ts";
 
 import {
   getSchemaDefinition,
   hasSchemaDefinition,
-  normalizeSchema,
   Schema,
   setSchemaDefinition,
 } from "../lib/yaml-validation/schema.ts";
 
+import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
+
 export function defineCached(
   thunk: () => Promise<
-    { schema: Schema; errorHandlers: ValidatorErrorHandlerFunction[] }
+    { schema: ConcreteSchema; errorHandlers: ValidatorErrorHandlerFunction[] }
   >,
   schemaId: string,
-): (() => Promise<Schema>) {
-  let schema: Schema;
+): (() => Promise<ConcreteSchema>) {
+  let schema: ConcreteSchema;
 
   return async () => {
     // when running on the CLI outside of quarto build-js, these
@@ -43,8 +43,8 @@ export function defineCached(
     if (hasSchemaDefinition(schemaId)) {
       schema = getSchemaDefinition(schemaId);
       return refSchema(
-        schema!.$id as string,
-        (schema!.description as string) || `be a {schema['$id']}`,
+        schema.$id as string,
+        schema.description || `be a {schema['$id'] as string}`,
       );
     }
 
@@ -67,10 +67,11 @@ export function defineCached(
 }
 
 export async function define(schema: Schema) {
-  if (!hasSchemaDefinition(schema.$id)) {
+  if (
+    schema !== true && schema !== false && schema.$id &&
+    !hasSchemaDefinition(schema.$id)
+  ) {
     setSchemaDefinition(schema);
-    await withValidator(normalizeSchema(schema), async (_validator) => {
-    });
   }
 }
 
@@ -91,7 +92,5 @@ export async function loadSchemaDefinitions(file: string) {
       throw new Error(`Internal error: unnamed schema in definitions`);
     }
     setSchemaDefinition(schema);
-    await withValidator(normalizeSchema(schema), async (_validator) => {
-    });
   }));
 }

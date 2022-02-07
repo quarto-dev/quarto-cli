@@ -23,6 +23,8 @@ import {
 } from "../lib/errors.ts";
 import { defineCached } from "./definitions.ts";
 
+import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
+
 function checkForEqualsInChunk(
   error: LocalizedError,
   _parse: AnnotatedParse,
@@ -78,7 +80,7 @@ function checkForEqualsInChunk(
   };
 }
 
-const makeEngineSchema = (engine: string): Schema =>
+const makeEngineSchema = (engine: string): ConcreteSchema =>
   idSchema(
     objectRefSchemaFromContextGlob(
       "cell-*",
@@ -130,7 +132,7 @@ const jupyterEngineSchema = defineCached(
 );
 
 export async function getEngineOptionsSchema(): Promise<
-  Record<string, Schema>
+  Record<string, ConcreteSchema>
 > {
   const obj = {
     markdown: await markdownEngineSchema(),

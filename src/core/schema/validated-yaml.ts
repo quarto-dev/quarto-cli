@@ -19,6 +19,10 @@ import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 import { relative } from "path/mod.ts";
 import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 
+import { isObject } from "../lodash.ts";
+
+import { JSONValue } from "../lib/yaml-validation/validator/types.ts";
+
 // https://stackoverflow.com/a/41429145
 export class ValidationError extends Error {
   validationErrors: LocalizedError[];
@@ -56,7 +60,9 @@ export async function readAndValidateYamlFromMappedString(
 ): Promise<{ [key: string]: unknown }> {
   const result = await withValidator(schema, async (validator) => {
     const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
-    const validateYaml = !(annotation.result?.["validate-yaml"] === false);
+    const validateYaml = isObject(annotation.result) &&
+      (annotation.result as { [key: string]: JSONValue })["validate-yaml"] !==
+        false;
 
     const yaml = annotation.result;
     if (validateYaml) {

@@ -20,9 +20,7 @@ import {
   getSchemaDefinitionsObject,
   Schema,
   setSchemaDefinition,
-  walkSchema,
 } from "../lib/yaml-validation/schema.ts";
-import { exportStandaloneValidators } from "./yaml-schema.ts";
 import { getFormatAliases } from "./format-aliases.ts";
 import { TempContext } from "../temp.ts";
 import { ensureAjv } from "./yaml-schema.ts";
@@ -39,6 +37,10 @@ import { pandocBinaryPath } from "../resources.ts";
 
 import { execProcess } from "../process.ts";
 
+import { walkSchema } from "../lib/yaml-validation/schema-utils.ts";
+
+import { SchemaDocumentation } from "../lib/yaml-validation/validator/types.ts";
+
 ////////////////////////////////////////////////////////////////////////////////
 
 export async function buildSchemaFile(temp: TempContext) {
@@ -53,13 +55,6 @@ export async function buildSchemaFile(temp: TempContext) {
   obj.definitions = getSchemaDefinitionsObject();
   const str = JSON.stringify(obj);
   const path = resourcePath("/editor/tools/yaml/quarto-json-schemas.json");
-
-  const validatorPath = resourcePath(
-    "/editor/tools/yaml/standalone-schema-validators.js",
-  );
-  const validatorModule = await exportStandaloneValidators(temp);
-
-  Deno.writeTextFileSync(validatorPath, validatorModule);
   return Deno.writeTextFile(path, str);
 }
 
@@ -71,8 +66,12 @@ async function patchMarkdownDescriptions() {
 
   for (const schema of schemaList) {
     walkSchema(schema, (s: Schema) => {
-      const description = s?.tags?.description;
-      if (!description) {
+      if (s === false || s === true) {
+        return;
+      }
+      const description = s?.tags
+        ?.description as (SchemaDocumentation | undefined);
+      if (description === undefined) {
         return;
       }
       result.push(`## annotation\n`);
@@ -88,6 +87,7 @@ async function patchMarkdownDescriptions() {
         result.push(description?.long || "");
         result.push("");
       }
+      return;
     });
   }
   // build the pandoc command (we'll feed it the input on stdin)
@@ -152,6 +152,9 @@ async function patchMarkdownDescriptions() {
 
   for (const schema of schemaList) {
     walkSchema(schema, (s: Schema) => {
+      if (s === false || s === true) {
+        return;
+      }
       const description = s?.tags?.description;
       if (!description) {
         return;

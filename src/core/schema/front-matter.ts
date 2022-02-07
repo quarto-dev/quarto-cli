@@ -11,7 +11,7 @@ import {
   allOfSchema as allOfS,
   completeSchema,
   describeSchema,
-  NullSchema as nullS,
+  nullSchema as nullS,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
   regexSchema as regexS,
@@ -61,13 +61,7 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
       if (hidden) {
         return schema;
       }
-      return completeSchema(schema, {
-        type: "value",
-        display: "",
-        suggest_on_accept: true,
-        value: name,
-        description: "",
-      });
+      return completeSchema(schema, name);
     },
   );
   const completionsObject = Object.fromEntries(

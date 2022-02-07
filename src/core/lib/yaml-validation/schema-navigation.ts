@@ -24,9 +24,9 @@ import { schemaType } from "./schema.ts";
 // by ajv
 export function navigateSchemaBySchemaPath(
   path: string[],
-  schema: Schema,
+  schema: any,
   pathIndex = 0,
-): Schema[] {
+): any[] {
   schema = resolveSchema(schema);
   if (pathIndex >= path.length - 1) {
     return [schema];
@@ -36,7 +36,7 @@ export function navigateSchemaBySchemaPath(
   // we have to check if the _current_ schema is an allOf, and just
   // iterate over all of them and concatenate. Maybe? :shrug: ?
   if (schema.allOf !== undefined) {
-    return schema.allOf.map((s: Schema) =>
+    return schema.allOf.map((s: any) =>
       navigateSchemaBySchemaPath(path, s, pathIndex)
     )
       .flat();
@@ -69,10 +69,10 @@ export function navigateSchemaBySchemaPath(
 // returning the set of schema that could be navigated to by the particular
 // sequence of keys (and array offsets)
 export function navigateSchemaByInstancePath(
-  schema: Schema,
+  schema: any,
   path: (number | string)[],
-): Schema[] {
-  const inner = (subSchema: Schema, index: number): Schema[] => {
+): any[] {
+  const inner = (subSchema: any, index: number): any[] => {
     subSchema = resolveSchema(subSchema);
     if (index === path.length) {
       return [subSchema];
@@ -111,11 +111,11 @@ export function navigateSchemaByInstancePath(
       }
       return inner(subSchema.items, index + 1);
     } else if (st === "anyOf") {
-      return subSchema.anyOf.map((ss: Schema) => inner(ss, index));
+      return subSchema.anyOf.map((ss: any) => inner(ss, index));
     } else if (st === "allOf") {
-      return subSchema.allOf.map((ss: Schema) => inner(ss, index));
+      return subSchema.allOf.map((ss: any) => inner(ss, index));
     } else if (st === "oneOf") {
-      return subSchema.oneOf.map((ss: Schema) => inner(ss, index));
+      return subSchema.oneOf.map((ss: any) => inner(ss, index));
     } else {
       // if path wanted to navigate deeper but this is a YAML
       // "terminal" (not a compound type) then this is not a valid
@@ -130,9 +130,9 @@ export function navigateSchemaByInstancePath(
 // walk the actual concrete schemas ("take _this specific anyOf_
 // entry, then that specific key", and give me the resulting schema")
 export function navigateSchemaBySchemaPathSingle(
-  schema: Schema,
+  schema: any,
   path: (number | string)[],
-): Schema {
+): any {
   const ensurePathFragment = (
     fragment: (number | string),
     expected: (number | string),
@@ -144,7 +144,7 @@ export function navigateSchemaBySchemaPathSingle(
     }
   };
 
-  const inner = (subschema: Schema, index: number): Schema => {
+  const inner = (subschema: any, index: number): any => {
     if (subschema === undefined) {
       throw new Error(
         `Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`,
@@ -164,8 +164,8 @@ export function navigateSchemaBySchemaPathSingle(
       case "oneOf":
         ensurePathFragment(path[index], "oneOf");
         return inner(subschema.oneOf[path[index + 1]], index + 2);
-      case "arrayOf":
-        ensurePathFragment(path[index], "arrayOf");
+      case "array":
+        ensurePathFragment(path[index], "array");
         return inner(subschema.arrayOf.schema, index + 2);
       case "object":
         ensurePathFragment(path[index], "object");
@@ -191,7 +191,7 @@ export function navigateSchemaBySchemaPathSingle(
   return inner(schema, 0);
 }
 
-function matchPatternProperties(schema: Schema, key: string): Schema | false {
+function matchPatternProperties(schema: any, key: string): any | false {
   for (
     const [regexpStr, subschema] of Object.entries(
       schema.patternProperties || {},

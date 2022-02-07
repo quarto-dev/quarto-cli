@@ -10,7 +10,10 @@
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 import { MappedString } from "../mapped-text.ts";
-import { AnnotatedParse } from "../lib/yaml-validation/yaml-schema.ts";
+import {
+  AnnotatedParse,
+  JSONValue,
+} from "../lib/yaml-validation/validator/types.ts";
 
 export function readAnnotatedYamlFromMappedString(yml: MappedString) {
   return readAnnotatedYamlFromString(yml.value);
@@ -56,7 +59,7 @@ export function readAnnotatedYamlFromString(yml: string) {
         results.push({
           start: position - rightTrim,
           end: position - rightTrim,
-          result: result,
+          result: result as JSONValue,
           components,
           kind,
         });

@@ -19,7 +19,9 @@ import {
 
 import { enumSchema as enumS, oneOfSchema as oneOfS } from "./common.ts";
 
-function useSchema(schema: Schema, format: string) {
+import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
+
+function useSchema(schema: ConcreteSchema, format: string) {
   const formats = schema?.tags?.formats as string[] | undefined;
   if (formats === undefined) {
     return true;

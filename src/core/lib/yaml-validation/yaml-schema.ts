@@ -4,7 +4,7 @@
 * A class to manage YAML Schema validation and associated tasks like
 * error localization
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2022 by RStudio, PBC
 *
 */
 
@@ -24,11 +24,11 @@ import * as colors from "../external/colors.ts";
 
 import { getSchemaDefinition, Schema } from "./schema.ts";
 
-import { stagedValidator } from "./staged-validator.ts";
+import { navigateSchemaBySchemaPath } from "./schema-navigation.ts";
+
+import { validate } from "./validator/validator.ts";
 
 import { ErrorObject, getBadKey } from "./ajv-error.ts";
-
-import { navigateSchemaBySchemaPath } from "./schema-navigation.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -508,7 +508,6 @@ export class YAMLSchema {
   constructor(schema: Schema) {
     this.errorHandlers = [];
     this.schema = schema;
-    this.validate = stagedValidator(this.schema);
   }
 
   addHandler(
@@ -537,7 +536,7 @@ export class YAMLSchema {
     src: MappedString,
     annotation: AnnotatedParse,
   ) {
-    const validationErrors = await this.validate(annotation.result);
+    const validationErrors = validate(annotation, this.schema, src);
 
     if (validationErrors.length) {
       const localizedErrors = this.transformErrors(
