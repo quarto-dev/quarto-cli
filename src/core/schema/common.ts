@@ -35,11 +35,12 @@ import {
   NullSchema,
   NumberSchema,
   ObjectSchema,
-  OneOfSchema,
   RefSchema,
   schemaType,
   StringSchema,
 } from "../lib/yaml-validation/validator/types.ts";
+
+import { schemaDescription } from "../lib/yaml-validation/validator/types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -129,29 +130,6 @@ export function regexSchema(arg: string, description?: string): StringSchema {
     result.description = `be a string that satisfies regex "${arg}"`;
   }
   return result;
-}
-
-export function schemaDescription(schema: Schema): string {
-  if (schema === true) {
-    return `be anything`;
-  } else if (schema === false) {
-    return `be no possible value`;
-    // this is clunky phrasing because
-    // of `be ...` requirement for
-    // descriptions
-  } else {
-    return schema.description || `be ${schemaType(schema)}`;
-  }
-}
-
-export function oneOfSchema(...args: Schema[]): OneOfSchema {
-  return {
-    "type": "oneOf",
-    "oneOf": args,
-    "description": `be exactly one of: ${
-      args.map((x) => schemaDescription(x).slice(3)).join(", ")
-    }`,
-  };
 }
 
 export function anyOfSchema(...args: Schema[]): AnyOfSchema {

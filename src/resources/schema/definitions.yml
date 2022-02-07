@@ -9,7 +9,7 @@
       length: 2
 
 - id: pandoc-format-output-file
-  oneOf:
+  anyOf:
     - path
     - enum:
         values: [null]
@@ -17,7 +17,7 @@
 
 - id: pandoc-format-filters
   arrayOf:
-    oneOf:
+    anyOf:
       - path
       - record:
           type: string
@@ -152,7 +152,7 @@
                     - og:title
           required: [repo]
       hypothesis:
-        oneOf:
+        anyOf:
           - boolean
           - object:
               properties:
@@ -161,7 +161,7 @@
                     default: false
                     description: Controls whether the sidebar opens automatically on startup.
                 showHighlights:
-                  oneOf:
+                  anyOf:
                     - boolean
                     - enum: ["always", "never"]
                   default: "always"
@@ -204,7 +204,7 @@
                             default: true
                             description: A flag indicating whether annotation cards should show links that take the user to see an annotation in context.
                         groups:
-                          oneOf:
+                          anyOf:
                             - enum: ["$rpc:requestGroups"]
                             - arrayOf: string
                           description: An array of Group IDs or the literal string `$rpc:requestGroups`
@@ -307,7 +307,7 @@
           description: "Image height (pixels)"
 
 - id: page-footer-region
-  oneOf:
+  anyOf:
     - string
     - arrayOf:
         ref: navigation-item
@@ -350,7 +350,7 @@
             long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
 
       search:
-        oneOf:
+        anyOf:
           - boolean
           - object:
               properties:
@@ -412,12 +412,12 @@
         description: "Provide full text search for website"
 
       navbar:
-        oneOf:
+        anyOf:
           - boolean
           - object:
               properties:
                 title:
-                  oneOf:
+                  anyOf:
                     - string
                     - boolean
                   description: "The navbar title. Uses the project title if none is specified."
@@ -480,7 +480,7 @@
         description: "Top navigation options"
 
       sidebar:
-        oneOf:
+        anyOf:
           - boolean
           - maybeArrayOf:
               object:
@@ -489,7 +489,7 @@
                     string:
                       description: "The identifier for this sidebar."
                   title:
-                    oneOf:
+                    anyOf:
                       - string
                       - boolean
                     description: "The sidebar title. Uses the project title if none is specified."
@@ -571,7 +571,7 @@
         boolean:
           description: "Provide next and previous article links in footer"
       page-footer:
-        oneOf:
+        anyOf:
           - string
           - object:
               properties:
@@ -585,7 +585,7 @@
                   ref: page-footer-region
                   description: "Footer center content"
                 border:
-                  oneOf:
+                  anyOf:
                     - boolean
                     - string
                   description: "Footer border (`true`, `false`, or a border color)"
@@ -607,7 +607,7 @@
           ref: comments
 
       open-graph:
-        oneOf:
+        anyOf:
           - boolean
           - object:
               super:
@@ -627,7 +627,7 @@
               additionalProperties: false
         description: "Publish open graph metadata"
       twitter-card:
-        oneOf:
+        anyOf:
           - boolean
           - object:
               super:
@@ -686,7 +686,7 @@
       - roman
 
 - id: epub-contributor
-  oneOf:
+  anyOf:
     - string
     - maybeArrayOf:
         object:

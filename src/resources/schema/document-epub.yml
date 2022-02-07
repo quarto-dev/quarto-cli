@@ -3,7 +3,7 @@
   tags:
     formats: [$epub-all]
   schema: 
-    oneOf:
+    anyOf:
       - string
       - object:
           properties:
@@ -38,7 +38,7 @@
   tags:
     formats: [$epub-all]
   schema:
-    oneOf:
+    anyOf:
       - string
       - object:
           properties:
@@ -164,7 +164,7 @@
   tags:
     formats: [$epub-all]
   schema:
-    oneOf: [path, null]
+    anyOf: [path, null]
   default: EPUB
   description: |
     Specify the subdirectory in the OCF container that is to hold the

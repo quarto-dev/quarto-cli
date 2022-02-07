@@ -1,6 +1,6 @@
 - name: layout
   schema:
-    oneOf:
+    anyOf:
       - string
       - arrayOf:
           arrayOf: number

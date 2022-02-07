@@ -7,7 +7,7 @@
 
 - name: jupyter
   schema:
-    oneOf:
+    anyOf:
       - boolean
       - string
       - object:
@@ -30,7 +30,7 @@
 
 - name: knitr
   schema:
-    oneOf:
+    anyOf:
       - boolean
       - object:
           properties:
@@ -80,7 +80,7 @@
 - name: server
   hidden: true
   schema:
-    oneOf:
+    anyOf:
       - enum: [shiny]
       - object:
           properties:
@@ -98,7 +98,7 @@
 - name: daemon
   hidden: true
   schema:
-    oneOf: [number, boolean]
+    anyOf: [number, boolean]
   default: 300
   description:
     short: "Run Jupyter kernels within a peristent daemon (to mitigate kernel startup time)."

@@ -12,7 +12,6 @@ import { rangedLines } from "../ranged-text.ts";
 import { getFrontMatterSchema } from "./front-matter.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error, info } from "log/mod.ts";
-import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
@@ -23,7 +22,10 @@ import { reportOnce } from "../lib/errors.ts";
 import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 import { isObject } from "../lodash.ts";
 
-import { JSONValue } from "../lib/yaml-validation/validator/types.ts";
+import {
+  JSONValue,
+  LocalizedError,
+} from "../lib/yaml-validation/validator/types.ts";
 
 export async function validateDocumentFromSource(
   src: string,

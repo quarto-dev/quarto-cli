@@ -7,10 +7,6 @@
 *
 */
 
-import {
-  AnnotatedParse,
-  LocalizedError,
-} from "../lib/yaml-validation/yaml-schema.ts";
 import { Schema } from "../lib/yaml-validation/schema.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
@@ -23,7 +19,11 @@ import {
 } from "../lib/errors.ts";
 import { defineCached } from "./definitions.ts";
 
-import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
+import {
+  AnnotatedParse,
+  ConcreteSchema,
+  LocalizedError,
+} from "../lib/yaml-validation/validator/types.ts";
 
 function checkForEqualsInChunk(
   error: LocalizedError,

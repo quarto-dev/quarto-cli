@@ -132,7 +132,7 @@
   tags:
     formats: [revealjs]
   schema:
-    oneOf:
+    anyOf:
       - number
       - false
   default: 0

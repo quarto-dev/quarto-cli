@@ -23,7 +23,6 @@ import {
   ConcreteSchema,
   EnumSchema,
   ObjectSchema,
-  OneOfSchema,
   RefSchema,
   SchemaCall,
   schemaCall,
@@ -251,9 +250,6 @@ export function schemaCompletions(s: Schema): Completion[] {
     anyOf: (s) => {
       return s.anyOf.map(schemaCompletions).flat();
     },
-    oneOf: (s) => {
-      return s.oneOf.map(schemaCompletions).flat();
-    },
     allOf: (s) => {
       return s.allOf.map(schemaCompletions).flat();
     },
@@ -410,11 +406,6 @@ export function walkSchema(
   f: ((a: Schema) => boolean | void) | SchemaCall<boolean | void>,
 ) {
   const recur = {
-    "oneOf": (ss: OneOfSchema) => {
-      for (const s of ss.oneOf) {
-        walkSchema(s, f);
-      }
-    },
     "anyOf": (ss: AnyOfSchema) => {
       for (const s of ss.anyOf) {
         walkSchema(s, f);
@@ -444,9 +435,6 @@ export function walkSchema(
       if (x.propertyNames) {
         walkSchema(x.propertyNames, f);
       }
-    },
-    "ref": (x: RefSchema) => {
-      walkSchema(resolveSchema(x), f);
     },
   };
 

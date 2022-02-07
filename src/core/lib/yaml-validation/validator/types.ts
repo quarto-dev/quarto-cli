@@ -27,12 +27,10 @@ export type Schema =
   | StringSchema
   | NullSchema
   | EnumSchema
-  | OneOfSchema
   | AnyOfSchema
   | AllOfSchema
   | ArraySchema
   | ObjectSchema
-  | NotSchema
   | RefSchema;
 
 export type ConcreteSchema =
@@ -41,12 +39,10 @@ export type ConcreteSchema =
   | StringSchema
   | NullSchema
   | EnumSchema
-  | OneOfSchema
   | AnyOfSchema
   | AllOfSchema
   | ArraySchema
   | ObjectSchema
-  | NotSchema
   | RefSchema;
 
 export type SchemaType =
@@ -58,12 +54,10 @@ export type SchemaType =
   | "string"
   | "null"
   | "enum"
-  | "oneOf"
   | "anyOf"
   | "allOf"
   | "array"
   | "object"
-  | "not"
   | "ref";
 
 // AnnotatedParse annotates a JSONValue with textual spans and
@@ -97,7 +91,7 @@ export interface Completion {
   suggest_on_accept: boolean;
 
   // `schema` stores the concrete schema that yielded the completion.
-  // We need to carry it explicitly because of combinators like oneOf
+  // We need to carry it explicitly because of combinators like anyOf
   schema?: Schema;
 
   // the manually-generated documentation for the completion, if it exists
@@ -166,11 +160,6 @@ export interface EnumSchema extends SchemaAnnotations {
   "enum": JSONValue[];
 }
 
-export interface OneOfSchema extends SchemaAnnotations {
-  "type": "oneOf";
-  oneOf: Schema[];
-}
-
 export interface AnyOfSchema extends SchemaAnnotations {
   "type": "anyOf";
   anyOf: Schema[];
@@ -196,11 +185,6 @@ export interface ObjectSchema extends SchemaAnnotations {
   required?: string[];
   additionalProperties?: Schema;
   propertyNames?: Schema;
-}
-
-export interface NotSchema extends SchemaAnnotations {
-  "type": "not";
-  "not": Schema;
 }
 
 export interface RefSchema extends SchemaAnnotations {
@@ -240,13 +224,11 @@ interface SchemaDispatch {
   "string"?: (x: StringSchema) => unknown;
   "null"?: (x: NullSchema) => unknown;
   "enum"?: (x: EnumSchema) => unknown;
-  "oneOf"?: (x: OneOfSchema) => unknown;
   "anyOf"?: (x: AnyOfSchema) => unknown;
   "allOf"?: (x: AllOfSchema) => unknown;
   "array"?: (x: ArraySchema) => unknown;
   "object"?: (x: ObjectSchema) => unknown;
   "ref"?: (x: RefSchema) => unknown;
-  "not"?: (x: NotSchema) => unknown;
 }
 
 export interface SchemaCall<T> {
@@ -258,13 +240,11 @@ export interface SchemaCall<T> {
   "string"?: (x: StringSchema) => T;
   "null"?: (x: NullSchema) => T;
   "enum"?: (x: EnumSchema) => T;
-  "oneOf"?: (x: OneOfSchema) => T;
   "anyOf"?: (x: AnyOfSchema) => T;
   "allOf"?: (x: AllOfSchema) => T;
   "array"?: (x: ArraySchema) => T;
   "object"?: (x: ObjectSchema) => T;
   "ref"?: (x: RefSchema) => T;
-  "not"?: (x: NotSchema) => T;
 }
 
 export function schemaDispatch(s: Schema, d: SchemaDispatch): void {
@@ -310,4 +290,17 @@ export function schemaDocString(d: SchemaDocumentation): string {
     return d.short;
   }
   return "";
+}
+
+export function schemaDescription(schema: Schema): string {
+  if (schema === true) {
+    return `be anything`;
+  } else if (schema === false) {
+    return `be no possible value`;
+    // this is clunky phrasing because
+    // of `be ...` requirement for
+    // descriptions
+  } else {
+    return schema.description || `be ${schemaType(schema)}`;
+  }
 }

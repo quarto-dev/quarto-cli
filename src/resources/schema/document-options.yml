@@ -10,7 +10,7 @@
   tags:
     formats: [$html-doc, revealjs]
   schema:
-    oneOf:
+    anyOf:
       - string
       - arrayOf: string
       - object:
@@ -58,7 +58,7 @@
   tags:
     formats: [$html-doc, $epub-all, gfm, hugo]
   schema:
-    oneOf:
+    anyOf:
       - ref: math-methods
       - object:
           properties:
@@ -176,7 +176,7 @@
 
 - name: aspectratio
   schema:
-    oneOf:
+    anyOf:
       - 43
       - 169
       - 1610

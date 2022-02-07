@@ -17,7 +17,7 @@ import {
   schemaFromField,
 } from "./from-yaml.ts";
 
-import { enumSchema as enumS, oneOfSchema as oneOfS } from "./common.ts";
+import { anyOfSchema as anyOfS, enumSchema as enumS } from "./common.ts";
 
 import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
 
@@ -55,5 +55,5 @@ export function getFormatSchema(format: string): Schema {
     },
   );
 
-  return oneOfS(schema, enumS("default"));
+  return anyOfS(schema, enumS("default"));
 }

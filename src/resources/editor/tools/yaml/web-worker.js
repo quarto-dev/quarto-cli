@@ -5765,6 +5765,286 @@ if (typeof exports === 'object') {
     hasSet = true;
   }
 
+  // ../guess-chunk-options-format.ts
+  function guessChunkOptionsFormat(options) {
+    const noIndentOrColon = /^[^:\s]+[^:]+$/;
+    const chunkLines = lines(options);
+    if (chunkLines.filter((l) => l.match(noIndentOrColon)).length === 0) {
+      return "yaml";
+    }
+    if (chunkLines.some((l) => l.trim() !== "" && !l.trimRight().endsWith(",") && l.indexOf("=") === -1)) {
+      return "yaml";
+    }
+    return "knitr";
+  }
+
+  // ../partition-cell-options.ts
+  function mappedSource(source, substrs) {
+    const params = [];
+    for (const { range } of substrs) {
+      params.push(range);
+    }
+    return mappedString(source, params);
+  }
+  async function partitionCellOptionsMapped(language, source, _validate = false, _engine = "") {
+    const commentChars = langCommentChars(language);
+    const optionPrefix = optionCommentPrefix(commentChars[0]);
+    const optionSuffix = commentChars[1] || "";
+    const optionsSource = [];
+    const yamlLines = [];
+    let endOfYaml = 0;
+    for (const line of rangedLines(source.value, true)) {
+      if (line.substring.startsWith(optionPrefix)) {
+        if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
+          let yamlOption = line.substring.substring(optionPrefix.length);
+          if (optionSuffix) {
+            yamlOption = yamlOption.trimRight();
+            yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
+          }
+          endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
+          const rangedYamlOption = {
+            substring: yamlOption,
+            range: {
+              start: line.range.start + optionPrefix.length,
+              end: endOfYaml
+            }
+          };
+          yamlLines.push(rangedYamlOption);
+          optionsSource.push(line);
+          continue;
+        }
+      }
+      break;
+    }
+    const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
+    return {
+      yaml: mappedYaml,
+      optionsSource,
+      source: mappedString(source, [{
+        start: endOfYaml,
+        end: source.value.length
+      }]),
+      sourceStartLine: yamlLines.length
+    };
+  }
+  function langCommentChars(lang) {
+    const chars = kLangCommentChars[lang] || "#";
+    if (!Array.isArray(chars)) {
+      return [chars];
+    } else {
+      return chars;
+    }
+  }
+  function optionCommentPrefix(comment) {
+    return comment + "| ";
+  }
+  var kLangCommentChars = {
+    r: "#",
+    python: "#",
+    julia: "#",
+    scala: "//",
+    matlab: "%",
+    csharp: "//",
+    fsharp: "//",
+    c: ["/*", "*/"],
+    css: ["/*", "*/"],
+    sas: ["*", ";"],
+    powershell: "#",
+    bash: "#",
+    sql: "--",
+    mysql: "--",
+    psql: "--",
+    lua: "--",
+    cpp: "//",
+    cc: "//",
+    stan: "#",
+    octave: "#",
+    fortran: "!",
+    fortran95: "!",
+    awk: "#",
+    gawk: "#",
+    stata: "*",
+    java: "//",
+    groovy: "//",
+    sed: "#",
+    perl: "#",
+    ruby: "#",
+    tikz: "%",
+    js: "//",
+    d3: "//",
+    node: "//",
+    sass: "//",
+    coffee: "#",
+    go: "//",
+    asy: "//",
+    haskell: "--",
+    dot: "//",
+    ojs: "//"
+  };
+
+  // ../break-quarto-md.ts
+  async function breakQuartoMd(src, validate2 = false) {
+    const nb = {
+      cells: []
+    };
+    const yamlRegEx = /^---\s*$/;
+    const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
+    const startCodeRegEx = /^```/;
+    const endCodeRegEx = /^```\s*$/;
+    const delimitMathBlockRegEx = /^\$\$/;
+    let language = "";
+    let cellStartLine = 0;
+    const lineBuffer = [];
+    const flushLineBuffer = async (cell_type, index) => {
+      if (lineBuffer.length) {
+        const mappedChunks = [];
+        for (const line of lineBuffer) {
+          mappedChunks.push(line.range);
+        }
+        const source = mappedString(src, mappedChunks);
+        const cell = {
+          cell_type: cell_type === "code" ? { language } : cell_type,
+          source,
+          sourceOffset: 0,
+          sourceStartLine: 0,
+          sourceVerbatim: source,
+          cellStartLine
+        };
+        cellStartLine = index + 1;
+        if (cell_type === "code" && (language === "ojs" || language === "dot")) {
+          const { yaml, source: source2, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
+          const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
+          let strUpToLastBreak = "";
+          if (sourceStartLine > 0) {
+            if (breaks.length) {
+              const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
+              strUpToLastBreak = cell.source.value.substring(0, lastBreak);
+            } else {
+              strUpToLastBreak = cell.source.value;
+            }
+          }
+          cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
+          cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
+            "```{ojs}\n",
+            { start: 0, end: cell.sourceVerbatim.value.length },
+            "\n```"
+          ]);
+          cell.source = source2;
+          cell.options = yaml;
+          cell.sourceStartLine = sourceStartLine;
+        }
+        if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
+          nb.cells.push(cell);
+        }
+        lineBuffer.splice(0, lineBuffer.length);
+      }
+    };
+    let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
+    const srcLines = rangedLines(src.value, true);
+    for (let i = 0; i < srcLines.length; ++i) {
+      const line = srcLines[i];
+      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
+        if (inYaml) {
+          lineBuffer.push(line);
+          await flushLineBuffer("raw", i);
+          inYaml = false;
+        } else {
+          await flushLineBuffer("markdown", i);
+          lineBuffer.push(line);
+          inYaml = true;
+        }
+      } else if (startCodeCellRegEx.test(line.substring)) {
+        const m = line.substring.match(startCodeCellRegEx);
+        language = m[1];
+        await flushLineBuffer("markdown", i);
+        inCodeCell = true;
+      } else if (endCodeRegEx.test(line.substring)) {
+        if (inCodeCell) {
+          inCodeCell = false;
+          await flushLineBuffer("code", i);
+        } else {
+          inCode = !inCode;
+          lineBuffer.push(line);
+        }
+      } else if (startCodeRegEx.test(line.substring)) {
+        inCode = true;
+        lineBuffer.push(line);
+      } else if (delimitMathBlockRegEx.test(line.substring)) {
+        if (inMathBlock) {
+          await flushLineBuffer("math", i);
+        } else {
+          if (inYaml || inCode || inCodeCell) {
+          } else {
+            await flushLineBuffer("markdown", i);
+          }
+        }
+        inMathBlock = !inMathBlock;
+        lineBuffer.push(line);
+      } else {
+        lineBuffer.push(line);
+      }
+    }
+    await flushLineBuffer("markdown", srcLines.length);
+    return nb;
+  }
+  function mdTrimEmptyLines(lines2) {
+    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
+    if (firstNonEmpty === -1) {
+      return [];
+    }
+    lines2 = lines2.slice(firstNonEmpty);
+    let lastNonEmpty = -1;
+    for (let i = lines2.length - 1; i >= 0; i--) {
+      if (lines2[i].trim().length > 0) {
+        lastNonEmpty = i;
+        break;
+      }
+    }
+    if (lastNonEmpty > -1) {
+      lines2 = lines2.slice(0, lastNonEmpty + 1);
+    }
+    return lines2;
+  }
+
+  // ../yaml-validation/validator/types.ts
+  function schemaType(schema) {
+    if (schema === false) {
+      return "false";
+    }
+    if (schema === true) {
+      return "true";
+    }
+    return schema.type;
+  }
+  function schemaCall(s, d, other) {
+    const st = schemaType(s);
+    if (d[st]) {
+      return d[st](s);
+    }
+    if (other) {
+      return other(s);
+    }
+    throw new Error(`Internal Error: dispatch failed for type ${st}`);
+  }
+  function schemaDocString(d) {
+    if (typeof d === "string") {
+      return d;
+    }
+    if (d.short) {
+      return d.short;
+    }
+    return "";
+  }
+  function schemaDescription(schema) {
+    if (schema === true) {
+      return `be anything`;
+    } else if (schema === false) {
+      return `be no possible value`;
+    } else {
+      return schema.description || `be ${schemaType(schema)}`;
+    }
+  }
+
   // ../yaml-validation/schema.ts
   function schemaAccepts(schema, testType) {
     const t = schemaType(schema);
@@ -5772,86 +6052,12 @@ if (typeof exports === 'object') {
       return true;
     }
     switch (t) {
-      case "oneOf":
-        return schema.oneOf.some((s) => schemaAccepts(s, testType));
       case "anyOf":
         return schema.anyOf.some((s) => schemaAccepts(s, testType));
       case "allOf":
         return schema.allOf.every((s) => schemaAccepts(s, testType));
     }
     return false;
-  }
-  function schemaType(schema) {
-    const t = schema.type;
-    if (t) {
-      return t;
-    }
-    if (schema.anyOf) {
-      return "anyOf";
-    }
-    if (schema.oneOf) {
-      return "oneOf";
-    }
-    if (schema.allOf) {
-      return "allOf";
-    }
-    if (schema.enum) {
-      return "enum";
-    }
-    return "any";
-  }
-  function walkSchema(schema, f) {
-    const t = schemaType(schema);
-    if (typeof f === "function") {
-      if (f(schema) === true) {
-        return;
-      }
-    } else {
-      if (f[t] !== void 0) {
-        if (f[t](schema) === true) {
-          return;
-        }
-      }
-    }
-    switch (t) {
-      case "array":
-        if (schema.items) {
-          walkSchema(schema.items, f);
-        }
-        break;
-      case "anyOf":
-        for (const s of schema.anyOf) {
-          walkSchema(s, f);
-        }
-        break;
-      case "oneOf":
-        for (const s of schema.oneOf) {
-          walkSchema(s, f);
-        }
-        break;
-      case "allOf":
-        for (const s of schema.allOf) {
-          walkSchema(s, f);
-        }
-        break;
-      case "object":
-        if (schema.properties) {
-          for (const key of Object.getOwnPropertyNames(schema.properties)) {
-            const s = schema.properties[key];
-            walkSchema(s, f);
-          }
-        }
-        if (schema.patternProperties) {
-          for (const key of Object.getOwnPropertyNames(schema.patternProperties)) {
-            const s = schema.patternProperties[key];
-            walkSchema(s, f);
-          }
-        }
-        if (schema.additionalProperties) {
-          walkSchema(schema.additionalProperties, f);
-        }
-        break;
-    }
   }
   var definitionsObject = {};
   function getSchemaDefinition(key) {
@@ -5861,6 +6067,9 @@ if (typeof exports === 'object') {
     return definitionsObject[key];
   }
   function setSchemaDefinition(schema) {
+    if (schema.$id === void 0) {
+      throw new Error("Internal Error, setSchemaDefinition needs $id");
+    }
     if (definitionsObject[schema.$id] === void 0) {
       definitionsObject[schema.$id] = schema;
     }
@@ -7679,37 +7888,6 @@ if (typeof exports === 'object') {
   }
 
   // ../yaml-validation/schema-navigation.ts
-  function navigateSchemaBySchemaPath(path, schema, pathIndex = 0) {
-    schema = resolveSchema(schema);
-    if (pathIndex >= path.length - 1) {
-      return [schema];
-    }
-    const pathVal = path[pathIndex];
-    if (schema.allOf !== void 0) {
-      return schema.allOf.map((s) => navigateSchemaBySchemaPath(path, s, pathIndex)).flat();
-    } else if (pathVal === "patternProperties" && schema.patternProperties) {
-      const key = path[pathIndex + 1];
-      const subSchema = schema.patternProperties[key];
-      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "properties" && schema.properties) {
-      const key = path[pathIndex + 1];
-      const subSchema = schema.properties[key];
-      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "anyOf" && schema.anyOf) {
-      const key = Number(path[pathIndex + 1]);
-      const subSchema = schema.anyOf[key];
-      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "oneOf" && schema.oneOf) {
-      const key = Number(path[pathIndex + 1]);
-      const subSchema = schema.oneOf[key];
-      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
-    } else if (pathVal === "items" && schema.items) {
-      const subSchema = schema.items;
-      return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 1);
-    } else {
-      return [];
-    }
-  }
   function navigateSchemaByInstancePath(schema, path) {
     const inner = (subSchema, index) => {
       subSchema = resolveSchema(subSchema);
@@ -7743,8 +7921,6 @@ if (typeof exports === 'object') {
         return subSchema.anyOf.map((ss) => inner(ss, index));
       } else if (st === "allOf") {
         return subSchema.allOf.map((ss) => inner(ss, index));
-      } else if (st === "oneOf") {
-        return subSchema.oneOf.map((ss) => inner(ss, index));
       } else {
         return [];
       }
@@ -7772,11 +7948,8 @@ if (typeof exports === 'object') {
         case "allOf":
           ensurePathFragment(path[index], "allOf");
           return inner(subschema.allOf[path[index + 1]], index + 2);
-        case "oneOf":
-          ensurePathFragment(path[index], "oneOf");
-          return inner(subschema.oneOf[path[index + 1]], index + 2);
-        case "arrayOf":
-          ensurePathFragment(path[index], "arrayOf");
+        case "array":
+          ensurePathFragment(path[index], "array");
           return inner(subschema.arrayOf.schema, index + 2);
         case "object":
           ensurePathFragment(path[index], "object");
@@ -7808,9 +7981,9 @@ if (typeof exports === 'object') {
   // ../yaml-validation/schema-utils.ts
   var _schemas = {
     schemas: {
-      "front-matter": void 0,
-      config: void 0,
-      engines: void 0
+      "front-matter": false,
+      config: false,
+      engines: {}
     },
     aliases: {},
     definitions: {}
@@ -7829,21 +8002,31 @@ if (typeof exports === 'object') {
     if (typeof s === "string") {
       return s;
     }
-    const valueS = resolveSchema(s.$ref);
-    if (valueS.documentation) {
-      if (valueS.documentation.short) {
-        return valueS.documentation.short;
-      } else {
-        return valueS.documentation;
-      }
+    const valueS = resolveSchema(s);
+    if (valueS === false || valueS === true) {
+      return "";
+    }
+    if (valueS.documentation === void 0) {
+      return "";
+    }
+    if (typeof valueS.documentation === "string") {
+      return valueS.documentation;
+    }
+    if (valueS.documentation.short) {
+      return valueS.documentation.short;
     } else {
       return "";
     }
   }
   function resolveSchema(schema, visit, hasRef, next) {
+    if (schema === false || schema === true) {
+      return schema;
+    }
     if (hasRef === void 0) {
       hasRef = (cursor) => {
-        return cursor.$ref !== void 0;
+        return schemaCall(cursor, {
+          ref: (s) => true
+        }, (s) => false);
       };
     }
     if (!hasRef(schema)) {
@@ -7855,9 +8038,11 @@ if (typeof exports === 'object') {
     }
     if (next === void 0) {
       next = (cursor) => {
-        const result = getSchemaDefinition(cursor.$ref);
+        const result = schemaCall(cursor, {
+          ref: (s) => getSchemaDefinition(s.$ref)
+        });
         if (result === void 0) {
-          throw new Error(`Internal Error: ref ${cursor.$ref} not in definitions`);
+          throw new Error("Internal Error, couldn't resolve schema ${JSON.stringify(cursor)}");
         }
         return result;
       };
@@ -7884,14 +8069,20 @@ if (typeof exports === 'object') {
     } while (hasRef(cursor1));
     return cursor1;
   }
-  function schemaCompletions(schema) {
-    schema = resolveSchema(schema);
+  function schemaCompletions(s) {
+    if (s === true || s === false) {
+      return [];
+    }
+    let schema = resolveSchema(s);
     schema = resolveSchema(schema, (schema2) => {
     }, (schema2) => {
-      return schema2.tags && schema2.tags["complete-from"];
+      return schema2.tags !== void 0 && schema2.tags["complete-from"] !== void 0;
     }, (schema2) => {
       return navigateSchemaBySchemaPathSingle(schema2, schema2.tags["complete-from"]);
     });
+    if (schema === true || schema === false) {
+      return [];
+    }
     const normalize = (completions2) => {
       const result = (completions2 || []).map((c) => {
         if (typeof c === "string") {
@@ -7918,93 +8109,102 @@ if (typeof exports === 'object') {
     if (schema.tags && schema.tags.completions && schema.tags.completions.length) {
       return normalize(schema.tags.completions);
     }
-    switch (schemaType(schema)) {
-      case "array":
-        if (schema.items) {
-          return schemaCompletions(schema.items);
+    return schemaCall(schema, {
+      array: (s2) => {
+        if (s2.items) {
+          return schemaCompletions(s2.items);
         } else {
           return [];
         }
-      case "anyOf":
-        return schema.anyOf.map(schemaCompletions).flat();
-      case "oneOf":
-        return schema.oneOf.map(schemaCompletions).flat();
-      case "allOf":
-        return schema.allOf.map(schemaCompletions).flat();
-      case "object":
-        schema.completions = getObjectCompletions(schema);
-        return normalize(schema.completions);
-      default:
-        return [];
-    }
+      },
+      anyOf: (s2) => {
+        return s2.anyOf.map(schemaCompletions).flat();
+      },
+      allOf: (s2) => {
+        return s2.allOf.map(schemaCompletions).flat();
+      },
+      "object": (s2) => {
+        s2.cachedCompletions = getObjectCompletions(s2);
+        return normalize(s2.completions);
+      }
+    }, (_) => []);
   }
-  function getObjectCompletions(schema) {
-    const completionsParam = schema.tags && schema.tags.completions;
-    const properties = schema.properties;
-    const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
-    const uniqueValues = (lst) => {
-      const obj = {};
-      for (const c of lst) {
-        obj[c.value] = c;
-      }
-      return Object.getOwnPropertyNames(obj).map((k) => obj[k]);
-    };
-    const completions2 = [];
-    for (const k of objectKeys) {
-      const schema2 = properties[k];
-      const maybeDescriptions = [
-        completionsParam && completionsParam[k]
-      ];
-      let hidden = false;
-      if (schema2 !== void 0) {
-        if (schema2.documentation) {
-          maybeDescriptions.push(schema2 && schema2.documentation && schema2.documentation.short);
-          maybeDescriptions.push(schema2 && schema2.documentation);
-        } else {
-          let described = false;
-          const visitor = (schema3) => {
-            if (schema3 && schema3.hidden) {
-              hidden = true;
-            }
-            if (described) {
-              return;
-            }
-            if (schema3 && schema3.documentation && schema3.documentation.short) {
-              maybeDescriptions.push(schema3 && schema3.documentation && schema3.documentation.short);
-              described = true;
-            } else if (schema3 && schema3.documentation) {
-              maybeDescriptions.push(schema3 && schema3.documentation);
-              described = true;
-            }
-          };
-          try {
-            resolveSchema(schema2, visitor);
-          } catch (e) {
+  function getObjectCompletions(s) {
+    const completionsParam = s.tags && s.tags.completions || [];
+    return schemaCall(s, {
+      "object": (schema) => {
+        const properties = schema.properties;
+        const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
+        const uniqueValues = (lst) => {
+          const obj = {};
+          for (const c of lst) {
+            obj[c.value] = c;
           }
-          if (!described && schema2 && schema2.$ref) {
-            maybeDescriptions.push({ $ref: schema2 && schema2.$ref });
+          return Object.getOwnPropertyNames(obj).map((k) => obj[k]);
+        };
+        const completions2 = [];
+        for (const k of objectKeys) {
+          const schema2 = properties && properties[k];
+          const maybeDescriptions = [];
+          let hidden = false;
+          if (schema2 !== void 0 && schema2 !== true && schema2 !== false) {
+            if (schema2.documentation) {
+              maybeDescriptions.push(schemaDocString(schema2.documentation));
+            } else {
+              let described = false;
+              const visitor = (schema3) => {
+                if (schema3 === false || schema3 === true) {
+                  return;
+                }
+                if (schema3.hidden) {
+                  hidden = true;
+                }
+                if (described) {
+                  return;
+                }
+                if (schema3.documentation) {
+                  maybeDescriptions.push(schemaDocString(schema3.documentation));
+                  described = true;
+                }
+              };
+              try {
+                resolveSchema(schema2, visitor);
+              } catch (e) {
+              }
+              if (!described) {
+                schemaCall(schema2, {
+                  ref: (schema3) => maybeDescriptions.push({ $ref: schema3.$ref })
+                });
+              }
+            }
           }
+          if (hidden) {
+            continue;
+          }
+          let description = "";
+          for (const md of maybeDescriptions) {
+            if (md !== void 0) {
+              description = md;
+              break;
+            }
+          }
+          completions2.push({
+            type: "key",
+            display: "",
+            value: `${k}: `,
+            description,
+            suggest_on_accept: schema2 !== void 0 && schema2 != false && schema2 !== true && schema2.completions !== void 0 && schema2.completions.length !== 0
+          });
         }
+        return completions2;
       }
-      if (hidden) {
-        continue;
-      }
-      let description = "";
-      for (const md of maybeDescriptions) {
-        if (md !== void 0) {
-          description = md;
-          break;
-        }
-      }
-      completions2.push({
-        type: "key",
-        display: "",
-        value: `${k}: `,
-        description,
-        suggest_on_accept: schema2 && schema2.completions && schema2.completions.length !== 0
-      });
-    }
-    return completions2;
+    }, (_) => completionsParam.map((c) => ({
+      type: "value",
+      display: "",
+      value: c,
+      description: "",
+      suggest_on_accept: false
+    })));
   }
   function possibleSchemaKeys(schema) {
     const precomputedCompletions = schemaCompletions(schema).filter((c) => c.type === "key").map((c) => c.value.split(":")[0]);
@@ -8034,446 +8234,325 @@ if (typeof exports === 'object') {
     });
     return results;
   }
-
-  // ../yaml-validation/validator.ts
-  function validateBoolean(value, _schema) {
-    return typeof value === "boolean";
-  }
-  function validateNumber(value, _schema) {
-    return typeof value === "number";
-  }
-  function validateString(value, schema) {
-    if (typeof value !== "string") {
-      return false;
-    }
-    if (schema.pattern === void 0) {
-      return true;
-    }
-    if (value.match(new RegExp(schema.pattern))) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  function validateNull(value, _schema) {
-    return value === null;
-  }
-  function validateEnum(value, schema) {
-    return schema["enum"].indexOf(value) !== -1;
-  }
-  function validateOneOf(value, schema) {
-    let count = 0;
-    for (const subSchema of schema.oneOf) {
-      if (validate(value, subSchema)) {
-        count += 1;
-        if (count > 1) {
-          return false;
+  function walkSchema(schema, f) {
+    const recur = {
+      "anyOf": (ss) => {
+        for (const s of ss.anyOf) {
+          walkSchema(s, f);
+        }
+      },
+      "allOf": (ss) => {
+        for (const s of ss.allOf) {
+          walkSchema(s, f);
+        }
+      },
+      "array": (x) => {
+        if (x.items) {
+          walkSchema(x.items, f);
+        }
+      },
+      "object": (x) => {
+        if (x.properties) {
+          for (const ss of Object.values(x.properties)) {
+            walkSchema(ss, f);
+          }
+        }
+        if (x.patternProperties) {
+          for (const ss of Object.values(x.patternProperties)) {
+            walkSchema(ss, f);
+          }
+        }
+        if (x.propertyNames) {
+          walkSchema(x.propertyNames, f);
         }
       }
+    };
+    if (typeof f === "function") {
+      if (f(schema) === true) {
+        return;
+      }
+    } else {
+      if (schemaCall(schema, f) === true) {
+        return;
+      }
     }
-    return count === 1;
+    schemaCall(schema, recur, (_) => true);
   }
-  function validateAnyOf(value, schema) {
-    for (const subSchema of schema.anyOf) {
-      if (validate(value, subSchema)) {
+
+  // ../yaml-validation/validator/validator.ts
+  var ValidationContext = class {
+    constructor() {
+      this.instancePath = [];
+      this.currentNode = { edge: "#", errors: [], children: [] };
+      this.nodeStack = [this.currentNode];
+      this.root = this.currentNode;
+    }
+    error(value, schema, message) {
+      this.currentNode.errors.push({
+        value,
+        schema,
+        message,
+        instancePath: this.instancePath.slice()
+      });
+    }
+    pushSchema(schemaPath) {
+      const newNode = {
+        edge: schemaPath,
+        errors: [],
+        children: []
+      };
+      this.currentNode.children.push(newNode);
+      this.currentNode = newNode;
+      this.nodeStack.push(newNode);
+    }
+    popSchema(success) {
+      this.nodeStack.pop();
+      this.currentNode = this.nodeStack[this.nodeStack.length - 1];
+      if (success) {
+        this.currentNode.children.pop();
+      }
+      return success;
+    }
+    pushInstance(instance) {
+      this.instancePath.push(instance);
+    }
+    popInstance() {
+      this.instancePath.pop();
+    }
+    withSchemaPath(schemaPath, chunk) {
+      this.pushSchema(schemaPath);
+      return this.popSchema(chunk());
+    }
+    validate(schema, source, value) {
+      if (validateGeneric(value, schema, this)) {
+        return [];
+      }
+      return this.pruneErrors(schema, source, value);
+    }
+    pruneErrors(schema, source, value) {
+      debugger;
+      return [];
+    }
+  };
+  function validateGeneric(value, s, context) {
+    s = resolveSchema(s);
+    const st = schemaType(s);
+    return context.withSchemaPath(st, () => schemaCall(s, {
+      "false": (schema) => {
+        context.error(value, schema, "false");
+        return false;
+      },
+      "true": (_) => true,
+      "boolean": (schema) => validateBoolean(value, schema, context),
+      "number": (schema) => validateNumber(value, schema, context),
+      "string": (schema) => validateString(value, schema, context),
+      "null": (schema) => validateNull(value, schema, context),
+      "enum": (schema) => validateEnum(value, schema, context),
+      "anyOf": (schema) => validateAnyOf(value, schema, context),
+      "allOf": (schema) => validateAllOf(value, schema, context),
+      "array": (schema) => validateArray(value, schema, context),
+      "object": (schema) => validateObject(value, schema, context),
+      "ref": (schema) => validateGeneric(value, resolveSchema(schema), context)
+    }));
+  }
+  function typeIsValid(value, schema, context, valid) {
+    if (!valid) {
+      return context.withSchemaPath("type", () => {
+        context.error(value, schema, "type mismatch");
+        return false;
+      });
+    }
+    return valid;
+  }
+  function validateBoolean(value, schema, context) {
+    return typeIsValid(value, schema, context, typeof value.result === "boolean");
+  }
+  function validateNumber(value, schema, context) {
+    if (!typeIsValid(value, schema, context, typeof value.result === "number")) {
+      return false;
+    }
+    return true;
+  }
+  function validateString(value, schema, context) {
+    if (!typeIsValid(value, schema, context, typeof value.result === "string")) {
+      return false;
+    }
+    if (schema.pattern !== void 0) {
+      if (schema.compiledPattern === void 0) {
+        schema.compiledPattern = new RegExp(schema.pattern);
+      }
+      if (!value.result.match(schema.compiledPattern)) {
+        return context.withSchemaPath("pattern", () => {
+          context.error(value, schema, `value doesn't match pattern`);
+          return false;
+        });
+      }
+    }
+    return true;
+  }
+  function validateNull(value, schema, context) {
+    if (!typeIsValid(value, schema, context, value.result === null)) {
+      return false;
+    }
+    return true;
+  }
+  function validateEnum(value, schema, context) {
+    for (const enumValue of schema["enum"]) {
+      if (enumValue === value.result) {
         return true;
       }
     }
+    context.error(value, schema, `must match one of the values`);
     return false;
   }
-  function validateAllOf(value, schema) {
-    for (const subSchema of schema.allOf) {
-      if (!validate(value, subSchema)) {
+  function validateAnyOf(value, schema, context) {
+    let passingSchemas = 0;
+    for (let i = 0; i < schema.anyOf.length; ++i) {
+      const subSchema = schema.anyOf[i];
+      context.withSchemaPath(i, () => {
+        if (validateGeneric(value, subSchema, context)) {
+          passingSchemas++;
+          return true;
+        }
         return false;
-      }
+      });
     }
-    return true;
+    return passingSchemas > 0;
   }
-  function validateObject(value, schema) {
-    if (typeof value !== "object" || Array.isArray(value) || value === null) {
+  function validateAllOf(value, schema, context) {
+    let passingSchemas = 0;
+    for (let i = 0; i < schema.allOf.length; ++i) {
+      const subSchema = schema.allOf[i];
+      context.withSchemaPath(i, () => {
+        if (validateGeneric(value, subSchema, context)) {
+          passingSchemas++;
+          return true;
+        }
+        return false;
+      });
+    }
+    return passingSchemas === schema.allOf.length;
+  }
+  function validateArray(value, schema, context) {
+    let result = true;
+    if (!typeIsValid(value, schema, context, Array.isArray(value.result))) {
       return false;
     }
-    const inspectedProps = new Set();
-    const ownProperties = new Set(Object.getOwnPropertyNames(value));
-    if (schema.properties) {
-      for (const [key, subSchema] of Object.entries(schema.properties)) {
-        if (ownProperties.has(key) && !validate(value[key], subSchema)) {
-          return false;
-        } else {
-          inspectedProps.add(key);
-        }
-      }
-    }
-    if (schema.patternProperties) {
-      for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
-        const regexp = new RegExp(key);
-        for (const [objectKey, val] of Object.entries(value)) {
-          if (objectKey.match(regexp) && !validate(val, subSchema)) {
-            return false;
-          } else {
-            inspectedProps.add(objectKey);
-          }
-        }
-      }
-    }
-    if (schema.additionalProperties) {
-      for (const [objectKey, val] of Object.entries(value)) {
-        if (inspectedProps.has(objectKey)) {
-          continue;
-        }
-        if (!validate(val, schema.additionalProperties)) {
-          return false;
-        }
-      }
-    }
-    if (schema.propertyNames) {
-      for (const key of ownProperties) {
-        if (!validate(key, schema.propertyNames)) {
-          return false;
-        }
-      }
-    }
-    for (const reqKey of schema.required || []) {
-      if (value[reqKey] === void 0) {
+    const length = value.result.length;
+    if (schema.minItems !== void 0 && length < schema.minItems) {
+      context.withSchemaPath("minItems", () => {
+        context.error(value, schema, `array should have at least ${schema.minItems} items but has ${length} items instead`);
         return false;
-      }
+      });
+      result = false;
     }
-    return true;
-  }
-  function validateArray(value, schema) {
-    if (!Array.isArray(value)) {
-      return false;
+    if (schema.maxItems !== void 0 && length > schema.maxItems) {
+      context.withSchemaPath("maxItems", () => {
+        context.error(value, schema, `array should have at most ${schema.maxItems} items but has ${length} items instead`);
+        return false;
+      });
+      result = false;
     }
     if (schema.items) {
-      return value.every((entry) => validate(entry, schema.items));
+      result = context.withSchemaPath("items", () => {
+        let result2 = true;
+        for (let i = 0; i < value.components.length; ++i) {
+          context.pushInstance(i);
+          result2 = validateGeneric(value.components[i], schema.items, context) && result2;
+          context.popInstance();
+        }
+        return result2;
+      }) && result;
     }
-    return true;
+    return result;
   }
-  function validate(value, schema) {
-    if (schema === false) {
+  function validateObject(value, schema, context) {
+    const isObject = typeof value.result === "object" && !Array.isArray(value.result) && value.result !== null;
+    if (!typeIsValid(value, schema, context, isObject)) {
       return false;
     }
-    if (schema === true) {
-      return true;
-    }
-    const validators = {
-      "boolean": validateBoolean,
-      "number": validateNumber,
-      "string": validateString,
-      "null": validateNull,
-      "enum": validateEnum,
-      "oneOf": validateOneOf,
-      "anyOf": validateAnyOf,
-      "allOf": validateAllOf,
-      "object": validateObject,
-      "array": validateArray
-    };
-    schema = resolveSchema(schema);
-    if (validators[schemaType(schema)]) {
-      return validators[schemaType(schema)](value, schema);
-    } else {
-      throw new Error(`Don't know how to validate type ${schema.type}`);
-    }
-  }
-
-  // ../yaml-validation/staged-validator.ts
-  var import_meta = {};
-  var _module = void 0;
-  var validatorModulePath = "";
-  async function ensureValidatorModule() {
-    if (_module) {
-      return _module;
-    }
-    if (validatorModulePath === "") {
-      throw new Error("Internal Error: validator module path is not set");
-    }
-    const path = new URL(validatorModulePath, import_meta.url).href;
-    try {
-      const _mod = await import(path);
-      _module = _mod.default;
-      return _module;
-    } catch (e) {
-      const response = await fetch(path.slice(0, -3) + ".cjs");
-      const text = await response.text();
-      self.exports = {};
-      self.eval(text);
-      _module = self.exports.default;
-      delete self.exports;
-      return _module;
-    }
-  }
-  function setValidatorModulePath(path) {
-    validatorModulePath = path;
-  }
-  var obtainFullValidator = (schema) => void 0;
-  function stagedValidator(schema) {
-    schema = resolveSchema(schema);
-    return async (value) => {
-      if (validate(value, schema)) {
-        return [];
-      }
-      await ensureValidatorModule();
-      const validator = _module[schema.$id] || obtainFullValidator(schema);
-      if (validator === void 0) {
-        throw new Error(`Internal error: ${schema.$id} not compiled and schema compiler not available`);
-      }
-      if (validator(value)) {
-        throw new Error(`Internal error: validators disagree on schema ${schema.$id}`);
-      }
-      return JSON.parse(JSON.stringify(validator.errors));
-    };
-  }
-
-  // ../guess-chunk-options-format.ts
-  function guessChunkOptionsFormat(options) {
-    const noIndentOrColon = /^[^:\s]+[^:]+$/;
-    const chunkLines = lines(options);
-    if (chunkLines.filter((l) => l.match(noIndentOrColon)).length === 0) {
-      return "yaml";
-    }
-    if (chunkLines.some((l) => l.trim() !== "" && !l.trimRight().endsWith(",") && l.indexOf("=") === -1)) {
-      return "yaml";
-    }
-    return "knitr";
-  }
-
-  // ../partition-cell-options.ts
-  function mappedSource(source, substrs) {
-    const params = [];
-    for (const { range } of substrs) {
-      params.push(range);
-    }
-    return mappedString(source, params);
-  }
-  async function partitionCellOptionsMapped(language, source, _validate = false, _engine = "") {
-    const commentChars = langCommentChars(language);
-    const optionPrefix = optionCommentPrefix(commentChars[0]);
-    const optionSuffix = commentChars[1] || "";
-    const optionsSource = [];
-    const yamlLines = [];
-    let endOfYaml = 0;
-    for (const line of rangedLines(source.value, true)) {
-      if (line.substring.startsWith(optionPrefix)) {
-        if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
-          let yamlOption = line.substring.substring(optionPrefix.length);
-          if (optionSuffix) {
-            yamlOption = yamlOption.trimRight();
-            yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
-          }
-          endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
-          const rangedYamlOption = {
-            substring: yamlOption,
-            range: {
-              start: line.range.start + optionPrefix.length,
-              end: endOfYaml
-            }
-          };
-          yamlLines.push(rangedYamlOption);
-          optionsSource.push(line);
-          continue;
-        }
-      }
-      break;
-    }
-    const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
-    return {
-      yaml: mappedYaml,
-      optionsSource,
-      source: mappedString(source, [{
-        start: endOfYaml,
-        end: source.value.length
-      }]),
-      sourceStartLine: yamlLines.length
-    };
-  }
-  function langCommentChars(lang) {
-    const chars = kLangCommentChars[lang] || "#";
-    if (!Array.isArray(chars)) {
-      return [chars];
-    } else {
-      return chars;
-    }
-  }
-  function optionCommentPrefix(comment) {
-    return comment + "| ";
-  }
-  var kLangCommentChars = {
-    r: "#",
-    python: "#",
-    julia: "#",
-    scala: "//",
-    matlab: "%",
-    csharp: "//",
-    fsharp: "//",
-    c: ["/*", "*/"],
-    css: ["/*", "*/"],
-    sas: ["*", ";"],
-    powershell: "#",
-    bash: "#",
-    sql: "--",
-    mysql: "--",
-    psql: "--",
-    lua: "--",
-    cpp: "//",
-    cc: "//",
-    stan: "#",
-    octave: "#",
-    fortran: "!",
-    fortran95: "!",
-    awk: "#",
-    gawk: "#",
-    stata: "*",
-    java: "//",
-    groovy: "//",
-    sed: "#",
-    perl: "#",
-    ruby: "#",
-    tikz: "%",
-    js: "//",
-    d3: "//",
-    node: "//",
-    sass: "//",
-    coffee: "#",
-    go: "//",
-    asy: "//",
-    haskell: "--",
-    dot: "//",
-    ojs: "//"
-  };
-
-  // ../break-quarto-md.ts
-  async function breakQuartoMd(src, validate2 = false) {
-    const nb = {
-      cells: []
-    };
-    const yamlRegEx = /^---\s*$/;
-    const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
-    const startCodeRegEx = /^```/;
-    const endCodeRegEx = /^```\s*$/;
-    const delimitMathBlockRegEx = /^\$\$/;
-    let language = "";
-    let cellStartLine = 0;
-    const lineBuffer = [];
-    const flushLineBuffer = async (cell_type, index) => {
-      if (lineBuffer.length) {
-        const mappedChunks = [];
-        for (const line of lineBuffer) {
-          mappedChunks.push(line.range);
-        }
-        const source = mappedString(src, mappedChunks);
-        const cell = {
-          cell_type: cell_type === "code" ? { language } : cell_type,
-          source,
-          sourceOffset: 0,
-          sourceStartLine: 0,
-          sourceVerbatim: source,
-          cellStartLine
-        };
-        cellStartLine = index + 1;
-        if (cell_type === "code" && (language === "ojs" || language === "dot")) {
-          const { yaml, source: source2, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
-          const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
-          let strUpToLastBreak = "";
-          if (sourceStartLine > 0) {
-            if (breaks.length) {
-              const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
-              strUpToLastBreak = cell.source.value.substring(0, lastBreak);
-            } else {
-              strUpToLastBreak = cell.source.value;
-            }
-          }
-          cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
-          cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
-            "```{ojs}\n",
-            { start: 0, end: cell.sourceVerbatim.value.length },
-            "\n```"
-          ]);
-          cell.source = source2;
-          cell.options = yaml;
-          cell.sourceStartLine = sourceStartLine;
-        }
-        if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
-          nb.cells.push(cell);
-        }
-        lineBuffer.splice(0, lineBuffer.length);
-      }
-    };
-    let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
-    const srcLines = rangedLines(src.value, true);
-    for (let i = 0; i < srcLines.length; ++i) {
-      const line = srcLines[i];
-      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
-        if (inYaml) {
-          lineBuffer.push(line);
-          await flushLineBuffer("raw", i);
-          inYaml = false;
-        } else {
-          await flushLineBuffer("markdown", i);
-          lineBuffer.push(line);
-          inYaml = true;
-        }
-      } else if (startCodeCellRegEx.test(line.substring)) {
-        const m = line.substring.match(startCodeCellRegEx);
-        language = m[1];
-        await flushLineBuffer("markdown", i);
-        inCodeCell = true;
-      } else if (endCodeRegEx.test(line.substring)) {
-        if (inCodeCell) {
-          inCodeCell = false;
-          await flushLineBuffer("code", i);
-        } else {
-          inCode = !inCode;
-          lineBuffer.push(line);
-        }
-      } else if (startCodeRegEx.test(line.substring)) {
-        inCode = true;
-        lineBuffer.push(line);
-      } else if (delimitMathBlockRegEx.test(line.substring)) {
-        if (inMathBlock) {
-          await flushLineBuffer("math", i);
-        } else {
-          if (inYaml || inCode || inCodeCell) {
+    let result = true;
+    const ownProperties = new Set(Object.getOwnPropertyNames(value.result));
+    const objResult = value.result;
+    const locate = (key, keyOrValue = "value") => {
+      for (let i = 0; i < value.components.length; i += 2) {
+        if (value.components[i].result === key) {
+          if (keyOrValue === "value") {
+            return value.components[i + 1];
           } else {
-            await flushLineBuffer("markdown", i);
+            return value.components[i];
           }
         }
-        inMathBlock = !inMathBlock;
-        lineBuffer.push(line);
-      } else {
-        lineBuffer.push(line);
       }
+      throw new Error(`Internal Error, couldn't locate key ${key}`);
+    };
+    const inspectedProps = new Set();
+    if (schema.properties !== void 0) {
+      result = context.withSchemaPath("properties", () => {
+        let result2 = true;
+        for (const [key, subSchema] of Object.entries(schema.properties)) {
+          if (ownProperties.has(key)) {
+            context.pushInstance(key);
+            result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
+            context.popInstance();
+          } else {
+            inspectedProps.add(key);
+          }
+        }
+        return result2;
+      }) && result;
     }
-    await flushLineBuffer("markdown", srcLines.length);
-    return nb;
+    if (schema.patternProperties !== void 0) {
+      result = context.withSchemaPath("patternProperties", () => {
+        let result2 = true;
+        for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
+          if (schema.compiledPatterns === void 0) {
+            schema.compiledPatterns = {};
+          }
+          if (schema.compiledPatterns[key] === void 0) {
+            schema.compiledPatterns[key] = new RegExp(key);
+          }
+          const regexp = schema.compiledPatterns[key];
+          for (const [objectKey, val] of Object.entries(objResult)) {
+            if (ownProperties.has(key)) {
+              context.pushInstance(objectKey);
+              result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
+              context.popInstance();
+            } else {
+              inspectedProps.add(key);
+            }
+          }
+        }
+        return result2;
+      }) && result;
+    }
+    if (schema.additionalProperties !== void 0) {
+      result = context.withSchemaPath("additionalProperties", () => {
+        return Object.keys(objResult).filter((objectKey) => !inspectedProps.has(objectKey)).every((objectKey) => validateGeneric(locate(objectKey), schema.additionalProperties, context));
+      }) && result;
+    }
+    if (schema.propertyNames !== void 0) {
+      result = context.withSchemaPath("propertyNames", () => {
+        return Array.from(ownProperties).every((key) => validateGeneric(locate(key, "key"), schema.propertyNames, context));
+      }) && result;
+    }
+    if (schema.required !== void 0) {
+      result = context.withSchemaPath("propertyNames", () => {
+        let result2 = true;
+        for (const reqKey of schema.required) {
+          if (!ownProperties.has(reqKey)) {
+            context.error(value, schema, `object is missing required property ${reqKey}`);
+            result2 = false;
+          }
+        }
+        return result2;
+      }) && result;
+    }
+    return result;
   }
-  function mdTrimEmptyLines(lines2) {
-    const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines2 = lines2.slice(firstNonEmpty);
-    let lastNonEmpty = -1;
-    for (let i = lines2.length - 1; i >= 0; i--) {
-      if (lines2[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines2 = lines2.slice(0, lastNonEmpty + 1);
-    }
-    return lines2;
-  }
-
-  // ../yaml-validation/ajv-error.ts
-  function getBadKey(error) {
-    let badKey;
-    if (error.keyword === "propertyNames") {
-      badKey = error.params.propertyName;
-    } else if (error.keyword === "_custom_invalidProperty") {
-      badKey = error.params.additionalProperty;
-    }
-    return badKey;
+  function validate(value, schema, source) {
+    const context = new ValidationContext();
+    return context.validate(schema, source, value);
   }
 
   // ../yaml-validation/yaml-schema.ts
@@ -8512,191 +8591,10 @@ if (typeof exports === 'object') {
       return annotation;
     }
   }
-  function isProperPrefix(a, b) {
-    return b.length > a.length && b.substring(0, a.length) === a;
-  }
-  function groupBy(lst, f) {
-    const record = {};
-    const result = [];
-    for (const el of lst) {
-      const key = f(el);
-      if (record[key] === void 0) {
-        const lst2 = [];
-        const entry = {
-          key,
-          values: lst2
-        };
-        record[key] = lst2;
-        result.push(entry);
-      }
-      record[key].push(el);
-    }
-    return result;
-  }
-  function groupByEntries(entries) {
-    const result = [];
-    for (const { values } of entries) {
-      result.push(...values);
-    }
-    return result;
-  }
-  function narrowOneOfError(oneOf, suberrors) {
-    const subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
-    const onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
-    if (onlyAdditionalProperties.length) {
-      return onlyAdditionalProperties[0].values;
-    }
-    return [];
-  }
-  function localizeAndPruneErrors(annotation, validationErrors, source, schema) {
-    let result = [];
-    const locF = mappedIndexToRowCol(source);
-    const expandedPath = (ajvError) => {
-      const badPath = getBadKey(ajvError);
-      if (badPath) {
-        return ajvError.instancePath + "/" + badPath;
-      } else {
-        return ajvError.instancePath;
-      }
-    };
-    let errorsPerInstanceList = groupBy(validationErrors, expandedPath);
-    do {
-      const newErrors = [];
-      errorsPerInstanceList = errorsPerInstanceList.filter(({ key: pathA }) => errorsPerInstanceList.filter(({ key: pathB }) => isProperPrefix(pathA, pathB)).length === 0);
-      for (const { key: instancePath, values: errors } of errorsPerInstanceList) {
-        let errorsPerSchemaList = groupBy(errors, (error) => error.schemaPath);
-        errorsPerSchemaList = errorsPerSchemaList.filter(({ key: pathA }) => errorsPerSchemaList.filter(({ key: pathB }) => isProperPrefix(pathB, pathA)).length === 0);
-        for (const error of groupByEntries(errorsPerSchemaList)) {
-          if (error.hasBeenTransformed) {
-            continue;
-          }
-          if (error.keyword === "oneOf") {
-            error.hasBeenTransformed = true;
-            newErrors.push(...narrowOneOfError(error, errors));
-          } else if (error.keyword === "additionalProperties") {
-            error.hasBeenTransformed = true;
-            newErrors.push({
-              ...error,
-              instancePath: `${instancePath}/${error.params.additionalProperty}`,
-              keyword: "_custom_invalidProperty",
-              message: `property ${error.params.additionalProperty} not allowed in object`,
-              params: {
-                ...error.params,
-                originalError: error
-              },
-              schemaPath: error.schemaPath.slice(0, -21)
-            });
-          }
-        }
-      }
-      if (newErrors.length) {
-        errorsPerInstanceList.push(...groupBy(newErrors, (error) => error.instancePath));
-      } else {
-        break;
-      }
-    } while (true);
-    for (const { values: allErrors } of errorsPerInstanceList) {
-      const { instancePath } = allErrors[0];
-      const path = instancePath.split("/").slice(1);
-      const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
-      for (const errorForSchemaLookup of errors) {
-        const errorImportance = {
-          "propertyNames": -10
-        };
-        const instanceErrors = allErrors.filter(({ schemaPath: schemaPath2 }) => schemaPath2.startsWith(errorForSchemaLookup.schemaPath));
-        instanceErrors.sort((errorA, errorB) => {
-          return (errorImportance[errorA.keyword] || 0) - (errorImportance[errorB.keyword] || 0);
-        });
-        const error = instanceErrors[0];
-        const returnKey = error.keyword === "_custom_invalidProperty" || error.keyword === "propertyNames";
-        const violatingObject = error.keyword === "propertyNames" ? navigate([...path, error.params.propertyName], annotation, returnKey) : navigate(path, annotation, returnKey);
-        if (violatingObject === void 0) {
-          console.error(`Couldn't localize error ${JSON.stringify(error)}`);
-          continue;
-        }
-        const schemaPath = error.schemaPath.split("/").slice(1);
-        let start = { line: 0, column: 0 };
-        let end = { line: 0, column: 0 };
-        if (source.value.length) {
-          start = locF(violatingObject.start);
-          end = locF(violatingObject.end);
-        }
-        let niceError = {
-          heading: "",
-          error: [],
-          info: {},
-          location: { start, end }
-        };
-        if (error.keyword.startsWith("_custom_")) {
-          niceError = {
-            ...niceError,
-            heading: error.message === void 0 ? "" : error.message
-          };
-        } else {
-          if (instancePath === "") {
-            niceError = {
-              ...niceError,
-              heading: `(top-level error) ${error.message}`
-            };
-          } else {
-            const errorSchema = error.params && error.params.schema || error.parentSchema;
-            const innerSchema = errorSchema ? [errorSchema] : navigateSchemaBySchemaPath(schemaPath.map(decodeURIComponent), schema);
-            if (innerSchema.length === 0) {
-              niceError = {
-                ...niceError,
-                heading: `Schema ${schemaPath}: ${error.message}`
-              };
-            } else {
-              const rawVerbatimInput = source.value.substring(violatingObject.start, violatingObject.end);
-              if (rawVerbatimInput.length === 0) {
-                niceError = {
-                  ...niceError,
-                  heading: `Empty value found where it must instead ${innerSchema.map((s) => s.description).join(", ")}.`
-                };
-              } else {
-                const verbatimInput = quotedStringColor(source.value.substring(violatingObject.start, violatingObject.end));
-                niceError = {
-                  ...niceError,
-                  heading: `The value ${verbatimInput} must ${innerSchema.map((s) => s.description).join(", ")}.`
-                };
-              }
-            }
-          }
-        }
-        niceError.location = { start, end };
-        addFileInfo(niceError, source);
-        addInstancePathInfo(niceError, instancePath);
-        result.push({
-          instancePath,
-          message: error.message === void 0 ? "" : error.message,
-          violatingObject,
-          location: { start, end },
-          source,
-          ajvError: error,
-          niceError
-        });
-      }
-    }
-    result = result.filter((outer) => {
-      if (result.some((inner) => {
-        if (inner === outer) {
-          return false;
-        }
-        return outer.violatingObject.start <= inner.violatingObject.start && inner.violatingObject.end <= outer.violatingObject.end;
-      })) {
-        return false;
-      } else {
-        return true;
-      }
-    });
-    result.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
-    return result;
-  }
   var YAMLSchema = class {
     constructor(schema) {
       this.errorHandlers = [];
       this.schema = schema;
-      this.validate = stagedValidator(this.schema);
     }
     addHandler(handler) {
       this.errorHandlers.push(handler);
@@ -8710,9 +8608,9 @@ if (typeof exports === 'object') {
       });
     }
     async validateParse(src, annotation) {
-      const validationErrors = await this.validate(annotation.result);
+      const validationErrors = validate(annotation, this.schema, src);
       if (validationErrors.length) {
-        const localizedErrors = this.transformErrors(annotation, localizeAndPruneErrors(annotation, validationErrors, src, this.schema));
+        const localizedErrors = this.transformErrors(annotation, validationErrors);
         return {
           result: annotation.result,
           errors: localizedErrors
@@ -8762,52 +8660,16 @@ if (typeof exports === 'object') {
     }
   };
 
-  // ../promise.ts
-  var PromiseQueue = class {
-    constructor() {
-      this.queue = new Array();
-      this.running = false;
+  // ../yaml-validation/ajv-error.ts
+  function getBadKey(error) {
+    let badKey;
+    if (error.keyword === "propertyNames") {
+      badKey = error.params.propertyName;
+    } else if (error.keyword === "_custom_invalidProperty") {
+      badKey = error.params.additionalProperty;
     }
-    enqueue(promise, clearPending = false) {
-      return new Promise((resolve, reject) => {
-        if (clearPending) {
-          this.queue.splice(0, this.queue.length);
-        }
-        this.queue.push({
-          promise,
-          resolve,
-          reject
-        });
-        this.dequeue();
-      });
-    }
-    dequeue() {
-      if (this.running) {
-        return false;
-      }
-      const item = this.queue.shift();
-      if (!item) {
-        return false;
-      }
-      try {
-        this.running = true;
-        item.promise().then((value) => {
-          this.running = false;
-          item.resolve(value);
-          this.dequeue();
-        }).catch((err) => {
-          this.running = false;
-          item.reject(err);
-          this.dequeue();
-        });
-      } catch (err) {
-        this.running = false;
-        item.reject(err);
-        this.dequeue();
-      }
-      return true;
-    }
-  };
+    return badKey;
+  }
 
   // ../yaml-validation/errors.ts
   function setDefaultErrorHandlers(validator) {
@@ -8824,44 +8686,22 @@ if (typeof exports === 'object') {
     return rawVerbatimInput.trim().length === 0;
   }
   function getLastFragment(instancePath) {
-    const splitPath = instancePath.split("/");
-    if (splitPath.length === 0) {
+    if (instancePath.length === 0) {
       return void 0;
     }
-    const lastFragment = splitPath[splitPath.length - 1];
-    if (lastFragment === "") {
-      return void 0;
-    }
-    const maybeNumber = Number(lastFragment);
-    if (!isNaN(maybeNumber)) {
-      return maybeNumber;
-    }
-    return lastFragment;
+    return instancePath[instancePath.length - 1];
   }
   function reindent(str) {
     return str;
   }
   function getErrorSchema(error, parse, schema) {
-    const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
-    if (errorSchema === void 0) {
-      if (schema.$id) {
-        return resolveSchema({ $ref: schema.$id });
-      } else {
-        return schema;
-      }
-    } else {
-      if (errorSchema.$id) {
-        return resolveSchema({ $ref: errorSchema.$id });
-      } else {
-        return errorSchema;
-      }
-    }
+    return schema;
   }
   function innerDescription(error, parse, schema) {
     const schemaPath = error.ajvError.schemaPath.split("/").slice(1);
     const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
-    const innerSchema = errorSchema ? [errorSchema] : navigateSchemaByInstancePath(schemaPath.map(decodeURIComponent), schema);
-    return innerSchema.map((s) => s.description).join(", ");
+    const innerSchema = errorSchema ? [errorSchema] : navigateSchemaByInstancePath(schema, schemaPath.map(decodeURIComponent));
+    return innerSchema.map(schemaDescription).join(", ");
   }
   function formatHeadingForKeyError(_error, _parse, _schema, key) {
     return `property name ${blue(key)} is invalid`;
@@ -8921,7 +8761,7 @@ if (typeof exports === 'object') {
     if (error.location.start.line !== error.location.end.line || error.location.start.column !== error.location.end.column || !isEmptyValue(error) || typeof getLastFragment(error.instancePath) === "undefined") {
       return error;
     }
-    const lastKey = navigate(error.instancePath.split("/").slice(1), parse, true);
+    const lastKey = navigate(error.instancePath, parse, true);
     const locF = mappedIndexToRowCol(error.source);
     const location = {
       start: locF(lastKey.start),
@@ -8959,7 +8799,7 @@ if (typeof exports === 'object') {
   }
   function checkForBadBoolean(error, parse, schema) {
     schema = error.ajvError.params.schema;
-    if (!(typeof error.violatingObject.result === "string" && error.ajvError.keyword === "type" && (schema && schema.type === "boolean"))) {
+    if (!(typeof error.violatingObject.result === "string" && error.ajvError.keyword === "type" && schemaType(schema) === "boolean")) {
       return error;
     }
     const strValue = error.violatingObject.result;
@@ -8995,7 +8835,7 @@ if (typeof exports === 'object') {
   function createErrorFragments(error) {
     const rawVerbatimInput = getVerbatimInput(error);
     const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
-    let pathFragments = error.instancePath.trim().slice(1).split("/").map((s) => blue(s));
+    let pathFragments = error.instancePath.map((s) => blue(String(s)));
     return {
       location: locationString(error.location),
       fullPath: pathFragments.join(":"),
@@ -9004,7 +8844,7 @@ if (typeof exports === 'object') {
     };
   }
   function schemaDefinedErrors(error, parse, schema) {
-    const subSchema = navigateSchemaByInstancePath(schema, error.instancePath.split("/").slice(1));
+    const subSchema = navigateSchemaByInstancePath(schema, error.instancePath);
     if (subSchema.length === 0) {
       return error;
     }
@@ -9038,7 +8878,7 @@ if (typeof exports === 'object') {
       corrections.push(...possibleSchemaKeys(errorSchema));
       keyOrValue = "key";
     } else {
-      const val = navigate(error.instancePath.split("/").slice(1), parse);
+      const val = navigate(error.instancePath, parse);
       if (typeof val.result !== "string") {
         return error;
       }
@@ -9078,13 +8918,21 @@ if (typeof exports === 'object') {
 
   // ../yaml-validation/validator-queue.ts
   var yamlValidators = {};
-  var validatorQueues = {};
   function getSchemaName(schema) {
-    const schemaName = schema["$id"] || schema["$ref"];
-    if (schemaName === void 0) {
+    if (schema === true || schema === false) {
       throw new Error("Expected schema to be named");
     }
-    return schemaName;
+    let schemaName = schema["$id"];
+    if (schemaName !== void 0) {
+      return schemaName;
+    }
+    if (schemaType(schema) === "ref") {
+      schemaName = schema["$ref"];
+    }
+    if (schemaName !== void 0) {
+      return schemaName;
+    }
+    throw new Error("Expected schema to be named");
   }
   function getValidator(schema) {
     const schemaName = getSchemaName(schema);
@@ -9098,20 +8946,14 @@ if (typeof exports === 'object') {
   }
   async function withValidator(schema, fun) {
     const schemaName = getSchemaName(schema);
-    if (validatorQueues[schemaName] === void 0) {
-      validatorQueues[schemaName] = new PromiseQueue();
-    }
-    const queue = validatorQueues[schemaName];
     let result;
     let error;
-    await queue.enqueue(async () => {
-      try {
-        const validator = getValidator(schema);
-        result = await fun(validator);
-      } catch (e) {
-        error = e;
-      }
-    });
+    try {
+      const validator = getValidator(schema);
+      result = await fun(validator);
+    } catch (e) {
+      error = e;
+    }
     if (error !== void 0) {
       throw error;
     }
@@ -9393,7 +9235,6 @@ if (typeof exports === 'object') {
               case "array":
                 matchingTypes.add("array");
                 return true;
-              case "oneOf":
               case "anyOf":
               case "allOf":
                 return false;
@@ -9724,8 +9565,6 @@ if (typeof exports === 'object') {
     return result || null;
   }
   var initializer2 = async () => {
-    setValidatorModulePath(getLocalPath("standalone-schema-validators.js"));
-    await ensureValidatorModule();
     const response = await fetch(getLocalPath("quarto-json-schemas.json"));
     const _schemas2 = await response.json();
     setSchemas(_schemas2);

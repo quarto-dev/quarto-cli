@@ -11,7 +11,13 @@ import { assert, assertEquals } from "testing/asserts.ts";
 
 import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
 
+import { convertFromYAMLString } from "../../../src/core/schema/from-yaml.ts";
 
+import { readAndValidateYamlFromMappedString } from "../../../src/core/schema/validated-yaml.ts";
+
+import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
+
+import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schema.ts";
 
 unitTest("schema-completions", async () => {
   const yml = `
@@ -22,7 +28,22 @@ baz:
   - 3
 bah:
   wut: "wat"`;
-  const annotation = readAnnotatedYamlFromString(yml);
 
-  const 
+  const schema = convertFromYAMLString(`
+id: schema-test-1
+object:
+  properties:
+    baz: 
+      arrayOf: string
+    foo: number
+  required: [blah]
+`);
+  debugger;
+  setSchemaDefinition(schema);
+
+  const annotation = readAndValidateYamlFromMappedString(
+    asMappedString(yml),
+    schema,
+    "foo",
+  );
 });

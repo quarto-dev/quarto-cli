@@ -24,7 +24,7 @@
     contexts: [document-code]
     formats: [$html-all]
   schema:
-    oneOf:
+    anyOf:
       - boolean
       - enum: [show]
   default: false
@@ -56,7 +56,7 @@
     contexts: [document-code]
     formats: [$html-all, docx, ms, $pdf-all]
   schema:
-    oneOf:
+    anyOf:
       - boolean
       - string
   default: false

@@ -18,10 +18,6 @@ import {
 
 import { initState, setInitializer } from "../yaml-validation/state.ts";
 import { getLocalPath, setMainPath } from "./paths.ts";
-import {
-  ensureValidatorModule,
-  setValidatorModulePath,
-} from "../yaml-validation/staged-validator.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
@@ -41,7 +37,6 @@ import {
   schemaAcceptsScalar,
   schemaType,
   setSchemaDefinition,
-  walkSchema,
 } from "../yaml-validation/schema.ts";
 
 import { withValidator } from "../yaml-validation/validator-queue.ts";
@@ -54,6 +49,7 @@ import {
   resolveSchema,
   schemaCompletions,
   setSchemas,
+  walkSchema,
 } from "../yaml-validation/schema-utils.ts";
 
 import { mappedIndexToRowCol } from "../mapped-text.ts";
@@ -538,7 +534,6 @@ function completions(obj: CompletionContext): CompletionResult {
               case "array":
                 matchingTypes.add("array");
                 return true;
-              case "oneOf":
               case "anyOf":
               case "allOf":
                 return false;
@@ -1001,13 +996,8 @@ export async function getAutomation(
 }
 
 const initializer = async () => {
-  setValidatorModulePath(
-    getLocalPath("standalone-schema-validators.js"),
-  );
-
   // for now we force the IDE to load the module ahead of time to not get
   // a pause at unpredictable times.
-  await ensureValidatorModule();
 
   const response = await fetch(getLocalPath("quarto-json-schemas.json"));
   const _schemas = (await response.json()) as QuartoJsonSchemas;

@@ -53,20 +53,6 @@
 // }
 
 // // deno-lint-ignore no-explicit-any
-// function validateOneOf(value: any, schema: Schema) {
-//   let count = 0;
-//   for (const subSchema of schema.oneOf) {
-//     if (validate(value, subSchema)) {
-//       count += 1;
-//       if (count > 1) {
-//         return false;
-//       }
-//     }
-//   }
-//   return count === 1;
-// }
-
-// // deno-lint-ignore no-explicit-any
 // function validateAnyOf(value: any, schema: Schema) {
 //   for (const subSchema of schema.anyOf) {
 //     if (validate(value, subSchema)) {
@@ -170,7 +156,6 @@
 //     "string": validateString,
 //     "null": validateNull,
 //     "enum": validateEnum,
-//     "oneOf": validateOneOf,
 //     "anyOf": validateAnyOf,
 //     "allOf": validateAllOf,
 //     "object": validateObject,

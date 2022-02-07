@@ -1,6 +1,6 @@
 - name: pdfa
   schema:
-    oneOf:
+    anyOf:
       - boolean
       - string
   tags:

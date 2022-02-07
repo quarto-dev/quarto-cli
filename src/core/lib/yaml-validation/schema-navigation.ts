@@ -52,10 +52,6 @@ export function navigateSchemaBySchemaPath(
     const key = Number(path[pathIndex + 1]);
     const subSchema = schema.anyOf[key];
     return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "oneOf" && schema.oneOf) {
-    const key = Number(path[pathIndex + 1]);
-    const subSchema = schema.oneOf[key];
-    return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
   } else if (pathVal === "items" && schema.items) {
     const subSchema = schema.items;
     return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 1);
@@ -114,8 +110,6 @@ export function navigateSchemaByInstancePath(
       return subSchema.anyOf.map((ss: any) => inner(ss, index));
     } else if (st === "allOf") {
       return subSchema.allOf.map((ss: any) => inner(ss, index));
-    } else if (st === "oneOf") {
-      return subSchema.oneOf.map((ss: any) => inner(ss, index));
     } else {
       // if path wanted to navigate deeper but this is a YAML
       // "terminal" (not a compound type) then this is not a valid
@@ -161,9 +155,6 @@ export function navigateSchemaBySchemaPathSingle(
       case "allOf":
         ensurePathFragment(path[index], "allOf");
         return inner(subschema.allOf[path[index + 1]], index + 2);
-      case "oneOf":
-        ensurePathFragment(path[index], "oneOf");
-        return inner(subschema.oneOf[path[index + 1]], index + 2);
       case "array":
         ensurePathFragment(path[index], "array");
         return inner(subschema.arrayOf.schema, index + 2);

@@ -3,14 +3,14 @@
     properties:
       id: string
       completions:
-        oneOf:
+        anyOf:
           - arrayOf: string # FIXME this needs improving, look at
                             # Completion interface
           - object:
               additionalProperties: string
                 
       additionalCompletions:
-        oneOf:
+        anyOf:
           - arrayOf: string # FIXME this needs improving, look at
                             # Completion interface
           - object:
@@ -22,7 +22,7 @@
       resolveRef: schema/yaml-schema/base-schema
     properties:
       required:
-        oneOf:
+        anyOf:
           - enum:
               - all
           - arrayOf: string
@@ -45,7 +45,7 @@
       resolveRef: schema/yaml-schema/base-schema
     properties:
       enum:
-        oneOf:
+        anyOf:
           - arrayOf: string
           - object:
               super:
@@ -79,7 +79,7 @@
       resolveRef: schema/yaml-schema/base-schema
     properties:
       arrayOf:
-        oneOf:
+        anyOf:
           - arrayOf:
               ref: schema/yaml-schema/schema
               description: be a yaml yaml schema
@@ -93,7 +93,7 @@
                     description: be a yaml yaml schema
     required: [arrayOf]
 
-- oneOf:
+- anyOf:
     id: schema/yaml-schema/enum-schema
     schemas:
       - arrayOf: string
@@ -105,32 +105,12 @@
               arrayOf: string
 
 - object:
-    id: schema/yaml-schema/one-of-schema
-    super:
-      resolveRef: schema/yaml-schema/base-schema
-    properties:
-      oneOf:
-        oneOf:
-          - arrayOf:
-              ref: schema/yaml-schema/schema
-              description: be a yaml yaml schema
-          - object:
-              super:
-                resolveRef: schema/yaml-schema/base-schema
-              properties:
-                schemas:
-                  arrayOf:
-                    ref: schema/yaml-schema/schema
-                    description: be a yaml yaml schema
-    required: [oneOf]
-
-- object:
     id: schema/yaml-schema/any-of-schema
     super:
       resolveRef: schema/yaml-schema/base-schema
     properties:
       anyOf:
-        oneOf:
+        anyOf:
           - arrayOf:
               ref: schema/yaml-schema/schema
               description: be a yaml yaml schema
@@ -143,7 +123,7 @@
                     ref: schema/yaml-schema/schema
                     description: be a yaml yaml schema
     
-- oneOf:
+- anyOf:
     id: schema/yaml-schema/schema
     schemas:
       - enum:

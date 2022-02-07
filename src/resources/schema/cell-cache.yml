@@ -82,7 +82,7 @@
   tags:
     engine: knitr
   schema:
-    oneOf:
+    anyOf:
       - maybeArrayOf: string
       - maybeArrayOf: number
   description: |

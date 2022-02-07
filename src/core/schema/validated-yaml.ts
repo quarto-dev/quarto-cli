@@ -15,13 +15,16 @@ import { asMappedString, MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { Schema } from "../lib/yaml-validation/schema.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
-import { LocalizedError } from "../lib/yaml-validation/yaml-schema.ts";
 import { relative } from "path/mod.ts";
 import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 
 import { isObject } from "../lodash.ts";
 
-import { JSONValue } from "../lib/yaml-validation/validator/types.ts";
+import {
+  AnnotatedParse,
+  JSONValue,
+  LocalizedError,
+} from "../lib/yaml-validation/validator/types.ts";
 
 // https://stackoverflow.com/a/41429145
 export class ValidationError extends Error {

@@ -39,7 +39,6 @@ import {
   nullSchema as nullS,
   numberSchema as numberS,
   objectSchema as objectS,
-  oneOfSchema as oneOfS,
   refSchema as refS,
   regexSchema,
   stringSchema as stringS,
@@ -173,9 +172,9 @@ function convertFromRef(yaml: any): ConcreteSchema {
 function convertFromMaybeArrayOf(yaml: any): ConcreteSchema {
   const inner = convertFromYaml(yaml.maybeArrayOf);
   const schema = tagSchema(
-    oneOfS(inner, arrayOfS(inner)),
+    anyOfS(inner, arrayOfS(inner)),
     {
-      "complete-from": ["oneOf", 0], // complete from `schema` completions, ignoring arrayOf
+      "complete-from": ["anyOf", 0], // complete from `schema` completions, ignoring arrayOf
     },
   );
 
@@ -195,24 +194,6 @@ function convertFromArrayOf(yaml: any): ConcreteSchema {
       yaml,
       arrayOfS(convertFromYaml(yaml.arrayOf)),
     );
-  }
-}
-
-// deno-lint-ignore no-explicit-any
-function convertFromOneOf(yaml: any): ConcreteSchema {
-  if (yaml.oneOf.schemas) {
-    // deno-lint-ignore no-explicit-any
-    const inner = yaml.oneOf.schemas.map((x: any) => convertFromYaml(x));
-    const schema = oneOfS(...inner);
-    return setBaseSchemaProperties(
-      yaml,
-      setBaseSchemaProperties(yaml.oneOf, schema),
-    );
-  } else {
-    // deno-lint-ignore no-explicit-any
-    const inner = yaml.oneOf.map((x: any) => convertFromYaml(x));
-    const schema = oneOfS(...inner);
-    return setBaseSchemaProperties(yaml, schema);
   }
 }
 
@@ -392,7 +373,6 @@ export function convertFromYaml(yaml: any): ConcreteSchema {
     { key: "null", value: convertFromNull },
     { key: "number", value: convertFromNumber },
     { key: "object", value: convertFromObject },
-    { key: "oneOf", value: convertFromOneOf },
     { key: "path", value: convertFromPath },
     { key: "record", value: convertFromRecord },
     { key: "ref", value: convertFromRef },
@@ -421,7 +401,7 @@ export function convertFromYaml(yaml: any): ConcreteSchema {
 export function convertFromYAMLString(src: string) {
   const yaml = readAnnotatedYamlFromString(src);
 
-  return convertFromYaml(yaml);
+  return convertFromYaml(yaml.result);
 }
 
 export function objectSchemaFromFieldsFile(

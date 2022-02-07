@@ -1,6 +1,6 @@
 - name: code-copy
   schema:
-    oneOf:
+    anyOf:
       - enum: [hover]
       - boolean
   tags:
@@ -34,12 +34,12 @@
   tags:
     formats: [$html-doc]
   schema:
-    oneOf:
+    anyOf:
       - boolean
       - object:
           properties:
             source:
-              oneOf:
+              anyOf:
                 - boolean
                 - string
             toggle: boolean

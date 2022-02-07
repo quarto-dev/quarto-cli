@@ -9,7 +9,7 @@
   tags:
     formats: [revealjs]
   schema:
-    oneOf: [number, string]
+    anyOf: [number, string]
   default: 1050
   description:
     short: "The 'normal' width of the presentation"
@@ -22,7 +22,7 @@
   tags:
     formats: [revealjs]
   schema:
-    oneOf: [number, string]
+    anyOf: [number, string]
   default: 700
   description:
     short: "The 'normal' height of the presentation"

@@ -33,11 +33,11 @@ import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
 
 import {
+  anyOfSchema as anyOfS,
   arraySchema as arrayS,
   booleanSchema as booleanS,
   idSchema as withId,
   objectSchema as objectS,
-  oneOfSchema as oneOfS,
   stringSchema as stringS,
 } from "../../core/schema/common.ts";
 
@@ -112,7 +112,7 @@ interface RevealPluginScript {
   async?: boolean;
 }
 
-const scriptSchema = oneOfS(
+const scriptSchema = anyOfS(
   stringS,
   objectS({
     properties: {
@@ -129,8 +129,8 @@ export const revealPluginSchema = withId(
       path: stringS,
       name: stringS,
       register: booleanS,
-      script: oneOfS(scriptSchema, arrayS(scriptSchema)),
-      stylesheet: oneOfS(stringS, arrayS(stringS)),
+      script: anyOfS(scriptSchema, arrayS(scriptSchema)),
+      stylesheet: anyOfS(stringS, arrayS(stringS)),
       // FIXME what's the schema for metadata?
       [kSelfContained]: booleanS,
     },

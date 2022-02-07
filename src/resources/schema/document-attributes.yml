@@ -14,16 +14,18 @@
 
 - name: author
   schema:
-    oneOf:
-      - maybeArrayOf: object
-      - maybeArrayOf: string
+    maybeArrayOf:
+      anyOf:
+        - object
+        - string
   description: "Author or authors of the document"
 
 - name: affiliation
   schema:
-    oneOf:
-      - maybeArrayOf: object
-      - maybeArrayOf: string
+    maybeArrayOf:
+      anyOf:
+        - object
+        - string
   tags:
     formats: [$jats-all]
   description:

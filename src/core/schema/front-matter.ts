@@ -9,11 +9,11 @@
 
 import {
   allOfSchema as allOfS,
+  anyOfSchema as anyOfS,
   completeSchema,
   describeSchema,
   nullSchema as nullS,
   objectSchema as objectS,
-  oneOfSchema as oneOfS,
   regexSchema as regexS,
 } from "./common.ts";
 
@@ -71,9 +71,9 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
   );
 
   return errorMessageSchema(
-    oneOfS(
+    anyOfS(
       describeSchema(
-        oneOfS(...plusFormatStringSchemas),
+        anyOfS(...plusFormatStringSchemas),
         "the name of a pandoc-supported output format",
       ),
       regexS("^hugo(\\+.+)?$", "be 'hugo'"),
@@ -113,7 +113,7 @@ export const getFrontMatterSchema = defineCached(
   async () => {
     const executeObjSchema = await getFormatExecuteOptionsSchema();
     return {
-      schema: oneOfS(
+      schema: anyOfS(
         nullS,
         allOfS(
           objectS({

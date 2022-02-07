@@ -55,7 +55,7 @@
   tags:
     engine: knitr
   schema:
-    oneOf:
+    anyOf:
       - enum: [markup, asis, hold, hide]
       - false
   default: markup

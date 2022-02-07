@@ -18,11 +18,9 @@ import {
   FalseSchema,
   JSONValue,
   LocalizedError,
-  NotSchema,
   NullSchema,
   NumberSchema,
   ObjectSchema,
-  OneOfSchema,
   RefSchema,
   Schema,
   schemaCall,
@@ -32,8 +30,6 @@ import {
   ValidationError,
   ValidationTraceNode,
 } from "./types.ts";
-
-import { isObject } from "../../../lodash.ts";
 
 import { resolveSchema } from "../schema-utils.ts";
 
@@ -96,6 +92,27 @@ class ValidationContext {
     this.pushSchema(schemaPath);
     return this.popSchema(chunk());
   }
+
+  validate(
+    schema: Schema,
+    source: MappedString,
+    value: AnnotatedParse,
+  ): LocalizedError[] {
+    if (validateGeneric(value, schema, this)) {
+      // validation passed, don't collect errors
+      return [];
+    }
+    return this.pruneErrors(schema, source, value);
+  }
+
+  pruneErrors(
+    schema: Schema,
+    source: MappedString,
+    value: AnnotatedParse,
+  ): LocalizedError[] {
+    debugger;
+    return [];
+  }
 }
 
 function validateGeneric(
@@ -120,13 +137,11 @@ function validateGeneric(
         validateString(value, schema, context),
       "null": ((schema: NullSchema) => validateNull(value, schema, context)),
       "enum": ((schema: EnumSchema) => validateEnum(value, schema, context)),
-      "oneOf": (schema: OneOfSchema) => validateOneOf(value, schema, context),
       "anyOf": (schema: AnyOfSchema) => validateAnyOf(value, schema, context),
       "allOf": (schema: AllOfSchema) => validateAllOf(value, schema, context),
       "array": (schema: ArraySchema) => validateArray(value, schema, context),
       "object": (schema: ObjectSchema) =>
         validateObject(value, schema, context),
-      "not": (schema: NotSchema) => validateNot(value, schema, context),
       "ref": (schema: RefSchema) =>
         validateGeneric(value, resolveSchema(schema), context),
     }));
@@ -225,20 +240,6 @@ function validateEnum(
   return false;
 }
 
-function validateOneOf(
-  value: AnnotatedParse,
-  schema: OneOfSchema,
-  context: ValidationContext,
-) {
-  let passingSchemas = 0;
-  for (let i = 0; i < schema.oneOf.length; ++i) {
-    const subSchema = schema.oneOf[i];
-    passingSchemas += ~~(context.withSchemaPath(i, () =>
-      validateGeneric(value, subSchema, context)));
-  }
-  return passingSchemas === 1;
-}
-
 function validateAnyOf(
   value: AnnotatedParse,
   schema: AnyOfSchema,
@@ -319,16 +320,16 @@ function validateArray(
     result = false;
   }
   if (schema.items) {
-    result = result && context.withSchemaPath("items", () => {
+    result = context.withSchemaPath("items", () => {
       let result = true;
       for (let i = 0; i < value.components.length; ++i) {
         context.pushInstance(i);
-        result = result &&
-          validateGeneric(value.components[i], schema.items!, context);
+        result = validateGeneric(value.components[i], schema.items!, context) &&
+          result;
         context.popInstance();
       }
       return result;
-    });
+    }) && result;
   }
   return result;
 }
@@ -338,7 +339,9 @@ function validateObject(
   schema: ObjectSchema,
   context: ValidationContext,
 ) {
-  if (!typeIsValid(value, schema, context, isObject(value.result))) {
+  const isObject = (typeof value.result === "object") &&
+    !Array.isArray(value.result) && (value.result !== null);
+  if (!typeIsValid(value, schema, context, isObject)) {
     return false;
   }
   let result = true;
@@ -365,25 +368,25 @@ function validateObject(
   };
   const inspectedProps: Set<string> = new Set();
   if (schema.properties !== undefined) {
-    result = result && context.withSchemaPath("properties", () => {
+    result = context.withSchemaPath("properties", () => {
       let result = true;
       for (const [key, subSchema] of Object.entries(schema.properties!)) {
         if (ownProperties.has(key)) {
           context.pushInstance(key);
-          result = result && context.withSchemaPath(
+          result = context.withSchemaPath(
             key,
             () => validateGeneric(locate(key), subSchema, context),
-          );
+          ) && result;
           context.popInstance();
         } else {
           inspectedProps.add(key);
         }
       }
       return result;
-    });
+    }) && result;
   }
   if (schema.patternProperties !== undefined) {
-    result = result && context.withSchemaPath("patternProperties", () => {
+    result = context.withSchemaPath("patternProperties", () => {
       let result = true;
       for (
         const [key, subSchema] of Object.entries(schema.patternProperties!)
@@ -401,10 +404,10 @@ function validateObject(
         ) {
           if (ownProperties.has(key)) {
             context.pushInstance(objectKey);
-            result = result && context.withSchemaPath(
+            result = context.withSchemaPath(
               key,
               () => validateGeneric(locate(key), subSchema, context),
-            );
+            ) && result;
             context.popInstance();
           } else {
             inspectedProps.add(key);
@@ -412,10 +415,10 @@ function validateObject(
         }
       }
       return result;
-    });
+    }) && result;
   }
   if (schema.additionalProperties !== undefined) {
-    result = result && context.withSchemaPath("additionalProperties", () => {
+    result = context.withSchemaPath("additionalProperties", () => {
       return Object.keys(objResult)
         .filter((objectKey) => !inspectedProps.has(objectKey))
         .every((objectKey) =>
@@ -425,18 +428,18 @@ function validateObject(
             context,
           )
         );
-    });
+    }) && result;
   }
   if (schema.propertyNames !== undefined) {
-    result = result && context.withSchemaPath("propertyNames", () => {
+    result = context.withSchemaPath("propertyNames", () => {
       return Array.from(ownProperties)
         .every((key) =>
           validateGeneric(locate(key, "key"), schema.propertyNames!, context)
         );
-    });
+    }) && result;
   }
   if (schema.required !== undefined) {
-    result = result && context.withSchemaPath("propertyNames", () => {
+    result = context.withSchemaPath("propertyNames", () => {
       let result = true;
       for (const reqKey of schema.required!) {
         if (!ownProperties.has(reqKey)) {
@@ -449,31 +452,17 @@ function validateObject(
         }
       }
       return result;
-    });
+    }) && result;
   }
   return result;
-}
-
-function validateNot(
-  value: AnnotatedParse,
-  schema: NotSchema,
-  context: ValidationContext,
-) {
-  let result = validateGeneric(value, schema.not, context);
-  if (result) {
-    return context.withSchemaPath("failedToReject", () => {
-      context.error(value, schema.not, `not schema failed to reject value`);
-      return false;
-    });
-  }
-  return true;
 }
 
 export function validate(
   value: AnnotatedParse,
   schema: Schema,
   source: MappedString,
-): ErrorObject[] { // FINISHME for now this returns ErrorObject, which is what the rest of the code expects.
-  // FINISHME
-  return [];
+): LocalizedError[] {
+  const context = new ValidationContext();
+
+  return context.validate(schema, source, value);
 }

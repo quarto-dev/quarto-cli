@@ -16,7 +16,7 @@
 
 - name: fig-subcap
   schema:
-    oneOf:
+    anyOf:
       - true
       - maybeArrayOf: string
   description: Figure subcaptions
@@ -121,7 +121,7 @@
   tags:
     engine: knitr
   schema:
-    oneOf:
+    anyOf:
       - enum: [high, none, all, first, last]
       - maybeArrayOf: number
   default: high

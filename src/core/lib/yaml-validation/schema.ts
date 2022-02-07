@@ -14,7 +14,6 @@ import {
   Completion,
   ConcreteSchema,
   ObjectSchema,
-  OneOfSchema,
   Schema,
   schemaType,
 } from "./validator/types.ts";
@@ -22,30 +21,12 @@ import {
 export type { Completion, Schema } from "./validator/types.ts";
 export { schemaType } from "./validator/types.ts";
 
-// export interface Completion {
-//   display: string;
-//   type: "key" | "value";
-//   value: string;
-//   description: string | { $ref: string };
-//   // deno-lint-ignore camelcase
-//   suggest_on_accept: boolean;
-//   // `schema` stores the concrete schema that yielded the completion.
-//   // We need to carry it explicitly because of combinators like oneOf
-//   schema?: Schema;
-//   // the manually-generated documentation for the completion, if it exists
-//   documentation?: string;
-// }
-
 export function schemaAccepts(schema: Schema, testType: string): boolean {
   const t = schemaType(schema);
   if (t === testType) {
     return true;
   }
   switch (t) {
-    case "oneOf":
-      return (schema as OneOfSchema).oneOf.some((s: Schema) =>
-        schemaAccepts(s, testType)
-      );
     case "anyOf":
       return (schema as AnyOfSchema).anyOf.some((s: Schema) =>
         schemaAccepts(s, testType)
@@ -64,10 +45,6 @@ export function schemaAcceptsScalar(schema: Schema): boolean {
     return false;
   }
   switch (t) {
-    case "oneOf":
-      return (schema as OneOfSchema).oneOf.some((s: Schema) =>
-        schemaAcceptsScalar(s)
-      );
     case "anyOf":
       return (schema as AnyOfSchema).anyOf.some((s: Schema) =>
         schemaAcceptsScalar(s)
@@ -80,26 +57,6 @@ export function schemaAcceptsScalar(schema: Schema): boolean {
   return true;
 }
 
-// export function schemaType(schema: Schema): string {
-//   const t = schema.type;
-//   if (t) {
-//     return t as string;
-//   }
-//   if (schema.anyOf) {
-//     return "anyOf";
-//   }
-//   if (schema.oneOf) {
-//     return "oneOf";
-//   }
-//   if (schema.allOf) {
-//     return "allOf";
-//   }
-//   if (schema.enum) {
-//     return "enum";
-//   }
-//   return "any";
-// }
-
 export function schemaExhaustiveCompletions(schema: Schema): boolean {
   switch (schemaType(schema)) {
     case "false":
@@ -108,8 +65,6 @@ export function schemaExhaustiveCompletions(schema: Schema): boolean {
       return true;
     case "anyOf":
       return (schema as AnyOfSchema).anyOf.every(schemaExhaustiveCompletions);
-    case "oneOf":
-      return (schema as OneOfSchema).oneOf.every(schemaExhaustiveCompletions);
     case "allOf":
       return (schema as AllOfSchema).allOf.every(schemaExhaustiveCompletions);
     case "array":

@@ -14,7 +14,7 @@
 
 - name: language
   schema:
-    oneOf:
+    anyOf:
       - path
       - object
   description: YAML file containing custom language translations

@@ -189,7 +189,7 @@
 
 - name: indent
   schema:
-    oneOf:
+    anyOf:
       - boolean
       - string
   tags:

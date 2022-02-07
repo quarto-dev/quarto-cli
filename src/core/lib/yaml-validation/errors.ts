@@ -9,13 +9,7 @@
 
 import * as colors from "../external/colors.ts";
 
-import {
-  AnnotatedParse,
-  getVerbatimInput,
-  LocalizedError,
-  navigate,
-  YAMLSchema,
-} from "./yaml-schema.ts";
+import { getVerbatimInput, navigate, YAMLSchema } from "./yaml-schema.ts";
 
 import { Schema } from "./schema.ts";
 
@@ -45,11 +39,14 @@ import {
   normalizeCaseConvention,
 } from "../text.ts";
 
-import { schemaType } from "./validator/types.ts";
+import {
+  AnnotatedParse,
+  LocalizedError,
+  schemaDescription,
+  schemaType,
+} from "./validator/types.ts";
 
 import { getBadKey } from "./ajv-error.ts";
-
-import { schemaDescription } from "../../schema/common.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -74,20 +71,13 @@ function isEmptyValue(error: LocalizedError) {
   return rawVerbatimInput.trim().length === 0;
 }
 
-function getLastFragment(instancePath: string): undefined | number | string {
-  const splitPath = instancePath.split("/");
-  if (splitPath.length === 0) {
+function getLastFragment(
+  instancePath: (string | number)[],
+): undefined | number | string {
+  if (instancePath.length === 0) {
     return undefined;
   }
-  const lastFragment = splitPath[splitPath.length - 1];
-  if (lastFragment === "") {
-    return undefined;
-  }
-  const maybeNumber = Number(lastFragment);
-  if (!isNaN(maybeNumber)) {
-    return maybeNumber;
-  }
-  return lastFragment;
+  return instancePath[instancePath.length - 1];
 }
 
 /* reindent: produce a minimally-indented version
@@ -246,8 +236,10 @@ function improveErrorHeadingForValueErrors(
   };
 }
 
-// in cases where the span of an error message is empty, we artificially
-// expand the span so that the error is printed somewhat more legibly.
+// in cases where the span of an error message is empty (which happens
+// when eg an empty value is associated with a key), we artificially
+// move the span to the _key_ so that the error is printed somewhat
+// more legibly.
 function expandEmptySpan(
   error: LocalizedError,
   parse: AnnotatedParse,
@@ -263,7 +255,7 @@ function expandEmptySpan(
   }
 
   const lastKey = navigate(
-    error.instancePath.split("/").slice(1),
+    error.instancePath,
     parse,
     true,
   )!;
@@ -369,10 +361,7 @@ function createErrorFragments(error: LocalizedError) {
   const rawVerbatimInput = getVerbatimInput(error);
   const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
 
-  let pathFragments = error.instancePath
-    .trim()
-    .slice(1)
-    .split("/").map((s) => colors.blue(s));
+  let pathFragments = error.instancePath.map((s) => colors.blue(String(s)));
 
   return {
     location: locationString(error.location),
@@ -389,7 +378,7 @@ function schemaDefinedErrors(
 ): LocalizedError {
   const subSchema = navigateSchemaByInstancePath(
     schema,
-    error.instancePath.split("/").slice(1),
+    error.instancePath,
   );
   if (subSchema.length === 0) {
     return error;
@@ -437,7 +426,7 @@ function checkForNearbyCorrection(
     keyOrValue = "key";
   } else {
     // deno-lint-ignore no-explicit-any
-    const val = navigate(error.instancePath.split("/").slice(1), parse);
+    const val = navigate(error.instancePath, parse);
 
     if (typeof val!.result !== "string") {
       // error didn't happen in a string, can't suggest corrections.

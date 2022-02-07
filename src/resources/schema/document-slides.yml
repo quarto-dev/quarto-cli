@@ -32,7 +32,7 @@
   tags:
     formats: [revealjs]
   schema:
-    oneOf:
+    anyOf:
       - boolean
       - enum: ["h.v", "h/v", "c", "c/t"]
   default: false
