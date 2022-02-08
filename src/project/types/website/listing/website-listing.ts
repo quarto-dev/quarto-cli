@@ -300,6 +300,12 @@ function listingPostProcess(
     rightSidebar?.appendChild(headingEl);
     rightSidebar?.appendChild(categoriesEl);
   }
+
+  // Purge any images that made it into the description
+  const descImgs = doc.querySelectorAll(".listing-description img");
+  descImgs.forEach((descImg) => {
+    descImg.remove();
+  });
 }
 
 const kMarginSidebarId = "quarto-margin-sidebar";

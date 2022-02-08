@@ -17,6 +17,12 @@ function callout()
           local isCallout = el.t == "Div" and el.attr.classes:find_if(isDocxCallout)
           local isTable = el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
           local isCodeBlock = el.t == "CodeBlock"
+
+          -- Determine whether this is a code cell that outputs a table
+          local isCodeCell = el.t == "Div" and el.attr.classes:find_if(isCodeCell)
+          if isCodeCell and isCodeCellTable(el) then 
+            isTable = true;
+          end
           
           -- insert spacer if appropriate
           local insertSpacer = false
@@ -73,6 +79,32 @@ end
 
 function isDocxCallout(class)
   return class == "docx-callout"
+end
+
+function isCodeCell(class)
+  return class == "cell"
+end
+
+function isCodeCellDisplay(class)
+  return class == "cell-output-display"
+end
+
+-- Attempts to detect whether this element is a code cell
+-- whose output is a table
+function isCodeCellTable(el) 
+  local isTable = false
+  pandoc.walk_block(el, {
+    Div = function(div) 
+      if div.attr.classes:find_if(isCodeCellDisplay) then
+        pandoc.walk_block(div, {
+          Table = function(tbl)
+            isTable = true
+          end
+        })
+      end
+    end
+  })
+  return isTable
 end
 
 function calloutType(div)
