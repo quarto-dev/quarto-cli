@@ -26,9 +26,11 @@ baz:
   - 1
   - 2
   - 3
+NOTALLOWED: 5
 bah:
   wut: "wat"`;
 
+  debugger;
   const schema = convertFromYAMLString(`
 id: schema-test-1
 object:
@@ -37,6 +39,9 @@ object:
       arrayOf: string
     foo: number
   required: [blah]
+  propertyNames:
+    string:
+      pattern: "[a-z]+"
 `);
   debugger;
   setSchemaDefinition(schema);
@@ -44,6 +49,6 @@ object:
   const annotation = readAndValidateYamlFromMappedString(
     asMappedString(yml),
     schema,
-    "foo",
+    "This should throw",
   );
 });

@@ -25,6 +25,8 @@ import {
   LocalizedError,
 } from "../lib/yaml-validation/validator/types.ts";
 
+import { errorKeyword } from "../lib/yaml-validation/errors.ts";
+
 function checkForEqualsInChunk(
   error: LocalizedError,
   _parse: AnnotatedParse,
@@ -38,7 +40,7 @@ function checkForEqualsInChunk(
     error.violatingObject.end,
   );
 
-  if (error.ajvError.keyword !== "type") {
+  if (errorKeyword(error) !== "type") {
     return error;
   }
   let m;
@@ -53,7 +55,7 @@ function checkForEqualsInChunk(
     info: {},
   };
   addFileInfo(newError, error.source);
-  addInstancePathInfo(newError, error.ajvError.instancePath);
+  addInstancePathInfo(newError, error.instancePath);
 
   // deno-lint-ignore no-cond-assign
   if (m = badObject.match(/= *TRUE/i)) {

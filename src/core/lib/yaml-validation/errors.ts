@@ -46,13 +46,16 @@ import {
   schemaType,
 } from "./validator/types.ts";
 
-import { getBadKey } from "./ajv-error.ts";
-
 ////////////////////////////////////////////////////////////////////////////////
 
 export type ValidatorErrorHandlerFunction = (
   error: LocalizedError,
   parse: AnnotatedParse,
+  /* this is the _outer_ schema, which failed the validation of
+   * parse.result. error also holds error.schema, which is a subschema
+   * of the outer schema which failed the validation of
+   * error.violatingObject (a subobject of parse.result).
+   */
   schema: Schema,
 ) => LocalizedError;
 
@@ -64,6 +67,28 @@ export function setDefaultErrorHandlers(validator: YAMLSchema) {
   validator.addHandler(identifyKeyErrors);
   validator.addHandler(checkForNearbyCorrection);
   validator.addHandler(schemaDefinedErrors);
+}
+
+export function errorKeyword(
+  error: LocalizedError,
+): string {
+  if (error.schemaPath.length === 0) {
+    return "";
+  }
+  return String(error.schemaPath[error.schemaPath.length - 1]);
+}
+
+export function getBadKey(error: LocalizedError): string | undefined {
+  if (error.schemaPath.indexOf("propertyNames") === -1) {
+    return undefined;
+  }
+  const result = error.violatingObject.result;
+  if (typeof result !== "string") {
+    throw new Error(
+      "Internal Error: propertyNames error has a violating non-string.",
+    );
+  }
+  return result;
 }
 
 function isEmptyValue(error: LocalizedError) {
@@ -116,30 +141,6 @@ function reindent(
   return str;
 }
 
-function getErrorSchema(
-  error: LocalizedError,
-  parse: AnnotatedParse,
-  schema: Schema,
-): Schema {
-  // FINISHME this should go away when we replace ajv, so we just appease the typechecker here.
-  return schema;
-}
-
-function innerDescription(
-  error: LocalizedError,
-  parse: AnnotatedParse,
-  schema: Schema,
-): string {
-  const schemaPath = error.ajvError.schemaPath.split("/").slice(1);
-  const errorSchema = (error.ajvError.params && error.ajvError.params.schema) ||
-    error.ajvError.parentSchema;
-  const innerSchema = errorSchema
-    ? [errorSchema]
-    : navigateSchemaByInstancePath(schema, schemaPath.map(decodeURIComponent));
-
-  return innerSchema.map(schemaDescription).join(", ");
-}
-
 function formatHeadingForKeyError(
   _error: LocalizedError,
   _parse: AnnotatedParse,
@@ -151,8 +152,8 @@ function formatHeadingForKeyError(
 
 function formatHeadingForValueError(
   error: LocalizedError,
-  parse: AnnotatedParse,
-  schema: Schema,
+  _parse: AnnotatedParse,
+  _schema: Schema,
 ): string {
   const rawVerbatimInput = getVerbatimInput(error);
   const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
@@ -165,27 +166,32 @@ function formatHeadingForValueError(
       if (empty) {
         return "YAML object is missing.";
       } else {
-        const innerDesc = innerDescription(error, parse, schema);
-        return `YAML object ${verbatimInput} must instead ${innerDesc}`;
+        return `YAML object ${verbatimInput} must instead ${
+          schemaDescription(error.schema)
+        }`;
       }
     case "number": // array
-      const innerDesc = innerDescription(error, parse, schema);
       if (empty) {
-        return `Array entry ${
-          lastFragment + 1
-        } is empty but it must instead ${innerDesc}.`;
+        return `Array entry ${lastFragment + 1} is empty but it must instead ${
+          schemaDescription(error.schema)
+        }.`;
       } else {
         return `Array entry ${
           lastFragment + 1
-        } has value ${verbatimInput} must instead ${innerDesc}.`;
+        } has value ${verbatimInput} must instead ${
+          schemaDescription(error.schema)
+        }.`;
       }
     case "string": { // object
       const formatLastFragment = colors.blue(lastFragment);
-      const innerDesc = innerDescription(error, parse, schema);
       if (empty) {
-        return `Key ${formatLastFragment} has empty value but it must instead ${innerDesc}`;
+        return `Key ${formatLastFragment} has empty value but it must instead ${
+          schemaDescription(error.schema)
+        }`;
       } else {
-        return `Key ${formatLastFragment} has value ${verbatimInput} but it must instead ${innerDesc}`;
+        return `Key ${formatLastFragment} has value ${verbatimInput} but it must instead ${
+          schemaDescription(error.schema)
+        }`;
       }
     }
   }
@@ -196,11 +202,15 @@ function identifyKeyErrors(
   parse: AnnotatedParse,
   schema: Schema,
 ): LocalizedError {
-  let badKey = getBadKey(error.ajvError);
+  if (error.schemaPath.indexOf("propertyNames") === -1) {
+    return error;
+  }
+
+  let badKey = getBadKey(error);
   if (badKey) {
     addInstancePathInfo(
       error.niceError,
-      error.ajvError.instancePath + "/" + badKey,
+      [...error.instancePath, badKey],
     );
     error.niceError.heading = formatHeadingForKeyError(
       error,
@@ -218,13 +228,17 @@ function improveErrorHeadingForValueErrors(
   parse: AnnotatedParse,
   schema: Schema,
 ): LocalizedError {
+  // TODO this check is supposed to be "don't mess with errors where
+  // the violating object is in key position". I think my condition
+  // catches everything but I'm not positive.
+  //
+  // 2022-02-08: yup, I was wrong, there's also missing properties errors
+  // which are not addressed here.
+
   if (
-    error.ajvError.keyword === "_custom_invalidProperty" ||
-    error.ajvError.keyword === "propertyNames"
+    error.schemaPath.indexOf("propertyNames") !== -1 ||
+    errorKeyword(error) === "required"
   ) {
-    // TODO this check is supposed to be "don't mess with errors where
-    // the violating object is in key position". I think my condition
-    // catches everything but I'm not positive.
     return error;
   }
   return {
@@ -243,7 +257,7 @@ function improveErrorHeadingForValueErrors(
 function expandEmptySpan(
   error: LocalizedError,
   parse: AnnotatedParse,
-  schema: Schema,
+  _schema: Schema,
 ): LocalizedError {
   if (
     error.location.start.line !== error.location.end.line ||
@@ -283,9 +297,14 @@ function checkForTypeMismatch(
   const rawVerbatimInput = getVerbatimInput(error);
   const verbatimInput = quotedStringColor(rawVerbatimInput);
 
-  if (error.ajvError.keyword === "type" && rawVerbatimInput.length > 0) {
+  if (errorKeyword(error) === "type" && rawVerbatimInput.length > 0) {
     const newError: TidyverseError = {
-      heading: formatHeadingForValueError(error, parse, schema),
+      ...error.niceError,
+      heading: formatHeadingForValueError(
+        error,
+        parse,
+        schema,
+      ),
       error: [
         `The value ${verbatimInput} is a ${typeof error.violatingObject
           .result}.`,
@@ -293,7 +312,7 @@ function checkForTypeMismatch(
       info: {},
       location: error.niceError.location,
     };
-    addInstancePathInfo(newError, error.ajvError.instancePath);
+    addInstancePathInfo(newError, error.instancePath);
     addFileInfo(newError, error.source);
     return {
       ...error,
@@ -306,12 +325,12 @@ function checkForTypeMismatch(
 function checkForBadBoolean(
   error: LocalizedError,
   parse: AnnotatedParse,
-  schema: Schema,
+  _schema: Schema,
 ) {
-  schema = error.ajvError.params.schema;
+  const schema = error.schema;
   if (
     !(typeof error.violatingObject.result === "string" &&
-      error.ajvError.keyword === "type" &&
+      errorKeyword(error) === "type" &&
       (schemaType(schema) === "boolean"))
   ) {
     return error;
@@ -341,7 +360,7 @@ function checkForBadBoolean(
     info: {},
     location: error.niceError.location,
   };
-  addInstancePathInfo(newError, error.ajvError.instancePath);
+  addInstancePathInfo(newError, error.instancePath);
   addFileInfo(newError, error.source);
   newError.info["yaml-version-1.2"] = suggestion1;
   newError.info["suggestion-fix"] = suggestion1;
@@ -371,29 +390,26 @@ function createErrorFragments(error: LocalizedError) {
   };
 }
 
+// FIXME we should navigate the schema path
+// to find the schema-defined error in case it's not
+// error.schema
 function schemaDefinedErrors(
   error: LocalizedError,
   parse: AnnotatedParse,
-  schema: Schema,
+  _schema: Schema,
 ): LocalizedError {
-  const subSchema = navigateSchemaByInstancePath(
-    schema,
-    error.instancePath,
-  );
-  if (subSchema.length === 0) {
+  const schema = error.schema;
+  if (schema === true || schema === false) {
     return error;
   }
-  if (subSchema[0].errorMessage === undefined) {
+  if (schema.errorMessage === undefined) {
     return error;
   }
-  if (typeof subSchema[0].errorMessage !== "string") {
+  if (typeof schema.errorMessage !== "string") {
     return error;
   }
 
-  // FIXME what to do if more than one schema has custom error messages?
-  // currently, we choose one arbitrarily
-
-  let result = subSchema[0].errorMessage;
+  let result = schema.errorMessage;
   for (const [k, v] of Object.entries(createErrorFragments(error))) {
     result = result.replace("${" + k + "}", v);
   }
@@ -410,19 +426,18 @@ function schemaDefinedErrors(
 function checkForNearbyCorrection(
   error: LocalizedError,
   parse: AnnotatedParse,
-  schema: Schema,
+  _schema: Schema,
 ): LocalizedError {
-  debugger;
-  const errorSchema = getErrorSchema(error, parse, schema);
+  const schema = error.schema;
   const corrections: string[] = [];
 
   let errVal = "";
   let keyOrValue = "";
-  const key = getBadKey(error.ajvError);
+  const key = getBadKey(error);
 
   if (key) {
     errVal = key;
-    corrections.push(...possibleSchemaKeys(errorSchema));
+    corrections.push(...possibleSchemaKeys(schema));
     keyOrValue = "key";
   } else {
     // deno-lint-ignore no-explicit-any
@@ -433,7 +448,7 @@ function checkForNearbyCorrection(
       return error;
     }
     errVal = val!.result;
-    corrections.push(...possibleSchemaValues(errorSchema));
+    corrections.push(...possibleSchemaValues(schema));
     keyOrValue = "value";
   }
   if (corrections.length === 0) {

@@ -157,6 +157,7 @@ export function allOfSchema(...args: Schema[]): AllOfSchema {
 export function objectSchema(params: {
   properties?: { [k: string]: Schema };
   patternProperties?: { [k: string]: Schema };
+  propertyNames?: Schema;
   required?: string[];
   exhaustive?: boolean;
   additionalProperties?: Schema;
@@ -176,6 +177,7 @@ export function objectSchema(params: {
     exhaustive,
     completions: completionsParam,
     namingConvention,
+    propertyNames: propertyNamesSchema,
   } = params;
 
   required = required || [];
@@ -183,7 +185,7 @@ export function objectSchema(params: {
   patternProperties = patternProperties || {};
   const tags: Record<string, any> = {};
   let tagsAreSet = false;
-  let propertyNames: Schema | undefined;
+  let propertyNames: Schema | undefined = propertyNamesSchema;
 
   const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
 
@@ -193,10 +195,20 @@ export function objectSchema(params: {
       namingConvention,
     );
     if (pattern !== undefined) {
-      propertyNames = {
-        "type": "string",
-        pattern,
-      };
+      if (propertyNames === undefined) {
+        propertyNames = {
+          "type": "string",
+          pattern,
+        };
+      } else {
+        propertyNames = allOfSchema(
+          propertyNames,
+          {
+            "type": "string",
+            pattern,
+          },
+        );
+      }
       tags["case-convention"] = list;
       tagsAreSet = true;
     }

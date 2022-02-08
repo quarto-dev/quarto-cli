@@ -294,6 +294,9 @@ function convertFromObject(yaml: any): ConcreteSchema {
         .map(([key, value]) => [key, convertFromYaml(value)]),
     );
   }
+  if (schema.propertyNames !== undefined) {
+    params.propertyNames = convertFromYaml(schema.propertyNames);
+  }
   if (schema.additionalProperties !== undefined) {
     // we special-case `false` here because as a schema, `false` means
     // "accept the value `false`" which is not what we want.

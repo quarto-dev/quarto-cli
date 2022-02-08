@@ -70,16 +70,23 @@ export interface AnnotatedParse {
   components: AnnotatedParse[];
 }
 
-export interface LocalizedError {
-  source: MappedString;
-  violatingObject: AnnotatedParse;
+export interface ValidationError {
+  value: AnnotatedParse;
+  schema: Schema;
+  message: string;
   instancePath: (number | string)[];
   schemaPath: (number | string)[];
+}
+
+export interface LocalizedError {
+  violatingObject: AnnotatedParse;
+  schema: Schema; // this is the *localized* schema, aka the schema that violatingObject failed.
   message: string;
+  instancePath: (number | string)[];
+  schemaPath: (number | string)[];
+  source: MappedString;
   location: ErrorLocation;
   niceError: TidyverseError;
-  // deno-lint-ignore no-explicit-any
-  ajvError?: any; // upstream error object from ajv
 }
 
 export interface Completion {
@@ -190,13 +197,6 @@ export interface ObjectSchema extends SchemaAnnotations {
 export interface RefSchema extends SchemaAnnotations {
   "type": "ref";
   "$ref": string;
-}
-
-export interface ValidationError {
-  value: AnnotatedParse;
-  schema: Schema;
-  message: string;
-  instancePath: (number | string)[];
 }
 
 export interface ValidationTraceNode {

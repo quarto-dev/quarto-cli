@@ -443,10 +443,10 @@ export function walkSchema(
       return;
     }
   } else {
-    if (schemaCall(schema, f) === true) {
+    if (schemaCall(schema, f, (_: Schema) => false) === true) {
       return;
     }
   }
 
-  schemaCall(schema, recur, (_: Schema) => true);
+  schemaCall(schema, recur, (_: Schema) => false);
 }

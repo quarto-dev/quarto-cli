@@ -33,9 +33,15 @@ import {
 
 import { resolveSchema } from "../schema-utils.ts";
 
-import { MappedString } from "../../mapped-text.ts";
+import {
+  mappedIndexToRowCol,
+  MappedString,
+  mappedString,
+} from "../../mapped-text.ts";
 
-import { ErrorObject } from "../ajv-error.ts";
+import { formatLineRange, lines } from "../../text.ts";
+
+import { ErrorLocation } from "../../errors.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -59,6 +65,7 @@ class ValidationContext {
       schema,
       message,
       instancePath: this.instancePath.slice(),
+      schemaPath: this.nodeStack.map((node) => node.edge),
     });
   }
 
@@ -97,22 +104,150 @@ class ValidationContext {
     schema: Schema,
     source: MappedString,
     value: AnnotatedParse,
+    pruneErrors = true,
   ): LocalizedError[] {
     if (validateGeneric(value, schema, this)) {
       // validation passed, don't collect errors
       return [];
     }
-    return this.pruneErrors(schema, source, value);
+    return this.collectErrors(schema, source, value, pruneErrors);
   }
 
-  pruneErrors(
+  // if pruneErrors is false, we return all errors. This is typically
+  // hard to interpret directly because of anyOf errors.
+  //
+  // it's possible that the best API is for LocalizedErrors to explicitly nest
+  // so that anyOf errors are reported in their natural structure.
+  //
+  // if pruneErrors is true, then we only report one of the anyOf
+  // errors, avoiding most issues. (`patternProperties` can still
+  // cause error overlap and potential confusion, and we need those
+  // because of pandoc properties..)
+  collectErrors(
     schema: Schema,
     source: MappedString,
     value: AnnotatedParse,
+    pruneErrors = true,
   ): LocalizedError[] {
-    debugger;
-    return [];
+    const inner = (node: ValidationTraceNode) => {
+      const result: ValidationError[] = [];
+      if (node.edge === "anyOf" && pruneErrors) {
+        // We prune all but the anyOf error which reports the smallest
+        // span in the error (presumably showing the error that is the
+        // best one to fix)
+        const innerResults: ValidationError[][] = node.children.map(inner);
+        let bestResults: ValidationError[] = [];
+        let minSpan = Infinity;
+        for (const resultGroup of innerResults) {
+          let totalSpan = 0;
+          for (const result of resultGroup) {
+            totalSpan += result.value.end - result.value.start;
+          }
+          if (totalSpan < minSpan) {
+            minSpan = totalSpan;
+            bestResults = resultGroup;
+          }
+        }
+
+        return bestResults;
+      } else {
+        result.push(...node.errors);
+        for (const child of node.children) {
+          result.push(...inner(child));
+        }
+        return result;
+      }
+    };
+    const errors = inner(this.root);
+
+    const locF = mappedIndexToRowCol(source);
+
+    const result = errors.map((validationError) => {
+      let location;
+      try {
+        location = {
+          start: locF(validationError.value.start),
+          end: locF(validationError.value.end),
+        };
+      } catch (e) {
+        location = {
+          start: { line: 0, column: 0 },
+          end: { line: 0, column: 0 },
+        };
+      }
+
+      return {
+        source: mappedString(source, [{
+          start: validationError.value.start,
+          end: validationError.value.end,
+        }]),
+        violatingObject: validationError.value,
+        instancePath: validationError.instancePath,
+        schemaPath: validationError.schemaPath,
+        schema: validationError.schema,
+        message: validationError.message,
+        location: location!,
+        niceError: {
+          heading: validationError.message,
+          error: [],
+          info: {},
+          fileName: source.fileName,
+          location: location!,
+          sourceContext: createSourceContext(source, location!),
+        },
+      };
+    });
+
+    return result;
   }
+}
+
+function createSourceContext(
+  src: MappedString,
+  location: ErrorLocation,
+): string {
+  // TODO this is computed every time, might be inefficient on large files.
+  debugger;
+  const nLines = lines(src.originalString).length;
+  const {
+    start,
+    end,
+  } = location;
+  const {
+    prefixWidth,
+    lines: formattedLines,
+  } = formatLineRange(
+    src.originalString,
+    Math.max(0, start.line - 1),
+    Math.min(end.line + 1, nLines - 1),
+  );
+  const contextLines: string[] = [];
+  let mustPrintEllipsis = true;
+  for (const { lineNumber, content, rawLine } of formattedLines) {
+    if (lineNumber < start.line || lineNumber > end.line) {
+      if (rawLine.trim().length) {
+        contextLines.push(content);
+      }
+    } else {
+      if (
+        lineNumber >= start.line + 2 && lineNumber <= end.line - 2
+      ) {
+        if (mustPrintEllipsis) {
+          mustPrintEllipsis = false;
+          contextLines.push("...");
+        }
+      } else {
+        const startColumn = (lineNumber > start.line ? 0 : start.column);
+        const endColumn = (lineNumber < end.line ? rawLine.length : end.column);
+        contextLines.push(content);
+        contextLines.push(
+          " ".repeat(prefixWidth + startColumn) +
+            "~".repeat(endColumn - startColumn),
+        );
+      }
+    }
+  }
+  return contextLines.join("\n");
 }
 
 function validateGeneric(
@@ -439,7 +574,7 @@ function validateObject(
     }) && result;
   }
   if (schema.required !== undefined) {
-    result = context.withSchemaPath("propertyNames", () => {
+    result = context.withSchemaPath("required", () => {
       let result = true;
       for (const reqKey of schema.required!) {
         if (!ownProperties.has(reqKey)) {
@@ -456,7 +591,6 @@ function validateObject(
   }
   return result;
 }
-
 export function validate(
   value: AnnotatedParse,
   schema: Schema,

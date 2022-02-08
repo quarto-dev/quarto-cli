@@ -31,7 +31,12 @@ export class ValidationError extends Error {
   validationErrors: LocalizedError[];
 
   constructor(msg: string, validationErrors: LocalizedError[]) {
-    super(msg);
+    super(
+      [msg, ...validationErrors.map((e) => tidyverseFormatError(e.niceError))]
+        .join(
+          "\n\n",
+        ),
+    );
 
     Object.setPrototypeOf(this, ValidationError.prototype);
     this.validationErrors = validationErrors;
