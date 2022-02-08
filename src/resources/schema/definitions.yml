@@ -335,9 +335,6 @@
       fav-icon:
         string:
           description: "The path to the favicon for this website"
-      image:
-        description: 
-          short: "The path to an image for this website"
       site-url:
         string:
           description: "Base URL for published website"
