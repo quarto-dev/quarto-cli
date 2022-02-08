@@ -38,6 +38,7 @@ export async function registryReadString(
   const result = await execProcess({
     cmd,
     stdout: "piped",
+    stderr: "null",
   });
   if (result.success && result.stdout) {
     const typePos = result.stdout?.indexOf(kTypeString);
