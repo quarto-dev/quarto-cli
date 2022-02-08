@@ -429,9 +429,9 @@
                   description: "The url to the website’s cookie or privacy policy."
                 prefs-text:
                   schema: string
-                  description: 
+                  description:
                     short: "The text to display for the cookie preferences link in the website footer."
-        description: 
+        description:
           short: "Request cookie consent before enabling scripts that set cookies"
           long: |
             Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
