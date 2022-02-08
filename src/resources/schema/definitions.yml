@@ -329,6 +329,12 @@
       title:
         string:
           description: "Website title"
+      description:
+        string:
+          description: "Website description"      
+      image:
+        description: 
+          short: "The path to an image for this website."
       site-url:
         string:
           description: "Base URL for published website"
