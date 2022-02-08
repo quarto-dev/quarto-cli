@@ -8,12 +8,15 @@ website:
     left:
       - href: index<%= ext %>
         text: Home
-    right:
       - about<%= ext %>
-
+    right:
+      - icon: github
+        href: https://www.github.com/
+      - icon: twitter
+        href: https://www.twitter.com
 format:
   html:
-    theme: united
+    theme: cosmo
     css: styles.css
 
 <% if(editor){ %>editor: <%= editor %><% } %>
