@@ -287,6 +287,11 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
     : codeTools?.caption || kCodeCaption,
   };
 
+  // if we have request source, make sure we are able to keep source
+  if (codeToolsResolved.source) {
+    codeToolsResolved.source = !!format.render[kKeepSource];
+  }
+
   // if we have requested toggle, make sure there are things to toggle
   if (codeToolsResolved.toggle) {
     const codeDetails = doc.querySelector(".cell > details > .sourceCode");
