@@ -650,13 +650,13 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           }
         }
 
+        // Target position of image
+        // first level after the element
+        const nextEl = nodeEl.nextElementSibling;
         // Remove image from its parent
         removeEmpty(imageEl);
-        // insert at first level after the element
-        slideEl.insertBefore(
-          image,
-          nodeEl.nextElementSibling,
-        );
+        // insert at target position
+        slideEl.insertBefore(image, nextEl);
 
         // If there was a caption processed add it after
         if (caption.classList.contains("caption")) {
