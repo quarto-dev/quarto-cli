@@ -332,9 +332,12 @@
       description:
         string:
           description: "Website description"      
+      fav-icon:
+        string:
+          description: "The path to the favicon for this website"
       image:
         description: 
-          short: "The path to an image for this website."
+          short: "The path to an image for this website"
       site-url:
         string:
           description: "Base URL for published website"
@@ -354,7 +357,86 @@
           description:
             short: "Links to source repository actions"
             long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
+      google-analytics:
+        anyOf:
+          - string
+          - object:
+              properties:
+                tracking-id:
+                  schema: string
+                  description: "The Google tracking Id or measurement Id of this website."
+                storage:
+                  enum: [cookies, none]
+                  description:
+                    short: "Storage options for Google Analytics data"
+                    long: |
+                      Storage option for Google Analytics data using on of these two values:
 
+                      `cookies` - Use cookies to store unique user and session identification (default).
+
+                      `none` - Do not use cookies to store unique user and session identification.
+
+                      For more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).
+                anonymize-ip:
+                  schema: boolean
+                  description:
+                    short: "Anonymize the user ip address."
+                    long: |
+                      Anonymize the user ip address. For more about this feature, see 
+                      [IP Anonymization (or IP masking) in Google Analytics](https://support.google.com/analytics/answer/2763052?hl=en).
+                version: 
+                  enum: [3,4]
+                  description:
+                    short: "The version number of Google Analytics to use."
+                    long: |
+                      The version number of Google Analytics to use. Currently supports either 3 (for analytics.js) or 4 (for gtag). 
+                      This is automatically detected based upon the `tracking-id`, but you may specify it.
+        description: "Enable Google Analytics for this website"
+      cookie-consent:
+        anyOf:
+          - boolean
+          - object:
+              properties:
+                type:
+                  enum: [implied, express]
+                  description:
+                    short: "The type of consent that should be requested"
+                    long: |
+                      The type of consent that should be requested, using one of these two values:
+
+                      `implied` - (default) This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+
+                      `express` - This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
+                style:
+                  enum: [simple, headline, interstitial, standalone]
+                  description:
+                    short: "The style of the consent banner that is displayed"
+                    long: |
+                      The style of the consent banner that is displayed:
+
+                      `simple` - (default) A simple dialog in the lower right corner of the website.
+
+                      `headline` - A full width banner across the top of the website.
+
+                      `interstitial` - An semi-transparent overlay of the entire website.
+
+                      `standalone` - An opaque overlay of the entire website.
+                palette:
+                  enum: [light, dark]
+                  description: "Whether to use a dark or light appearance for the consent banner"
+                policy-url:
+                  schema: string
+                  description: "The url to the website’s cookie or privacy policy."
+                prefs-text:
+                  schema: string
+                  description: 
+                    short: "The text to display for the cookie preferences link in the website footer."
+        description: 
+          short: "Request cookie consent before enabling scripts that set cookies"
+          long: |
+            Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
+
+            The user’s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent).
       search:
         oneOf:
           - boolean
@@ -566,7 +648,12 @@
                     maybeArrayOf: string
                     description: "Markdown to place below sidebar content (text or file path)"
         description: "Side navigation options"
-
+      body-header:
+        string:
+          description: "Markdown to insert at the beginning of each page’s body (below the title and author block)."
+      body-footer:
+        string:
+          description: "Markdown to insert below each page’s body."
       margin-header:
         maybeArrayOf: string
         description: "Markdown to place above margin content (text or file path)"
