@@ -62,7 +62,14 @@ export interface ProjectType {
     project: ProjectContext,
     files: string[],
     incremental: boolean,
-  ) => string[];
+  ) => {
+    files: string[];
+    onRenderComplete?: (
+      project: ProjectContext,
+      files: string[],
+      incremental: boolean,
+    ) => Promise<void>;
+  };
   postRender?: (
     context: ProjectContext,
     incremental: boolean,

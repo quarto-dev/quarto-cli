@@ -56,6 +56,8 @@ import {
 } from "./website-listing-project.ts";
 import { filterPaths } from "../../../../core/path.ts";
 import { uniqBy } from "../../../../core/lodash.ts";
+import { projectOutputDir } from "../../../project-shared.ts";
+import { touch } from "../../../../core/file.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,
@@ -86,17 +88,36 @@ export function listingSupplementalFiles(
       const supplementalFiles = matching.map((listingRelativePath) => {
         return join(project.dir, listingRelativePath);
       });
-      return uniqBy(supplementalFiles.filter((file) => {
+      const files = uniqBy(supplementalFiles.filter((file) => {
         return existsSync(file);
       }));
+
+      const onRenderComplete = async (
+        project: ProjectContext,
+        files: string[],
+        incremental: boolean,
+      ) => {
+        if (incremental) {
+          const outputDir = projectOutputDir(project);
+          for (const file of files) {
+            const filePath = join(outputDir, file);
+            // Touching the non-supplemental files ensures that
+            // any file modified events for those files will happen
+            // after the listing file events (for quarto preview, for example)
+            await touch(filePath);
+          }
+        }
+      };
+
+      return { files, onRenderComplete };
     } else {
-      return [];
+      return { files: [] };
     }
   } else {
     // This is a full render, clear the cache
     // (a brute force form of garbage collection)
     clearListingProjectData(project);
-    return [];
+    return { files: [] };
   }
 }
 

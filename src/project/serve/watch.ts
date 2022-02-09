@@ -266,7 +266,7 @@ export function watchProject(
       }
 
       // see if there is a reload target (last html file modified)
-      const lastHtmlFile = (ld.uniq(modified) as string[]).reverse().find(
+      const lastHtmlFile = modified.reverse().find(
         (file) => {
           return extname(file) === ".html";
         },
