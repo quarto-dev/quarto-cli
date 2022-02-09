@@ -483,11 +483,13 @@ async function readContents(
             }
           } else {
             const item = await listItemFromFile(file, project);
-            validateItem(listing, item, (field: string) => {
-              return `The file ${file} is missing the required field '${field}'.`;
-            });
-            listingItemSources.add(ListingItemSource.document);
-            listingItems.push(item);
+            if (item) {
+              validateItem(listing, item, (field: string) => {
+                return `The file ${file} is missing the required field '${field}'.`;
+              });
+              listingItemSources.add(ListingItemSource.document);
+              listingItems.push(item);
+            }
           }
         }
       }
@@ -560,44 +562,48 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     project,
     projectRelativePath,
   );
-
-  // Create the item
-  const filename = basename(projectRelativePath);
-  const filemodified = fileModifiedDate(input);
   const documentMeta = target?.markdown.yaml;
-  const description = documentMeta?.description as string ||
-    documentMeta?.abstract as string ||
-    findDescriptionMd(target?.markdown.markdown);
-  const imageRaw = documentMeta?.image as string ||
-    findPreviewImgMd(target?.markdown.markdown);
-  const image = imageRaw !== undefined
-    ? listingItemHref(imageRaw, dirname(projectRelativePath))
-    : undefined;
+  if (documentMeta?.draft) {
+    // This is a draft, don't include it in the listing
+    return undefined;
+  } else {
+    // Create the item
+    const filename = basename(projectRelativePath);
+    const filemodified = fileModifiedDate(input);
+    const description = documentMeta?.description as string ||
+      documentMeta?.abstract as string ||
+      findDescriptionMd(target?.markdown.markdown);
+    const imageRaw = documentMeta?.image as string ||
+      findPreviewImgMd(target?.markdown.markdown);
+    const image = imageRaw !== undefined
+      ? listingItemHref(imageRaw, dirname(projectRelativePath))
+      : undefined;
 
-  const date = documentMeta?.date
-    ? new Date(documentMeta.date as string)
-    : undefined;
-  const author = Array.isArray(documentMeta?.author)
-    ? documentMeta?.author
-    : [documentMeta?.author];
+    const date = documentMeta?.date
+      ? new Date(documentMeta.date as string)
+      : undefined;
+    const author = Array.isArray(documentMeta?.author)
+      ? documentMeta?.author
+      : [documentMeta?.author];
 
-  const readingtime = target?.markdown
-    ? estimateReadingTimeMinutes(target.markdown.markdown)
-    : undefined;
+    const readingtime = target?.markdown
+      ? estimateReadingTimeMinutes(target.markdown.markdown)
+      : undefined;
 
-  const item: ListingItem = {
-    ...documentMeta,
-    path: `/${projectRelativePath}`,
-    [kFieldTitle]: target?.title,
-    [kFieldDate]: date,
-    [kFieldAuthor]: author,
-    [kFieldImage]: image,
-    [kFieldDescription]: description,
-    [kFieldFileName]: filename,
-    [kFieldFileModified]: filemodified,
-    [kFieldReadingTime]: readingtime,
-  };
-  return item;
+    const item: ListingItem = {
+      ...documentMeta,
+      path: `/${projectRelativePath}`,
+      [kFieldTitle]: target?.title,
+      [kFieldDate]: date,
+      [kFieldAuthor]: author,
+      [kFieldImage]: image,
+      [kFieldDescription]: description,
+      [kFieldFileName]: filename,
+      [kFieldFileModified]: filemodified,
+      [kFieldReadingTime]: readingtime,
+    };
+    return item;
+  }
 }
 
 // Processes the 'listing' metadata into an
