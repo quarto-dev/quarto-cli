@@ -86,7 +86,9 @@ export function listingSupplementalFiles(
       const supplementalFiles = matching.map((listingRelativePath) => {
         return join(project.dir, listingRelativePath);
       });
-      return uniqBy(supplementalFiles);
+      return uniqBy(supplementalFiles.filter((file) => {
+        return existsSync(file);
+      }));
     } else {
       return [];
     }
