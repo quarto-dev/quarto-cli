@@ -379,7 +379,7 @@ body.docked {
 }
 
 .page-columns .column-screen-right {
-  grid-column: body-start / screen-end;
+  grid-column: body-content-start / screen-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
