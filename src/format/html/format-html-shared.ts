@@ -45,6 +45,8 @@ export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
 
+export const kDraft = "draft";
+
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
 
