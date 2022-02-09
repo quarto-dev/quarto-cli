@@ -7,7 +7,10 @@
 
 import { lines, matchAll } from "../text.ts";
 import { MappedString } from "../mapped-text.ts";
-import { AnnotatedParse } from "../yaml-validation/yaml-schema.ts";
+import {
+  AnnotatedParse,
+  JSONValue,
+} from "../yaml-validation/validator/types.ts";
 
 /**
  * given a tree from tree-sitter-yaml and the mappedString
@@ -60,7 +63,7 @@ export function buildAnnotated(
     return {
       start: node.startIndex,
       end: node.endIndex,
-      result,
+      result: result as JSONValue,
       kind: node.type, // NB this doesn't match js-yaml, so you need
       // to make sure your annotated walkers know
       // about tree-sitter and js-yaml both.
@@ -202,7 +205,7 @@ export function buildAnnotated(
         } else {
           component = buildNode(child, node.endIndex);
         }
-        const { key, value } = component.result;
+        const { key, value } = component.result as { [key: string]: JSONValue };
         // TODO what do we do in the presence of parse errors that produce empty keys?
         // if (key === null) { }
         result[String(key)] = value;
@@ -222,7 +225,9 @@ export function buildAnnotated(
         }
         if (child.type === "flow_pair") {
           const component = buildNode(child, node.endIndex);
-          const { key, value } = component.result;
+          const { key, value } = component.result as {
+            [key: string]: JSONValue;
+          };
           result[String(key)] = value;
           components.push(...(component.components!));
         }

@@ -14,6 +14,8 @@ import { yamlValidationUnitTest } from "./utils.ts";
 
 import { YAMLSchema } from "../../../src/core/lib/yaml-validation/yaml-schema.ts";
 
+import { ObjectSchema } from "../../../src/core/lib/yaml-validation/validator/types.ts";
+
 yamlValidationUnitTest("schema-validation-hello-world", async () => {
   const src = `
 lets:
@@ -29,7 +31,7 @@ what:
   about:
     nested: "things like this"
 `;
-  const schema = {
+  const schema: ObjectSchema = {
     "type": "object",
     "properties": {
       "lets": { "type": "number", "maximum": 2 },

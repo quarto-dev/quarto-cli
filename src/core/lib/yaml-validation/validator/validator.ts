@@ -198,6 +198,8 @@ class ValidationContext {
       };
     });
 
+    console.log(result);
+
     return result;
   }
 }
@@ -316,7 +318,75 @@ function validateNumber(
   if (!typeIsValid(value, schema, context, typeof value.result === "number")) {
     return false;
   }
-  // FINISHME add numeric validation
+  let result = true;
+  if (schema.minimum !== undefined) {
+    result = context.withSchemaPath(
+      "minimum",
+      () => {
+        const v = value.result as number;
+        if (!(v >= schema.minimum!)) {
+          context.error(
+            value,
+            schema,
+            `value ${value.result} is less than required minimum ${schema.minimum}`,
+          );
+          return false;
+        }
+        return true;
+      },
+    );
+  }
+  if (schema.maximum !== undefined) {
+    result = context.withSchemaPath(
+      "maximum",
+      () => {
+        const v = value.result as number;
+        if (!(v <= schema.maximum!)) {
+          context.error(
+            value,
+            schema,
+            `value ${value.result} is greater than required maximum ${schema.maximum}`,
+          );
+          return false;
+        }
+        return true;
+      },
+    );
+  }
+  if (schema.exclusiveMinimum !== undefined) {
+    result = context.withSchemaPath(
+      "exclusiveMinimum",
+      () => {
+        const v = value.result as number;
+        if (!(v > schema.exclusiveMinimum!)) {
+          context.error(
+            value,
+            schema,
+            `value ${value.result} is less than or equal to required (exclusive) minimum ${schema.exclusiveMinimum}`,
+          );
+          return false;
+        }
+        return true;
+      },
+    );
+  }
+  if (schema.exclusiveMaximum !== undefined) {
+    result = context.withSchemaPath(
+      "exclusiveMaximum",
+      () => {
+        const v = value.result as number;
+        if (!(v < schema.exclusiveMaximum!)) {
+          context.error(
+            value,
+            schema,
+            `value ${value.result} is greater than or equal to required (exclusive) maximum ${schema.exclusiveMaximum}`,
+          );
+          return false;
+        }
+        return true;
+      },
+    );
+  }
   return true;
 }
 

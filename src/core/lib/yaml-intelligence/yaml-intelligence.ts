@@ -56,6 +56,11 @@ import { mappedIndexToRowCol } from "../mapped-text.ts";
 
 import { lineOffsets } from "../text.ts";
 
+import {
+  ArraySchema,
+  ObjectSchema,
+} from "../yaml-validation/validator/types.ts";
+
 interface IDEContext {
   formats: string[];
   project_formats: string[];
@@ -77,6 +82,13 @@ interface ValidationResult {
   "end.column": number;
   "text": string;
   "type": string;
+}
+
+function getTagValue(schema: Schema, tag: string): unknown | undefined {
+  if (schema === true || schema === false) {
+    return undefined;
+  }
+  return schema.tags && schema.tags[tag];
 }
 
 function positionInTicks(context: YamlIntelligenceContext) {
@@ -120,7 +132,7 @@ export async function validationFromGoodParseYAML(
 ): Promise<ValidationResult[]> {
   const code = asMappedString(context.code); // full contents of the buffer
 
-  const result = await withValidator(context.schema, async (validator) => {
+  const result = await withValidator(context.schema!, async (validator) => {
     const parser = await getTreeSitter();
 
     for (const parseResult of attemptParsesAtLine(context, parser) || []) {
@@ -168,7 +180,7 @@ export async function validationFromGoodParseYAML(
   });
 
   if (code.value === "") {
-    return result;
+    return [];
   }
   const locF = mappedIndexToRowCol(code);
   const ls = Array
@@ -200,11 +212,11 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     line, // editing line up to the cursor
     position, // row/column of cursor (0-based)
     schema, // schema of yaml object
-    // if this is a yaml inside a language chunk, it will have a
-    // comment prefix which we need to know about in order to
-    // autocomplete linebreaks correctly.
   } = context;
 
+  // if this is a yaml inside a language chunk, it will have a
+  // comment prefix which we need to know about in order to
+  // autocomplete linebreaks correctly.
   const commentPrefix = context.commentPrefix || "";
 
   const parser = await getTreeSitter();
@@ -219,7 +231,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     const path = locateFromIndentation(context);
     const indent = line.length;
     const rawCompletions = completions({
-      schema,
+      schema: schema!,
       path,
       word,
       indent,
@@ -249,7 +261,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     });
     // we're in an empty line, so the only valid completions are object keys
     const rawCompletions = completions({
-      schema,
+      schema: schema!,
       path,
       word,
       indent,
@@ -327,7 +339,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       }
 
       const rawCompletions = completions({
-        schema,
+        schema: schema!,
         path,
         word,
         indent,
@@ -404,7 +416,7 @@ function dropCompletionsFromSchema(
   obj: CompletionContext,
   completion: Completion,
 ) {
-  const matchingSchema = resolveSchema(completion.schema);
+  const matchingSchema = resolveSchema(completion.schema!);
   const {
     path,
   } = obj;
@@ -421,6 +433,7 @@ function dropCompletionsFromSchema(
   }
 
   const executeOnly = matchingSubSchemas.every((s: Schema) =>
+    s !== false && s !== true &&
     s.tags && s.tags["execute-only"]
   );
   if (path.length > 0 && path[0] === "execute") {
@@ -443,16 +456,23 @@ function completions(obj: CompletionContext): CompletionResult {
   } = obj;
   let word = obj.word;
   let path = obj.path;
+  const maybeSchemaId = (schema: Schema) => {
+    if (schema === true || schema === false) {
+      return "";
+    } else {
+      return schema.$id;
+    }
+  };
 
   let matchingSchemas = uniqBy(
     navigateSchema(schema, path),
-    (schema: Schema) => schema.$id,
+    maybeSchemaId,
   );
   if (matchingSchemas.length === 0) {
     // attempt to match against partial word
     const candidateSchemas = uniqBy(
       navigateSchema(schema, path.slice(0, -1)),
-      (schema: Schema) => schema.$id,
+      maybeSchemaId,
     );
     if (candidateSchemas.length === 0) {
       return {
@@ -503,7 +523,7 @@ function completions(obj: CompletionContext): CompletionResult {
         if (
           !completion.suggest_on_accept ||
           completion.type === "value" ||
-          !schemaAccepts(completion.schema, "object")
+          !schemaAccepts(completion.schema!, "object")
         ) {
           return completion;
         }
@@ -545,14 +565,14 @@ function completions(obj: CompletionContext): CompletionResult {
             return false;
           }
 
-          let arraySubSchemas: Schema[] = [];
+          let arraySubSchemas: ArraySchema[] = [];
           // now find all array subschema to recurse on
           walkSchema(ss, {
-            "array": (s) => {
+            "array": (s: ArraySchema) => {
               arraySubSchemas.push(s);
               return true;
             },
-            "object": (s) => true,
+            "object": (_: ObjectSchema) => true,
           });
           return arraySubSchemas.every((s) => {
             if (s.items === undefined) {
@@ -599,14 +619,14 @@ function completions(obj: CompletionContext): CompletionResult {
     .filter((c) => c.value.startsWith(word))
     .filter((c) => {
       if (c.type === "value") {
-        return !(c.schema && c.schema.tags && c.schema.tags.hidden);
+        return !(c.schema && getTagValue(c.schema, "hidden"));
       } else if (c.type === "key") {
         const key = c.value.split(":")[0];
         const matchingSubSchemas = navigateSchema(c.schema, [key]);
         if (matchingSubSchemas.length === 0) {
           return true;
         }
-        return !(matchingSubSchemas.every((s) => s.tags && s.tags.hidden));
+        return !(matchingSubSchemas.every((s) => getTagValue(s, "hidden")));
       } else {
         // should never get here.
         return true;
@@ -621,12 +641,13 @@ function completions(obj: CompletionContext): CompletionResult {
       let formatTags: string[] = [];
       if (c.type === "key") {
         // c.schema is known to be an object here.
-        let value = c.schema.properties[c.display];
+        const objSchema = c.schema as ObjectSchema;
+        let value = objSchema.properties && objSchema.properties[c.display];
         if (value === undefined) {
-          for (const key of Object.keys(c.schema.patternProperties)) {
+          for (const key of Object.keys(objSchema.patternProperties || {})) {
             const regexp = new RegExp(key);
             if (c.display.match(regexp)) {
-              value = c.schema.patternProperties[key];
+              value = objSchema.patternProperties![key];
               break;
             }
           }
@@ -636,9 +657,10 @@ function completions(obj: CompletionContext): CompletionResult {
           // don't hide
           return true;
         }
-        formatTags = (value && value.tags && value.tags.formats) || [];
+        formatTags = (getTagValue(value, "formats") as string[]) || [];
       } else if (c.type === "value") {
-        formatTags = (c.schema && c.schema.tags && c.schema.tags.formats) || [];
+        formatTags =
+          (c.schema && getTagValue(c.schema, "formats") as string[]) || [];
       } else {
         // weird completion type?
         return false;

@@ -4963,8 +4963,8 @@ if (typeof exports === 'object') {
     }
   }
   function addInstancePathInfo(msg, instancePath) {
-    if (instancePath !== "") {
-      const niceInstancePath = instancePath.trim().slice(1).split("/").map((s) => blue(s)).join(":");
+    if (instancePath.length) {
+      const niceInstancePath = instancePath.map((s) => blue(String(s))).join(":");
       msg.info["instance-path-location"] = `The error happened in location ${niceInstancePath}.`;
     }
   }
@@ -8272,11 +8272,11 @@ if (typeof exports === 'object') {
         return;
       }
     } else {
-      if (schemaCall(schema, f) === true) {
+      if (schemaCall(schema, f, (_) => false) === true) {
         return;
       }
     }
-    schemaCall(schema, recur, (_) => true);
+    schemaCall(schema, recur, (_) => false);
   }
 
   // ../yaml-validation/validator/validator.ts
@@ -8292,7 +8292,8 @@ if (typeof exports === 'object') {
         value,
         schema,
         message,
-        instancePath: this.instancePath.slice()
+        instancePath: this.instancePath.slice(),
+        schemaPath: this.nodeStack.map((node) => node.edge)
       });
     }
     pushSchema(schemaPath) {
@@ -8323,17 +8324,111 @@ if (typeof exports === 'object') {
       this.pushSchema(schemaPath);
       return this.popSchema(chunk());
     }
-    validate(schema, source, value) {
+    validate(schema, source, value, pruneErrors = true) {
       if (validateGeneric(value, schema, this)) {
         return [];
       }
-      return this.pruneErrors(schema, source, value);
+      return this.collectErrors(schema, source, value, pruneErrors);
     }
-    pruneErrors(schema, source, value) {
-      debugger;
-      return [];
+    collectErrors(schema, source, value, pruneErrors = true) {
+      const inner = (node) => {
+        const result2 = [];
+        if (node.edge === "anyOf" && pruneErrors) {
+          const innerResults = node.children.map(inner);
+          let bestResults = [];
+          let minSpan = Infinity;
+          for (const resultGroup of innerResults) {
+            let totalSpan = 0;
+            for (const result3 of resultGroup) {
+              totalSpan += result3.value.end - result3.value.start;
+            }
+            if (totalSpan < minSpan) {
+              minSpan = totalSpan;
+              bestResults = resultGroup;
+            }
+          }
+          return bestResults;
+        } else {
+          result2.push(...node.errors);
+          for (const child of node.children) {
+            result2.push(...inner(child));
+          }
+          return result2;
+        }
+      };
+      const errors = inner(this.root);
+      const locF = mappedIndexToRowCol(source);
+      const result = errors.map((validationError) => {
+        let location;
+        try {
+          location = {
+            start: locF(validationError.value.start),
+            end: locF(validationError.value.end)
+          };
+        } catch (e) {
+          location = {
+            start: { line: 0, column: 0 },
+            end: { line: 0, column: 0 }
+          };
+        }
+        return {
+          source: mappedString(source, [{
+            start: validationError.value.start,
+            end: validationError.value.end
+          }]),
+          violatingObject: validationError.value,
+          instancePath: validationError.instancePath,
+          schemaPath: validationError.schemaPath,
+          schema: validationError.schema,
+          message: validationError.message,
+          location,
+          niceError: {
+            heading: validationError.message,
+            error: [],
+            info: {},
+            fileName: source.fileName,
+            location,
+            sourceContext: createSourceContext(source, location)
+          }
+        };
+      });
+      return result;
     }
   };
+  function createSourceContext(src, location) {
+    debugger;
+    const nLines = lines(src.originalString).length;
+    const {
+      start,
+      end
+    } = location;
+    const {
+      prefixWidth,
+      lines: formattedLines
+    } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+    const contextLines = [];
+    let mustPrintEllipsis = true;
+    for (const { lineNumber, content, rawLine } of formattedLines) {
+      if (lineNumber < start.line || lineNumber > end.line) {
+        if (rawLine.trim().length) {
+          contextLines.push(content);
+        }
+      } else {
+        if (lineNumber >= start.line + 2 && lineNumber <= end.line - 2) {
+          if (mustPrintEllipsis) {
+            mustPrintEllipsis = false;
+            contextLines.push("...");
+          }
+        } else {
+          const startColumn = lineNumber > start.line ? 0 : start.column;
+          const endColumn = lineNumber < end.line ? rawLine.length : end.column;
+          contextLines.push(content);
+          contextLines.push(" ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn));
+        }
+      }
+    }
+    return contextLines.join("\n");
+  }
   function validateGeneric(value, s, context) {
     s = resolveSchema(s);
     const st = schemaType(s);
@@ -8537,7 +8632,7 @@ if (typeof exports === 'object') {
       }) && result;
     }
     if (schema.required !== void 0) {
-      result = context.withSchemaPath("propertyNames", () => {
+      result = context.withSchemaPath("required", () => {
         let result2 = true;
         for (const reqKey of schema.required) {
           if (!ownProperties.has(reqKey)) {
@@ -8557,7 +8652,7 @@ if (typeof exports === 'object') {
 
   // ../yaml-validation/yaml-schema.ts
   function getVerbatimInput(error) {
-    return error.source.value.substring(error.violatingObject.start, error.violatingObject.end);
+    return error.source.value;
   }
   function navigate(path, annotation, returnKey = false, pathIndex = 0) {
     if (annotation === void 0) {
@@ -8624,30 +8719,11 @@ if (typeof exports === 'object') {
     }
     reportErrorsInSource(result, src, message, error, log) {
       if (result.errors.length) {
-        const locF = mappedIndexToRowCol(src);
         const nLines = lines(src.originalString).length;
         if (message.length) {
           error(message);
         }
         for (const err of result.errors) {
-          const {
-            start,
-            end
-          } = err.location;
-          const {
-            prefixWidth,
-            lines: lines2
-          } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
-          const contextLines = [];
-          for (const { lineNumber, content, rawLine } of lines2) {
-            contextLines.push(content);
-            if (lineNumber >= start.line && lineNumber <= end.line) {
-              const startColumn = lineNumber > start.line ? 0 : start.column;
-              const endColumn = lineNumber < end.line ? rawLine.length : end.column;
-              contextLines.push(" ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn + 1));
-            }
-          }
-          err.niceError.sourceContext = contextLines.join("\n");
           log(err.niceError);
         }
       }
@@ -8660,17 +8736,6 @@ if (typeof exports === 'object') {
     }
   };
 
-  // ../yaml-validation/ajv-error.ts
-  function getBadKey(error) {
-    let badKey;
-    if (error.keyword === "propertyNames") {
-      badKey = error.params.propertyName;
-    } else if (error.keyword === "_custom_invalidProperty") {
-      badKey = error.params.additionalProperty;
-    }
-    return badKey;
-  }
-
   // ../yaml-validation/errors.ts
   function setDefaultErrorHandlers(validator) {
     validator.addHandler(expandEmptySpan);
@@ -8680,6 +8745,22 @@ if (typeof exports === 'object') {
     validator.addHandler(identifyKeyErrors);
     validator.addHandler(checkForNearbyCorrection);
     validator.addHandler(schemaDefinedErrors);
+  }
+  function errorKeyword(error) {
+    if (error.schemaPath.length === 0) {
+      return "";
+    }
+    return String(error.schemaPath[error.schemaPath.length - 1]);
+  }
+  function getBadKey(error) {
+    if (error.schemaPath.indexOf("propertyNames") === -1) {
+      return void 0;
+    }
+    const result = error.violatingObject.result;
+    if (typeof result !== "string") {
+      throw new Error("Internal Error: propertyNames error has a violating non-string.");
+    }
+    return result;
   }
   function isEmptyValue(error) {
     const rawVerbatimInput = getVerbatimInput(error);
@@ -8694,19 +8775,10 @@ if (typeof exports === 'object') {
   function reindent(str) {
     return str;
   }
-  function getErrorSchema(error, parse, schema) {
-    return schema;
-  }
-  function innerDescription(error, parse, schema) {
-    const schemaPath = error.ajvError.schemaPath.split("/").slice(1);
-    const errorSchema = error.ajvError.params && error.ajvError.params.schema || error.ajvError.parentSchema;
-    const innerSchema = errorSchema ? [errorSchema] : navigateSchemaByInstancePath(schema, schemaPath.map(decodeURIComponent));
-    return innerSchema.map(schemaDescription).join(", ");
-  }
   function formatHeadingForKeyError(_error, _parse, _schema, key) {
     return `property name ${blue(key)} is invalid`;
   }
-  function formatHeadingForValueError(error, parse, schema) {
+  function formatHeadingForValueError(error, _parse, _schema) {
     const rawVerbatimInput = getVerbatimInput(error);
     const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
     const empty = isEmptyValue(error);
@@ -8716,37 +8788,37 @@ if (typeof exports === 'object') {
         if (empty) {
           return "YAML object is missing.";
         } else {
-          const innerDesc2 = innerDescription(error, parse, schema);
-          return `YAML object ${verbatimInput} must instead ${innerDesc2}`;
+          return `YAML object ${verbatimInput} must instead ${schemaDescription(error.schema)}`;
         }
       case "number":
-        const innerDesc = innerDescription(error, parse, schema);
         if (empty) {
-          return `Array entry ${lastFragment + 1} is empty but it must instead ${innerDesc}.`;
+          return `Array entry ${lastFragment + 1} is empty but it must instead ${schemaDescription(error.schema)}.`;
         } else {
-          return `Array entry ${lastFragment + 1} has value ${verbatimInput} must instead ${innerDesc}.`;
+          return `Array entry ${lastFragment + 1} has value ${verbatimInput} must instead ${schemaDescription(error.schema)}.`;
         }
       case "string": {
         const formatLastFragment = blue(lastFragment);
-        const innerDesc2 = innerDescription(error, parse, schema);
         if (empty) {
-          return `Key ${formatLastFragment} has empty value but it must instead ${innerDesc2}`;
+          return `Key ${formatLastFragment} has empty value but it must instead ${schemaDescription(error.schema)}`;
         } else {
-          return `Key ${formatLastFragment} has value ${verbatimInput} but it must instead ${innerDesc2}`;
+          return `Key ${formatLastFragment} has value ${verbatimInput} but it must instead ${schemaDescription(error.schema)}`;
         }
       }
     }
   }
   function identifyKeyErrors(error, parse, schema) {
-    let badKey = getBadKey(error.ajvError);
+    if (error.schemaPath.indexOf("propertyNames") === -1) {
+      return error;
+    }
+    let badKey = getBadKey(error);
     if (badKey) {
-      addInstancePathInfo(error.niceError, error.ajvError.instancePath + "/" + badKey);
+      addInstancePathInfo(error.niceError, [...error.instancePath, badKey]);
       error.niceError.heading = formatHeadingForKeyError(error, parse, schema, badKey);
     }
     return error;
   }
   function improveErrorHeadingForValueErrors(error, parse, schema) {
-    if (error.ajvError.keyword === "_custom_invalidProperty" || error.ajvError.keyword === "propertyNames") {
+    if (error.schemaPath.indexOf("propertyNames") !== -1 || errorKeyword(error) === "required") {
       return error;
     }
     return {
@@ -8757,7 +8829,7 @@ if (typeof exports === 'object') {
       }
     };
   }
-  function expandEmptySpan(error, parse, schema) {
+  function expandEmptySpan(error, parse, _schema) {
     if (error.location.start.line !== error.location.end.line || error.location.start.column !== error.location.end.column || !isEmptyValue(error) || typeof getLastFragment(error.instancePath) === "undefined") {
       return error;
     }
@@ -8779,8 +8851,9 @@ if (typeof exports === 'object') {
   function checkForTypeMismatch(error, parse, schema) {
     const rawVerbatimInput = getVerbatimInput(error);
     const verbatimInput = quotedStringColor(rawVerbatimInput);
-    if (error.ajvError.keyword === "type" && rawVerbatimInput.length > 0) {
+    if (errorKeyword(error) === "type" && rawVerbatimInput.length > 0) {
       const newError = {
+        ...error.niceError,
         heading: formatHeadingForValueError(error, parse, schema),
         error: [
           `The value ${verbatimInput} is a ${typeof error.violatingObject.result}.`
@@ -8788,7 +8861,7 @@ if (typeof exports === 'object') {
         info: {},
         location: error.niceError.location
       };
-      addInstancePathInfo(newError, error.ajvError.instancePath);
+      addInstancePathInfo(newError, error.instancePath);
       addFileInfo(newError, error.source);
       return {
         ...error,
@@ -8797,9 +8870,9 @@ if (typeof exports === 'object') {
     }
     return error;
   }
-  function checkForBadBoolean(error, parse, schema) {
-    schema = error.ajvError.params.schema;
-    if (!(typeof error.violatingObject.result === "string" && error.ajvError.keyword === "type" && schemaType(schema) === "boolean")) {
+  function checkForBadBoolean(error, parse, _schema) {
+    const schema = error.schema;
+    if (!(typeof error.violatingObject.result === "string" && errorKeyword(error) === "type" && schemaType(schema) === "boolean")) {
       return error;
     }
     const strValue = error.violatingObject.result;
@@ -8823,7 +8896,7 @@ if (typeof exports === 'object') {
       info: {},
       location: error.niceError.location
     };
-    addInstancePathInfo(newError, error.ajvError.instancePath);
+    addInstancePathInfo(newError, error.instancePath);
     addFileInfo(newError, error.source);
     newError.info["yaml-version-1.2"] = suggestion1;
     newError.info["suggestion-fix"] = suggestion1;
@@ -8843,18 +8916,18 @@ if (typeof exports === 'object') {
       value: verbatimInput
     };
   }
-  function schemaDefinedErrors(error, parse, schema) {
-    const subSchema = navigateSchemaByInstancePath(schema, error.instancePath);
-    if (subSchema.length === 0) {
+  function schemaDefinedErrors(error, parse, _schema) {
+    const schema = error.schema;
+    if (schema === true || schema === false) {
       return error;
     }
-    if (subSchema[0].errorMessage === void 0) {
+    if (schema.errorMessage === void 0) {
       return error;
     }
-    if (typeof subSchema[0].errorMessage !== "string") {
+    if (typeof schema.errorMessage !== "string") {
       return error;
     }
-    let result = subSchema[0].errorMessage;
+    let result = schema.errorMessage;
     for (const [k, v] of Object.entries(createErrorFragments(error))) {
       result = result.replace("${" + k + "}", v);
     }
@@ -8866,16 +8939,15 @@ if (typeof exports === 'object') {
       }
     };
   }
-  function checkForNearbyCorrection(error, parse, schema) {
-    debugger;
-    const errorSchema = getErrorSchema(error, parse, schema);
+  function checkForNearbyCorrection(error, parse, _schema) {
+    const schema = error.schema;
     const corrections = [];
     let errVal = "";
     let keyOrValue = "";
-    const key = getBadKey(error.ajvError);
+    const key = getBadKey(error);
     if (key) {
       errVal = key;
-      corrections.push(...possibleSchemaKeys(errorSchema));
+      corrections.push(...possibleSchemaKeys(schema));
       keyOrValue = "key";
     } else {
       const val = navigate(error.instancePath, parse);
@@ -8883,7 +8955,7 @@ if (typeof exports === 'object') {
         return error;
       }
       errVal = val.result;
-      corrections.push(...possibleSchemaValues(errorSchema));
+      corrections.push(...possibleSchemaValues(schema));
       keyOrValue = "value";
     }
     if (corrections.length === 0) {

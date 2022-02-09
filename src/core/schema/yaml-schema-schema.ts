@@ -11,15 +11,16 @@ import { readYaml } from "../yaml.ts";
 import { convertFromYaml } from "./from-yaml.ts";
 import { schemaPath } from "./utils.ts";
 import { Schema, setSchemaDefinition } from "../lib/yaml-validation/schema.ts";
+import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
 
 export function getSchemaSchemas(): Record<string, Schema> {
   // deno-lint-ignore no-explicit-any
   const yaml = readYaml(schemaPath("schema.yml")) as Record<string, any>[];
   const dict: Record<string, Schema> = {};
   for (const obj of yaml) {
-    const schema = convertFromYaml(obj);
+    const schema = convertFromYaml(obj) as ConcreteSchema;
     setSchemaDefinition(schema);
-    dict[schema.$id] = schema;
+    dict[schema.$id!] = schema;
   }
   return dict;
 }

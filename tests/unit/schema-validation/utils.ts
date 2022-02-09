@@ -13,11 +13,7 @@ import {
   initState,
   setInitializer,
 } from "../../../src/core/lib/yaml-validation/state.ts";
-import {
-  compileSchema,
-  ensureAjv,
-} from "../../../src/core/schema/yaml-schema.ts";
-import { setObtainFullValidator } from "../../../src/core/lib/yaml-validation/staged-validator.ts";
+import { ensureAjv } from "../../../src/core/schema/yaml-schema.ts";
 
 export const schemaTestFile = fileLoader("schema-validation");
 
@@ -25,15 +21,6 @@ export async function fullInit() {
   await initPrecompiledModules();
   await initTreeSitter();
   await ensureAjv();
-
-  const compiledSchemaCache: Record<string, any> = {};
-
-  setObtainFullValidator((schema) => {
-    if (compiledSchemaCache[schema.$id] === undefined) {
-      compiledSchemaCache[schema.$id] = compileSchema(schema);
-    }
-    return compiledSchemaCache[schema.$id];
-  });
 }
 
 export async function yamlValidationUnitTest(

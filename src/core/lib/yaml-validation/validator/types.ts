@@ -150,6 +150,10 @@ export interface BooleanSchema extends SchemaAnnotations {
 
 export interface NumberSchema extends SchemaAnnotations {
   "type": "number" | "integer";
+  minimum?: number;
+  exclusiveMinimum?: number;
+  maximum?: number;
+  exclusiveMaximum?: number;
 }
 
 export interface StringSchema extends SchemaAnnotations {
