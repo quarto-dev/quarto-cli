@@ -714,7 +714,7 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
       } else {
         return {
           field: parts[0],
-          direction: kSortDesc,
+          direction: kSortAsc,
         };
       }
     }
