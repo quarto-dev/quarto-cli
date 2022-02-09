@@ -47,8 +47,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
   grid-template-columns:
     [screen-start] $grid-screen-inset-padding
     [screen-start-inset] 5fr
-    [page-start] minmax(50px, 150px)
-    [page-start-inset] minmax(25px, 50px)
+    [page-start] minmax(25px, 50px)
+    [page-start-inset] minmax(50px, 150px)
     [body-start-outset] minmax(25px, 50px)
     [body-start] 1.5em
     [body-content-start] minmax(
@@ -57,8 +57,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     )
     [body-content-end] 1.5em
     [body-end] minmax(25px, 50px)
-    [body-end-outset] minmax(25px, 50px)
-    [page-end-inset] minmax(50px, 150px)
+    [body-end-outset] minmax(50px, 150px)
+    [page-end-inset] minmax(25px, 50px)
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -69,15 +69,15 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
   grid-template-columns:
     [screen-start] $grid-screen-inset-padding
     [screen-start-inset] 5fr
-    [page-start] minmax(50px, 150px)
-    [page-start-inset] 50px
+    [page-start] 50px
+    [page-start-inset] minmax(50px, 150px)
     [body-start-outset] 50px
     [body-start] 1.5em
     [body-content-start] minmax($grid-body-minsize-slim, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(50px, 150px)
+    [body-end-outset] minmax(50px, 150px)
+    [page-end-inset] 50px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -88,8 +88,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
   grid-template-columns:
     [screen-start] $grid-screen-inset-padding
     [screen-start-inset] 5fr
-    [page-start] minmax(50px, 150px)
-    [page-start-inset] 50px
+    [page-start] 50px
+    [page-start-inset] minmax(50px, 150px)
     [body-start-outset] 50px
     [body-start] 1.5em
     [body-content-start] minmax(
@@ -107,8 +107,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
   grid-template-columns:
     [screen-start] $grid-screen-inset-padding
     [screen-start-inset] 5fr
-    [page-start] minmax(50px, 150px)
-    [page-start-inset] minmax(25px, 50px)
+    [page-start] minmax(25px, 50px)
+    [page-start-inset] minmax(50px, 150px)
     [body-start-outset] minmax(25px, 50px)
     [body-start] 1.5em
     [body-content-start] minmax(
@@ -117,8 +117,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     )
     [body-content-end] 1.5em
     [body-end] minmax(25px, 50px)
-    [body-end-outset] minmax(25px, 50px)
-    [page-end-inset] minmax(50px, 150px)
+    [body-end-outset] minmax(50px, 150px)
+    [page-end-inset] minmax(25px, 50px)
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -134,8 +134,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 25px
-    [page-end-inset] minmax(75px, 150px)
+    [body-end-outset] minmax(75px, 150px)
+    [page-end-inset] 25px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -150,8 +150,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 35px
-    [body-end-outset] 35px
-    [page-end-inset] minmax(75px, 145px)
+    [body-end-outset] minmax(75px, 145px)
+    [page-end-inset] 35px
     [page-end] 4fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -182,8 +182,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 25px
-    [page-end-inset] minmax(75px, 150px)
+    [body-end-outset] minmax(75px, 150px)
+    [page-end-inset] 25px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -210,8 +210,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     )
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(0px, 100px)
+    [body-end-outset] minmax(0px, 100px)
+    [page-end-inset] 50px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -228,8 +228,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-content-start] minmax($grid-body-minsize-slim, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(0px, 200px)
+    [body-end-outset] minmax(0px, 200px)
+    [page-end-inset] 50px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -267,8 +267,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     )
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(0px, 100px)
+    [body-end-outset] minmax(0px, 100px)
+    [page-end-inset] 50px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -284,8 +284,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     )
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(25px, 50px)
+    [body-end-outset] minmax(25px, 50px)
+    [page-end-inset] 50px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -301,8 +301,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     )
     [body-content-end] 1.5em
     [body-end] 35px
-    [body-end-outset] 35px
-    [page-end-inset] minmax(75px, 145px)
+    [body-end-outset] minmax(75px, 145px)
+    [page-end-inset] 35px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -332,8 +332,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     )
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(25px, 50px)
+    [body-end-outset] minmax(25px, 50px)
+    [page-end-inset] 50px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -359,8 +359,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     )
     [body-content-end] 1.5em
     [body-end] 35px
-    [body-end-outset] 35px
-    [page-end-inset] minmax(75px, 145px)
+    [body-end-outset] minmax(75px, 145px)
+    [page-end-inset] 35px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -375,8 +375,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 35px
-    [body-end-outset] 35px
-    [page-end-inset] minmax(75px, 145px)
+    [body-end-outset] minmax(75px, 145px)
+    [page-end-inset] 35px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -433,8 +433,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-listing)
     [body-content-end] 3em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(0px, 250px)
+    [body-end-outset] minmax(0px, 250px)
+    [page-end-inset] 50px
     [page-end] 1fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -464,8 +464,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 50px
-    [body-end-outset] 50px
-    [page-end-inset] minmax(0px, 200px)
+    [body-end-outset] minmax(0px, 200px)
+    [page-end-inset] 50px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
@@ -480,8 +480,8 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
     [body-content-end] 1.5em
     [body-end] 35px
-    [body-end-outset] 35px
-    [page-end-inset] minmax(75px, 145px)
+    [body-end-outset] minmax(75px, 145px)
+    [page-end-inset] 35px
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
