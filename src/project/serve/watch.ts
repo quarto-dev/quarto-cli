@@ -341,9 +341,21 @@ export function watchProject(
           // up hidden dirs, venv/renv dirs, etc.)
           if (event.kind === "create" && !watcherOptions.options?.recursive) {
             event.paths.forEach((path) => {
-              if (existsSync(path) && Deno.statSync(path).isDirectory) {
-                if (watchPaths.some((p) => p === dirname(path))) {
-                  runWatcher({ paths: path, options: { recursive: true } });
+              if (existsSync(path)) {
+                try {
+                  const stat = Deno.statSync(path);
+                  if (stat.isDirectory) {
+                    if (watchPaths.some((p) => p === dirname(path))) {
+                      runWatcher({ paths: path, options: { recursive: true } });
+                    }
+                  }
+                } catch (e) {
+                  // existing symlinks to nonexisting files cause path
+                  // to exist and statSync to fail
+                  if (e instanceof Deno.errors.NotFound) {
+                    return;
+                  }
+                  throw e;
                 }
               }
             });
