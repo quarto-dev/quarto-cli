@@ -628,6 +628,9 @@
                           ]
                       - string
                     description: "The sidebar's foreground color (named or hex color)."
+                  border:
+                    boolean:
+                      descrition: "Whether to show a border on the sidebar (defaults to true for 'docked' sidebars)"
                   alignment:
                     enum: ["left", "right", "center"]
                     description: "Alignment of the items within the sidebar (`left`, `right`, or `center`)"
