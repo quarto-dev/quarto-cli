@@ -1217,10 +1217,11 @@ $callouts: (
   margin-bottom: -0.2rem;
 }
 
-.navbar .quarto-reader-toggle .bi::before,
 .navbar .quarto-color-scheme-toggle .bi::before {
-  padding-top: 0.2rem;
-  margin-bottom: -0.2rem;
+  padding-top: 7px;
+  margin-bottom: -7px;
+  padding-left: 2px;
+  margin-right: 2px;
 }
 
 .navbar .quarto-color-scheme-toggle:not(.alternate) .bi::before {
