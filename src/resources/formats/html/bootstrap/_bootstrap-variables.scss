@@ -114,7 +114,6 @@ $sidebar-fg: null;
 } @else {
   $sidebar-fg: theme-contrast($body-contrast-color, $sidebar-bg) !default;
 }
-
 $sidebar-hl: null;
 $sidebar-font-size: 0.925rem !default;
 $sidebar-font-size-section: 0.875rem !default;
