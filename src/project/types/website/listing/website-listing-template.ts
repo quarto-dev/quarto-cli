@@ -453,6 +453,12 @@ export function templateJsScript(
 
   const jsScript = `
   window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#${id} .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
     const options = {
       valueNames: ${rowJs},
       ${pageOptions}
