@@ -260,8 +260,19 @@ ul.pagination {
     justify-content: flex-end;
   }
 
+  .card-title {
+    margin-bottom: 0.1em;
+  }
+  .card-subtitle {
+    padding-top: 0.25em;
+  }
+
   .card-text {
     font-size: 0.9em;
+  }
+
+  .listing-reading-time {
+    padding-bottom: 0.25em;
   }
 
   .card-text-small {
