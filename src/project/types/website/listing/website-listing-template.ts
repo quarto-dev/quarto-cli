@@ -339,7 +339,7 @@ export function reshapeListing(
     if (useSortTarget(listing, field)) {
       return sortAttrValue(field);
     } else {
-      return field;
+      return `listing-${field}`;
     }
   };
   let itemNumber = 0;
@@ -362,7 +362,7 @@ export function reshapeListing(
     const attr: Record<string, string> = {};
 
     attr["index"] = (index++).toString();
-    if (item.categories !== undefined) {
+    if (item.categories) {
       attr["categories"] = (item.categories as string[]).join(",");
     }
 
