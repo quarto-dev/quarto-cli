@@ -264,6 +264,7 @@ function hydrateListing(
       return unionedItem[key] !== undefined;
     });
   };
+
   const itemFields = fieldsForItems(items);
 
   const fieldsForTable = (
@@ -281,7 +282,7 @@ function hydrateListing(
 
   const suggestedFields = listing.type === ListingType.Table
     ? fieldsForTable(itemFields)
-    : defaultFields(listing.type);
+    : defaultFields(listing.type, itemFields);
 
   // Don't include fields that the items don't have
   const fields = suggestedFields.filter((field) => {
@@ -292,14 +293,10 @@ function hydrateListing(
   // right now, so don't expose these fields defaults in custom
   const defaultSort = listing.type !== ListingType.Custom
     ? kDefaultFieldSort
-    : [];
+    : suggestedFields;
   const defaultLinks = listing.type === ListingType.Table
     ? kDefaultFieldLinks
     : [];
-  // Custom doesn't get filtering and sorting unless sort fields are defined
-  // or it is explicitly enabled
-  const enableFilterAndSort = listing.type !== ListingType.Custom ||
-    listing[kSortUi] || listing[kFilterUi];
 
   const defaultPageSize = () => {
     switch (listing.type) {
@@ -332,8 +329,8 @@ function hydrateListing(
     [kFieldFilter]: hydratedFields,
     [kFieldRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
-    [kFilterUi]: enableFilterAndSort,
-    [kSortUi]: enableFilterAndSort,
+    [kFilterUi]: listing.type !== ListingType.Custom || listing[kFilterUi],
+    [kSortUi]: listing.type !== ListingType.Custom || listing[kSortUi],
     ...listing,
   });
 
@@ -739,12 +736,14 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
   return undefined;
 }
 
-function defaultFields(type: ListingType) {
+function defaultFields(type: ListingType, itemFields: string[]) {
   switch (type) {
     case ListingType.Grid:
       return kDefaultGridFields;
     case ListingType.Table:
       return kDefaultTableFields;
+    case ListingType.Custom:
+      return itemFields;
     case ListingType.Default:
     default:
       return kDefaultFields;
