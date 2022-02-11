@@ -1,5 +1,17 @@
 import { resolve, toFileUrl } from "https://deno.land/std@0.122.0/path/mod.ts";
 
+// https://stackoverflow.com/a/68702966
+const longestCommonPrefix = (strs: string[]) => {
+  let prefix = strs.reduce((acc, str) => str.length < acc.length ? str : acc);
+
+  for (const str of strs) {
+    while (str.slice(0, prefix.length) != prefix) {
+      prefix = prefix.slice(0, -1);
+    }
+  }
+  return prefix;
+};
+
 interface DenoInfoDependency {
   specifier: string;
   code: {
@@ -46,7 +58,7 @@ function moduleGraph(info: DenoInfoJSON): {
   const { modules } = info;
   for (const { specifier: depFrom, dependencies } of modules) {
     const edges: string[] = [];
-    for (const { specifier: to, code } of dependencies) {
+    for (const { specifier: to, code } of dependencies || []) {
       const {
         error,
         specifier: depTo,
@@ -119,7 +131,10 @@ function explain(
   const result: Edge[] = [];
   const deps = reachability(graph, source);
   if (!deps[target]) {
-    console.error(`Could not find target ${target}`);
+    const [ss, st] = [source, target].map((s) =>
+      s.slice(longestCommonPrefix([source, target]).length)
+    );
+    console.error(`${ss} does not depend on ${st}`);
     Deno.exit(1);
   }
   if (!deps[target].has(source)) {
@@ -144,18 +159,6 @@ function explain(
 }
 
 async function buildOutput(edges: Edge[], source: string, target: string) {
-  // https://stackoverflow.com/a/68702966
-  const longestCommonPrefix = (strs: string[]) => {
-    let prefix = strs.reduce((acc, str) => str.length < acc.length ? str : acc);
-
-    for (const str of strs) {
-      while (str.slice(0, prefix.length) != prefix) {
-        prefix = prefix.slice(0, -1);
-      }
-    }
-    return prefix;
-  };
-
   const strs: Set<string> = new Set();
   for (const { "from": edgeFrom, to } of edges) {
     strs.add(edgeFrom);
@@ -164,14 +167,15 @@ async function buildOutput(edges: Edge[], source: string, target: string) {
   const p = longestCommonPrefix(Array.from(strs)).length;
 
   const qmdOut: string[] = [`---
-title: '"explain" result'
+title: explain.ts
 format: html
-self-contained: true
 ---
 `];
   qmdOut.push(
-    "This is graph shows all import chains from `" + source.slice(p) +
-      "` to `" + target.slice(p) + "`.\n\n",
+    "This graph shows all import chains from `" + source.slice(p) +
+      "` (a <span style='color:#1f77b4'>blue node</span>) to `" +
+      target.slice(p) +
+      "` (an <span style='color:#ff7f0e'>orange node</span>).\n\n",
   );
   qmdOut.push("```{ojs}\n//| echo: false\n\ndot`digraph G {");
   const m: Record<string, number> = {};
@@ -217,6 +221,28 @@ self-contained: true
 }
 
 if (import.meta.main) {
+  if (Deno.args.length === 0) {
+    console.log(`inspect.ts: generates a graph visualization of all import paths
+between a pair of files in quarto.
+
+Usage:
+  $ quarto run inspect.ts <source-file.ts> <target-file.ts>
+
+Examples:
+
+  From ./src:
+
+  $ quarto run ../package/scripts/common/explain.ts command/render/render.ts core/esbuild.ts
+  $ quarto run ../package/scripts/common/explain.ts command/check/cmd.ts core/lib/external/regexpp.mjs
+
+If no dependencies exist, this script will report that:
+
+  $ quarto run ../package/scripts/common/explain.ts ../package/src/bld.ts core/lib/external/tree-sitter-deno.js
+
+    package/src/bld.ts does not depend on src/core/lib/external/tree-sitter-deno.js
+`);
+    Deno.exit(1);
+  }
   const process = Deno.run({
     cmd: ["deno", "info", Deno.args[0], "--json"],
     stdout: "piped",
