@@ -657,7 +657,9 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar.logo = resolveLogo(sidebar.logo);
 
   const searchOpts = searchOptions(project);
-  sidebar.search = searchOpts && searchOpts.location === "sidebar"
+  sidebar.search = sidebar.search !== undefined
+    ? sidebar.search
+    : searchOpts && searchOpts.location === "sidebar"
     ? searchOpts.type
     : false;
 
