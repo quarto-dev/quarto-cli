@@ -222,8 +222,8 @@ format: html
 
 if (import.meta.main) {
   if (Deno.args.length === 0) {
-    console.log(`inspect.ts: generates a graph visualization of all import paths
-between a pair of files in quarto.
+    console.log(`inspect.ts: generate a graph visualization of import paths
+between files in quarto.
 
 Usage:
   $ quarto run inspect.ts <source-file.ts> <target-file.ts>
