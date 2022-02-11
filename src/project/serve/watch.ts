@@ -59,6 +59,7 @@ export function watchProject(
   options: ServeOptions,
   renderingOnReload: boolean,
   renderQueue: PromiseQueue<RenderResult>,
+  stopServer: VoidFunction,
   outputFile?: () => string,
 ): Promise<ProjectWatcher> {
   // helper to refresh project config
@@ -227,7 +228,12 @@ export function watchProject(
   };
 
   // http devserver
-  const devServer = httpDevServer(options.port);
+  const devServer = httpDevServer(
+    options.port,
+    options.timeout,
+    () => renderQueue.isRunning(),
+    stopServer,
+  );
 
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete

@@ -7,11 +7,14 @@
 
 import { LogRecord } from "log/mod.ts";
 
+import * as ld from "./lodash.ts";
+
 import { renderEjs } from "./ejs.ts";
 import { maybeDisplaySocketError } from "./http.ts";
 import { LogEventsHandler } from "./log.ts";
 import { kLocalhost } from "./port.ts";
 import { resourcePath } from "./resources.ts";
+import { isRStudioPreview } from "./platform.ts";
 
 export interface HttpDevServer {
   handle: (req: Request) => boolean;
@@ -25,6 +28,9 @@ export interface HttpDevServer {
 
 export function httpDevServer(
   port: number,
+  timeout: number,
+  isRendering: () => boolean,
+  stopServer: VoidFunction,
   isPresentation?: boolean,
 ): HttpDevServer {
   // track clients
@@ -32,6 +38,22 @@ export function httpDevServer(
     socket: WebSocket;
   }
   const clients: Client[] = [];
+
+  // socket close handler  that waits 2 seconds (debounced) and then
+  // stops the server is there are no more clients and we are not in the
+  // middle of a render. don't do this for rstudio b/c rstudio manages
+  // the lifetime of quarto preview directly
+  let onSocketClose: VoidFunction | undefined;
+  if ((timeout > 0) && !isRStudioPreview()) {
+    onSocketClose = ld.debounce(() => {
+      if (
+        !isRendering() &&
+        !clients.find((client) => client.socket.readyState !== WebSocket.CLOSED)
+      ) {
+        stopServer();
+      }
+    }, timeout * 1000);
+  }
 
   // stream log events to clients
   LogEventsHandler.onLog(async (logRecord: LogRecord, msg: string) => {
@@ -57,7 +79,11 @@ export function httpDevServer(
     connect: (req: Request) => {
       try {
         const { socket, response } = Deno.upgradeWebSocket(req);
-        clients.push({ socket });
+        const client: Client = { socket };
+        if (onSocketClose) {
+          socket.onclose = onSocketClose;
+        }
+        clients.push(client);
         return Promise.resolve(response);
       } catch (e) {
         maybeDisplaySocketError(e);
