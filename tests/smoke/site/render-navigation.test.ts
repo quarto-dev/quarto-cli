@@ -4,40 +4,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { exists } from "fs/exists.ts";
-import { dirname } from "path/mod.ts";
-import { testQuartoCmd } from "../../test.ts";
-import { docs, siteOutputForInput } from "../../utils.ts";
-import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
-
-const testSite = (
-  input: string,
-  includeSelectors: string[],
-  excludeSelectors: string[],
-) => {
-  const output = siteOutputForInput(input);
-
-  const verifySel = ensureHtmlElements(
-    output.outputPath,
-    includeSelectors,
-    excludeSelectors,
-  );
-
-  // Run the command
-  testQuartoCmd(
-    "render",
-    [input],
-    [noErrorsOrWarnings, verifySel],
-    {
-      teardown: async () => {
-        const siteDir = dirname(output.outputPath);
-        if (await exists(siteDir)) {
-          await Deno.remove(siteDir, { recursive: true });
-        }
-      },
-    },
-  );
-};
+import { docs } from "../../utils.ts";
+import { testSite } from "./site.ts";
 
 // Test a page with page navigation
 testSite(docs("site-navigation/page2.qmd"), [
