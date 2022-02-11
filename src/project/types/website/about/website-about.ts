@@ -27,6 +27,7 @@ import { navigationItem } from "../website-navigation.ts";
 
 const kAbout = "about";
 const kTemplate = "template";
+const kType = "type";
 const kLinks = "links";
 
 const kImageWidth = "image-width";
@@ -117,49 +118,11 @@ async function readAbout(
 ): Promise<AboutPage | undefined> {
   const about = format.metadata[kAbout];
   if (about) {
-    if (typeof (about) === "string") {
-      // A string only about represents the template
-      const [template, custom] = templatePath(about, source);
-      const aboutPage: AboutPage = {
-        template,
-        custom,
-        options: {},
-      };
-
-      // If the page has an image, use it
-      if (format.metadata[kImage]) {
-        aboutPage.image = format.metadata[kImage] as Href;
-      }
-      return aboutPage;
-    } else if (typeof (about) === "object") {
-      // This is an object, read the fields out of it
-      const aboutObj = about as Record<string, unknown>;
-      const aboutTemplate = aboutObj[kTemplate] as string;
-      const [template, custom] = templatePath(aboutTemplate, source);
-      const aboutPage: AboutPage = {
-        template,
-        custom,
-        options: {},
-      };
-
-      const aboutImage = aboutObj[kImage];
-      if (aboutImage) {
-        aboutPage.image = aboutImage as Href;
-      } else {
-        if (format.metadata[kImage]) {
-          aboutPage.image = format.metadata[kImage] as Href;
-        }
-      }
-
-      const aboutLinks = aboutObj[kLinks] as Array<string | NavItem>;
-      if (aboutLinks) {
-        const links: NavItem[] = [];
-        for (const aboutLink of aboutLinks) {
-          links.push(await navigationItem(project, aboutLink, 0, false));
-        }
-        aboutPage.links = links;
-      }
-
+    const resolveOptions = (
+      aboutTemplate: string,
+      aboutObj: Record<string, unknown>,
+      aboutPage: AboutPage,
+    ) => {
       const knownFieldList = ["image", "template", "links"];
       for (const key of Object.keys(aboutObj)) {
         if (!knownFieldList.includes(key)) {
@@ -190,6 +153,61 @@ async function readAbout(
           aboutPage.options[kImageWidth] = "15em";
         }
       }
+
+      return aboutPage;
+    };
+
+    if (typeof (about) === "string") {
+      // A string only about represents the template
+      const [template, custom] = templatePath(about, source);
+      const aboutPage: AboutPage = {
+        template,
+        custom,
+        options: {},
+      };
+
+      // If the page has an image, use it
+      if (format.metadata[kImage]) {
+        aboutPage.image = format.metadata[kImage] as Href;
+      }
+
+      // Resolve any options
+      resolveOptions(about, {}, aboutPage);
+
+      return aboutPage;
+    } else if (typeof (about) === "object") {
+      // This is an object, read the fields out of it
+      const aboutObj = about as Record<string, unknown>;
+      const aboutTemplate = aboutObj[kType] as string ||
+        aboutObj[kTemplate] as string;
+      const [template, custom] = templatePath(aboutTemplate, source);
+      const aboutPage: AboutPage = {
+        template,
+        custom,
+        options: {},
+      };
+
+      const aboutImage = aboutObj[kImage];
+      if (aboutImage) {
+        aboutPage.image = aboutImage as Href;
+      } else {
+        if (format.metadata[kImage]) {
+          aboutPage.image = format.metadata[kImage] as Href;
+        }
+      }
+
+      const aboutLinks = aboutObj[kLinks] as Array<string | NavItem>;
+      if (aboutLinks) {
+        const links: NavItem[] = [];
+        for (const aboutLink of aboutLinks) {
+          links.push(await navigationItem(project, aboutLink, 0, false));
+        }
+        aboutPage.links = links;
+      }
+
+      // Resolve any options
+      resolveOptions(aboutTemplate, aboutObj, aboutPage);
+
       return aboutPage;
     } else {
       return undefined;
