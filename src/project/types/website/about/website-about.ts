@@ -34,7 +34,6 @@ const kLinks = "links";
 const kImageWidth = "image-width";
 
 const kImageShape = "image-shape";
-const kImageShapeSquare = "square";
 const kImageShapeRound = "round";
 const kImageShapeRounded = "rounded";
 
