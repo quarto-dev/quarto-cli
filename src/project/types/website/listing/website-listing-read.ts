@@ -291,9 +291,10 @@ function hydrateListing(
 
   // Sorting and linking are only available in built in templates
   // right now, so don't expose these fields defaults in custom
-  const defaultSort = listing.type !== ListingType.Custom
-    ? kDefaultFieldSort
-    : suggestedFields;
+  const defaultSort =
+    listing.type !== ListingType.Custom && listing.type !== ListingType.Table
+      ? kDefaultFieldSort
+      : suggestedFields;
   const defaultLinks = listing.type === ListingType.Table
     ? kDefaultFieldLinks
     : [];

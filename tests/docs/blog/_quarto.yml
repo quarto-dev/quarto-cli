@@ -1,0 +1,21 @@
+project:
+  type: website
+
+website:
+  title: "blog"
+  navbar:
+    background: primary
+
+    right:
+      - about.qmd
+      - icon: github
+        href: https://www.github.com/
+      - icon: twitter
+        href: https://www.twitter.com
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+
+editor: visual
+

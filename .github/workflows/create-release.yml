@@ -24,7 +24,7 @@ jobs:
     outputs:
       version: ${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number}}
       tag_name:  v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
-      release: Daily (v${{steps.config.outputs.version}} Build ${{ steps.config.outputs.build_number }})
+      release: Preview (v${{steps.config.outputs.version}} Build ${{ steps.config.outputs.build_number }})
       changes: ${{ steps.config.outputs.changes }}  
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
