@@ -18,9 +18,9 @@
       <% if (item.href) { %>
         <a href="<%- item.href %>" class="sidebar-item-text sidebar-link<%- item.active ? " active" : "" %>"><%= item.text %></a>
       <% } else { %> 
-        <a class="sidebar-item-text sidebar-link text-start <%- isCollapsed ? " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><%= item.text %></a>
+        <a class="sidebar-item-text sidebar-link text-start<%- isCollapsed ? " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><%= item.text %></a>
       <% }  %>      
-      <a class="sidebar-item-toggle text-start<%- isCollapsed ?  "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
+      <a class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
         <i class="bi bi-chevron-right ms-2"></i>
       </a>
     </div>
