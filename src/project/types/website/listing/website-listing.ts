@@ -61,7 +61,7 @@ import { touch } from "../../../../core/file.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,
-  files: string[],
+  inputs: string[],
   incremental: boolean,
 ) {
   if (incremental) {
@@ -80,7 +80,7 @@ export function listingSupplementalFiles(
     // be included in the listing page.
     const matching = listingFiles.filter((listingFile) => {
       const globs = listingMap[listingFile];
-      if (filterPaths(project.dir, files, globs).include.length > 0) {
+      if (filterPaths(project.dir, inputs, globs).include.length > 0) {
         return true;
       }
     });
@@ -89,7 +89,7 @@ export function listingSupplementalFiles(
         return join(project.dir, listingRelativePath);
       });
       const files = uniqBy(supplementalFiles.filter((file) => {
-        return existsSync(file);
+        return !inputs.includes(file) && existsSync(file);
       }));
 
       const onRenderComplete = async (
