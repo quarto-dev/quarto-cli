@@ -23,6 +23,7 @@ export type ServeOptions = {
   port: number;
   host: string;
   render: string;
+  timeout: number;
   browse?: boolean | string;
   watchInputs?: boolean;
   navigate?: boolean;

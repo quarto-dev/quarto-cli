@@ -29,6 +29,10 @@ export class PromiseQueue<T = unknown> {
     });
   }
 
+  public isRunning() {
+    return this.running;
+  }
+
   private dequeue() {
     if (this.running) {
       return false;

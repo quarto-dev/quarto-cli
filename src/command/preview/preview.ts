@@ -56,6 +56,7 @@ interface PreviewOptions {
   browse: boolean;
   presentation: boolean;
   watchInputs: boolean;
+  timeout: number;
 }
 
 export async function preview(
@@ -69,11 +70,14 @@ export async function preview(
   await resolvePreviewFormat(file, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
+  let isRendering = false;
   const render = async () => {
     const temp = createTempContext();
     try {
+      isRendering = true;
       return await renderForPreview(file, temp, flags, pandocArgs);
     } finally {
+      isRendering = false;
       temp.cleanup();
     }
   };
@@ -82,8 +86,18 @@ export async function preview(
   // see if this is project file
   const project = await projectContext(file);
 
+  // create listener and callback to stop the server
+  const listener = Deno.listen({ port: options.port, hostname: options.host });
+  const stopServer = () => listener.close();
+
   // create client reloader
-  const reloader = httpDevServer(options.port, options.presentation);
+  const reloader = httpDevServer(
+    options.port,
+    options.timeout,
+    () => isRendering,
+    stopServer,
+    options.presentation,
+  );
 
   // watch for changes and re-render / re-load as necessary
   const changeHandler = createChangeHandler(
@@ -136,9 +150,7 @@ export async function preview(
   printBrowsePreviewMessage(options.port, initialPath);
 
   // serve project
-  for await (
-    const conn of Deno.listen({ port: options.port, hostname: options.host })
-  ) {
+  for await (const conn of listener) {
     (async () => {
       for await (const { request, respondWith } of Deno.serveHttp(conn)) {
         try {
