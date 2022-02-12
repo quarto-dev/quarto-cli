@@ -63,7 +63,11 @@ export const previewCommand = new Command()
   )
   .option(
     "--no-navigate",
-    "Don't navigate the browser automatically.",
+    "Don't navigate the browser automatically when outputs are updated.",
+  )
+  .option(
+    "--browser-path",
+    "Initial path to navigate browser to",
   )
   .option(
     "--no-browser",
@@ -170,6 +174,11 @@ export const previewCommand = new Command()
     } else {
       options.presentation = false;
     }
+    const browserPathPos = args.indexOf("--browser-path");
+    if (browserPathPos !== -1) {
+      options.browserPath = String(args[browserPathPos + 1]);
+      args.splice(browserPathPos, 2);
+    }
     const noBrowsePos = args.indexOf("--no-browse");
     if (noBrowsePos !== -1) {
       options.browse = false;
@@ -244,7 +253,11 @@ export const previewCommand = new Command()
           port: options.port,
           host: options.host,
           render: options.render,
-          browse: !!(options.browser && options.browse),
+          browse: (options.browser && options.browse)
+            ? typeof (options.browserPath) === "string"
+              ? options.browserPath
+              : true
+            : false,
           watchInputs: options.watchInputs,
           navigate: options.navigate,
           timeout: options.timeout,

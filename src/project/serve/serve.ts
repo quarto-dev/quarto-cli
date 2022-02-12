@@ -107,7 +107,7 @@ export async function serveProject(
       `Cannot serve project of type '${
         project?.config?.project[kProjectType] ||
         "default"
-      }' (try using project type 'site').`,
+      }' (try using project type 'website').`,
     );
   }
 
@@ -401,9 +401,24 @@ export async function serveProject(
   // print status
   printWatchingForChangesMessage();
 
+  // if we are passed a browser path, resolve the output file if its an input
+  let browserPath = typeof (options.browse) === "string"
+    ? options.browse.replace(/^\//, "")
+    : undefined;
+  if (browserPath) {
+    const browserPathTarget = await resolveInputTarget(
+      project,
+      browserPath,
+      false,
+    );
+    if (browserPathTarget) {
+      browserPath = browserPathTarget.outputHref;
+    }
+  }
+
   // compute browse url
-  const targetPath = typeof (options.browse) === "string"
-    ? options.browse
+  const targetPath = browserPath
+    ? browserPath
     : pdfOutput
     ? kPdfJsInitialPath
     : renderResultUrlPath(renderResult);
