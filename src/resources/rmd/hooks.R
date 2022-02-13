@@ -6,8 +6,16 @@ knitr_hooks <- function(format, resourceDir) {
   knit_hooks <- list()
   opts_hooks <- list()
   
-  # options in yaml
-  opts_hooks[["code"]] <- knitr_options_hook
+  # options in yaml (save last yaml.code for source hook)
+  lastYamlCode <- NULL
+  opts_hooks[["code"]] <- function(options) {
+    lastYamlCode <<- options[["yaml.code"]]
+    options <- knitr_options_hook(options)
+    if (is.null(lastYamlCode)) {
+      lastYamlCode <<- options[["yaml.code"]]
+    }
+    options
+  } 
 
 
    # force eval to 'FALSE' for all chunks if execute: enabled: false
@@ -368,7 +376,7 @@ knitr_hooks <- function(format, resourceDir) {
         attr = attr
       )
       ticks <- "````"
-      yamlCode <- options[["yaml.code"]]
+      yamlCode <- lastYamlCode
       if (!is.null(yamlCode)) {
         yamlCode <- Filter(function(line) !grepl("echo:\\s+fenced", line), yamlCode)
         yamlCode <- paste(yamlCode, collapse = "\n")
