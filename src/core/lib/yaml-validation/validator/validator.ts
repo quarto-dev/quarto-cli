@@ -524,7 +524,7 @@ function validateArray(
     );
     result = false;
   }
-  if (schema.items) {
+  if (schema.items !== undefined) {
     result = context.withSchemaPath("items", () => {
       let result = true;
       for (let i = 0; i < value.components.length; ++i) {
@@ -577,14 +577,13 @@ function validateObject(
       let result = true;
       for (const [key, subSchema] of Object.entries(schema.properties!)) {
         if (ownProperties.has(key)) {
+          inspectedProps.add(key);
           context.pushInstance(key);
           result = context.withSchemaPath(
             key,
             () => validateGeneric(locate(key), subSchema, context),
           ) && result;
           context.popInstance();
-        } else {
-          inspectedProps.add(key);
         }
       }
       return result;
@@ -607,15 +606,14 @@ function validateObject(
         for (
           const [objectKey, val] of Object.entries(objResult)
         ) {
-          if (ownProperties.has(key)) {
+          if (objectKey.match(regexp)) {
+            inspectedProps.add(objectKey);
             context.pushInstance(objectKey);
             result = context.withSchemaPath(
               key,
-              () => validateGeneric(locate(key), subSchema, context),
+              () => validateGeneric(locate(objectKey), subSchema, context),
             ) && result;
             context.popInstance();
-          } else {
-            inspectedProps.add(key);
           }
         }
       }
