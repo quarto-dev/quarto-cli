@@ -110,7 +110,11 @@ end
 function calloutType(div)
   for _, class in ipairs(div.attr.classes) do
     if isCallout(class) then 
-      return class:match("^callout%-(.*)")
+      local type = class:match("^callout%-(.*)")
+      if type == nil then
+        type = "none"
+      end
+      return type
     end
   end
   return nil
@@ -385,10 +389,18 @@ end
 
 function processCalloutDiv(div) 
 
+  local type = calloutType(div)
+  local iconDefault = true
+  local appearanceDefault = nil
+  if type == "none" then
+    iconDefault = false
+    appearanceDefault = "simple"
+  end
+
   local icon = div.attr.attributes["icon"]
   div.attr.attributes["icon"] = nil
   if icon == nil then
-    icon = option("callout-icon", true)
+    icon = option("callout-icon", iconDefault)
   elseif icon == "false" then
     icon = false
   end
@@ -397,7 +409,7 @@ function processCalloutDiv(div)
   local appearanceRaw = div.attr.attributes["appearance"]
   div.attr.attributes["appearance"] = nil
   if appearanceRaw == nil then
-    appearanceRaw = option("callout-appearance", nil)
+    appearanceRaw = option("callout-appearance", appearanceDefault)
   end
   
   local appearance = nameForCalloutStyle(appearanceRaw);
