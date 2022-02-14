@@ -8910,7 +8910,11 @@ if (typeof exports === 'object') {
   function identifyKeyErrors(error, parse, schema) {
     let badKey = getBadKey(error.ajvError);
     if (badKey) {
-      addInstancePathInfo(error.niceError, error.ajvError.instancePath + "/" + badKey);
+      if (!error.ajvError.instancePath.endsWith(badKey)) {
+        addInstancePathInfo(error.niceError, error.ajvError.instancePath + "/" + badKey);
+      } else {
+        addInstancePathInfo(error.niceError, error.ajvError.instancePath);
+      }
       error.niceError.heading = formatHeadingForKeyError(error, parse, schema, badKey);
     }
     return error;
