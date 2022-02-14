@@ -223,6 +223,10 @@ details > summary {
   }
 }
 
+details > summary > p:only-child {
+  display: inline;
+}
+
 // codeCopy
 pre.sourceCode,
 code.sourceCode {
