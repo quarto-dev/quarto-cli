@@ -1,0 +1,10 @@
+- name: listing
+  tags:
+    formats: [$html-files]
+  schema:
+    oneOf:
+      - boolean
+      - maybeArrayOf:
+          oneOf:
+            - string
+            - ref: website-listing

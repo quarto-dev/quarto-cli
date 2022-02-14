@@ -27,26 +27,27 @@
             enum: [citeproc]
 
 - id: page-column
-  enum: [
-    body,
-    body-outset,
-    body-outset-left,
-    body-outset-right,
-    page,
-    page-left,
-    page-right,
-    page-inset-left,
-    page-inset-right,
-    screen,
-    screen-left,
-    screen-right,
-    screen-rightcolumn,
-    screen-inset,
-    screen-inset-shaded,
-    screen-inset-left,
-    screen-inset-right,
-    margin,
-  ]
+  enum:
+    [
+      body,
+      body-outset,
+      body-outset-left,
+      body-outset-right,
+      page,
+      page-left,
+      page-right,
+      page-inset-left,
+      page-inset-right,
+      screen,
+      screen-left,
+      screen-right,
+      screen-rightcolumn,
+      screen-inset,
+      screen-inset-shaded,
+      screen-inset-left,
+      screen-inset-right,
+      margin,
+    ]
 
 - id: navigation-item
   anyOf:
@@ -331,7 +332,7 @@
           description: "Website title"
       description:
         string:
-          description: "Website description"      
+          description: "Website description"
       fav-icon:
         string:
           description: "The path to the favicon for this website"
@@ -381,8 +382,8 @@
                     long: |
                       Anonymize the user ip address. For more about this feature, see 
                       [IP Anonymization (or IP masking) in Google Analytics](https://support.google.com/analytics/answer/2763052?hl=en).
-                version: 
-                  enum: [3,4]
+                version:
+                  enum: [3, 4]
                   description:
                     short: "The version number of Google Analytics to use."
                     long: |
@@ -860,3 +861,224 @@
       crossref-lot-title: string
       crossref-lol-title: string
     errorDescription: "be a format language description object"
+
+- id: website-listing
+  object:
+    additionalProperties: false
+    properties:
+      id:
+        string:
+          description:
+            short: "The id of this listing."
+            long: |
+              The id of this listing. When the listing is rendered, it will 
+              place the contents into a div with this id, appending the div to 
+              the end of the page if the div isn't already defined.
+      type:
+        enum: [default, table, grid]
+        description:
+          short: "The type of listing to create."
+          long: |
+            The type of listing to create. Choose one of:
+            `default` - a blog style list of items
+            `table` - a table of items
+            `grid` - a grid of item cards
+      contents:
+        oneOf:
+          - maybeArrayOf: string
+          - object:
+              additionalProperties: true
+        description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
+      sort:
+        arrayOf: string
+        description:
+          short: "Sort items in the listing by these fields."
+          long: |
+            Sort items in the listing by these fields. The sort key is made up of a 
+            field name followed by a direction `asc` or `desc`.
+
+            For example:
+            `date asc`
+      page-size:
+        number:
+          description:
+            short: The number of items to display on a page.
+      sort-ui:
+        oneOf:
+          - boolean
+          - arrayOf: string
+        description:
+          short: "Shows or hides the sorting control for the listing."
+          long: |
+            Shows or hides the sorting control for the listing. To control the 
+            fields that will be displayed in the sorting control, provide a list
+            of field names.
+      filter-ui:
+        oneOf:
+          - boolean
+          - arrayOf: string
+        description:
+          short: "Shows or hides the filtering control for the listing."
+          long: |
+            Shows or hides the filtering control for the listing. To control the 
+            fields that will be used to filter the listing, provide a list
+            of field names. By default all fields of the listing will be used
+            when filtering.
+      categories:
+        oneOf:
+          - boolean
+          - enum: [numbered, unnumbered, cloud]
+        description:
+          short: "Display item categories from this listing in the margin of the page."
+          long: |
+            Display item categories from this listing in the margin of the page.
+              `numbered` - category list with number of items
+              `unnumbered` - category list
+              `cloud` - word cloud style categories
+      feed:
+        oneOf:
+          - boolean
+          - object:
+              additionalProperties: false
+              properties:
+                items:
+                  number:
+                    description: |
+                      The number of items to include in your feed. Defaults to 20.
+                type:
+                  enum: [full, partial]
+                  desciption: |
+                    Whether to include full or partial content in the feed. Defaults to `full`.
+                title:
+                  string:
+                    description:
+                      short: The title for this feed.
+                      long: |
+                        The title for this feed. Defaults to the site title provided in your _quarto.yml file.
+                image:
+                  path:
+                    description:
+                      short: The path to an image for this feed.
+                      long: |
+                        The path to an image for this feed. If not specified, the image for the page the listing 
+                        appears on will be used, otherwise an image will be used if specified for the site 
+                        in your `_quarto.yml` file.
+                description:
+                  string:
+                    description:
+                      short: The description of this feed.
+                      long: |
+                        The description of this feed.
+
+                        If not specified, the description for the page the 
+                        listing appears on will be used, otherwise the description 
+                        of the site will be used if specified in your `_quarto.yml` file.
+                language:
+                  string:
+                    description:
+                      short: The language of the feed.
+                      long: |
+                        The language of the feed. Omitted if not specified. 
+                        See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)
+                        for a list of valid language codes.
+        description: Enables an RSS feed for the listing.
+      date-format:
+        string:
+          description:
+            short: "The date format to use when displaying dates (e.g. d-M-yyy)."
+            long: |
+              The date format to use when displaying dates (e.g. d-M-yyy). 
+              Learn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).
+      max-description-length:
+        number:
+          description:
+            short: "The maximum length (in characters) of the description displayed in the listing."
+            long: |
+              The maximum length (in characters) of the description displayed in the listing.
+              Defaults to 175.
+      image-align:
+        enum: [left, right]
+        description: In 'default' type listings, whether to place the image on the right or left side of the post content.
+      image-height:
+        string:
+          description:
+            short: "The height of the image being displayed."
+            long: |
+              The height of the image being displayed (a CSS height string).
+
+              The width is automatically determined and the image will fill the rectangle without scaling (cropped to fill).
+      grid-columns:
+        number:
+          description:
+            short: "In grid type listings, the number of columns in the grid display."
+            long: |
+              In grid type listings, the number of columns in the grid display.
+              Defaults to 3.
+      grid-item-border:
+        boolean:
+          description:
+            short: "In grid type listings, whether to display a border around the item card."
+            long: |
+              In grid type listings, whether to display a border around the item card. Defaults to `true`.
+      grid-item-align:
+        enum: [left, right, center]
+        description:
+          short: "In grid type listings, the alignment of the content within the card."
+          long: |
+            In grid type listings, the alignment of the content within the card (`left`, `right`, or `center`). Defaults to `left`.
+      table-striped:
+        boolean:
+          description:
+            short: "In table type listings, display the table rows with alternating background colors."
+            long: |
+              In table type listings, display the table rows with alternating background colors.
+              Defaults to `false`.
+      table-hover:
+        boolean:
+          description:
+            short: "In table type listings, highlight rows of the table when the user hovers the mouse over them."
+            long: |
+              In table type listings, highlight rows of the table when the user hovers the mouse over them.
+              Defaults to false.
+      fields:
+        arrayOf: string
+        description:
+          short: "The list of fields to include in this listing"
+          long: |
+            The list of fields to include in this listing. When the listing type is table, this
+            controls what columns will be displayed. For other types
+      field-display-names:
+        object:
+          description:
+            short: "A mapping of display names for listing fields."
+            long: |
+              A mapping that provides display names for specific fields. For example, to display the title column as ‘Report’ in a table listing you would write:
+
+              ```
+              listing:
+                field-display-names:
+                title: "Report"
+              ```
+      field-types:
+        object:
+          description:
+            short: "Provides the date type for the field of a listing item."
+            long: |
+              Provides the date type for the field of a listing item. Unknown fields are treated
+              as strings unless a type is provided. Valid types are `date`, `number`.
+      field-links:
+        arrayOf: string
+        description:
+          short: "This list of fields to display as links in a table listing."
+          long: |
+            The list of fields to display as hyperlinks to the source document 
+            when the listing type is a table. By default, only the title or 
+            filename is displayed as a link.
+      field-required:
+        arrayOf: string
+        description:
+          short: "Fields that items in this listing must have populated."
+          long: |
+            Fields that items in this listing must have populated.
+            If a listing is rendered and one more item is missing a required field, 
+            an error will occur.
