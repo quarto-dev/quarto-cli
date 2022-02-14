@@ -68,19 +68,23 @@ export async function renderProject(
     ? ld.cloneDeep(files) as string[]
     : undefined;
 
-  // if we have alwaysExecuteFiles then we need to normalize the files list for comparison
-  if (alwaysExecuteFiles && files) {
-    const normalizeFiles = (targetFiles: string[]) => {
-      return targetFiles.map((file) => {
-        const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
-        if (!existsSync(target)) {
-          throw new Error("Render target does not exist: " + file);
-        }
-        return Deno.realPathSync(target);
-      });
-    };
-    alwaysExecuteFiles = normalizeFiles(alwaysExecuteFiles);
-    files = normalizeFiles(files);
+  // file normaliation
+  const normalizeFiles = (targetFiles: string[]) => {
+    return targetFiles.map((file) => {
+      const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
+      if (!existsSync(target)) {
+        throw new Error("Render target does not exist: " + file);
+      }
+      return Deno.realPathSync(target);
+    });
+  };
+  if (files) {
+    if (alwaysExecuteFiles) {
+      alwaysExecuteFiles = normalizeFiles(alwaysExecuteFiles);
+      files = normalizeFiles(files);
+    } else if (options.useFreezer) {
+      files = normalizeFiles(files);
+    }
   }
 
   // check with the project type to see if we should render all
