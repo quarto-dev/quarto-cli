@@ -8098,28 +8098,30 @@ if (typeof exports === 'object') {
     }
     const inspectedProps = new Set();
     const ownProperties = new Set(Object.getOwnPropertyNames(value));
-    if (schema.properties) {
+    if (schema.properties !== void 0) {
       for (const [key, subSchema] of Object.entries(schema.properties)) {
-        if (ownProperties.has(key) && !validate(value[key], subSchema)) {
-          return false;
-        } else {
+        if (ownProperties.has(key)) {
           inspectedProps.add(key);
-        }
-      }
-    }
-    if (schema.patternProperties) {
-      for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
-        const regexp = new RegExp(key);
-        for (const [objectKey, val] of Object.entries(value)) {
-          if (objectKey.match(regexp) && !validate(val, subSchema)) {
+          if (!validate(value[key], subSchema)) {
             return false;
-          } else {
-            inspectedProps.add(objectKey);
           }
         }
       }
     }
-    if (schema.additionalProperties) {
+    if (schema.patternProperties !== void 0) {
+      for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
+        const regexp = new RegExp(key);
+        for (const [objectKey, val] of Object.entries(value)) {
+          if (objectKey.match(regexp)) {
+            inspectedProps.add(objectKey);
+            if (!validate(val, subSchema)) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+    if (schema.additionalProperties !== void 0) {
       for (const [objectKey, val] of Object.entries(value)) {
         if (inspectedProps.has(objectKey)) {
           continue;
@@ -8129,7 +8131,7 @@ if (typeof exports === 'object') {
         }
       }
     }
-    if (schema.propertyNames) {
+    if (schema.propertyNames !== void 0) {
       for (const key of ownProperties) {
         if (!validate(key, schema.propertyNames)) {
           return false;
@@ -8147,12 +8149,13 @@ if (typeof exports === 'object') {
     if (!Array.isArray(value)) {
       return false;
     }
-    if (schema.items) {
+    if (schema.items !== void 0) {
       return value.every((entry) => validate(entry, schema.items));
     }
     return true;
   }
   function validate(value, schema) {
+    debugger;
     if (schema === false) {
       return false;
     }
@@ -8172,8 +8175,9 @@ if (typeof exports === 'object') {
       "array": validateArray
     };
     schema = resolveSchema(schema);
-    if (validators[schemaType(schema)]) {
-      return validators[schemaType(schema)](value, schema);
+    const v = validators[schemaType(schema)];
+    if (v) {
+      return v(value, schema);
     } else {
       throw new Error(`Don't know how to validate type ${schema.type}`);
     }

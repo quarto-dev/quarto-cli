@@ -92,31 +92,33 @@ function validateObject(value: any, schema: Schema) {
   }
   const inspectedProps: Set<string> = new Set();
   const ownProperties: Set<string> = new Set(Object.getOwnPropertyNames(value));
-  if (schema.properties) {
+  if (schema.properties !== undefined) {
     for (const [key, subSchema] of Object.entries(schema.properties)) {
       // can't check for truthiness here because value might be falsey
       // and yet we still need to check it.
-      if (ownProperties.has(key) && !validate(value[key], subSchema)) {
-        return false;
-      } else {
+      if (ownProperties.has(key)) {
         inspectedProps.add(key);
-      }
-    }
-  }
-  if (schema.patternProperties) {
-    // there's probably a more efficient way to do this..
-    for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
-      const regexp = new RegExp(key);
-      for (const [objectKey, val] of Object.entries(value)) {
-        if (objectKey.match(regexp) && !validate(val, subSchema)) {
+        if (!validate(value[key], subSchema)) {
           return false;
-        } else {
-          inspectedProps.add(objectKey);
         }
       }
     }
   }
-  if (schema.additionalProperties) {
+  if (schema.patternProperties !== undefined) {
+    // there's probably a more efficient way to do this..
+    for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
+      const regexp = new RegExp(key);
+      for (const [objectKey, val] of Object.entries(value)) {
+        if (objectKey.match(regexp)) {
+          inspectedProps.add(objectKey);
+          if (!validate(val, subSchema)) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  if (schema.additionalProperties !== undefined) {
     for (const [objectKey, val] of Object.entries(value)) {
       if (inspectedProps.has(objectKey)) {
         continue;
@@ -126,7 +128,7 @@ function validateObject(value: any, schema: Schema) {
       }
     }
   }
-  if (schema.propertyNames) {
+  if (schema.propertyNames !== undefined) {
     for (const key of ownProperties) {
       if (!validate(key, schema.propertyNames)) {
         return false;
@@ -146,7 +148,7 @@ function validateArray(value: any, schema: Schema) {
   if (!Array.isArray(value)) {
     return false;
   }
-  if (schema.items) {
+  if (schema.items !== undefined) {
     return value.every((entry) => validate(entry, schema.items));
   }
   return true;
@@ -154,6 +156,7 @@ function validateArray(value: any, schema: Schema) {
 
 // deno-lint-ignore no-explicit-any
 export function validate(value: any, schema: Schema) {
+  debugger;
   if (schema === false) {
     return false;
   }
@@ -175,8 +178,9 @@ export function validate(value: any, schema: Schema) {
   };
 
   schema = resolveSchema(schema);
-  if (validators[schemaType(schema)]) {
-    return validators[schemaType(schema)](value, schema);
+  const v = validators[schemaType(schema)];
+  if (v) {
+    return v(value, schema);
   } else {
     throw new Error(`Don't know how to validate type ${schema.type}`);
   }
