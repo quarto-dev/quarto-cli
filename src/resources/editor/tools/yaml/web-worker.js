@@ -8155,7 +8155,6 @@ if (typeof exports === 'object') {
     return true;
   }
   function validate(value, schema) {
-    debugger;
     if (schema === false) {
       return false;
     }

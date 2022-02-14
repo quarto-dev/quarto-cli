@@ -156,7 +156,6 @@ function validateArray(value: any, schema: Schema) {
 
 // deno-lint-ignore no-explicit-any
 export function validate(value: any, schema: Schema) {
-  debugger;
   if (schema === false) {
     return false;
   }
