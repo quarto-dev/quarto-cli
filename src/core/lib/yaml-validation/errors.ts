@@ -223,10 +223,17 @@ function identifyKeyErrors(
 ): LocalizedError {
   let badKey = getBadKey(error.ajvError);
   if (badKey) {
-    addInstancePathInfo(
-      error.niceError,
-      error.ajvError.instancePath + "/" + badKey,
-    );
+    if (!error.ajvError.instancePath.endsWith(badKey)) {
+      addInstancePathInfo(
+        error.niceError,
+        error.ajvError.instancePath + "/" + badKey,
+      );
+    } else {
+      addInstancePathInfo(
+        error.niceError,
+        error.ajvError.instancePath,
+      );
+    }
     error.niceError.heading = formatHeadingForKeyError(
       error,
       parse,
