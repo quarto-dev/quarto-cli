@@ -998,7 +998,7 @@
               Defaults to 175.
       image-align:
         enum: [left, right]
-        description: In 'default type listings, whether to place the image on the right or left side of the post content.
+        description: In 'default' type listings, whether to place the image on the right or left side of the post content.
       image-height:
         string:
           description:

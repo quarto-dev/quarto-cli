@@ -4,9 +4,7 @@
   schema:
     oneOf:
       - boolean
-      - string
-      - arrayOf:
+      - maybeArrayOf:
           oneOf:
             - string
             - ref: website-listing
-      - ref: website-listing
