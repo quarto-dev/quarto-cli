@@ -37,6 +37,7 @@ import {
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import {
+  isBeamerOutput,
   isEpubOutput,
   isHtmlDocOutput,
   isHtmlFileOutput,
@@ -520,8 +521,11 @@ export async function runPandoc(
   }
 
   // If there are no specified options for link coloring in PDF, set them
-  // do not color links for obviously printed book output
-  if (isLatexOutput(options.format.pandoc)) {
+  // do not color links for obviously printed book output or beamer presentations
+  if (
+    isLatexOutput(options.format.pandoc) &&
+    !isBeamerOutput(options.format.pandoc)
+  ) {
     const docClass = pandocMetadata[kDocumentClass];
     const isPrintDocumentClass = docClass &&
       ["book", "scrbook"].includes(docClass);

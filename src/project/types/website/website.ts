@@ -68,6 +68,7 @@ import {
   listingSupplementalFiles,
 } from "./listing/website-listing.ts";
 import { completeStagedFeeds } from "./listing/website-listing-feed.ts";
+import { aboutHtmlDependencies } from "./about/website-about.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -172,33 +173,60 @@ export const websiteProjectType: ProjectType = {
       ]);
 
       // listings extras
-      const htmlListingDependencies = await listingHtmlDependencies(
-        source,
-        project,
-        format,
-        temp,
-        extras,
-      );
-      if (htmlListingDependencies) {
-        extras.html[kHtmlPostprocessors]?.push(
-          htmlListingDependencies[kHtmlPostprocessors],
+      const hasBootstrap = formatHasBootstrap(format);
+      if (hasBootstrap) {
+        const htmlListingDependencies = await listingHtmlDependencies(
+          source,
+          project,
+          format,
+          temp,
+          extras,
         );
-        extras.html[kMarkdownAfterBody]?.push(
-          htmlListingDependencies[kMarkdownAfterBody],
-        );
-        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
-        extras[kIncludeInHeader]!.push(
-          ...htmlListingDependencies[kIncludeInHeader],
-        );
-        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-        extras.html[kSassBundles]!.push(
-          ...htmlListingDependencies[kSassBundles],
-        );
+        if (htmlListingDependencies) {
+          const listingPostProcessor =
+            htmlListingDependencies[kHtmlPostprocessors];
+          if (listingPostProcessor) {
+            extras.html[kHtmlPostprocessors]?.push(listingPostProcessor);
+          }
 
-        extras.html[kDependencies] = extras.html[kDependencies] || [];
-        extras.html[kDependencies]?.push(
-          ...htmlListingDependencies[kDependencies],
+          const listingAfterBody = htmlListingDependencies[kMarkdownAfterBody];
+          if (listingAfterBody) {
+            extras.html[kMarkdownAfterBody]?.push(listingAfterBody);
+          }
+          extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+          extras[kIncludeInHeader]!.push(
+            ...htmlListingDependencies[kIncludeInHeader],
+          );
+          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+          extras.html[kSassBundles]!.push(
+            ...htmlListingDependencies[kSassBundles],
+          );
+
+          extras.html[kDependencies] = extras.html[kDependencies] || [];
+          extras.html[kDependencies]?.push(
+            ...htmlListingDependencies[kDependencies],
+          );
+        }
+
+        // about extras
+        const aboutDependencies = await aboutHtmlDependencies(
+          source,
+          project,
+          format,
+          temp,
+          extras,
         );
+        if (aboutDependencies) {
+          const aboutPostProcessor = aboutDependencies[kHtmlPostprocessors];
+          if (aboutPostProcessor) {
+            extras.html[kHtmlPostprocessors]?.push(aboutPostProcessor);
+          }
+
+          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+          extras.html[kSassBundles]!.push(
+            ...aboutDependencies[kSassBundles],
+          );
+        }
       }
 
       // metadata html dependencies
@@ -365,8 +393,13 @@ function websiteTemplate(
         },
         {
           name: "about",
-          content: "About this blog",
           title: "About",
+          content: "About this blog",
+          yaml:
+            `about:\n  template: jolla\n  image: profile.jpg\n  links:\n    - icon: twitter\n      text: Twitter\n      href: https://www.twitter.com\n    - icon: linkedin\n      text: LinkedIn\n      href: https://www.linkedin.com\n    - icon: github\n      text: Github\n      href: https://www.github.com\n`,
+          supporting: [
+            join(resourceDir, "templates", "blog", "profile.jpg"),
+          ],
           noEngineContent: true,
         },
       ],

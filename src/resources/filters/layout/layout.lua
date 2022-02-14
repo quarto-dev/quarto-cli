@@ -174,9 +174,20 @@ function partitionCells(divEl)
         cellDiv.content:insert(1, heading)
         heading = nil
       end
-      
-      -- add the div
-      cells:insert(cellDiv)
+
+      -- if this is .cell-output-display then unroll multiple blocks
+      if cellDiv.attr.classes:find("cell-output-display") and #cellDiv.content > 1 then
+        for _,outputBlock in ipairs(cellDiv.content) do
+          if outputBlock.t == "Div" then
+            cells:insert(outputBlock)
+          else
+            cells:insert(pandoc.Div(outputBlock))
+          end
+        end
+      else
+        -- add the div
+        cells:insert(cellDiv)
+      end
       
     end
     

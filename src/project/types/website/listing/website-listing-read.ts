@@ -264,6 +264,7 @@ function hydrateListing(
       return unionedItem[key] !== undefined;
     });
   };
+
   const itemFields = fieldsForItems(items);
 
   const fieldsForTable = (
@@ -281,7 +282,7 @@ function hydrateListing(
 
   const suggestedFields = listing.type === ListingType.Table
     ? fieldsForTable(itemFields)
-    : defaultFields(listing.type);
+    : defaultFields(listing.type, itemFields);
 
   // Don't include fields that the items don't have
   const fields = suggestedFields.filter((field) => {
@@ -290,16 +291,13 @@ function hydrateListing(
 
   // Sorting and linking are only available in built in templates
   // right now, so don't expose these fields defaults in custom
-  const defaultSort = listing.type !== ListingType.Custom
-    ? kDefaultFieldSort
-    : [];
+  const defaultSort =
+    listing.type !== ListingType.Custom && listing.type !== ListingType.Table
+      ? kDefaultFieldSort
+      : suggestedFields;
   const defaultLinks = listing.type === ListingType.Table
     ? kDefaultFieldLinks
     : [];
-  // Custom doesn't get filtering and sorting unless sort fields are defined
-  // or it is explicitly enabled
-  const enableFilterAndSort = listing.type !== ListingType.Custom ||
-    listing[kSortUi] || listing[kFilterUi];
 
   const defaultPageSize = () => {
     switch (listing.type) {
@@ -332,8 +330,8 @@ function hydrateListing(
     [kFieldFilter]: hydratedFields,
     [kFieldRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
-    [kFilterUi]: enableFilterAndSort,
-    [kSortUi]: enableFilterAndSort,
+    [kFilterUi]: listing.type !== ListingType.Custom || listing[kFilterUi],
+    [kSortUi]: listing.type !== ListingType.Custom || listing[kSortUi],
     ...listing,
   });
 
@@ -483,11 +481,13 @@ async function readContents(
             }
           } else {
             const item = await listItemFromFile(file, project);
-            validateItem(listing, item, (field: string) => {
-              return `The file ${file} is missing the required field '${field}'.`;
-            });
-            listingItemSources.add(ListingItemSource.document);
-            listingItems.push(item);
+            if (item) {
+              validateItem(listing, item, (field: string) => {
+                return `The file ${file} is missing the required field '${field}'.`;
+              });
+              listingItemSources.add(ListingItemSource.document);
+              listingItems.push(item);
+            }
           }
         }
       }
@@ -560,44 +560,48 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     project,
     projectRelativePath,
   );
-
-  // Create the item
-  const filename = basename(projectRelativePath);
-  const filemodified = fileModifiedDate(input);
   const documentMeta = target?.markdown.yaml;
-  const description = documentMeta?.description as string ||
-    documentMeta?.abstract as string ||
-    findDescriptionMd(target?.markdown.markdown);
-  const imageRaw = documentMeta?.image as string ||
-    findPreviewImgMd(target?.markdown.markdown);
-  const image = imageRaw !== undefined
-    ? listingItemHref(imageRaw, dirname(projectRelativePath))
-    : undefined;
+  if (documentMeta?.draft) {
+    // This is a draft, don't include it in the listing
+    return undefined;
+  } else {
+    // Create the item
+    const filename = basename(projectRelativePath);
+    const filemodified = fileModifiedDate(input);
+    const description = documentMeta?.description as string ||
+      documentMeta?.abstract as string ||
+      findDescriptionMd(target?.markdown.markdown);
+    const imageRaw = documentMeta?.image as string ||
+      findPreviewImgMd(target?.markdown.markdown);
+    const image = imageRaw !== undefined
+      ? listingItemHref(imageRaw, dirname(projectRelativePath))
+      : undefined;
 
-  const date = documentMeta?.date
-    ? new Date(documentMeta.date as string)
-    : undefined;
-  const author = Array.isArray(documentMeta?.author)
-    ? documentMeta?.author
-    : [documentMeta?.author];
+    const date = documentMeta?.date
+      ? new Date(documentMeta.date as string)
+      : undefined;
+    const author = Array.isArray(documentMeta?.author)
+      ? documentMeta?.author
+      : [documentMeta?.author];
 
-  const readingtime = target?.markdown
-    ? estimateReadingTimeMinutes(target.markdown.markdown)
-    : undefined;
+    const readingtime = target?.markdown
+      ? estimateReadingTimeMinutes(target.markdown.markdown)
+      : undefined;
 
-  const item: ListingItem = {
-    ...documentMeta,
-    path: `/${projectRelativePath}`,
-    [kFieldTitle]: target?.title,
-    [kFieldDate]: date,
-    [kFieldAuthor]: author,
-    [kFieldImage]: image,
-    [kFieldDescription]: description,
-    [kFieldFileName]: filename,
-    [kFieldFileModified]: filemodified,
-    [kFieldReadingTime]: readingtime,
-  };
-  return item;
+    const item: ListingItem = {
+      ...documentMeta,
+      path: `/${projectRelativePath}`,
+      [kFieldTitle]: target?.title,
+      [kFieldDate]: date,
+      [kFieldAuthor]: author,
+      [kFieldImage]: image,
+      [kFieldDescription]: description,
+      [kFieldFileName]: filename,
+      [kFieldFileModified]: filemodified,
+      [kFieldReadingTime]: readingtime,
+    };
+    return item;
+  }
 }
 
 // Processes the 'listing' metadata into an
@@ -714,7 +718,7 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
       } else {
         return {
           field: parts[0],
-          direction: kSortDesc,
+          direction: kSortAsc,
         };
       }
     }
@@ -733,12 +737,14 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
   return undefined;
 }
 
-function defaultFields(type: ListingType) {
+function defaultFields(type: ListingType, itemFields: string[]) {
   switch (type) {
     case ListingType.Grid:
       return kDefaultGridFields;
     case ListingType.Table:
       return kDefaultTableFields;
+    case ListingType.Custom:
+      return itemFields;
     case ListingType.Default:
     default:
       return kDefaultFields;

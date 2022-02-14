@@ -1,0 +1,19 @@
+---
+title: "About"
+about:
+  template: jolla
+  image: profile.jpg
+  links:
+    - icon: twitter
+      text: Twitter
+      href: https://www.twitter.com
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com
+    - icon: github
+      text: Github
+      href: https://www.github.com
+
+---
+
+About this blog

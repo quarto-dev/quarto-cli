@@ -1,5 +1,11 @@
 /*-- scss:variables --*/
 
+// Since we use these colors, we need to ensure that they
+// are defined (for example, if no theme is specified)
+$gray-300: #dee2e6 !default;
+$gray-500: #adb5bd !default;
+$gray-600: #6c757d !default;
+
 $card-cap-bg: $gray-500 !default;
 
 $border-color: $gray-300 !default;
@@ -260,8 +266,19 @@ ul.pagination {
     justify-content: flex-end;
   }
 
+  .card-title {
+    margin-bottom: 0.1em;
+  }
+  .card-subtitle {
+    padding-top: 0.25em;
+  }
+
   .card-text {
     font-size: 0.9em;
+  }
+
+  .listing-reading-time {
+    padding-bottom: 0.25em;
   }
 
   .card-text-small {

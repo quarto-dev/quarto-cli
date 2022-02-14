@@ -64,7 +64,6 @@ import { htmlResourceResolverPostprocessor } from "../../project/types/website/w
 import { inputFilesDir } from "../../core/render.ts";
 import { kResources } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
-import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { RenderFlags, RenderResult } from "../../command/render/types.ts";
 import {
   kPdfJsInitialPath,
@@ -108,7 +107,7 @@ export async function serveProject(
       `Cannot serve project of type '${
         project?.config?.project[kProjectType] ||
         "default"
-      }' (try using project type 'site').`,
+      }' (try using project type 'website').`,
     );
   }
 
@@ -207,6 +206,10 @@ export async function serveProject(
     }
     : undefined;
 
+  // create listener and callback to close it
+  const listener = Deno.listen({ port: options.port, hostname: options.host });
+  const stopServer = () => listener.close();
+
   // create project watcher. later we'll figure out if it should provide renderOutput
   const watcher = await watchProject(
     project,
@@ -217,6 +220,7 @@ export async function serveProject(
     options,
     !pdfOutput, // we don't render on reload for pdf output
     renderQueue,
+    stopServer,
     pdfOutputFile,
   );
 
@@ -397,9 +401,24 @@ export async function serveProject(
   // print status
   printWatchingForChangesMessage();
 
+  // if we are passed a browser path, resolve the output file if its an input
+  let browserPath = typeof (options.browse) === "string"
+    ? options.browse.replace(/^\//, "")
+    : undefined;
+  if (browserPath) {
+    const browserPathTarget = await resolveInputTarget(
+      project,
+      browserPath,
+      false,
+    );
+    if (browserPathTarget) {
+      browserPath = browserPathTarget.outputHref;
+    }
+  }
+
   // compute browse url
-  const targetPath = typeof (options.browse) === "string"
-    ? options.browse
+  const targetPath = browserPath
+    ? browserPath
     : pdfOutput
     ? kPdfJsInitialPath
     : renderResultUrlPath(renderResult);
@@ -439,9 +458,7 @@ export async function serveProject(
 
   // serve project
   const handler = httpFileRequestHandler(handlerOptions);
-  for await (
-    const conn of Deno.listen({ port: options.port, hostname: options.host })
-  ) {
+  for await (const conn of listener) {
     (async () => {
       for await (const { request, respondWith } of Deno.serveHttp(conn)) {
         try {

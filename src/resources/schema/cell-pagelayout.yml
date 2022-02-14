@@ -3,21 +3,21 @@
     ref: page-column
   description:
     short: "Page column for output"
-    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for output"
+    long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for output"
 
 - name: fig-column
   schema:
     ref: page-column
   description:
     short: "Page column for figure output"
-    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for figure output"
+    long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for figure output"
 
 - name: tbl-column
   schema:
     ref: page-column
   description:
     short: "Page column for table output"
-    long: "[Page column](https://quarto.org/docs/authoring/page-layout.html) for table output"
+    long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for table output"
 
 - name: cap-location
   tags:

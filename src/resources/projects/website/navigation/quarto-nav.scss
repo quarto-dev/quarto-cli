@@ -30,7 +30,7 @@ footer.footer .nav-footer,
   }
 
   #quarto-content section:first-of-type h2:first-of-type {
-    margin-top: 0px;
+    margin-top: 1rem;
   }
 }
 
@@ -218,8 +218,8 @@ $sidebar-section-bottom-margin: 0.2em;
 .sidebar-navigation .sidebar-divider {
   margin-left: 0;
   margin-right: 0;
-  margin-top: 0;
-  margin-bottom: 0.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 // Toggle the top secondar navigation bar
@@ -298,8 +298,10 @@ nav.sidebar.sidebar-navigation {
   }
 }
 
-.sidebar.sidebar-navigation:not(.floating):not(.rollup) {
-  border-right: 1px solid $table-border-color !important;
+@if $sidebar-border {
+  .sidebar.sidebar-navigation:not(.rollup) {
+    border-right: 1px solid $table-border-color !important;
+  }
 }
 
 @include media-breakpoint-down(lg) {

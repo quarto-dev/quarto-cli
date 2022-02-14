@@ -219,7 +219,7 @@ export async function websiteNavigationExtras(
   // determine body envelope
   const target = await resolveInputTarget(project, inputRelative);
   const href = target?.outputHref || inputFileHref(inputRelative);
-  const sidebar = sidebarForHref(href);
+  const sidebar = sidebarForHref(href, format);
 
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),
@@ -657,7 +657,9 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar.logo = resolveLogo(sidebar.logo);
 
   const searchOpts = searchOptions(project);
-  sidebar.search = searchOpts && searchOpts.location === "sidebar"
+  sidebar.search = sidebar.search !== undefined
+    ? sidebar.search
+    : searchOpts && searchOpts.location === "sidebar"
     ? searchOpts.type
     : false;
 
@@ -765,13 +767,15 @@ function validateTool(tool: SidebarTool) {
   }
 }
 
-function sidebarForHref(href: string) {
+function sidebarForHref(href: string, format: Format) {
   // if there is a single sidebar then it applies to all hrefs
   if (navigation.sidebars.length === 1) {
     return navigation.sidebars[0];
   } else {
     for (const sidebar of navigation.sidebars) {
-      if (containsHref(href, sidebar.contents)) {
+      if (sidebar.id === format.metadata[kSiteSidebar]) {
+        return sidebar;
+      } else if (containsHref(href, sidebar.contents)) {
         return sidebar;
       }
     }
@@ -1008,12 +1012,12 @@ function resolveSidebarRef(navItem: NavbarItem) {
   }
 }
 
-async function navigationItem(
+export async function navigationItem(
   project: ProjectContext,
   navItem: NavbarItem | string,
   level = 0,
   sidebarMenus = false,
-) {
+): Promise<NavbarItem> {
   // make a copy we can mutate
   navItem = ld.cloneDeep(navItem);
 

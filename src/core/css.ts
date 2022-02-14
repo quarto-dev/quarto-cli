@@ -109,7 +109,11 @@ export function asCssSize(value: unknown): string | undefined {
 
 export function asCssColor(value: unknown): string | undefined {
   if (typeof (value) === "string") {
-    return value;
+    if (value === "none") {
+      return "transparent";
+    } else {
+      return value;
+    }
   }
 }
 

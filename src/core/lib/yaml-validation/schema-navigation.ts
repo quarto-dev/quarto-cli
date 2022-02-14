@@ -100,9 +100,12 @@ export function navigateSchemaByInstancePath(
       }
       return [subSchema];
     } else if (st === "array") {
-      // arrays are uniformly typed, easy, and we don't even need to use the path value.
       if (subSchema.items === undefined) {
         // no items schema, can't navigate to expected schema
+        return [];
+      }
+      // don't index into array with a string path.
+      if (typeof path[index] === "string") {
         return [];
       }
       return inner(subSchema.items, index + 1);

@@ -13,9 +13,9 @@ body {
 }
 
 // If we're applying display: grid, we're losing our display: border-box
-// behavior, so we need to reset top margin
-main.page-columns > section:first-of-type > h2:first-of-type {
-  margin-top: 0.5rem;
+// behavior, so we need to reset bottom margin for title block
+main.page-columns > header > h1.title {
+  margin-bottom: 0;
 }
 
 @include media-breakpoint-up(lg) {
@@ -323,7 +323,6 @@ body.docked {
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   figcaption {
-    text-align: right;
     @include column-spanning-element();
   }
 }
@@ -340,7 +339,6 @@ body.docked {
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   figcaption {
-    text-align: right;
     @include column-spanning-element();
   }
 }
@@ -381,7 +379,7 @@ body.docked {
 }
 
 .page-columns .column-screen-right {
-  grid-column: body-start / screen-end;
+  grid-column: body-content-start / screen-end;
   z-index: $zindex-pagelayout;
   transform: translate3d(0, 0, 0);
   @include column-spanning-element();
@@ -1123,9 +1121,16 @@ $callouts: (
       "color": $callout-color-important,
       "icon":
         '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>',
-    ),
-  //circle exclamation point
+    )
 );
+
+div.callout.callout {
+  border-left-color: $text-muted;
+}
+
+div.callout.callout-style-default .callout-header {
+  background-color: $text-muted;
+}
 
 @each $name, $info in $callouts {
   div.callout-#{$name}.callout {
@@ -1219,10 +1224,11 @@ $callouts: (
   margin-bottom: -0.2rem;
 }
 
-.navbar .quarto-reader-toggle .bi::before,
 .navbar .quarto-color-scheme-toggle .bi::before {
-  padding-top: 0.2rem;
-  margin-bottom: -0.2rem;
+  padding-top: 7px;
+  margin-bottom: -7px;
+  padding-left: 2px;
+  margin-right: 2px;
 }
 
 .navbar .quarto-color-scheme-toggle:not(.alternate) .bi::before {

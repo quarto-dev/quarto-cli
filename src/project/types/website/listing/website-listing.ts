@@ -56,10 +56,12 @@ import {
 } from "./website-listing-project.ts";
 import { filterPaths } from "../../../../core/path.ts";
 import { uniqBy } from "../../../../core/lodash.ts";
+import { projectOutputDir } from "../../../project-shared.ts";
+import { touch } from "../../../../core/file.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,
-  files: string[],
+  inputs: string[],
   incremental: boolean,
 ) {
   if (incremental) {
@@ -78,7 +80,7 @@ export function listingSupplementalFiles(
     // be included in the listing page.
     const matching = listingFiles.filter((listingFile) => {
       const globs = listingMap[listingFile];
-      if (filterPaths(project.dir, files, globs).include.length > 0) {
+      if (filterPaths(project.dir, inputs, globs).include.length > 0) {
         return true;
       }
     });
@@ -86,15 +88,36 @@ export function listingSupplementalFiles(
       const supplementalFiles = matching.map((listingRelativePath) => {
         return join(project.dir, listingRelativePath);
       });
-      return uniqBy(supplementalFiles);
+      const files = uniqBy(supplementalFiles.filter((file) => {
+        return !inputs.includes(file) && existsSync(file);
+      }));
+
+      const onRenderComplete = async (
+        project: ProjectContext,
+        files: string[],
+        incremental: boolean,
+      ) => {
+        if (incremental) {
+          const outputDir = projectOutputDir(project);
+          for (const file of files) {
+            const filePath = join(outputDir, file);
+            // Touching the non-supplemental files ensures that
+            // any file modified events for those files will happen
+            // after the listing file events (for quarto preview, for example)
+            await touch(filePath);
+          }
+        }
+      };
+
+      return { files, onRenderComplete };
     } else {
-      return [];
+      return { files: [] };
     }
   } else {
     // This is a full render, clear the cache
     // (a brute force form of garbage collection)
     clearListingProjectData(project);
-    return [];
+    return { files: [] };
   }
 }
 
@@ -113,16 +136,16 @@ export async function listingHtmlDependencies(
   );
 
   // If there no listings, don't inject the dependencies
-  if (listingDescriptors.length === 0) {
-    return undefined;
-  }
+  const pageHasListings = listingDescriptors.length > 0;
 
   // Record the rendering of this listing in our 'listing cache'
-  cacheListingProjectData(
-    project,
-    relative(project.dir, source),
-    listingDescriptors,
-  );
+  if (pageHasListings) {
+    cacheListingProjectData(
+      project,
+      relative(project.dir, source),
+      listingDescriptors,
+    );
+  }
 
   // Create the markdown pipeline for this set of listings
   const markdownHandlers: MarkdownPipelineHandler[] = [];
@@ -147,7 +170,7 @@ export async function listingHtmlDependencies(
     resourcePath("projects/website/listing/list.min.js"),
     resourcePath("projects/website/listing/quarto-listing.js"),
   ];
-  const htmlDependencies: FormatDependency[] = [{
+  const listingDependencies: FormatDependency[] = [{
     name: kListingDependency,
     scripts: jsPaths.map((path) => {
       return {
@@ -158,13 +181,15 @@ export async function listingHtmlDependencies(
   }];
 
   // Generate the inline script tags that configure list.js
-  const scripts = listingDescriptors.map((listingItem) => {
-    return templateJsScript(
-      listingItem.listing.id,
-      listingItem.listing,
-      listingItem.items.length,
-    );
-  });
+  const generateScriptListJsScript = () => {
+    return listingDescriptors.map((listingItem) => {
+      return templateJsScript(
+        listingItem.listing.id,
+        listingItem.listing,
+        listingItem.items.length,
+      );
+    });
+  };
 
   // Create the post processor
   const listingPostProcessor = async (
@@ -208,11 +233,17 @@ export async function listingHtmlDependencies(
   };
 
   return {
-    [kIncludeInHeader]: [scriptFileForScripts(scripts, temp)],
-    [kHtmlPostprocessors]: listingPostProcessor,
-    [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
-    [kDependencies]: htmlDependencies,
     [kSassBundles]: [listingSassBundle()],
+    [kDependencies]: pageHasListings ? listingDependencies : [],
+    [kMarkdownAfterBody]: pageHasListings
+      ? pipeline.markdownAfterBody()
+      : undefined,
+    [kIncludeInHeader]: pageHasListings
+      ? [
+        scriptFileForScripts(generateScriptListJsScript(), temp),
+      ]
+      : [],
+    [kHtmlPostprocessors]: pageHasListings ? listingPostProcessor : undefined,
   };
 }
 
@@ -292,6 +323,12 @@ function listingPostProcess(
     rightSidebar?.appendChild(headingEl);
     rightSidebar?.appendChild(categoriesEl);
   }
+
+  // Purge any images that made it into the description
+  const descImgs = doc.querySelectorAll(".listing-description img");
+  descImgs.forEach((descImg) => {
+    descImg.remove();
+  });
 }
 
 const kMarginSidebarId = "quarto-margin-sidebar";

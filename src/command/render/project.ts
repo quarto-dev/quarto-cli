@@ -68,19 +68,23 @@ export async function renderProject(
     ? ld.cloneDeep(files) as string[]
     : undefined;
 
-  // if we have alwaysExecuteFiles then we need to normalize the files list for comparison
-  if (alwaysExecuteFiles && files) {
-    const normalizeFiles = (targetFiles: string[]) => {
-      return targetFiles.map((file) => {
-        const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
-        if (!existsSync(target)) {
-          throw new Error("Render target does not exist: " + file);
-        }
-        return Deno.realPathSync(target);
-      });
-    };
-    alwaysExecuteFiles = normalizeFiles(alwaysExecuteFiles);
-    files = normalizeFiles(files);
+  // file normaliation
+  const normalizeFiles = (targetFiles: string[]) => {
+    return targetFiles.map((file) => {
+      const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
+      if (!existsSync(target)) {
+        throw new Error("Render target does not exist: " + file);
+      }
+      return Deno.realPathSync(target);
+    });
+  };
+  if (files) {
+    if (alwaysExecuteFiles) {
+      alwaysExecuteFiles = normalizeFiles(alwaysExecuteFiles);
+      files = normalizeFiles(files);
+    } else if (options.useFreezer) {
+      files = normalizeFiles(files);
+    }
   }
 
   // check with the project type to see if we should render all
@@ -112,7 +116,7 @@ export async function renderProject(
   // in the render list.
   // We don't add supplemental files when this is a dev server reload
   // to improve render performance
-  const projectSupplementalFiles = (renderFiles: string[]) => {
+  const projectSupplement = (renderFiles: string[]) => {
     if (projType.supplementRender && !options.devServerReload) {
       return projType.supplementRender(
         context,
@@ -120,11 +124,11 @@ export async function renderProject(
         incremental,
       );
     } else {
-      return [];
+      return { files: [] };
     }
   };
-  const supplementalFiles = projectSupplementalFiles(files);
-  files.push(...supplementalFiles);
+  const supplements = projectSupplement(files);
+  files.push(...supplements.files);
 
   // projResults to return
   const projResults: RenderResult = {
@@ -447,10 +451,23 @@ export async function renderProject(
     // Mark any rendered files as supplemental if that
     // is how they got into the render list
     projResults.files.forEach((file) => {
-      if (supplementalFiles.includes(join(projDir, file.input))) {
+      if (supplements.files.includes(join(projDir, file.input))) {
         file.supplemental = true;
       }
     });
+
+    // Also let the project know that the render has completed for
+    // any non supplemental files
+    const nonSupplementalFiles = projResults.files.filter((file) =>
+      !file.supplemental
+    ).map((file) => file.file);
+    if (supplements.onRenderComplete) {
+      await supplements.onRenderComplete(
+        context,
+        nonSupplementalFiles,
+        incremental,
+      );
+    }
 
     return projResults;
   } finally {

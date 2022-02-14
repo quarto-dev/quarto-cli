@@ -22,9 +22,6 @@ function theorems()
         local name = markdownToInlines(el.attr.attributes["name"])
         if not name then
           name = resolveHeadingCaption(el)
-          if not name then
-            name = stringToInlines("Unnamed")
-          end
         end
         el.attr.attributes["name"] = nil 
         
@@ -35,10 +32,15 @@ function theorems()
       
         if isLatexOutput() then
           local preamble = pandoc.Para(pandoc.RawInline("latex", 
-            "\\begin{" .. theoremType.env .. "}["))
-          tappend(preamble.content, name) 
-          preamble.content:insert(pandoc.RawInline("latex", "]" ..
-            "\\label{" .. label .. "}"))
+            "\\begin{" .. theoremType.env .. "}"))
+          preamble.content:insert(pandoc.RawInline("latex", "["))
+          if name then
+            tappend(preamble.content, name) 
+          end
+          preamble.content:insert(pandoc.RawInline("latex", "]"))
+          preamble.content:insert(pandoc.RawInline("latex",
+            "\\label{" .. label .. "}")
+          )
           el.content:insert(1, preamble)
           el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
             "\\end{" .. theoremType.env .. "}"
@@ -58,7 +60,7 @@ function theorems()
         
           -- add caption paragraph if necessary
           if #el.content < 2 then
-            tprepend(el.content,  pandoc.Para({}))
+            tprepend(el.content,  { pandoc.Para({}) })
           end
           
           -- prepend the prefix
@@ -113,7 +115,7 @@ function theorems()
               tappend(span.content, name)
               span.content:insert(pandoc.Str(")"))
             end
-            tappend(span.content, { pandoc.Str(".", pandoc.Space())})
+            tappend(span.content, { pandoc.Str(". ")})
             if #el.content > 0 and #el.content[1].content > 0 then
               el.content[1].content:insert(1, span)
             end

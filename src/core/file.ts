@@ -8,6 +8,7 @@
 import { TextProtoReader } from "textproto/mod.ts";
 import { BufReader } from "io/mod.ts";
 import { exists } from "fs/mod.ts";
+import { execProcess } from "./process.ts";
 
 export async function visitLines(
   path: string,
@@ -33,5 +34,17 @@ export async function visitLines(
     } finally {
       file.close();
     }
+  }
+}
+
+export async function touch(path: string) {
+  if (Deno.build.os === "windows") {
+    // Touch the file be rewriting it
+    const contents = await Deno.readTextFile(path);
+    await Deno.writeTextFile(path, contents);
+  } else {
+    await execProcess({
+      cmd: ["touch", path],
+    });
   }
 }

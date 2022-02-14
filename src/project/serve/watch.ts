@@ -59,6 +59,7 @@ export function watchProject(
   options: ServeOptions,
   renderingOnReload: boolean,
   renderQueue: PromiseQueue<RenderResult>,
+  stopServer: VoidFunction,
   outputFile?: () => string,
 ): Promise<ProjectWatcher> {
   // helper to refresh project config
@@ -227,7 +228,12 @@ export function watchProject(
   };
 
   // http devserver
-  const devServer = httpDevServer(options.port);
+  const devServer = httpDevServer(
+    options.port,
+    options.timeout,
+    () => renderQueue.isRunning(),
+    stopServer,
+  );
 
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
@@ -266,7 +272,7 @@ export function watchProject(
       }
 
       // see if there is a reload target (last html file modified)
-      const lastHtmlFile = (ld.uniq(modified) as string[]).reverse().find(
+      const lastHtmlFile = modified.reverse().find(
         (file) => {
           return extname(file) === ".html";
         },
@@ -341,9 +347,21 @@ export function watchProject(
           // up hidden dirs, venv/renv dirs, etc.)
           if (event.kind === "create" && !watcherOptions.options?.recursive) {
             event.paths.forEach((path) => {
-              if (existsSync(path) && Deno.statSync(path).isDirectory) {
-                if (watchPaths.some((p) => p === dirname(path))) {
-                  runWatcher({ paths: path, options: { recursive: true } });
+              if (existsSync(path)) {
+                try {
+                  const stat = Deno.statSync(path);
+                  if (stat.isDirectory) {
+                    if (watchPaths.some((p) => p === dirname(path))) {
+                      runWatcher({ paths: path, options: { recursive: true } });
+                    }
+                  }
+                } catch (e) {
+                  // existing symlinks to nonexisting files cause path
+                  // to exist and statSync to fail
+                  if (e instanceof Deno.errors.NotFound) {
+                    return;
+                  }
+                  throw e;
                 }
               }
             });

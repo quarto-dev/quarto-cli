@@ -17,6 +17,12 @@ function callout()
           local isCallout = el.t == "Div" and el.attr.classes:find_if(isDocxCallout)
           local isTable = el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
           local isCodeBlock = el.t == "CodeBlock"
+
+          -- Determine whether this is a code cell that outputs a table
+          local isCodeCell = el.t == "Div" and el.attr.classes:find_if(isCodeCell)
+          if isCodeCell and isCodeCellTable(el) then 
+            isTable = true;
+          end
           
           -- insert spacer if appropriate
           local insertSpacer = false
@@ -75,10 +81,40 @@ function isDocxCallout(class)
   return class == "docx-callout"
 end
 
+function isCodeCell(class)
+  return class == "cell"
+end
+
+function isCodeCellDisplay(class)
+  return class == "cell-output-display"
+end
+
+-- Attempts to detect whether this element is a code cell
+-- whose output is a table
+function isCodeCellTable(el) 
+  local isTable = false
+  pandoc.walk_block(el, {
+    Div = function(div) 
+      if div.attr.classes:find_if(isCodeCellDisplay) then
+        pandoc.walk_block(div, {
+          Table = function(tbl)
+            isTable = true
+          end
+        })
+      end
+    end
+  })
+  return isTable
+end
+
 function calloutType(div)
   for _, class in ipairs(div.attr.classes) do
     if isCallout(class) then 
-      return class:match("^callout%-(.*)")
+      local type = class:match("^callout%-(.*)")
+      if type == nil then
+        type = "none"
+      end
+      return type
     end
   end
   return nil
@@ -353,10 +389,18 @@ end
 
 function processCalloutDiv(div) 
 
+  local type = calloutType(div)
+  local iconDefault = true
+  local appearanceDefault = nil
+  if type == "none" then
+    iconDefault = false
+    appearanceDefault = "simple"
+  end
+
   local icon = div.attr.attributes["icon"]
   div.attr.attributes["icon"] = nil
   if icon == nil then
-    icon = option("callout-icon", true)
+    icon = option("callout-icon", iconDefault)
   elseif icon == "false" then
     icon = false
   end
@@ -365,7 +409,7 @@ function processCalloutDiv(div)
   local appearanceRaw = div.attr.attributes["appearance"]
   div.attr.attributes["appearance"] = nil
   if appearanceRaw == nil then
-    appearanceRaw = option("callout-appearance", nil)
+    appearanceRaw = option("callout-appearance", appearanceDefault)
   end
   
   local appearance = nameForCalloutStyle(appearanceRaw);

@@ -11,6 +11,17 @@ const imgHeight = listing['image-height'];
 // Striped?
 const stripedCls = listing['table-striped'] ? " table-striped" : "";
 
+const sortFields = listing.utilities.sortableFieldData().map(fieldData => fieldData.listingSort.field);
+const hasSort = (field) => {
+if (sortFields.includes(field)){
+return true;
+} else if (sortFields.includes(`listing-${field}`)) {
+return true;
+} else {
+return false;
+}
+};
+
 // hover
 const hoverCls = listing['table-hover'] ? " table-hover" : "";
 const onclick = (item) => {
@@ -39,7 +50,7 @@ return listing.utilities.outputLink(item, field, value);
 <tr>
 <% for (const field of fields) { %>
 <th>
-<% if (sortUi) { %><a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (sortUi) { %></a><% } %>
+<% if (sortUi && hasSort(field)) { %><a class="sort" data-sort="<%-listing.utilities.sortTarget(field)%>" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;"><% } %><%= listing.utilities.fieldName(field) %><% if (sortUi && hasSort(field)) { %></a><% } %>
 </th>
 <% } %>
 </tr>

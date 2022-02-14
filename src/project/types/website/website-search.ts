@@ -29,6 +29,7 @@ import { ProjectOutputFile } from "../types.ts";
 import {
   clipboardDependency,
   kBootstrapDependencyName,
+  kDraft,
 } from "../../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
@@ -152,7 +153,10 @@ export function updateSearchIndex(
       const href = relative(outputDir, file);
 
       // if this is excluded then remove and return
-      if (outputFile.format.metadata[kSearch] === false) {
+      if (
+        outputFile.format.metadata[kSearch] === false ||
+        outputFile.format.metadata[kDraft]
+      ) {
         searchDocs = searchDocs.filter((doc) => {
           return doc.href !== href &&
             !doc.href.startsWith(href + "#");

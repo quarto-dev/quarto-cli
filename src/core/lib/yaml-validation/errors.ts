@@ -208,10 +208,21 @@ function identifyKeyErrors(
 
   let badKey = getBadKey(error);
   if (badKey) {
-    addInstancePathInfo(
-      error.niceError,
-      [...error.instancePath, badKey],
-    );
+    if (
+      error.instancePath.length &&
+      error.instancePath[error.instancePath.length - 1] !== badKey
+    ) {
+      addInstancePathInfo(
+        error.niceError,
+        [...error.instancePath, badKey],
+      );
+    } else {
+      addInstancePathInfo(
+        error.niceError,
+        error.instancePath,
+      );
+    }
+
     error.niceError.heading = formatHeadingForKeyError(
       error,
       parse,

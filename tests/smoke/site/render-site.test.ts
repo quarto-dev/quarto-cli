@@ -12,6 +12,7 @@ import { docs } from "../../utils.ts";
 import { fileExists, noErrorsOrWarnings } from "../../verify.ts";
 
 const kThemes = [
+  "",
   "none",
   "pandoc",
   "cerulean",
@@ -67,7 +68,7 @@ try {
           const qYaml = Deno.readTextFileSync(qYamlFile);
           const updatedYaml = qYaml.replace(
             /theme: none/,
-            `theme: ${theme}`,
+            theme !== "" ? `theme: ${theme}` : "",
           );
 
           Deno.writeTextFileSync(qYamlFile, updatedYaml);

@@ -205,8 +205,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
             if (item.sectionId) {
               markdown[`${kSidebarIdPrefix}${item.sectionId}`] = item.text;
             } else {
-              markdown[`${kSidebarIdPrefix}${item.href + "" + item.text}`] =
-                item.text;
+              markdown[`${kSidebarIdPrefix}${item.href}`] = item.text;
             }
           }
         });
@@ -221,8 +220,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
       for (let i = 0; i < sidebarItemEls.length; i++) {
         const link = sidebarItemEls[i] as Element;
         const href = link.getAttribute("href");
-        const sidebarText =
-          rendered[`${kSidebarIdPrefix}${href + "" + link.innerText}`];
+        const sidebarText = rendered[`${kSidebarIdPrefix}${href}`];
         if (sidebarText) {
           link.innerHTML = sidebarText.innerHTML;
         }

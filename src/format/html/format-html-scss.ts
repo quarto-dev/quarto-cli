@@ -394,6 +394,19 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
         ),
       );
     }
+
+    // Enable the sidebar border for docked by default
+    const sidebarBorder = sidebar[kBorder];
+    variables.push(
+      outputVariable(
+        sassVariable(
+          "sidebar-border",
+          sidebarBorder !== undefined
+            ? sidebarBorder
+            : sidebar.style === "docked",
+        ),
+      ),
+    );
   } else {
     // If there is no sidebar, default to body color for any sidebar that may appear
     variables.push(

@@ -20,6 +20,7 @@ import { resourcePath } from "../../../core/resources.ts";
 
 import { ProjectOutputFile } from "../types.ts";
 import { websiteBaseurl } from "./website-config.ts";
+import { kDraft } from "../../../format/html/format-html-shared.ts";
 
 export async function updateSitemap(
   context: ProjectContext,
@@ -58,7 +59,9 @@ export async function updateSitemap(
         .toISOString();
     const urlsetEntry = (outputFile: ProjectOutputFile) => {
       const file = outputFile.file;
-      return { loc: fileLoc(file), lastmod: fileLastMod(file) };
+      const isDraft = !!outputFile.format.metadata[kDraft];
+
+      return { loc: fileLoc(file), lastmod: fileLastMod(file), draft: isDraft };
     };
 
     // full render or no existing sitemap creates a fresh sitemap.xml
@@ -71,8 +74,10 @@ export async function updateSitemap(
           const file = outputFile.file;
           const loc = fileLoc(file);
           const url = urlset.find((url) => url.loc === loc);
+
           if (url) {
             url.lastmod = fileLastMod(file);
+            url.draft = !!outputFile.format.metadata[kDraft];
           } else {
             urlset.push(urlsetEntry(outputFile));
           }
@@ -98,7 +103,7 @@ export async function updateSitemap(
   }
 }
 
-type Urlset = Array<{ loc: string; lastmod: string }>;
+type Urlset = Array<{ loc: string; lastmod: string; draft?: boolean }>;
 
 async function readSitemap(sitemapPath: string): Promise<Urlset> {
   const urlset = new Array<{ loc: string; lastmod: string }>();
@@ -124,11 +129,12 @@ async function readSitemap(sitemapPath: string): Promise<Urlset> {
 }
 
 function writeSitemap(sitemapPath: string, urlset: Urlset) {
+  const nonDraftUrls = urlset.filter((url) => !url.draft);
   const sitemap = renderEjs(
     resourcePath(
       join("projects", "website", "templates", "sitemap.ejs.xml"),
     ),
-    { urlset },
+    { urlset: nonDraftUrls },
   );
   Deno.writeTextFileSync(sitemapPath, sitemap);
 }

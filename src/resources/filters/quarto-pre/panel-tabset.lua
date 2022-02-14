@@ -10,11 +10,11 @@ function panelTabset()
       if div.attr.classes:find("panel-tabset") then
         if hasBootstrap() then
           return tabsetDiv(div, bootstrapTabs())
-        else
+        elseif isHtmlOutput() then
           return tabsetDiv(div, tabbyTabs())
+        elseif isLatexOutput() or isDocxOutput() or isEpubOutput() then
+          return tabsetLatex(div)
         end
-      elseif isLatexOutput() or isDocxOutput() or isEpubOutput() then
-        return tabsetLatex(div)
       else
         return div
       end  

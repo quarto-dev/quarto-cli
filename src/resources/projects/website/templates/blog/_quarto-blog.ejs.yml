@@ -5,14 +5,16 @@ website:
   title: "<%= title %>"
   navbar:
     background: primary
-    left:
-      - href: index<%= ext %>
-        text: Home
-      - about<%= ext %>
 
+    right:
+      - about<%= ext %>
+      - icon: github
+        href: https://www.github.com/
+      - icon: twitter
+        href: https://www.twitter.com
 format:
   html:
-    theme: united
+    theme: cosmo
     css: styles.css
 
 <% if(editor){ %>editor: <%= editor %><% } %>

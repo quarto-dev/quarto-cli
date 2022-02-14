@@ -4,12 +4,6 @@
   schema: boolean
   description: "Show a special icon next to links that leave the current site."
 
-- name: link-external-icon
-  tags:
-    formats: [$html-doc, revealjs]
-  schema: boolean
-  description: "Show a special icon next to links that leave the current site."
-
 - name: link-external-newwindow
   tags:
     formats: [$html-doc, revealjs]

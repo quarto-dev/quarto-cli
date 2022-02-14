@@ -7916,6 +7916,9 @@ if (typeof exports === 'object') {
         if (subSchema.items === void 0) {
           return [];
         }
+        if (typeof path[index] === "string") {
+          return [];
+        }
         return inner(subSchema.items, index + 1);
       } else if (st === "anyOf") {
         return subSchema.anyOf.map((ss) => inner(ss, index));
@@ -8392,6 +8395,7 @@ if (typeof exports === 'object') {
           }
         };
       });
+      console.log(result);
       return result;
     }
   };
@@ -8465,6 +8469,47 @@ if (typeof exports === 'object') {
   function validateNumber(value, schema, context) {
     if (!typeIsValid(value, schema, context, typeof value.result === "number")) {
       return false;
+    }
+    let result = true;
+    if (schema.minimum !== void 0) {
+      result = context.withSchemaPath("minimum", () => {
+        const v = value.result;
+        if (!(v >= schema.minimum)) {
+          context.error(value, schema, `value ${value.result} is less than required minimum ${schema.minimum}`);
+          return false;
+        }
+        return true;
+      });
+    }
+    if (schema.maximum !== void 0) {
+      result = context.withSchemaPath("maximum", () => {
+        const v = value.result;
+        if (!(v <= schema.maximum)) {
+          context.error(value, schema, `value ${value.result} is greater than required maximum ${schema.maximum}`);
+          return false;
+        }
+        return true;
+      });
+    }
+    if (schema.exclusiveMinimum !== void 0) {
+      result = context.withSchemaPath("exclusiveMinimum", () => {
+        const v = value.result;
+        if (!(v > schema.exclusiveMinimum)) {
+          context.error(value, schema, `value ${value.result} is less than or equal to required (exclusive) minimum ${schema.exclusiveMinimum}`);
+          return false;
+        }
+        return true;
+      });
+    }
+    if (schema.exclusiveMaximum !== void 0) {
+      result = context.withSchemaPath("exclusiveMaximum", () => {
+        const v = value.result;
+        if (!(v < schema.exclusiveMaximum)) {
+          context.error(value, schema, `value ${value.result} is greater than or equal to required (exclusive) maximum ${schema.exclusiveMaximum}`);
+          return false;
+        }
+        return true;
+      });
     }
     return true;
   }
@@ -8812,7 +8857,11 @@ if (typeof exports === 'object') {
     }
     let badKey = getBadKey(error);
     if (badKey) {
-      addInstancePathInfo(error.niceError, [...error.instancePath, badKey]);
+      if (error.instancePath.length && error.instancePath[error.instancePath.length - 1] !== badKey) {
+        addInstancePathInfo(error.niceError, [...error.instancePath, badKey]);
+      } else {
+        addInstancePathInfo(error.niceError, error.instancePath);
+      }
       error.niceError.heading = formatHeadingForKeyError(error, parse, schema, badKey);
     }
     return error;
@@ -9033,6 +9082,12 @@ if (typeof exports === 'object') {
   }
 
   // yaml-intelligence.ts
+  function getTagValue(schema, tag) {
+    if (schema === true || schema === false) {
+      return void 0;
+    }
+    return schema.tags && schema.tags[tag];
+  }
   function positionInTicks(context) {
     const code2 = asMappedString(context.code);
     const {
@@ -9097,7 +9152,7 @@ if (typeof exports === 'object') {
       return [];
     });
     if (code2.value === "") {
-      return result;
+      return [];
     }
     const locF = mappedIndexToRowCol(code2);
     const ls = Array.from(lineOffsets(code2.value)).map((offset) => locF(offset).line);
@@ -9247,7 +9302,7 @@ if (typeof exports === 'object') {
     if (matchingSubSchemas.length === 0) {
       return false;
     }
-    const executeOnly = matchingSubSchemas.every((s) => s.tags && s.tags["execute-only"]);
+    const executeOnly = matchingSubSchemas.every((s) => s !== false && s !== true && s.tags && s.tags["execute-only"]);
     if (path.length > 0 && path[0] === "execute") {
       return !executeOnly;
     } else {
@@ -9263,9 +9318,16 @@ if (typeof exports === 'object') {
     } = obj;
     let word = obj.word;
     let path = obj.path;
-    let matchingSchemas = uniqBy(navigateSchemaByInstancePath(schema, path), (schema2) => schema2.$id);
+    const maybeSchemaId = (schema2) => {
+      if (schema2 === true || schema2 === false) {
+        return "";
+      } else {
+        return schema2.$id;
+      }
+    };
+    let matchingSchemas = uniqBy(navigateSchemaByInstancePath(schema, path), maybeSchemaId);
     if (matchingSchemas.length === 0) {
-      const candidateSchemas = uniqBy(navigateSchemaByInstancePath(schema, path.slice(0, -1)), (schema2) => schema2.$id);
+      const candidateSchemas = uniqBy(navigateSchemaByInstancePath(schema, path.slice(0, -1)), maybeSchemaId);
       if (candidateSchemas.length === 0) {
         return {
           token: word,
@@ -9323,7 +9385,7 @@ if (typeof exports === 'object') {
               arraySubSchemas.push(s);
               return true;
             },
-            "object": (s) => true
+            "object": (_) => true
           });
           return arraySubSchemas.every((s) => {
             if (s.items === void 0) {
@@ -9356,14 +9418,14 @@ if (typeof exports === 'object') {
       });
     }).flat().filter((c) => c.value.startsWith(word)).filter((c) => {
       if (c.type === "value") {
-        return !(c.schema && c.schema.tags && c.schema.tags.hidden);
+        return !(c.schema && getTagValue(c.schema, "hidden"));
       } else if (c.type === "key") {
         const key = c.value.split(":")[0];
         const matchingSubSchemas = navigateSchemaByInstancePath(c.schema, [key]);
         if (matchingSubSchemas.length === 0) {
           return true;
         }
-        return !matchingSubSchemas.every((s) => s.tags && s.tags.hidden);
+        return !matchingSubSchemas.every((s) => getTagValue(s, "hidden"));
       } else {
         return true;
       }
@@ -9373,12 +9435,13 @@ if (typeof exports === 'object') {
       }
       let formatTags = [];
       if (c.type === "key") {
-        let value = c.schema.properties[c.display];
+        const objSchema = c.schema;
+        let value = objSchema.properties && objSchema.properties[c.display];
         if (value === void 0) {
-          for (const key of Object.keys(c.schema.patternProperties)) {
+          for (const key of Object.keys(objSchema.patternProperties || {})) {
             const regexp = new RegExp(key);
             if (c.display.match(regexp)) {
-              value = c.schema.patternProperties[key];
+              value = objSchema.patternProperties[key];
               break;
             }
           }
@@ -9386,9 +9449,9 @@ if (typeof exports === 'object') {
         if (value === void 0) {
           return true;
         }
-        formatTags = value && value.tags && value.tags.formats || [];
+        formatTags = getTagValue(value, "formats") || [];
       } else if (c.type === "value") {
-        formatTags = c.schema && c.schema.tags && c.schema.tags.formats || [];
+        formatTags = c.schema && getTagValue(c.schema, "formats") || [];
       } else {
         return false;
       }

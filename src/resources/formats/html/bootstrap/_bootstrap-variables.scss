@@ -38,11 +38,25 @@ $navbar-bg: theme-override-value(
   "navbar-bg",
   $navbar-default
 ) !default;
-$navbar-fg: theme-override-value(
-  $theme-name,
-  "navbar-fg",
-  theme-contrast($navbar-bg, $navbar-bg)
+
+$white: #ffffff !default;
+$gray-900: #212529 !default;
+$body-contrast-bg: if(variable-exists(body-bg), $body-bg, $white);
+$body-contrast-color: if(variable-exists(body-color), $body-color, $gray-900);
+$navbar-fg: if(
+  $navbar-bg == transparent,
+  theme-override-value(
+    $theme-name,
+    "navbar-fg",
+    theme-contrast($body-contrast-color, $body-contrast-bg)
+  ),
+  theme-override-value(
+    $theme-name,
+    "navbar-fg",
+    theme-contrast($navbar-bg, $navbar-bg)
+  )
 ) !default;
+
 $navbar-hl: theme-override-value(
   $theme-name,
   "navbar-hl",
@@ -94,12 +108,18 @@ $navbar-dark-brand-hover-color: $navbar-brand-hl;
 
 // Sidebar coloring
 $sidebar-bg: if(variable-exists(light), $light, #fff) !default;
-$sidebar-fg: theme-contrast($sidebar-bg, $sidebar-bg) !default;
+$sidebar-fg: null;
+@if $sidebar-bg == transparent {
+  $sidebar-fg: theme-contrast($body-contrast-color, $body-contrast-bg) !default;
+} @else {
+  $sidebar-fg: theme-contrast($body-contrast-color, $sidebar-bg) !default;
+}
 $sidebar-hl: null;
 $sidebar-font-size: 0.925rem !default;
 $sidebar-font-size-section: 0.875rem !default;
 $sidebar-font-size-collapse: 1rem !default;
 $sidebar-font-size-section-collapse: 1.1rem !default;
+$sidebar-border: false !default;
 
 // Footer coloring
 $footer-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;

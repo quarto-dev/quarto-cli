@@ -22,7 +22,10 @@ import {
 import { isRStudio } from "../../core/platform.ts";
 import { createTempContext } from "../../core/temp.ts";
 
-import { setInitializer, initState } from "../../core/lib/yaml-validation/state.ts";
+import {
+  initState,
+  setInitializer,
+} from "../../core/lib/yaml-validation/state.ts";
 import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
 
 export const previewCommand = new Command()
@@ -60,7 +63,11 @@ export const previewCommand = new Command()
   )
   .option(
     "--no-navigate",
-    "Don't navigate the browser automatically.",
+    "Don't navigate the browser automatically when outputs are updated.",
+  )
+  .option(
+    "--browser-path",
+    "Initial path to navigate browser to",
   )
   .option(
     "--no-browser",
@@ -80,6 +87,13 @@ export const previewCommand = new Command()
   .option(
     "--no-watch-inputs",
     "Do not re-render input files when they change.",
+  )
+  .option(
+    "--timeout",
+    "Time (in seconds) after which to exit if there are no active clients.",
+    {
+      default: 2,
+    },
   )
   .arguments("[file:string] [...args:string]")
   .description(
@@ -160,6 +174,11 @@ export const previewCommand = new Command()
     } else {
       options.presentation = false;
     }
+    const browserPathPos = args.indexOf("--browser-path");
+    if (browserPathPos !== -1) {
+      options.browserPath = String(args[browserPathPos + 1]);
+      args.splice(browserPathPos, 2);
+    }
     const noBrowsePos = args.indexOf("--no-browse");
     if (noBrowsePos !== -1) {
       options.browse = false;
@@ -184,6 +203,13 @@ export const previewCommand = new Command()
     if (noWatchInputsPos !== -1) {
       options.watchInputs = false;
       args.splice(noWatchInputsPos, 1);
+    }
+    const timeoutPos = args.indexOf("--timeout");
+    if (timeoutPos !== -1) {
+      options.timeout = parseInt(args[timeoutPos + 1]);
+      args.splice(timeoutPos, 2);
+    } else {
+      options.timeout = 2;
     }
     // alias for --no-watch-inputs (used by older versions of quarto r package)
     const noWatchPos = args.indexOf("--no-watch");
@@ -227,9 +253,14 @@ export const previewCommand = new Command()
           port: options.port,
           host: options.host,
           render: options.render,
-          browse: !!(options.browser && options.browse),
+          browse: (options.browser && options.browse)
+            ? typeof (options.browserPath) === "string"
+              ? options.browserPath
+              : true
+            : false,
           watchInputs: options.watchInputs,
           navigate: options.navigate,
+          timeout: options.timeout,
         });
       } finally {
         tempContext.cleanup();
@@ -249,6 +280,7 @@ export const previewCommand = new Command()
         browse: !!(options.browser && options.browse),
         presentation: options.presentation,
         watchInputs: !!options.watchInputs,
+        timeout: options.timeout,
       });
     }
   });
