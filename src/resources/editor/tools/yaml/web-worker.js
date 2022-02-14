@@ -7738,6 +7738,9 @@ if (typeof exports === 'object') {
         if (subSchema.items === void 0) {
           return [];
         }
+        if (typeof path[index] === "string") {
+          return [];
+        }
         return inner(subSchema.items, index + 1);
       } else if (st === "anyOf") {
         return subSchema.anyOf.map((ss) => inner(ss, index));
@@ -8780,6 +8783,9 @@ if (typeof exports === 'object') {
         });
         this.dequeue();
       });
+    }
+    isRunning() {
+      return this.running;
     }
     dequeue() {
       if (this.running) {
