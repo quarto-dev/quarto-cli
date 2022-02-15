@@ -30,6 +30,8 @@ import { ErrorObject, getBadKey } from "./ajv-error.ts";
 
 import { navigateSchemaBySchemaPath } from "./schema-navigation.ts";
 
+import { resolveSchema } from "./schema-utils.ts";
+
 ////////////////////////////////////////////////////////////////////////////////
 
 export interface AnnotatedParse {
@@ -161,13 +163,29 @@ function groupByEntries<A>(entries: { key: string; values: A[] }[]): A[] {
   return result;
 }
 
-function narrowOneOfError(
-  oneOf: ErrorObject,
+function shouldNarrowDisjunctionError(
+  error: ErrorObject,
+): boolean {
+  if (error.params.schema) {
+    // we force a resolution through $ref to get an unnormalized schema.
+    const schema = resolveSchema({ $ref: error.params.schema.$id });
+    if (schema.tags && schema.tags["doNotNarrowError"]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// narrows oneOf and anyOf errors to one of the suberrors, since
+// that's often more actionable.
+function narrowDisjunctionError(
+  error: ErrorObject,
   suberrors: ErrorObject[],
 ): ErrorObject[] {
   const subschemaErrors = groupBy(
-    suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath),
-    (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")),
+    suberrors.filter((subError) => subError.schemaPath !== error.schemaPath),
+    (subError) =>
+      subError.schemaPath.substring(0, subError.schemaPath.lastIndexOf("/")),
   );
 
   // if we find a subschema that has only "additionalProperties" errors
@@ -235,6 +253,11 @@ function localizeAndPruneErrors(
   // - b) an object with "href" and "text" keys but no other keys
   // - c) a string
   //
+  // 4. Sometimes, these interact badly and we need escape hatches.
+  //    Use "tags: doNotNarrowError: true" to prevent an error from
+  //    being narrowed (typically a oneOf you want to report in its
+  //    entirety)
+  //
   // If this schema fails because of a bad property, then "text" and
   // "href" are considered bad properties as well because they fail
   // schema a)
@@ -283,9 +306,12 @@ function localizeAndPruneErrors(
         if (error.hasBeenTransformed) {
           continue;
         }
-        if (error.keyword === "oneOf") {
+
+        if (error.keyword === "oneOf" || error.keyword === "anyOf") {
           error.hasBeenTransformed = true;
-          newErrors.push(...narrowOneOfError(error, errors));
+          if (shouldNarrowDisjunctionError(error)) {
+            newErrors.push(...narrowDisjunctionError(error, errors));
+          }
         } else if (error.keyword === "additionalProperties") {
           error.hasBeenTransformed = true;
           newErrors.push({
@@ -334,14 +360,27 @@ function localizeAndPruneErrors(
       // FIXME The algorithm for localizing the error here is just broken.
       // We could fix it by actually doing the right thing, but we're dropping
       // ajv soon anyway, so we are going to come up with a heuristic that
-      // assigns importance to the errors based on the keyword and
+      // assigns importance to the errors based on keywords and tags
       // reports only the most important.
       //
       // this will certainly do the wrong thing in the presence of complex
       // schema combinators
 
-      const errorImportance: Record<string, number> = {
-        "propertyNames": -10,
+      const errorImportance = (error: ErrorObject): number => {
+        const keywordImportance: Record<string, number> = {
+          "propertyNames": -10,
+        };
+        let importance = 0;
+        if (keywordImportance[error.keyword] !== undefined) {
+          importance = keywordImportance[error.keyword];
+        }
+        if (
+          (error.keyword === "oneOf" || error.keyword === "anyOf") &&
+          !shouldNarrowDisjunctionError(error)
+        ) {
+          importance = -10;
+        }
+        return importance;
       };
 
       const instanceErrors = allErrors.filter(({ schemaPath }) =>
@@ -349,8 +388,7 @@ function localizeAndPruneErrors(
       );
 
       instanceErrors.sort((errorA, errorB) => {
-        return (errorImportance[errorA.keyword] || 0) -
-          (errorImportance[errorB.keyword] || 0);
+        return (errorImportance(errorA) - errorImportance(errorB));
       });
       const error = instanceErrors[0];
 

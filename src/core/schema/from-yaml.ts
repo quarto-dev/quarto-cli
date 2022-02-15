@@ -474,6 +474,9 @@ export function objectSchemaFromGlob(
 }
 
 function annotateSchemaFromField(field: SchemaField, schema: Schema): Schema {
+  if (field.name === "code-line-numbers") {
+    debugger;
+  }
   if (field.enabled !== undefined) {
     schema = tagSchema(schema, {
       formats: field.enabled,

@@ -8546,8 +8546,17 @@ if (typeof exports === 'object') {
     }
     return result;
   }
-  function narrowOneOfError(oneOf, suberrors) {
-    const subschemaErrors = groupBy(suberrors.filter((error) => error.schemaPath !== oneOf.schemaPath), (error) => error.schemaPath.substring(0, error.schemaPath.lastIndexOf("/")));
+  function shouldNarrowDisjunctionError(error) {
+    if (error.params.schema) {
+      const schema = resolveSchema({ $ref: error.params.schema.$id });
+      if (schema.tags && schema.tags["doNotNarrowError"]) {
+        return false;
+      }
+    }
+    return true;
+  }
+  function narrowDisjunctionError(error, suberrors) {
+    const subschemaErrors = groupBy(suberrors.filter((subError) => subError.schemaPath !== error.schemaPath), (subError) => subError.schemaPath.substring(0, subError.schemaPath.lastIndexOf("/")));
     const onlyAdditionalProperties = subschemaErrors.filter(({ values }) => values.every((v) => v.keyword === "additionalProperties"));
     if (onlyAdditionalProperties.length) {
       return onlyAdditionalProperties[0].values;
@@ -8576,9 +8585,11 @@ if (typeof exports === 'object') {
           if (error.hasBeenTransformed) {
             continue;
           }
-          if (error.keyword === "oneOf") {
+          if (error.keyword === "oneOf" || error.keyword === "anyOf") {
             error.hasBeenTransformed = true;
-            newErrors.push(...narrowOneOfError(error, errors));
+            if (shouldNarrowDisjunctionError(error)) {
+              newErrors.push(...narrowDisjunctionError(error, errors));
+            }
           } else if (error.keyword === "additionalProperties") {
             error.hasBeenTransformed = true;
             newErrors.push({
@@ -8606,12 +8617,22 @@ if (typeof exports === 'object') {
       const path = instancePath.split("/").slice(1);
       const errors = allErrors.filter(({ schemaPath: pathA }) => !(allErrors.filter(({ schemaPath: pathB }) => isProperPrefix(pathB, pathA)).length > 0));
       for (const errorForSchemaLookup of errors) {
-        const errorImportance = {
-          "propertyNames": -10
+        const errorImportance = (error2) => {
+          const keywordImportance = {
+            "propertyNames": -10
+          };
+          let importance = 0;
+          if (keywordImportance[error2.keyword] !== void 0) {
+            importance = keywordImportance[error2.keyword];
+          }
+          if ((error2.keyword === "oneOf" || error2.keyword === "anyOf") && !shouldNarrowDisjunctionError(error2)) {
+            importance = -10;
+          }
+          return importance;
         };
         const instanceErrors = allErrors.filter(({ schemaPath: schemaPath2 }) => schemaPath2.startsWith(errorForSchemaLookup.schemaPath));
         instanceErrors.sort((errorA, errorB) => {
-          return (errorImportance[errorA.keyword] || 0) - (errorImportance[errorB.keyword] || 0);
+          return errorImportance(errorA) - errorImportance(errorB);
         });
         const error = instanceErrors[0];
         const returnKey = error.keyword === "_custom_invalidProperty" || error.keyword === "propertyNames";
