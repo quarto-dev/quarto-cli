@@ -9,17 +9,15 @@
 */
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
-import { MappedString } from "../mapped-text.ts";
+import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import {
   AnnotatedParse,
   JSONValue,
 } from "../lib/yaml-validation/validator/types.ts";
 
-export function readAnnotatedYamlFromMappedString(yml: MappedString) {
-  return readAnnotatedYamlFromString(yml.value);
-}
+export function readAnnotatedYamlFromMappedString(mappedYaml: MappedString) {
+  const yml = mappedYaml.value;
 
-export function readAnnotatedYamlFromString(yml: string) {
   // deno-lint-ignore no-explicit-any
   const stack: any[] = [];
   const results: AnnotatedParse[] = [];
@@ -62,6 +60,10 @@ export function readAnnotatedYamlFromString(yml: string) {
           result: result as JSONValue,
           components,
           kind,
+          source: mappedString(mappedYaml, [{
+            start: position - rightTrim,
+            end: position - rightTrim,
+          }]),
         });
       } else {
         results.push({
@@ -70,6 +72,10 @@ export function readAnnotatedYamlFromString(yml: string) {
           result: result,
           components,
           kind,
+          source: mappedString(mappedYaml, [{
+            start: position + leftTrim,
+            end: position - rightTrim,
+          }]),
         });
       }
     } else {
@@ -86,6 +92,7 @@ export function readAnnotatedYamlFromString(yml: string) {
       result: null,
       kind: "null",
       components: [],
+      source: mappedString(mappedYaml, [{ start: 0, end: 0 }]),
     };
   }
   if (results.length !== 1) {
@@ -96,4 +103,8 @@ export function readAnnotatedYamlFromString(yml: string) {
 
   JSON.stringify(results[0]); // this will throw on circular structures
   return results[0];
+}
+
+export function readAnnotatedYamlFromString(yml: string) {
+  return readAnnotatedYamlFromMappedString(asMappedString(yml));
 }

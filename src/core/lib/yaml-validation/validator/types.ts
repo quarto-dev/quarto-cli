@@ -67,6 +67,7 @@ export interface AnnotatedParse {
   end: number;
   result: JSONValue;
   kind: string;
+  source: MappedString;
   components: AnnotatedParse[];
 }
 

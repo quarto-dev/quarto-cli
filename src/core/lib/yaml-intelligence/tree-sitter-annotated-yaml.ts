@@ -6,11 +6,12 @@
 */
 
 import { lines, matchAll } from "../text.ts";
-import { MappedString } from "../mapped-text.ts";
 import {
   AnnotatedParse,
   JSONValue,
 } from "../yaml-validation/validator/types.ts";
+
+import { MappedString, mappedString } from "../mapped-text.ts";
 
 /**
  * given a tree from tree-sitter-yaml and the mappedString
@@ -51,6 +52,7 @@ export function buildAnnotated(
       result: null,
       kind: "<<EMPTY>>",
       components: [],
+      source: mappedString(mappedSource, [{ start: position, end: position }]),
     };
   };
 
@@ -68,6 +70,10 @@ export function buildAnnotated(
       // to make sure your annotated walkers know
       // about tree-sitter and js-yaml both.
       components,
+      source: mappedString(mappedSource, [{
+        start: node.startIndex,
+        end: node.endIndex,
+      }]),
     };
   };
 

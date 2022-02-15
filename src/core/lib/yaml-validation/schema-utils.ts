@@ -29,6 +29,8 @@ import {
   schemaDocString,
 } from "./validator/types.ts";
 
+import { schemaDispatch } from "./validator/types.ts";
+
 // NB: QuartoJsonSchemas is meant for serialization of the entire body of schemas
 // For actual schema use in quarto, use either the definitions in core/schema
 // or call getSchemaDefinition(). _in particular_, the definitions field in _schemas
@@ -254,9 +256,10 @@ export function schemaCompletions(s: Schema): Completion[] {
       return s.allOf.map(schemaCompletions).flat();
     },
     "object": (s) => {
+      debugger;
       // we actually mutate the schema here to avoid recomputing.
       s.cachedCompletions = getObjectCompletions(s);
-      return normalize(s.completions);
+      return normalize(s.cachedCompletions);
     },
   }, (_) => []);
 }
@@ -267,9 +270,9 @@ function getObjectCompletions(s: ConcreteSchema): Completion[] {
   return schemaCall(s, {
     "object": (schema) => {
       const properties = schema.properties;
-      const objectKeys = Object.getOwnPropertyNames(
-        completionsParam || properties,
-      );
+      const objectKeys = completionsParam.length
+        ? completionsParam
+        : Object.getOwnPropertyNames(properties);
       const uniqueValues = (lst: Completion[]) => {
         const obj: Record<string, Completion> = {};
         for (const c of lst) {
@@ -315,7 +318,7 @@ function getObjectCompletions(s: ConcreteSchema): Completion[] {
               // TODO catch only the lookup exception
             }
             if (!described) {
-              schemaCall(schema, {
+              schemaDispatch(schema, {
                 ref: (schema) => maybeDescriptions.push({ $ref: schema.$ref }),
               });
             }

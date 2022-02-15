@@ -46,6 +46,8 @@ import {
   schemaType,
 } from "./validator/types.ts";
 
+import { indexToRowCol } from "../text.ts";
+
 ////////////////////////////////////////////////////////////////////////////////
 
 export type ValidatorErrorHandlerFunction = (
@@ -284,20 +286,24 @@ function expandEmptySpan(
     parse,
     true,
   )!;
-  const locF = mappedIndexToRowCol(error.source);
-  const location = {
-    start: locF(lastKey.start),
-    end: locF(lastKey.end),
-  };
+  const locF = mappedIndexToRowCol(parse.source);
+  try {
+    const location = {
+      start: locF(lastKey.start),
+      end: locF(lastKey.end),
+    };
 
-  return {
-    ...error,
-    location,
-    niceError: {
-      ...error.niceError,
+    return {
+      ...error,
       location,
-    },
-  };
+      niceError: {
+        ...error.niceError,
+        location,
+      },
+    };
+  } catch (e) {
+    return error;
+  }
 }
 
 function checkForTypeMismatch(
