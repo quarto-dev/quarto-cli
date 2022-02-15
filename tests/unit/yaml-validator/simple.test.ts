@@ -30,7 +30,6 @@ NOTALLOWED: 5
 bah:
   wut: "wat"`;
 
-  debugger;
   const schema = convertFromYAMLString(`
 id: schema-test-1
 object:
@@ -43,12 +42,19 @@ object:
     string:
       pattern: "[a-z]+"
 `);
-  debugger;
   setSchemaDefinition(schema);
 
-  const annotation = readAndValidateYamlFromMappedString(
-    asMappedString(yml),
-    schema,
-    "This should throw",
-  );
+  let threw = false;
+  try {
+    const annotation = await readAndValidateYamlFromMappedString(
+      asMappedString(yml),
+      schema,
+      "This should throw",
+    );
+  } catch (e) {
+    threw = true;
+  }
+  if (!threw) {
+    throw new Error("validation should have failed.");
+  }
 });
