@@ -890,7 +890,7 @@
               additionalProperties: true
         description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
       sort:
-        arrayOf: string
+        maybeArrayOf: string
         description:
           short: "Sort items in the listing by these fields."
           long: |
