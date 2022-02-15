@@ -106,6 +106,7 @@ $alert-border-width:                0 !default;
 
 .navbar {
   font-size: $font-size-sm;
+  border: 1px solid rgba(0, 0, 0, .1);
 
   &.bg-dark {
     background-color: $success !important;

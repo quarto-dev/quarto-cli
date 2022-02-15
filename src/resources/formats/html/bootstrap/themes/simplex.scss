@@ -129,6 +129,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700
 .navbar {
   border-width: 1px;
   border-style: solid;
+  border-color: shade-color($navbar-bg, 13%);
 
   &-fixed-top {
     border-width: 0 0 1px;
