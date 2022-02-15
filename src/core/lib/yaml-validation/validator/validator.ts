@@ -198,8 +198,6 @@ class ValidationContext {
       };
     });
 
-    console.log(result);
-
     return result;
   }
 }
