@@ -54,7 +54,7 @@ export async function findPackages(
     } else {
       const result = await tlmgrCommand(
         "search",
-        [...args, ...(opts || []), `"${searchTerm}"`],
+        [...args, ...(opts || []), searchTerm],
         true,
       );
 
@@ -289,6 +289,8 @@ async function tlmgrCommand(
   let cmdExec: string[];
   let tempFile: string | undefined;
   if (Deno.build.os === "windows") {
+    // quote args on Windows
+    args = args.map((a) => `"${a}"`);
     // writing to a file to exectute to avoid quoting issue with Deno
     // https://github.com/quarto-dev/quarto-cli/issues/336
     const lines = ["tlmgr", cmd, ...args];
