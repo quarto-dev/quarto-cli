@@ -281,7 +281,7 @@ async function verifyPackageInstalled(
   return result.stdout?.trim() === pkg;
 }
 
-function tlmgrCommand(
+async function tlmgrCommand(
   cmd: string,
   args: string[],
   _quiet?: boolean,
@@ -301,20 +301,17 @@ function tlmgrCommand(
     cmdExec = ["tlmgr", cmd, ...args];
   }
   try {
-    const result = execProcess(
+    const result = await execProcess(
       {
         cmd: cmdExec,
         stdout: "piped",
         stderr: "piped",
       },
     );
-    result.finally(() => {
-      if (Deno.build.os === "windows" && tempFile) {
-        removeIfExists(tempFile);
-      }
-    });
     return result;
   } catch {
     return Promise.reject();
+  } finally {
+    if (tempFile) removeIfExists(tempFile);
   }
 }
