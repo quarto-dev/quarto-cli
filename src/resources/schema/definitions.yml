@@ -1040,6 +1040,12 @@
             long: |
               In table type listings, highlight rows of the table when the user hovers the mouse over them.
               Defaults to false.
+      template:
+        path:
+          description:
+            short: "The path to a custom listing template."
+            long: |
+              The path to a custom listing template.
       fields:
         arrayOf: string
         description:
