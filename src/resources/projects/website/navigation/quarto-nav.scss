@@ -269,19 +269,15 @@ $sidebar-hover-color: rgba($sidebar-hl, 0.8) !default;
 $sidebar-active-color: $sidebar-hl !default;
 $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
-.sidebar.sidebar-navigation {
+div.sidebar-item-container {
   color: $sidebar-color;
-  .sidebar-item {
-    color: $sidebar-color;
+  &:hover,
+  &:focus {
+    color: $sidebar-hover-color;
+  }
 
-    &:hover,
-    &:focus {
-      color: $sidebar-hover-color;
-    }
-
-    &.disabled {
-      color: $sidebar-disabled-color;
-    }
+  &.disabled {
+    color: $sidebar-disabled-color;
   }
 
   .active,
