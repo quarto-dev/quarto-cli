@@ -10,6 +10,7 @@ import * as ld from "../../../core/lodash.ts";
 import { execProcess } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
+import { removeIfExists } from "../../../core/path.ts";
 
 const tlmgr = Deno.build.os === "windows"
   ? ["cmd.exe", "/c", "tlmgr"]
@@ -53,7 +54,7 @@ export async function findPackages(
     } else {
       const result = await tlmgrCommand(
         "search",
-        [...args, ...(opts || []), searchTerm],
+        [...args, ...(opts || []), `"${searchTerm}"`],
         true,
       );
 
@@ -121,7 +122,7 @@ export function updatePackages(
     args.push("--self");
   }
 
-  return tlmgrCommand("update", (args || []), quiet);
+  return tlmgrCommand("update", args || [], quiet);
 }
 
 // Install packages using TexLive
@@ -285,14 +286,33 @@ function tlmgrCommand(
   args: string[],
   _quiet?: boolean,
 ) {
+  let cmdExec: string[];
+  let tempFile: string | undefined;
+  if (Deno.build.os === "windows") {
+    // writing to a file to exectute to avoid quoting issue with Deno
+    // https://github.com/quarto-dev/quarto-cli/issues/336
+    const lines = ["tlmgr", cmd, ...args];
+    tempFile = Deno.makeTempFileSync(
+      { prefix: "tlmgr-cmd", suffix: ".bat" },
+    );
+    Deno.writeTextFileSync(tempFile, lines.join(" ") + "\n");
+    cmdExec = ["cmd", "/c", tempFile];
+  } else {
+    cmdExec = ["tlmgr", cmd, ...args];
+  }
   try {
     const result = execProcess(
       {
-        cmd: [...tlmgr, cmd, ...args],
+        cmd: cmdExec,
         stdout: "piped",
         stderr: "piped",
       },
     );
+    result.finally(() => {
+      if (Deno.build.os === "windows" && tempFile) {
+        removeIfExists(tempFile);
+      }
+    });
     return result;
   } catch {
     return Promise.reject();
