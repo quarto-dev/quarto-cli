@@ -6016,6 +6016,12 @@ if (typeof exports === 'object') {
     }
     return schema.type;
   }
+  function schemaDispatch(s, d) {
+    const st = schemaType(s);
+    if (d[st]) {
+      d[st](s);
+    }
+  }
   function schemaCall(s, d, other) {
     const st = schemaType(s);
     if (d[st]) {
@@ -8127,8 +8133,9 @@ if (typeof exports === 'object') {
         return s2.allOf.map(schemaCompletions).flat();
       },
       "object": (s2) => {
+        debugger;
         s2.cachedCompletions = getObjectCompletions(s2);
-        return normalize(s2.completions);
+        return normalize(s2.cachedCompletions);
       }
     }, (_) => []);
   }
@@ -8137,7 +8144,7 @@ if (typeof exports === 'object') {
     return schemaCall(s, {
       "object": (schema) => {
         const properties = schema.properties;
-        const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
+        const objectKeys = completionsParam.length ? completionsParam : Object.getOwnPropertyNames(properties);
         const uniqueValues = (lst) => {
           const obj = {};
           for (const c of lst) {
@@ -8175,7 +8182,7 @@ if (typeof exports === 'object') {
               } catch (e) {
               }
               if (!described) {
-                schemaCall(schema2, {
+                schemaDispatch(schema2, {
                   ref: (schema3) => maybeDescriptions.push({ $ref: schema3.$ref })
                 });
               }
@@ -8593,7 +8600,7 @@ if (typeof exports === 'object') {
       });
       result = false;
     }
-    if (schema.items) {
+    if (schema.items !== void 0) {
       result = context.withSchemaPath("items", () => {
         let result2 = true;
         for (let i = 0; i < value.components.length; ++i) {
@@ -8632,11 +8639,10 @@ if (typeof exports === 'object') {
         let result2 = true;
         for (const [key, subSchema] of Object.entries(schema.properties)) {
           if (ownProperties.has(key)) {
+            inspectedProps.add(key);
             context.pushInstance(key);
             result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
             context.popInstance();
-          } else {
-            inspectedProps.add(key);
           }
         }
         return result2;
@@ -8654,12 +8660,11 @@ if (typeof exports === 'object') {
           }
           const regexp = schema.compiledPatterns[key];
           for (const [objectKey, val] of Object.entries(objResult)) {
-            if (ownProperties.has(key)) {
+            if (objectKey.match(regexp)) {
+              inspectedProps.add(objectKey);
               context.pushInstance(objectKey);
-              result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
+              result2 = context.withSchemaPath(key, () => validateGeneric(locate(objectKey), subSchema, context)) && result2;
               context.popInstance();
-            } else {
-              inspectedProps.add(key);
             }
           }
         }
