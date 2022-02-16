@@ -331,11 +331,6 @@ $panel-sidebar-padding: 0.5em;
   font-size: calc(#{$revealjs-h3-font-size} / #{$presentation-font-smaller});
 }
 
-.reveal.smaller .slides pre,
-.reveal .slides section.smaller pre {
-  font-size: calc(#{$code-block-font-size} / #{$presentation-font-smaller});
-}
-
 .reveal .slide-number {
   color: $link-color;
   background-color: $body-bg;

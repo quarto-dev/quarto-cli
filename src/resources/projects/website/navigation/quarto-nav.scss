@@ -235,7 +235,14 @@ $sidebar-section-bottom-margin: 0.2em;
   }
 }
 
+$sidebar-hl: if($sidebar-hl, sidebar-hl, $nav-link-color);
+$sidebar-color: rgba($sidebar-fg, 1) !default;
+$sidebar-hover-color: rgba($sidebar-hl, 0.8) !default;
+$sidebar-active-color: $sidebar-hl !default;
+$sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
+
 .quarto-secondary-nav .quarto-btn-toggle {
+  color: $sidebar-color;
   padding-right: 0;
 }
 
@@ -260,14 +267,9 @@ $sidebar-section-bottom-margin: 0.2em;
 }
 
 .quarto-secondary-nav-title {
+  color: $sidebar-color;
   padding-top: 4px;
 }
-
-$sidebar-hl: if($sidebar-hl, sidebar-hl, $nav-link-color);
-$sidebar-color: rgba($sidebar-fg, 1) !default;
-$sidebar-hover-color: rgba($sidebar-hl, 0.8) !default;
-$sidebar-active-color: $sidebar-hl !default;
-$sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
 div.sidebar-item-container {
   color: $sidebar-color;

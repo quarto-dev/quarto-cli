@@ -70,8 +70,7 @@
 <% } %>
 
 <% if (nav.sidebar && nav.layout) { %>
-  <% let textCss = nav.sidebar.type ? nav.sidebar.type === "dark" ? " text-light" : " text-dark" :  "" %>
-  <nav class="quarto-secondary-nav<%= textCss %>" 
+  <nav class="quarto-secondary-nav" 
         data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" 
         aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation"
         onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }"
@@ -79,7 +78,7 @@
     <div class="container-fluid d-flex justify-content-between">
       <h1 class="quarto-secondary-nav-title"></h1>
       <button type="button" 
-        class="quarto-btn-toggle btn<%= textCss %>">
+        class="quarto-btn-toggle btn">
         <i class="bi bi-chevron-right"></i>
       </button>
     </div>
