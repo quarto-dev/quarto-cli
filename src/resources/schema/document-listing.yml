@@ -1,6 +1,6 @@
 - name: listing
   tags:
-    formats: [$html-files]
+    formats: [$html-doc]
   schema:
     oneOf:
       - boolean

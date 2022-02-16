@@ -872,17 +872,20 @@
             short: "The id of this listing."
             long: |
               The id of this listing. When the listing is rendered, it will 
-              place the contents into a div with this id, appending the div to 
-              the end of the page if the div isn't already defined.
+              place the contents into a `div` with this id. If no such `div` is defined on the 
+              page, a `div` with this id will be created and appended to the end of the page.
+
+              In no `id` is provided for a listing, Quarto will synthesize one when rendering the page.
       type:
         enum: [default, table, grid]
         description:
           short: "The type of listing to create."
           long: |
             The type of listing to create. Choose one of:
-            `default` - a blog style list of items
-            `table` - a table of items
-            `grid` - a grid of item cards
+
+            - `default` - a blog style list of items
+            - `table` - a table of items
+            - `grid` - a grid of item cards
       contents:
         oneOf:
           - maybeArrayOf: string
@@ -932,9 +935,10 @@
           short: "Display item categories from this listing in the margin of the page."
           long: |
             Display item categories from this listing in the margin of the page.
-              `numbered` - category list with number of items
-              `unnumbered` - category list
-              `cloud` - word cloud style categories
+
+              - `numbered` - category list with number of items
+              - `unnumbered` - category list
+              - `cloud` - word cloud style categories
       feed:
         oneOf:
           - boolean
@@ -947,14 +951,21 @@
                       The number of items to include in your feed. Defaults to 20.
                 type:
                   enum: [full, partial]
-                  desciption: |
-                    Whether to include full or partial content in the feed. Defaults to `full`.
+                  description:
+                    short: Whether to include full or partial content in the feed.
+                    long: |
+                      Whether to include full or partial content in the feed. Choose one of
+
+                      - `full` - the complete content of the document will be included in the feed.
+                      - `partial` - the firt paragraph of the document will be included in the feed.
+
+                      Defaults to `full`.
                 title:
                   string:
                     description:
                       short: The title for this feed.
                       long: |
-                        The title for this feed. Defaults to the site title provided in your _quarto.yml file.
+                        The title for this feed. Defaults to the site title provided the Quarto project.
                 image:
                   path:
                     description:
@@ -962,17 +973,15 @@
                       long: |
                         The path to an image for this feed. If not specified, the image for the page the listing 
                         appears on will be used, otherwise an image will be used if specified for the site 
-                        in your `_quarto.yml` file.
+                        in the Quarto project.
                 description:
                   string:
                     description:
                       short: The description of this feed.
                       long: |
-                        The description of this feed.
-
-                        If not specified, the description for the page the 
+                        The description of this feed. If not specified, the description for the page the 
                         listing appears on will be used, otherwise the description 
-                        of the site will be used if specified in your `_quarto.yml` file.
+                        of the site will be used if specified in the Quarto project.
                 language:
                   string:
                     description:
@@ -998,7 +1007,7 @@
               Defaults to 175.
       image-align:
         enum: [left, right]
-        description: In 'default' type listings, whether to place the image on the right or left side of the post content.
+        description: In `default` type listings, whether to place the image on the right or left side of the post content.
       image-height:
         string:
           description:
@@ -1010,33 +1019,33 @@
       grid-columns:
         number:
           description:
-            short: "In grid type listings, the number of columns in the grid display."
+            short: "In `grid` type listings, the number of columns in the grid display."
             long: |
               In grid type listings, the number of columns in the grid display.
               Defaults to 3.
       grid-item-border:
         boolean:
           description:
-            short: "In grid type listings, whether to display a border around the item card."
+            short: "In `grid` type listings, whether to display a border around the item card."
             long: |
               In grid type listings, whether to display a border around the item card. Defaults to `true`.
       grid-item-align:
         enum: [left, right, center]
         description:
-          short: "In grid type listings, the alignment of the content within the card."
+          short: "In `grid` type listings, the alignment of the content within the card."
           long: |
             In grid type listings, the alignment of the content within the card (`left`, `right`, or `center`). Defaults to `left`.
       table-striped:
         boolean:
           description:
-            short: "In table type listings, display the table rows with alternating background colors."
+            short: "In `table` type listings, display the table rows with alternating background colors."
             long: |
               In table type listings, display the table rows with alternating background colors.
               Defaults to `false`.
       table-hover:
         boolean:
           description:
-            short: "In table type listings, highlight rows of the table when the user hovers the mouse over them."
+            short: "In `table` type listings, highlight rows of the table when the user hovers the mouse over them."
             long: |
               In table type listings, highlight rows of the table when the user hovers the mouse over them.
               Defaults to false.
@@ -1051,8 +1060,7 @@
         description:
           short: "The list of fields to include in this listing"
           long: |
-            The list of fields to include in this listing. When the listing type is table, this
-            controls what columns will be displayed. For other types
+            The list of fields to include in this listing.
       field-display-names:
         object:
           description:
@@ -1060,7 +1068,7 @@
             long: |
               A mapping that provides display names for specific fields. For example, to display the title column as ‘Report’ in a table listing you would write:
 
-              ```
+              ```yaml
               listing:
                 field-display-names:
                 title: "Report"
@@ -1078,13 +1086,13 @@
           short: "This list of fields to display as links in a table listing."
           long: |
             The list of fields to display as hyperlinks to the source document 
-            when the listing type is a table. By default, only the title or 
-            filename is displayed as a link.
+            when the listing type is a table. By default, only the `title` or 
+            `filename` is displayed as a link.
       field-required:
         arrayOf: string
         description:
           short: "Fields that items in this listing must have populated."
           long: |
             Fields that items in this listing must have populated.
-            If a listing is rendered and one more item is missing a required field, 
-            an error will occur.
+            If a listing is rendered and one more items in this listing 
+            is missing a required field, an error will occur and the render will.
