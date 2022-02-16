@@ -281,39 +281,53 @@ async function verifyPackageInstalled(
   return result.stdout?.trim() === pkg;
 }
 
-async function tlmgrCommand(
+async function safeTlmgrExec(
   cmd: string,
   args: string[],
   _quiet?: boolean,
 ) {
-  let cmdExec: string[];
-  let tempFile: string | undefined;
-  if (Deno.build.os === "windows") {
-    // quote args on Windows
-    args = args.map((a) => `"${a}"`);
-    // writing to a file to exectute to avoid quoting issue with Deno
-    // https://github.com/quarto-dev/quarto-cli/issues/336
-    const lines = ["tlmgr", cmd, ...args];
-    tempFile = Deno.makeTempFileSync(
-      { prefix: "tlmgr-cmd", suffix: ".bat" },
-    );
-    Deno.writeTextFileSync(tempFile, lines.join(" ") + "\n");
-    cmdExec = ["cmd", "/c", tempFile];
-  } else {
-    cmdExec = ["tlmgr", cmd, ...args];
-  }
-  try {
-    const result = await execProcess(
+  // Function to execute tlmgr command
+  const execTlmgr = (tlmgrCmd: string[]) => {
+    const result = execProcess(
       {
-        cmd: cmdExec,
+        cmd: tlmgrCmd,
         stdout: "piped",
         stderr: "piped",
       },
     );
     return result;
+  };
+
+  if (Deno.build.os === "windows") {
+    // On Windows writing the command to a file to avoid quoting issue with Deno
+    // https://github.com/quarto-dev/quarto-cli/issues/336
+    let tempFile: string | undefined;
+    try {
+      // Quoting every argument for CMD
+      args = args.map((a) => `"${a}"`);
+      const lines = ["tlmgr", cmd, ...args];
+      tempFile = Deno.makeTempFileSync(
+        { prefix: "tlmgr-cmd", suffix: ".bat" },
+      );
+      Deno.writeTextFileSync(tempFile, lines.join(" ") + "\n");
+      return await execTlmgr(["cmd", "/c", tempFile]);
+    } finally {
+      if (tempFile) removeIfExists(tempFile);
+    }
+  } else {
+    return execTlmgr(["tlmgr", cmd, ...args]);
+  }
+}
+
+function tlmgrCommand(
+  cmd: string,
+  args: string[],
+  _quiet?: boolean,
+) {
+  try {
+    const result = safeTlmgrExec(cmd, args, _quiet);
+    return result;
   } catch {
     return Promise.reject();
-  } finally {
-    if (tempFile) removeIfExists(tempFile);
   }
 }
