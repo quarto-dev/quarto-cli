@@ -20,6 +20,7 @@ code-tools-view-source: "Voir les sources"
 code-tools-source-code: "Code source"
 
 copy-button-tooltip: "Copier vers le presse-papier"
+code-example-link-button-tooltip: "Voir l'exemple"
 
 repo-action-links-edit: "Editer cette page"
 repo-action-links-source: "Voir la source"

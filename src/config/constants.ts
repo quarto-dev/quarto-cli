@@ -152,6 +152,7 @@ export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
 export const kCopyButtonTooltip = "copy-button-tooltip";
+export const kCodeExampleLinkButtonTooltip = "code-example-link-button-tooltip";
 export const kRepoActionLinksEdit = "repo-action-links-edit";
 export const kRepoActionLinksSource = "repo-action-links-source";
 export const kRepoActionLinksIssue = "repo-action-links-issue";
@@ -229,6 +230,7 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
   kSearchNoResultsText,
+  kCodeExampleLinkButtonTooltip,
   kCopyButtonTooltip,
   kRepoActionLinksEdit,
   kRepoActionLinksSource,

@@ -13,6 +13,22 @@
       shows the icon when the mouse hovers over the code block. Set to 
       `true` or `false` to show or hide unconditionally.
 
+- name: code-example-link
+  schema:
+    oneOf:
+      - enum: [hover]
+      - boolean
+  tags:
+    formats: [$html-all]
+  default: "hover"
+  description:
+    short: "Enable a 'view example' icon for code blocks."
+    long: |
+      Enable a 'view example' icon for code blocks that have been
+      annotated with `example-link` attributes. Defaults to `hover`, which
+      shows the icon when the mouse hovers over the code block. Set to 
+      `true` or `false` to show or hide unconditionally.
+
 - name: code-link
   schema: boolean
   tags:

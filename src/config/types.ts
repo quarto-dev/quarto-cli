@@ -16,6 +16,7 @@ import {
   kCalloutWarningCaption,
   kCiteMethod,
   kCiteproc,
+  kCodeExampleLinkButtonTooltip,
   kCodeFold,
   kCodeLineNumbers,
   kCodeLink,
@@ -45,6 +46,7 @@ import {
   kEcho,
   kEngine,
   kEPubCoverImage,
+  kError,
   kEval,
   kExecuteDaemon,
   kExecuteDaemonRestart,
@@ -54,7 +56,10 @@ import {
   kFigAlign,
   kFigDpi,
   kFigEnv,
+  kFigFormat,
+  kFigHeight,
   kFigPos,
+  kFigWidth,
   kFilterParams,
   kFilters,
   kFreeze,
@@ -68,6 +73,9 @@ import {
   kKatex,
   kKeepHidden,
   kKeepIpynb,
+  kKeepMd,
+  kKeepSource,
+  kKeepTex,
   kKeepYaml,
   kLatexAutoInstall,
   kLatexAutoMk,
@@ -107,7 +115,10 @@ import {
   kNumberOffset,
   kNumberSections,
   kOutput,
+  kOutputDivs,
+  kOutputExt,
   kOutputFile,
+  kPageWidth,
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
@@ -145,16 +156,6 @@ import {
   kVariant,
   kWarning,
   kWebtex,
-  kError,
-  kFigFormat,
-  kFigHeight,
-  kFigWidth,
-  kKeepMd,
-  kKeepSource,
-  kKeepTex,
-  kOutputDivs,
-  kOutputExt,
-  kPageWidth
 } from "./constants.ts";
 
 import { TempContext } from "../core/temp.ts";
@@ -437,6 +438,7 @@ export interface FormatLanguage {
   [kRepoActionLinksIssue]?: string;
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
+  [kCodeExampleLinkButtonTooltip]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchHideMatchesText]?: string; // FIXME duplicate?

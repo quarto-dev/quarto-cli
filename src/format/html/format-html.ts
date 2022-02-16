@@ -16,6 +16,7 @@ import { TempContext } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
 import {
+  kCodeExampleLinkButtonTooltip,
   kCodeLink,
   kCopyButtonTooltip,
   kDoi,
@@ -27,7 +28,9 @@ import {
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kTheme,
 } from "../../config/constants.ts";
+
 import {
   DependencyFile,
   Format,
@@ -40,7 +43,6 @@ import {
   PandocFlags,
   SassBundle,
 } from "../../config/types.ts";
-import { kTheme } from "../../config/constants.ts";
 
 import { formatHasCodeTools } from "../../command/render/codetools.ts";
 
@@ -59,6 +61,7 @@ import {
   kBootstrapDependencyName,
   kCitationsHover,
   kCodeCopy,
+  kCodeExampleLink,
   kComments,
   kDocumentCss,
   kFootnotesHover,
@@ -123,6 +126,7 @@ export const kQuartoHtmlDependency = "quarto-html";
 export interface HtmlFormatFeatureDefaults {
   tabby?: boolean;
   copyCode?: boolean;
+  codeExampleLink?: boolean;
   anchors?: boolean;
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
@@ -200,6 +204,11 @@ export function htmlFormatExtras(
     options.copyCode = format.metadata[kCodeCopy] !== false;
   } else {
     options.copyCode = format.metadata[kCodeCopy] || false;
+  }
+  if (featureDefaults.codeExampleLink) {
+    options.codeExampleLink = format.metadata[kCodeExampleLink] !== false;
+  } else {
+    options.codeExampleLink = format.metadata[kCodeExampleLink] || false;
   }
   if (featureDefaults.anchors) {
     options.anchors = format.metadata[kAnchorSections] !== false;
@@ -332,6 +341,7 @@ export function htmlFormatExtras(
           !!options.copyCode,
           !!options.tabby,
           !!options.figResponsive,
+          !!options.codeExampleLink,
         ),
       });
     }
@@ -443,6 +453,7 @@ function htmlFormatFeatureDefaults(
     hoverCitations: !minimal,
     hoverFootnotes: !minimal,
     figResponsive: !minimal,
+    codeExampleLink: !minimal,
   };
 }
 
@@ -466,6 +477,10 @@ function htmlFormatPostprocessor(
   const anchors = featureDefaults.anchors
     ? format.metadata[kAnchorSections] !== false
     : format.metadata[kAnchorSections] || false;
+
+  const codeExampleLink = featureDefaults.codeExampleLink
+    ? format.metadata[kCodeExampleLink] !== false
+    : format.metadata[kCodeExampleLink] || false;
 
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     // process all of the code blocks
@@ -491,6 +506,35 @@ function htmlFormatPostprocessor(
         copyIcon.classList.add("bi");
         copyButton.appendChild(copyIcon);
         code.appendChild(copyButton);
+
+        if (
+          codeExampleLink &&
+          code.parentElement?.getAttribute("data-example-link")
+        ) {
+          const codeExampleLinkButton = doc.createElement("a");
+          codeExampleLinkButton.setAttribute(
+            "href",
+            code.parentElement.getAttribute("data-example-link")!.replace(
+              /\.qmd$/,
+              ".html",
+            ),
+          );
+          codeExampleLinkButton.setAttribute(
+            "target",
+            "_blank",
+          );
+          code.parentElement.removeAttribute(
+            "data-example-link",
+          );
+          const title = format.language[kCodeExampleLinkButtonTooltip]!;
+          codeExampleLinkButton.setAttribute("title", title);
+          codeExampleLinkButton.classList
+            .add("code-example-link");
+          const codeExampleIcon = doc.createElement("i");
+          codeExampleIcon.classList.add("bi");
+          codeExampleLinkButton.appendChild(codeExampleIcon);
+          code.appendChild(codeExampleLinkButton);
+        }
       }
     }
 
