@@ -487,7 +487,7 @@ function prepareItems(items: ListingItem[], options: ListingFeedOptions) {
   const sortedItems = uniqueItems.sort((a: ListingItem, b: ListingItem) => {
     const aTimestamp = a.date ? new Date(a.date).valueOf() : -1;
     const bTimestamp = b.date ? new Date(b.date).valueOf() : -1;
-    return aTimestamp - bTimestamp;
+    return bTimestamp - aTimestamp;
   });
 
   const itemCount = (options[kItems] || kDefaultItems);
