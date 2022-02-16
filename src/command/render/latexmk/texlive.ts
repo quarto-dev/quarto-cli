@@ -12,18 +12,10 @@ import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
 import { removeIfExists } from "../../../core/path.ts";
 
-const tlmgr = Deno.build.os === "windows"
-  ? ["cmd.exe", "/c", "tlmgr"]
-  : ["tlmgr"];
-
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
   try {
-    const result = await execProcess({
-      cmd: [...tlmgr, "--version"],
-      stdout: "piped",
-      stderr: "piped",
-    });
+    const result = await tlmgrCommand("--version", []);
     return result.code === 0;
   } catch {
     return false;
