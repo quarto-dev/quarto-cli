@@ -162,7 +162,8 @@ export function copyMinimal(
   skip?: RegExp[],
   filter?: (path: string) => boolean,
 ) {
-  skip = skip || [];
+  // 2022-02-16: 0.125.0 walkSync appears to throw in the presence of .DS_Store
+  skip = [...(skip || []), /\.DS_Store/];
 
   // build list of src files
   const srcFiles: string[] = [];
