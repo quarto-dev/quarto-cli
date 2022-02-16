@@ -862,6 +862,49 @@
       crossref-lol-title: string
     errorDescription: "be a format language description object"
 
+- id: website-about
+  object:
+    additionalProperties: false
+    properties:
+      template:
+        enum: [jolla, trestles, solana, marquee, broadside]
+        description:
+          short: "The template to use to layout this about page."
+          long: |
+            The template to use to layout this about page. Choose from:
+
+            - `jolla`
+            - `trestles`
+            - `solana`
+            - `marquee`
+            - `broadside`
+      image:
+        path:
+          description:
+            short: "The path to the main image on the about page."
+            long: |
+              The path to the main image on the about page. If not specified, 
+              the `image` provided for the document itself will be used.
+      image-width:
+        string:
+          description:
+            short: "A valid CSS width for the about page image."
+            long: |
+              A valid CSS width for the about page image.
+      image-shape:
+        enum: [rectangle, round, rounded]
+        description:
+          short: "The shape of the image on the about page."
+          long: |
+            The shape of the image on the about page.
+
+            - `rectangle`
+            - `round`
+            - `rounded`
+      links:
+        arrayOf:
+          ref: navigation-item
+
 - id: website-listing
   object:
     additionalProperties: false
