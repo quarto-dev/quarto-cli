@@ -293,18 +293,17 @@ async function safeTlmgrExec(
   if (Deno.build.os === "windows") {
     // On Windows writing the command to a file to avoid quoting issue with Deno
     // https://github.com/quarto-dev/quarto-cli/issues/336
-    let tempFile: string | undefined;
+    // Quoting every argument for CMD
+    args = args.map((a) => `"${a}"`);
+    const lines = ["tlmgr", cmd, ...args];
+    const tempFile = Deno.makeTempFileSync(
+      { prefix: "tlmgr-cmd", suffix: ".bat" },
+    );
     try {
-      // Quoting every argument for CMD
-      args = args.map((a) => `"${a}"`);
-      const lines = ["tlmgr", cmd, ...args];
-      tempFile = Deno.makeTempFileSync(
-        { prefix: "tlmgr-cmd", suffix: ".bat" },
-      );
       Deno.writeTextFileSync(tempFile, lines.join(" ") + "\n");
       return await execTlmgr(["cmd", "/c", tempFile]);
     } finally {
-      if (tempFile) removeIfExists(tempFile);
+      removeIfExists(tempFile);
     }
   } else {
     return execTlmgr(["tlmgr", cmd, ...args]);
