@@ -61,6 +61,7 @@ function layerQuartoScss(
   format: Format,
   darkLayer?: SassLayer,
   darkDefault?: boolean,
+  loadPaths?: string[],
 ): SassBundle {
   // The bootstrap framework functions
   const frameworkFunctions = [
@@ -106,7 +107,7 @@ function layerQuartoScss(
       mixins: bootstrapMixins(),
       rules: bootstrapRules(),
     },
-    loadPaths: [bootstrapResourceDir()],
+    loadPaths: [bootstrapResourceDir(), ...(loadPaths || [])],
     dark: darkLayer
       ? {
         user: darkLayer,
@@ -128,7 +129,7 @@ export function resolveBootstrapScss(
 
   // Resolve the provided themes to a set of variables and styles
   const theme = format.metadata[kTheme] || [];
-  const [themeSassLayers, defaultDark] = resolveThemeLayer(
+  const [themeSassLayers, defaultDark, loadPaths] = resolveThemeLayer(
     input,
     theme,
     quartoThemesDir,
@@ -146,6 +147,7 @@ export function resolveBootstrapScss(
       format,
       themeSassLayers.dark,
       defaultDark,
+      loadPaths,
     ),
   );
 
@@ -161,8 +163,9 @@ function layerTheme(
   input: string,
   themes: string[],
   quartoThemesDir: string,
-): SassLayer[] {
+): { layers: SassLayer[]; loadPaths: string[] } {
   let injectedCustomization = false;
+  const loadPaths: string[] = [];
   const layers = themes.flatMap((theme) => {
     // The directory for this theme
     const resolvedThemePath = join(quartoThemesDir, `${theme}.scss`);
@@ -179,6 +182,8 @@ function layerTheme(
     } else {
       const themePath = join(dirname(input), theme);
       if (existsSync(themePath)) {
+        const themeDir = dirname(themePath);
+        loadPaths.push(themeDir);
         return sassLayer(themePath);
       } else {
         return {
@@ -196,7 +201,7 @@ function layerTheme(
   if (!injectedCustomization) {
     layers.unshift(quartoBootstrapCustomizationLayer());
   }
-  return layers;
+  return { layers, loadPaths };
 }
 
 // Resolve the themes into a ThemeSassLayer
@@ -204,9 +209,10 @@ function resolveThemeLayer(
   input: string,
   themes: string | string[] | Themes | unknown,
   quartoThemesDir: string,
-): [ThemeSassLayer, boolean] {
+): [ThemeSassLayer, boolean, string[]] {
   let theme = undefined;
   let defaultDark = false;
+
   if (typeof (themes) === "string") {
     // The themes is just a string
     theme = { light: [themes] };
@@ -241,13 +247,23 @@ function resolveThemeLayer(
   } else {
     theme = { light: [] };
   }
+  const lightLayerContext = layerTheme(input, theme.light, quartoThemesDir);
+  const darkLayerContext = theme.dark
+    ? layerTheme(input, theme.dark, quartoThemesDir)
+    : undefined;
+
   const themeSassLayer = {
-    light: mergeLayers(...layerTheme(input, theme.light, quartoThemesDir)),
-    dark: theme.dark
-      ? mergeLayers(...layerTheme(input, theme.dark, quartoThemesDir))
+    light: mergeLayers(...lightLayerContext.layers),
+    dark: darkLayerContext?.layers
+      ? mergeLayers(...darkLayerContext?.layers)
       : undefined,
   };
-  return [themeSassLayer, defaultDark];
+
+  const loadPaths = [
+    ...lightLayerContext.loadPaths,
+    ...darkLayerContext?.loadPaths || [],
+  ];
+  return [themeSassLayer, defaultDark, loadPaths];
 }
 
 function pandocVariablesToThemeDefaults(
