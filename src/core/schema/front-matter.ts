@@ -38,7 +38,7 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
     );
     return { name: format, hidden };
   };
-  const formatSchemaDescriptorList = (await pandocListFormats()).map(
+  const formatSchemaDescriptorList = (await pandocListFormats()).concat("hugo").map(
     (format) => {
       const {
         name,
