@@ -416,20 +416,7 @@ async function readContents(
   const filterListingFiles = (globOrPath: string) => {
     // Convert a bare directory path into a consumer
     // of everything in the directory
-    const getPath = () => {
-      if (globOrPath.startsWith("/")) {
-        return join(project.dir, globOrPath);
-      } else {
-        const sourcePath = dirname(source);
-        return join(sourcePath, globOrPath);
-      }
-    };
-    const globOrPathAsPath = getPath();
-    const isDirectory = existsSync(globOrPathAsPath) &&
-      Deno.statSync(globOrPathAsPath).isDirectory;
-    if (isDirectory) {
-      globOrPath = join(globOrPath, "**");
-    }
+    globOrPath = expandGlob(source, project, globOrPath);
 
     if (isGlob(globOrPath)) {
       // If this is a glob, expand it
@@ -799,5 +786,31 @@ function listingItemHref(path: string, projectRelativePath: string) {
   } else {
     // This is a document relative path, need to fix it up
     return join(projectRelativePath, path);
+  }
+}
+
+function expandGlob(
+  source: string,
+  project: ProjectContext,
+  globOrPath: string,
+) {
+  const getPath = () => {
+    if (globOrPath.startsWith("/")) {
+      return join(project.dir, globOrPath);
+    } else {
+      const sourcePath = dirname(source);
+      return join(sourcePath, globOrPath);
+    }
+  };
+
+  const globOrPathAsPath = getPath();
+  try {
+    if (Deno.statSync(globOrPathAsPath).isDirectory) {
+      return join(globOrPath, "**");
+    } else {
+      return globOrPathAsPath;
+    }
+  } catch {
+    return globOrPathAsPath;
   }
 }
