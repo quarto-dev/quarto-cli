@@ -7,10 +7,9 @@
 import { info } from "log/mod.ts";
 import * as ld from "../../../core/lodash.ts";
 
-import { execProcess, ProcessResult } from "../../../core/process.ts";
+import { execProcess, safeWindowsExec } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
-import { removeIfExists } from "../../../core/path.ts";
 
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
@@ -273,36 +272,19 @@ async function verifyPackageInstalled(
   return result.stdout?.trim() === pkg;
 }
 
-// Execute tlmgr on Windows by writing command to a tempfile
-// and exectute the file with CMD
-async function safeTlmgrWindowsExec(
-  cmd: string,
-  args: string[],
-  fnExec: (cmdExec: string[]) => Promise<ProcessResult>,
-) {
-  const lines = ["tlmgr", cmd, ...args];
-  const tempFile = Deno.makeTempFileSync(
-    { prefix: "tlmgr-cmd", suffix: ".bat" },
-  );
-  try {
-    Deno.writeTextFileSync(tempFile, lines.join(" ") + "\n");
-    return await fnExec(["cmd", "/c", tempFile]);
-  } finally {
-    removeIfExists(tempFile);
-  }
-}
-
-function needQuoting(
+// On Windows, determine and apply double quoting on args that needs it
+// Do nothing on other OS.
+function requireQuoting(
   args: string[],
 ) {
-  let needQuoting = false;
+  let requireQuoting = false;
   if (Deno.build.os === "windows") {
     // On Windows, we need to check if arguments may need quoting to avoid issue with Deno.Run()
     // https://github.com/quarto-dev/quarto-cli/issues/336
     const shellCharReg = new RegExp("[ <>()|\\:&;#?*']");
     args = args.map((a) => {
       if (shellCharReg.test(a)) {
-        needQuoting = true;
+        requireQuoting = true;
         return `"${a}"`;
       } else {
         return a;
@@ -310,17 +292,17 @@ function needQuoting(
     });
   }
   return {
-    status: needQuoting,
+    status: requireQuoting,
     args: args,
   };
 }
 
+// Execute correctly tlmgr <cmd> <args>
 function tlmgrCommand(
-  cmd: string,
+  tlmgrCmd: string,
   args: string[],
   _quiet?: boolean,
 ) {
-  // Function to execute tlmgr command
   const execTlmgr = (tlmgrCmd: string[]) => {
     return execProcess(
       {
@@ -330,17 +312,18 @@ function tlmgrCommand(
       },
     );
   };
-  // tlmgr command dependending on OS
+
+  // Do not call directly tlmgr on Windows
   const tlmgr = Deno.build.os === "windows"
     ? ["cmd", "/c", "tlmgr"]
     : ["tlmgr"];
 
   // Is safe execution needed because of quoting issue ?
-  const safeExecNeeded = needQuoting(args);
+  const safeExecNeeded = requireQuoting(args);
   try {
     return safeExecNeeded.status
-      ? safeTlmgrWindowsExec(cmd, safeExecNeeded.args, execTlmgr)
-      : execTlmgr([...tlmgr, cmd, ...args]);
+      ? safeWindowsExec("tlmgr", [tlmgrCmd, ...safeExecNeeded.args], execTlmgr)
+      : execTlmgr([...tlmgr, tlmgrCmd, ...args]);
   } catch {
     return Promise.reject();
   }
