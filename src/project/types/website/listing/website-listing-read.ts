@@ -584,12 +584,17 @@ async function listItemFromFile(input: string, project: ProjectContext) {
       ? estimateReadingTimeMinutes(target.markdown.markdown)
       : undefined;
 
+    const categories = Array.isArray(documentMeta?.categories)
+      ? documentMeta?.categories
+      : [documentMeta?.categories];
+
     const item: ListingItem = {
       ...documentMeta,
       path: `/${projectRelativePath}`,
       [kFieldTitle]: target?.title,
       [kFieldDate]: date,
       [kFieldAuthor]: author,
+      [kFieldCategories]: categories,
       [kFieldImage]: image,
       [kFieldDescription]: description,
       [kFieldFileName]: filename,
