@@ -260,6 +260,10 @@
 	margin: var(--r-block-margin) 0;
 }
 
+.reveal div.cell-output-display img {
+  display: block;
+  margin: auto;
+}
 
 /*********************************************
  * LINKS
