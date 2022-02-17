@@ -9,6 +9,7 @@
 
 import {
   allOfSchema as allOfS,
+  anyOfSchema as anyOfS,
   completeSchema,
   describeSchema,
   NullSchema as nullS,
@@ -38,20 +39,21 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
     );
     return { name: format, hidden };
   };
-  const formatSchemaDescriptorList = (await pandocListFormats()).map(
-    (format) => {
-      const {
-        name,
-        hidden,
-      } = hideFormat(format);
-      return {
-        regex: `^${name}(\\+.+)?$`,
-        schema: getFormatSchema(name),
-        name,
-        hidden,
-      };
-    },
-  );
+  const formatSchemaDescriptorList = (await pandocListFormats()).concat("hugo")
+    .map(
+      (format) => {
+        const {
+          name,
+          hidden,
+        } = hideFormat(format);
+        return {
+          regex: `^${name}(\\+.+)?$`,
+          schema: getFormatSchema(name),
+          name,
+          hidden,
+        };
+      },
+    );
   const formatSchemas = formatSchemaDescriptorList.map(
     ({ regex, schema }) => [regex, schema],
   );
@@ -77,12 +79,11 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
   );
 
   return errorMessageSchema(
-    oneOfS(
+    anyOfS(
       describeSchema(
         oneOfS(...plusFormatStringSchemas),
         "the name of a pandoc-supported output format",
       ),
-      regexS("^hugo(\\+.+)?$", "be 'hugo'"),
       allOfS(
         objectS({
           patternProperties: Object.fromEntries(formatSchemas),

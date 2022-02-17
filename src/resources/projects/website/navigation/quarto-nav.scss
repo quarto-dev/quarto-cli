@@ -104,6 +104,10 @@ nav .nav-item.compact .nav-link {
     }
   }
 
+  ul.dropdown-menu {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
   .dropdown-header {
     text-transform: uppercase;
     font-size: 0.8rem;
@@ -111,7 +115,10 @@ nav .nav-item.compact .nav-link {
   }
 
   .dropdown-item {
-    padding: 0.1rem 0.5rem;
+    padding: 0.4rem 0.4rem;
+    & > i.bi {
+      margin-right: 0.25em;
+    }
   }
 }
 

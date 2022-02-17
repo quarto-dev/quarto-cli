@@ -416,12 +416,7 @@ async function readContents(
   const filterListingFiles = (globOrPath: string) => {
     // Convert a bare directory path into a consumer
     // of everything in the directory
-    const isDirectory = existsSync(globOrPath) &&
-      Deno.statSync(globOrPath).isDirectory;
-    if (isDirectory) {
-      globOrPath = join(globOrPath, "**");
-    }
-
+    globOrPath = expandGlob(source, project, globOrPath);
     if (isGlob(globOrPath)) {
       // If this is a glob, expand it
       return filterPaths(
@@ -445,6 +440,7 @@ async function readContents(
   for (const content of listing.contents) {
     if (typeof (content) === "string") {
       // Find the files we should use based upon this glob or path
+
       const files = filterListingFiles(content);
 
       for (const file of files.include) {
@@ -588,12 +584,17 @@ async function listItemFromFile(input: string, project: ProjectContext) {
       ? estimateReadingTimeMinutes(target.markdown.markdown)
       : undefined;
 
+    const categories = Array.isArray(documentMeta?.categories)
+      ? documentMeta?.categories
+      : [documentMeta?.categories];
+
     const item: ListingItem = {
       ...documentMeta,
       path: `/${projectRelativePath}`,
       [kFieldTitle]: target?.title,
       [kFieldDate]: date,
       [kFieldAuthor]: author,
+      [kFieldCategories]: categories,
       [kFieldImage]: image,
       [kFieldDescription]: description,
       [kFieldFileName]: filename,
@@ -775,8 +776,7 @@ function listingForType(
 
 function fileModifiedDate(input: string) {
   if (existsSync(input)) {
-    const file = Deno.openSync(input, { read: true });
-    const fileInfo = Deno.fstatSync(file.rid);
+    const fileInfo = Deno.statSync(input);
     return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
   } else {
     return undefined;
@@ -791,5 +791,31 @@ function listingItemHref(path: string, projectRelativePath: string) {
   } else {
     // This is a document relative path, need to fix it up
     return join(projectRelativePath, path);
+  }
+}
+
+function expandGlob(
+  source: string,
+  project: ProjectContext,
+  globOrPath: string,
+) {
+  const getPath = () => {
+    if (globOrPath.startsWith("/")) {
+      return join(project.dir, globOrPath);
+    } else {
+      const sourcePath = dirname(source);
+      return join(sourcePath, globOrPath);
+    }
+  };
+
+  const globOrPathAsPath = getPath();
+  try {
+    if (Deno.statSync(globOrPathAsPath).isDirectory) {
+      return join(globOrPath, "**");
+    } else {
+      return globOrPath;
+    }
+  } catch {
+    return globOrPath;
   }
 }

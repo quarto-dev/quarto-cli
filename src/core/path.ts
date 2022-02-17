@@ -238,8 +238,12 @@ export function resolveGlobs(
     } else {
       // literal relative reference to any directory means everything in the dir
       const fullPath = join(root, glob);
-      if (existsSync(fullPath) && Deno.statSync(fullPath).isDirectory) {
-        glob = glob + "/**/*";
+      try {
+        if (Deno.statSync(fullPath).isDirectory) {
+          glob = glob + "/**/*";
+        }
+      } catch {
+        // Leave the glob alone, this must not be a directory
       }
     }
 

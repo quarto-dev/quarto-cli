@@ -1,0 +1,21 @@
+{
+  "kind": "validation",
+  "context": {
+    "path": "~/Desktop/daily-log/2022-02-17/hugo-bug.qmd",
+    "filetype": "markdown",
+    "embedded": false,
+    "formats": [
+      "hugo"
+    ],
+    "project_formats": [],
+    "engine": "knitr",
+    "line": "```{r}",
+    "code": "---\ntitle: \"Hugo bug\"\nformat: hugo\n---\n\n```{r}\n#| test-field: \n#|   anotherKey: 12\n```\n",
+    "position": {
+      "row": 5,
+      "column": 6
+    },
+    "explicit": false
+  },
+  "expected": []
+}

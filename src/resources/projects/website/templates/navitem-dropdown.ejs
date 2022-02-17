@@ -2,7 +2,7 @@
 
 <% if (item.href) { %>
   <li>
-    <a class="dropdown-item" href="<%- item.href %>"><% partial('navicon.ejs', { item }) %> <%- item.text %></a>
+    <a class="dropdown-item" href="<%- item.href %>"><% partial('navicon.ejs', { item }) %> <span class="dropdown-text"><%- item.text %></span></a>
   </li>  
 <% } else if (item.menu) { %>
   <li class="dropdown">
