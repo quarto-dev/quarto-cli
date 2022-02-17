@@ -7,7 +7,7 @@
 import { info } from "log/mod.ts";
 import * as ld from "../../../core/lodash.ts";
 
-import { execProcess } from "../../../core/process.ts";
+import { execProcess, ProcessResult } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
 import { removeIfExists } from "../../../core/path.ts";
@@ -273,41 +273,46 @@ async function verifyPackageInstalled(
   return result.stdout?.trim() === pkg;
 }
 
-async function safeTlmgrExec(
+// Execute tlmgr on Windows by writing command to a tempfile
+// and exectute the file with CMD
+async function safeTlmgrWindowsExec(
   cmd: string,
   args: string[],
-  _quiet?: boolean,
+  fnExec: (cmdExec: string[]) => Promise<ProcessResult>,
 ) {
-  // Function to execute tlmgr command
-  const execTlmgr = (tlmgrCmd: string[]) => {
-    const result = execProcess(
-      {
-        cmd: tlmgrCmd,
-        stdout: "piped",
-        stderr: "piped",
-      },
-    );
-    return result;
-  };
-
-  if (Deno.build.os === "windows") {
-    // On Windows writing the command to a file to avoid quoting issue with Deno
-    // https://github.com/quarto-dev/quarto-cli/issues/336
-    // Quoting every argument for CMD
-    args = args.map((a) => `"${a}"`);
-    const lines = ["tlmgr", cmd, ...args];
-    const tempFile = Deno.makeTempFileSync(
-      { prefix: "tlmgr-cmd", suffix: ".bat" },
-    );
-    try {
-      Deno.writeTextFileSync(tempFile, lines.join(" ") + "\n");
-      return await execTlmgr(["cmd", "/c", tempFile]);
-    } finally {
-      removeIfExists(tempFile);
-    }
-  } else {
-    return execTlmgr(["tlmgr", cmd, ...args]);
+  const lines = ["tlmgr", cmd, ...args];
+  const tempFile = Deno.makeTempFileSync(
+    { prefix: "tlmgr-cmd", suffix: ".bat" },
+  );
+  try {
+    Deno.writeTextFileSync(tempFile, lines.join(" ") + "\n");
+    return await fnExec(["cmd", "/c", tempFile]);
+  } finally {
+    removeIfExists(tempFile);
   }
+}
+
+function needQuoting(
+  args: string[],
+) {
+  let needQuoting = false;
+  if (Deno.build.os === "windows") {
+    // On Windows, we need to check if arguments may need quoting to avoid issue with Deno.Run()
+    // https://github.com/quarto-dev/quarto-cli/issues/336
+    const shellCharReg = new RegExp("[ <>()|\\:&;#?*']");
+    args = args.map((a) => {
+      if (shellCharReg.test(a)) {
+        needQuoting = true;
+        return `"${a}"`;
+      } else {
+        return a;
+      }
+    });
+  }
+  return {
+    status: needQuoting,
+    args: args,
+  };
 }
 
 function tlmgrCommand(
@@ -315,9 +320,27 @@ function tlmgrCommand(
   args: string[],
   _quiet?: boolean,
 ) {
+  // Function to execute tlmgr command
+  const execTlmgr = (tlmgrCmd: string[]) => {
+    return execProcess(
+      {
+        cmd: tlmgrCmd,
+        stdout: "piped",
+        stderr: "piped",
+      },
+    );
+  };
+  // tlmgr command dependending on OS
+  const tlmgr = Deno.build.os === "windows"
+    ? ["cmd", "/c", "tlmgr"]
+    : ["tlmgr"];
+
+  // Is safe execution needed because of quoting issue ?
+  const safeExecNeeded = needQuoting(args);
   try {
-    const result = safeTlmgrExec(cmd, args, _quiet);
-    return result;
+    return safeExecNeeded.status
+      ? safeTlmgrWindowsExec(cmd, safeExecNeeded.args, execTlmgr)
+      : execTlmgr([...tlmgr, cmd, ...args]);
   } catch {
     return Promise.reject();
   }
