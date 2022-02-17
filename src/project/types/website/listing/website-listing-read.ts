@@ -416,8 +416,17 @@ async function readContents(
   const filterListingFiles = (globOrPath: string) => {
     // Convert a bare directory path into a consumer
     // of everything in the directory
-    const isDirectory = existsSync(globOrPath) &&
-      Deno.statSync(globOrPath).isDirectory;
+    const getPath = () => {
+      if (globOrPath.startsWith("/")) {
+        return join(project.dir, globOrPath);
+      } else {
+        const sourcePath = dirname(source);
+        return join(sourcePath, globOrPath);
+      }
+    };
+    const globOrPathAsPath = getPath();
+    const isDirectory = existsSync(globOrPathAsPath) &&
+      Deno.statSync(globOrPathAsPath).isDirectory;
     if (isDirectory) {
       globOrPath = join(globOrPath, "**");
     }
