@@ -53,7 +53,7 @@ crossref-lot-title: "Liste des Tables"
 crossref-lol-title: "Liste des Listings"
 
 listing-page-order-by: "Trier par"
-listing-page-order-by-default: "Présélectionné"
+listing-page-order-by-default: "Ordre par defaut"
 listing-page-order-by-date-asc: "Le plus ancien"
 listing-page-order-by-date-desc: "Le plus récent"
 listing-page-order-by-number-desc: "Descendant"
