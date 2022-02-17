@@ -240,7 +240,7 @@ export function resolveGlobs(
       const fullPath = join(root, glob);
       try {
         if (Deno.statSync(fullPath).isDirectory) {
-          glob = glob + "/**";
+          glob = glob + "/**/*";
         }
       } catch {
         // Leave the glob alone, this must not be a directory

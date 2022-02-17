@@ -416,8 +416,9 @@ async function readContents(
   const filterListingFiles = (globOrPath: string) => {
     // Convert a bare directory path into a consumer
     // of everything in the directory
+    console.log(globOrPath);
     globOrPath = expandGlob(source, project, globOrPath);
-
+    console.log(globOrPath);
     if (isGlob(globOrPath)) {
       // If this is a glob, expand it
       return filterPaths(
@@ -441,6 +442,7 @@ async function readContents(
   for (const content of listing.contents) {
     if (typeof (content) === "string") {
       // Find the files we should use based upon this glob or path
+
       const files = filterListingFiles(content);
 
       for (const file of files.include) {
@@ -808,9 +810,9 @@ function expandGlob(
     if (Deno.statSync(globOrPathAsPath).isDirectory) {
       return join(globOrPath, "**");
     } else {
-      return globOrPathAsPath;
+      return globOrPath;
     }
   } catch {
-    return globOrPathAsPath;
+    return globOrPath;
   }
 }
