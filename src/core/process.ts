@@ -8,6 +8,7 @@
 import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
 import { info } from "log/mod.ts";
+import { removeIfExists } from "./path.ts";
 
 export interface ProcessResult {
   success: boolean;
@@ -172,4 +173,22 @@ async function processOutput(
     outputText += text;
   }
   return outputText;
+}
+
+// Execute a program on Windows by writing command line
+// to a tempfile and execute the file with CMD
+export async function safeWindowsExec(
+  program: string,
+  args: string[],
+  fnExec: (cmdExec: string[]) => Promise<ProcessResult>,
+) {
+  const tempFile = Deno.makeTempFileSync(
+    { prefix: "quarto-safe-exec", suffix: ".bat" },
+  );
+  try {
+    Deno.writeTextFileSync(tempFile, [program, ...args].join(" ") + "\n");
+    return await fnExec(["cmd", "/c", tempFile]);
+  } finally {
+    removeIfExists(tempFile);
+  }
 }
