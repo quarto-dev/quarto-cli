@@ -784,8 +784,7 @@ function listingForType(
 
 function fileModifiedDate(input: string) {
   if (existsSync(input)) {
-    const file = Deno.openSync(input, { read: true });
-    const fileInfo = Deno.fstatSync(file.rid);
+    const fileInfo = Deno.statSync(input);
     return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
   } else {
     return undefined;
