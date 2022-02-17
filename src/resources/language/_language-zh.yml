@@ -20,7 +20,7 @@ code-tools-view-source: "查看源代码"
 code-tools-source-code: "源代码"
 
 copy-button-tooltip: "复制到剪贴板"
-code-example-link-button-tooltip: "查看示例"
+code-example-button-tooltip: "查看示例"
 
 repo-action-links-edit: "编辑该页面"
 repo-action-links-source: "查看代码"

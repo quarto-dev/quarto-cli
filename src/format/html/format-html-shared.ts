@@ -30,7 +30,6 @@ import { Document, Element } from "../../core/deno-dom.ts";
 // 'minimal' option to do this in one shot
 export const kTabsets = "tabsets";
 export const kCodeCopy = "code-copy";
-export const kCodeExampleLink = "code-example-link";
 export const kAnchorSections = "anchor-sections";
 export const kCitationsHover = "citations-hover";
 export const kFootnotesHover = "footnotes-hover";
@@ -114,12 +113,6 @@ export const quartoCopyCodeRules = () =>
     "_quarto-rules-copy-code.scss",
   ));
 
-export const quartoCodeExampleLinkRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
-    "html",
-    "_quarto-rules-code-example-link.scss",
-  ));
-
 export const quartoLinkExternalRules = () =>
   Deno.readTextFileSync(formatResourcePath(
     "html",
@@ -182,14 +175,10 @@ export const quartoBaseLayer = (
   codeCopy = false,
   tabby = false,
   figResponsive = false,
-  codeExampleLink = false,
 ) => {
   const rules: string[] = [quartoRules()];
   if (codeCopy) {
     rules.push(quartoCopyCodeRules());
-  }
-  if (codeExampleLink) {
-    rules.push(quartoCodeExampleLinkRules());
   }
   if (tabby) {
     rules.push(quartoTabbyRules());
@@ -226,17 +215,6 @@ export const quartoDefaults = (format: Format) => {
         "code-copy-selector",
         format.metadata[kCodeCopy] === undefined ||
           format.metadata[kCodeCopy] === "hover"
-          ? '"pre.sourceCode:hover > "'
-          : '""',
-      ),
-    ),
-  );
-  defaults.push(
-    outputVariable(
-      sassVariable(
-        "code-example-link-selector",
-        format.metadata[kCodeExampleLink] === undefined ||
-          format.metadata[kCodeExampleLink] === "hover"
           ? '"pre.sourceCode:hover > "'
           : '""',
       ),

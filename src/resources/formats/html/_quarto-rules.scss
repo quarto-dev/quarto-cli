@@ -342,3 +342,13 @@ ul.task-list {
 .tab-content > .page-columns.active {
   display: grid;
 }
+
+// default styling for .code-example=".." iframes
+div.sourceCode > iframe {
+   width: 100%;
+   height: 300px;
+   margin-bottom: -1em;
+   @if variable-exists(code-example-border-color) {
+     border: $code-example-border-color;
+   }
+}

@@ -20,7 +20,7 @@ code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
 copy-button-tooltip: "Copy to Clipboard"
-code-example-link-button-tooltip: "View Example"
+code-example-button-tooltip: "View Example"
 
 repo-action-links-edit: "Edit this page"
 repo-action-links-source: "View source"

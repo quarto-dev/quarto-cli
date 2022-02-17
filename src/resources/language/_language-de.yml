@@ -20,7 +20,7 @@ code-tools-view-source: "Quellcode anzeigen"
 code-tools-source-code: "Quellcode"
 
 copy-button-tooltip: "In den Arbeitsspeicher kopieren"
-code-example-link-button-tooltip: "Beispiel ansehen"
+code-example-button-tooltip: "Beispiel ansehen"
 
 repo-action-links-edit: "Seite editieren"
 repo-action-links-source: "Quellcode anzeigen"

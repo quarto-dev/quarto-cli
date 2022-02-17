@@ -16,7 +16,6 @@ import {
   kCalloutWarningCaption,
   kCiteMethod,
   kCiteproc,
-  kCodeExampleLinkButtonTooltip,
   kCodeFold,
   kCodeLineNumbers,
   kCodeLink,
@@ -438,7 +437,6 @@ export interface FormatLanguage {
   [kRepoActionLinksIssue]?: string;
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
-  [kCodeExampleLinkButtonTooltip]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchHideMatchesText]?: string; // FIXME duplicate?

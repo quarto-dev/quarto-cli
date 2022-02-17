@@ -129,7 +129,7 @@ export async function revealTheme(
     key: "reveal-theme",
     user: mergeLayers(yamlLayer, ...themeLayers),
     quarto: mergeLayers(
-      quartoBaseLayer(format, true, true, false, true),
+      quartoBaseLayer(format, true, true, false),
       quartoLayer(),
     ),
     framework: revealFrameworkLayer(revealSrcDir),
