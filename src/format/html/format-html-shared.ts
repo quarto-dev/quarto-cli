@@ -190,8 +190,10 @@ export const quartoBaseLayer = (
     rules.push(quartoLinkExternalRules());
   }
 
+  const uses = ["@use 'sass:color';", "@use 'sass:map';", "@use 'sass:math';"];
+
   return {
-    use: ["sass:color", "sass:map", "sass:math"],
+    uses: uses.join("\n"),
     defaults: [
       quartoDefaults(format),
     ].join("\n"),

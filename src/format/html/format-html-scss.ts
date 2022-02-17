@@ -81,7 +81,10 @@ function layerQuartoScss(
     key,
     user: sassLayer,
     quarto: {
-      use: ["sass:color", "sass:map", "sass:math"],
+      uses: ["@use 'sass:color';", "@use 'sass:map';", "@use 'sass:math';"]
+        .join(
+          "\n",
+        ),
       defaults: [
         quartoDefaults(format),
         quartoBootstrapDefaults(format.metadata),
@@ -97,6 +100,7 @@ function layerQuartoScss(
       ].join("\n"),
     },
     framework: {
+      uses: "",
       defaults: frameworkVariables,
       functions: frameworkFunctions,
       mixins: bootstrapMixins(),
@@ -178,6 +182,7 @@ function layerTheme(
         return sassLayer(themePath);
       } else {
         return {
+          uses: "",
           defaults: "",
           functions: "",
           mixins: "",

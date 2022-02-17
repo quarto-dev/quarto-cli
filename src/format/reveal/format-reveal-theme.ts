@@ -112,6 +112,7 @@ export async function revealTheme(
 
   // get any variables defined in yaml
   const yamlLayer: SassLayer = {
+    uses: "",
     defaults: pandocVariablesToThemeScss(format.metadata, true),
     functions: "",
     mixins: "",
@@ -163,6 +164,7 @@ function revealFrameworkLayer(revealDir: string): SassLayer {
     );
   };
   return {
+    uses: "",
     defaults: "",
     functions: "",
     mixins: readTemplate("mixins.scss"),
@@ -172,7 +174,10 @@ function revealFrameworkLayer(revealDir: string): SassLayer {
 
 function quartoLayer(): SassLayer {
   const layer = sassLayerFile(formatResourcePath("revealjs", "quarto.scss"));
-  layer.use = ["sass:color", "sass:map", "sass:math"];
+  layer.uses = ["@use 'sass:color';", "@use 'sass:map';", "@use 'sass:math';"]
+    .join(
+      "\n",
+    );
   return layer;
 }
 
