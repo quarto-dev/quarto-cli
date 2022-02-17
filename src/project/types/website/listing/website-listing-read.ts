@@ -416,9 +416,7 @@ async function readContents(
   const filterListingFiles = (globOrPath: string) => {
     // Convert a bare directory path into a consumer
     // of everything in the directory
-    console.log(globOrPath);
     globOrPath = expandGlob(source, project, globOrPath);
-    console.log(globOrPath);
     if (isGlob(globOrPath)) {
       // If this is a glob, expand it
       return filterPaths(
