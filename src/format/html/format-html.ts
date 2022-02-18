@@ -284,6 +284,7 @@ export function htmlFormatExtras(
           key: "tippy.scss",
           dependency: kBootstrapDependencyName,
           quarto: {
+            uses: "",
             functions: "",
             defaults: "",
             mixins: "",
@@ -340,6 +341,7 @@ export function htmlFormatExtras(
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
         quarto: {
+          uses: "",
           defaults: "",
           functions: "",
           mixins: "",

@@ -1,0 +1,16 @@
+---
+format: 
+  revealjs:
+    width: 650
+    height: 300
+---
+
+##  {auto-animate="true"}
+
+Animation
+
+##  {auto-animate="true"}
+
+Implicit
+
+Animation

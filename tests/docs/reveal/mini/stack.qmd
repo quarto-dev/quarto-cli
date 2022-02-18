@@ -1,0 +1,15 @@
+---
+format: revealjs
+---
+
+## Stack
+
+Click the arrow to advance to the next image in the stack.
+
+::: r-stack
+![](images/kitten-450-300.jpeg){.fragment width="450" height="300"}
+
+![](images/kitten-300-450.jpeg){.fragment width="300" height="450"}
+
+![](images/kitten-400-400.jpeg){.fragment width="400" height="400"}
+:::

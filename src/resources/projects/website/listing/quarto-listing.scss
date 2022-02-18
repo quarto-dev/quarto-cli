@@ -1,3 +1,6 @@
+/*-- scss:uses --*/
+@use "sass:map" as listing-map;
+
 /*-- scss:functions --*/
 @function listing-override-value($theme, $varname, $default) {
   // These will be defined in bootstrap, but creating values here
@@ -61,9 +64,9 @@
 
   $val: null;
   @if ($theme != null) {
-    $theme-vals: map.get($theme-overrides, $theme);
+    $theme-vals: listing-map.get($theme-overrides, $theme);
     @if ($theme-vals != null) {
-      $val: map.get($theme-vals, $varname);
+      $val: listing-map.get($theme-vals, $varname);
     }
   }
 

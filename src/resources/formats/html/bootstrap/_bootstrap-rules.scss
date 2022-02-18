@@ -570,7 +570,7 @@ $code-block-border-left-color: $table-border-color !default;
 }
 
 // sort out background color
-$code-block-bg-color: color.adjust(
+$code-block-bg-color: quarto-color.adjust(
   $progress-bg,
   $alpha: $code-block-bg-alpha
 ) !default;
@@ -1135,26 +1135,29 @@ div.callout.callout-style-default .callout-header {
 @each $name, $info in $callouts {
   div.callout-#{$name}.callout {
     border-left-color: shift-color(
-      map.get($info, "color"),
+      quarto-map.get($info, "color"),
       $callout-border-scale
     );
   }
 
   div.callout-#{$name}.callout-style-default .callout-header {
-    @if (color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
-      background-color: shift-color(map.get($info, "color"), 70%);
+    @if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
+      background-color: shift-color(quarto-map.get($info, "color"), 70%);
     } @else {
-      background-color: shift-color(map.get($info, "color"), -90%);
+      background-color: shift-color(quarto-map.get($info, "color"), -90%);
     }
   }
 
-  $shifted-color: #{shift-color(map.get($info, "color"), $callout-icon-scale)};
+  $shifted-color: #{shift-color(
+      quarto-map.get($info, "color"),
+      $callout-icon-scale
+    )};
   $shifted-color-svg: str-replace($shifted-color, "#", "%23");
 
   div.callout-#{$name}:not(.callout-captioned) .callout-icon::before {
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
-        map.get($info, "icon"),
+        quarto-map.get($info, "icon"),
         'fill="currentColor"',
         'style="fill: #{$shifted-color-svg}"'
       ) +
@@ -1164,7 +1167,7 @@ div.callout.callout-style-default .callout-header {
   div.callout-#{$name}.callout-captioned .callout-icon::before {
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
-        map.get($info, "icon"),
+        quarto-map.get($info, "icon"),
         'fill="currentColor"',
         'style="fill: #{$shifted-color-svg}"'
       ) +
@@ -1339,7 +1342,7 @@ div.callout.callout-style-default .callout-header {
 
 // This is a sentinel value that renderers can use to determine
 // whether the theme is dark or light
-@if (color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
+@if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
   /*! dark */
 } @else {
   /*! light */

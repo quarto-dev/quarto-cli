@@ -236,6 +236,7 @@ function bookScssBundle() {
     key: scssPath,
     quarto: {
       name: "quarto-book.css",
+      uses: "",
       defaults: "",
       functions: "",
       mixins: "",
