@@ -259,6 +259,7 @@ async function resolveQuartoSyntaxHighlighting(
           [{
             key: cssFileName,
             quarto: {
+              uses: "",
               defaults: "",
               functions: "",
               mixins: "",

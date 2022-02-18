@@ -790,7 +790,8 @@ function listingItemHref(path: string, projectRelativePath: string) {
     return path;
   } else {
     // This is a document relative path, need to fix it up
-    return join(projectRelativePath, path);
+    // to be project relative
+    return join("/", projectRelativePath, path);
   }
 }
 

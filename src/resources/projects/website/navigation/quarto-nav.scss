@@ -115,8 +115,9 @@ nav .nav-item.compact .nav-link {
   }
 
   .dropdown-item {
-    padding: 0.4rem 0.4rem;
+    padding: 0.4rem 0.5rem;
     & > i.bi {
+      margin-left: 0.1rem;
       margin-right: 0.25em;
     }
   }

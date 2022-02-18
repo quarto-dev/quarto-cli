@@ -1,0 +1,9 @@
+---
+format: revealjs
+---
+
+![](images/kitten-375-300.jpeg){.absolute top="175" left="0" width="375" height="300"}
+
+![](images/kitten-450-200.jpeg){.absolute top="50" right="50" width="450" height="250"}
+
+![](images/kitten-300-300.jpeg){.absolute bottom="20" right="100" width="300" height="300"}

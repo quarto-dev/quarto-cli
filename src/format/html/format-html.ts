@@ -27,7 +27,9 @@ import {
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kTheme,
 } from "../../config/constants.ts";
+
 import {
   DependencyFile,
   Format,
@@ -40,7 +42,6 @@ import {
   PandocFlags,
   SassBundle,
 } from "../../config/types.ts";
-import { kTheme } from "../../config/constants.ts";
 
 import { formatHasCodeTools } from "../../command/render/codetools.ts";
 
@@ -284,6 +285,7 @@ export function htmlFormatExtras(
           key: "tippy.scss",
           dependency: kBootstrapDependencyName,
           quarto: {
+            uses: "",
             functions: "",
             defaults: "",
             mixins: "",
@@ -340,6 +342,7 @@ export function htmlFormatExtras(
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
         quarto: {
+          uses: "",
           defaults: "",
           functions: "",
           mixins: "",
@@ -491,6 +494,25 @@ function htmlFormatPostprocessor(
         copyIcon.classList.add("bi");
         copyButton.appendChild(copyIcon);
         code.appendChild(copyButton);
+      }
+
+      // insert example iframe
+      if (code.parentElement?.getAttribute("data-code-preview")) {
+        const codeExample = doc.createElement("iframe");
+        for (const parentClass of code.classList) {
+          codeExample.classList.add(parentClass);
+        }
+        codeExample.setAttribute(
+          "src",
+          code.parentElement.getAttribute("data-code-preview")!.replace(
+            /\.qmd$/,
+            ".html",
+          ),
+        );
+        code.parentElement.removeAttribute(
+          "data-code-preview",
+        );
+        code.parentElement.appendChild(codeExample);
       }
     }
 
