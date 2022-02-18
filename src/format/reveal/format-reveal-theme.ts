@@ -173,12 +173,7 @@ function revealFrameworkLayer(revealDir: string): SassLayer {
 }
 
 function quartoLayer(): SassLayer {
-  const layer = sassLayerFile(formatResourcePath("revealjs", "quarto.scss"));
-  layer.uses = ["@use 'sass:color';", "@use 'sass:map';", "@use 'sass:math';"]
-    .join(
-      "\n",
-    );
-  return layer;
+  return sassLayerFile(formatResourcePath("revealjs", "quarto.scss"));
 }
 
 function themeLayer(theme: string): SassLayer {
