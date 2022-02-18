@@ -495,20 +495,20 @@ function htmlFormatPostprocessor(
       }
 
       // insert example iframe
-      if (code.parentElement?.getAttribute("data-code-example")) {
+      if (code.parentElement?.getAttribute("data-code-preview")) {
         const codeExample = doc.createElement("iframe");
         for (const parentClass of code.classList) {
           codeExample.classList.add(parentClass);
         }
         codeExample.setAttribute(
           "src",
-          code.parentElement.getAttribute("data-code-example")!.replace(
+          code.parentElement.getAttribute("data-code-preview")!.replace(
             /\.qmd$/,
             ".html",
           ),
         );
         code.parentElement.removeAttribute(
-          "data-code-example",
+          "data-code-preview",
         );
         code.parentElement.appendChild(codeExample);
       }

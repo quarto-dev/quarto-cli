@@ -20,7 +20,6 @@ code-tools-view-source: "Ver el código"
 code-tools-source-code: "Correr el código"
 
 copy-button-tooltip: "Copiar al portapapeles"
-code-example-button-tooltip: "Ver Ejemplo"
 
 repo-action-links-edit: "Editar esta página"
 repo-action-links-source: "Ver el código"

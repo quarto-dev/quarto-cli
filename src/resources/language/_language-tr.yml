@@ -20,7 +20,6 @@ code-tools-view-source: "Kaynağı Görüntüle"
 code-tools-source-code: "Kaynak Kodu"
 
 copy-button-tooltip: "Panoya Kopyala"
-code-example-button-tooltip: "Örneği Görüntüle"
 
 repo-action-links-edit: "Bu sayfayı düzenle"
 repo-action-links-source: "Kaynağı görüntüle"

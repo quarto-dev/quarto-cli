@@ -20,7 +20,6 @@ code-tools-view-source: "Показать код"
 code-tools-source-code: "Исходный код"
 
 copy-button-tooltip: "Скопировать текст"
-code-example-button-tooltip: "Просмотреть пример"
 
 repo-action-links-edit: "Редактировать страницу"
 repo-action-links-source: "Показать код"
