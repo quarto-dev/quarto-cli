@@ -28,8 +28,6 @@ import { navigateSchemaBySchemaPath } from "./schema-navigation.ts";
 
 import { validate } from "./validator/validator.ts";
 
-import { ErrorObject, getBadKey } from "./ajv-error.ts";
-
 import {
   AnnotatedParse,
   JSONValue,
