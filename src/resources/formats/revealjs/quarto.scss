@@ -1,3 +1,6 @@
+/*-- scss:uses --*/
+@use "sass:color" as sass-color;
+
 /*-- scss:defaults --*/
 
 @import url(./fonts/source-sans-pro/source-sans-pro.css);
@@ -439,7 +442,9 @@ $panel-sidebar-padding: 0.5em;
 
 // This is a sentinel value that renderers can use to determine
 // whether the theme is dark or light
-@if (color.blackness($backgroundColor) > $code-block-theme-dark-threshhold) {
+@if (
+  sass-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
+) {
   /*! dark */
   .reveal div.callout.callout-style-default .callout-caption {
     color: #222;

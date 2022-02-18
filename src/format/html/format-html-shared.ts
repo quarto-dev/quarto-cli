@@ -191,7 +191,7 @@ export const quartoBaseLayer = (
   }
 
   return {
-    use: ["sass:color", "sass:map", "sass:math"],
+    uses: quartoUses(),
     defaults: [
       quartoDefaults(format),
     ].join("\n"),
@@ -200,6 +200,12 @@ export const quartoBaseLayer = (
     rules: rules.join("\n"),
   };
 };
+
+export const quartoUses = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-uses.scss",
+  ));
 
 export const quartoFunctions = () =>
   Deno.readTextFileSync(formatResourcePath(

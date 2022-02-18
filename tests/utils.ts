@@ -17,6 +17,9 @@ export function outputForInput(input: string, to: string) {
   if (to === "latex" || to == "context") {
     outputExt = "tex";
   }
+  if (to === "revealjs") {
+    outputExt = "html";
+  }
 
   const outputPath = join(dir, `${stem}.${outputExt}`);
   const supportPath = join(dir, `${stem}_files`);

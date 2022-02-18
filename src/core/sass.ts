@@ -47,18 +47,11 @@ export async function compileSass(
   temp: TempContext,
   minified = true,
 ) {
-  const imports = ld.uniq(bundles.flatMap((bundle) => {
-    return [
-      ...(bundle.user?.use || []),
-      ...(bundle.quarto?.use || []),
-      ...(bundle.framework?.use || []),
-    ];
-  }));
-  const useStatements = imports.map((use) => {
-    return `@use '${use}';`;
-  }).join("\n");
-
   // Gather the inputs for the framework
+  const frameWorkUses = bundles.map(
+    (bundle) => bundle.framework?.uses || "",
+  );
+
   const frameworkFunctions = bundles.map(
     (bundle) => bundle.framework?.functions || "",
   );
@@ -76,6 +69,8 @@ export async function compileSass(
   );
 
   // Gather sasslayer for quarto
+  const quartoUses = bundles.map((bundle) => bundle.quarto?.uses || "");
+
   const quartoFunctions = bundles.map((bundle) =>
     bundle.quarto?.functions || ""
   );
@@ -85,6 +80,7 @@ export async function compileSass(
   const quartoMixins = bundles.map((bundle) => bundle.quarto?.mixins || "");
 
   // Gather sasslayer for the user
+  const userUses = bundles.map((bundle) => bundle.user?.uses || "");
   const userFunctions = bundles.map((bundle) => bundle.user?.functions || "");
   const userDefaults = bundles.map((bundle) => bundle.user?.defaults || "");
   const userRules = bundles.map((bundle) => bundle.user?.rules || "");
@@ -107,7 +103,9 @@ export async function compileSass(
   // * Rules may use functions, variables, and mixins
   //   (theme follows framework so it can override the framework rules)
   const scssInput = [
-    useStatements,
+    ...frameWorkUses,
+    ...quartoUses,
+    ...userUses,
     ...frameworkFunctions,
     ...quartoFunctions,
     ...userFunctions,
@@ -133,24 +131,25 @@ export async function compileSass(
   );
 }
 
+/*-- scss:uses --*/
 /*-- scss:functions --*/
 /*-- scss:defaults --*/
 /*-- scss:mixins --*/
 /*-- scss:rules --*/
 const layoutBoundary =
-  "^\/\\*\\-\\-[ \\t]*scss:(functions|rules|defaults|mixins)[ \\t]*\\-\\-\\*\\/$";
+  "^\/\\*\\-\\-[ \\t]*scss:(uses|functions|rules|defaults|mixins)[ \\t]*\\-\\-\\*\\/$";
 const kLayerBoundaryLine = RegExp(layoutBoundary);
 const kLayerBoundaryTest = RegExp(layoutBoundary, "m");
 
 export function mergeLayers(...layers: SassLayer[]) {
-  const themeUse: string[] = [];
+  const themeUses: string[] = [];
   const themeDefaults: string[] = [];
   const themeRules: string[] = [];
   const themeFunctions: string[] = [];
   const themeMixins: string[] = [];
   layers.forEach((theme) => {
-    if (theme.use) {
-      themeUse.push(...theme.use);
+    if (theme.uses) {
+      themeUses.push(theme.uses);
     }
     if (theme.defaults) {
       // We need to reverse the order of defaults
@@ -173,7 +172,7 @@ export function mergeLayers(...layers: SassLayer[]) {
   });
 
   return {
-    use: ld.uniq(themeUse),
+    uses: themeUses.join("\n"),
     defaults: themeDefaults.join("\n"),
     functions: themeFunctions.join("\n"),
     mixins: themeMixins.join("\n"),
@@ -188,6 +187,7 @@ export function sassLayer(path: string): SassLayer {
     return sassLayerDir(
       path,
       {
+        uses: "_use.scss",
         functions: "_functions.scss",
         defaults: "_defaults.scss",
         mixins: "_mixins.scss",
@@ -208,10 +208,11 @@ export function sassLayerStr(rawContents: string, errorHint?: string) {
   // Verify that the scss file has required boundaries
   if (!kLayerBoundaryTest.test(rawContents)) {
     throw new Error(
-      `The file ${errorHint} doesn't contain at least one layer boundary (/*-- scss:defaults --*/, /*-- scss:rules --*/, /*-- scss:mixins --*/ or /*-- scss:functions --*/)`,
+      `The file ${errorHint} doesn't contain at least one layer boundary (/*-- scss:defaults --*/, /*-- scss:rules --*/, /*-- scss:mixins --*/, /*-- scss:functions --*/, or /*-- scss:uses --*/)`,
     );
   }
 
+  const uses: string[] = [];
   const defaults: string[] = [];
   const rules: string[] = [];
   const functions: string[] = [];
@@ -222,6 +223,9 @@ export function sassLayerStr(rawContents: string, errorHint?: string) {
     if (scopeMatch) {
       const scope = scopeMatch[1];
       switch (scope) {
+        case "uses":
+          accum = uses;
+          break;
         case "defaults":
           accum = defaults;
           break;
@@ -241,6 +245,7 @@ export function sassLayerStr(rawContents: string, errorHint?: string) {
   });
 
   return {
+    uses: uses.join("\n"),
     defaults: defaults.join("\n"),
     rules: rules.join("\n"),
     mixins: mixins.join("\n"),
@@ -251,6 +256,7 @@ export function sassLayerStr(rawContents: string, errorHint?: string) {
 export function sassLayerDir(
   dir: string,
   names: {
+    uses?: string;
     functions?: string;
     defaults?: string;
     mixins?: string;
@@ -274,6 +280,7 @@ export function sassLayerDir(
 
   // It's a directory, look for names files instead
   return {
+    uses: read(names.uses),
     defaults: read(names.defaults),
     rules: read(names.rules),
     mixins: read(names.mixins),

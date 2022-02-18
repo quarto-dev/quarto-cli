@@ -1,0 +1,15 @@
+---
+format: revealjs
+---
+
+### Advance the slide to see three different fragment states:
+
+<br/>
+
+::: {.fragment .fade-in}
+::: {.fragment .highlight-red}
+::: {.fragment .semi-fade-out}
+Fade in > Turn red > Semi fade out
+:::
+:::
+:::

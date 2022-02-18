@@ -198,7 +198,7 @@ export interface BodyEnvelope {
 }
 
 export interface SassLayer {
-  use?: string[];
+  uses: string;
   defaults: string;
   functions: string;
   mixins: string;
