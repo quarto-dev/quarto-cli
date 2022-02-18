@@ -291,7 +291,9 @@ export function completeStagedFeeds(
               let match = regex.exec(feedContents);
               while (match) {
                 const relativePath = match[1];
-                const absolutePath = join(feedDir, relativePath);
+                const absolutePath = relativePath.startsWith("/")
+                  ? join(projectOutputDir(context), relativePath)
+                  : join(feedDir, relativePath);
                 const contents = contentReader(absolutePath);
                 if (contents) {
                   const replaceStr = placholderForReplace(tag, relativePath);
