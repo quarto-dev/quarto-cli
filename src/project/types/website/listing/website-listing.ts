@@ -320,8 +320,22 @@ function listingPostProcess(
       options,
     );
     const rightSidebar = doc.getElementById(kMarginSidebarId);
-    rightSidebar?.appendChild(headingEl);
-    rightSidebar?.appendChild(categoriesEl);
+
+    // See if there are contents in the sidebar, and place the categories
+    // just after the header or before the footer
+    const marginHeader = rightSidebar?.querySelector(".quarto-margin-header");
+    if (marginHeader) {
+      marginHeader.after(...[headingEl, categoriesEl]);
+    } else {
+      const marginFooter = rightSidebar?.querySelector(".quarto-margin-footer");
+      if (marginFooter) {
+        rightSidebar?.insertBefore(headingEl, marginFooter);
+        rightSidebar?.insertBefore(categoriesEl, marginFooter);
+      } else {
+        rightSidebar?.appendChild(headingEl);
+        rightSidebar?.appendChild(categoriesEl);
+      }
+    }
   }
 
   // Purge any images that made it into the description

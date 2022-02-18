@@ -162,7 +162,8 @@ export function copyMinimal(
   skip?: RegExp[],
   filter?: (path: string) => boolean,
 ) {
-  skip = skip || [];
+  // 2022-02-16: 0.125.0 walkSync appears to throw in the presence of .DS_Store
+  skip = [...(skip || []), /\.DS_Store/];
 
   // build list of src files
   const srcFiles: string[] = [];
@@ -237,8 +238,12 @@ export function resolveGlobs(
     } else {
       // literal relative reference to any directory means everything in the dir
       const fullPath = join(root, glob);
-      if (existsSync(fullPath) && Deno.statSync(fullPath).isDirectory) {
-        glob = glob + "/**/*";
+      try {
+        if (Deno.statSync(fullPath).isDirectory) {
+          glob = glob + "/**/*";
+        }
+      } catch {
+        // Leave the glob alone, this must not be a directory
       }
     }
 

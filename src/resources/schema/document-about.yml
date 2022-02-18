@@ -1,0 +1,7 @@
+- name: about
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - enum: [jolla, trestles, solana, marquee, broadside]
+      - ref: website-about

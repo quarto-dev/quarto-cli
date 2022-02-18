@@ -38,20 +38,21 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
     );
     return { name: format, hidden };
   };
-  const formatSchemaDescriptorList = (await pandocListFormats()).map(
-    (format) => {
-      const {
-        name,
-        hidden,
-      } = hideFormat(format);
-      return {
-        regex: `^${name}(\\+.+)?$`,
-        schema: getFormatSchema(name),
-        name,
-        hidden,
-      };
-    },
-  );
+  const formatSchemaDescriptorList = (await pandocListFormats()).concat("hugo")
+    .map(
+      (format) => {
+        const {
+          name,
+          hidden,
+        } = hideFormat(format);
+        return {
+          regex: `^${name}(\\+.+)?$`,
+          schema: getFormatSchema(name),
+          name,
+          hidden,
+        };
+      },
+    );
   const formatSchemas = formatSchemaDescriptorList.map(
     ({ regex, schema }) => [regex, schema],
   );
@@ -76,7 +77,6 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
         anyOfS(...plusFormatStringSchemas),
         "the name of a pandoc-supported output format",
       ),
-      regexS("^hugo(\\+.+)?$", "be 'hugo'"),
       allOfS(
         objectS({
           patternProperties: Object.fromEntries(formatSchemas),

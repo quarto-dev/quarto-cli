@@ -59,8 +59,28 @@
     anyOf:
       - boolean
       - string
+    tags:
+      doNotNarrowError: true
+    errorDescription: "be `true`, `false`, or a string specifying the lines to highlight"
   default: false
-  description: "Include line numbers in code block output."
+  description:
+    short: "Choose how to include line numbers in code block output."
+    long: |
+      Choose how to include line numbers in code block output.
+      `true` or `false` influence all line numbering.
+      
+      Use a string to control the presence of specific line numbering.
+      
+      * Sets of lines are denoted with commas:
+        * `3,4,5`
+        * `1,10,12`
+      * Ranges can be denoted with dashes and combined with commas:
+        * `1-3,5` 
+        * `5-10,12,14`
+      * Finally, animation steps are separated by `|`:
+        * `1-3|1-3,5` first shows `1-3`, then `1-3,5`
+        * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10
+          and 12
 
 - name: lst-label
   schema: string

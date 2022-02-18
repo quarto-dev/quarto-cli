@@ -108,7 +108,7 @@ $navbar-dark-brand-hover-color: $navbar-brand-hl;
 
 // Sidebar coloring
 $sidebar-bg: if(variable-exists(light), $light, #fff) !default;
-$sidebar-fg: null;
+$sidebar-fg: null !default;
 @if $sidebar-bg == transparent {
   $sidebar-fg: theme-contrast($body-contrast-color, $body-contrast-bg) !default;
 } @else {

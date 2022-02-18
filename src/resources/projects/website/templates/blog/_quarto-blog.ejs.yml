@@ -4,14 +4,12 @@ project:
 website:
   title: "<%= title %>"
   navbar:
-    background: primary
-
     right:
       - about<%= ext %>
       - icon: github
-        href: https://www.github.com/
+        href: https://github.com/
       - icon: twitter
-        href: https://www.twitter.com
+        href: https://twitter.com
 format:
   html:
     theme: cosmo

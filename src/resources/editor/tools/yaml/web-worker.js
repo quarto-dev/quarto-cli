@@ -5084,6 +5084,149 @@ if (typeof exports === 'object') {
     return v[(w1.length + 1) * (w2.length + 1) - 1];
   }
 
+  // ../mapped-text.ts
+  function mappedString(source, pieces, fileName) {
+    if (typeof source === "string") {
+      const offsetInfo = [];
+      let offset = 0;
+      const resultList = pieces.filter((piece) => typeof piece === "string" || piece.start !== piece.end).map((piece) => {
+        if (typeof piece === "string") {
+          offsetInfo.push({
+            fromSource: false,
+            length: piece.length,
+            offset
+          });
+          offset += piece.length;
+          return piece;
+        } else {
+          const resultPiece = source.substring(piece.start, piece.end);
+          offsetInfo.push({
+            fromSource: true,
+            length: resultPiece.length,
+            offset,
+            range: {
+              start: piece.start,
+              end: piece.end
+            }
+          });
+          offset += resultPiece.length;
+          return resultPiece;
+        }
+      });
+      const value = resultList.join("");
+      const map = (targetOffset) => {
+        const ix = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
+        if (ix < 0) {
+          return void 0;
+        }
+        const info = offsetInfo[ix];
+        if (!info.fromSource) {
+          return void 0;
+        }
+        const localOffset = targetOffset - info.offset;
+        if (localOffset >= info.length) {
+          return void 0;
+        }
+        return info.range.start + localOffset;
+      };
+      const mapClosest = (targetOffset) => {
+        if (offsetInfo.length === 0 || targetOffset < 0) {
+          return void 0;
+        }
+        const firstIx = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
+        let ix = firstIx;
+        let smallestSourceInfo = void 0;
+        while (ix >= 0) {
+          const info = offsetInfo[ix];
+          if (!info.fromSource) {
+            ix--;
+            continue;
+          }
+          smallestSourceInfo = info;
+          if (ix === firstIx) {
+            const localOffset = targetOffset - info.offset;
+            if (localOffset < info.length) {
+              return info.range.start + localOffset;
+            }
+          }
+          return info.range.end - 1;
+        }
+        if (smallestSourceInfo === void 0) {
+          return void 0;
+        } else {
+          return smallestSourceInfo.range.start;
+        }
+      };
+      return {
+        value,
+        originalString: source,
+        fileName,
+        map,
+        mapClosest
+      };
+    } else {
+      const {
+        value,
+        originalString,
+        map: previousMap,
+        mapClosest: previousMapClosest,
+        fileName: previousFileName
+      } = source;
+      const {
+        value: resultValue,
+        map: nextMap,
+        mapClosest: nextMapClosest
+      } = mappedString(value, pieces);
+      const composeMap = (offset) => {
+        const v = nextMap(offset);
+        if (v === void 0) {
+          return v;
+        }
+        return previousMap(v);
+      };
+      const composeMapClosest = (offset) => {
+        const v = nextMapClosest(offset);
+        if (v === void 0) {
+          return v;
+        }
+        return previousMapClosest(v);
+      };
+      return {
+        value: resultValue,
+        originalString,
+        map: composeMap,
+        mapClosest: composeMapClosest,
+        fileName: previousFileName
+      };
+    }
+  }
+  function asMappedString(str, fileName) {
+    if (typeof str === "string") {
+      return {
+        value: str,
+        originalString: str,
+        map: (x) => x,
+        mapClosest: (x) => x,
+        fileName
+      };
+    } else if (fileName !== void 0) {
+      throw new Error("Internal error: can't change the fileName of an existing MappedString");
+    } else {
+      return str;
+    }
+  }
+  function mappedIndexToRowCol(eitherText) {
+    const text = asMappedString(eitherText);
+    const f = indexToRowCol(text.originalString);
+    return function(offset) {
+      const n = text.mapClosest(offset);
+      if (n === void 0) {
+        throw new Error("Internal Error: bad offset in mappedIndexRowCol");
+      }
+      return f(n);
+    };
+  }
+
   // tree-sitter-annotated-yaml.ts
   function buildAnnotated(tree, mappedSource2) {
     const singletonBuild = (node) => {
@@ -5104,7 +5247,8 @@ if (typeof exports === 'object') {
         end: position,
         result: null,
         kind: "<<EMPTY>>",
-        components: []
+        components: [],
+        source: mappedString(mappedSource2, [{ start: position, end: position }])
       };
     };
     const annotate = (node, result2, components) => {
@@ -5113,7 +5257,11 @@ if (typeof exports === 'object') {
         end: node.endIndex,
         result: result2,
         kind: node.type,
-        components
+        components,
+        source: mappedString(mappedSource2, [{
+          start: node.startIndex,
+          end: node.endIndex
+        }])
       };
     };
     const buildPair = (node) => {
@@ -5328,149 +5476,6 @@ if (typeof exports === 'object') {
     const result = new URL(mainPath);
     result.pathname = [...result.pathname.split("/").slice(0, -1), filename].join("/");
     return result.toString();
-  }
-
-  // ../mapped-text.ts
-  function mappedString(source, pieces, fileName) {
-    if (typeof source === "string") {
-      const offsetInfo = [];
-      let offset = 0;
-      const resultList = pieces.filter((piece) => typeof piece === "string" || piece.start !== piece.end).map((piece) => {
-        if (typeof piece === "string") {
-          offsetInfo.push({
-            fromSource: false,
-            length: piece.length,
-            offset
-          });
-          offset += piece.length;
-          return piece;
-        } else {
-          const resultPiece = source.substring(piece.start, piece.end);
-          offsetInfo.push({
-            fromSource: true,
-            length: resultPiece.length,
-            offset,
-            range: {
-              start: piece.start,
-              end: piece.end
-            }
-          });
-          offset += resultPiece.length;
-          return resultPiece;
-        }
-      });
-      const value = resultList.join("");
-      const map = (targetOffset) => {
-        const ix = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
-        if (ix < 0) {
-          return void 0;
-        }
-        const info = offsetInfo[ix];
-        if (!info.fromSource) {
-          return void 0;
-        }
-        const localOffset = targetOffset - info.offset;
-        if (localOffset >= info.length) {
-          return void 0;
-        }
-        return info.range.start + localOffset;
-      };
-      const mapClosest = (targetOffset) => {
-        if (offsetInfo.length === 0 || targetOffset < 0) {
-          return void 0;
-        }
-        const firstIx = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
-        let ix = firstIx;
-        let smallestSourceInfo = void 0;
-        while (ix >= 0) {
-          const info = offsetInfo[ix];
-          if (!info.fromSource) {
-            ix--;
-            continue;
-          }
-          smallestSourceInfo = info;
-          if (ix === firstIx) {
-            const localOffset = targetOffset - info.offset;
-            if (localOffset < info.length) {
-              return info.range.start + localOffset;
-            }
-          }
-          return info.range.end - 1;
-        }
-        if (smallestSourceInfo === void 0) {
-          return void 0;
-        } else {
-          return smallestSourceInfo.range.start;
-        }
-      };
-      return {
-        value,
-        originalString: source,
-        fileName,
-        map,
-        mapClosest
-      };
-    } else {
-      const {
-        value,
-        originalString,
-        map: previousMap,
-        mapClosest: previousMapClosest,
-        fileName: previousFileName
-      } = source;
-      const {
-        value: resultValue,
-        map: nextMap,
-        mapClosest: nextMapClosest
-      } = mappedString(value, pieces);
-      const composeMap = (offset) => {
-        const v = nextMap(offset);
-        if (v === void 0) {
-          return v;
-        }
-        return previousMap(v);
-      };
-      const composeMapClosest = (offset) => {
-        const v = nextMapClosest(offset);
-        if (v === void 0) {
-          return v;
-        }
-        return previousMapClosest(v);
-      };
-      return {
-        value: resultValue,
-        originalString,
-        map: composeMap,
-        mapClosest: composeMapClosest,
-        fileName: previousFileName
-      };
-    }
-  }
-  function asMappedString(str, fileName) {
-    if (typeof str === "string") {
-      return {
-        value: str,
-        originalString: str,
-        map: (x) => x,
-        mapClosest: (x) => x,
-        fileName
-      };
-    } else if (fileName !== void 0) {
-      throw new Error("Internal error: can't change the fileName of an existing MappedString");
-    } else {
-      return str;
-    }
-  }
-  function mappedIndexToRowCol(eitherText) {
-    const text = asMappedString(eitherText);
-    const f = indexToRowCol(text.originalString);
-    return function(offset) {
-      const n = text.mapClosest(offset);
-      if (n === void 0) {
-        throw new Error("Internal Error: bad offset in mappedIndexRowCol");
-      }
-      return f(n);
-    };
   }
 
   // ../ranged-text.ts
@@ -8402,7 +8407,6 @@ if (typeof exports === 'object') {
           }
         };
       });
-      console.log(result);
       return result;
     }
   };
@@ -8888,19 +8892,23 @@ if (typeof exports === 'object') {
       return error;
     }
     const lastKey = navigate(error.instancePath, parse, true);
-    const locF = mappedIndexToRowCol(error.source);
-    const location = {
-      start: locF(lastKey.start),
-      end: locF(lastKey.end)
-    };
-    return {
-      ...error,
-      location,
-      niceError: {
-        ...error.niceError,
-        location
-      }
-    };
+    const locF = mappedIndexToRowCol(parse.source);
+    try {
+      const location = {
+        start: locF(lastKey.start),
+        end: locF(lastKey.end)
+      };
+      return {
+        ...error,
+        location,
+        niceError: {
+          ...error.niceError,
+          location
+        }
+      };
+    } catch (e) {
+      return error;
+    }
   }
   function checkForTypeMismatch(error, parse, schema) {
     const rawVerbatimInput = getVerbatimInput(error);

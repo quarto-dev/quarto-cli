@@ -18,7 +18,7 @@ export ESBUILD=0.12.10
 # (use commit hash from bslib repo)
 export BOOTSTRAP=839c75bc963810694537c986015482f3cbad64cc
 export BOOTSTRAP_FONT=1.7.0
-export BOOTSWATCH=5.1.2
+export BOOTSWATCH=5.1.3
 
 # javascript HTML dependencies
 export ANCHOR_JS=4.3.0
@@ -30,7 +30,7 @@ export REVEAL_JS=4.2.0
 export REVEAL_JS_MENU=2.1.0
 export REVEAL_JS_CHALKBOARD=a88c134e2cf3c7780448db003e7329c3cbd8cfb4
 export REVEAL_JS_PDFEXPORT=2.0.1
-export LIST_JS=2.1.0
+export LIST_JS=2.3.1
 
 # javascript search dependencies
 export AUTOCOMPLETE_JS=1.4.0

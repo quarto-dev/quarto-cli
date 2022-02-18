@@ -539,8 +539,10 @@ async function updateBootstrapFromBslib(
             join(themeDir, "_bootswatch.scss"),
           );
 
+          const patchedScss = patchTheme(theme, layer);
+
           const themeOut = join(themesDir, `${theme}.scss`);
-          Deno.writeTextFileSync(themeOut, layer);
+          Deno.writeTextFileSync(themeOut, patchedScss);
         }
       }
       info("Done\n");
@@ -773,3 +775,55 @@ function mergedSassLayer(
   });
   return merged.join("\n");
 }
+
+function patchTheme(themeName: string, themeContents: string) {
+  const patches = themePatches[themeName];
+  if (patches) {
+    let patchedTheme = themeContents;
+    patches.forEach((patch) => {
+      if (patchedTheme.includes(patch.from)) {
+        patchedTheme = patchedTheme.replace(patch.from, patch.to);
+      } else {
+        throw Error(
+          `Unable to patch template ${themeName} because the target ${patch.from} cannot be found`,
+        );
+      }
+    });
+    return patchedTheme;
+  } else {
+    return themeContents;
+  }
+}
+
+interface ThemePatch {
+  from: string;
+  to: string;
+}
+
+const themePatches: Record<string, ThemePatch[]> = {
+  "litera": [
+    {
+      from: ".navbar {\n  font-size: $font-size-sm;",
+      to:
+        ".navbar {\n  font-size: $font-size-sm;\n  border: 1px solid rgba(0, 0, 0, .1);",
+    },
+  ],
+  "lumen": [{
+    from: ".navbar {\n  @include shadow();",
+    to:
+      ".navbar {\n  @include shadow();\n  border-color: shade-color($navbar-bg, 10%);",
+  }],
+  "simplex": [{
+    from: ".navbar {\n  border-width: 1px;\n  border-style: solid;",
+    to:
+      ".navbar {\n  border-width: 1px;\n  border-style: solid;\n  border-color: shade-color($navbar-bg, 13%);",
+  }],
+  "slate": [{
+    from: "$body-color:                body-mix(0%) !default;",
+    to: "$body-color:                $gray-500 !default;",
+  }],
+  "solar": [{
+    from: "$body-color:                $gray-600 !default;",
+    to: "$body-color:                $gray-500 !default;",
+  }],
+};

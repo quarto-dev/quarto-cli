@@ -1,3 +1,79 @@
+/*-- scss:functions --*/
+@function listing-override-value($theme, $varname, $default) {
+  // These will be defined in bootstrap, but creating values here
+  // That will make this function accessible to callers prior to bootstrap variables
+  // being set
+  $black: rgb(0, 0, 0) !default;
+  $white: rgb(255, 255, 255) !default;
+  $gray-300: #dee2e6 !default;
+  $gray-500: #adb5bd !default;
+  $gray-600: #6c757d !default;
+  $blue: #0d6efd !default;
+
+  $theme-overrides: (
+    cyborg: (
+      category-border: solid $gray-500 1px,
+      category-color: $gray-500,
+      form-background-color: $body-bg,
+      form-color: $body-color,
+      input-group-border: solid $text-muted 1px,
+      input-group-border-radius: $border-radius,
+    ),
+    darkly: (
+      form-background-color: $body-bg,
+      form-color: $body-color,
+      category-border: solid $gray-600 1px,
+      category-color: $gray-600,
+    ),
+    materia: (
+      input-text-margin: 0 0.5em 0 0,
+    ),
+    quartz: (
+      category-color: $gray-300,
+      input-text-placeholder-color: $gray-500,
+    ),
+    slate: (
+      category-border: solid $gray-600 1px,
+      category-color: $gray-600,
+      form-background-color: $body-bg,
+      form-color: $body-color,
+      input-text-background-color: $body-bg,
+      input-text-color: $body-color,
+      input-group-border: solid $gray-600 1px,
+    ),
+    solar: (
+      input-group-border: solid $gray-600 1px,
+      category-color: $body-color,
+      category-border: solid $body-color 1px,
+    ),
+    superhero: (
+      input-text-background-color: $body-bg,
+      input-text-color: $body-color,
+      input-group-border: solid $gray-600 1px,
+      category-color: $gray-600,
+      category-border: solid $gray-600 1px,
+    ),
+    vapor: (
+      category-border: solid $text-muted 1px,
+      input-group-border: solid $text-muted 1px,
+    ),
+  );
+
+  $val: null;
+  @if ($theme != null) {
+    $theme-vals: map.get($theme-overrides, $theme);
+    @if ($theme-vals != null) {
+      $val: map.get($theme-vals, $varname);
+    }
+  }
+
+  @if ($val != null) {
+    @return $val;
+  } @else {
+    @return $default;
+  }
+}
+
 /*-- scss:variables --*/
 
 // Since we use these colors, we need to ensure that they
@@ -13,6 +89,8 @@ $border-radius-sm: 0.2em !default;
 
 $text-muted: $gray-600 !default;
 
+$theme-name: null !default;
+
 /*-- scss:mixins --*/
 @mixin listing-category {
   display: flex;
@@ -20,8 +98,15 @@ $text-muted: $gray-600 !default;
   padding-bottom: 5px;
 
   .listing-category {
-    color: $text-muted;
-    border: solid 1px $border-color;
+    color: listing-override-value($theme-name, "category-color", $text-muted);
+
+    $val: listing-override-value($theme-name, "category-border", null);
+    @if $val != null {
+      border: $val;
+    } @else {
+      border: solid 1px $border-color;
+    }
+
     border-radius: $border-radius-sm;
     text-transform: uppercase;
     font-size: 0.65em;
@@ -30,6 +115,63 @@ $text-muted: $gray-600 !default;
     cursor: pointer;
     margin-right: 4px;
     margin-bottom: 4px;
+  }
+}
+
+// Provide theme level customization of the listing inputs
+@mixin input-group {
+}
+
+@mixin input-form-control {
+  $val: listing-override-value($theme-name, "form-background-color", null);
+  @if $val != null {
+    background-color: $val;
+  }
+  $val: listing-override-value($theme-name, "form-color", null);
+  @if $val != null {
+    color: $val;
+  }
+}
+
+@mixin input-group-text {
+  $val: listing-override-value($theme-name, "input-group-border-radius", null);
+  @if $val != null {
+    border-radius: $val;
+  }
+
+  $val: listing-override-value($theme-name, "input-group-border", null);
+  @if $val != null {
+    border: $val;
+  }
+
+  $val: listing-override-value($theme-name, "input-text-margin", null);
+  @if $val != null {
+    margin: $val;
+  }
+  $val: listing-override-value(
+    $theme-name,
+    "input-text-background-color",
+    null
+  );
+  @if $val != null {
+    background-color: $val;
+  }
+  $val: listing-override-value($theme-name, "input-text-color", null);
+  @if $val != null {
+    color: $val;
+  }
+}
+
+@mixin input-placeholder {
+  $val: listing-override-value(
+    $theme-name,
+    "input-text-placeholder-color",
+    null
+  );
+  @if $val != null {
+    ::placeholder {
+      color: $val;
+    }
   }
 }
 
@@ -65,8 +207,13 @@ ul.pagination {
 
 .listing-actions-group {
   display: flex;
-  .input-group-text {
-    background-color: $body-bg;
+  .form-select,
+  .form-control {
+    @include input-form-control();
+  }
+  .input-group {
+    @include input-group();
+    @include input-placeholder();
   }
 }
 
@@ -84,6 +231,15 @@ ul.pagination {
     font-size: 0.8em;
   }
   width: auto;
+}
+
+.input-group input,
+.input-group select {
+  @include input-group-text();
+}
+.input-group-text {
+  @include input-group-text();
+  border-right: none;
 }
 
 .quarto-listing-sort select.form-select {

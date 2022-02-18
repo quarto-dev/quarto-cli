@@ -13,10 +13,10 @@ aliases:
   jats-all: [jats, jats_archiving, jats_articleauthoring, jats_publishing]
 
   # pandoc-all was created from
-  # $ quarto pandoc --list-output-formats
+  # $ quarto pandoc --list-output-formats +
+  # the special format 'hugo'
   # we should ideally automate this?
-  pandoc-all:
-    [
+  pandoc-all: [
       asciidoc,
       asciidoctor,
       beamer,
@@ -79,4 +79,7 @@ aliases:
       textile,
       xwiki,
       zimwiki,
+
+      # additionanl synthesized formats
+      hugo,
     ]

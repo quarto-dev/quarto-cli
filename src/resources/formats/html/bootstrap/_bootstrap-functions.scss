@@ -73,7 +73,7 @@
     ),
     cosmo: (),
     cyborg: (
-      navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
+      navbar-bg: if(variable-exists(secondary), $secondary, $black),
       navbar-hl: $white,
     ),
     darkly: (

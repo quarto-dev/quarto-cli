@@ -36,6 +36,8 @@ import {
   LocalizedError,
 } from "./validator/types.ts";
 
+import { resolveSchema } from "./schema-utils.ts";
+
 ////////////////////////////////////////////////////////////////////////////////
 
 export function getVerbatimInput(error: LocalizedError) {

@@ -396,7 +396,7 @@ function websiteTemplate(
           title: "About",
           content: "About this blog",
           yaml:
-            `about:\n  template: jolla\n  image: profile.jpg\n  links:\n    - icon: twitter\n      text: Twitter\n      href: https://www.twitter.com\n    - icon: linkedin\n      text: LinkedIn\n      href: https://www.linkedin.com\n    - icon: github\n      text: Github\n      href: https://www.github.com\n`,
+            `image: profile.jpg\nabout:\n  template: jolla\n  links:\n    - icon: twitter\n      text: Twitter\n      href: https://twitter.com\n    - icon: linkedin\n      text: LinkedIn\n      href: https://linkedin.com\n    - icon: github\n      text: Github\n      href: https://github.com\n`,
           supporting: [
             join(resourceDir, "templates", "blog", "profile.jpg"),
           ],
