@@ -1,0 +1,25 @@
+## Fragments
+
+Click the arrow to advance through the fragments:
+
+::: {style="margin-top: 2em; margin-left: 1em;"}
+::: fragment
+Fade in
+:::
+
+::: {.fragment .fade-out}
+Fade out
+:::
+
+::: {.fragment .highlight-red}
+Highlight red
+:::
+
+::: {.fragment .fade-in-then-out}
+Fade in, then out
+:::
+
+::: {.fragment .fade-up}
+Slide up while fading in
+:::
+:::
