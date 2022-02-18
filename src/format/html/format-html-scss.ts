@@ -46,6 +46,7 @@ import {
   quartoGlobalCssVariableRules,
   quartoLinkExternalRules,
   quartoRules,
+  quartoUses,
   sassUtilFunctions,
 } from "./format-html-shared.ts";
 
@@ -82,10 +83,7 @@ function layerQuartoScss(
     key,
     user: sassLayer,
     quarto: {
-      uses: ["@use 'sass:color';", "@use 'sass:map';", "@use 'sass:math';"]
-        .join(
-          "\n",
-        ),
+      uses: quartoUses(),
       defaults: [
         quartoDefaults(format),
         quartoBootstrapDefaults(format.metadata),
