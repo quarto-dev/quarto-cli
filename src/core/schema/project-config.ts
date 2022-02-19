@@ -18,9 +18,8 @@ import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
 import { getFormatExecuteOptionsSchema } from "./execute.ts";
 
 import {
-  getFrontMatterSchema,
   getFrontMatterFormatSchema,
-  makeFrontMatterFormatSchema,
+  getFrontMatterSchema,
 } from "./front-matter.ts";
 
 import { schemaPath } from "./utils.ts";

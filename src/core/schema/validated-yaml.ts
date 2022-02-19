@@ -20,11 +20,7 @@ import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 
 import { isObject } from "../lodash.ts";
 
-import {
-  AnnotatedParse,
-  JSONValue,
-  LocalizedError,
-} from "../lib/yaml-validation/types.ts";
+import { JSONValue, LocalizedError } from "../lib/yaml-validation/types.ts";
 
 // https://stackoverflow.com/a/41429145
 export class ValidationError extends Error {

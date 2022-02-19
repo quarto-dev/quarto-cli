@@ -32,7 +32,6 @@ import {
   kToc,
   kTopLevelDivision,
 } from "../../../config/constants.ts";
-import { disabledTableOfContents } from "../../../config/toc.ts";
 
 import {
   HtmlPostProcessResult,

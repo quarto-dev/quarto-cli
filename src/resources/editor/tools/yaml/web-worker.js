@@ -5067,7 +5067,7 @@ if (typeof exports === 'object') {
     };
     const s1 = w1.length + 1;
     const s2 = w2.length + 1;
-    let v = new Int32Array(s1 * s2);
+    const v = new Int32Array(s1 * s2);
     for (let i = 0; i < s1; ++i) {
       for (let j = 0; j < s2; ++j) {
         if (i === 0 && j === 0) {

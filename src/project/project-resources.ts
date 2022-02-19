@@ -6,7 +6,6 @@
 */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { copySync } from "fs/copy.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import * as ld from "../core/lodash.ts";
 import { asArray } from "../core/array.ts";

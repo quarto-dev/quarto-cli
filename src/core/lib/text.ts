@@ -129,7 +129,7 @@ export function editDistance(w1: string, w2: string): number {
 
   const s1 = w1.length + 1;
   const s2 = w2.length + 1;
-  let v = new Int32Array(s1 * s2);
+  const v = new Int32Array(s1 * s2);
   for (let i = 0; i < s1; ++i) {
     for (let j = 0; j < s2; ++j) {
       if (i === 0 && j === 0) {
@@ -150,13 +150,6 @@ export function editDistance(w1: string, w2: string): number {
 
   return v[(w1.length + 1) * (w2.length + 1) - 1];
 }
-
-// we have to allow trailing underscores in the regexes below. They're
-// used by Pandoc to pass fields to downstream processors external
-// to Pandoc.
-const kebabCase = "^[a-z0-9]+[a-z0-9]*(-[a-z0-9]+)*_?$";
-const snakeCase = "^[a-z0-9]+[a-z0-9]*(_[a-z0-9]+)*_?$";
-const camelCase = "^[a-z0-9]+[a-z0-9]*([A-Z][a-z0-9]+)*_?$";
 
 export type CaseConvention =
   | "camelCase"
@@ -188,15 +181,6 @@ export function resolveCaseConventionRegex(
   pattern?: string;
   list: string[];
 } {
-  const regexMap: Record<CaseConvention, string> = {
-    "camelCase": camelCase,
-    "capitalizationCase": camelCase,
-    "underscore_case": snakeCase,
-    "snake_case": snakeCase,
-    "dash-case": kebabCase,
-    "kebab-case": kebabCase,
-  };
-
   if (conventions !== undefined) {
     if (conventions.length === 0) {
       throw new Error(
@@ -214,7 +198,7 @@ export function resolveCaseConventionRegex(
   const disallowedNearMisses: string[] = [];
   const foundConventions: Set<CaseConvention> = new Set();
   for (const key of keys) {
-    let found = detectCaseConvention(key);
+    const found = detectCaseConvention(key);
     if (found) {
       foundConventions.add(found);
     }

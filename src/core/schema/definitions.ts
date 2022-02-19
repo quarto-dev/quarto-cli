@@ -65,6 +65,7 @@ export function defineCached(
   };
 }
 
+// deno-lint-ignore require-await
 export async function define(schema: Schema) {
   if (
     schema !== true && schema !== false && schema.$id &&
@@ -83,6 +84,7 @@ export async function loadSchemaDefinitions(file: string) {
   // deno-lint-ignore no-explicit-any
   const yaml = readYaml(file) as any[];
 
+  // deno-lint-ignore require-await
   await Promise.all(yaml.map(async (yamlSchema) => {
     const schema = convertFromYaml(yamlSchema);
     if (schema.$id === undefined) {

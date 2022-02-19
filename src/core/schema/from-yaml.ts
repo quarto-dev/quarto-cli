@@ -48,7 +48,7 @@ import {
 import { schemaPath } from "./utils.ts";
 import { memoize } from "../memoize.ts";
 
-import { ConcreteSchema, Schema } from "../lib/yaml-validation/types.ts";
+import { ConcreteSchema } from "../lib/yaml-validation/types.ts";
 
 function setBaseSchemaProperties(
   // deno-lint-ignore no-explicit-any
@@ -248,10 +248,9 @@ function convertFromEnum(yaml: any): ConcreteSchema {
   }
 }
 
+// deno-lint-ignore no-explicit-any
 function convertFromRecord(yaml: any): ConcreteSchema {
   if (yaml.record.properties) {
-    // deno-lint-ignore no-explicit-any
-
     const schema = convertFromObject({
       "object": {
         "properties": yaml.record.properties,
@@ -264,7 +263,6 @@ function convertFromRecord(yaml: any): ConcreteSchema {
       setBaseSchemaProperties(yaml.record, schema),
     );
   } else {
-    // deno-lint-ignore no-explicit-any
     const schema = convertFromObject({
       "object": {
         "properties": yaml.record,

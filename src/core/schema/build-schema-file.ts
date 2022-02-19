@@ -12,24 +12,14 @@ import { getFrontMatterSchema } from "./front-matter.ts";
 import { getProjectConfigSchema } from "./project-config.ts";
 import { getEngineOptionsSchema } from "./chunk-metadata.ts";
 import { resourcePath } from "../resources.ts";
-import {
-  getSchemas,
-  QuartoJsonSchemas,
-} from "../lib/yaml-validation/schema-utils.ts";
+import { getSchemas } from "../lib/yaml-validation/schema-utils.ts";
 import {
   getSchemaDefinitionsObject,
   setSchemaDefinition,
 } from "../lib/yaml-validation/schema.ts";
 import { getFormatAliases } from "./format-aliases.ts";
-import { TempContext } from "../temp.ts";
 import { ensureAjv } from "./yaml-schema.ts";
 import { revealPluginSchema } from "../../format/reveal/format-reveal-plugin.ts";
-import { schemaPath } from "./utils.ts";
-
-import { runPandoc } from "../../command/render/pandoc.ts";
-
-import { schemaFieldsFromGlob } from "./from-yaml.ts";
-
 import { DOMParser, Element, initDenoDom } from "../deno-dom.ts";
 
 import { pandocBinaryPath } from "../resources.ts";
@@ -42,7 +32,7 @@ import { Schema, SchemaDocumentation } from "../lib/yaml-validation/types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export async function buildSchemaFile(temp: TempContext) {
+export async function buildSchemaFile() {
   await ensureAjv();
   const obj = getSchemas();
   obj.aliases = getFormatAliases();
@@ -131,11 +121,6 @@ async function patchMarkdownDescriptions() {
 
       values[name] = html.join("\n");
     }
-
-    let description: undefined | string | {
-      short?: string;
-      long?: string;
-    };
 
     if (values["string"]) {
       descriptionList.push(values["string"]);

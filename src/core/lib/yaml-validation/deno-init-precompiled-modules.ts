@@ -11,6 +11,7 @@ import { resourcePath } from "../../resources.ts";
 import { setSchemaDefinition } from "./schema.ts";
 import { getSchemas, QuartoJsonSchemas, setSchemas } from "./schema-utils.ts";
 
+// deno-lint-ignore require-await
 export async function initPrecompiledModules() {
   setSchemas(JSON.parse(
     Deno.readTextFileSync(

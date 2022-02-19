@@ -10,7 +10,6 @@ import { kTitle } from "../../../config/constants.ts";
 import { Format } from "../../../config/types.ts";
 import { parsePandocTitle } from "../../../core/pandoc/pandoc-partition.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
-import { readYamlFromMarkdown } from "../../../core/yaml.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 export type BookConfigKey =

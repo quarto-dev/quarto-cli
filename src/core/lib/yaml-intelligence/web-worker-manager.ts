@@ -24,6 +24,7 @@ export function clientStubs(
   const result: Record<string, Callable> = {};
   const promises: Record<number, { resolve: Callable; reject: Callable }> = {};
   for (const callName of calls) {
+    // deno-lint-ignore no-explicit-any
     result[callName] = (...args: any) => {
       const thisId = nextId();
       worker.postMessage({
@@ -40,7 +41,8 @@ export function clientStubs(
       });
     };
   }
-  worker.onmessage = function (e) {
+  // deno-lint-ignore no-explicit-any
+  worker.onmessage = function (e: any) {
     const { result, exception, id } = e.data;
     if (promises[id] === undefined) {
       throw new Error(`Internal Error: bad call id ${id} in web worker RPC`);
@@ -57,12 +59,17 @@ export function clientStubs(
 }
 
 export function workerCallback(calls: Record<string, Callable>): Callable {
-  return async function (e) {
+  // deno-lint-ignore no-explicit-any
+  return async function (e: any) {
     const { callName, args, id } = e.data;
     try {
       const result = await calls[callName](...args);
+      // postMessage is only visible to web workers in JS generated
+      // by esbuild, so this isn't actually an error.
       postMessage({ result, id });
     } catch (e) {
+      // postMessage is only visible to web workers in JS generated
+      // by esbuild, so this isn't actually an error.
       postMessage({ exception: e, id });
     }
   };

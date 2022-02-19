@@ -28,7 +28,6 @@ import { defineCached } from "./definitions.ts";
 
 import { errorMessageSchema } from "./common.ts";
 
-// deno-lint-ignore require-await
 export async function makeFrontMatterFormatSchema(nonStrict = false) {
   const hideFormat = (format: string) => {
     const hideList = ["html", "epub", "docbook"];
