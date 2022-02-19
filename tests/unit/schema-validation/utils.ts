@@ -23,6 +23,7 @@ export async function fullInit() {
   await ensureAjv();
 }
 
+// deno-lint-ignore require-await
 export async function yamlValidationUnitTest(
   name: string,
   fun: () => Promise<unknown>,

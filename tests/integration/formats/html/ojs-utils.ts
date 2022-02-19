@@ -33,6 +33,8 @@ export function verifyDomTextValue(
         // we need the definitions to be there (same in the
         // fieldsExist reference below). We should consider including
         // a library of puppeteer utilities in ojs-bundle.js
+
+        // deno-lint-ignore no-explicit-any
         function fieldsExist(obj: any, names: string[], timeout = 1000) {
           names = names.slice();
           // deno-lint-ignore no-explicit-any
@@ -48,7 +50,7 @@ export function verifyDomTextValue(
           }
           let name = names[0];
           function tick() {
-            if (obj.hasOwnProperty(name)) {
+            if (Object.prototype.hasOwnProperty.call(obj, name)) {
               names = names.slice(1);
               if (names.length === 0) {
                 accept(obj);
@@ -95,6 +97,7 @@ export function verifyOjsValue(
     verify: async (_output: ExecuteOutput[]) => {
       // deno-lint-ignore no-explicit-any
       const ojsVal = await inPuppeteer(url, async (name: any) => {
+        // deno-lint-ignore no-explicit-any
         function fieldsExist(obj: any, names: string[], timeout = 1000) {
           names = names.slice();
           // deno-lint-ignore no-explicit-any
@@ -110,7 +113,7 @@ export function verifyOjsValue(
           }
           let name = names[0];
           function tick() {
-            if (obj.hasOwnProperty(name)) {
+            if (Object.prototype.hasOwnProperty.call(obj, name)) {
               names = names.slice(1);
               if (names.length === 0) {
                 accept(obj);

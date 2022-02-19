@@ -8,12 +8,13 @@ import { existsSync } from "fs/mod.ts";
 import { assert } from "testing/asserts.ts";
 
 import { outputForInput } from "../../utils.ts";
-import { TestContext, testQuartoCmd, ExecuteOutput, Verify } from "../../test.ts";
 import {
-  hasSupportingFiles,
-  noSupportingFiles,
-  verifyPath
-} from "../../verify.ts";
+  ExecuteOutput,
+  TestContext,
+  testQuartoCmd,
+  Verify,
+} from "../../test.ts";
+import { verifyPath } from "../../verify.ts";
 
 const outputConverted = (input: string, to: string): Verify => {
   return {
@@ -43,7 +44,7 @@ export function testConvert(
   // Verify that the output was created and
   // that supporting files are present or missing
   const verify: Verify[] = [];
-  
+
   if (!input.endsWith("/")) {
     verify.push(outputConverted(input, "ipynb"));
   }

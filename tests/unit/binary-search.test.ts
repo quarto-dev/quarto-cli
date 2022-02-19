@@ -11,6 +11,7 @@ import bounds from "binary-search-bounds";
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
 
+// deno-lint-ignore require-await
 unitTest("binary-search-test - glb property tests", async () => {
   // test by randomization that glb() behaves like le()
 
@@ -33,6 +34,7 @@ unitTest("binary-search-test - glb property tests", async () => {
   }
 });
 
+// deno-lint-ignore require-await
 unitTest("binary-search-test - previous failures", async () => {
   assert(glb([1, 2, 4, 5, 5, 6, 6, 7, 7], 9) === 8);
   assert(glb([5, 8, 9], 1) === -1);

@@ -48,7 +48,7 @@ const mathRegexes = [
   anchor("thm-line"),
 ];
 
-const subTableRegexes = [
+const _subTableRegexes = [
   bookmarkStart("tbl-first"),
   bookmarkStart("tbl-second"),
   anchor("tbl-first"),
@@ -58,7 +58,7 @@ const subTableRegexes = [
   text("(b) Second Table"),
 ];
 
-const subFigRegexes = [
+const _subFigRegexes = [
   bookmarkStart("fig-elephants"),
   bookmarkStart("fig-abbas"),
   bookmarkStart("fig-surus"),

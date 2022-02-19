@@ -12,7 +12,6 @@ import {
   dirAndStem,
   removeIfEmptyDir,
   removeIfExists,
-  ResolvedPathGlobs,
   resolvePathGlobs,
 } from "../../src/core/path.ts";
 import { existsSync } from "fs/mod.ts";
@@ -99,6 +98,7 @@ interface GlobTest {
 }
 const globPath = docs("globs");
 
+// deno-lint-ignore require-await
 unitTest("path - resolvePathGlobs", async () => {
   const globTests: GlobTest[] = [{
     name: "simple recursive qmd",

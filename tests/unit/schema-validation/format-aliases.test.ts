@@ -1,11 +1,11 @@
 import { yamlValidationUnitTest } from "./utils.ts";
-import { asMappedString } from "../../../src/core/mapped-text.ts";
-import { getFormatAliases, expandFormatAliases, getExpandedFormatAliases } from "../../../src/core/schema/format-aliases.ts";
+import { getExpandedFormatAliases } from "../../../src/core/schema/format-aliases.ts";
 import { assert } from "testing/asserts.ts";
 
+// deno-lint-ignore require-await
 yamlValidationUnitTest("format-alias-expansion", async () => {
   const expandedAliases = getExpandedFormatAliases();
-  for (const [key, value] of Object.entries(expandedAliases)) {
+  for (const [_key, value] of Object.entries(expandedAliases)) {
     for (const entry of value) {
       assert(!entry.startsWith("$"));
     }

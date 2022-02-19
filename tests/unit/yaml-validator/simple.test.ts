@@ -7,10 +7,6 @@
 
 import { unitTest } from "../../test.ts";
 
-import { assert, assertEquals } from "testing/asserts.ts";
-
-import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
-
 import { convertFromYAMLString } from "../../../src/core/schema/from-yaml.ts";
 
 import { readAndValidateYamlFromMappedString } from "../../../src/core/schema/validated-yaml.ts";
@@ -46,12 +42,12 @@ object:
 
   let threw = false;
   try {
-    const annotation = await readAndValidateYamlFromMappedString(
+    await readAndValidateYamlFromMappedString(
       asMappedString(yml),
       schema,
       "This should throw",
     );
-  } catch (e) {
+  } catch (_e) {
     threw = true;
   }
   if (!threw) {

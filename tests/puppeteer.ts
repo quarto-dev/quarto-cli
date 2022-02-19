@@ -32,7 +32,7 @@ export function inPuppeteer(url: string, f: any) {
   // deno-lint-ignore no-explicit-any
   return (async (...params: any[]) => {
     let attempts = 0;
-    let maxAttempts = 5;
+    const maxAttempts = 5;
     while (attempts++ < maxAttempts) {
       try {
         return await withHeadlessBrowser(async (browser: Browser) => {

@@ -6,16 +6,12 @@
 */
 
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts.ts";
-// import { Metadata } from "../../../src/config/types.ts";
-// import { readYamlFromString } from "../../../src/core/yaml.ts";
 
-import { schemaTestFile } from "./utils.ts";
-import { cleanoutput } from "../../smoke/render/render.ts";
-import { validateDocumentFromSource } from "../../../src/core/schema/validate-document.ts";
+//import { schemaTestFile } from "./utils.ts";
+//import { cleanoutput } from "../../smoke/render/render.ts";
+//import { validateDocumentFromSource } from "../../../src/core/schema/validate-document.ts";
 
 unitTest("schema-validation-error-location", async () => {
-
   /*
 FIXME: we're temporarily disabling this test since it relies on format
 checks failing, and our format schema is disabled on `main` to avoid

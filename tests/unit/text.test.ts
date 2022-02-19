@@ -9,6 +9,7 @@ import { assert } from "testing/asserts.ts";
 import { lines } from "../../src/core/text.ts";
 import { editDistance } from "../../src/core/lib/text.ts";
 
+// deno-lint-ignore require-await
 unitTest("text - lines()", async () => {
   const texts = ["a", "b", "c"];
   const splits = ["\n", "\r\n"];
@@ -20,6 +21,7 @@ unitTest("text - lines()", async () => {
   });
 });
 
+// deno-lint-ignore require-await
 unitTest("text - editDistance", async () => {
   assert(editDistance("abc", "abd") === 10);
   assert(editDistance("", "abd") === 30);

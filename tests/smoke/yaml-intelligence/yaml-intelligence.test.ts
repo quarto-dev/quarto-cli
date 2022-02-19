@@ -10,28 +10,36 @@ import { unitTest } from "../../test.ts";
 
 import { assert, assertEquals } from "testing/asserts.ts";
 
-import { Semaphore } from "../../../src/core/lib/semaphore.ts";
-
 import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
 import { initPrecompiledModules } from "../../../src/core/lib/yaml-validation/deno-init-precompiled-modules.ts";
-import { setInitializer, initState } from "../../../src/core/lib/yaml-validation/state.ts";
-import { getAutomation, CompletionResult } from "../../../src/core/lib/yaml-intelligence/yaml-intelligence.ts";
-  
+import {
+  initState,
+  setInitializer,
+} from "../../../src/core/lib/yaml-validation/state.ts";
+import {
+  CompletionResult,
+  getAutomation,
+} from "../../../src/core/lib/yaml-intelligence/yaml-intelligence.ts";
+
 async function fullInit() {
   await initPrecompiledModules();
   await initTreeSitter();
-};
+}
 
 unitTest("yaml-intelligence-smoke-regression", async () => {
   setInitializer(fullInit);
   await initState();
-  
-  for (const { path: fileName } of expandGlobSync("smoke/yaml-intelligence/crashes/*.json")) {
+
+  for (
+    const { path: fileName } of expandGlobSync(
+      "smoke/yaml-intelligence/crashes/*.json",
+    )
+  ) {
     const { kind, context } = JSON.parse(Deno.readTextFileSync(fileName));
     try {
       await getAutomation(kind, context);
     } catch (e) {
-      console.error('\n\n');
+      console.error("\n\n");
       console.error("Regression failure, case:", fileName);
       console.error(e);
       assert(false, "Smoke assertion failed");
@@ -42,8 +50,12 @@ unitTest("yaml-intelligence-smoke-regression", async () => {
 unitTest("yaml-intelligence-unit-regression", async () => {
   setInitializer(fullInit);
   await initState();
-  
-  for (const { path: fileName } of expandGlobSync("smoke/yaml-intelligence/checks/*.json")) {
+
+  for (
+    const { path: fileName } of expandGlobSync(
+      "smoke/yaml-intelligence/checks/*.json",
+    )
+  ) {
     const input = JSON.parse(Deno.readTextFileSync(fileName));
     const { kind, context, expected, expectedLength } = input;
     const result = await getAutomation(kind, context);
@@ -54,10 +66,13 @@ unitTest("yaml-intelligence-unit-regression", async () => {
       if (expected !== undefined) {
         assertEquals(result, expected);
       }
-      
+
       if (kind === "completions") {
         if (expectedLength !== undefined) {
-          assertEquals((result as CompletionResult).completions.length, expectedLength);
+          assertEquals(
+            (result as CompletionResult).completions.length,
+            expectedLength,
+          );
         }
       }
     } catch (e) {

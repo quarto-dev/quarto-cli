@@ -12,6 +12,7 @@ import {
   mappedString,
 } from "../../src/core/mapped-text.ts";
 
+// deno-lint-ignore require-await
 unitTest("mapped-text - mappedString()", async () => {
   const source = `---
 title: foo
@@ -42,6 +43,7 @@ print(time.time())
     { start: 17, end: 33 },
   ]);
 
+  // deno-lint-ignore no-explicit-any
   function allMatch(a: any[], b: any[]) {
     return a.every((v, i) => v === b[i]);
   }
@@ -114,6 +116,7 @@ print(time.time())
   );
 });
 
+// deno-lint-ignore require-await
 unitTest("mapped-text - mappedDiff()", async () => {
   const text1 = `---
 title: "ojs syntax error"

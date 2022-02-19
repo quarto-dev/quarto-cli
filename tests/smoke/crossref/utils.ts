@@ -5,8 +5,6 @@
 *
 */
 
-import { join } from "path/mod.ts";
-
 import { fileLoader } from "../../utils.ts";
 // import { docs, outputForInput } from "../../utils.ts";
 

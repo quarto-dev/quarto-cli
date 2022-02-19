@@ -9,6 +9,7 @@ import { Metadata } from "../../src/config/types.ts";
 import { partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
 import { unitTest } from "../test.ts";
 
+// deno-lint-ignore require-await
 unitTest("partitionYaml", async () => {
   const frontMatter = "---\ntitle: foo\n---";
   const headingText = "## Hello World {#cool .foobar foo=bar}";

@@ -20,6 +20,7 @@ other:
     - bar
 `;
 
+// deno-lint-ignore require-await
 unitTest("yaml", async () => {
   const yaml = readYamlFromString(yamlStr) as Metadata;
 
@@ -37,20 +38,24 @@ unitTest("yaml", async () => {
 
 const circularYml = "foo: &foo\n  bar: *foo";
 
+// deno-lint-ignore require-await
 unitTest("yaml-circular-should-fail", async () => {
   try {
     readYamlFromString(circularYml);
     assert(false, "circular structure should have raised");
-  } catch (e) {
+  } catch (_e) {
+    // we expect to raise
   }
   try {
     readAnnotatedYamlFromString(circularYml);
     assert(false, "circular structure should have raised");
-  } catch (e) {
+  } catch (_e) {
+    // we expect to raise
   }
 });
 
 const sharedYml = "foo:\n  bar: &bar\n    baz: bah\n  baz: *bar";
+// deno-lint-ignore require-await
 unitTest("yaml-shared-should-pass", async () => {
   readYamlFromString(sharedYml);
   readYamlFromString(circularYml);

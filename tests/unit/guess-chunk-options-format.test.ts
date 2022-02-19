@@ -10,6 +10,7 @@ import { guessChunkOptionsFormat } from "../../src/core/lib/guess-chunk-options-
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
 
+// deno-lint-ignore require-await
 unitTest("guess-chunk-options-format-test", async () => {
   const knitrOptionsChunk = `rmdworkflow,
 echo = FALSE,

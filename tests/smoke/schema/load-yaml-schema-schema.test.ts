@@ -1,12 +1,12 @@
 /*
 * load-yaml-schema-schema.test.ts
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2022 by RStudio, PBC
 *
 */
 
-import { getSchemaSchemas } from "../../../src/core/schema/yaml-schema-schema.ts";
-import { test } from "../../test.ts";
+// import { getSchemaSchemas } from "../../../src/core/schema/yaml-schema-schema.ts";
+// import { test } from "../../test.ts";
 
 // test({
 //   verify: [],
