@@ -5,12 +5,9 @@
  *
  */
 
-import { expandGlobSync } from "fs/mod.ts";
 import { unitTest } from "../../test.ts";
 
-import { assert, assertEquals } from "testing/asserts.ts";
-
-import { Semaphore } from "../../../src/core/lib/semaphore.ts";
+import { assert } from "testing/asserts.ts";
 
 import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
 import { initPrecompiledModules } from "../../../src/core/lib/yaml-validation/deno-init-precompiled-modules.ts";
@@ -19,15 +16,11 @@ import {
   setInitializer,
 } from "../../../src/core/lib/yaml-validation/state.ts";
 import {
-  CompletionResult,
-  getAutomation,
-} from "../../../src/core/lib/yaml-intelligence/yaml-intelligence.ts";
-import {
   getSchemas,
   resolveSchema,
   schemaCompletions,
 } from "../../../src/core/lib/yaml-validation/schema-utils.ts";
-import { Completion } from "../../../src/core/lib/yaml-validation/schema.ts";
+import { Completion } from "../../../src/core/lib/yaml-validation/types.ts";
 
 async function fullInit() {
   await initPrecompiledModules();
