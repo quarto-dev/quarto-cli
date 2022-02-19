@@ -7,7 +7,6 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { copy } from "fs/copy.ts";
-import { createTempContext } from "../../core/temp.ts";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
@@ -123,18 +122,13 @@ async function buildYAMLJS() {
 }
 
 export async function buildAssets() {
-  const temp = createTempContext();
-  try {
-    // this has to come first because buildYAMLJS depends on it.
-    await buildSchemaFile(temp);
+  // this has to come first because buildYAMLJS depends on it.
+  await buildSchemaFile();
 
-    await Promise.all([
-      buildQuartoOJS(),
-      buildYAMLJS(),
-    ]);
-  } finally {
-    temp.cleanup();
-  }
+  await Promise.all([
+    buildQuartoOJS(),
+    buildYAMLJS(),
+  ]);
 }
 
 export const buildJsCommand = new Command()

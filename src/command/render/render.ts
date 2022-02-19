@@ -199,7 +199,6 @@ export async function renderFiles(
           target.markdown,
           engine.name,
           error,
-          info,
           file,
         );
         if (validationResult.length) {

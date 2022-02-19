@@ -11,7 +11,7 @@ import { asMappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { getFrontMatterSchema } from "./front-matter.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
-import { error, info } from "log/mod.ts";
+import { error } from "log/mod.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
@@ -29,8 +29,6 @@ export async function validateDocumentFromSource(
   engine: string,
   // deno-lint-ignore no-explicit-any
   errorFn: (msg: string) => any,
-  // deno-lint-ignore no-explicit-any
-  info: (msg: string) => any,
   filename?: string,
 ): Promise<LocalizedError[]> {
   const result: LocalizedError[] = [];
@@ -133,7 +131,6 @@ export async function validateDocument(
     context.target.markdown,
     context.engine.name,
     error,
-    info,
     context.target.source,
   );
 }
