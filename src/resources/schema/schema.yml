@@ -1,25 +1,23 @@
-- object:
-    id: schema/yaml-schema/base-schema
+- id: yaml-schema/base
+  object:
     properties:
       id: string
       completions:
         anyOf:
-          - arrayOf: string # FIXME this needs improving, look at
-                            # Completion interface
+          - arrayOf: string
           - object:
               additionalProperties: string
                 
       additionalCompletions:
         anyOf:
-          - arrayOf: string # FIXME this needs improving, look at
-                            # Completion interface
+          - arrayOf: string
           - object:
               additionalProperties: string
 
-- object:
-    id: schema/yaml-schema/object-schema
+- id: yaml-schema/object
+  object:
     super:
-      resolveRef: schema/yaml-schema/base-schema
+      resolveRef: yaml-schema/base
     properties:
       required:
         anyOf:
@@ -27,116 +25,123 @@
               - all
           - arrayOf: string
       super:
-        ref: schema/yaml-schema/object-schema
+        ref: yaml-schema/object
         description: be a yaml object schema
       hidden: boolean
       additionalProperties:
-        ref: schema/yaml-schema/schema
+        ref: yaml-schema/schema
         description: be a yaml yaml schema
       properties:
         object:
           additionalProperties:
-            ref: schema/yaml-schema/schema
+            ref: yaml-schema/schema
             description: be a yaml yaml schema
 
-- object:
-    id: schema/yaml-schema/enum-schema
+- id: yaml-schema/enum
+  object:
     super:
-      resolveRef: schema/yaml-schema/base-schema
+      resolveRef: yaml-schema/base
     properties:
       enum:
         anyOf:
           - arrayOf: string
           - object:
               super:
-                resolveRef: schema/yaml-schema/base-schema
+                resolveRef: yaml-schema/base
               properties:
                 values:
                   arrayOf: string
 
-- object:
-    id: schema/yaml-schema/ref-schema
+- id: yaml-schema/ref
+  object:
     properties:
       ref: string
       description: string
     additionalProperties: false
-    required: [ref, description]
+    required: ref
 
-- object:
-    id: schema/yaml-schema/maybe-array-of-schema
+- id: yaml-schema/resolveRef
+  object:
+    properties:
+      resolveRef: string
+    additionalProperties: false
+    required: resolveRef
+
+- id: yaml-schema/maybe-array-of
+  object:
     super:
-      resolveRef: schema/yaml-schema/base-schema
+      resolveRef: yaml-schema/base
     properties:
       maybeArrayOf:
-        ref: schema/yaml-schema/schema
+        ref: yaml-schema/schema
         description: be a yaml yaml schema
     additionalProperties: false
     required: all
 
-- object:
-    id: schema/yaml-schema/array-of-schema
+- id: yaml-schema/array-of
+  object:
     super:
-      resolveRef: schema/yaml-schema/base-schema
+      resolveRef: yaml-schema/base
     properties:
       arrayOf:
         anyOf:
           - arrayOf:
-              ref: schema/yaml-schema/schema
+              ref: yaml-schema/schema
               description: be a yaml yaml schema
           - object:
               super:
-                resolveRef: schema/yaml-schema/base-schema
+                resolveRef: yaml-schema/base
               properties:
                 schema:
                   arrayOf:
-                    ref: schema/yaml-schema/schema
+                    ref: yaml-schema/schema
                     description: be a yaml yaml schema
     required: [arrayOf]
 
-- anyOf:
-    id: schema/yaml-schema/enum-schema
+- id: yaml-schema/enum
+  anyOf:
     schemas:
       - arrayOf: string
       - object:
           super:
-            resolveRef: schema/yaml-schema/base-schema
+            resolveRef: yaml-schema/base
           properties:
             values:
               arrayOf: string
 
-- object:
-    id: schema/yaml-schema/any-of-schema
+- id: yaml-schema/any-of
+  object:
     super:
-      resolveRef: schema/yaml-schema/base-schema
+      resolveRef: yaml-schema/base
     properties:
       anyOf:
         anyOf:
           - arrayOf:
-              ref: schema/yaml-schema/schema
+              ref: yaml-schema/schema
               description: be a yaml yaml schema
           - object:
               super:
-                resolveRef: schema/yaml-schema/base-schema
+                resolveRef: yaml-schema/base
               properties:
                 schemas:
                   arrayOf:
-                    ref: schema/yaml-schema/schema
+                    ref: yaml-schema/schema
                     description: be a yaml yaml schema
     
-- anyOf:
-    id: schema/yaml-schema/schema
+- id: yaml-schema/schema
+  anyOf:
     schemas:
       - enum:
         - object
         - string
         - number
+        - path
         - boolean
 
-      - resolveRef: schema/yaml-schema/ref-schema
-      - resolveRef: schema/yaml-schema/maybe-array-of-schema
-      - resolveRef: schema/yaml-schema/array-of-schema
-      - resolveRef: schema/yaml-schema/one-of-schema
-      - resolveRef: schema/yaml-schema/any-of-schema
-      - resolveRef: schema/yaml-schema/enum-schema
-      - resolveRef: schema/yaml-schema/object-schema
+      - resolveRef: yaml-schema/ref
+      - resolveRef: yaml-schema/maybe-array-of
+      - resolveRef: yaml-schema/array-of
+      - resolveRef: yaml-schema/any-of
+      - resolveRef: yaml-schema/enum
+      - resolveRef: yaml-schema/object
 
