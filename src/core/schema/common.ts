@@ -12,15 +12,6 @@
 *
 */
 
-import {
-  Completion,
-  getSchemaDefinition,
-  hasSchemaDefinition,
-  Schema,
-} from "../lib/yaml-validation/schema.ts";
-
-import { resolveSchema } from "../lib/yaml-validation/schema-utils.ts";
-
 import { mergeConfigs } from "../config.ts";
 
 import { CaseConvention, resolveCaseConventionRegex } from "../lib/text.ts";
@@ -36,7 +27,7 @@ import {
   NumberSchema,
   ObjectSchema,
   RefSchema,
-  schemaType,
+  Schema,
   StringSchema,
 } from "../lib/yaml-validation/types.ts";
 
@@ -75,9 +66,9 @@ export const nullSchema: NullSchema = {
   "exhaustiveCompletions": true,
 };
 
-// deno-lint-ignore no-explicit-any
 export function tagSchema<T extends ConcreteSchema>(
   schema: T,
+  // deno-lint-ignore no-explicit-any
   tags: Record<string, any>,
 ): T {
   return {
@@ -162,7 +153,6 @@ export function objectSchema(params: {
   exhaustive?: boolean;
   additionalProperties?: Schema;
   description?: string;
-  // deno-lint-ignore no-explicit-any
   baseSchema?: ObjectSchema;
   completions?: { [k: string]: string };
   namingConvention?: CaseConvention[] | "ignore";
@@ -183,6 +173,7 @@ export function objectSchema(params: {
   required = required || [];
   properties = properties || {};
   patternProperties = patternProperties || {};
+  // deno-lint-ignore no-explicit-any
   const tags: Record<string, any> = {};
   let tagsAreSet = false;
   let propertyNames: Schema | undefined = propertyNamesSchema;

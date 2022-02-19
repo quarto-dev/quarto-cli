@@ -6011,7 +6011,7 @@ if (typeof exports === 'object') {
     return lines2;
   }
 
-  // ../yaml-validation/validator/types.ts
+  // ../yaml-validation/types.ts
   function schemaType(schema) {
     if (schema === false) {
       return "false";
@@ -8039,15 +8039,15 @@ if (typeof exports === 'object') {
     if (hasRef === void 0) {
       hasRef = (cursor) => {
         return schemaCall(cursor, {
-          ref: (s) => true
-        }, (s) => false);
+          ref: (_s) => true
+        }, (_s) => false);
       };
     }
     if (!hasRef(schema)) {
       return schema;
     }
     if (visit === void 0) {
-      visit = (schema2) => {
+      visit = (_schema) => {
       };
     }
     if (next === void 0) {
@@ -8088,7 +8088,7 @@ if (typeof exports === 'object') {
       return [];
     }
     let schema = resolveSchema(s);
-    schema = resolveSchema(schema, (schema2) => {
+    schema = resolveSchema(schema, (_schema) => {
     }, (schema2) => {
       return schema2.tags !== void 0 && schema2.tags["complete-from"] !== void 0;
     }, (schema2) => {
@@ -8138,7 +8138,6 @@ if (typeof exports === 'object') {
         return s2.allOf.map(schemaCompletions).flat();
       },
       "object": (s2) => {
-        debugger;
         s2.cachedCompletions = getObjectCompletions(s2);
         return normalize(s2.cachedCompletions);
       }
@@ -8150,7 +8149,7 @@ if (typeof exports === 'object') {
       "object": (schema) => {
         const properties = schema.properties;
         const objectKeys = completionsParam.length ? completionsParam : Object.getOwnPropertyNames(properties);
-        const uniqueValues = (lst) => {
+        const _uniqueValues = (lst) => {
           const obj = {};
           for (const c of lst) {
             obj[c.value] = c;
@@ -8184,7 +8183,7 @@ if (typeof exports === 'object') {
               };
               try {
                 resolveSchema(schema2, visitor);
-              } catch (e) {
+              } catch (_e) {
               }
               if (!described) {
                 schemaDispatch(schema2, {
@@ -8232,20 +8231,19 @@ if (typeof exports === 'object') {
         results.push(...Object.keys(s.properties || {}));
         return true;
       },
-      "array": (s) => true
+      "array": (_s) => true
     });
     return results;
   }
   function possibleSchemaValues(schema) {
-    const precomputedCompletions = schemaCompletions(schema).filter((c) => c.type === "value").map((c) => c.value.split(":")[0]);
     const results = [];
     walkSchema(schema, {
       "enum": (s) => {
         results.push(...s["enum"].map(String));
         return true;
       },
-      "array": (s) => true,
-      "object": (s) => true
+      "array": (_s) => true,
+      "object": (_s) => true
     });
     return results;
   }
@@ -8294,7 +8292,7 @@ if (typeof exports === 'object') {
     schemaCall(schema, recur, (_) => false);
   }
 
-  // ../yaml-validation/validator/validator.ts
+  // ../yaml-validation/validator.ts
   var ValidationContext = class {
     constructor() {
       this.instancePath = [];
@@ -8345,7 +8343,7 @@ if (typeof exports === 'object') {
       }
       return this.collectErrors(schema, source, value, pruneErrors);
     }
-    collectErrors(schema, source, value, pruneErrors = true) {
+    collectErrors(_schema, source, _value, pruneErrors = true) {
       const inner = (node) => {
         const result2 = [];
         if (node.edge === "anyOf" && pruneErrors) {
@@ -8380,7 +8378,7 @@ if (typeof exports === 'object') {
             start: locF(validationError.value.start),
             end: locF(validationError.value.end)
           };
-        } catch (e) {
+        } catch (_e) {
           location = {
             start: { line: 0, column: 0 },
             end: { line: 0, column: 0 }
@@ -8411,7 +8409,6 @@ if (typeof exports === 'object') {
     }
   };
   function createSourceContext(src, location) {
-    debugger;
     const nLines = lines(src.originalString).length;
     const {
       start,
@@ -8522,7 +8519,7 @@ if (typeof exports === 'object') {
         return true;
       });
     }
-    return true;
+    return result;
   }
   function validateString(value, schema, context) {
     if (!typeIsValid(value, schema, context, typeof value.result === "string")) {
@@ -8663,7 +8660,7 @@ if (typeof exports === 'object') {
             schema.compiledPatterns[key] = new RegExp(key);
           }
           const regexp = schema.compiledPatterns[key];
-          for (const [objectKey, val] of Object.entries(objResult)) {
+          for (const [objectKey, _val] of Object.entries(objResult)) {
             if (objectKey.match(regexp)) {
               inspectedProps.add(objectKey);
               context.pushInstance(objectKey);
@@ -8771,9 +8768,8 @@ if (typeof exports === 'object') {
         };
       }
     }
-    reportErrorsInSource(result, src, message, error, log) {
+    reportErrorsInSource(result, _src, message, error, log) {
       if (result.errors.length) {
-        const nLines = lines(src.originalString).length;
         if (message.length) {
           error(message);
         }
@@ -8864,7 +8860,7 @@ if (typeof exports === 'object') {
     if (error.schemaPath.indexOf("propertyNames") === -1) {
       return error;
     }
-    let badKey = getBadKey(error);
+    const badKey = getBadKey(error);
     if (badKey) {
       if (error.instancePath.length && error.instancePath[error.instancePath.length - 1] !== badKey) {
         addInstancePathInfo(error.niceError, [...error.instancePath, badKey]);
@@ -8906,7 +8902,7 @@ if (typeof exports === 'object') {
           location
         }
       };
-    } catch (e) {
+    } catch (_e) {
       return error;
     }
   }
@@ -8961,7 +8957,7 @@ if (typeof exports === 'object') {
     addInstancePathInfo(newError, error.instancePath);
     addFileInfo(newError, error.source);
     newError.info["yaml-version-1.2"] = suggestion1;
-    newError.info["suggestion-fix"] = suggestion1;
+    newError.info["suggestion-fix"] = suggestion2;
     return {
       ...error,
       niceError: newError
@@ -8970,7 +8966,7 @@ if (typeof exports === 'object') {
   function createErrorFragments(error) {
     const rawVerbatimInput = getVerbatimInput(error);
     const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
-    let pathFragments = error.instancePath.map((s) => blue(String(s)));
+    const pathFragments = error.instancePath.map((s) => blue(String(s)));
     return {
       location: locationString(error.location),
       fullPath: pathFragments.join(":"),
@@ -8978,7 +8974,7 @@ if (typeof exports === 'object') {
       value: verbatimInput
     };
   }
-  function schemaDefinedErrors(error, parse, _schema) {
+  function schemaDefinedErrors(error, _parse, _schema) {
     const schema = error.schema;
     if (schema === true || schema === false) {
       return error;
@@ -9079,7 +9075,6 @@ if (typeof exports === 'object') {
     return validator;
   }
   async function withValidator(schema, fun) {
-    const schemaName = getSchemaName(schema);
     let result;
     let error;
     try {
@@ -9392,7 +9387,7 @@ if (typeof exports === 'object') {
           if (matchingTypes.size > 1) {
             return false;
           }
-          let arraySubSchemas = [];
+          const arraySubSchemas = [];
           walkSchema(ss, {
             "array": (s) => {
               arraySubSchemas.push(s);
