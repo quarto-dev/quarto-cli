@@ -1,0 +1,43 @@
+---
+title: "Tests if import fails with wrong license"
+format: html
+resources:
+  - palmer-penguins.csv
+---
+
+This document is currently unused, pending observableHQ changes.
+
+The following import should fail on Quarto:
+
+```{ojs}
+import { foo } from '@cscheid/unlicensed-module-test';
+import { vl } from '@vega/vega-lite-api-v5';
+import { graph } from '@cscheid/force-directed-graph-with-occlusion';
+```
+
+```{ojs}
+import { aq, op } from '@uwdata/arquero'
+penguins = aq.loadCSV("palmer-penguins.csv")
+```
+
+```{ojs}
+penguins
+  .groupby('species')
+  .filter(p => p.body_mass > 0)
+  .rollup({
+    count: op.count(),
+    avg_mass: op.average('body_mass')
+   })
+  .view()
+```
+
+```{ojs}
+penguins
+  .groupby('species')
+  .filter(p => p.body_mass_g > 0)
+  .rollup({
+    count: op.count(),
+    avg_mass: op.average('body_mass')
+   })
+  .view()
+```
