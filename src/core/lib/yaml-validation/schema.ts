@@ -3,23 +3,17 @@
 *
 * JSON Schema core definitions
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2022 by RStudio, PBC
 *
 */
 
 import {
   AllOfSchema,
   AnyOfSchema,
-  ArraySchema,
-  Completion,
   ConcreteSchema,
-  ObjectSchema,
   Schema,
   schemaType,
-} from "./validator/types.ts";
-
-export type { Completion, Schema } from "./validator/types.ts";
-export { schemaType } from "./validator/types.ts";
+} from "./types.ts";
 
 export function schemaAccepts(schema: Schema, testType: string): boolean {
   const t = schemaType(schema);

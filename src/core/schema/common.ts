@@ -38,9 +38,9 @@ import {
   RefSchema,
   schemaType,
   StringSchema,
-} from "../lib/yaml-validation/validator/types.ts";
+} from "../lib/yaml-validation/types.ts";
 
-import { schemaDescription } from "../lib/yaml-validation/validator/types.ts";
+import { schemaDescription } from "../lib/yaml-validation/types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -22,10 +22,7 @@ import { reportOnce } from "../lib/errors.ts";
 import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 import { isObject } from "../lodash.ts";
 
-import {
-  JSONValue,
-  LocalizedError,
-} from "../lib/yaml-validation/validator/types.ts";
+import { JSONValue, LocalizedError } from "../lib/yaml-validation/types.ts";
 
 export async function validateDocumentFromSource(
   src: string,

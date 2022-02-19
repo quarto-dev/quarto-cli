@@ -7,16 +7,12 @@
 
 import { YAMLSchema } from "./yaml-schema.ts";
 
-import { PromiseQueue } from "../promise.ts";
-
-import { Schema } from "./schema.ts";
-
 import {
   setDefaultErrorHandlers,
   ValidatorErrorHandlerFunction,
 } from "./errors.ts";
 
-import { RefSchema, schemaType } from "./validator/types.ts";
+import { RefSchema, Schema, schemaType } from "./types.ts";
 
 const yamlValidators: Record<string, YAMLSchema> = {};
 
@@ -59,7 +55,6 @@ export async function withValidator<T>(
   schema: Schema,
   fun: (validator: YAMLSchema) => Promise<T>,
 ): Promise<T> {
-  const schemaName = getSchemaName(schema); // name of schema so we can look it up on the validator cache
   let result: T | undefined;
   let error;
   try {

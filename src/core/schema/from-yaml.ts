@@ -20,7 +20,6 @@ import { expandGlobSync } from "fs/expand_glob.ts";
 import {
   getSchemaDefinition,
   hasSchemaDefinition,
-  Schema,
   setSchemaDefinition,
 } from "../lib/yaml-validation/schema.ts";
 
@@ -49,7 +48,7 @@ import {
 import { schemaPath } from "./utils.ts";
 import { memoize } from "../memoize.ts";
 
-import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
+import { ConcreteSchema, Schema } from "../lib/yaml-validation/types.ts";
 
 function setBaseSchemaProperties(
   // deno-lint-ignore no-explicit-any

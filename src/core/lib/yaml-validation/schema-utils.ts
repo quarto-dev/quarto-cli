@@ -5,14 +5,7 @@
 *
 */
 
-import {
-  Completion,
-  getSchemaDefinition,
-  Schema,
-  schemaType,
-} from "./schema.ts";
-
-import { prefixes } from "../regexp.js";
+import { getSchemaDefinition } from "./schema.ts";
 
 import { navigateSchemaBySchemaPathSingle } from "./schema-navigation.ts";
 
@@ -20,16 +13,17 @@ import {
   AllOfSchema,
   AnyOfSchema,
   ArraySchema,
+  Completion,
   ConcreteSchema,
   EnumSchema,
   ObjectSchema,
   RefSchema,
+  Schema,
   SchemaCall,
   schemaCall,
+  schemaDispatch,
   schemaDocString,
-} from "./validator/types.ts";
-
-import { schemaDispatch } from "./validator/types.ts";
+} from "./types.ts";
 
 // NB: QuartoJsonSchemas is meant for serialization of the entire body of schemas
 // For actual schema use in quarto, use either the definitions in core/schema
@@ -78,7 +72,7 @@ export function maybeResolveSchema(
 ): ConcreteSchema | true | false | undefined {
   try {
     return resolveSchema(schema);
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 }
@@ -117,15 +111,15 @@ export function resolveSchema(
   if (hasRef === undefined) {
     hasRef = (cursor: ConcreteSchema) => {
       return schemaCall(cursor, {
-        ref: (s) => true,
-      }, (s) => false);
+        ref: (_s) => true,
+      }, (_s) => false);
     };
   }
   if (!hasRef(schema)) {
     return schema;
   }
   if (visit === undefined) {
-    visit = (schema: ConcreteSchema) => {};
+    visit = (_schema: ConcreteSchema) => {};
   }
   if (next === undefined) {
     next = (cursor: ConcreteSchema) => {
@@ -187,7 +181,7 @@ export function schemaCompletions(s: Schema): Completion[] {
   // then resolve through "complete-from" schema tags
   schema = resolveSchema(
     schema,
-    (schema: ConcreteSchema) => {}, // visit
+    (_schema: ConcreteSchema) => {}, // visit
     (schema: ConcreteSchema) => {
       return (schema.tags !== undefined) &&
         (schema.tags["complete-from"] !== undefined);
@@ -256,7 +250,6 @@ export function schemaCompletions(s: Schema): Completion[] {
       return s.allOf.map(schemaCompletions).flat();
     },
     "object": (s) => {
-      debugger;
       // we actually mutate the schema here to avoid recomputing.
       s.cachedCompletions = getObjectCompletions(s);
       return normalize(s.cachedCompletions);
@@ -273,7 +266,7 @@ function getObjectCompletions(s: ConcreteSchema): Completion[] {
       const objectKeys = completionsParam.length
         ? completionsParam
         : Object.getOwnPropertyNames(properties);
-      const uniqueValues = (lst: Completion[]) => {
+      const _uniqueValues = (lst: Completion[]) => {
         const obj: Record<string, Completion> = {};
         for (const c of lst) {
           obj[c.value] = c;
@@ -314,7 +307,7 @@ function getObjectCompletions(s: ConcreteSchema): Completion[] {
             };
             try {
               resolveSchema(schema, visitor);
-            } catch (e) {
+            } catch (_e) {
               // TODO catch only the lookup exception
             }
             if (!described) {
@@ -376,17 +369,12 @@ export function possibleSchemaKeys(schema: Schema): string[] {
       results.push(...Object.keys(s.properties || {}));
       return true;
     },
-    "array": (s: ArraySchema) => true,
+    "array": (_s: ArraySchema) => true,
   });
   return results;
 }
 
 export function possibleSchemaValues(schema: Schema): string[] {
-  const precomputedCompletions = schemaCompletions(schema).filter((c) =>
-    c.type === "value"
-  )
-    .map((c) => c.value.split(":")[0]);
-
   // FIXME we likely got unlucky and were handed an unnamed schema
   // from inside an ajv error.
 
@@ -398,8 +386,8 @@ export function possibleSchemaValues(schema: Schema): string[] {
       return true;
     },
     // don't recurse into anything that introduces instancePath values
-    "array": (s: ArraySchema) => true,
-    "object": (s: ObjectSchema) => true,
+    "array": (_s: ArraySchema) => true,
+    "object": (_s: ObjectSchema) => true,
   });
   return results;
 }

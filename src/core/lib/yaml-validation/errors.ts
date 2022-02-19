@@ -11,8 +11,6 @@ import * as colors from "../external/colors.ts";
 
 import { getVerbatimInput, navigate, YAMLSchema } from "./yaml-schema.ts";
 
-import { Schema } from "./schema.ts";
-
 import {
   addFileInfo,
   addInstancePathInfo,
@@ -21,32 +19,19 @@ import {
   TidyverseError,
 } from "../errors.ts";
 
-import { navigateSchemaByInstancePath } from "./schema-navigation.ts";
-
 import { mappedIndexToRowCol } from "../mapped-text.ts";
 
-import {
-  possibleSchemaKeys,
-  possibleSchemaValues,
-  resolveSchema,
-  schemaCompletions,
-} from "./schema-utils.ts";
+import { possibleSchemaKeys, possibleSchemaValues } from "./schema-utils.ts";
 
-import {
-  CaseConvention,
-  detectCaseConvention,
-  editDistance,
-  normalizeCaseConvention,
-} from "../text.ts";
+import { editDistance } from "../text.ts";
 
 import {
   AnnotatedParse,
   LocalizedError,
+  Schema,
   schemaDescription,
   schemaType,
-} from "./validator/types.ts";
-
-import { indexToRowCol } from "../text.ts";
+} from "./types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -208,7 +193,7 @@ function identifyKeyErrors(
     return error;
   }
 
-  let badKey = getBadKey(error);
+  const badKey = getBadKey(error);
   if (badKey) {
     if (
       error.instancePath.length &&
@@ -301,7 +286,7 @@ function expandEmptySpan(
         location,
       },
     };
-  } catch (e) {
+  } catch (_e) {
     return error;
   }
 }
@@ -380,7 +365,7 @@ function checkForBadBoolean(
   addInstancePathInfo(newError, error.instancePath);
   addFileInfo(newError, error.source);
   newError.info["yaml-version-1.2"] = suggestion1;
-  newError.info["suggestion-fix"] = suggestion1;
+  newError.info["suggestion-fix"] = suggestion2;
 
   return {
     ...error,
@@ -397,7 +382,7 @@ function createErrorFragments(error: LocalizedError) {
   const rawVerbatimInput = getVerbatimInput(error);
   const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
 
-  let pathFragments = error.instancePath.map((s) => colors.blue(String(s)));
+  const pathFragments = error.instancePath.map((s) => colors.blue(String(s)));
 
   return {
     location: locationString(error.location),
@@ -412,7 +397,7 @@ function createErrorFragments(error: LocalizedError) {
 // error.schema
 function schemaDefinedErrors(
   error: LocalizedError,
-  parse: AnnotatedParse,
+  _parse: AnnotatedParse,
   _schema: Schema,
 ): LocalizedError {
   const schema = error.schema;
@@ -457,7 +442,6 @@ function checkForNearbyCorrection(
     corrections.push(...possibleSchemaKeys(schema));
     keyOrValue = "key";
   } else {
-    // deno-lint-ignore no-explicit-any
     const val = navigate(error.instancePath, parse);
 
     if (typeof val!.result !== "string") {

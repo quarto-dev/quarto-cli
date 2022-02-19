@@ -7,7 +7,7 @@
 *
 */
 
-import { Schema } from "../lib/yaml-validation/schema.ts";
+import { Schema } from "../lib/yaml-validation/types.ts";
 
 import { expandFormatAliases } from "./format-aliases.ts";
 
@@ -19,7 +19,7 @@ import {
 
 import { anyOfSchema as anyOfS, enumSchema as enumS } from "./common.ts";
 
-import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
+import { ConcreteSchema } from "../lib/yaml-validation/types.ts";
 
 function useSchema(schema: ConcreteSchema, format: string) {
   const formats = schema?.tags?.formats as string[] | undefined;

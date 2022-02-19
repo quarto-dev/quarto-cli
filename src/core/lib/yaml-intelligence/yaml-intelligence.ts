@@ -30,12 +30,8 @@ import {
 } from "../partition-cell-options.ts";
 
 import {
-  Completion,
   expandAliasesFrom,
-  Schema,
   schemaAccepts,
-  schemaAcceptsScalar,
-  schemaType,
   setSchemaDefinition,
 } from "../yaml-validation/schema.ts";
 
@@ -58,8 +54,11 @@ import { lineOffsets } from "../text.ts";
 
 import {
   ArraySchema,
+  Completion,
   ObjectSchema,
-} from "../yaml-validation/validator/types.ts";
+  Schema,
+  schemaType,
+} from "../yaml-validation/types.ts";
 
 interface IDEContext {
   formats: string[];
@@ -565,7 +564,7 @@ function completions(obj: CompletionContext): CompletionResult {
             return false;
           }
 
-          let arraySubSchemas: ArraySchema[] = [];
+          const arraySubSchemas: ArraySchema[] = [];
           // now find all array subschema to recurse on
           walkSchema(ss, {
             "array": (s: ArraySchema) => {

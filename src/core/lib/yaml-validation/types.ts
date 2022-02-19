@@ -7,8 +7,8 @@
 *
 */
 
-import { MappedString } from "../../mapped-text.ts";
-import { ErrorLocation, TidyverseError } from "../../errors.ts";
+import { MappedString } from "../mapped-text.ts";
+import { ErrorLocation, TidyverseError } from "../errors.ts";
 
 // https://github.com/microsoft/TypeScript/issues/1897#issuecomment-822032151
 export type JSONValue =
@@ -258,8 +258,8 @@ export function schemaDispatch(s: Schema, d: SchemaDispatch): void {
   // dispatch is safe (because it can't associate the return of st with s).
   // TODO https://www.typescriptlang.org/docs/handbook/2/conditional-types.html
   //
-  // deno-lint-ignore no-explicit-any
   if (d[st]) {
+    // deno-lint-ignore no-explicit-any
     (d[st]! as ((x: any) => unknown))(s as any);
   }
 }
@@ -275,8 +275,8 @@ export function schemaCall<T>(
   // TODO https://www.typescriptlang.org/docs/handbook/2/conditional-types.html
   // TODO https://www.typescriptlang.org/docs/handbook/2/types-from-types.html
   //
-  // deno-lint-ignore no-explicit-any
   if (d[st]) {
+    // deno-lint-ignore no-explicit-any
     return (d[st]! as ((x: any) => T))(s as any);
   }
   if (other) {

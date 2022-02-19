@@ -23,11 +23,10 @@ import {
 import {
   getSchemaDefinition,
   hasSchemaDefinition,
-  Schema,
   setSchemaDefinition,
 } from "../lib/yaml-validation/schema.ts";
 
-import { ConcreteSchema } from "../lib/yaml-validation/validator/types.ts";
+import { ConcreteSchema, Schema } from "../lib/yaml-validation/types.ts";
 
 export function defineCached(
   thunk: () => Promise<

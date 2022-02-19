@@ -8,13 +8,11 @@
 *
 */
 
-import { Schema } from "./schema.ts";
-
 import { resolveSchema } from "./schema-utils.ts";
 
 import { prefixes } from "../regexp.js";
 
-import { schemaType } from "./schema.ts";
+import { schemaType } from "./types.ts";
 
 // NB we have _three_ schema navigation functions which behave
 // differently and are needed in different cases
@@ -22,52 +20,18 @@ import { schemaType } from "./schema.ts";
 // navigateSchemaBySchemaPath is used to resolve inner schema in error
 // messages. it navigates to sets of schema from the schema path given
 // by ajv
-export function navigateSchemaBySchemaPath(
-  path: string[],
-  schema: any,
-  pathIndex = 0,
-): any[] {
-  schema = resolveSchema(schema);
-  if (pathIndex >= path.length - 1) {
-    return [schema];
-  }
-  const pathVal = path[pathIndex];
-  // allOf doesn't appear to trigger a new path in the schemapath, so
-  // we have to check if the _current_ schema is an allOf, and just
-  // iterate over all of them and concatenate. Maybe? :shrug: ?
-  if (schema.allOf !== undefined) {
-    return schema.allOf.map((s: any) =>
-      navigateSchemaBySchemaPath(path, s, pathIndex)
-    )
-      .flat();
-  } else if (pathVal === "patternProperties" && schema.patternProperties) {
-    const key = path[pathIndex + 1];
-    const subSchema = schema.patternProperties[key];
-    return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "properties" && schema.properties) {
-    const key = path[pathIndex + 1];
-    const subSchema = schema.properties[key];
-    return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "anyOf" && schema.anyOf) {
-    const key = Number(path[pathIndex + 1]);
-    const subSchema = schema.anyOf[key];
-    return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 2);
-  } else if (pathVal === "items" && schema.items) {
-    const subSchema = schema.items;
-    return navigateSchemaBySchemaPath(path, subSchema, pathIndex + 1);
-  } else {
-    return [];
-  }
-}
 
 // navigateSchemaByInstancePath is used to resolve inner schema via possible
 // instance paths. It navigates to sets of schema from an _instance path_,
 // returning the set of schema that could be navigated to by the particular
 // sequence of keys (and array offsets)
 export function navigateSchemaByInstancePath(
+  // deno-lint-ignore no-explicit-any
   schema: any,
   path: (number | string)[],
+  // deno-lint-ignore no-explicit-any
 ): any[] {
+  // deno-lint-ignore no-explicit-any
   const inner = (subSchema: any, index: number): any[] => {
     subSchema = resolveSchema(subSchema);
     if (index === path.length) {
@@ -110,8 +74,10 @@ export function navigateSchemaByInstancePath(
       }
       return inner(subSchema.items, index + 1);
     } else if (st === "anyOf") {
+      // deno-lint-ignore no-explicit-any
       return subSchema.anyOf.map((ss: any) => inner(ss, index));
     } else if (st === "allOf") {
+      // deno-lint-ignore no-explicit-any
       return subSchema.allOf.map((ss: any) => inner(ss, index));
     } else {
       // if path wanted to navigate deeper but this is a YAML
@@ -127,8 +93,10 @@ export function navigateSchemaByInstancePath(
 // walk the actual concrete schemas ("take _this specific anyOf_
 // entry, then that specific key", and give me the resulting schema")
 export function navigateSchemaBySchemaPathSingle(
+  // deno-lint-ignore no-explicit-any
   schema: any,
   path: (number | string)[],
+  // deno-lint-ignore no-explicit-any
 ): any {
   const ensurePathFragment = (
     fragment: (number | string),
@@ -141,6 +109,7 @@ export function navigateSchemaBySchemaPathSingle(
     }
   };
 
+  // deno-lint-ignore no-explicit-any
   const inner = (subschema: any, index: number): any => {
     if (subschema === undefined) {
       throw new Error(
@@ -185,6 +154,7 @@ export function navigateSchemaBySchemaPathSingle(
   return inner(schema, 0);
 }
 
+// deno-lint-ignore no-explicit-any
 function matchPatternProperties(schema: any, key: string): any | false {
   for (
     const [regexpStr, subschema] of Object.entries(

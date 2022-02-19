@@ -18,7 +18,6 @@ import {
 } from "../lib/yaml-validation/schema-utils.ts";
 import {
   getSchemaDefinitionsObject,
-  Schema,
   setSchemaDefinition,
 } from "../lib/yaml-validation/schema.ts";
 import { getFormatAliases } from "./format-aliases.ts";
@@ -39,7 +38,7 @@ import { execProcess } from "../process.ts";
 
 import { walkSchema } from "../lib/yaml-validation/schema-utils.ts";
 
-import { SchemaDocumentation } from "../lib/yaml-validation/validator/types.ts";
+import { Schema, SchemaDocumentation } from "../lib/yaml-validation/types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 

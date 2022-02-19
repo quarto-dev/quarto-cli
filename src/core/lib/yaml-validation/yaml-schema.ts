@@ -8,33 +8,15 @@
 *
 */
 
-import { mappedIndexToRowCol, MappedString } from "../mapped-text.ts";
+import { MappedString } from "../mapped-text.ts";
 
-import { formatLineRange, lines } from "../text.ts";
+import { TidyverseError } from "../errors.ts";
 
-import {
-  addFileInfo,
-  addInstancePathInfo,
-  ErrorLocation,
-  quotedStringColor,
-  TidyverseError,
-} from "../errors.ts";
+import { Schema } from "./types.ts";
 
-import * as colors from "../external/colors.ts";
+import { validate } from "./validator.ts";
 
-import { getSchemaDefinition, Schema } from "./schema.ts";
-
-import { navigateSchemaBySchemaPath } from "./schema-navigation.ts";
-
-import { validate } from "./validator/validator.ts";
-
-import {
-  AnnotatedParse,
-  JSONValue,
-  LocalizedError,
-} from "./validator/types.ts";
-
-import { resolveSchema } from "./schema-utils.ts";
+import { AnnotatedParse, JSONValue, LocalizedError } from "./types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -110,7 +92,6 @@ export function navigate(
 }
 
 interface ValidatedParseResult {
-  // deno-lint-ignore no-explicit-any
   result: JSONValue;
   errors: LocalizedError[];
 }
@@ -122,7 +103,6 @@ interface ValidatedParseResult {
 
 export class YAMLSchema {
   schema: Schema;
-  // deno-lint-ignore no-explicit-any
 
   // These are schema-specific error transformers to yield custom
   // error messages.
@@ -159,6 +139,7 @@ export class YAMLSchema {
     });
   }
 
+  // deno-lint-ignore require-await
   async validateParse(
     src: MappedString,
     annotation: AnnotatedParse,
@@ -187,14 +168,13 @@ export class YAMLSchema {
   // infra
   reportErrorsInSource(
     result: ValidatedParseResult,
-    src: MappedString,
+    _src: MappedString,
     message: string,
     // deno-lint-ignore no-explicit-any
     error: (a: string) => any,
     log: (a: TidyverseError) => unknown,
   ) {
     if (result.errors.length) {
-      const nLines = lines(src.originalString).length;
       if (message.length) {
         error(message);
       }
