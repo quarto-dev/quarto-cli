@@ -180,6 +180,7 @@
                 short: The mapping between the page and the embedded discussion.
                 long: |
                   The mapping between the page and the embedded discussion. 
+
                   - `pathname` - the discussion title contains the page path
                   - `url` - the discussion title contains the page url
                   - `title` - the discussion title contains the page title
@@ -208,7 +209,8 @@
                 ]
               description: The giscus theme to use when displaying comments.
             language:
-              string: The language that should be used when displaying giscus.
+              string:
+                description: The language that should be used when displaying the commenting interface.
           required: [repo]
       hypothesis:
         anyOf:
