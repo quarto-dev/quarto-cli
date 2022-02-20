@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Prepares Quarto source files for packaging
 source ../../configuration
