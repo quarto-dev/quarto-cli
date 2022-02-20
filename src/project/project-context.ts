@@ -408,11 +408,11 @@ export async function directoryMetadataForInputFile(
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
       const errMsg = "Directory metadata validation failed.";
-      const yaml = (await readAndValidateYamlFromFile(
+      const yaml = ((await readAndValidateYamlFromFile(
         file,
         frontMatterSchema,
         errMsg,
-      )) as Record<string, unknown>;
+      )) || {}) as Record<string, unknown>;
 
       // resolve format into expected structure
       if (yaml.format) {
