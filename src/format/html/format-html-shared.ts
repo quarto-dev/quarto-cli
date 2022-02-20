@@ -44,6 +44,7 @@ export const kPageLayoutFull = "full";
 export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
+export const kGiscus = "giscus";
 
 export const kDraft = "draft";
 

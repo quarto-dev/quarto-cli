@@ -63,6 +63,7 @@ import {
   kComments,
   kDocumentCss,
   kFootnotesHover,
+  kGiscus,
   kHypothesis,
   kMinimal,
   kTabsets,
@@ -186,6 +187,9 @@ export function htmlFormatExtras(
         false,
       [kUtterances]:
         (format.metadata[kComments] as Record<string, unknown>)[kUtterances] ||
+        false,
+      [kGiscus]:
+        (format.metadata[kComments] as Record<string, unknown>)[kGiscus] ||
         false,
     }
     : {};
@@ -408,6 +412,28 @@ export function htmlFormatExtras(
       ),
     );
     includeAfterBody.push(utterancesAfterBody);
+  }
+
+  // giscus
+  if (options.giscus) {
+    const giscus = options.giscus as Record<string, unknown>;
+    giscus.category = giscus.category || "General";
+    giscus.theme = giscus.theme || "light";
+    giscus.mapping = giscus.mapping || "title";
+    giscus["reactions-enabled"] = giscus["reactions-enabled"] !== undefined
+      ? giscus["reactions-enabled"]
+      : true;
+    giscus["input-position"] = giscus["input-position"] || "top";
+    giscus.language = giscus.language || "en";
+    const giscusAfterBody = temp.createFile({ suffix: ".html" });
+    Deno.writeTextFileSync(
+      giscusAfterBody,
+      renderEjs(
+        formatResourcePath("html", join("giscus", "giscus.ejs")),
+        { giscus },
+      ),
+    );
+    includeAfterBody.push(giscusAfterBody);
   }
 
   // return extras
