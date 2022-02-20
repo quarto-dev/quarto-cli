@@ -353,6 +353,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     },
   });
 
+  // Remove the labeleledby attribute since it is pointing
+  // to a non-existent label
+  if (quartoSearchOptions.type === "overlay") {
+    const inputEl = window.document.querySelector(
+      "#quarto-search .aa-Autocomplete"
+    );
+    if (inputEl) {
+      inputEl.removeAttribute("aria-labelledby");
+    }
+  }
+
   // If the main document scrolls dismiss the search results
   // (otherwise, since they're floating in the document they can scroll with the document)
   window.document.body.onscroll = () => {
