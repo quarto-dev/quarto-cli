@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { extname } from "path/mod.ts";
+import { dirname, extname, isAbsolute, join } from "path/mod.ts";
 import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
@@ -37,6 +37,7 @@ const kSidebarIdPrefix = "quarto-int-sidebar:";
 const kNavbarIdPrefix = "quarto-int-navbar:";
 
 export interface NavigationPipelineContext {
+  source: string;
   format: Format;
   sidebar?: Sidebar;
   navigation?: Navigation;
@@ -296,9 +297,13 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
   };
 };
 
-const toHeaderFooterMarkdown = (prefix: string, content: string[]) => {
+const toHeaderFooterMarkdown = (
+  source: string,
+  prefix: string,
+  content: string[],
+) => {
   const markdown = content.map((con) => {
-    return expandMarkdown(prefix, con);
+    return expandMarkdown(source, prefix, con);
   });
   return markdown.reduce(
     (previousValue, currentValue) => {
@@ -331,6 +336,7 @@ const sidebarHeaderFooterHandler = (context: NavigationPipelineContext) => {
       if (context.sidebar?.header) {
         if (context.sidebar?.header && context.sidebar?.header.length > 0) {
           result[kSidebarHeader] = toHeaderFooterMarkdown(
+            context.source,
             kSidebarHeader,
             context.sidebar.header as string[],
           );
@@ -339,6 +345,7 @@ const sidebarHeaderFooterHandler = (context: NavigationPipelineContext) => {
       if (context.sidebar?.footer) {
         if (context.sidebar?.footer && context.sidebar?.footer.length > 0) {
           result[kSidebarFooter] = toHeaderFooterMarkdown(
+            context.source,
             kSidebarFooter,
             context.sidebar.footer as string[],
           );
@@ -378,12 +385,14 @@ const bodyHeaderFooterHandler = (context: NavigationPipelineContext) => {
       const result: Record<string, string> = {};
       if (context.bodyDecorators?.header) {
         result[kBodyHeader] = toHeaderFooterMarkdown(
+          context.source,
           kBodyHeader,
           context.bodyDecorators?.header as string[],
         );
       }
       if (context.bodyDecorators?.footer) {
         result[kBodyFooter] = toHeaderFooterMarkdown(
+          context.source,
           kBodyFooter,
           context.bodyDecorators?.footer as string[],
         );
@@ -434,18 +443,36 @@ const marginHeaderFooterHandler = (context: NavigationPipelineContext) => {
     getUnrendered() {
       const result: Record<string, string> = {};
       if (context.navigation?.pageMargin) {
-        const headers = context.navigation.pageMargin.header;
-        if (headers && headers.length > 0) {
+        const projectHeaders = context.navigation.pageMargin.header;
+        const pageHeaderRaw = context.format.metadata[kMarginHeader];
+        const pageHeaders: string[] = (pageHeaderRaw !== undefined)
+          ? Array.isArray(pageHeaderRaw) ? pageHeaderRaw : [pageHeaderRaw]
+          : [];
+        const marginHeaders = [
+          ...(projectHeaders || []),
+          ...(pageHeaders || []),
+        ];
+        if (marginHeaders && marginHeaders.length > 0) {
           result[kMarginHeader] = toHeaderFooterMarkdown(
+            context.source,
             kMarginHeader,
-            headers,
+            marginHeaders,
           );
         }
-        const footers = context.navigation.pageMargin.footer;
-        if (footers && footers.length > 0) {
+        const projectFooters = context.navigation.pageMargin.footer;
+        const pageFooterRaw = context.format.metadata[kMarginFooter];
+        const pageFooters: string[] = pageFooterRaw !== undefined
+          ? Array.isArray(pageFooterRaw) ? pageFooterRaw : [pageFooterRaw]
+          : [];
+        const marginFooters = [
+          ...(projectFooters || []),
+          ...(pageFooters || []),
+        ].filter((item) => item !== undefined);
+        if (marginFooters && marginFooters.length > 0) {
           result[kMarginFooter] = toHeaderFooterMarkdown(
+            context.source,
             kMarginFooter,
-            footers,
+            marginFooters,
           );
         }
       }
@@ -551,30 +578,31 @@ const footerHandler = (context: NavigationPipelineContext) => {
   };
 };
 
-function expandMarkdown(name: string, val: unknown): string[] {
+function expandMarkdown(source: string, name: string, val: unknown): string[] {
   if (Array.isArray(val)) {
     return val.map((pathOrMarkdown) => {
-      return expandMarkdownFilePath(pathOrMarkdown);
+      return expandMarkdownFilePath(source, pathOrMarkdown);
     });
   } else if (typeof (val) == "string") {
-    return [expandMarkdownFilePath(val)];
+    return [expandMarkdownFilePath(source, val)];
   } else {
     throw Error(`Invalid value for ${name}:\n${val}`);
   }
 }
 
-function expandMarkdownFilePath(val: string): string {
-  if (safeExistsSync(val)) {
-    const fileContents = Deno.readTextFileSync(val);
+function expandMarkdownFilePath(source: string, path: string): string {
+  const absPath = isAbsolute(path) ? path : join(dirname(source), path);
+  if (safeExistsSync(absPath)) {
+    const fileContents = Deno.readTextFileSync(absPath);
 
     // If we are reading raw HTML, provide raw block indicator
-    const ext = extname(val);
+    const ext = extname(absPath);
     if (ext === ".html") {
       return "```{=html}\n" + fileContents + "\n```";
     } else {
       return fileContents;
     }
   } else {
-    return val;
+    return path;
   }
 }

@@ -293,6 +293,7 @@ export async function websiteNavigationExtras(
   };
 
   const pipelineHandlers = navigationMarkdownHandlers({
+    source,
     format,
     sidebar,
     navigation,
