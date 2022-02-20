@@ -97,7 +97,7 @@ export function htmlFormat(
           }
         }
       },
-      formatExtras: (
+      formatExtras: async (
         input: string,
         flags: PandocFlags,
         format: Format,
@@ -106,7 +106,7 @@ export function htmlFormat(
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          htmlFormatExtras(format, temp),
+          await htmlFormatExtras(format, temp),
           themeFormatExtras(input, flags, format),
           { [kFilterParams]: htmlFilterParams },
         );
@@ -142,13 +142,13 @@ export interface HtmlFormatScssOptions {
   quartoCssVars?: boolean;
 }
 
-export function htmlFormatExtras(
+export async function htmlFormatExtras(
   format: Format,
   temp: TempContext,
   featureDefaults?: HtmlFormatFeatureDefaults,
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,
-): FormatExtras {
+): Promise<FormatExtras> {
   // note whether we are targeting bootstrap
   const bootstrap = formatHasBootstrap(format);
 
@@ -425,6 +425,38 @@ export function htmlFormatExtras(
       : true;
     giscus["input-position"] = giscus["input-position"] || "top";
     giscus.language = giscus.language || "en";
+
+    if (
+      giscus["repo-id"] === undefined || giscus["category-id"] === undefined
+    ) {
+      const url = encodeURI(
+        `https://giscus.app/api/discussions/categories?repo=${giscus.repo}`,
+      );
+
+      // Fetch repo info
+      const response = await fetch(url);
+      const jsonObj = await response.json();
+      const repoId = jsonObj["repositoryId"];
+      if (repoId) {
+        giscus["repo-id"] = repoId;
+      }
+
+      // Fetch category info
+      const categories = jsonObj["categories"];
+      let categoryId = undefined;
+      if (categories && Array.isArray(categories)) {
+        for (const category of categories) {
+          if (category.name === giscus.category) {
+            categoryId = category.id;
+            break;
+          }
+        }
+      }
+      if (categoryId) {
+        giscus["category-id"] = categoryId;
+      }
+    }
+
     const giscusAfterBody = temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(
       giscusAfterBody,

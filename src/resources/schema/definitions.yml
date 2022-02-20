@@ -164,6 +164,15 @@
 
                     In order to work correctly, the repo must be public, with the giscus app installed, and 
                     the discussions feature must be enabled.
+            repo-id:
+              string:
+                description:
+                  short: The Github repository identifier.
+                  long: |
+                    The Github repository identifier.
+
+                    You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+                    If this is not provided, Quarto will attempt to discover it at render time.
             category:
               string:
                 description:
@@ -172,6 +181,15 @@
                     The discussion category where new discussions will be created. It is recommended 
                     to use a category with the **Announcements** type so that new discussions 
                     can only be created by maintainers and giscus.
+            category-id:
+              string:
+                description:
+                  short: The Github category identifier.
+                  long: |
+                    The Github category identifier.
+
+                    You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+                    If this is not provided, Quarto will attempt to discover it at render time.
             mapping:
               anyOf:
                 - enum: [pathname, url, title, og:title]
