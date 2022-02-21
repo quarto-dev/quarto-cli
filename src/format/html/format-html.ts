@@ -79,6 +79,10 @@ import {
   HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
 } from "../../command/render/types.ts";
+import {
+  getDiscussionCategoryId,
+  getGithubDiscussionsMetadata,
+} from "../../core/giscus.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -429,30 +433,20 @@ export async function htmlFormatExtras(
     if (
       giscus["repo-id"] === undefined || giscus["category-id"] === undefined
     ) {
-      const url = encodeURI(
-        `https://giscus.app/api/discussions/categories?repo=${giscus.repo}`,
+      const discussionData = await getGithubDiscussionsMetadata(
+        giscus.repo as string,
       );
 
       // Fetch repo info
-      const response = await fetch(url);
-      const jsonObj = await response.json();
-      const repoId = jsonObj["repositoryId"];
-      if (repoId) {
-        giscus["repo-id"] = repoId;
+      if (giscus["repo-id"] === undefined && discussionData.repositoryId) {
+        giscus["repo-id"] = discussionData.repositoryId;
       }
 
-      // Fetch category info
-      const categories = jsonObj["categories"];
-      let categoryId = undefined;
-      if (categories && Array.isArray(categories)) {
-        for (const category of categories) {
-          if (category.name === giscus.category) {
-            categoryId = category.id;
-            break;
-          }
-        }
-      }
-      if (categoryId) {
+      const categoryId = getDiscussionCategoryId(
+        giscus.category as string,
+        discussionData,
+      );
+      if (giscus["category-id"] === undefined && categoryId) {
         giscus["category-id"] = categoryId;
       }
     }
