@@ -64,6 +64,8 @@ import {
   kDocumentCss,
   kFootnotesHover,
   kGiscus,
+  kGiscusCategoryId,
+  kGiscusRepoId,
   kHypothesis,
   kMinimal,
   kTabsets,
@@ -431,23 +433,24 @@ export async function htmlFormatExtras(
     giscus.language = giscus.language || "en";
 
     if (
-      giscus["repo-id"] === undefined || giscus["category-id"] === undefined
+      giscus[kGiscusRepoId] === undefined ||
+      giscus[kGiscusCategoryId] === undefined
     ) {
       const discussionData = await getGithubDiscussionsMetadata(
         giscus.repo as string,
       );
 
       // Fetch repo info
-      if (giscus["repo-id"] === undefined && discussionData.repositoryId) {
-        giscus["repo-id"] = discussionData.repositoryId;
+      if (giscus[kGiscusRepoId] === undefined && discussionData.repositoryId) {
+        giscus[kGiscusRepoId] = discussionData.repositoryId;
       }
 
       const categoryId = getDiscussionCategoryId(
         giscus.category as string,
         discussionData,
       );
-      if (giscus["category-id"] === undefined && categoryId) {
-        giscus["category-id"] = categoryId;
+      if (giscus[kGiscusCategoryId] === undefined && categoryId) {
+        giscus[kGiscusCategoryId] = categoryId;
       }
     }
 

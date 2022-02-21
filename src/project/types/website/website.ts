@@ -69,6 +69,7 @@ import {
 } from "./listing/website-listing.ts";
 import { completeStagedFeeds } from "./listing/website-listing-feed.ts";
 import { aboutHtmlDependencies } from "./about/website-about.ts";
+import { resolveFormatForGiscus } from "./website-giscus.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -127,6 +128,9 @@ export const websiteProjectType: ProjectType = {
       // add some title related variables
       extras.pandoc = extras.pandoc || {};
       extras.metadata = extras.metadata || {};
+
+      // Resolve any giscus information
+      resolveFormatForGiscus(project, format);
 
       // title prefix if the project has a title and this isn't the home page
       const title = websiteTitle(project.config);

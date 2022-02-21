@@ -46,6 +46,9 @@ export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
 export const kGiscus = "giscus";
 
+export const kGiscusRepoId = "repo-id";
+export const kGiscusCategoryId = "category-id";
+
 export const kDraft = "draft";
 
 export const kDocumentCss = "document-css";
