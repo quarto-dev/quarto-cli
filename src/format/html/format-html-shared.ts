@@ -12,6 +12,7 @@ import {
   kCodeOverflow,
   kLinkExternalIcon,
   kSectionTitleFootnotes,
+  kSectionTitleReferences,
   kTblCapLoc,
 } from "../../config/constants.ts";
 import {
@@ -256,13 +257,30 @@ export function insertFootnotesTitle(
   language: FormatLanguage,
   level = 2,
 ) {
+  prependHeading(doc, footnotesEl, language[kSectionTitleFootnotes], level);
+}
+
+export function insertReferencesTitle(
+  doc: Document,
+  refsEl: Element,
+  language: FormatLanguage,
+  level = 2,
+) {
+  prependHeading(doc, refsEl, language[kSectionTitleReferences], level);
+}
+
+function prependHeading(
+  doc: Document,
+  el: Element,
+  title: string | undefined,
+  level: number,
+) {
   const heading = doc.createElement("h" + level);
-  const title = language[kSectionTitleFootnotes];
   if (typeof (title) == "string" && title !== "none") {
     heading.innerHTML = title;
   }
-  footnotesEl.insertBefore(heading, footnotesEl.firstChild);
-  const hr = footnotesEl.querySelector("hr");
+  el.insertBefore(heading, el.firstChild);
+  const hr = el.querySelector("hr");
   if (hr) {
     hr.remove();
   }
