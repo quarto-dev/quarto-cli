@@ -6,7 +6,7 @@
 *
 */
 
-import { basename, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -79,11 +79,13 @@ export function listingSupplementalFiles(
     // the file being rendered is included (or is a new file that will)
     // be included in the listing page.
     const matching = listingFiles.filter((listingFile) => {
+      const listingDir = join(project.dir, dirname(listingFile));
       const globs = listingMap[listingFile];
-      if (filterPaths(project.dir, inputs, globs).include.length > 0) {
+      if (filterPaths(listingDir, inputs, globs).include.length > 0) {
         return true;
       }
     });
+
     if (matching.length > 0) {
       const supplementalFiles = matching.map((listingRelativePath) => {
         return join(project.dir, listingRelativePath);

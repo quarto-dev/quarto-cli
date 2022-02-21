@@ -185,10 +185,8 @@ export async function createFeed(
   if (rendered) {
     // Add a link to the feed
     // But we should put the correct unstaged / final link in the document
-    const finalPath = join(dir, `${stem}.xml`);
-    const projectRelativeFinalPath = relative(project.dir, finalPath);
     feedFiles.push(stagedPath);
-    addLinkTagToDocument(doc, feed, projectRelativeFinalPath);
+    addLinkTagToDocument(doc, feed, `${stem}.xml`);
   }
 
   // Categories to render
