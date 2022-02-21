@@ -63,6 +63,9 @@ import {
   kComments,
   kDocumentCss,
   kFootnotesHover,
+  kGiscus,
+  kGiscusCategoryId,
+  kGiscusRepoId,
   kHypothesis,
   kMinimal,
   kTabsets,
@@ -78,6 +81,10 @@ import {
   HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
 } from "../../command/render/types.ts";
+import {
+  getDiscussionCategoryId,
+  getGithubDiscussionsMetadata,
+} from "../../core/giscus.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -96,7 +103,7 @@ export function htmlFormat(
           }
         }
       },
-      formatExtras: (
+      formatExtras: async (
         input: string,
         flags: PandocFlags,
         format: Format,
@@ -105,7 +112,7 @@ export function htmlFormat(
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          htmlFormatExtras(format, temp),
+          await htmlFormatExtras(format, temp),
           themeFormatExtras(input, flags, format),
           { [kFilterParams]: htmlFilterParams },
         );
@@ -141,13 +148,13 @@ export interface HtmlFormatScssOptions {
   quartoCssVars?: boolean;
 }
 
-export function htmlFormatExtras(
+export async function htmlFormatExtras(
   format: Format,
   temp: TempContext,
   featureDefaults?: HtmlFormatFeatureDefaults,
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,
-): FormatExtras {
+): Promise<FormatExtras> {
   // note whether we are targeting bootstrap
   const bootstrap = formatHasBootstrap(format);
 
@@ -186,6 +193,9 @@ export function htmlFormatExtras(
         false,
       [kUtterances]:
         (format.metadata[kComments] as Record<string, unknown>)[kUtterances] ||
+        false,
+      [kGiscus]:
+        (format.metadata[kComments] as Record<string, unknown>)[kGiscus] ||
         false,
     }
     : {};
@@ -408,6 +418,51 @@ export function htmlFormatExtras(
       ),
     );
     includeAfterBody.push(utterancesAfterBody);
+  }
+
+  // giscus
+  if (options.giscus) {
+    const giscus = options.giscus as Record<string, unknown>;
+    giscus.category = giscus.category || "General";
+    giscus.theme = giscus.theme || "light";
+    giscus.mapping = giscus.mapping || "title";
+    giscus["reactions-enabled"] = giscus["reactions-enabled"] !== undefined
+      ? giscus["reactions-enabled"]
+      : true;
+    giscus["input-position"] = giscus["input-position"] || "top";
+    giscus.language = giscus.language || "en";
+
+    if (
+      giscus[kGiscusRepoId] === undefined ||
+      giscus[kGiscusCategoryId] === undefined
+    ) {
+      const discussionData = await getGithubDiscussionsMetadata(
+        giscus.repo as string,
+      );
+
+      // Fetch repo info
+      if (giscus[kGiscusRepoId] === undefined && discussionData.repositoryId) {
+        giscus[kGiscusRepoId] = discussionData.repositoryId;
+      }
+
+      const categoryId = getDiscussionCategoryId(
+        giscus.category as string,
+        discussionData,
+      );
+      if (giscus[kGiscusCategoryId] === undefined && categoryId) {
+        giscus[kGiscusCategoryId] = categoryId;
+      }
+    }
+
+    const giscusAfterBody = temp.createFile({ suffix: ".html" });
+    Deno.writeTextFileSync(
+      giscusAfterBody,
+      renderEjs(
+        formatResourcePath("html", join("giscus", "giscus.ejs")),
+        { giscus },
+      ),
+    );
+    includeAfterBody.push(giscusAfterBody);
   }
 
   // return extras

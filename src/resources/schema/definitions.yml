@@ -152,6 +152,84 @@
                     - title
                     - og:title
           required: [repo]
+      giscus:
+        object:
+          properties:
+            repo:
+              string:
+                description:
+                  short: The Github repo that will be used to store comments.
+                  long: |
+                    The Github repo that will be used to store comments.
+
+                    In order to work correctly, the repo must be public, with the giscus app installed, and 
+                    the discussions feature must be enabled.
+            repo-id:
+              string:
+                description:
+                  short: The Github repository identifier.
+                  long: |
+                    The Github repository identifier.
+
+                    You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+                    If this is not provided, Quarto will attempt to discover it at render time.
+            category:
+              string:
+                description:
+                  short: The discussion category where new discussions will be created.
+                  long: |
+                    The discussion category where new discussions will be created. It is recommended 
+                    to use a category with the **Announcements** type so that new discussions 
+                    can only be created by maintainers and giscus.
+            category-id:
+              string:
+                description:
+                  short: The Github category identifier.
+                  long: |
+                    The Github category identifier.
+
+                    You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+                    If this is not provided, Quarto will attempt to discover it at render time.
+            mapping:
+              anyOf:
+                - enum: [pathname, url, title, og:title]
+                - string
+              description:
+                short: The mapping between the page and the embedded discussion.
+                long: |
+                  The mapping between the page and the embedded discussion. 
+
+                  - `pathname` - the discussion title contains the page path
+                  - `url` - the discussion title contains the page url
+                  - `title` - the discussion title contains the page title
+                  - `og:title`- the discussion title containst the `og:title` metadata value
+                  - Any other value will be passed through verbatim and a discussion title
+                  containing that value will be used. If the value is a number it will be treated
+                  as a discussion number and automatic discussion creation is not supported.
+            reactions-enabled:
+              boolean:
+                description: Display reactions for the discussion's main post before the comments.
+            input-position:
+              enum: [top, bottom]
+              description: Place the comment input box above or below the comments.
+            theme:
+              enum:
+                [
+                  light,
+                  light_high_contrast,
+                  light_protanopia,
+                  dark,
+                  dark_high_contrast,
+                  dark_protanopia,
+                  dark_dimmed,
+                  transparent_dark,
+                  preferred_color_scheme,
+                ]
+              description: The giscus theme to use when displaying comments.
+            language:
+              string:
+                description: The language that should be used when displaying the commenting interface.
+          required: [repo]
       hypothesis:
         anyOf:
           - boolean

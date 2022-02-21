@@ -258,7 +258,7 @@ export function revealjsFormat() {
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
-          htmlFormatExtras(format, temp, {
+          await htmlFormatExtras(format, temp, {
             tabby: true,
             anchors: false,
             copyCode: true,
