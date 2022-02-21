@@ -35,7 +35,10 @@ import { hasTableOfContents } from "../../config/toc.ts";
 
 import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
+  hasMarginCites,
+  hasMarginRefs,
   insertFootnotesTitle,
+  kAppendix,
   kBootstrapDependencyName,
   kDocumentCss,
   kPageLayout,
@@ -48,6 +51,7 @@ import {
   HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
 } from "../../command/render/types.ts";
+import { processDocumentAppendix } from "./format-html-appendix.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
@@ -182,7 +186,7 @@ export function boostrapExtras(
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        bootstrapHtmlPostprocessor(),
+        bootstrapHtmlPostprocessor(format, flags),
       ],
       [kHtmlFinalizers]: [
         bootstrapHtmlFinalizer(format, flags),
@@ -198,7 +202,7 @@ const getColumnLayoutElements = (doc: Document) => {
   );
 };
 
-function bootstrapHtmlPostprocessor() {
+function bootstrapHtmlPostprocessor(format: Format, flags: PandocFlags) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
@@ -311,6 +315,11 @@ function bootstrapHtmlPostprocessor() {
       }
     }
 
+    // Process the elements of this document into an appendix
+    if (format.metadata[kAppendix] !== false) {
+      processDocumentAppendix(format, flags, doc);
+    }
+
     // no resource refs
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
@@ -326,15 +335,11 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
 
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)
-    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
     if (refsInMargin) {
       const footNoteSectionEl = doc.querySelector("section.footnotes");
       if (footNoteSectionEl) {
         footNoteSectionEl.remove();
       }
-    } else if (footnotes.length === 1) {
-      const footnotesEl = footnotes.item(0) as Element;
-      insertFootnotesTitle(doc, footnotesEl, format.language);
     }
 
     // Purge the bibliography if we're using refs in margin
@@ -387,6 +392,7 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     return Promise.resolve();
   };
 }
+
 function processColumnElements(
   doc: Document,
   format: Format,
@@ -410,14 +416,13 @@ function processColumnElements(
     simpleMarginProcessor,
   ];
   // If margin footnotes are enabled move them
-  const refsInMargin = format.pandoc[kReferenceLocation] === "margin" ||
-    flags[kReferenceLocation] === "margin";
+  const refsInMargin = hasMarginRefs(format, flags);
   if (refsInMargin) {
     marginProcessors.push(footnoteMarginProcessor);
   }
 
   // If margin cites are enabled, move them
-  const citesInMargin = format.metadata[kCitationLocation] === "margin";
+  const citesInMargin = hasMarginCites(format);
   if (citesInMargin) {
     marginProcessors.push(referenceMarginProcessor);
   }

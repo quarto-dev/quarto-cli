@@ -9,8 +9,10 @@ import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
 import {
   kCapLoc,
   kCapTop,
+  kCitationLocation,
   kCodeOverflow,
   kLinkExternalIcon,
+  kReferenceLocation,
   kSectionTitleFootnotes,
   kSectionTitleReferences,
   kTblCapLoc,
@@ -19,6 +21,7 @@ import {
   Format,
   FormatDependency,
   FormatLanguage,
+  PandocFlags,
 } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
@@ -51,6 +54,8 @@ export const kGiscusRepoId = "repo-id";
 export const kGiscusCategoryId = "category-id";
 
 export const kDraft = "draft";
+
+export const kAppendix = "appendix";
 
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
@@ -309,4 +314,15 @@ export function setMainColumn(doc: Document, column: string) {
       el.classList.add(column);
     }
   });
+}
+
+export function hasMarginRefs(format: Format, flags: PandocFlags) {
+  // If margin footnotes are enabled move them
+  return format.pandoc[kReferenceLocation] === "margin" ||
+    flags[kReferenceLocation] === "margin";
+}
+
+export function hasMarginCites(format: Format) {
+  // If margin cites are enabled, move them
+  return format.metadata[kCitationLocation] === "margin";
 }
