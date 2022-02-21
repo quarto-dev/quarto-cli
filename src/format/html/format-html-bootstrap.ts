@@ -12,10 +12,8 @@ import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
 import {
-  kCitationLocation,
   kHtmlMathMethod,
   kLinkCitations,
-  kReferenceLocation,
   kSectionDivs,
   kTheme,
 } from "../../config/constants.ts";
@@ -37,7 +35,6 @@ import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
   hasMarginCites,
   hasMarginRefs,
-  insertFootnotesTitle,
   kAppendix,
   kBootstrapDependencyName,
   kDocumentCss,
