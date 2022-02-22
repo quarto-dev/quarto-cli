@@ -6,7 +6,7 @@
 */
 
 import { Format, PandocFlags } from "../../config/types.ts";
-import { Document, Element } from "../../core/deno-dom.ts";
+import { Document, Element, Node } from "../../core/deno-dom.ts";
 import {
   hasMarginCites,
   hasMarginRefs,
@@ -15,13 +15,12 @@ import {
   kAppendix,
 } from "./format-html-shared.ts";
 
-const kCreativeCommons = "creative-commons";
 const kAppendixColumn = "column";
 const kAppendixStyle = "style";
 
 interface AppendixDescriptor {
   [kAppendixColumn]: string;
-  [kAppendixStyle]: "2column" | "1column" | "plain";
+  [kAppendixStyle]: "two-column" | "one-column" | "plain";
 }
 
 export function processDocumentAppendix(
@@ -34,7 +33,7 @@ export function processDocumentAppendix(
 
   if (appendixDesc && mainEl) {
     const appendixEl = doc.createElement("DIV");
-    appendixEl.id = "quarto-appendix";
+    appendixEl.setAttribute("id", "quarto-appendix");
     if (appendixDesc.column !== "body") {
       appendixEl.classList.add(`column-${appendixDesc.column}`);
     }
@@ -46,9 +45,21 @@ export function processDocumentAppendix(
     // Move any sections that are marked as appendices
     const appendixHeaderEls = doc.querySelectorAll(".appendix");
     for (const headerEl of appendixHeaderEls) {
-      const parentEl = headerEl.parentElement;
-      if (parentEl && parentEl?.tagName === "SECTION") {
-        appendixEl.appendChild(parentEl);
+      const sectionEl = headerEl.parentElement;
+      // Add the whole thing
+      if (sectionEl && sectionEl?.tagName === "SECTION") {
+        // Remove the header
+        headerEl.remove();
+
+        // Move the contents of the section into a div
+        const containerDivEl = doc.createElement("DIV");
+        while (sectionEl.childNodes.length > 0) {
+          containerDivEl.appendChild(sectionEl.childNodes[0]);
+        }
+
+        sectionEl?.appendChild(headerEl);
+        sectionEl?.appendChild(containerDivEl);
+        appendixEl.appendChild(sectionEl);
       }
     }
 
@@ -59,7 +70,7 @@ export function processDocumentAppendix(
         const containerEl = doc.createElement("SECTION");
         containerEl.setAttribute("role", "doc-bibliography");
         containerEl.appendChild(refsEl);
-        insertReferencesTitle(doc, containerEl, format.language);
+        insertReferencesTitle(doc, containerEl, format.language, 2, true);
         appendixEl.appendChild(containerEl);
       }
     }
@@ -69,7 +80,7 @@ export function processDocumentAppendix(
       const footnoteEls = doc.querySelectorAll('section[role="doc-endnotes"]');
       if (footnoteEls && footnoteEls.length === 1) {
         const footnotesEl = footnoteEls.item(0) as Element;
-        insertFootnotesTitle(doc, footnotesEl, format.language);
+        insertFootnotesTitle(doc, footnotesEl, format.language, 2, true);
         appendixEl.appendChild(footnotesEl);
       }
     }
@@ -77,7 +88,7 @@ export function processDocumentAppendix(
 }
 
 const kDefaultColumn = "body";
-const kDefaultStyle = "2column";
+const kDefaultStyle = "two-column";
 
 function readAppendixDescriptor(
   format: Format,
@@ -112,10 +123,10 @@ function appendixStyle(style?: string) {
   switch (style) {
     case "plain":
       return "plain";
-    case "1column":
-      return "1column";
-    case "2column":
-      return "2column";
+    case "one-column":
+      return "one-column";
+    case "two-column":
+      return "two-column";
     default:
       return kDefaultStyle;
   }
