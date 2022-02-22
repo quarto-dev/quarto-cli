@@ -35,7 +35,7 @@ import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
   hasMarginCites,
   hasMarginRefs,
-  kAppendix,
+  kAppendixStyle,
   kBootstrapDependencyName,
   kDocumentCss,
   kPageLayout,
@@ -313,7 +313,7 @@ function bootstrapHtmlPostprocessor(format: Format, flags: PandocFlags) {
     }
 
     // Process the elements of this document into an appendix
-    if (format.metadata[kAppendix] !== false) {
+    if (format.metadata[kAppendixStyle] !== false) {
       processDocumentAppendix(format, flags, doc);
     }
 

@@ -14,17 +14,23 @@ import {
   insertFootnotesTitle,
   insertReferencesTitle,
   insertTitle,
-  kAppendix,
+  kAppendixCreativeCommons,
+  kAppendixStyle,
 } from "./format-html-shared.ts";
 
-const kAppendixStyle = "style";
-const kAppendixCreativeCommons = "creative-commons";
 const kAppendixCreativeCommonsLic = [
   "CC BY",
   "CC BY-SA",
   "CC BY-ND",
   "CC BY-NC",
 ];
+
+const kStylePlain = "plain";
+const kStyleFull = "full";
+
+const kAppendixHeadingClass = "quarto-appendix-heading";
+const kAppendixContentsClass = "quarto-appendix-contents";
+const kAppendixId = "quarto-appendix";
 
 /*
 Text and figures are licensed under Creative Commons Attribution ',
@@ -33,28 +39,32 @@ Text and figures are licensed under Creative Commons Attribution ',
         'recognized by a note in their caption: "Figure from ...".
         */
 
-interface AppendixDescriptor {
-  [kAppendixStyle]: "full" | "two-column" | "one-column" | "plain";
-  [kAppendixCreativeCommons]?: "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC";
-}
-
 export function processDocumentAppendix(
   format: Format,
   flags: PandocFlags,
   doc: Document,
 ) {
-  const mainEl = doc.querySelector("main.content");
-  const appendixDesc = readAppendixDescriptor(format);
+  // Don't do anything at all if the appendix-style is false or 'none'
+  if (
+    format.metadata[kAppendixStyle] === false ||
+    format.metadata[kAppendixStyle] === "none"
+  ) {
+    return;
+  }
+  const appendixStyle = parseStyle(
+    format.metadata[kAppendixStyle] as string,
+  );
 
-  if (appendixDesc && mainEl) {
+  const mainEl = doc.querySelector("main.content");
+  if (mainEl) {
     const appendixEl = doc.createElement("DIV");
-    appendixEl.setAttribute("id", "quarto-appendix");
-    if (appendixDesc.style !== "plain") {
-      appendixEl.classList.add(appendixDesc.style);
+    appendixEl.setAttribute("id", kAppendixId);
+    if (appendixStyle !== kStylePlain) {
+      appendixEl.classList.add(appendixStyle);
     }
 
-    const headingClasses = ["anchored", "quarto-appendix-heading"];
-    if (appendixDesc.style === "full") {
+    const headingClasses = ["anchored", kAppendixHeadingClass];
+    if (appendixStyle === kStyleFull) {
       headingClasses.push("column-sidebar");
     }
 
@@ -80,15 +90,15 @@ export function processDocumentAppendix(
           }
         };
         const headerEl = extractHeaderEl();
-        headerEl.classList.add("quarto-appendix-heading");
-        if (appendixDesc.style === "full") {
+        headerEl.classList.add(kAppendixHeadingClass);
+        if (appendixStyle === kStyleFull) {
           (headerEl as Element).classList.add("column-sidebar");
         }
 
         // Move the contents of the section into a div
         const containerDivEl = doc.createElement("DIV");
         containerDivEl.classList.add(
-          "quarto-appendix-contents",
+          kAppendixContentsClass,
         );
         while (appendSectionEl.childNodes.length > 0) {
           containerDivEl.appendChild(appendSectionEl.childNodes[0]);
@@ -106,7 +116,7 @@ export function processDocumentAppendix(
       if (refsEl) {
         const containerEl = doc.createElement("SECTION");
         containerEl.classList.add(
-          "quarto-appendix-contents",
+          kAppendixContentsClass,
         );
         containerEl.setAttribute("role", "doc-bibliography");
         containerEl.appendChild(refsEl);
@@ -139,15 +149,22 @@ export function processDocumentAppendix(
     }
 
     // Place Re-use, if appropriate
-    if (appendixDesc[kAppendixCreativeCommons]) {
+    const creativeCommons = creativeCommonsLicense(
+      format.metadata[kAppendixCreativeCommons] as string,
+    );
+
+    if (creativeCommons) {
       const containerEl = doc.createElement("SECTION");
       containerEl.setAttribute("role", "doc-bibliography");
 
       const contentsDiv = doc.createElement("DIV");
       contentsDiv.id = "quarto-reuse";
+      contentsDiv.classList.add(
+        kAppendixContentsClass,
+      );
 
       const licenseUrl = creativeCommonsUrl(
-        appendixDesc[kAppendixCreativeCommons]!,
+        creativeCommons,
         format.metadata[kLang] as string | undefined,
       );
       const linkEl = doc.createElement("A");
@@ -175,39 +192,7 @@ export function processDocumentAppendix(
 
 const kDefaultStyle = "two-column";
 
-function readAppendixDescriptor(
-  format: Format,
-): AppendixDescriptor | undefined {
-  const appendix = format.metadata[kAppendix];
-  if (typeof (appendix) === "string") {
-    return {
-      style: appendixStyle(appendix),
-    };
-  } else if (typeof (appendix) === "object") {
-    const appendixRecord = appendix as Record<string, unknown>;
-    const style = appendixStyle(appendixRecord[kAppendixStyle] as string);
-    const appendixDesc: AppendixDescriptor = {
-      style,
-    };
-    const creativeCommons = creativeCommonsLicense(
-      appendixRecord[kAppendixCreativeCommons] as string,
-    );
-    if (creativeCommons) {
-      appendixDesc[kAppendixCreativeCommons] = creativeCommons;
-    }
-    return appendixDesc;
-  } else {
-    if (appendix === false) {
-      return undefined;
-    } else {
-      return {
-        style: kDefaultStyle,
-      };
-    }
-  }
-}
-
-function appendixStyle(style?: string) {
+function parseStyle(style?: string) {
   switch (style) {
     case "plain":
       return "plain";
