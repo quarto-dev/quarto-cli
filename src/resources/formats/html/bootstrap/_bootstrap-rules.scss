@@ -1372,7 +1372,8 @@ div.callout.callout-style-default .callout-header {
     border-top: 1px solid $border-color;
     border-bottom: 1px solid $border-color;
     section {
-      padding-top: 1em;
+      padding-bottom: 1em;
+
       h2:first-of-type {
         margin-top: 0;
       }
