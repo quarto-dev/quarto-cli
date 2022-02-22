@@ -41,8 +41,6 @@ export function processDocumentAppendix(
       headingClasses.push("column-sidebar");
     }
 
-    mainEl.appendChild(appendixEl);
-
     // Move any sections that are marked as appendices
     const appendixHeaderEls = doc.querySelectorAll(".appendix");
     for (const headerEl of appendixHeaderEls) {
@@ -100,6 +98,10 @@ export function processDocumentAppendix(
         );
         appendixEl.appendChild(footnotesEl);
       }
+    }
+
+    if (appendixEl.childElementCount > 0) {
+      mainEl.appendChild(appendixEl);
     }
   }
 }
