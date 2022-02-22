@@ -1376,7 +1376,7 @@ div.callout.callout-style-default .callout-header {
       h2:first-of-type {
         margin-top: 0;
       }
-      * {
+      *:not(a) {
         opacity: 0.9;
         word-wrap: break-word;
       }
