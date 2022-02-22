@@ -5,6 +5,7 @@
 *
 */
 
+import { kLang, kSectionTitleReuse } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import {
@@ -12,13 +13,29 @@ import {
   hasMarginRefs,
   insertFootnotesTitle,
   insertReferencesTitle,
+  insertTitle,
   kAppendix,
 } from "./format-html-shared.ts";
 
 const kAppendixStyle = "style";
+const kAppendixCreativeCommons = "creative-commons";
+const kAppendixCreativeCommonsLic = [
+  "CC BY",
+  "CC BY-SA",
+  "CC BY-ND",
+  "CC BY-NC",
+];
+
+/*
+Text and figures are licensed under Creative Commons Attribution ',
+        '<a rel="license" href="%s">%s 4.0</a>. %sThe figures that have been reused from ',
+        'other sources don\'t fall under this license and can be ',
+        'recognized by a note in their caption: "Figure from ...".
+        */
 
 interface AppendixDescriptor {
   [kAppendixStyle]: "full" | "two-column" | "one-column" | "plain";
+  [kAppendixCreativeCommons]?: "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC";
 }
 
 export function processDocumentAppendix(
@@ -100,6 +117,35 @@ export function processDocumentAppendix(
       }
     }
 
+    // Place Re-use, if appropriate
+    if (appendixDesc[kAppendixCreativeCommons]) {
+      const containerEl = doc.createElement("SECTION");
+      containerEl.setAttribute("role", "doc-bibliography");
+
+      const contentsDiv = doc.createElement("DIV");
+      contentsDiv.id = "quarto-reuse";
+
+      const licenseUrl = creativeCommonsUrl(
+        appendixDesc[kAppendixCreativeCommons]!,
+        format.metadata[kLang] as string | undefined,
+      );
+      const linkEl = doc.createElement("A");
+      linkEl.innerText = licenseUrl;
+      linkEl.setAttribute("href", licenseUrl);
+      contentsDiv.appendChild(linkEl);
+      containerEl.appendChild(contentsDiv);
+
+      insertTitle(
+        doc,
+        containerEl,
+        format.language[kSectionTitleReuse] || "Usage",
+        2,
+        headingClasses,
+      );
+
+      appendixEl.appendChild(containerEl);
+    }
+
     if (appendixEl.childElementCount > 0) {
       mainEl.appendChild(appendixEl);
     }
@@ -119,9 +165,16 @@ function readAppendixDescriptor(
   } else if (typeof (appendix) === "object") {
     const appendixRecord = appendix as Record<string, unknown>;
     const style = appendixStyle(appendixRecord[kAppendixStyle] as string);
-    return {
+    const appendixDesc: AppendixDescriptor = {
       style,
     };
+    const creativeCommons = creativeCommonsLicense(
+      appendixRecord[kAppendixCreativeCommons] as string,
+    );
+    if (creativeCommons) {
+      appendixDesc[kAppendixCreativeCommons] = creativeCommons;
+    }
+    return appendixDesc;
   } else {
     if (appendix === false) {
       return undefined;
@@ -145,5 +198,26 @@ function appendixStyle(style?: string) {
       return "full";
     default:
       return kDefaultStyle;
+  }
+}
+
+function creativeCommonsLicense(
+  license?: string,
+): "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC" | undefined {
+  if (license && kAppendixCreativeCommonsLic.includes(license)) {
+    return license as "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC";
+  } else {
+    return undefined;
+  }
+}
+
+function creativeCommonsUrl(license: string, lang?: string) {
+  const licenseType = license.substring(3);
+  if (lang && lang !== "en") {
+    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/4.0/deed.${
+      lang.toLowerCase().replace("-", "_")
+    }`;
+  } else {
+    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/4.0/`;
   }
 }

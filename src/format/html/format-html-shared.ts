@@ -288,6 +288,16 @@ export function insertReferencesTitle(
   );
 }
 
+export function insertTitle(
+  doc: Document,
+  el: Element,
+  title: string,
+  level = 2,
+  headingClasses: string[] = [],
+) {
+  prependHeading(doc, el, title, level, headingClasses);
+}
+
 function prependHeading(
   doc: Document,
   el: Element,
