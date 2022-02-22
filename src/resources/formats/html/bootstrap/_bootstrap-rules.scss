@@ -431,6 +431,11 @@ img.img-fluid.column-screen-inset-shaded {
     z-index: $zindex-pagelayout;
   }
 
+  .column-leftmargin {
+    grid-column: screen-start-inset / body-start !important;
+    z-index: $zindex-pagelayout;
+  }
+
   .no-row-height {
     height: 1em;
     overflow: visible;
@@ -1352,29 +1357,56 @@ div.callout.callout-style-default .callout-header {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 20%))}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
 }
 
+body.fullcontent {
+  #quarto-appendix:not(.plain) {
+    &.full {
+      .quarto-appendix-heading {
+        @include media-breakpoint-up(xl) {
+          text-align: right;
+        }
+        @include media-breakpoint-down(xl) {
+          grid-column: body-content-start / body-content-end !important;
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+body:not(.fullcontent) {
+  #quarto-appendix:not(.plain) {
+    &.full {
+      .quarto-appendix-heading {
+        @include media-breakpoint-up(lg) {
+          text-align: right;
+        }
+        @include media-breakpoint-down(lg) {
+          grid-column: body-content-start / body-content-end !important;
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
 // Quarto Appendix Treatment
-#quarto-appendix {
+#quarto-appendix:not(.plain) {
   background-color: $body-bg;
   padding-top: 1em;
   margin-top: 2em;
   &.full {
     z-index: $zindex-pagelayout;
-    h2:first-of-type {
-      @include media-breakpoint-up(lg) {
-        text-align: right;
-      }
-    }
-  }
-
-  .quarto-appendix-heading,
-  *[role="doc-endnote"],
-  .quarto-appendix-contents > * {
-    font-size: 0.9em;
   }
 
   &.full,
   &.one-column,
   &.two-column {
+    .quarto-appendix-heading,
+    *[role="doc-endnote"],
+    .quarto-appendix-contents > * {
+      font-size: 0.9em;
+    }
+
     border-top: 1px solid $border-color;
     section {
       padding-bottom: 1em;
