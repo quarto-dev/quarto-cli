@@ -53,32 +53,50 @@ export function processDocumentAppendix(
       appendixEl.classList.add(appendixDesc.style);
     }
 
-    const headingClasses = ["anchored"];
+    const headingClasses = ["anchored", "quarto-appendix-heading"];
     if (appendixDesc.style === "full") {
       headingClasses.push("column-sidebar");
     }
 
     // Move any sections that are marked as appendices
-    const appendixHeaderEls = doc.querySelectorAll(".appendix");
-    for (const headerEl of appendixHeaderEls) {
-      const sectionEl = headerEl.parentElement;
+    const appendixSectionNodes = doc.querySelectorAll("section.appendix");
+
+    for (const appendixSectionNode of appendixSectionNodes) {
+      const appendSectionEl = appendixSectionNode as Element;
+
       // Add the whole thing
-      if (sectionEl && sectionEl?.tagName === "SECTION") {
-        // Remove the header
-        headerEl.remove();
+      if (appendSectionEl) {
+        // Extract the header
+        const extractHeaderEl = () => {
+          const headerEl = appendSectionEl.querySelector(
+            "h1, h2, h3, h4, h5, h6",
+          );
+          if (headerEl) {
+            headerEl.remove();
+            return headerEl;
+          } else {
+            const h2 = doc.createElement("h2");
+            return h2;
+          }
+        };
+        const headerEl = extractHeaderEl();
+        headerEl.classList.add("quarto-appendix-heading");
         if (appendixDesc.style === "full") {
           (headerEl as Element).classList.add("column-sidebar");
         }
 
         // Move the contents of the section into a div
         const containerDivEl = doc.createElement("DIV");
-        while (sectionEl.childNodes.length > 0) {
-          containerDivEl.appendChild(sectionEl.childNodes[0]);
+        containerDivEl.classList.add(
+          "quarto-appendix-contents",
+        );
+        while (appendSectionEl.childNodes.length > 0) {
+          containerDivEl.appendChild(appendSectionEl.childNodes[0]);
         }
 
-        sectionEl?.appendChild(headerEl);
-        sectionEl?.appendChild(containerDivEl);
-        appendixEl.appendChild(sectionEl);
+        appendSectionEl.appendChild(headerEl);
+        appendSectionEl.appendChild(containerDivEl);
+        appendixEl.appendChild(appendSectionEl);
       }
     }
 
@@ -87,6 +105,9 @@ export function processDocumentAppendix(
       const refsEl = doc.getElementById("refs");
       if (refsEl) {
         const containerEl = doc.createElement("SECTION");
+        containerEl.classList.add(
+          "quarto-appendix-contents",
+        );
         containerEl.setAttribute("role", "doc-bibliography");
         containerEl.appendChild(refsEl);
 

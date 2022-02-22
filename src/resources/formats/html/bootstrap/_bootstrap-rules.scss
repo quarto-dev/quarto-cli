@@ -1359,11 +1359,17 @@ div.callout.callout-style-default .callout-header {
   margin-top: 2em;
   &.full {
     z-index: $zindex-pagelayout;
-    h2 {
+    h2:first-of-type {
       @include media-breakpoint-up(lg) {
         text-align: right;
       }
     }
+  }
+
+  .quarto-appendix-heading,
+  *[role="doc-endnote"],
+  .quarto-appendix-contents > * {
+    font-size: 0.9em;
   }
 
   &.full,
@@ -1374,26 +1380,25 @@ div.callout.callout-style-default .callout-header {
     section {
       padding-bottom: 1em;
 
-      h2:first-of-type {
+      .quarto-appendix-heading {
         margin-top: 0;
       }
-      *:not(a) {
+      *[role="doc-endnote"],
+      > *:not(a) {
         opacity: 0.9;
         word-wrap: break-word;
       }
     }
-    h2 {
+    .quarto-appendix-heading {
       margin-top: 0;
-      font-size: 0.9em;
       line-height: 1.7em;
       font-weight: 600;
       opacity: 0.9;
       border-bottom: none;
     }
-    font-size: 0.9em;
   }
   &.one-column {
-    h2 {
+    .quarto-appendix-heading {
       margin-bottom: 0;
     }
   }
@@ -1401,7 +1406,7 @@ div.callout.callout-style-default .callout-header {
     &.two-column {
       section {
         display: flex;
-        h2 {
+        .quarto-appendix-heading {
           flex: 2;
         }
         * {
