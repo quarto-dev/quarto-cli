@@ -426,6 +426,11 @@ img.img-fluid.column-screen-inset-shaded {
     z-index: $zindex-pagelayout;
   }
 
+  .column-sidebar {
+    grid-column: page-start / body-start !important;
+    z-index: $zindex-pagelayout;
+  }
+
   .no-row-height {
     height: 1em;
     overflow: visible;
@@ -1352,9 +1357,20 @@ div.callout.callout-style-default .callout-header {
   background-color: $body-bg;
   padding-top: 1em;
   margin-top: 2em;
+  &.full {
+    z-index: $zindex-pagelayout;
+    h2 {
+      @include media-breakpoint-up(lg) {
+        text-align: right;
+      }
+    }
+  }
+
+  &.full,
   &.one-column,
   &.two-column {
     border-top: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
     section {
       padding-top: 1em;
       h2:first-of-type {
@@ -1379,15 +1395,16 @@ div.callout.callout-style-default .callout-header {
       margin-bottom: 0;
     }
   }
-
-  &.two-column {
-    section {
-      display: flex;
-      h2 {
-        flex: 2;
-      }
-      * {
-        flex: 5;
+  @include media-breakpoint-up(md) {
+    &.two-column {
+      section {
+        display: flex;
+        h2 {
+          flex: 2;
+        }
+        * {
+          flex: 5;
+        }
       }
     }
   }

@@ -261,14 +261,14 @@ export function insertFootnotesTitle(
   footnotesEl: Element,
   language: FormatLanguage,
   level = 2,
-  anchored = false,
+  classes: string[] = [],
 ) {
   prependHeading(
     doc,
     footnotesEl,
     language[kSectionTitleFootnotes],
     level,
-    anchored,
+    classes,
   );
 }
 
@@ -277,14 +277,14 @@ export function insertReferencesTitle(
   refsEl: Element,
   language: FormatLanguage,
   level = 2,
-  anchored = false,
+  classes: string[] = [],
 ) {
   prependHeading(
     doc,
     refsEl,
     language[kSectionTitleReferences],
     level,
-    anchored,
+    classes,
   );
 }
 
@@ -293,14 +293,16 @@ function prependHeading(
   el: Element,
   title: string | undefined,
   level: number,
-  anchored: boolean,
+  classes: string[],
 ) {
   const heading = doc.createElement("h" + level);
   if (typeof (title) == "string" && title !== "none") {
     heading.innerHTML = title;
   }
-  if (anchored) {
-    heading.classList.add("anchored");
+  if (classes) {
+    classes.forEach((clz) => {
+      heading.classList.add(clz);
+    });
   }
 
   el.insertBefore(heading, el.firstChild);
