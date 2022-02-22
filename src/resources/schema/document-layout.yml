@@ -78,7 +78,18 @@
       Target page width for output (used to compute columns widths for `layout` divs).
       Defaults to 6.5 inches, which corresponds to default letter page settings in 
       docx and odt.
+- name: appendix-style
+  schema:
+    enum: ["none", "plain", "one-column", "two-column", "full"]
+  default: two-column
+  tags:
+    formats: [$html-doc]
+  description:
+    short: The layout of the Appendix for this document (`none`, `plain`, `one-column`, `two-column`, `full`)
+    long: |
+      The layout of the Appendix for this document (`none`, `plain`, `one-column`, `two-column`, `full`)
 
+      To complete disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`
 - name: max-width
   schema: string
   tags:
