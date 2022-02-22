@@ -313,7 +313,10 @@ function bootstrapHtmlPostprocessor(format: Format, flags: PandocFlags) {
     }
 
     // Process the elements of this document into an appendix
-    if (format.metadata[kAppendixStyle] !== false) {
+    if (
+      format.metadata[kAppendixStyle] &&
+      format.metadata[kAppendixStyle] !== "none"
+    ) {
       processDocumentAppendix(format, flags, doc);
     }
 
