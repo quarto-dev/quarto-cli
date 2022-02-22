@@ -825,31 +825,19 @@
 - id: chapter-item
   anyOf:
     - ref: navigation-item
-    - record:
+    - object:
         part:
-          path:
-            description: "Path to part input file"
+          string:
+            description: "Part title or path to input file"
         chapters:
           arrayOf:
             ref: navigation-item
           description: "Path to chapter input file"
+        required: [part]
 
 - id: chapter-list
   arrayOf:
-    anyOf:
-      - ref: navigation-item
-      - object:
-          properties:
-            part:
-              string:
-                description: "Part title or path to input file"
-            chapters:
-              arrayOf:
-                ref: navigation-item
-              description: "Path to chapter input file"
-          required: all
-          additionalProperties: false
-
+    ref: chapter-item
 - id: crossref-labels-schema
   string:
     completions:
