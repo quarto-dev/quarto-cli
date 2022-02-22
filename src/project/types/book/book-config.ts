@@ -166,10 +166,12 @@ export async function bookProjectConfig(
   const bookAppendix = bookConfig(kBookAppendix, config);
   if (Array.isArray(bookAppendix)) {
     siteSidebar[kContents] = (siteSidebar[kContents] as unknown[])
-      .concat([{
-        section: language[kSectionTitleAppendices],
-        contents: bookAppendix,
-      }]);
+      .concat([
+        chapterToSidebarItem({
+          part: language[kSectionTitleAppendices],
+          chapters: bookAppendix as BookChapterItem[],
+        }),
+      ]);
   }
 
   // if search for book isn't false then enable search
@@ -379,19 +381,20 @@ interface BookChapterItem extends SidebarItem {
 }
 
 function bookChaptersToSidebarItems(chapters: BookChapterItem[]) {
-  const chapterToItem = (chapter: BookChapterItem) => {
-    const item = ld.cloneDeep(chapter) as BookChapterItem;
-    if (item.part) {
-      item.section = item.part;
-      delete item.part;
-    }
-    if (item.chapters) {
-      item.contents = bookChaptersToSidebarItems(item.chapters);
-      delete item.chapters;
-    }
-    return item;
-  };
-  return chapters.map(chapterToItem);
+  return chapters.map(chapterToSidebarItem);
+}
+
+function chapterToSidebarItem(chapter: BookChapterItem) {
+  const item = ld.cloneDeep(chapter) as BookChapterItem;
+  if (item.part) {
+    item.section = item.part;
+    delete item.part;
+  }
+  if (item.chapters) {
+    item.contents = bookChaptersToSidebarItems(item.chapters);
+    delete item.chapters;
+  }
+  return item;
 }
 
 function downloadTools(
