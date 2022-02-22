@@ -65,50 +65,10 @@ export function processDocumentAppendix(
 
     const headingClasses = ["anchored", kAppendixHeadingClass];
     if (appendixStyle === kStyleFull) {
-      headingClasses.push("column-sidebar");
+      headingClasses.push("column-leftmargin");
     }
 
-    // Move any sections that are marked as appendices
-    const appendixSectionNodes = doc.querySelectorAll("section.appendix");
-
-    for (const appendixSectionNode of appendixSectionNodes) {
-      const appendSectionEl = appendixSectionNode as Element;
-
-      // Add the whole thing
-      if (appendSectionEl) {
-        // Extract the header
-        const extractHeaderEl = () => {
-          const headerEl = appendSectionEl.querySelector(
-            "h1, h2, h3, h4, h5, h6",
-          );
-          if (headerEl) {
-            headerEl.remove();
-            return headerEl;
-          } else {
-            const h2 = doc.createElement("h2");
-            return h2;
-          }
-        };
-        const headerEl = extractHeaderEl();
-        headerEl.classList.add(kAppendixHeadingClass);
-        if (appendixStyle === kStyleFull) {
-          (headerEl as Element).classList.add("column-sidebar");
-        }
-
-        // Move the contents of the section into a div
-        const containerDivEl = doc.createElement("DIV");
-        containerDivEl.classList.add(
-          kAppendixContentsClass,
-        );
-        while (appendSectionEl.childNodes.length > 0) {
-          containerDivEl.appendChild(appendSectionEl.childNodes[0]);
-        }
-
-        appendSectionEl.appendChild(headerEl);
-        appendSectionEl.appendChild(containerDivEl);
-        appendixEl.appendChild(appendSectionEl);
-      }
-    }
+    const appendixSections: Element[] = [];
 
     // Move the refs into the appendix
     if (!hasMarginCites(format)) {
@@ -120,7 +80,6 @@ export function processDocumentAppendix(
         );
         containerEl.setAttribute("role", "doc-bibliography");
         containerEl.appendChild(refsEl);
-
         insertReferencesTitle(
           doc,
           containerEl,
@@ -128,7 +87,7 @@ export function processDocumentAppendix(
           2,
           headingClasses,
         );
-        appendixEl.appendChild(containerEl);
+        appendixSections.push(containerEl);
       }
     }
 
@@ -144,7 +103,8 @@ export function processDocumentAppendix(
           2,
           headingClasses,
         );
-        appendixEl.appendChild(footnotesEl);
+
+        appendixSections.push(footnotesEl);
       }
     }
 
@@ -181,8 +141,62 @@ export function processDocumentAppendix(
         headingClasses,
       );
 
-      appendixEl.appendChild(containerEl);
+      appendixSections.push(containerEl);
     }
+
+    // Move any sections that are marked as appendices
+    // We do this last so that the other elements will have already been
+    // moved from the document and won't inadvertently be captured
+    // (for example if the last section is an appendix it could capture
+    // the references
+    const appendixSectionNodes = doc.querySelectorAll("section.appendix");
+    const appendixSectionEls: Element[] = [];
+    for (const appendixSectionNode of appendixSectionNodes) {
+      const appendSectionEl = appendixSectionNode as Element;
+
+      // Add the whole thing
+      if (appendSectionEl) {
+        // Extract the header
+        const extractHeaderEl = () => {
+          const headerEl = appendSectionEl.querySelector(
+            "h1, h2, h3, h4, h5, h6",
+          );
+          if (headerEl) {
+            headerEl.remove();
+            return headerEl;
+          } else {
+            const h2 = doc.createElement("h2");
+            return h2;
+          }
+        };
+        const headerEl = extractHeaderEl();
+        headerEl.classList.add(kAppendixHeadingClass);
+        if (appendixStyle === kStyleFull) {
+          (headerEl as Element).classList.add("column-leftmargin");
+        }
+
+        // Move the contents of the section into a div
+        const containerDivEl = doc.createElement("DIV");
+        containerDivEl.classList.add(
+          kAppendixContentsClass,
+        );
+        while (appendSectionEl.childNodes.length > 0) {
+          containerDivEl.appendChild(appendSectionEl.childNodes[0]);
+        }
+
+        appendSectionEl.appendChild(headerEl);
+        appendSectionEl.appendChild(containerDivEl);
+        appendixSectionEls.push(appendSectionEl);
+      }
+    }
+    if (appendixSectionEls.length > 0) {
+      appendixSections.unshift(...appendixSectionEls);
+    }
+
+    // Insert the sections
+    appendixSections.forEach((el) => {
+      appendixEl.appendChild(el);
+    });
 
     if (appendixEl.childElementCount > 0) {
       mainEl.appendChild(appendixEl);
