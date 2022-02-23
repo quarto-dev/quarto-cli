@@ -7,7 +7,13 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import { kDescription, kSubtitle, kTitle } from "../../../config/constants.ts";
+import {
+  kAuthor,
+  kDate,
+  kDescription,
+  kSubtitle,
+  kTitle,
+} from "../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -42,6 +48,8 @@ import {
   kHtmlEmptyPostProcessResult,
 } from "../../../command/render/types.ts";
 import { imageSize } from "../../../core/image.ts";
+import { resolveInputTarget } from "../../project-index.ts";
+import { parseAuthor } from "../../../core/author.ts";
 
 const kCard = "card";
 
@@ -79,7 +87,7 @@ export function metadataHtmlPostProcessor(
   extras: FormatExtras,
   pipeline: MarkdownPipeline,
 ) {
-  return (doc: Document): Promise<HtmlPostProcessResult> => {
+  return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // read document level metadata
     const pageMeta = pageMetadata(format, extras);
 
@@ -174,6 +182,21 @@ export function metadataHtmlPostProcessor(
         }
       });
     });
+
+    // read google scholar metadata
+    const citationMeta = await googleScholarMeta(
+      source,
+      project,
+      pageMeta[kTitle] as string,
+      format,
+      extras,
+    );
+    if (citationMeta) {
+      Object.keys(citationMeta).forEach((key) => {
+        const value = citationMeta[key] as string;
+        writeMeta(key, value, doc);
+      });
+    }
 
     // Process any pipelined markdown
     pipeline.processRenderedMarkdown(doc);
@@ -332,6 +355,115 @@ function imageMetadata(
       height: size?.height,
       width: size?.width,
     };
+  }
+}
+
+const kCitationUrl = "citation-url";
+const kPublicationDate = "publication-date";
+const kPublicationType = "publication-type";
+const kPublicationTitle = "publication-tile";
+const kPublicationVolume = "publication-volume";
+const kPublicationIssue = "publication-issue";
+const kPublicationISSN = "publiction-issn";
+const kPublicationISBN = "publication-isbn";
+const kPublicationFirstPage = "publication-firstpage";
+const kPublicationLastPage = "publication-lastpage";
+const kPublicationInstitution = "publication-institution";
+const kPublicationReportNumber = "publication-report-number";
+
+async function googleScholarMeta(
+  source: string,
+  project: ProjectContext,
+  title: string,
+  format: Format,
+  _extras: FormatExtras,
+): Promise<Record<string, unknown> | undefined> {
+  if (format) {
+    // citation_author
+
+    const scholarMeta: Record<string, unknown> = {
+      "citation_title": title,
+    };
+    const writeMeta = (key: string, value: unknown) => {
+      scholarMeta[key] = encodeURI(value as string);
+    };
+
+    const parseMeta = (key: string | string[], metaKey: string) => {
+      const keys = Array.isArray(key) ? key : [key];
+      for (const key of keys) {
+        const val = format.metadata[key];
+        if (val) {
+          writeMeta(metaKey, val);
+          break;
+        }
+      }
+    };
+
+    // Process Authors
+    const authors = parseAuthor(format.metadata[kAuthor]);
+    if (authors) {
+      authors.forEach((author) => {
+        if (author) {
+          writeMeta("citation_author", author.name);
+        }
+      });
+    }
+
+    // Process Date
+    parseMeta(kDate, "citation_online_date");
+
+    // Process the publication data
+    const publicationInstitution = format.metadata[kPublicationInstitution];
+    const type = format.metadata[kPublicationType];
+    if (type === "journal") {
+      parseMeta(kPublicationTitle, "citation_journal_title");
+    } else if (type === "conference") {
+      parseMeta(kPublicationTitle, "citation_conference_title");
+    } else if (type === "dissertation" || type === "thesis") {
+      writeMeta("citation_dissertation_institution", publicationInstitution);
+    } else if (type === "technical-report") {
+      writeMeta(
+        "citation_technical_report_institution",
+        publicationInstitution,
+      );
+      writeMeta("citation_technical_report_number", kPublicationReportNumber);
+    } else {
+      parseMeta(kPublicationTitle, "citation_journal_title");
+    }
+    parseMeta([kPublicationDate, kDate], "citation_online_date");
+    parseMeta(kPublicationISBN, "citation_isbn");
+    parseMeta(kPublicationISSN, "citation_issn");
+    parseMeta(kPublicationVolume, "citation_volume");
+    parseMeta(kPublicationIssue, "citation_issue");
+    parseMeta(kPublicationFirstPage, "citation_firstpage");
+    parseMeta(kPublicationLastPage, "citation_lastpage");
+    parseMeta(kPublicationLastPage, "citation_lastpage");
+
+    if (format.metadata[kCitationUrl]) {
+      writeMeta(
+        "citation_fulltext_html_url",
+        format.metadata[kCitationUrl],
+      );
+    } else {
+      const siteMeta = format.metadata[kWebsite] as Metadata;
+      if (siteMeta && siteMeta[kSiteUrl]) {
+        // Try to compute url
+        const relativePath = relative(project.dir, source);
+        const inputTarget = await resolveInputTarget(
+          project,
+          relativePath,
+          false,
+        );
+        const fullTextUrl = `${siteMeta[kSiteUrl]}/${inputTarget?.outputHref}`;
+        writeMeta(
+          "citation_fulltext_html_url",
+          fullTextUrl,
+        );
+      }
+    }
+    return scholarMeta;
+  } else {
+    return undefined;
   }
 }
 
