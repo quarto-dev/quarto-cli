@@ -1041,6 +1041,10 @@ $code-block-border-left-color: $table-border-color !default;
   background-size: 0.9rem 0.9rem;
 }
 
+.callout.callout-style-default .callout-toggle::before {
+  margin-top: 5px;
+}
+
 .callout .callout-btn-toggle .callout-toggle::before {
   transition: transform 0.2s linear;
 }

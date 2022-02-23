@@ -190,9 +190,9 @@ function calloutDiv(div)
       end
 
       -- create the collapse button
-      local btnClasses = "callout-btn-toggle btn d-inline-block border-0 py-1 ps-1 pe-0 float-end"
+      local btnClasses = "callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"
       local btnIcon = "<i class='callout-toggle'></i>"
-      local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "'>" .. btnIcon .. "</button>")
+      local toggleButton = pandoc.RawInline("html", "<div class='" .. btnClasses .. "'>" .. btnIcon .. "</div>")
       headerDiv.content:insert(pandoc.Plain(toggleButton));
 
       -- configure the header div for collapse
