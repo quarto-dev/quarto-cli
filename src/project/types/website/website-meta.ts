@@ -189,23 +189,28 @@ export function metadataHtmlPostProcessor(
       });
     });
 
-    const googleScholarEnabled = () => {
+    const googleScholarEnabled = (format: Format, title?: string) => {
       const siteMeta = format.metadata[kWebsite] as Metadata;
-      // Disabled by the format / document
-      if (format.metadata[kGoogleScholar] === false) {
+
+      // Google Scholar requires a title, date, and at least one author
+      // Disable it if these conditions aren't met
+      if (!title || !format.metadata[kDate] || !format.metadata[kAuthor]) {
         return false;
       }
 
+      // Enabled by the format / document
+      if (format.metadata[kGoogleScholar] === true) {
+        return true;
+      }
       // Disabled for the site
-      if (siteMeta && siteMeta[kGoogleScholar] === false) {
-        return false;
+      if (siteMeta && siteMeta[kGoogleScholar] === true) {
+        return true;
       }
-
-      return true;
+      return false;
     };
 
     // read google scholar metadata
-    if (googleScholarEnabled()) {
+    if (googleScholarEnabled(format)) {
       const citationMeta = await googleScholarMeta(
         source,
         project,
@@ -213,6 +218,7 @@ export function metadataHtmlPostProcessor(
         format,
         extras,
       );
+
       if (citationMeta) {
         citationMeta.forEach((meta) => {
           writeMeta(meta[0], meta[1], doc);
