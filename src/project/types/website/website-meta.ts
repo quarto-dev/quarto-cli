@@ -9,6 +9,7 @@ import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import {
   kAuthor,
+  kBibliography,
   kDate,
   kDescription,
   kSubtitle,
@@ -51,6 +52,11 @@ import { imageSize } from "../../../core/image.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import { parseAuthor } from "../../../core/author.ts";
 import { encodeAttributeValue } from "../../../core/html.ts";
+import { runPandoc } from "../../../command/render/pandoc.ts";
+import { pandocBinaryPath } from "../../../core/resources.ts";
+import { TempContext } from "../../../core/temp.ts";
+import { execProcess } from "../../../core/process.ts";
+import { CSL, cslDateToEDTFDate } from "../../../core/csl.ts";
 
 const kCard = "card";
 
@@ -362,7 +368,7 @@ function imageMetadata(
 const kCitationUrl = "citation-url";
 const kPublicationDate = "publication-date";
 const kPublicationType = "publication-type";
-const kPublicationTitle = "publication-tile";
+const kPublicationTitle = "publication-title";
 const kPublicationVolume = "publication-volume";
 const kPublicationIssue = "publication-issue";
 const kPublicationISSN = "publiction-issn";
@@ -384,65 +390,57 @@ async function googleScholarMeta(
     const scholarMeta: Record<string, unknown> = {
       "citation_title": title,
     };
-
-    // Helpers
-    const writeMeta = (key: string, value: unknown) => {
-      scholarMeta[key] = encodeAttributeValue(value as string);
-    };
-    const parseMeta = (key: string | string[], metaKey: string) => {
-      const keys = Array.isArray(key) ? key : [key];
-      for (const key of keys) {
-        const val = format.metadata[key];
-        if (val) {
-          writeMeta(metaKey, val);
-          break;
-        }
-      }
-    };
+    const write = metadataWriter(scholarMeta);
+    const parse = metadataParse(format, scholarMeta);
 
     // Process Authors
     const authors = parseAuthor(format.metadata[kAuthor]);
     if (authors) {
       authors.forEach((author) => {
         if (author) {
-          writeMeta("citation_author", author.name);
+          write("citation_author", author.name);
         }
       });
     }
 
     // Process Date
-    parseMeta(kDate, "citation_online_date");
+    parse(kDate, "citation_online_date");
 
     // Process the publication data
     const publicationInstitution = format.metadata[kPublicationInstitution];
     const type = format.metadata[kPublicationType];
     if (type === "journal") {
-      parseMeta(kPublicationTitle, "citation_journal_title");
+      parse(kPublicationTitle, "citation_journal_title");
     } else if (type === "conference") {
-      parseMeta(kPublicationTitle, "citation_conference_title");
+      parse(kPublicationTitle, "citation_conference_title");
     } else if (type === "dissertation" || type === "thesis") {
-      writeMeta("citation_dissertation_institution", publicationInstitution);
+      write(
+        "citation_dissertation_institution",
+        publicationInstitution,
+      );
     } else if (type === "technical-report") {
-      writeMeta(
+      write(
         "citation_technical_report_institution",
         publicationInstitution,
       );
-      writeMeta("citation_technical_report_number", kPublicationReportNumber);
+      write(
+        "citation_technical_report_number",
+        kPublicationReportNumber,
+      );
     } else {
-      parseMeta(kPublicationTitle, "citation_journal_title");
+      parse(kPublicationTitle, "citation_journal_title");
     }
-    parseMeta([kPublicationDate, kDate], "citation_online_date");
-    parseMeta(kPublicationISBN, "citation_isbn");
-    parseMeta(kPublicationISSN, "citation_issn");
-    parseMeta(kPublicationVolume, "citation_volume");
-    parseMeta(kPublicationIssue, "citation_issue");
-    parseMeta(kPublicationFirstPage, "citation_firstpage");
-    parseMeta(kPublicationLastPage, "citation_lastpage");
-    parseMeta(kPublicationLastPage, "citation_lastpage");
+    parse([kPublicationDate, kDate], "citation_publication_date");
+    parse(kPublicationISBN, "citation_isbn");
+    parse(kPublicationISSN, "citation_issn");
+    parse(kPublicationVolume, "citation_volume");
+    parse(kPublicationIssue, "citation_issue");
+    parse(kPublicationFirstPage, "citation_firstpage");
+    parse(kPublicationLastPage, "citation_lastpage");
 
     // Process the url
     if (format.metadata[kCitationUrl]) {
-      writeMeta(
+      write(
         "citation_fulltext_html_url",
         format.metadata[kCitationUrl],
       );
@@ -457,16 +455,52 @@ async function googleScholarMeta(
           false,
         );
         const fullTextUrl = `${siteMeta[kSiteUrl]}/${inputTarget?.outputHref}`;
-        writeMeta(
+        write(
           "citation_fulltext_html_url",
           fullTextUrl,
         );
       }
     }
+
+    // Generate the references by reading the bibliography and parsing the html
+    const bibliography = format.metadata[kBibliography] as string[];
+    if (bibliography) {
+      const references = await toCSLJSON(dirname(source), bibliography);
+      references.forEach((ref) => {
+        const meta = toScholarMetadata(ref);
+        const metaStrs = Object.keys(meta).map((key) => {
+          return `${key}=${meta[key]};`;
+        });
+        write("citation_reference", metaStrs.join());
+      });
+    }
+
     return scholarMeta;
   } else {
     return undefined;
   }
+}
+
+function metadataWriter(metadata: Record<string, unknown>) {
+  const write = (key: string, value: unknown) => {
+    metadata[key] = encodeAttributeValue(value as string);
+  };
+  return write;
+}
+
+function metadataParse(format: Format, metadata: Record<string, unknown>) {
+  const writer = metadataWriter(metadata);
+  const parse = (key: string | string[], metaKey: string) => {
+    const keys = Array.isArray(key) ? key : [key];
+    for (const key of keys) {
+      const val = format.metadata[key];
+      if (val) {
+        writer(metaKey, val);
+        break;
+      }
+    }
+  };
+  return parse;
 }
 
 function writeMeta(name: string, content: string, doc: Document) {
@@ -545,4 +579,88 @@ function metaMarkdownPipeline(format: Format) {
     titleMetaHandler,
     siteTitleMetaHandler,
   ]);
+}
+
+function toScholarMetadata(
+  entry: CSL,
+): Record<string, unknown> {
+  const metadata: Record<string, unknown> = {};
+  const write = metadataWriter(metadata);
+
+  if (entry.title) {
+    write("citation_title", entry.title);
+  }
+
+  entry.author?.forEach((author) => {
+    write(
+      "citation_author",
+      author.literal || `${author.given} ${author.given}`,
+    );
+  });
+  if (entry.issued) {
+    write("citation_publication_date", cslDateToEDTFDate(entry.issued));
+  }
+  if (entry.ISBN) {
+    write("citation_isbn", entry.ISBN);
+  }
+  if (entry.ISSN) {
+    write("citation_issn", entry.ISSN);
+  }
+  if (entry.volume) {
+    write("citation_volume", entry.volume);
+  }
+  if (entry.issue) {
+    write("citation_issue", entry.volume);
+  }
+
+  if (entry["container-title"]) {
+    switch (entry.type) {
+      case ("paper-conference"):
+        write("citation_conference_title", entry["container-title"]);
+        break;
+      case ("report"):
+        break;
+      default:
+        write("citation_journal_title", entry["container-title"]);
+        break;
+    }
+  }
+
+  if (entry.publisher) {
+    switch (entry.type) {
+      case ("thesis"):
+        write("citation_dissertation_institution", entry.publisher);
+        break;
+      case ("report"):
+        write("citation_technical_report_institution", entry.publisher);
+        break;
+    }
+  }
+  return metadata;
+}
+
+async function toCSLJSON(dir: string, biblios: string[]) {
+  const bibloEntries = [];
+  for (const biblio of biblios) {
+    const cmd = [pandocBinaryPath()];
+    cmd.push(join(dir, biblio));
+    cmd.push("-t");
+    cmd.push("csljson");
+    cmd.push("--citeproc");
+
+    const result = await execProcess(
+      { cmd, stdout: "piped", stderr: "piped", cwd: dir },
+    );
+    if (result.success) {
+      if (result.stdout) {
+        const entries = JSON.parse(result.stdout);
+        bibloEntries.push(...entries);
+      }
+    } else {
+      throw new Error(
+        `Failed to generate bibliography, rendering failed with code ${result.code}\n${result.stderr}`,
+      );
+    }
+  }
+  return bibloEntries;
 }
