@@ -71,6 +71,8 @@ else
   # share directory over in the resources folder.
   if [[ $SCRIPT_PATH == *"/Contents/MacOS/quarto/bin" ]]; then
     export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../Resources/quarto/share";pwd`"
+  elif [[ $SCRIPT_PATH == *"/usr/local/bin/quarto "]]; then
+    export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../share/quarto";pwd`"
   else
     export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
   fi
