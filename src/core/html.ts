@@ -27,6 +27,20 @@ export function getDecodedAttribute(element: Element, attrib: string) {
   }
 }
 
+const kAttrReplacements: Record<string, string> = {
+  '"': "&quot;",
+  "<": "&lt;",
+  ">": "&gt;",
+  "&": "&amp;",
+};
+export function encodeAttributeValue(value: string) {
+  let result = value;
+  Object.keys(kAttrReplacements).forEach((key) => {
+    result = result.replace(key, kAttrReplacements[key]);
+  });
+  return result;
+}
+
 export function findParent(
   el: Element,
   match: (el: Element) => boolean,

@@ -50,6 +50,7 @@ import {
 import { imageSize } from "../../../core/image.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import { parseAuthor } from "../../../core/author.ts";
+import { encodeAttributeValue } from "../../../core/html.ts";
 
 const kCard = "card";
 
@@ -379,15 +380,15 @@ async function googleScholarMeta(
   _extras: FormatExtras,
 ): Promise<Record<string, unknown> | undefined> {
   if (format) {
-    // citation_author
-
+    // The scholar metadata that we'll generate into
     const scholarMeta: Record<string, unknown> = {
       "citation_title": title,
     };
-    const writeMeta = (key: string, value: unknown) => {
-      scholarMeta[key] = encodeURI(value as string);
-    };
 
+    // Helpers
+    const writeMeta = (key: string, value: unknown) => {
+      scholarMeta[key] = encodeAttributeValue(value as string);
+    };
     const parseMeta = (key: string | string[], metaKey: string) => {
       const keys = Array.isArray(key) ? key : [key];
       for (const key of keys) {
@@ -439,6 +440,7 @@ async function googleScholarMeta(
     parseMeta(kPublicationLastPage, "citation_lastpage");
     parseMeta(kPublicationLastPage, "citation_lastpage");
 
+    // Process the url
     if (format.metadata[kCitationUrl]) {
       writeMeta(
         "citation_fulltext_html_url",
