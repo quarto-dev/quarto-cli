@@ -15,7 +15,9 @@ function quartoPostMetaInject()
       -- Citeproc interprets this as a cite, and provides
       -- a warning of unresolve citation. But we know
       -- that a citation is never allowed in the creator field
-      meta.website['twitter-card'].creator = nil
+      if meta.website ~= nil and meta.website['twitter-card'] ~= nil then
+        meta.website['twitter-card'].creator = nil
+      end
 
       return meta
     end
