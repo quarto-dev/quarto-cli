@@ -137,6 +137,7 @@ import {
   kSectionDivs,
   kSectionTitleAbstract,
   kSectionTitleAppendices,
+  kSectionTitleCitation,
   kSectionTitleFootnotes,
   kSectionTitleReferences,
   kSectionTitleReuse,
@@ -426,6 +427,7 @@ export interface FormatLanguage {
   [kCalloutImportantCaption]?: string;
   [kCalloutDangerCaption]?: string;
   [kSectionTitleAbstract]?: string;
+  [kSectionTitleCitation]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;

@@ -146,6 +146,7 @@ export const kSectionTitleFootnotes = "section-title-footnotes";
 export const kSectionTitleReferences = "section-title-references";
 export const kSectionTitleAppendices = "section-title-appendices";
 export const kSectionTitleReuse = "section-title-reuse";
+export const kSectionTitleCitation = "section-title-citation";
 export const kCodeSummary = "code-summary";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
@@ -226,6 +227,7 @@ export const kLanguageDefaultsKeys = [
   kSectionTitleReferences,
   kSectionTitleAppendices,
   kSectionTitleReuse,
+  kSectionTitleCitation,
   kCodeSummary,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
