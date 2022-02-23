@@ -27,6 +27,7 @@ import { ProjectContext } from "../../types.ts";
 import {
   kCardStyle,
   kCreator,
+  kGoogleScholar,
   kImage,
   kImageHeight,
   kImageWidth,
@@ -52,9 +53,7 @@ import { imageSize } from "../../../core/image.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import { parseAuthor } from "../../../core/author.ts";
 import { encodeAttributeValue } from "../../../core/html.ts";
-import { runPandoc } from "../../../command/render/pandoc.ts";
 import { pandocBinaryPath } from "../../../core/resources.ts";
-import { TempContext } from "../../../core/temp.ts";
 import { execProcess } from "../../../core/process.ts";
 import { CSL, cslDateToEDTFDate } from "../../../core/csl.ts";
 
@@ -190,18 +189,35 @@ export function metadataHtmlPostProcessor(
       });
     });
 
+    const googleScholarEnabled = () => {
+      const siteMeta = format.metadata[kWebsite] as Metadata;
+      // Disabled by the format / document
+      if (format.metadata[kGoogleScholar] === false) {
+        return false;
+      }
+
+      // Disabled for the site
+      if (siteMeta && siteMeta[kGoogleScholar] === false) {
+        return false;
+      }
+
+      return true;
+    };
+
     // read google scholar metadata
-    const citationMeta = await googleScholarMeta(
-      source,
-      project,
-      pageMeta[kTitle] as string,
-      format,
-      extras,
-    );
-    if (citationMeta) {
-      citationMeta.forEach((meta) => {
-        writeMeta(meta[0], meta[1], doc);
-      });
+    if (googleScholarEnabled()) {
+      const citationMeta = await googleScholarMeta(
+        source,
+        project,
+        pageMeta[kTitle] as string,
+        format,
+        extras,
+      );
+      if (citationMeta) {
+        citationMeta.forEach((meta) => {
+          writeMeta(meta[0], meta[1], doc);
+        });
+      }
     }
 
     // Process any pipelined markdown

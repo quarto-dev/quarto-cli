@@ -54,6 +54,7 @@ export const kContents = "contents";
 
 export const kTwitterCard = "twitter-card";
 export const kOpenGraph = "open-graph";
+export const kGoogleScholar = "google-scholar";
 
 export const kCardStyle = "card-style";
 export const kImage = "image";
