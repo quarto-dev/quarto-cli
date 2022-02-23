@@ -199,9 +199,8 @@ export function metadataHtmlPostProcessor(
       extras,
     );
     if (citationMeta) {
-      Object.keys(citationMeta).forEach((key) => {
-        const value = citationMeta[key] as string;
-        writeMeta(key, value, doc);
+      citationMeta.forEach((meta) => {
+        writeMeta(meta[0], meta[1], doc);
       });
     }
 
@@ -378,18 +377,19 @@ const kPublicationLastPage = "publication-lastpage";
 const kPublicationInstitution = "publication-institution";
 const kPublicationReportNumber = "publication-report-number";
 
+type metaVal = [string, string];
+
 async function googleScholarMeta(
   source: string,
   project: ProjectContext,
   title: string,
   format: Format,
   _extras: FormatExtras,
-): Promise<Record<string, unknown> | undefined> {
+): Promise<metaVal[] | undefined> {
   if (format) {
     // The scholar metadata that we'll generate into
-    const scholarMeta: Record<string, unknown> = {
-      "citation_title": title,
-    };
+    const scholarMeta: metaVal[] = [];
+    scholarMeta.push(["citation_title", title]);
     const write = metadataWriter(scholarMeta);
     const parse = metadataParse(format, scholarMeta);
 
@@ -467,9 +467,9 @@ async function googleScholarMeta(
     if (bibliography) {
       const references = await toCSLJSON(dirname(source), bibliography);
       references.forEach((ref) => {
-        const meta = toScholarMetadata(ref);
-        const metaStrs = Object.keys(meta).map((key) => {
-          return `${key}=${meta[key]};`;
+        const refMetas = toScholarMetadata(ref);
+        const metaStrs = refMetas.map((refMeta) => {
+          return `${refMeta[0]}=${refMeta[1]};`;
         });
         write("citation_reference", metaStrs.join());
       });
@@ -481,14 +481,14 @@ async function googleScholarMeta(
   }
 }
 
-function metadataWriter(metadata: Record<string, unknown>) {
+function metadataWriter(metadata: metaVal[]) {
   const write = (key: string, value: unknown) => {
-    metadata[key] = encodeAttributeValue(value as string);
+    metadata.push([key, encodeAttributeValue(value as string)]);
   };
   return write;
 }
 
-function metadataParse(format: Format, metadata: Record<string, unknown>) {
+function metadataParse(format: Format, metadata: metaVal[]) {
   const writer = metadataWriter(metadata);
   const parse = (key: string | string[], metaKey: string) => {
     const keys = Array.isArray(key) ? key : [key];
@@ -583,8 +583,8 @@ function metaMarkdownPipeline(format: Format) {
 
 function toScholarMetadata(
   entry: CSL,
-): Record<string, unknown> {
-  const metadata: Record<string, unknown> = {};
+): metaVal[] {
+  const metadata: metaVal[] = [];
   const write = metadataWriter(metadata);
 
   if (entry.title) {
