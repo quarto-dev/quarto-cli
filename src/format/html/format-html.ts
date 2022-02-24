@@ -56,6 +56,7 @@ import {
 
 import {
   clipboardDependency,
+  createCodeCopyButton,
   kAnchorSections,
   kBootstrapDependencyName,
   kCitationsHover,
@@ -541,14 +542,7 @@ function htmlFormatPostprocessor(
       // insert code copy button
       if (codeCopy) {
         code.classList.add("code-with-copy");
-        const copyButton = doc.createElement("button");
-        const title = format.language[kCopyButtonTooltip]!;
-        copyButton.setAttribute("title", title);
-        copyButton.classList
-          .add("code-copy-button");
-        const copyIcon = doc.createElement("i");
-        copyIcon.classList.add("bi");
-        copyButton.appendChild(copyIcon);
+        const copyButton = createCodeCopyButton(doc, format);
         code.appendChild(copyButton);
       }
 

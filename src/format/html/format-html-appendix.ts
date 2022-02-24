@@ -10,6 +10,7 @@ import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
   kAuthor,
+  kCopyButtonTooltip,
   kCsl,
   kDate,
   kDoi,
@@ -29,6 +30,8 @@ import {
 } from "../../project/types/website/website-config.ts";
 import {
   computeUrl,
+  createCodeBlock,
+  createCodeCopyButton,
   hasMarginCites,
   hasMarginRefs,
   insertFootnotesTitle,
@@ -203,10 +206,12 @@ export async function processDocumentAppendix(
               "BibTeX citation";
             contentsDiv.appendChild(bibTexLabelEl);
 
-            const bibTexDiv = doc.createElement("DIV");
+            const bibTexDiv = createCodeBlock(doc, cite.bibtex, "bibtex");
             bibTexDiv.classList.add(kQuartoCiteBibtexClass);
-            bibTexDiv.innerHTML = cite.bibtex;
             contentsDiv.appendChild(bibTexDiv);
+
+            const copyButton = createCodeCopyButton(doc, format);
+            bibTexDiv.appendChild(copyButton);
           }
 
           if (cite?.html) {

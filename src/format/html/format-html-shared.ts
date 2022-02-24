@@ -11,6 +11,7 @@ import {
   kCapTop,
   kCitationLocation,
   kCodeOverflow,
+  kCopyButtonTooltip,
   kLinkExternalIcon,
   kReferenceLocation,
   kSectionTitleFootnotes,
@@ -387,4 +388,35 @@ export function computeUrl(
       relative(rootDir, join(dirname(input), outputFileName))
     }`;
   }
+}
+
+export function createCodeCopyButton(doc: Document, format: Format) {
+  const copyButton = doc.createElement("button");
+  const title = format.language[kCopyButtonTooltip]!;
+  copyButton.setAttribute("title", title);
+  copyButton.classList
+    .add("code-copy-button");
+  const copyIcon = doc.createElement("i");
+  copyIcon.classList.add("bi");
+  copyButton.appendChild(copyIcon);
+  return copyButton;
+}
+
+export function createCodeBlock(
+  doc: Document,
+  htmlContents: string,
+  language?: string,
+) {
+  const preEl = doc.createElement("PRE");
+  preEl.classList.add("sourceCode");
+  preEl.classList.add("code-with-copy");
+
+  const codeEl = doc.createElement("CODE");
+  codeEl.classList.add("sourceCode");
+  if (language) {
+    codeEl.classList.add(language);
+  }
+  codeEl.innerHTML = htmlContents;
+  preEl.appendChild(codeEl);
+  return preEl;
 }
