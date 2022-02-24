@@ -5,17 +5,17 @@
     "line-number-background-color": null,
     "text-styles": {
         "Normal": {
-            "text-color": "#007BA5"
+            "text-color": "#00769E"
         },
         "Other": {
-            "text-color": "#007BA5",
+            "text-color": "#00769E",
             "background-color": null,
             "bold": false,
             "italic": false,
             "underline": false
         },
         "Attribute": {
-            "text-color": null,
+            "text-color": "#677623",
             "background-color": null,
             "bold": false,
             "italic": false,
@@ -50,7 +50,7 @@
             "underline": false
         },
         "ControlFlow": {
-            "text-color": "#007BA5",
+            "text-color": "#00769E",
             "background-color": null,
             "bold": false,
             "italic": false,
@@ -204,7 +204,7 @@
             "underline": false
         },
         "Keyword": {
-            "text-color": "#007BA5",
+            "text-color": "#00769E",
             "background-color": null,
             "bold": false,
             "italic": false,
