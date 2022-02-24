@@ -289,16 +289,18 @@ function latexCalloutBoxDefault(caption, type, icon)
   local borderRadius = '.35mm'
   local leftPad = '2mm'
   local color = latexColorForType(type)
-
+  local frameColor = latexFrameColorForType(type)
 
   local iconForType = iconForType(type)
 
   -- generate options
   local options = {
-    colframe = color,
+    colframe = frameColor,
     colbacktitle = color ..'!10!white',
     coltitle = 'black',
     colback = 'white',
+    opacityback = 0,
+    opacitybacktitle =  0.6,
     left = leftPad,
     leftrule = leftBorderWidth,
     toprule = borderWidth, 
@@ -316,7 +318,7 @@ function latexCalloutBoxDefault(caption, type, icon)
   end
 
   -- the core latex for the box
-  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[' .. tColorOptions(options) .. ']\n') }
+  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[standard jigsaw,' .. tColorOptions(options) .. ']\n') }
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- Add the captions and contents
@@ -340,11 +342,13 @@ function latexCalloutBoxSimple(caption, type, icon)
   local borderRadius = '.35mm'
   local leftPad = '2mm'
   local color = latexColorForType(type)
+  local colorFrame = latexFrameColorForType(type)
 
   -- generate options
   local options = {
-    colframe = color,
+    colframe = colorFrame,
     colback = 'white',
+    opacityback = 0,
     left = leftPad,
     leftrule = leftBorderWidth,
     toprule = borderWidth, 
@@ -354,7 +358,7 @@ function latexCalloutBoxSimple(caption, type, icon)
   }
 
   -- the core latex for the box
-  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[' .. tColorOptions(options) .. ']\n') }
+  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[standard jigsaw, ' .. tColorOptions(options) .. ']\n') }
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- generate the icon and use a minipage to position it
@@ -816,6 +820,23 @@ function latexColorForType(type)
     return "quarto-callout-color"
   end
 end
+
+function latexFrameColorForType(type) 
+  if type == 'note' then
+    return "quarto-callout-note-color-frame"
+  elseif type == "warning" then
+    return "quarto-callout-warning-color-frame"
+  elseif type == "important" then
+    return "quarto-callout-important-color-frame"
+  elseif type == "caution" then
+    return "quarto-callout-caution-color-frame"
+  elseif type == "tip" then 
+    return "quarto-callout-tip-color-frame"
+  else
+    return "quarto-callout-color-frame"
+  end
+end
+
 
 function iconForType(type) 
   if type == 'note' then

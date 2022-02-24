@@ -21,7 +21,13 @@ function quartoPreMetaInject()
             "\\definecolor{quarto-callout-important-color}{HTML}{" .. kColorImportant .. "}\n" ..
             "\\definecolor{quarto-callout-warning-color}{HTML}{" .. kColorWarning .."}\n" ..
             "\\definecolor{quarto-callout-tip-color}{HTML}{" .. kColorTip .."}\n" ..
-            "\\definecolor{quarto-callout-caution-color}{HTML}{" .. kColorCaution .. "}\n"
+            "\\definecolor{quarto-callout-caution-color}{HTML}{" .. kColorCaution .. "}\n" ..
+            "\\definecolor{quarto-callout-color-frame}{HTML}{" .. kColorUnknownFrame .. "}\n" ..
+            "\\definecolor{quarto-callout-note-color-frame}{HTML}{" .. kColorNoteFrame .. "}\n" ..
+            "\\definecolor{quarto-callout-important-color-frame}{HTML}{" .. kColorImportantFrame .. "}\n" ..
+            "\\definecolor{quarto-callout-warning-color-frame}{HTML}{" .. kColorWarningFrame .."}\n" ..
+            "\\definecolor{quarto-callout-tip-color-frame}{HTML}{" .. kColorTipFrame .."}\n" ..
+            "\\definecolor{quarto-callout-caution-color-frame}{HTML}{" .. kColorCautionFrame .. "}\n"
           )
         end)
       end
