@@ -13,7 +13,6 @@ import {
   schemaFromString,
   yamlValidationUnitTest,
 } from "./utils.ts";
-import { assertRejects } from "testing/asserts.ts";
 import {
   readAndValidateYamlFromMappedString,
   ValidationError,
