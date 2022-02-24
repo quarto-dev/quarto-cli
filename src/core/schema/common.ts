@@ -23,6 +23,7 @@ import {
   BooleanSchema,
   ConcreteSchema,
   EnumSchema,
+  JSONValue,
   NullSchema,
   NumberSchema,
   ObjectSchema,
@@ -95,7 +96,7 @@ export function numericSchema(obj: {
 //   "description": "be anything",
 // };
 
-export function enumSchema(...args: string[]): EnumSchema {
+export function enumSchema(...args: JSONValue[]): EnumSchema {
   if (args.length === 0) {
     throw new Error("Internal Error: Empty enum schema not supported.");
   }
@@ -105,7 +106,7 @@ export function enumSchema(...args: string[]): EnumSchema {
     "description": args.length > 1
       ? `be one of: ${args.map((x) => "`" + x + "`").join(", ")}`
       : `be '${args[0]}'`,
-    "completions": args,
+    "completions": args.map(String),
     "exhaustiveCompletions": true,
   };
 }

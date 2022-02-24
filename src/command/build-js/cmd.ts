@@ -65,59 +65,81 @@ async function buildQuartoOJS() {
 }
 
 async function buildYAMLJS() {
-  const webWorkerSrc = await esbuildCompile(
-    "",
-    resourcePath("../core/lib/yaml-intelligence"),
-    ["web-worker.ts"],
-    "iife",
-  );
-  ensureAllowableIDESyntax(webWorkerSrc!, "web-worker.js");
-
-  const standaloneSchemaCJS = await esbuildCompile(
-    "",
-    resourcePath("editor/tools/yaml"),
-    ["standalone-schema-validators.js"],
-    "cjs",
-  );
-  ensureAllowableIDESyntax(standaloneSchemaCJS!, "yaml-intelligence.cjs");
+  // convert tree-sitter-yaml to a JSON object that can be imported directly.
+  // In principle this never changes so running it every time is overkill, but this
+  // way we document the generation of the JSON object.
+  // inexplicably, using TextEncoder inside a web worker on QtWebEngine freezes
+  // the entire thread. That means we can't use base64 strings to encode the wasm
+  // values. So we will encode them as plain js numbers. facepalm
+  const treeSitterYamlJson = {
+    "data": Array.from(Deno.readFileSync(
+      resourcePath("editor/tools/yaml/tree-sitter-yaml.wasm"),
+    )),
+  };
   Deno.writeTextFileSync(
-    resourcePath("editor/tools/yaml/standalone-schema-validators.cjs"),
-    standaloneSchemaCJS!,
+    resourcePath("editor/tools/yaml/tree-sitter-yaml.json"),
+    JSON.stringify(treeSitterYamlJson),
   );
 
-  const intelligenceSrc = await esbuildCompile(
-    "",
-    resourcePath("../core/lib/yaml-intelligence"),
-    ["ide-main.ts"],
-    "esm",
-  );
-  ensureAllowableIDESyntax(intelligenceSrc!, "yaml-intelligence.js");
+  const esbuild = async (
+    cwd: string,
+    filename: string,
+    outputType: "esm" | "iife" | "cjs" = "iife",
+    checkIde = true,
+  ) => {
+    const result = (await esbuildCompile(
+      "",
+      cwd,
+      [filename],
+      outputType,
+    ))!;
+    if (checkIde) {
+      ensureAllowableIDESyntax(result, filename);
+    }
+    return result;
+  };
+
   Deno.writeTextFileSync(
     resourcePath("editor/tools/yaml/yaml-intelligence.js"),
-    intelligenceSrc!,
+    await esbuild(
+      resourcePath("../core/lib/yaml-intelligence"),
+      "ide-main.ts",
+      "esm",
+    ),
   );
 
-  const finalBuild = await esbuildCompile(
-    "",
-    resourcePath("editor/tools/yaml"),
-    ["automation.js"],
+  Deno.writeTextFileSync(
+    resourcePath("editor/tools/yaml/yaml.js"),
+    await esbuild(
+      resourcePath("editor/tools/yaml"),
+      "automation.js",
+    ),
+  );
+
+  const webWorkerSrc = await esbuild(
+    resourcePath("../core/lib/yaml-intelligence"),
+    "web-worker.ts",
+  );
+  const vsCodeSrc = await esbuild(
+    resourcePath("../core/lib/yaml-intelligence"),
+    "vs-code.ts",
     "iife",
+    false,
   );
 
-  ensureAllowableIDESyntax(finalBuild!, "automation.js");
   const treeSitter = Deno.readTextFileSync(
     resourcePath("editor/tools/yaml/tree-sitter.js"),
   );
   ensureAllowableIDESyntax(treeSitter, "tree-sitter.js");
 
   Deno.writeTextFileSync(
-    resourcePath("editor/tools/yaml/yaml.js"),
-    [finalBuild!].join(""),
+    resourcePath("editor/tools/vs-code.js"),
+    [treeSitter, vsCodeSrc].join(""),
   );
 
   Deno.writeTextFileSync(
     resourcePath("editor/tools/yaml/web-worker.js"),
-    [treeSitter, webWorkerSrc!].join(""),
+    [treeSitter, webWorkerSrc].join(""),
   );
 }
 

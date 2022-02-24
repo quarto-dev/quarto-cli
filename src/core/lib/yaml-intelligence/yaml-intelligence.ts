@@ -17,7 +17,6 @@ import {
 } from "./parsing.ts";
 
 import { initState, setInitializer } from "../yaml-validation/state.ts";
-import { getLocalPath, setMainPath } from "./paths.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
@@ -1020,9 +1019,12 @@ const initializer = async () => {
   // for now we force the IDE to load the module ahead of time to not get
   // a pause at unpredictable times.
 
-  const response = await fetch(getLocalPath("quarto-json-schemas.json"));
-  const _schemas = (await response.json()) as QuartoJsonSchemas;
-  setSchemas(_schemas!);
+  const schemas = await import(
+    "../../../resources/editor/tools/yaml/quarto-json-schemas.json",
+    { assert: { type: "json" } }
+  ) as QuartoJsonSchemas;
+
+  setSchemas(schemas);
 
   const schemaDefs = getSchemas().definitions;
   for (const [_key, value] of Object.entries(schemaDefs)) {
@@ -1034,10 +1036,9 @@ const initializer = async () => {
 
 export async function getCompletions(
   context: YamlIntelligenceContext,
-  path: string,
+  _path: string,
 ) {
   try {
-    setMainPath(path);
     setInitializer(initializer);
     await initState();
     return await getAutomation("completions", context);
@@ -1050,10 +1051,9 @@ export async function getCompletions(
 
 export async function getLint(
   context: YamlIntelligenceContext,
-  path: string,
+  _path: string,
 ) {
   try {
-    setMainPath(path);
     setInitializer(initializer);
     await initState();
     return await getAutomation("validation", context);

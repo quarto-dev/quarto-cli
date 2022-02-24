@@ -5,7 +5,6 @@
 *
 */
 
-import { getLocalPath } from "./paths.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { lines, rowColToIndex } from "../text.ts";
@@ -43,8 +42,13 @@ export async function getTreeSitter(): Promise<any> {
 
   _parser = new Parser();
 
+  const treeSitterYamlJson = (await import(
+    "../../../resources/editor/tools/yaml/tree-sitter-yaml.json",
+    { assert: { type: "json" } }
+  )) as { data: number[] };
+
   const YAML = await Parser.Language.load(
-    getLocalPath("tree-sitter-yaml.wasm"),
+    new Uint8Array(treeSitterYamlJson.data),
   );
 
   _parser.setLanguage(YAML);
