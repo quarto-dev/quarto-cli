@@ -7,6 +7,8 @@ section-title-footnotes: "脚注"
 section-title-references: "参考"
 section-title-reuse: "重用"
 section-title-citation: "引文"
+appendix-attribution-bibtex: "BibTeX"
+appendix-attribution-cite-as: "请引用这项工作："
 
 callout-tip-caption: "提示"
 callout-note-caption: "注释"

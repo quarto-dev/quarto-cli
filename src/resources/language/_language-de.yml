@@ -7,6 +7,8 @@ section-title-footnotes: "Fussnoten"
 section-title-references: "Verweise"
 section-title-reuse: "Wiederverwendung"
 section-title-citation: "Zitat"
+appendix-attribution-bibtex: "BibTeX"
+appendix-attribution-cite-as: "Bitte zitieren Sie diese Arbeit als:"
 
 callout-tip-caption: "Tipp"
 callout-note-caption: "Hinweis"

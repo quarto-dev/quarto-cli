@@ -7,6 +7,8 @@
 import { Document } from "../core/deno-dom.ts";
 
 import {
+  kAppendixAttributionBibTex,
+  kAppendixAttributionCiteAs,
   kAtxHeaders,
   kCache,
   kCalloutDangerCaption,
@@ -428,6 +430,8 @@ export interface FormatLanguage {
   [kCalloutDangerCaption]?: string;
   [kSectionTitleAbstract]?: string;
   [kSectionTitleCitation]?: string;
+  [kAppendixAttributionBibTex]?: string;
+  [kAppendixAttributionCiteAs]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;

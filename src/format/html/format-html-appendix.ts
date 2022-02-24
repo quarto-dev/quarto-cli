@@ -10,6 +10,8 @@ import { Format, PandocFlags } from "../../config/types.ts";
 
 import { dirname, isAbsolute, join } from "path/mod.ts";
 import {
+  kAppendixAttributionBibTex,
+  kAppendixAttributionCiteAs,
   kAuthor,
   kCsl,
   kDate,
@@ -18,14 +20,10 @@ import {
   kSectionTitleReuse,
   kTitle,
 } from "../../config/constants.ts";
-import { Format, Metadata, PandocFlags } from "../../config/types.ts";
+import { Format, PandocFlags } from "../../config/types.ts";
 import { renderBibTex, renderHtml } from "../../core/bibliography.ts";
 import { CSL, cslDate, cslNames, cslType, suggestId } from "../../core/csl.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
-import {
-  kSiteUrl,
-  kWebsite,
-} from "../../project/types/website/website-config.ts";
 import {
   hasMarginCites,
   hasMarginRefs,
@@ -221,7 +219,8 @@ export async function processDocumentAppendix(
             // Add the bibtext representation to the appendix
             const bibTexLabelEl = doc.createElement("DIV");
             bibTexLabelEl.classList.add(kQuartoSecondaryLabelClass);
-            bibTexLabelEl.innerText = "BibTeX citation";
+            bibTexLabelEl.innerText =
+              format.language[kAppendixAttributionBibTex] || "BibTeX citation";
             contentsDiv.appendChild(bibTexLabelEl);
 
             const bibTexDiv = doc.createElement("DIV");
@@ -234,7 +233,9 @@ export async function processDocumentAppendix(
             // Add the cite as to the appendix
             const citeLabelEl = doc.createElement("DIV");
             citeLabelEl.classList.add(kQuartoSecondaryLabelClass);
-            citeLabelEl.innerText = "For attribution, please cite this work as";
+            citeLabelEl.innerText =
+              format.language[kAppendixAttributionCiteAs] ||
+              "For attribution, please cite this work as:";
             contentsDiv.appendChild(citeLabelEl);
             const entry = extractCiteEl(html, doc);
             if (entry) {

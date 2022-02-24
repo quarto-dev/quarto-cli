@@ -7,6 +7,8 @@ section-title-footnotes: "Dipnotlar"
 section-title-references: "Referanslar"
 section-title-reuse: "Yeniden kullanın"
 section-title-citation: "Alıntı"
+appendix-attribution-bibtex: "BibTeX"
+appendix-attribution-cite-as: "Lütfen bu çalışmayı şu şekilde alıntılayın:"
 
 callout-tip-caption: "Tavsiye"
 callout-note-caption: "Not"

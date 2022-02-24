@@ -7,6 +7,8 @@ section-title-footnotes: "Сноски"
 section-title-references: "использованная литература"
 section-title-reuse: "Повторное использование"
 section-title-citation: "Цитата"
+appendix-attribution-bibtex: "BibTeX"
+appendix-attribution-cite-as: "Пожалуйста, цитируйте эту работу как:"
 
 callout-tip-caption: "Совет"
 callout-note-caption: "Уведомление"

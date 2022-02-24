@@ -7,6 +7,8 @@ section-title-footnotes: "Notes de bas de page"
 section-title-references: "Les références"
 section-title-reuse: "Réutilisation"
 section-title-citation: "Citation"
+appendix-attribution-bibtex: "BibTeX"
+appendix-attribution-cite-as: "Veuillez citer ce travail comme suit :"
 
 callout-tip-caption: "Astuce"
 callout-note-caption: "Note"
