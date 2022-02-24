@@ -14,8 +14,8 @@ import {
   insertFootnotesTitle,
   insertReferencesTitle,
   insertTitle,
-  kAppendixCreativeCommons,
   kAppendixStyle,
+  kCreativeCommons,
 } from "./format-html-shared.ts";
 
 const kAppendixCreativeCommonsLic = [
@@ -27,17 +27,11 @@ const kAppendixCreativeCommonsLic = [
 
 const kStylePlain = "plain";
 const kStyleFull = "full";
+const kDefaultStyle = "two-column";
 
 const kAppendixHeadingClass = "quarto-appendix-heading";
 const kAppendixContentsClass = "quarto-appendix-contents";
 const kAppendixId = "quarto-appendix";
-
-/*
-Text and figures are licensed under Creative Commons Attribution ',
-        '<a rel="license" href="%s">%s 4.0</a>. %sThe figures that have been reused from ',
-        'other sources don\'t fall under this license and can be ',
-        'recognized by a note in their caption: "Figure from ...".
-        */
 
 export function processDocumentAppendix(
   format: Format,
@@ -68,26 +62,44 @@ export function processDocumentAppendix(
       headingClasses.push("column-leftmargin");
     }
 
+    // Gather the sections that should be included
+    // in the Appendix
     const appendixSections: Element[] = [];
+    const addSection = (fn: (sectionEl: Element) => void, title?: string) => {
+      const containerEl = doc.createElement("SECTION");
+      containerEl.classList.add(
+        kAppendixContentsClass,
+      );
+      fn(containerEl);
+
+      if (title) {
+        insertTitle(
+          doc,
+          containerEl,
+          title,
+          2,
+          headingClasses,
+        );
+      }
+
+      appendixSections.push(containerEl);
+    };
 
     // Move the refs into the appendix
     if (!hasMarginCites(format)) {
       const refsEl = doc.getElementById("refs");
       if (refsEl) {
-        const containerEl = doc.createElement("SECTION");
-        containerEl.classList.add(
-          kAppendixContentsClass,
-        );
-        containerEl.setAttribute("role", "doc-bibliography");
-        containerEl.appendChild(refsEl);
-        insertReferencesTitle(
-          doc,
-          containerEl,
-          format.language,
-          2,
-          headingClasses,
-        );
-        appendixSections.push(containerEl);
+        addSection((sectionEl) => {
+          sectionEl.setAttribute("role", "doc-bibliography");
+          sectionEl.appendChild(refsEl);
+          insertReferencesTitle(
+            doc,
+            sectionEl,
+            format.language,
+            2,
+            headingClasses,
+          );
+        });
       }
     }
 
@@ -103,45 +115,33 @@ export function processDocumentAppendix(
           2,
           headingClasses,
         );
-
         appendixSections.push(footnotesEl);
       }
     }
 
     // Place Re-use, if appropriate
     const creativeCommons = creativeCommonsLicense(
-      format.metadata[kAppendixCreativeCommons] as string,
+      format.metadata[kCreativeCommons] as string,
     );
-
     if (creativeCommons) {
-      const containerEl = doc.createElement("SECTION");
-      containerEl.setAttribute("role", "doc-bibliography");
+      addSection((sectionEl) => {
+        sectionEl.setAttribute("role", "doc-bibliography");
+        const contentsDiv = doc.createElement("DIV");
+        contentsDiv.id = "quarto-reuse";
+        contentsDiv.classList.add(
+          kAppendixContentsClass,
+        );
 
-      const contentsDiv = doc.createElement("DIV");
-      contentsDiv.id = "quarto-reuse";
-      contentsDiv.classList.add(
-        kAppendixContentsClass,
-      );
-
-      const licenseUrl = creativeCommonsUrl(
-        creativeCommons,
-        format.metadata[kLang] as string | undefined,
-      );
-      const linkEl = doc.createElement("A");
-      linkEl.innerText = licenseUrl;
-      linkEl.setAttribute("href", licenseUrl);
-      contentsDiv.appendChild(linkEl);
-      containerEl.appendChild(contentsDiv);
-
-      insertTitle(
-        doc,
-        containerEl,
-        format.language[kSectionTitleReuse] || "Usage",
-        2,
-        headingClasses,
-      );
-
-      appendixSections.push(containerEl);
+        const licenseUrl = creativeCommonsUrl(
+          creativeCommons,
+          format.metadata[kLang] as string | undefined,
+        );
+        const linkEl = doc.createElement("A");
+        linkEl.innerText = licenseUrl;
+        linkEl.setAttribute("href", licenseUrl);
+        contentsDiv.appendChild(linkEl);
+        sectionEl.appendChild(contentsDiv);
+      }, format.language[kSectionTitleReuse] || "Usage");
     }
 
     // Move any sections that are marked as appendices
@@ -189,6 +189,8 @@ export function processDocumentAppendix(
         appendixSectionEls.push(appendSectionEl);
       }
     }
+    // Place the user decorated appendixes at the front of the list
+    // of appendixes
     if (appendixSectionEls.length > 0) {
       appendixSections.unshift(...appendixSectionEls);
     }
@@ -198,13 +200,12 @@ export function processDocumentAppendix(
       appendixEl.appendChild(el);
     });
 
+    // Only add the appendix if it has at least one section
     if (appendixEl.childElementCount > 0) {
       mainEl.appendChild(appendixEl);
     }
   }
 }
-
-const kDefaultStyle = "two-column";
 
 function parseStyle(style?: string) {
   switch (style) {
