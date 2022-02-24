@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
 import {
   kCapLoc,
@@ -59,6 +59,7 @@ export const kAppendixStyle = "appendix-style";
 export const kLicense = "license";
 
 export const kCitationUrl = "citation-url";
+export const kCitation = "citation";
 export const kPublicationDate = "publication-date";
 export const kPublicationType = "publication-type";
 export const kPublicationTitle = "publication-title";
@@ -370,4 +371,20 @@ export function hasMarginRefs(format: Format, flags: PandocFlags) {
 export function hasMarginCites(format: Format) {
   // If margin cites are enabled, move them
   return format.metadata[kCitationLocation] === "margin";
+}
+
+export function computeUrl(
+  input: string,
+  baseUrl: string,
+  offset: string,
+  outputFileName: string,
+) {
+  const rootDir = Deno.realPathSync(join(dirname(input), offset));
+  if (outputFileName === "index.html") {
+    return `${baseUrl}/${relative(rootDir, dirname(input))}`;
+  } else {
+    return `${baseUrl}/${
+      relative(rootDir, join(dirname(input), outputFileName))
+    }`;
+  }
 }

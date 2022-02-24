@@ -274,6 +274,7 @@ export interface Format {
     format: Format,
     libDir: string,
     temp: TempContext,
+    offset?: string,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (
     file: string,

@@ -12,22 +12,30 @@ import {
   kAuthor,
   kCsl,
   kDate,
+  kDoi,
   kLang,
+  kOutputFile,
   kSectionTitleCitation,
   kSectionTitleReuse,
   kTitle,
 } from "../../config/constants.ts";
-import { Format, PandocFlags } from "../../config/types.ts";
+import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { renderBibTex, renderHtml } from "../../core/bibliography.ts";
 import { CSL, cslDate, cslNames, cslType, suggestId } from "../../core/csl.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import {
+  kSiteUrl,
+  kWebsite,
+} from "../../project/types/website/website-config.ts";
+import {
+  computeUrl,
   hasMarginCites,
   hasMarginRefs,
   insertFootnotesTitle,
   insertReferencesTitle,
   insertTitle,
   kAppendixStyle,
+  kCitation,
   kCitationUrl,
   kLicense,
   kPublicationDate,
@@ -63,6 +71,7 @@ export async function processDocumentAppendix(
   format: Format,
   flags: PandocFlags,
   doc: Document,
+  offset?: string,
 ) {
   // Don't do anything at all if the appendix-style is false or 'none'
   if (
@@ -177,9 +186,9 @@ export async function processDocumentAppendix(
     }
 
     // Place the citation for this document itself, if appropriate
-    if (format.metadata[kCitationUrl]) {
+    if (format.metadata[kCitationUrl] || format.metadata[kCitation] === true) {
       // Render the citation data for this document
-      const cite = await generateCite(input, format);
+      const cite = await generateCite(input, format, offset);
       if (cite?.bibtex || cite?.html) {
         addSection((sectionEl) => {
           const contentsDiv = doc.createElement("DIV");
@@ -314,8 +323,8 @@ function creativeCommonsUrl(license: string, lang?: string) {
   }
 }
 
-async function generateCite(input: string, format: Format) {
-  const entry = cslForFormat(format);
+async function generateCite(input: string, format: Format, offset?: string) {
+  const entry = cslForFormat(input, format, offset);
   if (entry) {
     // Provides an absolute path to the referenced CSL file
     const getCSLPath = () => {
@@ -365,7 +374,7 @@ function extractCiteEl(html: string, doc: Document) {
   }
 }
 
-function cslForFormat(format: Format) {
+function cslForFormat(input: string, format: Format, offset?: string) {
   const type = cslType(format.metadata[kPublicationType] as string);
   const authors = cslNames(format.metadata[kAuthor]);
   const date = cslDate(
@@ -380,6 +389,9 @@ function cslForFormat(format: Format) {
     issued: date,
   };
 
+  if (format.metadata[kDoi]) {
+    csl.DOI = format.metadata[kDoi] as string;
+  }
   if (format.metadata[kPublicationTitle]) {
     csl["container-title"] = format.metadata[kPublicationTitle] as string;
   }
@@ -403,7 +415,22 @@ function cslForFormat(format: Format) {
   }
   if (format.metadata[kCitationUrl]) {
     csl.URL = format.metadata[kCitationUrl] as string;
+  } else if (offset) {
+    const siteMeta = format.metadata[kWebsite] as Metadata | undefined;
+    const outputFile = format.pandoc[kOutputFile];
+    if (outputFile && siteMeta && siteMeta[kSiteUrl]) {
+      const url = computeUrl(
+        input,
+        siteMeta[kSiteUrl] as string,
+        offset,
+        outputFile,
+      );
+      if (url) {
+        csl.URL = url;
+      }
+    }
   }
+
   return csl;
 }
 

@@ -109,11 +109,12 @@ export function htmlFormat(
         format: Format,
         _libDir: string,
         temp: TempContext,
+        offset: string,
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
           await htmlFormatExtras(format, temp),
-          themeFormatExtras(input, flags, format),
+          themeFormatExtras(input, flags, format, offset),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -626,7 +627,12 @@ function htmlFormatPostprocessor(
   };
 }
 
-function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
+function themeFormatExtras(
+  input: string,
+  flags: PandocFlags,
+  format: Format,
+  offset?: string,
+) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
     return {
@@ -637,7 +643,7 @@ function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format);
+    return boostrapExtras(input, flags, format, offset);
   }
 }
 

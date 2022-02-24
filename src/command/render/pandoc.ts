@@ -248,6 +248,7 @@ export async function runPandoc(
         options.format,
         options.libDir,
         options.temp,
+        options.offset,
       ))
       : {};
 

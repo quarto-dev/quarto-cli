@@ -134,6 +134,7 @@ export function boostrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
+  offset?: string,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
 
@@ -183,7 +184,7 @@ export function boostrapExtras(
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        bootstrapHtmlPostprocessor(input, format, flags),
+        bootstrapHtmlPostprocessor(input, format, flags, offset),
       ],
       [kHtmlFinalizers]: [
         bootstrapHtmlFinalizer(format, flags),
@@ -203,6 +204,7 @@ function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
+  offset?: string,
 ) {
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
@@ -321,7 +323,7 @@ function bootstrapHtmlPostprocessor(
       format.metadata[kAppendixStyle] &&
       format.metadata[kAppendixStyle] !== "none"
     ) {
-      await processDocumentAppendix(input, format, flags, doc);
+      await processDocumentAppendix(input, format, flags, doc, offset);
     }
 
     // no resource refs
