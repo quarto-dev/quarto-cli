@@ -15,7 +15,7 @@ const sortFields = listing.utilities.sortableFieldData().map(fieldData => fieldD
 const hasSort = (field) => {
 if (sortFields.includes(field)){
 return true;
-} else if (sortFields.includes(`listing-${field}`)) {
+} else if (sortFields.includes(`listing-${field}`) || sortFields.includes(`listing-${field}-sort`)) {
 return true;
 } else {
 return false;
