@@ -148,7 +148,6 @@ export async function processDocumentAppendix(
     // Place Re-use, if appropriate
     if (format.metadata[kLicense]) {
       addSection((sectionEl) => {
-        sectionEl.setAttribute("role", "doc-bibliography");
         const contentsDiv = doc.createElement("DIV");
         contentsDiv.id = "quarto-reuse";
         contentsDiv.classList.add(
@@ -179,51 +178,29 @@ export async function processDocumentAppendix(
 
     // Place the citation for this document itself, if appropriate
     if (format.metadata[kCitationUrl]) {
-      // Generate CSL for this document
-      const entry = cslForFormat(format);
-      if (entry) {
-        // Provides an absolute path to the referenced CSL file
-        const getCSLPath = () => {
-          const cslPath = format.metadata[kCsl] as string;
-          if (cslPath) {
-            if (isAbsolute(cslPath)) {
-              return cslPath;
-            } else {
-              return join(dirname(input), cslPath);
-            }
-          } else {
-            return undefined;
-          }
-        };
-
-        // Render the HTML and BibTeX form of this document
-        const cslPath = getCSLPath();
-        const html = await renderHtml(entry, cslPath);
-        const bibtex = await renderBibTex(entry);
-
-        if (bibtex || html) {
-          const containerEl = doc.createElement("SECTION");
-          containerEl.classList.add(
-            kAppendixContentsClass,
-          );
+      // Render the citation data for this document
+      const cite = await generateCite(input, format);
+      if (cite?.bibtex || cite?.html) {
+        addSection((sectionEl) => {
           const contentsDiv = doc.createElement("DIV");
-          containerEl.appendChild(contentsDiv);
+          sectionEl.appendChild(contentsDiv);
 
-          if (bibtex) {
+          if (cite?.bibtex) {
             // Add the bibtext representation to the appendix
             const bibTexLabelEl = doc.createElement("DIV");
             bibTexLabelEl.classList.add(kQuartoSecondaryLabelClass);
             bibTexLabelEl.innerText =
-              format.language[kAppendixAttributionBibTex] || "BibTeX citation";
+              format.language[kAppendixAttributionBibTex] ||
+              "BibTeX citation";
             contentsDiv.appendChild(bibTexLabelEl);
 
             const bibTexDiv = doc.createElement("DIV");
             bibTexDiv.classList.add(kQuartoCiteBibtexClass);
-            bibTexDiv.innerHTML = bibtex;
+            bibTexDiv.innerHTML = cite.bibtex;
             contentsDiv.appendChild(bibTexDiv);
           }
 
-          if (html) {
+          if (cite?.html) {
             // Add the cite as to the appendix
             const citeLabelEl = doc.createElement("DIV");
             citeLabelEl.classList.add(kQuartoSecondaryLabelClass);
@@ -231,23 +208,13 @@ export async function processDocumentAppendix(
               format.language[kAppendixAttributionCiteAs] ||
               "For attribution, please cite this work as:";
             contentsDiv.appendChild(citeLabelEl);
-            const entry = extractCiteEl(html, doc);
+            const entry = extractCiteEl(cite.html, doc);
             if (entry) {
               entry.classList.add(kQuartoCiteAsClass);
               contentsDiv.appendChild(entry);
             }
           }
-
-          insertTitle(
-            doc,
-            containerEl,
-            format.language[kSectionTitleCitation] || "Usage",
-            2,
-            headingClasses,
-          );
-
-          appendixSections.push(containerEl);
-        }
+        }, format.language[kSectionTitleCitation] || "Citation");
       }
     }
 
@@ -344,6 +311,36 @@ function creativeCommonsUrl(license: string, lang?: string) {
     }`;
   } else {
     return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/4.0/`;
+  }
+}
+
+async function generateCite(input: string, format: Format) {
+  const entry = cslForFormat(format);
+  if (entry) {
+    // Provides an absolute path to the referenced CSL file
+    const getCSLPath = () => {
+      const cslPath = format.metadata[kCsl] as string;
+      if (cslPath) {
+        if (isAbsolute(cslPath)) {
+          return cslPath;
+        } else {
+          return join(dirname(input), cslPath);
+        }
+      } else {
+        return undefined;
+      }
+    };
+
+    // Render the HTML and BibTeX form of this document
+    const cslPath = getCSLPath();
+    const html = await renderHtml(entry, cslPath);
+    const bibtex = await renderBibTex(entry);
+    return {
+      html,
+      bibtex,
+    };
+  } else {
+    return undefined;
   }
 }
 
