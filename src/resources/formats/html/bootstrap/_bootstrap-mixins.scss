@@ -189,12 +189,6 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [screen-end];
 }
 
-//small 768 down
-@mixin page-columns-float-narrow {
-  @include page-columns();
-  @include grid-template-columns-narrow();
-}
-
 // Docked Grid Definitions
 @mixin page-columns-docked-wide {
   @include page-columns();
@@ -339,11 +333,6 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [screen-end];
 }
 
-@mixin page-columns-docked-narrow {
-  @include page-columns();
-  @include grid-template-columns-narrow();
-}
-
 // Plain Grid Definitions
 @mixin page-columns-default-wide {
   @include page-columns();
@@ -380,11 +369,6 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [page-end] 5fr
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
-}
-
-@mixin page-columns-default-narrow {
-  @include page-columns();
-  @include grid-template-columns-narrow();
 }
 
 // Full content grid definitions

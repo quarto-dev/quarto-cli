@@ -172,10 +172,13 @@ main.page-columns > header > h1.title {
   body.slimcontent:not(.floating):not(.docked),
   body.docked,
   body.docked.slimcontent,
+  body.docked.fullcontent,
   body.floating,
-  body.floating.slimcontent {
+  body.floating.slimcontent,
+  body.floating.fullcontent {
     .page-columns {
-      @include page-columns-float-narrow();
+      @include page-columns();
+      @include grid-template-columns-narrow();
     }
   }
 
