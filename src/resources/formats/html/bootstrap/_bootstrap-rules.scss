@@ -1359,7 +1359,7 @@ div.callout.callout-style-default .callout-header {
 
 body.fullcontent {
   #quarto-appendix:not(.plain) {
-    &.full {
+    &.default {
       .quarto-appendix-heading {
         @include media-breakpoint-up(xl) {
           text-align: right;
@@ -1375,7 +1375,7 @@ body.fullcontent {
 
 body:not(.fullcontent) {
   #quarto-appendix:not(.plain) {
-    &.full {
+    &.default {
       .quarto-appendix-heading {
         @include media-breakpoint-up(lg) {
           text-align: right;
@@ -1390,19 +1390,30 @@ body:not(.fullcontent) {
 }
 
 // Quarto Appendix Treatment
-#quarto-appendix:not(.plain) {
+#quarto-appendix.default {
   background-color: $body-bg;
   padding-top: 1.5em;
   margin-top: 2em;
-  &.full {
-    z-index: $zindex-pagelayout;
+  z-index: $zindex-pagelayout;
+  border-top: 1px solid $border-color;
+
+  .quarto-appendix-heading {
+    margin-top: 0;
+    line-height: 1.4em;
+    font-weight: 600;
+    opacity: 0.9;
+    border-bottom: none;
+    margin-bottom: 0;
+    @include media-breakpoint-up(xl) {
+      text-align: right;
+    }
   }
 
-  .footnotes ol {
+  // Remove botoom margin from specific elements
+  .footnotes ol,
+  .footnotes ol li:last-of-type,
+  .quarto-appendix-contents > p:last-of-type {
     margin-bottom: 0;
-    li:last-of-type {
-      margin-bottom: 0;
-    }
   }
 
   .quarto-appendix-secondary-label {
@@ -1423,57 +1434,18 @@ body:not(.fullcontent) {
     margin-bottom: 1em;
   }
 
-  &.full,
-  &.one-column,
-  &.two-column {
-    .quarto-appendix-heading,
+  .quarto-appendix-heading,
+  *[role="doc-endnote"],
+  .quarto-appendix-contents > * {
+    font-size: 0.9em;
+  }
+
+  section {
+    padding-bottom: 1.5em;
     *[role="doc-endnote"],
-    .quarto-appendix-contents > * {
-      font-size: 0.9em;
-    }
-    .quarto-appendix-contents > p:last-of-type {
-      margin-bottom: 0;
-    }
-
-    border-top: 1px solid $border-color;
-    section {
-      padding-bottom: 1.5em;
-
-      .quarto-appendix-heading {
-        margin-top: 0;
-      }
-      *[role="doc-endnote"],
-      > *:not(a) {
-        opacity: 0.9;
-        word-wrap: break-word;
-      }
-    }
-    .quarto-appendix-heading {
-      margin-top: 0;
-      line-height: 1.4em;
-      font-weight: 600;
+    > *:not(a) {
       opacity: 0.9;
-      border-bottom: none;
-    }
-  }
-  &.full,
-  &.one-column,
-  &.two-column {
-    .quarto-appendix-heading {
-      margin-bottom: 0;
-    }
-  }
-  @include media-breakpoint-up(md) {
-    &.two-column {
-      section {
-        display: flex;
-        .quarto-appendix-heading {
-          flex: 2;
-        }
-        * {
-          flex: 5;
-        }
-      }
+      word-wrap: break-word;
     }
   }
 }

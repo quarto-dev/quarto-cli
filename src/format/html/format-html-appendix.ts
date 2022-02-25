@@ -7,6 +7,7 @@
 
 import { kLang, kSectionTitleReuse } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
+
 import { Document, Element } from "../../core/deno-dom.ts";
 import {
   hasMarginCites,
@@ -26,8 +27,7 @@ const kAppendixCreativeCommonsLic = [
 ];
 
 const kStylePlain = "plain";
-const kStyleFull = "full";
-const kDefaultStyle = "two-column";
+const kStyleDefault = "default";
 
 const kAppendixHeadingClass = "quarto-appendix-heading";
 const kAppendixContentsClass = "quarto-appendix-contents";
@@ -58,7 +58,7 @@ export function processDocumentAppendix(
     }
 
     const headingClasses = ["anchored", kAppendixHeadingClass];
-    if (appendixStyle === kStyleFull) {
+    if (appendixStyle === kStyleDefault) {
       headingClasses.push("column-leftmargin");
     }
 
@@ -181,7 +181,7 @@ export function processDocumentAppendix(
         };
         const headerEl = extractHeaderEl();
         headerEl.classList.add(kAppendixHeadingClass);
-        if (appendixStyle === kStyleFull) {
+        if (appendixStyle === kStyleDefault) {
           (headerEl as Element).classList.add("column-leftmargin");
         }
 
@@ -221,14 +221,8 @@ function parseStyle(style?: string) {
   switch (style) {
     case "plain":
       return "plain";
-    case "one-column":
-      return "one-column";
-    case "two-column":
-      return "two-column";
-    case "full":
-      return "full";
     default:
-      return kDefaultStyle;
+      return kStyleDefault;
   }
 }
 

@@ -80,8 +80,9 @@
       docx and odt.
 - name: appendix-style
   schema:
-    enum: ["none", "plain", "one-column", "two-column", "full"]
-  default: two-column
+    anyOf:
+      - enum: ["none", "plain", "default"]
+  default: "default"
   tags:
     formats: [$html-doc]
   description:
