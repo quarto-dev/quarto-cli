@@ -92,11 +92,11 @@ var TreeSitter = (function () {
         var nodePath;
 
         if (ENVIRONMENT_IS_NODE) {
-          if (ENVIRONMENT_IS_WORKER) {
+          /*if (ENVIRONMENT_IS_WORKER) {
             scriptDirectory = require("path").dirname(scriptDirectory) + "/";
           } else {
             scriptDirectory = __dirname + "/";
-          }
+          }*/
 
           // include: node_shell_read.js
 
