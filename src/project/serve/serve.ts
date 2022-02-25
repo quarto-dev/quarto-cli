@@ -396,7 +396,7 @@ export async function serveProject(
   };
 
   // compute site url
-  const siteUrl = `http://${options.host}:${options.port}/`;
+  const siteUrl = `http://localhost:${options.port}/`;
 
   // print status
   printWatchingForChangesMessage();

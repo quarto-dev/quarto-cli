@@ -141,7 +141,7 @@ export async function preview(
       relative(projectOutputDir(project), result.outputFile),
     )
     : "";
-  const url = `http://${options.host}:${options.port}/${initialPath}`;
+  const url = `http://localhost:${options.port}/${initialPath}`;
   if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
     await openUrl(url);
   }
