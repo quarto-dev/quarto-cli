@@ -94,6 +94,10 @@ export const createProjectCommand = new Command()
     "quarto create-project mysite --type website",
   )
   .example(
+    "Create a blog project",
+    "quarto create-project mysite --type website --template blog",
+  )
+  .example(
     "Create a book project",
     "quarto create-project mybook --type book",
   )
