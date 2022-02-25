@@ -18,7 +18,7 @@ import { convertFromYAMLString } from "../../../src/core/schema/from-yaml.ts";
 import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schema.ts";
 import { ValidationError } from "../../../src/core/schema/validated-yaml.ts";
 import { isEqual } from "../../../src/core/lodash.ts";
-import { assertRejects } from "https://deno.land/std@0.122.0/testing/asserts.ts";
+import { assertRejects } from "testing/asserts.ts";
 
 export const schemaTestFile = fileLoader("schema-validation");
 
