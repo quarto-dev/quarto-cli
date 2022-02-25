@@ -86,6 +86,7 @@ import {
   getDiscussionCategoryId,
   getGithubDiscussionsMetadata,
 } from "../../core/giscus.ts";
+import { metadataPostProcessor } from "./format-html-meta.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -114,7 +115,7 @@ export function htmlFormat(
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          await htmlFormatExtras(format, temp),
+          await htmlFormatExtras(input, offset, format, temp),
           themeFormatExtras(input, flags, format, offset),
           { [kFilterParams]: htmlFilterParams },
         );
@@ -151,6 +152,8 @@ export interface HtmlFormatScssOptions {
 }
 
 export async function htmlFormatExtras(
+  input: string,
+  offset: string,
   format: Format,
   temp: TempContext,
   featureDefaults?: HtmlFormatFeatureDefaults,
@@ -479,7 +482,10 @@ export async function htmlFormatExtras(
     html: {
       [kDependencies]: dependencies,
       [kSassBundles]: sassBundles,
-      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format, featureDefaults)],
+      [kHtmlPostprocessors]: [
+        htmlFormatPostprocessor(format, featureDefaults),
+        metadataPostProcessor(input, format, offset),
+      ],
     },
   };
 }

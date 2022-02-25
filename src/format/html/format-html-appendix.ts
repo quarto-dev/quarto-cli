@@ -28,6 +28,11 @@ import {
   kWebsite,
 } from "../../project/types/website/website-config.ts";
 import {
+  documentCitationUrl,
+  documentCsl,
+  getCSLPath,
+} from "../../quarto-core/attribution/document.ts";
+import {
   computeUrl,
   createCodeBlock,
   createCodeCopyButton,
@@ -328,24 +333,10 @@ function creativeCommonsUrl(license: string, lang?: string) {
 }
 
 async function generateCite(input: string, format: Format, offset?: string) {
-  const entry = cslForFormat(input, format, offset);
+  const entry = documentCsl(input, format, offset);
   if (entry) {
-    // Provides an absolute path to the referenced CSL file
-    const getCSLPath = () => {
-      const cslPath = format.metadata[kCsl] as string;
-      if (cslPath) {
-        if (isAbsolute(cslPath)) {
-          return cslPath;
-        } else {
-          return join(dirname(input), cslPath);
-        }
-      } else {
-        return undefined;
-      }
-    };
-
     // Render the HTML and BibTeX form of this document
-    const cslPath = getCSLPath();
+    const cslPath = getCSLPath(input, format);
     const html = await renderHtml(entry, cslPath);
     const bibtex = await renderBibTex(entry);
     return {
@@ -375,73 +366,5 @@ function extractCiteEl(html: string, doc: Document) {
     return entry;
   } else {
     return undefined;
-  }
-}
-
-function cslForFormat(input: string, format: Format, offset?: string) {
-  const type = cslType(format.metadata[kPublicationType] as string);
-  const authors = cslNames(format.metadata[kAuthor]);
-  const date = cslDate(
-    format.metadata[kPublicationDate] || format.metadata[kDate],
-  );
-  const id = suggestId(authors, date);
-  const csl: CSL = {
-    id,
-    type,
-    author: authors,
-    title: format.metadata[kTitle] as string,
-    issued: date,
-  };
-
-  if (format.metadata[kDoi]) {
-    csl.DOI = format.metadata[kDoi] as string;
-  }
-  if (format.metadata[kPublicationTitle]) {
-    csl["container-title"] = format.metadata[kPublicationTitle] as string;
-  }
-  if (format.metadata[kPublicationVolume]) {
-    csl.volume = format.metadata[kPublicationVolume] as string;
-  }
-  if (format.metadata[kPublicationIssue]) {
-    csl.issue = format.metadata[kPublicationIssue] as string;
-  }
-  if (format.metadata[kPublicationISBN]) {
-    csl.ISBN = format.metadata[kPublicationISBN] as string;
-  }
-  if (format.metadata[kPublicationISSN]) {
-    csl.ISSN = format.metadata[kPublicationISSN] as string;
-  }
-  if (format.metadata[kPublicationFirstPage]) {
-    csl.page = formatPage(
-      format.metadata[kPublicationFirstPage] as string,
-      format.metadata[kPublicationLastPage] as string,
-    );
-  }
-  if (format.metadata[kCitationUrl]) {
-    csl.URL = format.metadata[kCitationUrl] as string;
-  } else if (offset) {
-    const siteMeta = format.metadata[kWebsite] as Metadata | undefined;
-    const outputFile = format.pandoc[kOutputFile];
-    if (outputFile && siteMeta && siteMeta[kSiteUrl]) {
-      const url = computeUrl(
-        input,
-        siteMeta[kSiteUrl] as string,
-        offset,
-        outputFile,
-      );
-      if (url) {
-        csl.URL = url;
-      }
-    }
-  }
-
-  return csl;
-}
-
-function formatPage(first: string, last?: string) {
-  if (first && last) {
-    return `${first}-${last}`;
-  } else {
-    return first;
   }
 }

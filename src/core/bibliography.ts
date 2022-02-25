@@ -6,11 +6,22 @@
 *
 * Adapted from: https://github.com/watson/ci-info
 */
-import { join } from "path/mod.ts";
+
+import { dirname, join } from "path/mod.ts";
+import { kBibliography } from "../config/constants.ts";
+import { Format } from "../config/types.ts";
 import { CSL } from "./csl.ts";
 
 import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
+
+export async function bibliographyCslJson(input: string, format: Format) {
+  const bibliography = format.metadata[kBibliography] as string[];
+  if (bibliography) {
+    const references = await renderToCSLJSON(dirname(input), bibliography);
+    return references;
+  }
+}
 
 export async function renderHtml(entry: CSL, csl?: string) {
   const cmd = [pandocBinaryPath()];
@@ -60,7 +71,10 @@ export async function renderBibTex(entry: CSL) {
   }
 }
 
-export async function renderToCSLJSON(dir: string, biblios: string[]) {
+export async function renderToCSLJSON(
+  dir: string,
+  biblios: string[],
+): Promise<CSL[]> {
   const bibloEntries = [];
   for (const biblio of biblios) {
     const cmd = [pandocBinaryPath()];

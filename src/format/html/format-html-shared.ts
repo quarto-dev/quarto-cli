@@ -420,3 +420,21 @@ export function createCodeBlock(
   preEl.appendChild(codeEl);
   return preEl;
 }
+
+export function writeMetaTag(name: string, content: string, doc: Document) {
+  // Meta tag
+  const m = doc.createElement("META");
+  if (name.startsWith("og:")) {
+    m.setAttribute("property", name);
+  } else {
+    m.setAttribute("name", name);
+  }
+  m.setAttribute("content", content);
+
+  // New Line
+  const nl = doc.createTextNode("\n");
+
+  // Insert the nodes
+  doc.querySelector("head")?.appendChild(m);
+  doc.querySelector("head")?.appendChild(nl);
+}

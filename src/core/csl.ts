@@ -85,11 +85,23 @@ export interface CSL {
   // Issue number of an article's journal
   issue?: string;
 
+  // The number of this item (for example, report number)
+  number?: string;
+
   // Volume number of an article's journal
   volume?: string;
 
   // Pages numbers of an article within its journal
   page?: string;
+
+  // First page of the range of pages the item (e.g. a journal article)
+  // covers in a container (e.g. a journal issue)
+  "page-first"?: string;
+
+  // Last page of the range of pages the item (e.g. a journal article)
+  // covers in a container (e.g. a journal issue)
+  // WARNING THIS IS NOT STRICTLY CSL
+  "page-last"?: string;
 
   // These properties are often not included in CSL entries and are here
   // primarily because they may need to be sanitized
@@ -101,6 +113,11 @@ export interface CSL {
   subject?: string;
   archive?: string;
   license?: [];
+
+  // Date the item was initially available (e.g. the online publication date of a
+  // journal article before its formal publication date; the date a treaty
+  // was made available for signing)
+  "available-date"?: CSLDate;
 }
 
 export interface CSLName {
@@ -163,9 +180,11 @@ export function cslNames(authors: unknown) {
   const cslNames: CSLName[] = [];
   const authorList = Array.isArray(authors) ? authors : [authors];
   authorList.forEach((auth) => {
-    const name = authorToCslName(auth);
-    if (name) {
-      cslNames.push(name);
+    if (auth) {
+      const name = authorToCslName(auth);
+      if (name) {
+        cslNames.push(name);
+      }
     }
   });
   return cslNames;
@@ -176,7 +195,11 @@ export function cslDate(dateStr: unknown): CSLDate | undefined {
     const date = new Date(dateStr);
     if (date) {
       return {
-        "date-parts": [[date.getFullYear(), date.getMonth(), date.getDay()]],
+        "date-parts": [[
+          date.getFullYear(),
+          date.getMonth() + 1,
+          date.getDate(),
+        ]],
         raw: dateStr,
       };
     } else {

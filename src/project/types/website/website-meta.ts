@@ -7,14 +7,7 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import {
-  kAuthor,
-  kBibliography,
-  kDate,
-  kDescription,
-  kSubtitle,
-  kTitle,
-} from "../../../config/constants.ts";
+import { kDescription, kSubtitle, kTitle } from "../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -27,7 +20,6 @@ import { ProjectContext } from "../../types.ts";
 import {
   kCardStyle,
   kCreator,
-  kGoogleScholar,
   kImage,
   kImageHeight,
   kImageWidth,
@@ -50,25 +42,7 @@ import {
   kHtmlEmptyPostProcessResult,
 } from "../../../command/render/types.ts";
 import { imageSize } from "../../../core/image.ts";
-import { resolveInputTarget } from "../../project-index.ts";
-import { parseAuthor } from "../../../core/author.ts";
-import { encodeAttributeValue } from "../../../core/html.ts";
-import { CSL, cslDateToEDTFDate } from "../../../core/csl.ts";
-import { renderToCSLJSON } from "../../../core/bibliography.ts";
-import {
-  kCitationUrl,
-  kPublicationDate,
-  kPublicationFirstPage,
-  kPublicationInstitution,
-  kPublicationISBN,
-  kPublicationISSN,
-  kPublicationIssue,
-  kPublicationLastPage,
-  kPublicationReportNumber,
-  kPublicationTitle,
-  kPublicationType,
-  kPublicationVolume,
-} from "../../../format/html/format-html-shared.ts";
+import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 
 const kCard = "card";
 
@@ -106,7 +80,7 @@ export function metadataHtmlPostProcessor(
   extras: FormatExtras,
   pipeline: MarkdownPipeline,
 ) {
-  return async (doc: Document): Promise<HtmlPostProcessResult> => {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
     // read document level metadata
     const pageMeta = pageMetadata(format, extras);
 
@@ -197,49 +171,10 @@ export function metadataHtmlPostProcessor(
           if (provider.filter) {
             key = provider.filter(key);
           }
-          writeMeta(`${provider.prefix}:${key}`, data, doc);
+          writeMetaTag(`${provider.prefix}:${key}`, data, doc);
         }
       });
     });
-
-    const googleScholarEnabled = (format: Format, title?: string) => {
-      const siteMeta = format.metadata[kWebsite] as Metadata;
-
-      // Google Scholar requires a title, date, and at least one author
-      // Disable it if these conditions aren't met
-      if (
-        format.metadata[kTitle] || !format.metadata[kDate] ||
-        !format.metadata[kAuthor]
-      ) {
-        return false;
-      }
-
-      // Enabled by the format / document
-      if (format.metadata[kGoogleScholar] === true) {
-        return true;
-      }
-      // Disabled for the site
-      if (siteMeta && siteMeta[kGoogleScholar] === true) {
-        return true;
-      }
-      return false;
-    };
-
-    // read google scholar metadata
-    if (googleScholarEnabled(format)) {
-      const citationMeta = await googleScholarMeta(
-        source,
-        project,
-        format,
-        extras,
-      );
-
-      if (citationMeta) {
-        citationMeta.forEach((meta) => {
-          writeMeta(meta[0], meta[1], doc);
-        });
-      }
-    }
 
     // Process any pipelined markdown
     pipeline.processRenderedMarkdown(doc);
@@ -403,149 +338,6 @@ function imageMetadata(
 
 type metaVal = [string, string];
 
-async function googleScholarMeta(
-  source: string,
-  project: ProjectContext,
-  format: Format,
-  _extras: FormatExtras,
-): Promise<metaVal[] | undefined> {
-  if (format) {
-    // The scholar metadata that we'll generate into
-    const scholarMeta: metaVal[] = [];
-    const write = metadataWriter(scholarMeta);
-    const parse = metadataParse(format, scholarMeta);
-
-    // Process title
-    scholarMeta.push(["citation_title", format.metadata[kTitle] as string]);
-
-    // Process Authors
-    const authors = parseAuthor(format.metadata[kAuthor]);
-    if (authors) {
-      authors.forEach((author) => {
-        if (author) {
-          write("citation_author", author.name);
-        }
-      });
-    }
-
-    // Process Date
-    parse(kDate, "citation_online_date");
-
-    // Process the publication data
-    const publicationInstitution = format.metadata[kPublicationInstitution];
-    const type = format.metadata[kPublicationType];
-    if (type === "journal") {
-      parse(kPublicationTitle, "citation_journal_title");
-    } else if (type === "conference") {
-      parse(kPublicationTitle, "citation_conference_title");
-    } else if (type === "dissertation" || type === "thesis") {
-      write(
-        "citation_dissertation_institution",
-        publicationInstitution,
-      );
-    } else if (type === "technical-report") {
-      write(
-        "citation_technical_report_institution",
-        publicationInstitution,
-      );
-      write(
-        "citation_technical_report_number",
-        kPublicationReportNumber,
-      );
-    } else {
-      parse(kPublicationTitle, "citation_journal_title");
-    }
-    parse([kPublicationDate, kDate], "citation_publication_date");
-    parse(kPublicationISBN, "citation_isbn");
-    parse(kPublicationISSN, "citation_issn");
-    parse(kPublicationVolume, "citation_volume");
-    parse(kPublicationIssue, "citation_issue");
-    parse(kPublicationFirstPage, "citation_firstpage");
-    parse(kPublicationLastPage, "citation_lastpage");
-
-    // Process the url
-    if (format.metadata[kCitationUrl]) {
-      write(
-        "citation_fulltext_html_url",
-        format.metadata[kCitationUrl],
-      );
-    } else {
-      const siteMeta = format.metadata[kWebsite] as Metadata;
-      if (siteMeta && siteMeta[kSiteUrl]) {
-        // Try to compute url
-        const relativePath = relative(project.dir, source);
-        const inputTarget = await resolveInputTarget(
-          project,
-          relativePath,
-          false,
-        );
-        const fullTextUrl = `${siteMeta[kSiteUrl]}/${inputTarget?.outputHref}`;
-        write(
-          "citation_fulltext_html_url",
-          fullTextUrl,
-        );
-      }
-    }
-
-    // Generate the references by reading the bibliography and parsing the html
-    const bibliography = format.metadata[kBibliography] as string[];
-    if (bibliography) {
-      const references = await renderToCSLJSON(dirname(source), bibliography);
-      references.forEach((ref) => {
-        const refMetas = toScholarMetadata(ref);
-        const metaStrs = refMetas.map((refMeta) => {
-          return `${refMeta[0]}=${refMeta[1]};`;
-        });
-        write("citation_reference", metaStrs.join());
-      });
-    }
-
-    return scholarMeta;
-  } else {
-    return undefined;
-  }
-}
-
-function metadataWriter(metadata: metaVal[]) {
-  const write = (key: string, value: unknown) => {
-    metadata.push([key, encodeAttributeValue(value as string)]);
-  };
-  return write;
-}
-
-function metadataParse(format: Format, metadata: metaVal[]) {
-  const writer = metadataWriter(metadata);
-  const parse = (key: string | string[], metaKey: string) => {
-    const keys = Array.isArray(key) ? key : [key];
-    for (const key of keys) {
-      const val = format.metadata[key];
-      if (val) {
-        writer(metaKey, val);
-        break;
-      }
-    }
-  };
-  return parse;
-}
-
-function writeMeta(name: string, content: string, doc: Document) {
-  // Meta tag
-  const m = doc.createElement("META");
-  if (name.startsWith("og:")) {
-    m.setAttribute("property", name);
-  } else {
-    m.setAttribute("name", name);
-  }
-  m.setAttribute("content", content);
-
-  // New Line
-  const nl = doc.createTextNode("\n");
-
-  // Insert the nodes
-  doc.querySelector("head")?.appendChild(m);
-  doc.querySelector("head")?.appendChild(nl);
-}
-
 const kMetaTitleId = "quarto-metatitle";
 const kMetaSideNameId = "quarto-metasitename";
 function metaMarkdownPipeline(format: Format) {
@@ -604,62 +396,4 @@ function metaMarkdownPipeline(format: Format) {
     titleMetaHandler,
     siteTitleMetaHandler,
   ]);
-}
-
-function toScholarMetadata(
-  entry: CSL,
-): metaVal[] {
-  const metadata: metaVal[] = [];
-  const write = metadataWriter(metadata);
-
-  if (entry.title) {
-    write("citation_title", entry.title);
-  }
-
-  entry.author?.forEach((author) => {
-    write(
-      "citation_author",
-      author.literal || `${author.given} ${author.given}`,
-    );
-  });
-  if (entry.issued) {
-    write("citation_publication_date", cslDateToEDTFDate(entry.issued));
-  }
-  if (entry.ISBN) {
-    write("citation_isbn", entry.ISBN);
-  }
-  if (entry.ISSN) {
-    write("citation_issn", entry.ISSN);
-  }
-  if (entry.volume) {
-    write("citation_volume", entry.volume);
-  }
-  if (entry.issue) {
-    write("citation_issue", entry.volume);
-  }
-
-  if (entry["container-title"]) {
-    switch (entry.type) {
-      case ("paper-conference"):
-        write("citation_conference_title", entry["container-title"]);
-        break;
-      case ("report"):
-        break;
-      default:
-        write("citation_journal_title", entry["container-title"]);
-        break;
-    }
-  }
-
-  if (entry.publisher) {
-    switch (entry.type) {
-      case ("thesis"):
-        write("citation_dissertation_institution", entry.publisher);
-        break;
-      case ("report"):
-        write("citation_technical_report_institution", entry.publisher);
-        break;
-    }
-  }
-  return metadata;
 }
