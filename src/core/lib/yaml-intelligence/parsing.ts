@@ -36,6 +36,7 @@ export async function getTreeSitter(): Promise<any> {
 
   // this is to appease the type-checker, and should never run
   // in the CLI.
+  // deno-lint-ignore no-explicit-any
   let Parser: any;
   try {
     Parser = ((self as unknown) as WithTreeSitter).TreeSitter;
