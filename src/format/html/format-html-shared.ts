@@ -9,15 +9,19 @@ import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
 import {
   kCapLoc,
   kCapTop,
+  kCitationLocation,
   kCodeOverflow,
   kLinkExternalIcon,
+  kReferenceLocation,
   kSectionTitleFootnotes,
+  kSectionTitleReferences,
   kTblCapLoc,
 } from "../../config/constants.ts";
 import {
   Format,
   FormatDependency,
   FormatLanguage,
+  PandocFlags,
 } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
@@ -50,6 +54,9 @@ export const kGiscusRepoId = "repo-id";
 export const kGiscusCategoryId = "category-id";
 
 export const kDraft = "draft";
+
+export const kAppendixStyle = "appendix-style";
+export const kLicense = "license";
 
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
@@ -255,14 +262,62 @@ export function insertFootnotesTitle(
   footnotesEl: Element,
   language: FormatLanguage,
   level = 2,
+  classes: string[] = [],
+) {
+  prependHeading(
+    doc,
+    footnotesEl,
+    language[kSectionTitleFootnotes],
+    level,
+    classes,
+  );
+}
+
+export function insertReferencesTitle(
+  doc: Document,
+  refsEl: Element,
+  language: FormatLanguage,
+  level = 2,
+  classes: string[] = [],
+) {
+  prependHeading(
+    doc,
+    refsEl,
+    language[kSectionTitleReferences],
+    level,
+    classes,
+  );
+}
+
+export function insertTitle(
+  doc: Document,
+  el: Element,
+  title: string,
+  level = 2,
+  headingClasses: string[] = [],
+) {
+  prependHeading(doc, el, title, level, headingClasses);
+}
+
+function prependHeading(
+  doc: Document,
+  el: Element,
+  title: string | undefined,
+  level: number,
+  classes: string[],
 ) {
   const heading = doc.createElement("h" + level);
-  const title = language[kSectionTitleFootnotes];
   if (typeof (title) == "string" && title !== "none") {
     heading.innerHTML = title;
   }
-  footnotesEl.insertBefore(heading, footnotesEl.firstChild);
-  const hr = footnotesEl.querySelector("hr");
+  if (classes) {
+    classes.forEach((clz) => {
+      heading.classList.add(clz);
+    });
+  }
+
+  el.insertBefore(heading, el.firstChild);
+  const hr = el.querySelector("hr");
   if (hr) {
     hr.remove();
   }
@@ -291,4 +346,15 @@ export function setMainColumn(doc: Document, column: string) {
       el.classList.add(column);
     }
   });
+}
+
+export function hasMarginRefs(format: Format, flags: PandocFlags) {
+  // If margin footnotes are enabled move them
+  return format.pandoc[kReferenceLocation] === "margin" ||
+    flags[kReferenceLocation] === "margin";
+}
+
+export function hasMarginCites(format: Format) {
+  // If margin cites are enabled, move them
+  return format.metadata[kCitationLocation] === "margin";
 }

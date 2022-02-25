@@ -52,7 +52,7 @@ export function projectResourceFiles(
     );
     // literals
     resourceFiles.push(
-      ...["robots.txt", ".nojekyll", "_redirects", kProject404File]
+      ...["robots.txt", ".nojekyll", "CNAME", "_redirects", kProject404File]
         .map((file) => join(dir, file))
         .filter(existsSync),
     );

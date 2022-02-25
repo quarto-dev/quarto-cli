@@ -426,6 +426,16 @@ img.img-fluid.column-screen-inset-shaded {
     z-index: $zindex-pagelayout;
   }
 
+  .column-sidebar {
+    grid-column: page-start / body-start !important;
+    z-index: $zindex-pagelayout;
+  }
+
+  .column-leftmargin {
+    grid-column: screen-start-inset / body-start !important;
+    z-index: $zindex-pagelayout;
+  }
+
   .no-row-height {
     height: 1em;
     overflow: visible;
@@ -1345,6 +1355,96 @@ div.callout.callout-style-default .callout-header {
 
 .quarto-color-scheme-toggle.alternate.top-right .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 20%))}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
+}
+
+body.fullcontent {
+  #quarto-appendix:not(.plain) {
+    &.default {
+      .quarto-appendix-heading {
+        @include media-breakpoint-up(xl) {
+          text-align: right;
+        }
+        @include media-breakpoint-down(xl) {
+          grid-column: body-content-start / body-content-end !important;
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+body:not(.fullcontent) {
+  #quarto-appendix:not(.plain) {
+    &.default {
+      .quarto-appendix-heading {
+        @include media-breakpoint-up(lg) {
+          text-align: right;
+        }
+        @include media-breakpoint-down(lg) {
+          grid-column: body-content-start / body-content-end !important;
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+// Quarto Appendix Treatment
+#quarto-appendix.default {
+  background-color: $body-bg;
+  padding-top: 1.5em;
+  margin-top: 2em;
+  z-index: $zindex-pagelayout;
+  border-top: 1px solid $border-color;
+
+  .quarto-appendix-heading {
+    margin-top: 0;
+    line-height: 1.4em;
+    font-weight: 600;
+    opacity: 0.9;
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  // Remove botoom margin from specific elements
+  .footnotes ol,
+  .footnotes ol li:last-of-type,
+  .quarto-appendix-contents > p:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .quarto-appendix-secondary-label {
+    margin-bottom: 0.4em;
+  }
+
+  .quarto-appendix-bibtex {
+    font-size: 0.7em;
+    padding: 1em;
+    border: solid 1px $border-color;
+    margin-bottom: 1em;
+  }
+
+  .quarto-appendix-citeas {
+    font-size: 0.9em;
+    padding: 1em;
+    border: solid 1px $border-color;
+    margin-bottom: 1em;
+  }
+
+  .quarto-appendix-heading,
+  *[role="doc-endnote"],
+  .quarto-appendix-contents > * {
+    font-size: 0.9em;
+  }
+
+  section {
+    padding-bottom: 1.5em;
+    *[role="doc-endnote"],
+    > *:not(a) {
+      opacity: 0.9;
+      word-wrap: break-word;
+    }
+  }
 }
 
 // This is a sentinel value that renderers can use to determine
