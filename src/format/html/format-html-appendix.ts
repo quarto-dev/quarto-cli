@@ -10,7 +10,6 @@ import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
   kAuthor,
-  kCopyButtonTooltip,
   kCsl,
   kDate,
   kDoi,
