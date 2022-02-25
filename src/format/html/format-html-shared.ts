@@ -57,6 +57,20 @@ export const kDraft = "draft";
 
 export const kAppendixStyle = "appendix-style";
 export const kLicense = "license";
+export const kAppendixAttribution = "appendix-attribution";
+
+export const kCitationUrl = "citation-url";
+export const kPublicationDate = "publication-date";
+export const kPublicationType = "publication-type";
+export const kPublicationTitle = "publication-title";
+export const kPublicationVolume = "publication-volume";
+export const kPublicationIssue = "publication-issue";
+export const kPublicationISSN = "publiction-issn";
+export const kPublicationISBN = "publication-isbn";
+export const kPublicationFirstPage = "publication-firstpage";
+export const kPublicationLastPage = "publication-lastpage";
+export const kPublicationInstitution = "publication-institution";
+export const kPublicationReportNumber = "publication-report-number";
 
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";

@@ -8,7 +8,24 @@
 import { kLang, kSectionTitleReuse } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
 
+import { dirname, isAbsolute, join } from "path/mod.ts";
+import {
+  kAuthor,
+  kCsl,
+  kDate,
+  kLang,
+  kSectionTitleCitation,
+  kSectionTitleReuse,
+  kTitle,
+} from "../../config/constants.ts";
+import { Format, Metadata, PandocFlags } from "../../config/types.ts";
+import { renderBibTex, renderHtml } from "../../core/bibliography.ts";
+import { CSL, cslDate, cslNames, cslType, suggestId } from "../../core/csl.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
+import {
+  kSiteUrl,
+  kWebsite,
+} from "../../project/types/website/website-config.ts";
 import {
   hasMarginCites,
   hasMarginRefs,
@@ -16,7 +33,19 @@ import {
   insertReferencesTitle,
   insertTitle,
   kAppendixStyle,
-  kLicense,
+  kAppendixAttribution,
+  kCreativeCommons,
+  kAppendixStyle,
+  kCitationUrl,
+  kPublicationDate,
+  kPublicationFirstPage,
+  kPublicationISBN,
+  kPublicationISSN,
+  kPublicationIssue,
+  kPublicationLastPage,
+  kPublicationTitle,
+  kPublicationType,
+  kPublicationVolume,
 } from "./format-html-shared.ts";
 
 const kAppendixCreativeCommonsLic = [
@@ -31,9 +60,14 @@ const kStyleDefault = "default";
 
 const kAppendixHeadingClass = "quarto-appendix-heading";
 const kAppendixContentsClass = "quarto-appendix-contents";
+const kQuartoSecondaryLabelClass = "quarto-appendix-secondary-label";
+const kQuartoCiteAsClass = "quarto-appendix-citeas";
+const kQuartoCiteBibtexClass = "quarto-appendix-bibtex";
 const kAppendixId = "quarto-appendix";
 
-export function processDocumentAppendix(
+
+export async function processDocumentAppendix(
+  input: string,
   format: Format,
   flags: PandocFlags,
   doc: Document,
@@ -151,6 +185,77 @@ export function processDocumentAppendix(
       }, format.language[kSectionTitleReuse] || "Usage");
     }
 
+    // Place the citation for this document itself, if appropriate
+    if (format.metadata[kAppendixAttribution] === true) {
+      // Generate CSL for this document
+      const entry = cslForFormat(format);
+      if (entry) {
+        // Provides an absolute path to the referenced CSL file
+        const getCSLPath = () => {
+          const cslPath = format.metadata[kCsl] as string;
+          if (cslPath) {
+            if (isAbsolute(cslPath)) {
+              return cslPath;
+            } else {
+              return join(dirname(input), cslPath);
+            }
+          } else {
+            return undefined;
+          }
+        };
+
+        // Render the HTML and BibTeX form of this document
+        const cslPath = getCSLPath();
+        const html = await renderHtml(entry, cslPath);
+        const bibtex = await renderBibTex(entry);
+
+        if (bibtex || html) {
+          const containerEl = doc.createElement("SECTION");
+          containerEl.classList.add(
+            kAppendixContentsClass,
+          );
+          const contentsDiv = doc.createElement("DIV");
+          containerEl.appendChild(contentsDiv);
+
+          if (bibtex) {
+            // Add the bibtext representation to the appendix
+            const bibTexLabelEl = doc.createElement("DIV");
+            bibTexLabelEl.classList.add(kQuartoSecondaryLabelClass);
+            bibTexLabelEl.innerText = "BibTeX citation";
+            contentsDiv.appendChild(bibTexLabelEl);
+
+            const bibTexDiv = doc.createElement("DIV");
+            bibTexDiv.classList.add(kQuartoCiteBibtexClass);
+            bibTexDiv.innerHTML = bibtex;
+            contentsDiv.appendChild(bibTexDiv);
+          }
+
+          if (html) {
+            // Add the cite as to the appendix
+            const citeLabelEl = doc.createElement("DIV");
+            citeLabelEl.classList.add(kQuartoSecondaryLabelClass);
+            citeLabelEl.innerText = "For attribution, please cite this work as";
+            contentsDiv.appendChild(citeLabelEl);
+            const entry = extractCiteEl(html, doc);
+            if (entry) {
+              entry.classList.add(kQuartoCiteAsClass);
+              contentsDiv.appendChild(entry);
+            }
+          }
+
+          insertTitle(
+            doc,
+            containerEl,
+            format.language[kSectionTitleCitation] || "Usage",
+            2,
+            headingClasses,
+          );
+
+          appendixSections.push(containerEl);
+        }
+      }
+    }
+
     // Move any sections that are marked as appendices
     // We do this last so that the other elements will have already been
     // moved from the document and won't inadvertently be captured
@@ -244,5 +349,76 @@ function creativeCommonsUrl(license: string, lang?: string) {
     }`;
   } else {
     return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/4.0/`;
+  }
+}
+
+// The removes any addition left margin markup that is added
+// to the rendered citation (e.g. a number or so on)
+function extractCiteEl(html: string, doc: Document) {
+  const htmlDiv = doc.createElement("DIV");
+  htmlDiv.innerHTML = html;
+  const entry = htmlDiv.querySelector(".csl-entry");
+  if (entry) {
+    const leftMarginEl = entry.querySelector(".csl-left-margin");
+    if (leftMarginEl) {
+      leftMarginEl.remove();
+      const rightEl = entry.querySelector(".csl-right-inline");
+      if (rightEl) {
+        rightEl.classList.remove("csl-right-inline");
+      }
+    }
+    return entry;
+  } else {
+    return undefined;
+  }
+}
+
+function cslForFormat(format: Format) {
+  const type = cslType(format.metadata[kPublicationType] as string);
+  const authors = cslNames(format.metadata[kAuthor]);
+  const date = cslDate(
+    format.metadata[kPublicationDate] || format.metadata[kDate],
+  );
+  const id = suggestId(authors, date);
+  const csl: CSL = {
+    id,
+    type,
+    author: authors,
+    title: format.metadata[kTitle] as string,
+    issued: date,
+  };
+
+  if (format.metadata[kPublicationTitle]) {
+    csl["container-title"] = format.metadata[kPublicationTitle] as string;
+  }
+  if (format.metadata[kPublicationVolume]) {
+    csl.volume = format.metadata[kPublicationVolume] as string;
+  }
+  if (format.metadata[kPublicationIssue]) {
+    csl.issue = format.metadata[kPublicationIssue] as string;
+  }
+  if (format.metadata[kPublicationISBN]) {
+    csl.ISBN = format.metadata[kPublicationISBN] as string;
+  }
+  if (format.metadata[kPublicationISSN]) {
+    csl.ISSN = format.metadata[kPublicationISSN] as string;
+  }
+  if (format.metadata[kPublicationFirstPage]) {
+    csl.page = formatPage(
+      format.metadata[kPublicationFirstPage] as string,
+      format.metadata[kPublicationLastPage] as string,
+    );
+  }
+  if (format.metadata[kCitationUrl]) {
+    csl.URL = format.metadata[kCitationUrl] as string;
+  }
+  return csl;
+}
+
+function formatPage(first: string, last?: string) {
+  if (first && last) {
+    return `${first}-${last}`;
+  } else {
+    return first;
   }
 }

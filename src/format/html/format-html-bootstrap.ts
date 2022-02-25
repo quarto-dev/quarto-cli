@@ -183,7 +183,7 @@ export function boostrapExtras(
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        bootstrapHtmlPostprocessor(format, flags),
+        bootstrapHtmlPostprocessor(input, format, flags),
       ],
       [kHtmlFinalizers]: [
         bootstrapHtmlFinalizer(format, flags),
@@ -199,8 +199,12 @@ const getColumnLayoutElements = (doc: Document) => {
   );
 };
 
-function bootstrapHtmlPostprocessor(format: Format, flags: PandocFlags) {
-  return (doc: Document): Promise<HtmlPostProcessResult> => {
+function bootstrapHtmlPostprocessor(
+  input: string,
+  format: Format,
+  flags: PandocFlags,
+) {
+  return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
@@ -317,7 +321,7 @@ function bootstrapHtmlPostprocessor(format: Format, flags: PandocFlags) {
       format.metadata[kAppendixStyle] &&
       format.metadata[kAppendixStyle] !== "none"
     ) {
-      processDocumentAppendix(format, flags, doc);
+      await processDocumentAppendix(input, format, flags, doc);
     }
 
     // no resource refs

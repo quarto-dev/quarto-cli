@@ -53,9 +53,22 @@ import { imageSize } from "../../../core/image.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import { parseAuthor } from "../../../core/author.ts";
 import { encodeAttributeValue } from "../../../core/html.ts";
-import { pandocBinaryPath } from "../../../core/resources.ts";
-import { execProcess } from "../../../core/process.ts";
 import { CSL, cslDateToEDTFDate } from "../../../core/csl.ts";
+import { renderToCSLJSON } from "../../../core/bibliography.ts";
+import {
+  kCitationUrl,
+  kPublicationDate,
+  kPublicationFirstPage,
+  kPublicationInstitution,
+  kPublicationISBN,
+  kPublicationISSN,
+  kPublicationIssue,
+  kPublicationLastPage,
+  kPublicationReportNumber,
+  kPublicationTitle,
+  kPublicationType,
+  kPublicationVolume,
+} from "../../../format/html/format-html-shared.ts";
 
 const kCard = "card";
 
@@ -194,7 +207,10 @@ export function metadataHtmlPostProcessor(
 
       // Google Scholar requires a title, date, and at least one author
       // Disable it if these conditions aren't met
-      if (!title || !format.metadata[kDate] || !format.metadata[kAuthor]) {
+      if (
+        format.metadata[kTitle] || !format.metadata[kDate] ||
+        !format.metadata[kAuthor]
+      ) {
         return false;
       }
 
@@ -214,7 +230,6 @@ export function metadataHtmlPostProcessor(
       const citationMeta = await googleScholarMeta(
         source,
         project,
-        pageMeta[kTitle] as string,
         format,
         extras,
       );
@@ -386,34 +401,22 @@ function imageMetadata(
   }
 }
 
-const kCitationUrl = "citation-url";
-const kPublicationDate = "publication-date";
-const kPublicationType = "publication-type";
-const kPublicationTitle = "publication-title";
-const kPublicationVolume = "publication-volume";
-const kPublicationIssue = "publication-issue";
-const kPublicationISSN = "publiction-issn";
-const kPublicationISBN = "publication-isbn";
-const kPublicationFirstPage = "publication-firstpage";
-const kPublicationLastPage = "publication-lastpage";
-const kPublicationInstitution = "publication-institution";
-const kPublicationReportNumber = "publication-report-number";
-
 type metaVal = [string, string];
 
 async function googleScholarMeta(
   source: string,
   project: ProjectContext,
-  title: string,
   format: Format,
   _extras: FormatExtras,
 ): Promise<metaVal[] | undefined> {
   if (format) {
     // The scholar metadata that we'll generate into
     const scholarMeta: metaVal[] = [];
-    scholarMeta.push(["citation_title", title]);
     const write = metadataWriter(scholarMeta);
     const parse = metadataParse(format, scholarMeta);
+
+    // Process title
+    scholarMeta.push(["citation_title", format.metadata[kTitle] as string]);
 
     // Process Authors
     const authors = parseAuthor(format.metadata[kAuthor]);
@@ -487,7 +490,7 @@ async function googleScholarMeta(
     // Generate the references by reading the bibliography and parsing the html
     const bibliography = format.metadata[kBibliography] as string[];
     if (bibliography) {
-      const references = await toCSLJSON(dirname(source), bibliography);
+      const references = await renderToCSLJSON(dirname(source), bibliography);
       references.forEach((ref) => {
         const refMetas = toScholarMetadata(ref);
         const metaStrs = refMetas.map((refMeta) => {
@@ -659,30 +662,4 @@ function toScholarMetadata(
     }
   }
   return metadata;
-}
-
-async function toCSLJSON(dir: string, biblios: string[]) {
-  const bibloEntries = [];
-  for (const biblio of biblios) {
-    const cmd = [pandocBinaryPath()];
-    cmd.push(join(dir, biblio));
-    cmd.push("-t");
-    cmd.push("csljson");
-    cmd.push("--citeproc");
-
-    const result = await execProcess(
-      { cmd, stdout: "piped", stderr: "piped", cwd: dir },
-    );
-    if (result.success) {
-      if (result.stdout) {
-        const entries = JSON.parse(result.stdout);
-        bibloEntries.push(...entries);
-      }
-    } else {
-      throw new Error(
-        `Failed to generate bibliography, rendering failed with code ${result.code}\n${result.stderr}`,
-      );
-    }
-  }
-  return bibloEntries;
 }
