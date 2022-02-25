@@ -10479,6 +10479,16 @@ var ValidationContext = class {
       const result2 = [];
       if (node.edge === "anyOf" && pruneErrors) {
         const innerResults = node.children.map(inner);
+        const schemaErrors = new Set(innerResults.map((r) => {
+          if (r.length) {
+            return r[0].schemaPath.slice(-1)[0];
+          }
+        }));
+        if (schemaErrors.has("required") && schemaErrors.has("propertyNames")) {
+          return innerResults.filter((r) => {
+            return r.length && r[0].schemaPath.slice(-1)[0] === "required";
+          })[0];
+        }
         let bestResults = [];
         let minSpan = Infinity;
         for (const resultGroup of innerResults) {

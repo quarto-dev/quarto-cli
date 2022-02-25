@@ -129,10 +129,36 @@ class ValidationContext {
     const inner = (node: ValidationTraceNode) => {
       const result: ValidationError[] = [];
       if (node.edge === "anyOf" && pruneErrors) {
-        // We prune all but the anyOf error which reports the smallest
-        // span in the error (presumably showing the error that is the
-        // best one to fix)
+        // heuristic:
+        //  if one error says "you're missing a required field"
+        //  and another error says "one of your fields is not allowed"
+        //
+        //  we assume that the error about a missing required field is better, because
+        //  that implies that the schema with a missing required field
+        //  allowed the field that was disallowed by
+        //  the other schema, and we prefer schemas that are "partially correct"
+
+        // more generally, it seems that we want to weigh our decisions
+        // towards schema that have validated large parts of the overall object.
+        // we don't have a wait to record that right now, though.
         const innerResults: ValidationError[][] = node.children.map(inner);
+
+        const isRequiredError = (e: ValidationError) =>
+          e.schemaPath.indexOf("required") === e.schemaPath.length - 1;
+        const isPropertyNamesError = (e: ValidationError) =>
+          e.schemaPath.indexOf("required") !== -1;
+        if (
+          innerResults.some((el) => el.length && isRequiredError(el[0])) &&
+          innerResults.some((el) => el.length && isPropertyNamesError(el[0]))
+        ) {
+          return innerResults.filter((r) => {
+            return r.length && r[0].schemaPath.slice(-1)[0] === "required";
+          })[0]!;
+        }
+
+        // As a last resort, we prune all but the anyOf error which reports the smallest
+        // span in the error (presumably showing the error that is the
+        // easiest to fix)
         let bestResults: ValidationError[] = [];
         let minSpan = Infinity;
         for (const resultGroup of innerResults) {
