@@ -141,13 +141,13 @@ export async function preview(
       relative(projectOutputDir(project), result.outputFile),
     )
     : "";
-  const url = `http://localhost:${options.port}/${initialPath}`;
+  const url = `http://${options.host}:${options.port}/${initialPath}`;
   if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
     await openUrl(url);
   }
 
   // print status
-  printBrowsePreviewMessage(options.port, initialPath);
+  printBrowsePreviewMessage(options.host, options.port, initialPath);
 
   // serve project
   for await (const conn of listener) {

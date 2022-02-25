@@ -396,7 +396,7 @@ export async function serveProject(
   };
 
   // compute site url
-  const siteUrl = `http://localhost:${options.port}/`;
+  const siteUrl = `http://${options.host}:${options.port}/`;
 
   // print status
   printWatchingForChangesMessage();
@@ -425,6 +425,7 @@ export async function serveProject(
 
   // print browse url and open browser if requested
   printBrowsePreviewMessage(
+    options.host,
     options.port,
     (targetPath && targetPath !== "index.html") ? targetPath : "",
   );

@@ -181,7 +181,7 @@ export function printWatchingForChangesMessage() {
   info("Watching files for changes", { format: colors.green });
 }
 
-export function printBrowsePreviewMessage(port: number, path: string) {
+export function printBrowsePreviewMessage(host: string, port: number, path: string) {
   if (isJupyterHubServer()) {
     const httpReferrer = `${
       jupyterHubHttpReferrer() || "<jupyterhub-server-url>/"
@@ -193,7 +193,7 @@ export function printBrowsePreviewMessage(port: number, path: string) {
       },
     );
   } else {
-    const url = `http://localhost:${port}/${path}`;
+    const url = `http://${host}:${port}/${path}`;
     if (!isRStudioServer()) {
       info(`Browse at `, {
         newline: false,
