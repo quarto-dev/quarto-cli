@@ -5,9 +5,6 @@
 *
 */
 
-import { kLang, kSectionTitleReuse } from "../../config/constants.ts";
-import { Format, PandocFlags } from "../../config/types.ts";
-
 import { dirname, isAbsolute, join } from "path/mod.ts";
 import {
   kAppendixAttributionBibTex,
@@ -31,10 +28,8 @@ import {
   insertReferencesTitle,
   insertTitle,
   kAppendixStyle,
-  kAppendixAttribution,
-  kCreativeCommons,
-  kAppendixStyle,
   kCitationUrl,
+  kLicense,
   kPublicationDate,
   kPublicationFirstPage,
   kPublicationISBN,
@@ -62,7 +57,6 @@ const kQuartoSecondaryLabelClass = "quarto-appendix-secondary-label";
 const kQuartoCiteAsClass = "quarto-appendix-citeas";
 const kQuartoCiteBibtexClass = "quarto-appendix-bibtex";
 const kAppendixId = "quarto-appendix";
-
 
 export async function processDocumentAppendix(
   input: string,
@@ -184,7 +178,7 @@ export async function processDocumentAppendix(
     }
 
     // Place the citation for this document itself, if appropriate
-    if (format.metadata[kAppendixAttribution] === true) {
+    if (format.metadata[kCitationUrl]) {
       // Generate CSL for this document
       const entry = cslForFormat(format);
       if (entry) {
