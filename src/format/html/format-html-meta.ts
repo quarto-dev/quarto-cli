@@ -24,7 +24,7 @@ export function metadataPostProcessor(
 ) {
   return async (doc: Document) => {
     if (googleScholarEnabled(format)) {
-      const csl = documentCsl(input, format, offset);
+      const csl = documentCsl(input, format, "webpage", offset);
       const documentMetadata = googleScholarMeta(csl);
       const referenceMetadata = await googleScholarReferences(input, format);
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {

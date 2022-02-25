@@ -18,13 +18,21 @@ import {
 } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { parseAuthor } from "../../core/author.ts";
-import { CSL, cslDate, cslNames, cslType, suggestId } from "../../core/csl.ts";
+import {
+  CSL,
+  cslDate,
+  cslNames,
+  CSLType,
+  cslType,
+  suggestId,
+} from "../../core/csl.ts";
 import { kSiteUrl } from "../../project/types/website/website-config.ts";
 import { kWebsite } from "../../project/types/website/website-config.ts";
 
 const kPublication = "publication";
 const kCitationUrl = "citation-url";
 const kCitationId = "citation-id";
+const kCitationType = "citation-type";
 
 const kPublicationType = "type";
 const kPublicationInstitution = "institution";
@@ -85,12 +93,13 @@ export const getCSLPath = (input: string, format: Format) => {
 export function documentCsl(
   input: string,
   format: Format,
+  defaultType: CSLType,
   offset?: string,
 ) {
   const publicationMeta = (format.metadata[kPublication] || {}) as Metadata;
   const type = publicationMeta[kPublicationType]
     ? cslType(publicationMeta[kPublicationType] as string)
-    : "post-weblog" || "webpage";
+    : cslType(format.metadata[kCitationType] as string) || defaultType;
 
   const title = format.metadata[kTitle] as string;
   const csl: CSL = {

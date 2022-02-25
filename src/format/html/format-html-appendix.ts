@@ -333,7 +333,7 @@ function creativeCommonsUrl(license: string, lang?: string) {
 }
 
 async function generateCite(input: string, format: Format, offset?: string) {
-  const entry = documentCsl(input, format, offset);
+  const entry = documentCsl(input, format, "webpage", offset);
   if (entry) {
     // Render the HTML and BibTeX form of this document
     const cslPath = getCSLPath(input, format);
