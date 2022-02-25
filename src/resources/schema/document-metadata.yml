@@ -23,6 +23,18 @@
     formats: [$office-all]
   description: "The document category."
 
+- name: creative-commons
+  schema: string
+  tags:
+    formats: [$html-doc]
+  description:
+    short: The Creative Commons License for this document, if any. (e.g. `CC BY`)
+    long: |
+      The Creative Commons License for this document, if any. 
+
+      `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC` will automatically generate a license link
+      in the document appendix.
+
 - name: title-meta
   schema: string
   tags:

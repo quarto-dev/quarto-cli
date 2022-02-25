@@ -138,6 +138,8 @@ import {
   kSectionTitleAbstract,
   kSectionTitleAppendices,
   kSectionTitleFootnotes,
+  kSectionTitleReferences,
+  kSectionTitleReuse,
   kSelfContained,
   kSelfContainedMath,
   kShiftHeadingLevelBy,
@@ -425,7 +427,9 @@ export interface FormatLanguage {
   [kCalloutDangerCaption]?: string;
   [kSectionTitleAbstract]?: string;
   [kSectionTitleFootnotes]?: string;
+  [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
+  [kSectionTitleReuse]?: string;
   [kCodeSummary]?: string;
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;
