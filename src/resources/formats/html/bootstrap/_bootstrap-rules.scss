@@ -1404,9 +1404,6 @@ body:not(.fullcontent) {
     opacity: 0.9;
     border-bottom: none;
     margin-bottom: 0;
-    @include media-breakpoint-up(xl) {
-      text-align: right;
-    }
   }
 
   // Remove botoom margin from specific elements
