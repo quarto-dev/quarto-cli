@@ -15,7 +15,7 @@ import {
   insertReferencesTitle,
   insertTitle,
   kAppendixStyle,
-  kCreativeCommons,
+  kLicense,
 } from "./format-html-shared.ts";
 
 const kAppendixCreativeCommonsLic = [
@@ -120,10 +120,7 @@ export function processDocumentAppendix(
     }
 
     // Place Re-use, if appropriate
-    const creativeCommons = creativeCommonsLicense(
-      format.metadata[kCreativeCommons] as string,
-    );
-    if (creativeCommons) {
+    if (format.metadata[kLicense]) {
       addSection((sectionEl) => {
         sectionEl.setAttribute("role", "doc-bibliography");
         const contentsDiv = doc.createElement("DIV");
@@ -132,14 +129,24 @@ export function processDocumentAppendix(
           kAppendixContentsClass,
         );
 
-        const licenseUrl = creativeCommonsUrl(
-          creativeCommons,
-          format.metadata[kLang] as string | undefined,
+        const creativeCommons = creativeCommonsLicense(
+          format.metadata[kLicense] as string,
         );
-        const linkEl = doc.createElement("A");
-        linkEl.innerText = licenseUrl;
-        linkEl.setAttribute("href", licenseUrl);
-        contentsDiv.appendChild(linkEl);
+        if (creativeCommons) {
+          const licenseUrl = creativeCommonsUrl(
+            creativeCommons,
+            format.metadata[kLang] as string | undefined,
+          );
+          const linkEl = doc.createElement("A");
+          linkEl.innerText = licenseUrl;
+          linkEl.setAttribute("rel", "license");
+          linkEl.setAttribute("href", licenseUrl);
+          contentsDiv.appendChild(linkEl);
+        } else {
+          const licenseEl = doc.createElement("DIV");
+          licenseEl.innerText = format.metadata[kLicense] as string;
+          contentsDiv.appendChild(licenseEl);
+        }
         sectionEl.appendChild(contentsDiv);
       }, format.language[kSectionTitleReuse] || "Usage");
     }

@@ -56,7 +56,7 @@ export const kGiscusCategoryId = "category-id";
 export const kDraft = "draft";
 
 export const kAppendixStyle = "appendix-style";
-export const kCreativeCommons = "creative-commons";
+export const kLicense = "license";
 
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";

@@ -1392,10 +1392,35 @@ body:not(.fullcontent) {
 // Quarto Appendix Treatment
 #quarto-appendix:not(.plain) {
   background-color: $body-bg;
-  padding-top: 1em;
+  padding-top: 1.5em;
   margin-top: 2em;
   &.full {
     z-index: $zindex-pagelayout;
+  }
+
+  .footnotes ol {
+    margin-bottom: 0;
+    li:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+
+  .quarto-appendix-secondary-label {
+    margin-bottom: 0.4em;
+  }
+
+  .quarto-appendix-bibtex {
+    font-size: 0.7em;
+    padding: 1em;
+    border: solid 1px $border-color;
+    margin-bottom: 1em;
+  }
+
+  .quarto-appendix-citeas {
+    font-size: 0.9em;
+    padding: 1em;
+    border: solid 1px $border-color;
+    margin-bottom: 1em;
   }
 
   &.full,
@@ -1406,10 +1431,13 @@ body:not(.fullcontent) {
     .quarto-appendix-contents > * {
       font-size: 0.9em;
     }
+    .quarto-appendix-contents > p:last-of-type {
+      margin-bottom: 0;
+    }
 
     border-top: 1px solid $border-color;
     section {
-      padding-bottom: 1em;
+      padding-bottom: 1.5em;
 
       .quarto-appendix-heading {
         margin-top: 0;
@@ -1422,13 +1450,15 @@ body:not(.fullcontent) {
     }
     .quarto-appendix-heading {
       margin-top: 0;
-      line-height: 1.7em;
+      line-height: 1.4em;
       font-weight: 600;
       opacity: 0.9;
       border-bottom: none;
     }
   }
-  &.one-column {
+  &.full,
+  &.one-column,
+  &.two-column {
     .quarto-appendix-heading {
       margin-bottom: 0;
     }
