@@ -168,9 +168,12 @@ export function processDocumentAppendix(
           const headerEl = appendSectionEl.querySelector(
             "h1, h2, h3, h4, h5, h6",
           );
+          // Always hoist any heading up to h2
           if (headerEl) {
             headerEl.remove();
-            return headerEl;
+            const h2 = doc.createElement("h2");
+            h2.innerHTML = headerEl.innerHTML;
+            return h2;
           } else {
             const h2 = doc.createElement("h2");
             return h2;
