@@ -123,7 +123,7 @@ async function buildYAMLJS() {
   const vsCodeSrc = await esbuild(
     resourcePath("../core/lib/yaml-intelligence"),
     "vs-code.ts",
-    "iife",
+    "esm",
     false,
   );
 
@@ -133,7 +133,7 @@ async function buildYAMLJS() {
   ensureAllowableIDESyntax(treeSitter, "tree-sitter.js");
 
   Deno.writeTextFileSync(
-    resourcePath("editor/tools/vs-code.js"),
+    resourcePath("editor/tools/vs-code.mjs"),
     [treeSitter, vsCodeSrc].join(""),
   );
 
