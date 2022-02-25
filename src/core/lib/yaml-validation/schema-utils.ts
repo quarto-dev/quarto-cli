@@ -332,11 +332,7 @@ function getObjectCompletions(s: ConcreteSchema): Completion[] {
           display: "", // attempt to not show completion title.
           value: `${k}: `,
           description,
-          suggest_on_accept: (schema !== undefined) &&
-            (schema != false) &&
-            (schema !== true) &&
-            (schema.completions !== undefined) &&
-            (schema.completions.length !== 0),
+          suggest_on_accept: true,
         });
       }
       return completions;

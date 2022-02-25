@@ -10352,7 +10352,7 @@ try {
             display: "",
             value: `${k}: `,
             description,
-            suggest_on_accept: schema2 !== void 0 && schema2 != false && schema2 !== true && schema2.completions !== void 0 && schema2.completions.length !== 0
+            suggest_on_accept: true
           });
         }
         return completions2;
