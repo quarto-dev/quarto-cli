@@ -118,6 +118,10 @@ export interface CSL {
   // journal article before its formal publication date; the date a treaty
   // was made available for signing)
   "available-date"?: CSLDate;
+
+  "abstract"?: string;
+
+  "language"?: string;
 }
 
 export interface CSLName {

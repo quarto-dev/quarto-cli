@@ -7,10 +7,12 @@
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import {
+  kAbstract,
   kAuthor,
   kCsl,
   kDate,
   kDoi,
+  kLang,
   kOutputFile,
   kTitle,
 } from "../../config/constants.ts";
@@ -112,6 +114,16 @@ export function documentCsl(
   const availableDate = format.metadata[kDate];
   if (availableDate) {
     csl["available-date"] = cslDate(availableDate);
+  }
+
+  const abstract = format.metadata[kAbstract];
+  if (abstract) {
+    csl.abstract = abstract as string;
+  }
+
+  const language = format.metadata[kLang];
+  if (language) {
+    csl.language = language as string;
   }
 
   // Publication Metadata
