@@ -143,7 +143,9 @@ export const kCalloutImportantCaption = "callout-important-caption";
 export const kCalloutDangerCaption = "callout-danger-caption";
 export const kSectionTitleAbstract = "section-title-abstract";
 export const kSectionTitleFootnotes = "section-title-footnotes";
+export const kSectionTitleReferences = "section-title-references";
 export const kSectionTitleAppendices = "section-title-appendices";
+export const kSectionTitleReuse = "section-title-reuse";
 export const kCodeSummary = "code-summary";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
@@ -221,7 +223,9 @@ export const kLanguageDefaultsKeys = [
   kCalloutDangerCaption,
   kSectionTitleAbstract,
   kSectionTitleFootnotes,
+  kSectionTitleReferences,
   kSectionTitleAppendices,
+  kSectionTitleReuse,
   kCodeSummary,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,

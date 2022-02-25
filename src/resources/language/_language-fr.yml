@@ -4,6 +4,8 @@ toc-title-website: "Sur cette page"
 section-title-abstract: "Résumé"
 section-title-appendices: "Annexes"
 section-title-footnotes: "Notes de bas de page"
+section-title-references: "Les références"
+section-title-reuse: "Réutilisation"
 
 callout-tip-caption: "Astuce"
 callout-note-caption: "Note"

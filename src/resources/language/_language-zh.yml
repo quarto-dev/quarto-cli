@@ -4,6 +4,8 @@ toc-title-website: "该页面内容"
 section-title-abstract: "摘要"
 section-title-appendices: "附录"
 section-title-footnotes: "脚注"
+section-title-references: "参考"
+section-title-reuse: "重用"
 
 callout-tip-caption: "提示"
 callout-note-caption: "注释"
