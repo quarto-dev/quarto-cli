@@ -36,7 +36,12 @@ export async function getTreeSitter(): Promise<any> {
 
   // this is to appease the type-checker, and should never run
   // in the CLI.
-  const Parser = ((self as unknown) as WithTreeSitter).TreeSitter;
+  let Parser: any;
+  try {
+    Parser = ((self as unknown) as WithTreeSitter).TreeSitter;
+  } catch (_e) {
+    Parser = ((globalThis as unknown) as WithTreeSitter).TreeSitter;
+  }
 
   await Parser.init();
 
