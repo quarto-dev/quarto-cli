@@ -7,7 +7,7 @@
           - arrayOf: string
           - object:
               additionalProperties: string
-                
+
       additionalCompletions:
         anyOf:
           - arrayOf: string
@@ -19,6 +19,8 @@
     super:
       resolveRef: yaml-schema/base
     properties:
+      closed:
+        enum: [true] # only allow the boolean 'true' value (denoting as 'true' would instead allow anything)
       required:
         anyOf:
           - enum:
@@ -57,14 +59,14 @@
     properties:
       ref: string
       description: string
-    additionalProperties: false
+    closed: true
     required: ref
 
 - id: yaml-schema/resolveRef
   object:
     properties:
       resolveRef: string
-    additionalProperties: false
+    closed: true
     required: resolveRef
 
 - id: yaml-schema/maybe-array-of
@@ -75,7 +77,7 @@
       maybeArrayOf:
         ref: yaml-schema/schema
         description: be a yaml yaml schema
-    additionalProperties: false
+    closed: true
     required: all
 
 - id: yaml-schema/array-of
@@ -127,16 +129,16 @@
                   arrayOf:
                     ref: yaml-schema/schema
                     description: be a yaml yaml schema
-    
+
 - id: yaml-schema/schema
   anyOf:
     schemas:
       - enum:
-        - object
-        - string
-        - number
-        - path
-        - boolean
+          - object
+          - string
+          - number
+          - path
+          - boolean
 
       - resolveRef: yaml-schema/ref
       - resolveRef: yaml-schema/maybe-array-of
@@ -144,4 +146,3 @@
       - resolveRef: yaml-schema/any-of
       - resolveRef: yaml-schema/enum
       - resolveRef: yaml-schema/object
-

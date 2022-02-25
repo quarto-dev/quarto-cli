@@ -87,7 +87,7 @@
             arrayOf:
               schema:
                 ref: navigation-item
-        additionalProperties: false
+        closed: true
 
 - id: tool-item
   object:
@@ -110,7 +110,7 @@
 
 - id: comments
   object:
-    additionalProperties: false
+    closed: true
     properties:
       utterances:
         object:
@@ -566,13 +566,13 @@
                             section:
                               schema: string
                               description: "Field that contains the section of index entries"
-                          additionalProperties: false
+                          closed: true
                       params:
                         object:
                           description: "Additional parameters to pass when executing a search"
-                    additionalProperties: false
+                    closed: true
                   description: "Use external Algolia search index"
-              additionalProperties: false
+              closed: true
         description: "Provide full text search for website"
 
       navbar:
@@ -767,7 +767,7 @@
                 foreground:
                   schema: string
                   description: "Footer foreground color"
-              additionalProperties: false
+              closed: true
         description: "Shared page footer"
       image:
         path:
@@ -796,7 +796,7 @@
                         Name that should be displayed for the overall site. If not explicitly 
                         provided in the `open-graph` metadata, Quarto will use the website or
                         book `title` by default.
-              additionalProperties: false
+              closed: true
         description: "Publish open graph metadata"
       twitter-card:
         anyOf:
@@ -819,7 +819,7 @@
                 site:
                   string:
                     description: "`@username` of the website (must be a quoted string)"
-              additionalProperties: false
+              closed: true
         description: "Publish twitter card metadata"
 
 - id: chapter-item
@@ -930,7 +930,7 @@
 
 - id: website-about
   object:
-    additionalProperties: false
+    closed: true
     properties:
       template:
         enum: [jolla, trestles, solana, marquee, broadside]
@@ -973,7 +973,7 @@
 
 - id: website-listing
   object:
-    additionalProperties: false
+    closed: true
     properties:
       id:
         string:
@@ -1052,7 +1052,7 @@
         anyOf:
           - boolean
           - object:
-              additionalProperties: false
+              closed: true
               properties:
                 items:
                   number:

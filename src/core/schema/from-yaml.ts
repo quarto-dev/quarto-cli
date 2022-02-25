@@ -254,7 +254,7 @@ function convertFromRecord(yaml: any): ConcreteSchema {
     const schema = convertFromObject({
       "object": {
         "properties": yaml.record.properties,
-        "additionalProperties": false,
+        "closed": true,
         "required": "all",
       },
     });
@@ -266,7 +266,7 @@ function convertFromRecord(yaml: any): ConcreteSchema {
     const schema = convertFromObject({
       "object": {
         "properties": yaml.record,
-        "additionalProperties": false,
+        "closed": true,
         "required": "all",
       },
     });
@@ -293,6 +293,12 @@ function convertFromObject(yaml: any): ConcreteSchema {
   }
   if (schema.propertyNames !== undefined) {
     params.propertyNames = convertFromYaml(schema.propertyNames);
+  } else if (schema.closed === true) {
+    const objectKeys = Object.keys(params.properties || {});
+    if (objectKeys.length === 0) {
+      throw new Error("object schema `closed` requires field `properties`.");
+    }
+    params.propertyNames = enumS(...objectKeys);
   }
   if (schema.additionalProperties !== undefined) {
     // we special-case `false` here because as a schema, `false` means

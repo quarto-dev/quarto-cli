@@ -40,7 +40,7 @@
             opts_chunk:
               object:
                 description: Knitr chunk options.
-          additionalProperties: false
+          closed: true
   description: Set Knitr options.
 
 - name: cache
