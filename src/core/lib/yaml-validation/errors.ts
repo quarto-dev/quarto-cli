@@ -274,8 +274,8 @@ function expandEmptySpan(
   const locF = mappedIndexToRowCol(parse.source);
   try {
     const location = {
-      start: locF(lastKey.start),
-      end: locF(lastKey.end),
+      start: locF(lastKey.start - 1),
+      end: locF(lastKey.end - 1),
     };
 
     return {

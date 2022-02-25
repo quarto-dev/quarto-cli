@@ -10493,12 +10493,9 @@ try {
         const result2 = [];
         if (node.edge === "anyOf" && pruneErrors) {
           const innerResults = node.children.map(inner);
-          const schemaErrors = new Set(innerResults.map((r) => {
-            if (r.length) {
-              return r[0].schemaPath.slice(-1)[0];
-            }
-          }));
-          if (schemaErrors.has("required") && schemaErrors.has("propertyNames")) {
+          const isRequiredError = (e) => e.schemaPath.indexOf("required") === e.schemaPath.length - 1;
+          const isPropertyNamesError = (e) => e.schemaPath.indexOf("required") !== -1;
+          if (innerResults.some((el) => el.length && isRequiredError(el[0])) && innerResults.some((el) => el.length && isPropertyNamesError(el[0]))) {
             return innerResults.filter((r) => {
               return r.length && r[0].schemaPath.slice(-1)[0] === "required";
             })[0];
@@ -11046,8 +11043,8 @@ try {
     const locF = mappedIndexToRowCol(parse.source);
     try {
       const location = {
-        start: locF(lastKey.start),
-        end: locF(lastKey.end)
+        start: locF(lastKey.start - 1),
+        end: locF(lastKey.end - 1)
       };
       return {
         ...error,
