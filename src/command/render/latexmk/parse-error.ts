@@ -211,6 +211,12 @@ const packageMatchers = [
       }
     },
   },
+  {
+    regex: /module 'lua-uni-normalize' not found:/g,
+    filter: (_match: string, _text: string) => {
+      return "lua-uni-algos.lua";
+    },
+  },
 
   { regex: /.*! LaTeX Error: File `([^']+)' not found.*/g },
   { regex: /.* file ['`]?([^' ]+)'? not found.*/g },
