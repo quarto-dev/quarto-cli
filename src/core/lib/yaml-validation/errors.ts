@@ -11,6 +11,8 @@ import * as colors from "../external/colors.ts";
 
 import { getVerbatimInput, navigate, YAMLSchema } from "./yaml-schema.ts";
 
+import { lines } from "../text.ts";
+
 import {
   addFileInfo,
   addInstancePathInfo,
@@ -27,6 +29,7 @@ import { editDistance } from "../text.ts";
 
 import {
   AnnotatedParse,
+  JSONValue,
   LocalizedError,
   Schema,
   schemaDescription,
@@ -142,8 +145,17 @@ function formatHeadingForValueError(
   _parse: AnnotatedParse,
   _schema: Schema,
 ): string {
-  const rawVerbatimInput = getVerbatimInput(error);
-  const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
+  const rawVerbatimInput = reindent(getVerbatimInput(error));
+  const rawLines = lines(rawVerbatimInput);
+  let verbatimInput: string;
+  if (rawLines.length > 4) {
+    verbatimInput = quotedStringColor(
+      [...rawLines.slice(0, 2), "...", ...rawLines.slice(-2)]
+        .join("\n"),
+    );
+  } else {
+    verbatimInput = quotedStringColor(rawVerbatimInput);
+  }
 
   const empty = isEmptyValue(error);
   const lastFragment = getLastFragment(error.instancePath);
@@ -151,32 +163,32 @@ function formatHeadingForValueError(
   switch (typeof lastFragment) {
     case "undefined": // empty
       if (empty) {
-        return "YAML object is missing.";
+        return "YAML value is missing.";
       } else {
-        return `YAML object ${verbatimInput} must instead ${
+        return `YAML value ${verbatimInput} must ${
           schemaDescription(error.schema)
-        }`;
+        }.`;
       }
     case "number": // array
       if (empty) {
-        return `Array entry ${lastFragment + 1} is empty but it must instead ${
+        return `Array entry ${lastFragment + 1} is empty, but needs to ${
           schemaDescription(error.schema)
         }.`;
       } else {
         return `Array entry ${
           lastFragment + 1
-        } has value ${verbatimInput} must instead ${
+        } with value ${verbatimInput} failed to ${
           schemaDescription(error.schema)
         }.`;
       }
     case "string": { // object
       const formatLastFragment = colors.blue(lastFragment);
       if (empty) {
-        return `Key ${formatLastFragment} has empty value but it must instead ${
+        return `Key ${formatLastFragment} has empty value, which must ${
           schemaDescription(error.schema)
         }`;
       } else {
-        return `Key ${formatLastFragment} has value ${verbatimInput} but it must instead ${
+        return `Key ${formatLastFragment} has value ${verbatimInput}, which must ${
           schemaDescription(error.schema)
         }`;
       }
@@ -296,8 +308,27 @@ function checkForTypeMismatch(
   parse: AnnotatedParse,
   schema: Schema,
 ) {
+  debugger;
   const rawVerbatimInput = getVerbatimInput(error);
-  const verbatimInput = quotedStringColor(rawVerbatimInput);
+  const rawLines = lines(rawVerbatimInput);
+  let verbatimInput: string;
+  if (rawLines.length > 4) {
+    verbatimInput = quotedStringColor(
+      [...rawLines.slice(0, 2), "...", ...rawLines.slice(-2)]
+        .join("\n"),
+    );
+  } else {
+    verbatimInput = quotedStringColor(rawVerbatimInput);
+  }
+  const goodType = (obj: JSONValue) => {
+    if (Array.isArray(obj)) {
+      return "an array";
+    }
+    if (obj === null) {
+      return "a null value";
+    }
+    return typeof obj;
+  };
 
   if (errorKeyword(error) === "type" && rawVerbatimInput.length > 0) {
     const newError: TidyverseError = {
@@ -308,8 +339,12 @@ function checkForTypeMismatch(
         schema,
       ),
       error: [
-        `The value ${verbatimInput} is a ${typeof error.violatingObject
-          .result}.`,
+        `The value ${verbatimInput} is ${
+          goodType(
+            error.violatingObject
+              .result,
+          )
+        }.`,
       ],
       info: {},
       location: error.niceError.location,

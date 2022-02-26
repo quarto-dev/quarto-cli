@@ -1,148 +1,207 @@
-- id: yaml-schema/base
+- id: schema/scalar
+  anyOf:
+    - number
+    - boolean
+    - string
+
+- id: schema/description
+  anyOf:
+    - string
+    - object:
+        properties:
+          short: string
+          long: string
+
+- id: schema/base
   object:
     properties:
-      id: string
-      completions:
-        anyOf:
-          - arrayOf: string
-          - object:
-              additionalProperties: string
-
       additionalCompletions:
-        anyOf:
-          - arrayOf: string
-          - object:
-              additionalProperties: string
-
-- id: yaml-schema/object
-  object:
-    super:
-      resolveRef: yaml-schema/base
-    properties:
-      closed:
-        enum: [true] # only allow the boolean 'true' value (denoting as 'true' would instead allow anything)
-      required:
-        anyOf:
-          - enum:
-              - all
-          - arrayOf: string
-      super:
-        ref: yaml-schema/object
-        description: be a yaml object schema
+        arrayOf: string
+      completions:
+        arrayOf: string
+      id: string
       hidden: boolean
-      additionalProperties:
-        ref: yaml-schema/schema
-        description: be a yaml yaml schema
-      properties:
-        object:
-          additionalProperties:
-            ref: yaml-schema/schema
-            description: be a yaml yaml schema
+      tags: object
+      description:
+        ref: schema/description
 
-- id: yaml-schema/enum
+- id: schema/enum
   object:
-    super:
-      resolveRef: yaml-schema/base
     properties:
       enum:
         anyOf:
-          - arrayOf: string
+          - arrayOf:
+              ref: schema/scalar
           - object:
               super:
-                resolveRef: yaml-schema/base
+                resolveRef: schema/base
               properties:
                 values:
-                  arrayOf: string
+                  arrayOf:
+                    ref: schema/scalar
 
-- id: yaml-schema/ref
+- id: schema/null
   object:
+    properties:
+      null:
+        ref: schema/schema
+
+- id: schema/explicit-schema
+  object:
+    super:
+      resolveRef: schema/base
+    properties:
+      schema:
+        ref: schema/schema
+
+- id: schema/string
+  anyOf:
+    - object:
+        super:
+          resolveRef: schema/base
+        properties:
+          pattern: string
+    - object:
+        properties:
+          string:
+            ref: schema/schema
+          path:
+            ref: schema/schema
+          pattern:
+            ref: schema/schema
+
+- id: schema/number
+  object:
+    properties:
+      number:
+        ref: schema/schema
+
+- id: schema/boolean
+  object:
+    properties:
+      boolean:
+        ref: schema/schema
+
+- id: schema/ref
+  object:
+    super:
+      resolveRef: schema/base
     properties:
       ref: string
-      description: string
-    closed: true
-    required: ref
 
-- id: yaml-schema/resolveRef
-  object:
-    properties:
-      resolveRef: string
-    closed: true
-    required: resolveRef
-
-- id: yaml-schema/maybe-array-of
+- id: schema/maybe-array-of
   object:
     super:
-      resolveRef: yaml-schema/base
+      resolveRef: schema/base
     properties:
       maybeArrayOf:
-        ref: yaml-schema/schema
-        description: be a yaml yaml schema
-    closed: true
-    required: all
+        ref: schema/schema
 
-- id: yaml-schema/array-of
+- id: schema/array-of
   object:
     super:
-      resolveRef: yaml-schema/base
+      resolveRef: schema/base
     properties:
       arrayOf:
+        ref: schema/schema
+
+- id: schema/all-of
+  object:
+    properties:
+      allOf:
         anyOf:
           - arrayOf:
-              ref: yaml-schema/schema
-              description: be a yaml yaml schema
+              ref: schema/schema
           - object:
               super:
-                resolveRef: yaml-schema/base
+                resolveRef: schema/base
               properties:
-                schema:
+                schemas:
                   arrayOf:
-                    ref: yaml-schema/schema
-                    description: be a yaml yaml schema
-    required: [arrayOf]
+                    ref: schema/schema
 
-- id: yaml-schema/enum
-  anyOf:
-    schemas:
-      - arrayOf: string
-      - object:
-          super:
-            resolveRef: yaml-schema/base
-          properties:
-            values:
-              arrayOf: string
-
-- id: yaml-schema/any-of
+- id: schema/any-of
   object:
-    super:
-      resolveRef: yaml-schema/base
     properties:
       anyOf:
         anyOf:
           - arrayOf:
-              ref: yaml-schema/schema
-              description: be a yaml yaml schema
+              ref: schema/schema
           - object:
               super:
-                resolveRef: yaml-schema/base
+                resolveRef: schema/base
               properties:
                 schemas:
                   arrayOf:
-                    ref: yaml-schema/schema
-                    description: be a yaml yaml schema
+                    ref: schema/schema
 
-- id: yaml-schema/schema
+- id: schema/record
+  object:
+    properties:
+      record:
+        anyOf:
+          - object:
+              properties:
+                properties:
+                  object:
+                    additionalProperties:
+                      ref: schema/schema
+            additionalProperties:
+              ref: schema/schema
+          - object:
+              additionalProperties:
+                ref: schema/schema
+
+- id: schema/object
+  object:
+    properties:
+      properties:
+        object:
+          additionalProperties:
+            ref: schema/schema
+      patternProperties:
+        object:
+          additionalProperties:
+            ref: schema/schema
+      propertyNames:
+        ref: schema/schema
+      additionalProperties:
+        ref: schema/schema
+      super:
+        ref: schema/schema
+      required:
+        anyOf:
+          - enum: ["all"]
+          - arrayOf: string
+      completions:
+        arrayOf: string
+
+- id: schema/schema
   anyOf:
-    schemas:
-      - enum:
-          - object
-          - string
-          - number
-          - path
-          - boolean
+    - ref: schema/enum
+    - ref: schema/null
+    - ref: schema/explicit-schema
+    - ref: schema/string
+    - ref: schema/number
+    - ref: schema/boolean
+    - ref: schema/ref
+    - ref: schema/any-of
+    - ref: schema/all-of
+    - ref: schema/record
+    - ref: schema/object
+    - enum: ["number", "boolean", "string", "null", "object"]
 
-      - resolveRef: yaml-schema/ref
-      - resolveRef: yaml-schema/maybe-array-of
-      - resolveRef: yaml-schema/array-of
-      - resolveRef: yaml-schema/any-of
-      - resolveRef: yaml-schema/enum
-      - resolveRef: yaml-schema/object
+- id: schema/schema-field
+  object:
+    properties:
+      name: string
+      schema:
+        ref: schema/schema
+      hidden: boolean
+      alias: string
+      disabled: string
+      enabled: string
+      description:
+        ref: schema/description
+      tags: object
+    required: ["name", "schema", "description"]

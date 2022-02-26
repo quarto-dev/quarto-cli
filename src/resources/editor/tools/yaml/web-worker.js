@@ -10981,8 +10981,14 @@ try {
     return `property name ${blue(key)} is invalid`;
   }
   function formatHeadingForValueError(error, _parse, _schema) {
-    const rawVerbatimInput = getVerbatimInput(error);
-    const verbatimInput = quotedStringColor(reindent(rawVerbatimInput));
+    const rawVerbatimInput = reindent(getVerbatimInput(error));
+    const rawLines = lines(rawVerbatimInput);
+    let verbatimInput;
+    if (rawLines.length > 4) {
+      verbatimInput = quotedStringColor([...rawLines.slice(0, 2), "...", ...rawLines.slice(-2)].join("\n"));
+    } else {
+      verbatimInput = quotedStringColor(rawVerbatimInput);
+    }
     const empty = isEmptyValue(error);
     const lastFragment = getLastFragment(error.instancePath);
     switch (typeof lastFragment) {
@@ -10990,20 +10996,20 @@ try {
         if (empty) {
           return "YAML object is missing.";
         } else {
-          return `YAML object ${verbatimInput} must instead ${schemaDescription(error.schema)}`;
+          return `YAML object ${verbatimInput} fails to ${schemaDescription(error.schema)}.`;
         }
       case "number":
         if (empty) {
-          return `Array entry ${lastFragment + 1} is empty but it must instead ${schemaDescription(error.schema)}.`;
+          return `Array entry ${lastFragment + 1} is empty, but needs to ${schemaDescription(error.schema)}.`;
         } else {
-          return `Array entry ${lastFragment + 1} has value ${verbatimInput} must instead ${schemaDescription(error.schema)}.`;
+          return `Array entry ${lastFragment + 1} with value ${verbatimInput} failed to ${schemaDescription(error.schema)}.`;
         }
       case "string": {
         const formatLastFragment = blue(lastFragment);
         if (empty) {
-          return `Key ${formatLastFragment} has empty value but it must instead ${schemaDescription(error.schema)}`;
+          return `Key ${formatLastFragment} has empty value, which fails to ${schemaDescription(error.schema)}`;
         } else {
-          return `Key ${formatLastFragment} has value ${verbatimInput} but it must instead ${schemaDescription(error.schema)}`;
+          return `Key ${formatLastFragment} has value ${verbatimInput}, which fails to ${schemaDescription(error.schema)}`;
         }
       }
     }
@@ -11059,14 +11065,30 @@ try {
     }
   }
   function checkForTypeMismatch(error, parse, schema) {
+    debugger;
     const rawVerbatimInput = getVerbatimInput(error);
-    const verbatimInput = quotedStringColor(rawVerbatimInput);
+    const rawLines = lines(rawVerbatimInput);
+    let verbatimInput;
+    if (rawLines.length > 4) {
+      verbatimInput = quotedStringColor([...rawLines.slice(0, 2), "...", ...rawLines.slice(-2)].join("\n"));
+    } else {
+      verbatimInput = quotedStringColor(rawVerbatimInput);
+    }
+    const goodType = (obj) => {
+      if (Array.isArray(obj)) {
+        return "an array";
+      }
+      if (obj === null) {
+        return "a null value";
+      }
+      return typeof obj;
+    };
     if (errorKeyword(error) === "type" && rawVerbatimInput.length > 0) {
       const newError = {
         ...error.niceError,
         heading: formatHeadingForValueError(error, parse, schema),
         error: [
-          `The value ${verbatimInput} is a ${typeof error.violatingObject.result}.`
+          `The value ${verbatimInput} is ${goodType(error.violatingObject.result)}.`
         ],
         info: {},
         location: error.niceError.location
