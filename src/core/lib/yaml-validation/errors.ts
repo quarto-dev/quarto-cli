@@ -311,7 +311,6 @@ function checkForTypeMismatch(
   parse: AnnotatedParse,
   schema: Schema,
 ) {
-  debugger;
   const rawVerbatimInput = getVerbatimInput(error);
   const rawLines = lines(rawVerbatimInput);
   let verbatimInput: string;
@@ -465,7 +464,7 @@ function schemaDefinedErrors(
 
 function checkForNearbyRequired(
   error: LocalizedError,
-  parse: AnnotatedParse,
+  _parse: AnnotatedParse,
   _schema: Schema,
 ): LocalizedError {
   const schema = error.schema;
@@ -473,7 +472,6 @@ function checkForNearbyRequired(
   if (errorKeyword(error) !== "required") {
     return error;
   }
-  let requiredKeys: string[];
   const missingKeys: string[] = [];
   const errObj = error.violatingObject.result as Record<string, unknown>;
   const keys = Object.keys(errObj);
@@ -485,7 +483,6 @@ function checkForNearbyRequired(
           "Internal Error: required schema error without a required field",
         );
       }
-      requiredKeys = s.required;
       // find required properties.
       for (const r of s.required) {
         if (keys.indexOf(r) === -1) {
