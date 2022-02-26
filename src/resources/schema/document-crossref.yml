@@ -1,4 +1,5 @@
 - name: crossref
+  description: MISSING_DESCRIPTION
   schema:
     object:
       properties:

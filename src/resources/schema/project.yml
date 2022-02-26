@@ -1,4 +1,5 @@
 - name: project
+  description: MISSING_DESCRIPTION
   schema:
     object:
       properties:
@@ -28,10 +29,12 @@
             description: "Additional file resources to be copied to output directory"
 
 - name: website
+  description: MISSING_DESCRIPTION
   schema:
     ref: base-website
 
 - name: book
+  description: MISSING_DESCRIPTION
   schema:
     object:
       super:

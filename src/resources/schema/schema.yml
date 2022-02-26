@@ -189,7 +189,8 @@
     - ref: schema/all-of
     - ref: schema/record
     - ref: schema/object
-    - enum: ["number", "boolean", "string", "null", "object"]
+    - enum: ["number", "boolean", "path", "string", "null", "object"]
+  description: "be a yaml schema"
 
 - id: schema/schema-field
   object:
@@ -199,8 +200,10 @@
         ref: schema/schema
       hidden: boolean
       alias: string
-      disabled: string
-      enabled: string
+      disabled:
+        maybeArrayOf: string
+      enabled:
+        maybeArrayOf: string
       description:
         ref: schema/description
       tags: object

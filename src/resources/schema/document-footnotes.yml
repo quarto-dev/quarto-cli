@@ -3,7 +3,7 @@
   tags:
     formats: [$html-files]
   default: true
-  decription: Enables a hover popup for footnotes that shows the footnote contents.
+  description: Enables a hover popup for footnotes that shows the footnote contents.
 
 - name: links-as-notes
   schema: boolean

@@ -8,3 +8,4 @@
           anyOf:
             - string
             - ref: website-listing
+  description: MISSING_DESCRIPTION

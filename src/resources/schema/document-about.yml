@@ -5,3 +5,4 @@
     anyOf:
       - enum: [jolla, trestles, solana, marquee, broadside]
       - ref: website-about
+  description: MISSING_DESCRIPTION
