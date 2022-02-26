@@ -31,7 +31,9 @@ import {
   AnnotatedParse,
   JSONValue,
   LocalizedError,
+  ObjectSchema,
   Schema,
+  schemaCall,
   schemaDescription,
   schemaType,
 } from "./types.ts";
@@ -56,6 +58,7 @@ export function setDefaultErrorHandlers(validator: YAMLSchema) {
   validator.addHandler(checkForBadBoolean);
   validator.addHandler(identifyKeyErrors);
   validator.addHandler(checkForNearbyCorrection);
+  validator.addHandler(checkForNearbyRequired);
   validator.addHandler(schemaDefinedErrors);
 }
 
@@ -171,7 +174,7 @@ function formatHeadingForValueError(
       }
     case "number": // array
       if (empty) {
-        return `Array entry ${lastFragment + 1} is empty, but needs to ${
+        return `Array entry ${lastFragment + 1} is empty but it must instead ${
           schemaDescription(error.schema)
         }.`;
       } else {
@@ -184,7 +187,7 @@ function formatHeadingForValueError(
     case "string": { // object
       const formatLastFragment = colors.blue(lastFragment);
       if (empty) {
-        return `Key ${formatLastFragment} has empty value, which must ${
+        return `Key ${formatLastFragment} has empty value but it must instead ${
           schemaDescription(error.schema)
         }`;
       } else {
@@ -460,6 +463,86 @@ function schemaDefinedErrors(
   };
 }
 
+function checkForNearbyRequired(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  _schema: Schema,
+): LocalizedError {
+  const schema = error.schema;
+
+  if (errorKeyword(error) !== "required") {
+    return error;
+  }
+  let requiredKeys: string[];
+  const missingKeys: string[] = [];
+  const errObj = error.violatingObject.result as Record<string, unknown>;
+  const keys = Object.keys(errObj);
+
+  schemaCall(schema, {
+    object(s: ObjectSchema) {
+      if (s.required === undefined) {
+        throw new Error(
+          "Internal Error: required schema error without a required field",
+        );
+      }
+      requiredKeys = s.required;
+      // find required properties.
+      for (const r of s.required) {
+        if (keys.indexOf(r) === -1) {
+          missingKeys.push(r);
+        }
+      }
+    },
+  }, (_) => {
+    throw new Error("Internal Error: required error on a non-object schema");
+  });
+
+  for (const missingKey of missingKeys) {
+    let bestCorrection: string[] | undefined;
+    let bestDistance = Infinity;
+    for (const correction of keys) {
+      const d = editDistance(correction, missingKey);
+      if (d < bestDistance) {
+        bestCorrection = [correction];
+        bestDistance = d;
+      } else if (d === bestDistance) {
+        bestCorrection!.push(correction);
+        bestDistance = d;
+      }
+    }
+
+    // TODO we need a defensible way of determining a cutoff here.
+    // One idea is to turn this into a hypothesis test, checking random
+    // english words against a dictionary and looking at the distribution
+    // of edit distances. Presently, we hack.
+
+    // if best edit distance is more than 30% of the word, don't suggest
+    if (bestDistance > missingKey.length * 10 * 0.3) {
+      continue;
+    }
+
+    const suggestions = bestCorrection!.map((s: string) => colors.blue(s));
+    if (suggestions.length === 1) {
+      error.niceError.info[`did-you-mean-key`] = `Is ${
+        suggestions[0]
+      } a typo of ${colors.blue(missingKey)}?`;
+    } else if (suggestions.length === 2) {
+      error.niceError.info[`did-you-mean-key`] = `Is ${suggestions[0]} or ${
+        suggestions[1]
+      } a typo of ${colors.blue(missingKey)}?`;
+    } else {
+      suggestions[suggestions.length - 1] = `or ${
+        suggestions[suggestions.length - 1]
+      }`;
+      error.niceError.info[`did-you-mean-key`] = `Is one of ${
+        suggestions.join(", ")
+      } a typo of ${colors.blue(missingKey)}?`;
+    }
+  }
+
+  return error;
+}
+
 function checkForNearbyCorrection(
   error: LocalizedError,
   parse: AnnotatedParse,
@@ -510,7 +593,7 @@ function checkForNearbyCorrection(
   // of edit distances. Presently, we hack.
 
   // if best edit distance is more than 30% of the word, don't suggest
-  if (bestDistance * 0.3 > errVal.length * 10) {
+  if (bestDistance > errVal.length * 10 * 0.3) {
     return error;
   }
 
