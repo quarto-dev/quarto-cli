@@ -147,7 +147,7 @@ export async function preview(
   }
 
   // print status
-  printBrowsePreviewMessage(options.port, initialPath);
+  printBrowsePreviewMessage(options.host, options.port, initialPath);
 
   // serve project
   for await (const conn of listener) {

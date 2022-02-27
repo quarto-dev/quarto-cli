@@ -159,7 +159,7 @@ export const previewCommand = new Command()
     }
     const hostPos = args.indexOf("--host");
     if (hostPos !== -1) {
-      options.host = parseInt(args[hostPos + 1]);
+      options.host = String(args[hostPos + 1]);
       args.splice(hostPos, 2);
     }
     const renderPos = args.indexOf("--render");

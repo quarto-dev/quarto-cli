@@ -425,6 +425,7 @@ export async function serveProject(
 
   // print browse url and open browser if requested
   printBrowsePreviewMessage(
+    options.host,
     options.port,
     (targetPath && targetPath !== "index.html") ? targetPath : "",
   );
