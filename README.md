@@ -28,11 +28,12 @@ cd quarto-cli
 ./configure-macos.sh
 ```
 
-To update to the latest development version, just `git pull` from the local repo directory:
+To update to the latest development version, just `git pull` from the local repo directory and rerun the configure script:
 
 ``` bash
 cd quarto-cli
 git pull
+./configure-macos.sh
 ```
 
 ## License
