@@ -11,7 +11,7 @@ import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
-import { filterPaths } from "../../../../core/path.ts";
+import { filterPaths, resolvePathGlobs } from "../../../../core/path.ts";
 import { inputTargetIndex } from "../../../project-index.ts";
 import { ProjectContext } from "../../../types.ts";
 
@@ -267,27 +267,30 @@ function hydrateListing(
 
   const itemFields = fieldsForItems(items);
 
-  const fieldsForTable = (
+  const suggestFields = (
+    type: ListingType,
     itemFields: string[],
   ): string[] => {
-    // If the items have come from metadata, we should just show
-    // all the columns in the table. Otherwise, we should use the
-    // document default columns
-    if (sources.has(ListingItemSource.metadata)) {
+    if (sources.size === 1 && sources.has(ListingItemSource.rawfile)) {
+      // If all the items are raw files, we should just show file info
+      return [kFieldFileName, kFieldFileModified];
+    } else if (sources.has(ListingItemSource.metadata)) {
+      // If the items have come from metadata, we should just show
+      // all the columns in the table. Otherwise, we should use the
+      // document default columns
       return itemFields;
     } else {
-      return kDefaultTableFields;
+      return defaultFields(type, itemFields);
     }
   };
 
-  const suggestedFields = listing.type === ListingType.Table
-    ? fieldsForTable(itemFields)
-    : defaultFields(listing.type, itemFields);
+  const suggestedFields = suggestFields(listing.type, itemFields);
 
   // Don't include fields that the items don't have
   const fields = suggestedFields.filter((field) => {
     return itemFields.includes(field);
   });
+  const finalFields = fields.length > 0 ? fields : itemFields;
 
   // Sorting and linking are only available in built in templates
   // right now, so don't expose these fields defaults in custom
@@ -311,7 +314,7 @@ function hydrateListing(
     }
   };
 
-  const hydratedFields = [...fields];
+  const hydratedFields = [...finalFields];
   if (
     options[kFieldCategories] &&
     (listing.type === ListingType.Grid || listing.type === ListingType.Default)
@@ -416,17 +419,25 @@ async function readContents(
   const filterListingFiles = (globOrPath: string) => {
     // Convert a bare directory path into a consumer
     // of everything in the directory
-    globOrPath = expandGlob(source, project, globOrPath);
-    if (isGlob(globOrPath)) {
-      // If this is a glob, expand it
-      return filterPaths(
-        dirname(source),
-        possibleListingFiles,
-        [globOrPath],
-      );
+    const expanded = expandGlob(source, project, globOrPath);
+    if (isGlob(expanded.glob)) {
+      if (expanded.inputs) {
+        // If this is a glob, expand it
+        return filterPaths(
+          dirname(source),
+          possibleListingFiles,
+          [expanded.glob],
+        );
+      } else {
+        return resolvePathGlobs(
+          dirname(source),
+          [expanded.glob],
+          ["_*", ".*", "**/_*", "**/.*"],
+        );
+      }
     } else {
       // This is not a glob, filter to an exact match
-      const fullPath = join(dirname(source), globOrPath);
+      const fullPath = join(dirname(source), expanded.glob);
       const matchingFiles = possibleListingFiles.filter((file) => {
         return file === fullPath;
       });
@@ -481,8 +492,8 @@ async function readContents(
               validateItem(listing, item, (field: string) => {
                 return `The file ${file} is missing the required field '${field}'.`;
               });
-              listingItemSources.add(ListingItemSource.document);
-              listingItems.push(item);
+              listingItemSources.add(item.source);
+              listingItems.push(item.item);
             }
           }
         }
@@ -576,17 +587,21 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     const date = documentMeta?.date
       ? new Date(documentMeta.date as string)
       : undefined;
-    const author = Array.isArray(documentMeta?.author)
-      ? documentMeta?.author
-      : [documentMeta?.author];
+    const author = documentMeta?.author
+      ? Array.isArray(documentMeta?.author)
+        ? documentMeta?.author
+        : [documentMeta?.author]
+      : undefined;
 
     const readingtime = target?.markdown
       ? estimateReadingTimeMinutes(target.markdown.markdown)
       : undefined;
 
-    const categories = Array.isArray(documentMeta?.categories)
-      ? documentMeta?.categories
-      : [documentMeta?.categories];
+    const categories = documentMeta?.categories
+      ? Array.isArray(documentMeta?.categories)
+        ? documentMeta?.categories
+        : [documentMeta?.categories]
+      : undefined;
 
     const item: ListingItem = {
       ...documentMeta,
@@ -601,7 +616,12 @@ async function listItemFromFile(input: string, project: ProjectContext) {
       [kFieldFileModified]: filemodified,
       [kFieldReadingTime]: readingtime,
     };
-    return item;
+    return {
+      item,
+      source: target !== undefined
+        ? ListingItemSource.document
+        : ListingItemSource.rawfile,
+    };
   }
 }
 
@@ -812,11 +832,11 @@ function expandGlob(
   const globOrPathAsPath = getPath();
   try {
     if (Deno.statSync(globOrPathAsPath).isDirectory) {
-      return join(globOrPath, "**");
+      return { glob: join(globOrPath, "**"), inputs: true };
     } else {
-      return globOrPath;
+      return { glob: globOrPath, inputs: false };
     }
   } catch {
-    return globOrPath;
+    return { glob: globOrPath, inputs: false };
   }
 }

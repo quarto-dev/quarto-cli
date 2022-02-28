@@ -153,6 +153,7 @@ export type ColumnType = "date" | "string" | "number" | "minutes";
 export enum ListingItemSource {
   document = "document",
   metadata = "metadata",
+  rawfile = "rawfile",
 }
 
 // An individual listing item
