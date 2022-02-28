@@ -454,7 +454,7 @@ export function templateJsScript(
 
   const jsScript = `
   window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#${id} .list');
+    const listingTargetEl = window.document.querySelector('#listing-${id} .list');
     if (!listingTargetEl) {
       // No listing discovered, do not attach.
       return; 
@@ -467,7 +467,7 @@ export function templateJsScript(
     };
 
     window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['${id}'] = new List('${id}', options);
+    window['quarto-listings']['listing-${id}'] = new List('listing-${id}', options);
 
     if (window['quarto-listing-loaded']) {
       window['quarto-listing-loaded']();

@@ -15,7 +15,7 @@ const sortUi = listing['sort-ui'];
       id="listing-<%- listing.id %>-sort"
       class="form-select"
       aria-label="<%- listing.utilities.localizedString("listing-page-order-by")%>"
-      onChange="window['quarto-listings']['<%- listing.id %>'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})"
+      onChange="window['quarto-listings']['listing-<%- listing.id %>'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})"
     >
        <option value="" disabled selected hidden><%- listing.utilities.localizedString("listing-page-order-by")%></option>
        <option value="index" data-direction="asc"><%- listing.utilities.localizedString("listing-page-order-by-default")%></option>
