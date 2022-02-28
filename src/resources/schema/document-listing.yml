@@ -8,4 +8,4 @@
           anyOf:
             - string
             - ref: website-listing
-  description: MISSING_DESCRIPTION
+  description: Automatically generate the contents of a page from a list of Quarto documents or other custom data.
