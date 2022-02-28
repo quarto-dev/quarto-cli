@@ -159,7 +159,7 @@ export function templateMarkdownHandler(
   );
 
   const pipelineId = (id: string) => {
-    return `pipeline-${id}`;
+    return `pipeline-listing-${id}`;
   };
 
   // Return the handler
@@ -173,13 +173,12 @@ export function templateMarkdownHandler(
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       // See if there is a target div already in the page
-      let listingEl = doc.getElementById(listing.id);
+      let listingEl = doc.querySelector(`div[id='${listing.id}']`);
       if (listingEl === null) {
         // No target div, cook one up
         const content = doc.querySelector("#quarto-content main.content");
         if (content) {
           listingEl = doc.createElement("div");
-          listingEl.setAttribute("id", listing.id);
           content.appendChild(listingEl);
         }
       }
@@ -190,6 +189,8 @@ export function templateMarkdownHandler(
       }
 
       // Add attributes
+      const outListingId = `listing-${listing.id}`;
+      listingEl?.setAttribute("id", outListingId);
       if (attributes) {
         Object.keys(attributes).forEach((attrName) => {
           listingEl?.setAttribute(attrName, attributes[attrName]);
