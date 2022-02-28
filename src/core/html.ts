@@ -33,12 +33,16 @@ const kAttrReplacements: Record<string, string> = {
   ">": "&gt;",
   "&": "&amp;",
 };
-export function encodeAttributeValue(value: string) {
-  let result = value;
-  Object.keys(kAttrReplacements).forEach((key) => {
-    result = result.replace(key, kAttrReplacements[key]);
-  });
-  return result;
+export function encodeAttributeValue(value: unknown) {
+  if (typeof (value) === "string") {
+    let result: string = value as string;
+    Object.keys(kAttrReplacements).forEach((key) => {
+      result = result.replace(key, kAttrReplacements[key]);
+    });
+    return result;
+  } else {
+    return value as string;
+  }
 }
 
 export function findParent(

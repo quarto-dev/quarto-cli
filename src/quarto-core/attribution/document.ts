@@ -40,7 +40,7 @@ const kAvailableDate = "available-date";
 const kDate = "date";
 
 const kPublisher = "publisher";
-const kContainerTitle = "title";
+const kContainerTitle = "container-title";
 const kVolume = "volume";
 const kIssue = "issue";
 const kISSN = "issn";
@@ -159,8 +159,11 @@ export function documentCSL(
     suggestId(csl.author, csl.issued);
 
   // The DOI
-  if (citationMetadata[kDoi] || format.metadata[kDoi]) {
-    csl.DOI = format.metadata[kDoi] as string;
+  const doi = (citationMetadata[kDoi] || format.metadata[kDoi]) as
+    | string
+    | undefined;
+  if (doi) {
+    csl.DOI = doi;
   }
 
   const issue = citationMetadata[kIssue];
@@ -205,8 +208,7 @@ export function documentCSL(
     }
   };
   [
-    "journalAbbreviation",
-    "shortTitle",
+    "title-short",
     "annote",
     "archive",
     "archive_collection",
@@ -310,6 +312,7 @@ export function documentCSL(
     csl[kCustom] = custom;
   }
 
+  console.log(csl);
   return csl;
 }
 

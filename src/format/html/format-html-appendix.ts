@@ -29,7 +29,6 @@ import {
   insertTitle,
   kAppendixStyle,
   kCitation,
-  kCitationUrl,
   kLicense,
 } from "./format-html-shared.ts";
 
@@ -170,7 +169,7 @@ export async function processDocumentAppendix(
     }
 
     // Place the citation for this document itself, if appropriate
-    if (format.metadata[kCitationUrl] || format.metadata[kCitation] === true) {
+    if (format.metadata[kCitation]) {
       // Render the citation data for this document
       const cite = await generateCite(input, format, offset);
       if (cite?.bibtex || cite?.html) {

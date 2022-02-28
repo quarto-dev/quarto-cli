@@ -121,16 +121,20 @@ function googleScholarMeta(
   } else if (type === "thesis") {
     write("citation_dissertation_institution", csl.publisher);
   } else if (type === "report") {
-    write(
-      "citation_technical_report_institution",
-      csl.publisher,
-    );
-    write(
-      "citation_technical_report_number",
-      csl.number,
-    );
+    if (csl.publisher) {
+      write(
+        "citation_technical_report_institution",
+        csl.publisher,
+      );
+    }
+    if (csl.number) {
+      write(
+        "citation_technical_report_number",
+        csl.number,
+      );
+    }
   } else {
-    write("citation_journal_title", csl.title);
+    write("citation_journal_title", csl["container-title"]);
   }
 
   return scholarMeta;
@@ -157,6 +161,7 @@ async function googleScholarReferences(input: string, format: Format) {
 
 function metadataWriter(metadata: MetaTagData[]) {
   const write = (key: string, value: unknown) => {
+    console.log(`${key}:${value}`);
     metadata.push({
       name: key,
       content: encodeAttributeValue(value as string),
