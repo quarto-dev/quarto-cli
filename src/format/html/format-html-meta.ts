@@ -12,7 +12,7 @@ import { CSL, cslDateToEDTFDate } from "../../core/csl.ts";
 import { Document } from "../../core/deno-dom.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
 import { kWebsite } from "../../project/types/website/website-config.ts";
-import { documentCsl } from "../../quarto-core/attribution/document.ts";
+import { documentCSL } from "../../quarto-core/attribution/document.ts";
 import { writeMetaTag } from "./format-html-shared.ts";
 
 export const kGoogleScholar = "google-scholar";
@@ -24,7 +24,7 @@ export function metadataPostProcessor(
 ) {
   return async (doc: Document) => {
     if (googleScholarEnabled(format)) {
-      const csl = documentCsl(input, format, "webpage", offset);
+      const csl = documentCSL(input, format, "webpage", offset);
       const documentMetadata = googleScholarMeta(csl);
       const referenceMetadata = await googleScholarReferences(input, format);
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {

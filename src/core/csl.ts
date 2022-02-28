@@ -5,10 +5,12 @@
 *
 */
 
-export interface CSL {
+export interface CSL extends Record<string, unknown> {
   // The id. This is technically required, but some providers (like crossref) don't provide
   // one
   id?: string;
+
+  "citation-key"?: string;
 
   // Enumeration, one of the type ids from https://api.crossref.org/v1/types
   type: CSLType;
@@ -77,6 +79,8 @@ export interface CSL {
   "abstract"?: string;
 
   "language"?: string;
+
+  categories?: string[];
 }
 
 export interface CSLName {

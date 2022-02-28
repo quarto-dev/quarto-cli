@@ -10,7 +10,6 @@ import {
   kAbstract,
   kAuthor,
   kCsl,
-  kDate,
   kDoi,
   kLang,
   kOutputFile,
@@ -29,31 +28,313 @@ import {
 import { kSiteUrl } from "../../project/types/website/website-config.ts";
 import { kWebsite } from "../../project/types/website/website-config.ts";
 
-const kPublication = "publication";
-const kCitationUrl = "citation-url";
-const kCitationId = "citation-id";
-const kCitationType = "citation-type";
+const kCitation = "citation";
+const kUrl = "url";
+const kId = "id";
+const kCitationKey = "citation-key";
 
-const kPublicationType = "type";
-const kPublicationInstitution = "institution";
-const kPublicationTitle = "title";
-const kPublicationDate = "date";
-const kPublicationVolume = "volume";
-const kPublicationIssue = "issue";
-const kPublicationISSN = "issn";
-const kPublicationISBN = "isbn";
-const kPublicationFirstPage = "firstpage";
-const kPublicationLastPage = "lastpage";
-const kPublicationPages = "lastpage";
-const kPublicationNumber = "number";
+const kType = "type";
+const kCategories = "categories";
+const kLanguage = "language";
+const kAvailableDate = "available-date";
+const kDate = "date";
 
-export function documentCitationUrl(
+const kPublisher = "publisher";
+const kContainerTitle = "title";
+const kVolume = "volume";
+const kIssue = "issue";
+const kISSN = "issn";
+const kISBN = "isbn";
+const kFirstPage = "firstpage";
+const kLastPage = "lastpage";
+const kPage = "page";
+const kNumber = "number";
+const kCustom = "custom";
+
+// Provides an absolute path to the referenced CSL file
+export const getCSLPath = (input: string, format: Format) => {
+  const cslPath = format.metadata[kCsl] as string;
+  if (cslPath) {
+    if (isAbsolute(cslPath)) {
+      return cslPath;
+    } else {
+      return join(dirname(input), cslPath);
+    }
+  } else {
+    return undefined;
+  }
+};
+
+// The default type will be used if the type can't be determined from inspecting
+// the metadata. This is particularly useful when differentiating between web pages
+// and blog posts.
+export function documentCSL(
+  input: string,
+  format: Format,
+  defaultType: CSLType,
+  offset?: string,
+) {
+  const citationMetadata = citationMeta(format);
+
+  // The type
+  const type = citationMetadata[kType]
+    ? cslType(citationMetadata[kType] as string)
+    : defaultType;
+
+  // The title
+  const title = (citationMetadata[kTitle] || format.metadata[kTitle]) as string;
+  const csl: CSL = {
+    title,
+    type,
+  };
+
+  // The citation key
+  const key = citationMetadata[kCitationKey] as string | undefined;
+  if (key) {
+    csl[kCitationKey] = key;
+  }
+
+  // Author
+  const authors = parseAuthor(
+    format.metadata[kAuthor] || citationMetadata[kAuthor],
+  );
+  csl.author = cslNames(
+    authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
+  );
+
+  // Url
+  const url = documentCitationUrl(input, format, offset);
+  if (url) {
+    csl.URL = url;
+  }
+
+  // Categories
+  const categories =
+    (citationMetadata[kCategories] || format.metadata[kCategories]);
+  if (categories) {
+    csl.categories = Array.isArray(categories) ? categories : [categories];
+  }
+
+  // Language
+  const language = (citationMetadata[kLanguage] || format.metadata[kLang]) as
+    | string
+    | undefined;
+  if (language) {
+    csl.language = language;
+  }
+
+  // Date
+  const availableDate = citationMetadata[kAvailableDate] ||
+    format.metadata[kDate];
+  if (availableDate) {
+    csl[kAvailableDate] = cslDate(availableDate);
+  }
+
+  // Issued date
+  const issued = citationMetadata[kDate] || format.metadata[kDate];
+  if (issued) {
+    csl.issued = cslDate(issued);
+  }
+
+  // The abstract
+  const abstract = citationMetadata[kAbstract] || format.metadata[kAbstract];
+  if (abstract) {
+    csl.abstract = abstract as string;
+  }
+
+  // The publisher
+  const publisher = citationMetadata[kPublisher];
+  if (publisher) {
+    csl.publisher = publisher as string;
+  }
+
+  // The publication
+  const containerTitle = citationMetadata[kContainerTitle];
+  if (containerTitle) {
+    csl[kContainerTitle] = containerTitle as string;
+  }
+
+  // The id for this item
+  csl.id = citationMetadata[kId] as string ||
+    suggestId(csl.author, csl.issued);
+
+  // The DOI
+  if (citationMetadata[kDoi] || format.metadata[kDoi]) {
+    csl.DOI = format.metadata[kDoi] as string;
+  }
+
+  const issue = citationMetadata[kIssue];
+  if (issue) {
+    csl.issue = issue as string;
+  }
+
+  const volume = citationMetadata[kVolume];
+  if (volume) {
+    csl.volume = volume as string;
+  }
+
+  const number = citationMetadata[kNumber];
+  if (number) {
+    csl.number = number as string;
+  }
+
+  const isbn = citationMetadata[kISBN];
+  if (isbn) {
+    csl.ISBN = isbn as string;
+  }
+
+  const issn = citationMetadata[kISSN];
+  if (issn) {
+    csl.ISSN = issn as string;
+  }
+
+  const pageRange = pages(citationMetadata);
+  if (pageRange.firstPage) {
+    csl["page-first"] = pageRange.firstPage;
+  }
+  if (pageRange.lastPage) {
+    csl["page-last"] = pageRange.lastPage;
+  }
+  if (pageRange.page) {
+    csl.page = pageRange.page;
+  }
+
+  const forwardStringValue = (key: string) => {
+    if (citationMetadata[key] !== undefined) {
+      csl[key] = citationMetadata[key] as string;
+    }
+  };
+  [
+    "journalAbbreviation",
+    "shortTitle",
+    "annote",
+    "archive",
+    "archive_collection",
+    "archive_location",
+    "archive-place",
+    "authority",
+    "call-number",
+    "chapter-number",
+    "citation-number",
+    "citation-label",
+    "collection-number",
+    "collection-title",
+    "container-title-short",
+    "dimensions",
+    "division",
+    "edition",
+    "event-title",
+    "event-place",
+    "first-reference-note-number",
+    "genre",
+    "jurisdiction",
+    "keyword",
+    "locator",
+    "medium",
+    "note",
+    "number",
+    "number-of-pages",
+    "number-of-volumes",
+    "original-publisher",
+    "original-publisher-place",
+    "original-title",
+    "part",
+    "part-title",
+    "PMCID",
+    "PMID",
+    "printing",
+    "publisher-place",
+    "references",
+    "reviewed-genre",
+    "reviewed-title",
+    "scale",
+    "section",
+    "source",
+    "status",
+    "supplement",
+    "version",
+    "volume-title",
+    "volume-title-short",
+    "year-suffix",
+  ].forEach(forwardStringValue);
+
+  const forwardCSLNameValue = (key: string) => {
+    if (citationMetadata[key]) {
+      const authors = parseAuthor(citationMetadata[key]);
+      csl[key] = cslNames(
+        authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
+      );
+    }
+  };
+  [
+    "chair",
+    "collection-editor",
+    "compiler",
+    "composer",
+    "container-author",
+    "contributor",
+    "curator",
+    "director",
+    "editor",
+    "editorial-director",
+    "executive-producer",
+    "guest",
+    "host",
+    "interviewer",
+    "illustrator",
+    "narrator",
+    "organizer",
+    "original-author",
+    "performer",
+    "producer",
+    "recipient",
+    "reviewed-author",
+    "script-writer",
+    "series-creator",
+    "translator",
+  ].forEach(forwardCSLNameValue);
+
+  const forwardCSLDateValue = (key: string) => {
+    if (citationMetadata[key]) {
+      csl[key] = cslDate(citationMetadata[key]);
+    }
+  };
+  ["accessed", "event-date", "original-date", "submitted"].forEach(
+    forwardCSLDateValue,
+  );
+
+  // Forward custom values
+  const custom = citationMetadata[kCustom];
+  if (custom) {
+    // TODO: Could consider supporting note 'cheater codes' which are the old way of doing this
+    csl[kCustom] = custom;
+  }
+
+  return csl;
+}
+
+interface PageRange {
+  firstPage?: string;
+  lastPage?: string;
+  page?: string;
+}
+
+function citationMeta(format: Format): Record<string, unknown> {
+  if (typeof (format.metadata[kCitation]) === "object") {
+    return format.metadata[kCitation] as Record<string, unknown>;
+  } else {
+    return {} as Record<string, unknown>;
+  }
+}
+
+function documentCitationUrl(
   input: string,
   format: Format,
   offset?: string,
 ) {
-  if (format.metadata[kCitationUrl]) {
-    return format.metadata[kCitationUrl] as string;
+  const citeMeta = citationMeta(format);
+  if (citeMeta[kUrl]) {
+    return citeMeta[kUrl] as string;
   } else {
     const siteMeta = format.metadata[kWebsite] as Metadata | undefined;
     const baseUrl = siteMeta?.[kSiteUrl] as string;
@@ -75,140 +356,10 @@ export function documentCitationUrl(
   }
 }
 
-// Provides an absolute path to the referenced CSL file
-export const getCSLPath = (input: string, format: Format) => {
-  const cslPath = format.metadata[kCsl] as string;
-  if (cslPath) {
-    if (isAbsolute(cslPath)) {
-      return cslPath;
-    } else {
-      return join(dirname(input), cslPath);
-    }
-  } else {
-    return undefined;
-  }
-};
-
-// TODO How to figure out type
-export function documentCsl(
-  input: string,
-  format: Format,
-  defaultType: CSLType,
-  offset?: string,
-) {
-  const publicationMeta = (format.metadata[kPublication] || {}) as Metadata;
-  const type = publicationMeta[kPublicationType]
-    ? cslType(publicationMeta[kPublicationType] as string)
-    : cslType(format.metadata[kCitationType] as string) || defaultType;
-
-  const title = format.metadata[kTitle] as string;
-  const csl: CSL = {
-    title,
-    type,
-  };
-
-  // Author
-  const authors = parseAuthor(format.metadata[kAuthor]);
-  csl.author = cslNames(
-    authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
-  );
-
-  // Url
-  const url = documentCitationUrl(input, format, offset);
-  if (url) {
-    csl.URL = url;
-  }
-
-  // Date
-  const availableDate = format.metadata[kDate];
-  if (availableDate) {
-    csl["available-date"] = cslDate(availableDate);
-  }
-
-  const abstract = format.metadata[kAbstract];
-  if (abstract) {
-    csl.abstract = abstract as string;
-  }
-
-  const language = format.metadata[kLang];
-  if (language) {
-    csl.language = language as string;
-  }
-
-  // Publication Metadata
-  const publicationInstitution = publicationMeta[kPublicationInstitution];
-  if (publicationInstitution) {
-    csl.publisher = publicationInstitution as string;
-  }
-
-  const publicationTitle = publicationMeta[kPublicationTitle];
-  if (publicationTitle) {
-    csl["container-title"] = publicationTitle as string;
-  }
-
-  const issued = publicationMeta[kPublicationDate] || format.metadata[kDate];
-  if (issued) {
-    csl.issued = cslDate(issued);
-  }
-
-  // The id for this item
-  csl.id = format.metadata[kCitationId] as string ||
-    suggestId(csl.author, csl.issued);
-
-  // The DOI
-  if (format.metadata[kDoi]) {
-    csl.DOI = format.metadata[kDoi] as string;
-  }
-
-  const issue = publicationMeta[kPublicationIssue];
-  if (issue) {
-    csl.issue = issue as string;
-  }
-
-  const volume = publicationMeta[kPublicationVolume];
-  if (volume) {
-    csl.volume = volume as string;
-  }
-
-  const number = publicationMeta[kPublicationNumber];
-  if (number) {
-    csl.number = number as string;
-  }
-
-  const isbn = publicationMeta[kPublicationISBN];
-  if (isbn) {
-    csl.ISBN = isbn as string;
-  }
-
-  const issn = publicationMeta[kPublicationISSN];
-  if (issn) {
-    csl.ISSN = issn as string;
-  }
-
-  const pageRange = pages(publicationMeta);
-  if (pageRange.firstPage) {
-    csl["page-first"] = pageRange.firstPage;
-  }
-  if (pageRange.lastPage) {
-    csl["page-last"] = pageRange.lastPage;
-  }
-  if (pageRange.pages) {
-    csl.page = pageRange.pages;
-  }
-
-  return csl;
-}
-
-interface PageRange {
-  firstPage?: string;
-  lastPage?: string;
-  pages?: string;
-}
-
-function pages(publicationMeta: Metadata): PageRange {
-  let firstPage = publicationMeta[kPublicationFirstPage];
-  let lastPage = publicationMeta[kPublicationLastPage];
-  let pages = publicationMeta[kPublicationPages] as string;
+function pages(citationMetadata: Metadata): PageRange {
+  let firstPage = citationMetadata[kFirstPage];
+  let lastPage = citationMetadata[kLastPage];
+  let pages = citationMetadata[kPage] as string;
   if (pages && pages.includes("-")) {
     const pagesSplit = pages.split("_");
     if (!firstPage) {
@@ -230,6 +381,6 @@ function pages(publicationMeta: Metadata): PageRange {
   return {
     firstPage: firstPage as string,
     lastPage: lastPage as string,
-    pages,
+    page: pages,
   };
 }

@@ -16,7 +16,7 @@ import { Format, PandocFlags } from "../../config/types.ts";
 import { renderBibTex, renderHtml } from "../../core/bibliography.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import {
-  documentCsl,
+  documentCSL,
   getCSLPath,
 } from "../../quarto-core/attribution/document.ts";
 import {
@@ -310,7 +310,7 @@ function creativeCommonsUrl(license: string, lang?: string) {
 }
 
 async function generateCite(input: string, format: Format, offset?: string) {
-  const entry = documentCsl(input, format, "webpage", offset);
+  const entry = documentCSL(input, format, "webpage", offset);
   if (entry) {
     // Render the HTML and BibTeX form of this document
     const cslPath = getCSLPath(input, format);
