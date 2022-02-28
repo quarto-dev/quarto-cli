@@ -5,35 +5,21 @@
 *
 */
 
-import { dirname, isAbsolute, join } from "path/mod.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
-  kAuthor,
-  kCsl,
-  kDate,
-  kDoi,
   kLang,
-  kOutputFile,
   kSectionTitleCitation,
   kSectionTitleReuse,
-  kTitle,
 } from "../../config/constants.ts";
-import { Format, Metadata, PandocFlags } from "../../config/types.ts";
+import { Format, PandocFlags } from "../../config/types.ts";
 import { renderBibTex, renderHtml } from "../../core/bibliography.ts";
-import { CSL, cslDate, cslNames, cslType, suggestId } from "../../core/csl.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import {
-  kSiteUrl,
-  kWebsite,
-} from "../../project/types/website/website-config.ts";
-import {
-  documentCitationUrl,
   documentCsl,
   getCSLPath,
 } from "../../quarto-core/attribution/document.ts";
 import {
-  computeUrl,
   createCodeBlock,
   createCodeCopyButton,
   hasMarginCites,
@@ -45,15 +31,6 @@ import {
   kCitation,
   kCitationUrl,
   kLicense,
-  kPublicationDate,
-  kPublicationFirstPage,
-  kPublicationISBN,
-  kPublicationISSN,
-  kPublicationIssue,
-  kPublicationLastPage,
-  kPublicationTitle,
-  kPublicationType,
-  kPublicationVolume,
 } from "./format-html-shared.ts";
 
 const kAppendixCreativeCommonsLic = [
