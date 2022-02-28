@@ -1,0 +1,12 @@
+---
+title: App Store Raw Data
+date: 12/19/2008
+categories:
+  - iPhone
+  - News
+---
+
+\
+For those that are interested, [here is recent (well actually, today's) CSV file](applications.csv) with the raw data that I've been using to look more closely at the App Store. Feel free to use it for good.
+
+If you do decide to blog about something interesting that you've found in analyzing the data, it would be great if you could give me a little shout out/link and also if you could let me know so I can benefit from what you've learned!

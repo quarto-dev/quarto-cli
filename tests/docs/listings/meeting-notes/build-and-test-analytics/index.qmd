@@ -1,0 +1,23 @@
+---
+title: Build and Test Analytics
+date: 2/16/2022
+categories:
+  - Analytics
+  - Product
+  - Continuous Integration
+  - Startup Ideas
+---
+
+One of the things I've been maintaining on the [Quarto](https://www.github.com/quarto-dev/quarto-cli) team is the GitHub actions that build installers, run tests, and so on. A few times over the last year, we've run into problems in our pipeline which didn't appear as explicit failures, but instead showed up as significant changes in the duration of tasks or actions. For example, there was a stretch where Deno bundling was facing challeges, and this initially appeared to us as very slow bundling as a part of building the installer for Quarto.
+
+Of course, since we didn't typically build installers locally, it took a while for me to notice that building an installer had become very slow on the CI machines. This got me thinking about the need to have more systematic analytics about key elements of the CI pipeline. It would be great to be able to see a commit by commit (or PR by PR) graph of the bundle time, making it easy to pinpoint a code change that contributed to a change in behavior (for example, us updating to a new version of Deno).
+
+I looked around for a simple service that would allow me to poke a custom event into a time series and then provided nice visualization tools for this. I even thought perhaps something would already be dialed for GH actions, but I didn't find anything (tell me if you know of one!).
+
+![](render-perf.png){.column-screen}
+
+I ultimately rigged up a duct tape version of this using [Amplitude](https://www.amplitude.com) and their command line API via GitHub action. This allows me to see how long it takes to bundle Quarto and track that over time.
+
+I also add a more explicit [performance check](https://github.com/quarto-dev/quarto-cli/blob/main/.github/workflows/performance-check.yml). This means that we can see how our render performance changes over time and whether there are changes along the way that drive outsized changes in render performance- largely as a prompt to go look more deeply (I realize that this isn't exactly a scientifically reproducible performance benchmark).
+
+It strikes me that there is a nice opportunity for someone to build out infrastructure that allows the tracking of metrics such as this, which nicely integrates with GH actions (perhaps even tracking some metrics about GH action performance with little to no configuration). Seems like a service that could be of benefit to a lot of developers!

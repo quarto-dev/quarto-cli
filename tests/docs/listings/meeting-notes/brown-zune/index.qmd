@@ -1,0 +1,21 @@
+---
+title: Brown Zune, Windows Live Writer, and My MacBook Pro
+date: 10/21/2008
+categories:
+  - Technology
+  - Random
+---
+
+I'm more than a month into my conversion to a Mac, and so far I've adjusted nicely. The largest issue for me was the fact that I didn't know any shortcut keys, so I was using the mouse a lot more than I'm used to. I'm overcoming that, though I desparately miss ctrl+tab to switch between windows of the current application.
+
+There are two applications that I haven't been able to give up in my transition, however.
+
+!["Application #1 is Zune. Yeah, I said it. I'm not being a MS fanboy- Zune is a truly great application (the interface is far superior to iTunes, really not even comparable), but it also has subscription music, which is a huge money saver for me (I waste a lot less money buying music that I end up getting sick of or not liking at all). So enjoy the rich irony of Zune running on my MacBook Pro, and my horrible brown Zune docked to the awesomely great looking laptop."](Picture%202.png)
+
+ 
+
+![The second application is, of course, Windows Live Writer. I actually spent the first week or so on the Mac without installing Writer, and it was just too painful. Trying to use the web interface was a complete non starter, and there was simply no comparison between other editors out there (ok, now I'm being biased). A quick VMWare and Windows XP install later and I'm running Writer on my Mac, using Unity to create a first class experience.](Picture%203.png){style="width: 100%;"}
+
+The transition was really smoothed by the addition of VMware- anytime I need to I can simply open up Windows and do what I need to do (I ended up installing Visual Studio there so I can whip up quick utility apps in C#, for example). to any windows users getting ready to make the jump, I can definitely give you two pieces of advice from my experience:
+
+The Mac experience is sweet. The OS is nice, the hardware and software are beautiful, and everything does really just work. I'd recommend it. Invest in VMWare Fusion. For the small additional cost of of a VMware license, you can keep your Windows apps around, and have a fall back plan in case you need to do something that just requires Windows.

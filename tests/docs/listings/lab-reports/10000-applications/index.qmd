@@ -1,0 +1,13 @@
+---
+title: It's True - 10,000 Applications
+date: 12/4/2008
+categories:
+  - Random
+  - iPhone
+  - News
+toc: false
+---
+
+For those waiting for my official acknowledgement, the App Store now has more than 10,000 applications available. Congrats!
+
+![](1.png){.column-page style="width: 100%;"}

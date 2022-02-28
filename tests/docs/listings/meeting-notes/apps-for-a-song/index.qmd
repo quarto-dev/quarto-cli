@@ -1,0 +1,16 @@
+---
+title: Apps for a Song
+date: 12/4/2008
+categories:
+  - iPhone
+---
+
+If you take a look at the growth rates of the App Store by price, something that you may have already intuitively known starts to become clear. \$.99 has become the default price of applications on the store. In face, more than 1 in 3 of the applications on the store now cost \$.99.
+
+![](1.png)
+
+And the trend looks to be accelerating. The graph below illustrates the growth of various price points, and \$.99 is outpacing every other price, including free. Seems everyone thinks they can make a buck on the App Store (well, 70 cents).
+
+![](2.png)
+
+Of course, one of the very interesting things about settling on \$.99 is the fact that this is also the base unit of measure in the rest of iTunes, where songs cost \$.99. Are we trending toward a store that sells primarily applications in the same way it sells songs? And if so, what does that imply about how applications will look, how complex they will be, and their longevity? After all, the music business is largely a hits business (at least it used to be, now who knows what kind of business it is). And I guess the app business is likely to look the same...

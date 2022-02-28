@@ -1,0 +1,26 @@
+---
+title: App Store Data for December 2009
+date: 12/14/2009
+categories:
+  - iPhone
+---
+
+![](1.png){style="float:right;"} Ok, so it has been a while since I've posted an update of the App Store data. Since it's been so long, I'm including a special bonus. But first, a couple of notes:
+
+1.  It looks to me like the XML feed that I scrape to gather this data limits the results to 6000 applications per category. I'm not sure that they're ordered by popularity, though that certainly would make sense. This same limit is in the iTunes UI that uses the feed, so popularity is sensible.
+
+2.  I haven't look closely at the data, nor tried to to put together any trends. You're on your own!
+
+3.  I added a few additional columns to the data that I scrape:
+
+    1.  ApplicationUrl
+
+    2.  IconUrl
+
+    3.  Rating
+
+    4.  RatingContent
+
+As always, I'm happy to share the data, but would love to learn from people- please share what you learn with this!
+
+[Download US only data](application-data.csv) (6MB)

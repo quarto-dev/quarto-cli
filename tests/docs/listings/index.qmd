@@ -1,0 +1,20 @@
+---
+title: Team Documents
+listing: 
+  - id: reports
+    contents: "lab-reports"
+    type: table
+  - id: notes
+    contents: "meeting-notes"
+    type: grid
+---
+
+## Reports
+
+:::{#reports}
+:::
+
+## Notes
+
+:::{#notes}
+:::
