@@ -95,10 +95,13 @@ function positionInTicks(context: YamlIntelligenceContext) {
   const {
     position,
   } = context;
-  const codeLines = lines(code.value);
+
+  // breakQuartoMd can produce an extra line at the end of the yaml front matter.
+  const trimCode = code.value.trimEnd();
+  const codeLines = lines(trimCode);
   return (code.value.startsWith("---") &&
     (position.row === 0)) ||
-    (code.value.trimEnd().endsWith("---") &&
+    (trimCode.endsWith("---") &&
       (position.row === codeLines.length - 1));
 }
 
