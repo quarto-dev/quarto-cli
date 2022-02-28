@@ -14,7 +14,7 @@ testSite(docs("blog/about.qmd"), [
   "main.content", // Main content is still there
 ], []);
 testSite(docs("blog/index.qmd"), [
-  "div#listing", // the listing is rendered there
+  "div#listing-listing", // the listing is rendered there
   "div.list.quarto-listing-default", // The correct type of listing
   ".quarto-listing-category-title", // Categories are present
 ], []);
