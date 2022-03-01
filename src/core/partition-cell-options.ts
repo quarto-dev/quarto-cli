@@ -7,20 +7,17 @@
 *
 */
 
-import { asMappedString, MappedString } from "./lib/mapped-text.ts";
+import { readYamlFromString } from "./yaml.ts";
+import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
+import { warnOnce } from "./log.ts";
 
 import {
   langCommentChars,
   optionCommentPrefix,
   partitionCellOptionsMapped as libPartitionCellOptionsMapped,
 } from "./lib/partition-cell-options.ts";
-
-import { readYamlFromString } from "./yaml.ts";
-import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
-import { warnOnce } from "./log.ts";
-
-import { getEngineOptionsSchema } from "./schema/chunk-metadata.ts";
-
+import { asMappedString, MappedString } from "./lib/mapped-text.ts";
+import { getEngineOptionsSchema } from "./lib/yaml-schema/chunk-metadata.ts";
 import { guessChunkOptionsFormat } from "./lib/guess-chunk-options-format.ts";
 
 export function partitionCellOptions(

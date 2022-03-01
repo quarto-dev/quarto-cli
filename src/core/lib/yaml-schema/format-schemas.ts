@@ -23,7 +23,9 @@ import {
 import { ConcreteSchema, Schema } from "./types.ts";
 
 function useSchema(schema: ConcreteSchema, format: string) {
-  const formats = schema?.tags?.formats as string[] | undefined;
+  const formats = (schema && schema.tags && schema.tags.formats) as
+    | string[]
+    | undefined;
   if (formats === undefined) {
     return true;
   }

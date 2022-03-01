@@ -8,16 +8,11 @@
 *
 */
 
-import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";
-import { getProjectConfigSchema } from "../lib/yaml-schema/project-config.ts";
-import { getEngineOptionsSchema } from "../lib/yaml-schema/chunk-metadata.ts";
 import { resourcePath } from "../resources.ts";
-import { getSchemas } from "../lib/yaml-validation/schema-utils.ts";
 import {
   getSchemaDefinitionsObject,
   setSchemaDefinition,
 } from "../lib/yaml-validation/schema.ts";
-import { getFormatAliases } from "../lib/yaml-schema/format-aliases.ts";
 import { ensureSchemaResources } from "./yaml-schema.ts";
 import { revealPluginSchema } from "../../format/reveal/format-reveal-plugin.ts";
 import { DOMParser, Element, initDenoDom } from "../deno-dom.ts";
@@ -29,29 +24,55 @@ import { execProcess } from "../process.ts";
 import { walkSchema } from "../lib/yaml-validation/schema-utils.ts";
 
 import { Schema, SchemaDocumentation } from "../lib/yaml-schema/types.ts";
+import {
+  exportYamlIntelligenceResources,
+  setYamlIntelligenceResources,
+} from "../lib/yaml-intelligence/resources.ts";
+import { getFormatAliases } from "../lib/yaml-schema/format-aliases.ts";
+import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";
+import { getProjectConfigSchema } from "../lib/yaml-schema/project-config.ts";
+import { getEngineOptionsSchema } from "../lib/yaml-schema/chunk-metadata.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
 export async function buildSchemaFile() {
   await ensureSchemaResources();
-  const obj = getSchemas();
-  obj.aliases = getFormatAliases();
-  obj.schemas["front-matter"] = await getFrontMatterSchema();
-  obj.schemas.config = await getProjectConfigSchema();
-  obj.schemas.engines = await getEngineOptionsSchema();
-  setSchemaDefinition(revealPluginSchema);
-  await patchMarkdownDescriptions();
-  obj.definitions = getSchemaDefinitionsObject();
-  const str = JSON.stringify(obj);
-  const path = resourcePath("/editor/tools/yaml/quarto-json-schemas.json");
-  return Deno.writeTextFile(path, str);
+
+  // call all of these to add them to the definitions list so we can
+  // get the markdown translations and record them.
+  getFormatAliases();
+  await getFrontMatterSchema();
+  await getProjectConfigSchema();
+  await getEngineOptionsSchema();
+  // in addition, we do have to record the (right now, only)
+  // plugin schema that exists
+  //
+  // FIXME there should be a plugin registration api or something
+  const externalSchemas = [revealPluginSchema];
+  for (const schema of externalSchemas) {
+    setSchemaDefinition(schema);
+  }
+
+  // finally, we need to record the html descriptions from pandoc
+  // so we can patch them if requested.
+  const htmlDescriptions = await createHtmlDescriptions();
+
+  setYamlIntelligenceResources({
+    "schema/html-descriptions.yml": htmlDescriptions,
+    "schema/external-schemas.yml": externalSchemas,
+  });
+
+  const yamlResources = exportYamlIntelligenceResources(true);
+  const yamlResourcesPath = resourcePath(
+    "/editor/tools/yaml/yaml-intelligence-resources.json",
+  );
+  Deno.writeTextFileSync(yamlResourcesPath, yamlResources);
 }
 
-async function patchMarkdownDescriptions() {
+function getMarkdownDescriptions() {
   const result: string[] = [];
 
   const schemaList = Object.values(getSchemaDefinitionsObject());
-  const descriptionList: (string | { short?: string; long?: string })[] = [];
 
   for (const schema of schemaList) {
     walkSchema(schema, (s: Schema) => {
@@ -79,18 +100,25 @@ async function patchMarkdownDescriptions() {
       return;
     });
   }
+  return result.join("\n");
+}
+
+async function createHtmlDescriptions(): Promise<
+  (string | { short?: string; long?: string })[]
+> {
+  const markdownDescriptions = getMarkdownDescriptions();
+  const descriptionList: (string | { short?: string; long?: string })[] = [];
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [pandocBinaryPath(), "--to", "html"];
 
   const pandocResult = await execProcess(
     { stdout: "piped", cmd },
-    result.join("\n"),
+    markdownDescriptions,
   );
 
   if (!pandocResult.success) {
     throw new Error("Internal error - couldn't run pandoc");
   }
-  // console.log(pandocResult);
 
   await initDenoDom();
 
@@ -131,29 +159,7 @@ async function patchMarkdownDescriptions() {
       });
     }
   }
-
-  let cursor = 0;
-
-  for (const schema of schemaList) {
-    walkSchema(schema, (s: Schema) => {
-      if (s === false || s === true) {
-        return;
-      }
-      const description = s?.tags?.description;
-      if (!description) {
-        return;
-      }
-
-      const fixedDescription = descriptionList[cursor++];
-      // we directly mutate the schema here on purpose, so this will get stored
-      // when the .json is saved.
-      if (typeof fixedDescription === "string") {
-        s.documentation = fixedDescription;
-      } else if (typeof fixedDescription?.short === "string") {
-        s.documentation = fixedDescription.short;
-      }
-    });
-  }
+  return descriptionList;
 }
 
 function* siblings(entry: Element): Generator<Element> {

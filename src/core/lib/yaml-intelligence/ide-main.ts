@@ -1,5 +1,6 @@
 import { getLocalPath, setMainPath } from "./paths.ts";
 import { Callable, clientStubs } from "./web-worker-manager.ts";
+import { YamlIntelligenceContext } from "./types.ts";
 
 let stubs: Record<string, Callable> | undefined;
 
@@ -32,7 +33,7 @@ export const QuartoYamlEditorTools = {
     path: string,
   ) {
     ensureStubs(path);
-    return await stubs["getCompletions"](context, path);
+    return await stubs!["getCompletions"](context, path);
   },
 
   getLint: async function (
@@ -40,6 +41,6 @@ export const QuartoYamlEditorTools = {
     path: string,
   ) {
     ensureStubs(path);
-    return await stubs["getLint"](context, path);
+    return await stubs!["getLint"](context, path);
   },
 };

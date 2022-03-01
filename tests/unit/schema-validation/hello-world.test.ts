@@ -6,7 +6,7 @@ import { yamlValidationUnitTest } from "./utils.ts";
 
 import { YAMLSchema } from "../../../src/core/lib/yaml-validation/yaml-schema.ts";
 
-import { ObjectSchema } from "../../../src/core/lib/yaml-validation/types.ts";
+import { ObjectSchema } from "../../../src/core/lib/yaml-schema/types.ts";
 
 yamlValidationUnitTest("schema-validation-hello-world", async () => {
   const src = `

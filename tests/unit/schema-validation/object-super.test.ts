@@ -15,7 +15,7 @@ import {
   readAndValidateYamlFromMappedString,
 } from "../../../src/core/schema/validated-yaml.ts";
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
-import { refSchema } from "../../../src/core/schema/common.ts";
+import { refSchema } from "../../../src/core/lib/yaml-schema/common.ts";
 
 yamlValidationUnitTest("object-super-closed", async () => {
   const _schema1 = schemaFromString(`

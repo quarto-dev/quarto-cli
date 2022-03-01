@@ -15,7 +15,7 @@ import {
   quotedStringColor,
   TidyverseError,
   tidyverseFormatError,
-} from "../lib/errors.ts";
+} from "../errors.ts";
 import { defineCached } from "./definitions.ts";
 
 import {
@@ -23,9 +23,9 @@ import {
   ConcreteSchema,
   LocalizedError,
   Schema,
-} from "../lib/yaml-schema/types.ts";
+} from "../yaml-schema/types.ts";
 
-import { errorKeyword } from "../lib/yaml-validation/errors.ts";
+import { errorKeyword } from "../yaml-validation/errors.ts";
 
 function checkForEqualsInChunk(
   error: LocalizedError,
@@ -87,7 +87,7 @@ const makeEngineSchema = (engine: string): ConcreteSchema =>
     objectRefSchemaFromContextGlob(
       "cell-*",
       (field: SchemaField, _path: string) => {
-        const engineTag = field?.tags?.engine;
+        const engineTag = field && field.tags && field.tags.engine;
         switch (typeof engineTag) {
           case "undefined":
             return true;

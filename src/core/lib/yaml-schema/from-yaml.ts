@@ -475,7 +475,7 @@ export function objectSchemaFromFieldsObject(
   fields: SchemaField[],
   exclude?: (key: string) => boolean,
 ): ConcreteSchema {
-  exclude = exclude ?? ((_key: string) => false);
+  exclude = exclude || ((_key: string) => false);
   const properties: Record<string, ConcreteSchema> = {};
 
   convertFromFieldsObject(fields, properties);
@@ -509,7 +509,7 @@ export function objectSchemaFromGlob(
   glob: string,
   exclude?: (key: string) => boolean,
 ): ConcreteSchema {
-  exclude = exclude ?? ((_key: string) => false);
+  exclude = exclude || ((_key: string) => false);
   const properties: Record<string, ConcreteSchema> = {};
   for (const [_path, fields] of expandResourceGlob(glob)) {
     convertFromFieldsObject(fields as SchemaField[], properties);
@@ -566,7 +566,7 @@ export function convertFromFieldsObject(
   yaml: SchemaField[],
   obj?: Record<string, ConcreteSchema>,
 ): Record<string, ConcreteSchema> {
-  const result = obj ?? {};
+  const result = obj || {};
 
   for (const field of yaml) {
     let schema = convertFromYaml(field.schema);
@@ -590,7 +590,7 @@ export function schemaFieldsFromGlob(
   testFun?: (entry: SchemaField, path: string) => boolean,
 ): SchemaFieldIdDescriptor[] {
   const result = [];
-  testFun = testFun ?? ((_e, _p) => true);
+  testFun = testFun || ((_e, _p) => true);
   for (const [file, fields] of expandResourceGlob(globPath)) {
     for (const field of (fields as SchemaField[])) {
       const fieldName = field.name;
@@ -630,7 +630,7 @@ export function objectRefSchemaFromContextGlob(
   // Why is typescript thinking that testFun can be undefined
   // after the expression below?
   //
-  // testFun = testFun ?? ((_field, _path) => true);
+  // testFun = testFun || ((_field, _path) => true);
   return objectRefSchemaFromGlob(
     "schema/{document,cell}-*.yml",
     (field: SchemaField, path: string) => {
@@ -669,7 +669,7 @@ export function objectRefSchemaFromGlob(
   return objectS({ properties });
 }
 
-export async function buildSchemaResources() {
+export async function buildResourceSchemas() {
   const path = "schema/{cell-*,document-*,project}.yml";
   // precompile all of the field schemas
   for (const [file, fields] of expandResourceGlob(path)) {

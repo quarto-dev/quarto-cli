@@ -39,7 +39,7 @@ import {
   idSchema as withId,
   objectSchema as objectS,
   stringSchema as stringS,
-} from "../../core/schema/common.ts";
+} from "../../core/lib/yaml-schema/common.ts";
 
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
 

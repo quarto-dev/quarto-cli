@@ -13,14 +13,14 @@ import { errorOnce } from "../log.ts";
 import { info } from "log/mod.ts";
 import { asMappedString, MappedString } from "../mapped-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
-import { Schema } from "../lib/yaml-validation/types.ts";
+import { Schema } from "../lib/yaml-schema/types.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { relative } from "path/mod.ts";
 import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 
 import { isObject } from "../lodash.ts";
 
-import { JSONValue, LocalizedError } from "../lib/yaml-validation/types.ts";
+import { JSONValue, LocalizedError } from "../lib/yaml-schema/types.ts";
 
 // https://stackoverflow.com/a/41429145
 export class ValidationError extends Error {

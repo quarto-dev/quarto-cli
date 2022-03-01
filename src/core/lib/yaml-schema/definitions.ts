@@ -7,7 +7,7 @@
 
 import { idSchema, refSchema } from "./common.ts";
 import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
-import { buildSchemaResources, convertFromYaml } from "./from-yaml.ts";
+import { buildResourceSchemas, convertFromYaml } from "./from-yaml.ts";
 
 import { ValidatorErrorHandlerFunction } from "../yaml-validation/errors.ts";
 
@@ -73,7 +73,7 @@ export async function loadDefaultSchemaDefinitions() {
   await loadSchemaDefinitions(
     getYamlIntelligenceResource("schema/definitions.yml") as JSONValue[],
   );
-  await buildSchemaResources();
+  await buildResourceSchemas();
 }
 
 export async function loadSchemaDefinitions(yaml: JSONValue[]) {

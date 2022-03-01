@@ -26,7 +26,7 @@ import {
   StringSchema,
   ValidationError,
   ValidationTraceNode,
-} from "./types.ts";
+} from "../yaml-schema/types.ts";
 
 import { resolveSchema } from "./schema-utils.ts";
 

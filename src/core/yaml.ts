@@ -11,7 +11,7 @@ import { extname } from "path/mod.ts";
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 import { lines, matchAll, normalizeNewlines } from "./text.ts";
 import { ErrorEx } from "./error.ts";
-import { getFrontMatterSchema } from "./schema/front-matter.ts";
+import { getFrontMatterSchema } from "./lib/yaml-schema/front-matter.ts";
 
 import {
   asMappedString,

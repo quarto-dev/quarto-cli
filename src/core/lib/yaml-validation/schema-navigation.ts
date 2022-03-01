@@ -12,7 +12,7 @@ import { resolveSchema } from "./schema-utils.ts";
 
 import { prefixes } from "../regexp.js";
 
-import { schemaType } from "./types.ts";
+import { schemaType } from "../yaml-schema/types.ts";
 
 // NB we have _three_ schema navigation functions which behave
 // differently and are needed in different cases

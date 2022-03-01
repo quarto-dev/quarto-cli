@@ -28,7 +28,7 @@ import { defineCached } from "./definitions.ts";
 import { errorMessageSchema } from "./common.ts";
 import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
 
-function pandocListFormats(): string[] {
+function pandocFormatsResource(): string[] {
   return getYamlIntelligenceResource("pandoc/formats.yml") as string[];
 }
 
@@ -41,7 +41,7 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
     );
     return { name: format, hidden };
   };
-  const formatSchemaDescriptorList = (await pandocListFormats()).concat("hugo")
+  const formatSchemaDescriptorList = (await pandocFormatsResource()).concat("hugo")
     .map(
       (format) => {
         const {

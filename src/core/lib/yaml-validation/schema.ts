@@ -13,7 +13,7 @@ import {
   ConcreteSchema,
   Schema,
   schemaType,
-} from "./types.ts";
+} from "../yaml-schema/types.ts";
 
 export function schemaAccepts(schema: Schema, testType: string): boolean {
   const t = schemaType(schema);

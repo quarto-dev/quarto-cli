@@ -5,7 +5,7 @@
 *
 */
 
-import { Schema } from "../yaml-validation/types.ts";
+import { Schema } from "../yaml-schema/types.ts";
 import { MappedString } from "../mapped-text.ts";
 
 export type AutomationKind = "validation" | "completions";
@@ -29,6 +29,7 @@ export interface YamlIntelligenceContext {
   schemaName?: string;
   commentPrefix?: string;
   explicit?: boolean;
+  client?: string;
 }
 
 export interface LocateFromIndentationContext {

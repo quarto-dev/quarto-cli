@@ -36,7 +36,7 @@ import {
   schemaCall,
   schemaDescription,
   schemaType,
-} from "./types.ts";
+} from "../yaml-schema/types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 

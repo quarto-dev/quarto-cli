@@ -39,11 +39,8 @@ import { withValidator } from "../yaml-validation/validator-queue.ts";
 import { navigateSchemaByInstancePath as navigateSchema } from "../yaml-validation/schema-navigation.ts";
 
 import {
-  getSchemas,
-  QuartoJsonSchemas,
   resolveSchema,
   schemaCompletions,
-  setSchemas,
   walkSchema,
 } from "../yaml-validation/schema-utils.ts";
 
@@ -54,10 +51,22 @@ import { lineOffsets } from "../text.ts";
 import {
   ArraySchema,
   Completion,
+  ConcreteSchema,
+  JSONValue,
   ObjectSchema,
   Schema,
   schemaType,
-} from "../yaml-validation/types.ts";
+} from "../yaml-schema/types.ts";
+import { getFormatAliases } from "../yaml-schema/format-aliases.ts";
+import { getFrontMatterSchema } from "../yaml-schema/front-matter.ts";
+import { getEngineOptionsSchema } from "../yaml-schema/chunk-metadata.ts";
+import { getProjectConfigSchema } from "../yaml-schema/project-config.ts";
+import {
+  getYamlIntelligenceResource,
+  setYamlIntelligenceResources,
+} from "./resources.ts";
+import { loadDefaultSchemaDefinitions } from "../yaml-schema/definitions.ts";
+import { patchMarkdownDescriptions } from "./descriptions.ts";
 
 interface IDEContext {
   formats: string[];
@@ -494,7 +503,7 @@ function completions(obj: CompletionContext): CompletionResult {
     }
   }
 
-  const { aliases } = getSchemas();
+  const aliases = getFormatAliases();
   const formats = [
     ...Array.from(context.formats),
     ...Array.from(context.project_formats),
@@ -766,7 +775,7 @@ async function automationFromGoodParseMarkdown(
       return noCompletions;
     }
     if (foundCell.cell_type === "raw") {
-      const schema = getSchemas().schemas["front-matter"];
+      const schema = await getFrontMatterSchema();
       // complete the yaml front matter
       context = {
         ...context,
@@ -820,7 +829,7 @@ async function automationFromGoodParseMarkdown(
             ...context,
             filetype: "yaml",
             code: cell.source,
-            schema: getSchemas().schemas["front-matter"],
+            schema: await getFrontMatterSchema(),
             schemaName: "front-matter",
             line,
             position, // we don't need to adjust position because front matter only shows up at start of file.
@@ -938,8 +947,8 @@ async function automationFromGoodParseScript(
     }
   }
 
-  const schemas = getSchemas().schemas;
-  const schema = schemas.engines[context.engine || "markdown"];
+  const engines = await getEngineOptionsSchema();
+  const schema = engines[context.engine || "markdown"];
   const commentPrefix = kLangCommentChars[language] + "| ";
 
   context = {
@@ -996,9 +1005,10 @@ export async function getAutomation(
   const extension = context.path === null
     ? ""
     : (context.path.split(".").pop() || "");
-  const schemas = getSchemas().schemas;
+  const frontMatterSchema = await getFrontMatterSchema();
+  const projectConfigSchema = await getProjectConfigSchema();
   const schema = ({
-    "yaml": extension === "qmd" ? schemas["front-matter"] : schemas.config,
+    "yaml": extension === "qmd" ? frontMatterSchema : projectConfigSchema,
     "markdown": undefined, // can't be known ahead of time
     "script": undefined,
   })[context.filetype];
@@ -1018,32 +1028,53 @@ export async function getAutomation(
   return result || null;
 }
 
-const initializer = async () => {
-  // for now we force the IDE to load the module ahead of time to not get
-  // a pause at unpredictable times.
-
+export async function initYamlIntelligence(patchMarkdown = true) {
   const schemas = await import(
-    "../../../resources/editor/tools/yaml/quarto-json-schemas.json",
+    "../../../resources/editor/tools/yaml/yaml-intelligence-resources.json",
     { assert: { type: "json" } }
-  ) as QuartoJsonSchemas;
+  ) as Record<string, unknown>;
+  setYamlIntelligenceResources(schemas);
 
-  setSchemas(schemas);
+  await loadDefaultSchemaDefinitions();
 
-  const schemaDefs = getSchemas().definitions;
-  for (const [_key, value] of Object.entries(schemaDefs)) {
-    setSchemaDefinition(value);
-    await withValidator(value, async (_validator) => {
-    });
+  // call all of these to add them to the definitions list so
+  // the markdown translation patching is done in the correct order.
+  // NOTE the order here needs to match the order on build-schema-file.ts:buildSchemaFile()
+  getFormatAliases();
+  await getFrontMatterSchema();
+  await getProjectConfigSchema();
+  await getEngineOptionsSchema();
+
+  for (
+    const schema of getYamlIntelligenceResource(
+      "schemas/external-schemas.yml",
+    ) as ConcreteSchema[]
+  ) {
+    setSchemaDefinition(schema);
   }
-};
+
+  if (patchMarkdown) {
+    patchMarkdownDescriptions();
+  }
+}
+
+async function init(
+  context: YamlIntelligenceContext,
+) {
+  if (context.client && context.client === "vs-code") {
+    setInitializer(async () => await initYamlIntelligence(false));
+  } else {
+    setInitializer(initYamlIntelligence);
+  }
+  await initState();
+}
 
 export async function getCompletions(
   context: YamlIntelligenceContext,
   _path: string,
 ) {
   try {
-    setInitializer(initializer);
-    await initState();
+    await init(context);
     return await getAutomation("completions", context);
   } catch (e) {
     console.log("Error found during autocomplete", e);
@@ -1057,8 +1088,7 @@ export async function getLint(
   _path: string,
 ) {
   try {
-    setInitializer(initializer);
-    await initState();
+    await init(context);
     return await getAutomation("validation", context);
   } catch (e) {
     console.log("Error found during linting", e);

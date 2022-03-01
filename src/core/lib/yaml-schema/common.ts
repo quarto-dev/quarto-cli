@@ -240,7 +240,7 @@ export function objectSchema(params: {
     );
 
     if (required) {
-      result.required = (result.required ?? []).slice();
+      result.required = (result.required || []).slice();
       result.required.push(...required);
     }
 
@@ -365,7 +365,7 @@ export function completeSchema<T extends ConcreteSchema>(
   ...completions: string[]
 ): T {
   const result = Object.assign({}, schema);
-  const prevCompletions = (schema.completions ?? []).slice();
+  const prevCompletions = (schema.completions || []).slice();
   prevCompletions.push(...completions);
   result.completions = prevCompletions;
   return result;
@@ -413,6 +413,6 @@ export function valueSchema(
   return {
     "type": "enum",
     "enum": [val], // enum takes non-strings too (!)
-    "description": description ?? `be ${JSON.stringify(val)}`,
+    "description": description || `be ${JSON.stringify(val)}`,
   };
 }
