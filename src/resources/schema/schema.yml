@@ -160,12 +160,26 @@
           - enum: ["ignore"]
           - arrayOf:
               enum:
+                # because this particular setup is especially likely to lead to typos,
+                # we support all naming conventions in describing naming conventions
                 - "camelCase"
+                - "camel-case"
+                - "camel_case"
                 - "capitalizationCase"
+                - "capitalization-case"
+                - "capitalization_case"
+                - "underscoreCase"
+                - "underscore-case"
                 - "underscore_case"
+                - "snakeCase"
+                - "snake-case"
                 - "snake_case"
+                - "dashCase"
                 - "dash-case"
+                - "dash_case"
+                - "kebabCase"
                 - "kebab-case"
+                - "kebab_case"
       properties:
         object:
           additionalProperties:
