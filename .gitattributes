@@ -2,3 +2,20 @@
 
 src/resources/formats/html/bootstrap/** linguist-vendored
 src/resources/formats/pdf/pdfjs/** linguist-vendored
+
+# use lf line-endings for resources
+src/resources/** text eol=lf
+
+# Denote all files that are truly binary and should not be modified.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.wasm binary
+*.bcmap binary
+
+
+
