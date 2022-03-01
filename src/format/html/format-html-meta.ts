@@ -161,7 +161,6 @@ async function googleScholarReferences(input: string, format: Format) {
 
 function metadataWriter(metadata: MetaTagData[]) {
   const write = (key: string, value: unknown) => {
-    console.log(`${key}:${value}`);
     metadata.push({
       name: key,
       content: encodeAttributeValue(value as string),

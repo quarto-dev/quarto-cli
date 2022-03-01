@@ -84,14 +84,34 @@ export interface CSL extends Record<string, unknown> {
 }
 
 export interface CSLName {
+  // “family” - surname minus any particles and suffixes
   family: string;
+
+  // “given” - given names, either full (“John Edward”) or initialized (“J. E.”)
   given: string;
+
+  // “dropping-particle” - name particles that are dropped when only the surname
+  // is shown (“van” in “Ludwig van Beethoven”, which becomes “Beethoven”, or “von”
+  // in “Alexander von Humboldt”, which becomes “Humboldt”)
+  ["dropping-particle"]?: string;
+
+  // “non-dropping-particle” - name particles that are not dropped when only the
+  // surname is shown (“van” in the Dutch surname “van Gogh”) but which may be
+  // treated separately from the family name, e.g. for sorting
+  ["non-dropping-particle"]?: string;
+
+  // “suffix” - name suffix, e.g. “Jr.” in “John Smith Jr.” and “III” in “Bill Gates III”
+  suffix?: string;
+
+  // A 'literal' representation of the name. May be displayed verbatim in contexts
   literal?: string;
 }
 
 export interface CSLDate {
   "date-parts"?: Array<[number, number?, number?]>;
   raw?: string;
+  // A 'literal' representation of the name. May be displayed verbatim in contexts
+  literal?: string;
 }
 
 export function suggestId(author: CSLName[], date?: CSLDate) {

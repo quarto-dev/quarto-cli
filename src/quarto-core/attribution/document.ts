@@ -312,7 +312,6 @@ export function documentCSL(
     csl[kCustom] = custom;
   }
 
-  console.log(csl);
   return csl;
 }
 
@@ -364,7 +363,7 @@ function pages(citationMetadata: Metadata): PageRange {
   let lastPage = citationMetadata[kLastPage];
   let pages = citationMetadata[kPage] as string;
   if (pages && pages.includes("-")) {
-    const pagesSplit = pages.split("_");
+    const pagesSplit = pages.split("-");
     if (!firstPage) {
       firstPage = pagesSplit[0];
     }
