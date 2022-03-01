@@ -273,7 +273,7 @@ export function objectSchema(params: {
 
     if (propertyNames !== undefined) {
       if (result.propertyNames !== undefined) {
-        result.propertyNames = allOfSchema(propertyNames, result.propertyNames);
+        result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
       } else {
         result.propertyNames = propertyNames;
       }
