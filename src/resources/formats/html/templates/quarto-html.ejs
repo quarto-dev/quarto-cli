@@ -142,7 +142,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   const clipboard = new window.ClipboardJS('.code-copy-button', {
     target: function(trigger) {
-      console.log(trigger);
       return trigger.previousElementSibling;
     }
   });
