@@ -75,11 +75,13 @@ document:
   links:
     title: "Links"
   references:
-    title: "Citations"
+    title: "References"
   footnotes:
     title: "Footnotes"
   crossref:
     title: "Crossrefs"
+  citation:
+    title: "Citation"
   language:
     title: "Language"
   comments:

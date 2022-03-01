@@ -1408,7 +1408,7 @@ body:not(.fullcontent) {
 
   // Remove botoom margin from specific elements
   .footnotes ol,
-  .footnotes ol li:last-of-type,
+  .footnotes ol li > p:last-of-type,
   .quarto-appendix-contents > p:last-of-type {
     margin-bottom: 0;
   }

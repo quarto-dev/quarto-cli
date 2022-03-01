@@ -1,4 +1,45 @@
 *.qmd linguist-language=markdown
 
-src/resources/formats/html/bootstrap/** linguist-vendored
+src/resources/formats/html/anchor/** linguist-vendored
+src/resources/formats/html/bootstrap/dist/** linguist-vendored
+src/resources/formats/html/bootstrap/themes/** linguist-vendored
+src/resources/formats/html/clipboard/** linguist-vendored
+src/resources/formats/html/fuse/** linguist-vendored
+src/resources/formats/html/giscus/** linguist-vendored
+src/resources/formats/html/hypothesis/** linguist-vendored
+src/resources/formats/html/ojs/** linguist-vendored
+src/resources/formats/html/popper/** linguist-vendored
+src/resources/formats/html/tabby/** linguist-vendored
 src/resources/formats/pdf/pdfjs/** linguist-vendored
+src/resources/formats/revealjs/plugins/** linguist-vendored
+src/resources/formats/revealjs/reveal/dist/** linguist-vendored
+src/resources/formats/revealjs/reveal/plugin/** linguist-vendored
+src/resources/formats/revealjs/reveal/tone/** linguist-vendored
+src/resources/projects/website/cookie-consent/** linguist-vendored
+src/resources/projects/website/listing/list.min.js linguist-vendored
+src/resources/projects/website/navigation/headroom.min.js linguist-vendored
+src/resources/projects/website/search/autocomplete-preset-algolia.umd linguist-vendored
+src/resources/projects/website/search/autocomplete.min.js linguist-vendored
+src/resources/projects/website/search/autocomplete.umd.js linguist-vendored
+src/resources/projects/website/search/fuse.min.js linguist-vendored
+src/resources/deno_std/** linguist-vendored
+src/resources/build/** linguist-vendored
+src/resources/editor/tools/** linguist-vendored
+
+
+# use lf line-endings for resources
+src/resources/** text eol=lf
+
+# Denote all files that are truly binary and should not be modified.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.wasm binary
+*.bcmap binary
+
+
+

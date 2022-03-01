@@ -49,6 +49,7 @@ import {
   scriptTagWithConsent,
 } from "./website-analytics.ts";
 import { kLanguageDefaults } from "../../../config/constants.ts";
+import { pathWithForwardSlashes } from "../../../core/path.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -150,7 +151,7 @@ export function updateSearchIndex(
     (searchDocs: SearchDoc[], outputFile) => {
       // find file/href
       const file = outputFile.file;
-      const href = relative(outputDir, file);
+      const href = pathWithForwardSlashes(relative(outputDir, file));
 
       // if this is excluded then remove and return
       if (

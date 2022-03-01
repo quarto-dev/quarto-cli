@@ -273,6 +273,72 @@ function convertFromObject(yaml: any): ConcreteSchema {
   const schema = yaml["object"];
   // deno-lint-ignore no-explicit-any
   const params: Record<string, any> = {};
+  if (schema.namingConvention) {
+    switch (schema.namingConvention) {
+      case "capitalizationCase":
+        params.namingConvention = "capitalizationCase";
+        break;
+      case "capitalization-case":
+        params.namingConvention = "capitalizationCase";
+        break;
+      case "capitalization_case":
+        params.namingConvention = "capitalizationCase";
+        break;
+
+      case "underscoreCase":
+        params.namingConvention = "underscore_case";
+        break;
+      case "underscore-case":
+        params.namingConvention = "underscore_case";
+        break;
+      case "underscore_case":
+        params.namingConvention = "underscore_case";
+        break;
+
+      case "dashCase":
+        params.namingConvention = "dash-case";
+        break;
+      case "dash-case":
+        params.namingConvention = "dash-case";
+        break;
+      case "dash_case":
+        params.namingConvention = "dash-case";
+        break;
+
+      case "camelCase":
+        params.namingConvention = "capitalizationCase";
+        break;
+      case "camel-case":
+        params.namingConvention = "capitalizationCase";
+        break;
+      case "camel_case":
+        params.namingConvention = "capitalizationCase";
+        break;
+
+      case "snakeCase":
+        params.namingConvention = "underscore_case";
+        break;
+      case "snake-case":
+        params.namingConvention = "underscore_case";
+        break;
+      case "snake_case":
+        params.namingConvention = "underscore_case";
+        break;
+
+      case "kebabCase":
+        params.namingConvention = "dash-case";
+        break;
+      case "kebab-case":
+        params.namingConvention = "dash-case";
+        break;
+      case "kebab_case":
+        params.namingConvention = "dash-case";
+        break;
+      default:
+        throw new Error("Internal Error: this should have failed validation");
+    }
+    params.namingConvention = schema.namingConvention;
+  }
   if (schema.properties) {
     params.properties = Object.fromEntries(
       Object.entries(schema.properties)
@@ -292,6 +358,19 @@ function convertFromObject(yaml: any): ConcreteSchema {
     if (objectKeys.length === 0) {
       throw new Error("object schema `closed` requires field `properties`.");
     }
+    // closed schemas provide all the information
+    // about the keyspace that is needed. They also interact badly with
+    // namingConvention detection or declaration, so we disallow that.
+    if (
+      params.namingConvention !== undefined &&
+      params.namingConvention !== "ignore"
+    ) {
+      throw new Error(
+        "object schema `closed` is only supported with namingConvention: `ignore`",
+      );
+    }
+    params.namingConvention = "ignore";
+
     params.propertyNames = enumS(...objectKeys);
   }
   if (schema.additionalProperties !== undefined) {

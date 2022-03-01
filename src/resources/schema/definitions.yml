@@ -1205,3 +1205,477 @@
             Fields that items in this listing must have populated.
             If a listing is rendered and one more items in this listing 
             is missing a required field, an error will occur and the render will.
+
+- id: csl-date
+  schema: string
+
+- id: csl-person
+  anyOf:
+    - maybeArrayOf: string
+    - maybeArrayOf:
+        object:
+          properties:
+            family-name:
+              string:
+                description: The family name.
+            given-name:
+              string:
+                description: The given name.
+
+- id: csl-number
+  anyOf:
+    - number
+    - string
+
+- id: csl-item
+  object:
+    closed: true
+    properties:
+      abstract:
+        string:
+          description: Abstract of the item (e.g. the abstract of a journal article)
+      annote:
+        string:
+          description:
+            short: Short markup, decoration, or annotation to the item (e.g., to indicate items included in a review).
+            long: |
+              Short markup, decoration, or annotation to the item (e.g., to indicate items included in a review);
+
+              For descriptive text (e.g., in an annotated bibliography), use `note` instead
+      archive:
+        string:
+          description: Archive storing the item
+      archive_collection:
+        string:
+          description: Collection the item is part of within an archive.
+      archive_location:
+        string:
+          description: Storage location within an archive (e.g. a box and folder number).
+      archive-place:
+        string:
+          description: Geographic location of the archive.
+      authority:
+        string:
+          description: Issuing or judicial authority (e.g. "USPTO" for a patent, "Fairfax Circuit Court" for a legal case).
+      call-number:
+        string:
+          description: Call number (to locate the item in a library).
+      citation-key:
+        string:
+          description:
+            short: Identifier of the item in the input data file (analogous to BiTeX entrykey).
+            long: |
+              Identifier of the item in the input data file (analogous to BiTeX entrykey);
+
+              Use this variable to facilitate conversion between word-processor and plain-text writing systems;
+              For an identifer intended as formatted output label for a citation 
+              (e.g. “Ferr78”), use `citation-label` instead
+      citation-label:
+        string:
+          description:
+            short: Label identifying the item in in-text citations of label styles (e.g. "Ferr78").
+            long: |
+              Label identifying the item in in-text citations of label styles (e.g. "Ferr78");
+
+              May be assigned by the CSL processor based on item metadata; For the identifier of the item 
+              in the input data file, use `citation-key` instead
+      collection-title:
+        string:
+          description: Title of the collection holding the item (e.g. the series title for a book; the lecture series title for a presentation).
+      container-title:
+        string:
+          description:
+            short: Title of the container holding the item.
+            long: |
+              Title of the container holding the item (e.g. the book title for a book chapter, 
+              the journal title for a journal article; the album title for a recording; 
+              the session title for multi-part presentation at a conference)
+      container-title-short:
+        string:
+          description: Short/abbreviated form of container-title;
+        hidden: true
+      dimensions:
+        string:
+          description: Physical (e.g. size) or temporal (e.g. running time) dimensions of the item.
+      division:
+        string:
+          description: Minor subdivision of a court with a `jurisdiction` for a legal item
+      DOI:
+        string:
+          description: Digital Object Identifier (e.g. "10.1128/AEM.02591-07")
+      event:
+        string:
+          hidden: true
+      event-title:
+        string:
+          description: Name of the event related to the item (e.g. the conference name when citing a conference paper; the meeting where presentation was made).
+      event-place:
+        string:
+          description: Geographic location of the event related to the item (e.g. "Amsterdam, The Netherlands").
+      genre:
+        string:
+          description:
+            short: Type, class, or subtype of the item
+            long: |
+              Type, class, or subtype of the item (e.g. "Doctoral dissertation" for a PhD thesis; "NIH Publication" for an NIH technical report);
+
+              Do not use for topical descriptions or categories (e.g. "adventure" for an adventure movie)
+      ISBN:
+        string:
+          description: International Standard Book Number (e.g. "978-3-8474-1017-1").
+      ISSN:
+        string:
+          description: International Standard Serial Number.
+      jurisdiction:
+        string:
+          description: Geographic scope of relevance (e.g. "US" for a US patent; the court hearing a legal case).
+      keyword:
+        string:
+          description: Keyword(s) or tag(s) attached to the item.
+      language:
+        string:
+          description:
+            short: The language of the item.
+            long: |
+              The language of the item;
+
+              Should be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), 
+              optionally with a two-letter locale code (e.g. "de-DE", "de-AT")
+      license:
+        string:
+          description:
+            short: The license information applicable to an item.
+            long: |
+              The license information applicable to an item (e.g. the license an article 
+              or software is released under; the copyright information for an item; 
+              the classification status of a document)
+      medium:
+        string:
+          description: Description of the item’s format or medium (e.g. "CD", "DVD", "Album", etc.)
+      note:
+        string:
+          description: Descriptive text or notes about an item (e.g. in an annotated bibliography).
+      original-publisher:
+        string:
+          description: Original publisher, for items that have been republished by a different publisher.
+      original-publisher-place:
+        string:
+          description: Geographic location of the original publisher (e.g. "London, UK").
+      original-title:
+        string:
+          description: Title of the original version (e.g. "Война и мир", the untranslated Russian title of “War and Peace”).
+      part-title:
+        string:
+          description: Title of the specific part of an item being cited.
+      PMCID:
+        string:
+          description: PubMed Central reference number.
+      PMID:
+        string:
+          description: PubMed reference number.
+      publisher:
+        string:
+          description: The publisher of the item.
+      publisher-place:
+        string:
+          description: The geographic location of the publisher.
+      references:
+        string:
+          short: Resources related to the procedural history of a legal case or legislation.
+          long: |
+            Resources related to the procedural history of a legal case or legislation;
+
+            Can also be used to refer to the procedural history of other items (e.g. 
+            "Conference canceled" for a presentation accepted as a conference that was subsequently 
+            canceled; details of a retraction or correction notice)
+      reviewed-genre:
+        string:
+          description: Type of the item being reviewed by the current item (e.g. book, film).
+      reviewed-title:
+        string:
+          description: Title of the item reviewed by the current item.
+      scale:
+        string:
+          description: Scale of e.g. a map or model.
+      source:
+        string:
+          description: Source from whence the item originates (e.g. a library catalog or database).
+      status:
+        string:
+          description: Publication status of the item (e.g. "forthcoming"; "in press"; "advance online publication"; "retracted")
+      title:
+        string:
+          description: The primary title of the item.
+      title-short:
+        string:
+          description: Short/abbreviated form of`title`.
+        hidden: true
+      URL:
+        string:
+          description: Uniform Resource Locator (e.g. "https://aem.asm.org/cgi/content/full/74/9/2766")
+      volume-title:
+        string:
+          description:
+            short: Title of the volume of the item or container holding the item.
+            long: |
+              Title of the volume of the item or container holding the item.
+
+              Also use for titles of periodical special issues, special sections, and the like.
+      year-suffix:
+        string:
+          description: Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").
+      accessed:
+        ref: csl-date
+        description: Date the item has been accessed.
+      available-date:
+        ref: csl-date
+        description:
+          short: Date the item was initially available
+          long: |
+            Date the item was initially available (e.g. the online publication date of a journal 
+            article before its formal publication date; the date a treaty was made available for signing).
+      event-date:
+        ref: csl-date
+        description: Date the event related to an item took place.
+      issued:
+        ref: csl-date
+        description: Date the item was issued/published.
+      original-date:
+        ref: csl-date
+        description: Issue date of the original version.
+      submitted:
+        ref: csl-date
+        description: Date the item (e.g. a manuscript) was submitted for publication.
+      author:
+        ref: csl-person
+        description: The author(s) of the item.
+      chair:
+        ref: csl-person
+        description: The person leading the session containing a presentation (e.g. the organizer of the `container-title` of a `speech`).
+      collection-editor:
+        ref: csl-person
+        description: Editor of the collection holding the item (e.g. the series editor for a book).
+      compiler:
+        ref: csl-person
+        description: Person compiling or selecting material for an item from the works of various persons or bodies (e.g. for an anthology).
+      composer:
+        ref: csl-person
+        description: Composer (e.g. of a musical score).
+      container-author:
+        ref: csl-person
+        description: Author of the container holding the item (e.g. the book author for a book chapter).
+      contributor:
+        ref: csl-person
+        description: A minor contributor to the item; typically cited using “with” before the name when listed in a bibliography.
+      curator:
+        ref: csl-person
+        description: Curator of an exhibit or collection (e.g. in a museum).
+      director:
+        ref: csl-person
+        description: Director (e.g. of a film).
+      editor:
+        ref: csl-person
+        description: The editor of the item.
+      editorial-director:
+        ref: csl-person
+        description: Managing editor ("Directeur de la Publication" in French).
+      editor-translator:
+        ref: csl-person
+        description:
+          short: Combined editor and translator of a work.
+          long: |
+            Combined editor and translator of a work.
+
+            The citation processory must be automatically generate if editor and translator variables 
+            are identical; May also be provided directly in item data.
+      executive-producer:
+        ref: csl-person
+        description: Executive producer of the item (e.g. of a television series).
+      guest:
+        ref: csl-person
+        description: Guest (e.g. on a TV show or podcast).
+      host:
+        ref: csl-person
+        description: Host of the item (e.g. of a TV show or podcast).
+      illustrator:
+        ref: csl-person
+        description: Illustrator (e.g. of a children’s book or graphic novel).
+      interviewer:
+        ref: csl-person
+        description: Interviewer (e.g. of an interview).
+      narrator:
+        ref: csl-person
+        description: Narrator (e.g. of an audio book).
+      organizer:
+        ref: csl-person
+        description: Organizer of an event (e.g. organizer of a workshop or conference).
+      original-author:
+        ref: csl-person
+        description:
+          short: The original creator of a work.
+          long: |
+            The original creator of a work (e.g. the form of the author name 
+            listed on the original version of a book; the historical author of a work; 
+            the original songwriter or performer for a musical piece; the original 
+            developer or programmer for a piece of software; the original author of an 
+            adapted work such as a book adapted into a screenplay)
+      performer:
+        ref: csl-person
+        description: Performer of an item (e.g. an actor appearing in a film; a muscian performing a piece of music).
+      producer:
+        ref: csl-person
+        description: Producer (e.g. of a television or radio broadcast).
+      recipient:
+        ref: csl-person
+        description: Recipient (e.g. of a letter).
+      reviewed-author:
+        ref: csl-person
+        description: Author of the item reviewed by the current item.
+      script-writer:
+        ref: csl-person
+        description: Writer of a script or screenplay (e.g. of a film).
+      series-creator:
+        ref: csl-person
+        description: Creator of a series (e.g. of a television series).
+      translator:
+        ref: csl-person
+        description: Translator
+      chapter-number:
+        ref: csl-number
+        description: Chapter number (e.g. chapter number in a book; track number on an album).
+      citation-number:
+        ref: csl-number
+        description: Index (starting at 1) of the cited reference in the bibliography (generated by the CSL processor).
+        hidden: true
+      collection-number:
+        ref: csl-number
+        description: Number identifying the collection holding the item (e.g. the series number for a book)
+      edition:
+        ref: csl-number
+        description: (Container) edition holding the item (e.g. "3" when citing a chapter in the third edition of a book).
+      first-reference-note-number:
+        ref: csl-number
+        description:
+          short: Number of a preceding note containing the first reference to the item.
+          long: |
+            Number of a preceding note containing the first reference to the item
+
+            Assigned by the CSL processor; Empty in non-note-based styles or when the item hasn't 
+            been cited in any preceding notes in a document
+        hidden: true
+      issue:
+        ref: csl-number
+        description:
+          short: Issue number of the item or container holding the item
+          long: |
+            Issue number of the item or container holding the item (e.g. "5" when citing a 
+            journal article from journal volume 2, issue 5);
+
+            Use `volume-title` for the title of the issue, if any.
+      locator:
+        ref: csl-number
+        description:
+          short: A cite-specific pinpointer within the item.
+          long: |
+            A cite-specific pinpointer within the item (e.g. a page number within a book, 
+            or a volume in a multi-volume work).
+
+            Must be accompanied in the input data by a label indicating the locator type 
+            (see the Locators term list).
+      number:
+        ref: csl-number
+        description: Number identifying the item (e.g. a report number).
+      number-of-pages:
+        ref: csl-number
+        description: Total number of pages of the cited item.
+      number-of-volumes:
+        ref: csl-number
+        description: Total number of volumes, used when citing multi-volume books and such.
+      page:
+        ref: csl-number
+        description: Range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue).
+      page-first:
+        ref: csl-number
+        description: First page of the range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue).
+      page-last:
+        ref: csl-number
+        description: Last page of the range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue).
+      part-number:
+        ref: csl-number
+        description:
+          short: Number of the specific part of the item being cited (e.g. part 2 of a journal article).
+          long: |
+            Number of the specific part of the item being cited (e.g. part 2 of a journal article).
+
+            Use `part-title` for the title of the part, if any.
+      printing-number:
+        ref: csl-number
+        description: Printing number of the item or container holding the item.
+      section:
+        ref: csl-number
+        description: Section of the item or container holding the item (e.g. "§2.0.1" for a law; "politics" for a newspaper article).
+      supplement-number:
+        ref: csl-number
+        description: Supplement number of the item or container holding the item (e.g. for secondary legal items that are regularly updated between editions).
+      version:
+        ref: csl-number
+        description: Version of the item (e.g. "2.0.9" for a software program).
+      volume:
+        ref: csl-number
+        description:
+          short: Volume number of the item (e.g. “2” when citing volume 2 of a book) or the container holding the item.
+          long: |
+            Volume number of the item (e.g. "2" when citing volume 2 of a book) or the container holding the 
+            item (e.g. "2" when citing a chapter from volume 2 of a book).
+
+            Use `volume-title` for the title of the volume, if any.
+      type:
+        enum:
+          [
+            "article",
+            "article-journal",
+            "article-magazine",
+            "article-newspaper",
+            "bill",
+            "book",
+            "broadcast",
+            "chapter",
+            "classic",
+            "collection",
+            "dataset",
+            "document",
+            "entry",
+            "entry-dictionary",
+            "entry-encyclopedia",
+            "event",
+            "figure",
+            "graphic",
+            "hearing",
+            "interview",
+            "legal_case",
+            "legislation",
+            "manuscript",
+            "map",
+            "motion_picture",
+            "musical_score",
+            "pamphlet",
+            "paper-conference",
+            "patent",
+            "performance",
+            "periodical",
+            "personal_communication",
+            "post",
+            "post-weblog",
+            "regulation",
+            "report",
+            "review",
+            "review-book",
+            "software",
+            "song",
+            "speech",
+            "standard",
+            "thesis",
+            "treaty",
+            "webpage",
+          ]
+        description: The type of the item.

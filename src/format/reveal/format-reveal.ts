@@ -215,6 +215,7 @@ export function revealjsFormat() {
         format: Format,
         libDir: string,
         temp: TempContext,
+        offset: string,
       ) => {
         // render styles template based on options
         const stylesFile = temp.createFile({ suffix: ".html" });
@@ -258,7 +259,7 @@ export function revealjsFormat() {
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
-          await htmlFormatExtras(format, temp, {
+          await htmlFormatExtras(input, offset, format, temp, {
             tabby: true,
             anchors: false,
             copyCode: true,
@@ -462,6 +463,18 @@ function revealHtmlPostprocessor(format: Format) {
     );
     for (let i = (invisibleSlides.length - 1); i >= 0; i--) {
       const slide = invisibleSlides.item(i);
+      // remove from toc
+      const id = (slide as Element).id;
+      if (id) {
+        const tocEntry = doc.querySelector(
+          'nav[role="doc-toc"] a[href="#/' + id + '"]',
+        );
+        if (tocEntry) {
+          tocEntry.parentNode?.remove();
+        }
+      }
+
+      // remove slide
       slide.parentNode?.removeChild(slide);
     }
 
