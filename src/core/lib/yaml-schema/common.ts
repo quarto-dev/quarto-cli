@@ -12,9 +12,7 @@
 *
 */
 
-import { mergeConfigs } from "../config.ts";
-
-import { CaseConvention, resolveCaseConventionRegex } from "../lib/text.ts";
+import { CaseConvention, resolveCaseConventionRegex } from "../text.ts";
 
 import {
   AllOfSchema,
@@ -29,10 +27,9 @@ import {
   ObjectSchema,
   RefSchema,
   Schema,
+  schemaDescription,
   StringSchema,
-} from "../lib/yaml-validation/types.ts";
-
-import { schemaDescription } from "../lib/yaml-validation/types.ts";
+} from "./types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -74,7 +71,10 @@ export function tagSchema<T extends ConcreteSchema>(
 ): T {
   return {
     ...schema,
-    tags: mergeConfigs(schema?.tags ?? {}, tags),
+    tags: {
+      ...(schema.tags || {}),
+      ...tags,
+    },
   };
 }
 

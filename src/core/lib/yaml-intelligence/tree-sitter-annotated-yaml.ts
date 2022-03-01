@@ -6,7 +6,7 @@
 */
 
 import { lines, matchAll } from "../text.ts";
-import { AnnotatedParse, JSONValue } from "../yaml-validation/types.ts";
+import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
 import { MappedString, mappedString } from "../mapped-text.ts";
 

@@ -8,17 +8,17 @@
 *
 */
 
-import { getFrontMatterSchema } from "./front-matter.ts";
-import { getProjectConfigSchema } from "./project-config.ts";
-import { getEngineOptionsSchema } from "./chunk-metadata.ts";
+import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";
+import { getProjectConfigSchema } from "../lib/yaml-schema/project-config.ts";
+import { getEngineOptionsSchema } from "../lib/yaml-schema/chunk-metadata.ts";
 import { resourcePath } from "../resources.ts";
 import { getSchemas } from "../lib/yaml-validation/schema-utils.ts";
 import {
   getSchemaDefinitionsObject,
   setSchemaDefinition,
 } from "../lib/yaml-validation/schema.ts";
-import { getFormatAliases } from "./format-aliases.ts";
-import { ensureAjv } from "./yaml-schema.ts";
+import { getFormatAliases } from "../lib/yaml-schema/format-aliases.ts";
+import { ensureSchemaResources } from "./yaml-schema.ts";
 import { revealPluginSchema } from "../../format/reveal/format-reveal-plugin.ts";
 import { DOMParser, Element, initDenoDom } from "../deno-dom.ts";
 
@@ -28,12 +28,12 @@ import { execProcess } from "../process.ts";
 
 import { walkSchema } from "../lib/yaml-validation/schema-utils.ts";
 
-import { Schema, SchemaDocumentation } from "../lib/yaml-validation/types.ts";
+import { Schema, SchemaDocumentation } from "../lib/yaml-schema/types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
 export async function buildSchemaFile() {
-  await ensureAjv();
+  await ensureSchemaResources();
   const obj = getSchemas();
   obj.aliases = getFormatAliases();
   obj.schemas["front-matter"] = await getFrontMatterSchema();

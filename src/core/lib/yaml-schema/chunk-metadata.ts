@@ -7,7 +7,6 @@
 *
 */
 
-import { Schema } from "../lib/yaml-validation/types.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
 import {
@@ -23,7 +22,8 @@ import {
   AnnotatedParse,
   ConcreteSchema,
   LocalizedError,
-} from "../lib/yaml-validation/types.ts";
+  Schema,
+} from "../lib/yaml-schema/types.ts";
 
 import { errorKeyword } from "../lib/yaml-validation/errors.ts";
 

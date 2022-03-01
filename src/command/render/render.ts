@@ -135,7 +135,7 @@ import {
   validateDocumentFromSource,
 } from "../../core/schema/validate-document.ts";
 
-import { getFrontMatterSchema } from "../../core/schema/front-matter.ts";
+import { getFrontMatterSchema } from "../../core/lib/yaml-schema/front-matter.ts";
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";

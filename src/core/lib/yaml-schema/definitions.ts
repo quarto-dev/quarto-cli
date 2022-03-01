@@ -5,28 +5,23 @@
 *
 */
 
-import { convertFromYaml } from "./from-yaml.ts";
 import { idSchema, refSchema } from "./common.ts";
-import { readYaml } from "../yaml.ts";
-import { error } from "log/mod.ts";
-import { schemaPath } from "./utils.ts";
-import { buildSchemaResources } from "./from-yaml.ts";
+import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
+import { buildSchemaResources, convertFromYaml } from "./from-yaml.ts";
 
-import {
-  ValidatorErrorHandlerFunction,
-} from "../lib/yaml-validation/errors.ts";
+import { ValidatorErrorHandlerFunction } from "../yaml-validation/errors.ts";
 
 import {
   addValidatorErrorHandler,
-} from "../lib/yaml-validation/validator-queue.ts";
+} from "../yaml-validation/validator-queue.ts";
 
 import {
   getSchemaDefinition,
   hasSchemaDefinition,
   setSchemaDefinition,
-} from "../lib/yaml-validation/schema.ts";
+} from "../yaml-validation/schema.ts";
 
-import { ConcreteSchema, Schema } from "../lib/yaml-validation/types.ts";
+import { ConcreteSchema, JSONValue, Schema } from "./types.ts";
 
 export function defineCached(
   thunk: () => Promise<
@@ -53,7 +48,7 @@ export function defineCached(
     if (schemaId !== schema!.$id as string) {
       schema = idSchema(schema, schemaId);
     }
-    await define(schema);
+    define(schema);
     for (const fun of errorHandlers) {
       addValidatorErrorHandler(schema, fun);
     }
@@ -65,8 +60,7 @@ export function defineCached(
   };
 }
 
-// deno-lint-ignore require-await
-export async function define(schema: Schema) {
+export function define(schema: Schema) {
   if (
     schema !== true && schema !== false && schema.$id &&
     !hasSchemaDefinition(schema.$id)
@@ -76,20 +70,17 @@ export async function define(schema: Schema) {
 }
 
 export async function loadDefaultSchemaDefinitions() {
-  await loadSchemaDefinitions(schemaPath("definitions.yml"));
+  await loadSchemaDefinitions(
+    getYamlIntelligenceResource("schema/definitions.yml") as JSONValue[],
+  );
   await buildSchemaResources();
 }
 
-export async function loadSchemaDefinitions(file: string) {
-  // deno-lint-ignore no-explicit-any
-  const yaml = readYaml(file) as any[];
-
+export async function loadSchemaDefinitions(yaml: JSONValue[]) {
   // deno-lint-ignore require-await
   await Promise.all(yaml.map(async (yamlSchema) => {
     const schema = convertFromYaml(yamlSchema);
     if (schema.$id === undefined) {
-      console.log(JSON.stringify(yamlSchema, null, 2));
-      error(JSON.stringify(schema, null, 2));
       throw new Error(`Internal error: unnamed schema in definitions`);
     }
     setSchemaDefinition(schema);

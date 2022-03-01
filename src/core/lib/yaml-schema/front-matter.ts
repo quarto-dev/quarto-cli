@@ -22,11 +22,15 @@ import { getFormatExecuteOptionsSchema } from "./execute.ts";
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 
 import { getFormatSchema } from "./format-schemas.ts";
-import { pandocListFormats } from "../pandoc/pandoc-formats.ts";
 
 import { defineCached } from "./definitions.ts";
 
 import { errorMessageSchema } from "./common.ts";
+import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
+
+function pandocListFormats(): string[] {
+  return getYamlIntelligenceResource("pandoc/formats.yml") as string[];
+}
 
 export async function makeFrontMatterFormatSchema(nonStrict = false) {
   const hideFormat = (format: string) => {

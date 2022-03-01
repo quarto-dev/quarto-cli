@@ -68,6 +68,7 @@ async function buildYAMLJS() {
   // convert tree-sitter-yaml to a JSON object that can be imported directly.
   // In principle this never changes so running it every time is overkill, but this
   // way we document the generation of the JSON object.
+  //
   // inexplicably, using TextEncoder inside a web worker on QtWebEngine freezes
   // the entire thread. That means we can't use base64 strings to encode the wasm
   // values. So we will encode them as plain js numbers. facepalm
