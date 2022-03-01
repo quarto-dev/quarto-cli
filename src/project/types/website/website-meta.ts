@@ -42,6 +42,7 @@ import {
   kHtmlEmptyPostProcessResult,
 } from "../../../command/render/types.ts";
 import { imageSize } from "../../../core/image.ts";
+import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 
 const kCard = "card";
 
@@ -170,7 +171,7 @@ export function metadataHtmlPostProcessor(
           if (provider.filter) {
             key = provider.filter(key);
           }
-          writeMeta(`${provider.prefix}:${key}`, data, doc);
+          writeMetaTag(`${provider.prefix}:${key}`, data, doc);
         }
       });
     });
@@ -335,23 +336,7 @@ function imageMetadata(
   }
 }
 
-function writeMeta(name: string, content: string, doc: Document) {
-  // Meta tag
-  const m = doc.createElement("META");
-  if (name.startsWith("og:")) {
-    m.setAttribute("property", name);
-  } else {
-    m.setAttribute("name", name);
-  }
-  m.setAttribute("content", content);
-
-  // New Line
-  const nl = doc.createTextNode("\n");
-
-  // Insert the nodes
-  doc.querySelector("head")?.appendChild(m);
-  doc.querySelector("head")?.appendChild(nl);
-}
+type metaVal = [string, string];
 
 const kMetaTitleId = "quarto-metatitle";
 const kMetaSideNameId = "quarto-metasitename";
