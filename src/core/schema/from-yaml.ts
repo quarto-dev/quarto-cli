@@ -279,6 +279,9 @@ function convertFromObject(yaml: any): ConcreteSchema {
   const schema = yaml["object"];
   // deno-lint-ignore no-explicit-any
   const params: Record<string, any> = {};
+  if (schema.namingConvention) {
+    params.namingConvention = schema.namingConvention;
+  }
   if (schema.properties) {
     params.properties = Object.fromEntries(
       Object.entries(schema.properties)
