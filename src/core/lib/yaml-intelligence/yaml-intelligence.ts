@@ -1047,7 +1047,7 @@ export async function initYamlIntelligence(patchMarkdown = true) {
 
   for (
     const schema of getYamlIntelligenceResource(
-      "schemas/external-schemas.yml",
+      "schema/external-schemas.yml",
     ) as ConcreteSchema[]
   ) {
     setSchemaDefinition(schema);
@@ -1061,7 +1061,7 @@ export async function initYamlIntelligence(patchMarkdown = true) {
 async function init(
   context: YamlIntelligenceContext,
 ) {
-  if (context.client && context.client === "vs-code") {
+  if (context.client && context.client === "lsp") {
     setInitializer(async () => await initYamlIntelligence(false));
   } else {
     setInitializer(initYamlIntelligence);

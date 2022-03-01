@@ -27,6 +27,8 @@ import { defineCached } from "./definitions.ts";
 
 import { errorMessageSchema } from "./common.ts";
 import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
+import { fromEntries } from "../polyfills.ts";
+import { Schema } from "./types.ts";
 
 function pandocFormatsResource(): string[] {
   return getYamlIntelligenceResource("pandoc/formats.yml") as string[];
@@ -41,7 +43,9 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
     );
     return { name: format, hidden };
   };
-  const formatSchemaDescriptorList = (await pandocFormatsResource()).concat("hugo")
+  const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
+    "hugo",
+  )
     .map(
       (format) => {
         const {
@@ -57,7 +61,7 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
       },
     );
   const formatSchemas = formatSchemaDescriptorList.map(
-    ({ regex, schema }) => [regex, schema],
+    ({ regex, schema }) => ([regex, schema] as [string, Schema]),
   );
   const plusFormatStringSchemas = formatSchemaDescriptorList.map(
     ({ regex, name, hidden }) => {
@@ -68,7 +72,7 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
       return completeSchema(schema, name);
     },
   );
-  const completionsObject = Object.fromEntries(
+  const completionsObject = fromEntries(
     formatSchemaDescriptorList
       .filter(({ hidden }) => !hidden)
       .map(({ name }) => [name, ""]),
@@ -82,7 +86,7 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
       ),
       allOfS(
         objectS({
-          patternProperties: Object.fromEntries(formatSchemas),
+          patternProperties: fromEntries(formatSchemas),
           completions: completionsObject,
           additionalProperties: nonStrict,
         }),

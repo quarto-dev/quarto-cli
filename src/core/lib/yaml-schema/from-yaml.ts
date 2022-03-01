@@ -43,6 +43,7 @@ import {
   getYamlIntelligenceResource,
 } from "../yaml-intelligence/resources.ts";
 import { globToRegExp } from "../glob.ts";
+import { fromEntries } from "../polyfills.ts";
 
 function setBaseSchemaProperties(
   // deno-lint-ignore no-explicit-any
@@ -340,13 +341,13 @@ function convertFromObject(yaml: any): ConcreteSchema {
     params.namingConvention = schema.namingConvention;
   }
   if (schema.properties) {
-    params.properties = Object.fromEntries(
+    params.properties = fromEntries(
       Object.entries(schema.properties)
         .map(([key, value]) => [key, convertFromYaml(value)]),
     );
   }
   if (schema.patternProperties) {
-    params.patternProperties = Object.fromEntries(
+    params.patternProperties = fromEntries(
       Object.entries(schema.properties)
         .map(([key, value]) => [key, convertFromYaml(value)]),
     );
@@ -594,7 +595,9 @@ export function schemaFieldsFromGlob(
   for (const [file, fields] of expandResourceGlob(globPath)) {
     for (const field of (fields as SchemaField[])) {
       const fieldName = field.name;
-      const schemaId = `quarto-resource-${file.slice(0, -4)}-${fieldName}`;
+      const schemaId = `quarto-resource-${
+        file.split("/").slice(-1)[0].slice(0, -4)
+      }-${fieldName}`;
       if (testFun(field, file)) {
         result.push({
           schemaId,

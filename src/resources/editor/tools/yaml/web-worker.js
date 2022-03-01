@@ -23176,6 +23176,14 @@ ${heading}`;
     return inner;
   }
 
+  // ../polyfills.ts
+  function fromEntries(iterable) {
+    return [...iterable].reduce((obj, [key, val]) => {
+      obj[key] = val;
+      return obj;
+    }, {});
+  }
+
   // ../yaml-schema/from-yaml.ts
   function setBaseSchemaProperties(yaml, schema) {
     if (yaml.additionalCompletions) {
@@ -23377,10 +23385,10 @@ ${heading}`;
       params.namingConvention = schema.namingConvention;
     }
     if (schema.properties) {
-      params.properties = Object.fromEntries(Object.entries(schema.properties).map(([key, value]) => [key, convertFromYaml(value)]));
+      params.properties = fromEntries(Object.entries(schema.properties).map(([key, value]) => [key, convertFromYaml(value)]));
     }
     if (schema.patternProperties) {
-      params.patternProperties = Object.fromEntries(Object.entries(schema.properties).map(([key, value]) => [key, convertFromYaml(value)]));
+      params.patternProperties = fromEntries(Object.entries(schema.properties).map(([key, value]) => [key, convertFromYaml(value)]));
     }
     if (schema.propertyNames !== void 0) {
       params.propertyNames = convertFromYaml(schema.propertyNames);
@@ -23527,7 +23535,7 @@ ${heading}`;
     for (const [file, fields] of expandResourceGlob(globPath)) {
       for (const field of fields) {
         const fieldName = field.name;
-        const schemaId = `quarto-resource-${file.slice(0, -4)}-${fieldName}`;
+        const schemaId = `quarto-resource-${file.split("/").slice(-1)[0].slice(0, -4)}-${fieldName}`;
         if (testFun(field, file)) {
           result.push({
             schemaId,
@@ -23689,9 +23697,9 @@ ${heading}`;
       }
       return completeSchema(schema, name);
     });
-    const completionsObject = Object.fromEntries(formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, ""]));
+    const completionsObject = fromEntries(formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, ""]));
     return errorMessageSchema(anyOfSchema(describeSchema(anyOfSchema(...plusFormatStringSchemas), "the name of a pandoc-supported output format"), allOfSchema(objectSchema({
-      patternProperties: Object.fromEntries(formatSchemas),
+      patternProperties: fromEntries(formatSchemas),
       completions: completionsObject,
       additionalProperties: nonStrict
     }))), "${value} is not a valid output format.");
@@ -24469,7 +24477,7 @@ ${heading}`;
     await getFrontMatterSchema();
     await getProjectConfigSchema();
     await getEngineOptionsSchema();
-    for (const schema of getYamlIntelligenceResource("schemas/external-schemas.yml")) {
+    for (const schema of getYamlIntelligenceResource("schema/external-schemas.yml")) {
       setSchemaDefinition(schema);
     }
     if (patchMarkdown) {
@@ -24477,7 +24485,7 @@ ${heading}`;
     }
   }
   async function init(context) {
-    if (context.client && context.client === "vs-code") {
+    if (context.client && context.client === "lsp") {
       setInitializer(async () => await initYamlIntelligence(false));
     } else {
       setInitializer(initYamlIntelligence);
