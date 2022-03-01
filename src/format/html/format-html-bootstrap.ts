@@ -320,7 +320,7 @@ function bootstrapHtmlPostprocessor(
 
     // Process the elements of this document into an appendix
     if (
-      format.metadata[kAppendixStyle] &&
+      format.metadata[kAppendixStyle] !== false &&
       format.metadata[kAppendixStyle] !== "none"
     ) {
       await processDocumentAppendix(input, format, flags, doc, offset);
