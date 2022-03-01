@@ -796,7 +796,6 @@
                         Name that should be displayed for the overall site. If not explicitly 
                         provided in the `open-graph` metadata, Quarto will use the website or
                         book `title` by default.
-              closed: true
         description: "Publish open graph metadata"
       twitter-card:
         anyOf:
@@ -819,7 +818,6 @@
                 site:
                   string:
                     description: "`@username` of the website (must be a quoted string)"
-              closed: true
         description: "Publish twitter card metadata"
 
 - id: chapter-item
