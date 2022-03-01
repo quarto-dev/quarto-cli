@@ -6,6 +6,10 @@ section-title-appendices: "Appendices"
 section-title-footnotes: "Footnotes"
 section-title-references: "References"
 section-title-reuse: "Reuse"
+section-title-citation: "Citation"
+
+appendix-attribution-cite-as: "For attribution, please cite this work as:"
+appendix-attribution-bibtex: "BibTeX citation:"
 
 callout-tip-caption: "Tip"
 callout-note-caption: "Note"

@@ -5,4 +5,4 @@
     anyOf:
       - enum: [jolla, trestles, solana, marquee, broadside]
       - ref: website-about
-  description: MISSING_DESCRIPTION
+  description: Specifies that the page is an 'about' page and which template to use when laying out the page.

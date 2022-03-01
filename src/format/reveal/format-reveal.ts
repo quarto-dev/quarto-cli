@@ -215,6 +215,7 @@ export function revealjsFormat() {
         format: Format,
         libDir: string,
         temp: TempContext,
+        offset: string,
       ) => {
         // render styles template based on options
         const stylesFile = temp.createFile({ suffix: ".html" });
@@ -258,7 +259,7 @@ export function revealjsFormat() {
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
-          await htmlFormatExtras(format, temp, {
+          await htmlFormatExtras(input, offset, format, temp, {
             tabby: true,
             anchors: false,
             copyCode: true,
