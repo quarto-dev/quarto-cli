@@ -83,6 +83,7 @@ import {
   partitionYamlFrontMatter,
   readYamlFromMarkdown,
 } from "../../../core/yaml.ts";
+import { pathWithForwardSlashes } from "../../../core/path.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -122,7 +123,9 @@ export function bookPandocRenderer(
       // handling of titles, headings, etc.)
       if (isMultiFileBookFormat(file.context.format)) {
         const partitioned = partitionMarkdown(file.executeResult.markdown);
-        const fileRelative = relative(project.dir, file.context.target.source);
+        const fileRelative = pathWithForwardSlashes(
+          relative(project.dir, file.context.target.source),
+        );
 
         // index file
         if (isBookIndexPage(fileRelative)) {
@@ -477,7 +480,7 @@ export async function bookIncrementalRenderAll(
   for (let i = 0; i < files.length; i++) {
     // get contexts (formats)
     const contexts = await renderContexts(
-      files[i],
+      { path: files[i] },
       options,
       false,
       context,

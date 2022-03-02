@@ -12,7 +12,7 @@ import {
   ValidatorErrorHandlerFunction,
 } from "./errors.ts";
 
-import { RefSchema, Schema, schemaType } from "./types.ts";
+import { RefSchema, Schema, schemaType } from "../yaml-schema/types.ts";
 
 const yamlValidators: Record<string, YAMLSchema> = {};
 

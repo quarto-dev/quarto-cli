@@ -7,23 +7,13 @@
 *
 */
 
-import { readAnnotatedYamlFromString } from "./annotated-yaml.ts";
-
-import { globToRegExp } from "path/glob.ts";
-
-import { error } from "log/mod.ts";
-import { basename } from "path/mod.ts";
-import { readYaml } from "../yaml.ts";
-
-import { expandGlobSync } from "fs/expand_glob.ts";
-
 import {
   getSchemaDefinition,
   hasSchemaDefinition,
   setSchemaDefinition,
-} from "../lib/yaml-validation/schema.ts";
+} from "../yaml-validation/schema.ts";
 
-import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
+import { withValidator } from "../yaml-validation/validator-queue.ts";
 
 import {
   allOfSchema as allOfS,
@@ -45,10 +35,15 @@ import {
   valueSchema,
 } from "./common.ts";
 
-import { schemaPath } from "./utils.ts";
 import { memoize } from "../memoize.ts";
 
-import { ConcreteSchema } from "../lib/yaml-validation/types.ts";
+import { ConcreteSchema } from "./types.ts";
+import {
+  expandResourceGlob,
+  getYamlIntelligenceResource,
+} from "../yaml-intelligence/resources.ts";
+import { globToRegExp } from "../glob.ts";
+import { fromEntries } from "../polyfills.ts";
 
 function setBaseSchemaProperties(
   // deno-lint-ignore no-explicit-any
@@ -279,14 +274,80 @@ function convertFromObject(yaml: any): ConcreteSchema {
   const schema = yaml["object"];
   // deno-lint-ignore no-explicit-any
   const params: Record<string, any> = {};
+  if (schema.namingConvention) {
+    switch (schema.namingConvention) {
+      case "capitalizationCase":
+        params.namingConvention = "capitalizationCase";
+        break;
+      case "capitalization-case":
+        params.namingConvention = "capitalizationCase";
+        break;
+      case "capitalization_case":
+        params.namingConvention = "capitalizationCase";
+        break;
+
+      case "underscoreCase":
+        params.namingConvention = "underscore_case";
+        break;
+      case "underscore-case":
+        params.namingConvention = "underscore_case";
+        break;
+      case "underscore_case":
+        params.namingConvention = "underscore_case";
+        break;
+
+      case "dashCase":
+        params.namingConvention = "dash-case";
+        break;
+      case "dash-case":
+        params.namingConvention = "dash-case";
+        break;
+      case "dash_case":
+        params.namingConvention = "dash-case";
+        break;
+
+      case "camelCase":
+        params.namingConvention = "capitalizationCase";
+        break;
+      case "camel-case":
+        params.namingConvention = "capitalizationCase";
+        break;
+      case "camel_case":
+        params.namingConvention = "capitalizationCase";
+        break;
+
+      case "snakeCase":
+        params.namingConvention = "underscore_case";
+        break;
+      case "snake-case":
+        params.namingConvention = "underscore_case";
+        break;
+      case "snake_case":
+        params.namingConvention = "underscore_case";
+        break;
+
+      case "kebabCase":
+        params.namingConvention = "dash-case";
+        break;
+      case "kebab-case":
+        params.namingConvention = "dash-case";
+        break;
+      case "kebab_case":
+        params.namingConvention = "dash-case";
+        break;
+      default:
+        throw new Error("Internal Error: this should have failed validation");
+    }
+    params.namingConvention = schema.namingConvention;
+  }
   if (schema.properties) {
-    params.properties = Object.fromEntries(
+    params.properties = fromEntries(
       Object.entries(schema.properties)
         .map(([key, value]) => [key, convertFromYaml(value)]),
     );
   }
   if (schema.patternProperties) {
-    params.patternProperties = Object.fromEntries(
+    params.patternProperties = fromEntries(
       Object.entries(schema.properties)
         .map(([key, value]) => [key, convertFromYaml(value)]),
     );
@@ -298,6 +359,19 @@ function convertFromObject(yaml: any): ConcreteSchema {
     if (objectKeys.length === 0) {
       throw new Error("object schema `closed` requires field `properties`.");
     }
+    // closed schemas provide all the information
+    // about the keyspace that is needed. They also interact badly with
+    // namingConvention detection or declaration, so we disallow that.
+    if (
+      params.namingConvention !== undefined &&
+      params.namingConvention !== "ignore"
+    ) {
+      throw new Error(
+        "object schema `closed` is only supported with namingConvention: `ignore`",
+      );
+    }
+    params.namingConvention = "ignore";
+
     params.propertyNames = enumS(...objectKeys);
   }
   if (schema.additionalProperties !== undefined) {
@@ -388,38 +462,24 @@ export function convertFromYaml(yaml: any): ConcreteSchema {
     { key: "schema", value: convertFromSchema },
   ];
   for (const { key: objectKey, value: fun } of schemaObjectKeyFunctions) {
-    try {
-      if (yaml[objectKey as string] !== undefined) {
-        return fun(yaml);
-      }
-    } catch (e) {
-      error({ yaml });
-      throw e;
+    if (yaml[objectKey as string] !== undefined) {
+      return fun(yaml);
     }
   }
 
-  error(JSON.stringify(yaml, null, 2));
   throw new Error(
     "Internal Error: Cannot convert object; this should have failed validation.",
   );
 }
 
-export function convertFromYAMLString(src: string) {
-  const yaml = readAnnotatedYamlFromString(src);
-
-  return convertFromYaml(yaml.result);
-}
-
-export function objectSchemaFromFieldsFile(
-  file: string,
+export function objectSchemaFromFieldsObject(
+  fields: SchemaField[],
   exclude?: (key: string) => boolean,
 ): ConcreteSchema {
-  exclude = exclude ?? ((_key: string) => false);
+  exclude = exclude || ((_key: string) => false);
   const properties: Record<string, ConcreteSchema> = {};
-  // deno-lint-ignore no-explicit-any
-  const global = readYaml(file) as any[];
 
-  convertFromFieldsObject(global, properties);
+  convertFromFieldsObject(fields, properties);
   for (const key of Object.keys(properties)) {
     if (exclude(key)) {
       delete properties[key];
@@ -450,10 +510,10 @@ export function objectSchemaFromGlob(
   glob: string,
   exclude?: (key: string) => boolean,
 ): ConcreteSchema {
-  exclude = exclude ?? ((_key: string) => false);
+  exclude = exclude || ((_key: string) => false);
   const properties: Record<string, ConcreteSchema> = {};
-  for (const { path } of expandGlobSync(glob)) {
-    convertFromFieldsObject(readYaml(path) as SchemaField[], properties);
+  for (const [_path, fields] of expandResourceGlob(glob)) {
+    convertFromFieldsObject(fields as SchemaField[], properties);
   }
   for (const key of Object.keys(properties)) {
     if (exclude(key)) {
@@ -507,7 +567,7 @@ export function convertFromFieldsObject(
   yaml: SchemaField[],
   obj?: Record<string, ConcreteSchema>,
 ): Record<string, ConcreteSchema> {
-  const result = obj ?? {};
+  const result = obj || {};
 
   for (const field of yaml) {
     let schema = convertFromYaml(field.schema);
@@ -531,12 +591,14 @@ export function schemaFieldsFromGlob(
   testFun?: (entry: SchemaField, path: string) => boolean,
 ): SchemaFieldIdDescriptor[] {
   const result = [];
-  testFun = testFun ?? ((_e, _p) => true);
-  for (const file of expandGlobSync(globPath)) {
-    for (const field of readYaml(file.path) as SchemaField[]) {
+  testFun = testFun || ((_e, _p) => true);
+  for (const [file, fields] of expandResourceGlob(globPath)) {
+    for (const field of (fields as SchemaField[])) {
       const fieldName = field.name;
-      const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
-      if (testFun(field, file.path)) {
+      const schemaId = `quarto-resource-${
+        file.split("/").slice(-1)[0].slice(0, -4)
+      }-${fieldName}`;
+      if (testFun(field, file)) {
         result.push({
           schemaId,
           field,
@@ -548,7 +610,7 @@ export function schemaFieldsFromGlob(
 }
 
 export const schemaRefContexts = memoize(() => {
-  const groups = readYaml(schemaPath("groups.yml")) as Record<
+  const groups = getYamlIntelligenceResource("schema/groups.yml") as Record<
     string,
     Record<string, Record<string, string>>
   >;
@@ -571,16 +633,20 @@ export function objectRefSchemaFromContextGlob(
   // Why is typescript thinking that testFun can be undefined
   // after the expression below?
   //
-  // testFun = testFun ?? ((_field, _path) => true);
+  // testFun = testFun || ((_field, _path) => true);
   return objectRefSchemaFromGlob(
-    schemaPath("{document,cell}-*.yml"),
+    "schema/{document,cell}-*.yml",
     (field: SchemaField, path: string) => {
       if (testFun !== undefined && !testFun(field, path)) {
         return false;
       }
 
-      const pathContext = basename(path, ".yml");
-      const schemaContexts = ((field?.tags?.contexts || []) as string[]);
+      // this is 'basename(path, ".yml")', but I don't want to pull the whole import
+      // + os dependency into /lib
+      const pathContext = path.split("/").slice(-1)[0].slice(0, -4);
+      const schemaContexts = (((field !== undefined &&
+        field.tags !== undefined &&
+        field.tags.contexts) || []) as string[]);
 
       if (pathContext.match(regexp)) {
         return true;
@@ -606,16 +672,18 @@ export function objectRefSchemaFromGlob(
   return objectS({ properties });
 }
 
-export async function buildSchemaResources() {
-  const path = schemaPath("{cell-*,document-*,project}.yml");
+export async function buildResourceSchemas() {
+  const path = "schema/{cell-*,document-*,project}.yml";
   // precompile all of the field schemas
-  for (const file of expandGlobSync(path)) {
-    const yaml = readYaml(file.path) as SchemaField[];
+  for (const [file, fields] of expandResourceGlob(path)) {
+    const yaml = fields as SchemaField[];
     const entries = Object.entries(convertFromFieldsObject(yaml));
     for (const [fieldName, fieldSchema] of entries) {
       // TODO this id has to be defined consistently with schemaFieldsFromGlob.
       // It's a footgun.
-      const schemaId = `quarto-resource-${file.name.slice(0, -4)}-${fieldName}`;
+      const schemaId = `quarto-resource-${
+        file.split("/").slice(-1)[0].slice(0, -4)
+      }-${fieldName}`;
       const schema = withId(fieldSchema, schemaId);
       setSchemaDefinition(schema);
       await withValidator(schema, async (_validator) => {

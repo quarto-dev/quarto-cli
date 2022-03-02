@@ -4,13 +4,14 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
 import {
   kCapLoc,
   kCapTop,
   kCitationLocation,
   kCodeOverflow,
+  kCopyButtonTooltip,
   kLinkExternalIcon,
   kReferenceLocation,
   kSectionTitleFootnotes,
@@ -57,6 +58,8 @@ export const kDraft = "draft";
 
 export const kAppendixStyle = "appendix-style";
 export const kLicense = "license";
+
+export const kCitation = "citation";
 
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
@@ -357,4 +360,69 @@ export function hasMarginRefs(format: Format, flags: PandocFlags) {
 export function hasMarginCites(format: Format) {
   // If margin cites are enabled, move them
   return format.metadata[kCitationLocation] === "margin";
+}
+
+export function computeUrl(
+  input: string,
+  baseUrl: string,
+  offset: string,
+  outputFileName: string,
+) {
+  const rootDir = Deno.realPathSync(join(dirname(input), offset));
+  if (outputFileName === "index.html") {
+    return `${baseUrl}/${relative(rootDir, dirname(input))}`;
+  } else {
+    return `${baseUrl}/${
+      relative(rootDir, join(dirname(input), outputFileName))
+    }`;
+  }
+}
+
+export function createCodeCopyButton(doc: Document, format: Format) {
+  const copyButton = doc.createElement("button");
+  const title = format.language[kCopyButtonTooltip]!;
+  copyButton.setAttribute("title", title);
+  copyButton.classList
+    .add("code-copy-button");
+  const copyIcon = doc.createElement("i");
+  copyIcon.classList.add("bi");
+  copyButton.appendChild(copyIcon);
+  return copyButton;
+}
+
+export function createCodeBlock(
+  doc: Document,
+  htmlContents: string,
+  language?: string,
+) {
+  const preEl = doc.createElement("PRE");
+  preEl.classList.add("sourceCode");
+  preEl.classList.add("code-with-copy");
+
+  const codeEl = doc.createElement("CODE");
+  codeEl.classList.add("sourceCode");
+  if (language) {
+    codeEl.classList.add(language);
+  }
+  codeEl.innerHTML = htmlContents;
+  preEl.appendChild(codeEl);
+  return preEl;
+}
+
+export function writeMetaTag(name: string, content: string, doc: Document) {
+  // Meta tag
+  const m = doc.createElement("META");
+  if (name.startsWith("og:")) {
+    m.setAttribute("property", name);
+  } else {
+    m.setAttribute("name", name);
+  }
+  m.setAttribute("content", content);
+
+  // New Line
+  const nl = doc.createTextNode("\n");
+
+  // Insert the nodes
+  doc.querySelector("head")?.appendChild(m);
+  doc.querySelector("head")?.appendChild(nl);
 }

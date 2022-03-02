@@ -7,10 +7,8 @@
 *
 */
 
-import { readYaml } from "../yaml.ts";
-import { resourcePath } from "../resources.ts";
-import { join } from "path/mod.ts";
-import { expandAliasesFrom } from "../lib/yaml-validation/schema.ts";
+import { expandAliasesFrom } from "../yaml-validation/schema.ts";
+import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
 
 // deno-lint-ignore no-explicit-any
 let formatAliases: any = undefined;
@@ -20,7 +18,7 @@ export function getFormatAliases(): Record<string, string[]> {
     return formatAliases;
   }
   formatAliases =
-    (readYaml(join(resourcePath(), "schema/format-aliases.yml")) as Record<
+    (getYamlIntelligenceResource("schema/format-aliases.yml") as Record<
       string,
       // deno-lint-ignore no-explicit-any
       any

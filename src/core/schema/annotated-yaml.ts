@@ -10,7 +10,7 @@
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
-import { AnnotatedParse, JSONValue } from "../lib/yaml-validation/types.ts";
+import { AnnotatedParse, JSONValue } from "../lib/yaml-schema/types.ts";
 
 export function readAnnotatedYamlFromMappedString(mappedYaml: MappedString) {
   const yml = mappedYaml.value;

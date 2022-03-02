@@ -23,7 +23,7 @@ import {
   schemaCall,
   schemaDispatch,
   schemaDocString,
-} from "./types.ts";
+} from "../yaml-schema/types.ts";
 
 // NB: QuartoJsonSchemas is meant for serialization of the entire body of schemas
 // For actual schema use in quarto, use either the definitions in core/schema
@@ -31,9 +31,7 @@ import {
 // might be stale!
 //
 // TODO this probably needs a good refactoring, but you've been warned.
-
-// TODO typings for quarto-json-schemas.json
-export interface QuartoJsonSchemas {
+/*export interface QuartoJsonSchemas {
   schemas: {
     "front-matter": Schema;
     config: Schema;
@@ -65,7 +63,7 @@ export function getSchemas(): QuartoJsonSchemas {
   } else {
     throw new Error("Internal error: schemas not set");
   }
-}
+}*/
 
 export function maybeResolveSchema(
   schema: ConcreteSchema,

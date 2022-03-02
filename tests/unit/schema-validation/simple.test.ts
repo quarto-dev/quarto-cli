@@ -7,13 +7,14 @@
 
 import { unitTest } from "../../test.ts";
 
-import { convertFromYAMLString } from "../../../src/core/schema/from-yaml.ts";
+import { convertFromYaml } from "../../../src/core/lib/yaml-schema/from-yaml.ts";
 
 import { readAndValidateYamlFromMappedString } from "../../../src/core/schema/validated-yaml.ts";
 
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
 
 import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schema.ts";
+import { readYamlFromString } from "../../../src/core/yaml.ts";
 
 unitTest("schema-completions", async () => {
   const yml = `
@@ -26,7 +27,7 @@ NOTALLOWED: 5
 bah:
   wut: "wat"`;
 
-  const schema = convertFromYAMLString(`
+  const schema = convertFromYaml(readYamlFromString(`
 id: schema-test-1
 object:
   properties:
@@ -37,7 +38,7 @@ object:
   propertyNames:
     string:
       pattern: "[a-z]+"
-`);
+`));
   setSchemaDefinition(schema);
 
   let threw = false;

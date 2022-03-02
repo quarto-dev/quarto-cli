@@ -8,16 +8,16 @@
 *
 */
 
-import { objectRefSchemaFromContextGlob } from "../schema/from-yaml.ts";
-import { idSchema, refSchema } from "../schema/common.ts";
+import { objectRefSchemaFromContextGlob } from "../yaml-schema/from-yaml.ts";
+import { idSchema, refSchema } from "../yaml-schema/common.ts";
 import { define } from "./definitions.ts";
 
-export async function getFormatExecuteOptionsSchema() {
+export function getFormatExecuteOptionsSchema() {
   const schema = idSchema(
     objectRefSchemaFromContextGlob("document-execute"),
     "front-matter-execute",
   );
 
-  await define(schema);
+  define(schema);
   return refSchema("front-matter-execute", "be a front-matter-execute object");
 }

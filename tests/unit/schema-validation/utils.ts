@@ -13,29 +13,30 @@ import {
   initState,
   setInitializer,
 } from "../../../src/core/lib/yaml-validation/state.ts";
-import { ensureAjv } from "../../../src/core/schema/yaml-schema.ts";
-import { convertFromYAMLString } from "../../../src/core/schema/from-yaml.ts";
+import { ensureSchemaResources } from "../../../src/core/schema/yaml-schema.ts";
+import { convertFromYaml } from "../../../src/core/lib/yaml-schema/from-yaml.ts";
 import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schema.ts";
 import { ValidationError } from "../../../src/core/schema/validated-yaml.ts";
 import { isEqual } from "../../../src/core/lodash.ts";
 import { assertRejects } from "testing/asserts.ts";
-
+import { cloneDeep } from "../../../src/core/lodash.ts";
+import { readYamlFromString } from "../../../src/core/yaml.ts";
 export const schemaTestFile = fileLoader("schema-validation");
 
 export async function fullInit() {
   await initPrecompiledModules();
   await initTreeSitter();
-  await ensureAjv();
+  await ensureSchemaResources();
 }
 
 export function schemaFromString(schemaStr: string) {
-  const schema = convertFromYAMLString(schemaStr);
+  const yaml = readYamlFromString(schemaStr);
+  const schema = convertFromYaml(yaml);
   setSchemaDefinition(schema);
   return schema;
 }
 
-// deno-lint-ignore no-explicit-any
-export function expectValidationError(e: any) {
+export function expectValidationError(e: ValidationError) {
   let willThrow = e instanceof ValidationError;
   const goodE = e as ValidationError;
   const result = {

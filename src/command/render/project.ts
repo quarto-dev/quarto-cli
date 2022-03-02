@@ -32,7 +32,12 @@ import { ensureGitignore } from "../../project/project-gitignore.ts";
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import { renderFiles } from "./render.ts";
-import { RenderedFile, RenderOptions, RenderResult } from "./types.ts";
+import {
+  RenderedFile,
+  RenderFile,
+  RenderOptions,
+  RenderResult,
+} from "./types.ts";
 import {
   copyToProjectFreezer,
   kProjectFreezeDir,
@@ -78,6 +83,7 @@ export async function renderProject(
       return Deno.realPathSync(target);
     });
   };
+
   if (files) {
     if (alwaysExecuteFiles) {
       alwaysExecuteFiles = normalizeFiles(alwaysExecuteFiles);
@@ -110,25 +116,28 @@ export async function renderProject(
 
   // default for files if not specified
   files = files || context.files.input;
+  const filesToRender: RenderFile[] = files.map((file) => {
+    return { path: file };
+  });
 
   // See if the project type needs to add additional render files
   // that should be rendered as a side effect of rendering the file(s)
   // in the render list.
   // We don't add supplemental files when this is a dev server reload
   // to improve render performance
-  const projectSupplement = (renderFiles: string[]) => {
+  const projectSupplement = (filesToRender: RenderFile[]) => {
     if (projType.supplementRender && !options.devServerReload) {
       return projType.supplementRender(
         context,
-        renderFiles,
+        filesToRender,
         incremental,
       );
     } else {
       return { files: [] };
     }
   };
-  const supplements = projectSupplement(files);
-  files.push(...supplements.files);
+  const supplements = projectSupplement(filesToRender);
+  filesToRender.push(...supplements.files);
 
   // projResults to return
   const projResults: RenderResult = {
@@ -141,7 +150,7 @@ export async function renderProject(
   await ensureGitignore(context.dir);
 
   // determine whether pre and post render steps should show progress
-  const progress = !!options.progress || (files.length > 1);
+  const progress = !!options.progress || (filesToRender.length > 1);
 
   // if there is an output dir then remove it if clean is specified
   const projOutputDir = context.config?.project?.[kProjectOutputDir];
@@ -163,7 +172,9 @@ export async function renderProject(
   }
 
   // run pre-render step if we are rendering all files
-  if (files.length > 0 && context.config?.project?.[kProjectPreRender]) {
+  if (
+    filesToRender.length > 0 && context.config?.project?.[kProjectPreRender]
+  ) {
     await runPreRender(
       projDir,
       context.config?.project?.[kProjectPreRender]!,
@@ -171,7 +182,8 @@ export async function renderProject(
       !!options.flags?.quiet,
       {
         ...prePostEnv,
-        QUARTO_PROJECT_INPUT_FILES: files
+        QUARTO_PROJECT_INPUT_FILES: filesToRender
+          .map((fileToRender) => fileToRender.path)
           .map((file) => relative(projDir, file))
           .join("\n"),
       },
@@ -199,7 +211,7 @@ export async function renderProject(
   // or a list of more than one file (don't want to leave dozens of
   // kernels in memory)
   if (
-    files.length > 1 && options.flags &&
+    filesToRender.length > 1 && options.flags &&
     options.flags.executeDaemon === undefined
   ) {
     options.flags.executeDaemon = 0;
@@ -235,7 +247,7 @@ export async function renderProject(
   try {
     // render the files
     const fileResults = await renderFiles(
-      files,
+      filesToRender,
       options,
       alwaysExecuteFiles,
       projType?.pandocRenderer
@@ -432,7 +444,10 @@ export async function renderProject(
       }
 
       // run post-render if this isn't incremental
-      if (files.length > 0 && context.config?.project?.[kProjectPostRender]) {
+      if (
+        filesToRender.length > 0 &&
+        context.config?.project?.[kProjectPostRender]
+      ) {
         await runPostRender(
           projDir,
           context.config?.project?.[kProjectPostRender]!,
@@ -451,7 +466,11 @@ export async function renderProject(
     // Mark any rendered files as supplemental if that
     // is how they got into the render list
     projResults.files.forEach((file) => {
-      if (supplements.files.includes(join(projDir, file.input))) {
+      if (
+        supplements.files.find((supFile) => {
+          return supFile.path === join(projDir, file.input);
+        })
+      ) {
         file.supplemental = true;
       }
     });

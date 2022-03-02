@@ -1,0 +1,12 @@
+- name: citation
+  schema:
+    anyOf:
+      - ref: csl-item
+      - boolean
+  description:
+    short: Citation information for the document itself.
+    long: |
+      Citation information for the document itself specified as [CSL](https://docs.citationstyles.org/en/stable/specification.html) 
+      YAML in the document front matter.
+
+      For more on supported options, see [Citation Metadata](https://quarto.org/docs/reference/metadata/citation.html).

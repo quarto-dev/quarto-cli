@@ -1,5 +1,5 @@
 import { yamlValidationUnitTest } from "./utils.ts";
-import { getExpandedFormatAliases } from "../../../src/core/schema/format-aliases.ts";
+import { getExpandedFormatAliases } from "../../../src/core/lib/yaml-schema/format-aliases.ts";
 import { assert } from "testing/asserts.ts";
 
 // deno-lint-ignore require-await

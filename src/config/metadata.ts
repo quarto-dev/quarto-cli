@@ -13,7 +13,7 @@ import { error } from "log/mod.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { mergeArrayCustomizer } from "../core/config.ts";
-import { Schema } from "../core/lib/yaml-validation/types.ts";
+import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 import {
   kExecuteDefaults,

@@ -48,7 +48,10 @@ import { readListings } from "./website-listing-read.ts";
 import { categorySidebar } from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { createFeed } from "./website-listing-feed.ts";
-import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
+import {
+  HtmlPostProcessResult,
+  RenderFile,
+} from "../../../../command/render/types.ts";
 import {
   cacheListingProjectData,
   clearListingProjectData,
@@ -61,7 +64,7 @@ import { touch } from "../../../../core/file.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,
-  inputs: string[],
+  inputs: RenderFile[],
   incremental: boolean,
 ) {
   if (incremental) {
@@ -72,6 +75,7 @@ export function listingSupplementalFiles(
     const listingMap = listingProjData.listingMap || {};
 
     const listingFiles = Object.keys(listingMap);
+    const inputPaths = inputs.map((inp) => inp.path);
 
     // For each listing, rerun the globs in contents
     // against the rendered file list. If a glob matches
@@ -81,7 +85,7 @@ export function listingSupplementalFiles(
     const matching = listingFiles.filter((listingFile) => {
       const listingDir = join(project.dir, dirname(listingFile));
       const globs = listingMap[listingFile];
-      if (filterPaths(listingDir, inputs, globs).include.length > 0) {
+      if (filterPaths(listingDir, inputPaths, globs).include.length > 0) {
         return true;
       }
     });
@@ -91,7 +95,9 @@ export function listingSupplementalFiles(
         return join(project.dir, listingRelativePath);
       });
       const files = uniqBy(supplementalFiles.filter((file) => {
-        return !inputs.includes(file) && existsSync(file);
+        return !inputs.find((inp) => {
+          return inp.path === file;
+        }) && existsSync(file);
       }));
 
       const onRenderComplete = async (
@@ -111,7 +117,12 @@ export function listingSupplementalFiles(
         }
       };
 
-      return { files, onRenderComplete };
+      return {
+        files: files.map((file) => {
+          return { path: file, formats: ["html", "html4", "html5"] };
+        }),
+        onRenderComplete,
+      };
     } else {
       return { files: [] };
     }

@@ -7,20 +7,8 @@
 *
 */
 
-import { resourcePath } from "../../resources.ts";
-import { setSchemaDefinition } from "./schema.ts";
-import { getSchemas, QuartoJsonSchemas, setSchemas } from "./schema-utils.ts";
+import { initYamlIntelligence } from "../yaml-intelligence/yaml-intelligence.ts";
 
-// deno-lint-ignore require-await
 export async function initPrecompiledModules() {
-  setSchemas(JSON.parse(
-    Deno.readTextFileSync(
-      resourcePath("editor/tools/yaml/quarto-json-schemas.json"),
-    ),
-  ) as QuartoJsonSchemas);
-
-  const schemaDefs = getSchemas().definitions;
-  for (const [_key, value] of Object.entries(schemaDefs)) {
-    setSchemaDefinition(value);
-  }
+  await initYamlIntelligence();
 }

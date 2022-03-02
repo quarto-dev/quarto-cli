@@ -5,17 +5,30 @@
 *
 */
 
-import { kLang, kSectionTitleReuse } from "../../config/constants.ts";
+import {
+  kAppendixAttributionBibTex,
+  kAppendixAttributionCiteAs,
+  kLang,
+  kSectionTitleCitation,
+  kSectionTitleReuse,
+} from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
-
+import { renderBibTex, renderHtml } from "../../core/bibliography.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import {
+  documentCSL,
+  getCSLPath,
+} from "../../quarto-core/attribution/document.ts";
+import {
+  createCodeBlock,
+  createCodeCopyButton,
   hasMarginCites,
   hasMarginRefs,
   insertFootnotesTitle,
   insertReferencesTitle,
   insertTitle,
   kAppendixStyle,
+  kCitation,
   kLicense,
 } from "./format-html-shared.ts";
 
@@ -31,15 +44,21 @@ const kStyleDefault = "default";
 
 const kAppendixHeadingClass = "quarto-appendix-heading";
 const kAppendixContentsClass = "quarto-appendix-contents";
+const kQuartoSecondaryLabelClass = "quarto-appendix-secondary-label";
+const kQuartoCiteAsClass = "quarto-appendix-citeas";
+const kQuartoCiteBibtexClass = "quarto-appendix-bibtex";
 const kAppendixId = "quarto-appendix";
 
-export function processDocumentAppendix(
+export async function processDocumentAppendix(
+  input: string,
   format: Format,
   flags: PandocFlags,
   doc: Document,
+  offset?: string,
 ) {
   // Don't do anything at all if the appendix-style is false or 'none'
   if (
+    format.metadata.book || // It never makes sense to process the appendix when we're in a book
     format.metadata[kAppendixStyle] === false ||
     format.metadata[kAppendixStyle] === "none"
   ) {
@@ -89,16 +108,35 @@ export function processDocumentAppendix(
     if (!hasMarginCites(format)) {
       const refsEl = doc.getElementById("refs");
       if (refsEl) {
+        const findRefTitle = (refsEl: Element) => {
+          const parentEl = refsEl.parentElement;
+          if (
+            parentEl && parentEl.tagName === "SECTION" &&
+            parentEl.childElementCount === 2 // The section has only the heading + the refs div
+          ) {
+            const headingEl = parentEl.querySelector("h2, h3, h4, h5, h6");
+            if (headingEl) {
+              headingEl.remove();
+              return headingEl.innerText;
+            }
+          }
+        };
+        const existingTitle = findRefTitle(refsEl);
         addSection((sectionEl) => {
           sectionEl.setAttribute("role", "doc-bibliography");
           sectionEl.appendChild(refsEl);
-          insertReferencesTitle(
-            doc,
-            sectionEl,
-            format.language,
-            2,
-            headingClasses,
-          );
+
+          if (existingTitle) {
+            insertTitle(doc, sectionEl, existingTitle, 2, headingClasses);
+          } else {
+            insertReferencesTitle(
+              doc,
+              sectionEl,
+              format.language,
+              2,
+              headingClasses,
+            );
+          }
         });
       }
     }
@@ -122,7 +160,6 @@ export function processDocumentAppendix(
     // Place Re-use, if appropriate
     if (format.metadata[kLicense]) {
       addSection((sectionEl) => {
-        sectionEl.setAttribute("role", "doc-bibliography");
         const contentsDiv = doc.createElement("DIV");
         contentsDiv.id = "quarto-reuse";
         contentsDiv.classList.add(
@@ -149,6 +186,50 @@ export function processDocumentAppendix(
         }
         sectionEl.appendChild(contentsDiv);
       }, format.language[kSectionTitleReuse] || "Usage");
+    }
+
+    // Place the citation for this document itself, if appropriate
+    if (format.metadata[kCitation]) {
+      // Render the citation data for this document
+      const cite = await generateCite(input, format, offset);
+      if (cite?.bibtex || cite?.html) {
+        addSection((sectionEl) => {
+          const contentsDiv = doc.createElement("DIV");
+          sectionEl.appendChild(contentsDiv);
+
+          if (cite?.bibtex) {
+            // Add the bibtext representation to the appendix
+            const bibTexLabelEl = doc.createElement("DIV");
+            bibTexLabelEl.classList.add(kQuartoSecondaryLabelClass);
+            bibTexLabelEl.innerText =
+              format.language[kAppendixAttributionBibTex] ||
+              "BibTeX citation";
+            contentsDiv.appendChild(bibTexLabelEl);
+
+            const bibTexDiv = createCodeBlock(doc, cite.bibtex, "bibtex");
+            bibTexDiv.classList.add(kQuartoCiteBibtexClass);
+            contentsDiv.appendChild(bibTexDiv);
+
+            const copyButton = createCodeCopyButton(doc, format);
+            bibTexDiv.appendChild(copyButton);
+          }
+
+          if (cite?.html) {
+            // Add the cite as to the appendix
+            const citeLabelEl = doc.createElement("DIV");
+            citeLabelEl.classList.add(kQuartoSecondaryLabelClass);
+            citeLabelEl.innerText =
+              format.language[kAppendixAttributionCiteAs] ||
+              "For attribution, please cite this work as:";
+            contentsDiv.appendChild(citeLabelEl);
+            const entry = extractCiteEl(cite.html, doc);
+            if (entry) {
+              entry.classList.add(kQuartoCiteAsClass);
+              contentsDiv.appendChild(entry);
+            }
+          }
+        }, format.language[kSectionTitleCitation] || "Citation");
+      }
     }
 
     // Move any sections that are marked as appendices
@@ -244,5 +325,42 @@ function creativeCommonsUrl(license: string, lang?: string) {
     }`;
   } else {
     return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/4.0/`;
+  }
+}
+
+async function generateCite(input: string, format: Format, offset?: string) {
+  const entry = documentCSL(input, format, "webpage", offset);
+  if (entry) {
+    // Render the HTML and BibTeX form of this document
+    const cslPath = getCSLPath(input, format);
+    const html = await renderHtml(entry, cslPath);
+    const bibtex = await renderBibTex(entry);
+    return {
+      html,
+      bibtex,
+    };
+  } else {
+    return undefined;
+  }
+}
+
+// The removes any addition left margin markup that is added
+// to the rendered citation (e.g. a number or so on)
+function extractCiteEl(html: string, doc: Document) {
+  const htmlDiv = doc.createElement("DIV");
+  htmlDiv.innerHTML = html;
+  const entry = htmlDiv.querySelector(".csl-entry");
+  if (entry) {
+    const leftMarginEl = entry.querySelector(".csl-left-margin");
+    if (leftMarginEl) {
+      leftMarginEl.remove();
+      const rightEl = entry.querySelector(".csl-right-inline");
+      if (rightEl) {
+        rightEl.classList.remove("csl-right-inline");
+      }
+    }
+    return entry;
+  } else {
+    return undefined;
   }
 }

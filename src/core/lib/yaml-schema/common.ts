@@ -12,9 +12,7 @@
 *
 */
 
-import { mergeConfigs } from "../config.ts";
-
-import { CaseConvention, resolveCaseConventionRegex } from "../lib/text.ts";
+import { CaseConvention, resolveCaseConventionRegex } from "../text.ts";
 
 import {
   AllOfSchema,
@@ -29,10 +27,9 @@ import {
   ObjectSchema,
   RefSchema,
   Schema,
+  schemaDescription,
   StringSchema,
-} from "../lib/yaml-validation/types.ts";
-
-import { schemaDescription } from "../lib/yaml-validation/types.ts";
+} from "./types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -74,7 +71,10 @@ export function tagSchema<T extends ConcreteSchema>(
 ): T {
   return {
     ...schema,
-    tags: mergeConfigs(schema?.tags ?? {}, tags),
+    tags: {
+      ...(schema.tags || {}),
+      ...tags,
+    },
   };
 }
 
@@ -240,7 +240,7 @@ export function objectSchema(params: {
     );
 
     if (required) {
-      result.required = (result.required ?? []).slice();
+      result.required = (result.required || []).slice();
       result.required.push(...required);
     }
 
@@ -273,7 +273,7 @@ export function objectSchema(params: {
 
     if (propertyNames !== undefined) {
       if (result.propertyNames !== undefined) {
-        result.propertyNames = allOfSchema(propertyNames, result.propertyNames);
+        result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
       } else {
         result.propertyNames = propertyNames;
       }
@@ -365,7 +365,7 @@ export function completeSchema<T extends ConcreteSchema>(
   ...completions: string[]
 ): T {
   const result = Object.assign({}, schema);
-  const prevCompletions = (schema.completions ?? []).slice();
+  const prevCompletions = (schema.completions || []).slice();
   prevCompletions.push(...completions);
   result.completions = prevCompletions;
   return result;
@@ -413,6 +413,6 @@ export function valueSchema(
   return {
     "type": "enum",
     "enum": [val], // enum takes non-strings too (!)
-    "description": description ?? `be ${JSON.stringify(val)}`,
+    "description": description || `be ${JSON.stringify(val)}`,
   };
 }

@@ -59,7 +59,8 @@ export async function prepareDist(
   await buildAssets();
   const buildAssetFiles = [
     "formats/html/ojs/esbuild-bundle.js",
-    "editor/tools/yaml/quarto-json-schemas.json",
+    "editor/tools/yaml/yaml-intelligence-resources.json",
+    "editor/tools/yaml/web-worker.js",
     "editor/tools/yaml/yaml.js",
   ];
   for (const file of buildAssetFiles) {

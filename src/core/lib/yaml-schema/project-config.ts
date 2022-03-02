@@ -13,7 +13,7 @@ import {
   objectSchema as objectS,
 } from "./common.ts";
 
-import { objectSchemaFromFieldsFile } from "./from-yaml.ts";
+import { objectSchemaFromFieldsObject, SchemaField } from "./from-yaml.ts";
 
 import { getFormatExecuteOptionsSchema } from "./execute.ts";
 
@@ -22,14 +22,16 @@ import {
   getFrontMatterSchema,
 } from "./front-matter.ts";
 
-import { schemaPath } from "./utils.ts";
 import { defineCached } from "./definitions.ts";
+import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
 
 export const getProjectConfigFieldsSchema = defineCached(
   // deno-lint-ignore require-await
   async () => {
     return {
-      schema: objectSchemaFromFieldsFile(schemaPath("project.yml")),
+      schema: objectSchemaFromFieldsObject(
+        getYamlIntelligenceResource("schema/project.yml") as SchemaField[],
+      ),
       errorHandlers: [],
     };
   },

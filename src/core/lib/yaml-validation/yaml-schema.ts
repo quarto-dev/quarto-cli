@@ -12,11 +12,14 @@ import { MappedString } from "../mapped-text.ts";
 
 import { TidyverseError } from "../errors.ts";
 
-import { Schema } from "./types.ts";
-
 import { validate } from "./validator.ts";
 
-import { AnnotatedParse, JSONValue, LocalizedError } from "./types.ts";
+import {
+  AnnotatedParse,
+  JSONValue,
+  LocalizedError,
+  Schema,
+} from "../yaml-schema/types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 

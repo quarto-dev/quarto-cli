@@ -56,6 +56,7 @@ import {
 
 import {
   clipboardDependency,
+  createCodeCopyButton,
   kAnchorSections,
   kBootstrapDependencyName,
   kCitationsHover,
@@ -85,6 +86,7 @@ import {
   getDiscussionCategoryId,
   getGithubDiscussionsMetadata,
 } from "../../core/giscus.ts";
+import { metadataPostProcessor } from "./format-html-meta.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -109,11 +111,12 @@ export function htmlFormat(
         format: Format,
         _libDir: string,
         temp: TempContext,
+        offset: string,
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          await htmlFormatExtras(format, temp),
-          themeFormatExtras(input, flags, format),
+          await htmlFormatExtras(input, offset, format, temp),
+          themeFormatExtras(input, flags, format, offset),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -149,6 +152,8 @@ export interface HtmlFormatScssOptions {
 }
 
 export async function htmlFormatExtras(
+  input: string,
+  offset: string,
   format: Format,
   temp: TempContext,
   featureDefaults?: HtmlFormatFeatureDefaults,
@@ -477,7 +482,10 @@ export async function htmlFormatExtras(
     html: {
       [kDependencies]: dependencies,
       [kSassBundles]: sassBundles,
-      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format, featureDefaults)],
+      [kHtmlPostprocessors]: [
+        htmlFormatPostprocessor(format, featureDefaults),
+        metadataPostProcessor(input, format, offset),
+      ],
     },
   };
 }
@@ -540,14 +548,7 @@ function htmlFormatPostprocessor(
       // insert code copy button
       if (codeCopy) {
         code.classList.add("code-with-copy");
-        const copyButton = doc.createElement("button");
-        const title = format.language[kCopyButtonTooltip]!;
-        copyButton.setAttribute("title", title);
-        copyButton.classList
-          .add("code-copy-button");
-        const copyIcon = doc.createElement("i");
-        copyIcon.classList.add("bi");
-        copyButton.appendChild(copyIcon);
+        const copyButton = createCodeCopyButton(doc, format);
         code.appendChild(copyButton);
       }
 
@@ -626,7 +627,12 @@ function htmlFormatPostprocessor(
   };
 }
 
-function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
+function themeFormatExtras(
+  input: string,
+  flags: PandocFlags,
+  format: Format,
+  offset?: string,
+) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
     return {
@@ -637,7 +643,7 @@ function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format);
+    return boostrapExtras(input, flags, format, offset);
   }
 }
 

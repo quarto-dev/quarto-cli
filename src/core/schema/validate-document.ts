@@ -9,7 +9,6 @@ import { RenderContext } from "../../command/render/types.ts";
 import { breakQuartoMd } from "../break-quarto-md.ts";
 import { asMappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
-import { getFrontMatterSchema } from "./front-matter.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error } from "log/mod.ts";
 import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
@@ -17,12 +16,15 @@ import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
 import { relative } from "path/mod.ts";
 
-import { reportOnce } from "../lib/errors.ts";
-
-import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
+import {
+  reportOnce,
+  TidyverseError,
+  tidyverseFormatError,
+} from "../lib/errors.ts";
 import { isObject } from "../lodash.ts";
 
-import { JSONValue, LocalizedError } from "../lib/yaml-validation/types.ts";
+import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";
+import { JSONValue, LocalizedError } from "../lib/yaml-schema/types.ts";
 
 export async function validateDocumentFromSource(
   src: string,

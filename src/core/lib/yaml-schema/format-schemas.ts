@@ -7,8 +7,6 @@
 *
 */
 
-import { Schema } from "../lib/yaml-validation/types.ts";
-
 import { expandFormatAliases } from "./format-aliases.ts";
 
 import {
@@ -17,12 +15,17 @@ import {
   schemaFromField,
 } from "./from-yaml.ts";
 
-import { anyOfSchema as anyOfS, enumSchema as enumS } from "./common.ts";
+import {
+  anyOfSchema as anyOfS,
+  enumSchema as enumS,
+} from "../yaml-schema/common.ts";
 
-import { ConcreteSchema } from "../lib/yaml-validation/types.ts";
+import { ConcreteSchema, Schema } from "./types.ts";
 
 function useSchema(schema: ConcreteSchema, format: string) {
-  const formats = schema?.tags?.formats as string[] | undefined;
+  const formats = (schema && schema.tags && schema.tags.formats) as
+    | string[]
+    | undefined;
   if (formats === undefined) {
     return true;
   }

@@ -6,13 +6,13 @@
  */
 
 import { schemaPath } from "../../../src/core/schema/utils.ts";
-import { getSchemaSchemas } from "../../../src/core/schema/yaml-schema-schema.ts";
+import { getSchemaSchemas } from "../../../src/core/lib/yaml-schema/yaml-schema-schema.ts";
 import { yamlValidationUnitTest } from "./utils.ts";
 import {
   arraySchema,
   idSchema,
   refSchema,
-} from "../../../src/core/schema/common.ts";
+} from "../../../src/core/lib/yaml-schema/common.ts";
 import { readAndValidateYamlFromFile } from "../../../src/core/schema/validated-yaml.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 
