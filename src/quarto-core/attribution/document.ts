@@ -37,6 +37,7 @@ const kType = "type";
 const kCategories = "categories";
 const kLanguage = "language";
 const kAvailableDate = "available-date";
+const kIssued = "issued";
 const kDate = "date";
 
 const kPublisher = "publisher";
@@ -129,7 +130,7 @@ export function documentCSL(
   }
 
   // Issued date
-  const issued = citationMetadata[kDate] || format.metadata[kDate];
+  const issued = citationMetadata[kIssued] || format.metadata[kDate];
   if (issued) {
     csl.issued = cslDate(issued);
   }

@@ -1207,7 +1207,9 @@
             is missing a required field, an error will occur and the render will.
 
 - id: csl-date
-  schema: string
+  anyOf:
+    - string
+    - maybeArrayOf: number
 
 - id: csl-person
   anyOf:
