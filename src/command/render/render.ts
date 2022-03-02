@@ -76,7 +76,12 @@ import { defaultWriterFormat } from "../../format/formats.ts";
 
 import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 
-import { HtmlPostProcessResult, PandocOptions, RenderFlags } from "./types.ts";
+import {
+  HtmlPostProcessResult,
+  PandocOptions,
+  RenderFile,
+  RenderFlags,
+} from "./types.ts";
 import { runPandoc } from "./pandoc.ts";
 import { removePandocToArg, resolveParams } from "./flags.ts";
 import { renderCleanup } from "./cleanup.ts";
@@ -141,7 +146,7 @@ import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
 
 export async function renderFiles(
-  files: string[],
+  files: RenderFile[],
   options: RenderOptions,
   alwaysExecuteFiles?: string[],
   pandocRenderer?: PandocRenderer,
@@ -173,7 +178,7 @@ export async function renderFiles(
       if (progress) {
         renderProgress(
           `[${String(i + 1).padStart(numWidth)}/${files.length}] ${
-            relative(project!.dir, file)
+            relative(project!.dir, file.path)
           }`,
         );
       }
@@ -192,14 +197,14 @@ export async function renderFiles(
         // reconstruct the context as best we can and try to validate.
         // note that this ignores "validate-yaml: false"
         const { engine, target } = await fileExecutionEngineAndTarget(
-          file,
+          file.path,
           options.flags?.quiet,
         );
         const validationResult = await validateDocumentFromSource(
           target.markdown,
           engine.name,
           error,
-          file,
+          file.path,
         );
         if (validationResult.length) {
           throw new RenderInvalidYAMLError();
@@ -223,7 +228,7 @@ export async function renderFiles(
         // determine execute options
         const executeOptions = mergeConfigs(
           {
-            alwaysExecute: alwaysExecuteFiles?.includes(file),
+            alwaysExecute: alwaysExecuteFiles?.includes(file.path),
           },
           pandocRenderer.onBeforeExecute(recipe.format),
         );
@@ -282,7 +287,7 @@ export async function renderFiles(
 }
 
 export async function renderContexts(
-  file: string,
+  file: RenderFile,
   options: RenderOptions,
   forExecute: boolean,
   project?: ProjectContext,
@@ -291,12 +296,12 @@ export async function renderContexts(
   options = ld.cloneDeep(options) as RenderOptions;
 
   const { engine, target } = await fileExecutionEngineAndTarget(
-    file,
+    file.path,
     options.flags?.quiet,
   );
 
   // resolve render target
-  const formats = await resolveFormats(target, engine, options, project);
+  const formats = await resolveFormats(file, target, engine, options, project);
 
   // remove --to (it's been resolved into contexts)
   options = removePandocTo(options);
@@ -304,9 +309,9 @@ export async function renderContexts(
   // see if there is a libDir
   let libDir = project?.config?.project[kProjectLibDir];
   if (project && libDir) {
-    libDir = relative(dirname(file), join(project.dir, libDir));
+    libDir = relative(dirname(file.path), join(project.dir, libDir));
   } else {
-    libDir = filesDirLibDir(file);
+    libDir = filesDirLibDir(file.path);
   }
 
   // return contexts
@@ -337,7 +342,7 @@ export async function renderFormats(
   const tempContext = createTempContext();
   try {
     const contexts = await renderContexts(
-      file,
+      { path: file },
       { temp: tempContext, flags: { to } },
       false,
       project,
@@ -1007,6 +1012,7 @@ async function runHtmlPostprocessors(
 }
 
 async function resolveFormats(
+  file: RenderFile,
   target: ExecutionTarget,
   engine: ExecutionEngine,
   options: RenderOptions,
@@ -1051,6 +1057,20 @@ async function resolveFormats(
     formats = projFormatKeys;
   }
 
+  // If the file itself has specified permissible
+  // formats, filter the list of formats to only
+  // include those formats
+  if (file.formats) {
+    formats = formats.filter((format) => {
+      return file.formats?.includes(format);
+    });
+
+    // Remove any 'to' information that will force the
+    // rnedering to a particular format
+    options = ld.cloneDeep(options);
+    delete options.flags?.to;
+  }
+
   // resolve formats for each type of metadata
   const projFormats = await resolveFormatsFromMetadata(
     projMetadata,
@@ -1079,6 +1099,7 @@ async function resolveFormats(
       Object.keys(inputFormats),
     ),
   );
+
   const mergedFormats: Record<string, Format> = {};
   targetFormats.forEach((format: string) => {
     // alias formats
