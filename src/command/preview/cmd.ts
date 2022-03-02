@@ -91,9 +91,6 @@ export const previewCommand = new Command()
   .option(
     "--timeout",
     "Time (in seconds) after which to exit if there are no active clients.",
-    {
-      default: 2,
-    },
   )
   .arguments("[file:string] [...args:string]")
   .description(
@@ -209,7 +206,7 @@ export const previewCommand = new Command()
       options.timeout = parseInt(args[timeoutPos + 1]);
       args.splice(timeoutPos, 2);
     } else {
-      options.timeout = 2;
+      options.timeout = 0;
     }
     // alias for --no-watch-inputs (used by older versions of quarto r package)
     const noWatchPos = args.indexOf("--no-watch");
