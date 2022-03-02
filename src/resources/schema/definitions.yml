@@ -1245,12 +1245,18 @@
       archive:
         string:
           description: Archive storing the item
-      archive_collection:
+      archive-collection:
         string:
           description: Collection the item is part of within an archive.
-      archive_location:
+      archive_collection:
+        string:
+          hidden: true
+      archive-location:
         string:
           description: Storage location within an archive (e.g. a box and folder number).
+      archive_location:
+        string:
+          hidden: true
       archive-place:
         string:
           description: Geographic location of the archive.
@@ -1300,9 +1306,12 @@
       division:
         string:
           description: Minor subdivision of a court with a `jurisdiction` for a legal item
-      DOI:
+      doi:
         string:
           description: Digital Object Identifier (e.g. "10.1128/AEM.02591-07")
+      DOI:
+        string:
+          hidden: true
       event:
         string:
           hidden: true
@@ -1320,12 +1329,18 @@
               Type, class, or subtype of the item (e.g. "Doctoral dissertation" for a PhD thesis; "NIH Publication" for an NIH technical report);
 
               Do not use for topical descriptions or categories (e.g. "adventure" for an adventure movie)
-      ISBN:
+      isbn:
         string:
           description: International Standard Book Number (e.g. "978-3-8474-1017-1").
-      ISSN:
+      ISBN:
+        string:
+          hidden: true
+      issn:
         string:
           description: International Standard Serial Number.
+      ISSN:
+        string:
+          hidden: true
       jurisdiction:
         string:
           description: Geographic scope of relevance (e.g. "US" for a US patent; the court hearing a legal case).
@@ -1363,16 +1378,22 @@
           description: Geographic location of the original publisher (e.g. "London, UK").
       original-title:
         string:
-          description: Title of the original version (e.g. "Война и мир", the untranslated Russian title of “War and Peace”).
+          description: Title of the original version (e.g. "Война и мир", the untranslated Russian title of "War and Peace").
       part-title:
         string:
           description: Title of the specific part of an item being cited.
-      PMCID:
+      pmcid:
         string:
           description: PubMed Central reference number.
-      PMID:
+      PMCID:
+        string:
+          hidden: true
+      pmid:
         string:
           description: PubMed reference number.
+      PMID:
+        string:
+          hidden: true
       publisher:
         string:
           description: The publisher of the item.
@@ -1410,9 +1431,12 @@
         string:
           description: Short/abbreviated form of`title`.
         hidden: true
-      URL:
+      url:
         string:
           description: Uniform Resource Locator (e.g. "https://aem.asm.org/cgi/content/full/74/9/2766")
+      URL:
+        string:
+          hidden: true
       volume-title:
         string:
           description:

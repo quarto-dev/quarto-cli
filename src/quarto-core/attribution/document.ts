@@ -10,7 +10,6 @@ import {
   kAbstract,
   kAuthor,
   kCsl,
-  kDoi,
   kLang,
   kOutputFile,
   kTitle,
@@ -28,8 +27,9 @@ import {
 import { kSiteUrl } from "../../project/types/website/website-config.ts";
 import { kWebsite } from "../../project/types/website/website-config.ts";
 
+const kDOI = "DOI";
 const kCitation = "citation";
-const kUrl = "url";
+const kURL = "URL";
 const kId = "id";
 const kCitationKey = "citation-key";
 
@@ -45,11 +45,15 @@ const kVolume = "volume";
 const kIssue = "issue";
 const kISSN = "issn";
 const kISBN = "isbn";
+const kPMCID = "pmcid";
+const kPMID = "pmid";
 const kFirstPage = "firstpage";
 const kLastPage = "lastpage";
 const kPage = "page";
 const kNumber = "number";
 const kCustom = "custom";
+const kArchiveCollection = "archive_collection";
+const kArchiveLocation = "archive_location";
 
 // Provides an absolute path to the referenced CSL file
 export const getCSLPath = (input: string, format: Format) => {
@@ -102,12 +106,6 @@ export function documentCSL(
     authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
   );
 
-  // Url
-  const url = documentCitationUrl(input, format, offset);
-  if (url) {
-    csl.URL = url;
-  }
-
   // Categories
   const categories =
     (citationMetadata[kCategories] || format.metadata[kCategories]);
@@ -158,10 +156,43 @@ export function documentCSL(
   csl.id = citationMetadata[kId] as string ||
     suggestId(csl.author, csl.issued);
 
+  // This is a helper function that will search
+  // metadata for the original key, or a transformed
+  // version of it (for example, all upper, then all lower)
+  const findValue = (
+    baseKey: string,
+    metadata: Metadata[],
+    transform: (key: string) => string,
+  ) => {
+    const keys = [baseKey, transform(baseKey)];
+    for (const key of keys) {
+      for (const md of metadata) {
+        const value = md[key] as
+          | string
+          | undefined;
+        if (value) {
+          return value;
+        }
+      }
+    }
+  };
+  const lowercase = (key: string) => {
+    return key.toLocaleLowerCase();
+  };
+  const kebabcase = (key: string) => {
+    return key.replaceAll("_", "_");
+  };
+
+  // Url
+  const url = findValue(kURL, [citationMetadata], lowercase);
+  if (url) {
+    csl.URL = url;
+  } else {
+    csl.URL = synthesizeCitationUrl(input, format, offset);
+  }
+
   // The DOI
-  const doi = (citationMetadata[kDoi] || format.metadata[kDoi]) as
-    | string
-    | undefined;
+  const doi = findValue(kDOI, [citationMetadata, format.metadata], lowercase);
   if (doi) {
     csl.DOI = doi;
   }
@@ -181,14 +212,24 @@ export function documentCSL(
     csl.number = number as string;
   }
 
-  const isbn = citationMetadata[kISBN];
+  const isbn = findValue(kISBN, [citationMetadata], lowercase);
   if (isbn) {
     csl.ISBN = isbn as string;
   }
 
-  const issn = citationMetadata[kISSN];
+  const issn = findValue(kISSN, [citationMetadata], lowercase);
   if (issn) {
     csl.ISSN = issn as string;
+  }
+
+  const pmcid = findValue(kPMCID, [citationMetadata], lowercase);
+  if (pmcid) {
+    csl.PMCID = pmcid as string;
+  }
+
+  const pmid = findValue(kPMID, [citationMetadata], lowercase);
+  if (pmid) {
+    csl.PMID = pmid as string;
   }
 
   const pageRange = pages(citationMetadata);
@@ -202,6 +243,24 @@ export function documentCSL(
     csl.page = pageRange.page;
   }
 
+  const archiveCollection = findValue(
+    kArchiveCollection,
+    [citationMetadata],
+    kebabcase,
+  );
+  if (archiveCollection) {
+    csl[kArchiveCollection] = archiveCollection;
+  }
+
+  const archiveLocation = findValue(
+    kArchiveLocation,
+    [citationMetadata],
+    kebabcase,
+  );
+  if (archiveLocation) {
+    csl[kArchiveLocation] = archiveLocation;
+  }
+
   const forwardStringValue = (key: string) => {
     if (citationMetadata[key] !== undefined) {
       csl[key] = citationMetadata[key] as string;
@@ -211,8 +270,6 @@ export function documentCSL(
     "title-short",
     "annote",
     "archive",
-    "archive_collection",
-    "archive_location",
     "archive-place",
     "authority",
     "call-number",
@@ -242,8 +299,6 @@ export function documentCSL(
     "original-title",
     "part",
     "part-title",
-    "PMCID",
-    "PMID",
     "printing",
     "publisher-place",
     "references",
@@ -312,6 +367,7 @@ export function documentCSL(
     csl[kCustom] = custom;
   }
 
+  console.log(csl);
   return csl;
 }
 
@@ -329,32 +385,27 @@ function citationMeta(format: Format): Record<string, unknown> {
   }
 }
 
-function documentCitationUrl(
+function synthesizeCitationUrl(
   input: string,
   format: Format,
   offset?: string,
 ) {
-  const citeMeta = citationMeta(format);
-  if (citeMeta[kUrl]) {
-    return citeMeta[kUrl] as string;
-  } else {
-    const siteMeta = format.metadata[kWebsite] as Metadata | undefined;
-    const baseUrl = siteMeta?.[kSiteUrl] as string;
-    const outputFile = format.pandoc[kOutputFile] as string;
+  const siteMeta = format.metadata[kWebsite] as Metadata | undefined;
+  const baseUrl = siteMeta?.[kSiteUrl] as string;
+  const outputFile = format.pandoc[kOutputFile] as string;
 
-    if (baseUrl && outputFile && offset) {
-      const rootDir = Deno.realPathSync(join(dirname(input), offset));
-      if (outputFile === "index.html") {
-        return `${baseUrl}/${relative(rootDir, dirname(input))}`;
-      } else {
-        return `${baseUrl}/${
-          relative(rootDir, join(dirname(input), outputFile))
-        }`;
-      }
+  if (baseUrl && outputFile && offset) {
+    const rootDir = Deno.realPathSync(join(dirname(input), offset));
+    if (outputFile === "index.html") {
+      return `${baseUrl}/${relative(rootDir, dirname(input))}`;
     } else {
-      // The url is unknown
-      return undefined;
+      return `${baseUrl}/${
+        relative(rootDir, join(dirname(input), outputFile))
+      }`;
     }
+  } else {
+    // The url is unknown
+    return undefined;
   }
 }
 
