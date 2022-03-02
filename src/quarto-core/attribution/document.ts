@@ -367,7 +367,6 @@ export function documentCSL(
     csl[kCustom] = custom;
   }
 
-  console.log(csl);
   return csl;
 }
 
