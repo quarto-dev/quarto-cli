@@ -115,6 +115,11 @@ export interface PandocRenderer {
   onComplete: (error?: boolean, quiet?: boolean) => Promise<RenderFilesResult>;
 }
 
+export interface RenderFile {
+  path: string;
+  formats?: string[];
+}
+
 export interface RenderFilesResult {
   files: RenderedFile[];
   error?: Error;

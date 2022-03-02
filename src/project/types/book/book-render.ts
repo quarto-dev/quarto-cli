@@ -477,7 +477,7 @@ export async function bookIncrementalRenderAll(
   for (let i = 0; i < files.length; i++) {
     // get contexts (formats)
     const contexts = await renderContexts(
-      files[i],
+      { path: files[i] },
       options,
       false,
       context,

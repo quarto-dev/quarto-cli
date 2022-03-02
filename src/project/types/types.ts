@@ -9,6 +9,7 @@ import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import {
   PandocRenderer,
+  RenderFile,
   RenderFlags,
   RenderOptions,
 } from "../../command/render/types.ts";
@@ -60,10 +61,10 @@ export interface ProjectType {
   ) => PandocRenderer;
   supplementRender?: (
     project: ProjectContext,
-    files: string[],
+    files: RenderFile[],
     incremental: boolean,
   ) => {
-    files: string[];
+    files: RenderFile[];
     onRenderComplete?: (
       project: ProjectContext,
       files: string[],
