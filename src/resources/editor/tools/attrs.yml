@@ -1,0 +1,36 @@
+# callouts
+
+- contexts: [div]
+  completions:
+    - value: .callout
+      doc: "Simple callout with no color, icon, or header"
+    - value: .callout-note
+      doc: "Include additional explanation or context."
+    - value: .callout-tip
+      doc: "Provide a productivity tip or other helpful guideance. "
+    - value: .callout-important
+      doc: "Emphasize content that readers should be sure to read."
+    - value: .callout-caution
+      doc: "Advise the reader to act carefully (i.e., exercise care)."
+    - value: .callout-warning
+      doc: "Inform the reader of danger, harm, or consequences that exist."
+
+- contexts: [div]
+  filter: "\\.callout"
+  completions:
+    - value: 'icon="true"'
+      doc: Include an icon in the callout.
+    - value: 'icon="false"'
+      doc: Do not include an icon in the callout.
+    - value: 'appearance="default"'
+      doc: The default appearance with colored header and an icon.
+    - value: 'appearance="simple"'
+      doc: "A lighter weight appearance that doesn’t include a colored header background."
+    - value: 'appearance="minimal"'
+      doc: |
+        A minimal treatment that applies borders to the callout, but doesn’t include 
+        a header background color or icon.
+    - value: 'collapse="true"'
+      doc: Make the callout collapsable (initially collapsed).
+    - value: 'collapse="false"'
+      doc: Make the callout collapsable (initially expanded).
