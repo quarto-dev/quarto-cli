@@ -1029,10 +1029,10 @@ export async function getAutomation(
 }
 
 export async function initYamlIntelligence(patchMarkdown = true) {
-  const schemas = await import(
+  const schemas = (await import(
     "../../../resources/editor/tools/yaml/yaml-intelligence-resources.json",
     { assert: { type: "json" } }
-  ) as Record<string, unknown>;
+  )).default as Record<string, unknown>;
   setYamlIntelligenceResources(schemas);
 
   await loadDefaultSchemaDefinitions();

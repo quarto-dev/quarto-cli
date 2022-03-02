@@ -16,11 +16,10 @@ import {
   setInitializer,
 } from "../../../src/core/lib/yaml-validation/state.ts";
 import {
-  getSchemas,
-  resolveSchema,
   schemaCompletions,
 } from "../../../src/core/lib/yaml-validation/schema-utils.ts";
-import { Completion } from "../../../src/core/lib/yaml-validation/types.ts";
+import { Completion } from "../../../src/core/lib/yaml-schema/types.ts";
+import { getEngineOptionsSchema } from "../../../src/core/lib/yaml-schema/chunk-metadata.ts";
 
 async function fullInit() {
   await initPrecompiledModules();
@@ -31,7 +30,7 @@ unitTest("schema-completions", async () => {
   setInitializer(fullInit);
   await initState();
 
-  const schema = resolveSchema(getSchemas().schemas.engines["knitr"]);
+  const schema = (await getEngineOptionsSchema())["knitr"];
   const completion = schemaCompletions(schema).filter(
     (c: Completion) => c.value === "tbl-column: ",
   )[0].description;
