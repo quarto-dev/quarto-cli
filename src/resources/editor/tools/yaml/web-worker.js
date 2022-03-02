@@ -9761,7 +9761,12 @@ try {
           },
           {
             id: "csl-date",
-            schema: "string"
+            anyOf: [
+              "string",
+              {
+                maybeArrayOf: "number"
+              }
+            ]
           },
           {
             id: "csl-person",
