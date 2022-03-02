@@ -24470,7 +24470,7 @@ ${heading}`;
     return result || null;
   }
   async function initYamlIntelligence(patchMarkdown = true) {
-    const schemas = await Promise.resolve().then(() => __toModule(require_yaml_intelligence_resources()));
+    const schemas = (await Promise.resolve().then(() => __toModule(require_yaml_intelligence_resources()))).default;
     setYamlIntelligenceResources(schemas);
     await loadDefaultSchemaDefinitions();
     getFormatAliases();
