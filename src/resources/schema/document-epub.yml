@@ -114,7 +114,7 @@
   description: Sets the global direction in which content flows (`ltr` or `rtl`)
 
 - name: ibooks
-  description: MISSING_DESCRIPTION
+  description: iBooks specific metadata options.
   tags:
     formats: [$epub-all]
   schema: 

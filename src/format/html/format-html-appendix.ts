@@ -58,6 +58,7 @@ export async function processDocumentAppendix(
 ) {
   // Don't do anything at all if the appendix-style is false or 'none'
   if (
+    format.metadata.book || // It never makes sense to process the appendix when we're in a book
     format.metadata[kAppendixStyle] === false ||
     format.metadata[kAppendixStyle] === "none"
   ) {
@@ -107,16 +108,35 @@ export async function processDocumentAppendix(
     if (!hasMarginCites(format)) {
       const refsEl = doc.getElementById("refs");
       if (refsEl) {
+        const findRefTitle = (refsEl: Element) => {
+          const parentEl = refsEl.parentElement;
+          if (
+            parentEl && parentEl.tagName === "SECTION" &&
+            parentEl.childElementCount === 2 // The section has only the heading + the refs div
+          ) {
+            const headingEl = parentEl.querySelector("h2, h3, h4, h5, h6");
+            if (headingEl) {
+              headingEl.remove();
+              return headingEl.innerText;
+            }
+          }
+        };
+        const existingTitle = findRefTitle(refsEl);
         addSection((sectionEl) => {
           sectionEl.setAttribute("role", "doc-bibliography");
           sectionEl.appendChild(refsEl);
-          insertReferencesTitle(
-            doc,
-            sectionEl,
-            format.language,
-            2,
-            headingClasses,
-          );
+
+          if (existingTitle) {
+            insertTitle(doc, sectionEl, existingTitle, 2, headingClasses);
+          } else {
+            insertReferencesTitle(
+              doc,
+              sectionEl,
+              format.language,
+              2,
+              headingClasses,
+            );
+          }
         });
       }
     }

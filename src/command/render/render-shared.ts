@@ -36,7 +36,10 @@ import {
 } from "../../core/platform.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 
-import { setInitializer, initState } from "../../core/lib/yaml-validation/state.ts";
+import {
+  initState,
+  setInitializer,
+} from "../../core/lib/yaml-validation/state.ts";
 import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
 
 export async function render(
@@ -79,7 +82,7 @@ export async function render(
   }
 
   // otherwise it's just a file render
-  const result = await renderFiles([path], options);
+  const result = await renderFiles([{ path }], options);
 
   // get partitioned markdown if we had result files
   const engine = fileExecutionEngine(path);

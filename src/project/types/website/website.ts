@@ -70,6 +70,7 @@ import {
 import { completeStagedFeeds } from "./listing/website-listing-feed.ts";
 import { aboutHtmlDependencies } from "./about/website-about.ts";
 import { resolveFormatForGiscus } from "./website-giscus.ts";
+import { RenderFile } from "../../../command/render/types.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -101,7 +102,7 @@ export const websiteProjectType: ProjectType = {
 
   supplementRender: (
     project: ProjectContext,
-    files: string[],
+    files: RenderFile[],
     incremental: boolean,
   ) => {
     const listingSupplements = listingSupplementalFiles(
