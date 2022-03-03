@@ -26,8 +26,11 @@ import {
 import { cssFileResourceReferences } from "../../core/css.ts";
 import { kLocalDevelopment, quartoConfig } from "../../core/quarto.ts";
 
-import { setInitializer, initState } from "../../core/lib/yaml-validation/state.ts";
-import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
+import {
+  initState,
+  setInitializer,
+} from "../../core/lib/yaml-validation/state.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
 export const inspectCommand = new Command()
   .name("inspect")
@@ -52,9 +55,9 @@ export const inspectCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, path: string) => {
     // one-time initialization of yaml validation modules
-    setInitializer(initPrecompiledModules);
+    setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();
-    
+
     path = path || Deno.cwd();
 
     if (!existsSync(path)) {

@@ -26,7 +26,7 @@ import {
   initState,
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
-import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -138,7 +138,7 @@ export const previewCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, file: string, args: string[]) => {
     // one-time initialization of yaml validation modules
-    setInitializer(initPrecompiledModules);
+    setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();
 
     file = file || Deno.cwd();

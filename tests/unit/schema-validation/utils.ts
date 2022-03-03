@@ -8,7 +8,7 @@
 import { fileLoader } from "../../utils.ts";
 import { unitTest } from "../../test.ts";
 import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
-import { initPrecompiledModules } from "../../../src/core/lib/yaml-validation/deno-init-precompiled-modules.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
 import {
   initState,
   setInitializer,
@@ -19,12 +19,11 @@ import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schem
 import { ValidationError } from "../../../src/core/schema/validated-yaml.ts";
 import { isEqual } from "../../../src/core/lodash.ts";
 import { assertRejects } from "testing/asserts.ts";
-import { cloneDeep } from "../../../src/core/lodash.ts";
 import { readYamlFromString } from "../../../src/core/yaml.ts";
 export const schemaTestFile = fileLoader("schema-validation");
 
 export async function fullInit() {
-  await initPrecompiledModules();
+  await initYamlIntelligenceResourcesFromFilesystem();
   await initTreeSitter();
   await ensureSchemaResources();
 }

@@ -40,14 +40,14 @@ import {
   initState,
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
-import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
 export async function render(
   path: string,
   options: RenderOptions,
 ): Promise<RenderResult> {
   // one time initialization of yaml validators
-  setInitializer(initPrecompiledModules);
+  setInitializer(initYamlIntelligenceResourcesFromFilesystem);
   await initState();
 
   // determine target context/files

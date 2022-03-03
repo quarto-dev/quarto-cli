@@ -10,7 +10,7 @@ import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts.ts";
 
 import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
-import { initPrecompiledModules } from "../../../src/core/lib/yaml-validation/deno-init-precompiled-modules.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
 import {
   initState,
   setInitializer,
@@ -22,7 +22,7 @@ import { Completion } from "../../../src/core/lib/yaml-schema/types.ts";
 import { getEngineOptionsSchema } from "../../../src/core/lib/yaml-schema/chunk-metadata.ts";
 
 async function fullInit() {
-  await initPrecompiledModules();
+  await initYamlIntelligenceResourcesFromFilesystem();
   await initTreeSitter();
 }
 

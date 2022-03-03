@@ -52,7 +52,6 @@ import {
   ArraySchema,
   Completion,
   ConcreteSchema,
-  JSONValue,
   ObjectSchema,
   Schema,
   schemaType,
@@ -1028,12 +1027,15 @@ export async function getAutomation(
   return result || null;
 }
 
-export async function initYamlIntelligence(patchMarkdown = true) {
-  const schemas = (await import(
-    "../../../resources/editor/tools/yaml/yaml-intelligence-resources.json",
-    { assert: { type: "json" } }
-  )).default as Record<string, unknown>;
-  setYamlIntelligenceResources(schemas);
+export async function initYamlIntelligence(obj: {
+  resourceModule: Record<string, unknown>;
+  patchMarkdown?: boolean;
+}) {
+  const {
+    resourceModule,
+    patchMarkdown,
+  } = obj;
+  setYamlIntelligenceResources(resourceModule);
 
   await loadDefaultSchemaDefinitions();
 
@@ -1053,7 +1055,7 @@ export async function initYamlIntelligence(patchMarkdown = true) {
     setSchemaDefinition(schema);
   }
 
-  if (patchMarkdown) {
+  if (patchMarkdown === undefined || patchMarkdown) {
     patchMarkdownDescriptions();
   }
 }
@@ -1061,11 +1063,19 @@ export async function initYamlIntelligence(patchMarkdown = true) {
 async function init(
   context: YamlIntelligenceContext,
 ) {
-  if (context.client && context.client === "lsp") {
-    setInitializer(async () => await initYamlIntelligence(false));
-  } else {
-    setInitializer(initYamlIntelligence);
-  }
+  const ideInit = async () => {
+    const resourceModule = (await import(
+      "../../../resources/editor/tools/yaml/yaml-intelligence-resources.json",
+      { assert: { type: "json" } }
+    )).default as Record<string, unknown>;
+
+    if (context.client && context.client === "lsp") {
+      await initYamlIntelligence({ resourceModule, patchMarkdown: false });
+    } else {
+      await initYamlIntelligence({ resourceModule });
+    }
+  };
+  setInitializer(ideInit);
   await initState();
 }
 

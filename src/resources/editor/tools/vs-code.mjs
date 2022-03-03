@@ -24502,9 +24502,12 @@ async function getAutomation(kind, context) {
   });
   return result || null;
 }
-async function initYamlIntelligence(patchMarkdown = true) {
-  const schemas = (await Promise.resolve().then(() => __toModule(require_yaml_intelligence_resources()))).default;
-  setYamlIntelligenceResources(schemas);
+async function initYamlIntelligence(obj) {
+  const {
+    resourceModule,
+    patchMarkdown
+  } = obj;
+  setYamlIntelligenceResources(resourceModule);
   await loadDefaultSchemaDefinitions();
   getFormatAliases();
   await getFrontMatterSchema();
@@ -24513,16 +24516,20 @@ async function initYamlIntelligence(patchMarkdown = true) {
   for (const schema of getYamlIntelligenceResource("schema/external-schemas.yml")) {
     setSchemaDefinition(schema);
   }
-  if (patchMarkdown) {
+  if (patchMarkdown === void 0 || patchMarkdown) {
     patchMarkdownDescriptions();
   }
 }
 async function init(context) {
-  if (context.client && context.client === "lsp") {
-    setInitializer(async () => await initYamlIntelligence(false));
-  } else {
-    setInitializer(initYamlIntelligence);
-  }
+  const ideInit = async () => {
+    const resourceModule = (await Promise.resolve().then(() => __toModule(require_yaml_intelligence_resources()))).default;
+    if (context.client && context.client === "lsp") {
+      await initYamlIntelligence({ resourceModule, patchMarkdown: false });
+    } else {
+      await initYamlIntelligence({ resourceModule });
+    }
+  };
+  setInitializer(ideInit);
   await initState();
 }
 async function getCompletions(context, _path) {
