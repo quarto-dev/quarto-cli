@@ -1,14 +1,11 @@
 import { resolve, toFileUrl } from "https://deno.land/std@0.122.0/path/mod.ts";
 import {
-  DenoInfoJSON,
-  DenoInfoModule,
   DependencyGraph,
   Edge,
   getDenoInfo,
   graphTranspose,
   moduleGraph,
   reachability,
-  ResolutionError,
 } from "./deno-info.ts";
 
 // https://stackoverflow.com/a/68702966
@@ -143,29 +140,31 @@ format: html
 
 if (import.meta.main) {
   if (Deno.args.length === 0) {
-    console.log(`inspect.ts: generate a graph visualization of import paths
+    console.log(
+      `explain-import-chain.ts: generate a graph visualization of import paths
 between files in quarto.
 
 Usage:
-  $ quarto run inspect.ts <source-file.ts> <target-file.ts>
+  $ quarto run explain-import-chain.ts <source-file.ts> <target-file.ts>
 
 Examples:
 
   From ./src:
 
-  $ quarto run ../package/scripts/common/explain.ts command/render/render.ts core/esbuild.ts
-  $ quarto run ../package/scripts/common/explain.ts command/check/cmd.ts core/lib/external/regexpp.mjs
+  $ quarto run ../package/scripts/common/explain-import-chain.ts command/render/render.ts core/esbuild.ts
+  $ quarto run ../package/scripts/common/explain-import-chain.ts command/check/cmd.ts core/lib/external/regexpp.mjs
 
 If no dependencies exist, this script will report that:
 
-  $ quarto run ../package/scripts/common/explain.ts ../package/src/bld.ts core/lib/external/tree-sitter-deno.js
+  $ quarto run ../package/scripts/common/explain-import-chain.ts ../package/src/bld.ts core/lib/external/tree-sitter-deno.js
 
     package/src/bld.ts does not depend on src/core/lib/external/tree-sitter-deno.js
-`);
+`,
+    );
     Deno.exit(1);
   }
   const json = await getDenoInfo(Deno.args[0]);
-  const { graph, errors } = moduleGraph(json);
+  const { graph } = moduleGraph(json);
 
   const targetName = Deno.args[1];
   const target = toFileUrl(resolve(targetName)).href;
