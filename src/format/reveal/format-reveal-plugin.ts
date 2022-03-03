@@ -32,16 +32,9 @@ import {
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
 
-import {
-  anyOfSchema as anyOfS,
-  arraySchema as arrayS,
-  booleanSchema as booleanS,
-  idSchema as withId,
-  objectSchema as objectS,
-  stringSchema as stringS,
-} from "../../core/lib/yaml-schema/common.ts";
-
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
+
+import { revealPluginSchema } from "./schemas.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -111,34 +104,6 @@ interface RevealPluginScript {
   path: string;
   async?: boolean;
 }
-
-const scriptSchema = anyOfS(
-  stringS,
-  objectS({
-    properties: {
-      path: stringS,
-      "async": booleanS,
-    },
-    required: ["path"],
-    // FIXME is this an exhaustive schema?
-  }),
-);
-export const revealPluginSchema = withId(
-  objectS({
-    properties: {
-      path: stringS,
-      name: stringS,
-      register: booleanS,
-      script: anyOfS(scriptSchema, arrayS(scriptSchema)),
-      stylesheet: anyOfS(stringS, arrayS(stringS)),
-      // FIXME what's the schema for metadata?
-      [kSelfContained]: booleanS,
-    },
-    required: ["name"],
-    // FIXME is this an exhaustive schema?
-  }),
-  "plugin-reveal",
-);
 
 export async function revealPluginExtras(
   format: Format,

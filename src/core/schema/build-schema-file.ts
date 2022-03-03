@@ -14,7 +14,7 @@ import {
   setSchemaDefinition,
 } from "../lib/yaml-validation/schema.ts";
 import { ensureSchemaResources } from "./yaml-schema.ts";
-import { revealPluginSchema } from "../../format/reveal/format-reveal-plugin.ts";
+import { revealPluginSchema } from "../../format/reveal/schemas.ts";
 import { DOMParser, Element, initDenoDom } from "../deno-dom.ts";
 
 import { pandocBinaryPath } from "../resources.ts";
