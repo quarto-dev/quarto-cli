@@ -39,7 +39,7 @@ if (import.meta.main) {
   const strs: string[] = [];
   for (const mod of json.modules) {
     const source = mod.specifier;
-    for (const dep of mod.dependencies) {
+    for (const dep of mod.dependencies || []) {
       if (isBadImport(source, dep)) {
         result.push({ "from": source, to: dep.code.specifier! });
         strs.push(source, dep.code.specifier!);
