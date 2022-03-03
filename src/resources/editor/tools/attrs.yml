@@ -1,6 +1,7 @@
 ## callouts
 
-- contexts: [div]
+- group: "callout"
+  contexts: [div]
   completions:
     - value: .callout
       doc: "Simple callout with no color, icon, or header"
@@ -15,7 +16,8 @@
     - value: .callout-warning
       doc: "Inform the reader of danger, harm, or consequences that exist."
 
-- contexts: [div]
+- group: "calloutAttribs"
+  contexts: [div]
   filter: "\\.callout"
   completions:
     - value: 'icon="true"'
@@ -37,7 +39,8 @@
 
 ## columns
 
-- contexts: [div, figure]
+- group: "columns"
+  contexts: [div, figure]
   completions:
     - value: ".column-margin"
       doc: Position content in the right margin
@@ -69,3 +72,47 @@
       doc: Extend content fully to the left
     - value: ".column-screen-right"
       doc: Extend content fully to the right
+
+## panels
+
+- group: "panels"
+  contexts: [div]
+  completions:
+    - value: .panel-tabset
+      doc: Panel containing a set of tabs
+    - value: .panel-sidebar
+      doc: Panel that appears to the side of the main content
+    - value: .panel-fill
+      doc: Panel that fills the region not taken by the sidebar
+    - value: .panel-center
+      doc: Panel that centers content in the region not taken by the sidebar
+    - value: .panel-input
+      doc: Panel for horizontal layout of input controls
+
+# layout
+
+- contexts: [div]
+  sortKey: "layout"
+  completions:
+    - value: 'layout="$0"'
+      doc: Custom layout specification for content
+    - value: 'layout-ncol="$0"'
+      doc: Layout output blocks into columns
+    - value: 'layout-nrow="$0"'
+      doc: Layout output blocks into rows
+    - value: 'layout-align="default"'
+      doc: Use default horizontal alignment
+    - value: 'layout-align="left"'
+      doc: Use left horizontal alignment
+    - value: 'layout-align="center"'
+      doc: Use center horizontal alignment
+    - value: 'layout-align="right"'
+      doc: Use right horizontal alignment
+    - value: 'layout-valign="default"'
+      doc: Use default vertical alignment
+    - value: 'layout-valign="top"'
+      doc: Use top vertical alignment
+    - value: 'layout-valign="center"'
+      doc: Use center vertical alignment
+    - value: 'layout-valign="bottom"'
+      doc: Use bottom vertical alignment
