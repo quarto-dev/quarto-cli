@@ -176,8 +176,7 @@ export function cslNames(authors: unknown) {
 }
 
 export function cslDate(dateRaw: unknown): CSLDate | undefined {
-  if (Array.isArray(dateRaw)) {
-    const dateArr = dateRaw as number[];
+  const toDateArray = (dateArr: number[]): CSLDate | undefined => {
     if (dateArr.length === 0) {
       return undefined;
     } else if (dateArr.length === 1) {
@@ -202,6 +201,11 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
         ]],
       };
     }
+  };
+
+  if (Array.isArray(dateRaw)) {
+    const dateArr = dateRaw as number[];
+    return toDateArray(dateArr);
   } else if (typeof (dateRaw) === "number") {
     const parseNumeric = (dateStr: string) => {
       let dateParsed = dateStr;
@@ -230,14 +234,7 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
     const dateStr = String(dateRaw);
     const dateArr = parseNumeric(dateStr);
     if (dateArr) {
-      return {
-        "date-parts": [[
-          dateArr[0],
-          dateArr.length > 1 ? dateArr[1] : undefined,
-          dateArr.length > 2 ? dateArr[2] : undefined,
-        ]],
-        raw: dateStr,
-      };
+      return toDateArray(dateArr);
     }
   } else if (typeof (dateRaw) === "string") {
     const formats = [
