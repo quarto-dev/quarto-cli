@@ -1,0 +1,32 @@
+---
+title: Package bundling health report
+format: html
+self-contained: true
+---
+
+```{python}
+#| echo: false
+import re
+import subprocess
+def run(what):
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    str = subprocess.run(
+      ("quarto run %s ../../../src/quarto.ts" % what).split(" "),
+      capture_output = True
+    ).stderr.decode('utf-8').replace("Bad import from ", "").replace(" to ", " -> ")
+    return ansi_escape.sub("", str)
+```
+
+Terminal files (`types.ts`, etc) with bad imports:
+
+```{python}
+#| echo: false
+print(run("find-bad-types-constants.ts"))
+```
+
+Other bad imports:
+
+```{python}
+#| echo: false
+print(run("find-bad-imports.ts"))
+```
