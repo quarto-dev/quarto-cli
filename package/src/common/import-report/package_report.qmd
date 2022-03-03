@@ -11,7 +11,7 @@ import subprocess
 def run(what):
     ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
     str = subprocess.run(
-      ("quarto run %s ../../../src/quarto.ts" % what).split(" "),
+      ("quarto run %s ../../../../src/quarto.ts" % what).split(" "),
       capture_output = True
     ).stderr.decode('utf-8').replace("Bad import from ", "").replace(" to ", " -> ")
     return ansi_escape.sub("", str)
