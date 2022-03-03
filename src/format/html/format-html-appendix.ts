@@ -77,9 +77,6 @@ export async function processDocumentAppendix(
     }
 
     const headingClasses = ["anchored", kAppendixHeadingClass];
-    if (appendixStyle === kStyleDefault) {
-      headingClasses.push("column-leftmargin");
-    }
 
     // Gather the sections that should be included
     // in the Appendix
@@ -262,9 +259,6 @@ export async function processDocumentAppendix(
         };
         const headerEl = extractHeaderEl();
         headerEl.classList.add(kAppendixHeadingClass);
-        if (appendixStyle === kStyleDefault) {
-          (headerEl as Element).classList.add("column-leftmargin");
-        }
 
         // Move the contents of the section into a div
         const containerDivEl = doc.createElement("DIV");
