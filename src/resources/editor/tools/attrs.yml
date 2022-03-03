@@ -89,10 +89,23 @@
     - value: .panel-input
       doc: Panel for horizontal layout of input controls
 
-# layout
+## theorem
 
-- contexts: [div]
-  sortKey: "layout"
+- group: "theorem"
+  contexts: [div]
+  completions:
+    - value: 'name="$0"'
+    - value: .proof
+      doc: Proof environment
+    - value: .remark
+      doc: Remark environment
+    - value: .solution
+      doc: Solution environment
+
+## layout
+
+- group: "layout"
+  contexts: [div]
   completions:
     - value: 'layout="$0"'
       doc: Custom layout specification for content
@@ -116,3 +129,75 @@
       doc: Use center vertical alignment
     - value: 'layout-valign="bottom"'
       doc: Use bottom vertical alignment
+
+## style
+
+- group: style
+  contexts: [div, figure]
+  completions:
+    - value: 'style="$0"'
+      doc: CSS style attributes
+    - value: 'width="$0"'
+    - value: 'height="$0"'
+
+## figure
+
+- group: figure
+  contexts: [figure]
+  completions:
+    - value: 'fig-alt="$0"'
+      doc: Alternative text for figure
+    - value: 'fig-align="default"'
+      doc: Default figure alignment
+    - value: 'fig-align="left"'
+      doc: Left figure alignment
+    - value: 'fig-align="center"'
+      doc: Center figure alignment
+    - value: 'fig-align="right"'
+      doc: Right figure alignment
+    - value: 'fig-env="$0"'
+      doc: LaTeX environment for figure
+    - value: 'fig-pos="$0"'
+      doc: |
+        LaTeX figure position arrangement to be used in `\\begin{figure}[]`
+    - value: 'fig-scap="$0"'
+      doc: LaTeX short caption
+
+## heading
+
+- group: heading
+  contexts: [heading]
+  completions:
+    - value: .unnumbered
+      doc: Do not apply numbering to heading
+    - value: .unlisted
+      doc: Do not include heading in table of contents
+
+## codeblock
+
+- group: codeblock
+  contexts: [codeblock]
+  completions:
+    - value: 'code-fold="true"'
+      doc: |
+        Fold code into an HTML `<details>` tag so the user can display it on-demand
+    - value: 'code-fold="show"'
+      doc: Show code and allow it to be optionally folded out of view
+    - value: 'code-fold="false"'
+      doc: Do not fold this code block
+    - value: 'code-summary="$0"'
+      doc: Summary text for folded code (defaults to 'Code')
+    - value: 'code-line-numbers="true"'
+      doc: Show line numbers for code block
+    - value: 'code-line-numbers="false"'
+      doc: Do not show line numbers for code block
+    - value: 'shortcodes="false"'
+      doc: Do not process shortcodes in this code block
+
+## hidden
+
+- group: hidden
+  contexts: [div, heading, figure, codeblock]
+  completions:
+    - value: .hidden
+      doc: Hide content from view
