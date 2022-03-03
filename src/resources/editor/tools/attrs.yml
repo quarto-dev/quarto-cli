@@ -201,3 +201,190 @@
   completions:
     - value: .hidden
       doc: Hide content from view
+
+# revealDiv
+
+- group: revealDiv
+  contexts: [div]
+  formats: [revealjs]
+  completions:
+    - value: .incremental
+      doc: Display bullet list incrementally
+    - value: .nonincremental
+      doc: Display bullets list all at once
+    - value: .columns
+      doc: Split content into multiple columns
+    - value: .column
+      doc: Provide column for `.columns` div
+    - value: .notes
+      doc: Slide speaker notes
+    - value: .footer
+      doc: Slide footer text
+    - value: .r-fit-text
+      doc: Fit div contents to available space
+
+- group: revealFigure
+  contexts: [figure]
+  formats: [revealjs]
+  completions:
+    - value: .r-stretch
+      doc: Stretch figure to fill available space on slide
+
+- group: revealContent
+  contexts: [div, figure]
+  formats: [revealjs]
+  completions:
+    - value: .absolute
+      doc: Absolutely position content
+    - value: 'top="$0"'
+      doc: Position relative to top of slide
+    - value: 'left="$0"'
+      doc: Position relative to left of slide
+    - value: 'bottom="$0"'
+      doc: Position relative to bottom of slide
+    - value: 'right="$0"'
+      doc: Position relative to right of slide
+
+- group: revealFragment
+  contexts: [figure, div]
+  formats: [revealjs]
+  completions:
+    - value: .fragment
+      doc: Incrementally reveal content
+    - value: .fade-up
+      doc: Slide up while fading in
+    - value: .fade-down
+      doc: Slide down while fading in
+    - value: .fade-left
+      doc: Slide left while fading in
+    - value: .fade-right
+      doc: Slide right while fading in
+    - value: .fade-in-then-out
+      doc: Fades in, then out on the next step
+    - value: .fade-in-then-semi-out
+      doc: Fades in, then to 50% on the next step
+    - value: .grow
+      doc: Scale up
+    - value: .semi-fade-out
+      doc: Fade out to 50%
+    - value: .shrink
+      doc: Scale down
+    - value: .strike
+      doc: Strike through
+    - value: .highlight-red
+      doc: Turn text red
+    - value: .highlight-green
+      doc: Turn text green
+    - value: .highlight-blue
+      doc: Turn text blue
+    - value: .highlight-current-red
+      doc: Turn text red, then back to original on next step
+    - value: .highlight-current-green
+      doc: Turn text green, then back to original on next step
+    - value: .highlight-current-blue
+      doc: Turn text blue, then back to original on next step
+
+- group: revealHeading
+  contexts: [heading]
+  formats: [revealjs]
+  completions:
+    - value: .smaller
+      doc: Use a smaller text side for slide
+    - value: .scrollable
+      doc: Make slide contents scrollable
+    - value: .nostretch
+      doc: Do not automatically stretch images on this slide
+    - value: 'autoslide="$0"'
+      doc: Autoslide duration for slide (in milliseconds)
+    - value: 'background-color="$0"'
+      doc: Slide background color
+    - value: 'background-image="$0"'
+      doc: URL of the image to show. GIFs restart when the slide opens.
+    - value: 'background-size="$0"'
+      doc: |
+        Background size (see [background-size](https://developer.mozilla.org/docs/Web/CSS/background-size) on MDN). 
+        Defaults to `cover`.
+    - value: 'background-position="$0"'
+      doc: |
+        Background position (see [background-position](https://developer.mozilla.org/docs/Web/CSS/background-position) on MDN). 
+        Defaults to `center`.
+    - value: 'background-repeat="$0"'
+      doc: |
+        Background repeat (see [background-repeat](https://developer.mozilla.org/docs/Web/CSS/background-repeat) on MDN). 
+        Defaults to `no-repeat`.
+    - value: 'background-opacity="$0"'
+      doc: |
+        Opacity of the background image on a 0-1 scale. 0 is transparent and 1 is fully opaque. 
+        Defaults to 1.
+    - value: 'background-video="$0"'
+      doc: A single video source, or a comma separated list of video sources.
+    - value: 'background-video-loop="$0"'
+      doc: Flags if the video should play repeatedly. Defaults to `false`.
+    - value: 'background-video-muted="$0"'
+      doc: Flags if the audio should be muted. Defaults to `false`.
+    - value: 'background-iframe="$0"'
+      doc: URL of the iframe to load
+    - value: background-interactive
+      doc:
+        Include this attribute to make it possible to interact with the iframe contents.
+        Enabling this will prevent interaction with the slide content.
+
+- group: revealTransition
+  contexts: [heading]
+  formats: [revealjs]
+  completions:
+    - value: 'transition="none"'
+      doc: No transition (switch instantly)
+    - value: 'transition="fade"'
+      doc: Cross fade
+    - value: 'transition="slide"'
+      doc: Slide horizontally
+    - value: 'transition="convex"'
+      doc: Slide at a convex angle
+    - value: 'transition="concave"'
+      doc: Slide at a concave angle
+    - value: 'transition="zoom"'
+      doc: Scale the incoming slide so it grows in from the center of the screen
+    - value: 'transition-speed="default"'
+      doc: Use default transition speed
+    - value: 'transition-speed="fast"'
+      doc: Use a faster transition speed
+    - value: 'transition-speed="slow"'
+      doc: Use a slower transition speed
+    - value: 'visibilty="hidden"'
+      doc: Hide a slide
+    - value: 'visibilty="uncounted"'
+      doc: |
+        Show the slide but don't have it count towards the total slides
+        (useful for appendix slides)
+
+- group: revealAutoAnimateSlide
+  contexts: [heading]
+  formats: [revealjs]
+  completions:
+    - value: 'auto-animate="true"'
+      doc: Automatically animate elements across this slide and adjacent slide(s).
+    - value: 'auto-animate-easing="$0"'
+      doc: A CSS [easing](https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function) function. Defaults to `ease`.
+    - value: 'auto-animate-unmatched="$0"'
+      doc: |
+        Determines whether elements with no matching auto-animate target should fade in. 
+        Defaults to `true`. Set to `false` to make them appear instantly.
+    - value: 'auto-animate-duration="$0"'
+      doc: |
+        Animation duration in seconds (defaults to 1.0)
+    - value: 'auto-animate-id="$0"'
+      doc: An id tying auto-animate slides together
+    - value: auto-animate-restart
+      doc: Breaks apart two adjacent auto-animate slides (even with the same id)
+
+- group: revealAutoAnimateElement
+  contexts: [div, figure]
+  formats: [revealjs]
+  completions:
+    - value: 'data-id="$0"'
+      doc: |
+        Provide objects that you want to animate between a matching data-id attribute
+        (useful in situations where automatic matching is not feasible)
+    - value: 'auto-animate-delay="$0"'
+      doc: Animation delay in seconds (defaults to 0)
