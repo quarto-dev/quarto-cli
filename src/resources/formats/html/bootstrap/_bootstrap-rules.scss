@@ -1357,38 +1357,6 @@ div.callout.callout-style-default .callout-header {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 20%))}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
 }
 
-body.fullcontent {
-  #quarto-appendix:not(.plain) {
-    &.default {
-      .quarto-appendix-heading {
-        @include media-breakpoint-up(xl) {
-          text-align: right;
-        }
-        @include media-breakpoint-down(xl) {
-          grid-column: body-content-start / body-content-end !important;
-          margin-bottom: 0;
-        }
-      }
-    }
-  }
-}
-
-body:not(.fullcontent) {
-  #quarto-appendix:not(.plain) {
-    &.default {
-      .quarto-appendix-heading {
-        @include media-breakpoint-up(lg) {
-          text-align: right;
-        }
-        @include media-breakpoint-down(lg) {
-          grid-column: body-content-start / body-content-end !important;
-          margin-bottom: 0;
-        }
-      }
-    }
-  }
-}
-
 // Quarto Appendix Treatment
 #quarto-appendix.default {
   background-color: $body-bg;
@@ -1431,9 +1399,12 @@ body:not(.fullcontent) {
     margin-bottom: 1em;
   }
 
-  .quarto-appendix-heading,
-  *[role="doc-endnote"],
-  .quarto-appendix-contents > * {
+  .quarto-appendix-heading {
+    font-size: 1em !important;
+  }
+
+  *[role="doc-endnotes"] > ol,
+  .quarto-appendix-contents > *:not(h2) {
     font-size: 0.9em;
   }
 
