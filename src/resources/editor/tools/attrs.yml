@@ -1,4 +1,4 @@
-# callouts
+## callouts
 
 - contexts: [div]
   completions:
@@ -34,3 +34,38 @@
       doc: Make the callout collapsable (initially collapsed).
     - value: 'collapse="false"'
       doc: Make the callout collapsable (initially expanded).
+
+## columns
+
+- contexts: [div, figure]
+  completions:
+    - value: ".column-margin"
+      doc: Position content in the right margin
+    - value: ".column-body"
+      doc: Default column for article content
+    - value: ".column-body-outset"
+      doc: Extend content slightly outside the bounds of the body
+    - value: ".column-body-outset-left"
+      doc: Extend content slightly outside the left side of the body
+    - value: ".column-body-outset-right"
+      doc: Extend content slightly outside the right side of the body
+    - value: ".column-page"
+      doc: Extend content to a wider region
+    - value: ".column-page-left"
+      doc: Extend content on the left to a wider region
+    - value: ".column-page-right"
+      doc: Extend content on the right to a wider region
+    - value: ".column-screen-inset"
+      doc: Extend content to full width (with a small margin)
+    - value: ".column-screen-inset-shaded"
+      doc: Extend content to full width (with a small margin and shading)
+    - value: ".column-screen-inset-left"
+      doc: Extend content fully to the left (with a small margin)
+    - value: ".column-screen-inset-left"
+      doc: Extend content fully to the right (with a small margin)
+    - value: ".column-screen"
+      doc: Extend content to full width
+    - value: ".column-screen-left"
+      doc: Extend content fully to the left
+    - value: ".column-screen-right"
+      doc: Extend content fully to the right
