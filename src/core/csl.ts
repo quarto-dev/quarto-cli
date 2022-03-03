@@ -5,6 +5,8 @@
 *
 */
 
+import { parse } from "datetime/mod.ts";
+
 export interface CSL extends Record<string, unknown> {
   // The id. This is technically required, but some providers (like crossref) don't provide
   // one
@@ -173,9 +175,96 @@ export function cslNames(authors: unknown) {
   return cslNames;
 }
 
-export function cslDate(dateStr: unknown): CSLDate | undefined {
-  if (typeof (dateStr) === "string") {
-    const date = new Date(dateStr);
+export function cslDate(dateRaw: unknown): CSLDate | undefined {
+  const toDateArray = (dateArr: number[]): CSLDate | undefined => {
+    if (dateArr.length === 0) {
+      return undefined;
+    } else if (dateArr.length === 1) {
+      return {
+        "date-parts": [[
+          dateArr[0],
+        ]],
+      };
+    } else if (dateArr.length === 2) {
+      return {
+        "date-parts": [[
+          dateArr[0],
+          dateArr[1],
+        ]],
+      };
+    } else if (dateArr.length >= 3) {
+      return {
+        "date-parts": [[
+          dateArr[0],
+          dateArr[1],
+          dateArr[2],
+        ]],
+      };
+    }
+  };
+
+  if (Array.isArray(dateRaw)) {
+    const dateArr = dateRaw as number[];
+    return toDateArray(dateArr);
+  } else if (typeof (dateRaw) === "number") {
+    const parseNumeric = (dateStr: string) => {
+      let dateParsed = dateStr;
+      const chomps = [4, 2, 2];
+      const date: number[] = [];
+      for (const chomp of chomps) {
+        if (dateParsed.length >= chomp) {
+          const part = dateParsed.substring(0, chomp);
+          if (!isNaN(+part)) {
+            date.push(+part);
+            dateParsed = dateParsed.substring(chomp);
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+      if (date.length > 0) {
+        return date;
+      } else {
+        return undefined;
+      }
+    };
+
+    const dateStr = String(dateRaw);
+    const dateArr = parseNumeric(dateStr);
+    if (dateArr) {
+      return toDateArray(dateArr);
+    }
+  } else if (typeof (dateRaw) === "string") {
+    const formats = [
+      "MM/dd/yyyy",
+      "MM-dd-yyyy",
+      "MM/dd/yy",
+      "MM-dd-yy",
+      "yyyy-MM-dd",
+      "dd MM yyyy",
+      "MM dd, yyyy",
+    ];
+    const parseFormat = (dateStr: string) => {
+      for (const format of formats) {
+        try {
+          const date = parse(dateStr, format);
+          return date;
+        } catch {
+          // This date wouldn't parse, try other formats
+        }
+      }
+
+      // Try ISO date parse
+      try {
+        return new Date(dateStr);
+      } catch {
+        return undefined;
+      }
+    };
+    // Trying parsing format strings
+    const date = parseFormat(dateRaw);
     if (date) {
       return {
         "date-parts": [[
@@ -183,12 +272,9 @@ export function cslDate(dateStr: unknown): CSLDate | undefined {
           date.getMonth() + 1,
           date.getDate(),
         ]],
-        raw: dateStr,
+        raw: dateRaw,
       };
-    } else {
-      return undefined;
     }
-  } else {
     return undefined;
   }
 }

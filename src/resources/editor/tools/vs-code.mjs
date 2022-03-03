@@ -9760,7 +9760,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "csl-date",
-          schema: "string"
+          anyOf: [
+            "string",
+            {
+              maybeArrayOf: "number"
+            }
+          ]
         },
         {
           id: "csl-person",
