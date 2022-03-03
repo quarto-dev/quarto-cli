@@ -11,7 +11,15 @@
 
 export interface DenoInfoDependency {
   specifier: string;
-  code: {
+  type?: {
+    error?: string;
+    specifier?: string;
+    span: {
+      start: number;
+      end: number;
+    };
+  };
+  code?: {
     // apparently, if specifier exists, error doesn't and vice-versa.
     error?: string;
     specifier?: string;
@@ -52,7 +60,7 @@ export interface Edge {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export async function getDenoInfo(root: string): Promise<DenoInfoJSON> {
+export async function getDenoInfo(_root: string): Promise<DenoInfoJSON> {
   const process = Deno.run({
     cmd: ["deno", "info", Deno.args[0], "--json"],
     stdout: "piped",
@@ -77,7 +85,7 @@ export function moduleGraph(info: DenoInfoJSON): {
       const {
         error,
         specifier: depTo,
-      } = code;
+      } = code || {};
       if (depTo !== undefined) {
         edges.push(depTo);
       } else {
@@ -109,7 +117,7 @@ export function graphTranspose(graph: DependencyGraph): DependencyGraph {
 
 export function reachability(
   graph: DependencyGraph,
-  source: string,
+  _source: string,
 ): Record<string, Set<string>> {
   const result: Record<string, Set<string>> = Object.fromEntries(
     Object.keys(graph).map((k) => [k, new Set()]),
