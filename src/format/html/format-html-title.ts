@@ -5,7 +5,7 @@
 *
 */
 
-import { kAbstractTitle, kAuthor } from "../../config/constants.ts";
+import { kAbstract, kAuthor } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
 import { Author, parseAuthor } from "../../core/author.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
@@ -34,6 +34,16 @@ export function processDocumentTitle(
   ) {
     return;
   }
+
+  const computeTitleBlockStyle = (format: Format) => {
+    const titleBlockStyle = format.metadata[kTitleBlockStyle] as string;
+    if (titleBlockStyle) {
+      return titleBlockStyle;
+    } else {
+      return "default";
+    }
+  };
+  const titleBlockStyle = computeTitleBlockStyle(format);
 
   // The documentation citation information for this document
   const csl = documentCSL(input, format, "webpage", offset);
@@ -115,9 +125,19 @@ export function processDocumentTitle(
       affiliationEl.classList.add("quarto-title-affiliations");
       for (const author of authors) {
         const affiliationP = doc.createElement("p");
-        affiliationP.innerText = (author.affilliation !== undefined)
+
+        const affiliationText = (author.affilliation !== undefined)
           ? author.affilliation.name
           : "";
+        if (author.affilliation?.url) {
+          const affiliationA = doc.createElement("a");
+          affiliationA.setAttribute("href", author.affilliation.url);
+          affiliationA.innerText = affiliationText;
+          affiliationP.appendChild(affiliationA);
+        } else {
+          affiliationP.innerText = affiliationText;
+        }
+
         affiliationEl.appendChild(affiliationP);
       }
       const affiliationContainer = metadataEl(doc, "Afilliations", [
@@ -153,6 +173,8 @@ export function processDocumentTitle(
   }
 
   headerEl?.classList.add("quarto-title-block");
+  headerEl?.classList.add(titleBlockStyle);
+
   headerEl?.appendChild(titleContainerEl);
   headerEl?.appendChild(metadataContainerEl);
 

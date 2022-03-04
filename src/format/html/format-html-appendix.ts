@@ -296,6 +296,8 @@ function parseStyle(style?: string) {
   switch (style) {
     case "plain":
       return "plain";
+    case "bordered":
+      return "bordered";
     default:
       return kStyleDefault;
   }

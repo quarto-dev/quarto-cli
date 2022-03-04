@@ -81,7 +81,7 @@
 - name: appendix-style
   schema:
     anyOf:
-      - enum: ["none", "plain", "default"]
+      - enum: ["default", "bordered", "plain", "none"]
   default: "default"
   tags:
     formats: [$html-doc]
