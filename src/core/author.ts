@@ -13,10 +13,12 @@ export interface Author {
 
 export interface Affiliation {
   name: string;
+  url?: string;
 }
 
 const kName = "name";
 const kAffiliation = "affiliation";
+const kAfilliationUrl = "affiliation-url";
 const kOrcid = "orcid";
 
 export function parseAuthor(authorRaw: unknown) {
@@ -37,6 +39,9 @@ export function parseAuthor(authorRaw: unknown) {
           const affilation = author[kAffiliation];
           if (affilation) {
             auth.affilliation = { name: affilation };
+            if (author[kAfilliationUrl]) {
+              auth.affilliation.url = author[kAfilliationUrl];
+            }
           }
 
           const orcid = author[kOrcid];
