@@ -8,6 +8,7 @@
 export interface Author {
   name: string;
   affilliation?: Affiliation;
+  orcid?: string;
 }
 
 export interface Affiliation {
@@ -16,34 +17,38 @@ export interface Affiliation {
 
 const kName = "name";
 const kAffiliation = "affiliation";
+const kOrcid = "orcid";
 
 export function parseAuthor(authorRaw: unknown) {
   if (authorRaw) {
+    const parsed: Author[] = [];
     const authors = Array.isArray(authorRaw) ? authorRaw : [authorRaw];
-    return authors.map((author) => {
+    authors.forEach((author) => {
       if (typeof (author) === "string") {
-        return {
+        parsed.push({
           name: author,
-        };
+        });
       } else if (typeof (author) === "object") {
         const name = author[kName];
         if (name) {
-          const parsed: Author = {
+          const auth: Author = {
             name,
           };
           const affilation = author[kAffiliation];
           if (affilation) {
-            parsed.affilliation = { name: affilation };
+            auth.affilliation = { name: affilation };
           }
-          return parsed;
-        } else {
-          // Not an author
-          return undefined;
+
+          const orcid = author[kOrcid];
+          if (orcid) {
+            auth.orcid = orcid;
+          }
+
+          parsed.push(auth);
         }
-      } else {
-        throw new Error("Unexpected type for author " + typeof (author));
       }
     });
+    return parsed;
   } else {
     return undefined;
   }
