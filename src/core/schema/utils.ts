@@ -5,6 +5,7 @@
 *
 */
 
+import { toFileUrl } from "path/mod.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
 
@@ -17,7 +18,9 @@ import { initYamlIntelligence } from "../lib/yaml-intelligence/yaml-intelligence
 // initializes yaml intelligence using precompiled schemas from the filesystem
 export async function initYamlIntelligenceResourcesFromFilesystem() {
   const resourceModule = (await import(
-    resourcePath("editor/tools/yaml/yaml-intelligence-resources.json"),
+    toFileUrl(
+      resourcePath("editor/tools/yaml/yaml-intelligence-resources.json"),
+    ).href,
     {
       assert: { type: "json" },
     }
