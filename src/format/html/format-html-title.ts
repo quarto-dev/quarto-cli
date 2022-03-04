@@ -44,6 +44,7 @@ export function processDocumentTitle(
     return;
   }
 
+  // Sort out the title block style
   const computeTitleBlockStyle = (format: Format) => {
     const titleBlockStyle = format.metadata[kTitleBlockStyle] as string;
     if (titleBlockStyle) {
@@ -76,6 +77,7 @@ export function processDocumentTitle(
     node.remove();
   });
 
+  // Process the title
   const titleContainerEl = doc.createElement("div");
   titleContainerEl.classList.add("quarto-title");
   if (titleEl) {
@@ -85,6 +87,7 @@ export function processDocumentTitle(
     titleContainerEl.appendChild(subTitleEl);
   }
 
+  // Create a container for the grid of metadata
   const metadataContainerEl = doc.createElement("div");
   metadataContainerEl.classList.add("quarto-title-meta");
 
@@ -98,11 +101,11 @@ export function processDocumentTitle(
     }
   }
 
+  // Process the authors and affiliations
   if (authors.length > 0) {
     const hasAffiliations = authors.find((auth) =>
       auth.affilliation !== undefined
     );
-
     const authorEl = doc.createElement("div");
     authorEl.classList.add("quarto-title-authors");
     for (const author of authors) {
@@ -170,6 +173,7 @@ export function processDocumentTitle(
     }
   }
 
+  // Process the publish date
   if (dateEl) {
     const dateContainer = metadataEl(
       doc,
@@ -179,6 +183,7 @@ export function processDocumentTitle(
     metadataContainerEl.appendChild(dateContainer);
   }
 
+  // Process the DOI
   if (csl.DOI) {
     const doiUrl = `https://doi.org/${csl.DOI}`;
     const doiLinkEl = doc.createElement("a");
@@ -199,18 +204,20 @@ export function processDocumentTitle(
     metadataContainerEl.appendChild(doiContainer);
   }
 
+  // Add title and metadata to the header
   headerEl?.classList.add("quarto-title-block");
   headerEl?.classList.add(titleBlockStyle);
-
   headerEl?.appendChild(titleContainerEl);
   headerEl?.appendChild(metadataContainerEl);
 
   // Place the abstract or description
   const abstractEl = headerEl?.querySelector(".abstract");
   if (abstractEl) {
+    // move the abstract to the bottom
     abstractEl.remove();
     headerEl?.appendChild(abstractEl);
   } else if (format.metadata[kDescription]) {
+    // Create an abstract element for the description
     const descriptionEl = doc.createElement("div");
     descriptionEl.classList.add("abstract");
     const descriptionP = doc.createElement("p");
@@ -237,14 +244,3 @@ function metadataEl(doc: Document, title: string, els: Element[]) {
   divEl.appendChild(contentsEl);
   return divEl;
 }
-
-// Author(s)
-// Date
-// DOI
-// Citation WTF??
-
-// subtitle
-// abstract
-// abstract-title
-
-// keyword(s)
