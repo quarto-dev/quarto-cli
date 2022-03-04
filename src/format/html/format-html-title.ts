@@ -87,25 +87,6 @@ export function processDocumentTitle(
     titleContainerEl.appendChild(subTitleEl);
   }
 
-  // Process any categories
-  const categories = format.metadata?.categories
-    ? Array.isArray(format.metadata?.categories)
-      ? format.metadata?.categories
-      : [format.metadata?.categories]
-    : undefined;
-
-  if (categories) {
-    const categoryContainerEl = doc.createElement("div");
-    categoryContainerEl.classList.add("quarto-categories");
-    categories.forEach((category) => {
-      const categoryEl = doc.createElement("div");
-      categoryEl.classList.add("quarto-category");
-      categoryEl.innerText = category;
-      categoryContainerEl.appendChild(categoryEl);
-    });
-    titleContainerEl.appendChild(categoryContainerEl);
-  }
-
   // Create a container for the grid of metadata
   const metadataContainerEl = doc.createElement("div");
   metadataContainerEl.classList.add("quarto-title-meta");
@@ -223,19 +204,50 @@ export function processDocumentTitle(
     metadataContainerEl.appendChild(doiContainer);
   }
 
+  // Track whether we're in 'simple mode' with no real content outside
+  // the title, or a more advanced mode, which requires padding and so on
+  let simpleTitleMode = true;
+
   // Add title and metadata to the header
   headerEl?.classList.add("quarto-title-block");
   headerEl?.classList.add(titleBlockStyle);
   headerEl?.appendChild(titleContainerEl);
-  headerEl?.appendChild(metadataContainerEl);
+
+  // Process any categories
+  const categories = format.metadata?.categories
+    ? Array.isArray(format.metadata?.categories)
+      ? format.metadata?.categories
+      : [format.metadata?.categories]
+    : undefined;
+
+  if (categories) {
+    simpleTitleMode = false;
+    const categoryContainerEl = doc.createElement("div");
+    categoryContainerEl.classList.add("quarto-categories");
+    categories.forEach((category) => {
+      const categoryEl = doc.createElement("div");
+      categoryEl.classList.add("quarto-category");
+      categoryEl.innerText = category;
+      categoryContainerEl.appendChild(categoryEl);
+    });
+    headerEl?.appendChild(categoryContainerEl);
+  }
+
+  // Process metadata
+  if (metadataContainerEl.hasChildNodes()) {
+    simpleTitleMode = false;
+    headerEl?.appendChild(metadataContainerEl);
+  }
 
   // Place the abstract or description
   const abstractEl = headerEl?.querySelector(".abstract");
   if (abstractEl) {
+    simpleTitleMode = false;
     // move the abstract to the bottom
     abstractEl.remove();
     headerEl?.appendChild(abstractEl);
   } else if (format.metadata[kDescription]) {
+    simpleTitleMode = false;
     // Create an abstract element for the description
     const descriptionEl = doc.createElement("div");
     descriptionEl.classList.add("abstract");
@@ -243,6 +255,10 @@ export function processDocumentTitle(
     descriptionP.innerText = format.metadata[kDescription] as string;
     descriptionEl.appendChild(descriptionP);
     headerEl?.appendChild(descriptionEl);
+  }
+
+  if (!simpleTitleMode) {
+    headerEl?.classList.add("quarto-title-rich");
   }
 }
 
