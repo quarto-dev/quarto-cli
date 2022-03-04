@@ -12734,9 +12734,9 @@ try {
               anyOf: [
                 {
                   enum: [
-                    "none",
+                    "default",
                     "plain",
-                    "default"
+                    "none"
                   ]
                 }
               ]
@@ -12748,8 +12748,32 @@ try {
               ]
             },
             description: {
-              short: "The layout of the Appendix for this document (`none`, `plain`, `one-column`, `two-column`, `full`)",
-              long: "The layout of the Appendix for this document (`none`, `plain`, `one-column`, `two-column`, `full`)\n\nTo complete disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`\n"
+              short: "The layout of the appendix for this document (`none`, `plain`, `default`)",
+              long: "The layout of the appendix for this document (`none`, `plain`, `default`).\n\nTo complete disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`\n"
+            }
+          },
+          {
+            name: "title-block-style",
+            schema: {
+              anyOf: [
+                {
+                  enum: [
+                    "default",
+                    "plain",
+                    "none"
+                  ]
+                }
+              ]
+            },
+            default: "default",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: {
+              short: "The layout of the title block for this document (`none`, `plain`, `default`).",
+              long: "The layout of the title block for this document (`none`, `plain`, `default`).\n\nTo complete disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`\n"
             }
           },
           {
@@ -17404,8 +17428,12 @@ try {
             long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt."
           },
           {
-            short: "The layout of the Appendix for this document (<code>none</code>,\n<code>plain</code>, <code>one-column</code>, <code>two-column</code>,\n<code>full</code>)",
-            long: "The layout of the Appendix for this document (<code>none</code>,\n<code>plain</code>, <code>one-column</code>, <code>two-column</code>,\n<code>full</code>)\nTo complete disable any styling of the appendix, choose the appendix\nstyle <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
+            short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>)",
+            long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>).\nTo complete disable any styling of the appendix, choose the appendix\nstyle <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
+          },
+          {
+            short: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>).",
+            long: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>).\nTo complete disable any styling of the title block, choose the style\n<code>none</code>. For minimal styling, choose <code>plain.</code>"
           },
           "Adds a css <code>max-width</code> to the body Element.",
           {
