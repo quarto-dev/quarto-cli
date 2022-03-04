@@ -1494,6 +1494,20 @@ $quarto-doc-metadata-border-right: 0px solid $border-color;
     font-weight: 400;
   }
 
+  .quarto-categories {
+    display: flex;
+    column-gap: 0.25em;
+    padding-bottom: 0.5em;
+
+    .quarto-category {
+      padding: 0.25em;
+      font-size: 0.7em;
+      text-transform: uppercase;
+      border: solid 1px $border-color;
+      border-radius: $border-radius;
+    }
+  }
+
   .quarto-title-meta-contents {
     font-size: 0.9em;
     margin-bottom: 1em;

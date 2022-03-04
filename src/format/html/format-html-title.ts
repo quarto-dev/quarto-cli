@@ -87,6 +87,25 @@ export function processDocumentTitle(
     titleContainerEl.appendChild(subTitleEl);
   }
 
+  // Process any categories
+  const categories = format.metadata?.categories
+    ? Array.isArray(format.metadata?.categories)
+      ? format.metadata?.categories
+      : [format.metadata?.categories]
+    : undefined;
+
+  if (categories) {
+    const categoryContainerEl = doc.createElement("div");
+    categoryContainerEl.classList.add("quarto-categories");
+    categories.forEach((category) => {
+      const categoryEl = doc.createElement("div");
+      categoryEl.classList.add("quarto-category");
+      categoryEl.innerText = category;
+      categoryContainerEl.appendChild(categoryEl);
+    });
+    titleContainerEl.appendChild(categoryContainerEl);
+  }
+
   // Create a container for the grid of metadata
   const metadataContainerEl = doc.createElement("div");
   metadataContainerEl.classList.add("quarto-title-meta");
