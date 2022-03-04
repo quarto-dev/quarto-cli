@@ -18785,246 +18785,6 @@ ${heading}`;
     };
   }
 
-  // tree-sitter-annotated-yaml.ts
-  function buildAnnotated(tree, mappedSource2) {
-    const singletonBuild = (node) => {
-      return buildNode(node.firstChild, node.endIndex);
-    };
-    const buildNode = (node, endIndex) => {
-      if (node === null) {
-        return annotateEmpty(endIndex === void 0 ? -1 : endIndex);
-      }
-      if (dispatch[node.type] === void 0) {
-        return annotateEmpty(endIndex || node.endIndex || -1);
-      }
-      return dispatch[node.type](node);
-    };
-    const annotateEmpty = (position) => {
-      return {
-        start: position,
-        end: position,
-        result: null,
-        kind: "<<EMPTY>>",
-        components: [],
-        source: mappedString(mappedSource2, [{ start: position, end: position }])
-      };
-    };
-    const annotate = (node, result2, components) => {
-      return {
-        start: node.startIndex,
-        end: node.endIndex,
-        result: result2,
-        kind: node.type,
-        components,
-        source: mappedString(mappedSource2, [{
-          start: node.startIndex,
-          end: node.endIndex
-        }])
-      };
-    };
-    const buildPair = (node) => {
-      let key, value;
-      if (node.childCount === 3) {
-        key = annotate(node.child(0), node.child(0).text, []);
-        value = buildNode(node.child(2), node.endIndex);
-      } else if (node.childCount === 2) {
-        key = annotate(node.child(0), node.child(0).text, []);
-        value = annotateEmpty(node.endIndex);
-      } else {
-        key = annotateEmpty(node.endIndex);
-        value = annotateEmpty(node.endIndex);
-      }
-      return annotate(node, {
-        key: key.result,
-        value: value.result
-      }, [key, value]);
-    };
-    const dispatch = {
-      "stream": singletonBuild,
-      "document": singletonBuild,
-      "block_node": singletonBuild,
-      "flow_node": singletonBuild,
-      "block_scalar": (node) => {
-        if (!node.text.startsWith("|")) {
-          return annotateEmpty(node.endIndex);
-        }
-        const ls = lines(node.text);
-        if (ls.length < 2) {
-          return annotateEmpty(node.endIndex);
-        }
-        const indent = ls[1].length - ls[1].trimStart().length;
-        const result2 = ls.slice(1).map((l) => l.slice(indent)).join("\n");
-        return annotate(node, result2, []);
-      },
-      "block_sequence": (node) => {
-        const result2 = [], components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
-          if (child.type !== "block_sequence_item") {
-            continue;
-          }
-          const component = buildNode(child, node.endIndex);
-          components.push(component);
-          result2.push(component && component.result);
-        }
-        return annotate(node, result2, components);
-      },
-      "block_sequence_item": (node) => {
-        if (node.childCount < 2) {
-          return annotateEmpty(node.endIndex);
-        } else {
-          return buildNode(node.child(1), node.endIndex);
-        }
-      },
-      "double_quote_scalar": (node) => {
-        return annotate(node, JSON.parse(node.text), []);
-      },
-      "single_quote_scalar": (node) => {
-        const str = node.text.slice(1, -1);
-        const matches = [
-          -2,
-          ...Array.from(matchAll(str, /''/g)).map((x) => x.index),
-          str.length
-        ];
-        const lst = [];
-        for (let i = 0; i < matches.length - 1; ++i) {
-          lst.push(str.substring(matches[i] + 2, matches[i + 1]));
-        }
-        const result2 = lst.join("'");
-        return annotate(node, result2, []);
-      },
-      "plain_scalar": (node) => {
-        function getV() {
-          try {
-            return JSON.parse(node.text);
-          } catch (_e) {
-            return node.text;
-          }
-        }
-        const v = getV();
-        return annotate(node, v, []);
-      },
-      "flow_sequence": (node) => {
-        const result2 = [], components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
-          if (child.type !== "flow_node") {
-            continue;
-          }
-          const component = buildNode(child, node.endIndex);
-          components.push(component);
-          result2.push(component.result);
-        }
-        return annotate(node, result2, components);
-      },
-      "block_mapping": (node) => {
-        const result2 = {}, components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
-          let component;
-          if (child.type === "ERROR") {
-            result2[child.text] = "<<ERROR>>";
-            const key2 = annotate(child, child.text, []);
-            const value2 = annotateEmpty(child.endIndex);
-            component = annotate(child, {
-              key: key2.result,
-              value: value2.result
-            }, [key2, value2]);
-          } else if (child.type !== "block_mapping_pair") {
-            continue;
-          } else {
-            component = buildNode(child, node.endIndex);
-          }
-          const { key, value } = component.result;
-          result2[String(key)] = value;
-          components.push(...component.components);
-        }
-        return annotate(node, result2, components);
-      },
-      "flow_pair": buildPair,
-      "flow_mapping": (node) => {
-        const result2 = {}, components = [];
-        for (let i = 0; i < node.childCount; ++i) {
-          const child = node.child(i);
-          if (child.type === "flow_node") {
-            continue;
-          }
-          if (child.type === "flow_pair") {
-            const component = buildNode(child, node.endIndex);
-            const { key, value } = component.result;
-            result2[String(key)] = value;
-            components.push(...component.components);
-          }
-        }
-        return annotate(node, result2, components);
-      },
-      "block_mapping_pair": buildPair
-    };
-    const result = buildNode(tree.rootNode, tree.rootNode.endIndex);
-    const parsedSize = tree.rootNode.text.trim().length;
-    const codeSize = mappedSource2.value.trim().length;
-    const lossage = parsedSize / codeSize;
-    if (lossage < 0.95) {
-      return null;
-    }
-    return result;
-  }
-  function locateCursor(annotation, position) {
-    let failedLast = false;
-    const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
-    function locate(node, pathSoFar) {
-      if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
-        for (let i = 0; i < node.components.length; i += 2) {
-          const keyC = node.components[i], valueC = node.components[i + 1];
-          if (keyC.start <= position && position <= keyC.end) {
-            return [keyC.result, pathSoFar];
-          } else if (valueC.start <= position && position <= valueC.end) {
-            return locate(valueC, [keyC.result, pathSoFar]);
-          }
-        }
-        failedLast = true;
-        return pathSoFar;
-      } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
-        for (let i = 0; i < node.components.length; ++i) {
-          const valueC = node.components[i];
-          if (valueC.start <= position && position <= valueC.end) {
-            return locate(valueC, [i, pathSoFar]);
-          }
-          if (valueC.start > position) {
-            if (i === 0) {
-              return pathSoFar;
-            } else {
-              return [i - 1, pathSoFar];
-            }
-          }
-        }
-        throw new Error(kInternalLocateError);
-      } else {
-        if (node.kind !== "<<EMPTY>>") {
-          return [node.result, pathSoFar];
-        } else {
-          return pathSoFar;
-        }
-      }
-    }
-    try {
-      const value = locate(annotation, []).flat(Infinity).reverse();
-      return {
-        withError: failedLast,
-        value
-      };
-    } catch (e) {
-      if (e.message === kInternalLocateError) {
-        return {
-          withError: true,
-          value: void 0
-        };
-      } else {
-        throw e;
-      }
-    }
-  }
-
   // ../ranged-text.ts
   function matchAll2(str, regex) {
     let match;
@@ -19257,6 +19017,259 @@ ${heading}`;
     }
     path.reverse();
     return path;
+  }
+
+  // tree-sitter-annotated-yaml.ts
+  function buildAnnotated(tree, mappedSource2) {
+    const singletonBuild = (node) => {
+      return buildNode(node.firstChild, node.endIndex);
+    };
+    const buildNode = (node, endIndex) => {
+      if (node === null) {
+        return annotateEmpty(endIndex === void 0 ? -1 : endIndex);
+      }
+      if (dispatch[node.type] === void 0) {
+        return annotateEmpty(endIndex || node.endIndex || -1);
+      }
+      return dispatch[node.type](node);
+    };
+    const annotateEmpty = (position) => {
+      return {
+        start: position,
+        end: position,
+        result: null,
+        kind: "<<EMPTY>>",
+        components: [],
+        source: mappedString(mappedSource2, [{ start: position, end: position }])
+      };
+    };
+    const annotate = (node, result2, components) => {
+      return {
+        start: node.startIndex,
+        end: node.endIndex,
+        result: result2,
+        kind: node.type,
+        components,
+        source: mappedString(mappedSource2, [{
+          start: node.startIndex,
+          end: node.endIndex
+        }])
+      };
+    };
+    const buildPair = (node) => {
+      let key, value;
+      if (node.childCount === 3) {
+        key = annotate(node.child(0), node.child(0).text, []);
+        value = buildNode(node.child(2), node.endIndex);
+      } else if (node.childCount === 2) {
+        key = annotate(node.child(0), node.child(0).text, []);
+        value = annotateEmpty(node.endIndex);
+      } else {
+        key = annotateEmpty(node.endIndex);
+        value = annotateEmpty(node.endIndex);
+      }
+      return annotate(node, {
+        key: key.result,
+        value: value.result
+      }, [key, value]);
+    };
+    const dispatch = {
+      "stream": singletonBuild,
+      "document": singletonBuild,
+      "block_node": singletonBuild,
+      "flow_node": singletonBuild,
+      "block_scalar": (node) => {
+        if (!node.text.startsWith("|")) {
+          return annotateEmpty(node.endIndex);
+        }
+        const ls = lines(node.text);
+        if (ls.length < 2) {
+          return annotateEmpty(node.endIndex);
+        }
+        const indent = ls[1].length - ls[1].trimStart().length;
+        const result2 = ls.slice(1).map((l) => l.slice(indent)).join("\n");
+        return annotate(node, result2, []);
+      },
+      "block_sequence": (node) => {
+        const result2 = [], components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          if (child.type !== "block_sequence_item") {
+            continue;
+          }
+          const component = buildNode(child, node.endIndex);
+          components.push(component);
+          result2.push(component && component.result);
+        }
+        return annotate(node, result2, components);
+      },
+      "block_sequence_item": (node) => {
+        if (node.childCount < 2) {
+          return annotateEmpty(node.endIndex);
+        } else {
+          return buildNode(node.child(1), node.endIndex);
+        }
+      },
+      "double_quote_scalar": (node) => {
+        return annotate(node, JSON.parse(node.text), []);
+      },
+      "single_quote_scalar": (node) => {
+        const str = node.text.slice(1, -1);
+        const matches = [
+          -2,
+          ...Array.from(matchAll(str, /''/g)).map((x) => x.index),
+          str.length
+        ];
+        const lst = [];
+        for (let i = 0; i < matches.length - 1; ++i) {
+          lst.push(str.substring(matches[i] + 2, matches[i + 1]));
+        }
+        const result2 = lst.join("'");
+        return annotate(node, result2, []);
+      },
+      "plain_scalar": (node) => {
+        function getV() {
+          try {
+            return JSON.parse(node.text);
+          } catch (_e) {
+            return node.text;
+          }
+        }
+        const v = getV();
+        return annotate(node, v, []);
+      },
+      "flow_sequence": (node) => {
+        const result2 = [], components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          if (child.type !== "flow_node") {
+            continue;
+          }
+          const component = buildNode(child, node.endIndex);
+          components.push(component);
+          result2.push(component.result);
+        }
+        return annotate(node, result2, components);
+      },
+      "block_mapping": (node) => {
+        const result2 = {}, components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          let component;
+          if (child.type === "ERROR") {
+            result2[child.text] = "<<ERROR>>";
+            const key2 = annotate(child, child.text, []);
+            const value2 = annotateEmpty(child.endIndex);
+            component = annotate(child, {
+              key: key2.result,
+              value: value2.result
+            }, [key2, value2]);
+          } else if (child.type !== "block_mapping_pair") {
+            continue;
+          } else {
+            component = buildNode(child, node.endIndex);
+          }
+          const { key, value } = component.result;
+          result2[String(key)] = value;
+          components.push(...component.components);
+        }
+        return annotate(node, result2, components);
+      },
+      "flow_pair": buildPair,
+      "flow_mapping": (node) => {
+        const result2 = {}, components = [];
+        for (let i = 0; i < node.childCount; ++i) {
+          const child = node.child(i);
+          if (child.type === "flow_node") {
+            continue;
+          }
+          if (child.type === "flow_pair") {
+            const component = buildNode(child, node.endIndex);
+            const { key, value } = component.result;
+            result2[String(key)] = value;
+            components.push(...component.components);
+          }
+        }
+        return annotate(node, result2, components);
+      },
+      "block_mapping_pair": buildPair
+    };
+    const result = buildNode(tree.rootNode, tree.rootNode.endIndex);
+    const parsedSize = tree.rootNode.text.trim().length;
+    const codeSize = mappedSource2.value.trim().length;
+    const lossage = parsedSize / codeSize;
+    if (lossage < 0.95) {
+      return null;
+    }
+    return result;
+  }
+  function locateCursor(annotation, position) {
+    let failedLast = false;
+    let innermostAnnotation;
+    let keyOrValue;
+    const result = [];
+    const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
+    function locate(node) {
+      if (node.kind === "block_mapping" || node.kind === "flow_mapping" || node.kind === "mapping") {
+        for (let i = 0; i < node.components.length; i += 2) {
+          const keyC = node.components[i], valueC = node.components[i + 1];
+          if (keyC.start <= position && position <= keyC.end) {
+            innermostAnnotation = keyC;
+            result.push(keyC.result);
+            keyOrValue = "key";
+            return;
+          } else if (valueC.start <= position && position <= valueC.end) {
+            result.push(keyC.result);
+            innermostAnnotation = valueC;
+            return locate(valueC);
+          }
+        }
+        failedLast = true;
+        return;
+      } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
+        for (let i = 0; i < node.components.length; ++i) {
+          const valueC = node.components[i];
+          if (valueC.start <= position && position <= valueC.end) {
+            result.push(i);
+            innermostAnnotation = valueC;
+            return locate(valueC);
+          }
+          if (valueC.start > position) {
+            if (i === 0) {
+              return;
+            } else {
+              result.push(i - 1);
+              return;
+            }
+          }
+        }
+        throw new Error(kInternalLocateError);
+      } else {
+        if (node.kind !== "<<EMPTY>>") {
+          keyOrValue = "value";
+          return;
+        } else {
+          return;
+        }
+      }
+    }
+    try {
+      locate(annotation);
+      return {
+        withError: failedLast,
+        value: result,
+        kind: keyOrValue,
+        annotation: innermostAnnotation
+      };
+    } catch (e) {
+      if (e.message === kInternalLocateError) {
+        return {
+          withError: true
+        };
+      } else {
+        throw e;
+      }
+    }
   }
 
   // ../semaphore.ts

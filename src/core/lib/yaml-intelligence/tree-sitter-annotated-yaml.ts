@@ -9,6 +9,7 @@ import { lines, matchAll } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
 import { MappedString, mappedString } from "../mapped-text.ts";
+import { getTreeSitter } from "./parsing.ts";
 
 /**
  * given a tree from tree-sitter-yaml and the mappedString
@@ -19,6 +20,14 @@ import { MappedString, mappedString } from "../mapped-text.ts";
 type TreeSitterParse = any;
 // deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
+
+export async function readAnnotatedYamlFromMappedString(
+  mappedSource: MappedString,
+) {
+  const parser = await getTreeSitter();
+  const tree = parser.parse(mappedSource.value);
+  return buildAnnotated(tree, mappedSource);
+}
 
 export function buildAnnotated(
   tree: TreeSitterParse,
@@ -279,6 +288,8 @@ export function buildAnnotated(
 export interface LocateCursorResult {
   withError: boolean;
   value?: (string | number)[];
+  kind?: "key" | "value";
+  annotation?: AnnotatedParse;
 }
 
 export function locateCursor(
@@ -286,19 +297,29 @@ export function locateCursor(
   position: number,
 ): LocateCursorResult {
   let failedLast = false;
+  let innermostAnnotation: AnnotatedParse;
+  let keyOrValue: "key" | "value";
+  const result: (string | number)[] = [];
   const kInternalLocateError =
     "Internal error: cursor outside bounds in sequence locate?";
 
-  // deno-lint-ignore no-explicit-any
-  function locate(node: AnnotatedParse, pathSoFar: any[]): any[] {
-    if (node.kind === "block_mapping" || node.kind === "flow_mapping") {
+  function locate(node: AnnotatedParse): void {
+    if (
+      node.kind === "block_mapping" || node.kind === "flow_mapping" ||
+      node.kind === "mapping"
+    ) {
       for (let i = 0; i < node.components.length; i += 2) {
         const keyC = node.components[i],
           valueC = node.components[i + 1];
         if (keyC.start <= position && position <= keyC.end) {
-          return [keyC.result, pathSoFar];
+          innermostAnnotation = keyC;
+          result.push(keyC.result as string);
+          keyOrValue = "key";
+          return;
         } else if (valueC.start <= position && position <= valueC.end) {
-          return locate(valueC, [keyC.result, pathSoFar]);
+          result.push(keyC.result as string);
+          innermostAnnotation = valueC;
+          return locate(valueC);
         }
       }
 
@@ -311,7 +332,7 @@ export function locateCursor(
 
       failedLast = true;
 
-      return pathSoFar;
+      return;
       // throw new Error("Internal error: cursor outside bounds in mapping locate?");
     } else if (
       node.kind === "block_sequence" || node.kind === "flow_sequence"
@@ -319,16 +340,19 @@ export function locateCursor(
       for (let i = 0; i < node.components.length; ++i) {
         const valueC = node.components[i];
         if (valueC.start <= position && position <= valueC.end) {
-          return locate(valueC, [i, pathSoFar]);
+          result.push(i);
+          innermostAnnotation = valueC;
+          return locate(valueC);
         }
         if (valueC.start > position) {
           // We went too far: that means we're caught in between entries. Assume
           // that we're inside the previous element but that we can't navigate any further
           // If we're at the beginning of the sequence, assume that we're done exactly here.
           if (i === 0) {
-            return pathSoFar;
+            return;
           } else {
-            return [i - 1, pathSoFar];
+            result.push(i - 1);
+            return;
           }
         }
       }
@@ -336,24 +360,26 @@ export function locateCursor(
       throw new Error(kInternalLocateError);
     } else {
       if (node.kind !== "<<EMPTY>>") {
-        return [node.result, pathSoFar];
+        keyOrValue = "value";
+        return;
       } else {
         // we're inside an error, don't report that.
-        return pathSoFar;
+        return;
       }
     }
   }
   try {
-    const value = locate(annotation, []).flat(Infinity).reverse();
+    locate(annotation);
     return {
       withError: failedLast,
-      value: value as (string | number)[],
+      value: result,
+      kind: keyOrValue!,
+      annotation: innermostAnnotation!,
     };
   } catch (e) {
     if (e.message === kInternalLocateError) {
       return {
         withError: true,
-        value: undefined,
       };
     } else {
       throw e;

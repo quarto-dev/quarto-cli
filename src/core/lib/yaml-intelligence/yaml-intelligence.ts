@@ -66,6 +66,7 @@ import {
 } from "./resources.ts";
 import { loadDefaultSchemaDefinitions } from "../yaml-schema/definitions.ts";
 import { patchMarkdownDescriptions } from "./descriptions.ts";
+import { hover } from "./hover.ts";
 
 interface IDEContext {
   formats: string[];
@@ -991,7 +992,7 @@ async function automationFileTypeDispatch(
 }
 
 function exportSmokeTest(
-  kind: AutomationKind,
+  kind: AutomationKind | "hover",
   context: YamlIntelligenceContext,
 ) {
   console.error(JSON.stringify({ kind, context }, null, 2));
@@ -1103,6 +1104,20 @@ export async function getLint(
   } catch (e) {
     console.log("Error found during linting", e);
     exportSmokeTest("validation", context);
+    return null;
+  }
+}
+
+export async function getHover(
+  context: YamlIntelligenceContext,
+  _path: string,
+) {
+  try {
+    await init(context);
+    return hover(context);
+  } catch (e) {
+    console.log("Error found during hover", e);
+    exportSmokeTest("hover", context);
     return null;
   }
 }

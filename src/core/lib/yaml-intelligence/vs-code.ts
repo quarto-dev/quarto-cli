@@ -5,4 +5,4 @@
 *
 */
 
-export { getCompletions, getLint } from "./yaml-intelligence.ts";
+export { getCompletions, getHover, getLint } from "./yaml-intelligence.ts";
