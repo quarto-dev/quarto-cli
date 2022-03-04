@@ -279,6 +279,10 @@ body.docked {
   grid-column: body-content-start / body-content-end;
 }
 
+.page-columns .column-body-fullbleed {
+  grid-column: body-start / body-end;
+}
+
 .page-columns .column-body-outset {
   grid-column: body-start-outset / body-end-outset;
   z-index: $zindex-pagelayout;
@@ -1414,6 +1418,82 @@ div.callout.callout-style-default .callout-header {
     > *:not(a) {
       opacity: 0.9;
       word-wrap: break-word;
+    }
+  }
+}
+
+// Quarto title block treatment
+
+$quarto-title-block-inset: 1.5em;
+$quarto-title-block-border-left: 3px solid $border-color;
+$quarto-title-block-border-right: 0px solid $border-color;
+
+#title-block-header.quarto-title-block {
+  .quarto-title-meta {
+    padding-top: 0.5em;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding-right: $quarto-title-block-inset;
+    padding-left: $quarto-title-block-inset;
+    border-left: $quarto-title-block-border-left;
+    border-right: $quarto-title-block-border-right;
+    & > div {
+      margin-bottom: 0.5em;
+    }
+  }
+
+  .quarto-title {
+    .title {
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-weight: 500;
+      font-size: 1.1em;
+    }
+  }
+
+  .quarto-title-author-orcid {
+    padding-left: 5px;
+    img {
+      margin-top: -5px;
+    }
+  }
+
+  .quarto-title-authors p,
+  .quarto-title-affiliations p {
+    margin-bottom: 0.1em;
+  }
+
+  .quarto-title-meta-heading {
+    text-transform: uppercase;
+    font-size: 0.8em;
+    opacity: 0.8;
+    font-weight: 400;
+  }
+
+  .quarto-title-meta-contents {
+    font-size: 0.9em;
+    margin-bottom: 1em;
+  }
+
+  .abstract {
+    border-left: $quarto-title-block-border-left;
+    border-right: $quarto-title-block-border-right;
+    margin-top: 0;
+    padding-right: $quarto-title-block-inset;
+    padding-left: $quarto-title-block-inset;
+
+    & > p {
+      font-size: 0.9em;
+      padding-bottom: 1em;
+    }
+
+    .abstract-title {
+      text-transform: uppercase;
+      font-size: 0.8em;
+      opacity: 0.8;
+      font-weight: 400;
     }
   }
 }
