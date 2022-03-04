@@ -5,10 +5,19 @@
 *
 */
 
-import { kAuthor } from "../../config/constants.ts";
+import {
+  kAuthor,
+  kTitleBlockAffiliationPlural,
+  kTitleBlockAffiliationSingle,
+  kTitleBlockAuthorPlural,
+  kTitleBlockAuthorSingle,
+  kTitleBlockPublished,
+} from "../../config/constants.ts";
+import { localizedString } from "../../config/localization.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
 import { Author, parseAuthor } from "../../core/author.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
+import { kDescription } from "../../project/types/website/listing/website-listing-shared.ts";
 import {
   citationMeta,
   documentCSL,
@@ -118,7 +127,14 @@ export function processDocumentTitle(
 
       authorEl.appendChild(authorP);
     }
-    const authorContainer = metadataEl(doc, "Authors", [authorEl]);
+    const authorTitle = authors.length === 1
+      ? localizedString(format, kTitleBlockAuthorSingle)
+      : localizedString(format, kTitleBlockAuthorPlural);
+    const authorContainer = metadataEl(
+      doc,
+      authorTitle,
+      [authorEl],
+    );
     metadataContainerEl.appendChild(authorContainer);
 
     if (hasAffiliations) {
@@ -141,15 +157,25 @@ export function processDocumentTitle(
 
         affiliationEl.appendChild(affiliationP);
       }
-      const affiliationContainer = metadataEl(doc, "Afilliations", [
-        affiliationEl,
-      ]);
+      const affiliationContainer = metadataEl(
+        doc,
+        authors.length === 1
+          ? localizedString(format, kTitleBlockAffiliationSingle)
+          : localizedString(format, kTitleBlockAffiliationPlural),
+        [
+          affiliationEl,
+        ],
+      );
       metadataContainerEl.appendChild(affiliationContainer);
     }
   }
 
   if (dateEl) {
-    const dateContainer = metadataEl(doc, "Published", [dateEl]);
+    const dateContainer = metadataEl(
+      doc,
+      localizedString(format, kTitleBlockPublished),
+      [dateEl],
+    );
     metadataContainerEl.appendChild(dateContainer);
   }
 
@@ -179,12 +205,18 @@ export function processDocumentTitle(
   headerEl?.appendChild(titleContainerEl);
   headerEl?.appendChild(metadataContainerEl);
 
-  // TODO: Consider also looking for description and using that
-  // But beware since it will be unrendered
+  // Place the abstract or description
   const abstractEl = headerEl?.querySelector(".abstract");
   if (abstractEl) {
     abstractEl.remove();
     headerEl?.appendChild(abstractEl);
+  } else if (format.metadata[kDescription]) {
+    const descriptionEl = doc.createElement("div");
+    descriptionEl.classList.add("abstract");
+    const descriptionP = doc.createElement("p");
+    descriptionP.innerText = format.metadata[kDescription] as string;
+    descriptionEl.appendChild(descriptionP);
+    headerEl?.appendChild(descriptionEl);
   }
 }
 

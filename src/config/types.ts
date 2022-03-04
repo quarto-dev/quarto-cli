@@ -151,6 +151,11 @@ import {
   kTableOfContents,
   kTblColwidths,
   kTemplate,
+  kTitleBlockAffiliationPlural,
+  kTitleBlockAffiliationSingle,
+  kTitleBlockAuthorPlural,
+  kTitleBlockAuthorSingle,
+  kTitleBlockPublished,
   kTitlePrefix,
   kToc,
   kTocTitleDocument,
@@ -433,6 +438,11 @@ export interface FormatLanguage {
   [kSectionTitleCitation]?: string;
   [kAppendixAttributionBibTex]?: string;
   [kAppendixAttributionCiteAs]?: string;
+  [kTitleBlockAffiliationPlural]?: string;
+  [kTitleBlockAffiliationSingle]?: string;
+  [kTitleBlockAuthorSingle]?: string;
+  [kTitleBlockAuthorPlural]?: string;
+  [kTitleBlockPublished]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
