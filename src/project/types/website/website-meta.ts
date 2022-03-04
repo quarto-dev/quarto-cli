@@ -153,12 +153,6 @@ export function metadataHtmlPostProcessor(
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined) {
         metadata[kImage] = findPreviewImg(doc);
-
-        // if we still haven't found a preview, use the site image
-        if (metadata[kImage] === undefined) {
-          const siteMeta = format.metadata[kWebsite] as Metadata;
-          metadata[kImage] = siteMeta[kImage];
-        }
       }
 
       // Convert image to absolute href and add height and width
