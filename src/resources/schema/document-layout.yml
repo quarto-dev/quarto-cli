@@ -81,27 +81,27 @@
 - name: appendix-style
   schema:
     anyOf:
-      - enum: ["default", "bordered", "plain", "none"]
+      - enum: ["default", "plain", "none"]
   default: "default"
   tags:
     formats: [$html-doc]
   description:
-    short: The layout of the appendix for this document (`none`, `plain`, `bordered`, `default`)
+    short: The layout of the appendix for this document (`none`, `plain`, `default`)
     long: |
-      The layout of the appendix for this document (`none`, `plain`, `bordered`, `default`).
+      The layout of the appendix for this document (`none`, `plain`, `default`).
 
       To complete disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`
 - name: title-block-style
   schema:
     anyOf:
-      - enum: ["default", "bordered", "plain", "none"]
+      - enum: ["default", "plain", "none"]
   default: "default"
   tags:
     formats: [$html-doc]
   description:
-    short: The layout of the title block for this document (`none`, `plain`, `bordered`, `default`).
+    short: The layout of the title block for this document (`none`, `plain`, `default`).
     long: |
-      The layout of the title block for this document (`none`, `plain`, `bordered`, `default`).
+      The layout of the title block for this document (`none`, `plain`, `default`).
 
       To complete disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`
 - name: max-width
