@@ -7,7 +7,12 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import { kDescription, kSubtitle, kTitle } from "../../../config/constants.ts";
+import {
+  kAbstract,
+  kDescription,
+  kSubtitle,
+  kTitle,
+} from "../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -235,7 +240,7 @@ function pageMetadata(
 
   return {
     [kTitle]: pageTitle,
-    [kDescription]: pageDescription || format.metadata[kSubtitle],
+    [kDescription]: pageDescription || format.metadata[kAbstract],
     [kImage]: pageImage,
   };
 }
