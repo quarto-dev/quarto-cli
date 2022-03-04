@@ -201,10 +201,6 @@ export function processDocumentTitle(
     metadataContainerEl.appendChild(doiContainer);
   }
 
-  // Track whether we're in 'simple mode' with no real content outside
-  // the title, or a more advanced mode, which requires padding and so on
-  let simpleTitleMode = true;
-
   // Add title and metadata to the header
   headerEl?.classList.add("quarto-title-block");
   headerEl?.classList.add(titleBlockStyle);
@@ -218,7 +214,6 @@ export function processDocumentTitle(
     : undefined;
 
   if (categories) {
-    simpleTitleMode = false;
     const categoryContainerEl = doc.createElement("div");
     categoryContainerEl.classList.add("quarto-categories");
     categories.forEach((category) => {
@@ -232,19 +227,16 @@ export function processDocumentTitle(
 
   // Process metadata
   if (metadataContainerEl.hasChildNodes()) {
-    simpleTitleMode = false;
     headerEl?.appendChild(metadataContainerEl);
   }
 
   // Place the abstract or description
   const abstractEl = headerEl?.querySelector(".abstract");
   if (abstractEl) {
-    simpleTitleMode = false;
     // move the abstract to the bottom
     abstractEl.remove();
     headerEl?.appendChild(abstractEl);
   } else if (format.metadata[kDescription]) {
-    simpleTitleMode = false;
     // Create an abstract element for the description
     const descriptionEl = doc.createElement("div");
     descriptionEl.classList.add("abstract");
@@ -252,10 +244,6 @@ export function processDocumentTitle(
     descriptionP.innerText = format.metadata[kDescription] as string;
     descriptionEl.appendChild(descriptionP);
     headerEl?.appendChild(descriptionEl);
-  }
-
-  if (!simpleTitleMode) {
-    headerEl?.classList.add("quarto-title-rich");
   }
 }
 
