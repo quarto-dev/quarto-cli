@@ -279,6 +279,10 @@ body.docked {
   grid-column: body-content-start / body-content-end;
 }
 
+.page-columns .column-body-fullbleed {
+  grid-column: body-start / body-end;
+}
+
 .page-columns .column-body-outset {
   grid-column: body-start-outset / body-end-outset;
   z-index: $zindex-pagelayout;
@@ -1359,11 +1363,14 @@ div.callout.callout-style-default .callout-header {
 
 // Quarto Appendix Treatment
 #quarto-appendix.default {
+  border-top: 1px solid $border-color;
+}
+
+#quarto-appendix.default {
   background-color: $body-bg;
   padding-top: 1.5em;
   margin-top: 2em;
   z-index: $zindex-pagelayout;
-  border-top: 1px solid $border-color;
 
   .quarto-appendix-heading {
     margin-top: 0;
@@ -1414,6 +1421,87 @@ div.callout.callout-style-default .callout-header {
     > *:not(a) {
       opacity: 0.9;
       word-wrap: break-word;
+    }
+  }
+}
+
+// Quarto title block treatment
+#title-block-header.quarto-title-rich {
+  padding-bottom: 1em;
+}
+
+#title-block-header.quarto-title-block.default {
+  margin-block-end: 0;
+  .quarto-title-meta {
+    padding-top: 0.5em;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    & > div {
+      margin-bottom: 0.5em;
+    }
+  }
+
+  .quarto-title {
+    .title {
+      font-weight: 500;
+      margin-bottom: 0;
+    }
+  }
+
+  .quarto-title-author-orcid {
+    img {
+      margin-top: -5px;
+    }
+  }
+
+  .quarto-title-authors p,
+  .quarto-title-affiliations p {
+    margin-bottom: 0.1em;
+  }
+
+  .quarto-title-meta-heading {
+    text-transform: uppercase;
+    font-size: 0.8em;
+    opacity: 0.8;
+    font-weight: 400;
+  }
+
+  .quarto-categories {
+    display: flex;
+    column-gap: 0.25em;
+    padding-bottom: 0.5em;
+
+    .quarto-category {
+      padding: 0.25em;
+      font-size: 0.7em;
+      text-transform: uppercase;
+      border: solid 1px $border-color;
+      border-radius: $border-radius;
+    }
+  }
+
+  .quarto-title-meta-contents {
+    font-size: 0.9em;
+    margin-bottom: 1em;
+    a {
+      color: $body-color;
+    }
+  }
+
+  .abstract {
+    margin-top: 0;
+    & > p {
+      font-size: 0.9em;
+    }
+    & > p:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .abstract-title {
+      text-transform: uppercase;
+      font-size: 0.8em;
+      opacity: 0.8;
+      font-weight: 400;
     }
   }
 }

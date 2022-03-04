@@ -149,6 +149,11 @@ export const kSectionTitleReuse = "section-title-reuse";
 export const kSectionTitleCitation = "section-title-citation";
 export const kAppendixAttributionBibTex = "appendix-attribution-bibtex";
 export const kAppendixAttributionCiteAs = "appendix-attribution-cite-as";
+export const kTitleBlockAuthorSingle = "title-block-author-single";
+export const kTitleBlockAuthorPlural = "title-block-author-plural";
+export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
+export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
+export const kTitleBlockPublished = "title-block-published";
 export const kCodeSummary = "code-summary";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
@@ -232,6 +237,8 @@ export const kLanguageDefaultsKeys = [
   kSectionTitleCitation,
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kTitleBlockAuthorSingle,
+  kTitleBlockPublished,
   kCodeSummary,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
@@ -296,6 +303,11 @@ export const kLanguageDefaultsKeys = [
   kListingPageMinutesCompact,
   kListingPageCategoryAll,
   kListingPageNoMatches,
+  kTitleBlockAuthorSingle,
+  kTitleBlockAuthorPlural,
+  kTitleBlockAffiliationSingle,
+  kTitleBlockAffiliationPlural,
+  kTitleBlockPublished,
 ];
 
 // 'defaults' fields

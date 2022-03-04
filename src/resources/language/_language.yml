@@ -11,6 +11,12 @@ section-title-citation: "Citation"
 appendix-attribution-cite-as: "For attribution, please cite this work as:"
 appendix-attribution-bibtex: "BibTeX citation:"
 
+title-block-author-single: "Author"
+title-block-author-plural: "Authors"
+title-block-affiliation-single: "Affilliation"
+title-block-affiliation-plural: "Affilliations"
+title-block-published: "Published"
+
 callout-tip-caption: "Tip"
 callout-note-caption: "Note"
 callout-warning-caption: "Warning"

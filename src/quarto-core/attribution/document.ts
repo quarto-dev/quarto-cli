@@ -377,7 +377,7 @@ interface PageRange {
   page?: string;
 }
 
-function citationMeta(format: Format): Record<string, unknown> {
+export function citationMeta(format: Format): Record<string, unknown> {
   if (typeof (format.metadata[kCitation]) === "object") {
     return format.metadata[kCitation] as Record<string, unknown>;
   } else {

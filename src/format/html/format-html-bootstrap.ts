@@ -49,6 +49,7 @@ import {
   kHtmlEmptyPostProcessResult,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
+import { processDocumentTitle } from "./format-html-title.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
@@ -317,6 +318,9 @@ function bootstrapHtmlPostprocessor(
         heading.setAttribute("data-anchor-id", section.id);
       }
     }
+
+    // Process the title elements of this document
+    await processDocumentTitle(input, format, flags, doc, offset);
 
     // Process the elements of this document into an appendix
     if (

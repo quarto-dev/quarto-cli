@@ -7,7 +7,12 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import { kDescription, kSubtitle, kTitle } from "../../../config/constants.ts";
+import {
+  kAbstract,
+  kDescription,
+  kSubtitle,
+  kTitle,
+} from "../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -148,12 +153,6 @@ export function metadataHtmlPostProcessor(
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined) {
         metadata[kImage] = findPreviewImg(doc);
-
-        // if we still haven't found a preview, use the site image
-        if (metadata[kImage] === undefined) {
-          const siteMeta = format.metadata[kWebsite] as Metadata;
-          metadata[kImage] = siteMeta[kImage];
-        }
       }
 
       // Convert image to absolute href and add height and width
@@ -235,7 +234,7 @@ function pageMetadata(
 
   return {
     [kTitle]: pageTitle,
-    [kDescription]: pageDescription || format.metadata[kSubtitle],
+    [kDescription]: pageDescription || format.metadata[kAbstract],
     [kImage]: pageImage,
   };
 }

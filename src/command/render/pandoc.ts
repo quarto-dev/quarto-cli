@@ -78,6 +78,7 @@ import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
   kAbstract,
   kAbstractTitle,
+  kAuthor,
   kClassOption,
   kColorLinks,
   kDocumentClass,
@@ -133,6 +134,7 @@ import {
   pandocFormatWith,
   splitPandocFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
+import { parseAuthor } from "../../core/author.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -518,6 +520,15 @@ export async function runPandoc(
       }
       // perform the override
       pandocMetadata[key] = engineMetadata[key];
+    }
+  }
+
+  // Resolve the author metadata into a form that Pandoc will recognize
+  const authorsRaw = pandocMetadata[kAuthor];
+  if (authorsRaw) {
+    const authors = parseAuthor(pandocMetadata[kAuthor]);
+    if (authors) {
+      pandocMetadata[kAuthor] = authors.map((author) => author.name);
     }
   }
 

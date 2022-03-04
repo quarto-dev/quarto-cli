@@ -7,8 +7,15 @@ section-title-footnotes: "脚注"
 section-title-references: "参考"
 section-title-reuse: "重用"
 section-title-citation: "引文"
+
 appendix-attribution-bibtex: "BibTeX"
 appendix-attribution-cite-as: "请引用这项工作："
+
+title-block-author-single: "作者"
+title-block-author-plural: "作者"
+title-block-affiliation-single: "联系"
+title-block-affiliation-plural: "隶属关系"
+title-block-published: "发布日期"
 
 callout-tip-caption: "提示"
 callout-note-caption: "注释"

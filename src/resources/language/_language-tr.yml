@@ -7,8 +7,15 @@ section-title-footnotes: "Dipnotlar"
 section-title-references: "Referanslar"
 section-title-reuse: "Yeniden kullanın"
 section-title-citation: "Alıntı"
+
 appendix-attribution-bibtex: "BibTeX"
 appendix-attribution-cite-as: "Lütfen bu çalışmayı şu şekilde alıntılayın:"
+
+title-block-author-single: "Yazar"
+title-block-author-plural: "Yazarlar"
+title-block-affiliation-single: "üyelik"
+title-block-affiliation-plural: "Bağlantılar"
+title-block-published: "Yayınlanma Tarihi"
 
 callout-tip-caption: "Tavsiye"
 callout-note-caption: "Not"

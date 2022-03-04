@@ -7,8 +7,15 @@ section-title-footnotes: "Notas"
 section-title-references: "Referencias"
 section-title-reuse: "Reutilizar"
 section-title-citation: "Citación"
+
 appendix-attribution-bibtex: "BibTeX"
 appendix-attribution-cite-as: "Por favor cite este trabajo como:"
+
+title-block-author-single: "Autor"
+title-block-author-plural: "Autores"
+title-block-affiliation-single: "Afiliación"
+title-block-affiliation-plural: "Afiliaciones"
+title-block-published: "Fecha de Publicación"
 
 callout-tip-caption: "Tip"
 callout-note-caption: "Nota"
