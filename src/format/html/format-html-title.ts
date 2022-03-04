@@ -5,7 +5,7 @@
 *
 */
 
-import { kAbstract, kAuthor } from "../../config/constants.ts";
+import { kAuthor } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
 import { Author, parseAuthor } from "../../core/author.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
@@ -106,6 +106,7 @@ export function processDocumentTitle(
         const orcidLink = doc.createElement("a");
         orcidLink.classList.add("quarto-title-author-orcid");
         orcidLink.setAttribute("href", `https://orcid.org/${author.orcid}`);
+        orcidLink.appendChild(doc.createTextNode(" "));
         orcidLink.appendChild(orcidImg);
 
         const nameNode = doc.createTextNode(author.name);

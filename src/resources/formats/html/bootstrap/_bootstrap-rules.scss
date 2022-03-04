@@ -1361,13 +1361,28 @@ div.callout.callout-style-default .callout-header {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 20%))}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
 }
 
+$quarto-doc-metadata-inset: 1.5em;
+$quarto-doc-metadata-border-left: 3px solid $border-color;
+$quarto-doc-metadata-border-right: 0px solid $border-color;
+
 // Quarto Appendix Treatment
+#quarto-appendix.bordered {
+  padding-right: $quarto-doc-metadata-inset;
+  padding-left: $quarto-doc-metadata-inset;
+  border-left: $quarto-doc-metadata-border-left;
+  border-right: $quarto-doc-metadata-border-right;
+}
+
+#quarto-appendix.default {
+  border-top: 1px solid $border-color;
+}
+
+#quarto-appendix.bordered,
 #quarto-appendix.default {
   background-color: $body-bg;
   padding-top: 1.5em;
   margin-top: 2em;
   z-index: $zindex-pagelayout;
-  border-top: 1px solid $border-color;
 
   .quarto-appendix-heading {
     margin-top: 0;
@@ -1423,20 +1438,28 @@ div.callout.callout-style-default .callout-header {
 }
 
 // Quarto title block treatment
+#title-block-header.quarto-title-block.bordered {
+  .quarto-title-meta {
+    padding-right: $quarto-doc-metadata-inset;
+    padding-left: $quarto-doc-metadata-inset;
+    border-left: $quarto-doc-metadata-border-left;
+    border-right: $quarto-doc-metadata-border-right;
+  }
 
-$quarto-title-block-inset: 1.5em;
-$quarto-title-block-border-left: 3px solid $border-color;
-$quarto-title-block-border-right: 0px solid $border-color;
+  .abstract {
+    padding-right: $quarto-doc-metadata-inset;
+    padding-left: $quarto-doc-metadata-inset;
+    border-left: $quarto-doc-metadata-border-left;
+    border-right: $quarto-doc-metadata-border-right;
+  }
+}
 
-#title-block-header.quarto-title-block {
+#title-block-header.quarto-title-block.bordered,
+#title-block-header.quarto-title-block.default {
   .quarto-title-meta {
     padding-top: 0.5em;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    padding-right: $quarto-title-block-inset;
-    padding-left: $quarto-title-block-inset;
-    border-left: $quarto-title-block-border-left;
-    border-right: $quarto-title-block-border-right;
     & > div {
       margin-bottom: 0.5em;
     }
@@ -1454,7 +1477,6 @@ $quarto-title-block-border-right: 0px solid $border-color;
   }
 
   .quarto-title-author-orcid {
-    padding-left: 5px;
     img {
       margin-top: -5px;
     }
@@ -1475,15 +1497,13 @@ $quarto-title-block-border-right: 0px solid $border-color;
   .quarto-title-meta-contents {
     font-size: 0.9em;
     margin-bottom: 1em;
+    a {
+      color: $body-color;
+    }
   }
 
   .abstract {
-    border-left: $quarto-title-block-border-left;
-    border-right: $quarto-title-block-border-right;
     margin-top: 0;
-    padding-right: $quarto-title-block-inset;
-    padding-left: $quarto-title-block-inset;
-
     & > p {
       font-size: 0.9em;
       padding-bottom: 1em;
