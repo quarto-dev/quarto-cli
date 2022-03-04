@@ -111,6 +111,9 @@ export function processDocumentTitle(
     for (const author of authors) {
       const authorP = doc.createElement("p");
 
+      const authorContentsNode = maybeLinkedNode(doc, author.name, author.url);
+      authorP.appendChild(authorContentsNode);
+
       if (author.orcid) {
         const orcidImg = doc.createElement("img");
         orcidImg.setAttribute("src", orcidData);
@@ -121,11 +124,7 @@ export function processDocumentTitle(
         orcidLink.appendChild(doc.createTextNode(" "));
         orcidLink.appendChild(orcidImg);
 
-        const nameNode = doc.createTextNode(author.name);
-        authorP.appendChild(nameNode);
         authorP.appendChild(orcidLink);
-      } else {
-        authorP.innerText = author.name;
       }
 
       authorEl.appendChild(authorP);
@@ -149,15 +148,13 @@ export function processDocumentTitle(
         const affiliationText = (author.affilliation !== undefined)
           ? author.affilliation.name
           : "";
-        if (author.affilliation?.url) {
-          const affiliationA = doc.createElement("a");
-          affiliationA.setAttribute("href", author.affilliation.url);
-          affiliationA.innerText = affiliationText;
-          affiliationP.appendChild(affiliationA);
-        } else {
-          affiliationP.innerText = affiliationText;
-        }
 
+        const affiliationNode = maybeLinkedNode(
+          doc,
+          affiliationText,
+          author.affilliation?.url,
+        );
+        affiliationP.appendChild(affiliationNode);
         affiliationEl.appendChild(affiliationP);
       }
       const affiliationContainer = metadataEl(
@@ -259,6 +256,17 @@ export function processDocumentTitle(
 
   if (!simpleTitleMode) {
     headerEl?.classList.add("quarto-title-rich");
+  }
+}
+
+function maybeLinkedNode(doc: Document, text: string, url?: string) {
+  if (url) {
+    const affiliationA = doc.createElement("a");
+    affiliationA.setAttribute("href", url);
+    affiliationA.innerText = text;
+    return affiliationA;
+  } else {
+    return doc.createTextNode(text);
   }
 }
 

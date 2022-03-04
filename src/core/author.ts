@@ -8,6 +8,7 @@
 export interface Author {
   name: string;
   affilliation?: Affiliation;
+  url?: string;
   orcid?: string;
 }
 
@@ -20,6 +21,7 @@ const kName = "name";
 const kAffiliation = "affiliation";
 const kAfilliationUrl = "affiliation-url";
 const kOrcid = "orcid";
+const kUrl = "url";
 
 export function parseAuthor(authorRaw: unknown) {
   if (authorRaw) {
@@ -27,10 +29,14 @@ export function parseAuthor(authorRaw: unknown) {
     const authors = Array.isArray(authorRaw) ? authorRaw : [authorRaw];
     authors.forEach((author) => {
       if (typeof (author) === "string") {
+        // Its a string, so make it a name
         parsed.push({
           name: author,
         });
       } else if (typeof (author) === "object") {
+        // Parse the author object
+        // Currently this only supports simple 'Distill Style'
+        // authors and affiliations
         const name = author[kName];
         if (name) {
           const auth: Author = {
@@ -47,6 +53,11 @@ export function parseAuthor(authorRaw: unknown) {
           const orcid = author[kOrcid];
           if (orcid) {
             auth.orcid = orcid;
+          }
+
+          const url = author[kUrl];
+          if (url) {
+            auth.url = url;
           }
 
           parsed.push(auth);
