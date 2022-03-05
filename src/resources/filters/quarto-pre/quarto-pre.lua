@@ -70,6 +70,7 @@ import("panel-input.lua")
 import("panel-layout.lua")
 import("hidden.lua")
 import("line-numbers.lua")
+import("conditional-content.lua")
 -- [/import]
 
 initParams()
@@ -77,6 +78,7 @@ initParams()
 return {
   readIncludes(),
   initOptions(),
+  conditionalContent(),
   shortCodes(),  
   tableColwidthCell(),
   tableColwidth(),
