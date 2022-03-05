@@ -46,6 +46,21 @@ export function expectValidationError(e: ValidationError) {
       }
       return result;
     },
+    toHaveInfo(key: string, which?: number) {
+      if (!willThrow) return result;
+      if (which === undefined) {
+        which = 0;
+      }
+      if (goodE.validationErrors[which] === undefined) {
+        willThrow = false;
+        return result;
+      }
+      if (goodE.validationErrors[which].niceError.info[key] === undefined) {
+        willThrow = false;
+        return result;
+      }
+      return result;
+    },
     forSchemaPathToEndWith(spec: string | string[], which?: number) {
       if (!willThrow) return result;
       if (typeof spec === "string") {

@@ -56,6 +56,7 @@ export function setDefaultErrorHandlers(validator: YAMLSchema) {
   validator.addHandler(improveErrorHeadingForValueErrors);
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);
+  validator.addHandler(checkForBadColon);
   validator.addHandler(identifyKeyErrors);
   validator.addHandler(checkForNearbyCorrection);
   validator.addHandler(checkForNearbyRequired);
@@ -402,6 +403,53 @@ function checkForBadBoolean(
   addInstancePathInfo(newError, error.instancePath);
   addFileInfo(newError, error.source);
   newError.info["yaml-version-1.2"] = suggestion1;
+  newError.info["suggestion-fix"] = suggestion2;
+
+  return {
+    ...error,
+    niceError: newError,
+  };
+}
+
+function checkForBadColon(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  schema: Schema,
+) {
+  if (typeof error.violatingObject.result !== "string") {
+    return error;
+  }
+  const e = error.schemaPath.slice(-2);
+  if (e.length !== 2) {
+    return error;
+  }
+  if (e[0] !== "object" || e[1] !== "type") {
+    return error;
+  }
+  if (
+    !((error.violatingObject.result as string).match(/^.+:[^ ].*$/))
+  ) {
+    return error;
+  }
+
+  const verbatimInput = quotedStringColor(getVerbatimInput(error));
+  const errorMessage = `The value ${verbatimInput} is a string.`;
+  const suggestion1 =
+    `In YAML, key-value pairs in objects must be separated by a space.`;
+  const suggestion2 = `Did you mean ${
+    quotedStringColor(
+      quotedStringColor(getVerbatimInput(error)).replace(/:/g, ": "),
+    )
+  } instead?`;
+  const newError: TidyverseError = {
+    heading: formatHeadingForValueError(error, parse, schema),
+    error: [errorMessage],
+    info: {},
+    location: error.niceError.location,
+  };
+  addInstancePathInfo(newError, error.instancePath);
+  addFileInfo(newError, error.source);
+  newError.info["yaml-key-value-pairs"] = suggestion1;
   newError.info["suggestion-fix"] = suggestion2;
 
   return {

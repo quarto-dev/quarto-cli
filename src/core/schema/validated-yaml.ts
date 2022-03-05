@@ -64,7 +64,7 @@ export async function readAndValidateYamlFromMappedString(
 ): Promise<{ [key: string]: unknown }> {
   const result = await withValidator(schema, async (validator) => {
     const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
-    const validateYaml = isObject(annotation.result) &&
+    const validateYaml = !isObject(annotation.result) ||
       (annotation.result as { [key: string]: JSONValue })["validate-yaml"] !==
         false;
 

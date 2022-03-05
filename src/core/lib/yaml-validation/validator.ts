@@ -156,18 +156,46 @@ class ValidationContext {
           })[0]!;
         }
 
-        // As a last resort, we prune all but the anyOf error which reports the smallest
-        // span in the error (presumably showing the error that is the
+        // As a last resort, we sort suggestions based on "quality"
+        const errorTypeQuality = (e: ValidationError): number => {
+          const t = e.schemaPath.slice().reverse();
+          if (t[0] === "type") {
+            if (t[1] === "null") {
+              return 10; // suggesting a null value is bad.
+            }
+            return 1;
+          }
+          return 1;
+        };
+
+        const better = (a: number[], b: number[]): number => {
+          for (let i = 0; i < a.length; ++i) {
+            if (a[i] < b[i]) {
+              return -1;
+            }
+            if (a[i] > b[i]) {
+              return 1;
+            }
+          }
+          return 0;
+        };
+
+        // prune all but the anyOf error which reports
+        // - the least bad overall error in the group
+        // - or the error with the smallest total span (presumably showing the error that is the
         // easiest to fix)
         let bestResults: ValidationError[] = [];
-        let minSpan = Infinity;
+        let bestError = [Infinity, Infinity];
         for (const resultGroup of innerResults) {
+          let maxQuality = -Infinity;
           let totalSpan = 0;
           for (const result of resultGroup) {
             totalSpan += result.value.end - result.value.start;
+            maxQuality = Math.max(maxQuality, errorTypeQuality(result));
           }
-          if (totalSpan < minSpan) {
-            minSpan = totalSpan;
+          const thisError = [maxQuality, totalSpan];
+          if (better(thisError, bestError)) {
+            bestError = thisError;
             bestResults = resultGroup;
           }
         }

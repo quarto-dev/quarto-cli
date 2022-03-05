@@ -52,6 +52,7 @@ import {
   ArraySchema,
   Completion,
   ConcreteSchema,
+  LocalizedError,
   ObjectSchema,
   Schema,
   schemaType,
@@ -156,8 +157,18 @@ export async function validationFromGoodParseYAML(
         continue;
       }
       const validationResult = await validator.validateParse(code, annotation);
+      const errorsBySpan: Record<string, LocalizedError> = {};
+      const spanString = (e: LocalizedError): string =>
+        `${e.location.start.line}-${e.location.start.column}-${e.location.end.line}-${e.location.end.column}`;
 
       for (const error of validationResult.errors) {
+        const key = spanString(error);
+        // only show one error per span
+        if (errorsBySpan[key] === undefined) {
+          errorsBySpan[key] = error;
+        }
+      }
+      for (const [_key, error] of Object.entries(errorsBySpan)) {
         let text;
         if (error.niceError && error.niceError.heading) {
           // use a new nice error if available
@@ -168,8 +179,11 @@ export async function validationFromGoodParseYAML(
             text = text + " (" + error.niceError.info["did-you-mean-value"] +
               ")";
           }
+          if (error.niceError.info["suggestion-fix"]) {
+            text = text + " (" + error.niceError.info["suggestion-fix"] + ")";
+          }
         } else {
-          // default to ajv msg otherwise
+          // default to standard error message otherwise
           text = error.message;
         }
 

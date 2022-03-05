@@ -21927,15 +21927,39 @@ var ValidationContext = class {
             return r.length && r[0].schemaPath.slice(-1)[0] === "required";
           })[0];
         }
+        const errorTypeQuality = (e) => {
+          const t = e.schemaPath.slice().reverse();
+          if (t[0] === "type") {
+            if (t[1] === "null") {
+              return 10;
+            }
+            return 1;
+          }
+          return 1;
+        };
+        const better = (a, b) => {
+          for (let i = 0; i < a.length; ++i) {
+            if (a[i] < b[i]) {
+              return -1;
+            }
+            if (a[i] > b[i]) {
+              return 1;
+            }
+          }
+          return 0;
+        };
         let bestResults = [];
-        let minSpan = Infinity;
+        let bestError = [Infinity, Infinity];
         for (const resultGroup of innerResults) {
+          let maxQuality = -Infinity;
           let totalSpan = 0;
           for (const result3 of resultGroup) {
             totalSpan += result3.value.end - result3.value.start;
+            maxQuality = Math.max(maxQuality, errorTypeQuality(result3));
           }
-          if (totalSpan < minSpan) {
-            minSpan = totalSpan;
+          const thisError = [maxQuality, totalSpan];
+          if (better(thisError, bestError)) {
+            bestError = thisError;
             bestResults = resultGroup;
           }
         }
@@ -22371,6 +22395,7 @@ function setDefaultErrorHandlers(validator) {
   validator.addHandler(improveErrorHeadingForValueErrors);
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);
+  validator.addHandler(checkForBadColon);
   validator.addHandler(identifyKeyErrors);
   validator.addHandler(checkForNearbyCorrection);
   validator.addHandler(checkForNearbyRequired);
@@ -22558,6 +22583,39 @@ function checkForBadBoolean(error, parse, _schema) {
   addInstancePathInfo(newError, error.instancePath);
   addFileInfo(newError, error.source);
   newError.info["yaml-version-1.2"] = suggestion1;
+  newError.info["suggestion-fix"] = suggestion2;
+  return {
+    ...error,
+    niceError: newError
+  };
+}
+function checkForBadColon(error, parse, schema) {
+  if (typeof error.violatingObject.result !== "string") {
+    return error;
+  }
+  const e = error.schemaPath.slice(-2);
+  if (e.length !== 2) {
+    return error;
+  }
+  if (e[0] !== "object" || e[1] !== "type") {
+    return error;
+  }
+  if (!error.violatingObject.result.match(/^.+:[^ ].*$/)) {
+    return error;
+  }
+  const verbatimInput = quotedStringColor(getVerbatimInput(error));
+  const errorMessage = `The value ${verbatimInput} is a string.`;
+  const suggestion1 = `In YAML, key-value pairs in objects must be separated by a space.`;
+  const suggestion2 = `Did you mean ${quotedStringColor(quotedStringColor(getVerbatimInput(error)).replace(/:/g, ": "))} instead?`;
+  const newError = {
+    heading: formatHeadingForValueError(error, parse, schema),
+    error: [errorMessage],
+    info: {},
+    location: error.niceError.location
+  };
+  addInstancePathInfo(newError, error.instancePath);
+  addFileInfo(newError, error.source);
+  newError.info["yaml-key-value-pairs"] = suggestion1;
   newError.info["suggestion-fix"] = suggestion2;
   return {
     ...error,
@@ -24081,7 +24139,15 @@ async function validationFromGoodParseYAML(context) {
         continue;
       }
       const validationResult = await validator.validateParse(code2, annotation);
+      const errorsBySpan = {};
+      const spanString = (e) => `${e.location.start.line}-${e.location.start.column}-${e.location.end.line}-${e.location.end.column}`;
       for (const error of validationResult.errors) {
+        const key = spanString(error);
+        if (errorsBySpan[key] === void 0) {
+          errorsBySpan[key] = error;
+        }
+      }
+      for (const [_key, error] of Object.entries(errorsBySpan)) {
         let text;
         if (error.niceError && error.niceError.heading) {
           text = error.niceError.heading;
@@ -24089,6 +24155,9 @@ async function validationFromGoodParseYAML(context) {
             text = text + " (" + error.niceError.info["did-you-mean-key"] + ")";
           } else if (error.niceError.info["did-you-mean-value"]) {
             text = text + " (" + error.niceError.info["did-you-mean-value"] + ")";
+          }
+          if (error.niceError.info["suggestion-fix"]) {
+            text = text + " (" + error.niceError.info["suggestion-fix"] + ")";
           }
         } else {
           text = error.message;
