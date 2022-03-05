@@ -24,7 +24,7 @@ pushd $QUARTO_BIN_DIR
 # Download Deno
 DENOURL=https://github.com/denoland/deno/releases/download/
 DENOFILE=deno-x86_64-unknown-linux-gnu.zip
-wget -q --show-progress -O $DENOFILE $DENOURL/$DENO/$DENOFILE
+wget -q -O $DENOFILE $DENOURL/$DENO/$DENOFILE
 unzip -o $DENOFILE
 rm $DENOFILE
 
