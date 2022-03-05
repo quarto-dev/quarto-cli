@@ -75,6 +75,7 @@ import {
 import { isAbsoluteRef } from "../../../../core/http.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { projectYamlFiles } from "../../../project-context.ts";
+import { parseAuthor } from "../../../../core/author.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -587,11 +588,9 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     const date = documentMeta?.date
       ? new Date(documentMeta.date as string)
       : undefined;
-    const author = documentMeta?.author
-      ? Array.isArray(documentMeta?.author)
-        ? documentMeta?.author
-        : [documentMeta?.author]
-      : undefined;
+
+    const authors = parseAuthor(documentMeta?.author);
+    const author = authors ? authors.map((auth) => auth.name) : [];
 
     const readingtime = target?.markdown
       ? estimateReadingTimeMinutes(target.markdown.markdown)
