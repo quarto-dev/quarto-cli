@@ -37,6 +37,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <div class="body"><a href="<%- item.path %>">
 <% if (fields.includes('title')) { %>
 <h3 class="no-anchor listing-title"><%= item.title %></h3>
+<div class="listing-subtitle"><%= item.subtitle %></div>
 <% } %>
 <% if (fields.includes('categories') && item.categories) { %> 
 </a>
