@@ -94,7 +94,7 @@ export function templateMarkdownHandler(
                 "short",
                 "medium",
               )
-              : formatDate(date, locale, "short");
+              : formatDate(date, locale, "medium");
           }
         } else if (fieldTypes[field] === "minutes") {
           const val = item[field] as number;
