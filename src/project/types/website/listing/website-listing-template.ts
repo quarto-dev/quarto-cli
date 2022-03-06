@@ -5,7 +5,6 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { format as formatDate } from "datetime/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { cloneDeep, escape } from "../../../../core/lodash.ts";
 import {
@@ -39,6 +38,7 @@ import {
 } from "./website-listing-shared.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
+import { formatDate } from "../../../../core/date.ts";
 
 export const kDateFormat = "date-format";
 
@@ -84,11 +84,17 @@ export function templateMarkdownHandler(
             const date = typeof (dateRaw) === "string"
               ? new Date(dateRaw as string)
               : dateRaw as Date;
+            const locale = format.metadata.lang as string || "en";
             record[field] = dateFormat
-              ? formatDate(date, dateFormat)
+              ? formatDate(date, locale, dateFormat)
               : includeTime
-              ? date.toLocaleString()
-              : date.toLocaleDateString();
+              ? formatDate(
+                date,
+                locale,
+                "short",
+                "medium",
+              )
+              : formatDate(date, locale, "short");
           }
         } else if (fieldTypes[field] === "minutes") {
           const val = item[field] as number;
