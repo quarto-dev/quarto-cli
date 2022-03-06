@@ -10,6 +10,7 @@ import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
+import { findParent } from "../../core/html.ts";
 
 import {
   kHtmlMathMethod,
@@ -279,11 +280,11 @@ function bootstrapHtmlPostprocessor(
     }
 
     // default treatment for computational tables
-    const addTableClasses = (table: Element) => {
-      table.classList
-        .add("table")
-        .add("table-sm")
-        .add("table-striped");
+    const addTableClasses = (table: Element, computational = false) => {
+      table.classList.add("table");
+      if (computational) {
+        table.classList.add("table-sm").add("table-striped");
+      }
     };
 
     // add .table class to pandoc tables
@@ -293,7 +294,10 @@ function bootstrapHtmlPostprocessor(
       if (th.parentNode?.parentNode) {
         const table = th.parentNode.parentNode as Element;
         table.removeAttribute("style");
-        addTableClasses(table);
+        addTableClasses(
+          table,
+          !!findParent(table, (el) => el.classList.contains("cell")),
+        );
       }
     }
 
@@ -302,7 +306,7 @@ function bootstrapHtmlPostprocessor(
     for (let i = 0; i < pandasTables.length; i++) {
       const table = pandasTables[i] as Element;
       table.removeAttribute("border");
-      addTableClasses(table);
+      addTableClasses(table, true);
       const headerRows = table.querySelectorAll("tr");
       for (let r = 0; r < headerRows.length; r++) {
         (headerRows[r] as Element).removeAttribute("style");
