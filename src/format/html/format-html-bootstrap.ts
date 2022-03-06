@@ -278,6 +278,14 @@ function bootstrapHtmlPostprocessor(
       tocTarget?.remove();
     }
 
+    // default treatment for computational tables
+    const addTableClasses = (table: Element) => {
+      table.classList
+        .add("table")
+        .add("table-sm")
+        .add("table-striped");
+    };
+
     // add .table class to pandoc tables
     const tableHeaders = doc.querySelectorAll("tbody > tr:first-child.odd");
     for (let i = 0; i < tableHeaders.length; i++) {
@@ -285,7 +293,7 @@ function bootstrapHtmlPostprocessor(
       if (th.parentNode?.parentNode) {
         const table = th.parentNode.parentNode as Element;
         table.removeAttribute("style");
-        table.classList.add("table");
+        addTableClasses(table);
       }
     }
 
@@ -294,7 +302,7 @@ function bootstrapHtmlPostprocessor(
     for (let i = 0; i < pandasTables.length; i++) {
       const table = pandasTables[i] as Element;
       table.removeAttribute("border");
-      table.classList.add("table");
+      addTableClasses(table);
       const headerRows = table.querySelectorAll("tr");
       for (let r = 0; r < headerRows.length; r++) {
         (headerRows[r] as Element).removeAttribute("style");
