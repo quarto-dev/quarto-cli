@@ -65,14 +65,16 @@ export async function render(
           file.startsWith(renderDir)
         );
       }
+      return renderProject(
+        context || await projectContextForDirectory(path, options.flags),
+        options,
+        files,
+      );
+    } else {
+      throw new Error(
+        "The specified directory ('" + path + "') is not a Quarto project",
+      );
     }
-
-    // all directories are considered projects
-    return renderProject(
-      context || await projectContextForDirectory(path, options.flags),
-      options,
-      files,
-    );
   } else if (context?.config) {
     // if there is a project file then treat this as a project render
     // if the passed file is in the render list
