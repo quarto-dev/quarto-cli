@@ -1426,6 +1426,29 @@ div.callout.callout-style-default .callout-header {
 }
 
 // Quarto title block treatment
+main.quarto-banner-title-block {
+  padding-top: 0 !important;
+  margin-top: 0;
+
+  .quarto-title-banner {
+    z-index: -1;
+    margin-bottom: 1em;
+  }
+
+  .quarto-title {
+    padding-top: $title-block-padding-top;
+  }
+
+  .quarto-title {
+    color: $title-block-contast-color;
+  }
+}
+
+.quarto-title-banner {
+  padding-top: 1.5em;
+  padding-bottom: 1.5em;
+}
+
 #title-block-header.quarto-title-rich {
   padding-bottom: 1em;
 }

@@ -332,7 +332,15 @@ function bootstrapHtmlPostprocessor(
     }
 
     // Process the title elements of this document
-    await processDocumentTitle(input, format, flags, doc, offset);
+    const supporting: string[] = [];
+    const titleSupportingFiles = await processDocumentTitle(
+      input,
+      format,
+      flags,
+      doc,
+      offset,
+    );
+    supporting.push(...titleSupportingFiles);
 
     // Process the elements of this document into an appendix
     if (
@@ -343,7 +351,7 @@ function bootstrapHtmlPostprocessor(
     }
 
     // no resource refs
-    return Promise.resolve(kHtmlEmptyPostProcessResult);
+    return Promise.resolve({ resources: [], supporting });
   };
 }
 

@@ -5,6 +5,7 @@
 *
 */
 
+import { dirname, join } from "path/mod.ts";
 import {
   kAuthor,
   kTitleBlockAffiliationPlural,
@@ -25,6 +26,9 @@ import {
 
 const kDoiBadge = false;
 const kTitleBlockStyle = "title-block-style";
+const kTitleBlockBanner = "title-block-banner";
+const kTitleBlockCategories = "title-block-categories";
+
 const orcidData =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==";
 
@@ -41,8 +45,10 @@ export function processDocumentTitle(
     format.metadata[kTitleBlockStyle] === false ||
     format.metadata[kTitleBlockStyle] === "none"
   ) {
-    return;
+    return [];
   }
+
+  const supporting: string[] = [];
 
   // Sort out the title block style
   const computeTitleBlockStyle = (format: Format) => {
@@ -182,47 +188,39 @@ export function processDocumentTitle(
 
   // Process the DOI
   if (csl.DOI) {
-    const doiUrl = `https://doi.org/${csl.DOI}`;
-    const doiLinkEl = doc.createElement("a");
-    doiLinkEl.setAttribute("href", doiUrl);
-
-    if (kDoiBadge) {
-      const doiBadge = doc.createElement("img");
-      doiBadge.setAttribute(
-        "src",
-        `https://zenodo.org/badge/DOI/${csl.DOI}.svg`,
-      );
-      doiLinkEl.appendChild(doiBadge);
-    } else {
-      doiLinkEl.innerText = csl.DOI;
-    }
-
-    const doiContainer = metadataEl(doc, kDoiBadge ? "" : "DOI", [doiLinkEl]);
-    metadataContainerEl.appendChild(doiContainer);
+    metadataContainerEl.appendChild(
+      createDOIMetadataEl(doc, csl.DOI, kDoiBadge),
+    );
   }
 
   // Add title and metadata to the header
   headerEl?.classList.add("quarto-title-block");
   headerEl?.classList.add(titleBlockStyle);
-  headerEl?.appendChild(titleContainerEl);
+
+  // Resolves any banner path
+  const banner = format.metadata[kTitleBlockBanner] as string;
+  if (banner) {
+    supporting.push(banner);
+    headerEl?.appendChild(createBannerEl(doc, banner, titleContainerEl));
+  } else {
+    headerEl?.appendChild(titleContainerEl);
+  }
 
   // Process any categories
-  const categories = format.metadata?.categories
-    ? Array.isArray(format.metadata?.categories)
-      ? format.metadata?.categories
-      : [format.metadata?.categories]
-    : undefined;
+  const categoriesEnabled = format.metadata[kTitleBlockCategories] !== undefined
+    ? format.metadata[kTitleBlockCategories]
+    : true;
 
-  if (categories) {
-    const categoryContainerEl = doc.createElement("div");
-    categoryContainerEl.classList.add("quarto-categories");
-    categories.forEach((category) => {
-      const categoryEl = doc.createElement("div");
-      categoryEl.classList.add("quarto-category");
-      categoryEl.innerText = category;
-      categoryContainerEl.appendChild(categoryEl);
-    });
-    headerEl?.appendChild(categoryContainerEl);
+  if (categoriesEnabled) {
+    const categories = format.metadata?.categories
+      ? Array.isArray(format.metadata?.categories)
+        ? format.metadata?.categories
+        : [format.metadata?.categories]
+      : undefined;
+
+    if (categories) {
+      headerEl?.appendChild(createCategoriesEl(doc, categories));
+    }
   }
 
   // Process metadata
@@ -237,14 +235,69 @@ export function processDocumentTitle(
     abstractEl.remove();
     headerEl?.appendChild(abstractEl);
   } else if (format.metadata[kDescription]) {
-    // Create an abstract element for the description
-    const descriptionEl = doc.createElement("div");
-    descriptionEl.classList.add("abstract");
-    const descriptionP = doc.createElement("p");
-    descriptionP.innerText = format.metadata[kDescription] as string;
-    descriptionEl.appendChild(descriptionP);
-    headerEl?.appendChild(descriptionEl);
+    // Create an element for the description
+    headerEl?.appendChild(createDescriptionEl(doc, format));
   }
+  return supporting;
+}
+
+function createDescriptionEl(doc: Document, format: Format) {
+  const descriptionEl = doc.createElement("div");
+  descriptionEl.classList.add("abstract");
+  const descriptionP = doc.createElement("p");
+  descriptionP.innerText = format.metadata[kDescription] as string;
+  descriptionEl.appendChild(descriptionP);
+  return descriptionEl;
+}
+
+function createCategoriesEl(doc: Document, categories: string[]) {
+  const categoryContainerEl = doc.createElement("div");
+  categoryContainerEl.classList.add("quarto-categories");
+  categories.forEach((category) => {
+    const categoryEl = doc.createElement("div");
+    categoryEl.classList.add("quarto-category");
+    categoryEl.innerText = category;
+    categoryContainerEl.appendChild(categoryEl);
+  });
+  return categoryContainerEl;
+}
+
+function createDOIMetadataEl(doc: Document, doi: string, badge: boolean) {
+  const doiUrl = `https://doi.org/${doi}`;
+  const doiLinkEl = doc.createElement("a");
+  doiLinkEl.setAttribute("href", doiUrl);
+
+  if (badge) {
+    const doiBadge = doc.createElement("img");
+    doiBadge.setAttribute(
+      "src",
+      `https://zenodo.org/badge/DOI/${doi}.svg`,
+    );
+    doiLinkEl.appendChild(doiBadge);
+  } else {
+    doiLinkEl.innerText = doi;
+  }
+
+  return metadataEl(doc, kDoiBadge ? "" : "DOI", [doiLinkEl]);
+}
+
+function createBannerEl(
+  doc: Document,
+  bannerPath: string,
+  titleContainerEl: Element,
+) {
+  const mainEl = doc.querySelector("main.content");
+  mainEl?.classList.add("quarto-banner-title-block");
+
+  const bannerDiv = doc.createElement("div");
+  bannerDiv.classList.add("quarto-title-banner");
+  bannerDiv.setAttribute(
+    "style",
+    `background-image: url('${bannerPath}'); background-size: cover;`,
+  );
+  titleContainerEl.classList.add("column-body");
+  bannerDiv.appendChild(titleContainerEl);
+  return bannerDiv;
 }
 
 function maybeLinkedNode(doc: Document, text: string, url?: string) {
