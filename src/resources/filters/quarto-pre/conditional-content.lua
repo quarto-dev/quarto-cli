@@ -15,13 +15,13 @@ function conditionalContent()
   return {
 
     -- discard the content of a div if the output format doesn't match
-    Div = function(div)
-      if div.classes:includes('web-only') and matchAny(FORMAT,  webFormats) or
-        div.classes:includes('print-only') and matchAny(FORMAT, printFormats) then
-          return div
-      else
+  Div = function(div)
+    if (div.classes:includes('web-only') and not matchAny(FORMAT,  webFormats) or
+      div.classes:includes('print-only') and not matchAny(FORMAT, printFormats)) then
         return {}
-      end
+    else
+      return div
+    end
     end,
 
   }
