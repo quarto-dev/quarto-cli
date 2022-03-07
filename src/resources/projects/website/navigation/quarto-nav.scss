@@ -243,7 +243,11 @@ $sidebar-section-bottom-margin: 0.2em;
   }
 }
 
-$sidebar-hl: if($sidebar-hl, sidebar-hl, $nav-link-color);
+$sidebar-hl: if(
+  $sidebar-hl,
+  sidebar-hl,
+  theme-contrast($nav-link-color, $sidebar-bg)
+);
 $sidebar-color: rgba($sidebar-fg, 1) !default;
 $sidebar-hover-color: rgba($sidebar-hl, 0.8) !default;
 $sidebar-active-color: $sidebar-hl !default;
@@ -403,6 +407,7 @@ nav.sidebar.sidebar-navigation {
 #quarto-sidebar {
   width: 100%;
   padding-right: 1em;
+  color: $sidebar-fg;
 }
 
 .quarto-sidebar-footer {

@@ -112,7 +112,7 @@ $sidebar-fg: null !default;
 @if $sidebar-bg == transparent {
   $sidebar-fg: theme-contrast($body-contrast-color, $body-contrast-bg) !default;
 } @else {
-  $sidebar-fg: theme-contrast($body-contrast-color, $sidebar-bg) !default;
+  $sidebar-fg: theme-contrast($sidebar-bg, $sidebar-bg) !default;
 }
 $sidebar-hl: null;
 $sidebar-font-size: 0.925rem !default;
