@@ -21,6 +21,7 @@ export async function dartSassVersion() {
 
 export async function dartCompile(
   input: string,
+  outputFilePath: string,
   temp: TempContext,
   loadPaths?: string[],
   compressed?: boolean,
@@ -28,9 +29,12 @@ export async function dartCompile(
   // Write the scss to a file
   // We were previously passing it via stdin, but that can be overflowed
   const inputFilePath = temp.createFile({ suffix: "scss" });
+
+  // Write the css itself to a file
   Deno.writeTextFileSync(inputFilePath, input);
   const args = [
     inputFilePath,
+    outputFilePath,
     "--style",
     compressed ? "compressed" : "expanded",
   ];
@@ -41,7 +45,8 @@ export async function dartCompile(
     });
   }
 
-  return await dartCommand(args);
+  await dartCommand(args);
+  return outputFilePath;
 }
 
 async function dartCommand(args: string[]) {
