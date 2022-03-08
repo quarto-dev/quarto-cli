@@ -175,7 +175,7 @@ function engineForMarkdownWithNoLanguages(markdown: string) {
 }
 
 export function engineIgnoreDirs() {
-  const ignoreDirs: string[] = [];
+  const ignoreDirs: string[] = ["node_modules"];
   executionEngines().forEach((name) => {
     const engine = executionEngine(name);
     if (engine && engine.ignoreDirs) {
