@@ -27,6 +27,7 @@ import {
   kHtmlPostprocessors,
   kSassBundles,
   Metadata,
+  SassBundle,
 } from "../../config/types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { PandocFlags } from "../../config/types.ts";
@@ -45,12 +46,12 @@ import {
   kPageLayoutFull,
   setMainColumn,
 } from "./format-html-shared.ts";
-import {
-  HtmlPostProcessResult,
-  kHtmlEmptyPostProcessResult,
-} from "../../command/render/types.ts";
+import { HtmlPostProcessResult } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
-import { processDocumentTitle } from "./format-html-title.ts";
+import {
+  processDocumentTitle,
+  titleBlockSassBundle,
+} from "./format-html-title.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
@@ -172,6 +173,13 @@ export function boostrapExtras(
       ),
     };
 
+  const scssBundles: SassBundle[] = [];
+  const titleBundle = titleBlockSassBundle(input, format);
+  if (titleBundle) {
+    scssBundles.push(titleBundle);
+  }
+  scssBundles.push(...resolveBootstrapScss(input, format));
+
   return {
     pandoc: {
       [kSectionDivs]: true,
@@ -182,7 +190,7 @@ export function boostrapExtras(
       [kLinkCitations]: true,
     },
     html: {
-      [kSassBundles]: resolveBootstrapScss(input, format),
+      [kSassBundles]: scssBundles,
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
@@ -332,15 +340,15 @@ function bootstrapHtmlPostprocessor(
     }
 
     // Process the title elements of this document
-    const supporting: string[] = [];
-    const titleSupportingFiles = await processDocumentTitle(
+    const resources: string[] = [];
+    const titleResourceFiles = processDocumentTitle(
       input,
       format,
       flags,
       doc,
       offset,
     );
-    supporting.push(...titleSupportingFiles);
+    resources.push(...titleResourceFiles);
 
     // Process the elements of this document into an appendix
     if (
@@ -351,7 +359,7 @@ function bootstrapHtmlPostprocessor(
     }
 
     // no resource refs
-    return Promise.resolve({ resources: [], supporting });
+    return Promise.resolve({ resources, supporting: [] });
   };
 }
 
@@ -448,7 +456,7 @@ function processColumnElements(
   // If margin footnotes are enabled move them
   const refsInMargin = hasMarginRefs(format, flags);
   if (refsInMargin) {
-    marginProcessors.push(footnoteMarginProcessor);
+    marginProcessors.unshift(footnoteMarginProcessor);
   }
 
   // If margin cites are enabled, move them

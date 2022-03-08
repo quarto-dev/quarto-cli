@@ -1429,28 +1429,29 @@ div.callout.callout-style-default .callout-header {
 main.quarto-banner-title-block {
   padding-top: 0 !important;
   margin-top: 0;
-
+  z-index: -1;
   .quarto-title-banner {
-    z-index: -1;
     margin-bottom: 1em;
-  }
+    @if variable-exists(title-block-banner-bg) {
+      background-color: $title-block-banner-bg;
+    }
 
-  .quarto-title {
-    padding-top: $title-block-padding-top;
+    @if (variable-exists(title-block-banner-fg)) {
+      color: $title-block-banner-fg;
+    }
   }
+  #title-block-header.quarto-title-block {
+    margin-block-end: 0rem;
 
-  .quarto-title {
-    color: $title-block-contast-color;
+    .quarto-title-banner .quarto-title .title {
+      font-weight: 600;
+    }
   }
 }
 
 .quarto-title-banner {
-  padding-top: 1.5em;
-  padding-bottom: 1.5em;
-}
-
-#title-block-header.quarto-title-rich {
-  padding-bottom: 1em;
+  padding-top: 2.5em;
+  padding-bottom: 2.5em;
 }
 
 #title-block-header.quarto-title-block.default {

@@ -269,6 +269,29 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   };
 
+  const offsetEl = window.document.querySelector(`*[data-toc-align="true"]`);
+  let offsetTopPadding = null;
+  const positionToc = () => {
+    if (offsetEl !== null) {
+      if (offsetTopPadding === null) {
+        offsetTopPadding = offsetEl.style.paddingTop;
+      }
+
+      const rect = offsetEl.getBoundingClientRect();
+      const position = Math.max(rect.top + rect.height, 0);
+      const toc = window.document.getElementById("TOC");
+      if (toc) {
+        toc.style.marginTop = `${position}px`;
+        if (position > 0) {
+          toc.style.paddingTop = "0.5em";
+        } else {
+          toc.style.paddingTop = offsetTopPadding;
+        }
+      }
+    }
+  };
+  positionToc();
+
   // Manage the visibility of the toc and the sidebar
   const marginScrollVisibility = manageSidebarVisiblity(marginSidebarEl, {
     id: "quarto-toc-toggle",
@@ -457,6 +480,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     "scroll",
     throttle(() => {
       if (tocEl) {
+        positionToc();
         updateActiveLink();
         walk(tocEl, 0);
       }
@@ -468,6 +492,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   window.addEventListener(
     "resize",
     throttle(() => {
+      if (tocEl) {
+        positionToc();
+      }
+
       if (!isReaderMode()) {
         hideOverlappedSidebars();
       }
