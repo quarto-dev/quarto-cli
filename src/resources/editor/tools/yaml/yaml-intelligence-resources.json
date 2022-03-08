@@ -5752,6 +5752,50 @@
       }
     },
     {
+      "name": "title-block-banner",
+      "schema": {
+        "anyOf": [
+          "string",
+          "boolean"
+        ]
+      },
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": {
+        "short": "Apply a banner style treatment to the title block.",
+        "long": "Applies a banner style treatment for the title block. You may specify one of the following values:\n\n`true`\n: Will enable the banner style display and automatically select a background color based upon the theme.\n\n`<css color value>`\n: If you provide a CSS color value, the banner will be enabled and the background color set to the provided CSS color.\n\n`<path>`\n: If you provide the path to a file, the banner will be enabled and the background image will be set to the file path.\n\nSee `title-block-banner-color` if you'd like to control the color of the title block banner text.\n"
+      }
+    },
+    {
+      "name": "title-block-banner-color",
+      "schema": "string",
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": {
+        "short": "Sets the color of text elements in a banner style title block.",
+        "long": "Sets the color of text elements in a banner style title block. Use one of the following values:\n\n`body` | `body-bg`\n: Will set the text color to the body text color or body background color, respectively.\n\n`<css color value>`\n: If you provide a CSS color value, the text color will be set to the provided CSS color.\n"
+      }
+    },
+    {
+      "name": "title-block-categories",
+      "schema": "boolean",
+      "default": true,
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": {
+        "short": "Enables or disables the display of categories in the title block."
+      }
+    },
+    {
       "name": "max-width",
       "schema": "string",
       "tags": {
@@ -10409,6 +10453,18 @@
     {
       "short": "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>).",
       "long": "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>).\nTo complete disable any styling of the title block, choose the style\n<code>none</code>. For minimal styling, choose <code>plain.</code>"
+    },
+    {
+      "short": "Apply a banner style treatment to the title block.",
+      "long": "Applies a banner style treatment for the title block. You may specify\none of the following values:"
+    },
+    {
+      "short": "Sets the color of text elements in a banner style title block.",
+      "long": "Sets the color of text elements in a banner style title block. Use\none of the following values:"
+    },
+    {
+      "short": "Enables or disables the display of categories in the title block.",
+      "long": ""
     },
     "Adds a css <code>max-width</code> to the body Element.",
     {
