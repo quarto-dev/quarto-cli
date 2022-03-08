@@ -1447,6 +1447,10 @@ main.quarto-banner-title-block {
       font-weight: 600;
     }
   }
+
+  .quarto-categories {
+    margin-top: 0.75em;
+  }
 }
 
 p.subtitle {
@@ -1500,6 +1504,7 @@ p.subtitle {
     display: flex;
     column-gap: 0.25em;
     padding-bottom: 0.5em;
+    margin-top: 0.25em;
 
     .quarto-category {
       padding: 0.25em;

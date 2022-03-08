@@ -91,7 +91,6 @@ export function titleBlockSassBundle(
       ));
     }
   }
-  console.log(sassVariables);
   return variableSassBundle(sassVariables);
 }
 
@@ -323,7 +322,11 @@ export function processDocumentTitle(
       : undefined;
 
     if (categories) {
-      headerEl?.appendChild(createCategoriesEl(doc, categories));
+      if (banner) {
+        titleContainerEl?.appendChild(createCategoriesEl(doc, categories));
+      } else {
+        headerEl?.appendChild(createCategoriesEl(doc, categories));
+      }
     }
   }
 
