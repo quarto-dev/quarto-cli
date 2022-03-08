@@ -23987,22 +23987,60 @@ function patchMarkdownDescriptions() {
 }
 
 // hover.ts
+function buildLineMap(annotation, document) {
+  const result = {};
+  const walk = (s, f2) => {
+    const result2 = f2(s);
+    if (result2 === true) {
+      return;
+    }
+    const { annotation: annotation2, path } = s;
+    const isMapping = ["block_mapping", "flow_mapping", "mapping"].indexOf(annotation2.kind) !== -1;
+    for (let i = 0; i < annotation2.components.length; ++i) {
+      const child = annotation2.components[i];
+      const keyOrValue = isMapping && (i & 1) === 0 ? "key" : "value";
+      if (isMapping) {
+        path.push(annotation2.components[i & ~1].result);
+      } else {
+        path.push(i);
+      }
+      walk({ annotation: child, position: keyOrValue, path }, f2);
+      path.pop();
+    }
+  };
+  const f = indexToRowCol(document.value);
+  const state = {
+    annotation,
+    path: [],
+    position: "value"
+  };
+  walk(state, (state2) => {
+    const { annotation: a, position: kOrV } = state2;
+    if (kOrV === "key") {
+      state2 = { ...state2 };
+      state2.path = state2.path.slice();
+      const pos = f(a.start);
+      result[pos.line] = state2;
+    }
+  });
+  return result;
+}
 async function hover(context) {
-  const foundCell = locateCellWithCursor(context);
+  const foundCell = await locateCellWithCursor(context);
   if (!foundCell) {
     return null;
   }
   const { doc: vd, schema } = await createVirtualDocument(context);
-  const annotation = await readAnnotatedYamlFromMappedString(asMappedString(vd));
+  const mappedVd = asMappedString(vd);
+  const annotation = await readAnnotatedYamlFromMappedString(mappedVd);
   if (annotation === null) {
     return null;
   }
-  const offset = rowColToIndex(vd)(context.position);
-  const { withError, value, kind, annotation: innerAnnotation } = locateCursor(annotation, offset);
-  if (withError || value === void 0 || innerAnnotation === void 0) {
+  const mapping = buildLineMap(annotation, mappedVd);
+  if (mapping[context.position.row] === void 0) {
     return null;
   }
-  const navigationPath = kind === "value" ? value.slice(0, -1) : value;
+  const { annotation: innerAnnotation, path: navigationPath } = mapping[context.position.row];
   const result = [];
   for (const matchingSchema of navigateSchemaByInstancePath(schema, navigationPath)) {
     if (matchingSchema === false || matchingSchema === true) {
@@ -24018,18 +24056,18 @@ async function hover(context) {
       }
     }
   }
-  const f = indexToRowCol(asMappedString(context.code).value);
-  const start = f(innerAnnotation.start), end = f(innerAnnotation.end);
   return {
-    content: result.join("\n\n"),
+    content: `**${navigationPath.slice(-1)[0]}**
+
+` + result.join("\n\n"),
     range: {
       start: {
-        line: start.line,
-        character: start.column
+        line: context.position.row,
+        character: 0
       },
       end: {
-        line: end.line,
-        character: end.column
+        line: context.position.row,
+        character: lines(asMappedString(context.code).value)[context.position.row].length
       }
     }
   };

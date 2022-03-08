@@ -7,13 +7,16 @@
 
 import { readAnnotatedYamlFromMappedString } from "./tree-sitter-annotated-yaml.ts";
 import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
-import { asMappedString } from "../mapped-text.ts";
+import { asMappedString, MappedString } from "../mapped-text.ts";
 import { kLangCommentChars } from "../partition-cell-options.ts";
 import { rangedLines } from "../ranged-text.ts";
-import { indexToRowCol, lines, rowColToIndex } from "../text.ts";
+import { indexToRowCol, lines } from "../text.ts";
 import { navigateSchemaByInstancePath } from "../yaml-validation/schema-navigation.ts";
-import { ConcreteSchema, Schema } from "../yaml-schema/types.ts";
-import { locateCursor } from "./tree-sitter-annotated-yaml.ts";
+import {
+  AnnotatedParse,
+  ConcreteSchema,
+  Schema,
+} from "../yaml-schema/types.ts";
 import { YamlIntelligenceContext } from "./types.ts";
 import { resolveSchema } from "../yaml-validation/schema-utils.ts";
 import { getFrontMatterSchema } from "../../lib/yaml-schema/front-matter.ts";
@@ -34,34 +37,93 @@ export interface Hover {
   };
 }
 
+interface State {
+  annotation: AnnotatedParse;
+  position: "key" | "value";
+  path: (string | number)[];
+}
+
+function buildLineMap(
+  annotation: AnnotatedParse,
+  document: MappedString,
+): Record<number, State> {
+  const result: Record<number, State> = {};
+
+  const walk = (
+    s: State,
+    f: (s: State) => unknown,
+  ) => {
+    const result = f(s) as boolean;
+    if (result === true) {
+      return;
+    }
+    const { annotation, path } = s;
+
+    const isMapping =
+      ["block_mapping", "flow_mapping", "mapping"].indexOf(annotation.kind) !==
+        -1;
+
+    for (let i = 0; i < annotation.components.length; ++i) {
+      const child = annotation.components[i];
+      const keyOrValue = isMapping && (i & 1) === 0 ? "key" : "value";
+      if (isMapping) {
+        path.push(annotation.components[i & (~1)].result as string);
+      } else {
+        // must be a sequence
+        path.push(i);
+      }
+      walk({ annotation: child, position: keyOrValue, path }, f);
+      path.pop();
+    }
+  };
+
+  const f = indexToRowCol(document.value);
+  const state: State = {
+    annotation,
+    path: [],
+    position: "value",
+  };
+
+  walk(state, (state) => {
+    const { annotation: a, position: kOrV } = state;
+    if (kOrV === "key") {
+      state = { ...state };
+      state.path = state.path.slice();
+      const pos = f(a.start);
+      result[pos.line] = state;
+    }
+  });
+  return result;
+}
+
 export async function hover(
   context: YamlIntelligenceContext,
 ): Promise<Hover | null> {
-  const foundCell = locateCellWithCursor(context);
+  const foundCell = await locateCellWithCursor(context);
   if (!foundCell) {
     return null;
   }
 
   const { doc: vd, schema } = await createVirtualDocument(context);
 
+  const mappedVd = asMappedString(vd);
   const annotation = await readAnnotatedYamlFromMappedString(
-    asMappedString(vd),
+    mappedVd,
   );
   if (annotation === null) {
     // failed to produce partial parsed yaml, don't give hover info
     return null;
   }
-  const offset = rowColToIndex(vd)(context.position);
+  /*const offset = rowColToIndex(vd)(context.position);
   const { withError, value, kind, annotation: innerAnnotation } = locateCursor(
     annotation,
     offset,
-  );
-
-  if (withError || value === undefined || innerAnnotation === undefined) {
+  );*/
+  const mapping = buildLineMap(annotation, mappedVd);
+  if (mapping[context.position.row] === undefined) {
     return null;
   }
-
-  const navigationPath = kind === "value" ? value.slice(0, -1) : value;
+  const { path: navigationPath } = mapping[context.position.row];
 
   const result: string[] = [];
   for (
@@ -87,20 +149,18 @@ export async function hover(
     }
   }
 
-  const f = indexToRowCol(asMappedString(context.code).value);
-  const start = f(innerAnnotation!.start),
-    end = f(innerAnnotation!.end);
-
   return {
-    content: result.join("\n\n"),
+    content: `**${navigationPath.slice(-1)[0]}**\n\n` + result.join("\n\n"),
     range: {
       start: {
-        line: start.line,
-        character: start.column,
+        line: context.position.row,
+        character: 0,
       },
       end: {
-        line: end.line,
-        character: end.column,
+        line: context.position.row,
+        character:
+          lines(asMappedString(context.code).value)[context.position.row]
+            .length,
       },
     },
   };
