@@ -1475,7 +1475,6 @@ p.subtitle {
 
 #title-block-header.quarto-title-block.default {
   .quarto-title-meta {
-    margin-top: 1em;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1506,6 +1505,7 @@ p.subtitle {
 
   .quarto-title-meta-heading {
     text-transform: uppercase;
+    margin-top: 1em;
     font-size: 0.8em;
     opacity: 0.8;
     font-weight: 400;
