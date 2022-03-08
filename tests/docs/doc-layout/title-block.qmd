@@ -1,0 +1,41 @@
+---
+title: "Summarizing Output for Reproducible Documents"
+subtitle: "A summary of the best practices for summarizing output of reproducible scientific documents."
+date: 11/4/2018
+author:
+  - name: Nora Jones 
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation-url: https://example.com/spacelysprokets
+  - name: John Elway
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation-url: https://example.com/spacelysprokets    
+citation:
+  url: https://example.com/summarizing-output
+categories: [news, code, analysis]
+image: "image.jpg"
+toc: true
+doi: 10/12313.123
+citation-location: margin
+reference-location: margin
+date-format: long
+---
+
+## Section 1
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ac luctus quam, ac maximus magna. Sed ultricies purus urna, condimentum tincidunt purus sagittis eget. Mauris nec purus mattis, tempus odio non, sollicitudin neque.
+
+### Section a
+
+In hac habitasse platea dictumst. Nulla mattis eros eget metus tristique, sit amet congue urna lobortis. Pellentesque pellentesque laoreet dolor. Aenean efficitur nisl vel convallis maximus. Duis et odio libero. Maecenas elementum quis magna et fermentum. Nunc vitae ante eu eros efficitur pretium et et sem. Maecenas convallis sollicitudin est.
+
+### Section b
+
+Sed vel feugiat mauris. Nunc a tempus massa, a blandit justo. Donec at ante varius, placerat ex sed, accumsan metus. [^1]
+
+[^1]: This is a footnote for Section 1.2.
+
+## Section 2
+
+Donec eget turpis vel elit condimentum porta. Aenean vestibulum laoreet elit, eu cursus lectus suscipit vestibulum. Maecenas vitae pellentesque velit. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nam aliquet urna efficitur, tempor turpis id, lobortis felis. Nullam vulputate urna eget neque venenatis feugiat. Nunc sit amet vestibulum mauris. Maecenas et tortor diam. Curabitur tellus massa, convallis in sagittis non, convallis sed velit. Ut consequat lorem dolor, eu malesuada odio feugiat maximus.

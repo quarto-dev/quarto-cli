@@ -45,10 +45,7 @@ import {
   kPageLayoutFull,
   setMainColumn,
 } from "./format-html-shared.ts";
-import {
-  HtmlPostProcessResult,
-  kHtmlEmptyPostProcessResult,
-} from "../../command/render/types.ts";
+import { HtmlPostProcessResult } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import { processDocumentTitle } from "./format-html-title.ts";
 
@@ -332,7 +329,15 @@ function bootstrapHtmlPostprocessor(
     }
 
     // Process the title elements of this document
-    await processDocumentTitle(input, format, flags, doc, offset);
+    const resources: string[] = [];
+    const titleResourceFiles = processDocumentTitle(
+      input,
+      format,
+      flags,
+      doc,
+      offset,
+    );
+    resources.push(...titleResourceFiles);
 
     // Process the elements of this document into an appendix
     if (
@@ -343,7 +348,7 @@ function bootstrapHtmlPostprocessor(
     }
 
     // no resource refs
-    return Promise.resolve(kHtmlEmptyPostProcessResult);
+    return Promise.resolve({ resources, supporting: [] });
   };
 }
 
@@ -440,7 +445,7 @@ function processColumnElements(
   // If margin footnotes are enabled move them
   const refsInMargin = hasMarginRefs(format, flags);
   if (refsInMargin) {
-    marginProcessors.push(footnoteMarginProcessor);
+    marginProcessors.unshift(footnoteMarginProcessor);
   }
 
   // If margin cites are enabled, move them

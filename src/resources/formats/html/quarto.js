@@ -269,6 +269,36 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   };
 
+  const offsetEl = window.document.querySelector(`*[data-toc-align="true"]`);
+  let offsetTopPadding = null;
+  const positionSidebars = () => {
+    if (offsetEl !== null) {
+      if (offsetTopPadding === null) {
+        offsetTopPadding = offsetEl.style.paddingTop;
+      }
+      const rect = offsetEl.getBoundingClientRect();
+      const position = Math.max(rect.height, 0);
+
+      const floating = window.document.querySelector("body.floating");
+      const sidebarIds = ["quarto-margin-sidebar"];
+      if (floating) {
+        sidebarIds.push("quarto-sidebar");
+      }
+      sidebarIds.forEach((sidebarId) => {
+        const sidebarEl = window.document.getElementById(sidebarId);
+        if (sidebarEl) {
+          sidebarEl.style.marginTop = `${position}px`;
+          if (position > 0) {
+            sidebarEl.style.paddingTop = "0.5em";
+          } else {
+            sidebarEl.style.paddingTop = offsetTopPadding;
+          }
+        }
+      });
+    }
+  };
+  positionSidebars();
+
   // Manage the visibility of the toc and the sidebar
   const marginScrollVisibility = manageSidebarVisiblity(marginSidebarEl, {
     id: "quarto-toc-toggle",
@@ -457,6 +487,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     "scroll",
     throttle(() => {
       if (tocEl) {
+        positionSidebars();
         updateActiveLink();
         walk(tocEl, 0);
       }
@@ -468,6 +499,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   window.addEventListener(
     "resize",
     throttle(() => {
+      if (tocEl) {
+        positionSidebars();
+      }
+
       if (!isReaderMode()) {
         hideOverlappedSidebars();
       }

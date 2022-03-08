@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 
 import { quartoCacheDir } from "./appdirs.ts";
 import { TempContext } from "./temp.ts";
@@ -121,13 +121,16 @@ export async function compileSass(
   ].join("\n\n");
 
   // Compile the scss
+  // Note that you can set this to undefined to bypass the cache entirely
+  const cacheKey = bundles.map((bundle) => bundle.key).join("|") + "-" +
+    (minified ? "min" : "nomin");
+
   return await compileWithCache(
     scssInput,
     loadPaths,
     temp,
     minified,
-    bundles.map((bundle) => bundle.key).join("|") + "-" +
-      (minified ? "min" : "nomin"),
+    cacheKey,
   );
 }
 
@@ -318,10 +321,13 @@ export async function compileWithCache(
 
     // We need to refresh the cache
     if (writeCache) {
-      const cssOutput = await dartCompile(input, temp, loadPaths, compressed);
-      if (cssOutput) {
-        Deno.writeTextFileSync(outputFilePath, cssOutput || "");
-      }
+      await dartCompile(
+        input,
+        outputFilePath,
+        temp,
+        loadPaths,
+        compressed,
+      );
       cacheIndex[identifierHash] = { key: cacheIdentifier, hash: inputHash };
       Deno.writeTextFileSync(cacheIdxPath, JSON.stringify(cacheIndex));
     }
@@ -329,13 +335,13 @@ export async function compileWithCache(
   } else {
     const outputFilePath = temp.createFile({ suffix: "css" });
     // Skip the cache and just compile
-    const cssOutput = await dartCompile(
+    await dartCompile(
       input,
+      outputFilePath,
       temp,
       ld.uniq(loadPaths),
       compressed,
     );
-    Deno.writeTextFileSync(outputFilePath, cssOutput || "");
     return outputFilePath;
   }
 }
