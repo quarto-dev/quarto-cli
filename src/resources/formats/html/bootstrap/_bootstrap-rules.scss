@@ -1426,18 +1426,29 @@ div.callout.callout-style-default .callout-header {
 }
 
 // Quarto title block treatment
+
 main.quarto-banner-title-block {
   padding-top: 0 !important;
   margin-top: 0;
   z-index: 0;
   .quarto-title-banner {
     margin-bottom: 1em;
-    @if variable-exists(title-block-banner-bg) {
-      background-color: $title-block-banner-bg;
+    &.color-navbar {
+      @if variable-exists(navbar-bg) {
+        background-color: $navbar-bg;
+      }
+
+      @if (variable-exists(navbar-fg)) {
+        color: $navbar-fg;
+      }
     }
 
-    @if (variable-exists(title-block-banner-fg)) {
-      color: $title-block-banner-fg;
+    &.color-body-bg {
+      color: $body-bg;
+    }
+
+    &.color-body {
+      color: $body-color;
     }
   }
   #title-block-header.quarto-title-block {
@@ -1510,8 +1521,9 @@ p.subtitle {
       padding: 0.25em;
       font-size: 0.7em;
       text-transform: uppercase;
-      border: solid 1px $border-color;
+      border: solid 1px;
       border-radius: $border-radius;
+      opacity: 0.6;
     }
   }
 

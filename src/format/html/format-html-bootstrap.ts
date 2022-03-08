@@ -48,10 +48,7 @@ import {
 } from "./format-html-shared.ts";
 import { HtmlPostProcessResult } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
-import {
-  processDocumentTitle,
-  titleBlockSassBundle,
-} from "./format-html-title.ts";
+import { processDocumentTitle } from "./format-html-title.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
@@ -173,13 +170,6 @@ export function boostrapExtras(
       ),
     };
 
-  const scssBundles: SassBundle[] = [];
-  const titleBundle = titleBlockSassBundle(input, format);
-  if (titleBundle) {
-    scssBundles.push(titleBundle);
-  }
-  scssBundles.push(...resolveBootstrapScss(input, format));
-
   return {
     pandoc: {
       [kSectionDivs]: true,
@@ -190,7 +180,7 @@ export function boostrapExtras(
       [kLinkCitations]: true,
     },
     html: {
-      [kSassBundles]: scssBundles,
+      [kSassBundles]: resolveBootstrapScss(input, format),
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [

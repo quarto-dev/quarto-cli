@@ -16,18 +16,15 @@ import {
   kTitleBlockPublished,
 } from "../../config/constants.ts";
 import { localizedString } from "../../config/localization.ts";
-import { Format, PandocFlags, SassBundle } from "../../config/types.ts";
+import { Format, PandocFlags } from "../../config/types.ts";
 import { Author, parseAuthor } from "../../core/author.ts";
-import { asBootstrapColor } from "../../core/css.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
-import { outputVariable, SassVariable, sassVariable } from "../../core/sass.ts";
 import { kDescription } from "../../project/types/website/listing/website-listing-shared.ts";
 import {
   citationMeta,
   documentCSL,
   formattedDocumentDate,
 } from "../../quarto-core/attribution/document.ts";
-import { kBootstrapDependencyName } from "./format-html-shared.ts";
 
 const kDoiBadge = false;
 const kTitleBlockStyle = "title-block-style";
@@ -38,78 +35,11 @@ const ktitleBlockColor = "title-block-color";
 const orcidData =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==";
 
-export function titleBlockSassBundle(
-  input: string,
-  format: Format,
-): SassBundle | undefined {
-  const banner = format.metadata[kTitleBlockBanner] as string | boolean;
-  const titleBlockColor = format.metadata[ktitleBlockColor] as
-    | string
-    | undefined;
-
-  const sassVariables: SassVariable[] = [];
-
-  // Process any background color
-  if (banner === true) {
-    sassVariables.push(sassVariable(
-      "title-block-banner-bg",
-      "$navbar-bg",
-    ));
-  } else if (banner && !isBannerImage(input, banner)) {
-    sassVariables.push(sassVariable(
-      "title-block-banner-bg",
-      banner,
-      asBootstrapColor,
-    ));
-  }
-
-  // Process the foreground color
-  if (titleBlockColor) {
-    sassVariables.push(sassVariable(
-      "title-block-banner-fg",
-      titleBlockColor,
-      asBootstrapColor,
-    ));
-  } else if (banner === true) {
-    sassVariables.push(sassVariable(
-      "title-block-banner-fg",
-      "$navbar-fg",
-    ));
-  } else if (banner) {
-    if (!isBannerImage(input, banner)) {
-      sassVariables.push(sassVariable(
-        "title-block-banner-fg",
-        `theme-contrast(
-            if(variable-exists(body-bg), $body-bg, $white),
-            $title-block-banner-bg
-          )`,
-      ));
-    } else {
-      sassVariables.push(sassVariable(
-        "title-block-banner-fg",
-        `if(variable-exists(body-bg), $body-bg, $white)`,
-      ));
-    }
-  }
-  return variableSassBundle(sassVariables);
-}
-
-function variableSassBundle(variables: SassVariable[]) {
-  const outputs = variables.map((variable) => {
-    return outputVariable(variable);
-  });
-  return {
-    dependency: kBootstrapDependencyName,
-    key: "quarto-title-block",
-    quarto: {
-      uses: "",
-      defaults: outputs.join("\n"),
-      mixins: "",
-      functions: "",
-      rules: "",
-    },
-  };
-}
+// TODO:
+// if banner === true, emit class on title block that uses navbar color + auto detection of text color
+// if banner === image, emit class on title block that uses body-bg color for text
+// if banner === color, emit style tag that sets banner color
+// if
 
 export function processDocumentTitle(
   input: string,
@@ -288,12 +218,44 @@ export function processDocumentTitle(
   // Resolves any banner path
   const banner = format.metadata[kTitleBlockBanner] as string | boolean;
   if (banner) {
-    if (isBannerImage(input, banner)) {
+    const bannerStyles: string[] = [];
+
+    const titleColor = (block: unknown) => {
+      if (block === "body" || block === "body-bg") {
+        return undefined;
+      } else {
+        return block;
+      }
+    };
+
+    const titleColorClass = (block: unknown) => {
+      if (block === "body") {
+        return "body";
+      } else if (block === "body-bg") {
+        return "body-bg";
+      } else {
+        return "none";
+      }
+    };
+
+    const titleBlockColor = titleColor(format.metadata[ktitleBlockColor]);
+    if (titleBlockColor) {
+      bannerStyles.push(`color: ${titleBlockColor};`);
+    }
+
+    if (banner === true) {
+      headerEl?.appendChild(createBannerEl(
+        doc,
+        titleContainerEl,
+        "navbar",
+      ));
+    } else if (isBannerImage(input, banner)) {
       resources.push(banner as string);
       headerEl?.appendChild(
         createBannerEl(
           doc,
           titleContainerEl,
+          "body-bg",
           `background-image: url('${banner}'); background-size: cover;`,
         ),
       );
@@ -302,8 +264,14 @@ export function processDocumentTitle(
         createBannerEl(
           doc,
           titleContainerEl,
+          titleColorClass(format.metadata[ktitleBlockColor]),
         ),
       );
+      bannerStyles.push(`background-color: ${banner};`);
+    }
+
+    if (bannerStyles.length > 0) {
+      createTitleBannerStyleInHead(doc, bannerStyles);
     }
   } else {
     headerEl?.appendChild(titleContainerEl);
@@ -401,9 +369,21 @@ function isBannerImage(input: string, banner: unknown) {
   }
 }
 
+function createTitleBannerStyleInHead(doc: Document, styles: string[]) {
+  const bannerStyle = doc.createElement("style");
+  bannerStyle.setAttribute("type", "text/css");
+  bannerStyle.innerText = `
+  main.quarto-banner-title-block .quarto-title-banner {
+    ${styles.join("\n")}
+  }`;
+  const head = doc.querySelector("head");
+  head?.appendChild(bannerStyle);
+}
+
 function createBannerEl(
   doc: Document,
   titleContainerEl: Element,
+  color: "navbar" | "body" | "body-bg" | "none",
   style?: string,
 ) {
   const mainEl = doc.querySelector("main.content");
@@ -412,6 +392,11 @@ function createBannerEl(
   const bannerDiv = doc.createElement("div");
   bannerDiv.setAttribute("data-toc-align", "true");
   bannerDiv.classList.add("quarto-title-banner");
+  if (color === "navbar") {
+    bannerDiv.classList.add("color-navbar");
+  } else if (color === "body-bg" || color === "body") {
+    bannerDiv.classList.add(`color-${color}`);
+  }
   if (style) {
     bannerDiv.setAttribute(
       "style",
