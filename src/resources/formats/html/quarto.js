@@ -271,26 +271,33 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   const offsetEl = window.document.querySelector(`*[data-toc-align="true"]`);
   let offsetTopPadding = null;
-  const positionToc = () => {
+  const positionSidebars = () => {
     if (offsetEl !== null) {
       if (offsetTopPadding === null) {
         offsetTopPadding = offsetEl.style.paddingTop;
       }
-
       const rect = offsetEl.getBoundingClientRect();
-      const position = Math.max(rect.top + rect.height, 0);
-      const toc = window.document.getElementById("TOC");
-      if (toc) {
-        toc.style.marginTop = `${position}px`;
-        if (position > 0) {
-          toc.style.paddingTop = "0.5em";
-        } else {
-          toc.style.paddingTop = offsetTopPadding;
-        }
+      const position = Math.max(rect.height, 0);
+
+      const floating = window.document.querySelector("body.floating");
+      const sidebarIds = ["quarto-margin-sidebar"];
+      if (floating) {
+        sidebarIds.push("quarto-sidebar");
       }
+      sidebarIds.forEach((sidebarId) => {
+        const sidebarEl = window.document.getElementById(sidebarId);
+        if (sidebarEl) {
+          sidebarEl.style.marginTop = `${position}px`;
+          if (position > 0) {
+            sidebarEl.style.paddingTop = "0.5em";
+          } else {
+            sidebarEl.style.paddingTop = offsetTopPadding;
+          }
+        }
+      });
     }
   };
-  positionToc();
+  positionSidebars();
 
   // Manage the visibility of the toc and the sidebar
   const marginScrollVisibility = manageSidebarVisiblity(marginSidebarEl, {
@@ -480,7 +487,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     "scroll",
     throttle(() => {
       if (tocEl) {
-        positionToc();
+        positionSidebars();
         updateActiveLink();
         walk(tocEl, 0);
       }
@@ -493,7 +500,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     "resize",
     throttle(() => {
       if (tocEl) {
-        positionToc();
+        positionSidebars();
       }
 
       if (!isReaderMode()) {
