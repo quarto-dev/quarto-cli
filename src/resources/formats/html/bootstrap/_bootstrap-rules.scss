@@ -1451,16 +1451,16 @@ main.quarto-banner-title-block {
       color: $body-color;
     }
   }
-  #title-block-header.quarto-title-block {
+  #title-block-header.quarto-title-block.default {
     margin-block-end: 2em;
 
     .quarto-title-banner .quarto-title .title {
       font-weight: 600;
     }
-  }
 
-  .quarto-categories {
-    margin-top: 0.75em;
+    .quarto-categories {
+      margin-top: 0.75em;
+    }
   }
 }
 
