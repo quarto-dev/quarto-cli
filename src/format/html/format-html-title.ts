@@ -9,8 +9,6 @@ import { existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join } from "path/mod.ts";
 import {
   kAuthor,
-  kDate,
-  kLang,
   kTitleBlockAffiliationPlural,
   kTitleBlockAffiliationSingle,
   kTitleBlockAuthorPlural,
@@ -21,7 +19,6 @@ import { localizedString } from "../../config/localization.ts";
 import { Format, PandocFlags, SassBundle } from "../../config/types.ts";
 import { Author, parseAuthor } from "../../core/author.ts";
 import { asBootstrapColor } from "../../core/css.ts";
-import { formatDate } from "../../core/date.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { outputVariable, SassVariable, sassVariable } from "../../core/sass.ts";
 import { kDescription } from "../../project/types/website/listing/website-listing-shared.ts";
@@ -33,7 +30,6 @@ import {
 import { kBootstrapDependencyName } from "./format-html-shared.ts";
 
 const kDoiBadge = false;
-const kDateFormat = "date-format";
 const kTitleBlockStyle = "title-block-style";
 const kTitleBlockBanner = "title-block-banner";
 const kTitleBlockCategories = "title-block-categories";
@@ -163,6 +159,10 @@ export function processDocumentTitle(
   }
   if (subTitleEl) {
     titleContainerEl.appendChild(subTitleEl);
+  }
+  if (format.metadata[kDescription]) {
+    // Create an element for the description
+    titleContainerEl.appendChild(createDescriptionEl(doc, format));
   }
 
   // Create a container for the grid of metadata
@@ -326,16 +326,14 @@ export function processDocumentTitle(
     // move the abstract to the bottom
     abstractEl.remove();
     headerEl?.appendChild(abstractEl);
-  } else if (format.metadata[kDescription]) {
-    // Create an element for the description
-    headerEl?.appendChild(createDescriptionEl(doc, format));
   }
+
   return resources;
 }
 
 function createDescriptionEl(doc: Document, format: Format) {
   const descriptionEl = doc.createElement("div");
-  descriptionEl.classList.add("abstract");
+  descriptionEl.classList.add("quarto-description");
   const descriptionP = doc.createElement("p");
   descriptionP.innerText = format.metadata[kDescription] as string;
   descriptionEl.appendChild(descriptionP);

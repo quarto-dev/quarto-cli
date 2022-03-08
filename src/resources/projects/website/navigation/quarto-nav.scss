@@ -410,6 +410,11 @@ nav.sidebar.sidebar-navigation {
   color: $sidebar-fg;
 }
 
+#quarto-sidebar,
+#quarto-margin-sidebar {
+  z-index: 1;
+}
+
 .quarto-sidebar-footer {
   font-size: 0.875em;
 }
