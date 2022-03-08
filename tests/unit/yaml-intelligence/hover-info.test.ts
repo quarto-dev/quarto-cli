@@ -37,12 +37,14 @@ print(time.time())
     embedded: false,
     line: "",
   });
+
+  const hoverInfo = `**code-fold**\n\n${
+    // deno-lint-ignore no-explicit-any
+    (getYamlIntelligenceResource("schema/cell-codeoutput.yml") as any)[2]
+      .description.long
+  }`;
   assert(
     result !== null &&
-      result.content ===
-        // deno-lint-ignore no-explicit-any
-        (getYamlIntelligenceResource("schema/cell-codeoutput.yml") as any)[2]
-          .description
-          .long,
+      result.content === hoverInfo,
   );
 });

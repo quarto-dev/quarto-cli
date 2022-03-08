@@ -7193,7 +7193,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             errorDescription: "be `true`, `false`, or `fenced`"
           },
-          description: "Include cell source code in rendered output. Specify `fenced` to include the cell delimiter \nas part of the output.\n"
+          description: "Include cell source code in rendered output.\n\n- `true` (default): include source code in output\n- `false`: do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n"
         },
         {
           name: "code-fold",
@@ -7218,7 +7218,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Collapse code into an HTML `<details>` tag so the user can display it on-demand.",
-            long: "Collapse code into an HTML `<details>` tag so the user can display it on-demand.\nSpecify `show` to have the code initiallly visible.\n"
+            long: "Collapse code into an HTML `<details>` tag so the user can display it on-demand.\n\n- `true`: collapse code\n- `false` (default): do not collapse code\n- `show`: use the `<details>` tag, but show the expanded code initially.\n"
           }
         },
         {
@@ -7252,7 +7252,10 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           default: "scroll",
-          description: "Choose whether to `scroll` or `wrap` when code lines are too wide for their container."
+          description: {
+            short: "Choose whether to `scroll` or `wrap` when code lines are too wide for their container.",
+            long: "Choose how to handle code overflow, when code lines are too wide for their container. One of:\n\n- `scroll`\n- `wrap`\n"
+          }
         },
         {
           name: "code-line-numbers",
@@ -16909,13 +16912,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "Explicitly specify cache dependencies for this chunk (one or more\nchunk labels)",
         "Detect cache dependencies automatically via usage of global\nvariables",
         "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
-        "Include cell source code in rendered output. Specify\n<code>fenced</code> to include the cell delimiter as part of the\noutput.",
+        "Include cell source code in rendered output.",
         {
           short: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand.",
-          long: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand. Specify <code>show</code> to have the\ncode initiallly visible."
+          long: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand."
         },
         "Summary text to use for code blocks collapsed using\n<code>code-fold</code>",
-        "Choose whether to <code>scroll</code> or <code>wrap</code> when code\nlines are too wide for their container.",
+        {
+          short: "Choose whether to <code>scroll</code> or <code>wrap</code> when code\nlines are too wide for their container.",
+          long: "Choose how to handle code overflow, when code lines are too wide for\ntheir container. One of:"
+        },
         {
           short: "Choose how to include line numbers in code block output.",
           long: "Choose how to include line numbers in code block output.\n<code>true</code> or <code>false</code> influence all line\nnumbering.\nUse a string to control the presence of specific line numbering."
