@@ -27,7 +27,6 @@ import {
   kHtmlPostprocessors,
   kSassBundles,
   Metadata,
-  SassBundle,
 } from "../../config/types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { PandocFlags } from "../../config/types.ts";
