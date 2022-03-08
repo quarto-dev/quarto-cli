@@ -105,7 +105,10 @@
 
       To complete disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`
 - name: title-block-banner
-  schema: string
+  schema:
+    anyOf:
+      - string
+      - boolean
   tags:
     formats: [$html-doc]
   description:
