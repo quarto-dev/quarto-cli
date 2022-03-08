@@ -42,4 +42,4 @@
 
       - `false`: Never apply markdown table widths.
 
-      - `[40,30,30]`: Array of explicit width percentages.
+      - An array of numbers (e.g. `[40, 30, 30]`): Array of explicit width percentages.

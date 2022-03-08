@@ -7565,7 +7565,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "high",
           description: {
             short: "How plots in chunks should be kept.",
-            long: "How plots in chunks should be kept. Possible values are as follows:\n\n-   `high`: Only keep high-level plots (merge low-level changes into\n    high-level plots).\n-   `none`: Discard all plots.\n-   `all`: Keep all plots (low-level plot changes may produce new plots).\n-   `first`: Only keep the first plot.\n-   `last`: Only keep the last plot.\n-   If set to a numeric vector, the values are indices of (low-level) plots\n    to keep.\n"
+            long: "How plots in chunks should be kept. Possible values are as follows:\n\n-   `high`: Only keep high-level plots (merge low-level changes into\n    high-level plots).\n-   `none`: Discard all plots.\n-   `all`: Keep all plots (low-level plot changes may produce new plots).\n-   `first`: Only keep the first plot.\n-   `last`: Only keep the last plot.\n-   A numeric vector: In this case, the values are indices of (low-level) plots\n    to keep.\n"
           }
         },
         {
@@ -7893,7 +7893,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Apply explicit table column widths",
-            long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than `columns` characters wide (72 by default). \n\nSome formats (e.g. HTML) do an excellent job automatically sizing\ntable columns and so don't benefit much from column width specifications.\nOther formats (e.g. LaTeX) require table column sizes in order to \ncorrectly flow longer cell content (this is a major reason why tables \n> 72 columns wide are assigned explicit widths by Pandoc).\n\nThis can be specified as:\n\n- `auto`: Apply markdown table column widths except when there is a\n  hyperlink in the table (which tends to throw off automatic\n  calculation of column widths based on the markdown text width of cells).\n  (`auto` is the default for HTML output formats)\n\n- `true`: Always apply markdown table widths (`true` is the default\n  for all non-HTML formats)\n\n- `false`: Never apply markdown table widths.\n\n- `[40,30,30]`: Array of explicit width percentages.\n"
+            long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than `columns` characters wide (72 by default). \n\nSome formats (e.g. HTML) do an excellent job automatically sizing\ntable columns and so don't benefit much from column width specifications.\nOther formats (e.g. LaTeX) require table column sizes in order to \ncorrectly flow longer cell content (this is a major reason why tables \n> 72 columns wide are assigned explicit widths by Pandoc).\n\nThis can be specified as:\n\n- `auto`: Apply markdown table column widths except when there is a\n  hyperlink in the table (which tends to throw off automatic\n  calculation of column widths based on the markdown text width of cells).\n  (`auto` is the default for HTML output formats)\n\n- `true`: Always apply markdown table widths (`true` is the default\n  for all non-HTML formats)\n\n- `false`: Never apply markdown table widths.\n\n- An array of numbers (e.g. `[40, 30, 30]`): Array of explicit width percentages.\n"
           }
         }
       ],
@@ -7918,7 +7918,10 @@ var require_yaml_intelligence_resources = __commonJS({
               "object"
             ]
           },
-          description: "Include the results of executing the code in the output (specify `asis` to treat output as raw markdown with no enclosing containers)."
+          description: {
+            short: "Include the results of executing the code in the output (specify `asis` to\ntreat output as raw markdown with no enclosing containers).\n",
+            long: "Include the results of executing the code in the output. Possible values:\n\n- `true`: Include results.\n- `false`: Do not include results.\n- `asis`: Treat output as raw markdown with no enclosing containers.\n"
+          }
         },
         {
           name: "warning",
@@ -8364,7 +8367,7 @@ var require_yaml_intelligence_resources = __commonJS({
                       ],
                       description: {
                         short: "The mapping between the page and the embedded discussion.",
-                        long: "The mapping between the page and the embedded discussion. \n\n- `pathname` - the discussion title contains the page path\n- `url` - the discussion title contains the page url\n- `title` - the discussion title contains the page title\n- `og:title`- the discussion title containst the `og:title` metadata value\n- Any other value will be passed through verbatim and a discussion title\ncontaining that value will be used. If the value is a number it will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
+                        long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
                       }
                     },
                     "reactions-enabled": {
@@ -8752,7 +8755,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           ],
                           description: {
                             short: "Storage options for Google Analytics data",
-                            long: "Storage option for Google Analytics data using on of these two values:\n\n`cookies` - Use cookies to store unique user and session identification (default).\n\n`none` - Do not use cookies to store unique user and session identification.\n\nFor more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).\n"
+                            long: "Storage option for Google Analytics data using on of these two values:\n\n`cookies`: Use cookies to store unique user and session identification (default).\n\n`none`: Do not use cookies to store unique user and session identification.\n\nFor more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).\n"
                           }
                         },
                         "anonymize-ip": {
@@ -8769,7 +8772,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           ],
                           description: {
                             short: "The version number of Google Analytics to use.",
-                            long: "The version number of Google Analytics to use. Currently supports either 3 (for analytics.js) or 4 (for gtag). \nThis is automatically detected based upon the `tracking-id`, but you may specify it.\n"
+                            long: "The version number of Google Analytics to use. \n\n- `3`: Use analytics.js\n- `4`: use gtag. \n\nThis is automatically detected based upon the `tracking-id`, but you may specify it.\n"
                           }
                         }
                       }
@@ -8791,7 +8794,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           ],
                           description: {
                             short: "The type of consent that should be requested",
-                            long: "The type of consent that should be requested, using one of these two values:\n\n`implied` - (default) This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n`express` - This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n"
+                            long: "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n"
                           }
                         },
                         style: {
@@ -8803,7 +8806,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           ],
                           description: {
                             short: "The style of the consent banner that is displayed",
-                            long: "The style of the consent banner that is displayed:\n\n`simple` - (default) A simple dialog in the lower right corner of the website.\n\n`headline` - A full width banner across the top of the website.\n\n`interstitial` - An semi-transparent overlay of the entire website.\n\n`standalone` - An opaque overlay of the entire website.\n"
+                            long: "The style of the consent banner that is displayed:\n\n- `simple` (default): A simple dialog in the lower right corner of the website.\n\n- `headline`: A full width banner across the top of the website.\n\n- `interstitial`: An semi-transparent overlay of the entire website.\n\n- `standalone`: An opaque overlay of the entire website.\n"
                           }
                         },
                         palette: {
@@ -8811,7 +8814,7 @@ var require_yaml_intelligence_resources = __commonJS({
                             "light",
                             "dark"
                           ],
-                          description: "Whether to use a dark or light appearance for the consent banner"
+                          description: "Whether to use a dark or light appearance for the consent banner (`light` or `dark`)."
                         },
                         "policy-url": {
                           schema: "string",
@@ -9008,7 +9011,7 @@ var require_yaml_intelligence_resources = __commonJS({
                             "xl",
                             "xxl"
                           ],
-                          description: "The responsive breakpoint below which the navbar will collapse into a menu.",
+                          description: "The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`).",
                           default: "lg"
                         },
                         left: {
@@ -9274,7 +9277,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           ],
                           description: {
                             short: "Card style",
-                            long: "Card style (`summary` or `summary_large_image`). If this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
+                            long: "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
                           }
                         },
                         creator: {
@@ -9509,7 +9512,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 ],
                 description: {
                   short: "The type of listing to create.",
-                  long: "The type of listing to create. Choose one of:\n\n- `default` - a blog style list of items\n- `table` - a table of items\n- `grid` - a grid of item cards\n"
+                  long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n"
                 }
               },
               contents: {
@@ -9576,7 +9579,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 ],
                 description: {
                   short: "Display item categories from this listing in the margin of the page.",
-                  long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered` - category list with number of items\n  - `unnumbered` - category list\n  - `cloud` - word cloud style categories\n"
+                  long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered`: Category list with number of items\n  - `unnumbered`: Category list\n  - `cloud`: Word cloud style categories\n"
                 }
               },
               feed: {
@@ -9598,7 +9601,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           ],
                           description: {
                             short: "Whether to include full or partial content in the feed.",
-                            long: "Whether to include full or partial content in the feed. Choose one of\n\n- `full` - the complete content of the document will be included in the feed.\n- `partial` - the firt paragraph of the document will be included in the feed.\n\nDefaults to `full`.\n"
+                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n"
                           }
                         },
                         title: {
@@ -9660,7 +9663,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   "left",
                   "right"
                 ],
-                description: "In `default` type listings, whether to place the image on the right or left side of the post content."
+                description: "In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`)."
               },
               "image-height": {
                 string: {
@@ -9694,7 +9697,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 ],
                 description: {
                   short: "In `grid` type listings, the alignment of the content within the card.",
-                  long: "In grid type listings, the alignment of the content within the card (`left`, `right`, or `center`). Defaults to `left`.\n"
+                  long: "In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`).\n"
                 }
               },
               "table-striped": {
@@ -10413,7 +10416,10 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             ]
           },
-          description: "Specifies that the page is an 'about' page and which template to use when laying out the page."
+          description: {
+            short: "Specifies that the page is an 'about' page and which template to use when laying out the page.",
+            long: "Specifies that the page is an 'about' page and which template to use when laying out the page.\n\nThe allowed values are either:\n\n- one of the possible template values (`jolla`, `trestles`, `solana`, `marquee`, or `broadside`))\n- an object describing the 'about' page in more detail. See [About Pages](https://quarto.org/docs/websites/website-about.html) for more.\n"
+          }
         }
       ],
       "schema/document-attributes.yml": [
@@ -10634,7 +10640,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "hover",
           description: {
             short: "Enable a code copy icon for code blocks.",
-            long: "Enable a code copy icon for code blocks. Defaults to `hover`, which\nshows the icon when the mouse hovers over the code block. Set to \n`true` or `false` to show or hide unconditionally.\n"
+            long: "Enable a code copy icon for code blocks. \n\n- `true`: Always show the icon\n- `false`: Never show the icon\n- `hover` (default): Show the icon when the mouse hovers over the code block\n"
           }
         },
         {
@@ -11551,7 +11557,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Cache results of computations.",
-            long: "Cache results of computations (using the [knitr cache](https://yihui.org/knitr/demo/cache/) \nfor R documents, and [Jupyter Cache](https://jupyter-cache.readthedocs.io/en/latest/) \nfor Jupyter documents).\n\nNote that cache invalidation is triggered by changes in chunk source code \n(or other cache attributes you've defined). Use `refresh` to force a refresh\nof the cache even if has not been otherwise invalidated.\n"
+            long: "Cache results of computations (using the [knitr cache](https://yihui.org/knitr/demo/cache/) \nfor R documents, and [Jupyter Cache](https://jupyter-cache.readthedocs.io/en/latest/) \nfor Jupyter documents).\n\nNote that cache invalidation is triggered by changes in chunk source code \n(or other cache attributes you've defined). \n\n- `true`: Cache results\n- `false`: Do not cache results\n- `refresh`: Force a refresh of the cache even if has not been otherwise invalidated.\n"
           }
         },
         {
@@ -11572,7 +11578,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Re-use previous computational output when rendering",
-            long: "Option to denote that computational documents should never be re-rendered during\na global project render (`freeze: true`), or alternatively only be re-rendered\nwhen their source file changes (`freeze: auto`).\n"
+            long: "Control the re-use of previous computational output when rendering.\n\n- `true`: Never recompute previously generated computational output during a global project render\n- `false` (default): Recompute previously generated computational output\n- `auto`: Re-compute previously generated computational output only in case their source file changes\n"
           }
         },
         {
@@ -12040,7 +12046,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "document",
           description: {
             short: "Location for footnotes and references\n",
-            long: "Specify whether footnotes (and references, if `reference-links` is\nset) are placed at the end of the current (top-level) `block`, the\ncurrent `section`, the `margin`, or the end of the `document`.\n"
+            long: "Specify location for footnotes. Also controls the location of references, if `reference-links` is set.\n\n- `block`: Place at end of current top-level block\n- `section`: Place at end of current section\n- `margin`: Place at the margin\n- `document`: Place at end of document\n"
           }
         }
       ],
@@ -12091,7 +12097,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "man"
             ]
           },
-          description: "Adjusts text to the left (`l`), right (`r`), center (`c`), or both (`b`) margins."
+          description: "Adjusts text to the left, right, center, or both margins (`l`, `r`, `c`, or `b`)."
         },
         {
           name: "hyphenate",
@@ -12237,8 +12243,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: "accept",
           description: {
-            short: "Specifies what to do with insertions, deletions, and comments produced by \nthe MS Word \u201CTrack Changes\u201D feature.\n",
-            long: 'Specifies what to do with insertions, deletions, and comments\nproduced by the MS Word "Track Changes" feature.  `accept` (the\ndefault) processes all the insertions and deletions.\n`reject` ignores them.  Both `accept` and `reject` ignore comments.\n`all` includes all insertions, deletions, and comments, wrapped\nin spans with `insertion`, `deletion`, `comment-start`, and\n`comment-end` classes, respectively. The author and time of\nchange is included. `all` is useful for scripting: only\naccepting changes from a certain reviewer, say, or before a\ncertain date. If a paragraph is inserted or deleted,\n`track-changes=all` produces a span with the class\n`paragraph-insertion`/`paragraph-deletion` before the\naffected paragraph break. This option only affects the docx\nreader.\n'
+            short: "Specify what to do with insertions, deletions, and comments produced by \nthe MS Word \u201CTrack Changes\u201D feature.\n",
+            long: 'Specify what to do with insertions, deletions, and comments\nproduced by the MS Word "Track Changes" feature.  \n\n- `accept` (default): Process all insertions and deletions.\n- `reject`: Ignore them.\n- `all`: Include all insertions, deletions, and comments, wrapped\n  in spans with `insertion`, `deletion`, `comment-start`, and\n  `comment-end` classes, respectively. The author and time of\n  change is included. \n\nNotes:\n\n- Both `accept` and `reject` ignore comments.\n\n- `all` is useful for scripting: only\n  accepting changes from a certain reviewer, say, or before a\n  certain date. If a paragraph is inserted or deleted,\n  `track-changes: all` produces a span with the class\n  `paragraph-insertion`/`paragraph-deletion` before the\n  affected paragraph break. \n\n- This option only affects the docx reader.\n'
           }
         },
         {
@@ -12495,8 +12501,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "The base script direction for the document.",
-            long: "The base script direction for the document.\n\nFor bidirectional documents, native pandoc `span`s and\n`div`s with the `dir` attribute (value `rtl` or `ltr`) can\nbe used to override the base direction in some output\nformats.  This may not always be necessary if the final\nrenderer (e.g. the browser, when generating HTML) supports\nthe [Unicode Bidirectional Algorithm].\n\nWhen using LaTeX for bidirectional documents, only the\n`xelatex` engine is fully supported (use\n`--pdf-engine=xelatex`).\n"
+            short: "The base script direction for the document (`rtl` or `ltr`).",
+            long: "The base script direction for the document (`rtl` or `ltr`).\n\nFor bidirectional documents, native pandoc `span`s and\n`div`s with the `dir` attribute can\nbe used to override the base direction in some output\nformats.  This may not always be necessary if the final\nrenderer (e.g. the browser, when generating HTML) supports\nthe [Unicode Bidirectional Algorithm].\n\nWhen using LaTeX for bidirectional documents, only the\n`xelatex` engine is fully supported (use\n`--pdf-engine=xelatex`).\n"
           }
         }
       ],
@@ -12750,8 +12756,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "The layout of the appendix for this document (`none`, `plain`, `default`)",
-            long: "The layout of the appendix for this document (`none`, `plain`, `default`).\n\nTo complete disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`\n"
+            short: "The layout of the appendix for this document (`none`, `plain`, or `default`)",
+            long: "The layout of the appendix for this document (`none`, `plain`, or `default`).\n\nTo completely disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`\n"
           }
         },
         {
@@ -12774,8 +12780,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "The layout of the title block for this document (`none`, `plain`, `default`).",
-            long: "The layout of the title block for this document (`none`, `plain`, `default`).\n\nTo complete disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`\n"
+            short: "The layout of the title block for this document (`none`, `plain`, or `default`).",
+            long: "The layout of the title block for this document (`none`, `plain`, or `default`).\n\nTo completely disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`\n"
           }
         },
         {
@@ -13237,8 +13243,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "Treat top-level headings as the given division type. The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.\n",
-            long: "Treat top-level headings as the given division type. The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.  \n\nThe default behavior is to determine the\nbest division type via heuristics: unless other conditions\napply, `section` is chosen. When the `documentclass`\nvariable is set to `report`, `book`, or `memoir` (unless the\n`article` option is specified), `chapter` is implied as the\nsetting for this option. If `beamer` is the output format,\nspecifying either `chapter` or `part` will cause top-level\nheadings to become `\\part{..}`, while second-level headings\nremain as their default type.\n"
+            short: "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.\n",
+            long: "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.  \n\nThe default behavior is to determine the\nbest division type via heuristics: unless other conditions\napply, `section` is chosen. When the `documentclass`\nvariable is set to `report`, `book`, or `memoir` (unless the\n`article` option is specified), `chapter` is implied as the\nsetting for this option. If `beamer` is the output format,\nspecifying either `chapter` or `part` will cause top-level\nheadings to become `\\part{..}`, while second-level headings\nremain as their default type.\n"
           }
         }
       ],
@@ -13417,7 +13423,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "none",
           description: {
             short: "Method for obfuscating mailto: links in HTML documents.",
-            long: "Specify a method for obfuscating `mailto:` links in HTML documents.\n`none` leaves `mailto:` links as they are.  `javascript` obfuscates\nthem using JavaScript. `references` obfuscates them by printing their\nletters as decimal or hexadecimal character references.  The default\nis `none`.\n"
+            long: "Specify a method for obfuscating `mailto:` links in HTML documents.\n\n- `javascript`: Obfuscate links using JavaScript.\n- `references`: Obfuscate links by printing their letters as decimal or hexadecimal character references.\n- `none` (default): Do not obfuscate links.\n"
           }
         },
         {
@@ -13653,7 +13659,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           default: "atx",
-          description: "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings.\n"
+          description: "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n"
         },
         {
           name: "keep-yaml",
@@ -13682,8 +13688,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: "best",
           description: {
-            short: "Determines which ipynb cell output formats are rendered.",
-            long: "Determines which ipynb cell output formats are rendered. `all` means\nthat all of the data formats included in the original are\npreserved.  `none` means that the contents of data cells\nare omitted.  `best` causes pandoc to try to pick the\nrichest data block in each output cell that is compatible\nwith the output format. The default is `best`.\n"
+            short: "Determines which ipynb cell output formats are rendered (`none`, `all`, or `best`).",
+            long: "Determines which ipynb cell output formats are rendered.\n\n- `all`: Preserve all of the data formats included in the original.\n- `none`: Omit the contents of data cells.\n- `best` (default): Instruct pandoc to try to pick the\n  richest data block in each output cell that is compatible\n  with the output format.\n"
           }
         }
       ],
@@ -14207,8 +14213,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: "auto",
           description: {
-            short: "Opens links in an iframe preview overlay",
-            long: "Opens links in an iframe preview overlay (defaults to\n`auto`, which will use an iframe in fullscreen mode).\n"
+            short: "Open links in an iframe preview overlay (`true`, `false`, or `auto`)",
+            long: "Open links in an iframe preview overlay.\n\n- `true`: Open links in iframe preview overlay\n- `false`: Do not open links in iframe preview overlay\n- `auto` (default): Open links in iframe preview overlay, in fullscreen mode.\n"
           }
         },
         {
@@ -14226,7 +14232,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           default: null,
-          description: "Autoplay embedded media. Default is `null` (only when `autoplay` \nattribute is specified)\n"
+          description: "Autoplay embedded media (`null`, `true`, or `false`). Default is `null` (only when `autoplay` \nattribute is specified)\n"
         },
         {
           name: "preload-iframes",
@@ -14244,8 +14250,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: null,
           description: {
-            short: "Global override for preloading lazy-loaded iframes",
-            long: "Global override for preloading lazy-loaded iframes\n\n- `null`:   Iframes with data-src AND data-preload will be loaded when within\n  the `viewDistanc`e, iframes with only data-src will be loaded when visible\n- `true`:   All iframes with data-src will be loaded when within the viewDistance\n- `false`:  All iframes with data-src will be loaded only when visible\n"
+            short: "Global override for preloading lazy-loaded iframes (`null`, `true`, or `false`).",
+            long: "Global override for preloading lazy-loaded iframes\n\n- `null`:   Iframes with data-src AND data-preload will be loaded when within\n  the `viewDistance`, iframes with only data-src will be loaded when visible\n- `true`:   All iframes with data-src will be loaded when within the viewDistance\n- `false`:  All iframes with data-src will be loaded only when visible\n"
           }
         },
         {
@@ -14352,8 +14358,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: "linear",
           description: {
-            short: "Navigation progression",
-            long: "Changes the behavior of navigation directions.\n\n`linear`:\nRemoves the up/down arrows. Left/right arrows step through all\nslides (both horizontal and vertical).\n\n`vertical`:\nLeft/right arrow keys step between horizontal slides, up/down\narrow keys step between vertical slides. Space key steps through\nall slides (both horizontal and vertical).\n\n`grid`:\nWhen this is enabled, stepping left/right from a vertical stack\nto an adjacent vertical stack will land you at the same vertical\nindex.\n"
+            short: "Navigation progression (`linear`, `vertical`, or `grid`)",
+            long: "Changes the behavior of navigation directions.\n\n- `linear`: Removes the up/down arrows. Left/right arrows step through all\n  slides (both horizontal and vertical).\n\n- `vertical`: Left/right arrow keys step between horizontal slides, up/down\n  arrow keys step between vertical slides. Space key steps through\n  all slides (both horizontal and vertical).\n\n- `grid`: When this is enabled, stepping left/right from a vertical stack\n  to an adjacent vertical stack will land you at the same vertical\n  index.\n"
           }
         },
         {
@@ -14452,8 +14458,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: "auto",
           description: {
-            short: "Show arrow controls for navigating through slides",
-            long: "Show arrow controls for navigating through slides (defaults to\n`auto`, which will show controls when vertical slides are present\nor when the deck is embedded in an iframe).\n"
+            short: "Show arrow controls for navigating through slides (`true`, `false`, or `auto`).",
+            long: "Show arrow controls for navigating through slides.\n\n- `true`: Always show controls\n- `false`: Never show controls\n- `auto` (default): Show controls when vertical slides are present or when the deck is embedded in an iframe.\n"
           }
         },
         {
@@ -14498,7 +14504,7 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           default: "faded",
-          description: "Visibility rule for backwards navigation arrows; `faded`, `hidden`\nor `visible`\n"
+          description: "Visibility rule for backwards navigation arrows (`faded`, `hidden`, or `visible`).\n"
         },
         {
           name: "auto-slide",
@@ -15163,8 +15169,8 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: "auto",
           description: {
-            short: "Determine how text is wrapped in the output.",
-            long: "Determine how text is wrapped in the output (the source code, not the rendered\nversion). With `auto` (the default), pandoc will attempt to wrap lines to the column\nwidth specified by `columns` (default 72). With `none`, pandoc will not wrap lines at\nall. With `preserve`, pandoc will attempt to preserve the wrapping from the source\ndocument (that is, where there are nonsemantic newlines in the source, there will be\nnonsemantic newlines in the output as well\n"
+            short: "Determine how text is wrapped in the output (`auto`, `none`, or `preserve`).",
+            long: "Determine how text is wrapped in the output (the source code, not the rendered\nversion). \n\n- `auto` (default): Pandoc will attempt to wrap lines to the column width specified by `columns` (default 72). \n- `none`: Pandoc will not wrap lines at all. \n- `preserve`: Pandoc will attempt to preserve the wrapping from the source\n  document. Where there are nonsemantic newlines in the source, there will be\n  nonsemantic newlines in the output as well.\n"
           }
         },
         {
@@ -15239,7 +15245,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Manually specify line endings (`lf`, `crlf`, or `native`).",
-            long: "Manually specify line endings: `crlf` (Windows), `lf`\n(macOS/Linux/UNIX), or `native` (line endings appropriate\nto the OS on which pandoc is being run).  The default is\n`native`.\n"
+            long: "Manually specify line endings: \n\n- `crlf`: Use Windows line endings\n- `lf`: Use macOS/Linux/UNIX line endings\n- `native` (default): Use line endings appropriate to the OS on which pandoc is being run).\n"
           }
         },
         {
@@ -15318,7 +15324,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Location for table of contents (`body`, `left`, or `right`). \nDefaults to `right`.\n"
+          description: "Location for table of contents (`body`, `left`, or `right` (default)).\n"
         },
         {
           name: "toc-title",
@@ -15723,7 +15729,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   ],
                   description: {
                     short: "Working directory for computations",
-                    long: "Working directory for computations: `file` uses the directory of the\ncurrently executing file, `project` uses the root project directory.\n"
+                    long: "Control the working directory for computations. \n\n- `file`: Use the directory of the file that is currently executing.\n- `project`: Use the root directory of the project.\n"
                   }
                 },
                 "output-dir": {
@@ -16453,7 +16459,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The Google tracking Id or measurement Id of this website.",
         {
           short: "Storage options for Google Analytics data",
-          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code> - Use cookies to store unique user and session\nidentification (default).\n<code>none</code> - Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
         },
         {
           short: "Anonymize the user ip address.",
@@ -16461,7 +16467,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The version number of Google Analytics to use.",
-          long: "The version number of Google Analytics to use. Currently supports\neither 3 (for analytics.js) or 4 (for gtag). This is automatically\ndetected based upon the <code>tracking-id</code>, but you may specify\nit."
+          long: "The version number of Google Analytics to use."
         },
         {
           short: "Request cookie consent before enabling scripts that set cookies",
@@ -16469,13 +16475,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The type of consent that should be requested",
-          long: "The type of consent that should be requested, using one of these two\nvalues:\n<code>implied</code> - (default) This will notify the user that the\nsite uses cookies and permit them to change preferences, but not block\ncookies unless the user changes their preferences.\n<code>express</code> - This will block cookies until the user\nexpressly agrees to allow them (or continue blocking them if the user\ndoesn\u2019t agree)."
+          long: "The type of consent that should be requested, using one of these two\nvalues:"
         },
         {
           short: "The style of the consent banner that is displayed",
-          long: "The style of the consent banner that is displayed:\n<code>simple</code> - (default) A simple dialog in the lower right\ncorner of the website.\n<code>headline</code> - A full width banner across the top of the\nwebsite.\n<code>interstitial</code> - An semi-transparent overlay of the entire\nwebsite.\n<code>standalone</code> - An opaque overlay of the entire\nwebsite."
+          long: "The style of the consent banner that is displayed:"
         },
-        "Whether to use a dark or light appearance for the consent banner",
+        "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
           short: "The text to display for the cookie preferences link in the website\nfooter.",
@@ -16506,7 +16512,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Include a search box in the navbar.",
         "Always show the navbar (keeping it pinned).",
         "Collapse the navbar into a menu when the display becomes narrow.",
-        "The responsive breakpoint below which the navbar will collapse into a\nmenu.",
+        "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "Side navigation options",
@@ -16590,7 +16596,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Image height (pixels)",
         {
           short: "Card style",
-          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>). If this is not provided, the best\nstyle will automatically selected based upon other metadata. You can\nlearn more about Twitter Card styles <a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
+          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
         },
         "<code>@username</code> of the content creator (must be a quoted\nstring)",
         "<code>@username</code> of the website (must be a quoted string)",
@@ -16655,7 +16661,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The number of items to include in your feed. Defaults to 20.",
         {
           short: "Whether to include full or partial content in the feed.",
-          long: "Whether to include full or partial content in the feed. Choose one\nof"
+          long: "Whether to include full or partial content in the feed."
         },
         {
           short: "The title for this feed.",
@@ -16681,7 +16687,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The maximum length (in characters) of the description displayed in\nthe listing.",
           long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
         },
-        "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content.",
+        "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
         {
           short: "The height of the image being displayed.",
           long: "The height of the image being displayed (a CSS height string).\nThe width is automatically determined and the image will fill the\nrectangle without scaling (cropped to fill)."
@@ -16696,7 +16702,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "In <code>grid</code> type listings, the alignment of the content\nwithin the card.",
-          long: "In grid type listings, the alignment of the content within the card\n(<code>left</code>, <code>right</code>, or <code>center</code>).\nDefaults to <code>left</code>."
+          long: "In grid type listings, the alignment of the content within the card\n(<code>left</code> (default), <code>right</code>, or\n<code>center</code>)."
         },
         {
           short: "In <code>table</code> type listings, display the table rows with\nalternating background colors.",
@@ -17017,7 +17023,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Apply explicit table column widths",
           long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than <code>columns</code> characters wide (72 by\ndefault).\nSome formats (e.g.&nbsp;HTML) do an excellent job automatically sizing\ntable columns and so don\u2019t benefit much from column width\nspecifications. Other formats (e.g.&nbsp;LaTeX) require table column sizes in\norder to correctly flow longer cell content (this is a major reason why\ntables &gt; 72 columns wide are assigned explicit widths by Pandoc).\nThis can be specified as:"
         },
-        "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
+        {
+          short: "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
+          long: "Include the results of executing the code in the output. Possible\nvalues:"
+        },
         "Include warnings in rendered output.",
         "Include errors in the output (note that this implies that errors\nexecuting code will not halt processing of the document).",
         "Catch all for preventing any output (code or results) from being\nincluded in output.",
@@ -17039,7 +17048,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Attribute(s) for message output",
         "Class name(s) for error output",
         "Attribute(s) for error output",
-        "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.",
+        {
+          short: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.",
+          long: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.\nThe allowed values are either:"
+        },
         "Document title",
         "Identifies the subtitle of the document.",
         "Document date",
@@ -17073,7 +17085,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Enable a code copy icon for code blocks.",
-          long: "Enable a code copy icon for code blocks. Defaults to\n<code>hover</code>, which shows the icon when the mouse hovers over the\ncode block. Set to <code>true</code> or <code>false</code> to show or\nhide unconditionally."
+          long: "Enable a code copy icon for code blocks."
         },
         {
           short: "Enables hyper-linking of functions within code blocks to their online\ndocumentation.",
@@ -17218,11 +17230,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Knitr chunk options.",
         {
           short: "Cache results of computations.",
-          long: 'Cache results of computations (using the <a href="https://yihui.org/knitr/demo/cache/">knitr cache</a> for R\ndocuments, and <a href="https://jupyter-cache.readthedocs.io/en/latest/">Jupyter Cache</a>\nfor Jupyter documents).\nNote that cache invalidation is triggered by changes in chunk source\ncode (or other cache attributes you\u2019ve defined). Use\n<code>refresh</code> to force a refresh of the cache even if has not\nbeen otherwise invalidated.'
+          long: 'Cache results of computations (using the <a href="https://yihui.org/knitr/demo/cache/">knitr cache</a> for R\ndocuments, and <a href="https://jupyter-cache.readthedocs.io/en/latest/">Jupyter Cache</a>\nfor Jupyter documents).\nNote that cache invalidation is triggered by changes in chunk source\ncode (or other cache attributes you\u2019ve defined).'
         },
         {
           short: "Re-use previous computational output when rendering",
-          long: "Option to denote that computational documents should never be\nre-rendered during a global project render (<code>freeze: true</code>),\nor alternatively only be re-rendered when their source file changes\n(<code>freeze: auto</code>)."
+          long: "Control the re-use of previous computational output when\nrendering."
         },
         "Document server",
         "Type of server to run behind the document\n(e.g.&nbsp;<code>shiny</code>)",
@@ -17317,13 +17329,13 @@ var require_yaml_intelligence_resources = __commonJS({
         "Causes links to be printed as footnotes.",
         {
           short: "Location for footnotes and references",
-          long: "Specify whether footnotes (and references, if\n<code>reference-links</code> is set) are placed at the end of the\ncurrent (top-level) <code>block</code>, the current\n<code>section</code>, the <code>margin</code>, or the end of the\n<code>document</code>."
+          long: "Specify location for footnotes. Also controls the location of\nreferences, if <code>reference-links</code> is set."
         },
         {
           short: "Set the indentation of paragraphs with one or more options.",
           long: 'Set the indentation of paragraphs with one or more options.\nSee <a href="https://wiki.contextgarden.net/Indentation">ConTeXt\nIndentation</a> for additional information.'
         },
-        "Adjusts text to the left (<code>l</code>), right (<code>r</code>),\ncenter (<code>c</code>), or both (<code>b</code>) margins.",
+        "Adjusts text to the left, right, center, or both margins\n(<code>l</code>, <code>r</code>, <code>c</code>, or <code>b</code>).",
         {
           short: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens.",
           long: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens if it is necessary to do so to lay out words on a line\nwithout excessive spacing"
@@ -17351,8 +17363,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Level of program output (<code>INFO</code>, <code>ERROR</code>, or\n<code>WARNING</code>)",
         "Write log messages in machine-readable JSON format to FILE.",
         {
-          short: "Specifies what to do with insertions, deletions, and comments\nproduced by the MS Word \u201CTrack Changes\u201D feature.",
-          long: "Specifies what to do with insertions, deletions, and comments\nproduced by the MS Word \u201CTrack Changes\u201D feature. <code>accept</code>\n(the default) processes all the insertions and deletions.\n<code>reject</code> ignores them. Both <code>accept</code> and\n<code>reject</code> ignore comments. <code>all</code> includes all\ninsertions, deletions, and comments, wrapped in spans with\n<code>insertion</code>, <code>deletion</code>,\n<code>comment-start</code>, and <code>comment-end</code> classes,\nrespectively. The author and time of change is included.\n<code>all</code> is useful for scripting: only accepting changes from a\ncertain reviewer, say, or before a certain date. If a paragraph is\ninserted or deleted, <code>track-changes=all</code> produces a span with\nthe class\n<code>paragraph-insertion</code>/<code>paragraph-deletion</code> before\nthe affected paragraph break. This option only affects the docx\nreader."
+          short: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature.",
+          long: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature."
         },
         {
           short: "Ignore paragraphs with no content.",
@@ -17401,8 +17413,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "YAML file containing custom language translations",
         {
-          short: "The base script direction for the document.",
-          long: "The base script direction for the document.\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute (value\n<code>rtl</code> or <code>ltr</code>) can be used to override the base\ndirection in some output formats. This may not always be necessary if\nthe final renderer (e.g.&nbsp;the browser, when generating HTML) supports the\n[Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
+          short: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
+          long: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
         },
         {
           short: "Use Quarto\u2019s built-in PDF rendering wrapper",
@@ -17433,12 +17445,12 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt."
         },
         {
-          short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>)",
-          long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>).\nTo complete disable any styling of the appendix, choose the appendix\nstyle <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
+          short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
+          long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
         },
         {
-          short: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>).",
-          long: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, <code>default</code>).\nTo complete disable any styling of the title block, choose the style\n<code>none</code>. For minimal styling, choose <code>plain.</code>"
+          short: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).",
+          long: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the title block, choose the\nstyle <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
         },
         "Adds a css <code>max-width</code> to the body Element.",
         {
@@ -17520,8 +17532,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'Sets the page numbering style and location for the document using the\n<code>\\setuppagenumbering</code> command.\nSee <a href="https://wiki.contextgarden.net/Command/setuppagenumbering">ConTeXt\nPage Numbering</a> for additional information.'
         },
         {
-          short: "Treat top-level headings as the given division type. The hierarchy\norder is part, chapter, then section; all headings are shifted such that\nthe top-level heading becomes the specified type.",
-          long: "Treat top-level headings as the given division type. The hierarchy\norder is part, chapter, then section; all headings are shifted such that\nthe top-level heading becomes the specified type.\nThe default behavior is to determine the best division type via\nheuristics: unless other conditions apply, <code>section</code> is\nchosen. When the <code>documentclass</code> variable is set to\n<code>report</code>, <code>book</code>, or <code>memoir</code> (unless\nthe <code>article</code> option is specified), <code>chapter</code> is\nimplied as the setting for this option. If <code>beamer</code> is the\noutput format, specifying either <code>chapter</code> or\n<code>part</code> will cause top-level headings to become\n<code>\\part{..}</code>, while second-level headings remain as their\ndefault type."
+          short: "Treat top-level headings as the given division type\n(<code>default</code>, <code>section</code>, <code>chapter</code>, or\n<code>part</code>). The hierarchy order is part, chapter, then section;\nall headings are shifted such that the top-level heading becomes the\nspecified type.",
+          long: "Treat top-level headings as the given division type\n(<code>default</code>, <code>section</code>, <code>chapter</code>, or\n<code>part</code>). The hierarchy order is part, chapter, then section;\nall headings are shifted such that the top-level heading becomes the\nspecified type.\nThe default behavior is to determine the best division type via\nheuristics: unless other conditions apply, <code>section</code> is\nchosen. When the <code>documentclass</code> variable is set to\n<code>report</code>, <code>book</code>, or <code>memoir</code> (unless\nthe <code>article</code> option is specified), <code>chapter</code> is\nimplied as the setting for this option. If <code>beamer</code> is the\noutput format, specifying either <code>chapter</code> or\n<code>part</code> will cause top-level headings to become\n<code>\\part{..}</code>, while second-level headings remain as their\ndefault type."
         },
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
         "Theme name, theme scss file, or a mix of both.",
@@ -17544,7 +17556,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Method for obfuscating mailto: links in HTML documents.",
-          long: "Specify a method for obfuscating <code>mailto:</code> links in HTML\ndocuments. <code>none</code> leaves <code>mailto:</code> links as they\nare. <code>javascript</code> obfuscates them using JavaScript.\n<code>references</code> obfuscates them by printing their letters as\ndecimal or hexadecimal character references. The default is\n<code>none</code>."
+          long: "Specify a method for obfuscating <code>mailto:</code> links in HTML\ndocuments."
         },
         "Use <code>&lt;q&gt;</code> tags for quotes in HTML.",
         {
@@ -17569,11 +17581,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Options passed to LaTeX Beamer themes.",
         "The section number in man pages.",
         "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
-        "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2\nheadings.",
+        "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
         "Preserve the original YAML front matter in rendered markdown",
         {
-          short: "Determines which ipynb cell output formats are rendered.",
-          long: "Determines which ipynb cell output formats are rendered.\n<code>all</code> means that all of the data formats included in the\noriginal are preserved. <code>none</code> means that the contents of\ndata cells are omitted. <code>best</code> causes pandoc to try to pick\nthe richest data block in each output cell that is compatible with the\noutput format. The default is <code>best</code>."
+          short: "Determines which ipynb cell output formats are rendered\n(<code>none</code>, <code>all</code>, or <code>best</code>).",
+          long: "Determines which ipynb cell output formats are rendered."
         },
         {
           short: "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
@@ -17675,12 +17687,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "Vertical centering of slides",
         "Disables the default reveal.js slide layout (scaling and\ncentering)",
         {
-          short: "Opens links in an iframe preview overlay",
-          long: "Opens links in an iframe preview overlay (defaults to\n<code>auto</code>, which will use an iframe in fullscreen mode)."
+          short: "Open links in an iframe preview overlay (<code>true</code>,\n<code>false</code>, or <code>auto</code>)",
+          long: "Open links in an iframe preview overlay."
         },
-        "Autoplay embedded media. Default is <code>null</code> (only when\n<code>autoplay</code> attribute is specified)",
+        "Autoplay embedded media (<code>null</code>, <code>true</code>, or\n<code>false</code>). Default is <code>null</code> (only when\n<code>autoplay</code> attribute is specified)",
         {
-          short: "Global override for preloading lazy-loaded iframes",
+          short: "Global override for preloading lazy-loaded iframes\n(<code>null</code>, <code>true</code>, or <code>false</code>).",
           long: "Global override for preloading lazy-loaded iframes"
         },
         "Number of slides away from the current slide to pre-load resources\nfor",
@@ -17692,8 +17704,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Display a presentation progress bar",
         "Push each slide change to the browser history",
         {
-          short: "Navigation progression",
-          long: "Changes the behavior of navigation directions.\n<code>linear</code>: Removes the up/down arrows. Left/right arrows\nstep through all slides (both horizontal and vertical).\n<code>vertical</code>: Left/right arrow keys step between horizontal\nslides, up/down arrow keys step between vertical slides. Space key steps\nthrough all slides (both horizontal and vertical).\n<code>grid</code>: When this is enabled, stepping left/right from a\nvertical stack to an adjacent vertical stack will land you at the same\nvertical index."
+          short: "Navigation progression (<code>linear</code>, <code>vertical</code>,\nor <code>grid</code>)",
+          long: "Changes the behavior of navigation directions."
         },
         "Enable touch navigation on devices with touch input",
         "Enable keyboard shortcuts for navigation",
@@ -17703,12 +17715,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "Loop the presentation",
         "Randomize the order of slides each time the presentation loads",
         {
-          short: "Show arrow controls for navigating through slides",
-          long: "Show arrow controls for navigating through slides (defaults to\n<code>auto</code>, which will show controls when vertical slides are\npresent or when the deck is embedded in an iframe)."
+          short: "Show arrow controls for navigating through slides (<code>true</code>,\n<code>false</code>, or <code>auto</code>).",
+          long: "Show arrow controls for navigating through slides."
         },
         "Location for navigation controls (<code>edges</code> or\n<code>bottom-right</code>)",
         "Help the user learn the controls by providing visual hints.",
-        "Visibility rule for backwards navigation arrows; <code>faded</code>,\n<code>hidden</code> or <code>visible</code>",
+        "Visibility rule for backwards navigation arrows (<code>faded</code>,\n<code>hidden</code>, or <code>visible</code>).",
         "Automatically progress all slides at the specified interval",
         "Stop auto-sliding after user input",
         "Navigation method to use when auto sliding (defaults to\nnavigateNext)",
@@ -17794,8 +17806,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Make speaker notes visible to all viewers",
         "Change the presentation direction to be RTL",
         {
-          short: "Determine how text is wrapped in the output.",
-          long: "Determine how text is wrapped in the output (the source code, not the\nrendered version). With <code>auto</code> (the default), pandoc will\nattempt to wrap lines to the column width specified by\n<code>columns</code> (default 72). With <code>none</code>, pandoc will\nnot wrap lines at all. With <code>preserve</code>, pandoc will attempt\nto preserve the wrapping from the source document (that is, where there\nare nonsemantic newlines in the source, there will be nonsemantic\nnewlines in the output as well"
+          short: "Determine how text is wrapped in the output (<code>auto</code>,\n<code>none</code>, or <code>preserve</code>).",
+          long: "Determine how text is wrapped in the output (the source code, not the\nrendered version)."
         },
         {
           short: "Specify length of lines in characters.",
@@ -17811,7 +17823,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Manually specify line endings (<code>lf</code>, <code>crlf</code>, or\n<code>native</code>).",
-          long: "Manually specify line endings: <code>crlf</code> (Windows),\n<code>lf</code> (macOS/Linux/UNIX), or <code>native</code> (line endings\nappropriate to the OS on which pandoc is being run). The default is\n<code>native</code>."
+          long: "Manually specify line endings:"
         },
         {
           short: "Strip out HTML comments in source, rather than passing them on to\noutput.",
@@ -17830,7 +17842,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
         },
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
-        "Location for table of contents (<code>body</code>, <code>left</code>,\nor <code>right</code>). Defaults to <code>right</code>.",
+        "Location for table of contents (<code>body</code>, <code>left</code>,\nor <code>right</code> (default)).",
         "The title used for the table of contents.",
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
@@ -17847,7 +17859,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Files to render (defaults to all files)",
         {
           short: "Working directory for computations",
-          long: "Working directory for computations: <code>file</code> uses the\ndirectory of the currently executing file, <code>project</code> uses the\nroot project directory."
+          long: "Control the working directory for computations."
         },
         "Output directory",
         "HTML library (JS/CSS/etc.) directory",
@@ -17874,7 +17886,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The Google tracking Id or measurement Id of this website.",
         {
           short: "Storage options for Google Analytics data",
-          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code> - Use cookies to store unique user and session\nidentification (default).\n<code>none</code> - Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
         },
         {
           short: "Anonymize the user ip address.",
@@ -17882,7 +17894,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The version number of Google Analytics to use.",
-          long: "The version number of Google Analytics to use. Currently supports\neither 3 (for analytics.js) or 4 (for gtag). This is automatically\ndetected based upon the <code>tracking-id</code>, but you may specify\nit."
+          long: "The version number of Google Analytics to use."
         },
         {
           short: "Request cookie consent before enabling scripts that set cookies",
@@ -17890,13 +17902,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The type of consent that should be requested",
-          long: "The type of consent that should be requested, using one of these two\nvalues:\n<code>implied</code> - (default) This will notify the user that the\nsite uses cookies and permit them to change preferences, but not block\ncookies unless the user changes their preferences.\n<code>express</code> - This will block cookies until the user\nexpressly agrees to allow them (or continue blocking them if the user\ndoesn\u2019t agree)."
+          long: "The type of consent that should be requested, using one of these two\nvalues:"
         },
         {
           short: "The style of the consent banner that is displayed",
-          long: "The style of the consent banner that is displayed:\n<code>simple</code> - (default) A simple dialog in the lower right\ncorner of the website.\n<code>headline</code> - A full width banner across the top of the\nwebsite.\n<code>interstitial</code> - An semi-transparent overlay of the entire\nwebsite.\n<code>standalone</code> - An opaque overlay of the entire\nwebsite."
+          long: "The style of the consent banner that is displayed:"
         },
-        "Whether to use a dark or light appearance for the consent banner",
+        "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
           short: "The text to display for the cookie preferences link in the website\nfooter.",
@@ -17927,7 +17939,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Include a search box in the navbar.",
         "Always show the navbar (keeping it pinned).",
         "Collapse the navbar into a menu when the display becomes narrow.",
-        "The responsive breakpoint below which the navbar will collapse into a\nmenu.",
+        "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "Side navigation options",
@@ -18011,7 +18023,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Image height (pixels)",
         {
           short: "Card style",
-          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>). If this is not provided, the best\nstyle will automatically selected based upon other metadata. You can\nlearn more about Twitter Card styles <a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
+          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
         },
         "<code>@username</code> of the content creator (must be a quoted\nstring)",
         "<code>@username</code> of the website (must be a quoted string)",
@@ -18035,7 +18047,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Files to render (defaults to all files)",
         {
           short: "Working directory for computations",
-          long: "Working directory for computations: <code>file</code> uses the\ndirectory of the currently executing file, <code>project</code> uses the\nroot project directory."
+          long: "Control the working directory for computations."
         },
         "Output directory",
         "HTML library (JS/CSS/etc.) directory",
@@ -18062,7 +18074,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The Google tracking Id or measurement Id of this website.",
         {
           short: "Storage options for Google Analytics data",
-          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code> - Use cookies to store unique user and session\nidentification (default).\n<code>none</code> - Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
         },
         {
           short: "Anonymize the user ip address.",
@@ -18070,7 +18082,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The version number of Google Analytics to use.",
-          long: "The version number of Google Analytics to use. Currently supports\neither 3 (for analytics.js) or 4 (for gtag). This is automatically\ndetected based upon the <code>tracking-id</code>, but you may specify\nit."
+          long: "The version number of Google Analytics to use."
         },
         {
           short: "Request cookie consent before enabling scripts that set cookies",
@@ -18078,13 +18090,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The type of consent that should be requested",
-          long: "The type of consent that should be requested, using one of these two\nvalues:\n<code>implied</code> - (default) This will notify the user that the\nsite uses cookies and permit them to change preferences, but not block\ncookies unless the user changes their preferences.\n<code>express</code> - This will block cookies until the user\nexpressly agrees to allow them (or continue blocking them if the user\ndoesn\u2019t agree)."
+          long: "The type of consent that should be requested, using one of these two\nvalues:"
         },
         {
           short: "The style of the consent banner that is displayed",
-          long: "The style of the consent banner that is displayed:\n<code>simple</code> - (default) A simple dialog in the lower right\ncorner of the website.\n<code>headline</code> - A full width banner across the top of the\nwebsite.\n<code>interstitial</code> - An semi-transparent overlay of the entire\nwebsite.\n<code>standalone</code> - An opaque overlay of the entire\nwebsite."
+          long: "The style of the consent banner that is displayed:"
         },
-        "Whether to use a dark or light appearance for the consent banner",
+        "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
           short: "The text to display for the cookie preferences link in the website\nfooter.",
@@ -18115,7 +18127,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Include a search box in the navbar.",
         "Always show the navbar (keeping it pinned).",
         "Collapse the navbar into a menu when the display becomes narrow.",
-        "The responsive breakpoint below which the navbar will collapse into a\nmenu.",
+        "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "Side navigation options",
@@ -18199,7 +18211,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Image height (pixels)",
         {
           short: "Card style",
-          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>). If this is not provided, the best\nstyle will automatically selected based upon other metadata. You can\nlearn more about Twitter Card styles <a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
+          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
         },
         "<code>@username</code> of the content creator (must be a quoted\nstring)",
         "<code>@username</code> of the website (must be a quoted string)",

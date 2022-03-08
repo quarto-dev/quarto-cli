@@ -85,11 +85,11 @@
     enum: [default, section, chapter, part]
   description:
     short: |
-      Treat top-level headings as the given division type. The hierarchy
+      Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy
       order is part, chapter, then section; all headings are shifted such 
       that the top-level heading becomes the specified type.
     long: |
-      Treat top-level headings as the given division type. The hierarchy
+      Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy
       order is part, chapter, then section; all headings are shifted such 
       that the top-level heading becomes the specified type.  
 

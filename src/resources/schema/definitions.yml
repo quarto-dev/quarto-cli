@@ -199,12 +199,12 @@
                 long: |
                   The mapping between the page and the embedded discussion. 
 
-                  - `pathname` - the discussion title contains the page path
-                  - `url` - the discussion title contains the page url
-                  - `title` - the discussion title contains the page title
-                  - `og:title`- the discussion title containst the `og:title` metadata value
-                  - Any other value will be passed through verbatim and a discussion title
-                  containing that value will be used. If the value is a number it will be treated
+                  - `pathname`: The discussion title contains the page path
+                  - `url`: The discussion title contains the page url
+                  - `title`: The discussion title contains the page title
+                  - `og:title`: The discussion title contains the `og:title` metadata value
+                  - any other string or number: Any other strings will be passed through verbatim and a discussion title
+                  containing that value will be used. Numbers will be treated
                   as a discussion number and automatic discussion creation is not supported.
             reactions-enabled:
               boolean:
@@ -448,9 +448,9 @@
                     long: |
                       Storage option for Google Analytics data using on of these two values:
 
-                      `cookies` - Use cookies to store unique user and session identification (default).
+                      `cookies`: Use cookies to store unique user and session identification (default).
 
-                      `none` - Do not use cookies to store unique user and session identification.
+                      `none`: Do not use cookies to store unique user and session identification.
 
                       For more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).
                 anonymize-ip:
@@ -465,7 +465,11 @@
                   description:
                     short: "The version number of Google Analytics to use."
                     long: |
-                      The version number of Google Analytics to use. Currently supports either 3 (for analytics.js) or 4 (for gtag). 
+                      The version number of Google Analytics to use. 
+
+                      - `3`: Use analytics.js
+                      - `4`: use gtag. 
+
                       This is automatically detected based upon the `tracking-id`, but you may specify it.
         description: "Enable Google Analytics for this website"
       cookie-consent:
@@ -480,9 +484,9 @@
                     long: |
                       The type of consent that should be requested, using one of these two values:
 
-                      `implied` - (default) This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+                      - `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
 
-                      `express` - This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
+                      - `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
                 style:
                   enum: [simple, headline, interstitial, standalone]
                   description:
@@ -490,16 +494,16 @@
                     long: |
                       The style of the consent banner that is displayed:
 
-                      `simple` - (default) A simple dialog in the lower right corner of the website.
+                      - `simple` (default): A simple dialog in the lower right corner of the website.
 
-                      `headline` - A full width banner across the top of the website.
+                      - `headline`: A full width banner across the top of the website.
 
-                      `interstitial` - An semi-transparent overlay of the entire website.
+                      - `interstitial`: An semi-transparent overlay of the entire website.
 
-                      `standalone` - An opaque overlay of the entire website.
+                      - `standalone`: An opaque overlay of the entire website.
                 palette:
                   enum: [light, dark]
-                  description: "Whether to use a dark or light appearance for the consent banner"
+                  description: "Whether to use a dark or light appearance for the consent banner (`light` or `dark`)."
                 policy-url:
                   schema: string
                   description: "The url to the website’s cookie or privacy policy."
@@ -631,7 +635,7 @@
                     default: true
                 collapse-below:
                   enum: [sm, md, lg, xl, xxl]
-                  description: "The responsive breakpoint below which the navbar will collapse into a menu."
+                  description: "The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`)."
                   default: "lg"
                 left:
                   arrayOf:
@@ -810,7 +814,9 @@
                   description:
                     short: "Card style"
                     long: |
-                      Card style (`summary` or `summary_large_image`). If this is not provided, the best style will automatically
+                      Card style (`summary` or `summary_large_image`).
+
+                      If this is not provided, the best style will automatically
                       selected based upon other metadata. You can learn more about Twitter Card
                       styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).
                 creator:
@@ -992,9 +998,9 @@
           long: |
             The type of listing to create. Choose one of:
 
-            - `default` - a blog style list of items
-            - `table` - a table of items
-            - `grid` - a grid of item cards
+            - `default`: A blog style list of items
+            - `table`: A table of items
+            - `grid`: A grid of item cards
       contents:
         anyOf:
           - maybeArrayOf: string
@@ -1045,9 +1051,9 @@
           long: |
             Display item categories from this listing in the margin of the page.
 
-              - `numbered` - category list with number of items
-              - `unnumbered` - category list
-              - `cloud` - word cloud style categories
+              - `numbered`: Category list with number of items
+              - `unnumbered`: Category list
+              - `cloud`: Word cloud style categories
       feed:
         anyOf:
           - boolean
@@ -1063,12 +1069,10 @@
                   description:
                     short: Whether to include full or partial content in the feed.
                     long: |
-                      Whether to include full or partial content in the feed. Choose one of
+                      Whether to include full or partial content in the feed.
 
-                      - `full` - the complete content of the document will be included in the feed.
-                      - `partial` - the firt paragraph of the document will be included in the feed.
-
-                      Defaults to `full`.
+                      - `full` (default): Include the complete content of the document in the feed.
+                      - `partial`: Include only the first paragraph of the document in the feed.
                 title:
                   string:
                     description:
@@ -1116,7 +1120,7 @@
               Defaults to 175.
       image-align:
         enum: [left, right]
-        description: In `default` type listings, whether to place the image on the right or left side of the post content.
+        description: In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`).
       image-height:
         string:
           description:
@@ -1143,7 +1147,7 @@
         description:
           short: "In `grid` type listings, the alignment of the content within the card."
           long: |
-            In grid type listings, the alignment of the content within the card (`left`, `right`, or `center`). Defaults to `left`.
+            In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`).
       table-striped:
         boolean:
           description:

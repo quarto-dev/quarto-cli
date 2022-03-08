@@ -105,10 +105,10 @@
     short: "Method for obfuscating mailto: links in HTML documents."
     long: |
       Specify a method for obfuscating `mailto:` links in HTML documents.
-      `none` leaves `mailto:` links as they are.  `javascript` obfuscates
-      them using JavaScript. `references` obfuscates them by printing their
-      letters as decimal or hexadecimal character references.  The default
-      is `none`.
+
+      - `javascript`: Obfuscate links using JavaScript.
+      - `references`: Obfuscate links by printing their letters as decimal or hexadecimal character references.
+      - `none` (default): Do not obfuscate links.
 
 - name: html-q-tags
   tags:
@@ -267,7 +267,7 @@
   description: |
     Specify whether to use `atx` (`#`-prefixed) or
     `setext` (underlined) headings for level 1 and 2
-    headings.
+    headings (`atx` or `setext`).
 
 - name: keep-yaml
   tags:
@@ -283,11 +283,12 @@
     enum: [none, all, best]
   default: best
   description:
-    short: "Determines which ipynb cell output formats are rendered."
+    short: "Determines which ipynb cell output formats are rendered (`none`, `all`, or `best`)."
     long: |
-      Determines which ipynb cell output formats are rendered. `all` means
-      that all of the data formats included in the original are
-      preserved.  `none` means that the contents of data cells
-      are omitted.  `best` causes pandoc to try to pick the
-      richest data block in each output cell that is compatible
-      with the output format. The default is `best`.
+      Determines which ipynb cell output formats are rendered.
+
+      - `all`: Preserve all of the data formats included in the original.
+      - `none`: Omit the contents of data cells.
+      - `best` (default): Instruct pandoc to try to pick the
+        richest data block in each output cell that is compatible
+        with the output format.

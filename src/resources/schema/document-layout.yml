@@ -86,11 +86,11 @@
   tags:
     formats: [$html-doc]
   description:
-    short: The layout of the appendix for this document (`none`, `plain`, `default`)
+    short: The layout of the appendix for this document (`none`, `plain`, or `default`)
     long: |
-      The layout of the appendix for this document (`none`, `plain`, `default`).
+      The layout of the appendix for this document (`none`, `plain`, or `default`).
 
-      To complete disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`
+      To completely disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`
 - name: title-block-style
   schema:
     anyOf:
@@ -99,11 +99,11 @@
   tags:
     formats: [$html-doc]
   description:
-    short: The layout of the title block for this document (`none`, `plain`, `default`).
+    short: The layout of the title block for this document (`none`, `plain`, or `default`).
     long: |
-      The layout of the title block for this document (`none`, `plain`, `default`).
+      The layout of the title block for this document (`none`, `plain`, or `default`).
 
-      To complete disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`
+      To completely disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`
 - name: max-width
   schema: string
   tags:

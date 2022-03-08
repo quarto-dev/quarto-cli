@@ -136,7 +136,7 @@
       -   `all`: Keep all plots (low-level plot changes may produce new plots).
       -   `first`: Only keep the first plot.
       -   `last`: Only keep the last plot.
-      -   If set to a numeric vector, the values are indices of (low-level) plots
+      -   A numeric vector: In this case, the values are indices of (low-level) plots
           to keep.
 
 - name: fig-show

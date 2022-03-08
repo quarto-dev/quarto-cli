@@ -23,12 +23,12 @@
   schema:
     enum: [rtl, ltr]
   description:
-    short: The base script direction for the document.
+    short: The base script direction for the document (`rtl` or `ltr`).
     long: |
-      The base script direction for the document.
+      The base script direction for the document (`rtl` or `ltr`).
 
       For bidirectional documents, native pandoc `span`s and
-      `div`s with the `dir` attribute (value `rtl` or `ltr`) can
+      `div`s with the `dir` attribute can
       be used to override the base direction in some output
       formats.  This may not always be necessary if the final
       renderer (e.g. the browser, when generating HTML) supports

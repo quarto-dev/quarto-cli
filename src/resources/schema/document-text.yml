@@ -6,14 +6,16 @@
     enum: [auto, none, preserve]
   default: auto
   description:
-    short: "Determine how text is wrapped in the output."
+    short: "Determine how text is wrapped in the output (`auto`, `none`, or `preserve`)."
     long: |
       Determine how text is wrapped in the output (the source code, not the rendered
-      version). With `auto` (the default), pandoc will attempt to wrap lines to the column
-      width specified by `columns` (default 72). With `none`, pandoc will not wrap lines at
-      all. With `preserve`, pandoc will attempt to preserve the wrapping from the source
-      document (that is, where there are nonsemantic newlines in the source, there will be
-      nonsemantic newlines in the output as well
+      version). 
+
+      - `auto` (default): Pandoc will attempt to wrap lines to the column width specified by `columns` (default 72). 
+      - `none`: Pandoc will not wrap lines at all. 
+      - `preserve`: Pandoc will attempt to preserve the wrapping from the source
+        document. Where there are nonsemantic newlines in the source, there will be
+        nonsemantic newlines in the output as well.
 
 - name: columns
   tags:
@@ -64,10 +66,11 @@
   description:
     short: "Manually specify line endings (`lf`, `crlf`, or `native`)."
     long: |
-      Manually specify line endings: `crlf` (Windows), `lf`
-      (macOS/Linux/UNIX), or `native` (line endings appropriate
-      to the OS on which pandoc is being run).  The default is
-      `native`.
+      Manually specify line endings: 
+
+      - `crlf`: Use Windows line endings
+      - `lf`: Use macOS/Linux/UNIX line endings
+      - `native` (default): Use line endings appropriate to the OS on which pandoc is being run).
 
 - name: strip-comments
   schema: boolean

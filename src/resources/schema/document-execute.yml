@@ -59,8 +59,11 @@
       for Jupyter documents).
 
       Note that cache invalidation is triggered by changes in chunk source code 
-      (or other cache attributes you've defined). Use `refresh` to force a refresh
-      of the cache even if has not been otherwise invalidated.
+      (or other cache attributes you've defined). 
+
+      - `true`: Cache results
+      - `false`: Do not cache results
+      - `refresh`: Force a refresh of the cache even if has not been otherwise invalidated.
 
 - name: freeze
   tags:
@@ -73,9 +76,11 @@
   description:
     short: "Re-use previous computational output when rendering"
     long: |
-      Option to denote that computational documents should never be re-rendered during
-      a global project render (`freeze: true`), or alternatively only be re-rendered
-      when their source file changes (`freeze: auto`).
+      Control the re-use of previous computational output when rendering.
+
+      - `true`: Never recompute previously generated computational output during a global project render
+      - `false` (default): Recompute previously generated computational output
+      - `auto`: Re-compute previously generated computational output only in case their source file changes
 
 - name: server
   hidden: true

@@ -9,9 +9,11 @@
   description:
     short: Enable a code copy icon for code blocks.
     long: |
-      Enable a code copy icon for code blocks. Defaults to `hover`, which
-      shows the icon when the mouse hovers over the code block. Set to 
-      `true` or `false` to show or hide unconditionally.
+      Enable a code copy icon for code blocks. 
+
+      - `true`: Always show the icon
+      - `false`: Never show the icon
+      - `hover` (default): Show the icon when the mouse hovers over the code block
 
 - name: code-link
   schema: boolean

@@ -28,7 +28,7 @@
     enum: [l, r, c, b]
   tags:
     formats: [man]
-  description: Adjusts text to the left (`l`), right (`r`), center (`c`), or both (`b`) margins.
+  description: Adjusts text to the left, right, center, or both margins (`l`, `r`, `c`, or `b`).
 
 - name: hyphenate
   schema: boolean
