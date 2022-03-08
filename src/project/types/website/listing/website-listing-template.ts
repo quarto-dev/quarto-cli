@@ -71,7 +71,8 @@ export function templateMarkdownHandler(
 
       // Format date values
       // Read date formatting from an option, if present
-      const dateFormat = listing[kDateFormat] as string;
+      const dateFormat = listing[kDateFormat] as string ||
+        format.metadata[kDateFormat] as string;
 
       const fieldTypes = listing[kFieldTypes];
       for (const field of Object.keys(fieldTypes)) {
