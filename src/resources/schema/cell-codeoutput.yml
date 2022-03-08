@@ -16,8 +16,11 @@
       - enum: [fenced]
     errorDescription: "be `true`, `false`, or `fenced`"
   description: |
-    Include cell source code in rendered output. Specify `fenced` to include the cell delimiter 
-    as part of the output.
+    Include cell source code in rendered output.
+
+    - `true` (default): include source code in output
+    - `false`: do not include source code in output
+    - `fenced`: in addition to echoing, include the cell delimiter as part of the output.
 
 - name: code-fold
   tags:
@@ -32,7 +35,10 @@
     short: "Collapse code into an HTML `<details>` tag so the user can display it on-demand."
     long: |
       Collapse code into an HTML `<details>` tag so the user can display it on-demand.
-      Specify `show` to have the code initiallly visible.
+
+      - `true`: collapse code
+      - `false` (default): do not collapse code
+      - `show`: use the `<details>` tag, but show the expanded code initially.
 
 - name: code-summary
   tags:
@@ -49,7 +55,13 @@
   schema:
     enum: [scroll, wrap]
   default: scroll
-  description: "Choose whether to `scroll` or `wrap` when code lines are too wide for their container."
+  description:
+    short: "Choose whether to `scroll` or `wrap` when code lines are too wide for their container."
+    long: |
+      Choose how to handle code overflow, when code lines are too wide for their container. One of:
+
+      - `scroll`
+      - `wrap`
 
 - name: code-line-numbers
   tags:
@@ -68,9 +80,9 @@
     long: |
       Choose how to include line numbers in code block output.
       `true` or `false` influence all line numbering.
-      
+
       Use a string to control the presence of specific line numbering.
-      
+
       * Sets of lines are denoted with commas:
         * `3,4,5`
         * `1,10,12`
