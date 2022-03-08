@@ -807,13 +807,13 @@ async function automationFromGoodParseMarkdown(
 
       return automationFromGoodParseYAML(kind, context);
     } else if (foundCell.cell_type === "math") {
-      throw new Error(
-        `internal error, don't know how to complete cell of type ${foundCell.cell_type}`,
-      );
+      // we're inside a math cell, no completions
+      return noCompletions;
     } else if (foundCell.cell_type === "markdown") {
       // we're inside a markdown, no completions
       return noCompletions;
     } else if (foundCell.cell_type.language) {
+      // complete the yaml inside a cell
       return automationFromGoodParseScript(kind, {
         ...context,
         language: foundCell.cell_type.language,
@@ -824,11 +824,9 @@ async function automationFromGoodParseMarkdown(
         },
         line,
       });
-      // complete the yaml inside a chunk
     } else {
-      throw new Error(
-        `internal error, don't know how to complete cell of type ${foundCell.cell_type}`,
-      );
+      // do not complete what we do not understand
+      return noCompletions;
     }
   } else {
     // TODO the logic here is pretty similar to the one in completions, but

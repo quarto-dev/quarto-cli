@@ -24040,7 +24040,7 @@ async function hover(context) {
   if (mapping[context.position.row] === void 0) {
     return null;
   }
-  const { annotation: innerAnnotation, path: navigationPath } = mapping[context.position.row];
+  const { path: navigationPath } = mapping[context.position.row];
   const result = [];
   for (const matchingSchema of navigateSchemaByInstancePath(schema, navigationPath)) {
     if (matchingSchema === false || matchingSchema === true) {
@@ -24600,7 +24600,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
       context = trimTicks(context);
       return automationFromGoodParseYAML(kind, context);
     } else if (foundCell.cell_type === "math") {
-      throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+      return noCompletions;
     } else if (foundCell.cell_type === "markdown") {
       return noCompletions;
     } else if (foundCell.cell_type.language) {
@@ -24615,7 +24615,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
         line
       });
     } else {
-      throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+      return noCompletions;
     }
   } else {
     let linesSoFar = 0;

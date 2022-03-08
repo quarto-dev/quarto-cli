@@ -24464,7 +24464,7 @@ ${heading}`;
         context = trimTicks(context);
         return automationFromGoodParseYAML(kind, context);
       } else if (foundCell.cell_type === "math") {
-        throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+        return noCompletions;
       } else if (foundCell.cell_type === "markdown") {
         return noCompletions;
       } else if (foundCell.cell_type.language) {
@@ -24479,7 +24479,7 @@ ${heading}`;
           line
         });
       } else {
-        throw new Error(`internal error, don't know how to complete cell of type ${foundCell.cell_type}`);
+        return noCompletions;
       }
     } else {
       let linesSoFar = 0;
