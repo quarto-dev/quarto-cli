@@ -269,7 +269,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   };
 
-  const offsetEl = window.document.querySelector(`*[data-toc-align="true"]`);
+  const offsetEl = window.document.querySelector(
+    `*[data-sidebar-align="true"]`
+  );
   let offsetTopPadding = null;
   const positionSidebars = () => {
     if (offsetEl !== null) {

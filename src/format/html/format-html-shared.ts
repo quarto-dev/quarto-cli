@@ -334,7 +334,11 @@ export function removeFootnoteBacklinks(footnotesEl: Element) {
 }
 
 export function setMainColumn(doc: Document, column: string) {
-  const selectors = ["main.content", ".page-navigation"];
+  const selectors = [
+    "main.content",
+    ".page-navigation",
+    ".quarto-banner-title-block .quarto-title",
+  ];
   selectors.forEach((selector) => {
     const el = doc.querySelector(selector);
     if (el) {
