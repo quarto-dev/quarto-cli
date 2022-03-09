@@ -412,7 +412,7 @@ nav.sidebar.sidebar-navigation {
 
 #quarto-sidebar,
 #quarto-margin-sidebar {
-  z-index: 1;
+  z-index: 999;
 }
 
 .quarto-sidebar-footer {
