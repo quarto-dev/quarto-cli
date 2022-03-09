@@ -1513,13 +1513,13 @@ p.subtitle {
 
   .quarto-categories {
     display: flex;
-    column-gap: 0.25em;
+    column-gap: 0.4em;
     padding-bottom: 0.5em;
     margin-top: 0.25em;
 
     .quarto-category {
-      padding: 0.25em;
-      font-size: 0.7em;
+      padding: 0.25em 0.75em;
+      font-size: 0.65em;
       text-transform: uppercase;
       border: solid 1px;
       border-radius: $border-radius;

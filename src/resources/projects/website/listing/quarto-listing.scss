@@ -260,15 +260,12 @@ ul.pagination {
 #quarto-margin-sidebar {
   .quarto-listing-category {
     padding-top: 0;
-    padding-left: 0.5em;
-    font-size: 0.875em;
+    font-size: 1rem;
   }
   .quarto-listing-category-title {
     cursor: pointer;
-    padding-top: 4em;
     font-weight: 600;
-    padding-left: 0.5em;
-    font-size: 0.875em;
+    font-size: 1rem;
   }
 }
 
@@ -562,6 +559,7 @@ div.quarto-post {
   display: flex;
   gap: 2em;
   margin-bottom: 1.5em;
+  margin-right: 1em;
   border-bottom: 1px solid $border-color;
 
   .metadata {
