@@ -538,15 +538,15 @@ table.quarto-listing-table.table-hover td {
 
   .quarto-post .metadata {
     padding-bottom: 1em;
-    order: 1;
+    order: 2;
   }
 
   .quarto-post .body {
-    order: 3;
+    order: 1;
   }
 
   .quarto-post .thumbnail {
-    order: 2;
+    order: 3;
   }
 }
 
@@ -559,7 +559,12 @@ div.quarto-post {
   display: flex;
   gap: 2em;
   margin-bottom: 1.5em;
-  margin-right: 1em;
+  @include media-breakpoint-up(lg) {
+    margin-right: 1em;
+  }
+  @include media-breakpoint-down(md) {
+    padding-bottom: 1em;
+  }
   border-bottom: 1px solid $border-color;
 
   .metadata {

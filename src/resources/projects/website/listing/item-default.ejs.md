@@ -59,9 +59,6 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (fields.includes('author') && item.author) { %><div class="listing-author"><%= item.author %></div><% } %>
 <% if (fields.includes('reading-time') && item['reading-time']) { %> <div class="listing-reading-time"><%= item['reading-time'] %></div> <% } %>
 <% for (const field of otherFields) { %>
-<% outputMetadata(item, field) %>
-<% } %>
-</a>
-</div>
+<% outputMetadata(item, field) %><% } %></a></div>
 
 </div>
