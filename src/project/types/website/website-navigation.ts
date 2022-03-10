@@ -401,32 +401,30 @@ function navigationHtmlPostprocessor(
       "header .title .quarto-section-identifier",
     ) || doc.querySelector("header .title");
 
-    const sidebar = doc.getElementById("quarto-sidebar");
-    if (sidebar) {
+    // If the secondary navigation title is present, hide the title
+    // when the secondary navigation will show
+    const secondaryNavTitleEl = doc.querySelector(
+      ".quarto-secondary-nav .quarto-secondary-nav-title",
+    );
+
+    if (secondaryNavTitleEl) {
       // hide below lg
       if (title) {
         title.classList.add("d-none");
         title.classList.add("d-lg-block");
       }
 
-      // Add the title to the secondary nav bar
-      const secondaryNavTitle = doc.querySelector(
-        ".quarto-secondary-nav .quarto-secondary-nav-title",
-      );
-
-      if (secondaryNavTitle) {
-        if (title) {
-          secondaryNavTitle.innerHTML = title.innerHTML;
-        } else {
-          secondaryNavTitle.innerHTML = "(Untitled)";
-        }
-        // hide the entire title block (encompassing code button) if we have it
-        const titleBlock = doc.querySelector("header > .quarto-title-block");
-        if (titleBlock) {
-          // hide below lg
-          titleBlock.classList.add("d-none");
-          titleBlock.classList.add("d-lg-block");
-        }
+      if (title) {
+        secondaryNavTitleEl.innerHTML = title.innerHTML;
+      } else {
+        secondaryNavTitleEl.innerHTML = "(Untitled)";
+      }
+      // hide the entire title block (encompassing code button) if we have it
+      const titleBlock = doc.querySelector("header > .quarto-title-block");
+      if (titleBlock) {
+        // hide below lg
+        titleBlock.classList.add("d-none");
+        titleBlock.classList.add("d-lg-block");
       }
     }
 
