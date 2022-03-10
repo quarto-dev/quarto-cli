@@ -350,6 +350,19 @@ body.docked {
   }
 }
 
+#quarto-content.page-columns {
+  #quarto-margin-sidebar,
+  #quarto-sidebar {
+    z-index: 1;
+  }
+
+  main.column-page,
+  main.column-page-right,
+  main.column-page-left {
+    z-index: 0;
+  }
+}
+
 .page-columns .column-screen-inset {
   grid-column: screen-start-inset / screen-end-inset;
   z-index: $zindex-pagelayout;
