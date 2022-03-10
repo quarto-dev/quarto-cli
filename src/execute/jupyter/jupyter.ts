@@ -120,23 +120,48 @@ export const jupyterEngine: ExecutionEngine = {
       // write a transient notebook
       const [fileDir, fileStem] = dirAndStem(file);
       const notebook = join(fileDir, fileStem + ".ipynb");
-      const target = {
+      const target: ExecutionTarget = {
         source: file,
         input: notebook,
         markdown,
         metadata,
         data: { transient: true },
+        async refreshTarget(newMarkdown: string) {
+          if (this.markdown === newMarkdown) {
+            return this;
+          }
+          const newTarget = { ...this };
+          newTarget.markdown = newMarkdown;
+          await createNotebookforTarget(newTarget);
+          return newTarget;
+        },
       };
       await createNotebookforTarget(target);
       return target;
     } else if (isJupyterNotebook(file)) {
-      return {
+      const [fileDir, _fileStem] = dirAndStem(file);
+      const myUUID = "_SOMETHING_UNIQUE_HERE";
+      const notebook = join(fileDir, myUUID + ".ipynb");
+      const target: ExecutionTarget = {
         source: file,
         input: file,
         markdown,
         metadata,
         data: { transient: false },
+        async refreshTarget(newMarkdown: string) {
+          if (this.markdown === newMarkdown) {
+            return this;
+          }
+          const newTarget = { ...this };
+          newTarget.markdown = newMarkdown;
+          (newTarget.data as { transient: boolean }).transient = true;
+          // FIXME FIXME FIXME
+          newTarget.input = notebook;
+          await createNotebookforTarget(newTarget);
+          return newTarget;
+        },
       };
+      return target;
     } else {
       return undefined;
     }

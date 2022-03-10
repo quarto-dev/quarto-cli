@@ -12,6 +12,7 @@ import {
   DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
+  ExecutionTarget,
   kMarkdownEngine,
   kQmdExtensions,
   PostProcessOptions,
@@ -39,12 +40,21 @@ export const markdownEngine: ExecutionEngine = {
 
   target: (file: string) => {
     const markdown = Deno.readTextFileSync(file);
-    return Promise.resolve({
+    const target: ExecutionTarget = {
       source: file,
       input: file,
       markdown,
       metadata: readYamlFromMarkdown(markdown),
-    });
+      refreshTarget(newMarkdown: string) {
+        if (newMarkdown === this.markdown) {
+          return Promise.resolve(this);
+        }
+        const newTarget = { ...this };
+        newTarget.markdown = newMarkdown;
+        return Promise.resolve(newTarget);
+      },
+    };
+    return Promise.resolve(target);
   },
 
   partitionedMarkdown: (file: string) => {

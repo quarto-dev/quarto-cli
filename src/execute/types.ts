@@ -57,6 +57,7 @@ export interface ExecutionTarget {
   markdown: string;
   metadata: Metadata;
   data?: unknown;
+  refreshTarget: (newMarkdown: string) => Promise<ExecutionTarget>;
 }
 
 // execute options

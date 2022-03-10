@@ -101,7 +101,7 @@ def notebook_execute(options, status):
    # create resources for execution
    resources = dict({
       "metadata": {
-         "input": original_input
+         "input": original_input,
       }
    })
    if run_path:

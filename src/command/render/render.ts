@@ -144,6 +144,10 @@ import { getFrontMatterSchema } from "../../core/lib/yaml-schema/front-matter.ts
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
+import { handleRenderContext } from "../../core/handlers/base.ts";
+
+// installs language handlers
+import "../../core/handlers/handlers.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -215,7 +219,7 @@ export async function renderFiles(
       }
 
       for (const format of Object.keys(contexts)) {
-        const context = contexts[format];
+        let context = contexts[format];
 
         // one time denoDom init for html compatible formats
         if (isHtmlCompatible(context.format)) {
@@ -241,6 +245,8 @@ export async function renderFiles(
           }
         }
 
+        debugger;
+        context = await handleRenderContext(context);
         // FIXME it should be possible to infer this directly now
         // based on the information in the mapped strings.
         //

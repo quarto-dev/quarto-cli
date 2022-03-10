@@ -55,6 +55,7 @@ export async function executeKernelOneshot(
 export async function executeKernelKeepalive(
   options: ExecuteOptions,
 ): Promise<void> {
+  debugger;
   // if we are in debug mode then tail follow the log file
   let serverLogProcess: Deno.Process | undefined;
   if (options.format.execute[kExecuteDebug]) {
