@@ -13231,7 +13231,7 @@ try {
           {
             name: "number-offset",
             schema: {
-              arrayOf: "number"
+              maybeArrayOf: "number"
             },
             default: [
               0,

@@ -35,7 +35,7 @@
 
 - name: number-offset
   schema:
-    arrayOf: number
+    maybeArrayOf: number
   default: [0, 0, 0, 0, 0, 0]
   description:
     short: Offset for section headings in output (offsets are 0 by default)
