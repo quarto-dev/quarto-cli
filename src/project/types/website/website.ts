@@ -64,6 +64,7 @@ import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 import { defaultProjectType } from "../project-default.ts";
 import { TempContext } from "../../../core/temp.ts";
 import {
+  completeListingGeneration,
   listingHtmlDependencies,
   listingSupplementalFiles,
 } from "./listing/website-listing.ts";
@@ -314,14 +315,10 @@ export async function websitePostRender(
   updateSearchIndex(context, outputFiles, incremental);
 
   // Any full content feeds need to be 'completed'
-  completeStagedFeeds(context, outputFiles, incremental);
+  completeListingGeneration(context, outputFiles, incremental);
 
   // write redirecting index.html if there is none
   ensureIndexPage(context);
-
-  // 'Resolve' any listing RSS feeds that are staged
-  // Look for staged RSS feed files and inject full content into them
-  // exemplar: updateSearchIndex
 
   // generate any page aliases
   await updateAliases(context, outputFiles, incremental);

@@ -10,6 +10,9 @@ import { kTitle } from "../../../../config/constants.ts";
 import { Metadata } from "../../../../config/types.ts";
 import { kImage } from "../website-config.ts";
 
+// The root listing key
+export const kListing = "listing";
+
 // The list of columns to display
 export const kFields = "fields";
 

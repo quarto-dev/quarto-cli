@@ -105,6 +105,93 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     return false;
   };
 
+  const categorySelector = "header.quarto-title-block .quarto-category";
+  const activateCategories = (href) => {
+    // Find any categories
+    // Surround them with a link pointing back to:
+    // #category=Authoring
+    try {
+      const categoryEls = window.document.querySelectorAll(categorySelector);
+      for (const categoryEl of categoryEls) {
+        const categoryText = categoryEl.textContent;
+        if (categoryText) {
+          const link = `${href}#category=${encodeURIComponent(categoryText)}`;
+          const linkEl = window.document.createElement("a");
+          linkEl.setAttribute("href", link);
+          for (const child of categoryEl.childNodes) {
+            linkEl.append(child);
+          }
+          categoryEl.appendChild(linkEl);
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+  };
+  function hasTitleCategories() {
+    return window.document.querySelector(categorySelector) !== null;
+  }
+
+  function offsetRelativeUrl(url) {
+    const offset = getMeta("quarto:offset");
+    return offset ? offset + url : url;
+  }
+
+  function offsetAbsoluteUrl(url) {
+    const offset = getMeta("quarto:offset");
+    const baseUrl = new URL(offset, window.location);
+    const projRelativeUrl = url.replace(baseUrl, "");
+    return "/" + projRelativeUrl;
+  }
+
+  // read a meta tag value
+  function getMeta(metaName) {
+    const metas = window.document.getElementsByTagName("meta");
+    for (let i = 0; i < metas.length; i++) {
+      if (metas[i].getAttribute("name") === metaName) {
+        return metas[i].getAttribute("content");
+      }
+    }
+    return "";
+  }
+
+  async function findAndActivateCategories() {
+    const thisPath = window.location.pathname;
+    const response = await fetch(offsetRelativeUrl("listings.json"));
+    if (response.status == 200) {
+      return response.json().then(function (listingPaths) {
+        const listingHrefs = [];
+        for (const listingPath of listingPaths) {
+          for (const item of listingPath.items) {
+            if (item === thisPath || item === thisPath + "index.html") {
+              listingHrefs.push(listingPath.listing);
+              break;
+            }
+          }
+        }
+        // See if the referrer is a listing page for this item
+        const referredRelativePath = offsetAbsoluteUrl(document.referrer);
+        const referrerListing = listingHrefs.find((listingHref) => {
+          const isListingReferrer =
+            listingHref === referredRelativePath ||
+            listingHref === referredRelativePath + "index.html";
+          return isListingReferrer;
+        });
+
+        if (referrerListing) {
+          // Try to use the referrer if possible
+          activateCategories(referrerListing);
+        } else if (listingHrefs.length > 0) {
+          // Otherwise, just fall back to the first listing
+          activateCategories(listingHrefs[0]);
+        }
+      });
+    }
+  }
+  if (hasTitleCategories()) {
+    findAndActivateCategories();
+  }
+
   const manageSidebarVisiblity = (el, placeholderDescriptor) => {
     let isVisible = true;
 

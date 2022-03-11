@@ -1537,6 +1537,10 @@ p.subtitle {
       border: solid 1px;
       border-radius: $border-radius;
       opacity: 0.6;
+
+      a {
+        color: inherit;
+      }
     }
   }
 

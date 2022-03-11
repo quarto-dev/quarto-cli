@@ -28,13 +28,13 @@ import {
   kFieldCategories,
   kFieldImage,
   kItems,
+  kListing,
   ListingDescriptor,
   ListingFeedOptions,
   ListingItem,
 } from "./website-listing-shared.ts";
 import { dirAndStem, resolvePathGlobs } from "../../../../core/path.ts";
 import { ProjectOutputFile } from "../../types.ts";
-import { kListing } from "./website-listing-read.ts";
 import { resolveInputTarget } from "../../../project-index.ts";
 import {
   defaultSyntaxHighlightingClassMap,
