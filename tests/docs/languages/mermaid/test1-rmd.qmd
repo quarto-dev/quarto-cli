@@ -12,6 +12,7 @@ rnorm(20)
 ### Examples from https://mermaid-js.github.io/mermaid/#/
 
 ```{mermaid}
+%%| echo: true
 graph TD;
     A-->B;
     A-->C;

@@ -19595,7 +19595,7 @@ ${heading}`;
           cellStartLine
         };
         cellStartLine = index + 1;
-        if (cell_type === "code" && (language === "ojs" || language === "dot")) {
+        if (cell_type === "code") {
           const { yaml, source: source2, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
           const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
           let strUpToLastBreak = "";
