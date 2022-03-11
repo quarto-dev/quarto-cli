@@ -350,6 +350,19 @@ body.docked {
   }
 }
 
+#quarto-content.page-columns {
+  #quarto-margin-sidebar,
+  #quarto-sidebar {
+    z-index: 1;
+  }
+
+  main.column-page,
+  main.column-page-right,
+  main.column-page-left {
+    z-index: 0;
+  }
+}
+
 .page-columns .column-screen-inset {
   grid-column: screen-start-inset / screen-end-inset;
   z-index: $zindex-pagelayout;
@@ -1482,7 +1495,6 @@ p.subtitle {
 
   .quarto-title {
     .title {
-      font-weight: 500;
       margin-bottom: 0;
     }
   }
@@ -1525,6 +1537,10 @@ p.subtitle {
       border: solid 1px;
       border-radius: $border-radius;
       opacity: 0.6;
+
+      a {
+        color: inherit;
+      }
     }
   }
 

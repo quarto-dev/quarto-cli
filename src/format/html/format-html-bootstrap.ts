@@ -45,7 +45,10 @@ import {
   kPageLayoutFull,
   setMainColumn,
 } from "./format-html-shared.ts";
-import { HtmlPostProcessResult } from "../../command/render/types.ts";
+import {
+  HtmlPostProcessor,
+  HtmlPostProcessResult,
+} from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import { processDocumentTitle } from "./format-html-title.ts";
 
@@ -204,8 +207,11 @@ function bootstrapHtmlPostprocessor(
   format: Format,
   flags: PandocFlags,
   offset?: string,
-) {
-  return async (doc: Document): Promise<HtmlPostProcessResult> => {
+): HtmlPostProcessor {
+  return async (
+    doc: Document,
+    inputMetadata: Metadata,
+  ): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
@@ -332,6 +338,7 @@ function bootstrapHtmlPostprocessor(
     const resources: string[] = [];
     const titleResourceFiles = processDocumentTitle(
       input,
+      inputMetadata,
       format,
       flags,
       doc,

@@ -5,7 +5,7 @@
 *
 */
 
-import { parse } from "datetime/mod.ts";
+import { parsePandocDate } from "./date.ts";
 
 export interface CSL extends Record<string, unknown> {
   // The id. This is technically required, but some providers (like crossref) don't provide
@@ -111,6 +111,7 @@ export interface CSLName {
 
 export interface CSLDate {
   "date-parts"?: Array<[number, number?, number?]>;
+  // The raw input
   raw?: string;
   // A 'literal' representation of the name. May be displayed verbatim in contexts
   literal?: string;
@@ -237,34 +238,8 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
       return toDateArray(dateArr);
     }
   } else if (typeof (dateRaw) === "string") {
-    const formats = [
-      "MM/dd/yyyy",
-      "MM-dd-yyyy",
-      "MM/dd/yy",
-      "MM-dd-yy",
-      "yyyy-MM-dd",
-      "dd MM yyyy",
-      "MM dd, yyyy",
-    ];
-    const parseFormat = (dateStr: string) => {
-      for (const format of formats) {
-        try {
-          const date = parse(dateStr, format);
-          return date;
-        } catch {
-          // This date wouldn't parse, try other formats
-        }
-      }
-
-      // Try ISO date parse
-      try {
-        return new Date(dateStr);
-      } catch {
-        return undefined;
-      }
-    };
     // Trying parsing format strings
-    const date = parseFormat(dateRaw);
+    const date = parsePandocDate(dateRaw);
     if (date) {
       return {
         "date-parts": [[

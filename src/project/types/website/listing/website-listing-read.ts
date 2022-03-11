@@ -33,6 +33,7 @@ import {
   kFieldFileName,
   kFieldFilter,
   kFieldImage,
+  kFieldImageAlt,
   kFieldLinks,
   kFieldReadingTime,
   kFieldRequired,
@@ -43,7 +44,9 @@ import {
   kFilterUi,
   kGridColumns,
   kImageAlign,
+  kImageAlt,
   kImageHeight,
+  kListing,
   kMaxDescLength,
   kPageSize,
   kSortAsc,
@@ -76,9 +79,6 @@ import { isAbsoluteRef } from "../../../../core/http.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { projectYamlFiles } from "../../../project-context.ts";
 import { parseAuthor } from "../../../../core/author.ts";
-
-// The root listing key
-export const kListing = "listing";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -585,6 +585,8 @@ async function listItemFromFile(input: string, project: ProjectContext) {
       ? listingItemHref(imageRaw, dirname(projectRelativePath))
       : undefined;
 
+    const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
+
     const date = documentMeta?.date
       ? new Date(documentMeta.date as string)
       : undefined;
@@ -610,6 +612,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
       [kFieldAuthor]: author,
       [kFieldCategories]: categories,
       [kFieldImage]: image,
+      [kFieldImageAlt]: imageAlt,
       [kFieldDescription]: description,
       [kFieldFileName]: filename,
       [kFieldFileModified]: filemodified,

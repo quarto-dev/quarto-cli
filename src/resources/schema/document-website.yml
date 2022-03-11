@@ -39,3 +39,9 @@
   tags:
     formats: [$html-doc]
   description: The width of the preview image for this document.
+
+- name: image-alt
+  schema: string
+  tags:
+    formats: [$html-doc]
+  description: The alt text for preview image on this page.

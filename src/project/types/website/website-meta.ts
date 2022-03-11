@@ -7,12 +7,7 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import {
-  kAbstract,
-  kDescription,
-  kSubtitle,
-  kTitle,
-} from "../../../config/constants.ts";
+import { kAbstract, kDescription, kTitle } from "../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -26,6 +21,7 @@ import {
   kCardStyle,
   kCreator,
   kImage,
+  kImageAlt,
   kImageHeight,
   kImageWidth,
   kLocale,
@@ -99,7 +95,7 @@ export function metadataHtmlPostProcessor(
       },
       filter: (key: string) => {
         // copy image-height to image:height
-        if ([kImageHeight, kImageWidth].includes(key)) {
+        if ([kImageHeight, kImageWidth, kImageAlt].includes(key)) {
           return key.replace("-", ":");
         }
         return key;
@@ -119,6 +115,10 @@ export function metadataHtmlPostProcessor(
         if (key === kCardStyle) {
           return kCard;
         }
+        if ([kImageAlt].includes(key)) {
+          return key.replace("-", ":");
+        }
+
         return key;
       },
       resolveDefaults: (finalMetadata: Metadata) => {
@@ -260,6 +260,11 @@ function resolveImageMetadata(
     metadata[kImage] = imgMeta.href;
     metadata[kImageHeight] = imgMeta.height;
     metadata[kImageWidth] = imgMeta.width;
+
+    const altText = format.metadata[kImageAlt];
+    if (altText && !metadata[kImageAlt]) {
+      metadata[kImageAlt] = altText;
+    }
   }
 }
 

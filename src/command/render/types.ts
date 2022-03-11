@@ -41,13 +41,17 @@ export interface RenderContext {
 }
 
 export interface RunPandocResult {
+  inputMetadata: Metadata;
   resources: string[];
   postprocessors?: Array<(output: string) => Promise<void>>;
-  htmlPostprocessors: Array<
-    (doc: Document) => Promise<HtmlPostProcessResult>
-  >;
+  htmlPostprocessors: Array<HtmlPostProcessor>;
   htmlFinalizers?: Array<(doc: Document) => Promise<void>>;
 }
+
+export type HtmlPostProcessor = (
+  doc: Document,
+  inputMedata: Metadata,
+) => Promise<HtmlPostProcessResult>;
 
 export interface HtmlPostProcessResult {
   // Relative paths to resources
