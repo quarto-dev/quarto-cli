@@ -9,10 +9,21 @@ import {
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../break-quarto-md.ts";
 import { mappedConcat } from "../lib/mapped-text.ts";
+import { schemaFromString } from "../lib/yaml-schema/from-yaml.ts";
+
 install("mermaid", {
   ...baseHandler,
 
   comment: "%%",
+  async schema() {
+    return await schemaFromString(`
+object:
+  properties:
+    echo:
+       enum: [true, false, fenced, fancy-mermaid-echo]
+`);
+  },
+
   // called once per document, no cells in particular
   documentStart(
     handlerContext: LanguageCellHandlerContext,
@@ -37,7 +48,6 @@ install("mermaid", {
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
   ) {
-    console.log("mermaid options: ", cell.options);
     if (isJavascriptCompatible(handlerContext.options.format)) {
       return mappedConcat([
         `\n<pre class="mermaid">`,

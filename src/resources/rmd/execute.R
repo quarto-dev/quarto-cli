@@ -40,29 +40,28 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     ))
   })
 
-  knitr::knit_engines$set(mermaid = function(options) {
-    knitr:::one_string(c(
-      "```{mermaid}",
-      options$code,
-      "```"
-    ))
-  })
+  #knitr::knit_engines$set(mermaid = function(options) {
+  #  knitr:::one_string(c(
+  #    "```{mermaid}",
+  #    options$code,
+  #    "```"
+  #  ))
+  #})
 
   # pass through all languages handled by cell handlers in quarto
-  #langs = lapply(
-  #  setNames(handledLanguages, handledLanguages),
-  #  function(lang) {
-  #    function(options) {
-  #      knitr:::one_string(c(
-  #        paste0("```{", lang, "}"),
-  #        options$code,
-  #        "```"
-  #      ))
-  #    }
-  #  }
-  #)
-  #print(langs)
-  #knitr::knit_engines$set(langs)
+  langs = lapply(
+    setNames(handledLanguages, handledLanguages),
+    function(lang) {
+      function(options) {
+        knitr:::one_string(c(
+          paste0("```{", lang, "}"),
+          options$code,
+          "```"
+        ))
+      }
+    }
+  )
+  knitr::knit_engines$set(langs)
 
   # apply r-options (if any)
   r_options <- format$metadata$`r-options`

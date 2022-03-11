@@ -13,6 +13,7 @@ import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
 function ensureAllowableIDESyntax(src: string, filename: string) {
   const ast = parseES6(src, {
@@ -162,5 +163,7 @@ export const buildJsCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, _path: string) => {
+    debugger;
+    await initYamlIntelligenceResourcesFromFilesystem();
     await buildAssets();
   });

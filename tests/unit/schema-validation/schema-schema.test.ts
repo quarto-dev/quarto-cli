@@ -37,6 +37,7 @@ yamlValidationUnitTest("schema-schema", async () => {
 });
 
 yamlValidationUnitTest("quarto-schemas", async () => {
+  const _d = getSchemaSchemas(); // this registers the schema schema
   const schema = idSchema(
     arraySchema(refSchema("schema/schema-field", "")),
     "schema-field-array",

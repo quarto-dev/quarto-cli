@@ -21,6 +21,7 @@ import {
   MappedString,
 } from "../lib/mapped-text.ts";
 import { addLanguageComment } from "../lib/partition-cell-options.ts";
+import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -93,6 +94,20 @@ function makeHandlerContext(
 
 export function languages(): string[] {
   return Object.keys(handlers);
+}
+
+export async function languageSchema(
+  language: string,
+): Promise<ConcreteSchema | undefined> {
+  if (handlers[language] === undefined) {
+    return undefined;
+  }
+  const call = handlers[language].schema;
+  if (call === undefined) {
+    return undefined;
+  } else {
+    return (await call());
+  }
 }
 
 export function install(language: string, handler: LanguageHandler) {

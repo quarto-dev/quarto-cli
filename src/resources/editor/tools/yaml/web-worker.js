@@ -18440,7 +18440,70 @@ try {
             },
             $id: "plugin-reveal"
           }
-        ]
+        ],
+        "handlers/languages.yml": [
+          "mermaid"
+        ],
+        "handlers/${language}/schema.yml": {
+          type: "object",
+          description: "be an object",
+          properties: {
+            echo: {
+              type: "anyOf",
+              anyOf: [
+                {
+                  type: "boolean",
+                  description: "be `true` or `false`",
+                  completions: [
+                    "true",
+                    "false"
+                  ],
+                  exhaustiveCompletions: true
+                },
+                {
+                  type: "enum",
+                  enum: [
+                    "bad",
+                    "fenced"
+                  ],
+                  description: "be one of: `bad`, `fenced`",
+                  completions: [
+                    "bad",
+                    "fenced"
+                  ],
+                  exhaustiveCompletions: true
+                }
+              ],
+              description: "be at least one of: `true` or `false`, one of: `bad`, `fenced`"
+            }
+          },
+          patternProperties: {}
+        },
+        "handlers/mermaid/schema.yml": {
+          type: "object",
+          description: "be an object",
+          properties: {
+            echo: {
+              type: "enum",
+              enum: [
+                true,
+                false,
+                "fenced",
+                "fancy-mermaid-echo"
+              ],
+              description: "be one of: `true`, `false`, `fenced`, `fancy-mermaid-echo`",
+              completions: [
+                "true",
+                "false",
+                "fenced",
+                "fancy-mermaid-echo"
+              ],
+              exhaustiveCompletions: true
+            }
+          },
+          patternProperties: {},
+          $id: "handlers/mermaid"
+        }
       };
     }
   });
@@ -19607,9 +19670,10 @@ ${heading}`;
               strUpToLastBreak = cell.source.value;
             }
           }
-          cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
+          const prefix = "```{" + language + "}\n";
+          cell.sourceOffset = strUpToLastBreak.length + prefix.length;
           cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
-            "```{ojs}\n",
+            prefix,
             { start: 0, end: cell.sourceVerbatim.value.length },
             "\n```"
           ]);
@@ -19617,7 +19681,7 @@ ${heading}`;
           cell.options = yaml;
           cell.sourceStartLine = sourceStartLine;
         }
-        if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
+        if (mdTrimEmptyLines(lines(cell.source.value)).length > 0 || cell.options !== void 0) {
           nb.cells.push(cell);
         }
         lineBuffer.splice(0, lineBuffer.length);

@@ -32,9 +32,12 @@ import { getFormatAliases } from "../lib/yaml-schema/format-aliases.ts";
 import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";
 import { getProjectConfigSchema } from "../lib/yaml-schema/project-config.ts";
 import { getEngineOptionsSchema } from "../lib/yaml-schema/chunk-metadata.ts";
+import { languages, languageSchema } from "../handlers/base.ts";
+import { idSchema } from "../lib/yaml-schema/common.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO rename this to "buildIntelligenceResources"
 export async function buildSchemaFile() {
   await ensureSchemaResources();
 
@@ -60,7 +63,18 @@ export async function buildSchemaFile() {
   setYamlIntelligenceResources({
     "schema/html-descriptions.yml": htmlDescriptions,
     "schema/external-schemas.yml": externalSchemas,
+    "handlers/languages.yml": languages(),
   });
+
+  for (const language of languages()) {
+    let schema = await languageSchema(language);
+    if (schema) {
+      schema = idSchema(schema, `handlers/${language}`);
+      setYamlIntelligenceResources({
+        [`handlers/${language}/schema.yml`]: schema,
+      });
+    }
+  }
 
   const yamlResources = exportYamlIntelligenceResources(true);
   const yamlResourcesPath = resourcePath(

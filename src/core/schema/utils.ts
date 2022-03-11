@@ -14,6 +14,7 @@ export function schemaPath(path: string) {
 }
 
 import { initYamlIntelligence } from "../lib/yaml-intelligence/yaml-intelligence.ts";
+import { initTreeSitter } from "../lib/yaml-validation/deno-init-tree-sitter.ts";
 
 // initializes yaml intelligence using precompiled schemas from the filesystem
 export async function initYamlIntelligenceResourcesFromFilesystem() {
@@ -28,4 +29,6 @@ export async function initYamlIntelligenceResourcesFromFilesystem() {
   await initYamlIntelligence({
     resourceModule,
   });
+
+  await initTreeSitter();
 }

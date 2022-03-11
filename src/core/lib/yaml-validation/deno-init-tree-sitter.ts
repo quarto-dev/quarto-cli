@@ -1,8 +1,7 @@
 /*
 * deno-init-tree-sitter.ts
 *
-* code to initialize tree sitter on deno, necessary for the test suite to
-* run the same code as the IDE does.
+* code to initialize tree sitter on deno.
 *
 * Copyright (C) 2022 by RStudio, PBC
 *

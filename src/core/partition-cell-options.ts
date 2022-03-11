@@ -19,6 +19,8 @@ import {
 import { asMappedString, MappedString } from "./lib/mapped-text.ts";
 import { getEngineOptionsSchema } from "./lib/yaml-schema/chunk-metadata.ts";
 import { guessChunkOptionsFormat } from "./lib/guess-chunk-options-format.ts";
+import { getYamlIntelligenceResource } from "./lib/yaml-intelligence/resources.ts";
+import { ConcreteSchema } from "./lib/yaml-schema/types.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -81,7 +83,7 @@ export function partitionCellOptions(
 
 export async function parseAndValidateCellOptions(
   mappedYaml: MappedString,
-  _language: string,
+  language: string,
   validate = false,
   engine = "",
 ) {
@@ -90,7 +92,21 @@ export async function parseAndValidateCellOptions(
   }
 
   const engineOptionsSchema = await getEngineOptionsSchema();
-  const schema = engineOptionsSchema[engine];
+  let schema: ConcreteSchema | undefined = engineOptionsSchema[engine];
+
+  const languages = getYamlIntelligenceResource(
+    "handlers/languages.yml",
+  ) as string[];
+
+  if (languages.indexOf(language) !== -1) {
+    try {
+      schema = getYamlIntelligenceResource(
+        `handlers/${language}/schema.yml`,
+      ) as ConcreteSchema;
+    } catch (_e) {
+      schema = undefined;
+    }
+  }
 
   if (schema === undefined || !validate) {
     return readYamlFromString(mappedYaml.value);

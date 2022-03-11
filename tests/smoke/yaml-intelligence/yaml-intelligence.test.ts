@@ -23,7 +23,6 @@ import {
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
-  await initTreeSitter();
 }
 
 unitTest("yaml-intelligence-smoke-regression", async () => {

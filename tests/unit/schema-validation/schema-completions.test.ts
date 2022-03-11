@@ -23,7 +23,6 @@ import { getEngineOptionsSchema } from "../../../src/core/lib/yaml-schema/chunk-
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
-  await initTreeSitter();
 }
 
 unitTest("schema-completions", async () => {

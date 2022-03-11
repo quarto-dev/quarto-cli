@@ -7,6 +7,7 @@ import { DependencyFile, Format } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { QuartoMdCell } from "../break-quarto-md.ts";
 import { MappedString } from "../lib/mapped-text.ts";
+import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 import { TempContext } from "../temp.ts";
 export type PandocIncludeType =
   | typeof kIncludeBeforeBody
@@ -47,4 +48,5 @@ export interface LanguageHandler {
   ) => MappedString;
 
   comment?: LanguageComment;
+  schema?: () => Promise<ConcreteSchema>;
 }

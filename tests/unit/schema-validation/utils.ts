@@ -7,7 +7,6 @@
 
 import { fileLoader } from "../../utils.ts";
 import { unitTest } from "../../test.ts";
-import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
 import {
   initState,
@@ -24,7 +23,6 @@ export const schemaTestFile = fileLoader("schema-validation");
 
 export async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
-  await initTreeSitter();
   await ensureSchemaResources();
 }
 
