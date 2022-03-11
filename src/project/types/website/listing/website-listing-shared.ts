@@ -47,6 +47,9 @@ export const kImageHeight = "image-height";
 // Only for the default style listing
 export const kImageAlign = "image-align";
 
+// Alt text for the item's image
+export const kImageAlt = "image-alt";
+
 // The number of columns to display (grid)
 export const kGridColumns = "grid-columns";
 
@@ -65,6 +68,7 @@ export const kFieldFileName = "filename";
 export const kFieldFileModified = "file-modified";
 export const kFieldDate = "date";
 export const kFieldImage = "image";
+export const kFieldImageAlt = "image-alt";
 export const kFieldDescription = "description";
 export const kFieldReadingTime = "reading-time";
 export const kFieldCategories = "categories";
@@ -167,6 +171,7 @@ export interface ListingItem extends Record<string, unknown> {
   author?: string[];
   date?: Date;
   image?: string;
+  [kImageAlt]?: string;
   path?: string;
   filename?: string;
   [kFieldFileModified]?: Date;

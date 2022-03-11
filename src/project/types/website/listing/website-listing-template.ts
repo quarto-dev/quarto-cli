@@ -354,15 +354,21 @@ export function reshapeListing(
   utilities.itemNumber = () => {
     return ++itemNumber;
   };
-  utilities.img = (itemNumber: number, src: string, classes?: string) => {
+  utilities.img = (
+    itemNumber: number,
+    src: string,
+    classes: string,
+    alt?: string,
+  ) => {
     const pageSize = listing[kPageSize];
     const classAttr = classes ? `class="${classes}"` : "";
     const styleAttr = listing[kImageHeight]
       ? `style="height: ${listing[kImageHeight]};"`
       : "";
+    const altAttr = alt ? `alt='${alt}'` : "";
     const srcAttr = itemNumber > pageSize ? "data-src" : "src";
 
-    return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr}>`;
+    return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;
   };
 
   let index = 0;

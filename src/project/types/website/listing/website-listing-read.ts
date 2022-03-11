@@ -33,6 +33,7 @@ import {
   kFieldFileName,
   kFieldFilter,
   kFieldImage,
+  kFieldImageAlt,
   kFieldLinks,
   kFieldReadingTime,
   kFieldRequired,
@@ -43,6 +44,7 @@ import {
   kFilterUi,
   kGridColumns,
   kImageAlign,
+  kImageAlt,
   kImageHeight,
   kListing,
   kMaxDescLength,
@@ -583,6 +585,8 @@ async function listItemFromFile(input: string, project: ProjectContext) {
       ? listingItemHref(imageRaw, dirname(projectRelativePath))
       : undefined;
 
+    const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
+
     const date = documentMeta?.date
       ? new Date(documentMeta.date as string)
       : undefined;
@@ -608,6 +612,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
       [kFieldAuthor]: author,
       [kFieldCategories]: categories,
       [kFieldImage]: image,
+      [kFieldImageAlt]: imageAlt,
       [kFieldDescription]: description,
       [kFieldFileName]: filename,
       [kFieldFileModified]: filemodified,

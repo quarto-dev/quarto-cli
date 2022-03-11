@@ -34,7 +34,7 @@ return !["title", "image", "date", "author", "subtitle", "description", "filenam
 <% if (item.image) { %>
 
 <p class="card-img-top">
-<%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img") %>
+<%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img", item['image-alt']) %>
 </p>
 <% } else { %>
 <div class="card-img-bg" <%= imgHeight ? ` style="height: ${imgHeight};"` : '' %>>&nbsp;</div>

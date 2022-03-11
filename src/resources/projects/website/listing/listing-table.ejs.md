@@ -36,7 +36,7 @@ const outputValue = (itemNumber, field) => {
 let value = item[field];
 if (field === "image") {
 if (item.image) {
-value = listing.utilities.img(itemNumber, item[field]);
+value = listing.utilities.img(itemNumber, item[field], "", item['image-alt']);
 } else {
 value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight};"` : '' }>&nbsp;</div>`;
 }
