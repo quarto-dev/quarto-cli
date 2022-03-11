@@ -172,7 +172,7 @@ function parseHash(hash) {
 
   const hashObj = {};
   hashValues.forEach((hashValue) => {
-    hashObj[hashValue.name] = hashValue.value;
+    hashObj[hashValue.name] = decodeURIComponent(hashValue.value);
   });
   return hashObj;
 }
