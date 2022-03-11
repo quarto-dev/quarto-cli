@@ -24,7 +24,7 @@ import {
   cslType,
   suggestId,
 } from "../../core/csl.ts";
-import { formatDate } from "../../core/date.ts";
+import { formatDate, parsePandocDate } from "../../core/date.ts";
 import { kSiteUrl } from "../../project/types/website/website-config.ts";
 import { kWebsite } from "../../project/types/website/website-config.ts";
 
@@ -67,34 +67,6 @@ export const getCSLPath = (input: string, format: Format) => {
       return cslPath;
     } else {
       return join(dirname(input), cslPath);
-    }
-  } else {
-    return undefined;
-  }
-};
-
-export const formattedDocumentDate = (
-  format: Format,
-  defaultDateFormat?: string,
-) => {
-  const dateStr = format.metadata[kDate] as string;
-  if (dateStr) {
-    const date = new Date(dateStr);
-    if (date) {
-      const dateFormat = format.metadata[kDateFormat] as string ||
-        defaultDateFormat;
-      if (dateFormat) {
-        const formatted = formatDate(
-          date,
-          format.metadata[kLang] as string,
-          dateFormat,
-        );
-        return formatted;
-      } else {
-        return undefined;
-      }
-    } else {
-      return undefined;
     }
   } else {
     return undefined;

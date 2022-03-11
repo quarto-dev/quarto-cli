@@ -619,6 +619,7 @@ export async function renderPandoc(
     : [];
 
   const htmlPostProcessResult = await runHtmlPostprocessors(
+    pandocResult.inputMetadata,
     pandocOptions,
     htmlPostProcessors,
     htmlFinalizers,
@@ -972,9 +973,10 @@ export function filesDirLibDir(input: string) {
 }
 
 async function runHtmlPostprocessors(
+  inputMetadata: Metadata,
   options: PandocOptions,
   htmlPostprocessors: Array<
-    (doc: Document) => Promise<HtmlPostProcessResult>
+    (doc: Document, inputMetadata: Metadata) => Promise<HtmlPostProcessResult>
   >,
   htmlFinalizers: Array<(doc: Document) => Promise<void>>,
 ): Promise<HtmlPostProcessResult> {
@@ -991,7 +993,7 @@ async function runHtmlPostprocessors(
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
     for (let i = 0; i < htmlPostprocessors.length; i++) {
       const postprocessor = htmlPostprocessors[i];
-      const result = await postprocessor(doc);
+      const result = await postprocessor(doc, inputMetadata);
 
       postProcessResult.resources.push(...result.resources);
       postProcessResult.supporting.push(...result.supporting);

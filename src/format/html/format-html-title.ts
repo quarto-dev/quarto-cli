@@ -9,6 +9,8 @@ import { existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join } from "path/mod.ts";
 import {
   kAuthor,
+  kDate,
+  kLang,
   kTitleBlockAffiliationPlural,
   kTitleBlockAffiliationSingle,
   kTitleBlockAuthorPlural,
@@ -16,14 +18,15 @@ import {
   kTitleBlockPublished,
 } from "../../config/constants.ts";
 import { localizedString } from "../../config/localization.ts";
-import { Format, PandocFlags } from "../../config/types.ts";
+import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { Author, parseAuthor } from "../../core/author.ts";
+import { formattedDate } from "../../core/date.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { kDescription } from "../../project/types/website/listing/website-listing-shared.ts";
+import { kDateFormat } from "../../project/types/website/listing/website-listing-template.ts";
 import {
   citationMeta,
   documentCSL,
-  formattedDocumentDate,
 } from "../../quarto-core/attribution/document.ts";
 
 const kDoiBadge = false;
@@ -37,6 +40,7 @@ const orcidData =
 
 export function processDocumentTitle(
   input: string,
+  inputMetadata: Metadata,
   format: Format,
   _flags: PandocFlags,
   doc: Document,
@@ -185,17 +189,24 @@ export function processDocumentTitle(
 
   // Process the publish date
   if (dateEl) {
-    const formatted = formattedDocumentDate(format, "long");
-    if (formatted) {
-      dateEl.innerText = formatted;
-    }
+    const dateRaw = (inputMetadata[kDate] || format.metadata[kDate]) as string;
+    if (dateRaw) {
+      const formatted = formattedDate(
+        dateRaw,
+        format.metadata[kDateFormat] as string || "long",
+        format.metadata[kLang] as string || "en",
+      );
+      if (formatted) {
+        dateEl.innerText = formatted;
+      }
 
-    const dateContainer = metadataEl(
-      doc,
-      localizedString(format, kTitleBlockPublished),
-      [dateEl],
-    );
-    metadataContainerEl.appendChild(dateContainer);
+      const dateContainer = metadataEl(
+        doc,
+        localizedString(format, kTitleBlockPublished),
+        [dateEl],
+      );
+      metadataContainerEl.appendChild(dateContainer);
+    }
   }
 
   // Process the DOI

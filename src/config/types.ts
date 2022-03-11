@@ -168,7 +168,10 @@ import {
 } from "./constants.ts";
 
 import { TempContext } from "../core/temp.ts";
-import { HtmlPostProcessResult } from "../command/render/types.ts";
+import {
+  HtmlPostProcessor,
+  HtmlPostProcessResult,
+} from "../command/render/types.ts";
 
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
@@ -253,9 +256,7 @@ export interface FormatExtras {
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
     [kTemplatePatches]?: Array<(template: string) => string>;
-    [kHtmlPostprocessors]?: Array<
-      (doc: Document) => Promise<HtmlPostProcessResult>
-    >;
+    [kHtmlPostprocessors]?: Array<HtmlPostProcessor>;
     [kHtmlFinalizers]?: Array<
       (doc: Document) => Promise<void>
     >;
