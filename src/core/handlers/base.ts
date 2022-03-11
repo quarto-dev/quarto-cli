@@ -4,8 +4,7 @@ import {
   LanguageHandler,
   PandocIncludeType,
 } from "./types.ts";
-import { breakQuartoMd } from "../break-quarto-md.ts";
-import { asMappedString } from "../mapped-text.ts";
+import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import { mergeConfigs } from "../config.ts";
 import {
@@ -16,6 +15,11 @@ import {
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import { dirname } from "path/mod.ts";
 import { kIncludeInHeader } from "../../config/constants.ts";
+import {
+  asMappedString,
+  join as mappedJoin,
+  MappedString,
+} from "../lib/mapped-text.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -94,7 +98,7 @@ export function install(language: string, handler: LanguageHandler) {
   handlers[language] = handler;
 }
 
-// this mutates executeResult!
+// this mutates executeResult.markdown!
 export async function handleLanguageCells(
   executeResult: ExecuteResult,
   options: LanguageCellHandlerOptions,
@@ -102,15 +106,15 @@ export async function handleLanguageCells(
   const mdCells =
     (await breakQuartoMd(asMappedString(executeResult.markdown), false))
       .cells;
-  const newCells: string[] = [];
+  const newCells: MappedString[] = [];
   const languageCellsPerLanguage: Record<
     string,
-    { index: number; source: string }[]
+    { index: number; source: QuartoMdCell }[]
   > = {};
 
   for (let i = 0; i < mdCells.length; ++i) {
     const cell = mdCells[i];
-    newCells.push(cell.sourceVerbatim.value);
+    newCells.push(cell.sourceVerbatim);
     if (
       cell.cell_type === "math" ||
       cell.cell_type === "raw" ||
@@ -127,7 +131,7 @@ export async function handleLanguageCells(
     }
     languageCellsPerLanguage[language].push({
       index: i,
-      source: cell.source.value,
+      source: cell,
     });
   }
   for (const [language, cells] of Object.entries(languageCellsPerLanguage)) {
@@ -138,7 +142,7 @@ export async function handleLanguageCells(
     const languageHandler = handlers[language]!;
     const transformedCells = languageHandler.document(
       handler.context,
-      cells.map((cell) => cell.source),
+      cells.map((x) => x.source),
     );
     for (let i = 0; i < transformedCells.length; ++i) {
       newCells[cells[i].index] = transformedCells[i];
@@ -165,5 +169,36 @@ export async function handleLanguageCells(
     }
   }
 
-  executeResult.markdown = newCells.join("\n");
+  executeResult.markdown = mappedJoin(newCells, "\n").value;
 }
+
+export const baseHandler: LanguageHandler = {
+  document(
+    handlerContext: LanguageCellHandlerContext,
+    cells: QuartoMdCell[],
+  ): MappedString[] {
+    this.documentStart(handlerContext);
+    const result = cells.map((cell) => this.cell(handlerContext, cell));
+    this.documentEnd(handlerContext);
+    return result;
+  },
+
+  // called once per document at the start of processing
+  documentStart(
+    _handlerContext: LanguageCellHandlerContext,
+  ) {
+  },
+
+  // called once per document at the end of processing
+  documentEnd(
+    _handlerContext: LanguageCellHandlerContext,
+  ) {
+  },
+
+  cell(
+    _handlerContext: LanguageCellHandlerContext,
+    cell: QuartoMdCell,
+  ): MappedString {
+    return cell.sourceVerbatim;
+  },
+};

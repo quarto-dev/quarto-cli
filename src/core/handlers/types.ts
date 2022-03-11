@@ -5,9 +5,9 @@ import {
 } from "../../config/constants.ts";
 import { DependencyFile, Format } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { QuartoMdCell } from "../break-quarto-md.ts";
 import { MappedString } from "../lib/mapped-text.ts";
 import { TempContext } from "../temp.ts";
-
 export type PandocIncludeType =
   | typeof kIncludeBeforeBody
   | typeof kIncludeAfterBody
@@ -33,37 +33,20 @@ export interface LanguageCellHandlerContext {
   ) => void;
 }
 
-export const baseHandler = {
-  // if document() is overridden, then it's the only
-  // method that will be called.
-  document(
-    handlerContext: LanguageCellHandlerContext,
-    cells: string[],
-  ): string[] {
-    this.documentStart(handlerContext);
-    const result = cells.map((cell) => this.cell(handlerContext, cell));
-    this.documentEnd(handlerContext);
-    return result;
-  },
-
-  // called once per document at the start of processing
-  documentStart(
-    _handlerContext: LanguageCellHandlerContext,
-  ) {
-  },
-
-  // called once per document at the end of processing
-  documentEnd(
-    _handlerContext: LanguageCellHandlerContext,
-  ) {
-  },
-
-  cell(
-    _handlerContext: LanguageCellHandlerContext,
-    cell: string,
-  ): string {
-    return cell;
-  },
+export type LanguageComment = { prefix: string } | {
+  bracket: [string, string];
 };
+export interface LanguageHandler {
+  document: (
+    handlerContext: LanguageCellHandlerContext,
+    cells: QuartoMdCell[],
+  ) => MappedString[];
+  documentStart: (handlerContext: LanguageCellHandlerContext) => void;
+  documentEnd: (handlerContext: LanguageCellHandlerContext) => void;
+  cell: (
+    handlerContext: LanguageCellHandlerContext,
+    cell: QuartoMdCell,
+  ) => MappedString;
 
-export type LanguageHandler = typeof baseHandler;
+  comment?: LanguageComment;
+}
