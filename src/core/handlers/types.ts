@@ -1,16 +1,43 @@
-export type PandocIncludeType = "beforeBody" | "afterBody" | "inHeader";
+import {
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
+} from "../../config/constants.ts";
+import { DependencyFile, Format } from "../../config/types.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { MappedString } from "../lib/mapped-text.ts";
+import { TempContext } from "../temp.ts";
 
-export interface HandlerContext {
-  format: string;
+export type PandocIncludeType =
+  | typeof kIncludeBeforeBody
+  | typeof kIncludeAfterBody
+  | typeof kIncludeInHeader;
+
+export interface LanguageCellHandlerOptions {
+  name: string;
+  version?: string;
+  source: string;
+  format: Format;
+  markdown: MappedString;
+  libDir: string;
+  temp: TempContext;
+  project?: ProjectContext;
+}
+export interface LanguageCellHandlerContext {
+  options: LanguageCellHandlerOptions;
   addResource: (name: string, contents: string) => void;
   addInclude: (content: string, where: PandocIncludeType) => void;
+  addDependency: (
+    dependencyType: "script" | "stylesheet" | "resource",
+    dependency: DependencyFile,
+  ) => void;
 }
 
 export const baseHandler = {
   // if document() is overridden, then it's the only
   // method that will be called.
   document(
-    handlerContext: HandlerContext,
+    handlerContext: LanguageCellHandlerContext,
     cells: string[],
   ): string[] {
     this.documentStart(handlerContext);
@@ -19,19 +46,20 @@ export const baseHandler = {
     return result;
   },
 
-  // called once per document, no cells in particular
+  // called once per document at the start of processing
   documentStart(
-    _handlerContext: HandlerContext,
+    _handlerContext: LanguageCellHandlerContext,
   ) {
   },
 
+  // called once per document at the end of processing
   documentEnd(
-    _handlerContext: HandlerContext,
+    _handlerContext: LanguageCellHandlerContext,
   ) {
   },
 
   cell(
-    _handlerContext: HandlerContext,
+    _handlerContext: LanguageCellHandlerContext,
     cell: string,
   ): string {
     return cell;

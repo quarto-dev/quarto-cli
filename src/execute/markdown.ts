@@ -45,14 +45,6 @@ export const markdownEngine: ExecutionEngine = {
       input: file,
       markdown,
       metadata: readYamlFromMarkdown(markdown),
-      refreshTarget(newMarkdown: string) {
-        if (newMarkdown === this.markdown) {
-          return Promise.resolve(this);
-        }
-        const newTarget = { ...this };
-        newTarget.markdown = newMarkdown;
-        return Promise.resolve(newTarget);
-      },
     };
     return Promise.resolve(target);
   },

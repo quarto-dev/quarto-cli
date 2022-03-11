@@ -2,7 +2,7 @@
 # Copyright (C) 2020 by RStudio, PBC
 
 # execute rmarkdown::render
-execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir) {
+execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir, handledLanguages) {
 
   # calculate knit_root_dir (before we setwd below)
   knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
@@ -40,6 +40,30 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     ))
   })
 
+  knitr::knit_engines$set(mermaid = function(options) {
+    knitr:::one_string(c(
+      "```{mermaid}",
+      options$code,
+      "```"
+    ))
+  })
+
+  # pass through all languages handled by cell handlers in quarto
+  #langs = lapply(
+  #  setNames(handledLanguages, handledLanguages),
+  #  function(lang) {
+  #    function(options) {
+  #      knitr:::one_string(c(
+  #        paste0("```{", lang, "}"),
+  #        options$code,
+  #        "```"
+  #      ))
+  #    }
+  #  }
+  #)
+  #print(langs)
+  #knitr::knit_engines$set(langs)
+
   # apply r-options (if any)
   r_options <- format$metadata$`r-options`
   if (!is.null(r_options)) {
@@ -47,7 +71,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   }
 
   # get kntir options
-  knitr <- knitr_options(format, resourceDir)
+  knitr <- knitr_options(format, resourceDir, handledLanguages)
 
   # fixup options for cache
   knitr <- knitr_options_with_cache(input, format, knitr)
@@ -167,7 +191,7 @@ pandoc_options <- function(format) {
 }
 
 # knitr options for format
-knitr_options <- function(format, resourceDir) {
+knitr_options <- function(format, resourceDir, handledLanguages) {
 
   # may need some knit hooks
   knit_hooks <- list()
@@ -239,7 +263,7 @@ knitr_options <- function(format, resourceDir) {
   if (is.list(format$metadata$knitr)) {
     knitr <- format$metadata$knitr
   }
-  hooks <- knitr_hooks(format, resourceDir)
+  hooks <- knitr_hooks(format, resourceDir, handledLanguages)
   rmarkdown::knitr_options(
     opts_knit = rmarkdown:::merge_lists(opts_knit, knitr$opts_knit),
     opts_chunk = rmarkdown:::merge_lists(opts_chunk, knitr$opts_chunk),

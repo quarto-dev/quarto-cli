@@ -144,10 +144,12 @@ import { getFrontMatterSchema } from "../../core/lib/yaml-schema/front-matter.ts
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
-import { handleRenderContext } from "../../core/handlers/base.ts";
+import { handleLanguageCells, languages } from "../../core/handlers/base.ts";
 
 // installs language handlers
 import "../../core/handlers/handlers.ts";
+import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
+import { asMappedString } from "../../core/lib/mapped-text.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -219,7 +221,7 @@ export async function renderFiles(
       }
 
       for (const format of Object.keys(contexts)) {
-        let context = contexts[format];
+        const context = contexts[format];
 
         // one time denoDom init for html compatible formats
         if (isHtmlCompatible(context.format)) {
@@ -245,8 +247,6 @@ export async function renderFiles(
           }
         }
 
-        debugger;
-        context = await handleRenderContext(context);
         // FIXME it should be possible to infer this directly now
         // based on the information in the mapped strings.
         //
@@ -260,12 +260,33 @@ export async function renderFiles(
           executeOptions,
         );
 
-        // process ojs
-        const { executeResult, resourceFiles } = await ojsExecuteResult(
-          context,
+        const resourceFiles: string[] = [];
+        const languageCellHandlerOptions: LanguageCellHandlerOptions = {
+          temp: tempContext,
+          name: "",
+          format: recipe.format,
+          markdown: asMappedString(baseExecuteResult.markdown),
+          source: context.target.source,
+          libDir: context.libDir,
+          project: context.project,
+        };
+        await handleLanguageCells(
           baseExecuteResult,
-          ojsBlockLineNumbers,
+          languageCellHandlerOptions,
         );
+
+        if (baseExecuteResult.resourceFiles) {
+          resourceFiles.push(...baseExecuteResult.resourceFiles);
+        }
+
+        // process ojs
+        const { executeResult, resourceFiles: ojsResourceFiles } =
+          await ojsExecuteResult(
+            context,
+            baseExecuteResult,
+            ojsBlockLineNumbers,
+          );
+        resourceFiles.push(...ojsResourceFiles);
 
         // callback
         await pandocRenderer.onRender(format, {
@@ -467,6 +488,7 @@ export async function renderExecute(
     cwd: flags.executeDir,
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
+    handledLanguages: languages(),
   });
 
   // keep md if requested

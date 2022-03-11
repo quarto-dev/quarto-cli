@@ -1,36 +1,106 @@
-import { RenderContext } from "../../command/render/types.ts";
-import { HandlerContext, LanguageHandler, PandocIncludeType } from "./types.ts";
+import {
+  LanguageCellHandlerContext,
+  LanguageCellHandlerOptions,
+  LanguageHandler,
+  PandocIncludeType,
+} from "./types.ts";
 import { breakQuartoMd } from "../break-quarto-md.ts";
 import { asMappedString } from "../mapped-text.ts";
+import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
+import { mergeConfigs } from "../config.ts";
+import {
+  DependencyFile,
+  FormatExtras,
+  kDependencies,
+} from "../../config/types.ts";
+import { resolveDependencies } from "../../command/render/pandoc.ts";
+import { dirname } from "path/mod.ts";
+import { kIncludeInHeader } from "../../config/constants.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
+
+interface HandlerContextResults {
+  includes: PandocIncludes;
+  resourceFiles: string[];
+  extras: FormatExtras;
+}
+
+function makeHandlerContext(
+  _executeResult: ExecuteResult,
+  options: LanguageCellHandlerOptions,
+): {
+  context: LanguageCellHandlerContext;
+  results: HandlerContextResults;
+} {
+  const formatDependency = {
+    name: options.name,
+    version: options.version,
+    scripts: [],
+    stylesheets: [],
+    resources: [],
+  };
+  const results: HandlerContextResults = {
+    resourceFiles: [],
+    includes: {},
+    extras: {
+      html: {
+        [kDependencies]: [formatDependency],
+      },
+    },
+  };
+  const tempContext = options.temp;
+  const context: LanguageCellHandlerContext = {
+    options,
+    addDependency(
+      dependencyType: "script" | "stylesheet" | "resource",
+      dependency: DependencyFile,
+    ) {
+      let lst: DependencyFile[];
+      switch (dependencyType) {
+        case "script":
+          lst = formatDependency.scripts;
+          break;
+        case "stylesheet":
+          lst = formatDependency.stylesheets;
+          break;
+        case "resource":
+          lst = formatDependency.resources;
+          break;
+      }
+      lst.push(dependency);
+    },
+    addResource(fileName: string) {
+      results.resourceFiles.push(fileName);
+    },
+    addInclude(content: string, where: PandocIncludeType) {
+      const fileName = tempContext.createFile();
+      Deno.writeTextFileSync(fileName, content);
+      if (results.includes[where] === undefined) {
+        results.includes[where] = [fileName];
+      } else {
+        results.includes[where]!.push(fileName);
+      }
+    },
+  };
+
+  return { context, results };
+}
+
+export function languages(): string[] {
+  return Object.keys(handlers);
+}
 
 export function install(language: string, handler: LanguageHandler) {
   handlers[language] = handler;
 }
 
-function makeHandlerContext(
-  _renderContext: RenderContext,
-): HandlerContext {
-  return {
-    format: "html",
-    addResource(_name: string, _contents: string) {
-    },
-    addInclude(_content: string, _where: PandocIncludeType) {
-    },
-  };
-}
-
-// returns a transformed render context
-// with changed markdown prior to passing it to engines etc.
-export async function handleRenderContext(
-  plainRender: RenderContext,
-): Promise<RenderContext> {
-  debugger;
-
-  const handler = makeHandlerContext(plainRender);
+// this mutates executeResult!
+export async function handleLanguageCells(
+  executeResult: ExecuteResult,
+  options: LanguageCellHandlerOptions,
+) {
   const mdCells =
-    (await breakQuartoMd(asMappedString(plainRender.target.markdown), false))
+    (await breakQuartoMd(asMappedString(executeResult.markdown), false))
       .cells;
   const newCells: string[] = [];
   const languageCellsPerLanguage: Record<
@@ -61,19 +131,39 @@ export async function handleRenderContext(
     });
   }
   for (const [language, cells] of Object.entries(languageCellsPerLanguage)) {
+    const handler = makeHandlerContext(executeResult, {
+      ...options,
+      name: language,
+    });
     const languageHandler = handlers[language]!;
     const transformedCells = languageHandler.document(
-      handler,
+      handler.context,
       cells.map((cell) => cell.source),
     );
     for (let i = 0; i < transformedCells.length; ++i) {
       newCells[cells[i].index] = transformedCells[i];
     }
+    if (executeResult.includes) {
+      executeResult.includes = mergeConfigs(
+        executeResult.includes,
+        handler.results.includes,
+      );
+    } else {
+      executeResult.includes = handler.results.includes;
+    }
+    const extras = resolveDependencies(
+      handler.results.extras,
+      dirname(options.source),
+      options.libDir,
+      options.temp,
+    );
+    if (extras[kIncludeInHeader]) {
+      executeResult.includes[kIncludeInHeader] = [
+        ...(executeResult.includes[kIncludeInHeader] || []),
+        ...(extras[kIncludeInHeader] || []),
+      ];
+    }
   }
 
-  const newTarget = await plainRender.target.refreshTarget(newCells.join("\n"));
-  return {
-    ...plainRender,
-    target: newTarget,
-  };
+  executeResult.markdown = newCells.join("\n");
 }

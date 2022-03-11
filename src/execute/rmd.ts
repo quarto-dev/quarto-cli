@@ -67,15 +67,6 @@ export const knitrEngine: ExecutionEngine = {
       input: file,
       markdown,
       metadata: readYamlFromMarkdown(markdown),
-      refreshTarget(newMarkdown: string): Promise<ExecutionTarget> {
-        if (newMarkdown === this.markdown) {
-          return Promise.resolve(this);
-        }
-        const newTarget: ExecutionTarget = { ...this };
-        newTarget.markdown = newMarkdown;
-        newTarget.metadata = readYamlFromMarkdown(markdown);
-        return Promise.resolve(newTarget);
-      },
     };
     return Promise.resolve(target);
   },

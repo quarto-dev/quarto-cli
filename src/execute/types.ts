@@ -57,7 +57,6 @@ export interface ExecutionTarget {
   markdown: string;
   metadata: Metadata;
   data?: unknown;
-  refreshTarget: (newMarkdown: string) => Promise<ExecutionTarget>;
 }
 
 // execute options
@@ -71,6 +70,7 @@ export interface ExecuteOptions {
   cwd?: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;
+  handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
 }
 
 // result of execution
@@ -84,6 +84,7 @@ export interface ExecuteResult {
   engineDependencies?: Record<string, Array<unknown>>;
   preserve?: Record<string, string>;
   postProcess?: boolean;
+  resourceFiles?: string[];
 }
 
 export interface PandocIncludes {
