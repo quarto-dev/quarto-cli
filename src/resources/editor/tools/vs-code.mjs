@@ -15464,6 +15464,16 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "The width of the preview image for this document."
+        },
+        {
+          name: "image-alt",
+          schema: "string",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "The alt text for preview image on this page."
         }
       ],
       "schema/format-aliases.yml": {
@@ -17910,6 +17920,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "The height of the preview image for this document.",
         "The width of the preview image for this document.",
+        "The alt text for preview image on this page.",
         "MISSING_DESCRIPTION",
         "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
         "Files to render (defaults to all files)",
