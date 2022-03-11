@@ -108,7 +108,16 @@ export async function validateDocumentFromSource(
     const lang = cell.cell_type.language;
 
     try {
-      await partitionCellOptionsMapped(lang, cell.source, true, engine);
+      const fullCell = mappedString(cell.sourceVerbatim, [{
+        start: lang.length + 6,
+        end: cell.sourceVerbatim.value.length - 3,
+      }]);
+      await partitionCellOptionsMapped(
+        lang,
+        fullCell,
+        true,
+        engine,
+      );
     } catch (e) {
       if (e instanceof ValidationError) {
         result.push(...e.validationErrors);

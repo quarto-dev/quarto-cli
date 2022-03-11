@@ -126,11 +126,12 @@ export async function breakQuartoMd(
             strUpToLastBreak = cell.source.value;
           }
         }
-        cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
+        const prefix = "```{" + language + "}\n";
+        cell.sourceOffset = strUpToLastBreak.length + prefix.length;
         cell.sourceVerbatim = mappedString(
           cell.sourceVerbatim,
           [
-            "```{ojs}\n",
+            prefix,
             { start: 0, end: cell.sourceVerbatim.value.length },
             "\n```",
           ],
@@ -141,7 +142,10 @@ export async function breakQuartoMd(
       }
 
       // if the source is empty then don't add it
-      if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
+      if (
+        mdTrimEmptyLines(lines(cell.source.value)).length > 0 ||
+        cell.options !== undefined
+      ) {
         nb.cells.push(cell);
       }
 
