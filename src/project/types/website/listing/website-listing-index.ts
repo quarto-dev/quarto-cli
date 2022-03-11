@@ -113,10 +113,12 @@ export function updateGlobalListingIndex(
     }
   }
 
-  Deno.writeTextFileSync(
-    listingJsonPath,
-    JSON.stringify(listingPaths, undefined, 2),
-  );
+  if (listingPaths.length > 0) {
+    Deno.writeTextFileSync(
+      listingJsonPath,
+      JSON.stringify(listingPaths, undefined, 2),
+    );
+  }
 }
 
 function listingIndex(input: string) {
