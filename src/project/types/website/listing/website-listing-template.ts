@@ -194,6 +194,7 @@ export function templateMarkdownHandler(
       if (!listingEl?.classList.contains(kQuartoListingClass)) {
         listingEl?.classList.add(kQuartoListingClass);
       }
+      listingEl?.classList.add(`quarto-listing-container-${listing.type}`);
 
       // Add attributes
       const outListingId = `listing-${listing.id}`;
