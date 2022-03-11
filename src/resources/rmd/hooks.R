@@ -150,17 +150,15 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
   # entire chunk
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
-    if (any(as.logical(lapply(handledLanguages, function(x) {
-      startsWith(x, paste0("```{", x, "}"))
+    if (any(as.logical(lapply(handledLanguages, function(lang) {
+      prefix <- paste0("```{", lang, "}")
+      startsWith(x, prefix)
     }))) && endsWith(x, "```")) {
-      return (x)
+      return(x)
     }
 
     # ojs engine should return output unadorned
     if (startsWith(x, "```{ojs}") && endsWith(x, "```")) {
-      return(x)
-    }
-    if (startsWith(x, "```{mermaid}") && endsWith(x, "```")) {
       return(x)
     }
 

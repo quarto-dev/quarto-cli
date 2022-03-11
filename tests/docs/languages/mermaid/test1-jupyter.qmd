@@ -1,0 +1,18 @@
+---
+title: "Mermaid test"
+format: html
+---
+
+### Examples from https://mermaid-js.github.io/mermaid/#/
+
+```{mermaid}
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
+```{ojs}
+viewof foo = Inputs.range([-1, 1]);
+```

@@ -75,13 +75,19 @@ export const knitrEngine: ExecutionEngine = {
     return Promise.resolve(partitionMarkdown(Deno.readTextFileSync(file)));
   },
 
-  execute: (options: ExecuteOptions): Promise<ExecuteResult> => {
-    return callR<ExecuteResult>(
+  execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+    const result = await callR<ExecuteResult>(
       "execute",
       { ...options, target: undefined, input: options.target.input },
       options.tempDir,
       options.quiet,
     );
+    const includes = result.includes as unknown;
+    // knitr appears to return [] instead of {} as the value for includes.
+    if (Array.isArray(includes) && includes.length === 0) {
+      result.includes = {};
+    }
+    return result;
   },
 
   dependencies: (options: DependenciesOptions) => {
