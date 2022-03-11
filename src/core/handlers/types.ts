@@ -33,9 +33,7 @@ export interface LanguageCellHandlerContext {
   ) => void;
 }
 
-export type LanguageComment = { prefix: string } | {
-  bracket: [string, string];
-};
+export type LanguageComment = string | [string, string];
 export interface LanguageHandler {
   document: (
     handlerContext: LanguageCellHandlerContext,

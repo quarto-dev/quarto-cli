@@ -93,7 +93,7 @@ export async function breakQuartoMd(
         cellStartLine: index,
       };
 
-      if (cell_type === "code" && (language === "ojs" || language === "dot")) {
+      if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
         const { yaml, source, sourceStartLine } =
           await partitionCellOptionsMapped(

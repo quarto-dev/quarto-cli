@@ -99,7 +99,15 @@ export function optionCommentPrefix(comment: string) {
   return comment + "| ";
 }
 
-export const kLangCommentChars: Record<string, string | string[]> = {
+// FIXME this is an awkward spot for this particular entry point
+export function addLanguageComment(
+  language: string,
+  comment: string | [string, string],
+) {
+  kLangCommentChars[language] = comment;
+}
+
+export const kLangCommentChars: Record<string, string | [string, string]> = {
   r: "#",
   python: "#",
   julia: "#",

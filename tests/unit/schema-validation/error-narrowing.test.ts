@@ -16,8 +16,21 @@ import {
 import {
   readAndValidateYamlFromMappedString,
   ValidationError,
-} from "../../../src/core/schema/validated-yaml.ts";
+} from "../../../src/core/lib/yaml-schema/validated-yaml.ts";
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
+import { Schema } from "../../../src/core/lib/yaml-schema/types.ts";
+
+const readAndThrow = async (str: string, schema: Schema): Promise<unknown> => {
+  const { yaml, yamlValidationErrors } =
+    await readAndValidateYamlFromMappedString(
+      asMappedString(str),
+      schema,
+    );
+  if (yamlValidationErrors.length) {
+    throw new ValidationError("this should throw", yamlValidationErrors);
+  }
+  return yaml;
+};
 
 // deno-lint-ignore require-await
 yamlValidationUnitTest("schema-narrowing", async () => {
@@ -31,11 +44,7 @@ record:
 baz: 3
 `;
   assertYamlValidationFails(async () => {
-    await readAndValidateYamlFromMappedString(
-      asMappedString(ymlStr),
-      schema,
-      "This should reject",
-    );
+    await readAndThrow(ymlStr, schema);
   }, (e: ValidationError) =>
     expectValidationError(e)
       .toHaveLength(1)
@@ -121,11 +130,7 @@ arrayOf:
 `;
 
   assertYamlValidationFails(async () => {
-    await readAndValidateYamlFromMappedString(
-      asMappedString(ymlStr),
-      s3,
-      "This should reject",
-    );
+    await readAndThrow(ymlStr, s3);
   }, (e: ValidationError) => {
     return expectValidationError(e)
       .toHaveLength(1)

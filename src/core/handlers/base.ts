@@ -20,6 +20,7 @@ import {
   join as mappedJoin,
   MappedString,
 } from "../lib/mapped-text.ts";
+import { addLanguageComment } from "../lib/partition-cell-options.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -96,6 +97,9 @@ export function languages(): string[] {
 
 export function install(language: string, handler: LanguageHandler) {
   handlers[language] = handler;
+  if (handler.comment !== undefined) {
+    addLanguageComment(language, handler.comment);
+  }
 }
 
 // this mutates executeResult.markdown!

@@ -44,6 +44,11 @@ import {
 } from "../yaml-intelligence/resources.ts";
 import { globToRegExp } from "../glob.ts";
 import { fromEntries } from "../polyfills.ts";
+import { MappedString } from "../mapped-text.ts";
+import {
+  readAndValidateYamlFromMappedString,
+  ValidationError,
+} from "./validated-yaml.ts";
 
 function setBaseSchemaProperties(
   // deno-lint-ignore no-explicit-any
@@ -409,6 +414,18 @@ function lookup(yaml: any): ConcreteSchema {
     throw new Error(`lookup of key ${yaml.resolveRef} in definitions failed`);
   }
   return getSchemaDefinition(yaml.resolveRef)!;
+}
+
+export async function schemaFromMappedString(
+  str: MappedString,
+): Promise<ConcreteSchema> {
+  const schema = getSchemaDefinition("schema/schema");
+  const { yaml, yamlValidationErrors } =
+    await readAndValidateYamlFromMappedString(str, schema);
+  if (yamlValidationErrors.length) {
+    throw new ValidationError("from-yaml", yamlValidationErrors);
+  }
+  return convertFromYaml(yaml);
 }
 
 // deno-lint-ignore no-explicit-any
