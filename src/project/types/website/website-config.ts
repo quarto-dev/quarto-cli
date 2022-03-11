@@ -59,6 +59,7 @@ export const kCardStyle = "card-style";
 export const kImage = "image";
 export const kImageWidth = "image-width";
 export const kImageHeight = "image-height";
+export const kImageAlt = "image-alt";
 export const kCreator = "creator";
 export const kTwitterSite = "site";
 
@@ -97,6 +98,7 @@ export interface OpenGraphConfig {
   [kImage]?: string;
   [kImageWidth]?: number;
   [kImageHeight]?: number;
+  [kImageAlt]?: string;
   [kLocale]?: string;
   [kSiteName]?: string;
 }
