@@ -244,16 +244,16 @@ export async function listingHtmlDependencies(
           supporting.push(feedAbsPath);
         });
       }
+    }
 
-      // Write the index of entries in this listing
-      const listingIndexPath = await createListingIndex(
-        source,
-        project,
-        listingDescriptors,
-      );
-      if (listingIndexPath) {
-        supporting.push(listingIndexPath);
-      }
+    // Write the index of entries in this listing
+    const listingIndexPath = await createListingIndex(
+      source,
+      project,
+      listingDescriptors,
+    );
+    if (listingIndexPath) {
+      supporting.push(listingIndexPath);
     }
 
     // No resource references to add
