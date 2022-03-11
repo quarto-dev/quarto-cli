@@ -8636,7 +8636,15 @@ var require_yaml_intelligence_resources = __commonJS({
                 path: {
                   description: {
                     short: "The path to a preview image for the content.",
-                    long: "The path to a preview image for the content. By default, Quarto will use\nthe `image` value from the website or book metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
+                    long: "The path to a preview image for the content. By default, Quarto will use\nthe `image` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
+                  }
+                }
+              },
+              "image-alt": {
+                path: {
+                  description: {
+                    short: "The alt text for the preview image.",
+                    long: "The alt text for the preview image. By default, Quarto will use\nthe `image-alt` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
                   }
                 }
               },
@@ -16490,7 +16498,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the website or book metadata. If\nyou provide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
         },
         "Image width (pixels)",
         "Image height (pixels)",
@@ -16624,7 +16636,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the website or book metadata. If\nyou provide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
         },
         "Image width (pixels)",
         "Image height (pixels)",
@@ -16644,7 +16660,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the website or book metadata. If\nyou provide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
         },
         "Image width (pixels)",
         "Image height (pixels)",
@@ -18064,7 +18084,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the website or book metadata. If\nyou provide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
         },
         "Image width (pixels)",
         "Image height (pixels)",
@@ -18084,7 +18108,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the website or book metadata. If\nyou provide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
         },
         "Image width (pixels)",
         "Image height (pixels)",
@@ -18252,7 +18280,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the website or book metadata. If\nyou provide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
         },
         "Image width (pixels)",
         "Image height (pixels)",
@@ -18272,7 +18304,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the website or book metadata. If\nyou provide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
         },
         "Image width (pixels)",
         "Image height (pixels)",
