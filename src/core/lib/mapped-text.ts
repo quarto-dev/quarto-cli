@@ -236,36 +236,74 @@ export function asMappedString(
   }
 }
 
-// This assumes all originalString fields in the MappedString
-// parameters to be the same
-export function mappedConcat(strings: MappedString[]): MappedString {
+// Every mapped string parameter should have the same originalString and fileName.
+// If none of the parameters are mappedstring, this returns a fresh
+// MappedString
+export function mappedConcat(strings: EitherString[]): MappedString {
   if (strings.length === 0) {
     throw new Error("strings must be non-empty");
   }
   let currentOffset = 0;
   const offsets: number[] = [];
+  let originalMappedString: MappedString | undefined = undefined;
   for (const s of strings) {
-    currentOffset += s.value.length;
+    if (typeof s === "string") {
+      currentOffset += s.length;
+    } else {
+      currentOffset += s.value.length;
+      originalMappedString = s;
+    }
     offsets.push(currentOffset);
   }
-  const value = "".concat(...strings.map((s) => s.value));
+  const value = "".concat(...strings.map((s) => {
+    if (typeof s === "string") {
+      return s;
+    } else {
+      return s.value;
+    }
+  }));
+
+  if (originalMappedString === undefined) {
+    return asMappedString(value);
+  }
   return {
     value,
-    originalString: strings[0].originalString,
-    fileName: strings[0].fileName,
+    originalString: originalMappedString.originalString,
+    fileName: originalMappedString.fileName,
     map(offset: number) {
       if (offset < 0 || offset >= value.length) {
         return undefined;
       }
       const ix = glb(offsets, offset);
-      return strings[ix].map(offset - offsets[ix]);
+      const v = strings[ix];
+      if (typeof v === "string") {
+        return undefined;
+      }
+      return v.map(offset - offsets[ix]);
     },
     mapClosest(offset: number) {
       if (offset < 0 || offset >= value.length) {
         return undefined;
       }
-      const ix = glb(offsets, offset);
-      return strings[ix].mapClosest(offset - offsets[ix]);
+      let ix = glb(offsets, offset);
+      if (typeof strings[ix] === "string") {
+        const delta = offset - offsets[ix];
+        const goLeft = Math.abs(delta - (strings[ix] as string).length) > delta;
+        if (ix === 0 || !goLeft) {
+          while (typeof strings[ix] === "string") {
+            ++ix;
+          }
+        } else if (ix === strings.length - 1 || goLeft) {
+          while (typeof strings[ix] === "string") {
+            --ix;
+          }
+        } else {
+          throw new Error("Internal Error, should not have arrived here.");
+        }
+      }
+      // we know those loops terminate on a mappedstring because of the
+      // earlier checks
+      return (strings[ix] as MappedString).mapClosest(offset - offsets[ix]);
     },
   };
 }
@@ -345,4 +383,23 @@ export function skipRegexp(eitherText: EitherString, re: RegExp): MappedString {
   } else {
     return text;
   }
+}
+
+/**
+ * join an array of MappedStrings into a single MappedString. This
+ * is effectively the MappedString version of Array.prototype.join.
+ *
+ * mappedStrs should all come from the same originalString.
+ */
+export function join(mappedStrs: MappedString[], sep: string): MappedString {
+  return mappedConcat(mappedStrs.map((x, i) => {
+    if (i === mappedStrs.length) {
+      return x;
+    } else {
+      return mappedString(x, [
+        { start: 0, end: x.value.length },
+        sep,
+      ]);
+    }
+  }));
 }
