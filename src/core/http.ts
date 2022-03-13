@@ -69,10 +69,14 @@ export function httpFileRequestHandler(
       const handle404 = options.on404
         ? options.on404(url, req)
         : { print: true, body: encoder.encode("Not Found") };
+
+      // Ignore 404s from specific files
+      const ignoreFileNames = ["favicon.ico", "listings.json"];
+
       handle404.print = handle404.print &&
         !!options.printUrls &&
         (!fsPath || (
-          basename(fsPath) !== "favicon.ico" &&
+          !ignoreFileNames.includes(basename(fsPath)) &&
           extname(fsPath) !== ".map"
         ));
       if (handle404.print) {

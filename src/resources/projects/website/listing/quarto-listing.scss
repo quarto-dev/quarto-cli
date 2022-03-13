@@ -260,15 +260,12 @@ ul.pagination {
 #quarto-margin-sidebar {
   .quarto-listing-category {
     padding-top: 0;
-    padding-left: 0.5em;
-    font-size: 0.875em;
+    font-size: 1rem;
   }
   .quarto-listing-category-title {
     cursor: pointer;
-    padding-top: 4em;
     font-weight: 600;
-    padding-left: 0.5em;
-    font-size: 0.875em;
+    font-size: 1rem;
   }
 }
 
@@ -541,15 +538,15 @@ table.quarto-listing-table.table-hover td {
 
   .quarto-post .metadata {
     padding-bottom: 1em;
-    order: 1;
+    order: 2;
   }
 
   .quarto-post .body {
-    order: 3;
+    order: 1;
   }
 
   .quarto-post .thumbnail {
-    order: 2;
+    order: 3;
   }
 }
 
@@ -558,10 +555,19 @@ table.quarto-listing-table.table-hover td {
   border-bottom: none;
 }
 
+.quarto-listing-container-default {
+  @include media-breakpoint-up(lg) {
+    margin-right: 2em;
+  }
+}
+
 div.quarto-post {
   display: flex;
   gap: 2em;
   margin-bottom: 1.5em;
+  @include media-breakpoint-down(md) {
+    padding-bottom: 1em;
+  }
   border-bottom: 1px solid $border-color;
 
   .metadata {
@@ -591,12 +597,12 @@ div.quarto-post {
       margin-top: 0px;
       margin-bottom: 0px;
       border-bottom: none;
-      padding-bottom: 0.3em;
     }
 
     .listing-subtitle {
-      font-size: 0.9em;
-      margin-bottom: 0.4em;
+      font-size: 0.875em;
+      margin-bottom: 0.5em;
+      margin-top: 0.2em;
     }
 
     .description {

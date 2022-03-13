@@ -38,7 +38,11 @@ import {
 } from "./website-listing-shared.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
-import { formatDate } from "../../../../core/date.ts";
+import {
+  formatDate,
+  formattedDate,
+  parsePandocDate,
+} from "../../../../core/date.ts";
 
 export const kDateFormat = "date-format";
 
@@ -71,7 +75,8 @@ export function templateMarkdownHandler(
 
       // Format date values
       // Read date formatting from an option, if present
-      const dateFormat = listing[kDateFormat] as string;
+      const dateFormat = listing[kDateFormat] as string ||
+        format.metadata[kDateFormat] as string;
 
       const fieldTypes = listing[kFieldTypes];
       for (const field of Object.keys(fieldTypes)) {
@@ -82,19 +87,22 @@ export function templateMarkdownHandler(
             const includeTime = field === kFieldFileModified;
 
             const date = typeof (dateRaw) === "string"
-              ? new Date(dateRaw as string)
+              ? parsePandocDate(dateRaw as string)
               : dateRaw as Date;
             const locale = format.metadata.lang as string || "en";
-            record[field] = dateFormat
-              ? formatDate(date, locale, dateFormat)
-              : includeTime
-              ? formatDate(
-                date,
-                locale,
-                "short",
-                "medium",
-              )
-              : formatDate(date, locale, "medium");
+
+            if (date) {
+              record[field] = dateFormat
+                ? formatDate(date, locale, dateFormat)
+                : includeTime
+                ? formatDate(
+                  date,
+                  locale,
+                  "short",
+                  "medium",
+                )
+                : formatDate(date, locale, "medium");
+            }
           }
         } else if (fieldTypes[field] === "minutes") {
           const val = item[field] as number;
@@ -193,6 +201,7 @@ export function templateMarkdownHandler(
       if (!listingEl?.classList.contains(kQuartoListingClass)) {
         listingEl?.classList.add(kQuartoListingClass);
       }
+      listingEl?.classList.add(`quarto-listing-container-${listing.type}`);
 
       // Add attributes
       const outListingId = `listing-${listing.id}`;
@@ -353,15 +362,21 @@ export function reshapeListing(
   utilities.itemNumber = () => {
     return ++itemNumber;
   };
-  utilities.img = (itemNumber: number, src: string, classes?: string) => {
+  utilities.img = (
+    itemNumber: number,
+    src: string,
+    classes: string,
+    alt?: string,
+  ) => {
     const pageSize = listing[kPageSize];
     const classAttr = classes ? `class="${classes}"` : "";
     const styleAttr = listing[kImageHeight]
       ? `style="height: ${listing[kImageHeight]};"`
       : "";
+    const altAttr = alt ? `alt='${alt}'` : "";
     const srcAttr = itemNumber > pageSize ? "data-src" : "src";
 
-    return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr}>`;
+    return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;
   };
 
   let index = 0;

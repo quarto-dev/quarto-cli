@@ -47,7 +47,7 @@ import {
 import { readListings } from "./website-listing-read.ts";
 import { categorySidebar } from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
-import { createFeed } from "./website-listing-feed.ts";
+import { completeStagedFeeds, createFeed } from "./website-listing-feed.ts";
 import {
   HtmlPostProcessResult,
   RenderFile,
@@ -61,6 +61,11 @@ import { filterPaths } from "../../../../core/path.ts";
 import { uniqBy } from "../../../../core/lodash.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { touch } from "../../../../core/file.ts";
+import {
+  createListingIndex,
+  updateGlobalListingIndex,
+} from "./website-listing-index.ts";
+import { ProjectOutputFile } from "../../types.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,
@@ -241,6 +246,16 @@ export async function listingHtmlDependencies(
       }
     }
 
+    // Write the index of entries in this listing
+    const listingIndexPath = await createListingIndex(
+      source,
+      project,
+      listingDescriptors,
+    );
+    if (listingIndexPath) {
+      supporting.push(listingIndexPath);
+    }
+
     // No resource references to add
     return Promise.resolve({ resources: [], supporting });
   };
@@ -258,6 +273,18 @@ export async function listingHtmlDependencies(
       : [],
     [kHtmlPostprocessors]: pageHasListings ? listingPostProcessor : undefined,
   };
+}
+
+export function completeListingGeneration(
+  context: ProjectContext,
+  outputFiles: ProjectOutputFile[],
+  incremental: boolean,
+) {
+  // Complete any staged feeds
+  completeStagedFeeds(context, outputFiles, incremental);
+
+  // Write a global listing index
+  updateGlobalListingIndex(context, outputFiles, incremental);
 }
 
 function markdownHandler(

@@ -24,8 +24,11 @@ import {
   cslType,
   suggestId,
 } from "../../core/csl.ts";
+import { formatDate, parsePandocDate } from "../../core/date.ts";
 import { kSiteUrl } from "../../project/types/website/website-config.ts";
 import { kWebsite } from "../../project/types/website/website-config.ts";
+
+const kDateFormat = "date-format";
 
 const kDOI = "DOI";
 const kCitation = "citation";

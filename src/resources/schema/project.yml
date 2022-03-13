@@ -15,8 +15,10 @@
           description:
             short: "Working directory for computations"
             long: |
-              Working directory for computations: `file` uses the directory of the
-              currently executing file, `project` uses the root project directory.
+              Control the working directory for computations. 
+
+              - `file`: Use the directory of the file that is currently executing.
+              - `project`: Use the root directory of the project.
         output-dir:
           path:
             description: "Output directory"

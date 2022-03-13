@@ -22,6 +22,9 @@
     short: |
       Location for footnotes and references
     long: |
-      Specify whether footnotes (and references, if `reference-links` is
-      set) are placed at the end of the current (top-level) `block`, the
-      current `section`, the `margin`, or the end of the `document`.
+      Specify location for footnotes. Also controls the location of references, if `reference-links` is set.
+
+      - `block`: Place at end of current top-level block
+      - `section`: Place at end of current section
+      - `margin`: Place at the margin
+      - `document`: Place at end of document

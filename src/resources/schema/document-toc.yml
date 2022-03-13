@@ -33,8 +33,7 @@
   tags:
     formats: [$html-doc]
   description: |
-    Location for table of contents (`body`, `left`, or `right`). 
-    Defaults to `right`.
+    Location for table of contents (`body`, `left`, or `right` (default)).
 
 - name: toc-title
   schema: string

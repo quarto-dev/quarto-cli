@@ -112,7 +112,7 @@ import { TempContext } from "../../core/temp.ts";
 import { discoverResourceRefs } from "../../core/html.ts";
 
 import {
-  HtmlPostProcessResult,
+  HtmlPostProcessor,
   kDefaultHighlightStyle,
   PandocOptions,
   RunPandocResult,
@@ -224,9 +224,7 @@ export async function runPandoc(
 
   // see if there are extras
   const postprocessors: Array<(output: string) => Promise<void>> = [];
-  const htmlPostprocessors: Array<
-    (doc: Document) => Promise<HtmlPostProcessResult>
-  > = [];
+  const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
   if (
@@ -642,6 +640,7 @@ export async function runPandoc(
 
   if (result.success) {
     return {
+      inputMetadata: pandocMetadata,
       resources,
       postprocessors,
       htmlPostprocessors: isHtmlOutput(options.format.pandoc)

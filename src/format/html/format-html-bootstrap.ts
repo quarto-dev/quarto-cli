@@ -46,8 +46,8 @@ import {
   setMainColumn,
 } from "./format-html-shared.ts";
 import {
+  HtmlPostProcessor,
   HtmlPostProcessResult,
-  kHtmlEmptyPostProcessResult,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import { processDocumentTitle } from "./format-html-title.ts";
@@ -207,8 +207,11 @@ function bootstrapHtmlPostprocessor(
   format: Format,
   flags: PandocFlags,
   offset?: string,
-) {
-  return async (doc: Document): Promise<HtmlPostProcessResult> => {
+): HtmlPostProcessor {
+  return async (
+    doc: Document,
+    inputMetadata: Metadata,
+  ): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
@@ -332,7 +335,16 @@ function bootstrapHtmlPostprocessor(
     }
 
     // Process the title elements of this document
-    await processDocumentTitle(input, format, flags, doc, offset);
+    const resources: string[] = [];
+    const titleResourceFiles = processDocumentTitle(
+      input,
+      inputMetadata,
+      format,
+      flags,
+      doc,
+      offset,
+    );
+    resources.push(...titleResourceFiles);
 
     // Process the elements of this document into an appendix
     if (
@@ -343,7 +355,7 @@ function bootstrapHtmlPostprocessor(
     }
 
     // no resource refs
-    return Promise.resolve(kHtmlEmptyPostProcessResult);
+    return Promise.resolve({ resources, supporting: [] });
   };
 }
 
@@ -440,7 +452,7 @@ function processColumnElements(
   // If margin footnotes are enabled move them
   const refsInMargin = hasMarginRefs(format, flags);
   if (refsInMargin) {
-    marginProcessors.push(footnoteMarginProcessor);
+    marginProcessors.unshift(footnoteMarginProcessor);
   }
 
   // If margin cites are enabled, move them

@@ -350,6 +350,19 @@ body.docked {
   }
 }
 
+#quarto-content.page-columns {
+  #quarto-margin-sidebar,
+  #quarto-sidebar {
+    z-index: 1;
+  }
+
+  main.column-page,
+  main.column-page-right,
+  main.column-page-left {
+    z-index: 0;
+  }
+}
+
 .page-columns .column-screen-inset {
   grid-column: screen-start-inset / screen-end-inset;
   z-index: $zindex-pagelayout;
@@ -1426,23 +1439,62 @@ div.callout.callout-style-default .callout-header {
 }
 
 // Quarto title block treatment
-#title-block-header.quarto-title-rich {
-  padding-bottom: 1em;
+
+main.quarto-banner-title-block {
+  padding-top: 0 !important;
+  margin-top: 0;
+  z-index: 0;
+  .quarto-title-banner {
+    margin-bottom: 1em;
+    &.color-navbar {
+      @if variable-exists(navbar-bg) {
+        background-color: $navbar-bg;
+      }
+
+      @if (variable-exists(navbar-fg)) {
+        color: $navbar-fg;
+      }
+    }
+
+    &.color-body-bg {
+      color: $body-bg;
+    }
+
+    &.color-body {
+      color: $body-color;
+    }
+  }
+  #title-block-header.quarto-title-block.default {
+    margin-block-end: 2em;
+
+    .quarto-title-banner .quarto-title .title {
+      font-weight: 600;
+    }
+
+    .quarto-categories {
+      margin-top: 0.75em;
+    }
+  }
+}
+
+p.subtitle {
+  margin-top: 0.25em;
+  margin-bottom: 0.5em;
+}
+
+.quarto-title-banner {
+  padding-top: 2.5em;
+  padding-bottom: 2.5em;
 }
 
 #title-block-header.quarto-title-block.default {
   .quarto-title-meta {
-    padding-top: 0.5em;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    & > div {
-      margin-bottom: 0.5em;
-    }
   }
 
   .quarto-title {
     .title {
-      font-weight: 500;
       margin-bottom: 0;
     }
   }
@@ -1453,6 +1505,12 @@ div.callout.callout-style-default .callout-header {
     }
   }
 
+  .quarto-description {
+    p:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+
   .quarto-title-authors p,
   .quarto-title-affiliations p {
     margin-bottom: 0.1em;
@@ -1460,6 +1518,7 @@ div.callout.callout-style-default .callout-header {
 
   .quarto-title-meta-heading {
     text-transform: uppercase;
+    margin-top: 1em;
     font-size: 0.8em;
     opacity: 0.8;
     font-weight: 400;
@@ -1467,21 +1526,26 @@ div.callout.callout-style-default .callout-header {
 
   .quarto-categories {
     display: flex;
-    column-gap: 0.25em;
+    column-gap: 0.4em;
     padding-bottom: 0.5em;
+    margin-top: 0.25em;
 
     .quarto-category {
-      padding: 0.25em;
-      font-size: 0.7em;
+      padding: 0.25em 0.75em;
+      font-size: 0.65em;
       text-transform: uppercase;
-      border: solid 1px $border-color;
+      border: solid 1px;
       border-radius: $border-radius;
+      opacity: 0.6;
+
+      a {
+        color: inherit;
+      }
     }
   }
 
   .quarto-title-meta-contents {
     font-size: 0.9em;
-    margin-bottom: 1em;
     a {
       color: $body-color;
     }
@@ -1489,6 +1553,7 @@ div.callout.callout-style-default .callout-header {
 
   .abstract {
     margin-top: 0;
+
     & > p {
       font-size: 0.9em;
     }
@@ -1497,6 +1562,7 @@ div.callout.callout-style-default .callout-header {
     }
 
     .abstract-title {
+      margin-top: 1em;
       text-transform: uppercase;
       font-size: 0.8em;
       opacity: 0.8;
