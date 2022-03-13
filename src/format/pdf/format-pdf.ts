@@ -47,6 +47,7 @@ import { BookExtension } from "../../project/types/book/book-shared.ts";
 
 import { readLines } from "io/bufio.ts";
 import { TempContext } from "../../core/temp.ts";
+import { pdfEngine } from "../../config/pdf.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -128,6 +129,14 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
             documentclass,
           )
         ) {
+          koma = false;
+        }
+
+        // if we are using context then don't use koma options
+        const context =
+          pdfEngine(format.pandoc, format.render, flags).pdfEngine ===
+            "context";
+        if (context) {
           koma = false;
         }
 
