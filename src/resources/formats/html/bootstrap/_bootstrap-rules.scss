@@ -430,7 +430,12 @@ body.docked {
 }
 
 img.img-fluid.column-screen,
-img.img-fluid.column-screen-inset-shaded {
+img.img-fluid.column-screen-inset-shaded,
+img.img-fluid.column-screen-inset,
+img.img-fluid.column-screen-inset-left,
+img.img-fluid.column-screen-inset-right,
+img.img-fluid.column-screen-left,
+img.img-fluid.column-screen-right {
   width: 100%;
 }
 
