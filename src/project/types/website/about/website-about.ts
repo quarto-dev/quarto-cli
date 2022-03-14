@@ -56,6 +56,7 @@ type Href = string;
 type AbsolutePath = string;
 
 interface AboutPage {
+  id?: string;
   template: AbsolutePath;
   options: Record<string, unknown>;
   custom: boolean;
@@ -181,7 +182,9 @@ async function readAbout(
       const aboutTemplate = aboutObj[kType] as string ||
         aboutObj[kTemplate] as string;
       const [template, custom] = templatePath(aboutTemplate, source);
+      const id = aboutObj.id as string;
       const aboutPage: AboutPage = {
+        id,
         template,
         custom,
         options: {},
@@ -243,9 +246,13 @@ const aboutPagePostProcessor = (aboutPage: AboutPage) => {
     titleEl?.remove();
     const title = titleEl?.outerHTML || "";
 
-    // Grab the body
-    const mainEl = doc.querySelector("main.content");
-    const body = mainEl?.outerHTML || "";
+    // Grab the about element
+    let aboutEl = aboutPage.id ? doc.getElementById(aboutPage.id) : undefined;
+    if (!aboutEl) {
+      aboutEl = doc.querySelector("main.content");
+    }
+
+    const body = aboutEl?.outerHTML || "";
 
     const ejsData: AboutPageEjsData = {
       title,
@@ -266,8 +273,8 @@ const aboutPagePostProcessor = (aboutPage: AboutPage) => {
     // Replace the about page contents with the updated contents
     const aboutPageContainer = doc.createElement("div");
     aboutPageContainer.innerHTML = aboutPageHtml;
-    mainEl?.after(...aboutPageContainer.childNodes);
-    mainEl?.remove();
+    aboutEl?.after(...aboutPageContainer.childNodes);
+    aboutEl?.remove();
 
     const result: HtmlPostProcessResult = {
       resources: [],
