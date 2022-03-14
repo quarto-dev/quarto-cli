@@ -8,7 +8,7 @@ import { docs } from "../../utils.ts";
 import { testSite } from "./site.ts";
 
 testSite(docs("blog/about.qmd"), [
-  "div.jolla", // Correct type
+  "div.quarto-about-jolla", // Correct type
   "img.about-image", // Image is present
   "div.about-links", // Links are present
   "main.content", // Main content is still there
