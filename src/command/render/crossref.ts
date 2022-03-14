@@ -48,6 +48,7 @@ export function crossrefFilterParams(
         if (typeof (value) === "number") {
           value = [value];
         }
+        // validate we have an array
         if (
           !Array.isArray(value) || value.some((num) => !Number.isInteger(num))
         ) {
@@ -55,6 +56,8 @@ export function crossrefFilterParams(
             "Invalid value for number-offset (should be an array of numbers)",
           );
         }
+        // implies number-sections
+        params[kNumberSections] = true;
       }
 
       params[option] = value;
