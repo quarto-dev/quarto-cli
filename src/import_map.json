@@ -18,6 +18,7 @@
     "uuid/": "https://deno.land/std@0.129.0/uuid/",
     "ws/": "https://deno.land/std@0.129.0/ws/",
     "cliffy/": "https://deno.land/x/cliffy@v0.19.3/",
+    "dayjs/": "https://cdn.skypack.dev/dayjs@1.8.21/",
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
     "xmlp/": "https://deno.land/x/xmlp@v0.2.8/",

@@ -31,6 +31,7 @@ export REVEAL_JS_MENU=2.1.0
 export REVEAL_JS_CHALKBOARD=a88c134e2cf3c7780448db003e7329c3cbd8cfb4
 export REVEAL_JS_PDFEXPORT=2.0.1
 export LIST_JS=2.3.1
+export DAY_JS=1.11.0
 
 # javascript search dependencies
 export AUTOCOMPLETE_JS=1.4.0
