@@ -52,7 +52,7 @@ import {
 } from "./book-render.ts";
 import { bookProjectConfig } from "./book-config.ts";
 
-import { chapterInfoForInput, formatChapterHtmlNav } from "./book-chapters.ts";
+import { chapterInfoForInput, numberChapterHtmlNav } from "./book-chapters.ts";
 import { isMultiFileBookFormat, kBook } from "./book-shared.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
@@ -128,11 +128,16 @@ export const bookProjectType: ProjectType = {
 
   pandocRenderer: bookPandocRenderer,
 
-  navItemText: (context: ProjectContext, input: string, text: string) => {
+  navItemText: (
+    context: ProjectContext,
+    input: string,
+    text: string,
+    number: boolean,
+  ) => {
     const chapterInfo = chapterInfoForInput(context, input);
-    if (chapterInfo) {
+    if (chapterInfo && number) {
       return Promise.resolve(
-        formatChapterHtmlNav(text, chapterInfo),
+        numberChapterHtmlNav(text, chapterInfo),
       );
     } else {
       return Promise.resolve(text);
