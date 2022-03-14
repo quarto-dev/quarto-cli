@@ -5,16 +5,32 @@
 *
 */
 
-import { format, parse } from "datetime/mod.ts";
+import { parse } from "datetime/mod.ts";
+import dayjs from "dayjs/dayjs.min.js";
+import { existsSync } from "fs/mod.ts";
+
+import { toFileUrl } from "path/mod.ts";
+import { resourcePath } from "./resources.ts";
 
 export type DateFormat = "full" | "long" | "medium" | "short" | string;
 export type TimeFormat = "full" | "long" | "medium" | "short";
+
+export async function setDateLocale(locale: string) {
+  if (locale !== dayjs.locale()) {
+    const localePath = resourcePath(`library/dayjs/locale/${locale}.js`);
+    if (existsSync(localePath)) {
+      const localeUrl = toFileUrl(localePath).href;
+      const localeModule = await import(localeUrl);
+      dayjs.locale(localeModule.default, null, true);
+      dayjs.locale(locale);
+    }
+  }
+}
 
 // Formats a date for a locale using either the shorthand form ("full")
 // or a format string ("d-M-yyyy")
 export const formatDate = (
   date: Date,
-  locale: string,
   dateStyle: DateFormat,
   timeStyle?: TimeFormat,
 ) => {
@@ -28,22 +44,21 @@ export const formatDate = (
     if (timeStyle) {
       options.timeStyle = timeStyle;
     }
-    return date.toLocaleString(locale, options);
+    return date.toLocaleString(dayjs.locale(), options);
   } else {
-    return format(date, dateStyle);
+    return dayjs(date).format(dateStyle);
   }
 };
 
 export const formattedDate = (
   dateStr: string,
   dateFormat: string,
-  locale = "en",
 ) => {
   const date = parsePandocDate(dateStr);
+
   if (date) {
     const formatted = formatDate(
       date,
-      locale,
       dateFormat,
     );
     return formatted;
