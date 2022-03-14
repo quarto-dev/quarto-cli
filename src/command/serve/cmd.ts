@@ -7,11 +7,14 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
+import * as colors from "fmt/colors.ts";
+import { error } from "log/mod.ts";
+
 import { serve } from "./serve.ts";
 
 export const serveCommand = new Command()
   .name("serve")
-  .arguments("<input:string>")
+  .arguments("[input:string]")
   .option(
     "--no-render",
     "Do not render the document before serving.",
@@ -38,6 +41,14 @@ export const serveCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string) => {
+    if (!input) {
+      error(
+        "No input passed to serve.\n" +
+          "If you are attempting to preview a website or book use the " +
+          colors.bold("quarto preview") + " command instead.",
+      );
+      Deno.exit(1);
+    }
     const result = await serve({
       input,
       render: options.render,
