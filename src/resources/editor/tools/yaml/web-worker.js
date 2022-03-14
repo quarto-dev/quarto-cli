@@ -9452,6 +9452,14 @@ try {
             object: {
               closed: true,
               properties: {
+                id: {
+                  string: {
+                    description: {
+                      short: "The target id for the about page.",
+                      long: "The target id of this about page. When the about page is rendered, it will \nplace read the contents of a `div` with this id into the about template that you \nhave selected (and replace the contents with the rendered about content).\n\nIf no such `div` is defined on the page, a `div` with this id will be created \nand appended to the end of the page.\n"
+                    }
+                  }
+                },
                 template: {
                   enum: [
                     "jolla",
@@ -16687,6 +16695,10 @@ try {
           },
           "An alternate version of the creator or contributor text used for\nalphabatizing.",
           "The text describing the creator or contributor (for example, creator\nname).",
+          {
+            short: "The target id for the about page.",
+            long: "The target id of this about page. When the about page is rendered, it\nwill place read the contents of a <code>div</code> with this id into the\nabout template that you have selected (and replace the contents with the\nrendered about content).\nIf no such <code>div</code> is defined on the page, a\n<code>div</code> with this id will be created and appended to the end of\nthe page."
+          },
           {
             short: "The template to use to layout this about page.",
             long: "The template to use to layout this about page. Choose from:"

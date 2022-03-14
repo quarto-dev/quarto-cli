@@ -1,8 +1,6 @@
-<div class="jolla">
-  <% partial('_image.ejs.html', { about, imgOpts: {} }) %> <%= about.title %><%= about.body
-  %>
-  <% if (about.links) { %>
+<div class="quarto-about-jolla">
+  <% partial('_image.ejs.html', { about, imgOpts: {} }) %> <%= about.title %><%=
+  about.body %> <% if (about.links) { %>
   <hr class="about-sep" />
-  <% } %>
-  <% partial('_links.ejs.html', { about }) %>
+  <% } %> <% partial('_links.ejs.html', { about }) %>
 </div>

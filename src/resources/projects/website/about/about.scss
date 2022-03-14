@@ -56,11 +56,12 @@
 
 // Jolla
 
-div.jolla {
+div.quarto-about-jolla {
   display: flex !important;
   flex-direction: column;
   align-items: center;
   margin-top: 10%;
+  padding-bottom: 1em;
 
   .about-image {
     object-fit: cover;
@@ -92,10 +93,11 @@ div.jolla {
 }
 
 // Solana
-div.solana {
+div.quarto-about-solana {
   display: flex !important;
   flex-direction: column;
   padding-top: 3em !important;
+  padding-bottom: 1em;
 
   .about-entity {
     display: flex !important;
@@ -154,10 +156,11 @@ div.solana {
 }
 
 // Trestles
-div.trestles {
+div.quarto-about-trestles {
   display: flex !important;
   flex-direction: row;
   padding-top: 3em !important;
+  padding-bottom: 1em;
 
   @include media-breakpoint-down(lg) {
     flex-direction: column;
@@ -211,7 +214,8 @@ div.trestles {
 }
 
 // Marquee
-div.marquee {
+div.quarto-about-marquee {
+  padding-bottom: 1em;
   .about-contents {
     display: flex;
     flex-direction: column;
@@ -243,9 +247,10 @@ div.marquee {
 }
 
 // Broadside
-div.broadside {
+div.quarto-about-broadside {
   display: flex;
   flex-direction: column;
+  padding-bottom: 1em;
 
   .about-main {
     display: flex !important;

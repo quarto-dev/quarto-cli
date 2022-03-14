@@ -946,6 +946,17 @@
   object:
     closed: true
     properties:
+      id:
+        string:
+          description:
+            short: "The target id for the about page."
+            long: |
+              The target id of this about page. When the about page is rendered, it will 
+              place read the contents of a `div` with this id into the about template that you 
+              have selected (and replace the contents with the rendered about content).
+
+              If no such `div` is defined on the page, a `div` with this id will be created 
+              and appended to the end of the page.
       template:
         enum: [jolla, trestles, solana, marquee, broadside]
         description:
