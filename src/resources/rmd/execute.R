@@ -249,6 +249,10 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
     }
   }
 
+  # instruct flextable to not use shadow dom until Deno Dom supports the
+  # <template> tag (see https://github.com/davidgohel/flextable/issues/385)
+  opts_chunk$ft.shadow <- FALSE
+
   # return options
   knitr <- list()
   if (is.list(format$metadata$knitr)) {

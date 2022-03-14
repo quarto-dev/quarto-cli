@@ -49,11 +49,14 @@ function resourceRef(ref, resourceDir)
   -- if the ref starts with / then just strip if off
   if string.find(ref, "^/") then
     return text.sub(ref, 2, #ref)
-  end
   -- if it's a relative ref then prepend the resource dir
-  if isRelativeRef(ref) then
+  elseif isRelativeRef(ref) then
     return resourceDir .. "/" .. ref
+  else
+  -- otherwise just return it
+    return ref
   end
+
 end
 
 function isRelativeRef(ref)

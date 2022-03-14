@@ -36,6 +36,10 @@ import {
 import { kStdOut, replacePandocOutputArg } from "./flags.ts";
 import { OutputRecipe, RenderContext, RenderFlags } from "./types.ts";
 import { resolveKeepSource } from "./codetools.ts";
+import {
+  contextPdfOutputRecipe,
+  useContextPdfOutputRecipe,
+} from "./output-tex.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -72,6 +76,8 @@ export function outputRecipe(
 
   if (useQuartoLatexmk(format, options.flags)) {
     return quartoLatexmkOutputRecipe(input, output, options, format);
+  } else if (useContextPdfOutputRecipe(format, options.flags)) {
+    return contextPdfOutputRecipe(input, output, options, format);
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];

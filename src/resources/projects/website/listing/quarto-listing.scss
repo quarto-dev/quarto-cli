@@ -555,13 +555,16 @@ table.quarto-listing-table.table-hover td {
   border-bottom: none;
 }
 
+.quarto-listing-container-default {
+  @include media-breakpoint-up(lg) {
+    margin-right: 2em;
+  }
+}
+
 div.quarto-post {
   display: flex;
   gap: 2em;
   margin-bottom: 1.5em;
-  @include media-breakpoint-up(lg) {
-    margin-right: 2em;
-  }
   @include media-breakpoint-down(md) {
     padding-bottom: 1em;
   }

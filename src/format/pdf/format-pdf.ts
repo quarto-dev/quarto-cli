@@ -47,6 +47,7 @@ import { BookExtension } from "../../project/types/book/book-shared.ts";
 
 import { readLines } from "io/bufio.ts";
 import { TempContext } from "../../core/temp.ts";
+import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -108,6 +109,12 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         temp: TempContext,
       ) => {
         const extras: FormatExtras = {};
+
+        // only apply extras if this is latex (as opposed to context)
+        const engine = pdfEngine(format.pandoc, format.render, flags);
+        if (!isLatexPdfEngine(engine)) {
+          return extras;
+        }
 
         // Post processed for dealing with latex output
         extras.postprocessors = [pdfLatexPostProcessor(flags, format, temp)];

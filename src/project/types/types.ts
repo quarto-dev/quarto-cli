@@ -48,6 +48,7 @@ export interface ProjectType {
     context: ProjectContext,
     input: string,
     text: string,
+    number: boolean,
   ) => Promise<string>;
   incrementalRenderAll?: (
     context: ProjectContext,

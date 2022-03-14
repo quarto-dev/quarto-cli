@@ -68,7 +68,6 @@ import {
   listingHtmlDependencies,
   listingSupplementalFiles,
 } from "./listing/website-listing.ts";
-import { completeStagedFeeds } from "./listing/website-listing-feed.ts";
 import { aboutHtmlDependencies } from "./about/website-about.ts";
 import { resolveFormatForGiscus } from "./website-giscus.ts";
 import { RenderFile } from "../../../command/render/types.ts";
@@ -367,7 +366,7 @@ function websiteTemplate(
           noEngineContent: true,
           title,
           yaml:
-            'listing:\n  contents: posts\n  sort: "date desc"\n  type: default\n  categories: true',
+            'listing:\n  contents: posts\n  sort: "date desc"\n  type: default\n  categories: true\npage-layout: full\ntitle-block-banner: true',
         },
         {
           name: "index",

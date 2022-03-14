@@ -38,10 +38,16 @@ export async function createListingIndex(
     if (filteredItems) {
       const itemHrefs: string[] = [];
       for (const item of filteredItems) {
-        const itemTarget = await resolveInputTarget(project, item.path!, false);
-        if (itemTarget) {
-          const itemHref = itemTarget.outputHref;
-          itemHrefs.push(itemHref);
+        if (item.path) {
+          const itemTarget = await resolveInputTarget(
+            project,
+            item.path,
+            false,
+          );
+          if (itemTarget) {
+            const itemHref = itemTarget.outputHref;
+            itemHrefs.push(itemHref);
+          }
         }
       }
 

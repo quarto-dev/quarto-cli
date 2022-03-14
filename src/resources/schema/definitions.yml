@@ -376,7 +376,15 @@
             short: "The path to a preview image for the content."
             long: |
               The path to a preview image for the content. By default, Quarto will use
-              the `image` value from the website or book metadata. If you provide an 
+              the `image` value from the format metadata. If you provide an 
+              image, you may also optionally provide an `image-width` and `image-height`.
+      image-alt:
+        path:
+          description:
+            short: "The alt text for the preview image."
+            long: |
+              The alt text for the preview image. By default, Quarto will use
+              the `image-alt` value from the format metadata. If you provide an 
               image, you may also optionally provide an `image-width` and `image-height`.
       image-width:
         number:

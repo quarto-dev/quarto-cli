@@ -79,6 +79,7 @@ import { isAbsoluteRef } from "../../../../core/http.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { projectYamlFiles } from "../../../project-context.ts";
 import { parseAuthor } from "../../../../core/author.ts";
+import { parsePandocDate } from "../../../../core/date.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -588,7 +589,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
 
     const date = documentMeta?.date
-      ? new Date(documentMeta.date as string)
+      ? parsePandocDate(documentMeta?.date as string)
       : undefined;
 
     const authors = parseAuthor(documentMeta?.author);

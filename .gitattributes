@@ -1,4 +1,4 @@
-*.qmd linguist-language=markdown
+*.qmd linguist-language=RMarkdown
 
 src/resources/formats/html/anchor/** linguist-vendored
 src/resources/formats/html/bootstrap/dist/** linguist-vendored

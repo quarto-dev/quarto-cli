@@ -261,7 +261,7 @@ export function processDocumentTitle(
         createBannerEl(
           doc,
           titleContainerEl,
-          "body-bg",
+          titleColorClass(format.metadata[ktitleBlockColor]),
           `background-image: url('${banner}'); background-size: cover;`,
         ),
       );
@@ -377,11 +377,10 @@ function isBannerImage(input: string, banner: unknown) {
 
 function createTitleBannerStyleInHead(doc: Document, styles: string[]) {
   const bannerStyle = doc.createElement("style");
-  bannerStyle.setAttribute("type", "text/css");
   bannerStyle.innerText = `
-  main.quarto-banner-title-block .quarto-title-banner {
+  main.quarto-banner-title-block .quarto-title-banner {\n
     ${styles.join("\n")}
-  }`;
+  \n}`;
   const head = doc.querySelector("head");
   head?.appendChild(bannerStyle);
 }

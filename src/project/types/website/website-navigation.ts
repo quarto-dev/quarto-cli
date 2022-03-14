@@ -686,7 +686,7 @@ async function resolveSidebarItems(
 
       // If this item has an href, resolve that
       if (item.href) {
-        item = await resolveItem(project, item.href, item);
+        item = await resolveItem(project, item.href, item, true);
       }
 
       // Resolve any subitems
@@ -713,6 +713,7 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
       project,
       item.href,
       item,
+      true,
     ) as SidebarItem;
   }
 
@@ -1084,6 +1085,7 @@ async function resolveItem(
   project: ProjectContext,
   href: string,
   item: { href?: string; text?: string },
+  number = false,
 ): Promise<{ href?: string; text?: string }> {
   if (!isExternalPath(href)) {
     const resolved = await resolveInputTarget(project, href);
@@ -1100,6 +1102,7 @@ async function resolveItem(
           project,
           href,
           inputItem.text,
+          number,
         );
       }
       return inputItem;
