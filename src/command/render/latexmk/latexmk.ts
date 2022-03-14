@@ -24,7 +24,7 @@ import {
   kOutputFile,
 } from "../../../config/constants.ts";
 import { Format } from "../../../config/types.ts";
-import { pdfEngine } from "../../../config/pdf.ts";
+import { isLatexPdfEngine, pdfEngine } from "../../../config/pdf.ts";
 
 import { PandocOptions, RenderFlags, RenderOptions } from "../types.ts";
 import { kStdOut, replacePandocOutputArg } from "../flags.ts";
@@ -48,9 +48,7 @@ export function useQuartoLatexmk(
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
     const engine = pdfEngine(format.pandoc, format.render, flags);
-    return ["pdflatex", "xelatex", "lualatex"].includes(
-      engine.pdfEngine,
-    );
+    return isLatexPdfEngine(engine);
   }
 
   // default to false

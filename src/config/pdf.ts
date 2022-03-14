@@ -69,3 +69,7 @@ export function pdfEngine(
     tlmgrOpts,
   };
 }
+
+export function isLatexPdfEngine(engine: PdfEngine) {
+  return ["pdflatex", "xelatex", "lualatex"].includes(engine.pdfEngine);
+}
