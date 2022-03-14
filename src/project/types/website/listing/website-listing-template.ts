@@ -38,11 +38,7 @@ import {
 } from "./website-listing-shared.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
-import {
-  formatDate,
-  formattedDate,
-  parsePandocDate,
-} from "../../../../core/date.ts";
+import { formatDate, parsePandocDate } from "../../../../core/date.ts";
 
 export const kDateFormat = "date-format";
 
@@ -89,19 +85,16 @@ export function templateMarkdownHandler(
             const date = typeof (dateRaw) === "string"
               ? parsePandocDate(dateRaw as string)
               : dateRaw as Date;
-            const locale = format.metadata.lang as string || "en";
-
             if (date) {
               record[field] = dateFormat
-                ? formatDate(date, locale, dateFormat)
+                ? formatDate(date, dateFormat)
                 : includeTime
                 ? formatDate(
                   date,
-                  locale,
                   "short",
                   "medium",
                 )
-                : formatDate(date, locale, "medium");
+                : formatDate(date, "medium");
             }
           }
         } else if (fieldTypes[field] === "minutes") {

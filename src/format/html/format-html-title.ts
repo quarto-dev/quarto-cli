@@ -194,7 +194,6 @@ export function processDocumentTitle(
       const formatted = formattedDate(
         dateRaw,
         format.metadata[kDateFormat] as string || "long",
-        format.metadata[kLang] as string || "en",
       );
       if (formatted) {
         dateEl.innerText = formatted;

@@ -58,6 +58,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepMd,
+  kLang,
   kMetadataFormat,
   kOutputExt,
   kOutputFile,
@@ -144,6 +145,7 @@ import { getFrontMatterSchema } from "../../core/lib/yaml-schema/front-matter.ts
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
+import { setDateLocale } from "../../core/date.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -216,6 +218,10 @@ export async function renderFiles(
 
       for (const format of Object.keys(contexts)) {
         const context = contexts[format];
+
+        // Set the date locale for this render
+        // Used for date formatting
+        await setDateLocale(context.format.metadata[kLang] as string);
 
         // one time denoDom init for html compatible formats
         if (isHtmlCompatible(context.format)) {
