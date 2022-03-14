@@ -260,8 +260,10 @@ export function websiteMetadataFields(): Array<string | RegExp> {
   return [kWebsite, "site"];
 }
 
-export function isGithubRepoUrl(url: string): boolean {
-  return !!url.match(/^http[s]?:\/\/github\.com/);
+export function isGithubRepoUrl(_url: string): boolean {
+  // always validate `true` to account for GH enterprise
+  // (see https://github.com/quarto-dev/quarto-cli/issues/421)
+  return true;
 }
 
 export function websiteConfigActions(
