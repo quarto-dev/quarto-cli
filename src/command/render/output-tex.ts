@@ -174,12 +174,12 @@ export function contextPdfOutputRecipe(
     );
 
     // run context
-    const result = await execProcess({ cmd, stderr: "piped" });
+    const result = await execProcess({ cmd });
     if (result.success) {
       const [dir, stem] = dirAndStem(input);
       return join(dir, stem + ".pdf");
     } else {
-      throw new Error(result.stderr);
+      throw new Error();
     }
   };
 
