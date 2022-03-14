@@ -1054,7 +1054,7 @@ export async function initYamlIntelligence(obj: {
 
   // call all of these to add them to the definitions list so
   // the markdown translation patching is done in the correct order.
-  // NOTE the order here needs to match the order on build-schema-file.ts:buildSchemaFile()
+  // NOTE the order here needs to match the order on build-schema-file.ts:buildIntelligenceResources()
   getFormatAliases();
   await getFrontMatterSchema();
   await getProjectConfigSchema();
@@ -1066,6 +1066,23 @@ export async function initYamlIntelligence(obj: {
     ) as ConcreteSchema[]
   ) {
     setSchemaDefinition(schema);
+  }
+
+  try {
+    const extendedLangCommentChars: Record<string, string | [string, string]> =
+      getYamlIntelligenceResource(
+        "handlers/lang-comment-chars.yml",
+      ) as Record<string, string | [string, string]>;
+    for (
+      const [lang, comment] of Object.entries(extendedLangCommentChars)
+    ) {
+      kLangCommentChars[lang] = comment;
+    }
+  } catch (_e) {
+    // empty, we're catching getYamlIntelligenceResource's exception here
+    // in the case we're bootstrapping the yamlIntelligenceResource file.
+    console.warn(`"handlers/lang-comment-chars.yml" not found.
+initialization does not contain language extensions`);
   }
 
   if (patchMarkdown === undefined || patchMarkdown) {

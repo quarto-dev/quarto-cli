@@ -34,11 +34,11 @@ import { getProjectConfigSchema } from "../lib/yaml-schema/project-config.ts";
 import { getEngineOptionsSchema } from "../lib/yaml-schema/chunk-metadata.ts";
 import { languages, languageSchema } from "../handlers/base.ts";
 import { idSchema } from "../lib/yaml-schema/common.ts";
+import { kLangCommentChars } from "../lib/partition-cell-options.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO rename this to "buildIntelligenceResources"
-export async function buildSchemaFile() {
+export async function buildIntelligenceResources() {
   await ensureSchemaResources();
 
   // call all of these to add them to the definitions list so we can
@@ -47,6 +47,7 @@ export async function buildSchemaFile() {
   await getFrontMatterSchema();
   await getProjectConfigSchema();
   await getEngineOptionsSchema();
+
   // in addition, we do have to record the (right now, only)
   // plugin schema that exists
   //
@@ -64,6 +65,7 @@ export async function buildSchemaFile() {
     "schema/html-descriptions.yml": htmlDescriptions,
     "schema/external-schemas.yml": externalSchemas,
     "handlers/languages.yml": languages(),
+    "handlers/lang-comment-chars.yml": kLangCommentChars,
   });
 
   for (const language of languages()) {

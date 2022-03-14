@@ -10,7 +10,6 @@ import { unitTest } from "../../test.ts";
 
 import { assert, assertEquals } from "testing/asserts.ts";
 
-import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
 import {
   initState,

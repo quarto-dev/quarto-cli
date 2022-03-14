@@ -9,7 +9,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { copy } from "fs/copy.ts";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
-import { buildSchemaFile } from "../../core/schema/build-schema-file.ts";
+import { buildIntelligenceResources } from "../../core/schema/build-schema-file.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
@@ -147,7 +147,7 @@ async function buildYAMLJS() {
 
 export async function buildAssets() {
   // this has to come first because buildYAMLJS depends on it.
-  await buildSchemaFile();
+  await buildIntelligenceResources();
 
   await Promise.all([
     buildQuartoOJS(),
@@ -163,7 +163,6 @@ export const buildJsCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, _path: string) => {
-    debugger;
     await initYamlIntelligenceResourcesFromFilesystem();
     await buildAssets();
   });

@@ -18503,6 +18503,59 @@ try {
           },
           patternProperties: {},
           $id: "handlers/mermaid"
+        },
+        "handlers/lang-comment-chars.yml": {
+          r: "#",
+          python: "#",
+          julia: "#",
+          scala: "//",
+          matlab: "%",
+          csharp: "//",
+          fsharp: "//",
+          c: [
+            "/*",
+            "*/"
+          ],
+          css: [
+            "/*",
+            "*/"
+          ],
+          sas: [
+            "*",
+            ";"
+          ],
+          powershell: "#",
+          bash: "#",
+          sql: "--",
+          mysql: "--",
+          psql: "--",
+          lua: "--",
+          cpp: "//",
+          cc: "//",
+          stan: "#",
+          octave: "#",
+          fortran: "!",
+          fortran95: "!",
+          awk: "#",
+          gawk: "#",
+          stata: "*",
+          java: "//",
+          groovy: "//",
+          sed: "#",
+          perl: "#",
+          ruby: "#",
+          tikz: "%",
+          js: "//",
+          d3: "//",
+          node: "//",
+          sass: "//",
+          coffee: "#",
+          go: "//",
+          asy: "//",
+          haskell: "--",
+          dot: "//",
+          ojs: "//",
+          mermaid: "%%"
         }
       };
     }
@@ -24788,6 +24841,15 @@ ${heading}`;
     await getEngineOptionsSchema();
     for (const schema of getYamlIntelligenceResource("schema/external-schemas.yml")) {
       setSchemaDefinition(schema);
+    }
+    try {
+      const extendedLangCommentChars = getYamlIntelligenceResource("handlers/lang-comment-chars.yml");
+      for (const [lang, comment] of Object.entries(extendedLangCommentChars)) {
+        kLangCommentChars[lang] = comment;
+      }
+    } catch (_e) {
+      console.warn(`"handlers/lang-comment-chars.yml" not found.
+initialization does not contain language extensions`);
     }
     if (patchMarkdown === void 0 || patchMarkdown) {
       patchMarkdownDescriptions();

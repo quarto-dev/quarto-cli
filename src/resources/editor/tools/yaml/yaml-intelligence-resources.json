@@ -11478,5 +11478,58 @@
     },
     "patternProperties": {},
     "$id": "handlers/mermaid"
+  },
+  "handlers/lang-comment-chars.yml": {
+    "r": "#",
+    "python": "#",
+    "julia": "#",
+    "scala": "//",
+    "matlab": "%",
+    "csharp": "//",
+    "fsharp": "//",
+    "c": [
+      "/*",
+      "*/"
+    ],
+    "css": [
+      "/*",
+      "*/"
+    ],
+    "sas": [
+      "*",
+      ";"
+    ],
+    "powershell": "#",
+    "bash": "#",
+    "sql": "--",
+    "mysql": "--",
+    "psql": "--",
+    "lua": "--",
+    "cpp": "//",
+    "cc": "//",
+    "stan": "#",
+    "octave": "#",
+    "fortran": "!",
+    "fortran95": "!",
+    "awk": "#",
+    "gawk": "#",
+    "stata": "*",
+    "java": "//",
+    "groovy": "//",
+    "sed": "#",
+    "perl": "#",
+    "ruby": "#",
+    "tikz": "%",
+    "js": "//",
+    "d3": "//",
+    "node": "//",
+    "sass": "//",
+    "coffee": "#",
+    "go": "//",
+    "asy": "//",
+    "haskell": "--",
+    "dot": "//",
+    "ojs": "//",
+    "mermaid": "%%"
   }
 }
