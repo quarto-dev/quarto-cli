@@ -199,7 +199,7 @@ async function execJupyter(
   }
 }
 
-async function printExecDiagnostics(stderr?: string) {
+export async function printExecDiagnostics(stderr?: string) {
   const caps = await jupyterCapabilities();
   if (caps && !caps.jupyter_core) {
     info("Python 3 installation:");
@@ -208,12 +208,23 @@ async function printExecDiagnostics(stderr?: string) {
     info(await jupyterInstallationMessage(caps));
     info("");
     maybePrintUnactivatedEnvMessage(caps);
+  } else if (caps && !haveRequiredPython(caps)) {
+    info(pythonVersionMessage());
+    info(await jupyterCapabilitiesMessage(caps, "  "));
   } else if (!caps) {
     info(pythonInstallationMessage());
     info("");
   } else if (stderr && (stderr.indexOf("ModuleNotFoundError") !== -1)) {
     maybePrintUnactivatedEnvMessage(caps);
   }
+}
+
+function haveRequiredPython(caps: JupyterCapabilities) {
+  return caps.versionMajor >= 3 && caps.versionMinor >= 18;
+}
+
+function pythonVersionMessage() {
+  return `Quarto requires Python version 3.6 (or greater). Detected version is:`;
 }
 
 function maybePrintUnactivatedEnvMessage(caps: JupyterCapabilities) {
