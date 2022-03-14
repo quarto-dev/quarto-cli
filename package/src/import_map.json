@@ -1,17 +1,17 @@
 {
   "imports": {
-    "async/": "https://deno.land/std@0.122.0/async/",
-    "datetime/": "https://deno.land/std@0.122.0/datetime/",
-    "encoding/": "https://deno.land/std@0.122.0/encoding/",
-    "flags/": "https://deno.land/std@0.122.0/flags/",
-    "fmt/": "https://deno.land/std@0.122.0/fmt/",
-    "fs/": "https://deno.land/std@0.122.0/fs/",
-    "io/": "https://deno.land/std@0.122.0/io/",
-    "log/": "https://deno.land/std@0.122.0/log/",
-    "path/": "https://deno.land/std@0.122.0/path/",
-    "streams/": "https://deno.land/std@0.122.0/streams/",
-    "textproto/": "https://deno.land/std@0.122.0/textproto/",
-    "uuid/": "https://deno.land/std@0.122.0/uuid/",
+    "async/": "https://deno.land/std@0.129.0/async/",
+    "datetime/": "https://deno.land/std@0.129.0/datetime/",
+    "encoding/": "https://deno.land/std@0.129.0/encoding/",
+    "flags/": "https://deno.land/std@0.129.0/flags/",
+    "fmt/": "https://deno.land/std@0.129.0/fmt/",
+    "fs/": "https://deno.land/std@0.129.0/fs/",
+    "io/": "https://deno.land/std@0.129.0/io/",
+    "log/": "https://deno.land/std@0.129.0/log/",
+    "path/": "https://deno.land/std@0.129.0/path/",
+    "streams/": "https://deno.land/std@0.129.0/streams/",
+    "textproto/": "https://deno.land/std@0.129.0/textproto/",
+    "uuid/": "https://deno.land/std@0.129.0/uuid/",
     "cliffy/": "https://deno.land/x/cliffy@v0.19.3/",
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
@@ -23,7 +23,7 @@
     "lodash/": "https://cdn.skypack.dev/lodash@4.17.21/",
     "acorn/acorn": "https://cdn.skypack.dev/acorn@7.4.1",
     "acorn/walk": "https://cdn.skypack.dev/acorn-walk@7.2.0",
-    "https://deno.land/std@0.105.0/": "https://deno.land/std@0.122.0/",
-    "https://deno.land/std@0.101.0/": "https://deno.land/std@0.122.0/"
+    "https://deno.land/std@0.105.0/": "https://deno.land/std@0.129.0/",
+    "https://deno.land/std@0.101.0/": "https://deno.land/std@0.129.0/"
   }
 }
