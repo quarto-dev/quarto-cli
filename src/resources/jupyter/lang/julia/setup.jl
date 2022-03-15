@@ -1,4 +1,3 @@
-import JSON
 import IJulia
 
 # The julia kernel has built in support for Revise.jl, so this is the 
@@ -12,5 +11,4 @@ import IJulia
 IJulia.clear_history()
 
 # return kernel dependencies (always empty b/c Revise should take care of dependencies)
-kernel_deps = Dict()
-println(JSON.json(kernel_deps))
+print("{}")
