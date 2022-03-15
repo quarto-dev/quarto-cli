@@ -97,8 +97,10 @@ import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
   projectMetadataForInputFile,
+  projectTypeIsWebsite,
 } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
+import { defaultProjectType } from "../../project/types/project-default.ts";
 
 import {
   copyFromProjectFreezer,
@@ -1115,9 +1117,10 @@ async function resolveFormats(
     const directoryFormat = directoryFormats[format];
     const inputFormat = inputFormats[format];
 
-    // resolve theme (project-level bootstrap theme always wins)
+    // resolve theme (project-level bootstrap theme always wins for web drived output)
     if (
-      project && isHtmlOutput(format, true) && formatHasBootstrap(projFormat)
+      project && isHtmlOutput(format, true) && formatHasBootstrap(projFormat) &&
+      projectTypeIsWebsite(projType)
     ) {
       if (formatHasBootstrap(inputFormat)) {
         delete inputFormat.metadata[kTheme];
