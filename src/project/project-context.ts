@@ -204,6 +204,15 @@ export async function projectContext(
           delete projectConfig.project[kProjectOutputDir];
         }
 
+        // if the output-dir is absolute then make it project dir relative
+        const projOutputDir = projectConfig.project[kProjectOutputDir];
+        if (projOutputDir && isAbsolute(projOutputDir)) {
+          projectConfig.project[kProjectOutputDir] = relative(
+            dir,
+            projOutputDir,
+          );
+        }
+
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
           projectConfig = await type.config(
