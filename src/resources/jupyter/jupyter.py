@@ -63,13 +63,15 @@ class ExecuteHandler(StreamRequestHandler):
          if not persist:
             trace('notebook not persistable (exiting server)')
             self.server.request_exit()
+         else:
+            self.server.record_success()
       except RestartKernel:
          trace('notebook restart request recived (exiting server)')
          self.message("restart")
          self.server.request_exit()
       except Exception as e:
          self.message("error", "\n\n" + str(e))
-         self.server.request_exit()
+         self.server.record_error(e)
 
    # write a message back to the client      
    def message(self, type, data = ""):
@@ -93,6 +95,7 @@ def execute_server(options):
 
       allow_reuse_address = True
       exit_pending = False
+      consecutive_errors = 0
       
       def __init__(self, options):
 
@@ -146,6 +149,15 @@ def execute_server(options):
 
       def validate_secret(self, secret):
          return self.secret == secret
+
+      def record_success(self):
+         self.consecutive_errors = 0
+
+      def record_error(self, e):
+         # exit for 5 consecutive errors
+         self.consecutive_errors += 1
+         if self.consecutive_errors >= 5:
+            self.exit()
 
       def request_exit(self):
          self.exit_pending = True
