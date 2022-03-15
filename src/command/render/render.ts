@@ -663,7 +663,7 @@ export async function renderPandoc(
 
   // add any injected libs to supporting
   let supporting = filesDir ? executeResult.supporting : undefined;
-  if (filesDir) {
+  if (filesDir && isHtmlFileOutput(format.pandoc)) {
     const filesDirAbsolute = join(dirname(context.target.source), filesDir);
     if (
       existsSync(filesDirAbsolute) &&
