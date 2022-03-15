@@ -10,5 +10,5 @@ import IJulia
 # clear console history
 IJulia.clear_history()
 
-# return kernel dependencies (always empty b/c Revise should take care of dependencies)
-print("{}")
+# don't return kernel dependencies (b/c Revise should take care of dependencies)
+
