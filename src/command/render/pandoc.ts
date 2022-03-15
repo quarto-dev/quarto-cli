@@ -9,7 +9,7 @@ import { dirname, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
-import { ensureDirSync, existsSync, expandGlobSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
@@ -19,7 +19,11 @@ import * as ld from "../../core/lodash.ts";
 import { Document } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
-import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
+import {
+  copyFileIfNewer,
+  dirAndStem,
+  pathWithForwardSlashes,
+} from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
@@ -759,8 +763,7 @@ export function resolveDependencies(
         template?: any,
       ) => {
         const targetPath = join(targetDir, file.name);
-        ensureDirSync(dirname(targetPath));
-        Deno.copyFileSync(file.path, targetPath);
+        copyFileIfNewer(file.path, targetPath);
         if (template) {
           const attribs = file.attribs
             ? Object.entries(file.attribs).map((entry) => {
