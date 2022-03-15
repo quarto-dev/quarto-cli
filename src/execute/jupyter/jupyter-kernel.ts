@@ -220,7 +220,7 @@ export async function printExecDiagnostics(stderr?: string) {
 }
 
 function haveRequiredPython(caps: JupyterCapabilities) {
-  return caps.versionMajor >= 3 && caps.versionMinor >= 18;
+  return caps.versionMajor >= 3 && caps.versionMinor >= 6;
 }
 
 function pythonVersionMessage() {
