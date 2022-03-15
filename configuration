@@ -23,7 +23,7 @@ export BOOTSWATCH=5.1.3
 # javascript HTML dependencies
 export ANCHOR_JS=4.3.1
 export POPPER_JS=2.11.4
-export CLIPBOARD_JS=2.0.8
+export CLIPBOARD_JS=2.0.10
 export TIPPY_JS=6.3.0
 export PDF_JS=2.8.335
 export REVEAL_JS=4.2.0
