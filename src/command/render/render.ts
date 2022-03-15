@@ -100,7 +100,6 @@ import {
   projectTypeIsWebsite,
 } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
-import { defaultProjectType } from "../../project/types/project-default.ts";
 
 import {
   copyFromProjectFreezer,
