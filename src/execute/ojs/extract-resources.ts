@@ -13,7 +13,7 @@ import { parseModule } from "observablehq/parser";
 import { parse as parseES6 } from "acorn/acorn";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
-import { breakQuartoMd } from "../../core/break-quarto-md.ts";
+import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
 
 import { ojsSimpleWalker } from "./ojs-tools.ts";
 import {

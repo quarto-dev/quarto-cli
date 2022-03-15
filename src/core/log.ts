@@ -14,7 +14,7 @@ import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
 import { error, getLogger, setup, warning } from "log/mod.ts";
-import { asErrorEx } from "./error.ts";
+import { asErrorEx } from "./lib/error.ts";
 
 export interface LogOptions {
   log?: string;

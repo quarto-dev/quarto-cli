@@ -4,7 +4,7 @@ import {
   LanguageHandler,
   PandocIncludeType,
 } from "./types.ts";
-import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
+import { breakQuartoMd, QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import { mergeConfigs } from "../config.ts";
 import {

@@ -12,7 +12,7 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 import { stringify, StringifyOptions } from "encoding/yaml.ts";
-import { partitionCellOptions } from "../partition-cell-options.ts";
+import { partitionCellOptions } from "../lib/partition-cell-options.ts";
 import * as ld from "../lodash.ts";
 
 import { shortUuid } from "../uuid.ts";

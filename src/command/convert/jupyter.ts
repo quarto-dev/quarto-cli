@@ -23,7 +23,7 @@ import {
   mdFromRawCell,
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
-import { partitionCellOptions } from "../../core/partition-cell-options.ts";
+import { partitionCellOptions } from "../../core/lib/partition-cell-options.ts";
 import { Metadata } from "../../config/types.ts";
 import { jupyterKernelspec } from "../../core/jupyter/kernels.ts";
 
@@ -71,11 +71,11 @@ export async function jupyterNotebookToMarkdown(
           break;
         case "code":
           md.push(
-            ...mdFromCodeCell(
+            ...(await mdFromCodeCell(
               kernelspec.language.toLowerCase(),
               cell,
               includeIds,
-            ),
+            )),
           );
           break;
         default:
@@ -126,7 +126,7 @@ export async function jupyterNotebookToMarkdown(
   return `---\n${yamlText}---\n\n${mdSource}`;
 }
 
-function mdFromCodeCell(
+async function mdFromCodeCell(
   language: string,
   cell: JupyterCell,
   includeIds: boolean,
@@ -140,7 +140,7 @@ function mdFromCodeCell(
   const md: string[] = ["```{" + language + "}\n"];
 
   // partition
-  const { yaml, source } = partitionCellOptions(language, cell.source);
+  const { yaml, source } = await partitionCellOptions(language, cell.source);
   const options = yaml ? yaml as JupyterCellOptions : {};
 
   // handle id

@@ -26,6 +26,7 @@ import { rangedLines } from "../ranged-text.ts";
 import {
   kLangCommentChars,
   partitionCellOptionsMapped,
+  partitionCellOptionsText,
 } from "../partition-cell-options.ts";
 
 import {
@@ -949,7 +950,7 @@ async function automationFromGoodParseScript(
 
   const {
     yaml,
-  } = await partitionCellOptionsMapped(language, mappedCode);
+  } = partitionCellOptionsText(language, mappedCode);
 
   if (yaml === undefined) {
     if (kind === "completions") {

@@ -6,12 +6,12 @@
 */
 
 import { RenderContext } from "../../command/render/types.ts";
-import { breakQuartoMd } from "../break-quarto-md.ts";
+import { breakQuartoMd } from "../lib/break-quarto-md.ts";
 import { asMappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error } from "log/mod.ts";
-import { partitionCellOptionsMapped } from "../partition-cell-options.ts";
+import { partitionCellOptionsMapped } from "../lib/partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
 import { relative } from "path/mod.ts";

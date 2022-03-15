@@ -8,7 +8,27 @@
 */
 
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
-import { MappedString, mappedString } from "./mapped-text.ts";
+import {
+  asMappedString,
+  EitherString,
+  MappedString,
+  mappedString,
+} from "./mapped-text.ts";
+/*import {
+  langCommentChars,
+  optionCommentPrefix,
+  partitionCellOptionsMapped as libPartitionCellOptionsMapped,
+} from "./partition-cell-options.ts";*/
+
+import { getEngineOptionsSchema } from "./yaml-schema/chunk-metadata.ts";
+import { guessChunkOptionsFormat } from "./guess-chunk-options-format.ts";
+import { getYamlIntelligenceResource } from "./yaml-intelligence/resources.ts";
+import { ConcreteSchema } from "./yaml-schema/types.ts";
+import {
+  readAndValidateYamlFromMappedString,
+  ValidationError,
+} from "./yaml-schema/validated-yaml.ts";
+import { readAnnotatedYamlFromMappedString } from "./yaml-intelligence/tree-sitter-annotated-yaml.ts";
 
 function mappedSource(
   source: MappedString | string,
@@ -21,17 +41,118 @@ function mappedSource(
   return mappedString(source, params);
 }
 
-/** NB: this version does not validate or parse the YAML source
- *
- * also, it's async to match the core version type, although the async
- * bit is only required in the core version
+export function partitionCellOptions(
+  language: string,
+  source: string[],
+) {
+  const commentChars = langCommentChars(language);
+  const optionPrefix = optionCommentPrefix(commentChars[0]);
+  const optionSuffix = commentChars[1] || "";
+
+  // find the yaml lines
+  const optionsSource: string[] = [];
+  const yamlLines: string[] = [];
+  for (const line of source) {
+    if (line.startsWith(optionPrefix)) {
+      if (!optionSuffix || line.trimRight().endsWith(optionSuffix)) {
+        let yamlOption = line.substring(optionPrefix.length);
+        if (optionSuffix) {
+          yamlOption = yamlOption.trimRight();
+          yamlOption = yamlOption.substring(
+            0,
+            yamlOption.length - optionSuffix.length,
+          );
+        }
+        yamlLines.push(yamlOption);
+        optionsSource.push(line);
+        continue;
+      }
+    }
+    break;
+  }
+
+  if (guessChunkOptionsFormat(yamlLines.join("\n")) === "knitr") {
+    return {
+      yaml: undefined,
+      optionsSource,
+      source: source.slice(yamlLines.length),
+      sourceStartLine: yamlLines.length,
+    };
+  }
+
+  let yaml;
+  if (yamlLines.length > 0) {
+    yaml = readAnnotatedYamlFromMappedString(
+      asMappedString(yamlLines.join("\n")),
+    )!.result;
+  }
+
+  return {
+    yaml: yaml as Record<string, unknown> | undefined,
+    optionsSource,
+    source: source.slice(yamlLines.length),
+    sourceStartLine: yamlLines.length,
+  };
+}
+
+export async function parseAndValidateCellOptions(
+  mappedYaml: MappedString,
+  language: string,
+  validate = false,
+  engine = "",
+) {
+  if (mappedYaml.value.trim().length === 0) {
+    return undefined;
+  }
+
+  const engineOptionsSchema = await getEngineOptionsSchema();
+  let schema: ConcreteSchema | undefined = engineOptionsSchema[engine];
+
+  const languages = getYamlIntelligenceResource(
+    "handlers/languages.yml",
+  ) as string[];
+
+  if (languages.indexOf(language) !== -1) {
+    try {
+      schema = getYamlIntelligenceResource(
+        `handlers/${language}/schema.yml`,
+      ) as ConcreteSchema;
+    } catch (_e) {
+      schema = undefined;
+    }
+  }
+
+  if (schema === undefined || !validate) {
+    return readAnnotatedYamlFromMappedString(mappedYaml)!.result;
+  }
+
+  const { yaml, yamlValidationErrors } =
+    await readAndValidateYamlFromMappedString(
+      mappedYaml,
+      schema,
+    );
+
+  if (yamlValidationErrors.length > 0) {
+    throw new ValidationError(
+      `Validation of YAML metadata for cell with engine ${engine} failed`,
+      yamlValidationErrors,
+    );
+  }
+  return yaml;
+}
+
+/** partitionCellOptionsText splits the a cell code source
+ * into:
+ * {
+ *   yaml: MappedString; // mapped text containing the yaml metadata, without the "//|"" comments
+ *   optionsSource: RangedSubstring[]; // the source code of the yaml metadata, including comments
+ *   source: MappedString; // the executable source code of the cell itself
+ *   sourceStartLine: number; // the index of the line number where the source code of the cell starts
+ * }
  */
-// deno-lint-ignore require-await
-export async function partitionCellOptionsMapped(
+export function partitionCellOptionsText(
   language: string,
   source: MappedString,
-  _validate = false,
-  _engine = "",
 ) {
   const commentChars = langCommentChars(language);
   const optionPrefix = optionCommentPrefix(commentChars[0]);
@@ -85,6 +206,47 @@ export async function partitionCellOptionsMapped(
     }]), // .slice(yamlLines.length),
     sourceStartLine: yamlLines.length,
   };
+}
+
+/** NB: this version _does_ parse and validate the YAML source!
+ */
+export async function partitionCellOptionsMapped(
+  language: string,
+  outerSource: MappedString,
+  validate = false,
+  engine = "",
+) {
+  const {
+    yaml: mappedYaml,
+    optionsSource,
+    source,
+    sourceStartLine,
+  } = partitionCellOptionsText(language, outerSource);
+
+  if (
+    guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml"
+  ) {
+    const yaml = await parseAndValidateCellOptions(
+      mappedYaml || asMappedString(""),
+      language,
+      validate,
+      engine,
+    );
+
+    return {
+      yaml: yaml as Record<string, unknown> | undefined,
+      optionsSource,
+      source,
+      sourceStartLine,
+    };
+  } else {
+    return {
+      yaml: undefined,
+      optionsSource,
+      source,
+      sourceStartLine,
+    };
+  }
 }
 
 export function langCommentChars(lang: string): string[] {

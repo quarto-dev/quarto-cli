@@ -9,7 +9,7 @@ import { lines, matchAll } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
 import { MappedString, mappedString } from "../mapped-text.ts";
-import { getTreeSitter } from "./parsing.ts";
+import { getTreeSitterSync } from "./parsing.ts";
 
 /**
  * given a tree from tree-sitter-yaml and the mappedString
@@ -21,10 +21,10 @@ type TreeSitterParse = any;
 // deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
 
-export async function readAnnotatedYamlFromMappedString(
+export function readAnnotatedYamlFromMappedString(
   mappedSource: MappedString,
 ) {
-  const parser = await getTreeSitter();
+  const parser = getTreeSitterSync();
   const tree = parser.parse(mappedSource.value);
   return buildAnnotated(tree, mappedSource);
 }
