@@ -185,7 +185,15 @@ export function bookPandocRenderer(
             }
 
             // provide markdown
-            file.executeResult.markdown = partitioned.markdown;
+            const executeMarkdownPartitioned = partitionYamlFrontMatter(
+              file.executeResult.markdown,
+            );
+            if (executeMarkdownPartitioned) {
+              file.executeResult.markdown = executeMarkdownPartitioned.yaml +
+                "\n\n" + partitioned.markdown;
+            } else {
+              file.executeResult.markdown = partitioned.markdown;
+            }
           }
         }
 
