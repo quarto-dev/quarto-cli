@@ -97,7 +97,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
     }
   }
 
-  &.bg-light {
+  &.bg-light, &.navbar-default {
     .nav-link,
     .navbar-brand {
       text-shadow: 1px 1px 0 rgba(255, 255, 255, .1);
