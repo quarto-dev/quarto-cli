@@ -35,7 +35,7 @@ export DAY_JS=1.11.0
 
 # javascript search dependencies
 export AUTOCOMPLETE_JS=1.5.3
-export FUSE_JS=6.4.6
+export FUSE_JS=6.5.3
 export ALGOLIA_SEARCH_JS=4.5.1
 export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 
