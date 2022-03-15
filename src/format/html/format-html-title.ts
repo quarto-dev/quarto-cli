@@ -10,7 +10,6 @@ import { dirname, isAbsolute, join } from "path/mod.ts";
 import {
   kAuthor,
   kDate,
-  kLang,
   kTitleBlockAffiliationPlural,
   kTitleBlockAffiliationSingle,
   kTitleBlockAuthorPlural,
@@ -48,7 +47,6 @@ export function processDocumentTitle(
 ) {
   // Don't do anything at all if the appendix-style is false or 'none'
   if (
-    format.metadata.book || // It never makes sense to process the appendix when we're in a book
     format.metadata[kTitleBlockStyle] === false ||
     format.metadata[kTitleBlockStyle] === "none"
   ) {

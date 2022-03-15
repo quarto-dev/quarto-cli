@@ -339,10 +339,14 @@ export function projectContextForDirectory(
 export function projectIsWebsite(context?: ProjectContext): boolean {
   if (context) {
     const projType = projectType(context.config?.project?.[kProjectType]);
-    return projType.type === kWebsite || projType.inheritsType === kWebsite;
+    return projectTypeIsWebsite(projType);
   } else {
     return false;
   }
+}
+
+export function projectTypeIsWebsite(projType: ProjectType): boolean {
+  return projType.type === kWebsite || projType.inheritsType === kWebsite;
 }
 
 export function projectIsBook(context?: ProjectContext): boolean {
