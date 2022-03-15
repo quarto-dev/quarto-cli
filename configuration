@@ -21,7 +21,7 @@ export BOOTSTRAP_FONT=1.8.1
 export BOOTSWATCH=5.1.3
 
 # javascript HTML dependencies
-export ANCHOR_JS=4.3.0
+export ANCHOR_JS=4.3.1
 export POPPER_JS=2.9.1
 export CLIPBOARD_JS=2.0.8
 export TIPPY_JS=6.3.0
