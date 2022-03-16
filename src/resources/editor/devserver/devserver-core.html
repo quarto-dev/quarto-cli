@@ -642,7 +642,7 @@
     devServerSocket.onmessage = (msg) => {
       if (msg.data.startsWith('reload')) {
         devServerSocket.close();
-        let target = msg.data.replace(/^reload/, "").replace(/index\.html$/, "");
+        let target = msg.data.replace(/^reload/, "").replace(/\/index\.html/, "/");
         // prepend proxy path to target if we have one
         if (target) {
           const pathPrefix = 
