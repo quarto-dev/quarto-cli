@@ -192,7 +192,7 @@ local function modify_lua_functions(all_compressed_mappings)
          -- pipe:close()
          -- return assert(codepage, "Failed to determine Windows ANSI codepage from Windows registry")
 
-         local codepage = param("windows-codepage", "65001")
+         local codepage = param("windows-codepage", "1252")
          return codepage
       end
 
