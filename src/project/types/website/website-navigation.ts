@@ -838,7 +838,7 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
 
 function itemHasNavTarget(item: SidebarItem, href: string) {
   return item.href === href ||
-    item.href === href.replace(/index\.html$/, "");
+    item.href === href.replace(/\/index\.html/, "/");
 }
 
 function isSeparator(item?: SidebarItem) {

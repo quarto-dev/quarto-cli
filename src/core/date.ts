@@ -4,6 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import momentGuess from "moment-guess";
 
 import { parse } from "datetime/mod.ts";
 import dayjs from "dayjs/dayjs.min.js";
@@ -85,6 +86,24 @@ export const parsePandocDate = (dateRaw: string) => {
       } catch {
         // This date wouldn't parse, try other formats
       }
+    }
+
+    // Try to guess the format
+    try {
+      const formats = momentGuess(dateRaw);
+      if (formats) {
+        try {
+          // momentGuess could return more than one format if the date is
+          // ambiguous. If so, just take the first format
+          const format = Array.isArray(formats) ? formats[0] : formats;
+          const date = dayjs(dateStr, format);
+          return date.local();
+        } catch {
+          // Couldn't parse, keep going
+        }
+      }
+    } catch {
+      // Couldn't parse, keep going
     }
 
     // Try ISO date parse
