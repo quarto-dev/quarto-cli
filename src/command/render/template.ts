@@ -5,13 +5,18 @@
 *
 */
 import * as ld from "../../core/lodash.ts";
+import { basename, join } from "path/mod.ts";
 
 import {
   kHtmlMathMethod,
   kSelfContained,
   kSelfContainedMath,
 } from "../../config/constants.ts";
-import { Format } from "../../config/types.ts";
+import {
+  Format,
+  FormatExtras,
+  FormatTemplateContext,
+} from "../../config/types.ts";
 import { execProcess } from "../../core/process.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { pandocBinaryPath } from "../../core/resources.ts";
@@ -19,6 +24,50 @@ import { TempContext } from "../../core/temp.ts";
 import { RenderFlags } from "./types.ts";
 
 export const kPatchedTemplateExt = ".patched";
+export const kTemplatePartials = "template-partials";
+
+export async function stageTemplate(
+  extras: FormatExtras,
+  temp: TempContext,
+  userContext?: FormatTemplateContext,
+) {
+  const stagingDir = temp.createDir();
+  const template = "template.patched";
+
+  const stageContext = async (
+    dir: string,
+    template: string,
+    context?: FormatTemplateContext,
+  ) => {
+    if (context) {
+      if (context.template) {
+        await Deno.copyFile(context.template, join(dir, template));
+      }
+
+      if (context.partials) {
+        for (const partial of context.partials) {
+          // TODO: Confirm that partial is a file not a directory
+          Deno.copyFile(partial, join(stagingDir, basename(partial)));
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const formatStaged = await stageContext(
+    stagingDir,
+    template,
+    extras.templateContext,
+  );
+  const userStaged = await stageContext(stagingDir, template, userContext);
+  if (formatStaged || userStaged) {
+    return join(stagingDir, template);
+  } else {
+    return undefined;
+  }
+}
 
 export async function patchHtmlTemplate(
   templateName: string,

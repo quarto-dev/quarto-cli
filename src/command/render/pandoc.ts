@@ -130,7 +130,11 @@ import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
-import { patchHtmlTemplate } from "./template.ts";
+import {
+  kTemplatePartials,
+  patchHtmlTemplate,
+  stageTemplate,
+} from "./template.ts";
 import { formatLanguage } from "../../core/language.ts";
 import {
   pandocFormatWith,
@@ -361,16 +365,27 @@ export async function runPandoc(
       cleanMetadataForPrinting(printMetadata);
     }
 
-    // patch template (if its a built-in pandoc template)
-    if (!allDefaults[kTemplate] && !havePandocArg(args, "--template")) {
-      if (allDefaults.to && isHtmlOutput(allDefaults.to)) {
-        allDefaults[kTemplate] = await patchHtmlTemplate(
-          allDefaults.to,
-          options.format,
-          options.temp,
-          extras.html?.[kTemplatePatches],
-          options.flags,
-        );
+    // Stage the template
+    const userTemplate = allDefaults[kTemplate];
+    // TODO: Read flag for template
+    // TODO: What is path to templte at this point
+    const template = stageTemplate(extras, options.temp, {
+      template: userTemplate,
+      partials: extras.metadata?.[kTemplatePartials] as string[],
+    });
+
+    if (!template) {
+      // patch template (if its a built-in pandoc template)
+      if (!allDefaults[kTemplate] && !havePandocArg(args, "--template")) {
+        if (allDefaults.to && isHtmlOutput(allDefaults.to)) {
+          allDefaults[kTemplate] = await patchHtmlTemplate(
+            allDefaults.to,
+            options.format,
+            options.temp,
+            extras.html?.[kTemplatePatches],
+            options.flags,
+          );
+        }
       }
     }
 
