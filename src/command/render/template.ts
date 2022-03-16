@@ -7,11 +7,7 @@
 import * as ld from "../../core/lodash.ts";
 import { basename, join } from "path/mod.ts";
 
-import {
-  kHtmlMathMethod,
-  kSelfContained,
-  kSelfContainedMath,
-} from "../../config/constants.ts";
+import { kHtmlMathMethod, kSelfContained } from "../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -105,25 +101,6 @@ export async function patchHtmlTemplate(
       }
     }
 
-    // make math evade self-contained
-    if (
-      ((flags && flags[kSelfContained]) || format.pandoc[kSelfContained]) &&
-      !format.render[kSelfContainedMath]
-    ) {
-      const math = mathConfig(format, flags);
-      if (math) {
-        const mathTemplate = math.method === "mathjax"
-          ? mathjaxScript(math.url)
-          : math.method == "katex"
-          ? katexScript(math.url)
-          : "";
-
-        if (mathTemplate) {
-          patchedTemplate = patchedTemplate.replace(/\$math\$/, mathTemplate);
-        }
-      }
-    }
-
     // replace generator
     patchedTemplate = patchedTemplate.replace(
       /<meta name="generator" content="pandoc"\s*\/?>/,
@@ -132,89 +109,6 @@ export async function patchHtmlTemplate(
 
     return patchedTemplate;
   });
-}
-
-function mathConfig(format: Format, flags?: RenderFlags) {
-  // if any command line math flags were passed then bail
-  if (
-    flags?.mathjax || flags?.katex || flags?.webtex || flags?.gladtex ||
-    flags?.mathml
-  ) {
-    return undefined;
-  }
-
-  const math = format.pandoc[kHtmlMathMethod];
-  if (math === undefined || math === "mathjax") {
-    return {
-      method: "mathjax",
-      url: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js",
-    };
-  } else if (math === "katex") {
-    return {
-      method: "katex",
-      url: "https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/",
-    };
-  } else if (ld.isObject(math)) {
-    const mathMethod = math as { method: string; url: string };
-    if (
-      (mathMethod.method === "mathjax" || mathMethod.method === "katex") &&
-      typeof (mathMethod.url) === "string"
-    ) {
-      return mathMethod;
-    }
-  }
-}
-
-function mathjaxScript(url: string) {
-  return `
-  <script>
-    (function () {
-      var script = document.createElement("script");
-      script.type = "text/javascript";
-      script.src  = "${url}";
-      document.getElementsByTagName("head")[0].appendChild(script);
-    })();
-  </script>
-`;
-}
-
-function katexScript(url: string) {
-  url = url.trim();
-  if (!url.endsWith("/")) {
-    url += "/";
-  }
-  return `
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      var head = document.getElementsByTagName("head")[0];
-      var link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "${url}katex.min.css";
-      head.appendChild(link);
-
-      var script = document.createElement("script");
-      script.type = "text/javascript";
-      script.src  = "${url}katex.min.js";
-      script.async = false;
-      script.addEventListener('load', function() {
-        var mathElements = document.getElementsByClassName("math");
-          var macros = [];
-          for (var i = 0; i < mathElements.length; i++) {
-            var texText = mathElements[i].firstChild;
-            if (mathElements[i].tagName == "SPAN") {
-              window.katex.render(texText.data, mathElements[i], {
-                displayMode: mathElements[i].classList.contains('display'),
-                throwOnError: false,
-                macros: macros,
-                fleqn: false
-              });
-            }
-          }
-      });
-      head.appendChild(script);
-    });
-  </script>
-  `;
 }
 
 async function patchTemplate(

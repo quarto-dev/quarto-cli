@@ -148,7 +148,6 @@ import {
   kSectionTitleReferences,
   kSectionTitleReuse,
   kSelfContained,
-  kSelfContainedMath,
   kShiftHeadingLevelBy,
   kSlideLevel,
   kSyntaxDefinitions,
@@ -315,7 +314,6 @@ export interface FormatRender {
   };
   [kTblColwidths]?: "auto" | boolean | number[];
   [kMergeIncludes]?: boolean;
-  [kSelfContainedMath]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;

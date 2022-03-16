@@ -62,7 +62,6 @@ export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
 export const kPreferHtml = "prefer-html";
-export const kSelfContainedMath = "self-contained-math";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -124,7 +123,6 @@ export const kRenderDefaultsKeys = [
   kCodeOverflow,
   kCodeTools,
   kTblColwidths,
-  kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,
   kLatexMinRuns,
