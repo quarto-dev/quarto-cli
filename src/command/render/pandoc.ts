@@ -454,7 +454,7 @@ export async function runPandoc(
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
   let pandocArgs = args;
-  const paramsJson = filterParamsJson(
+  const paramsJson = await filterParamsJson(
     pandocArgs,
     options,
     allDefaults,

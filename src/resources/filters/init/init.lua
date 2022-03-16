@@ -45,6 +45,21 @@
 -- Mapping tables are stored in human-unreadable compressed form to significantly reduce module size.
 
 
+
+
+-- [import]
+function import(script)
+   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
+   dofile(path .. script)
+end
+import("../common/debug.lua")
+import("../common/json.lua")
+import("../common/base64.lua")
+import("../common/params.lua")
+-- [/import]
+ 
+initParams()
+
 local test_data_integrity = false  -- set to true if you are unsure about correctness of human-unreadable parts of this file
 
 local function modify_lua_functions(all_compressed_mappings)
@@ -168,11 +183,17 @@ local function modify_lua_functions(all_compressed_mappings)
    if (os.getenv"os" or ""):match"^Windows" then
 
       local function get_windows_ansi_codepage()
-         -- returns string "1253" for Greek, "1251" for Russian, etc.
-         local pipe = assert(io.popen[[reg query HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage /v ACP]])
-         local codepage = pipe:read"*a":match"%sACP%s+REG_SZ%s+(.-)%s*$"
-         pipe:close()
-         return assert(codepage, "Failed to determine Windows ANSI codepage from Windows registry")
+         -- Reading the code page directly out of the registry was causing 
+         -- Microsoft Defender to massively slow down pandoc (e.g. 1400ms instead of 140ms)
+         -- So instead, look that up outside this filter and pass it in, which appears speed(ier)
+
+         -- local pipe = assert(io.popen[[reg query HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage /v ACP]])
+         -- local codepage = pipe:read"*a":match"%sACP%s+REG_SZ%s+(.-)%s*$"
+         -- pipe:close()
+         -- return assert(codepage, "Failed to determine Windows ANSI codepage from Windows registry")
+
+         local codepage = param("windows-codepage", "65001")
+         return codepage
       end
 
       local codepage = get_windows_ansi_codepage()
