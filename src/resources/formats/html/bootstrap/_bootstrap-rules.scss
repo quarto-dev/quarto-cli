@@ -182,7 +182,7 @@ main.page-columns > header > h1.title {
     }
   }
 
-  #TOC {
+  nav[role="doc-toc"] {
     display: none;
   }
 }
@@ -842,7 +842,7 @@ li code:not(.sourceCode) {
   padding-top: 1em;
 }
 
-.sidebar nav#TOC > h2 {
+.sidebar nav[role="doc-toc"] > h2 {
   font-size: $toc-font-size;
   font-weight: 400;
   margin-bottom: 0.5rem;
@@ -853,19 +853,19 @@ li code:not(.sourceCode) {
   padding-top: 0px;
 }
 
-.sidebar nav#TOC > ul a {
+.sidebar nav[role="doc-toc"] > ul a {
   border-left: 1px solid $gray-200;
   padding-left: 0.6rem;
 }
 
-.sidebar nav#TOC ul {
+.sidebar nav[role="doc-toc"] ul {
   padding-left: 0;
   list-style: none;
   font-size: $toc-font-size;
   font-weight: 300;
 }
 
-.sidebar nav#TOC > ul li a {
+.sidebar nav[role="doc-toc"] > ul li a {
   line-height: 1.1rem;
   padding-bottom: 0.2rem;
   padding-top: 0.2rem;
@@ -877,17 +877,17 @@ $indent: 1.2em;
 @for $i from 1 through $toc-indent-depth {
   $selector-depth: repeat-chars(" ul > li >", $i);
 
-  .sidebar nav#TOC ul > li > #{$selector-depth} a {
+  .sidebar nav[role="doc-toc"] ul > li > #{$selector-depth} a {
     padding-left: #{$indent * $i};
   }
 }
 
-.sidebar nav#TOC ul > li > ul > li > a.active {
+.sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
   border-left: 1px solid $link-color;
   color: $link-color !important;
 }
 
-.sidebar nav#TOC ul > li > a.active {
+.sidebar nav[role="doc-toc"] ul > li > a.active {
   border-left: 1px solid $link-color;
   color: $link-color !important;
 }
@@ -1357,17 +1357,17 @@ div.callout.callout-style-default .callout-header {
   padding-bottom: 0px;
 }
 
-#TOC {
+nav[role="doc-toc"] {
   z-index: $zindex-sticky;
 }
 
 #quarto-sidebar > *,
-#TOC > * {
+nav[role="doc-toc"] > * {
   transition: opacity 0.1s ease, border 0.1s ease;
 }
 
 #quarto-sidebar.slow > *,
-#TOC.slow > * {
+nav[role="doc-toc"].slow > * {
   transition: opacity 0.4s ease, border 0.4s ease;
 }
 
