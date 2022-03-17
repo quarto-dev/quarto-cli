@@ -322,6 +322,13 @@ function bootstrapHtmlPostprocessor(
       }
     }
 
+    // add .table class to DataFrames.jl tables
+    const dataFramesTables = doc.querySelectorAll("table.data-frame");
+    for (let i = 0; i < dataFramesTables.length; i++) {
+      const table = dataFramesTables[i] as Element;
+      addTableClasses(table, true);
+    }
+
     // provide data-anchor-id to headings
     const sections = doc.querySelectorAll('section[class^="level"]');
     for (let i = 0; i < sections.length; i++) {
