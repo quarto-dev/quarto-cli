@@ -96,7 +96,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     defaultActiveItemId: 0,
     panelContainer: "#quarto-search-results",
     panelPlacement: quartoSearchOptions["panel-placement"],
-    debug: false,
+    debug: true,
     plugins,
     classNames: {
       form: "d-flex",
@@ -708,11 +708,11 @@ function createDocumentCard(createElement, icon, title, section, text, href) {
   );
 
   const textEls = [];
-  if (section || title) {
+  if (section) {
     const sectionEl = createElement(
       "p",
       { class: "search-result-section" },
-      section || title
+      section
     );
     textEls.push(sectionEl);
   }
@@ -747,10 +747,15 @@ function createDocumentCard(createElement, icon, title, section, text, href) {
     containerEl
   );
 
+  const classes = ["search-result-doc", "search-item"];
+  if (!section) {
+    classes.push("document-selectable");
+  }
+
   return createElement(
     "div",
     {
-      class: "search-result-doc search-item",
+      class: classes.join(" "),
     },
     linkEl
   );
@@ -871,17 +876,25 @@ function highlightMatch(query, text) {
   if (text) {
     const start = text.toLowerCase().indexOf(query.toLowerCase());
     if (start !== -1) {
+      const startMark = "<mark class='search-match'>";
+      const endMark = "</mark>";
+
       const end = start + query.length;
       text =
         text.slice(0, start) +
-        "<mark class='search-match'>" +
+        startMark +
         text.slice(start, end) +
-        "</mark>" +
+        endMark +
         text.slice(end);
-      const clipStart = Math.max(start - 50, 0);
-      const clipEnd = clipStart + 200;
-
-      text = text.slice(clipStart, clipEnd);
+      const startInfo = clipStart(text, start);
+      const endInfo = clipEnd(
+        text,
+        startInfo.position + startMark.length + endMark.length
+      );
+      text =
+        startInfo.prefix +
+        text.slice(startInfo.position, endInfo.position) +
+        endInfo.suffix;
 
       return text;
     } else {
@@ -890,6 +903,59 @@ function highlightMatch(query, text) {
   } else {
     return text;
   }
+}
+
+function clipStart(text, pos) {
+  const clipStart = pos - 50;
+  if (clipStart < 0) {
+    // This will just return the start of the string
+    return {
+      position: 0,
+      prefix: "",
+    };
+  } else {
+    // We're clipping before the start of the string, walk backwards to the first space.
+    const spacePos = findSpace(text, pos, -1);
+    return {
+      position: spacePos.position,
+      prefix: "",
+    };
+  }
+}
+
+function clipEnd(text, pos) {
+  const clipEnd = pos + 200;
+  if (clipEnd > text.length) {
+    return {
+      position: text.length,
+      suffix: "",
+    };
+  } else {
+    const spacePos = findSpace(text, clipEnd, 1);
+    return {
+      position: spacePos.position,
+      suffix: spacePos.clipped ? "…" : "",
+    };
+  }
+}
+
+function findSpace(text, start, step) {
+  let stepPos = start;
+  while (stepPos > -1 && stepPos < text.length) {
+    const char = text[stepPos];
+    if (char === " " || char === "," || char === ":") {
+      return {
+        position: step === 1 ? stepPos : stepPos - step,
+        clipped: stepPos > 1 && stepPos < text.length,
+      };
+    }
+    stepPos = stepPos + step;
+  }
+
+  return {
+    position: stepPos - step,
+    clipped: false,
+  };
 }
 
 // removes highlighting as implemented by the mark tag
