@@ -726,6 +726,16 @@ div.sourceCode {
   @include body-secondary;
 }
 
+.blockquote {
+  h1:first-child,
+  h2:first-child,
+  h3:first-child,
+  h4:first-child,
+  h5:first-child {
+    margin-top: 0;
+  }
+}
+
 pre {
   background-color: initial;
   padding: initial;
