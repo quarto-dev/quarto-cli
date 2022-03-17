@@ -10,5 +10,29 @@ import IJulia
 # clear console history
 IJulia.clear_history()
 
-# don't return kernel dependencies (b/c Revise should take care of dependencies)
+# Intialize Plots w/ default fig width/height
+try
+  fig_width = {0}
+  fig_height = {1}
+  fig_format = :{2}
+  fig_dpi = {3}
+  # no retina format type, use svg for high quality type/marks
+  if fig_format == :retina
+    fig_format = :svg
+  # IJulia doesn't support PDF output so use png (if the DPI 
+  # remains the default of 300 then set to 96)
+  elseif fig_format == :pdf
+    fig_format = :png
+    fig_dpi = 96
+  end
+  # convert inches to pixels
+  fig_width = fig_width * fig_dpi
+  fig_height = fig_height * fig_dpi
+  using Plots
+  gr(size=(fig_width, fig_height), fmt = fig_format, dpi = fig_dpi)
+catch e
+  # @warn "Plots init" exception=(e, catch_backtrace())
+end
 
+# don't return kernel dependencies (b/c Revise should take care of dependencies)
+nothing
