@@ -226,7 +226,7 @@ export function updateSearchIndex(
           objectID: href,
           href: href,
           title,
-          section: title,
+          section: "",
           text: paras.join("\n"),
         });
       }

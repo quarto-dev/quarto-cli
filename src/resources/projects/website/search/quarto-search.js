@@ -143,12 +143,20 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           items.forEach((item) => {
             const hrefParts = item.href.split("#");
             const baseHref = hrefParts[0];
+            const isDocumentItem = hrefParts.length === 1;
 
             const items = groupedItems.get(baseHref);
             if (!items) {
               groupedItems.set(baseHref, [item]);
             } else {
-              items.push(item);
+              // If the href for this item matches the document
+              // exactly, place this item first as it is the item that represents
+              // the document itself
+              if (isDocumentItem) {
+                items.unshift(item);
+              } else {
+                items.push(item);
+              }
               groupedItems.set(baseHref, items);
             }
           });
@@ -700,11 +708,11 @@ function createDocumentCard(createElement, icon, title, section, text, href) {
   );
 
   const textEls = [];
-  if (section) {
+  if (section || title) {
     const sectionEl = createElement(
       "p",
       { class: "search-result-section" },
-      section
+      section || title
     );
     textEls.push(sectionEl);
   }
