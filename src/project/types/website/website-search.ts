@@ -211,6 +211,26 @@ export function updateSearchIndex(
         }
       });
 
+      // If there are any paragraphs residing outside a section, just
+      // include that in a single document
+      const pararaphNodes = doc.querySelectorAll("main.content > p");
+      const paras: string[] = [];
+      for (const paragraphNode of pararaphNodes) {
+        const text = paragraphNode.textContent;
+        if (text) {
+          paras.push(text);
+        }
+      }
+      if (paras.length > 0) {
+        updateDoc({
+          objectID: href,
+          href: href,
+          title,
+          section: "",
+          text: paras.join("\n"),
+        });
+      }
+
       // if there are level 2 sections then create sub-docs for them
       const sections = doc.querySelectorAll("section.level2");
       if (sections.length > 0) {

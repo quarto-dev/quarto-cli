@@ -6,9 +6,11 @@ const sectionChanged = new CustomEvent("quarto-sectionChanged", {
 });
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
-  var tocEl = window.document.getElementById("TOC");
-  var sidebarEl = window.document.getElementById("quarto-sidebar");
-  var marginSidebarEl = window.document.getElementById("quarto-margin-sidebar");
+  const tocEl = window.document.querySelector('nav[role="doc-toc"]');
+  const sidebarEl = window.document.getElementById("quarto-sidebar");
+  const marginSidebarEl = window.document.getElementById(
+    "quarto-margin-sidebar"
+  );
 
   // function to determine whether the element has a previous sibling that is active
   const prevSiblingIsActiveLink = (el) => {
@@ -602,7 +604,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 });
 
 function throttle(func, wait) {
-  var waiting = false;
+  let waiting = false;
   return function () {
     if (!waiting) {
       func.apply(this, arguments);

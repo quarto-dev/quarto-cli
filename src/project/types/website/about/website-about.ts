@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { dirname, join } from "path/mod.ts";
 import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
 import { kToc } from "../../../../config/constants.ts";
@@ -12,6 +12,7 @@ import {
   Format,
   FormatExtras,
   kHtmlPostprocessors,
+  kMarkdownAfterBody,
   kSassBundles,
 } from "../../../../config/types.ts";
 import { renderEjs } from "../../../../core/ejs.ts";
@@ -24,6 +25,12 @@ import { NavItem } from "../../../project-config.ts";
 import { ProjectContext } from "../../../types.ts";
 import { kImage } from "../website-config.ts";
 import { navigationItem } from "../website-navigation.ts";
+import {
+  createMarkdownPipeline,
+  MarkdownPipeline,
+  MarkdownPipelineHandler,
+  PipelineMarkdown,
+} from "../website-pipeline-md.ts";
 
 const kAbout = "about";
 const kTemplate = "template";
@@ -104,9 +111,22 @@ export async function aboutHtmlDependencies(
     },
   ];
 
+  // Create the markdown pipeline for this set of about page links
+  const markdownHandlers: MarkdownPipelineHandler[] = [];
+  if (aboutPage) {
+    markdownHandlers.push(aboutLinksMarkdownHandler(aboutPage));
+  }
+  const pipeline = createMarkdownPipeline(
+    `quarto-about-pipeline`,
+    markdownHandlers,
+  );
+
   return {
+    [kMarkdownAfterBody]: markdownHandlers.length > 0
+      ? [pipeline.markdownAfterBody()]
+      : [""],
     [kHtmlPostprocessors]: aboutPage
-      ? aboutPagePostProcessor(aboutPage)
+      ? aboutPagePostProcessor(aboutPage, pipeline)
       : undefined,
     [kSassBundles]: sassBundles,
   };
@@ -237,7 +257,10 @@ function templatePath(
   }
 }
 
-const aboutPagePostProcessor = (aboutPage: AboutPage) => {
+const aboutPagePostProcessor = (
+  aboutPage: AboutPage,
+  pipeline: MarkdownPipeline,
+) => {
   return (
     doc: Document,
   ): Promise<HtmlPostProcessResult> => {
@@ -284,6 +307,37 @@ const aboutPagePostProcessor = (aboutPage: AboutPage) => {
       result.resources.push(aboutPage.image);
     }
 
+    // Update any rendered items
+    pipeline.processRenderedMarkdown(doc);
+
     return Promise.resolve(result);
+  };
+};
+
+const aboutLinksMarkdownHandler = (aboutPage: AboutPage) => {
+  return {
+    getUnrendered: (): PipelineMarkdown | undefined => {
+      const pipelineMarkdown: PipelineMarkdown = {};
+      aboutPage.links?.forEach((link) => {
+        if (link.text) {
+          pipelineMarkdown.inlines = pipelineMarkdown.inlines || {};
+          pipelineMarkdown.inlines[link.text] = link.text;
+        }
+      });
+      return pipelineMarkdown;
+    },
+    processRendered: (
+      rendered: Record<string, Element>,
+      doc: Document,
+    ): void => {
+      const aboutLinkNodes = doc.querySelectorAll(".about-links .about-link");
+      for (const aboutLinkNode of aboutLinkNodes) {
+        const aboutLinkEl = aboutLinkNode as Element;
+        const aboutLinkRendered = rendered[aboutLinkEl.innerText.trim()];
+        if (aboutLinkRendered) {
+          aboutLinkEl.innerHTML = aboutLinkRendered.innerHTML;
+        }
+      }
+    },
   };
 };
