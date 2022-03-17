@@ -295,7 +295,9 @@ div.sidebar-item-container {
   }
 
   .active,
-  .show > .nav-link {
+  .show > .nav-link,
+  .show > .nav-link,
+  .sidebar-link > code {
     color: $sidebar-active-color;
   }
 }

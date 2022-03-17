@@ -759,6 +759,12 @@ li code:not(.sourceCode) {
   }
 }
 
+nav p code:not(.sourceCode),
+nav li code:not(.sourceCode) {
+  background-color: transparent;
+  padding: 0;
+}
+
 #quarto-embedded-source-code-modal > .modal-dialog {
   max-width: 1000px;
   padding-left: 1.75rem;
