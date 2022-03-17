@@ -301,7 +301,7 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 
   .search-result-section {
-    font-size: 0.875em;
+    font-size: 0.925em;
   }
 
   a.search-result-link {
@@ -329,6 +329,25 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 
   .aa-Item {
+    .search-result-doc:not(.document-selectable) {
+      .search-result-title-container {
+        background-color: $popover-bg;
+        color: $body-color;
+      }
+      .search-result-text-container {
+        padding-top: 0px;
+      }
+    }
+  }
+  li.aa-Item {
+    .search-result-doc.document-selectable {
+      .search-result-text-container {
+        margin-top: -4px;
+      }
+    }
+  }
+
+  .aa-Item {
     cursor: pointer;
 
     .search-item {
@@ -347,11 +366,13 @@ $quarto-search-collapse-icon-size: 26px !default;
       }
 
       i.bi {
-        padding-left: 4px;
-        padding-right: 6px;
+        padding-left: 8px;
+        padding-right: 8px;
+        font-size: 1.3em;
       }
 
       .search-result-title {
+        margin-top: 0.3em;
         margin-bottom: 0.1rem;
       }
     }
@@ -359,23 +380,20 @@ $quarto-search-collapse-icon-size: 26px !default;
     .search-result-title-container {
       font-size: 1em;
       display: flex;
-      background-color: $popover-bg;
-      color: $body-color;
-      padding: 12px 4px 2px 4px;
+      padding: 6px 4px 6px 4px;
     }
 
     .search-result-text-container {
-      padding-top: 8px;
       padding-bottom: 8px;
       padding-right: 8px;
-      margin-left: 32px;
+      margin-left: 44px;
     }
 
     .search-result-doc-section,
     .search-result-more {
       padding-top: 8px;
       padding-bottom: 8px;
-      padding-left: 32px;
+      padding-left: 44px;
     }
 
     .search-result-more {
