@@ -17,6 +17,7 @@ function import(script)
 end
 import("responsive.lua")
 import("latexdiv.lua")
+import("output-location.lua")
 import("foldcode.lua")
 import("book-cleanup.lua")
 import("ipynb.lua")
@@ -49,6 +50,7 @@ return {
     delink()
   }),
   ojs(),
+  outputLocation(),
   quartoPostMetaInject(),
 }
 

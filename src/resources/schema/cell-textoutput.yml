@@ -20,6 +20,23 @@
       - `false`: Do not include results.
       - `asis`: Treat output as raw markdown with no enclosing containers.
 
+- name: output-location
+  tags:
+    contexts: [document-execute]
+    formats: [$pres-all]
+  schema:
+    enum: [default, slide, column, fragment, column-fragment]
+  description:
+    short: Location of output relative to the code that generated it (`default`, `slide`, `column`, `fragment`, or `column-fragment`)
+    long: |
+      Location of output relative to the code that generated it. The possible values are as follows:
+
+      - `default`: Show output in the normal flow of the slide after the code
+      - `slide`: Show output on a new slide after the curent one
+      - `column`: Show output in a column next to the code
+      - `fragment`: Show output in a fragment (not visible until you advance)
+      - `column-fragment`: Show output in a column next to the code that is not visible until you advance
+
 - name: warning
   tags:
     contexts: [document-execute]
