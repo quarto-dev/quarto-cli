@@ -541,13 +541,67 @@ function revealHtmlPostprocessor(format: Format) {
       }
     }
 
-    // disable footnote and citation links (we use a popup for them)
-    const notes = doc.querySelectorAll('a[role="doc-noteref"]');
-    for (const note of notes) {
-      const noteEl = note as Element;
-      noteEl.setAttribute("onclick", "return false;");
+    // collect up asides into a single aside
+    const slides = doc.querySelectorAll("section.slide");
+    for (const slide of slides) {
+      const slideEl = slide as Element;
+      const asides = slideEl.querySelectorAll("aside");
+      const asideDivs = slideEl.querySelectorAll("div.aside");
+      const footnotes = slideEl.querySelectorAll('a[role="doc-noteref"]');
+      if (asides.length > 0 || asideDivs.length > 0 || footnotes.length > 0) {
+        const aside = doc.createElement("aside");
+        // deno-lint-ignore no-explicit-any
+        const collectAsides = (asideList: any) => {
+          asideList.forEach((asideEl: Element) => {
+            const asideDiv = doc.createElement("div");
+            asideDiv.innerHTML = (asideEl as Element).innerHTML;
+            aside.appendChild(asideDiv);
+          });
+          asideList.forEach((asideEl: Element) => {
+            asideEl.remove();
+          });
+        };
+        // start with asides and div.aside
+        collectAsides(asides);
+        collectAsides(asideDivs);
+
+        // append footnotes
+        if (footnotes.length > 0) {
+          const ol = doc.createElement("ol");
+          ol.classList.add("aside-footnotes");
+          footnotes.forEach((note, index) => {
+            const noteEl = note as Element;
+            const href = noteEl.getAttribute("href");
+            if (href) {
+              const noteLi = doc.getElementById(href.replace(/^#\//, ""));
+              if (noteLi) {
+                // remove backlink
+                const footnoteBack = noteLi.querySelector(".footnote-back");
+                if (footnoteBack) {
+                  footnoteBack.remove();
+                }
+                ol.appendChild(noteLi);
+              }
+            }
+            const sup = doc.createElement("sup");
+            sup.innerText = (index + 1) + "";
+            noteEl.replaceWith(sup);
+          });
+          aside.appendChild(ol);
+        }
+
+        slide.appendChild(aside);
+      }
     }
-    const cites = doc.querySelectorAll('a[role="doc-biblioref"');
+
+    // remove footnotes slide from end
+    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+    for (const footnoteSection of footnotes) {
+      footnoteSection.remove();
+    }
+
+    // disable citation links (we use a popup for them)
+    const cites = doc.querySelectorAll('a[role="doc-biblioref"]');
     for (const cite of cites) {
       const citeEl = cite as Element;
       citeEl.setAttribute("onclick", "return false;");
@@ -558,17 +612,6 @@ function revealHtmlPostprocessor(format: Format) {
     if (refs) {
       applyClassesToParentSlide(refs, ["smaller", "scrollable"]);
       removeClassesFromParentSlide(refs, ["center"]);
-    }
-
-    // insert footnotes title if there is one footnotes section
-    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-    if (footnotes.length === 1) {
-      const footnotesEl = footnotes[0] as Element;
-      insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
-      footnotesEl.classList.add("smaller");
-      footnotesEl.classList.add("scrollable");
-      footnotesEl.classList.remove("center");
-      removeFootnoteBacklinks(footnotesEl);
     }
 
     // apply stretch to images as required

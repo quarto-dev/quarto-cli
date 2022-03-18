@@ -253,6 +253,32 @@ section.has-dark-background {
   display: inline;
 }
 
+.reveal .slide aside,
+.reveal .slide div.aside {
+  position: absolute;
+  bottom: 20px;
+  font-size: #{$presentation-font-smaller}em;
+  color: $text-muted;
+}
+
+.reveal .slide sup {
+  font-size: #{$presentation-font-smaller}em;
+}
+
+.reveal .slide.scrollable aside,
+.reveal .slide.scrollable div.aside {
+  position: relative;
+  margin-top: 1em;
+}
+
+.reveal .slide aside .aside-footnotes {
+  margin-bottom: 0;
+}
+
+.reveal .slide aside .aside-footnotes li:first-of-type {
+  margin-top: 0;
+}
+
 $panel-sidebar-width: 270px;
 $panel-sidebar-padding: 0.5em;
 
