@@ -23,7 +23,7 @@
 - name: output-location
   tags:
     contexts: [document-execute]
-    formats: [$pres-all]
+    formats: [revealjs]
   schema:
     enum: [default, slide, column, fragment, column-fragment]
   description:

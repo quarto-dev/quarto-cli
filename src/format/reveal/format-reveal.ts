@@ -641,6 +641,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
         findParent(imageEl, (el: Element) => {
           return el.classList.contains("column") ||
             el.classList.contains("quarto-layout-panel") ||
+            el.classList.contains("fragment") ||
             !!el.className.match(/panel-/);
         })
       ) {

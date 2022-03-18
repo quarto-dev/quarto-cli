@@ -7931,7 +7931,7 @@ try {
                 "document-execute"
               ],
               formats: [
-                "$pres-all"
+                "revealjs"
               ]
             },
             schema: {

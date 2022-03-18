@@ -7930,7 +7930,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "document-execute"
             ],
             formats: [
-              "$pres-all"
+              "revealjs"
             ]
           },
           schema: {

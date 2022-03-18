@@ -2,7 +2,7 @@
 -- Copyright (C) 2021 by RStudio, PBC
 
 function outputLocation()
-  if isSlideOutput() then
+  if isRevealJsOutput() then
     return {
       Pandoc = function(doc)
 
