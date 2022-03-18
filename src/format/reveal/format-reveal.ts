@@ -293,11 +293,12 @@ export function revealjsFormat() {
               [kTemplatePatches]: [
                 extraConfigPatch,
                 revealRequireJsPatch,
-                /* TODO: Remove when the fix is available in Pandoc https://github.com/jgm/pandoc/pull/7670 */
+                /* TODO: Remove when the template has changed in Pandoc
+                    https://github.com/jgm/pandoc/blob/master/data/templates/default.revealjs#L22 */
                 (template: string) => {
                   template = template.replace(
-                    /(disableLayout: )false/,
-                    "$1$disableLayout$",
+                    /\s*\.reveal \.sourceCode \{[^}]+\}/m,
+                    "",
                   );
                   return template;
                 },

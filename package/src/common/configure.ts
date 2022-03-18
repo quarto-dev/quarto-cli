@@ -111,13 +111,18 @@ export async function configure(
         }
       } catch (error) {
         info(error);
-        info(
+        warning(
           "\n> Failed to remove existing symlink.\n> Did you previously install with sudo? Run 'which quarto' to test which version will be used.",
         );
       }
       try {
         // for the last path, try even creating a directory as a last ditch effort
         if (i === symlinkPaths.length - 1) {
+          if (!existsSync(dirname(symlinkPath))) {
+            warning(
+              `We couldn't find an existing directory in which to create the Quarto symlink. Configuration created a symlink at\n${symlinkPath}\nPlease ensure that this is on your PATH.`,
+            );
+          }
           // append path separator to resolve the dir name (in case it's a symlink)
           ensureDirSync(dirname(symlinkPath) + SEP);
         }
