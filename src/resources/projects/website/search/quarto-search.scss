@@ -312,7 +312,14 @@ $quarto-search-collapse-icon-size: 26px !default;
   li.aa-Item[aria-selected="true"] {
     .search-item {
       background-color: $component-active-bg;
-      color: $component-active-color;
+
+      &.search-result-more,
+      .search-result-section,
+      .search-result-text,
+      .search-result-title-container,
+      .search-result-text-container {
+        color: $component-active-color;
+      }
 
       mark.search-match {
         color: $component-active-color;
@@ -322,9 +329,21 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 
   li.aa-Item[aria-selected="false"] {
-    mark.search-match {
-      color: inherit;
-      background-color: theme-fade($component-active-bg, $body-bg, 42%);
+    .search-item {
+      background-color: $popover-bg;
+
+      &.search-result-more,
+      .search-result-section,
+      .search-result-text,
+      .search-result-title-container,
+      .search-result-text-container {
+        color: $popover-body-color;
+      }
+
+      mark.search-match {
+        color: inherit;
+        background-color: theme-fade($component-active-bg, $body-bg, 42%);
+      }
     }
   }
 
