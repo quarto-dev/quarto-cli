@@ -4,6 +4,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { join } from "path/mod.ts";
+
 import {
   kBibliography,
   kCitationLocation,
@@ -46,11 +48,7 @@ import * as ld from "../../core/lodash.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { isWindows } from "../../core/platform.ts";
-import {
-  kHKeyCurrentUser,
-  kHKeyLocalMachine,
-  registryReadString,
-} from "../../core/registry.ts";
+import { windowsCodePage } from "../../core/windows.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -335,14 +333,10 @@ function quartoFilterParams(format: Format) {
   return params;
 }
 
-async function initFilterParams() {
+function initFilterParams() {
   const params: Metadata = {};
   if (Deno.build.os === "windows") {
-    const value = await registryReadString(
-      [kHKeyLocalMachine, kHKeyCurrentUser],
-      "SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage",
-      "ACP",
-    );
+    const value = windowsCodePage();
     if (value) {
       params["windows-codepage"] = value;
     }

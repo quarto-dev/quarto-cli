@@ -26,6 +26,7 @@ import {
   rInstallationMessage,
 } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+import { windowsCodePage } from "../../core/windows.ts";
 
 const kIndent = "      ";
 
@@ -53,6 +54,10 @@ async function checkInstall(temp: TempContext) {
   completeMessage("Checking Quarto installation......OK");
   info(`      Version: ${quartoConfig.version()}`);
   info(`      Path: ${quartoConfig.binPath()}`);
+  if (Deno.build.os === "windows") {
+    const codePage = windowsCodePage();
+    info(`      CodePage: ${codePage || "unknown"}`);
+  }
   info("");
   const kMessage = "Checking basic markdown render....";
   await withSpinner({

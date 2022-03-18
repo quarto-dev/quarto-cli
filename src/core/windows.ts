@@ -4,6 +4,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { join } from "path/mod.ts";
+import { quartoCacheDir } from "./appdirs.ts";
 import { execProcess } from "./process.ts";
 
 export async function readRegistryKey(
@@ -42,4 +44,26 @@ export async function readRegistryKey(
   } else {
     return undefined;
   }
+}
+
+export function windowsCodePage() {
+  /*
+  const value = await registryReadString(
+    [kHKeyLocalMachine, kHKeyCurrentUser],
+    "SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage",
+    "ACP",
+  );
+  */
+
+  // Try reading our code page token, if that isn't present,
+  const tokenPath = join(quartoCacheDir(), "codepage");
+  try {
+    const codepage = Deno.readTextFileSync(tokenPath);
+    if (codepage) {
+      return codepage;
+    }
+  } catch {
+    // Ignore this error
+  }
+  return undefined;
 }

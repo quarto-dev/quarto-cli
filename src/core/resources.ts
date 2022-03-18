@@ -65,24 +65,6 @@ export async function rBinaryPath(binary: string): Promise<string> {
 
   // on windows check the registry for a current version
   if (Deno.build.os === "windows") {
-    // determine current version
-    const version = await registryReadString(
-      [kHKeyLocalMachine, kHKeyCurrentUser],
-      "Software\\R-core\\R",
-      "Current Version",
-    );
-    // determine path to version
-    if (version) {
-      const installPath = await registryReadString(
-        [kHKeyLocalMachine, kHKeyCurrentUser],
-        `Software\\R-core\\R\\${version}`,
-        "InstallPath",
-      );
-      if (installPath) {
-        return join(installPath, "bin", binary);
-      }
-    }
-
     // last ditch, try to find R in program files
     const progFiles = Deno.env.get("programfiles");
     if (progFiles) {
