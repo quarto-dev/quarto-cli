@@ -139,6 +139,7 @@ import {
   splitPandocFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
 import { parseAuthor } from "../../core/author.ts";
+import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -448,6 +449,13 @@ export async function runPandoc(
     delete allDefaults[kTitlePrefix];
   }
 
+  // Attempt to cache the code page, if this windows.
+  // We cache the code page to prevent looking it up
+  // in the registry repeatedly (which triggers MS Defender)
+  if (Deno.build.os === "windows") {
+    await cacheCodePage();
+  }
+
   // filter results json file
   const filterResultsFile = options.temp.createFile();
 
@@ -655,6 +663,13 @@ export async function runPandoc(
         : [],
     };
   } else {
+    // Since this render wasn't successful, clear the code page cache
+    // (since the code page could've changed and we could be caching the
+    // wrong value)
+    if (Deno.build.os === "windows") {
+      clearCodePageCache();
+    }
+
     return null;
   }
 }

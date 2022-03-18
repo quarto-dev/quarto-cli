@@ -91,9 +91,6 @@ export async function configure(
     );
   }
 
-  // If on windows, note the codepage
-  await noteWindowsCodePage();
-
   // record dev config
   const devConfig = createDevConfig(
     Deno.env.get("DENO") || "",
@@ -153,21 +150,6 @@ export async function configure(
           info("> Failed");
         }
       }
-    }
-  }
-}
-
-async function noteWindowsCodePage() {
-  if (Deno.build.os === "windows") {
-    info("Writing Code Page Token");
-    const value = await registryReadString(
-      [kHKeyLocalMachine, kHKeyCurrentUser],
-      "SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage",
-      "ACP",
-    );
-    if (value) {
-      info(`Code Page ${value}`);
-      Deno.writeTextFileSync(join(quartoCacheDir(), "codepage"), value);
     }
   }
 }

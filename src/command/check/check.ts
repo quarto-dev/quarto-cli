@@ -26,7 +26,7 @@ import {
   rInstallationMessage,
 } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { windowsCodePage } from "../../core/windows.ts";
+import { readCodePage } from "../../core/windows.ts";
 
 const kIndent = "      ";
 
@@ -55,8 +55,12 @@ async function checkInstall(temp: TempContext) {
   info(`      Version: ${quartoConfig.version()}`);
   info(`      Path: ${quartoConfig.binPath()}`);
   if (Deno.build.os === "windows") {
-    const codePage = windowsCodePage();
-    info(`      CodePage: ${codePage || "unknown"}`);
+    try {
+      const codePage = readCodePage();
+      info(`      CodePage: ${codePage || "unknown"}`);
+    } catch {
+      info(`      CodePage: Unable to read code page`);
+    }
   }
   info("");
   const kMessage = "Checking basic markdown render....";

@@ -48,7 +48,7 @@ import * as ld from "../../core/lodash.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { isWindows } from "../../core/platform.ts";
-import { windowsCodePage } from "../../core/windows.ts";
+import { readCodePage } from "../../core/windows.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -336,7 +336,7 @@ function quartoFilterParams(format: Format) {
 function initFilterParams() {
   const params: Metadata = {};
   if (Deno.build.os === "windows") {
-    const value = windowsCodePage();
+    const value = readCodePage();
     if (value) {
       params["windows-codepage"] = value;
     }
