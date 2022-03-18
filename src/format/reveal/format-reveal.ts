@@ -297,8 +297,8 @@ export function revealjsFormat() {
                     https://github.com/jgm/pandoc/blob/master/data/templates/default.revealjs#L22 */
                 (template: string) => {
                   template = template.replace(
-                    /.reveal .sourceCode {/,
-                    ".reveal div.sourceCode {",
+                    /\s*\.reveal \.sourceCode \{[^}]+\}/m,
+                    "",
                   );
                   return template;
                 },
