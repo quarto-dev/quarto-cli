@@ -12,6 +12,7 @@ import {
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
+  kReferenceLocation,
   kSlideLevel,
 } from "../../config/constants.ts";
 
@@ -435,6 +436,9 @@ const kOutputLocationSlide = "output-location-slide";
 
 function revealHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
+    // determine if we are embedding footnotes on slides
+    const slideFootnotes = format.pandoc[kReferenceLocation] !== "document";
+
     // compute slide level and slide headings
     const slideLevel = format.pandoc[kSlideLevel] || 2;
     const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
@@ -600,7 +604,7 @@ function revealHtmlPostprocessor(format: Format) {
         collectAsides(asideDivs);
 
         // append footnotes
-        if (footnotes.length > 0) {
+        if (slideFootnotes && footnotes.length > 0) {
           const ol = doc.createElement("ol");
           ol.classList.add("aside-footnotes");
           footnotes.forEach((note, index) => {
@@ -628,10 +632,29 @@ function revealHtmlPostprocessor(format: Format) {
       }
     }
 
-    // remove footnotes slide from end
     const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-    for (const footnoteSection of footnotes) {
-      footnoteSection.remove();
+    if (slideFootnotes) {
+      // we are using slide based footnotes so remove footnotes slide from end
+      for (const footnoteSection of footnotes) {
+        footnoteSection.remove();
+      }
+    } else {
+      // we are keeping footnotes at the end so disable the links (we use popups)
+      // and tweak the footnotes slide (add a title add smaller/scrollable)
+      const notes = doc.querySelectorAll('a[role="doc-noteref"]');
+      for (const note of notes) {
+        const noteEl = note as Element;
+        noteEl.setAttribute("onclick", "return false;");
+      }
+      const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+      if (footnotes.length === 1) {
+        const footnotesEl = footnotes[0] as Element;
+        insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
+        footnotesEl.classList.add("smaller");
+        footnotesEl.classList.add("scrollable");
+        footnotesEl.classList.remove("center");
+        removeFootnoteBacklinks(footnotesEl);
+      }
     }
 
     // disable citation links (we use a popup for them)
