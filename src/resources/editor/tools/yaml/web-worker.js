@@ -7925,28 +7925,6 @@ try {
             }
           },
           {
-            name: "output-location",
-            tags: {
-              contexts: [
-                "document-execute"
-              ],
-              formats: [
-                "revealjs"
-              ]
-            },
-            schema: {
-              enum: [
-                "default",
-                "fragment",
-                "slide"
-              ]
-            },
-            description: {
-              short: "Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)",
-              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `slide`: Show output on a new slide after the curent one\n"
-            }
-          },
-          {
             name: "warning",
             tags: {
               contexts: [
@@ -7993,6 +7971,25 @@ try {
               ]
             },
             description: "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)"
+          },
+          {
+            name: "output-location",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: {
+              enum: [
+                "default",
+                "fragment",
+                "slide"
+              ]
+            },
+            description: {
+              short: "Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)",
+              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `slide`: Show output on a new slide after the curent one\n\nNote that this option is supported only for the `revealjs` format.\n"
+            }
           },
           {
             name: "message",
@@ -17144,14 +17141,14 @@ try {
             short: "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
             long: "Include the results of executing the code in the output. Possible\nvalues:"
           },
-          {
-            short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, or <code>slide</code>)",
-            long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
-          },
           "Include warnings in rendered output.",
           "Include errors in the output (note that this implies that errors\nexecuting code will not halt processing of the document).",
           "Catch all for preventing any output (code or results) from being\nincluded in output.",
           "Panel type for cell output (<code>tabset</code>, <code>input</code>,\n<code>sidebar</code>, <code>fill</code>, <code>center</code>)",
+          {
+            short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, or <code>slide</code>)",
+            long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
+          },
           "Including messages in rendered output.",
           {
             short: "How to display text results",
