@@ -17,7 +17,6 @@ function import(script)
 end
 import("responsive.lua")
 import("latexdiv.lua")
-import("output-location.lua")
 import("foldcode.lua")
 import("book-cleanup.lua")
 import("ipynb.lua")
@@ -26,6 +25,8 @@ import("reveal.lua")
 import("tikz.lua")
 import("meta.lua")
 import("delink.lua")
+import("../common/lunacolors.lua")
+import("../common/log.lua")
 import("../common/base64.lua")
 import("../common/params.lua")
 import("../common/table.lua")
@@ -50,7 +51,6 @@ return {
     delink()
   }),
   ojs(),
-  outputLocation(),
   quartoPostMetaInject(),
 }
 

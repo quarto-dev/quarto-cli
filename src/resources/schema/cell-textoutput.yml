@@ -25,17 +25,15 @@
     contexts: [document-execute]
     formats: [revealjs]
   schema:
-    enum: [default, slide, column, fragment, column-fragment]
+    enum: [default, fragment, slide]
   description:
-    short: Location of output relative to the code that generated it (`default`, `slide`, `column`, `fragment`, or `column-fragment`)
+    short: Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)
     long: |
       Location of output relative to the code that generated it. The possible values are as follows:
 
       - `default`: Show output in the normal flow of the slide after the code
-      - `slide`: Show output on a new slide after the curent one
-      - `column`: Show output in a column next to the code
       - `fragment`: Show output in a fragment (not visible until you advance)
-      - `column-fragment`: Show output in a column next to the code that is not visible until you advance
+      - `slide`: Show output on a new slide after the curent one
 
 - name: warning
   tags:

@@ -7937,15 +7937,13 @@ try {
             schema: {
               enum: [
                 "default",
-                "slide",
-                "column",
                 "fragment",
-                "column-fragment"
+                "slide"
               ]
             },
             description: {
-              short: "Location of output relative to the code that generated it (`default`, `slide`, `column`, `fragment`, or `column-fragment`)",
-              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `slide`: Show output on a new slide after the curent one\n- `column`: Show output in a column next to the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `column-fragment`: Show output in a column next to the code that is not visible until you advance\n"
+              short: "Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)",
+              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `slide`: Show output on a new slide after the curent one\n"
             }
           },
           {
@@ -17144,7 +17142,7 @@ try {
             long: "Include the results of executing the code in the output. Possible\nvalues:"
           },
           {
-            short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>slide</code>, <code>column</code>,\n<code>fragment</code>, or <code>column-fragment</code>)",
+            short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, or <code>slide</code>)",
             long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
           },
           "Include warnings in rendered output.",

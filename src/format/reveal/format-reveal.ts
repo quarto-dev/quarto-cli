@@ -431,8 +431,46 @@ function revealMarkdownAfterBody(format: Format) {
   return lines.join("\n");
 }
 
+const kOutputLocationSlide = "output-location-slide";
+
 function revealHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
+    // compute slide level and slide headings
+    const slideLevel = format.pandoc[kSlideLevel] || 2;
+    const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
+      "H" + (i + 1)
+    );
+
+    // find output-location-slide and inject slides as required
+    const slideOutputs = doc.querySelectorAll(`.${kOutputLocationSlide}`);
+    for (const slideOutput of slideOutputs) {
+      // find parent slide
+      const slideOutputEl = slideOutput as Element;
+      const parentSlide = findParentSlide(slideOutputEl);
+      if (parentSlide && parentSlide.parentElement) {
+        const newSlide = doc.createElement("section");
+        newSlide.id = parentSlide?.id ? parentSlide.id + "-output" : "";
+        for (const clz of parentSlide.classList) {
+          newSlide.classList.add(clz);
+        }
+        newSlide.classList.add(kOutputLocationSlide);
+        // repeat header if there is one
+        if (
+          slideHeadingTags.includes(
+            parentSlide.firstElementChild?.tagName || "",
+          )
+        ) {
+          const headingEl = doc.createElement(
+            parentSlide.firstElementChild?.tagName!,
+          );
+          headingEl.innerHTML = parentSlide.firstElementChild?.innerHTML || "";
+          newSlide.appendChild(headingEl);
+        }
+        newSlide.appendChild(slideOutputEl);
+        parentSlide.parentElement.appendChild(newSlide);
+      }
+    }
+
     // if we are using 'number' as our hash type then remove the
     // title slide id
     if (format.metadata[kHashType] === "number") {
@@ -481,10 +519,6 @@ function revealHtmlPostprocessor(format: Format) {
 
     // remove all attributes from slide headings (pandoc has already moved
     // them to the enclosing section)
-    const slideLevel = format.pandoc[kSlideLevel] || 2;
-    const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
-      "H" + (i + 1)
-    );
     const slideHeadings = doc.querySelectorAll("section.slide > :first-child");
     slideHeadings.forEach((slideHeading) => {
       const slideHeadingEl = slideHeading as Element;
@@ -642,6 +676,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           return el.classList.contains("column") ||
             el.classList.contains("quarto-layout-panel") ||
             el.classList.contains("fragment") ||
+            el.classList.contains(kOutputLocationSlide) ||
             !!el.className.match(/panel-/);
         })
       ) {
