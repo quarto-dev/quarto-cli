@@ -20,9 +20,14 @@ import { localizedString } from "../../config/localization.ts";
 import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { Author, parseAuthor } from "../../core/author.ts";
 import { formattedDate } from "../../core/date.ts";
-import { Document, Element } from "../../core/deno-dom.ts";
+import { Document, Element, Node, NodeList } from "../../core/deno-dom.ts";
 import { kDescription } from "../../project/types/website/listing/website-listing-shared.ts";
 import { kDateFormat } from "../../project/types/website/listing/website-listing-template.ts";
+import {
+  createMarkdownPipeline,
+  MarkdownPipeline,
+  PipelineMarkdown,
+} from "../../project/types/website/website-pipeline-md.ts";
 import {
   citationMeta,
   documentCSL,
@@ -37,7 +42,56 @@ const kTitleBlockCategories = "title-block-categories";
 const orcidData =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==";
 
+export interface DocumentTitleContext {
+  pipeline: MarkdownPipeline;
+}
+
+export function preProcessDocumentTitle(
+  format: Format,
+) {
+  const pipeline = createMarkdownPipeline("quarto-title-processor", [
+    {
+      getUnrendered: (): PipelineMarkdown | undefined => {
+        const authors = getAuthors(format);
+        const authorMd: Record<string, string> = {};
+        for (const author of authors) {
+          authorMd[author.name] = author.name;
+          if (author.affilliation?.name) {
+            authorMd[author.affilliation.name] = author.affilliation.name;
+          }
+        }
+        return {
+          inlines: authorMd,
+        };
+      },
+      processRendered: (
+        _rendered: Record<string, Element>,
+        _doc: Document,
+      ): void => {
+      },
+    },
+  ]);
+
+  return {
+    pipeline,
+  };
+}
+
+function getAuthors(format: Format) {
+  const authorMeta = format.metadata[kAuthor] ||
+    citationMeta(format)[kAuthor];
+  const authors: Author[] = [];
+  if (authorMeta) {
+    const parsedAuthors = parseAuthor(authorMeta);
+    if (parsedAuthors) {
+      authors.push(...parsedAuthors);
+    }
+  }
+  return authors;
+}
+
 export function processDocumentTitle(
+  context: DocumentTitleContext,
   input: string,
   inputMetadata: Metadata,
   format: Format,
@@ -107,14 +161,8 @@ export function processDocumentTitle(
   metadataContainerEl.classList.add("quarto-title-meta");
 
   // Generate the authors section
-  const authorMeta = format.metadata[kAuthor] || citationMeta(format)[kAuthor];
-  const authors: Author[] = [];
-  if (authorMeta) {
-    const parsedAuthors = parseAuthor(authorMeta);
-    if (parsedAuthors) {
-      authors.push(...parsedAuthors);
-    }
-  }
+  const authors = getAuthors(format);
+  const rendered = context.pipeline.readMarkdown(doc);
 
   // Process the authors and affiliations
   if (authors.length > 0) {
@@ -124,9 +172,16 @@ export function processDocumentTitle(
     const authorEl = doc.createElement("div");
     authorEl.classList.add("quarto-title-authors");
     for (const author of authors) {
-      const authorP = doc.createElement("p");
+      const authorP = doc.createElement("div");
 
-      const authorContentsNode = maybeLinkedNode(doc, author.name, author.url);
+      const authorName =
+        Array.from(rendered[author.name].childNodes as NodeList) ||
+        author.name;
+      const authorContentsNode = maybeLinkedNode(
+        doc,
+        authorName,
+        author.url,
+      );
       authorP.appendChild(authorContentsNode);
 
       if (author.orcid) {
@@ -158,17 +213,24 @@ export function processDocumentTitle(
       const affiliationEl = doc.createElement("div");
       affiliationEl.classList.add("quarto-title-affiliations");
       for (const author of authors) {
-        const affiliationP = doc.createElement("p");
-
-        const affiliationText = (author.affilliation !== undefined)
-          ? author.affilliation.name
-          : "";
+        const affiliateText = () => {
+          if (author.affilliation !== undefined) {
+            if (rendered[author.affilliation.name]) {
+              return Array.from(rendered[author.affilliation.name].childNodes);
+            } else {
+              return author.affilliation.name;
+            }
+          } else {
+            return " ";
+          }
+        };
 
         const affiliationNode = maybeLinkedNode(
           doc,
-          affiliationText,
+          affiliateText(),
           author.affilliation?.url,
         );
+        const affiliationP = doc.createElement("p");
         affiliationP.appendChild(affiliationNode);
         affiliationEl.appendChild(affiliationP);
       }
@@ -410,14 +472,36 @@ function createBannerEl(
   return bannerDiv;
 }
 
-function maybeLinkedNode(doc: Document, text: string, url?: string) {
+function maybeLinkedNode(
+  doc: Document,
+  text: string | Node[],
+  url?: string,
+): Node {
   if (url) {
     const affiliationA = doc.createElement("a");
     affiliationA.setAttribute("href", url);
-    affiliationA.innerText = text;
+    if (typeof (text) === "string") {
+      affiliationA.innerText = text;
+    } else {
+      text.forEach((node) => {
+        affiliationA.appendChild(node);
+      });
+    }
     return affiliationA;
   } else {
-    return doc.createTextNode(text);
+    if (typeof (text) === "string") {
+      return doc.createTextNode(text);
+    } else {
+      if (text.length === 1) {
+        return text[0] as Element;
+      } else {
+        const el = doc.createElement("p");
+        text.forEach((node) => {
+          el.appendChild(node);
+        });
+        return el;
+      }
+    }
   }
 }
 
