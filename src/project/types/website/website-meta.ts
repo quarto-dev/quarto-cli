@@ -363,7 +363,7 @@ function metaMarkdownPipeline(format: Format) {
           el.innerHTML = renderedEl.innerText;
         }
 
-        ['meta[name="og:title"]', 'meta[name="twitter:title"]'].forEach(
+        ['meta[property="og:title"]', 'meta[name="twitter:title"]'].forEach(
           (sel) => {
             const metaEl = doc.querySelector(sel);
             if (metaEl) {
