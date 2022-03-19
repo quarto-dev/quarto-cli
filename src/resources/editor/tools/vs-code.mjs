@@ -7924,6 +7924,28 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "output-location",
+          tags: {
+            contexts: [
+              "document-execute"
+            ],
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: {
+            enum: [
+              "default",
+              "fragment",
+              "slide"
+            ]
+          },
+          description: {
+            short: "Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)",
+            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `slide`: Show output on a new slide after the curent one\n"
+          }
+        },
+        {
           name: "warning",
           tags: {
             contexts: [
@@ -15536,6 +15558,11 @@ var require_yaml_intelligence_resources = __commonJS({
             "revealjs",
             "dzslides"
           ],
+          "pres-all": [
+            "pptx",
+            "beamer",
+            "$html-pres"
+          ],
           "html-files": [
             "$html-doc",
             "$html-pres"
@@ -17115,6 +17142,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
           long: "Include the results of executing the code in the output. Possible\nvalues:"
+        },
+        {
+          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, or <code>slide</code>)",
+          long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
         },
         "Include warnings in rendered output.",
         "Include errors in the output (note that this implies that errors\nexecuting code will not halt processing of the document).",

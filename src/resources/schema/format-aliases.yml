@@ -7,6 +7,7 @@ aliases:
   odt-all: [odt, opendocument]
   html-doc: [html, html4, html5]
   html-pres: [slidy, slideous, s5, revealjs, dzslides]
+  pres-all: [pptx, beamer, $html-pres]
   html-files: [$html-doc, $html-pres]
   html-all: [$html-files, $epub-all]
   asciidoc-all: [asciidoc, asciidoctor]
