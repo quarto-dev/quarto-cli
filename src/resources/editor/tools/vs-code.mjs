@@ -15850,7 +15850,10 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 author: {
                   maybeArrayOf: {
-                    schema: "string",
+                    anyOf: [
+                      "string",
+                      "object"
+                    ],
                     description: "Author or authors of the book"
                   }
                 },

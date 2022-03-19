@@ -15851,7 +15851,10 @@ try {
                   },
                   author: {
                     maybeArrayOf: {
-                      schema: "string",
+                      anyOf: [
+                        "string",
+                        "object"
+                      ],
                       description: "Author or authors of the book"
                     }
                   },
