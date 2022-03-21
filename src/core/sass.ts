@@ -321,13 +321,20 @@ export async function compileWithCache(
 
     // We need to refresh the cache
     if (writeCache) {
-      await dartCompile(
-        input,
-        outputFilePath,
-        temp,
-        loadPaths,
-        compressed,
-      );
+      try {
+        await dartCompile(
+          input,
+          outputFilePath,
+          temp,
+          loadPaths,
+          compressed,
+        );
+      } catch (error) {
+        // Compilation failed, so clear out the output file
+        // which will be invalid CSS
+        Deno.removeSync(outputFilePath);
+        throw error;
+      }
       cacheIndex[identifierHash] = { key: cacheIdentifier, hash: inputHash };
       Deno.writeTextFileSync(cacheIdxPath, JSON.stringify(cacheIndex));
     }
