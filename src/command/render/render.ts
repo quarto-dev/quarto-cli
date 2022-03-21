@@ -1111,7 +1111,6 @@ async function resolveFormats(
     options.flags,
   );
 
-  console.log(inputMetadata);
   const inputFormats = await resolveFormatsFromMetadata(
     inputMetadata,
     target.input,
