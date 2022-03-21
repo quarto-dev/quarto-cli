@@ -26,6 +26,7 @@ import { PandocFlags } from "../../../config/types.ts";
 import {
   kCrossref,
   kCrossrefChapters,
+  kDate,
   kDocumentClass,
   kNumberSections,
   kPaperSize,
@@ -53,10 +54,16 @@ import {
 import { bookProjectConfig } from "./book-config.ts";
 
 import { chapterInfoForInput, numberChapterHtmlNav } from "./book-chapters.ts";
-import { isMultiFileBookFormat, kBook } from "./book-shared.ts";
+import {
+  bookConfig,
+  isMultiFileBookFormat,
+  kBook,
+  setBookConfig,
+} from "./book-shared.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 import { TempContext } from "../../../core/temp.ts";
+import { isSpecialDate, parseSpecialDate } from "../../../core/date.ts";
 
 const kSingleFileBook = "single-file-book";
 
@@ -125,7 +132,6 @@ export const bookProjectType: ProjectType = {
       };
     }
   },
-
   pandocRenderer: bookPandocRenderer,
 
   navItemText: (
@@ -147,7 +153,7 @@ export const bookProjectType: ProjectType = {
   incrementalRenderAll: bookIncrementalRenderAll,
 
   // inherit a bunch of behavior from website projects
-  preRender: websiteProjectType.preRender,
+  preRender: bookPreRender,
   postRender: bookPostRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
   metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
@@ -218,6 +224,24 @@ export const bookProjectType: ProjectType = {
   },
 };
 
+function bookPreRender(context: ProjectContext): Promise<void> {
+  // If the book date is a special date, resolve it
+  const date = bookConfig(kDate, context.config);
+  if (context.config && isSpecialDate(date)) {
+    setBookConfig(
+      kDate,
+      parseSpecialDate(context.files.input, date),
+      context.config,
+    );
+  }
+
+  if (websiteProjectType.preRender) {
+    return websiteProjectType.preRender(context);
+  } else {
+    return Promise.resolve();
+  }
+}
+
 function bookHtmlPostprocessor() {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     // find the cover image
@@ -228,7 +252,6 @@ function bookHtmlPostprocessor() {
       coverImage?.parentNode.remove();
       nextEl.firstChild.after(coverImage?.parentNode);
     }
-
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }

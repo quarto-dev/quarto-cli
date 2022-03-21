@@ -16,6 +16,7 @@ import { resourcePath } from "./resources.ts";
 // Special date constants
 export const kLastModified = "last-modified";
 export const kToday = "today";
+export const rSysDate = "`r Sys.time()`";
 
 export type DateFormat = "full" | "long" | "medium" | "short" | string;
 export type TimeFormat = "full" | "long" | "medium" | "short";
@@ -30,11 +31,11 @@ export function today(): Date {
 }
 
 export function isSpecialDate(val?: unknown) {
-  return val === kLastModified || val === kToday;
+  return val === kLastModified || val === kToday || val === rSysDate;
 }
 
-export function parseSpecialDate(input: string | string[], val: string) {
-  if (val === kLastModified) {
+export function parseSpecialDate(input: string | string[], val: unknown) {
+  if (val === kLastModified || val === rSysDate) {
     if (!Array.isArray(input)) {
       input = [input];
     }
