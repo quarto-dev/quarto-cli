@@ -44,6 +44,7 @@ import {
   kBibliography,
   kCache,
   kCss,
+  kDate,
   kEcho,
   kEngine,
   kExecuteDaemon,
@@ -146,7 +147,11 @@ import { getFrontMatterSchema } from "../../core/lib/yaml-schema/front-matter.ts
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
-import { setDateLocale } from "../../core/date.ts";
+import {
+  isSpecialDate,
+  parseSpecialDate,
+  setDateLocale,
+} from "../../core/date.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -881,10 +886,12 @@ export function isStandaloneFormat(format: Format) {
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
-  includeDir: string,
+  input: string,
   formats: string[],
   flags?: RenderFlags,
 ): Promise<Record<string, Format>> {
+  const includeDir = dirname(input);
+
   // Read any included metadata files and merge in and metadata from the command
   const frontMatterSchema = await getFrontMatterSchema();
   const included = await includedMetadata(
@@ -900,6 +907,15 @@ export async function resolveFormatsFromMetadata(
 
   // resolve any language file references
   await resolveLanguageMetadata(allMetadata, includeDir);
+
+  // Resolve the date if there are any special
+  // date specifiers
+  if (isSpecialDate(allMetadata[kDate])) {
+    allMetadata[kDate] = parseSpecialDate(
+      input,
+      allMetadata[kDate] as string,
+    );
+  }
 
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
@@ -1083,21 +1099,22 @@ async function resolveFormats(
   // resolve formats for each type of metadata
   const projFormats = await resolveFormatsFromMetadata(
     projMetadata,
-    dirname(target.input),
+    target.input,
     formats,
     options.flags,
   );
 
   const directoryFormats = await resolveFormatsFromMetadata(
     directoryMetadata,
-    dirname(target.input),
+    target.input,
     formats,
     options.flags,
   );
 
+  console.log(inputMetadata);
   const inputFormats = await resolveFormatsFromMetadata(
     inputMetadata,
-    dirname(target.input),
+    target.input,
     formats,
     options.flags,
   );

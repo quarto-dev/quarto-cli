@@ -13,8 +13,48 @@ import { existsSync } from "fs/mod.ts";
 import { toFileUrl } from "path/mod.ts";
 import { resourcePath } from "./resources.ts";
 
+// Special date constants
+export const kLastModified = "last-modified";
+export const kToday = "today";
+
 export type DateFormat = "full" | "long" | "medium" | "short" | string;
 export type TimeFormat = "full" | "long" | "medium" | "short";
+
+export function today(): Date {
+  const today = new Date();
+  today.setHours(0);
+  today.setMinutes(0);
+  today.setSeconds(0);
+  today.setMilliseconds(0);
+  return today;
+}
+
+export function isSpecialDate(val?: unknown) {
+  return val === kLastModified || val === kToday;
+}
+
+export function parseSpecialDate(input: string | string[], val: string) {
+  if (val === kLastModified) {
+    if (!Array.isArray(input)) {
+      input = [input];
+    }
+
+    let lastModifiedTs = 0;
+    for (const inp of input) {
+      const stat = Deno.statSync(inp);
+      if (stat.mtime) {
+        lastModifiedTs = Math.max(lastModifiedTs, stat.mtime.getTime());
+      }
+    }
+
+    // Format as an ISO timestamp
+    return formatDate(new Date(lastModifiedTs), "YYYY-MM-DDTHH:mm:ssZ");
+  } else if (val === kToday) {
+    return formatDate(today(), "YYYY-MM-DDTHH:mm:ssZ");
+  } else {
+    return val;
+  }
+}
 
 export async function setDateLocale(locale: string) {
   if (locale !== dayjs.locale()) {

@@ -19,7 +19,7 @@ import {
 import { localizedString } from "../../config/localization.ts";
 import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { Author, parseAuthor } from "../../core/author.ts";
-import { formattedDate } from "../../core/date.ts";
+import { formattedDate, isSpecialDate } from "../../core/date.ts";
 import { Document, Element, Node, NodeList } from "../../core/deno-dom.ts";
 import { kDescription } from "../../project/types/website/listing/website-listing-shared.ts";
 import { kDateFormat } from "../../project/types/website/listing/website-listing-template.ts";
@@ -249,7 +249,15 @@ export function processDocumentTitle(
 
   // Process the publish date
   if (dateEl) {
-    const dateRaw = (inputMetadata[kDate] || format.metadata[kDate]) as string;
+    const resolveDate = () => {
+      if (inputMetadata[kDate] && !isSpecialDate(inputMetadata[kDate])) {
+        return inputMetadata[kDate] as string;
+      } else {
+        return format.metadata[kDate] as string;
+      }
+    };
+
+    const dateRaw = resolveDate();
     if (dateRaw) {
       const formatted = formattedDate(
         dateRaw,
