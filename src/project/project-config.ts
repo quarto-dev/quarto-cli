@@ -147,7 +147,13 @@ export function normalizeSidebarItem(
       } else {
         item.text = section;
       }
-      item.sectionId = kQuartoSidebarPrefix + asHtmlId(section);
+      // The htmlId could be empty, in which case we will not have created
+      // an unambiguous sectionId, so don't write the section Id in this
+      // case
+      const htmlId = asHtmlId(section);
+      if (htmlId.trim() !== "") {
+        item.sectionId = kQuartoSidebarPrefix + asHtmlId(section);
+      }
       delete item.section;
     }
 
