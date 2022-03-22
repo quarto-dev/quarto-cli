@@ -375,11 +375,12 @@ function generateThemeCssClasses(
           lines.push(...cssValues);
           lines.push("}\n");
         } else {
-          ["code span", "div.sourceCode"].forEach((selector) => {
-            lines.push(`\n${selector} {`);
-            lines.push(...cssValues);
-            lines.push("}\n");
-          });
+          ["code span", "div.sourceCode,\ndiv.sourceCode pre.sourceCode"]
+            .forEach((selector) => {
+              lines.push(`\n${selector} {`);
+              lines.push(...cssValues);
+              lines.push("}\n");
+            });
         }
       }
     });
