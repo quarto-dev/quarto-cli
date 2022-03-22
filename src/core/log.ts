@@ -65,10 +65,13 @@ export function appendLogOptions(cmd: Command): Command {
 
 export function logOptions(args: Args) {
   const logOptions: LogOptions = {};
-  logOptions.log = args.l || args.log;
-  logOptions.level = args.ll || args["log-level"];
+  logOptions.log = args.l || args.log || Deno.env.get("QUARTO_LOG");
+  logOptions.level = args.ll || args["log-level"] ||
+    Deno.env.get("QUARTO_LOG_LEVEL");
   logOptions.quiet = args.q || args.quiet;
-  logOptions.format = parseFormat(args.lf || args["log-format"]);
+  logOptions.format = parseFormat(
+    args.lf || args["log-format"] || Deno.env.get("QUARTO_LOG_FORMAT"),
+  );
   return logOptions;
 }
 
