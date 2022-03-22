@@ -65,6 +65,19 @@ export function bookConfig(
   }
 }
 
+export function setBookConfig(
+  name: string,
+  value: string,
+  project: ProjectConfig,
+) {
+  const book = project?.[kBook] as
+    | Record<string, unknown>
+    | undefined;
+  if (book) {
+    book[name] = value;
+  }
+}
+
 export function isBookIndexPage(target?: string): boolean {
   return target !== undefined && target.startsWith("index.");
 }

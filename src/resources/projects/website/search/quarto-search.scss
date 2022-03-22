@@ -319,6 +319,7 @@ $quarto-search-collapse-icon-size: 26px !default;
       .search-result-title-container,
       .search-result-text-container {
         color: $component-active-color;
+        background-color: $component-active-bg;
       }
 
       mark.search-match {
