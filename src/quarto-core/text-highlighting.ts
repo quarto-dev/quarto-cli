@@ -23,10 +23,21 @@ const kLightSuffix = "light";
 
 export function textHighlightThemePath(
   inputDir: string,
-  theme: string,
+  theme: string | Record<string, string>,
   style?: "dark" | "light",
 ) {
-  const userThemePath = join(inputDir, theme);
+  let resolvedTheme: string;
+  if (typeof (theme) === "object") {
+    if (style && theme[style]) {
+      resolvedTheme = theme[style] as string;
+    } else {
+      resolvedTheme = theme[Object.keys(theme)[0]] as string;
+    }
+  } else {
+    resolvedTheme = theme as string;
+  }
+
+  const userThemePath = join(inputDir, resolvedTheme);
   if (existsSync(userThemePath)) {
     return Deno.realPathSync(userThemePath);
   }
@@ -70,24 +81,29 @@ export function hasAdaptiveTheme(pandoc: FormatPandoc) {
   return theme && isAdaptiveTheme(theme);
 }
 
-export function isAdaptiveTheme(name: string) {
-  return [
-    "arrow",
-    "atom-one",
-    "ayu",
-    "breeze",
-    "github",
-    "gruvbox",
-    "monochrome",
-  ].includes(
-    name,
-  );
+export function isAdaptiveTheme(theme: string | Record<string, string>) {
+  if (typeof (theme) === "string") {
+    return [
+      "arrow",
+      "atom-one",
+      "ayu",
+      "breeze",
+      "github",
+      "gruvbox",
+      "monochrome",
+    ].includes(
+      theme,
+    );
+  } else {
+    const keys = Object.keys(theme);
+    return keys.includes("dark") && keys.includes("light");
+  }
 }
 
 // Reads the contents of a theme file, falling back if the style specific version isn't available
 export function readTheme(
   inputDir: string,
-  theme: string,
+  theme: string | Record<string, string>,
   style: "light" | "dark" | "default",
 ) {
   const themeFile = textHighlightThemePath(
