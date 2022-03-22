@@ -84,6 +84,7 @@ export const inspectCommand = new Command()
           },
           engines: context.engines,
           config: context.config,
+          files: context.files,
         };
       } else {
         throw new Error(`${path} is not a quarto project.`);
