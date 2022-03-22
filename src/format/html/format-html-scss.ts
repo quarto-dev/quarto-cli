@@ -205,7 +205,11 @@ function layerTheme(
   return { layers, loadPaths };
 }
 
-function resolveTextHighlightingLayer(format: Format, style: "dark" | "light") {
+function resolveTextHighlightingLayer(
+  input: string,
+  format: Format,
+  style: "dark" | "light",
+) {
   const layer = {
     uses: "",
     defaults: "",
@@ -216,7 +220,11 @@ function resolveTextHighlightingLayer(format: Format, style: "dark" | "light") {
 
   if (format.metadata[kCodeBlockBackground] === undefined) {
     // Inject a background color, if present
-    const themeDescriptor = readHighlightingTheme(format.pandoc, style);
+    const themeDescriptor = readHighlightingTheme(
+      dirname(input),
+      format.pandoc,
+      style,
+    );
     if (themeDescriptor && !themeDescriptor.isAdaptive) {
       const backgroundColor = () => {
         if (themeDescriptor.json["background-color"]) {
@@ -294,7 +302,11 @@ function resolveThemeLayer(
     theme = { light: [] };
   }
   const lightLayerContext = layerTheme(input, theme.light, quartoThemesDir);
-  const highlightingLayer = resolveTextHighlightingLayer(format, "light");
+  const highlightingLayer = resolveTextHighlightingLayer(
+    input,
+    format,
+    "light",
+  );
   if (highlightingLayer) {
     lightLayerContext.layers.unshift(highlightingLayer);
   }
@@ -303,7 +315,11 @@ function resolveThemeLayer(
     ? layerTheme(input, theme.dark, quartoThemesDir)
     : undefined;
   if (darkLayerContext) {
-    const darkHighlightingLayer = resolveTextHighlightingLayer(format, "dark");
+    const darkHighlightingLayer = resolveTextHighlightingLayer(
+      input,
+      format,
+      "dark",
+    );
     if (darkHighlightingLayer) {
       darkLayerContext.layers.unshift(darkHighlightingLayer);
     }

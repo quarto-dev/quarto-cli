@@ -7,9 +7,7 @@
 
 import { join } from "path/mod.ts";
 import { cloneDeep, uniqBy } from "../../core/lodash.ts";
-import { existsSync } from "fs/mod.ts";
 
-import { kHighlightStyle } from "../../config/constants.ts";
 import {
   FormatExtras,
   FormatPandoc,
@@ -23,7 +21,6 @@ import { kDefaultHighlightStyle } from "./types.ts";
 
 import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
-import { textHighlightThemePath } from "../../core/resources.ts";
 import { compileSass } from "../../core/sass.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
@@ -42,6 +39,7 @@ interface SassTarget {
 }
 
 export async function resolveSassBundles(
+  inputDir: string,
   extras: FormatExtras,
   pandoc: FormatPandoc,
   temp: TempContext,
@@ -182,6 +180,7 @@ export async function resolveSassBundles(
 
   // Resolve generated quarto css variables
   extras = await resolveQuartoSyntaxHighlighting(
+    inputDir,
     extras,
     pandoc,
     temp,
@@ -192,6 +191,7 @@ export async function resolveSassBundles(
   if (hasDarkStyles) {
     // Provide dark variables for this
     extras = await resolveQuartoSyntaxHighlighting(
+      inputDir,
       extras,
       pandoc,
       temp,
@@ -212,6 +212,7 @@ export function cssHasDarkModeSentinel(css: string) {
 
 // Generates syntax highlighting Css and Css variables
 async function resolveQuartoSyntaxHighlighting(
+  inputDir: string,
   extras: FormatExtras,
   pandoc: FormatPandoc,
   temp: TempContext,
@@ -235,7 +236,7 @@ async function resolveQuartoSyntaxHighlighting(
   }.css`;
 
   // Read the highlight style (theme name)
-  const themeDescriptor = readHighlightingTheme(pandoc, style);
+  const themeDescriptor = readHighlightingTheme(inputDir, pandoc, style);
   if (themeDescriptor) {
     // Other variables that need to be injected (if any)
     const extraVariables = extras.html?.[kQuartoCssVariables] || [];
@@ -464,7 +465,7 @@ export function defaultSyntaxHighlightingClassMap() {
 
   // Read the highlight style (theme name)
   const theme = kDefaultHighlightStyle;
-  const themeRaw = readTheme(theme, "default");
+  const themeRaw = readTheme("", theme, "default");
   if (themeRaw) {
     const themeJson = JSON.parse(themeRaw);
 
