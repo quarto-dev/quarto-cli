@@ -237,7 +237,15 @@ export function hasAdaptiveTheme(pandoc: FormatPandoc) {
 }
 
 export function isAdaptiveTheme(name: string) {
-  return ["arrow", "atom-one", "ayu", "breeze", "github", "gruvbox"].includes(
+  return [
+    "arrow",
+    "atom-one",
+    "ayu",
+    "breeze",
+    "github",
+    "gruvbox",
+    "monochrome",
+  ].includes(
     name,
   );
 }

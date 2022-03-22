@@ -1,0 +1,225 @@
+{
+    "text-color": "#FFFFFF",
+    "background-color": "#000000",
+    "line-number-color": null,
+    "line-number-background-color": null,
+    "text-styles": {
+        "Other": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Attribute": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "SpecialString": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Annotation": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
+        "RegionMarker": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Function": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "String": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "ControlFlow": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Operator": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Error": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Normal": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "BaseN": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Alert": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Variable": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "BuiltIn": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Extension": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Preprocessor": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Information": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
+        "VerbatimString": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Warning": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
+        "Documentation": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
+        "Import": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Char": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "DataType": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Float": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Comment": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
+        "CommentVar": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
+        "Constant": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "SpecialChar": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "DecVal": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Keyword": {
+            "text-color": "#FFFFFF",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        }
+    }
+}
