@@ -206,21 +206,35 @@ export function cssHasDarkModeSentinel(css: string) {
   return !!css.match(/\/\*! dark \*\//g);
 }
 
+export interface ThemeDescriptor {
+  json: Record<string, unknown>;
+  isAdaptive: boolean;
+}
+
 export function readHighlightingTheme(
   pandoc: FormatPandoc,
   style: "dark" | "light" | "default",
-) {
+): ThemeDescriptor | undefined {
   const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
   if (theme) {
     const themeRaw = readTheme(theme, style);
     if (themeRaw) {
-      return JSON.parse(themeRaw);
+      return {
+        json: JSON.parse(themeRaw),
+        isAdaptive: isAdaptiveTheme(theme),
+      };
     } else {
       return undefined;
     }
   } else {
     return undefined;
   }
+}
+
+export function isAdaptiveTheme(name: string) {
+  return ["arrow", "atom-one", "ayu", "breeze", "github", "gruvbox"].includes(
+    name,
+  );
 }
 
 // Generates syntax highlighting Css and Css variables
@@ -248,13 +262,13 @@ async function resolveQuartoSyntaxHighlighting(
   }.css`;
 
   // Read the highlight style (theme name)
-  const themeJson = readHighlightingTheme(pandoc, style);
-  if (themeJson) {
+  const themeDescriptor = readHighlightingTheme(pandoc, style);
+  if (themeDescriptor) {
     // Other variables that need to be injected (if any)
     const extraVariables = extras.html?.[kQuartoCssVariables] || [];
 
     // The text highlighting CSS variables
-    const highlightCss = generateThemeCssVars(themeJson);
+    const highlightCss = generateThemeCssVars(themeDescriptor.json);
     if (highlightCss) {
       const rules = [
         highlightCss,
@@ -264,7 +278,9 @@ async function resolveQuartoSyntaxHighlighting(
       ];
 
       // The text highlighting CSS rules
-      const textHighlightCssRules = generateThemeCssClasses(themeJson);
+      const textHighlightCssRules = generateThemeCssClasses(
+        themeDescriptor.json,
+      );
       if (textHighlightCssRules) {
         rules.push(...textHighlightCssRules);
       }

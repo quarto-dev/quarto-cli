@@ -216,32 +216,33 @@ function resolveTextHighlightingLayer(format: Format, style: "dark" | "light") {
 
   if (format.metadata[kCodeBlockBackground] === undefined) {
     // Inject a background color, if present
-    const themeJson = readHighlightingTheme(format.pandoc, style);
-
-    const backgroundColor = () => {
-      if (themeJson["background-color"]) {
-        return themeJson["background-color"] as string;
-      } else {
-        const editorColors = themeJson["editor-colors"] as
-          | Record<string, string>
-          | undefined;
-        if (editorColors && editorColors["BackgroundColor"]) {
-          return editorColors["BackgroundColor"] as string;
+    const themeDescriptor = readHighlightingTheme(format.pandoc, style);
+    if (themeDescriptor && !themeDescriptor.isAdaptive) {
+      const backgroundColor = () => {
+        if (themeDescriptor.json["background-color"]) {
+          return themeDescriptor.json["background-color"] as string;
         } else {
-          return undefined;
+          const editorColors = themeDescriptor.json["editor-colors"] as
+            | Record<string, string>
+            | undefined;
+          if (editorColors && editorColors["BackgroundColor"]) {
+            return editorColors["BackgroundColor"] as string;
+          } else {
+            return undefined;
+          }
         }
-      }
-    };
+      };
 
-    const background = backgroundColor();
-    if (background) {
-      layer.defaults = outputVariable(
-        sassVariable(
-          "code-block-bg",
-          asCssColor(background),
-        ),
-        true,
-      );
+      const background = backgroundColor();
+      if (background) {
+        layer.defaults = outputVariable(
+          sassVariable(
+            "code-block-bg",
+            asCssColor(background),
+          ),
+          true,
+        );
+      }
     }
   }
 
