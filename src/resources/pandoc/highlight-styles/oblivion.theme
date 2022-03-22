@@ -11,6 +11,7 @@
         "revision": 2,
         "license": "SPDX-License-Identifier: MIT"
     },
+    "background-color": "#201f1f",    
     "text-styles": {
         "Alert": {
             "background-color": "#451e1a",
