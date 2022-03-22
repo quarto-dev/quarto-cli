@@ -28,6 +28,10 @@ import { compileSass } from "../../core/sass.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
 import { kBootstrapDependencyName } from "../../format/html/format-html-shared.ts";
+import {
+  readHighlightingTheme,
+  readTheme,
+} from "../../quarto-core/text-highlighting.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -204,50 +208,6 @@ export async function resolveSassBundles(
 
 export function cssHasDarkModeSentinel(css: string) {
   return !!css.match(/\/\*! dark \*\//g);
-}
-
-export interface ThemeDescriptor {
-  json: Record<string, unknown>;
-  isAdaptive: boolean;
-}
-
-export function readHighlightingTheme(
-  pandoc: FormatPandoc,
-  style: "dark" | "light" | "default",
-): ThemeDescriptor | undefined {
-  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
-  if (theme) {
-    const themeRaw = readTheme(theme, style);
-    if (themeRaw) {
-      return {
-        json: JSON.parse(themeRaw),
-        isAdaptive: isAdaptiveTheme(theme),
-      };
-    } else {
-      return undefined;
-    }
-  } else {
-    return undefined;
-  }
-}
-
-export function hasAdaptiveTheme(pandoc: FormatPandoc) {
-  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
-  return theme && isAdaptiveTheme(theme);
-}
-
-export function isAdaptiveTheme(name: string) {
-  return [
-    "arrow",
-    "atom-one",
-    "ayu",
-    "breeze",
-    "github",
-    "gruvbox",
-    "monochrome",
-  ].includes(
-    name,
-  );
 }
 
 // Generates syntax highlighting Css and Css variables
@@ -598,17 +558,4 @@ export function setTextHighlightStyle(
 ) {
   extras.html = extras.html || {};
   extras.html[kTextHighlightingMode] = style;
-}
-
-// Reads the contents of a theme file, falling back if the style specific version isn't available
-export function readTheme(theme: string, style: "light" | "dark" | "default") {
-  const themeFile = textHighlightThemePath(
-    theme,
-    style === "default" ? undefined : style,
-  );
-  if (themeFile && existsSync(themeFile)) {
-    return Deno.readTextFileSync(themeFile);
-  } else {
-    return undefined;
-  }
 }

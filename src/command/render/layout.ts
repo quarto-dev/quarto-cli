@@ -12,7 +12,7 @@ import { Format } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { HtmlPostProcessResult, kHtmlEmptyPostProcessResult } from "./types.ts";
-import { hasAdaptiveTheme } from "./pandoc-html.ts";
+import { hasAdaptiveTheme } from "../../quarto-core/text-highlighting.ts";
 
 const kAdaptiveTextHighlighting = "adaptive-text-highlighting";
 

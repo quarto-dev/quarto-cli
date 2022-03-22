@@ -50,7 +50,7 @@ import {
   quartoUses,
   sassUtilFunctions,
 } from "./format-html-shared.ts";
-import { readHighlightingTheme } from "../../command/render/pandoc-html.ts";
+import { readHighlightingTheme } from "../../quarto-core/text-highlighting.ts";
 
 export interface Themes {
   light: string[];
