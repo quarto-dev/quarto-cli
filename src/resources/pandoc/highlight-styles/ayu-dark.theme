@@ -13,6 +13,7 @@
         "name": "ayu Dark",
         "revision": 3
     },
+    "background-color" : "#0a0e14",
     "editor-colors": {
         "BackgroundColor": "#0a0e14",
         "BracketMatching": "#1e232d",
