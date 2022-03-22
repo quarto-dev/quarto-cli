@@ -27,6 +27,7 @@ import { textHighlightThemePath } from "../../core/resources.ts";
 import { compileSass } from "../../core/sass.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
+import { kBootstrapDependencyName } from "../../format/html/format-html-shared.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -205,6 +206,23 @@ export function cssHasDarkModeSentinel(css: string) {
   return !!css.match(/\/\*! dark \*\//g);
 }
 
+export function readHighlightingTheme(
+  pandoc: FormatPandoc,
+  style: "dark" | "light" | "default",
+) {
+  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
+  if (theme) {
+    const themeRaw = readTheme(theme, style);
+    if (themeRaw) {
+      return JSON.parse(themeRaw);
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
+  }
+}
+
 // Generates syntax highlighting Css and Css variables
 async function resolveQuartoSyntaxHighlighting(
   extras: FormatExtras,
@@ -222,6 +240,7 @@ async function resolveQuartoSyntaxHighlighting(
       style = "dark";
     }
   }
+  mediaAttr.id = "quarto-text-highlighting-styles";
 
   // Generate and inject the text highlighting css
   const cssFileName = `quarto-syntax-highlighting${
@@ -229,63 +248,68 @@ async function resolveQuartoSyntaxHighlighting(
   }.css`;
 
   // Read the highlight style (theme name)
-  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
-  if (theme) {
-    const themeRaw = readTheme(theme, style);
-    if (themeRaw) {
-      const themeJson = JSON.parse(themeRaw);
+  const themeJson = readHighlightingTheme(pandoc, style);
+  if (themeJson) {
+    // Other variables that need to be injected (if any)
+    const extraVariables = extras.html?.[kQuartoCssVariables] || [];
 
-      // Other variables that need to be injected (if any)
-      const extraVariables = extras.html?.[kQuartoCssVariables] || [];
+    // The text highlighting CSS variables
+    const highlightCss = generateThemeCssVars(themeJson);
+    if (highlightCss) {
+      const rules = [
+        highlightCss,
+        "",
+        "/* other quarto variables */",
+        ...extraVariables,
+      ];
 
-      // The text highlighting CSS variables
-      const highlightCss = generateThemeCssVars(themeJson);
-      if (highlightCss) {
-        const rules = [
-          highlightCss,
-          "",
-          "/* other quarto variables */",
-          ...extraVariables,
-        ];
+      // The text highlighting CSS rules
+      const textHighlightCssRules = generateThemeCssClasses(themeJson);
+      if (textHighlightCssRules) {
+        rules.push(...textHighlightCssRules);
+      }
 
-        // The text highlighting CSS rules
-        const textHighlightCssRules = generateThemeCssClasses(themeJson);
-        if (textHighlightCssRules) {
-          rules.push(...textHighlightCssRules);
-        }
+      // Compile the scss
+      const highlightCssPath = await compileSass(
+        [{
+          key: cssFileName,
+          quarto: {
+            uses: "",
+            defaults: "",
+            functions: "",
+            mixins: "",
+            rules: rules.join("\n"),
+          },
+        }],
+        temp,
+        false,
+      );
 
-        // Compile the scss
-        const highlightCssPath = await compileSass(
-          [{
-            key: cssFileName,
-            quarto: {
-              uses: "",
-              defaults: "",
-              functions: "",
-              mixins: "",
-              rules: rules.join("\n"),
-            },
-          }],
-          temp,
-          false,
+      // Find the bootstrap or quarto-html dependency and inject this stylesheet
+      const extraDeps = extras.html?.[kDependencies];
+      if (extraDeps) {
+        const bootstrapDependency = extraDeps.find((extraDep) =>
+          extraDep.name === kBootstrapDependencyName
         );
 
-        // Find the quarto-html dependency and inject this stylesheet
-        const extraDeps = extras.html?.[kDependencies];
-        if (extraDeps) {
-          const existingDependency = extraDeps.find((extraDep) =>
-            extraDep.name === kQuartoHtmlDependency
-          );
-          if (existingDependency) {
-            existingDependency.stylesheets = existingDependency.stylesheets ||
-              [];
+        // Inject an scss variable for setting the background color of code blocks
+        // with defaults, before the other bootstrap variables?
+        // don't put it in css (basically use the value to set the default), allow
+        // default to be override by user
 
-            existingDependency.stylesheets.push({
-              name: cssFileName,
-              path: highlightCssPath,
-              attribs: mediaAttr,
-            });
-          }
+        const quartoDependency = extraDeps.find((extraDep) =>
+          extraDep.name === kQuartoHtmlDependency
+        );
+        const existingDependency = bootstrapDependency || quartoDependency;
+        if (existingDependency) {
+          existingDependency.stylesheets = existingDependency.stylesheets ||
+            [];
+
+          existingDependency.stylesheets.push({
+            name: cssFileName,
+            path: highlightCssPath,
+            attribs: mediaAttr,
+          });
         }
       }
     }
