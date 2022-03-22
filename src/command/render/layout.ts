@@ -12,6 +12,9 @@ import { Format } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { HtmlPostProcessResult, kHtmlEmptyPostProcessResult } from "./types.ts";
+import { hasAdaptiveTheme } from "./pandoc-html.ts";
+
+const kAdaptiveTextHighlighting = "adaptive-text-highlighting";
 
 export function layoutFilter() {
   return resourcePath("filters/layout/layout.lua");
@@ -23,6 +26,11 @@ export function layoutFilterParams(format: Format) {
   if (pageWidth) {
     params[kPageWidth] = pageWidth;
   }
+
+  if (hasAdaptiveTheme(format.pandoc)) {
+    params[kAdaptiveTextHighlighting] = true;
+  }
+
   return params;
 }
 

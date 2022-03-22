@@ -231,6 +231,11 @@ export function readHighlightingTheme(
   }
 }
 
+export function hasAdaptiveTheme(pandoc: FormatPandoc) {
+  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
+  return theme && isAdaptiveTheme(theme);
+}
+
 export function isAdaptiveTheme(name: string) {
   return ["arrow", "atom-one", "ayu", "breeze", "github", "gruvbox"].includes(
     name,
