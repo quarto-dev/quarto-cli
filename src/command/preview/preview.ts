@@ -29,6 +29,7 @@ import { inputFilesDir } from "../../core/render.ts";
 import {
   isPreviewRenderRequest,
   previewRenderRequest,
+  previewRenderRequestIsCompatible,
   previewUnableToRenderResponse,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
@@ -117,6 +118,7 @@ export async function preview(
     ? pdfFileRequestHandler(
       result.outputFile,
       Deno.realPathSync(file),
+      flags,
       result.format,
       reloader,
       changeHandler.render,
@@ -125,6 +127,7 @@ export async function preview(
     ? projectHtmlFileRequestHandler(
       project,
       Deno.realPathSync(file),
+      flags,
       result.format,
       reloader,
       changeHandler.render,
@@ -132,6 +135,7 @@ export async function preview(
     : htmlFileRequestHandler(
       result.outputFile,
       Deno.realPathSync(file),
+      flags,
       result.format,
       reloader,
       changeHandler.render,
@@ -387,6 +391,7 @@ function previewWatcher(watches: Watch[]): Watcher {
 function projectHtmlFileRequestHandler(
   context: ProjectContext,
   inputFile: string,
+  flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
@@ -396,6 +401,7 @@ function projectHtmlFileRequestHandler(
       projectOutputDir(context),
       "index.html",
       inputFile,
+      flags,
       format,
       reloader,
       renderHandler,
@@ -406,6 +412,7 @@ function projectHtmlFileRequestHandler(
 function htmlFileRequestHandler(
   htmlFile: string,
   inputFile: string,
+  flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
@@ -415,6 +422,7 @@ function htmlFileRequestHandler(
       dirname(htmlFile),
       basename(htmlFile),
       inputFile,
+      flags,
       format,
       reloader,
       renderHandler,
@@ -426,6 +434,7 @@ function htmlFileRequestHandlerOptions(
   baseDir: string,
   defaultFile: string,
   inputFile: string,
+  flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
@@ -443,10 +452,12 @@ function htmlFileRequestHandlerOptions(
         renderHandler();
         return Promise.resolve(httpContentResponse("rendered"));
       } else if (isPreviewRenderRequest(req)) {
-        const previewRequest = previewRenderRequest(req);
+        const prevReq = previewRenderRequest(req);
         if (
-          previewRequest && existsSync(previewRequest.path) &&
-          Deno.realPathSync(previewRequest.path) === inputFile
+          prevReq &&
+          existsSync(prevReq.path) &&
+          Deno.realPathSync(prevReq.path) === inputFile &&
+          previewRenderRequestIsCompatible(prevReq, flags)
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply
@@ -479,6 +490,7 @@ function htmlReloadFiles(result: RenderForPreviewResult) {
 function pdfFileRequestHandler(
   pdfFile: string,
   inputFile: string,
+  flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
@@ -488,6 +500,7 @@ function pdfFileRequestHandler(
     dirname(pdfFile),
     basename(pdfFile),
     inputFile,
+    flags,
     format,
     reloader,
     renderHandler,

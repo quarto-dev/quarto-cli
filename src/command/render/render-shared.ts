@@ -22,6 +22,7 @@ import { renderFiles } from "./render.ts";
 import { resolveFileResources } from "./resources.ts";
 import {
   RenderedFile,
+  RenderFlags,
   RenderOptions,
   RenderResourceFiles,
   RenderResult,
@@ -235,19 +236,23 @@ export function previewRenderRequest(
     return {
       path: join(baseDir, match[1]),
     };
-  } else {
-    // otherwise look for v2 format used by vscode (takes absolute path)
-    const matchv2 = req.url.match(
-      new RegExp(`/${kQuartoRenderCommandv2}(.*)$`),
-    );
-    if (matchv2) {
+  } else if (req.url.includes(kQuartoRenderCommandv2)) {
+    const url = new URL(req.url);
+    const path = url.searchParams.get("path");
+    if (path) {
       return {
-        path: matchv2[1],
+        path,
+        format: url.searchParams.get("format") || undefined,
       };
-    } else {
-      return undefined;
     }
   }
+}
+
+export function previewRenderRequestIsCompatible(
+  request: PreviewRenderRequest,
+  flags: RenderFlags,
+) {
+  return (!request.format || request.format === flags.to);
 }
 
 export function previewUnableToRenderResponse() {

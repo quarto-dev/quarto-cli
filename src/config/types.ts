@@ -168,10 +168,7 @@ import {
 } from "./constants.ts";
 
 import { TempContext } from "../core/temp.ts";
-import {
-  HtmlPostProcessor,
-  HtmlPostProcessResult,
-} from "../command/render/types.ts";
+import { HtmlPostProcessor } from "../command/render/types.ts";
 
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";

@@ -58,6 +58,7 @@ import { watchProject } from "./watch.ts";
 import {
   isPreviewRenderRequest,
   previewRenderRequest,
+  previewRenderRequestIsCompatible,
   previewUnableToRenderResponse,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
@@ -242,11 +243,11 @@ export async function serveProject(
       if (watcher.handle(req)) {
         return await watcher.connect(req);
       } else if (isPreviewRenderRequest(req)) {
-        const previewRequest = previewRenderRequest(req, project!.dir);
-        if (previewRequest) {
-          if (isProjectInputFile(previewRequest.path, project!)) {
+        const prevReq = previewRenderRequest(req, project!.dir);
+        if (prevReq && (previewRenderRequestIsCompatible(prevReq, flags))) {
+          if (isProjectInputFile(prevReq.path, project!)) {
             const requestTemp = createTempContext();
-            render(previewRequest.path, {
+            render(prevReq.path, {
               temp: requestTemp,
               flags,
               pandocArgs,
@@ -264,7 +265,7 @@ export async function serveProject(
                 if (!finalOutput) {
                   throw new Error(
                     "No output created by quarto render " +
-                      basename(previewRequest.path),
+                      basename(prevReq.path),
                   );
                 }
                 info("Output created: " + finalOutput + "\n");
