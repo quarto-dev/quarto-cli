@@ -116,9 +116,14 @@ export interface SidebarTool {
   url?: string;
 }
 
+export const sidebarContext = () => {
+  return { counter: 0 };
+};
+
 export function normalizeSidebarItem(
   projectDir: string,
   item: SidebarItem,
+  context: { counter: number },
 ): SidebarItem {
   // clone so we can mutate
   item = ld.cloneDeep(item);
@@ -141,6 +146,9 @@ export function normalizeSidebarItem(
     // for an item with 'contents'
     const section = item.section;
     if (section) {
+      // Increment the counter
+      context.counter = context.counter + 1;
+
       const sectionPath = join(projectDir, section);
       if (safeExistsSync(sectionPath) && Deno.statSync(sectionPath).isFile) {
         item.href = section;
@@ -150,17 +158,8 @@ export function normalizeSidebarItem(
       // The htmlId could be empty, in which case we will not have created
       // an unambiguous sectionId, so don't write the section Id in this
       // case
-      const htmlId = asHtmlId(section);
-      if (htmlId.trim() !== "") {
-        item.sectionId = kQuartoSidebarPrefix + asHtmlId(section);
-      }
+      item.sectionId = `${kQuartoSidebarPrefix}${context.counter}`;
       delete item.section;
-    }
-
-    if (item.contents && !item.sectionId) {
-      // If the item does not have a sectionId, synthesize one
-      // Since this item has contents
-      item.sectionId = kQuartoSidebarPrefix + shortUuid();
     }
 
     // handle subitems
@@ -169,6 +168,7 @@ export function normalizeSidebarItem(
         item.contents[i] = normalizeSidebarItem(
           projectDir,
           item.contents[i],
+          context,
         );
       }
     }
