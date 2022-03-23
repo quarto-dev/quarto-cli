@@ -24,6 +24,7 @@ export interface HttpDevServer {
     inputFile?: string,
   ) => Uint8Array;
   reloadClients: (reloadTarget?: string) => Promise<void>;
+  hasClients: () => boolean;
 }
 
 export function httpDevServer(
@@ -43,13 +44,14 @@ export function httpDevServer(
   // stops the server is there are no more clients and we are not in the
   // middle of a render. don't do this for rstudio b/c rstudio manages
   // the lifetime of quarto preview directly
+  const hasClients = () => {
+    return isRendering() ||
+      !!clients.find((client) => client.socket.readyState !== WebSocket.CLOSED);
+  };
   let onSocketClose: VoidFunction | undefined;
   if ((timeout > 0) && !isRStudioPreview()) {
     onSocketClose = ld.debounce(() => {
-      if (
-        !isRendering() &&
-        !clients.find((client) => client.socket.readyState !== WebSocket.CLOSED)
-      ) {
+      if (!hasClients()) {
         stopServer();
       }
     }, timeout * 1000);
@@ -122,6 +124,8 @@ export function httpDevServer(
         }
       }
     },
+
+    hasClients,
   };
 }
 

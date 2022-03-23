@@ -226,6 +226,7 @@ export function isPreviewRenderRequest(req: Request) {
 
 export function previewRenderRequest(
   req: Request,
+  hasClients: boolean,
   baseDir?: string,
 ): PreviewRenderRequest | undefined {
   // look for v1 rstudio format (requires baseDir b/c its a relative path)
@@ -236,7 +237,7 @@ export function previewRenderRequest(
     return {
       path: join(baseDir, match[1]),
     };
-  } else if (req.url.includes(kQuartoRenderCommandv2)) {
+  } else if (hasClients && req.url.includes(kQuartoRenderCommandv2)) {
     const url = new URL(req.url);
     const path = url.searchParams.get("path");
     if (path) {

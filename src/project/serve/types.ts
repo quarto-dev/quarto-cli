@@ -14,6 +14,7 @@ export interface ProjectWatcher {
     file: Uint8Array,
     inputFile?: string,
   ) => Uint8Array;
+  hasClients: () => boolean;
   project: () => ProjectContext;
   serveProject: () => ProjectContext;
   refreshProject: () => Promise<ProjectContext>;

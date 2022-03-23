@@ -390,6 +390,7 @@ export function watchProject(
     injectClient: (file: Uint8Array, inputFile?: string) => {
       return devServer.injectClient(file, inputFile);
     },
+    hasClients: () => devServer.hasClients(),
     project: () => project,
     serveProject: () => serveProject,
     refreshProject: async () => {
