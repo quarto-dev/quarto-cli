@@ -6,6 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
+import { relative } from "path/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -13,7 +14,7 @@ import { Command } from "cliffy/command/mod.ts";
 
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
-import { preview } from "./preview.ts";
+import { preview, previewFormat, setPreviewFormat } from "./preview.ts";
 import {
   kRenderDefault,
   kRenderNone,
@@ -27,6 +28,10 @@ import {
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { projectContext } from "../../project/project-context.ts";
+import { isHtmlOutput } from "../../config/format.ts";
+import { renderProject } from "../render/project.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -241,20 +246,47 @@ export const previewCommand = new Command()
     const flags = parseRenderFlags(args);
     args = fixupPandocArgs(args, flags);
 
+    // if this is a single-file html preview within a project
+    // without a specific render directive then render the file
+    // and convert the render to a project one
+    let projectTarget: string | ProjectContext = file;
+    if (Deno.statSync(file).isFile) {
+      const project = await projectContext(file);
+      if (project) {
+        const format = await previewFormat(file, flags);
+        if (isHtmlOutput(format, true)) {
+          setPreviewFormat(format, flags, args);
+          const tempContext = createTempContext();
+          try {
+            await renderProject(project, {
+              temp: tempContext,
+              progress: false,
+              useFreezer: false,
+              flags,
+              pandocArgs: args,
+            }, [file]);
+          } finally {
+            tempContext.cleanup();
+          }
+          // re-write various targets to redirect to project preview
+          options.browserPath = relative(project.dir, file);
+          file = project.dir;
+          projectTarget = project;
+        }
+      }
+    }
+
     // see if we are serving a project or a file
     if (Deno.statSync(file).isDirectory) {
       // project preview
       const tempContext = createTempContext();
       try {
-        await serveProject(file, tempContext, flags, args, {
+        await serveProject(projectTarget, tempContext, flags, args, {
           port: options.port,
           host: options.host,
           render: options.render,
-          browse: (options.browser && options.browse)
-            ? typeof (options.browserPath) === "string"
-              ? options.browserPath
-              : true
-            : false,
+          browse: !!(options.browser && options.browse),
+          browserPath: options.browserPath,
           watchInputs: options.watchInputs,
           navigate: options.navigate,
           timeout: options.timeout,

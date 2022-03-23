@@ -41,6 +41,7 @@ import {
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
+import { kTextPlain } from "../../core/mime.ts";
 
 export async function render(
   path: string,
@@ -207,4 +208,53 @@ export function printBrowsePreviewMessage(port: number, path: string) {
     }
     info(url, { format: (str: string) => colors.underline(colors.green(str)) });
   }
+}
+
+const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
+const kQuartoRenderCommandv2 = "B4AA6EED-A702-4ED2-9734-A20C6FDC4071";
+
+export interface PreviewRenderRequest {
+  path: string;
+  format?: string;
+}
+
+export function isPreviewRenderRequest(req: Request) {
+  return req.url.includes(kQuartoRenderCommand) ||
+    req.url.includes(kQuartoRenderCommandv2);
+}
+
+export function previewRenderRequest(
+  req: Request,
+  baseDir?: string,
+): PreviewRenderRequest | undefined {
+  // look for v1 rstudio format (requires baseDir b/c its a relative path)
+  const match = req.url.match(
+    new RegExp(`/${kQuartoRenderCommand}/(.*)$`),
+  );
+  if (match && baseDir) {
+    return {
+      path: join(baseDir, match[1]),
+    };
+  } else {
+    // otherwise look for v2 format used by vscode (takes absolute path)
+    const matchv2 = req.url.match(
+      new RegExp(`/${kQuartoRenderCommandv2}(.*)$`),
+    );
+    if (matchv2) {
+      return {
+        path: matchv2[1],
+      };
+    } else {
+      return undefined;
+    }
+  }
+}
+
+export function previewUnableToRenderResponse() {
+  return new Response("not found", {
+    status: 404,
+    headers: {
+      "Content-Type": kTextPlain,
+    },
+  });
 }

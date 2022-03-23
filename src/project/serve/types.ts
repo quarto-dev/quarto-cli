@@ -24,7 +24,8 @@ export type ServeOptions = {
   host: string;
   render: string;
   timeout: number;
-  browse?: boolean | string;
+  browse: boolean;
+  browserPath?: string;
   watchInputs?: boolean;
   navigate?: boolean;
 };

@@ -27,6 +27,9 @@ import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
 import {
+  isPreviewRenderRequest,
+  previewRenderRequest,
+  previewUnableToRenderResponse,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
@@ -67,7 +70,8 @@ export async function preview(
 ) {
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
-  await resolvePreviewFormat(file, flags, pandocArgs);
+  const format = await previewFormat(file, flags);
+  setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
@@ -163,11 +167,10 @@ export async function preview(
   }
 }
 
-// determine the format to preview (modifies flags and pandocArgs in place)
-async function resolvePreviewFormat(
+// determine the format to preview
+export async function previewFormat(
   file: string,
   flags: RenderFlags,
-  pandocArgs: string[],
 ) {
   const formats = await renderFormats(file);
   const format = flags.to || Object.keys(formats).find((name) => {
@@ -175,6 +178,14 @@ async function resolvePreviewFormat(
     const outputFile = format.pandoc[kOutputFile];
     return isHtmlContent(outputFile) || isPdfContent(outputFile);
   }) || "html";
+  return format;
+}
+
+export function setPreviewFormat(
+  format: string,
+  flags: RenderFlags,
+  pandocArgs: string[],
+) {
   flags.to = format;
   replacePandocArg(pandocArgs, "--to", format);
 }
@@ -431,6 +442,19 @@ function htmlFileRequestHandlerOptions(
         // caller gets an immediate reply
         renderHandler();
         return Promise.resolve(httpContentResponse("rendered"));
+      } else if (isPreviewRenderRequest(req)) {
+        const previewRequest = previewRenderRequest(req);
+        if (
+          previewRequest && existsSync(previewRequest.path) &&
+          Deno.realPathSync(previewRequest.path) === inputFile
+        ) {
+          // don't wait for the promise so the
+          // caller gets an immediate reply
+          renderHandler();
+          return Promise.resolve(httpContentResponse("rendered"));
+        } else {
+          return Promise.resolve(previewUnableToRenderResponse());
+        }
       } else {
         return Promise.resolve(undefined);
       }
