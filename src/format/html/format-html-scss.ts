@@ -251,6 +251,17 @@ function resolveTextHighlightingLayer(
           true,
         );
       }
+
+      const textColor = themeDescriptor.json["text-color"] as string;
+      if (textColor) {
+        layer.defaults = layer.defaults + "\n" + outputVariable(
+          sassVariable(
+            "code-block-color",
+            asCssColor(textColor),
+          ),
+          true,
+        );
+      }
     }
   }
 
