@@ -13,6 +13,7 @@
         "name": "ayu Mirage",
         "revision": 3
     },
+    "background-color": "#1f2430",
     "editor-colors": {
         "BackgroundColor": "#1f2430",
         "BracketMatching": "#383e4c",

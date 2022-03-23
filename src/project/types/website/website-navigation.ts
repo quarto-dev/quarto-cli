@@ -60,6 +60,7 @@ import {
   normalizeSidebarItem,
   resolveHrefAttribute,
   Sidebar,
+  sidebarContext,
   SidebarItem,
   SidebarTool,
 } from "../../project-config.ts";
@@ -678,8 +679,9 @@ async function resolveSidebarItems(
   project: ProjectContext,
   items: SidebarItem[],
 ) {
+  const context = sidebarContext();
   for (let i = 0; i < items.length; i++) {
-    let item = normalizeSidebarItem(project.dir, items[i]);
+    let item = normalizeSidebarItem(project.dir, items[i], context);
 
     if (Object.keys(item).includes("contents")) {
       const subItems = item.contents || [];
@@ -693,7 +695,7 @@ async function resolveSidebarItems(
       for (let i = 0; i < subItems.length; i++) {
         subItems[i] = await resolveSidebarItem(
           project,
-          normalizeSidebarItem(project.dir, subItems[i]),
+          normalizeSidebarItem(project.dir, subItems[i], context),
         );
       }
 

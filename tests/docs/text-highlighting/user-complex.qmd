@@ -1,0 +1,25 @@
+---
+title: widelink
+toc: true
+html-math-method: mathjax
+date-format: 'YYYY-MM-DDTHH:mm:ssZ'
+
+format:
+  html:
+    self-contained: true
+    theme: darkly
+highlight-style:
+  light: light.theme
+  dark: dark.theme
+---
+  
+## Some Math
+
+$$ e = MC^2 $$
+
+```javascript
+const foo = "bar";
+for (var i = 0; i < 20; i++) {
+  console.log("HELLO!");
+}
+```

@@ -533,6 +533,7 @@
             }
         }
     },
+    "background-color": "#282a36",
     "editor-colors": {
         "BackgroundColor": "#282a36",
         "BracketMatching": "#7c62a5",
