@@ -146,6 +146,7 @@
             "selected-text-color" : "#27ae60"
         }
    },
+   "background-color" : "#232629",
     "editor-colors": {
         "BackgroundColor" : "#232629",
         "CodeFolding" : "#224e65",

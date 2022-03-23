@@ -673,6 +673,16 @@ div.sourceCode {
     border: none;
     padding: 0;
   }
+
+  @if variable-exists(code-block-color) {
+    color: $code-block-color;
+  }
+}
+
+@if variable-exists(code-block-color) {
+  div.sourceCode pre.sourceCode {
+    color: $code-block-color;
+  }
 }
 
 pre.sourceCode {

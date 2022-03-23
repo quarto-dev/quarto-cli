@@ -13,7 +13,6 @@
         "revision": 2
     },
     "editor-colors": {
-        "BackgroundColor": "#141322",
         "BracketMatching": "#4f2e93",
         "CodeFolding": "#1e1836",
         "CurrentLine": "#231630",

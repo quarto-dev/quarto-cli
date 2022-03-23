@@ -53,11 +53,7 @@ import {
   isQuartoMetadata,
   metadataGetDeep,
 } from "../../config/metadata.ts";
-import {
-  pandocBinaryPath,
-  resourcePath,
-  textHighlightThemePath,
-} from "../../core/resources.ts";
+import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import {
   partitionYamlFrontMatter,
@@ -140,6 +136,7 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { parseAuthor } from "../../core/author.ts";
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
+import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -713,6 +710,7 @@ async function resolveExtras(
   if (isHtmlOutput(format.pandoc)) {
     // resolve sass bundles
     extras = await resolveSassBundles(
+      inputDir,
       extras,
       format.pandoc,
       temp,
@@ -729,6 +727,7 @@ async function resolveExtras(
 
   // Resolve the highlighting theme (if any)
   extras = resolveTextHighlightStyle(
+    inputDir,
     extras,
     format.pandoc,
   );
@@ -905,6 +904,7 @@ function runPandocMessage(
 }
 
 function resolveTextHighlightStyle(
+  inputDir: string,
   extras: FormatExtras,
   pandoc: FormatPandoc,
 ): FormatExtras {
@@ -923,8 +923,11 @@ function resolveTextHighlightStyle(
     case "dark":
       // Set light or dark mode as appropriate
       extras.pandoc = extras.pandoc || {};
-      extras.pandoc[kHighlightStyle] =
-        textHighlightThemePath(highlightTheme, textHighlightingMode) ||
+      extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+        inputDir,
+        highlightTheme,
+        textHighlightingMode,
+      ) ||
         highlightTheme;
 
       break;
@@ -940,7 +943,7 @@ function resolveTextHighlightStyle(
       // Set the the light (default) highlighting mode
       extras.pandoc = extras.pandoc || {};
       extras.pandoc[kHighlightStyle] =
-        textHighlightThemePath(highlightTheme, "light") ||
+        textHighlightThemePath(inputDir, highlightTheme, "light") ||
         highlightTheme;
       break;
   }

@@ -43,6 +43,7 @@
         "TextSelection": "#4c566a",
         "WordWrapMarker": "#3f4859"
     },
+    "background-color": "#2e3440",    
     "text-styles": {
         "Alert": {
             "background-color": "#3b4252",

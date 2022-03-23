@@ -10736,33 +10736,46 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            string: {
-              completions: [
-                "pygments",
-                "tango",
-                "espresso",
-                "zenburn",
-                "kate",
-                "monochrome",
-                "breezedark",
-                "haddock",
-                "arrow",
-                "atom-one",
-                "ayu",
-                "ayu-mirage",
-                "breeze",
-                "dracula",
-                "github",
-                "gruvbox",
-                "mokokai",
-                "nord",
-                "oblivion",
-                "printing",
-                "radical",
-                "solarized",
-                "vim-dark"
-              ]
-            }
+            anyOf: [
+              {
+                object: {
+                  properties: {
+                    light: "path",
+                    dark: "path"
+                  },
+                  closed: true
+                }
+              },
+              {
+                string: {
+                  completions: [
+                    "pygments",
+                    "tango",
+                    "espresso",
+                    "zenburn",
+                    "kate",
+                    "monochrome",
+                    "breezedark",
+                    "haddock",
+                    "arrow",
+                    "atom-one",
+                    "ayu",
+                    "ayu-mirage",
+                    "breeze",
+                    "dracula",
+                    "github",
+                    "gruvbox",
+                    "mokokai",
+                    "nord",
+                    "oblivion",
+                    "printing",
+                    "radical",
+                    "solarized",
+                    "vim-dark"
+                  ]
+                }
+              }
+            ]
           },
           description: {
             short: "Specifies the coloring style to be used in highlighted source code.",

@@ -10,11 +10,6 @@ import { join } from "path/mod.ts";
 import { warnOnce } from "./log.ts";
 import { which } from "./path.ts";
 import { quartoConfig } from "./quarto.ts";
-import {
-  kHKeyCurrentUser,
-  kHKeyLocalMachine,
-  registryReadString,
-} from "./registry.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();

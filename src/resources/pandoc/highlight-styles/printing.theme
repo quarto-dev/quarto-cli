@@ -8,6 +8,7 @@
         "revision" : 4,
         "name" : "Printing"
     },
+    "background-color" : "#ffffff",
     "text-styles": {
         "Normal" : {
             "text-color" : "#000000",

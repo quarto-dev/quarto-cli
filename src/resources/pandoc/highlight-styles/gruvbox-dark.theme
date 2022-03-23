@@ -152,6 +152,7 @@
             "selected-text-color" : "#8ec07c"
         }
    },
+   "background-color" : "#282828",
     "editor-colors": {
         "BackgroundColor" : "#282828",
         "CodeFolding" : "#1d2021",
