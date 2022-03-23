@@ -62,7 +62,10 @@ export function pdfJsFileHandler(
         );
       // always hide the sidebar in the viewer pane
       const referrer = req.headers.get("Referer");
-      const isViewer = referrer && referrer.includes("capabilities=");
+      const isViewer = referrer && (
+        referrer.includes("capabilities=") || // rstudio viewer
+        referrer.includes("vscodeBrowserReqId=") // vscode simple browser
+      );
       if (isViewer) {
         viewerJs = viewerJs.replace(
           "sidebarView: sidebarView",
