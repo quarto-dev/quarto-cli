@@ -250,6 +250,9 @@ async function writePandocTemplates(config: Configuration) {
     pandoc: "html",
     output: formatResourcePath("html", "pandoc/html.template"),
   }, {
+    pandoc: "revealjs",
+    output: formatResourcePath("revealjs", "pandoc/revealjs.template"),
+  }, {
     pandoc: "latex",
     output: formatResourcePath("pdf", "pandoc/pdf.template"),
   }];
