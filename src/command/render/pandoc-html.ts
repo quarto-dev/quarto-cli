@@ -278,10 +278,6 @@ async function resolveQuartoSyntaxHighlighting(
       // Find the bootstrap or quarto-html dependency and inject this stylesheet
       const extraDeps = extras.html?.[kDependencies];
       if (extraDeps) {
-        const bootstrapDependency = extraDeps.find((extraDep) =>
-          extraDep.name === kBootstrapDependencyName
-        );
-
         // Inject an scss variable for setting the background color of code blocks
         // with defaults, before the other bootstrap variables?
         // don't put it in css (basically use the value to set the default), allow
@@ -290,7 +286,7 @@ async function resolveQuartoSyntaxHighlighting(
         const quartoDependency = extraDeps.find((extraDep) =>
           extraDep.name === kQuartoHtmlDependency
         );
-        const existingDependency = bootstrapDependency || quartoDependency;
+        const existingDependency = quartoDependency;
         if (existingDependency) {
           existingDependency.stylesheets = existingDependency.stylesheets ||
             [];
