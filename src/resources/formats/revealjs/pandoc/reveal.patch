@@ -1,0 +1,49 @@
+--- revealjs.template	2022-03-24 09:03:15.000000000 -0400
++++ template.revealjs	2022-03-24 09:33:30.000000000 -0400
+@@ -2,7 +2,12 @@
+ <html$if(lang)$ lang="$lang$"$endif$$if(dir)$ dir="$dir$"$endif$>
+ <head>
+   <meta charset="utf-8">
+-  <meta name="generator" content="pandoc">
++$if(quarto-version)$
++  <meta name="generator" content="quarto-$quarto-version$" />
++$else$
++  <meta name="generator" content="quarto" />
++$endif$
++
+ $for(author-meta)$
+   <meta name="author" content="$author-meta$">
+ $endfor$
+@@ -19,9 +24,6 @@
+   <link rel="stylesheet" href="$revealjs-url$/dist/reset.css">
+   <link rel="stylesheet" href="$revealjs-url$/dist/reveal.css">
+   <style>
+-    .reveal .sourceCode {  /* see #7635 */
+-      overflow: visible;
+-    }
+     $styles.html()$
+   </style>
+ $if(theme)$
+@@ -78,6 +80,7 @@
+     </div>
+   </div>
+ 
++  <script>window.backupDefine = window.define; window.define = undefined;</script>
+   <script src="$revealjs-url$/dist/reveal.js"></script>
+ 
+   <!-- reveal.js plugins -->
+@@ -87,12 +90,13 @@
+ $if(mathjax)$
+   <script src="$revealjs-url$/plugin/math/math.js"></script>
+ $endif$
++  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+ 
+   <script>
+ 
+       // Full list of configuration options available at:
+       // https://revealjs.com/config/
+-      Reveal.initialize({
++      Reveal.initialize({ 
+         // Display controls in the bottom right corner
+         controls: $controls$,
+ 
