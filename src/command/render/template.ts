@@ -20,7 +20,7 @@ export function readPartials(metadata: Metadata) {
   if (typeof (metadata?.[kTemplatePartials]) === "string") {
     metadata[kTemplatePartials] = [metadata[kTemplatePartials]];
   }
-  return metadata?.[kTemplatePartials] as string[] | undefined;
+  return (metadata?.[kTemplatePartials] || []) as string[];
 }
 
 export async function stageTemplate(
@@ -47,6 +47,12 @@ export async function stageTemplate(
           await Deno.copyFile(partial, join(stagingDir, basename(partial)));
         }
       }
+
+      const files = Deno.readDirSync(stagingDir);
+      for (const file of files) {
+        console.log(file);
+      }
+
       return true;
     } else {
       return false;

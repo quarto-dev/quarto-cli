@@ -378,11 +378,15 @@ export async function runPandoc(
       const template = userTemplate
         ? resolvePath(userTemplate)
         : templateContext.template;
-      const partials = userPartials
-        ? userPartials.map((path) => {
+
+      // Place any user partials at the end of the list of partials
+      const partials: string[] = templateContext.partials || [];
+      partials.push(
+        ...userPartials.map((path) => {
           return resolvePath(path);
-        })
-        : templateContext.partials;
+        }),
+      );
+
       const stagedTemplate = await stageTemplate(extras, options.temp, {
         template,
         partials,
