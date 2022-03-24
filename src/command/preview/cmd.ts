@@ -29,7 +29,10 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { projectContext } from "../../project/project-context.ts";
+import {
+  projectContext,
+  projectIsWebsite,
+} from "../../project/project-context.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
 
@@ -252,7 +255,7 @@ export const previewCommand = new Command()
     let projectTarget: string | ProjectContext = file;
     if (Deno.statSync(file).isFile) {
       const project = await projectContext(file);
-      if (project) {
+      if (project && projectIsWebsite(project)) {
         const format = await previewFormat(file, flags);
         if (isHtmlOutput(format, true)) {
           setPreviewFormat(format, flags, args);
