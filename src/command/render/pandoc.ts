@@ -129,11 +129,7 @@ import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
-import {
-  kTemplatePartials,
-  patchHtmlTemplate,
-  stageTemplate,
-} from "./template.ts";
+import { kTemplatePartials, readPartials, stageTemplate } from "./template.ts";
 import { formatLanguage } from "../../core/language.ts";
 import {
   pandocFormatWith,
@@ -367,17 +363,26 @@ export async function runPandoc(
     // The user template (if any)
     const userTemplate = getPandocArg(args, "--template") ||
       allDefaults[kTemplate];
-    // TODO: ensure this is a string[]
-    // The user partials (if any)
-    const userPartials = extras.metadata?.[kTemplatePartials] as string[];
 
-    // The format is providing a more robust local template
-    // to use
+    // The user partials (if any)
+    const userPartials = readPartials(options.format.metadata);
+    const inputDir = Deno.realPathSync(cwd);
+    const resolvePath = (path: string) => {
+      return join(inputDir, path);
+    };
+
     const templateContext = extras.templateContext;
     if (templateContext) {
-      // Stage the template and/or partials
-      const template = userTemplate || templateContext.template;
-      const partials = userPartials || templateContext.partials;
+      // The format is providing a more robust local template
+      // to use, stage the template and pass it on to pandoc
+      const template = userTemplate
+        ? resolvePath(userTemplate)
+        : templateContext.template;
+      const partials = userPartials
+        ? userPartials.map((path) => {
+          return resolvePath(path);
+        })
+        : templateContext.partials;
       const stagedTemplate = await stageTemplate(extras, options.temp, {
         template,
         partials,
@@ -391,6 +396,7 @@ export async function runPandoc(
           "Unable to use template partials with the format " + allDefaults.to,
         );
       } else if (userTemplate) {
+        // Use the template provided by the user
         allDefaults[kTemplate] = userTemplate;
       }
     }

@@ -6,13 +6,22 @@
 */
 import { basename, join } from "path/mod.ts";
 
-import { FormatExtras, FormatTemplateContext } from "../../config/types.ts";
-import { execProcess } from "../../core/process.ts";
-import { pandocBinaryPath } from "../../core/resources.ts";
+import {
+  FormatExtras,
+  FormatTemplateContext,
+  Metadata,
+} from "../../config/types.ts";
 import { TempContext } from "../../core/temp.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";
+
+export function readPartials(metadata: Metadata) {
+  if (typeof (metadata?.[kTemplatePartials]) === "string") {
+    metadata[kTemplatePartials] = [metadata[kTemplatePartials]];
+  }
+  return metadata?.[kTemplatePartials] as string[] | undefined;
+}
 
 export async function stageTemplate(
   extras: FormatExtras,
@@ -35,7 +44,7 @@ export async function stageTemplate(
       if (context.partials) {
         for (const partial of context.partials) {
           // TODO: Confirm that partial is a file not a directory
-          Deno.copyFile(partial, join(stagingDir, basename(partial)));
+          await Deno.copyFile(partial, join(stagingDir, basename(partial)));
         }
       }
       return true;
@@ -54,50 +63,5 @@ export async function stageTemplate(
     return join(stagingDir, template);
   } else {
     return undefined;
-  }
-}
-
-export async function patchHtmlTemplate(
-  templateName: string,
-  temp: TempContext,
-  patches?: Array<(template: string) => string>,
-) {
-  return await patchTemplate(templateName, temp, (template) => {
-    let patchedTemplate = template;
-    // apply extra patches
-    if (patches) {
-      for (const patch of patches) {
-        patchedTemplate = patch(patchedTemplate);
-      }
-    }
-    return patchedTemplate;
-  });
-}
-
-async function patchTemplate(
-  format: string,
-  temp: TempContext,
-  patch: (template: string) => string,
-) {
-  // get the default pandoc template for the format
-  const result = await execProcess({
-    cmd: [pandocBinaryPath(), "-D", format],
-    stdout: "piped",
-  });
-
-  // transform it
-  if (result.success) {
-    const patched = patch(result.stdout!);
-
-    // write a temp file w/ the patched template
-    const templateDir = temp.createDir();
-    const template = await Deno.makeTempFile(
-      { suffix: kPatchedTemplateExt, dir: templateDir },
-    );
-    await Deno.writeTextFile(template, patched);
-
-    return template;
-  } else {
-    throw new Error();
   }
 }
