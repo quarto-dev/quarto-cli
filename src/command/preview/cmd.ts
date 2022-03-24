@@ -256,7 +256,7 @@ export const previewCommand = new Command()
     if (Deno.statSync(file).isFile) {
       const project = await projectContext(file);
       if (project && projectIsWebsite(project)) {
-        const format = await previewFormat(file, flags);
+        const format = await previewFormat(file, flags.to);
         if (isHtmlOutput(format, true)) {
           setPreviewFormat(format, flags, args);
           const tempContext = createTempContext();

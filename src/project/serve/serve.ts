@@ -248,7 +248,10 @@ export async function serveProject(
           watcher.hasClients(),
           project!.dir,
         );
-        if (prevReq && (previewRenderRequestIsCompatible(prevReq, flags))) {
+        if (
+          prevReq &&
+          (await previewRenderRequestIsCompatible(prevReq, flags, project))
+        ) {
           if (isProjectInputFile(prevReq.path, project!)) {
             const requestTemp = createTempContext();
             render(prevReq.path, {

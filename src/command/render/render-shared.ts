@@ -43,6 +43,8 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kTextPlain } from "../../core/mime.ts";
+import { previewFormat } from "../preview/preview.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export async function render(
   path: string,
@@ -249,11 +251,13 @@ export function previewRenderRequest(
   }
 }
 
-export function previewRenderRequestIsCompatible(
+export async function previewRenderRequestIsCompatible(
   request: PreviewRenderRequest,
   flags: RenderFlags,
+  project?: ProjectContext,
 ) {
-  return (!request.format || request.format === flags.to);
+  const format = await previewFormat(request.path, request.format, project);
+  return format === flags.to;
 }
 
 export function previewUnableToRenderResponse() {

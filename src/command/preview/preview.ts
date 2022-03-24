@@ -71,7 +71,7 @@ export async function preview(
 ) {
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
-  const format = await previewFormat(file, flags);
+  const format = await previewFormat(file, flags.to);
   setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
@@ -174,12 +174,13 @@ export async function preview(
 // determine the format to preview
 export async function previewFormat(
   file: string,
-  flags: RenderFlags,
+  format?: string,
+  project?: ProjectContext,
 ) {
-  const formats = await renderFormats(file);
-  const format = flags.to || Object.keys(formats).find((name) => {
-    const format = formats[name];
-    const outputFile = format.pandoc[kOutputFile];
+  const formats = await renderFormats(file, "all", project);
+  format = format || Object.keys(formats).find((name) => {
+    const fmt = formats[name];
+    const outputFile = fmt.pandoc[kOutputFile];
     return isHtmlContent(outputFile) || isPdfContent(outputFile);
   }) || "html";
   return format;
@@ -443,7 +444,7 @@ function htmlFileRequestHandlerOptions(
     baseDir,
     defaultFile,
     printUrls: "404",
-    onRequest: (req: Request) => {
+    onRequest: async (req: Request) => {
       if (reloader.handle(req)) {
         return Promise.resolve(reloader.connect(req));
       } else if (req.url.endsWith("/quarto-render/")) {
@@ -457,7 +458,7 @@ function htmlFileRequestHandlerOptions(
           prevReq &&
           existsSync(prevReq.path) &&
           Deno.realPathSync(prevReq.path) === inputFile &&
-          previewRenderRequestIsCompatible(prevReq, flags)
+          await previewRenderRequestIsCompatible(prevReq, flags)
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply
