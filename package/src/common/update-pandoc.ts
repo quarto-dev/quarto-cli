@@ -85,7 +85,7 @@ async function writePandocTemplates(config: Configuration) {
     output: join(formatSrcDir, "revealjs", "pandoc", "revealjs.template"),
   }, {
     pandoc: "latex",
-    output: join(formatSrcDir, "pdf", "pandoc", "pdf.template"),
+    output: join(formatSrcDir, "pdf", "pandoc", "latex.template"),
   }];
   for (const temp of formatTemplates) {
     info(`> ${temp.pandoc}`);

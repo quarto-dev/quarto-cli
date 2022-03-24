@@ -48,6 +48,7 @@ import { BookExtension } from "../../project/types/book/book-shared.ts";
 import { readLines } from "io/bufio.ts";
 import { TempContext } from "../../core/temp.ts";
 import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -184,6 +185,24 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
             ],
           };
         }
+
+        // Provide a custom template for this format
+        const partialNames = [
+          "beamer",
+          "biblio",
+          "citations",
+          "doc-class",
+          "tables",
+          "tightlist",
+          "title",
+          "toc",
+        ];
+        extras.templateContext = {
+          template: formatResourcePath("pdf", "pandoc/template.tex"),
+          partials: partialNames.map((name) => {
+            return formatResourcePath("pdf", `pandoc/${name}.tex`);
+          }),
+        };
 
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (
