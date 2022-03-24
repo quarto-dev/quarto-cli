@@ -24,6 +24,13 @@
   description: |
     Use the specified file as a custom template for the generated document.
 
+- name: template-partials
+  disabled: [$office-all, ipynb]
+  schema:
+    maybeArrayOf: path
+  description: |
+    Include the specified files as partials accessible to the template for the generated content.
+
 - name: standalone
   schema: boolean
   default: true
