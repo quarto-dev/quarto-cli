@@ -4,20 +4,12 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import * as ld from "../../core/lodash.ts";
 import { basename, join } from "path/mod.ts";
 
-import { kHtmlMathMethod, kSelfContained } from "../../config/constants.ts";
-import {
-  Format,
-  FormatExtras,
-  FormatTemplateContext,
-} from "../../config/types.ts";
+import { FormatExtras, FormatTemplateContext } from "../../config/types.ts";
 import { execProcess } from "../../core/process.ts";
-import { quartoConfig } from "../../core/quarto.ts";
 import { pandocBinaryPath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
-import { RenderFlags } from "./types.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";
@@ -67,46 +59,17 @@ export async function stageTemplate(
 
 export async function patchHtmlTemplate(
   templateName: string,
-  format: Format,
   temp: TempContext,
   patches?: Array<(template: string) => string>,
-  flags?: RenderFlags,
 ) {
   return await patchTemplate(templateName, temp, (template) => {
-    // extract/capture css
-    let css = "";
-    let patchedTemplate = template.replace(
-      /\$for\(css\)\$[\W\w]+?\$endfor\$/,
-      (match) => {
-        css = match;
-        return "";
-      },
-    );
-    if (css) {
-      let patched = false;
-      patchedTemplate = patchedTemplate.replace(/^<\/head>$/m, (match) => {
-        patched = true;
-        return css + "\n" + match;
-      });
-      // if we didn't patch it then revert to the original template
-      if (!patched) {
-        patchedTemplate = template;
-      }
-    }
-
+    let patchedTemplate = template;
     // apply extra patches
     if (patches) {
       for (const patch of patches) {
         patchedTemplate = patch(patchedTemplate);
       }
     }
-
-    // replace generator
-    patchedTemplate = patchedTemplate.replace(
-      /<meta name="generator" content="pandoc"\s*\/?>/,
-      `<meta name="generator" content="quarto-${quartoConfig.version()}" \/>`,
-    );
-
     return patchedTemplate;
   });
 }

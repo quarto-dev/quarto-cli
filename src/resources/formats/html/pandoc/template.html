@@ -1,0 +1,104 @@
+$-- 0) Separate out partials for metadata, toc, and title-block
+$-- 1) Move $css$ to be the last element of the head so user css overrides ours
+$-- 2) Replace the generator with quarto + version (in metadata.html)
+$-- 3) Replace the math with a generated version that injects math.url / type
+$--
+$--
+$--
+$--
+$--
+$--
+$--
+$--
+$--
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$"$if(dir)$ dir="$dir$"$endif$>
+
+<head>
+
+$metadata.html()$
+
+<style>
+$styles.html()$
+</style>
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+$-- make math evade self-contained
+$if(math)$
+  $if(quarto-math-mathjax)$
+  <script>
+    (function () {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "$quarto-math-url$";
+      document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+  $elseif(quarto-math-katex)$
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var head = document.getElementsByTagName("head")[0];
+      var link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "${url}katex.min.css";
+      head.appendChild(link);
+
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "$quarto-math-url$katex.min.js";
+      script.async = false;
+      script.addEventListener('load', function() {
+        var mathElements = document.getElementsByClassName("math");
+          var macros = [];
+          for (var i = 0; i < mathElements.length; i++) {
+            var texText = mathElements[i].firstChild;
+            if (mathElements[i].tagName == "SPAN") {
+              window.katex.render(texText.data, mathElements[i], {
+                displayMode: mathElements[i].classList.contains('display'),
+                throwOnError: false,
+                macros: macros,
+                fleqn: false
+              });
+            }
+          }
+      });
+      head.appendChild(script);
+    });
+  </script>  
+  $else$
+    $math$
+  $endif$
+$endif$
+
+$for(css)$
+<link rel="stylesheet" href="$css$" />
+$endfor$
+</head>
+
+<body>
+
+$for(include-before)$
+$include-before$
+$endfor$
+
+$if(title)$
+$title-block.html()$
+$endif$
+
+$if(toc)$
+$toc.html()$
+$endif$
+
+$body$
+
+$for(include-after)$
+$include-after$
+$endfor$
+
+</body>
+
+</html>

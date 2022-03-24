@@ -79,6 +79,8 @@ export const kLinkExternalIcon = "link-external-icon";
 export const kLinkExternalNewwindow = "link-external-newwindow";
 export const kLinkExternalFilter = "link-external-filter";
 
+export const kQuartoVersion = "quarto-version";
+
 export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,

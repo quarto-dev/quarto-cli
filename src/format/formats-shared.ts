@@ -58,6 +58,7 @@ import {
   kOutputExt,
   kPageWidth,
   kPreferHtml,
+  kQuartoVersion,
   kStandalone,
   kTblColwidths,
   kWarning,
@@ -67,6 +68,7 @@ import {
 import { Format } from "../config/types.ts";
 
 import { formatResourcePath } from "../core/resources.ts";
+import { quartoConfig } from "../core/quarto.ts";
 
 export function createFormat(ext: string, ...formats: Array<unknown>): Format {
   return mergeConfigs(
@@ -217,6 +219,8 @@ function defaultFormat(): Format {
     },
     pandoc: {},
     language: {},
-    metadata: {},
+    metadata: {
+      [kQuartoVersion]: quartoConfig.version(),
+    },
   };
 }

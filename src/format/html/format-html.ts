@@ -4,7 +4,6 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-
 import { join } from "path/mod.ts";
 
 import { Document, Element } from "../../core/deno-dom.ts";
@@ -114,7 +113,7 @@ export function htmlFormat(
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          await htmlFormatExtras(input, offset, format, temp),
+          await htmlFormatExtras(input, flags, offset, format, temp),
           themeFormatExtras(input, flags, format, offset),
           { [kFilterParams]: htmlFilterParams },
         );
@@ -152,6 +151,7 @@ export interface HtmlFormatScssOptions {
 
 export async function htmlFormatExtras(
   input: string,
+  _flags: PandocFlags,
   offset: string,
   format: Format,
   temp: TempContext,
@@ -475,9 +475,21 @@ export async function htmlFormatExtras(
     scripts,
     stylesheets,
   });
+
+  // Provide a template and partials
+  const templateDir = formatResourcePath("html", "pandoc");
+  const partials = ["metadata.html", "title-block.html", "toc.html"];
+  const templateContext = {
+    template: join(templateDir, "template.html"),
+    partials: partials.map((partial) => join(templateDir, partial)),
+  };
+
+  const metadata: Metadata = {};
   return {
     [kIncludeInHeader]: includeInHeader,
     [kIncludeAfterBody]: includeAfterBody,
+    metadata,
+    templateContext,
     html: {
       [kDependencies]: dependencies,
       [kSassBundles]: sassBundles,

@@ -37,7 +37,6 @@ import {
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
-  kTemplatePatches,
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import {
@@ -68,7 +67,7 @@ import {
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
-import { havePandocArg, removePandocArgs } from "./flags.ts";
+import { getPandocArg, havePandocArg, removePandocArgs } from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
@@ -365,27 +364,34 @@ export async function runPandoc(
       cleanMetadataForPrinting(printMetadata);
     }
 
-    // Stage the template
-    const userTemplate = allDefaults[kTemplate];
-    // TODO: Read flag for template
-    // TODO: What is path to templte at this point
-    const template = stageTemplate(extras, options.temp, {
-      template: userTemplate,
-      partials: extras.metadata?.[kTemplatePartials] as string[],
-    });
+    // The user template (if any)
+    const userTemplate = getPandocArg(args, "--template") ||
+      allDefaults[kTemplate];
+    // TODO: ensure this is a string[]
+    // The user partials (if any)
+    const userPartials = extras.metadata?.[kTemplatePartials] as string[];
 
-    if (!template) {
-      // patch template (if its a built-in pandoc template)
-      if (!allDefaults[kTemplate] && !havePandocArg(args, "--template")) {
-        if (allDefaults.to && isHtmlOutput(allDefaults.to)) {
-          allDefaults[kTemplate] = await patchHtmlTemplate(
-            allDefaults.to,
-            options.format,
-            options.temp,
-            extras.html?.[kTemplatePatches],
-            options.flags,
-          );
-        }
+    // The format is providing a more robust local template
+    // to use
+    const templateContext = extras.templateContext;
+    if (templateContext) {
+      // Stage the template and/or partials
+      const template = userTemplate || templateContext.template;
+      const partials = userPartials || templateContext.partials;
+      const stagedTemplate = await stageTemplate(extras, options.temp, {
+        template,
+        partials,
+      });
+      allDefaults[kTemplate] = stagedTemplate;
+    } else {
+      if (userPartials) {
+        // The user passed partials to a format that doesn't support
+        // staging and partials.
+        throw new Error(
+          "Unable to use template partials with the format " + allDefaults.to,
+        );
+      } else if (userTemplate) {
+        allDefaults[kTemplate] = userTemplate;
       }
     }
 
