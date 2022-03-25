@@ -8702,7 +8702,12 @@ var require_yaml_intelligence_resources = __commonJS({
               {
                 object: {
                   properties: {
-                    section: "string",
+                    section: {
+                      anyOf: [
+                        "string",
+                        null
+                      ]
+                    },
                     contents: {
                       ref: "sidebar-contents"
                     }

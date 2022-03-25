@@ -8703,7 +8703,12 @@ try {
                 {
                   object: {
                     properties: {
-                      section: "string",
+                      section: {
+                        anyOf: [
+                          "string",
+                          null
+                        ]
+                      },
                       contents: {
                         ref: "sidebar-contents"
                       }
