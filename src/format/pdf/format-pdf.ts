@@ -176,13 +176,18 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
             }
           });
 
+          const headerIncludes = [];
+          if (format.pandoc.template === undefined) {
+            headerIncludes.push(
+              "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
+            );
+          }
+
           extras.metadata = {
             [kDocumentClass]: "scrartcl",
             [kClassOption]: classOptions,
             [kPaperSize]: "letter",
-            [kHeaderIncludes]: [
-              "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
-            ],
+            [kHeaderIncludes]: headerIncludes,
           };
         }
 
