@@ -44,6 +44,7 @@ export async function runPdfEngine(
   input: string,
   engine: PdfEngine,
   outputDir?: string,
+  texInputDir?: string,
   pkgMgr?: PackageManager,
   quiet?: boolean,
 ): Promise<LatexCommandReponse> {
@@ -80,9 +81,12 @@ export async function runPdfEngine(
   const result = await runLatexCommand(
     engine.pdfEngine,
     args,
-    pkgMgr,
+    {
+      pkgMgr,
+      cwd,
+      texInputDir,
+    },
     quiet,
-    cwd,
   );
 
   // Success, return result
@@ -112,9 +116,11 @@ export async function runIndexEngine(
   const result = await runLatexCommand(
     engine || "makeindex",
     [...(args || []), basename(input)],
-    pkgMgr,
+    {
+      cwd,
+      pkgMgr,
+    },
     quiet,
-    cwd,
   );
 
   return {
@@ -142,9 +148,11 @@ export async function runBibEngine(
   const result = await runLatexCommand(
     engine,
     [input],
-    pkgMgr,
+    {
+      pkgMgr,
+      cwd,
+    },
     quiet,
-    cwd,
   );
   return {
     result,
@@ -152,19 +160,36 @@ export async function runBibEngine(
   };
 }
 
+export interface LatexCommandContext {
+  pkgMgr?: PackageManager;
+  cwd?: string;
+  texInputDir?: string;
+}
+
 async function runLatexCommand(
   latexCmd: string,
   args: string[],
-  pkMgr?: PackageManager,
+  context: LatexCommandContext,
   quiet?: boolean,
-  cwd?: string,
 ): Promise<ProcessResult> {
   const runOptions: Deno.RunOptions = {
     cmd: [latexCmd, ...args],
-    cwd,
     stdout: "piped",
     stderr: "piped",
   };
+
+  // Set the working directory
+  if (context.cwd) {
+    runOptions.cwd = context.cwd;
+  }
+
+  // Add a tex search path
+  // The // means that TeX programs will search recursively in that folder;
+  // the trailing colon means "append the standard value of TEXINPUTS" (which you don't need to provide).
+  if (context.texInputDir) {
+    runOptions.env = runOptions.env || {};
+    runOptions.env["TEXINPUTS"] = `${context.texInputDir}//:`;
+  }
 
   // Run the command
   const runCmd = async () => {
@@ -186,7 +211,7 @@ async function runLatexCommand(
         "\nNo TeX installation was detected.\n\nPlease run 'quarto tools install tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",
       );
       return Promise.reject();
-    } else if (pkMgr && pkMgr.autoInstall) {
+    } else if (context.pkgMgr && context.pkgMgr.autoInstall) {
       // If the command itself can't be found, try installing the command
       // if auto installation is enabled
       if (!quiet) {
@@ -197,10 +222,10 @@ async function runLatexCommand(
       }
 
       // Search for a package for this command
-      const packageForCommand = await pkMgr.searchPackages([latexCmd]);
+      const packageForCommand = await context.pkgMgr.searchPackages([latexCmd]);
       if (packageForCommand) {
         // try to install it
-        await pkMgr.installPackages(packagesForCommand(latexCmd));
+        await context.pkgMgr.installPackages(packagesForCommand(latexCmd));
       }
       // Try running the command again
       return await runCmd();
