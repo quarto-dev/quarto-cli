@@ -5,7 +5,7 @@
 *
 */
 
-import { docs, outputForInput  } from "../../utils.ts";
+import { docs, outputForInput } from "../../utils.ts";
 import { ensureHtmlElements } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
@@ -23,7 +23,8 @@ testRender(input, "revealjs", false, [
     "section#slide-with-footnotes > aside:last-child > div > p",
     // footnotes are put in aside
     "section#slide-with-footnotes > aside:last-child > ol.aside-footnotes > li",
+  ], [
     // footnotes back are removed
-    "section#slide-with-footnotes > aside:last-child > ol.aside-footnotes > li > :not(.footnote-back)",
+    "section#slide-with-footnotes > aside:last-child > ol.aside-footnotes > li > .footnote-back",
   ]),
 ]);
