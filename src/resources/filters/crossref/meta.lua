@@ -8,14 +8,14 @@ function crossrefMetaInject()
       metaInjectLatex(meta, function(inject)
         
         inject(usePackage("caption"))
-     
+
         inject(
           "\\AtBeginDocument{%\n" ..
-          "\\renewcommand*\\contentsname{" .. param("toc-title-document", "Table of contents") .. "}\n" ..
-          "\\renewcommand*\\listfigurename{" .. listOfTitle("lof", "List of Figures") .. "}\n" ..
-          "\\renewcommand*\\listtablename{" .. listOfTitle("lot", "List of Tables") .. "}\n" ..
-          "\\renewcommand*\\figurename{" .. titleString("fig", "Figure") .. "}\n" ..
-          "\\renewcommand*\\tablename{" .. titleString("tbl", "Table") .. "}\n" ..
+          maybeRenewCommand("contentsname", param("toc-title-document", "Table of contents")) ..
+          maybeRenewCommand("listfigurename", listOfTitle("lof", "List of Figures")) ..
+          maybeRenewCommand("listtablename", listOfTitle("lot", "List of Tables")) ..
+          maybeRenewCommand("figurename", titleString("fig", "Figure")) ..
+          maybeRenewCommand("tablename", titleString("tbl", "Table")) ..
           "}\n"
         )
       
@@ -48,6 +48,11 @@ function crossrefMetaInject()
       return meta
     end
   }
+end
+
+function maybeRenewCommand(command, arg) 
+  local commandWithArg = command .. "{" .. arg .. "}"
+  return "\\ifdefined\\" .. command .. "\n  " .. "\\renewcommand*\\" .. commandWithArg .. "\n\\else\n  " .. "\\newcommand\\" .. commandWithArg .. "\n\\fi\n"
 end
 
 
