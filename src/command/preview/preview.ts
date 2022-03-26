@@ -141,21 +141,23 @@ export async function preview(
       changeHandler.render,
     );
 
-  // open browser if requested
-  const initialPath = isPdfContent(result.outputFile)
-    ? kPdfJsInitialPath
-    : project
-    ? pathWithForwardSlashes(
-      relative(projectOutputDir(project), result.outputFile),
-    )
-    : "";
-  const url = `http://localhost:${options.port}/${initialPath}`;
-  if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
-    await openUrl(url);
-  }
+  // open browser if this is a browseable format
+  if (isHtmlContent(result.outputFile) || isPdfContent(result.outputFile)) {
+    const initialPath = isPdfContent(result.outputFile)
+      ? kPdfJsInitialPath
+      : project
+      ? pathWithForwardSlashes(
+        relative(projectOutputDir(project), result.outputFile),
+      )
+      : "";
+    const url = `http://localhost:${options.port}/${initialPath}`;
+    if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
+      await openUrl(url);
+    }
 
-  // print status
-  printBrowsePreviewMessage(options.port, initialPath);
+    // print status
+    printBrowsePreviewMessage(options.port, initialPath);
+  }
 
   // serve project
   for await (const conn of listener) {
@@ -182,7 +184,11 @@ export async function previewFormat(
     const fmt = formats[name];
     const outputFile = fmt.pandoc[kOutputFile];
     return isHtmlContent(outputFile) || isPdfContent(outputFile);
-  }) || "html";
+  });
+  // if there is no html or pdf based format then pick the first format
+  if (!format) {
+    format = Object.keys(formats)[0] || "html";
+  }
   return format;
 }
 
