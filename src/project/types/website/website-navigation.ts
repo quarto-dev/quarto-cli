@@ -481,10 +481,17 @@ function navigationHtmlPostprocessor(
         removeChapterNumber(sidebarItem);
       }
 
-      // remove the chapter number from the title
-      const titleEl = doc.querySelector("h1.title");
-      if (titleEl) {
-        removeChapterNumber(titleEl);
+      // remove the chapter number from the title, page-navigation
+      const sels = [
+        "h1.title",
+        ".page-navigation .nav-page-next .nav-page-text",
+        ".page-navigation .nav-page-previous .nav-page-text",
+      ];
+      for (const sel of sels) {
+        const el = doc.querySelector(sel);
+        if (el) {
+          removeChapterNumber(el);
+        }
       }
     }
     return Promise.resolve(kHtmlEmptyPostProcessResult);

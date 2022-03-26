@@ -583,7 +583,7 @@ function revealHtmlPostprocessor(format: Format) {
     const slides = doc.querySelectorAll("section.slide");
     for (const slide of slides) {
       const slideEl = slide as Element;
-      const asides = slideEl.querySelectorAll("aside");
+      const asides = slideEl.querySelectorAll("aside:not(.notes)");
       const asideDivs = slideEl.querySelectorAll("div.aside");
       const footnotes = slideEl.querySelectorAll('a[role="doc-noteref"]');
       if (asides.length > 0 || asideDivs.length > 0 || footnotes.length > 0) {

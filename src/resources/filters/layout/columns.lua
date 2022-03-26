@@ -96,12 +96,7 @@ function renderDivColumn(el)
           -- wrap figures
           local figure = discoverFigure(contentEl, false)
           if figure ~= nil then
-            -- just ensure the classes are - they will be resolved
-            -- when the latex figure is rendered
-            addColumnClasses(columnClasses, figure)
-
-            -- ensure that extended figures will render this
-            forceExtendedFigure(figure)
+            applyFigureColumns(columnClasses, figure)
             figOrTable = true
           elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
             -- wrap table divs
@@ -125,6 +120,7 @@ function renderDivColumn(el)
         end
       else
 
+        
         -- this is not a code cell so process it
         if el.attr ~= nil then
           if hasTableRef(el) then
@@ -132,7 +128,19 @@ function renderDivColumn(el)
           elseif hasFigureRef(el) then
             latexWrapEnvironment(el, latexFigureEnv(el), false)
           else
-            processOtherContent(el)
+            -- Look in the div to see if it contains a figure
+            local figure = nil
+            for j=1,#el.content do
+              local contentEl = el.content[j]
+              if figure == nil then
+                figure = discoverFigure(contentEl, false)
+              end
+            end
+            if figure ~= nil then
+              applyFigureColumns(columnClasses, figure)
+            else
+              processOtherContent(el)
+            end
           end
         end
       end   
@@ -159,6 +167,16 @@ function processOtherContent(el)
   end
   removeColumnClasses(el)
 end
+
+function applyFigureColumns(columnClasses, figure)
+  -- just ensure the classes are - they will be resolved
+  -- when the latex figure is rendered
+  addColumnClasses(columnClasses, figure)
+
+  -- ensure that extended figures will render this
+  forceExtendedFigure(figure)  
+end
+  
 
 function hasColumnClasses(el) 
   return tcontains(el.attr.classes, isColumnClass) or hasMarginColumn(el)
