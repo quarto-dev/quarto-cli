@@ -198,6 +198,10 @@ section.has-dark-background {
   text-align: $presentation-title-slide-text-align;
 }
 
+#title-slide .subtitle {
+  margin-bottom: 2.5rem;
+}
+
 .reveal .slides {
   text-align: $reveal-slide-text-align;
 }
