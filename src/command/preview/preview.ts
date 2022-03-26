@@ -142,22 +142,25 @@ export async function preview(
     );
 
   // open browser if this is a browseable format
-  if (isHtmlContent(result.outputFile) || isPdfContent(result.outputFile)) {
-    const initialPath = isPdfContent(result.outputFile)
-      ? kPdfJsInitialPath
-      : project
-      ? pathWithForwardSlashes(
-        relative(projectOutputDir(project), result.outputFile),
-      )
-      : "";
-    const url = `http://localhost:${options.port}/${initialPath}`;
-    if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
-      await openUrl(url);
-    }
 
-    // print status
-    printBrowsePreviewMessage(options.port, initialPath);
+  const initialPath = isPdfContent(result.outputFile)
+    ? kPdfJsInitialPath
+    : project
+    ? pathWithForwardSlashes(
+      relative(projectOutputDir(project), result.outputFile),
+    )
+    : "";
+  const url = `http://localhost:${options.port}/${initialPath}`;
+  if (
+    options.browse &&
+    !isRStudioServer() && !isJupyterHubServer() &&
+    (isHtmlContent(result.outputFile) || isPdfContent(result.outputFile))
+  ) {
+    await openUrl(url);
   }
+
+  // print status
+  printBrowsePreviewMessage(options.port, initialPath);
 
   // serve project
   for await (const conn of listener) {
