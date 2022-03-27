@@ -82,7 +82,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
     await ensureGitignore(options.dir, !!options.venv || !!options.condaenv)
   ) {
     info(
-      "- Created .gitignore\n" + "- Created .gitattributes",
+      "- Created .gitignore\n" 
       { indent: 2 },
     );
   }

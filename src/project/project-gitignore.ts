@@ -81,12 +81,4 @@ function writeGitignore(dir: string, lines: string[]) {
     join(dir, ".gitignore"),
     lines.join(lineEnding) + lineEnding,
   );
-  // when writing .gitignore, also write .gitattributes if it doesn't exist
-  const gitattributes = join(dir, ".gitattributes");
-  if (!existsSync(gitattributes)) {
-    Deno.writeTextFileSync(
-      gitattributes,
-      "*.qmd linguist-language=RMarkdown" + lineEnding,
-    );
-  }
 }
