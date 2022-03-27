@@ -35,7 +35,11 @@ import {
   printWatchingForChangesMessage,
   render,
 } from "../render/render-shared.ts";
-import { RenderFlags, RenderResultFile } from "../render/types.ts";
+import {
+  RenderFlags,
+  RenderResult,
+  RenderResultFile,
+} from "../render/types.ts";
 import { renderFormats, renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 
@@ -205,6 +209,16 @@ export function setPreviewFormat(
   replacePandocArg(pandocArgs, "--to", format);
 }
 
+export function handleRenderResult(file: string, renderResult: RenderResult) {
+  // print output created
+  const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
+  if (!finalOutput) {
+    throw new Error("No output created by quarto render " + basename(file));
+  }
+  info("Output created: " + finalOutput + "\n");
+  return finalOutput;
+}
+
 interface RenderForPreviewResult {
   file: string;
   format: Format;
@@ -229,11 +243,7 @@ async function renderForPreview(
   }
 
   // print output created
-  const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
-  if (!finalOutput) {
-    throw new Error("No output created by quarto render " + basename(file));
-  }
-  info("Output created: " + finalOutput + "\n");
+  const finalOutput = handleRenderResult(file, renderResult);
 
   // notify user we are watching for reload
   printWatchingForChangesMessage();
