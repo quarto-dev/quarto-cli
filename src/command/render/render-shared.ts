@@ -214,7 +214,6 @@ export function printBrowsePreviewMessage(port: number, path: string) {
 }
 
 const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
-const kQuartoRenderCommandv2 = "B4AA6EED-A702-4ED2-9734-A20C6FDC4071";
 
 export interface PreviewRenderRequest {
   path: string;
@@ -222,8 +221,16 @@ export interface PreviewRenderRequest {
 }
 
 export function isPreviewRenderRequest(req: Request) {
-  return req.url.includes(kQuartoRenderCommand) ||
-    req.url.includes(kQuartoRenderCommandv2);
+  if (req.url.includes(kQuartoRenderCommand)) {
+    return true;
+  } else {
+    const token = renderToken();
+    if (token) {
+      return req.url.includes(token);
+    } else {
+      return false;
+    }
+  }
 }
 
 export function previewRenderRequest(
@@ -239,14 +246,17 @@ export function previewRenderRequest(
     return {
       path: join(baseDir, match[1]),
     };
-  } else if (hasClients && req.url.includes(kQuartoRenderCommandv2)) {
-    const url = new URL(req.url);
-    const path = url.searchParams.get("path");
-    if (path) {
-      return {
-        path,
-        format: url.searchParams.get("format") || undefined,
-      };
+  } else if (hasClients) {
+    const token = renderToken();
+    if (token && req.url.includes(token)) {
+      const url = new URL(req.url);
+      const path = url.searchParams.get("path");
+      if (path) {
+        return {
+          path,
+          format: url.searchParams.get("format") || undefined,
+        };
+      }
     }
   }
 }
@@ -267,4 +277,15 @@ export function previewUnableToRenderResponse() {
       "Content-Type": kTextPlain,
     },
   });
+}
+
+// QUARTO_RENDER_TOKEN
+let quartoRenderToken: string | null | undefined;
+function renderToken(): string | null {
+  const kQuartoRenderToken = "QUARTO_RENDER_TOKEN";
+  if (quartoRenderToken === undefined) {
+    quartoRenderToken = Deno.env.get(kQuartoRenderToken) || null;
+    Deno.env.delete(kQuartoRenderToken);
+  }
+  return quartoRenderToken;
 }
