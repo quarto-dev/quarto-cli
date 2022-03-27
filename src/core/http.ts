@@ -14,6 +14,7 @@ import * as colors from "fmt/colors.ts";
 import {
   contentType,
   isHtmlContent,
+  isPdfContent,
   isTextContent,
   kTextHtml,
 } from "./mime.ts";
@@ -146,11 +147,11 @@ export function httpFileRequestHandler(
         response = serveRedirect(normalizedUrl + "/");
       } else {
         response = await serveFile(fsPath, req);
+
         // if we are serving the default file and its not html
         // then provide content-disposition: attachment
         if (
-          normalizedUrl === "/" &&
-          !isHtmlContent(fsPath) && !isTextContent(fsPath)
+          normalizedUrl === "/" && !isBrowserPreviewable(fsPath)
         ) {
           response.headers.append(
             "content-disposition",
@@ -221,6 +222,14 @@ export function normalizeURL(url: string): string {
   return startOfParams > -1
     ? normalizedUrl.slice(0, startOfParams)
     : normalizedUrl;
+}
+
+export function isBrowserPreviewable(file: string) {
+  return (
+    isHtmlContent(file) ||
+    isPdfContent(file) ||
+    isTextContent(file)
+  );
 }
 
 export function maybeDisplaySocketError(e: unknown) {

@@ -27,6 +27,7 @@ import {
   httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
+  isBrowserPreviewable,
 } from "../../core/http.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
 import { isHtmlContent, isPdfContent, isTextContent } from "../../core/mime.ts";
@@ -169,8 +170,7 @@ export async function preview(
   if (
     options.browse &&
     !isRStudioServer() && !isJupyterHubServer() &&
-    (isHtmlContent(result.outputFile) || isPdfContent(result.outputFile) ||
-      isTextContent(result.outputFile))
+    isBrowserPreviewable(result.outputFile)
   ) {
     await openUrl(url);
   }
@@ -202,8 +202,7 @@ export async function previewFormat(
   format = format || Object.keys(formats).find((name) => {
     const fmt = formats[name];
     const outputFile = fmt.pandoc[kOutputFile];
-    return isHtmlContent(outputFile) || isPdfContent(outputFile) ||
-      isTextContent(outputFile);
+    return outputFile && isBrowserPreviewable(outputFile);
   });
   // if there is no known previewable format then pick the first one (or html)
   if (!format) {
