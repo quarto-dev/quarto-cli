@@ -5,6 +5,7 @@
 *
 */
 
+import { FileResponse } from "../../core/http.ts";
 import { ProjectContext } from "../../project/types.ts";
 
 export interface ProjectWatcher {
@@ -13,7 +14,7 @@ export interface ProjectWatcher {
   injectClient: (
     file: Uint8Array,
     inputFile?: string,
-  ) => Uint8Array;
+  ) => FileResponse;
   hasClients: () => boolean;
   project: () => ProjectContext;
   serveProject: () => ProjectContext;

@@ -7,6 +7,8 @@
 
 import { basename, join } from "path/mod.ts";
 import { md5Hash } from "./hash.ts";
+import { FileResponse } from "./http.ts";
+import { contentType } from "./mime.ts";
 import { pathWithForwardSlashes } from "./path.ts";
 import { formatResourcePath } from "./resources.ts";
 import { normalizeNewlines } from "./text.ts";
@@ -38,7 +40,7 @@ export function pdfJsFileHandler(
   htmlHandler?: (
     file: string,
     req: Request,
-  ) => Promise<Uint8Array | undefined>,
+  ) => Promise<FileResponse | undefined>,
 ) {
   return async (file: string, req: Request) => {
     // base behavior (injects the reloader into html files)
@@ -73,7 +75,10 @@ export function pdfJsFileHandler(
         );
       }
 
-      return new TextEncoder().encode(viewerJs);
+      return {
+        contentType: contentType(file),
+        body: new TextEncoder().encode(viewerJs),
+      };
     } else if (file == previewPath("web", "viewer.css")) {
       const viewerCss = normalizeNewlines(Deno.readTextFileSync(file))
         .replace(
@@ -84,7 +89,10 @@ export function pdfJsFileHandler(
           kPdfJsViewerSidebarTransitionDurationPattern,
           "$1 0",
         );
-      return new TextEncoder().encode(viewerCss);
+      return {
+        contentType: contentType(file),
+        body: new TextEncoder().encode(viewerCss),
+      };
 
       // tweak pdf.worker.js to always return the same fingerprint
       // (preserve user viewer prefs across reloads)
@@ -95,10 +103,16 @@ export function pdfJsFileHandler(
         /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
         `$1return "${filePathHash}"; $2`,
       );
-      return new TextEncoder().encode(workerJs);
+      return {
+        contentType: contentType(file),
+        body: new TextEncoder().encode(workerJs),
+      };
     } // read requests for our pdf for the pdfFile
     else if (file === previewPath("web", basename(pdfFile()))) {
-      return Deno.readFileSync(pdfFile());
+      return {
+        contentType: contentType(file),
+        body: Deno.readFileSync(pdfFile()),
+      };
     }
   };
 }

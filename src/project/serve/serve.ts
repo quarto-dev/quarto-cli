@@ -14,7 +14,7 @@ import * as ld from "../../core/lodash.ts";
 import { DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 
 import { openUrl } from "../../core/shell.ts";
-import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
+import { contentType, isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -371,7 +371,7 @@ export async function serveProject(
             projInputFile,
           );
         } else {
-          return fileContents;
+          return { contentType: contentType(file), body: fileContents };
         }
       } else {
         return undefined;
@@ -408,7 +408,7 @@ export async function serveProject(
       }
       return {
         print,
-        body: watcher.injectClient(body),
+        response: watcher.injectClient(body),
       };
     },
   };

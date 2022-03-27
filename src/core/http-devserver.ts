@@ -10,11 +10,12 @@ import { LogRecord } from "log/mod.ts";
 import * as ld from "./lodash.ts";
 
 import { renderEjs } from "./ejs.ts";
-import { maybeDisplaySocketError } from "./http.ts";
+import { FileResponse, maybeDisplaySocketError } from "./http.ts";
 import { LogEventsHandler } from "./log.ts";
 import { kLocalhost } from "./port.ts";
 import { resourcePath } from "./resources.ts";
 import { isRStudioPreview } from "./platform.ts";
+import { kTextHtml } from "./mime.ts";
 
 export interface HttpDevServer {
   handle: (req: Request) => boolean;
@@ -22,7 +23,7 @@ export interface HttpDevServer {
   injectClient: (
     file: Uint8Array,
     inputFile?: string,
-  ) => Uint8Array;
+  ) => FileResponse;
   reloadClients: (reloadTarget?: string) => Promise<void>;
   hasClients: () => boolean;
 }
@@ -101,7 +102,10 @@ export function httpDevServer(
       );
       fileWithScript.set(file);
       fileWithScript.set(scriptContents, file.length);
-      return fileWithScript;
+      return {
+        contenType: kTextHtml,
+        body: fileWithScript,
+      };
     },
 
     reloadClients: async (reloadTarget = "") => {
