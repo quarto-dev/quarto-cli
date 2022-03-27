@@ -6,7 +6,7 @@
 */
 
 import { join } from "path/mod.ts";
-import { exists, existsSync } from "fs/mod.ts";
+import { exists } from "fs/mod.ts";
 
 import { which } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
