@@ -11,7 +11,12 @@ import { error, info } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { contentType, isHtmlContent, kTextHtml } from "./mime.ts";
+import {
+  contentType,
+  isHtmlContent,
+  isTextContent,
+  kTextHtml,
+} from "./mime.ts";
 import { logError } from "./log.ts";
 import { pathWithForwardSlashes } from "./path.ts";
 
@@ -141,6 +146,17 @@ export function httpFileRequestHandler(
         response = serveRedirect(normalizedUrl + "/");
       } else {
         response = await serveFile(fsPath, req);
+        // if we are serving the default file and its not html
+        // then provide content-disposition: attachment
+        if (
+          normalizedUrl === "/" &&
+          !isHtmlContent(fsPath) && !isTextContent(fsPath)
+        ) {
+          response.headers.append(
+            "content-disposition",
+            'attachment; filename="' + options.defaultFile + '"',
+          );
+        }
         if (options.printUrls === "all") {
           printUrl(normalizedUrl);
         }
