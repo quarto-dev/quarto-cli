@@ -14,7 +14,12 @@ import { Command } from "cliffy/command/mod.ts";
 
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
-import { preview, previewFormat, setPreviewFormat } from "./preview.ts";
+import {
+  handleRenderResult,
+  preview,
+  previewFormat,
+  setPreviewFormat,
+} from "./preview.ts";
 import {
   kRenderDefault,
   kRenderNone,
@@ -261,13 +266,17 @@ export const previewCommand = new Command()
           setPreviewFormat(format, flags, args);
           const tempContext = createTempContext();
           try {
-            await renderProject(project, {
+            const renderResult = await renderProject(project, {
               temp: tempContext,
               progress: false,
               useFreezer: false,
               flags,
               pandocArgs: args,
             }, [file]);
+            if (renderResult.error) {
+              throw renderResult.error;
+            }
+            handleRenderResult(file, renderResult);
           } finally {
             tempContext.cleanup();
           }
