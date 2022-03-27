@@ -48,16 +48,25 @@ export function isPdfContent(path?: string) {
 }
 
 export function isHtmlContent(path?: string) {
-  return path && (contentType(path) === kTextHtml);
+  return path && contentType(path) === kTextHtml;
+}
+
+export function isTextContent(path?: string) {
+  return path && contentType(path)?.startsWith("text/");
 }
 
 const MEDIA_TYPES: Record<string, string> = {
   ".md": kTextMarkdown,
+  ".markdown": kTextMarkdown,
   ".html": kTextHtml,
   ".htm": kTextHtml,
   ".json": "application/json",
   ".map": "application/json",
   ".txt": kTextPlain,
+  ".tex": kTextPlain,
+  ".adoc": kTextPlain,
+  ".asciidoc": kTextPlain,
+  ".xml": "text/xml",
   ".ts": "text/typescript",
   ".tsx": "text/tsx",
   ".js": "application/javascript",
@@ -78,4 +87,21 @@ const MEDIA_TYPES: Record<string, string> = {
   ".ttf": "application/font-ttf",
   ".eot": "application/vnd.ms-fontobject",
   ".otf": "application/font-otf",
+  ".textile": kTextPlain,
+  ".texinfo": kTextPlain,
+  ".tei": kTextPlain,
+  ".rst": kTextPlain,
+  ".org": kTextPlain,
+  ".opml": kTextPlain,
+  ".muse": kTextPlain,
+  ".ms": kTextPlain,
+  ".native": kTextPlain,
+  ".man": kTextPlain,
+  ".dokuwiki": kTextPlain,
+  ".haddock": kTextPlain,
+  ".icml": kTextPlain,
+  ".jira": kTextPlain,
+  ".mediawiki": kTextPlain,
+  ".xwiki": kTextPlain,
+  ".zim": kTextPlain,
 };

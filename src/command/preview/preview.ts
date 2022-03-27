@@ -22,7 +22,7 @@ import {
   HttpFileRequestOptions,
 } from "../../core/http.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
-import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
+import { isHtmlContent, isPdfContent, isTextContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
@@ -142,7 +142,6 @@ export async function preview(
     );
 
   // open browser if this is a browseable format
-
   const initialPath = isPdfContent(result.outputFile)
     ? kPdfJsInitialPath
     : project
@@ -154,7 +153,8 @@ export async function preview(
   if (
     options.browse &&
     !isRStudioServer() && !isJupyterHubServer() &&
-    (isHtmlContent(result.outputFile) || isPdfContent(result.outputFile))
+    (isHtmlContent(result.outputFile) || isPdfContent(result.outputFile) ||
+      isTextContent(result.outputFile))
   ) {
     await openUrl(url);
   }
@@ -186,9 +186,10 @@ export async function previewFormat(
   format = format || Object.keys(formats).find((name) => {
     const fmt = formats[name];
     const outputFile = fmt.pandoc[kOutputFile];
-    return isHtmlContent(outputFile) || isPdfContent(outputFile);
+    return isHtmlContent(outputFile) || isPdfContent(outputFile) ||
+      isTextContent(outputFile);
   });
-  // if there is no html or pdf based format then pick the first format
+  // if there is no known previewable format then pick the first one (or html)
   if (!format) {
     format = Object.keys(formats)[0] || "html";
   }
@@ -488,6 +489,37 @@ function htmlFileRequestHandlerOptions(
         }
         const fileContents = await Deno.readFile(file);
         return reloader.injectClient(fileContents, inputFile);
+      } else if (isTextContent(file)) {
+        // TODO: need to return alternate mime type of text/html
+        // TODO: injectClient for reload notice
+
+        /*
+        const cmd = [pandocBinaryPath()];
+        cmd.push("-f");
+        cmd.push("csljson");
+        cmd.push("-t");
+        cmd.push("html5");
+        cmd.push("--citeproc");
+        if (csl) {
+          cmd.push("--csl");
+          cmd.push(csl);
+        }
+
+        const cslStr = JSON.stringify([entry], undefined, 2);
+        const result = await execProcess(
+          { cmd, stdout: "piped", stderr: "piped" },
+          cslStr,
+        );
+        if (result.success) {
+          return result.stdout;
+        } else {
+          throw new Error(
+            `Failed to render citation: error code ${result.code}\n${result.stderr}`,
+          );
+        }
+        */
+
+        // render w/ pandoc for syntax highlighting
       }
     },
   };
