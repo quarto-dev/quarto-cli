@@ -66,7 +66,8 @@ export function pdfJsFileHandler(
       const referrer = req.headers.get("Referer");
       const isViewer = referrer && (
         referrer.includes("capabilities=") || // rstudio viewer
-        referrer.includes("vscodeBrowserReqId=") // vscode simple browser
+        referrer.includes("vscodeBrowserReqId=") || // vscode simple browser
+        referrer.includes("quartoPreviewReqId=") // generic embedded browser
       );
       if (isViewer) {
         viewerJs = viewerJs.replace(
