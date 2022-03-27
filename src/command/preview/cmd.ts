@@ -306,7 +306,7 @@ export const previewCommand = new Command()
       ) {
         args.push("--to", options.render);
       }
-      await preview(file, flags, args, {
+      await preview(relative(Deno.cwd(), file), flags, args, {
         port: options.port,
         host: options.host,
         browse: !!(options.browser && options.browse),
