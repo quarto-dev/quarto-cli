@@ -6,7 +6,7 @@
 */
 
 import { info, warning } from "log/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -57,6 +57,11 @@ import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
+import {
+  pandocBinaryPath,
+  textHighlightThemePath,
+} from "../../core/resources.ts";
+import { execProcess } from "../../core/process.ts";
 
 interface PreviewOptions {
   port: number;
@@ -329,12 +334,12 @@ function createChangeHandler(
       // reload on output or resource changed (but wait for
       // the render queue to finish, as sometimes pdfs are
       // modified and even removed by pdflatex during render)
-      const reloadFiles = isHtmlContent(result.outputFile)
-        ? htmlReloadFiles(result)
-        : pdfReloadFiles(result);
-      const reloadTarget = isHtmlContent(result.outputFile)
-        ? ""
-        : "/" + kPdfJsInitialPath;
+      const reloadFiles = isPdfContent(result.outputFile)
+        ? pdfReloadFiles(result)
+        : resultReloadFiles(result);
+      const reloadTarget = isPdfContent(result.outputFile)
+        ? "/" + kPdfJsInitialPath
+        : "";
 
       watches.push({
         files: reloadFiles,
@@ -500,42 +505,15 @@ function htmlFileRequestHandlerOptions(
         const fileContents = await Deno.readFile(file);
         return reloader.injectClient(fileContents, inputFile);
       } else if (isTextContent(file)) {
-        // TODO: need to return alternate mime type of text/html
-        // TODO: injectClient for reload notice
-
-        /*
-        const cmd = [pandocBinaryPath()];
-        cmd.push("-f");
-        cmd.push("csljson");
-        cmd.push("-t");
-        cmd.push("html5");
-        cmd.push("--citeproc");
-        if (csl) {
-          cmd.push("--csl");
-          cmd.push(csl);
-        }
-
-        const cslStr = JSON.stringify([entry], undefined, 2);
-        const result = await execProcess(
-          { cmd, stdout: "piped", stderr: "piped" },
-          cslStr,
-        );
-        if (result.success) {
-          return result.stdout;
-        } else {
-          throw new Error(
-            `Failed to render citation: error code ${result.code}\n${result.stderr}`,
-          );
-        }
-        */
-
-        // render w/ pandoc for syntax highlighting
+        const html = await textPreviewHtml(file);
+        const fileContents = new TextEncoder().encode(html);
+        return reloader.injectClient(fileContents, inputFile);
       }
     },
   };
 }
 
-function htmlReloadFiles(result: RenderForPreviewResult) {
+function resultReloadFiles(result: RenderForPreviewResult) {
   return [result.outputFile].concat(result.resourceFiles);
 }
 
@@ -579,4 +557,46 @@ function resultRequiresSync(
   return result.file !== lastResult.file ||
     result.outputFile !== lastResult.outputFile ||
     !ld.isEqual(result.resourceFiles, lastResult.resourceFiles);
+}
+
+// run pandoc and its syntax highlighter over the passed file
+// (use the file's extension as its language)
+async function textPreviewHtml(file: string) {
+  // generate the markdown
+  const frontMatter = ["---"];
+  frontMatter.push(`pagetitle: "Quarto Preview"`);
+  frontMatter.push(`document-css: false`);
+  frontMatter.push("---");
+  const styles = [
+    "```{=html}",
+    `<style type="text/css">`,
+    `body { margin: 8px 12px; }`,
+    `div.sourceCode { background-color: transparent; }`,
+    // not sure what's preferable re: whitespace wrapping?
+    //  `pre > code.sourceCode { white-space: pre-wrap; }`,
+    `</style>`,
+    "```",
+  ];
+  const lang = (extname(file) || ".default").slice(1).toLowerCase();
+  const kFence = "````````````````";
+  const markdown = frontMatter.join("\n") + "\n\n" +
+    styles.join("\n") + "\n\n" +
+    kFence + lang + "\n" +
+    Deno.readTextFileSync(file) + "\n" +
+    kFence;
+
+  // build the pandoc command (we'll feed it the input on stdin)
+  const cmd = [pandocBinaryPath()];
+  cmd.push("--to", "html");
+  cmd.push("--highlight-style", textHighlightThemePath("github")!);
+  cmd.push("--standalone");
+  const result = await execProcess({
+    cmd,
+    stdout: "piped",
+  }, markdown);
+  if (result.success) {
+    return result.stdout;
+  } else {
+    throw new Error();
+  }
 }
