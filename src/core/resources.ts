@@ -10,6 +10,11 @@ import { dirname, join } from "path/mod.ts";
 import { warnOnce } from "./log.ts";
 import { which } from "./path.ts";
 import { quartoConfig } from "./quarto.ts";
+import {
+  kHKeyCurrentUser,
+  kHKeyLocalMachine,
+  registryReadString,
+} from "./registry.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();
@@ -69,6 +74,23 @@ export async function rBinaryPath(binary: string): Promise<string> {
 
   // on windows check the registry for a current version
   if (Deno.build.os === "windows") {
+    // determine current version
+    const version = await registryReadString(
+      [kHKeyLocalMachine, kHKeyCurrentUser],
+      "Software\\R-core\\R",
+      "Current Version",
+    );
+    // determine path to version
+    if (version) {
+      const installPath = await registryReadString(
+        [kHKeyLocalMachine, kHKeyCurrentUser],
+        `Software\\R-core\\R\\${version}`,
+        "InstallPath",
+      );
+      if (installPath) {
+        return join(installPath, "bin", binary);
+      }
+    }
     // last ditch, try to find R in program files
     const progFiles = Deno.env.get("programfiles");
     if (progFiles) {
