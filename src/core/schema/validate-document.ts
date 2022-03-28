@@ -51,12 +51,12 @@ export async function validateDocumentFromSource(
   // syntax errors from validation.
   if (firstCell.source.value.startsWith("---")) {
     firstContentCellIndex = 1;
-    if (!firstCell.source.value.endsWith("---")) {
+    if (!firstCell.source.value.trimEnd().endsWith("---")) {
       throw new Error("Expected front matter to end with '---'");
     }
     // validate the YAML front matter in the document
 
-    const lineRanges = rangedLines(firstCell.source.value);
+    const lineRanges = rangedLines(firstCell.source.value.trimEnd());
     const frontMatterText = mappedString(
       firstCell.source,
       [{
