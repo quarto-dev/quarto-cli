@@ -254,7 +254,7 @@ function calloutLatex(div)
     if caption == nil then
       caption = displayName(type)
     else
-      caption = pandoc.utils.stringify(caption)
+      caption = pandoc.write(pandoc.Pandoc(pandoc.Plain(caption)), 'latex')
     end
     callout = latexCalloutBoxDefault(caption, type, icon)
   else
