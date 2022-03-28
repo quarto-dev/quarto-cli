@@ -307,7 +307,7 @@ function latexCalloutBoxDefault(caption, type, icon)
     bottomrule = borderWidth,
     rightrule = borderWidth,
     arc = borderRadius,
-    title = caption,
+    title = '{' .. caption .. '}',
     titlerule = '0mm',
     toptitle = '1mm',
     bottomtitle = '1mm',
