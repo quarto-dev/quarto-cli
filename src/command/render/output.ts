@@ -138,7 +138,7 @@ export function outputRecipe(
           const markdown = outputMd?.markdown || output;
           Deno.writeTextFileSync(
             recipe.output,
-            inputMd.yaml + "\n\n" + markdown,
+            inputMd.yaml + markdown,
           );
         }
       });
