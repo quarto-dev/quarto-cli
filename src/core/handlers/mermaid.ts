@@ -11,7 +11,7 @@ import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat } from "../lib/mapped-text.ts";
 import { schemaFromString } from "../lib/yaml-schema/from-yaml.ts";
 
-install("mermaid", {
+const mermaidHandler = {
   ...baseHandler,
 
   comment: "%%",
@@ -62,4 +62,6 @@ object:
       return cell.source;
     }
   },
-});
+};
+
+install("mermaid", mermaidHandler);
