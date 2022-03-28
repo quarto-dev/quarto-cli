@@ -1,6 +1,11 @@
 @ECHO OFF
 SETLOCAL ENABLEDELAYEDEXPANSION
 
+REM First Check that Deno isn't running since this causes weird and confusing errors
+tasklist /fi "ImageName eq deno.exe" /fo csv 2>NUL | find /I "deno.exe">NUL
+if "%ERRORLEVEL%"=="0" goto :denoRunning
+
+
 REM Reads the configuration file line by line
 REM and convert any export statements into set statements
 REM (allows reuse of variables)
@@ -77,6 +82,12 @@ ECHO NOTE: To use quarto please use quarto-cmd (located in this folder) or add t
 ECHO %FINAL_BIN_PATH%
 
 
+GOTO :eof
+
+:denoRunning
+
+echo Please ensure no instances of `deno.exe` are running before configuring.
+echo (Deno might be running as an LSP if you have Visual Studio Code open.)
 GOTO :eof
 
 REM Reads each line of a file and converts any exports into SETs

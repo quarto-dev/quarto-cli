@@ -231,6 +231,11 @@ export const websiteProjectType: ProjectType = {
           extras.html[kSassBundles]!.push(
             ...aboutDependencies[kSassBundles],
           );
+          extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] ||
+            [];
+          extras.html[kMarkdownAfterBody]!.push(
+            ...aboutDependencies[kMarkdownAfterBody],
+          );
         }
       }
 

@@ -4,6 +4,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { join } from "path/mod.ts";
+
 import {
   kBibliography,
   kCitationLocation,
@@ -46,6 +48,7 @@ import * as ld from "../../core/lodash.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { isWindows } from "../../core/platform.ts";
+import { readCodePage } from "../../core/windows.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -53,7 +56,7 @@ const kProjectOffset = "project-offset";
 
 const kResultsFile = "results-file";
 
-export function filterParamsJson(
+export async function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
@@ -78,6 +81,7 @@ export function filterParamsJson(
 
   const params: Metadata = {
     ...includes,
+    ...await initFilterParams(),
     ...projectFilterParams(options),
     ...quartoColumnParams,
     ...quartoFilterParams(options.format),
@@ -325,6 +329,17 @@ function quartoFilterParams(format: Format) {
   const keepHidden = format.render[kKeepHidden];
   if (keepHidden) {
     params[kKeepHidden] = kKeepHidden;
+  }
+  return params;
+}
+
+function initFilterParams() {
+  const params: Metadata = {};
+  if (Deno.build.os === "windows") {
+    const value = readCodePage();
+    if (value) {
+      params["windows-codepage"] = value;
+    }
   }
   return params;
 }

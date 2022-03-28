@@ -6,7 +6,7 @@
 */
 
 import { existsSync, walkSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { warnOnce } from "./log.ts";
 import { which } from "./path.ts";
 import { quartoConfig } from "./quarto.ts";
@@ -51,6 +51,15 @@ export function pandocBinaryPath(): string {
 }
 
 export async function rBinaryPath(binary: string): Promise<string> {
+  // if there is a QUARTO_R environment variable then respect that
+  const quartoR = Deno.env.get("QUARTO_R");
+  if (quartoR && existsSync(quartoR)) {
+    const rBinDir = Deno.statSync(quartoR).isDirectory
+      ? quartoR
+      : dirname(quartoR);
+    return join(rBinDir, binary);
+  }
+
   // if there is an R_HOME then respect that
   const rHome = Deno.env.get("R_HOME");
   if (rHome) {
@@ -82,7 +91,6 @@ export async function rBinaryPath(binary: string): Promise<string> {
         return join(installPath, "bin", binary);
       }
     }
-
     // last ditch, try to find R in program files
     const progFiles = Deno.env.get("programfiles");
     if (progFiles) {

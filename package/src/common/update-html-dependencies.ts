@@ -15,6 +15,7 @@ import { Repo, withRepo } from "../util/git.ts";
 
 import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
+import { visitLines } from "../../../src/core/file.ts";
 
 export async function updateHtmlDepedencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
@@ -92,6 +93,58 @@ export async function updateHtmlDepedencies(config: Configuration) {
     },
   );
   cleanSourceMap(clipboardJs);
+
+  // Day.js locales
+  // https://github.com/iamkun/dayjs/tree/dev/src/locale
+  const dayJsDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "library",
+    "dayjs",
+  );
+  await updateGithubSourceCodeDependency(
+    "dayjs",
+    "iamkun/dayjs",
+    "DAY_JS",
+    workingDir,
+    async (dir: string, version: string) => {
+      const sourceDir = join(
+        dir,
+        `dayjs-${version}`,
+        "src",
+        "locale",
+      );
+      const targetDir = join(dayJsDir, "locale");
+      ensureDirSync(targetDir);
+
+      const files = Deno.readDirSync(sourceDir);
+      for (const file of files) {
+        const targetFile = join(targetDir, file.name);
+        // Move the file
+        Deno.copyFileSync(
+          join(sourceDir, file.name),
+          targetFile,
+        );
+
+        // Fixup the file to remove these lines
+        const ignore = [
+          "import dayjs from 'dayjs'",
+          "dayjs.locale(locale, null, true)",
+        ];
+        const output: string[] = [];
+        await visitLines(targetFile, (line: string | null, _count: number) => {
+          if (line !== null) {
+            if (!ignore.includes(line)) {
+              output.push(line);
+            }
+          }
+          return true;
+        });
+
+        Deno.writeTextFileSync(targetFile, output.join("\n"));
+      }
+    },
+  );
 
   // Tippy
   const tippyUmdJs = join(formatDir, "tippy", "tippy.umd.min.js");

@@ -101,6 +101,9 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         },
         [kDefaultImageExtension]: "pdf",
       },
+      metadata: {
+        ["block-headings"]: true,
+      },
       formatExtras: (
         _input: string,
         flags: PandocFlags,

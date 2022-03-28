@@ -904,7 +904,7 @@ $form-check-min-height:                   $font-size-base * $line-height-base !d
 $form-check-padding-start:                0 !default;
 $form-check-margin-bottom:                .125rem !default;
 $form-check-label-color:                  null !default;
-$form-check-label-cursor:                 null !default;
+$form-check-label-cursor:                 pointer !default;
 $form-check-transition:                   null !default;
 
 $form-check-input-active-filter:          brightness(90%) !default;
@@ -1140,11 +1140,11 @@ $navbar-toggler-transition:         box-shadow .15s ease-in-out !default;
 
 // scss-docs-start navbar-theme-variables
 $navbar-bg:                         null !default;  // Background color for any navbarPage()
-$navbar-dark-bg:                    $navbar-bg !default;  // Background color for navbarPage(inverse = TRUE)
-$navbar-light-bg:                   $navbar-bg !default;  // Background color for navbarPage(inverse = FALSE)
+$navbar-dark-bg:                    if($navbar-bg, $navbar-bg, $dark) !default;  // Background color for navbarPage(inverse = TRUE)
+$navbar-light-bg:                   if($navbar-bg, $navbar-bg, $light) !default;  // Background color for navbarPage(inverse = FALSE)
 
-$navbar-dark-contrast:              if($navbar-dark-bg, color-contrast($navbar-dark-bg), $white) !default; // Deepest contrasting color for navbarPage(inverse = TRUE). Defaults to $white or $black based on luminance of $navbar-dark-bg
-$navbar-light-contrast:             if($navbar-light-bg, color-contrast($navbar-light-bg), $black) !default; // Deepest contrasting color for navbarPage(inverse = FALSE). Defaults to $white or $black based on luminance of $navbar-light-bg
+$navbar-dark-contrast:              color-contrast($navbar-dark-bg) !default; // Deepest contrasting color for navbarPage(inverse = TRUE). Defaults to $white or $black based on luminance of $navbar-dark-bg
+$navbar-light-contrast:             color-contrast($navbar-light-bg) !default; // Deepest contrasting color for navbarPage(inverse = FALSE). Defaults to $white or $black based on luminance of $navbar-light-bg
 
 $navbar-dark-color:                 rgba($navbar-dark-contrast, .55) !default;
 $navbar-dark-hover-color:           rgba($navbar-dark-contrast, .75) !default;

@@ -51,6 +51,22 @@
     enum: [tabset, input, sidebar, fill, center]
   description: "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)"
 
+- name: output-location
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [default, fragment, slide]
+  description:
+    short: Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)
+    long: |
+      Location of output relative to the code that generated it. The possible values are as follows:
+
+      - `default`: Show output in the normal flow of the slide after the code
+      - `fragment`: Show output in a fragment (not visible until you advance)
+      - `slide`: Show output on a new slide after the curent one
+
+      Note that this option is supported only for the `revealjs` format.
+
 - name: message
   tags:
     engine: knitr

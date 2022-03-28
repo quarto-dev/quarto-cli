@@ -9,7 +9,7 @@ import { dirname, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
-import { ensureDirSync, existsSync, expandGlobSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
@@ -19,7 +19,11 @@ import * as ld from "../../core/lodash.ts";
 import { Document } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
-import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
+import {
+  copyFileIfNewer,
+  dirAndStem,
+  pathWithForwardSlashes,
+} from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
@@ -49,11 +53,7 @@ import {
   isQuartoMetadata,
   metadataGetDeep,
 } from "../../config/metadata.ts";
-import {
-  pandocBinaryPath,
-  resourcePath,
-  textHighlightThemePath,
-} from "../../core/resources.ts";
+import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import {
   partitionYamlFrontMatter,
@@ -135,6 +135,8 @@ import {
   splitPandocFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
 import { parseAuthor } from "../../core/author.ts";
+import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
+import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -444,13 +446,20 @@ export async function runPandoc(
     delete allDefaults[kTitlePrefix];
   }
 
+  // Attempt to cache the code page, if this windows.
+  // We cache the code page to prevent looking it up
+  // in the registry repeatedly (which triggers MS Defender)
+  if (Deno.build.os === "windows") {
+    await cacheCodePage();
+  }
+
   // filter results json file
   const filterResultsFile = options.temp.createFile();
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
   let pandocArgs = args;
-  const paramsJson = filterParamsJson(
+  const paramsJson = await filterParamsJson(
     pandocArgs,
     options,
     allDefaults,
@@ -651,6 +660,13 @@ export async function runPandoc(
         : [],
     };
   } else {
+    // Since this render wasn't successful, clear the code page cache
+    // (since the code page could've changed and we could be caching the
+    // wrong value)
+    if (Deno.build.os === "windows") {
+      clearCodePageCache();
+    }
+
     return null;
   }
 }
@@ -694,6 +710,7 @@ async function resolveExtras(
   if (isHtmlOutput(format.pandoc)) {
     // resolve sass bundles
     extras = await resolveSassBundles(
+      inputDir,
       extras,
       format.pandoc,
       temp,
@@ -710,6 +727,7 @@ async function resolveExtras(
 
   // Resolve the highlighting theme (if any)
   extras = resolveTextHighlightStyle(
+    inputDir,
     extras,
     format.pandoc,
   );
@@ -759,8 +777,7 @@ export function resolveDependencies(
         template?: any,
       ) => {
         const targetPath = join(targetDir, file.name);
-        ensureDirSync(dirname(targetPath));
-        Deno.copyFileSync(file.path, targetPath);
+        copyFileIfNewer(file.path, targetPath);
         if (template) {
           const attribs = file.attribs
             ? Object.entries(file.attribs).map((entry) => {
@@ -887,6 +904,7 @@ function runPandocMessage(
 }
 
 function resolveTextHighlightStyle(
+  inputDir: string,
   extras: FormatExtras,
   pandoc: FormatPandoc,
 ): FormatExtras {
@@ -905,8 +923,11 @@ function resolveTextHighlightStyle(
     case "dark":
       // Set light or dark mode as appropriate
       extras.pandoc = extras.pandoc || {};
-      extras.pandoc[kHighlightStyle] =
-        textHighlightThemePath(highlightTheme, textHighlightingMode) ||
+      extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+        inputDir,
+        highlightTheme,
+        textHighlightingMode,
+      ) ||
         highlightTheme;
 
       break;
@@ -922,7 +943,7 @@ function resolveTextHighlightStyle(
       // Set the the light (default) highlighting mode
       extras.pandoc = extras.pandoc || {};
       extras.pandoc[kHighlightStyle] =
-        textHighlightThemePath(highlightTheme, "light") ||
+        textHighlightThemePath(inputDir, highlightTheme, "light") ||
         highlightTheme;
       break;
   }

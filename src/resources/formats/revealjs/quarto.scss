@@ -198,6 +198,10 @@ section.has-dark-background {
   text-align: $presentation-title-slide-text-align;
 }
 
+#title-slide .subtitle {
+  margin-bottom: 2.5rem;
+}
+
 .reveal .slides {
   text-align: $reveal-slide-text-align;
 }
@@ -251,6 +255,32 @@ section.has-dark-background {
 .reveal blockquote p:first-child,
 .reveal blockquote p:last-child {
   display: inline;
+}
+
+.reveal .slide aside,
+.reveal .slide div.aside {
+  position: absolute;
+  bottom: 20px;
+  font-size: #{$presentation-font-smaller}em;
+  color: $text-muted;
+}
+
+.reveal .slide sup {
+  font-size: #{$presentation-font-smaller}em;
+}
+
+.reveal .slide.scrollable aside,
+.reveal .slide.scrollable div.aside {
+  position: relative;
+  margin-top: 1em;
+}
+
+.reveal .slide aside .aside-footnotes {
+  margin-bottom: 0;
+}
+
+.reveal .slide aside .aside-footnotes li:first-of-type {
+  margin-top: 0;
 }
 
 $panel-sidebar-width: 270px;

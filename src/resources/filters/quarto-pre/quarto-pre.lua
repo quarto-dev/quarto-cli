@@ -70,6 +70,7 @@ import("panel-input.lua")
 import("panel-layout.lua")
 import("hidden.lua")
 import("line-numbers.lua")
+import("output-location.lua")
 -- [/import]
 
 initParams()
@@ -82,6 +83,7 @@ return {
   tableColwidth(),
   hidden(),
   outputs(),
+  outputLocation(),
   combineFilters({
     fileMetadata(),
     indexBookFileTargets(),

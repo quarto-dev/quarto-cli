@@ -23,6 +23,7 @@ import {
   Navbar,
   normalizeSidebarItem,
   partitionedMarkdownForInput,
+  sidebarContext,
   SidebarItem,
   SidebarTool,
 } from "../../project-config.ts";
@@ -314,6 +315,7 @@ export async function bookRenderItems(
     }
   };
 
+  const context = sidebarContext();
   const findChapters = async (
     key: "chapters" | "appendices",
     delimiter?: BookRenderItem,
@@ -329,7 +331,7 @@ export async function bookRenderItems(
       await findInputs(
         kBookItemChapter,
         bookChaptersToSidebarItems(bookInputs)
-          .map((item) => normalizeSidebarItem(projectDir, item)),
+          .map((item) => normalizeSidebarItem(projectDir, item, context)),
       );
     }
   };
@@ -339,7 +341,7 @@ export async function bookRenderItems(
   const references = bookConfig("references", config);
   if (references) {
     await findInputs(kBookItemChapter, [
-      normalizeSidebarItem(projectDir, references as SidebarItem),
+      normalizeSidebarItem(projectDir, references as SidebarItem, context),
     ]);
   }
 

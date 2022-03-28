@@ -4,7 +4,15 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { existsSync } from "fs/mod.ts";
+import { join } from "path/mod.ts";
+import { quartoCacheDir } from "./appdirs.ts";
 import { execProcess } from "./process.ts";
+import {
+  kHKeyCurrentUser,
+  kHKeyLocalMachine,
+  registryReadString,
+} from "./registry.ts";
 
 export async function readRegistryKey(
   registryPath: string,
@@ -42,4 +50,48 @@ export async function readRegistryKey(
   } else {
     return undefined;
   }
+}
+
+const tokenPath = join(quartoCacheDir(), "codepage");
+
+export async function cacheCodePage() {
+  if (!existsSync(tokenPath)) {
+    const value = await registryReadString(
+      [kHKeyLocalMachine, kHKeyCurrentUser],
+      "SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage",
+      "ACP",
+    );
+
+    if (value) {
+      Deno.writeTextFileSync(tokenPath, value);
+    }
+  }
+}
+
+export function clearCodePageCache() {
+  if (existsSync(tokenPath)) {
+    Deno.removeSync(tokenPath);
+  }
+}
+
+function readCodePageCache() {
+  const codepage = Deno.readTextFileSync(tokenPath);
+  if (codepage) {
+    return codepage;
+  } else {
+    return undefined;
+  }
+}
+
+export function readCodePage() {
+  // Try reading our code page token, if that isn't present,
+  try {
+    const codepage = readCodePageCache();
+    if (codepage) {
+      return codepage;
+    }
+  } catch {
+    throw new Error("Expected a cached code page for this installation");
+  }
+  return undefined;
 }

@@ -11,6 +11,7 @@ import { dirname, join } from "path/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import {
   asBootstrapColor,
+  asCssColor,
   asCssFont,
   asCssNumber,
   asCssSize,
@@ -49,6 +50,7 @@ import {
   quartoUses,
   sassUtilFunctions,
 } from "./format-html-shared.ts";
+import { readHighlightingTheme } from "../../quarto-core/text-highlighting.ts";
 
 export interface Themes {
   light: string[];
@@ -128,6 +130,7 @@ export function resolveBootstrapScss(
   // Resolve the provided themes to a set of variables and styles
   const theme = format.metadata[kTheme] || [];
   const [themeSassLayers, defaultDark, loadPaths] = resolveThemeLayer(
+    format,
     input,
     theme,
     quartoThemesDir,
@@ -202,8 +205,72 @@ function layerTheme(
   return { layers, loadPaths };
 }
 
+function resolveTextHighlightingLayer(
+  input: string,
+  format: Format,
+  style: "dark" | "light",
+) {
+  const layer = {
+    uses: "",
+    defaults: "",
+    functions: "",
+    mixins: "",
+    rules: "",
+  };
+
+  if (format.metadata[kCodeBlockBackground] === undefined) {
+    // Inject a background color, if present
+    const themeDescriptor = readHighlightingTheme(
+      dirname(input),
+      format.pandoc,
+      style,
+    );
+    if (themeDescriptor && !themeDescriptor.isAdaptive) {
+      const backgroundColor = () => {
+        if (themeDescriptor.json["background-color"]) {
+          return themeDescriptor.json["background-color"] as string;
+        } else {
+          const editorColors = themeDescriptor.json["editor-colors"] as
+            | Record<string, string>
+            | undefined;
+          if (editorColors && editorColors["BackgroundColor"]) {
+            return editorColors["BackgroundColor"] as string;
+          } else {
+            return undefined;
+          }
+        }
+      };
+
+      const background = backgroundColor();
+      if (background) {
+        layer.defaults = outputVariable(
+          sassVariable(
+            "code-block-bg",
+            asCssColor(background),
+          ),
+          true,
+        );
+      }
+
+      const textColor = themeDescriptor.json["text-color"] as string;
+      if (textColor) {
+        layer.defaults = layer.defaults + "\n" + outputVariable(
+          sassVariable(
+            "code-block-color",
+            asCssColor(textColor),
+          ),
+          true,
+        );
+      }
+    }
+  }
+
+  return layer;
+}
+
 // Resolve the themes into a ThemeSassLayer
 function resolveThemeLayer(
+  format: Format,
   input: string,
   themes: string | string[] | Themes | unknown,
   quartoThemesDir: string,
@@ -246,9 +313,28 @@ function resolveThemeLayer(
     theme = { light: [] };
   }
   const lightLayerContext = layerTheme(input, theme.light, quartoThemesDir);
+  const highlightingLayer = resolveTextHighlightingLayer(
+    input,
+    format,
+    "light",
+  );
+  if (highlightingLayer) {
+    lightLayerContext.layers.unshift(highlightingLayer);
+  }
+
   const darkLayerContext = theme.dark
     ? layerTheme(input, theme.dark, quartoThemesDir)
     : undefined;
+  if (darkLayerContext) {
+    const darkHighlightingLayer = resolveTextHighlightingLayer(
+      input,
+      format,
+      "dark",
+    );
+    if (darkHighlightingLayer) {
+      darkLayerContext.layers.unshift(darkHighlightingLayer);
+    }
+  }
 
   const themeSassLayer = {
     light: mergeLayers(...lightLayerContext.layers),

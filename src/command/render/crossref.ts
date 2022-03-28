@@ -40,10 +40,15 @@ export function crossrefFilterParams(
   const kCrossrefFilterParams = [kListings, kNumberSections, kNumberOffset];
   const params: Metadata = {};
   kCrossrefFilterParams.forEach((option) => {
-    const value = crossrefOption(option, flags, defaults);
+    let value = crossrefOption(option, flags, defaults);
     if (value) {
       // validation
       if (option === kNumberOffset) {
+        // coerce scalar number-offset to array
+        if (typeof (value) === "number") {
+          value = [value];
+        }
+        // validate we have an array
         if (
           !Array.isArray(value) || value.some((num) => !Number.isInteger(num))
         ) {
@@ -51,6 +56,8 @@ export function crossrefFilterParams(
             "Invalid value for number-offset (should be an array of numbers)",
           );
         }
+        // implies number-sections
+        params[kNumberSections] = true;
       }
 
       params[option] = value;

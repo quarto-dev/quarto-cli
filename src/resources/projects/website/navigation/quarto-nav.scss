@@ -11,7 +11,7 @@ footer.footer .nav-footer,
   padding-right: 1em;
 }
 
-#TOC {
+nav[role="doc-toc"] {
   padding-left: 0.5em;
 }
 
@@ -295,7 +295,8 @@ div.sidebar-item-container {
   }
 
   .active,
-  .show > .nav-link {
+  .show > .nav-link,
+  .sidebar-link > code {
     color: $sidebar-active-color;
   }
 }
@@ -497,21 +498,21 @@ nav.sidebar.sidebar-navigation {
   margin-left: 4px;
 }
 
-.sidebar nav#TOC .toc-actions .bi {
+.sidebar nav[role="doc-toc"] .toc-actions .bi {
   margin-left: -4px;
   font-size: 0.7rem;
   color: $text-muted;
 }
 
-.sidebar nav#TOC .toc-actions > div:first-of-type {
+.sidebar nav[role="doc-toc"] .toc-actions > div:first-of-type {
   margin-top: -3px;
 }
 
-.sidebar nav#TOC .toc-actions p {
+.sidebar nav[role="doc-toc"] .toc-actions p {
   font-size: $toc-font-size;
 }
 
-.sidebar nav#TOC .header-section-number {
+.sidebar nav[role="doc-toc"] .header-section-number {
   display: none;
 }
 

@@ -51,12 +51,23 @@
     if (!is.null(r_options)) {
       do.call(options, r_options)
     }
-
-
+    
+    # read output and initialize output_res to no-op
+    output_str <- xfun::read_utf8(output)
+    output_res <- output_str
+    
     # perform code linking if requested
     if (isTRUE(code_link)) {
        if (requireNamespace("downlit", quietly = TRUE) && requireNamespace("xml2", quietly = TRUE)) {
+         # run downlit
          downlit::downlit_html_path(output, output)
+         
+         # fix xml2 induced whitespace problems that break revealjs columns 
+         # (b/c they depend on inline-block behavior) then reset output_res 
+         downlit_output <-paste(xfun::read_utf8(output), collapse = "\n")
+         downlit_output <- gsub('(</div>)\n(<div class="column")', "\\1\\2", downlit_output)
+         output_res <- strsplit(downlit_output, "\n", fixed = TRUE)[[1]]
+         
        } else {
          warning("The downlit and xml2 packages are required for code linking")
        }
@@ -69,15 +80,12 @@
       preserved_chunks <- as.character(preserved_chunks)
       names(preserved_chunks) <- names
 
-      # read the output file
-      output_str <- xfun::read_utf8(output)
 
       if (isHTML) {
         # Pandoc adds an empty <p></p> around the IDs of preserved chunks, and we
         # need to remove these empty tags, otherwise we may have invalid HTML like
         # <p><div>...</div></p>. For the reason of the second gsub(), see
         # https://github.com/rstudio/rmarkdown/issues/133.
-        output_res <- output_str
         for (i in names(preserved_chunks)) {
           output_res <- gsub(paste0("<p>", i, "</p>"), i, output_res,
                             fixed = TRUE, useBytes = TRUE)
@@ -90,10 +98,11 @@
 
         output_res <- knitr::restore_raw_output(output_str, preserved_chunks)
       }
-
-      # re-write output if necessary
-      if (!identical(output_str, output_res))
-        xfun::write_utf8(output_res, output)  
+    }
+    
+    # re-write output if necessary
+    if (!identical(output_str, output_res)) {
+      xfun::write_utf8(output_res, output)  
     }
   }
 

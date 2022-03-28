@@ -17,7 +17,6 @@ import { asCssSize } from "../../core/css.ts";
 
 import {
   kCodeLink,
-  kCopyButtonTooltip,
   kDoi,
   kFigResponsive,
   kFilterParams,

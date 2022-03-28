@@ -6,7 +6,14 @@
 */
 
 import { info, warning } from "log/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  join,
+  normalize,
+  relative,
+} from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -20,18 +27,27 @@ import {
   httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
+  isBrowserPreviewable,
 } from "../../core/http.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
-import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
+import { isHtmlContent, isPdfContent, isTextContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
 import {
+  isPreviewRenderRequest,
+  previewRenderRequest,
+  previewRenderRequestIsCompatible,
+  previewUnableToRenderResponse,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
 } from "../render/render-shared.ts";
-import { RenderFlags, RenderResultFile } from "../render/types.ts";
+import {
+  RenderFlags,
+  RenderResult,
+  RenderResultFile,
+} from "../render/types.ts";
 import { renderFormats, renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 
@@ -49,6 +65,11 @@ import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
+import {
+  pandocBinaryPath,
+  textHighlightThemePath,
+} from "../../core/resources.ts";
+import { execProcess } from "../../core/process.ts";
 
 interface PreviewOptions {
   port: number;
@@ -67,7 +88,8 @@ export async function preview(
 ) {
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
-  await resolvePreviewFormat(file, flags, pandocArgs);
+  const format = await previewFormat(file, flags.to);
+  setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
@@ -113,6 +135,7 @@ export async function preview(
     ? pdfFileRequestHandler(
       result.outputFile,
       Deno.realPathSync(file),
+      flags,
       result.format,
       reloader,
       changeHandler.render,
@@ -121,6 +144,7 @@ export async function preview(
     ? projectHtmlFileRequestHandler(
       project,
       Deno.realPathSync(file),
+      flags,
       result.format,
       reloader,
       changeHandler.render,
@@ -128,12 +152,13 @@ export async function preview(
     : htmlFileRequestHandler(
       result.outputFile,
       Deno.realPathSync(file),
+      flags,
       result.format,
       reloader,
       changeHandler.render,
     );
 
-  // open browser if requested
+  // open browser if this is a browseable format
   const initialPath = isPdfContent(result.outputFile)
     ? kPdfJsInitialPath
     : project
@@ -142,7 +167,11 @@ export async function preview(
     )
     : "";
   const url = `http://localhost:${options.port}/${initialPath}`;
-  if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
+  if (
+    options.browse &&
+    !isRStudioServer() && !isJupyterHubServer() &&
+    isBrowserPreviewable(result.outputFile)
+  ) {
     await openUrl(url);
   }
 
@@ -163,20 +192,42 @@ export async function preview(
   }
 }
 
-// determine the format to preview (modifies flags and pandocArgs in place)
-async function resolvePreviewFormat(
+// determine the format to preview
+export async function previewFormat(
   file: string,
+  format?: string,
+  project?: ProjectContext,
+) {
+  const formats = await renderFormats(file, "all", project);
+  format = format || Object.keys(formats).find((name) => {
+    const fmt = formats[name];
+    const outputFile = fmt.pandoc[kOutputFile];
+    return outputFile && isBrowserPreviewable(outputFile);
+  });
+  // if there is no known previewable format then pick the first one (or html)
+  if (!format) {
+    format = Object.keys(formats)[0] || "html";
+  }
+  return format;
+}
+
+export function setPreviewFormat(
+  format: string,
   flags: RenderFlags,
   pandocArgs: string[],
 ) {
-  const formats = await renderFormats(file);
-  const format = flags.to || Object.keys(formats).find((name) => {
-    const format = formats[name];
-    const outputFile = format.pandoc[kOutputFile];
-    return isHtmlContent(outputFile) || isPdfContent(outputFile);
-  }) || "html";
   flags.to = format;
   replacePandocArg(pandocArgs, "--to", format);
+}
+
+export function handleRenderResult(file: string, renderResult: RenderResult) {
+  // print output created
+  const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
+  if (!finalOutput) {
+    throw new Error("No output created by quarto render " + basename(file));
+  }
+  info("Output created: " + finalOutput + "\n");
+  return finalOutput;
 }
 
 interface RenderForPreviewResult {
@@ -203,11 +254,7 @@ async function renderForPreview(
   }
 
   // print output created
-  const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
-  if (!finalOutput) {
-    throw new Error("No output created by quarto render " + basename(file));
-  }
-  info("Output created: " + finalOutput + "\n");
+  const finalOutput = handleRenderResult(file, renderResult);
 
   // notify user we are watching for reload
   printWatchingForChangesMessage();
@@ -293,12 +340,12 @@ function createChangeHandler(
       // reload on output or resource changed (but wait for
       // the render queue to finish, as sometimes pdfs are
       // modified and even removed by pdflatex during render)
-      const reloadFiles = isHtmlContent(result.outputFile)
-        ? htmlReloadFiles(result)
-        : pdfReloadFiles(result);
-      const reloadTarget = isHtmlContent(result.outputFile)
-        ? ""
-        : "/" + kPdfJsInitialPath;
+      const reloadFiles = isPdfContent(result.outputFile)
+        ? pdfReloadFiles(result)
+        : resultReloadFiles(result);
+      const reloadTarget = isPdfContent(result.outputFile)
+        ? "/" + kPdfJsInitialPath
+        : "";
 
       watches.push({
         files: reloadFiles,
@@ -376,6 +423,7 @@ function previewWatcher(watches: Watch[]): Watcher {
 function projectHtmlFileRequestHandler(
   context: ProjectContext,
   inputFile: string,
+  flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
@@ -385,6 +433,7 @@ function projectHtmlFileRequestHandler(
       projectOutputDir(context),
       "index.html",
       inputFile,
+      flags,
       format,
       reloader,
       renderHandler,
@@ -395,6 +444,7 @@ function projectHtmlFileRequestHandler(
 function htmlFileRequestHandler(
   htmlFile: string,
   inputFile: string,
+  flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
@@ -404,6 +454,7 @@ function htmlFileRequestHandler(
       dirname(htmlFile),
       basename(htmlFile),
       inputFile,
+      flags,
       format,
       reloader,
       renderHandler,
@@ -415,6 +466,7 @@ function htmlFileRequestHandlerOptions(
   baseDir: string,
   defaultFile: string,
   inputFile: string,
+  flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
@@ -423,7 +475,7 @@ function htmlFileRequestHandlerOptions(
     baseDir,
     defaultFile,
     printUrls: "404",
-    onRequest: (req: Request) => {
+    onRequest: async (req: Request) => {
       if (reloader.handle(req)) {
         return Promise.resolve(reloader.connect(req));
       } else if (req.url.endsWith("/quarto-render/")) {
@@ -431,6 +483,21 @@ function htmlFileRequestHandlerOptions(
         // caller gets an immediate reply
         renderHandler();
         return Promise.resolve(httpContentResponse("rendered"));
+      } else if (isPreviewRenderRequest(req)) {
+        const prevReq = previewRenderRequest(req, reloader.hasClients());
+        if (
+          prevReq &&
+          existsSync(prevReq.path) &&
+          Deno.realPathSync(prevReq.path) === inputFile &&
+          await previewRenderRequestIsCompatible(prevReq, flags)
+        ) {
+          // don't wait for the promise so the
+          // caller gets an immediate reply
+          renderHandler();
+          return Promise.resolve(httpContentResponse("rendered"));
+        } else {
+          return Promise.resolve(previewUnableToRenderResponse());
+        }
       } else {
         return Promise.resolve(undefined);
       }
@@ -443,18 +510,29 @@ function htmlFileRequestHandlerOptions(
         }
         const fileContents = await Deno.readFile(file);
         return reloader.injectClient(fileContents, inputFile);
+      } else if (
+        isTextContent(file) && isDefaultFile(file, baseDir, defaultFile)
+      ) {
+        const html = await textPreviewHtml(file);
+        const fileContents = new TextEncoder().encode(html);
+        return reloader.injectClient(fileContents, inputFile);
       }
     },
   };
 }
 
-function htmlReloadFiles(result: RenderForPreviewResult) {
+function isDefaultFile(file: string, baseDir: string, defaultFile: string) {
+  return normalize(file) === normalize(join(baseDir, defaultFile));
+}
+
+function resultReloadFiles(result: RenderForPreviewResult) {
   return [result.outputFile].concat(result.resourceFiles);
 }
 
 function pdfFileRequestHandler(
   pdfFile: string,
   inputFile: string,
+  flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
@@ -464,6 +542,7 @@ function pdfFileRequestHandler(
     dirname(pdfFile),
     basename(pdfFile),
     inputFile,
+    flags,
     format,
     reloader,
     renderHandler,
@@ -490,4 +569,46 @@ function resultRequiresSync(
   return result.file !== lastResult.file ||
     result.outputFile !== lastResult.outputFile ||
     !ld.isEqual(result.resourceFiles, lastResult.resourceFiles);
+}
+
+// run pandoc and its syntax highlighter over the passed file
+// (use the file's extension as its language)
+async function textPreviewHtml(file: string) {
+  // generate the markdown
+  const frontMatter = ["---"];
+  frontMatter.push(`pagetitle: "Quarto Preview"`);
+  frontMatter.push(`document-css: false`);
+  frontMatter.push("---");
+  const styles = [
+    "```{=html}",
+    `<style type="text/css">`,
+    `body { margin: 8px 12px; }`,
+    `div.sourceCode { background-color: transparent; }`,
+    // not sure what's preferable re: whitespace wrapping?
+    //  `pre > code.sourceCode { white-space: pre-wrap; }`,
+    `</style>`,
+    "```",
+  ];
+  const lang = (extname(file) || ".default").slice(1).toLowerCase();
+  const kFence = "````````````````";
+  const markdown = frontMatter.join("\n") + "\n\n" +
+    styles.join("\n") + "\n\n" +
+    kFence + lang + "\n" +
+    Deno.readTextFileSync(file) + "\n" +
+    kFence;
+
+  // build the pandoc command (we'll feed it the input on stdin)
+  const cmd = [pandocBinaryPath()];
+  cmd.push("--to", "html");
+  cmd.push("--highlight-style", textHighlightThemePath("github")!);
+  cmd.push("--standalone");
+  const result = await execProcess({
+    cmd,
+    stdout: "piped",
+  }, markdown);
+  if (result.success) {
+    return result.stdout;
+  } else {
+    throw new Error();
+  }
 }

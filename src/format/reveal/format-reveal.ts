@@ -12,6 +12,7 @@ import {
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
+  kReferenceLocation,
   kSlideLevel,
 } from "../../config/constants.ts";
 
@@ -293,11 +294,12 @@ export function revealjsFormat() {
               [kTemplatePatches]: [
                 extraConfigPatch,
                 revealRequireJsPatch,
-                /* TODO: Remove when the fix is available in Pandoc https://github.com/jgm/pandoc/pull/7670 */
+                /* TODO: Remove when the template has changed in Pandoc
+                    https://github.com/jgm/pandoc/blob/master/data/templates/default.revealjs#L22 */
                 (template: string) => {
                   template = template.replace(
-                    /(disableLayout: )false/,
-                    "$1$disableLayout$",
+                    /\s*\.reveal \.sourceCode \{[^}]+\}/m,
+                    "",
                   );
                   return template;
                 },
@@ -430,8 +432,49 @@ function revealMarkdownAfterBody(format: Format) {
   return lines.join("\n");
 }
 
+const kOutputLocationSlide = "output-location-slide";
+
 function revealHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
+    // determine if we are embedding footnotes on slides
+    const slideFootnotes = format.pandoc[kReferenceLocation] !== "document";
+
+    // compute slide level and slide headings
+    const slideLevel = format.pandoc[kSlideLevel] || 2;
+    const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
+      "H" + (i + 1)
+    );
+
+    // find output-location-slide and inject slides as required
+    const slideOutputs = doc.querySelectorAll(`.${kOutputLocationSlide}`);
+    for (const slideOutput of slideOutputs) {
+      // find parent slide
+      const slideOutputEl = slideOutput as Element;
+      const parentSlide = findParentSlide(slideOutputEl);
+      if (parentSlide && parentSlide.parentElement) {
+        const newSlide = doc.createElement("section");
+        newSlide.id = parentSlide?.id ? parentSlide.id + "-output" : "";
+        for (const clz of parentSlide.classList) {
+          newSlide.classList.add(clz);
+        }
+        newSlide.classList.add(kOutputLocationSlide);
+        // repeat header if there is one
+        if (
+          slideHeadingTags.includes(
+            parentSlide.firstElementChild?.tagName || "",
+          )
+        ) {
+          const headingEl = doc.createElement(
+            parentSlide.firstElementChild?.tagName!,
+          );
+          headingEl.innerHTML = parentSlide.firstElementChild?.innerHTML || "";
+          newSlide.appendChild(headingEl);
+        }
+        newSlide.appendChild(slideOutputEl);
+        parentSlide.parentElement.appendChild(newSlide);
+      }
+    }
+
     // if we are using 'number' as our hash type then remove the
     // title slide id
     if (format.metadata[kHashType] === "number") {
@@ -480,10 +523,6 @@ function revealHtmlPostprocessor(format: Format) {
 
     // remove all attributes from slide headings (pandoc has already moved
     // them to the enclosing section)
-    const slideLevel = format.pandoc[kSlideLevel] || 2;
-    const slideHeadingTags = Array.from(Array(slideLevel)).map((_e, i) =>
-      "H" + (i + 1)
-    );
     const slideHeadings = doc.querySelectorAll("section.slide > :first-child");
     slideHeadings.forEach((slideHeading) => {
       const slideHeadingEl = slideHeading as Element;
@@ -540,13 +579,86 @@ function revealHtmlPostprocessor(format: Format) {
       }
     }
 
-    // disable footnote and citation links (we use a popup for them)
-    const notes = doc.querySelectorAll('a[role="doc-noteref"]');
-    for (const note of notes) {
-      const noteEl = note as Element;
-      noteEl.setAttribute("onclick", "return false;");
+    // collect up asides into a single aside
+    const slides = doc.querySelectorAll("section.slide");
+    for (const slide of slides) {
+      const slideEl = slide as Element;
+      const asides = slideEl.querySelectorAll("aside:not(.notes)");
+      const asideDivs = slideEl.querySelectorAll("div.aside");
+      const footnotes = slideEl.querySelectorAll('a[role="doc-noteref"]');
+      if (asides.length > 0 || asideDivs.length > 0 || footnotes.length > 0) {
+        const aside = doc.createElement("aside");
+        // deno-lint-ignore no-explicit-any
+        const collectAsides = (asideList: any) => {
+          asideList.forEach((asideEl: Element) => {
+            const asideDiv = doc.createElement("div");
+            asideDiv.innerHTML = (asideEl as Element).innerHTML;
+            aside.appendChild(asideDiv);
+          });
+          asideList.forEach((asideEl: Element) => {
+            asideEl.remove();
+          });
+        };
+        // start with asides and div.aside
+        collectAsides(asides);
+        collectAsides(asideDivs);
+
+        // append footnotes
+        if (slideFootnotes && footnotes.length > 0) {
+          const ol = doc.createElement("ol");
+          ol.classList.add("aside-footnotes");
+          footnotes.forEach((note, index) => {
+            const noteEl = note as Element;
+            const href = noteEl.getAttribute("href");
+            if (href) {
+              const noteLi = doc.getElementById(href.replace(/^#\//, ""));
+              if (noteLi) {
+                // remove backlink
+                const footnoteBack = noteLi.querySelector(".footnote-back");
+                if (footnoteBack) {
+                  footnoteBack.remove();
+                }
+                ol.appendChild(noteLi);
+              }
+            }
+            const sup = doc.createElement("sup");
+            sup.innerText = (index + 1) + "";
+            noteEl.replaceWith(sup);
+          });
+          aside.appendChild(ol);
+        }
+
+        slide.appendChild(aside);
+      }
     }
-    const cites = doc.querySelectorAll('a[role="doc-biblioref"');
+
+    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+    if (slideFootnotes) {
+      // we are using slide based footnotes so remove footnotes slide from end
+      for (const footnoteSection of footnotes) {
+        footnoteSection.remove();
+      }
+    } else {
+      // we are keeping footnotes at the end so disable the links (we use popups)
+      // and tweak the footnotes slide (add a title add smaller/scrollable)
+      const notes = doc.querySelectorAll('a[role="doc-noteref"]');
+      for (const note of notes) {
+        const noteEl = note as Element;
+        noteEl.setAttribute("onclick", "return false;");
+      }
+      const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
+      if (footnotes.length === 1) {
+        const footnotesEl = footnotes[0] as Element;
+        insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
+        footnotesEl.classList.add("smaller");
+        footnotesEl.classList.add("scrollable");
+        footnotesEl.classList.remove("center");
+        removeFootnoteBacklinks(footnotesEl);
+      }
+    }
+
+    // disable citation links (we use a popup for them)
+    const cites = doc.querySelectorAll('a[role="doc-biblioref"]');
     for (const cite of cites) {
       const citeEl = cite as Element;
       citeEl.setAttribute("onclick", "return false;");
@@ -557,17 +669,6 @@ function revealHtmlPostprocessor(format: Format) {
     if (refs) {
       applyClassesToParentSlide(refs, ["smaller", "scrollable"]);
       removeClassesFromParentSlide(refs, ["center"]);
-    }
-
-    // insert footnotes title if there is one footnotes section
-    const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
-    if (footnotes.length === 1) {
-      const footnotesEl = footnotes[0] as Element;
-      insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
-      footnotesEl.classList.add("smaller");
-      footnotesEl.classList.add("scrollable");
-      footnotesEl.classList.remove("center");
-      removeFootnoteBacklinks(footnotesEl);
     }
 
     // apply stretch to images as required
@@ -597,6 +698,8 @@ function applyStretch(doc: Document, autoStretch: boolean) {
         findParent(imageEl, (el: Element) => {
           return el.classList.contains("column") ||
             el.classList.contains("quarto-layout-panel") ||
+            el.classList.contains("fragment") ||
+            el.classList.contains(kOutputLocationSlide) ||
             !!el.className.match(/panel-/);
         })
       ) {

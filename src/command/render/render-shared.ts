@@ -22,6 +22,7 @@ import { renderFiles } from "./render.ts";
 import { resolveFileResources } from "./resources.ts";
 import {
   RenderedFile,
+  RenderFlags,
   RenderOptions,
   RenderResourceFiles,
   RenderResult,
@@ -41,6 +42,9 @@ import {
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
+import { kTextPlain } from "../../core/mime.ts";
+import { previewFormat } from "../preview/preview.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export async function render(
   path: string,
@@ -207,4 +211,81 @@ export function printBrowsePreviewMessage(port: number, path: string) {
     }
     info(url, { format: (str: string) => colors.underline(colors.green(str)) });
   }
+}
+
+const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
+
+export interface PreviewRenderRequest {
+  path: string;
+  format?: string;
+}
+
+export function isPreviewRenderRequest(req: Request) {
+  if (req.url.includes(kQuartoRenderCommand)) {
+    return true;
+  } else {
+    const token = renderToken();
+    if (token) {
+      return req.url.includes(token);
+    } else {
+      return false;
+    }
+  }
+}
+
+export function previewRenderRequest(
+  req: Request,
+  hasClients: boolean,
+  baseDir?: string,
+): PreviewRenderRequest | undefined {
+  // look for v1 rstudio format (requires baseDir b/c its a relative path)
+  const match = req.url.match(
+    new RegExp(`/${kQuartoRenderCommand}/(.*)$`),
+  );
+  if (match && baseDir) {
+    return {
+      path: join(baseDir, match[1]),
+    };
+  } else if (hasClients) {
+    const token = renderToken();
+    if (token && req.url.includes(token)) {
+      const url = new URL(req.url);
+      const path = url.searchParams.get("path");
+      if (path) {
+        return {
+          path,
+          format: url.searchParams.get("format") || undefined,
+        };
+      }
+    }
+  }
+}
+
+export async function previewRenderRequestIsCompatible(
+  request: PreviewRenderRequest,
+  flags: RenderFlags,
+  project?: ProjectContext,
+) {
+  const format = await previewFormat(request.path, request.format, project);
+  return format === flags.to;
+}
+
+export function previewUnableToRenderResponse() {
+  return new Response("not found", {
+    status: 404,
+    headers: {
+      "Content-Type": kTextPlain,
+    },
+  });
+}
+
+// QUARTO_RENDER_TOKEN
+let quartoRenderToken: string | null | undefined;
+function renderToken(): string | null {
+  const kQuartoRenderToken = "QUARTO_RENDER_TOKEN";
+  if (quartoRenderToken === undefined) {
+    quartoRenderToken = Deno.env.get(kQuartoRenderToken) || null;
+    Deno.env.delete(kQuartoRenderToken);
+  }
+  return quartoRenderToken;
 }

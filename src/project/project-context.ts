@@ -204,6 +204,15 @@ export async function projectContext(
           delete projectConfig.project[kProjectOutputDir];
         }
 
+        // if the output-dir is absolute then make it project dir relative
+        const projOutputDir = projectConfig.project[kProjectOutputDir];
+        if (projOutputDir && isAbsolute(projOutputDir)) {
+          projectConfig.project[kProjectOutputDir] = relative(
+            dir,
+            projOutputDir,
+          );
+        }
+
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
           projectConfig = await type.config(
@@ -330,10 +339,14 @@ export function projectContextForDirectory(
 export function projectIsWebsite(context?: ProjectContext): boolean {
   if (context) {
     const projType = projectType(context.config?.project?.[kProjectType]);
-    return projType.type === kWebsite || projType.inheritsType === kWebsite;
+    return projectTypeIsWebsite(projType);
   } else {
     return false;
   }
+}
+
+export function projectTypeIsWebsite(projType: ProjectType): boolean {
+  return projType.type === kWebsite || projType.inheritsType === kWebsite;
 }
 
 export function projectIsBook(context?: ProjectContext): boolean {

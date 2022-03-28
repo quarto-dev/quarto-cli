@@ -11,9 +11,20 @@ import { error, info } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { contentType, isHtmlContent, kTextHtml } from "./mime.ts";
+import {
+  contentType,
+  isHtmlContent,
+  isPdfContent,
+  isTextContent,
+  kTextHtml,
+} from "./mime.ts";
 import { logError } from "./log.ts";
 import { pathWithForwardSlashes } from "./path.ts";
+
+export interface FileResponse {
+  body: Uint8Array;
+  contentType?: string;
+}
 
 export interface HttpFileRequestOptions {
   baseDir: string;
@@ -23,8 +34,11 @@ export interface HttpFileRequestOptions {
   onFile?: (
     file: string,
     req: Request,
-  ) => Promise<Uint8Array | undefined>;
-  on404?: (url: string, req: Request) => { print?: boolean; body?: Uint8Array };
+  ) => Promise<FileResponse | undefined>;
+  on404?: (
+    url: string,
+    req: Request,
+  ) => { print?: boolean; response: FileResponse };
 }
 
 export function isAbsoluteRef(href: string) {
@@ -43,15 +57,18 @@ export function httpFileRequestHandler(
     req: Request,
   ): Promise<Response> {
     // read file (allow custom handler first shot at html files)
-    let fileContents: Uint8Array | undefined;
+    let fileResponse: FileResponse | undefined;
     if (options.onFile) {
-      fileContents = await options.onFile(filePath, req);
+      fileResponse = await options.onFile(filePath, req);
     }
-    if (!fileContents) {
-      fileContents = Deno.readFileSync(filePath);
+    if (!fileResponse) {
+      fileResponse = {
+        contentType: contentType(filePath),
+        body: Deno.readFileSync(filePath),
+      };
     }
 
-    return httpContentResponse(fileContents, contentType(filePath));
+    return httpContentResponse(fileResponse.body, fileResponse.contentType);
   }
 
   function serveFallback(
@@ -68,7 +85,7 @@ export function httpFileRequestHandler(
       const url = normalizeURL(req.url);
       const handle404 = options.on404
         ? options.on404(url, req)
-        : { print: true, body: encoder.encode("Not Found") };
+        : { print: true, response: { body: encoder.encode("Not Found") } };
 
       // Ignore 404s from specific files
       const ignoreFileNames = ["favicon.ico", "listings.json"];
@@ -83,7 +100,7 @@ export function httpFileRequestHandler(
         printUrl(url, false);
       }
       return Promise.resolve(
-        new Response(handle404.body, {
+        new Response(handle404.response.body, {
           status: 404,
           headers: {
             "Content-Type": kTextHtml,
@@ -130,6 +147,17 @@ export function httpFileRequestHandler(
         response = serveRedirect(normalizedUrl + "/");
       } else {
         response = await serveFile(fsPath, req);
+
+        // if we are serving the default file and its not html
+        // then provide content-disposition: attachment
+        if (
+          normalizedUrl === "/" && !isBrowserPreviewable(fsPath)
+        ) {
+          response.headers.append(
+            "content-disposition",
+            'attachment; filename="' + options.defaultFile + '"',
+          );
+        }
         if (options.printUrls === "all") {
           printUrl(normalizedUrl);
         }
@@ -194,6 +222,14 @@ export function normalizeURL(url: string): string {
   return startOfParams > -1
     ? normalizedUrl.slice(0, startOfParams)
     : normalizedUrl;
+}
+
+export function isBrowserPreviewable(file: string) {
+  return (
+    isHtmlContent(file) ||
+    isPdfContent(file) ||
+    isTextContent(file)
+  );
 }
 
 export function maybeDisplaySocketError(e: unknown) {

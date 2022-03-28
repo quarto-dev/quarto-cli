@@ -14,7 +14,7 @@ import * as ld from "../../core/lodash.ts";
 import { DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 
 import { openUrl } from "../../core/shell.ts";
-import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
+import { contentType, isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -24,7 +24,10 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
-import { projectOutputDir } from "../../project/project-shared.ts";
+import {
+  isProjectInputFile,
+  projectOutputDir,
+} from "../../project/project-shared.ts";
 import {
   projectContext,
   projectIsWebsite,
@@ -53,6 +56,10 @@ import { ServeOptions } from "./types.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
 import { watchProject } from "./watch.ts";
 import {
+  isPreviewRenderRequest,
+  previewRenderRequest,
+  previewRenderRequestIsCompatible,
+  previewUnableToRenderResponse,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
@@ -75,8 +82,6 @@ import { bookOutputStem } from "../../project/types/book/book-config.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
 import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
-
-const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -116,7 +121,6 @@ export async function serveProject(
 
   // provide defaults
   options = {
-    browse: true,
     watchInputs: true,
     navigate: true,
     ...options,
@@ -238,37 +242,51 @@ export async function serveProject(
     onRequest: async (req: Request) => {
       if (watcher.handle(req)) {
         return await watcher.connect(req);
-      } else if (req.url.includes(kQuartoRenderCommand)) {
-        const match = req.url.match(
-          new RegExp(`/${kQuartoRenderCommand}/(.*)$`),
+      } else if (isPreviewRenderRequest(req)) {
+        const prevReq = previewRenderRequest(
+          req,
+          watcher.hasClients(),
+          project!.dir,
         );
-        if (match) {
-          const requestTemp = createTempContext();
-          const path = join(project!.dir, match[1]);
-          render(path, {
-            temp,
-            flags,
-            pandocArgs,
-          }).then((result) => {
-            if (result.error) {
-              if (result.error?.message) {
-                logError(result.error);
-              }
-            } else {
-              // print output created
-              const finalOutput = renderResultFinalOutput(result, project!.dir);
-              if (!finalOutput) {
-                throw new Error(
-                  "No output created by quarto render " + basename(path),
+        if (
+          prevReq &&
+          (await previewRenderRequestIsCompatible(prevReq, flags, project))
+        ) {
+          if (isProjectInputFile(prevReq.path, project!)) {
+            const requestTemp = createTempContext();
+            render(prevReq.path, {
+              temp: requestTemp,
+              flags,
+              pandocArgs,
+            }).then((result) => {
+              if (result.error) {
+                if (result.error?.message) {
+                  logError(result.error);
+                }
+              } else {
+                // print output created
+                const finalOutput = renderResultFinalOutput(
+                  result,
+                  project!.dir,
                 );
+                if (!finalOutput) {
+                  throw new Error(
+                    "No output created by quarto render " +
+                      basename(prevReq.path),
+                  );
+                }
+                info("Output created: " + finalOutput + "\n");
               }
-              info("Output created: " + finalOutput + "\n");
-            }
-          }).finally(() => {
-            requestTemp.cleanup();
-          });
+            }).finally(() => {
+              requestTemp.cleanup();
+            });
+            return httpContentResponse("rendered");
+          } else {
+            return previewUnableToRenderResponse();
+          }
+        } else {
+          return previewUnableToRenderResponse();
         }
-        return httpContentResponse("rendered");
       } else {
         return undefined;
       }
@@ -353,7 +371,7 @@ export async function serveProject(
             projInputFile,
           );
         } else {
-          return fileContents;
+          return { contentType: contentType(file), body: fileContents };
         }
       } else {
         return undefined;
@@ -390,7 +408,7 @@ export async function serveProject(
       }
       return {
         print,
-        body: watcher.injectClient(body),
+        response: watcher.injectClient(body),
       };
     },
   };
@@ -402,8 +420,8 @@ export async function serveProject(
   printWatchingForChangesMessage();
 
   // if we are passed a browser path, resolve the output file if its an input
-  let browserPath = typeof (options.browse) === "string"
-    ? options.browse.replace(/^\//, "")
+  let browserPath = options.browserPath
+    ? options.browserPath.replace(/^\//, "")
     : undefined;
   if (browserPath) {
     const browserPathTarget = await resolveInputTarget(

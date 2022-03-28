@@ -18,6 +18,7 @@
       "https://deno.land": true,
       "https://den.o.land": false
     },
+    "quarto.path": "./package/dist/bin/quarto",
     "files.associations": {
       "*.ejs.md": "ejs",
       "*.ejs.yml": "ejs",

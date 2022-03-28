@@ -60,6 +60,7 @@ import {
   normalizeSidebarItem,
   resolveHrefAttribute,
   Sidebar,
+  sidebarContext,
   SidebarItem,
   SidebarTool,
 } from "../../project-config.ts";
@@ -480,10 +481,17 @@ function navigationHtmlPostprocessor(
         removeChapterNumber(sidebarItem);
       }
 
-      // remove the chapter number from the title
-      const titleEl = doc.querySelector("h1.title");
-      if (titleEl) {
-        removeChapterNumber(titleEl);
+      // remove the chapter number from the title, page-navigation
+      const sels = [
+        "h1.title",
+        ".page-navigation .nav-page-next .nav-page-text",
+        ".page-navigation .nav-page-previous .nav-page-text",
+      ];
+      for (const sel of sels) {
+        const el = doc.querySelector(sel);
+        if (el) {
+          removeChapterNumber(el);
+        }
       }
     }
     return Promise.resolve(kHtmlEmptyPostProcessResult);
@@ -678,8 +686,9 @@ async function resolveSidebarItems(
   project: ProjectContext,
   items: SidebarItem[],
 ) {
+  const context = sidebarContext();
   for (let i = 0; i < items.length; i++) {
-    let item = normalizeSidebarItem(project.dir, items[i]);
+    let item = normalizeSidebarItem(project.dir, items[i], context);
 
     if (Object.keys(item).includes("contents")) {
       const subItems = item.contents || [];
@@ -693,7 +702,7 @@ async function resolveSidebarItems(
       for (let i = 0; i < subItems.length; i++) {
         subItems[i] = await resolveSidebarItem(
           project,
-          normalizeSidebarItem(project.dir, subItems[i]),
+          normalizeSidebarItem(project.dir, subItems[i], context),
         );
       }
 
@@ -838,7 +847,7 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
 
 function itemHasNavTarget(item: SidebarItem, href: string) {
   return item.href === href ||
-    item.href === href.replace(/index\.html$/, "");
+    item.href === href.replace(/\/index\.html/, "/");
 }
 
 function isSeparator(item?: SidebarItem) {

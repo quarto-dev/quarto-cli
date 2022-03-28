@@ -334,7 +334,7 @@
         <RegExpr attribute="Fenced Code" context="#pop!matlab-code" String="&fcode;\s*\{?\.?matlab.*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!markdown-code" String="&fcode;\s*\{?\.?(?:markdown|m?md).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!mustache-code" String="&fcode;\s*\{?\.?(?:handlebars|hbs|mustache|mst|ractive|hogan|hulk).*&end;" insensitive="true"/> <!-- Included in the HTML definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*\{?\.?(?:perl|p[lm]|pod|psgi|vcl).*&end;" insensitive="true"/>
+        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*\{?\.?(?:julia|perl|p[lm]|pod|psgi|vcl).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!php-code" String="&fcode;\s*\{?\.?(?:php[3457t]?|wml|phtml?|aw|ctp).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!python-code" String="&fcode;\s*\{?\.?(?:python[23]?|py[23w]?|[rc]py|sconstruct|gypi?).*&end;" insensitive="true"/>
         <RegExpr attribute="Fenced Code" context="#pop!qml-code" String="&fcode;\s*\{?\.?qml(?:types)?.*&end;" insensitive="true"/>

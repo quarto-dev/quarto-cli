@@ -14,7 +14,7 @@ import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
 import { Format } from "../../config/types.ts";
-import { isHtmlOutput } from "../../config/format.ts";
+import { isHtmlFileOutput } from "../../config/format.ts";
 import { kKeepMd, kKeepTex } from "../../config/constants.ts";
 
 import { filesDirLibDir } from "./render.ts";
@@ -42,7 +42,7 @@ export function renderCleanup(
     !format.execute[kKeepMd] && !format.render[kKeepTex] && supporting
   ) {
     // ammend supporting with lib dir (if it exists) for html formats
-    if (isHtmlOutput(format.pandoc)) {
+    if (isHtmlFileOutput(format.pandoc)) {
       const libDir = join(
         dirname(input),
         filesDirLibDir(input),

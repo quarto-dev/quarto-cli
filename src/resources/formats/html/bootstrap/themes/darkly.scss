@@ -29,21 +29,27 @@ $green:   #00bc8c !default;
 $teal:    #20c997 !default;
 $cyan:    #3498db !default;
 
-$primary:       $blue !default;
-$secondary:     $gray-700 !default;
-$success:       $green !default;
-$info:          $cyan !default;
-$warning:       $yellow !default;
-$danger:        $red !default;
-$light:         $gray-500 !default;
-$dark:          $gray-800 !default;
-
-$min-contrast-ratio:   1.9 !default;
-
 // Body
 
 $body-bg:                   $gray-900 !default;
 $body-color:                $white !default;
+@function body-mix($weight) {
+    @return mix($body-bg, $body-color, $weight);
+}
+
+$primary:       $blue !default;
+$secondary:     body-mix(85%) !default;
+$success:       $green !default;
+$info:          $cyan !default;
+$warning:       $yellow !default;
+$danger:        $red !default;
+// This is inconsistent with Bootstrap semantics. That is, $dark
+// should actually be a light color in a dark mode setting, :shrug:
+// https://github.com/thomaspark/bootswatch/issues/989
+$light:         body-mix(65%) !default;
+$dark:          body-mix(95%) !default;
+
+$min-contrast-ratio:   1.9 !default;
 
 // Links
 
@@ -56,114 +62,110 @@ $font-family-sans-serif:      Lato, -apple-system, BlinkMacSystemFont, "Segoe UI
 $h1-font-size:                3rem !default;
 $h2-font-size:                2.5rem !default;
 $h3-font-size:                2rem !default;
-$text-muted:                  $gray-600 !default;
+$text-muted:                  body-mix(75%) !default;
 
 // Tables
 
-$table-border-color:          $gray-700 !default;
+$table-border-color:          body-mix(85%) !default;
 
 $table-bg-scale:              0 !default;
 
 // Forms
 
 $input-bg:                          $white !default;
-$input-color:                       $gray-800 !default;
+$input-color:                       body-mix(95%) !default;
 $input-border-color:                $body-bg !default;
-$input-group-addon-color:           $gray-500 !default;
-$input-group-addon-bg:              $gray-700 !default;
+$input-group-addon-color:           body-mix(65%) !default;
+$input-group-addon-bg:              body-mix(85%) !default;
 
-$form-check-input-bg:                     $white !default;
+$form-check-input-bg:                     $body-color !default;
 $form-check-input-border:                 none !default;
 
-$form-file-button-color:          $white !default;
+$form-file-button-color:          $body-color !default;
 
 // Dropdowns
 
-$dropdown-bg:                       $gray-900 !default;
-$dropdown-border-color:             $gray-700 !default;
-$dropdown-divider-bg:               $gray-700 !default;
-$dropdown-link-color:               $white !default;
-$dropdown-link-hover-color:         $white !default;
+$dropdown-bg:                       $body-bg !default;
+$dropdown-border-color:             body-mix(85%) !default;
+$dropdown-divider-bg:               body-mix(85%) !default;
+$dropdown-link-color:               $body-color !default;
+$dropdown-link-hover-color:         $body-color !default;
 $dropdown-link-hover-bg:            $primary !default;
 
 // Navs
 
 $nav-link-padding-x:                2rem !default;
-$nav-link-disabled-color:           $gray-500 !default;
-$nav-tabs-border-color:             $gray-700 !default;
+$nav-link-disabled-color:           body-mix(65%) !default;
+$nav-tabs-border-color:             body-mix(85%) !default;
 $nav-tabs-link-hover-border-color:  $nav-tabs-border-color $nav-tabs-border-color transparent !default;
-$nav-tabs-link-active-color:        $white !default;
+$nav-tabs-link-active-color:        $body-color !default;
 $nav-tabs-link-active-border-color: $nav-tabs-border-color $nav-tabs-border-color transparent !default;
 
 // Navbar
 
 $navbar-padding-y:                  1rem !default;
-$navbar-dark-color:                rgba($white, .6) !default;
-$navbar-dark-hover-color:          $white !default;
-$navbar-light-color:                rgba($gray-900, .7) !default;
-$navbar-light-hover-color:          $gray-900 !default;
-$navbar-light-active-color:         $gray-900 !default;
-$navbar-light-toggler-border-color: rgba($gray-900, .1) !default;
+$navbar-light-bg:                   $primary !default;
+$navbar-dark-bg:                    $success !default;
 
 // Pagination
 
-$pagination-color:                  $white !default;
+$pagination-color:                  $body-color !default;
 $pagination-bg:                     $success !default;
 $pagination-border-width:           0 !default;
 $pagination-border-color:           transparent !default;
-$pagination-hover-color:            $white !default;
+$pagination-hover-color:            $body-color !default;
 $pagination-hover-bg:               lighten($success, 10%) !default;
 $pagination-hover-border-color:     transparent !default;
 $pagination-active-bg:              $pagination-hover-bg !default;
 $pagination-active-border-color:    transparent !default;
-$pagination-disabled-color:         $white !default;
+$pagination-disabled-color:         $body-color !default;
 $pagination-disabled-bg:            darken($success, 15%) !default;
 $pagination-disabled-border-color:  transparent !default;
 
 // Cards
 
-$card-cap-bg:                       $gray-700 !default;
-$card-bg:                           $gray-800 !default;
+$card-cap-bg:                       body-mix(85%) !default;
+$card-bg:                           body-mix(95%) !default;
 
 // Popovers
 
-$popover-bg:                        $gray-800 !default;
-$popover-header-bg:                 $gray-700 !default;
+$popover-bg:                        body-mix(95%) !default;
+$popover-header-bg:                 body-mix(85%) !default;
 
 // Toasts
 
-$toast-background-color:            $gray-700 !default;
-$toast-header-background-color:     $gray-800 !default;
+$toast-background-color:            body-mix(85%) !default;
+$toast-header-background-color:     body-mix(95%) !default;
 
 // Modals
 
-$modal-content-bg:                  $gray-800 !default;
-$modal-content-border-color:        $gray-700 !default;
-$modal-header-border-color:         $gray-700 !default;
+$modal-content-bg:                  body-mix(95%) !default;
+$modal-content-border-color:        body-mix(85%) !default;
+$modal-header-border-color:         body-mix(85%) !default;
 
 // Progress bars
 
-$progress-bg:                       $gray-700 !default;
+$progress-bg:                       body-mix(85%) !default;
 
 // List group
 
 $list-group-color:                  $body-color !default;
-$list-group-bg:                     $gray-800 !default;
-$list-group-border-color:           $gray-700 !default;
-$list-group-hover-bg:               $gray-700 !default;
+$list-group-bg:                     body-mix(95%) !default;
+$list-group-border-color:           body-mix(85%) !default;
+$list-group-hover-bg:               body-mix(85%) !default;
 $list-group-action-hover-color:     $list-group-color !default;
-$list-group-action-active-bg:       $gray-900 !default;
+$list-group-action-active-bg:       body-mix(99%) !default;
 
 // Breadcrumbs
 
 $breadcrumb-padding-y:              .375rem !default;
 $breadcrumb-padding-x:              .75rem !default;
-$breadcrumb-bg:                     $gray-700 !default;
+$breadcrumb-bg:                     body-mix(85%) !default;
 $breadcrumb-border-radius:          .25rem !default;
 
 // Close
 
-$btn-close-color:            $white !default;
+$btn-close-color:            $body-color !default;
 $btn-close-opacity:          .4 !default;
 $btn-close-hover-opacity:    1 !default;
 
@@ -187,14 +189,14 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
 
 .blockquote {
   &-footer {
-    color: $gray-600;
+    color: body-mix(75%);
   }
 }
 
 // Forms
 
 .input-group-addon {
-  color: $white;
+  color: $body-color;
 }
 
 .form-floating > label {
@@ -212,12 +214,12 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
   .nav-item.open .nav-link,
   .nav-item.open .nav-link:focus,
   .nav-item.open .nav-link:hover {
-    color: $white;
+    color: $body-color;
   }
 }
 
 .breadcrumb a {
-  color: $white;
+  color: $body-color;
 }
 
 .pagination {
@@ -230,18 +232,18 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
 
 .alert {
   border: none;
-  color: $white;
+  color: $body-color;
 
   a,
   .alert-link {
-    color: $white;
+    color: $body-color;
     text-decoration: underline;
   }
 
   @each $color, $value in $theme-colors {
     &-#{$color} {
       @if $enable-gradients {
-        background: $value linear-gradient(180deg, mix($white, $value, 15%), $value) repeat-x;
+        background: $value linear-gradient(180deg, mix($body-color, $value, 15%), $value) repeat-x;
       } @else {
         background-color: $value;
       }

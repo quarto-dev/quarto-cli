@@ -6,6 +6,10 @@ function isLatexOutput()
   return FORMAT == "latex" or FORMAT == "beamer" or FORMAT == "pdf"
 end
 
+function isBeamerOutput()
+  return FORMAT == "beamer"
+end
+
 -- check for docx output
 function isDocxOutput()
   return FORMAT == "docx"
@@ -36,6 +40,11 @@ function isRevealJsOutput()
   return FORMAT == "revealjs"
 end
 
+-- check for slide output
+function isSlideOutput()
+  return isHtmlSlideOutput() or isBeamerOutput() or isPowerPointOutput()
+end
+
 -- check for epub output
 function isEpubOutput()
   local formats = {
@@ -52,17 +61,22 @@ function isHtmlOutput()
     "html",
     "html4",
     "html5",
+    "epub",
+    "epub2",
+    "epub3"
+  }
+  return tcontains(formats, FORMAT) or isHtmlSlideOutput()
+end
+
+function isHtmlSlideOutput()
+  local formats = {
     "s5",
     "dzslides",
     "slidy",
     "slideous",
     "revealjs",
-    "epub",
-    "epub2",
-    "epub3"
   }
   return tcontains(formats, FORMAT)
-
 end
 
 function hasBootstrap() 

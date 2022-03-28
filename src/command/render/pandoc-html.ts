@@ -7,9 +7,7 @@
 
 import { join } from "path/mod.ts";
 import { cloneDeep, uniqBy } from "../../core/lodash.ts";
-import { existsSync } from "fs/mod.ts";
 
-import { kHighlightStyle } from "../../config/constants.ts";
 import {
   FormatExtras,
   FormatPandoc,
@@ -23,10 +21,14 @@ import { kDefaultHighlightStyle } from "./types.ts";
 
 import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
-import { textHighlightThemePath } from "../../core/resources.ts";
 import { compileSass } from "../../core/sass.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
+import { kBootstrapDependencyName } from "../../format/html/format-html-shared.ts";
+import {
+  readHighlightingTheme,
+  readTheme,
+} from "../../quarto-core/text-highlighting.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -37,6 +39,7 @@ interface SassTarget {
 }
 
 export async function resolveSassBundles(
+  inputDir: string,
   extras: FormatExtras,
   pandoc: FormatPandoc,
   temp: TempContext,
@@ -177,6 +180,7 @@ export async function resolveSassBundles(
 
   // Resolve generated quarto css variables
   extras = await resolveQuartoSyntaxHighlighting(
+    inputDir,
     extras,
     pandoc,
     temp,
@@ -187,6 +191,7 @@ export async function resolveSassBundles(
   if (hasDarkStyles) {
     // Provide dark variables for this
     extras = await resolveQuartoSyntaxHighlighting(
+      inputDir,
       extras,
       pandoc,
       temp,
@@ -207,6 +212,7 @@ export function cssHasDarkModeSentinel(css: string) {
 
 // Generates syntax highlighting Css and Css variables
 async function resolveQuartoSyntaxHighlighting(
+  inputDir: string,
   extras: FormatExtras,
   pandoc: FormatPandoc,
   temp: TempContext,
@@ -222,6 +228,7 @@ async function resolveQuartoSyntaxHighlighting(
       style = "dark";
     }
   }
+  mediaAttr.id = "quarto-text-highlighting-styles";
 
   // Generate and inject the text highlighting css
   const cssFileName = `quarto-syntax-highlighting${
@@ -229,63 +236,66 @@ async function resolveQuartoSyntaxHighlighting(
   }.css`;
 
   // Read the highlight style (theme name)
-  const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
-  if (theme) {
-    const themeRaw = readTheme(theme, style);
-    if (themeRaw) {
-      const themeJson = JSON.parse(themeRaw);
+  const themeDescriptor = readHighlightingTheme(inputDir, pandoc, style);
+  if (themeDescriptor) {
+    // Other variables that need to be injected (if any)
+    const extraVariables = extras.html?.[kQuartoCssVariables] || [];
 
-      // Other variables that need to be injected (if any)
-      const extraVariables = extras.html?.[kQuartoCssVariables] || [];
+    // The text highlighting CSS variables
+    const highlightCss = generateThemeCssVars(themeDescriptor.json);
+    if (highlightCss) {
+      const rules = [
+        highlightCss,
+        "",
+        "/* other quarto variables */",
+        ...extraVariables,
+      ];
 
-      // The text highlighting CSS variables
-      const highlightCss = generateThemeCssVars(themeJson);
-      if (highlightCss) {
-        const rules = [
-          highlightCss,
-          "",
-          "/* other quarto variables */",
-          ...extraVariables,
-        ];
+      // The text highlighting CSS rules
+      const textHighlightCssRules = generateThemeCssClasses(
+        themeDescriptor.json,
+      );
+      if (textHighlightCssRules) {
+        rules.push(...textHighlightCssRules);
+      }
 
-        // The text highlighting CSS rules
-        const textHighlightCssRules = generateThemeCssClasses(themeJson);
-        if (textHighlightCssRules) {
-          rules.push(...textHighlightCssRules);
-        }
+      // Compile the scss
+      const highlightCssPath = await compileSass(
+        [{
+          key: cssFileName,
+          quarto: {
+            uses: "",
+            defaults: "",
+            functions: "",
+            mixins: "",
+            rules: rules.join("\n"),
+          },
+        }],
+        temp,
+        false,
+      );
 
-        // Compile the scss
-        const highlightCssPath = await compileSass(
-          [{
-            key: cssFileName,
-            quarto: {
-              uses: "",
-              defaults: "",
-              functions: "",
-              mixins: "",
-              rules: rules.join("\n"),
-            },
-          }],
-          temp,
-          false,
+      // Find the bootstrap or quarto-html dependency and inject this stylesheet
+      const extraDeps = extras.html?.[kDependencies];
+      if (extraDeps) {
+        // Inject an scss variable for setting the background color of code blocks
+        // with defaults, before the other bootstrap variables?
+        // don't put it in css (basically use the value to set the default), allow
+        // default to be override by user
+
+        const quartoDependency = extraDeps.find((extraDep) =>
+          extraDep.name === kQuartoHtmlDependency
         );
+        const existingDependency = quartoDependency;
+        if (existingDependency) {
+          existingDependency.stylesheets = existingDependency.stylesheets ||
+            [];
 
-        // Find the quarto-html dependency and inject this stylesheet
-        const extraDeps = extras.html?.[kDependencies];
-        if (extraDeps) {
-          const existingDependency = extraDeps.find((extraDep) =>
-            extraDep.name === kQuartoHtmlDependency
-          );
-          if (existingDependency) {
-            existingDependency.stylesheets = existingDependency.stylesheets ||
-              [];
-
-            existingDependency.stylesheets.push({
-              name: cssFileName,
-              path: highlightCssPath,
-              attribs: mediaAttr,
-            });
-          }
+          existingDependency.stylesheets.push({
+            name: cssFileName,
+            path: highlightCssPath,
+            attribs: mediaAttr,
+          });
         }
       }
     }
@@ -351,11 +361,12 @@ function generateThemeCssClasses(
           lines.push(...cssValues);
           lines.push("}\n");
         } else {
-          ["code span", "div.sourceCode"].forEach((selector) => {
-            lines.push(`\n${selector} {`);
-            lines.push(...cssValues);
-            lines.push("}\n");
-          });
+          ["code span", "div.sourceCode,\ndiv.sourceCode pre.sourceCode"]
+            .forEach((selector) => {
+              lines.push(`\n${selector} {`);
+              lines.push(...cssValues);
+              lines.push("}\n");
+            });
         }
       }
     });
@@ -450,7 +461,7 @@ export function defaultSyntaxHighlightingClassMap() {
 
   // Read the highlight style (theme name)
   const theme = kDefaultHighlightStyle;
-  const themeRaw = readTheme(theme, "default");
+  const themeRaw = readTheme("", theme, "default");
   if (themeRaw) {
     const themeJson = JSON.parse(themeRaw);
 
@@ -544,17 +555,4 @@ export function setTextHighlightStyle(
 ) {
   extras.html = extras.html || {};
   extras.html[kTextHighlightingMode] = style;
-}
-
-// Reads the contents of a theme file, falling back if the style specific version isn't available
-export function readTheme(theme: string, style: "light" | "dark" | "default") {
-  const themeFile = textHighlightThemePath(
-    theme,
-    style === "default" ? undefined : style,
-  );
-  if (themeFile && existsSync(themeFile)) {
-    return Deno.readTextFileSync(themeFile);
-  } else {
-    return undefined;
-  }
 }

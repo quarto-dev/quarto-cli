@@ -44,6 +44,7 @@ import {
   kBibliography,
   kCache,
   kCss,
+  kDate,
   kEcho,
   kEngine,
   kExecuteDaemon,
@@ -58,6 +59,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepMd,
+  kLang,
   kMetadataFormat,
   kOutputExt,
   kOutputFile,
@@ -96,6 +98,7 @@ import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
   projectMetadataForInputFile,
+  projectTypeIsWebsite,
 } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
 
@@ -150,6 +153,11 @@ import { handleLanguageCells, languages } from "../../core/handlers/base.ts";
 import "../../core/handlers/handlers.ts";
 import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
 import { asMappedString } from "../../core/lib/mapped-text.ts";
+import {
+  isSpecialDate,
+  parseSpecialDate,
+  setDateLocale,
+} from "../../core/date.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -222,6 +230,10 @@ export async function renderFiles(
 
       for (const format of Object.keys(contexts)) {
         const context = contexts[format];
+
+        // Set the date locale for this render
+        // Used for date formatting
+        await setDateLocale(context.format.metadata[kLang] as string);
 
         // one time denoDom init for html compatible formats
         if (isHtmlCompatible(context.format)) {
@@ -685,7 +697,7 @@ export async function renderPandoc(
 
   // add any injected libs to supporting
   let supporting = filesDir ? executeResult.supporting : undefined;
-  if (filesDir) {
+  if (filesDir && isHtmlFileOutput(format.pandoc)) {
     const filesDirAbsolute = join(dirname(context.target.source), filesDir);
     if (
       existsSync(filesDirAbsolute) &&
@@ -902,10 +914,12 @@ export function isStandaloneFormat(format: Format) {
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
-  includeDir: string,
+  input: string,
   formats: string[],
   flags?: RenderFlags,
 ): Promise<Record<string, Format>> {
+  const includeDir = dirname(input);
+
   // Read any included metadata files and merge in and metadata from the command
   const frontMatterSchema = await getFrontMatterSchema();
   const included = await includedMetadata(
@@ -921,6 +935,15 @@ export async function resolveFormatsFromMetadata(
 
   // resolve any language file references
   await resolveLanguageMetadata(allMetadata, includeDir);
+
+  // Resolve the date if there are any special
+  // date specifiers
+  if (isSpecialDate(allMetadata[kDate])) {
+    allMetadata[kDate] = parseSpecialDate(
+      input,
+      allMetadata[kDate] as string,
+    );
+  }
 
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
@@ -1104,21 +1127,21 @@ async function resolveFormats(
   // resolve formats for each type of metadata
   const projFormats = await resolveFormatsFromMetadata(
     projMetadata,
-    dirname(target.input),
+    target.input,
     formats,
     options.flags,
   );
 
   const directoryFormats = await resolveFormatsFromMetadata(
     directoryMetadata,
-    dirname(target.input),
+    target.input,
     formats,
     options.flags,
   );
 
   const inputFormats = await resolveFormatsFromMetadata(
     inputMetadata,
-    dirname(target.input),
+    target.input,
     formats,
     options.flags,
   );
@@ -1137,9 +1160,10 @@ async function resolveFormats(
     const directoryFormat = directoryFormats[format];
     const inputFormat = inputFormats[format];
 
-    // resolve theme (project-level bootstrap theme always wins)
+    // resolve theme (project-level bootstrap theme always wins for web drived output)
     if (
-      project && isHtmlOutput(format, true) && formatHasBootstrap(projFormat)
+      project && isHtmlOutput(format, true) && formatHasBootstrap(projFormat) &&
+      projectTypeIsWebsite(projType)
     ) {
       if (formatHasBootstrap(inputFormat)) {
         delete inputFormat.metadata[kTheme];

@@ -94,13 +94,13 @@
   // See: https://github.com/twbs/bootstrap/issues/28247
   &[disabled],
   &:disabled {
-    ~ .form-check-label {
+    ~ .form-check-label, ~ span {
       opacity: $form-check-label-disabled-opacity;
     }
   }
 }
 
-.form-check-label {
+#{$form-check-label-selector} {
   color: $form-check-label-color;
   cursor: $form-check-label-cursor;
 }

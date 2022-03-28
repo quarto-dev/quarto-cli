@@ -406,7 +406,10 @@
       - path
       - object:
           properties:
-            section: string
+            section:
+              anyOf:
+                - string
+                - null
             contents:
               ref: sidebar-contents
 
@@ -946,6 +949,17 @@
   object:
     closed: true
     properties:
+      id:
+        string:
+          description:
+            short: "The target id for the about page."
+            long: |
+              The target id of this about page. When the about page is rendered, it will 
+              place read the contents of a `div` with this id into the about template that you 
+              have selected (and replace the contents with the rendered about content).
+
+              If no such `div` is defined on the page, a `div` with this id will be created 
+              and appended to the end of the page.
       template:
         enum: [jolla, trestles, solana, marquee, broadside]
         description:
@@ -1126,6 +1140,9 @@
             long: |
               The maximum length (in characters) of the description displayed in the listing.
               Defaults to 175.
+      image-placeholder:
+        string:
+          description: "The default image to use if an item in the listing doesn't have an image."
       image-align:
         enum: [left, right]
         description: In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`).

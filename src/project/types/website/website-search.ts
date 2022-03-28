@@ -211,7 +211,50 @@ export function updateSearchIndex(
         }
       });
 
-      // if there are level 2 sections then create sub-docs for them
+      // We always take the first child of the main region (whether that is a p or section)
+      // and create an index entry for the page itself (with no hash). If there is other
+      // 'unsectioned' content on the page, we include that as well.
+      //
+      // That search UI will know how to handle entries for pages with no hash and merge them
+      // into the 'page' result when it makes sense to do so.
+      // Grab the first child of main, and create a page entry using that.
+      const mainEl = doc.querySelector("main.content");
+      const firstEl = mainEl?.firstElementChild;
+      const pageText: string[] = [];
+      if (firstEl) {
+        // Remove any headings
+        const headings = firstEl.querySelectorAll("h1, h2, h3, h4, h5, h6");
+        headings.forEach((heading) => heading.remove());
+
+        // Add the text contents as the text for this page
+        const trimmed = firstEl.textContent.trim();
+        if (trimmed) {
+          pageText.push(trimmed);
+        }
+        firstEl.remove();
+      }
+
+      // If there are any paragraphs residing outside a section, just
+      // include that in the document entry
+      const pararaphNodes = doc.querySelectorAll("main.content > p");
+      for (const paragraphNode of pararaphNodes) {
+        const text = paragraphNode.textContent.trim();
+        if (text) {
+          pageText.push(text);
+        }
+      }
+
+      if (pageText.length > 0) {
+        updateDoc({
+          objectID: href,
+          href: href,
+          title,
+          section: "",
+          text: pageText.join("\n"),
+        });
+      }
+
+      // if there are additional level 2 sections then create sub-docs for them
       const sections = doc.querySelectorAll("section.level2");
       if (sections.length > 0) {
         for (let i = 0; i < sections.length; i++) {
@@ -265,6 +308,8 @@ export function updateSearchIndex(
   }
 }
 
+const kDefaultCollapse = 3;
+
 export function searchOptions(
   project: ProjectContext,
 ): SearchOptions | undefined {
@@ -279,7 +324,7 @@ export function searchOptions(
       typeof (searchMetadata[kCollapseAfter]) === "number"
         ? searchMetadata[kCollapseAfter] as number
         : searchMetadata[kCollapseAfter] !== false
-        ? 2
+        ? kDefaultCollapse
         : false;
 
     return {
@@ -298,7 +343,7 @@ export function searchOptions(
       return {
         [kLocation]: location,
         [kCopyButton]: false,
-        [kCollapseAfter]: 2,
+        [kCollapseAfter]: kDefaultCollapse,
         [kPanelPlacement]: location === "navbar" ? "end" : "start",
         [kType]: searchType(undefined, location),
         [kLimit]: searchInputLimit(undefined),

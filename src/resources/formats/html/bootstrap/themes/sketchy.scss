@@ -320,8 +320,8 @@ select.form-control {
   border-radius: $border-radius-lg-sketchy !important;
 }
 
-[type="checkbox"] {
-  position: relative !important;
+#{$shiny-check} input, #{$shiny-check-inline} input, [type="checkbox"] {
+  position: relative;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -361,8 +361,8 @@ select.form-control {
   }
 }
 
-[type="radio"] {
-  position: relative !important;
+#{$shiny-radio} input, #{$shiny-radio-inline} input, [type="radio"] {
+  position: relative;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -396,7 +396,11 @@ select.form-control {
   }
 }
 
-.form-check-input {
+#{$shiny-check}, #{$shiny-check-inline}, #{$shiny-radio}, #{$shiny-radio-inline} {
+  span { padding-left: 1rem; }
+}
+
+#{$form-check-input-selector} {
   &:focus {
     box-shadow: none;
   }

@@ -8,6 +8,7 @@
         "revision" : 3,
         "name" : "Vim Dark"
     },
+    "background-color" : "#000000",
     "text-styles": {
         "Normal" : {
             "text-color" : "#b2b2b2",

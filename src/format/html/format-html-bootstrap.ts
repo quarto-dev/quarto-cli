@@ -25,6 +25,7 @@ import {
   kDependencies,
   kHtmlFinalizers,
   kHtmlPostprocessors,
+  kMarkdownAfterBody,
   kSassBundles,
   Metadata,
 } from "../../config/types.ts";
@@ -50,7 +51,11 @@ import {
   HtmlPostProcessResult,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
-import { processDocumentTitle } from "./format-html-title.ts";
+import {
+  DocumentTitleContext,
+  preProcessDocumentTitle,
+  processDocumentTitle,
+} from "./format-html-title.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
@@ -147,6 +152,10 @@ export function boostrapExtras(
     });
   };
 
+  const documentTitleContext = preProcessDocumentTitle(
+    format,
+  );
+
   const pageLayout = formatPageLayout(format);
   const bodyEnvelope = formatHasArticleLayout(format)
     ? {
@@ -185,8 +194,15 @@ export function boostrapExtras(
       [kSassBundles]: resolveBootstrapScss(input, format),
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
+      [kMarkdownAfterBody]: [documentTitleContext.pipeline.markdownAfterBody()],
       [kHtmlPostprocessors]: [
-        bootstrapHtmlPostprocessor(input, format, flags, offset),
+        bootstrapHtmlPostprocessor(
+          input,
+          format,
+          flags,
+          documentTitleContext,
+          offset,
+        ),
       ],
       [kHtmlFinalizers]: [
         bootstrapHtmlFinalizer(format, flags),
@@ -206,6 +222,7 @@ function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
+  documentTitleContext: DocumentTitleContext,
   offset?: string,
 ): HtmlPostProcessor {
   return async (
@@ -322,6 +339,13 @@ function bootstrapHtmlPostprocessor(
       }
     }
 
+    // add .table class to DataFrames.jl tables
+    const dataFramesTables = doc.querySelectorAll("table.data-frame");
+    for (let i = 0; i < dataFramesTables.length; i++) {
+      const table = dataFramesTables[i] as Element;
+      addTableClasses(table, true);
+    }
+
     // provide data-anchor-id to headings
     const sections = doc.querySelectorAll('section[class^="level"]');
     for (let i = 0; i < sections.length; i++) {
@@ -337,6 +361,7 @@ function bootstrapHtmlPostprocessor(
     // Process the title elements of this document
     const resources: string[] = [];
     const titleResourceFiles = processDocumentTitle(
+      documentTitleContext,
       input,
       inputMetadata,
       format,

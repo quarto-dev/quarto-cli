@@ -7973,6 +7973,25 @@ try {
             description: "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)"
           },
           {
+            name: "output-location",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: {
+              enum: [
+                "default",
+                "fragment",
+                "slide"
+              ]
+            },
+            description: {
+              short: "Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)",
+              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `slide`: Show output on a new slide after the curent one\n\nNote that this option is supported only for the `revealjs` format.\n"
+            }
+          },
+          {
             name: "message",
             tags: {
               engine: "knitr"
@@ -8684,7 +8703,12 @@ try {
                 {
                   object: {
                     properties: {
-                      section: "string",
+                      section: {
+                        anyOf: [
+                          "string",
+                          null
+                        ]
+                      },
                       contents: {
                         ref: "sidebar-contents"
                       }
@@ -9452,6 +9476,14 @@ try {
             object: {
               closed: true,
               properties: {
+                id: {
+                  string: {
+                    description: {
+                      short: "The target id for the about page.",
+                      long: "The target id of this about page. When the about page is rendered, it will \nplace read the contents of a `div` with this id into the about template that you \nhave selected (and replace the contents with the rendered about content).\n\nIf no such `div` is defined on the page, a `div` with this id will be created \nand appended to the end of the page.\n"
+                    }
+                  }
+                },
                 template: {
                   enum: [
                     "jolla",
@@ -9665,6 +9697,11 @@ try {
                       short: "The maximum length (in characters) of the description displayed in the listing.",
                       long: "The maximum length (in characters) of the description displayed in the listing.\nDefaults to 175.\n"
                     }
+                  }
+                },
+                "image-placeholder": {
+                  string: {
+                    description: "The default image to use if an item in the listing doesn't have an image."
                   }
                 },
                 "image-align": {
@@ -10710,33 +10747,46 @@ try {
               ]
             },
             schema: {
-              string: {
-                completions: [
-                  "pygments",
-                  "tango",
-                  "espresso",
-                  "zenburn",
-                  "kate",
-                  "monochrome",
-                  "breezedark",
-                  "haddock",
-                  "arrow",
-                  "atom-one",
-                  "ayu",
-                  "ayu-mirage",
-                  "breeze",
-                  "dracula",
-                  "github",
-                  "gruvbox",
-                  "mokokai",
-                  "nord",
-                  "oblivion",
-                  "printing",
-                  "radical",
-                  "solarized",
-                  "vim-dark"
-                ]
-              }
+              anyOf: [
+                {
+                  object: {
+                    properties: {
+                      light: "path",
+                      dark: "path"
+                    },
+                    closed: true
+                  }
+                },
+                {
+                  string: {
+                    completions: [
+                      "pygments",
+                      "tango",
+                      "espresso",
+                      "zenburn",
+                      "kate",
+                      "monochrome",
+                      "breezedark",
+                      "haddock",
+                      "arrow",
+                      "atom-one",
+                      "ayu",
+                      "ayu-mirage",
+                      "breeze",
+                      "dracula",
+                      "github",
+                      "gruvbox",
+                      "mokokai",
+                      "nord",
+                      "oblivion",
+                      "printing",
+                      "radical",
+                      "solarized",
+                      "vim-dark"
+                    ]
+                  }
+                }
+              ]
             },
             description: {
               short: "Specifies the coloring style to be used in highlighted source code.",
@@ -15529,6 +15579,11 @@ try {
               "revealjs",
               "dzslides"
             ],
+            "pres-all": [
+              "pptx",
+              "beamer",
+              "$html-pres"
+            ],
             "html-files": [
               "$html-doc",
               "$html-pres"
@@ -15843,7 +15898,10 @@ try {
                   },
                   author: {
                     maybeArrayOf: {
-                      schema: "string",
+                      anyOf: [
+                        "string",
+                        "object"
+                      ],
                       description: "Author or authors of the book"
                     }
                   },
@@ -16688,6 +16746,10 @@ try {
           "An alternate version of the creator or contributor text used for\nalphabatizing.",
           "The text describing the creator or contributor (for example, creator\nname).",
           {
+            short: "The target id for the about page.",
+            long: "The target id of this about page. When the about page is rendered, it\nwill place read the contents of a <code>div</code> with this id into the\nabout template that you have selected (and replace the contents with the\nrendered about content).\nIf no such <code>div</code> is defined on the page, a\n<code>div</code> with this id will be created and appended to the end of\nthe page."
+          },
+          {
             short: "The template to use to layout this about page.",
             long: "The template to use to layout this about page. Choose from:"
           },
@@ -16762,6 +16824,7 @@ try {
             short: "The maximum length (in characters) of the description displayed in\nthe listing.",
             long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
           },
+          "The default image to use if an item in the listing doesn\u2019t have an\nimage.",
           "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
           {
             short: "The height of the image being displayed.",
@@ -17106,6 +17169,10 @@ try {
           "Include errors in the output (note that this implies that errors\nexecuting code will not halt processing of the document).",
           "Catch all for preventing any output (code or results) from being\nincluded in output.",
           "Panel type for cell output (<code>tabset</code>, <code>input</code>,\n<code>sidebar</code>, <code>fill</code>, <code>center</code>)",
+          {
+            short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, or <code>slide</code>)",
+            long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
+          },
           "Including messages in rendered output.",
           {
             short: "How to display text results",

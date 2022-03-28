@@ -18,6 +18,7 @@ export interface MarkdownPipelineHandler {
 
 export interface MarkdownPipeline {
   markdownAfterBody(): string;
+  readMarkdown(doc: Document): Record<string, Element>;
   processRenderedMarkdown(doc: Document): void;
 }
 
@@ -48,6 +49,9 @@ export const createMarkdownPipeline = (
         }
       });
       return createMarkdownRenderEnvelope(envelopeId, pipelineMarkdown);
+    },
+    readMarkdown(doc: Document) {
+      return readEnvelope(doc, envelopeId);
     },
     processRenderedMarkdown(doc: Document) {
       processMarkdownRenderEnvelope(
