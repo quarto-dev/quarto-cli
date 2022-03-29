@@ -361,7 +361,11 @@ function generateThemeCssClasses(
           lines.push(...cssValues);
           lines.push("}\n");
         } else {
-          ["code span", "div.sourceCode,\ndiv.sourceCode pre.sourceCode"]
+          [
+            "code span",
+            "code.sourceCode > span",
+            "div.sourceCode,\ndiv.sourceCode pre.sourceCode",
+          ]
             .forEach((selector) => {
               lines.push(`\n${selector} {`);
               lines.push(...cssValues);
