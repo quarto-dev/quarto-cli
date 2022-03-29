@@ -48,6 +48,7 @@ import {
 import {
   executeKernelKeepalive,
   executeKernelOneshot,
+  JupyterExecuteOptions,
 } from "./jupyter-kernel.ts";
 import {
   includesForJupyterWidgetDependencies,
@@ -67,6 +68,7 @@ import {
   PostProcessOptions,
 } from "../types.ts";
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
+import { pythonExec } from "../../core/jupyter/exec.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -218,10 +220,14 @@ export const jupyterEngine: ExecutionEngine = {
       if (executeDaemon === null || executeDaemon === undefined) {
         executeDaemon = isInteractiveSession() && !runningInCI();
       }
+      const jupyterExecOptions: JupyterExecuteOptions = {
+        python_cmd: await pythonExec(),
+        ...execOptions,
+      };
       if (executeDaemon === false || executeDaemon === 0) {
-        await executeKernelOneshot(execOptions);
+        await executeKernelOneshot(jupyterExecOptions);
       } else {
-        await executeKernelKeepalive(execOptions);
+        await executeKernelKeepalive(jupyterExecOptions);
       }
     }
 

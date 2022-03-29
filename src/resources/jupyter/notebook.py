@@ -34,6 +34,17 @@ class RestartKernel(Exception):
 # execute a notebook
 def notebook_execute(options, status):
 
+   # if this is a re-execution of a previously loaded kernel,
+   # make sure the underlying python version hasn't changed
+   python_cmd = options.get("python_cmd", None)
+   if python_cmd:
+      if hasattr(notebook_execute, "python_cmd"):
+         if notebook_execute.python_cmd != python_cmd:
+            raise RestartKernel  
+      else:
+         notebook_execute.python_cmd = python_cmd
+   
+
    # unpack options
    input = options["target"]["input"]
    format = options["format"]
