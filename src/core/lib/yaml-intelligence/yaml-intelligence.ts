@@ -7,7 +7,7 @@
 
 import { AutomationKind, YamlIntelligenceContext } from "./types.ts";
 
-import { buildAnnotated, locateCursor } from "./tree-sitter-annotated-yaml.ts";
+import { buildTreeSitterAnnotation, locateCursor } from "./annotated-yaml.ts";
 
 import {
   attemptParsesAtLine,
@@ -153,7 +153,7 @@ export async function validationFromGoodParseYAML(
         parse: tree,
         code: mappedCode,
       } = parseResult;
-      const annotation = buildAnnotated(tree, mappedCode);
+      const annotation = buildTreeSitterAnnotation(tree, mappedCode);
       if (annotation === null) {
         continue;
       }
@@ -314,7 +314,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       );
       return result;
     } else {
-      const doc = buildAnnotated(tree, mappedCode);
+      const doc = buildTreeSitterAnnotation(tree, mappedCode);
       if (doc === null) {
         continue;
       }

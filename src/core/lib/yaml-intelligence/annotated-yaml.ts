@@ -1,5 +1,5 @@
 /*
-* tree-sitter-annotated-yaml.js
+* annotated-yaml.js
 *
 * Copyright (C) 2021 by RStudio, PBC
 *
@@ -8,33 +8,145 @@
 import { lines, matchAll } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
-import { MappedString, mappedString } from "../mapped-text.ts";
+import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { getTreeSitterSync } from "./parsing.ts";
 
-/**
- * given a tree from tree-sitter-yaml and the mappedString
- * corresponding to the source, returns an AnnotatedParse
- */
+import { JSON_SCHEMA, load as jsYamlParse } from "../external/js-yaml.js";
 
 // deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
 // deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
 
+export function readAnnotatedYamlFromString(yml: string) {
+  return readAnnotatedYamlFromMappedString(asMappedString(yml))!;
+}
+
 export function readAnnotatedYamlFromMappedString(
   mappedSource: MappedString,
 ) {
+  /*
+   * We use both tree-sitter-yaml and js-yaml to get the
+   * best that both offer. tree-sitter offers error resiliency
+   * but reports unrecoverable parse errors poorly.
+   *
+   * In addition, tree-sitter-yaml fails to parse some valid yaml, see https://github.com/ikatyang/tree-sitter-yaml/issues/29
+   *
+   * In case tree-sitter-yaml fails, then, we use js-yaml.
+   */
   const parser = getTreeSitterSync();
   const tree = parser.parse(mappedSource.value);
-  return buildAnnotated(tree, mappedSource);
+  const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource);
+  if (treeSitterAnnotation) {
+    return treeSitterAnnotation;
+  }
+  return buildJsYamlAnnotation(mappedSource);
 }
 
-export function buildAnnotated(
+export function buildJsYamlAnnotation(mappedYaml: MappedString) {
+  const yml = mappedYaml.value;
+
+  // deno-lint-ignore no-explicit-any
+  const stack: any[] = [];
+  const results: AnnotatedParse[] = [];
+
+  // deno-lint-ignore no-explicit-any
+  function listener(what: string, state: any) {
+    const { result, position, kind } = state;
+    if (what === "close") {
+      const { position: openPosition } = stack.pop();
+      if (results.length > 0) {
+        const last = results[results.length - 1];
+        // sometimes we get repeated instances of (start, end) pairs
+        // (probably because of recursive calls in parse() that don't
+        // consume the string) so we skip those explicitly here
+        if (last.start === openPosition && last.end === position) {
+          return;
+        }
+      }
+      // deno-lint-ignore no-explicit-any
+      const components: any[] = [];
+      while (results.length > 0) {
+        const last = results[results.length - 1];
+        if (last.end <= openPosition) {
+          break;
+        }
+        components.push(results.pop());
+      }
+      components.reverse();
+
+      const rawRange = yml.substring(openPosition, position);
+      // trim spaces if needed
+      const leftTrim = rawRange.length - rawRange.trimLeft().length;
+      const rightTrim = rawRange.length - rawRange.trimRight().length;
+
+      if (rawRange.trim().length === 0) {
+        // special case for when string is empty
+        results.push({
+          start: position - rightTrim,
+          end: position - rightTrim,
+          result: result as JSONValue,
+          components,
+          kind,
+          source: mappedString(mappedYaml, [{
+            start: position - rightTrim,
+            end: position - rightTrim,
+          }]),
+        });
+      } else {
+        results.push({
+          start: openPosition + leftTrim,
+          end: position - rightTrim,
+          result: result,
+          components,
+          kind,
+          source: mappedString(mappedYaml, [{
+            start: position + leftTrim,
+            end: position - rightTrim,
+          }]),
+        });
+      }
+    } else {
+      stack.push({ position });
+    }
+  }
+
+  jsYamlParse(yml, { listener, schema: JSON_SCHEMA });
+
+  if (results.length === 0) {
+    return {
+      start: 0,
+      end: 0,
+      result: null,
+      kind: "null",
+      components: [],
+      source: mappedString(mappedYaml, [{ start: 0, end: 0 }]),
+    };
+  }
+  if (results.length !== 1) {
+    throw new Error(
+      `Internal Error - expected a single result, got ${results.length} instead`,
+    );
+  }
+
+  JSON.stringify(results[0]); // this is here so that we throw on circular structures
+  return results[0];
+}
+
+export function buildTreeSitterAnnotation(
   tree: TreeSitterParse,
   mappedSource: MappedString,
 ): AnnotatedParse | null {
   const singletonBuild = (node: TreeSitterNode) => {
-    return buildNode(node.firstChild, node.endIndex);
+    // some singleton nodes can contain more than one child, especially in the case of comments.
+    // So we find the first non-comment to return.
+    for (const child of node.children) {
+      if (child.type !== "comment") {
+        return buildNode(child, node.endIndex);
+      }
+    }
+    // if there's only comments, we fail.
+    return annotateEmpty(node.endIndex);
   };
   const buildNode = (
     node: TreeSitterNode,

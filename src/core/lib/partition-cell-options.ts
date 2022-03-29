@@ -28,7 +28,7 @@ import {
   readAndValidateYamlFromMappedString,
   ValidationError,
 } from "./yaml-schema/validated-yaml.ts";
-import { readAnnotatedYamlFromMappedString } from "./yaml-intelligence/tree-sitter-annotated-yaml.ts";
+import { readAnnotatedYamlFromMappedString } from "./yaml-intelligence/annotated-yaml.ts";
 
 function mappedSource(
   source: MappedString | string,

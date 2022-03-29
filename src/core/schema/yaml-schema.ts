@@ -38,10 +38,12 @@ export async function ensureSchemaResources() {
 // This function isn't in YAMLSchema because
 // readAnnotatedYamlFromMappedString depends on a yaml library we do
 // not use on core/lib
+//
+// FIXME not anymore, so move this.
 export async function parseAndValidate(
   src: MappedString,
   validator: YAMLSchema,
 ) {
-  const parse = readAnnotatedYamlFromMappedString(src);
+  const parse = readAnnotatedYamlFromMappedString(src)!;
   return await validator.validateParse(src, parse);
 }

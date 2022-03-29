@@ -5,7 +5,7 @@
 *
 */
 
-import { readAnnotatedYamlFromMappedString } from "./tree-sitter-annotated-yaml.ts";
+import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
 import { asMappedString, MappedString } from "../mapped-text.ts";
 import { kLangCommentChars } from "../partition-cell-options.ts";

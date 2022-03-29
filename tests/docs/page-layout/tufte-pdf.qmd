@@ -76,7 +76,7 @@ You can arrange for figures to span across the entire page by using the chunk op
 #| fig-width: 11
 #| fig-height: 3
 #| column: page-right
-#| warning: FALSE
+#| warning: false
 plot(cars)
 ```
 

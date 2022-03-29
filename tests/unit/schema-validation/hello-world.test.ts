@@ -1,4 +1,4 @@
-import { readAnnotatedYamlFromString } from "../../../src/core/schema/annotated-yaml.ts";
+import { readAnnotatedYamlFromString } from "../../../src/core/lib/yaml-intelligence/annotated-yaml.ts";
 import { asMappedString } from "../../../src/core/mapped-text.ts";
 
 import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schema.ts";

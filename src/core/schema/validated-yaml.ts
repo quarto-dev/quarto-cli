@@ -53,7 +53,10 @@ export function readAndValidateYamlFromFile(
     shortFileName = relative(Deno.cwd(), shortFileName);
   }
 
-  const contents = asMappedString(Deno.readTextFileSync(file), shortFileName);
+  const contents = asMappedString(
+    Deno.readTextFileSync(file).trimEnd(),
+    shortFileName,
+  );
   return readAndValidateYamlFromMappedString(contents, schema, errorMessage);
 }
 
@@ -63,7 +66,7 @@ export async function readAndValidateYamlFromMappedString(
   errorMessage: string,
 ): Promise<{ [key: string]: unknown }> {
   const result = await withValidator(schema, async (validator) => {
-    const annotation = readAnnotatedYamlFromMappedString(mappedYaml);
+    const annotation = readAnnotatedYamlFromMappedString(mappedYaml)!;
     const validateYaml = !isObject(annotation.result) ||
       (annotation.result as { [key: string]: JSONValue })["validate-yaml"] !==
         false;

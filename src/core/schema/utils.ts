@@ -8,13 +8,12 @@
 import { toFileUrl } from "path/mod.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
+import { initTreeSitter } from "../lib/yaml-validation/deno-init-tree-sitter.ts";
+import { initYamlIntelligence } from "../lib/yaml-intelligence/yaml-intelligence.ts";
 
 export function schemaPath(path: string) {
   return resourcePath(join("schema", path));
 }
-
-import { initYamlIntelligence } from "../lib/yaml-intelligence/yaml-intelligence.ts";
-import { initTreeSitter } from "../lib/yaml-validation/deno-init-tree-sitter.ts";
 
 // initializes yaml intelligence using precompiled schemas from the filesystem
 export async function initYamlIntelligenceResourcesFromFilesystem() {
