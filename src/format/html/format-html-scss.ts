@@ -205,7 +205,7 @@ function layerTheme(
   return { layers, loadPaths };
 }
 
-function resolveTextHighlightingLayer(
+export function resolveTextHighlightingLayer(
   input: string,
   format: Format,
   style: "dark" | "light",

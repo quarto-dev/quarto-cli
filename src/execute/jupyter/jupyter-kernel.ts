@@ -32,8 +32,12 @@ import {
 
 import { ExecuteOptions } from "../types.ts";
 
+export interface JupyterExecuteOptions extends ExecuteOptions {
+  python_cmd: string[];
+}
+
 export async function executeKernelOneshot(
-  options: ExecuteOptions,
+  options: JupyterExecuteOptions,
 ): Promise<void> {
   // abort any existing keepalive kernel
   await abortKernel(options);
@@ -53,7 +57,7 @@ export async function executeKernelOneshot(
 }
 
 export async function executeKernelKeepalive(
-  options: ExecuteOptions,
+  options: JupyterExecuteOptions,
 ): Promise<void> {
   // if we are in debug mode then tail follow the log file
   let serverLogProcess: Deno.Process | undefined;
@@ -147,7 +151,7 @@ export async function executeKernelKeepalive(
   }
 }
 
-async function abortKernel(options: ExecuteOptions) {
+async function abortKernel(options: JupyterExecuteOptions) {
   // connect to kernel if it exists and send abort command
   try {
     trace(options, "Checking for existing kernel");
@@ -317,7 +321,7 @@ function readKernelTransportFile(
 }
 
 async function connectToKernel(
-  options: ExecuteOptions,
+  options: JupyterExecuteOptions,
   startIfRequired = true,
 ): Promise<[Deno.Conn, KernelTransport]> {
   // see if we are in debug mode
