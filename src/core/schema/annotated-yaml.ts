@@ -12,7 +12,10 @@ import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { AnnotatedParse, JSONValue } from "../lib/yaml-schema/types.ts";
 
-export function readAnnotatedYamlFromMappedString(mappedYaml: MappedString) {
+import { readAnnotatedYamlFromMappedString } from "../lib/yaml-intelligence/tree-sitter-annotated-yaml.ts";
+export { readAnnotatedYamlFromMappedString } from "../lib/yaml-intelligence/tree-sitter-annotated-yaml.ts";
+
+/*export function readAnnotatedYamlFromMappedString(mappedYaml: MappedString) {
   const yml = mappedYaml.value;
 
   // deno-lint-ignore no-explicit-any
@@ -100,8 +103,8 @@ export function readAnnotatedYamlFromMappedString(mappedYaml: MappedString) {
 
   JSON.stringify(results[0]); // this will throw on circular structures
   return results[0];
-}
+}*/
 
 export function readAnnotatedYamlFromString(yml: string) {
-  return readAnnotatedYamlFromMappedString(asMappedString(yml));
+  return readAnnotatedYamlFromMappedString(asMappedString(yml))!;
 }

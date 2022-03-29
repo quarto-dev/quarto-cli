@@ -64,7 +64,7 @@ export async function validateDocumentFromSource(
         end: lineRanges[lineRanges.length - 2].range.end,
       }],
     );
-    const annotation = readAnnotatedYamlFromMappedString(frontMatterText);
+    const annotation = readAnnotatedYamlFromMappedString(frontMatterText)!;
 
     if (
       annotation.result === null ||

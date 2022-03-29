@@ -8,7 +8,7 @@
 import { lines, matchAll } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
-import { MappedString, mappedString } from "../mapped-text.ts";
+import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { getTreeSitterSync } from "./parsing.ts";
 
 /**
@@ -21,6 +21,9 @@ type TreeSitterParse = any;
 // deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
 
+export function readAnnotatedYamlFromString(yml: string) {
+  return readAnnotatedYamlFromMappedString(asMappedString(yml))!;
+}
 export function readAnnotatedYamlFromMappedString(
   mappedSource: MappedString,
 ) {
@@ -34,7 +37,15 @@ export function buildAnnotated(
   mappedSource: MappedString,
 ): AnnotatedParse | null {
   const singletonBuild = (node: TreeSitterNode) => {
-    return buildNode(node.firstChild, node.endIndex);
+    // some singleton nodes can contain more than one child, especially in the case of comments.
+    // So we find the first non-comment to return.
+    for (const child of node.children) {
+      if (child.type !== "comment") {
+        return buildNode(child, node.endIndex);
+      }
+    }
+    // if there's only comments, we fail.
+    return annotateEmpty(node.endIndex);
   };
   const buildNode = (
     node: TreeSitterNode,

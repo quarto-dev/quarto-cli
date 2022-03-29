@@ -9,7 +9,7 @@ import { assert } from "testing/asserts.ts";
 import { Metadata } from "../../src/config/types.ts";
 import { readYamlFromString } from "../../src/core/yaml.ts";
 
-import { readAnnotatedYamlFromString } from "../../src/core/schema/annotated-yaml.ts";
+import { readAnnotatedYamlFromString } from "../../src/core/lib/yaml-intelligence/tree-sitter-annotated-yaml.ts";
 
 const yamlStr = `
 project:
