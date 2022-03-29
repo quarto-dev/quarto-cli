@@ -133,7 +133,6 @@ export async function revealTheme(
     : undefined;
   const userLayers = [yamlLayer];
   if (highlightingLayer) {
-    console.log("HIGHLKIGHTING LAYER");
     userLayers.push(highlightingLayer);
   }
   userLayers.push(...themeLayers);
