@@ -18,8 +18,6 @@ import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { kOutputFile } from "../../config/constants.ts";
-
 import { cssFileResourceReferences } from "../../core/css.ts";
 import { logError } from "../../core/log.ts";
 import { openUrl } from "../../core/shell.ts";
@@ -198,16 +196,9 @@ export async function previewFormat(
   format?: string,
   project?: ProjectContext,
 ) {
-  const formats = await renderFormats(file, "all", project);
-  format = format || Object.keys(formats).find((name) => {
-    const fmt = formats[name];
-    const outputFile = fmt.pandoc[kOutputFile];
-    return outputFile && isBrowserPreviewable(outputFile);
-  });
-  // if there is no known previewable format then pick the first one (or html)
-  if (!format) {
-    format = Object.keys(formats)[0] || "html";
-  }
+  format = format ||
+    Object.keys(await renderFormats(file, "all", project))[0] ||
+    "html";
   return format;
 }
 
@@ -502,7 +493,7 @@ function htmlFileRequestHandlerOptions(
         return Promise.resolve(undefined);
       }
     },
-    onFile: async (file: string) => {
+    onFile: async (file: string, req: Request) => {
       if (isHtmlContent(file)) {
         // does the provide an alternate preview file?
         if (format.formatPreviewFile) {
@@ -513,7 +504,7 @@ function htmlFileRequestHandlerOptions(
       } else if (
         isTextContent(file) && isDefaultFile(file, baseDir, defaultFile)
       ) {
-        const html = await textPreviewHtml(file);
+        const html = await textPreviewHtml(file, req);
         const fileContents = new TextEncoder().encode(html);
         return reloader.injectClient(fileContents, inputFile);
       }
@@ -573,22 +564,30 @@ function resultRequiresSync(
 
 // run pandoc and its syntax highlighter over the passed file
 // (use the file's extension as its language)
-async function textPreviewHtml(file: string) {
+async function textPreviewHtml(file: string, req: Request) {
+  // see if we are in dark mode
+  const kQuartoPreviewThemeCategory = "quartoPreviewThemeCategory";
+  const themeCategory = new URL(req.url).searchParams.get(
+    kQuartoPreviewThemeCategory,
+  );
+  const darkHighlightStyle = themeCategory && themeCategory !== "light";
+  const backgroundColor = darkHighlightStyle ? "rgb(30,30,30)" : "#FFFFFF";
+
   // generate the markdown
   const frontMatter = ["---"];
   frontMatter.push(`pagetitle: "Quarto Preview"`);
   frontMatter.push(`document-css: false`);
   frontMatter.push("---");
+
   const styles = [
     "```{=html}",
     `<style type="text/css">`,
-    `body { margin: 8px 12px; }`,
+    `body { margin: 8px 12px; background-color: ${backgroundColor} }`,
     `div.sourceCode { background-color: transparent; }`,
-    // not sure what's preferable re: whitespace wrapping?
-    //  `pre > code.sourceCode { white-space: pre-wrap; }`,
     `</style>`,
     "```",
   ];
+
   const lang = (extname(file) || ".default").slice(1).toLowerCase();
   const kFence = "````````````````";
   const markdown = frontMatter.join("\n") + "\n\n" +
@@ -600,7 +599,10 @@ async function textPreviewHtml(file: string) {
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [pandocBinaryPath()];
   cmd.push("--to", "html");
-  cmd.push("--highlight-style", textHighlightThemePath("github")!);
+  cmd.push(
+    "--highlight-style",
+    textHighlightThemePath("atom-one", darkHighlightStyle ? "dark" : "light")!,
+  );
   cmd.push("--standalone");
   const result = await execProcess({
     cmd,

@@ -26882,15 +26882,16 @@ async function breakQuartoMd(src, validate2 = false) {
       lineBuffer.push(line);
     } else if (delimitMathBlockRegEx.test(line.substring)) {
       if (inMathBlock) {
+        lineBuffer.push(line);
         await flushLineBuffer("math", i);
       } else {
         if (inYaml || inCode || inCodeCell) {
         } else {
           await flushLineBuffer("markdown", i);
         }
+        lineBuffer.push(line);
       }
       inMathBlock = !inMathBlock;
-      lineBuffer.push(line);
     } else {
       lineBuffer.push(line);
     }
