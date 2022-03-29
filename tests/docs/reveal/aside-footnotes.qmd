@@ -1,0 +1,24 @@
+---
+title: demo
+format: 
+  revealjs: default
+---
+
+## Slide with speaker notes
+
+Slide content
+
+::: {.notes}
+Speaker notes go here.
+:::
+
+## Slide with footnotes
+
+::: aside
+Some additional commentary of more peripheral interest.
+:::
+
+- Green ^[A footnote]
+- Brown
+- Purple
+
