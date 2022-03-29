@@ -12,7 +12,11 @@ import * as colors from "fmt/colors.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { findOpenPort, kLocalhost } from "../../core/port.ts";
+import {
+  findOpenPort,
+  isPortAvailableSync,
+  kLocalhost,
+} from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import {
   handleRenderResult,
@@ -242,11 +246,17 @@ export const previewCommand = new Command()
     // default host if not specified
     options.host = options.host || kLocalhost;
 
-    // select a port
     if (!options.port) {
+      // select a port if none was specified
       options.port = findOpenPort();
     } else {
-      options.port = findOpenPort(parseInt(options.port));
+      // try to bind to requested port (error if its in use)
+      const port = parseInt(options.port);
+      if (isPortAvailableSync({ port, hostname: kLocalhost })) {
+        options.port = port;
+      } else {
+        throw new Error(`Requested port ${options.port} is already in use.`);
+      }
     }
 
     // extract pandoc flag values we know/care about, then fixup args as
