@@ -24,9 +24,13 @@ import { compileSass, mergeLayers, sassLayerFile } from "../../core/sass.ts";
 
 import { kRevealJsUrl } from "./format-reveal.ts";
 import { cssHasDarkModeSentinel } from "../../command/render/pandoc-html.ts";
-import { pandocVariablesToThemeScss } from "../html/format-html-scss.ts";
+import {
+  pandocVariablesToThemeScss,
+  resolveTextHighlightingLayer,
+} from "../html/format-html-scss.ts";
 import { quartoBaseLayer } from "../html/format-html-shared.ts";
 import { TempContext } from "../../core/temp.ts";
+import { hasAdaptiveTheme } from "../../quarto-core/text-highlighting.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -119,6 +123,21 @@ export async function revealTheme(
     rules: "",
   };
 
+  // Inject the highlighting theme, if not adaptive
+  const highlightingLayer = !hasAdaptiveTheme(format.pandoc)
+    ? resolveTextHighlightingLayer(
+      input,
+      format,
+      "light",
+    )
+    : undefined;
+  const userLayers = [yamlLayer];
+  if (highlightingLayer) {
+    userLayers.push(highlightingLayer);
+  }
+  userLayers.push(...themeLayers);
+
+  // Resolve load paths
   const cssThemeDir = join(revealSrcDir, "css", "theme");
   const loadPaths = [
     join(cssThemeDir, "source"),
@@ -128,7 +147,7 @@ export async function revealTheme(
   // create sass bundle layers
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
-    user: mergeLayers(yamlLayer, ...themeLayers),
+    user: mergeLayers(...userLayers),
     quarto: mergeLayers(
       quartoBaseLayer(format, true, true, false),
       quartoLayer(),

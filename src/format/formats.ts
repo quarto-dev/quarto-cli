@@ -73,6 +73,10 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "markdown":
+      writerFormat = markdownFormat(true);
+      pandocTo = to;
+      break;
+
     case "markdown_phpextra":
     case "markdown_github":
     case "markdown_mmd":
@@ -235,8 +239,12 @@ function commonmarkFormat(to: string) {
   });
 }
 
-function markdownFormat(): Format {
-  return createFormat("md", plaintextFormat("md"), {});
+function markdownFormat(outputDivs = false): Format {
+  return createFormat("md", plaintextFormat("md"), {
+    render: {
+      [kOutputDivs]: outputDivs,
+    },
+  });
 }
 
 function powerpointFormat(): Format {
