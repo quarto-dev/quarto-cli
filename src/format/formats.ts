@@ -73,7 +73,7 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "markdown":
-      writerFormat = markdownFormat(true);
+      writerFormat = pandocMarkdownFormat();
       pandocTo = to;
       break;
 
@@ -239,10 +239,24 @@ function commonmarkFormat(to: string) {
   });
 }
 
-function markdownFormat(outputDivs = false): Format {
+function pandocMarkdownFormat(): Format {
   return createFormat("md", plaintextFormat("md"), {
+    // preserve yaml exactly as the user wrote it
+    // (if we don't do this they get other metadata that was
+    // injected e.g. toc-title)
     render: {
-      [kOutputDivs]: outputDivs,
+      [kKeepYaml]: true,
+      [kVariant]: "-yaml_metadata_block-pandoc_title_block",
+    },
+  });
+}
+
+function markdownFormat(): Format {
+  return createFormat("md", plaintextFormat("md"), {
+    // markdown shouldn't include cell divs (even if it
+    // technically supports raw html)
+    render: {
+      [kOutputDivs]: false,
     },
   });
 }
