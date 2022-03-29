@@ -8,7 +8,7 @@
 */
 
 import { MappedString } from "../mapped-text.ts";
-import { readAnnotatedYamlFromMappedString } from "../yaml-intelligence/tree-sitter-annotated-yaml.ts";
+import { readAnnotatedYamlFromMappedString } from "../yaml-intelligence/annotated-yaml.ts";
 import { Schema } from "./types.ts";
 import { withValidator } from "../yaml-validation/validator-queue.ts";
 import { tidyverseFormatError } from "../errors.ts";
