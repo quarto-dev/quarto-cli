@@ -23,7 +23,7 @@ import {
   mdFromRawCell,
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
-import { partitionCellOptions } from "../../core/partition-cell-options.ts";
+import { partitionCellOptions } from "../../core/lib/partition-cell-options.ts";
 import { Metadata } from "../../config/types.ts";
 import { jupyterKernelspec } from "../../core/jupyter/kernels.ts";
 

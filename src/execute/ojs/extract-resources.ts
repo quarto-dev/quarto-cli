@@ -13,7 +13,7 @@ import { parseModule } from "observablehq/parser";
 import { parse as parseES6 } from "acorn/acorn";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
-import { breakQuartoMd } from "../../core/break-quarto-md.ts";
+import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
 
 import { ojsSimpleWalker } from "./ojs-tools.ts";
 import {
@@ -21,6 +21,7 @@ import {
   mappedConcat,
   MappedString,
 } from "../../core/mapped-text.ts";
+import { QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -173,13 +174,13 @@ async function directDependencies(
     // language === "qmd"
     const ojsCellsSrc = (await breakQuartoMd(source))
       .cells
-      .filter((cell) =>
+      .filter((cell: QuartoMdCell) =>
         cell.cell_type !== "markdown" &&
         cell.cell_type !== "raw" &&
         cell.cell_type !== "math" &&
         cell.cell_type?.language === "ojs"
       )
-      .flatMap((v) => v.source); // (concat)
+      .flatMap((v: QuartoMdCell) => v.source); // (concat)
     return await directDependencies(
       mappedConcat(ojsCellsSrc),
       fileDir,

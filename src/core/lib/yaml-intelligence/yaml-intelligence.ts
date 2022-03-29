@@ -26,6 +26,7 @@ import { rangedLines } from "../ranged-text.ts";
 import {
   kLangCommentChars,
   partitionCellOptionsMapped,
+  partitionCellOptionsText,
 } from "../partition-cell-options.ts";
 
 import {
@@ -949,7 +950,7 @@ async function automationFromGoodParseScript(
 
   const {
     yaml,
-  } = await partitionCellOptionsMapped(language, mappedCode);
+  } = partitionCellOptionsText(language, mappedCode);
 
   if (yaml === undefined) {
     if (kind === "completions") {
@@ -1054,7 +1055,7 @@ export async function initYamlIntelligence(obj: {
 
   // call all of these to add them to the definitions list so
   // the markdown translation patching is done in the correct order.
-  // NOTE the order here needs to match the order on build-schema-file.ts:buildSchemaFile()
+  // NOTE the order here needs to match the order on build-schema-file.ts:buildIntelligenceResources()
   getFormatAliases();
   await getFrontMatterSchema();
   await getProjectConfigSchema();

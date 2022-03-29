@@ -23,12 +23,13 @@ export interface QuartoMdCell {
 
   // deno-lint-ignore camelcase
   cell_type: CodeCellType | "markdown" | "raw" | "math";
-  options?: MappedString;
+  options?: Record<string, unknown>;
 
   source: MappedString;
   sourceVerbatim: MappedString;
 
-  sourceOffset: number; // FIXME these might be unnecessary now. Check back
+  sourceOffset: number; // TODO these might be unnecessary now. Check back
+  sourceStartLine: number;
 
   // line number of the start of the cell in the file, 0-based.
   //
@@ -37,7 +38,6 @@ export interface QuartoMdCell {
   // line in the file corresponding to the cell. for code cells,
   // though, it's the first line of the _content_: it skips the triple
   // ticks.
-  sourceStartLine: number;
 
   cellStartLine: number;
 }
@@ -87,10 +87,6 @@ export async function breakQuartoMd(
 
       const source = mappedString(src, mappedChunks);
 
-      // const sourceLines = lineBuffer.map((line, index) => {
-      //   return mappedString(line + (index < (lineBuffer.length - 1) ? "\n" : "");
-      // });
-
       const cell: QuartoMdCell = {
         // deno-lint-ignore camelcase
         cell_type: cell_type === "code" ? { language } : cell_type,
@@ -104,14 +100,13 @@ export async function breakQuartoMd(
       // the next cell will start on the next index.
       cellStartLine = index + 1;
 
-      if (cell_type === "code" && (language === "ojs" || language === "dot")) {
+      if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source, sourceStartLine } =
-          await partitionCellOptionsMapped(
-            language,
-            cell.source,
-            validate,
-          );
+        const { yaml, sourceStartLine } = await partitionCellOptionsMapped(
+          language,
+          cell.source,
+          validate,
+        );
         // TODO I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
         const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
@@ -120,28 +115,30 @@ export async function breakQuartoMd(
           if (breaks.length) {
             const lastBreak =
               breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
-            // const pos = lastBreak.index + lastBreak[0].length;
             strUpToLastBreak = cell.source.value.substring(0, lastBreak);
           } else {
             strUpToLastBreak = cell.source.value;
           }
         }
-        cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
+        const prefix = "```{" + language + "}\n";
+        cell.sourceOffset = strUpToLastBreak.length + prefix.length;
         cell.sourceVerbatim = mappedString(
           cell.sourceVerbatim,
           [
-            "```{ojs}\n",
+            prefix,
             { start: 0, end: cell.sourceVerbatim.value.length },
             "\n```",
           ],
         );
-        cell.source = source;
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
       }
 
       // if the source is empty then don't add it
-      if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
+      if (
+        mdTrimEmptyLines(lines(cell.source.value)).length > 0 ||
+        cell.options !== undefined
+      ) {
         nb.cells.push(cell);
       }
 

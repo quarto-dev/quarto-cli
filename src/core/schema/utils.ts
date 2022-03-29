@@ -8,6 +8,7 @@
 import { toFileUrl } from "path/mod.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
+import { initTreeSitter } from "../lib/yaml-validation/deno-init-tree-sitter.ts";
 
 export function schemaPath(path: string) {
   return resourcePath(join("schema", path));
@@ -28,4 +29,6 @@ export async function initYamlIntelligenceResourcesFromFilesystem() {
   await initYamlIntelligence({
     resourceModule,
   });
+
+  await initTreeSitter();
 }

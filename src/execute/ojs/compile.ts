@@ -77,7 +77,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
-import { breakQuartoMd, QuartoMdCell } from "../../core/break-quarto-md.ts";
+import { breakQuartoMd, QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 
 import {
   asMappedString,

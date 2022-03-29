@@ -19047,6 +19047,12 @@ function rangedLines(text, includeNewLines = false) {
 
 // parsing.ts
 var _parser;
+function getTreeSitterSync() {
+  if (_parser === void 0) {
+    throw new Error("tree-sitter uninitialized");
+  }
+  return _parser;
+}
 async function getTreeSitter() {
   if (_parser) {
     return _parser;
@@ -19222,8 +19228,8 @@ function locateFromIndentation(context) {
 }
 
 // tree-sitter-annotated-yaml.ts
-async function readAnnotatedYamlFromMappedString(mappedSource2) {
-  const parser = await getTreeSitter();
+function readAnnotatedYamlFromMappedString(mappedSource2) {
+  const parser = getTreeSitterSync();
   const tree = parser.parse(mappedSource2.value);
   return buildAnnotated(tree, mappedSource2);
 }
@@ -19554,234 +19560,6 @@ function guessChunkOptionsFormat(options) {
     return "yaml";
   }
   return "knitr";
-}
-
-// ../partition-cell-options.ts
-function mappedSource(source, substrs) {
-  const params = [];
-  for (const { range } of substrs) {
-    params.push(range);
-  }
-  return mappedString(source, params);
-}
-async function partitionCellOptionsMapped(language, source, _validate = false, _engine = "") {
-  const commentChars = langCommentChars(language);
-  const optionPrefix = optionCommentPrefix(commentChars[0]);
-  const optionSuffix = commentChars[1] || "";
-  const optionsSource = [];
-  const yamlLines = [];
-  let endOfYaml = 0;
-  for (const line of rangedLines(source.value, true)) {
-    if (line.substring.startsWith(optionPrefix)) {
-      if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
-        let yamlOption = line.substring.substring(optionPrefix.length);
-        if (optionSuffix) {
-          yamlOption = yamlOption.trimRight();
-          yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
-        }
-        endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
-        const rangedYamlOption = {
-          substring: yamlOption,
-          range: {
-            start: line.range.start + optionPrefix.length,
-            end: endOfYaml
-          }
-        };
-        yamlLines.push(rangedYamlOption);
-        optionsSource.push(line);
-        continue;
-      }
-    }
-    break;
-  }
-  const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
-  return {
-    yaml: mappedYaml,
-    optionsSource,
-    source: mappedString(source, [{
-      start: endOfYaml,
-      end: source.value.length
-    }]),
-    sourceStartLine: yamlLines.length
-  };
-}
-function langCommentChars(lang) {
-  const chars = kLangCommentChars[lang] || "#";
-  if (!Array.isArray(chars)) {
-    return [chars];
-  } else {
-    return chars;
-  }
-}
-function optionCommentPrefix(comment) {
-  return comment + "| ";
-}
-var kLangCommentChars = {
-  r: "#",
-  python: "#",
-  julia: "#",
-  scala: "//",
-  matlab: "%",
-  csharp: "//",
-  fsharp: "//",
-  c: ["/*", "*/"],
-  css: ["/*", "*/"],
-  sas: ["*", ";"],
-  powershell: "#",
-  bash: "#",
-  sql: "--",
-  mysql: "--",
-  psql: "--",
-  lua: "--",
-  cpp: "//",
-  cc: "//",
-  stan: "#",
-  octave: "#",
-  fortran: "!",
-  fortran95: "!",
-  awk: "#",
-  gawk: "#",
-  stata: "*",
-  java: "//",
-  groovy: "//",
-  sed: "#",
-  perl: "#",
-  ruby: "#",
-  tikz: "%",
-  js: "//",
-  d3: "//",
-  node: "//",
-  sass: "//",
-  coffee: "#",
-  go: "//",
-  asy: "//",
-  haskell: "--",
-  dot: "//",
-  ojs: "//"
-};
-
-// ../break-quarto-md.ts
-async function breakQuartoMd(src, validate2 = false) {
-  const nb = {
-    cells: []
-  };
-  const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
-  const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^```\s*$/;
-  const delimitMathBlockRegEx = /^\$\$/;
-  let language = "";
-  let cellStartLine = 0;
-  const lineBuffer = [];
-  const flushLineBuffer = async (cell_type, index) => {
-    if (lineBuffer.length) {
-      const mappedChunks = [];
-      for (const line of lineBuffer) {
-        mappedChunks.push(line.range);
-      }
-      const source = mappedString(src, mappedChunks);
-      const cell = {
-        cell_type: cell_type === "code" ? { language } : cell_type,
-        source,
-        sourceOffset: 0,
-        sourceStartLine: 0,
-        sourceVerbatim: source,
-        cellStartLine
-      };
-      cellStartLine = index + 1;
-      if (cell_type === "code" && (language === "ojs" || language === "dot")) {
-        const { yaml, source: source2, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
-        const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
-        let strUpToLastBreak = "";
-        if (sourceStartLine > 0) {
-          if (breaks.length) {
-            const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
-            strUpToLastBreak = cell.source.value.substring(0, lastBreak);
-          } else {
-            strUpToLastBreak = cell.source.value;
-          }
-        }
-        cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
-        cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
-          "```{ojs}\n",
-          { start: 0, end: cell.sourceVerbatim.value.length },
-          "\n```"
-        ]);
-        cell.source = source2;
-        cell.options = yaml;
-        cell.sourceStartLine = sourceStartLine;
-      }
-      if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
-        nb.cells.push(cell);
-      }
-      lineBuffer.splice(0, lineBuffer.length);
-    }
-  };
-  let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
-  const srcLines = rangedLines(src.value, true);
-  for (let i = 0; i < srcLines.length; ++i) {
-    const line = srcLines[i];
-    if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
-      if (inYaml) {
-        lineBuffer.push(line);
-        await flushLineBuffer("raw", i);
-        inYaml = false;
-      } else {
-        await flushLineBuffer("markdown", i);
-        lineBuffer.push(line);
-        inYaml = true;
-      }
-    } else if (startCodeCellRegEx.test(line.substring)) {
-      const m = line.substring.match(startCodeCellRegEx);
-      language = m[1];
-      await flushLineBuffer("markdown", i);
-      inCodeCell = true;
-    } else if (endCodeRegEx.test(line.substring)) {
-      if (inCodeCell) {
-        inCodeCell = false;
-        await flushLineBuffer("code", i);
-      } else {
-        inCode = !inCode;
-        lineBuffer.push(line);
-      }
-    } else if (startCodeRegEx.test(line.substring)) {
-      inCode = true;
-      lineBuffer.push(line);
-    } else if (delimitMathBlockRegEx.test(line.substring)) {
-      if (inMathBlock) {
-        await flushLineBuffer("math", i);
-      } else {
-        if (inYaml || inCode || inCodeCell) {
-        } else {
-          await flushLineBuffer("markdown", i);
-        }
-      }
-      inMathBlock = !inMathBlock;
-      lineBuffer.push(line);
-    } else {
-      lineBuffer.push(line);
-    }
-  }
-  await flushLineBuffer("markdown", srcLines.length);
-  return nb;
-}
-function mdTrimEmptyLines(lines2) {
-  const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
-  if (firstNonEmpty === -1) {
-    return [];
-  }
-  lines2 = lines2.slice(firstNonEmpty);
-  let lastNonEmpty = -1;
-  for (let i = lines2.length - 1; i >= 0; i--) {
-    if (lines2[i].trim().length > 0) {
-      lastNonEmpty = i;
-      break;
-    }
-  }
-  if (lastNonEmpty > -1) {
-    lines2 = lines2.slice(0, lastNonEmpty + 1);
-  }
-  return lines2;
 }
 
 // ../yaml-schema/types.ts
@@ -22406,8 +22184,8 @@ function validateArray(value, schema, context) {
   return result;
 }
 function validateObject(value, schema, context) {
-  const isObject = typeof value.result === "object" && !Array.isArray(value.result) && value.result !== null;
-  if (!typeIsValid(value, schema, context, isObject)) {
+  const isObject2 = typeof value.result === "object" && !Array.isArray(value.result) && value.result !== null;
+  if (!typeIsValid(value, schema, context, isObject2)) {
     return false;
   }
   let result = true;
@@ -22991,260 +22769,6 @@ function addValidatorErrorHandler(schema, handler) {
   });
 }
 
-// ../glob.ts
-var regExpEscapeChars = [
-  "!",
-  "$",
-  "(",
-  ")",
-  "*",
-  "+",
-  ".",
-  "=",
-  "?",
-  "[",
-  "\\",
-  "^",
-  "{",
-  "|"
-];
-var rangeEscapeChars = ["-", "\\", "]"];
-function globToRegExp(glob, {
-  extended = true,
-  globstar: globstarOption = true,
-  caseInsensitive = false
-} = {}) {
-  if (glob == "") {
-    return /(?!)/;
-  }
-  const sep = "/+";
-  const sepMaybe = "/*";
-  const seps = ["/"];
-  const globstar = "(?:[^/]*(?:/|$)+)*";
-  const wildcard = "[^/]*";
-  const escapePrefix = "\\";
-  let newLength = glob.length;
-  for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--)
-    ;
-  glob = glob.slice(0, newLength);
-  let regExpString = "";
-  for (let j = 0; j < glob.length; ) {
-    let segment = "";
-    const groupStack = [];
-    let inRange = false;
-    let inEscape = false;
-    let endsWithSep = false;
-    let i = j;
-    for (; i < glob.length && !seps.includes(glob[i]); i++) {
-      if (inEscape) {
-        inEscape = false;
-        const escapeChars = inRange ? rangeEscapeChars : regExpEscapeChars;
-        segment += escapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
-        continue;
-      }
-      if (glob[i] == escapePrefix) {
-        inEscape = true;
-        continue;
-      }
-      if (glob[i] == "[") {
-        if (!inRange) {
-          inRange = true;
-          segment += "[";
-          if (glob[i + 1] == "!") {
-            i++;
-            segment += "^";
-          } else if (glob[i + 1] == "^") {
-            i++;
-            segment += "\\^";
-          }
-          continue;
-        } else if (glob[i + 1] == ":") {
-          let k = i + 1;
-          let value = "";
-          while (glob[k + 1] != null && glob[k + 1] != ":") {
-            value += glob[k + 1];
-            k++;
-          }
-          if (glob[k + 1] == ":" && glob[k + 2] == "]") {
-            i = k + 2;
-            if (value == "alnum")
-              segment += "\\dA-Za-z";
-            else if (value == "alpha")
-              segment += "A-Za-z";
-            else if (value == "ascii")
-              segment += "\0-\x7F";
-            else if (value == "blank")
-              segment += "	 ";
-            else if (value == "cntrl")
-              segment += "\0-\x7F";
-            else if (value == "digit")
-              segment += "\\d";
-            else if (value == "graph")
-              segment += "!-~";
-            else if (value == "lower")
-              segment += "a-z";
-            else if (value == "print")
-              segment += " -~";
-            else if (value == "punct") {
-              segment += `!"#$%&'()*+,\\-./:;<=>?@[\\\\\\]^_\u2018{|}~`;
-            } else if (value == "space")
-              segment += "\\s\v";
-            else if (value == "upper")
-              segment += "A-Z";
-            else if (value == "word")
-              segment += "\\w";
-            else if (value == "xdigit")
-              segment += "\\dA-Fa-f";
-            continue;
-          }
-        }
-      }
-      if (glob[i] == "]" && inRange) {
-        inRange = false;
-        segment += "]";
-        continue;
-      }
-      if (inRange) {
-        if (glob[i] == "\\") {
-          segment += `\\\\`;
-        } else {
-          segment += glob[i];
-        }
-        continue;
-      }
-      if (glob[i] == ")" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
-        segment += ")";
-        const type = groupStack.pop();
-        if (type == "!") {
-          segment += wildcard;
-        } else if (type != "@") {
-          segment += type;
-        }
-        continue;
-      }
-      if (glob[i] == "|" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
-        segment += "|";
-        continue;
-      }
-      if (glob[i] == "+" && extended && glob[i + 1] == "(") {
-        i++;
-        groupStack.push("+");
-        segment += "(?:";
-        continue;
-      }
-      if (glob[i] == "@" && extended && glob[i + 1] == "(") {
-        i++;
-        groupStack.push("@");
-        segment += "(?:";
-        continue;
-      }
-      if (glob[i] == "?") {
-        if (extended && glob[i + 1] == "(") {
-          i++;
-          groupStack.push("?");
-          segment += "(?:";
-        } else {
-          segment += ".";
-        }
-        continue;
-      }
-      if (glob[i] == "!" && extended && glob[i + 1] == "(") {
-        i++;
-        groupStack.push("!");
-        segment += "(?!";
-        continue;
-      }
-      if (glob[i] == "{") {
-        groupStack.push("BRACE");
-        segment += "(?:";
-        continue;
-      }
-      if (glob[i] == "}" && groupStack[groupStack.length - 1] == "BRACE") {
-        groupStack.pop();
-        segment += ")";
-        continue;
-      }
-      if (glob[i] == "," && groupStack[groupStack.length - 1] == "BRACE") {
-        segment += "|";
-        continue;
-      }
-      if (glob[i] == "*") {
-        if (extended && glob[i + 1] == "(") {
-          i++;
-          groupStack.push("*");
-          segment += "(?:";
-        } else {
-          const prevChar = glob[i - 1];
-          let numStars = 1;
-          while (glob[i + 1] == "*") {
-            i++;
-            numStars++;
-          }
-          const nextChar = glob[i + 1];
-          if (globstarOption && numStars == 2 && [...seps, void 0].includes(prevChar) && [...seps, void 0].includes(nextChar)) {
-            segment += globstar;
-            endsWithSep = true;
-          } else {
-            segment += wildcard;
-          }
-        }
-        continue;
-      }
-      segment += regExpEscapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
-    }
-    if (groupStack.length > 0 || inRange || inEscape) {
-      segment = "";
-      for (const c of glob.slice(j, i)) {
-        segment += regExpEscapeChars.includes(c) ? `\\${c}` : c;
-        endsWithSep = false;
-      }
-    }
-    regExpString += segment;
-    if (!endsWithSep) {
-      regExpString += i < glob.length ? sep : sepMaybe;
-      endsWithSep = true;
-    }
-    while (seps.includes(glob[i]))
-      i++;
-    if (!(i > j)) {
-      throw new Error("Assertion failure: i > j (potential infinite loop)");
-    }
-    j = i;
-  }
-  regExpString = `^${regExpString}$`;
-  return new RegExp(regExpString, caseInsensitive ? "i" : "");
-}
-
-// resources.ts
-var _resources = {};
-function setYamlIntelligenceResources(resources) {
-  for (const [key, value] of Object.entries(resources)) {
-    _resources[key] = value;
-  }
-}
-function getYamlIntelligenceResource(filename) {
-  if (_resources[filename] === void 0) {
-    throw new Error(`Internal Error: getYamlIntelligenceResource called with missing resource ${filename}`);
-  }
-  return _resources[filename];
-}
-function expandResourceGlob(glob) {
-  return Object.keys(_resources).filter((key) => key.match(globToRegExp(glob))).map((key) => [key, getYamlIntelligenceResource(key)]);
-}
-
-// ../yaml-schema/format-aliases.ts
-var formatAliases = void 0;
-function getFormatAliases() {
-  if (formatAliases !== void 0) {
-    return formatAliases;
-  }
-  formatAliases = getYamlIntelligenceResource("schema/format-aliases.yml").aliases;
-  return formatAliases;
-}
-function expandFormatAliases(lst) {
-  return expandAliasesFrom(lst, getFormatAliases());
-}
-
 // ../yaml-schema/common.ts
 var booleanSchema = {
   "type": "boolean",
@@ -23501,12 +23025,289 @@ function memoize(f, keyMemoizer) {
   return inner;
 }
 
+// ../glob.ts
+var regExpEscapeChars = [
+  "!",
+  "$",
+  "(",
+  ")",
+  "*",
+  "+",
+  ".",
+  "=",
+  "?",
+  "[",
+  "\\",
+  "^",
+  "{",
+  "|"
+];
+var rangeEscapeChars = ["-", "\\", "]"];
+function globToRegExp(glob, {
+  extended = true,
+  globstar: globstarOption = true,
+  caseInsensitive = false
+} = {}) {
+  if (glob == "") {
+    return /(?!)/;
+  }
+  const sep = "/+";
+  const sepMaybe = "/*";
+  const seps = ["/"];
+  const globstar = "(?:[^/]*(?:/|$)+)*";
+  const wildcard = "[^/]*";
+  const escapePrefix = "\\";
+  let newLength = glob.length;
+  for (; newLength > 1 && seps.includes(glob[newLength - 1]); newLength--)
+    ;
+  glob = glob.slice(0, newLength);
+  let regExpString = "";
+  for (let j = 0; j < glob.length; ) {
+    let segment = "";
+    const groupStack = [];
+    let inRange = false;
+    let inEscape = false;
+    let endsWithSep = false;
+    let i = j;
+    for (; i < glob.length && !seps.includes(glob[i]); i++) {
+      if (inEscape) {
+        inEscape = false;
+        const escapeChars = inRange ? rangeEscapeChars : regExpEscapeChars;
+        segment += escapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
+        continue;
+      }
+      if (glob[i] == escapePrefix) {
+        inEscape = true;
+        continue;
+      }
+      if (glob[i] == "[") {
+        if (!inRange) {
+          inRange = true;
+          segment += "[";
+          if (glob[i + 1] == "!") {
+            i++;
+            segment += "^";
+          } else if (glob[i + 1] == "^") {
+            i++;
+            segment += "\\^";
+          }
+          continue;
+        } else if (glob[i + 1] == ":") {
+          let k = i + 1;
+          let value = "";
+          while (glob[k + 1] != null && glob[k + 1] != ":") {
+            value += glob[k + 1];
+            k++;
+          }
+          if (glob[k + 1] == ":" && glob[k + 2] == "]") {
+            i = k + 2;
+            if (value == "alnum")
+              segment += "\\dA-Za-z";
+            else if (value == "alpha")
+              segment += "A-Za-z";
+            else if (value == "ascii")
+              segment += "\0-\x7F";
+            else if (value == "blank")
+              segment += "	 ";
+            else if (value == "cntrl")
+              segment += "\0-\x7F";
+            else if (value == "digit")
+              segment += "\\d";
+            else if (value == "graph")
+              segment += "!-~";
+            else if (value == "lower")
+              segment += "a-z";
+            else if (value == "print")
+              segment += " -~";
+            else if (value == "punct") {
+              segment += `!"#$%&'()*+,\\-./:;<=>?@[\\\\\\]^_\u2018{|}~`;
+            } else if (value == "space")
+              segment += "\\s\v";
+            else if (value == "upper")
+              segment += "A-Z";
+            else if (value == "word")
+              segment += "\\w";
+            else if (value == "xdigit")
+              segment += "\\dA-Fa-f";
+            continue;
+          }
+        }
+      }
+      if (glob[i] == "]" && inRange) {
+        inRange = false;
+        segment += "]";
+        continue;
+      }
+      if (inRange) {
+        if (glob[i] == "\\") {
+          segment += `\\\\`;
+        } else {
+          segment += glob[i];
+        }
+        continue;
+      }
+      if (glob[i] == ")" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
+        segment += ")";
+        const type = groupStack.pop();
+        if (type == "!") {
+          segment += wildcard;
+        } else if (type != "@") {
+          segment += type;
+        }
+        continue;
+      }
+      if (glob[i] == "|" && groupStack.length > 0 && groupStack[groupStack.length - 1] != "BRACE") {
+        segment += "|";
+        continue;
+      }
+      if (glob[i] == "+" && extended && glob[i + 1] == "(") {
+        i++;
+        groupStack.push("+");
+        segment += "(?:";
+        continue;
+      }
+      if (glob[i] == "@" && extended && glob[i + 1] == "(") {
+        i++;
+        groupStack.push("@");
+        segment += "(?:";
+        continue;
+      }
+      if (glob[i] == "?") {
+        if (extended && glob[i + 1] == "(") {
+          i++;
+          groupStack.push("?");
+          segment += "(?:";
+        } else {
+          segment += ".";
+        }
+        continue;
+      }
+      if (glob[i] == "!" && extended && glob[i + 1] == "(") {
+        i++;
+        groupStack.push("!");
+        segment += "(?!";
+        continue;
+      }
+      if (glob[i] == "{") {
+        groupStack.push("BRACE");
+        segment += "(?:";
+        continue;
+      }
+      if (glob[i] == "}" && groupStack[groupStack.length - 1] == "BRACE") {
+        groupStack.pop();
+        segment += ")";
+        continue;
+      }
+      if (glob[i] == "," && groupStack[groupStack.length - 1] == "BRACE") {
+        segment += "|";
+        continue;
+      }
+      if (glob[i] == "*") {
+        if (extended && glob[i + 1] == "(") {
+          i++;
+          groupStack.push("*");
+          segment += "(?:";
+        } else {
+          const prevChar = glob[i - 1];
+          let numStars = 1;
+          while (glob[i + 1] == "*") {
+            i++;
+            numStars++;
+          }
+          const nextChar = glob[i + 1];
+          if (globstarOption && numStars == 2 && [...seps, void 0].includes(prevChar) && [...seps, void 0].includes(nextChar)) {
+            segment += globstar;
+            endsWithSep = true;
+          } else {
+            segment += wildcard;
+          }
+        }
+        continue;
+      }
+      segment += regExpEscapeChars.includes(glob[i]) ? `\\${glob[i]}` : glob[i];
+    }
+    if (groupStack.length > 0 || inRange || inEscape) {
+      segment = "";
+      for (const c of glob.slice(j, i)) {
+        segment += regExpEscapeChars.includes(c) ? `\\${c}` : c;
+        endsWithSep = false;
+      }
+    }
+    regExpString += segment;
+    if (!endsWithSep) {
+      regExpString += i < glob.length ? sep : sepMaybe;
+      endsWithSep = true;
+    }
+    while (seps.includes(glob[i]))
+      i++;
+    if (!(i > j)) {
+      throw new Error("Assertion failure: i > j (potential infinite loop)");
+    }
+    j = i;
+  }
+  regExpString = `^${regExpString}$`;
+  return new RegExp(regExpString, caseInsensitive ? "i" : "");
+}
+
+// resources.ts
+var _resources = {};
+function setYamlIntelligenceResources(resources) {
+  for (const [key, value] of Object.entries(resources)) {
+    _resources[key] = value;
+  }
+}
+function getYamlIntelligenceResource(filename) {
+  if (_resources[filename] === void 0) {
+    throw new Error(`Internal Error: getYamlIntelligenceResource called with missing resource ${filename}`);
+  }
+  return _resources[filename];
+}
+function expandResourceGlob(glob) {
+  return Object.keys(_resources).filter((key) => key.match(globToRegExp(glob))).map((key) => [key, getYamlIntelligenceResource(key)]);
+}
+
 // ../polyfills.ts
 function fromEntries(iterable) {
   return [...iterable].reduce((obj, [key, val]) => {
     obj[key] = val;
     return obj;
   }, {});
+}
+
+// ../yaml-schema/validated-yaml.ts
+var ValidationError2 = class extends Error {
+  constructor(msg, validationErrors) {
+    super([msg, ...validationErrors.map((e) => tidyverseFormatError(e.niceError))].join("\n\n"));
+    Object.setPrototypeOf(this, ValidationError2.prototype);
+    this.validationErrors = validationErrors;
+  }
+};
+var isObject = (value) => {
+  const type = typeof value;
+  return value !== null && (type === "object" || type === "function");
+};
+async function readAndValidateYamlFromMappedString(mappedYaml, schema) {
+  const result = await withValidator(schema, async (validator) => {
+    const annotation = await readAnnotatedYamlFromMappedString(mappedYaml);
+    if (annotation === null) {
+      throw new Error("Parse error in readAnnotatedYamlFromMappedString");
+    }
+    const validateYaml = !isObject(annotation.result) || annotation.result["validate-yaml"] !== false;
+    const yaml = annotation.result;
+    if (validateYaml) {
+      const valResult = await validator.validateParse(mappedYaml, annotation);
+      return {
+        yaml,
+        yamlValidationErrors: valResult.errors
+      };
+    } else {
+      return {
+        yaml,
+        yamlValidationErrors: []
+      };
+    }
+  });
+  return result;
 }
 
 // ../yaml-schema/from-yaml.ts
@@ -23961,6 +23762,358 @@ async function loadSchemaDefinitions(yaml) {
   }));
 }
 
+// ../yaml-schema/chunk-metadata.ts
+function checkForEqualsInChunk(error, _parse, _schema) {
+  if (typeof error.violatingObject.result !== "string") {
+    return error;
+  }
+  const badObject = error.source.value.substring(error.violatingObject.start, error.violatingObject.end);
+  if (errorKeyword(error) !== "type") {
+    return error;
+  }
+  let m;
+  const heading = `${error.location}: ${quotedStringColor(badObject)} must be a YAML mapping.`;
+  const errorMsg = [`${quotedStringColor(badObject)} is a string.`];
+  const newError = {
+    heading,
+    error: errorMsg,
+    info: {}
+  };
+  addFileInfo(newError, error.source);
+  addInstancePathInfo(newError, error.instancePath);
+  if (m = badObject.match(/= *TRUE/i)) {
+    newError.info["suggestion-fix"] = `Try using ${quotedStringColor(": true")} instead of ${quotedStringColor(m[0])}.`;
+  } else if (m = badObject.match(/= *FALSE/i)) {
+    newError.info["suggestion-fix"] = `Try using ${quotedStringColor(": false")} instead of ${quotedStringColor(m[0])}.`;
+  } else if (badObject.match("=")) {
+    newError.info["suggestion-fix"] = `Try using ${quotedStringColor(":")} instead of ${quotedStringColor("=")}.`;
+  } else {
+    return error;
+  }
+  return {
+    ...error,
+    message: tidyverseFormatError(newError)
+  };
+}
+var makeEngineSchema = (engine) => idSchema(objectRefSchemaFromContextGlob("cell-*", (field, _path) => {
+  const engineTag = field && field.tags && field.tags.engine;
+  switch (typeof engineTag) {
+    case "undefined":
+      return true;
+    case "string":
+      return engineTag === engine;
+    case "object":
+      return engineTag.indexOf(engine) !== -1;
+    default:
+      throw new Error(`Internal Error: bad engine tag ${engineTag}`);
+  }
+}), `engine-${engine}`);
+var markdownEngineSchema = defineCached(async () => {
+  return {
+    schema: makeEngineSchema("markdown"),
+    errorHandlers: []
+  };
+}, "engine-markdown");
+var knitrEngineSchema = defineCached(async () => {
+  const result = await makeEngineSchema("knitr");
+  return { schema: result, errorHandlers: [checkForEqualsInChunk] };
+}, "engine-knitr");
+var jupyterEngineSchema = defineCached(async () => {
+  return {
+    schema: makeEngineSchema("jupyter"),
+    errorHandlers: []
+  };
+}, "engine-jupyter");
+async function getEngineOptionsSchema() {
+  const obj = {
+    markdown: await markdownEngineSchema(),
+    knitr: await knitrEngineSchema(),
+    jupyter: await jupyterEngineSchema()
+  };
+  return obj;
+}
+
+// ../partition-cell-options.ts
+function mappedSource(source, substrs) {
+  const params = [];
+  for (const { range } of substrs) {
+    params.push(range);
+  }
+  return mappedString(source, params);
+}
+async function parseAndValidateCellOptions(mappedYaml, _language, validate2 = false, engine = "") {
+  if (mappedYaml.value.trim().length === 0) {
+    return void 0;
+  }
+  const engineOptionsSchema = await getEngineOptionsSchema();
+  const schema = engineOptionsSchema[engine];
+  if (schema === void 0 || !validate2) {
+    const result = await readAnnotatedYamlFromMappedString(mappedYaml);
+    return result.result;
+  }
+  const { yaml, yamlValidationErrors } = await readAndValidateYamlFromMappedString(mappedYaml, schema);
+  if (yamlValidationErrors.length > 0) {
+    throw new ValidationError2(`Validation of YAML metadata for cell with engine ${engine} failed`, yamlValidationErrors);
+  }
+  return yaml;
+}
+function partitionCellOptionsText(language, source) {
+  const commentChars = langCommentChars(language);
+  const optionPrefix = optionCommentPrefix(commentChars[0]);
+  const optionSuffix = commentChars[1] || "";
+  const optionsSource = [];
+  const yamlLines = [];
+  let endOfYaml = 0;
+  for (const line of rangedLines(source.value, true)) {
+    if (line.substring.startsWith(optionPrefix)) {
+      if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
+        let yamlOption = line.substring.substring(optionPrefix.length);
+        if (optionSuffix) {
+          yamlOption = yamlOption.trimRight();
+          yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
+        }
+        endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
+        const rangedYamlOption = {
+          substring: yamlOption,
+          range: {
+            start: line.range.start + optionPrefix.length,
+            end: endOfYaml
+          }
+        };
+        yamlLines.push(rangedYamlOption);
+        optionsSource.push(line);
+        continue;
+      }
+    }
+    break;
+  }
+  const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
+  return {
+    yaml: mappedYaml,
+    optionsSource,
+    source: mappedString(source, [{
+      start: endOfYaml,
+      end: source.value.length
+    }]),
+    sourceStartLine: yamlLines.length
+  };
+}
+async function partitionCellOptionsMapped(language, outerSource, validate2 = false, engine = "") {
+  const {
+    yaml: mappedYaml,
+    optionsSource,
+    source,
+    sourceStartLine
+  } = partitionCellOptionsText(language, outerSource);
+  if (guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
+    const yaml = await parseAndValidateCellOptions(mappedYaml || asMappedString(""), language, validate2, engine);
+    return {
+      yaml,
+      optionsSource,
+      source,
+      sourceStartLine
+    };
+  } else {
+    return {
+      yaml: void 0,
+      optionsSource,
+      source,
+      sourceStartLine
+    };
+  }
+}
+function langCommentChars(lang) {
+  const chars = kLangCommentChars[lang] || "#";
+  if (!Array.isArray(chars)) {
+    return [chars];
+  } else {
+    return chars;
+  }
+}
+function optionCommentPrefix(comment) {
+  return comment + "| ";
+}
+var kLangCommentChars = {
+  r: "#",
+  python: "#",
+  julia: "#",
+  scala: "//",
+  matlab: "%",
+  csharp: "//",
+  fsharp: "//",
+  c: ["/*", "*/"],
+  css: ["/*", "*/"],
+  sas: ["*", ";"],
+  powershell: "#",
+  bash: "#",
+  sql: "--",
+  mysql: "--",
+  psql: "--",
+  lua: "--",
+  cpp: "//",
+  cc: "//",
+  stan: "#",
+  octave: "#",
+  fortran: "!",
+  fortran95: "!",
+  awk: "#",
+  gawk: "#",
+  stata: "*",
+  java: "//",
+  groovy: "//",
+  sed: "#",
+  perl: "#",
+  ruby: "#",
+  tikz: "%",
+  js: "//",
+  d3: "//",
+  node: "//",
+  sass: "//",
+  coffee: "#",
+  go: "//",
+  asy: "//",
+  haskell: "--",
+  dot: "//",
+  ojs: "//"
+};
+
+// ../break-quarto-md.ts
+async function breakQuartoMd(src, validate2 = false) {
+  const nb = {
+    cells: []
+  };
+  const yamlRegEx = /^---\s*$/;
+  const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
+  const startCodeRegEx = /^```/;
+  const endCodeRegEx = /^```\s*$/;
+  const delimitMathBlockRegEx = /^\$\$/;
+  let language = "";
+  let cellStartLine = 0;
+  const lineBuffer = [];
+  const flushLineBuffer = async (cell_type, index) => {
+    if (lineBuffer.length) {
+      const mappedChunks = [];
+      for (const line of lineBuffer) {
+        mappedChunks.push(line.range);
+      }
+      const source = mappedString(src, mappedChunks);
+      const cell = {
+        cell_type: cell_type === "code" ? { language } : cell_type,
+        source,
+        sourceOffset: 0,
+        sourceStartLine: 0,
+        sourceVerbatim: source,
+        cellStartLine
+      };
+      cellStartLine = index + 1;
+      if (cell_type === "code") {
+        const { yaml, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
+        const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
+        let strUpToLastBreak = "";
+        if (sourceStartLine > 0) {
+          if (breaks.length) {
+            const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
+            strUpToLastBreak = cell.source.value.substring(0, lastBreak);
+          } else {
+            strUpToLastBreak = cell.source.value;
+          }
+        }
+        const prefix = "```{" + language + "}\n";
+        cell.sourceOffset = strUpToLastBreak.length + prefix.length;
+        cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
+          prefix,
+          { start: 0, end: cell.sourceVerbatim.value.length },
+          "\n```"
+        ]);
+        cell.options = yaml;
+        cell.sourceStartLine = sourceStartLine;
+      }
+      if (mdTrimEmptyLines(lines(cell.source.value)).length > 0 || cell.options !== void 0) {
+        nb.cells.push(cell);
+      }
+      lineBuffer.splice(0, lineBuffer.length);
+    }
+  };
+  let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
+  const srcLines = rangedLines(src.value, true);
+  for (let i = 0; i < srcLines.length; ++i) {
+    const line = srcLines[i];
+    if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
+      if (inYaml) {
+        lineBuffer.push(line);
+        await flushLineBuffer("raw", i);
+        inYaml = false;
+      } else {
+        await flushLineBuffer("markdown", i);
+        lineBuffer.push(line);
+        inYaml = true;
+      }
+    } else if (startCodeCellRegEx.test(line.substring)) {
+      const m = line.substring.match(startCodeCellRegEx);
+      language = m[1];
+      await flushLineBuffer("markdown", i);
+      inCodeCell = true;
+    } else if (endCodeRegEx.test(line.substring)) {
+      if (inCodeCell) {
+        inCodeCell = false;
+        await flushLineBuffer("code", i);
+      } else {
+        inCode = !inCode;
+        lineBuffer.push(line);
+      }
+    } else if (startCodeRegEx.test(line.substring)) {
+      inCode = true;
+      lineBuffer.push(line);
+    } else if (delimitMathBlockRegEx.test(line.substring)) {
+      if (inMathBlock) {
+        await flushLineBuffer("math", i);
+      } else {
+        if (inYaml || inCode || inCodeCell) {
+        } else {
+          await flushLineBuffer("markdown", i);
+        }
+      }
+      inMathBlock = !inMathBlock;
+      lineBuffer.push(line);
+    } else {
+      lineBuffer.push(line);
+    }
+  }
+  await flushLineBuffer("markdown", srcLines.length);
+  return nb;
+}
+function mdTrimEmptyLines(lines2) {
+  const firstNonEmpty = lines2.findIndex((line) => line.trim().length > 0);
+  if (firstNonEmpty === -1) {
+    return [];
+  }
+  lines2 = lines2.slice(firstNonEmpty);
+  let lastNonEmpty = -1;
+  for (let i = lines2.length - 1; i >= 0; i--) {
+    if (lines2[i].trim().length > 0) {
+      lastNonEmpty = i;
+      break;
+    }
+  }
+  if (lastNonEmpty > -1) {
+    lines2 = lines2.slice(0, lastNonEmpty + 1);
+  }
+  return lines2;
+}
+
+// ../yaml-schema/format-aliases.ts
+var formatAliases = void 0;
+function getFormatAliases() {
+  if (formatAliases !== void 0) {
+    return formatAliases;
+  }
+  formatAliases = getYamlIntelligenceResource("schema/format-aliases.yml").aliases;
+  return formatAliases;
+}
+function expandFormatAliases(lst) {
+  return expandAliasesFrom(lst, getFormatAliases());
+}
+
 // ../yaml-schema/execute.ts
 function getFormatExecuteOptionsSchema() {
   const schema = idSchema(objectRefSchemaFromContextGlob("document-execute"), "front-matter-execute");
@@ -24054,77 +24207,6 @@ var getFrontMatterSchema = defineCached(async () => {
     errorHandlers: []
   };
 }, "front-matter");
-
-// ../yaml-schema/chunk-metadata.ts
-function checkForEqualsInChunk(error, _parse, _schema) {
-  if (typeof error.violatingObject.result !== "string") {
-    return error;
-  }
-  const badObject = error.source.value.substring(error.violatingObject.start, error.violatingObject.end);
-  if (errorKeyword(error) !== "type") {
-    return error;
-  }
-  let m;
-  const heading = `${error.location}: ${quotedStringColor(badObject)} must be a YAML mapping.`;
-  const errorMsg = [`${quotedStringColor(badObject)} is a string.`];
-  const newError = {
-    heading,
-    error: errorMsg,
-    info: {}
-  };
-  addFileInfo(newError, error.source);
-  addInstancePathInfo(newError, error.instancePath);
-  if (m = badObject.match(/= *TRUE/i)) {
-    newError.info["suggestion-fix"] = `Try using ${quotedStringColor(": true")} instead of ${quotedStringColor(m[0])}.`;
-  } else if (m = badObject.match(/= *FALSE/i)) {
-    newError.info["suggestion-fix"] = `Try using ${quotedStringColor(": false")} instead of ${quotedStringColor(m[0])}.`;
-  } else if (badObject.match("=")) {
-    newError.info["suggestion-fix"] = `Try using ${quotedStringColor(":")} instead of ${quotedStringColor("=")}.`;
-  } else {
-    return error;
-  }
-  return {
-    ...error,
-    message: tidyverseFormatError(newError)
-  };
-}
-var makeEngineSchema = (engine) => idSchema(objectRefSchemaFromContextGlob("cell-*", (field, _path) => {
-  const engineTag = field && field.tags && field.tags.engine;
-  switch (typeof engineTag) {
-    case "undefined":
-      return true;
-    case "string":
-      return engineTag === engine;
-    case "object":
-      return engineTag.indexOf(engine) !== -1;
-    default:
-      throw new Error(`Internal Error: bad engine tag ${engineTag}`);
-  }
-}), `engine-${engine}`);
-var markdownEngineSchema = defineCached(async () => {
-  return {
-    schema: makeEngineSchema("markdown"),
-    errorHandlers: []
-  };
-}, "engine-markdown");
-var knitrEngineSchema = defineCached(async () => {
-  const result = await makeEngineSchema("knitr");
-  return { schema: result, errorHandlers: [checkForEqualsInChunk] };
-}, "engine-knitr");
-var jupyterEngineSchema = defineCached(async () => {
-  return {
-    schema: makeEngineSchema("jupyter"),
-    errorHandlers: []
-  };
-}, "engine-jupyter");
-async function getEngineOptionsSchema() {
-  const obj = {
-    markdown: await markdownEngineSchema(),
-    knitr: await knitrEngineSchema(),
-    jupyter: await jupyterEngineSchema()
-  };
-  return obj;
-}
 
 // ../yaml-schema/project-config.ts
 var getProjectConfigFieldsSchema = defineCached(async () => {
@@ -24888,7 +24970,7 @@ async function automationFromGoodParseScript(kind, context) {
   }]);
   const {
     yaml
-  } = await partitionCellOptionsMapped(language, mappedCode);
+  } = partitionCellOptionsText(language, mappedCode);
   if (yaml === void 0) {
     if (kind === "completions") {
       return noCompletions;

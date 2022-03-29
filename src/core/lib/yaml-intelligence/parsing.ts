@@ -21,11 +21,17 @@ interface WithTreeSitter {
   TreeSitter: any;
 }
 
-// this is an escape hatch for quarto's CLI to operate
-// the yaml-intelligence code outside of the IDE
 // deno-lint-ignore no-explicit-any
 export function setTreeSitter(parser: any) {
   _parser = parser;
+}
+
+// deno-lint-ignore no-explicit-any
+export function getTreeSitterSync(): any {
+  if (_parser === undefined) {
+    throw new Error("tree-sitter uninitialized");
+  }
+  return _parser;
 }
 
 // deno-lint-ignore no-explicit-any
