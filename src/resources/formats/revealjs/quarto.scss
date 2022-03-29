@@ -233,15 +233,18 @@ section.has-dark-background {
   background-color: $code-bg;
 }
 
-.reveal pre code {
+.reveal pre.sourceCode code {
   @if variable-exists(code-block-color) {
     color: $code-block-color;
-  } @else {
-    color: $body-color;
   }
   background-color: $code-block-bg;
   padding: 6px 9px;
   max-height: 500px;
+}
+
+.reveal pre code {
+  background-color: $body-bg;
+  color: $body-color;
 }
 
 .reveal blockquote {
