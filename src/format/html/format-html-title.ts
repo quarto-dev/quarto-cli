@@ -55,13 +55,14 @@ export function preProcessDocumentTitle(
         const authors = getAuthors(format);
         const authorMd: Record<string, string> = {};
         for (const author of authors) {
-          authorMd[author.name] = author.name;
+          authorMd[safeKey(author.name)] = author.name;
           if (author.affilliation?.name) {
-            authorMd[author.affilliation.name] = author.affilliation.name;
+            authorMd[safeKey(author.affilliation.name)] =
+              author.affilliation.name;
           }
         }
         return {
-          inlines: authorMd,
+          blocks: authorMd,
         };
       },
       processRendered: (
@@ -75,6 +76,10 @@ export function preProcessDocumentTitle(
   return {
     pipeline,
   };
+}
+
+function safeKey(str: string) {
+  return str.replace(/\s/g, "");
 }
 
 function getAuthors(format: Format) {
@@ -174,15 +179,17 @@ export function processDocumentTitle(
     for (const author of authors) {
       const authorP = doc.createElement("div");
 
-      const authorName =
-        Array.from(rendered[author.name].childNodes as NodeList) ||
-        author.name;
-      const authorContentsNode = maybeLinkedNode(
-        doc,
-        authorName,
-        author.url,
-      );
-      authorP.appendChild(authorContentsNode);
+      if (rendered[safeKey(author.name)]) {
+        const authorName =
+          Array.from(rendered[safeKey(author.name)].childNodes as NodeList) ||
+          author.name;
+        const authorContentsNode = maybeLinkedNode(
+          doc,
+          authorName,
+          author.url,
+        );
+        authorP.appendChild(authorContentsNode);
+      }
 
       if (author.orcid) {
         const orcidImg = doc.createElement("img");
@@ -215,8 +222,10 @@ export function processDocumentTitle(
       for (const author of authors) {
         const affiliateText = () => {
           if (author.affilliation !== undefined) {
-            if (rendered[author.affilliation.name]) {
-              return Array.from(rendered[author.affilliation.name].childNodes);
+            if (rendered[safeKey(author.affilliation.name)]) {
+              return Array.from(
+                rendered[safeKey(author.affilliation.name)].childNodes,
+              );
             } else {
               return author.affilliation.name;
             }
@@ -503,7 +512,7 @@ function maybeLinkedNode(
       if (text.length === 1) {
         return text[0] as Element;
       } else {
-        const el = doc.createElement("p");
+        const el = doc.createElement("div");
         text.forEach((node) => {
           el.appendChild(node);
         });

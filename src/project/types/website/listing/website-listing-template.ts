@@ -27,6 +27,7 @@ import {
   kFieldSort,
   kFieldTypes,
   kImageHeight,
+  kImagePlaceholder,
   kMaxDescLength,
   kPageSize,
   kSortAsc,
@@ -112,6 +113,9 @@ export function templateMarkdownHandler(
           record.description = truncateText(item.description, maxDescLength);
         }
       }
+
+      // If there is no image and there is a placeholder, use that
+      record.image = record.image || listing[kImagePlaceholder];
 
       return record;
     },

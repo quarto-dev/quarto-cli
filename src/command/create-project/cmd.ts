@@ -131,7 +131,10 @@ export const createProjectCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
-    dir = dir || Deno.cwd();
+    if (dir === undefined || dir === ".") {
+      dir = Deno.cwd();
+    }
+
     const engine = options.engine || [];
 
     const envPackages = typeof (options.withVenv) === "string"

@@ -9698,6 +9698,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 }
               },
+              "image-placeholder": {
+                string: {
+                  description: "The default image to use if an item in the listing doesn't have an image."
+                }
+              },
               "image-align": {
                 enum: [
                   "left",
@@ -16818,6 +16823,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The maximum length (in characters) of the description displayed in\nthe listing.",
           long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
         },
+        "The default image to use if an item in the listing doesn\u2019t have an\nimage.",
         "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
         {
           short: "The height of the image being displayed.",

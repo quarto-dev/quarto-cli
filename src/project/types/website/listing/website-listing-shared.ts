@@ -50,6 +50,9 @@ export const kImageAlign = "image-align";
 // Alt text for the item's image
 export const kImageAlt = "image-alt";
 
+// The placeholder image for the item
+export const kImagePlaceholder = "image-placeholder";
+
 // The number of columns to display (grid)
 export const kGridColumns = "grid-columns";
 
@@ -131,6 +134,7 @@ export interface Listing extends ListingDehydrated {
   [kPageSize]: number;
   [kFilterUi]: boolean;
   [kSortUi]: boolean;
+  [kImagePlaceholder]?: string;
 
   sort?: ListingSort[];
   template?: string;

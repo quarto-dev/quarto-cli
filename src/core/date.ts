@@ -31,6 +31,14 @@ export function today(): Date {
   return today;
 }
 
+export function resolveDate(input: string | string[], val: unknown) {
+  if (isSpecialDate(val)) {
+    return parseSpecialDate(input, val);
+  } else {
+    return val;
+  }
+}
+
 export function isSpecialDate(val?: unknown) {
   return val === kLastModified || val === kToday || val === rSysDate ||
     val === kNow;
