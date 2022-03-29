@@ -20,10 +20,14 @@ import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 
 import { isObject } from "../lodash.ts";
 
-import { JSONValue, LocalizedError } from "../lib/yaml-schema/types.ts";
+import { JSONValue } from "../lib/yaml-schema/types.ts";
+
+import { ValidationError } from "../lib/yaml-schema/validated-yaml.ts";
+
+export { ValidationError } from "../lib/yaml-schema/validated-yaml.ts";
 
 // https://stackoverflow.com/a/41429145
-export class ValidationError extends Error {
+/*export class ValidationError extends Error {
   validationErrors: LocalizedError[];
 
   constructor(msg: string, validationErrors: LocalizedError[]) {
@@ -37,7 +41,7 @@ export class ValidationError extends Error {
     Object.setPrototypeOf(this, ValidationError.prototype);
     this.validationErrors = validationErrors;
   }
-}
+}*/
 
 export function readAndValidateYamlFromFile(
   file: string,
