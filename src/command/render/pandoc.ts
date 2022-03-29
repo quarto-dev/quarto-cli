@@ -496,6 +496,29 @@ export async function runPandoc(
     };
   }
 
+  // provide alternate markdown template that actually prints the title block
+  if (
+    !allDefaults[kTemplate] && !havePandocArg(args, "--template") &&
+    allDefaults.to
+  ) {
+    if (
+      [
+        "gfm",
+        "commonmark",
+        "markdown_strict",
+        "markdown_phpextra",
+        "markdown_github",
+        "markua",
+      ].includes(
+        allDefaults.to,
+      )
+    ) {
+      allDefaults[kTemplate] = resourcePath(
+        join("pandoc", "templates", "default.markdown"),
+      );
+    }
+  }
+
   // write the defaults file
   if (allDefaults) {
     const defaultsFile = await writeDefaultsFile(allDefaults, options.temp);
