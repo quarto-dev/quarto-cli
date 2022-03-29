@@ -18,8 +18,6 @@ import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { kOutputFile } from "../../config/constants.ts";
-
 import { cssFileResourceReferences } from "../../core/css.ts";
 import { logError } from "../../core/log.ts";
 import { openUrl } from "../../core/shell.ts";
@@ -198,16 +196,9 @@ export async function previewFormat(
   format?: string,
   project?: ProjectContext,
 ) {
-  const formats = await renderFormats(file, "all", project);
-  format = format || Object.keys(formats).find((name) => {
-    const fmt = formats[name];
-    const outputFile = fmt.pandoc[kOutputFile];
-    return outputFile && isBrowserPreviewable(outputFile);
-  });
-  // if there is no known previewable format then pick the first one (or html)
-  if (!format) {
-    format = Object.keys(formats)[0] || "html";
-  }
+  format = format ||
+    Object.keys(await renderFormats(file, "all", project))[0] ||
+    "html";
   return format;
 }
 
