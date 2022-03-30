@@ -265,15 +265,17 @@ knitr_options_with_cache <- function(input, format, opts) {
       }
       cache <- TRUE
     }
+ 
+    # set the glocal cache option
+    opts$opts_chunk$cache <- isTRUE(cache)
 
-    # force the cache on or off as appropriate
-    force_cache <- isTRUE(cache)
-    opts$opts_chunk$cache <- force_cache
-    opts$opts_hooks$cache <- function(options) {
-      options$cache <- force_cache
-      options
+    # if cache is FALSE then force all the chunks to FALSE
+    if (identical(cache, FALSE)) {
+      opts$opts_hooks$cache <- function(options) {
+        options$cache <- FALSE
+        options
+      }
     }
-    opts
   }
   opts
 }
