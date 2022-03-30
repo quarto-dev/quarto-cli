@@ -1,43 +1,77 @@
 -- meta.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-
-
+-- read and replace the authors field
+-- without reshaped data that has been 
+-- restructured into the standard author
+-- format
 kAuthorInput =  'authors'
 kAuthorOutput = 'authors'
 
-kAttributes = 'attributes'
-kMetadata = 'metadata'
-
--- a name which will be destructured
-kName = 'name'
-
--- destructured name values
-kGivenName = 'given'
-kFamilyName = 'family'
-kLiteralName = 'literal'
-kNameFields = { kGivenName, kFamilyName, kLiteralName}
-
--- simple mapped values
+-- Properties that may appear on an individual author
 kId = 'id'
+kName = 'name'
 kUrl = 'url'
 kEmail = 'email'
 kFax = 'fax'
 kOrcid = 'orcid'
 kNotes = 'notes'
 kAcknowledgements = 'acknowledgements'
+kAffiliations = 'affilations'
+
+-- attributes hold a list of strings which
+-- represent true characteristics of the author
+-- (for example, that they are the corresponding author)
+-- the presence of a value means that it is true, the
+-- absence of a value means that it is false
+--
+-- users can either write
+-- attributes: [correspoding, is-equal-contributor]
+-- or if attributes with these names are present (and truthy) 
+-- on the author they will be collected into attributes.
+-- For example-
+--   author:
+--     name: John Hamm
+--     corresponding: true
+--     is-equal-contributor: true
+kAttributes = 'attributes'
 
 -- flag values for attributes (attributes is a list of 
 -- flag names)
 kCorresponding = 'corresponding'
 kEqualContributor = 'equal-contributor'
 
--- TODO: affilations
-kAffiliations = 'affilations'
+-- metadata holds options that appear in the author key
+-- that are not common to our author schema. we would like
+-- to generally discourage this type of data since 
+-- it will be difficult to reliably share across templates and
+-- author representations, so we bucketize it here to 
+-- suggest to users that this is 'other' data 
+kMetadata = 'metadata'
 
+-- a name which will be structured into a name object that
+-- look like:
+-- name:
+--   family:
+--   given:
+--   literal:
+-- We can accept a literal string (which we parse to get the family and given)
+-- or a structured object that declares all or some of the options directly
+kGivenName = 'given'
+kFamilyName = 'family'
+kLiteralName = 'literal'
+kNameFields = { kGivenName, kFamilyName, kLiteralName}
+
+-- an affiliation which will be structured into a standalone
+
+
+-- The field types for an author (maps the field in an author table)
+-- to the way the field should be processed
 kNameAuthorFields = { kName }
 kSimpleAuthorFields = { kId, kUrl, kEmail, kFax, kOrcid, kNotes, kAcknowledgements }
 kAttributeFields = { kCorresponding, kEqualContributor }
+kAffiliationFields = { kAffiliations}
+
 
 -- Normalizes author metadata from the 'input' field into 
 -- consistently structured metadata in the 'output' field
@@ -76,14 +110,27 @@ function authorsMeta()
                 author[authorKey] = authorValue
               elseif tcontains(kAttributeFields, authorKey) then
                 -- process a field into attributes
-                if authorValue == true then
+                if authorValue then
                   author[kAttributes][#author[kAttributes] + 1] = pandoc.Str(authorKey)
                 end
               elseif authorKey == kAttributes then
-                -- process attributes
-                for k,v in pairs(authorValue) do
-                  if v == true then
-                    author[kAttributes][#author[kAttributes] + 1] = pandoc.Str(k)
+                if tisarray(authorValue) then
+                  -- process attributes as an array of values
+                  for i,v in ipairs(authorValue) do
+                    if v then
+                      if v.t == "Str" then
+                        tappend(author[kAttributes], {v})
+                      else 
+                        tappend(author[kAttributes], v)
+                      end
+                    end
+                  end
+                else
+                  -- process attributes as a dictionary
+                  for k,v in pairs(authorValue) do
+                    if v then
+                      author[kAttributes][#author[kAttributes] + 1] = pandoc.Str(k)
+                    end
                   end
                 end
               else 
@@ -96,6 +143,7 @@ function authorsMeta()
         end      
       end
       meta[kAuthorOutput] = authorData
+      dump(meta[kAuthorOutput])
       return meta
     end
   }
@@ -103,7 +151,6 @@ end
 
 -- Converts name elements into a structured name
 function toName(nameParts) 
-  
   if not tisarray(nameParts) then 
     -- If the name is a table (e.g. already a complex object)
     -- just pick out the allowed fields and forward
