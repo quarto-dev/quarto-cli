@@ -501,9 +501,7 @@ function htmlFileRequestHandlerOptions(
         }
         const fileContents = await Deno.readFile(file);
         return reloader.injectClient(fileContents, inputFile);
-      } else if (
-        isTextContent(file) && isDefaultFile(file, baseDir, defaultFile)
-      ) {
+      } else if (isTextContent(file)) {
         const html = await textPreviewHtml(file, req);
         const fileContents = new TextEncoder().encode(html);
         return reloader.injectClient(fileContents, inputFile);
