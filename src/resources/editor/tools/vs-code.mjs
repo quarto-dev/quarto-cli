@@ -19502,11 +19502,7 @@ var TYPE_CONSTRUCTOR_OPTIONS = [
   "defaultStyle",
   "styleAliases"
 ];
-var YAML_NODE_KINDS = [
-  "scalar",
-  "sequence",
-  "mapping"
-];
+var YAML_NODE_KINDS = ["scalar", "sequence", "mapping"];
 function compileStyleAliases(map2) {
   var result = {};
   if (map2 !== null) {
@@ -19647,11 +19643,7 @@ var map = new type("tag:yaml.org,2002:map", {
   }
 });
 var failsafe = new schema({
-  explicit: [
-    str,
-    seq,
-    map
-  ]
+  explicit: [str, seq, map]
 });
 function resolveYamlNull(data) {
   if (data === null)
@@ -19819,7 +19811,7 @@ function constructYamlInteger(data) {
   return sign * parseInt(value, 10);
 }
 function isInteger(object) {
-  return Object.prototype.toString.call(object) === "[object Number]" && (object % 1 === 0 && !common.isNegativeZero(object));
+  return Object.prototype.toString.call(object) === "[object Number]" && object % 1 === 0 && !common.isNegativeZero(object);
 }
 var int = new type("tag:yaml.org,2002:int", {
   kind: "scalar",
@@ -19919,12 +19911,7 @@ var float = new type("tag:yaml.org,2002:float", {
   defaultStyle: "lowercase"
 });
 var json = failsafe.extend({
-  implicit: [
-    _null,
-    bool,
-    int,
-    float
-  ]
+  implicit: [_null, bool, int, float]
 });
 var core = json;
 var YAML_DATE_REGEXP = new RegExp("^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$");
@@ -20160,16 +20147,8 @@ var set = new type("tag:yaml.org,2002:set", {
   construct: constructYamlSet
 });
 var _default = core.extend({
-  implicit: [
-    timestamp,
-    merge
-  ],
-  explicit: [
-    binary,
-    omap,
-    pairs,
-    set
-  ]
+  implicit: [timestamp, merge],
+  explicit: [binary, omap, pairs, set]
 });
 var _hasOwnProperty$1 = Object.prototype.hasOwnProperty;
 var CONTEXT_FLOW_IN = 1;
@@ -21552,7 +21531,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
       plain = plain && isPlainSafe(char, prevChar, inblock);
       prevChar = char;
     }
-    hasFoldableLine = hasFoldableLine || shouldTrackWidth && (i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ");
+    hasFoldableLine = hasFoldableLine || shouldTrackWidth && i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
   }
   if (!hasLineBreak && !hasFoldableLine) {
     if (plain && !forceQuotes && !testAmbiguousType(string)) {
@@ -27879,6 +27858,7 @@ initialization does not contain language extensions`);
 async function init(context) {
   const ideInit = async () => {
     const resourceModule = (await Promise.resolve().then(() => __toModule(require_yaml_intelligence_resources()))).default;
+    await getTreeSitter();
     if (context.client && context.client === "lsp") {
       await initYamlIntelligence({ resourceModule, patchMarkdown: false });
     } else {

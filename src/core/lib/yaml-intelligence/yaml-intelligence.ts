@@ -1099,6 +1099,8 @@ async function init(
       { assert: { type: "json" } }
     )).default as Record<string, unknown>;
 
+    await getTreeSitter();
+
     if (context.client && context.client === "lsp") {
       await initYamlIntelligence({ resourceModule, patchMarkdown: false });
     } else {
