@@ -6,7 +6,10 @@
 */
 
 import { asMappedString } from "../../../src/core/mapped-text.ts";
-import { readAndValidateYamlFromMappedString } from "../../../src/core/schema/validated-yaml.ts";
+import {
+  readAndValidateYamlFromMappedString,
+  ValidationError,
+} from "../../../src/core/lib/yaml-schema/validated-yaml.ts";
 
 import {
   assertYamlValidationFails,
@@ -26,11 +29,11 @@ record:
 title:Test
 `;
   await assertYamlValidationFails(async () => {
-    await readAndValidateYamlFromMappedString(
+    const { yamlValidationErrors } = await readAndValidateYamlFromMappedString(
       asMappedString(ymlStr),
       schema,
-      "This should reject",
     );
+    throw new ValidationError("this should throw", yamlValidationErrors);
   }, (e) =>
     expectValidationError(e)
       .toHaveLength(1)

@@ -5,18 +5,17 @@
  *
  */
 
-import { unitTest } from "../../test.ts";
-
 import { convertFromYaml } from "../../../src/core/lib/yaml-schema/from-yaml.ts";
 
-import { readAndValidateYamlFromMappedString } from "../../../src/core/schema/validated-yaml.ts";
+import { readAndValidateYamlFromMappedString } from "../../../src/core/lib/yaml-schema/validated-yaml.ts";
 
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
 
 import { setSchemaDefinition } from "../../../src/core/lib/yaml-validation/schema.ts";
 import { readYamlFromString } from "../../../src/core/yaml.ts";
+import { yamlValidationUnitTest } from "./utils.ts";
 
-unitTest("schema-completions", async () => {
+yamlValidationUnitTest("schema-completions", async () => {
   const yml = `
 foo: bar
 baz:
@@ -41,17 +40,12 @@ object:
 `));
   setSchemaDefinition(schema);
 
-  let threw = false;
-  try {
-    await readAndValidateYamlFromMappedString(
-      asMappedString(yml),
-      schema,
-      "This should throw",
-    );
-  } catch (_e) {
-    threw = true;
-  }
-  if (!threw) {
+  const { yamlValidationErrors } = await readAndValidateYamlFromMappedString(
+    asMappedString(yml),
+    schema,
+  );
+
+  if (yamlValidationErrors.length === 0) {
     throw new Error("validation should have failed.");
   }
 });

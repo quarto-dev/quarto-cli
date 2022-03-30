@@ -7,43 +7,19 @@
 *
 */
 
-import { error } from "log/mod.ts";
 import { existsSync } from "fs/exists.ts";
-import { errorOnce } from "../log.ts";
-import { info } from "log/mod.ts";
-import { asMappedString, MappedString } from "../mapped-text.ts";
-import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
+import { asMappedString } from "../mapped-text.ts";
 import { Schema } from "../lib/yaml-schema/types.ts";
-import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { relative } from "path/mod.ts";
-import { TidyverseError, tidyverseFormatError } from "../lib/errors.ts";
 
-import { isObject } from "../lodash.ts";
-
-import { JSONValue } from "../lib/yaml-schema/types.ts";
-
-import { ValidationError } from "../lib/yaml-schema/validated-yaml.ts";
+import {
+  readAndValidateYamlFromMappedString,
+  ValidationError,
+} from "../lib/yaml-schema/validated-yaml.ts";
 
 export { ValidationError } from "../lib/yaml-schema/validated-yaml.ts";
 
-// https://stackoverflow.com/a/41429145
-/*export class ValidationError extends Error {
-  validationErrors: LocalizedError[];
-
-  constructor(msg: string, validationErrors: LocalizedError[]) {
-    super(
-      [msg, ...validationErrors.map((e) => tidyverseFormatError(e.niceError))]
-        .join(
-          "\n\n",
-        ),
-    );
-
-    Object.setPrototypeOf(this, ValidationError.prototype);
-    this.validationErrors = validationErrors;
-  }
-}*/
-
-export function readAndValidateYamlFromFile(
+export async function readAndValidateYamlFromFile(
   file: string,
   schema: Schema,
   errorMessage: string,
@@ -61,10 +37,18 @@ export function readAndValidateYamlFromFile(
     Deno.readTextFileSync(file).trimEnd(),
     shortFileName,
   );
-  return readAndValidateYamlFromMappedString(contents, schema, errorMessage);
+  const {
+    yaml,
+    yamlValidationErrors,
+  } = await readAndValidateYamlFromMappedString(contents, schema);
+
+  if (yamlValidationErrors.length) {
+    throw new ValidationError(errorMessage, yamlValidationErrors);
+  }
+  return yaml;
 }
 
-export async function readAndValidateYamlFromMappedString(
+/*export async function readAndValidateYamlFromMappedString(
   mappedYaml: MappedString,
   schema: Schema,
   errorMessage: string,
@@ -113,4 +97,4 @@ export async function readAndValidateYamlFromMappedString(
   }
 
   return result.yaml;
-}
+}*/

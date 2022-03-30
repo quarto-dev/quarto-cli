@@ -13,9 +13,11 @@ import {
 } from "./utils.ts";
 import {
   readAndValidateYamlFromMappedString,
-} from "../../../src/core/schema/validated-yaml.ts";
+  ValidationError,
+} from "../../../src/core/lib/yaml-schema/validated-yaml.ts";
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
 import { refSchema } from "../../../src/core/lib/yaml-schema/common.ts";
+import { assert } from "testing/asserts.ts";
 
 yamlValidationUnitTest("object-super-closed", async () => {
   const _schema1 = schemaFromString(`
@@ -49,33 +51,33 @@ foo: yeah
 `;
 
   await assertYamlValidationFails(async () => {
-    await readAndValidateYamlFromMappedString(
+    const { yamlValidationErrors } = await readAndValidateYamlFromMappedString(
       asMappedString(obj1),
       schema2,
-      "This should reject",
     );
+    throw new ValidationError("This should reject", yamlValidationErrors);
   }, (e) => {
     return expectValidationError(e)
       .toHaveLength(1)
       .forSchemaPathToEndWith("required");
   });
   await assertYamlValidationFails(async () => {
-    await readAndValidateYamlFromMappedString(
+    const { yamlValidationErrors } = await readAndValidateYamlFromMappedString(
       asMappedString(obj2),
       schema2,
-      "This should reject",
     );
+    throw new ValidationError("This should reject", yamlValidationErrors);
   }, (e) => {
     return expectValidationError(e)
       .toHaveLength(1)
       .forSchemaPathToEndWith("required");
   });
 
-  await readAndValidateYamlFromMappedString(
+  const { yamlValidationErrors } = await readAndValidateYamlFromMappedString(
     asMappedString(obj3),
     schema2,
-    "This should pass",
   );
+  assert(yamlValidationErrors.length === 0);
 });
 
 yamlValidationUnitTest("object-super", async () => {
@@ -100,11 +102,11 @@ bar: "bar"
 `;
 
   await assertYamlValidationFails(async () => {
-    await readAndValidateYamlFromMappedString(
+    const { yamlValidationErrors } = await readAndValidateYamlFromMappedString(
       asMappedString(obj),
       schema2,
-      "This should reject",
     );
+    throw new ValidationError("This should reject", yamlValidationErrors);
   }, (e) => {
     return expectValidationError(e)
       .forSchemaPathToEndWith("type", 0)
@@ -124,7 +126,6 @@ website:
     await readAndValidateYamlFromMappedString(
       asMappedString(obj),
       refSchema("project-config", ""),
-      "This should pass",
     );
   } catch (e) {
     return expectValidationError(e)

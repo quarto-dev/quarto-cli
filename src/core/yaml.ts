@@ -23,7 +23,10 @@ import {
   skipRegexpAll,
 } from "./mapped-text.ts";
 
-import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
+import {
+  readAndValidateYamlFromMappedString,
+  ValidationError,
+} from "./lib/yaml-schema/validated-yaml.ts";
 
 const kRegExBeginYAML = /^---[ \t]*$/;
 const kRegExEndYAML = /^(?:---|\.\.\.)([ \t]*)$/;
@@ -158,13 +161,21 @@ export async function readAndValidateYamlFromMarkdown(
     schema: JSON_SCHEMA,
   }) as { [key: string]: unknown };
 
-  if (metadata?.["validate-yaml"] as (boolean | undefined) === false) {
+  if (metadata?.["validate-yaml"] as (boolean | undefined) !== false) {
+    const schema = await getFrontMatterSchema();
     // we must validate it, so we go the slow route
-    return readAndValidateYamlFromMappedString(
-      mappedYaml,
-      await getFrontMatterSchema(),
-      "YAML front matter validation failed",
-    );
+    const {
+      yaml,
+      yamlValidationErrors,
+    } = await readAndValidateYamlFromMappedString(mappedYaml, schema);
+
+    if (yamlValidationErrors.length) {
+      throw new ValidationError(
+        "YAML front matter validation failed",
+        yamlValidationErrors,
+      );
+    }
+    return yaml;
   }
   return metadata;
 }
