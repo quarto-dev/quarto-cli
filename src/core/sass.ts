@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
 
 import { quartoCacheDir } from "./appdirs.ts";
 import { TempContext } from "./temp.ts";

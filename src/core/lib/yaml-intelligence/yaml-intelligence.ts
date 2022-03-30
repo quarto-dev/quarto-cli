@@ -25,7 +25,6 @@ import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
 import { rangedLines } from "../ranged-text.ts";
 import {
   kLangCommentChars,
-  partitionCellOptionsMapped,
   partitionCellOptionsText,
 } from "../partition-cell-options.ts";
 
