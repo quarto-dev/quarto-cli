@@ -6,14 +6,7 @@
 */
 
 import { info, warning } from "log/mod.ts";
-import {
-  basename,
-  dirname,
-  extname,
-  join,
-  normalize,
-  relative,
-} from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -508,10 +501,6 @@ function htmlFileRequestHandlerOptions(
       }
     },
   };
-}
-
-function isDefaultFile(file: string, baseDir: string, defaultFile: string) {
-  return normalize(file) === normalize(join(baseDir, defaultFile));
 }
 
 function resultReloadFiles(result: RenderForPreviewResult) {

@@ -266,8 +266,18 @@ export async function previewRenderRequestIsCompatible(
   flags: RenderFlags,
   project?: ProjectContext,
 ) {
-  const format = await previewFormat(request.path, request.format, project);
-  return format === flags.to;
+  // if there is a format requested then check it against our original format
+  if (request.format !== undefined) {
+    // if we rendered to "all" then everything is valid
+    if (flags.to !== "all") {
+      const format = await previewFormat(request.path, request.format, project);
+      return format === flags.to;
+    } else {
+      return true;
+    }
+  } else {
+    return true;
+  }
 }
 
 export function previewUnableToRenderResponse() {
