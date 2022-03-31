@@ -97,7 +97,9 @@ export async function printToolInfo(name: string) {
       version: await installableTool.installedVersion(),
       directory: await installableTool.installDir(),
     };
-    info(JSON.stringify(response, null, 2));
+    Deno.stdout.writeSync(
+      new TextEncoder().encode(JSON.stringify(response, null, 2)),
+    );
   }
 }
 
