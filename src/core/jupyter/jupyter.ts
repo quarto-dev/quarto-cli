@@ -126,6 +126,7 @@ import {
 } from "../../config/constants.ts";
 import {
   isJupyterKernelspec,
+  jupyterDefaultPythonKernelspec,
   jupyterKernelspec,
   jupyterKernelspecs,
 } from "./kernels.ts";
@@ -580,8 +581,13 @@ export function jupyterFromFile(input: string): JupyterNotebook {
   const nb = nbJSON as JupyterNotebook;
 
   // vscode doesn't write a language to the kernelspec so also try language_info
-  if (!nb.metadata.kernelspec.language) {
-    nb.metadata.kernelspec.language = nbJSON.metadata.language_info?.name;
+  if (!nb.metadata.kernelspec?.language) {
+    if (nb.metadata.kernelspec) {
+      nb.metadata.kernelspec.language = nbJSON.metadata.language_info?.name;
+    } else {
+      // provide default
+      nb.metadata.kernelspec = jupyterDefaultPythonKernelspec();
+    }
   }
 
   // validate that we have a language
