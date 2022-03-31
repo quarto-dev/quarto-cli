@@ -182,7 +182,6 @@ h6:hover > .anchorjs-link,
   }
 }
 
-// Tables
 // (Remove bottom margin from paragraphs in table headers)
 tr.header > th > p:last-of-type {
   margin-bottom: 0px;
@@ -191,6 +190,7 @@ tr.header > th > p:last-of-type {
 table,
 .table {
   caption-side: $tbl-cap-location;
+  margin-bottom: 1.5rem;
 }
 
 caption,
@@ -345,19 +345,19 @@ ul.task-list {
 
 // default styling for .code-preview=".." iframes
 div.sourceCode > iframe {
-   width: 100%;
-   height: 300px;
-   
-   // this negative-margin hack works around the rendering issue with
-   // iframes and parent elements with rounded corners if the border
-   // radius for (eg) div.sourceCode is changed, this is likely going
-   // to need changing as well.
-   @if variable-exists(code-preview-margin-bottom) {
-     margin-bottom: $code-preview-margin-bottom;
-   } @else {
-     margin-bottom: -0.5em;
-   }
-   @if variable-exists(code-preview-border-color) {
-     border: $code-preview-border-color;
-   }
+  width: 100%;
+  height: 300px;
+
+  // this negative-margin hack works around the rendering issue with
+  // iframes and parent elements with rounded corners if the border
+  // radius for (eg) div.sourceCode is changed, this is likely going
+  // to need changing as well.
+  @if variable-exists(code-preview-margin-bottom) {
+    margin-bottom: $code-preview-margin-bottom;
+  } @else {
+    margin-bottom: -0.5em;
+  }
+  @if variable-exists(code-preview-border-color) {
+    border: $code-preview-border-color;
+  }
 }
