@@ -98,7 +98,7 @@ export async function printToolInfo(name: string) {
       directory: await installableTool.installDir(),
     };
     Deno.stdout.writeSync(
-      new TextEncoder().encode(JSON.stringify(response, null, 2)),
+      new TextEncoder().encode(JSON.stringify(response, null, 2) + "\n"),
     );
   }
 }
