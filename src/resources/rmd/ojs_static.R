@@ -1,6 +1,13 @@
 
 attach(list(
   ojs_define = function(...) {
+    # validate that we aren't in a cached chunk
+    cache <- knitr:::opts_current$get('cache')
+    if (is.numeric(cache) && cache > 0) {
+      stop("ojs_define() cannot be cached\n",
+           "Add cache: false to this cell's options to disable caching",
+           call. = FALSE)
+    }
     quos <- rlang::enquos(...)
     vars <- rlang::list2(...)
     nm <- names(vars)
