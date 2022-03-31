@@ -9,11 +9,7 @@ import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
 import { execProcess } from "../../../src/core/process.ts";
-import {
-  expandPath,
-  suggestedBinPaths,
-  sysPaths,
-} from "../../../src/core/path.ts";
+import { expandPath } from "../../../src/core/path.ts";
 import {
   createDevConfig,
   writeDevConfig,
@@ -108,21 +104,13 @@ export async function configure(
   info("");
 
   // Set up a symlink (if appropriate)
+  const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
 
   if (Deno.build.os !== "windows") {
-    const binPaths = suggestedBinPaths();
-
-    const paths = sysPaths();
-    console.log(paths);
-    const isInPath = (path: string) => {
-      return paths?.includes(path);
-    };
-
     info("Creating Quarto Symlink");
-    for (let i = 0; i < binPaths.length; i++) {
-      const symlinkPath = join(binPaths[i], "quarto");
+    for (let i = 0; i < symlinkPaths.length; i++) {
+      const symlinkPath = symlinkPaths[i];
       info(`> Trying ${symlinkPath}`);
-
       try {
         if (existsSync(symlinkPath)) {
           Deno.removeSync(symlinkPath);
@@ -135,7 +123,7 @@ export async function configure(
       }
       try {
         // for the last path, try even creating a directory as a last ditch effort
-        if (i === binPaths.length - 1) {
+        if (i === symlinkPaths.length - 1) {
           if (!existsSync(dirname(symlinkPath))) {
             warning(
               `We couldn't find an existing directory in which to create the Quarto symlink. Configuration created a symlink at\n${symlinkPath}\nPlease ensure that this is on your PATH.`,
@@ -143,28 +131,20 @@ export async function configure(
           }
           // append path separator to resolve the dir name (in case it's a symlink)
           ensureDirSync(dirname(symlinkPath) + SEP);
-          Deno.symlinkSync(
-            join(config.directoryInfo.bin, "quarto"),
-            symlinkPath,
-          );
-          info("> Success");
-          break;
-        } else {
-          if (isInPath(dirname(symlinkPath))) {
-            Deno.symlinkSync(
-              join(config.directoryInfo.bin, "quarto"),
-              symlinkPath,
-            );
-            // it worked, just move on
-            info("> Success");
-            break;
-          }
         }
+        Deno.symlinkSync(
+          join(config.directoryInfo.bin, "quarto"),
+          symlinkPath,
+        );
+
+        info("> Success");
+        // it worked, just move on
+        break;
       } catch (_error) {
         // NOTE: printing this error makes the user think that something went wrong when it didn't
         // info(error);
         // none of them worked!
-        if (i === binPaths.length - 1) {
+        if (i === symlinkPaths.length - 1) {
           warning("Failed to create symlink to quarto.");
         } else {
           info("> Failed");
