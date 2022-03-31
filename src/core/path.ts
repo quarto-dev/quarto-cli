@@ -92,17 +92,6 @@ export function sysPaths() {
   }
 }
 
-export function suggestBinPath() {
-  const systemPaths = sysPaths();
-  if (systemPaths) {
-    return suggestedBinPaths().find((binPath) => {
-      return systemPaths.includes(binPath);
-    });
-  } else {
-    return undefined;
-  }
-}
-
 export function suggestedBinPaths() {
   return [
     "~/.local/bin",

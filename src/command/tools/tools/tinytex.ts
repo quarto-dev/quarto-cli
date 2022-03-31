@@ -11,7 +11,7 @@ import { basename, join } from "path/mod.ts";
 import { moveSync } from "fs/move.ts";
 
 import { getenv } from "../../../core/env.ts";
-import { expandPath, suggestBinPath, which } from "../../../core/path.ts";
+import { expandPath, which } from "../../../core/path.ts";
 import { unzip } from "../../../core/zip.ts";
 import { hasLatexDistribution } from "../../render/latexmk/latex.ts";
 import { hasTexLive, removePath } from "../../render/latexmk/texlive.ts";
@@ -302,26 +302,10 @@ async function afterInstall(context: InstallContext) {
     await context.withSpinner(
       { message: "Updating paths" },
       async () => {
-        if (Deno.build.os !== "windows") {
-          // Try to set the bin path to a path in the
-          // path on the machine
-          const binPath = suggestBinPath();
-          if (binPath) {
-            await exec(
-              tlmgrPath,
-              ["option", "sys_bin", binPath],
-            );
-          }
-          await exec(
-            tlmgrPath,
-            ["path", "add"],
-          );
-        } else {
-          await exec(
-            tlmgrPath,
-            ["path", "add"],
-          );
-        }
+        await exec(
+          tlmgrPath,
+          ["path", "add"],
+        );
       },
     );
 
