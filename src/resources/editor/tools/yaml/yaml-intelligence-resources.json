@@ -958,6 +958,8 @@
         "enum": [
           "default",
           "fragment",
+          "column",
+          "column-fragment",
           "slide"
         ]
       },
