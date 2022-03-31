@@ -4,6 +4,7 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
+import { warning } from "log/mod.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { basename, join } from "path/mod.ts";
@@ -77,6 +78,7 @@ export const tinyTexInstallable: InstallableTool = {
   }],
   installed,
   installDir,
+  binDir,
   installedVersion,
   latestRelease: remotePackageInfo,
   preparePackage,
@@ -97,6 +99,22 @@ async function installed() {
 async function installDir() {
   if (await installed()) {
     return Promise.resolve(tinyTexInstallDir());
+  } else {
+    return Promise.resolve(undefined);
+  }
+}
+
+async function binDir() {
+  if (await installed()) {
+    const installDir = tinyTexInstallDir();
+    if (installDir) {
+      return Promise.resolve(binFolder(installDir));
+    } else {
+      warning(
+        "Failed to resolve tinytex install directory even though it is installed.",
+      );
+      return Promise.resolve(undefined);
+    }
   } else {
     return Promise.resolve(undefined);
   }
@@ -184,35 +202,9 @@ async function install(
         },
       );
 
-      const macBinFolder = () => {
-        const oldBinFolder = join(
-          installDir,
-          "bin",
-          `${Deno.build.arch}-${Deno.build.os}`,
-        );
-        if (existsSync(oldBinFolder)) {
-          return oldBinFolder;
-        } else {
-          return join(
-            installDir,
-            "bin",
-            `universal-${Deno.build.os}`,
-          );
-        }
-      };
-
-      // Find the tlmgr and note its location
-      const binFolder = Deno.build.os === "windows"
-        ? join(
-          installDir,
-          "bin",
-          "win32",
-        )
-        : macBinFolder();
-
       context.props[kTlMgrKey] = Deno.build.os === "windows"
-        ? join(binFolder, "tlmgr.bat")
-        : join(binFolder, "tlmgr");
+        ? join(binFolder(installDir), "tlmgr.bat")
+        : join(binFolder(installDir), "tlmgr");
 
       return Promise.resolve();
     } else {
@@ -223,6 +215,34 @@ async function install(
     context.error("Unable to determine installation directory");
     return Promise.reject();
   }
+}
+
+function binFolder(installDir: string) {
+  const nixBinFolder = () => {
+    const oldBinFolder = join(
+      installDir,
+      "bin",
+      `${Deno.build.arch}-${Deno.build.os}`,
+    );
+    if (existsSync(oldBinFolder)) {
+      return oldBinFolder;
+    } else {
+      return join(
+        installDir,
+        "bin",
+        `universal-${Deno.build.os}`,
+      );
+    }
+  };
+
+  // Find the tlmgr and note its location
+  return Deno.build.os === "windows"
+    ? join(
+      installDir,
+      "bin",
+      "win32",
+    )
+    : nixBinFolder();
 }
 
 async function afterInstall(context: InstallContext) {

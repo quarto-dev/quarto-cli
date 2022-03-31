@@ -22,6 +22,7 @@ export interface InstallableTool {
   prereqs: InstallPreReq[];
   installed: () => Promise<boolean>;
   installDir: () => Promise<string | undefined>;
+  binDir?: () => Promise<string | undefined>;
   installedVersion: () => Promise<string | undefined>;
   latestRelease: () => Promise<RemotePackageInfo>;
   preparePackage: (ctx: InstallContext) => Promise<PackageInfo>;
@@ -91,13 +92,18 @@ export async function printToolInfo(name: string) {
   // Run the install
   const installableTool = kInstallableTools[name.toLowerCase()];
   if (installableTool) {
-    const response = {
+    const response: Record<string, unknown> = {
       name: installableTool.name,
       installed: await installableTool.installed(),
       version: await installableTool.installedVersion(),
       directory: await installableTool.installDir(),
     };
-    info(JSON.stringify(response, null, 2));
+    if (installableTool.binDir) {
+      response["bin-directory"] = await installableTool.binDir();
+    }
+    Deno.stdout.writeSync(
+      new TextEncoder().encode(JSON.stringify(response, null, 2) + "\n"),
+    );
   }
 }
 
