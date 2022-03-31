@@ -55,6 +55,7 @@ export const kCodeLineNumbers = "code-line-numbers";
 export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";
+export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
 export const kPreferHtml = "prefer-html";

@@ -119,6 +119,7 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
+  kTblCap,
   kTblCapLoc,
   kTblColwidths,
   kWarning,
@@ -259,6 +260,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigScap,
   kFigCapLoc,
   kTblCapLoc,
+  kTblColwidths,
   kCapLoc,
   kCellFigColumn,
   kCellTblColumn,
@@ -284,6 +286,7 @@ export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
   kLayoutNcol,
   kLayoutNrow,
   kLayout,
+  kTblCap,
   kTblColwidths,
 ]);
 
@@ -1029,34 +1032,30 @@ function mdFromCodeCell(
   }
 
   // css classes
-  if (
-    cell.options[kCellClasses] || cell.options[kCellPanel] ||
-    cell.options[kCellColumn]
-  ) {
-    const cellClasses = cell.options[kCellClasses]! || new Array<string>();
-    const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
-    if (typeof cell.options[kCellPanel] === "string") {
-      classes.push(`panel-${cell.options[kCellPanel]}`);
-    }
-    if (typeof cell.options[kCellColumn] === "string") {
-      classes.push(`column-${cell.options[kCellColumn]}`);
-    }
-    if (typeof cell.options[kCellFigColumn] === "string") {
-      classes.push(`fig-column-${cell.options[kCellFigColumn]}`);
-    }
-    if (typeof cell.options[kCellTblColumn] === "string") {
-      classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
-    }
-    if (typeof cell.options[kCapLoc] === "string") {
-      classes.push(`caption-${cell.options[kFigCapLoc]}`);
-    }
-    if (typeof cell.options[kFigCapLoc] === "string") {
-      classes.push(`fig-cap-location-${cell.options[kFigCapLoc]}`);
-    }
-    if (typeof cell.options[kTblCapLoc] === "string") {
-      classes.push(`tbl-cap-location-${cell.options[kTblCapLoc]}`);
-    }
-
+  const cellClasses = cell.options[kCellClasses]! || new Array<string>();
+  const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
+  if (typeof cell.options[kCellPanel] === "string") {
+    classes.push(`panel-${cell.options[kCellPanel]}`);
+  }
+  if (typeof cell.options[kCellColumn] === "string") {
+    classes.push(`column-${cell.options[kCellColumn]}`);
+  }
+  if (typeof cell.options[kCellFigColumn] === "string") {
+    classes.push(`fig-column-${cell.options[kCellFigColumn]}`);
+  }
+  if (typeof cell.options[kCellTblColumn] === "string") {
+    classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
+  }
+  if (typeof cell.options[kCapLoc] === "string") {
+    classes.push(`caption-${cell.options[kFigCapLoc]}`);
+  }
+  if (typeof cell.options[kFigCapLoc] === "string") {
+    classes.push(`fig-cap-location-${cell.options[kFigCapLoc]}`);
+  }
+  if (typeof cell.options[kTblCapLoc] === "string") {
+    classes.push(`tbl-cap-location-${cell.options[kTblCapLoc]}`);
+  }
+  if (classes.length > 0) {
     const classText = classes
       .map((clz: string) => {
         clz = ld.toString(clz) as string;
