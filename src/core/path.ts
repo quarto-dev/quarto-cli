@@ -81,6 +81,25 @@ export function expandPath(path: string) {
   }
 }
 
+export function sysPaths() {
+  if (Deno.build.os === "windows") {
+    const pathStr = Deno.env.get("Path");
+    return pathStr?.split(";");
+  } else {
+    const pathStr = Deno.env.get("PATH");
+    const paths = pathStr?.split(":");
+    return paths?.map(expandPath);
+  }
+}
+
+export function suggestedBinPaths() {
+  return [
+    "~/.local/bin",
+    "/usr/local/bin",
+    "~/bin",
+  ];
+}
+
 export function safeExistsSync(path: string) {
   try {
     return existsSync(path);
