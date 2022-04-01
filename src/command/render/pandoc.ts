@@ -67,7 +67,7 @@ import {
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
-import { getPandocArg, removePandocArgs } from "./flags.ts";
+import { getPandocArg, havePandocArg, removePandocArgs } from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
