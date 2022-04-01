@@ -272,7 +272,6 @@ end
 -- affilation
 function processAffiliation(author, affiliation)
   local affiliations = {}
-  
   local pandocType = pandoc.utils.type(affiliation)
   if pandocType == 'Inlines' then
     -- The affiliations is simple a set of inlines, use this as the nam
@@ -297,7 +296,12 @@ function processAffiliation(author, affiliation)
         end
       end
     end
+  elseif pandocType == 'table' then
+    -- This is a more complex affilation, process it
+    affiliations[#affiliations + 1] = processAffilationObj(affiliation)
   end
+
+  
   
   return affiliations
 end
