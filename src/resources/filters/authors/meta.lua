@@ -14,6 +14,14 @@ kAuthorOutput = kAuthorInput
 -- Where we'll write the normalized list of affiliations
 kAffiliationOutput = "affiliations"
 
+-- Where we'll write the 'by-author' list of authors which
+-- includes expanded affiliation information inline with the author
+kByAuthor = "by-author"
+
+-- Where we'll write the 'by-affiliation' list of affiliations which
+-- includes expanded author information inline with each affiliation
+kByAffiliation = "by-affiliation"
+
 -- Properties that may appear on an individual author
 kId = 'id'
 kName = 'name'
@@ -129,7 +137,7 @@ function authorsMeta()
           if authorAffils ~= nil then
             for i,v in ipairs(authorAffils) do
               local affiliation = maybeAddAffiliation(v, affiliations)
-              author[kAffiliations][#author[kAffiliations] + 1] = { ref=affiliation[kId] }
+              setAffiliation(author, { ref=affiliation[kId] })
             end
           end
 
@@ -153,10 +161,14 @@ function authorsMeta()
       -- affiliation defined in the affiliations key
       validateRefs(authors, affiliations)
 
+      -- Write the normalized data back to metadata
       meta[kAuthorOutput] = authors
       meta[kAffiliations] = affiliations
 
-      dump(affiliations)
+      -- Write the de-normalized versions back to metadata
+      meta[kByAuthor] = byAuthors(authors, affiliations)
+      meta[kByAffiliation] = byAffiliations(authors, affiliations)
+
       return meta
     end
   }
@@ -215,11 +227,6 @@ function processAuthor(value)
   -- initialize their affilations
   local authorAffilations = {}
 
-  -- initialize attributes and metadata
-  -- todo lazy initialize attributes?
-  author[kAttributes] = {}
-  author[kAffiliations] = {}
-
   if pandoc.utils.type(value) == 'Inlines' then
     -- The value is simply an array, treat them as the author name
     author.name = toName(value);
@@ -237,7 +244,7 @@ function processAuthor(value)
         -- process a field into attributes (a field that appears)
         -- directly under the author
         if authorValue then
-          author[kAttributes][#author[kAttributes] + 1] = pandoc.Str(authorKey)
+          setAttribute(author, pandoc.Str(authorKey))
         end
       elseif authorKey == kAttributes then
         -- process an explicit attributes key
@@ -281,7 +288,7 @@ function processAffiliation(author, affiliation)
           -- See if this is just an item with a 'ref', and if it is, just pass
           -- it through on the author
           if author then
-            author[kAffiliations][#author[kAffiliations] + 1] = v
+            setAffiliation(author, v)
           end
         else
           -- This is a more complex affilation, process it
@@ -332,7 +339,16 @@ function findMatchingAffililation(affiliation, affiliations)
     if matches then 
       return existingAffiliation
     end
+  end
+  return nil
+end
 
+-- Finds a matching affiliation by id
+function findAffiliation(id, affiliations) 
+  for i, affiliation in ipairs(affiliations) do
+    if affiliation[kId] == id then
+      return affiliation
+    end
   end
   return nil
 end
@@ -346,9 +362,11 @@ function processAttributes(author, attributes)
     for i,v in ipairs(attributes) do
       if v then
         if v.t == "Str" then
-          tappend(author[kAttributes], {v})
+          setAttribute(author, v)
         else 
-          tappend(author[kAttributes], v)
+          for j, attr in ipairs(v) do
+            setAttribute(author, attr)
+          end
         end
       end
     end
@@ -356,17 +374,39 @@ function processAttributes(author, attributes)
     -- process attributes as a dictionary
     for k,v in pairs(attributes) do
       if v then
-        author[kAttributes][#author[kAttributes] + 1] = pandoc.Str(k)
+        setAttribute(author, pandoc.Str(k))
       end
     end
   end
 end
 
+-- Sets a metadata value, initializing the table if
+-- it not yet defined
 function setMetadata(author, key, value) 
   if not author[kMetadata] then
     author[kMetadata] = {}
   end
   author[kMetadata][key] = value
+end
+
+-- Sets an attribute, initializeing the table if
+-- is not yet defined
+function setAttribute(author, attribute) 
+  if not author[kAttributes] then
+    author[kAttributes] = {}
+  end
+  
+  -- Don't duplicate attributes
+  if not tcontains(author[kAttributes], attribute) then
+    author[kAttributes][#author[kAttributes] + 1] = attribute
+  end
+end
+
+function setAffiliation(author, affiliation) 
+  if not author[kAffiliations] then
+    author[kAffiliations] = {}
+  end
+  author[kAffiliations] = affiliation
 end
 
 
@@ -411,6 +451,21 @@ function normalizeName(name)
     end
   end
   return name
+end
+
+function byAuthors(authors, affiliations) 
+  for i, author in ipairs(authors) do
+    local authorAffiliations = author[kAffiliations]
+    for j, affilRef in ipairs(authorAffiliations) do 
+      local id = affilRef[kRef]
+      author[kAffiliations][j] = findAffiliation(id, affiliations)
+    end
+  end
+  return authors
+end
+
+function byAffiliations(authors, affiliation)
+    return {}
 end
 
 -- Remove Spaces from the ends of tables
