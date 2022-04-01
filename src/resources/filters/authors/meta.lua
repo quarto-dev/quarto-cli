@@ -21,6 +21,7 @@ kByAuthor = "by-author"
 -- Where we'll write the 'by-affiliation' list of affiliations which
 -- includes expanded author information inline with each affiliation
 kByAffiliation = "by-affiliation"
+kAuthors = "authors"
 
 -- Properties that may appear on an individual author
 kId = 'id'
@@ -222,7 +223,7 @@ end
 -- and normalized set of affilations
 function processAuthor(value) 
   -- initialize the author
-  local author = {}
+  local author = pandoc.List({})
 
   -- initialize their affilations
   local authorAffilations = {}
@@ -343,16 +344,6 @@ function findMatchingAffililation(affiliation, affiliations)
   return nil
 end
 
--- Finds a matching affiliation by id
-function findAffiliation(id, affiliations) 
-  for i, affiliation in ipairs(affiliations) do
-    if affiliation[kId] == id then
-      return affiliation
-    end
-  end
-  return nil
-end
-
 -- Process attributes onto an author
 -- attributes may be a simple string, a list of strings
 -- or a dictionary
@@ -406,7 +397,7 @@ function setAffiliation(author, affiliation)
   if not author[kAffiliations] then
     author[kAffiliations] = {}
   end
-  author[kAffiliations] = affiliation
+  author[kAffiliations][#author[kAffiliations] + 1] = affiliation
 end
 
 
@@ -454,18 +445,47 @@ function normalizeName(name)
 end
 
 function byAuthors(authors, affiliations) 
-  for i, author in ipairs(authors) do
+  local denormalizedAuthors = deepCopy(authors)
+  for i, author in ipairs(denormalizedAuthors) do
     local authorAffiliations = author[kAffiliations]
     for j, affilRef in ipairs(authorAffiliations) do 
       local id = affilRef[kRef]
       author[kAffiliations][j] = findAffiliation(id, affiliations)
     end
   end
-  return authors
+  return denormalizedAuthors
 end
 
-function byAffiliations(authors, affiliation)
-    return {}
+function byAffiliations(authors, affiliations)
+  local denormalizedAffiliations = deepCopy(affiliations)
+  for i, affiliation in ipairs(denormalizedAffiliations) do
+    affiliation[kAuthors] = findAuthors(affiliation[kId], authors)
+  end
+  return denormalizedAffiliations
+end
+
+-- Finds a matching affiliation by id
+function findAffiliation(id, affiliations) 
+  for i, affiliation in ipairs(affiliations) do
+    if affiliation[kId][1].text == id[1].text then
+      return affiliation
+    end
+  end
+  return nil
+end
+
+-- Finds a matching author by id
+function findAuthors(id, authors) 
+  local matchingAuthors = {}
+  for i, author in ipairs(authors) do
+    local authorAffils = author[kAffiliations]
+    for j, authorAffil in ipairs(authorAffils) do
+      if authorAffil[kRef][1].text == id[1].text then
+        matchingAuthors[#matchingAuthors + 1] = author
+      end
+    end
+  end
+  return matchingAuthors
 end
 
 -- Remove Spaces from the ends of tables
@@ -482,4 +502,16 @@ function trimspace(tbl)
     end
   end
   return tbl
+end
+
+-- Deep Copy a table
+function deepCopy(original)
+	local copy = {}
+	for k, v in pairs(original) do
+		if type(v) == "table" then
+			v = deepCopy(v)
+		end
+		copy[k] = v
+	end
+	return copy
 end
