@@ -579,6 +579,29 @@ function revealHtmlPostprocessor(format: Format) {
       }
     }
 
+    // inject css to hide assistive mml in speaker notes (have to do it for each aside b/c the asides are
+    // slurped into speaker mode one at a time using innerHTML) note that we can remvoe this hack when we begin
+    // defaulting to MathJax 3 (after Pandoc updates their template to support Reveal 4.2 / MathJax 3)
+    // see discussion of underlying issue here: https://github.com/hakimel/reveal.js/issues/1726
+    // hack here: https://stackoverflow.com/questions/35534385/mathjax-config-for-web-mobile-and-assistive
+    const notes = doc.querySelectorAll("aside.notes");
+    for (const note of notes) {
+      const style = doc.createElement("style");
+      style.setAttribute("type", "text/css");
+      style.innerHTML = `
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }`;
+      note.appendChild(style);
+    }
+
     // collect up asides into a single aside
     const slides = doc.querySelectorAll("section.slide");
     for (const slide of slides) {
