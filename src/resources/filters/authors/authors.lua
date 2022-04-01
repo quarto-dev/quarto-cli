@@ -18,6 +18,7 @@ end
 import("meta.lua")
 import("../common/string.lua")
 import("../common/table.lua")
+import("../common/lunacolors.lua")
 import("../common/log.lua")
 import("../common/base64.lua")
 import("../common/params.lua")
