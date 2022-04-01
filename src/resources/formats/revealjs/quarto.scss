@@ -247,6 +247,15 @@ section.has-dark-background {
   color: $body-color;
 }
 
+.reveal .column-output-location {
+  display: flex;
+  align-items: stretch;
+}
+
+.reveal .column-output-location .column:first-of-type div.sourceCode {
+  height: 100%;
+}
+
 .reveal blockquote {
   display: block;
   position: relative;

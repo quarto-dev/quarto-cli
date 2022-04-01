@@ -37,16 +37,18 @@ local function slideOutputLocation(block)
 end
 
 local function columnOutputLocation(el, fragment)
-  local codeDiv = pandoc.Div({ el.content[1] }, el.attr)
-  local outputDiv = pandoc.Div(tslice(el.content, 2, #el.content), el.attr)
+  local codeDiv = pandoc.Div({ el.content[1] })
+  local outputDiv = pandoc.Div(tslice(el.content, 2, #el.content))
   codeDiv.attr.classes:insert("column")
   outputDiv.attr.identifier = ""
   outputDiv.attr.classes:insert("column")
   if fragment then
     outputDiv.attr.classes:insert("fragment")
   end
-  columns = pandoc.Div( {codeDiv, outputDiv} )
-  columns.attr.classes:insert("columns")
+  columns = pandoc.Div( {codeDiv, outputDiv}, el.attr )
+  tappend(columns.attr.classes, {
+    "columns", "column-output-location"
+  })
   return { columns }
 end
 
