@@ -7982,12 +7982,14 @@ var require_yaml_intelligence_resources = __commonJS({
             enum: [
               "default",
               "fragment",
-              "slide"
+              "slide",
+              "column",
+              "column-fragment"
             ]
           },
           description: {
-            short: "Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)",
-            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `slide`: Show output on a new slide after the curent one\n\nNote that this option is supported only for the `revealjs` format.\n"
+            short: "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
+            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
           }
         },
         {
@@ -17169,7 +17171,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Catch all for preventing any output (code or results) from being\nincluded in output.",
         "Panel type for cell output (<code>tabset</code>, <code>input</code>,\n<code>sidebar</code>, <code>fill</code>, <code>center</code>)",
         {
-          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, or <code>slide</code>)",
+          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
           long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
         },
         "Including messages in rendered output.",
