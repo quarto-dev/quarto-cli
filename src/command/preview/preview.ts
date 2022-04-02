@@ -109,7 +109,7 @@ export async function preview(
     options.timeout,
     () => isRendering,
     stopServer,
-    options.presentation,
+    options.presentation || format === "revealjs",
   );
 
   // watch for changes and re-render / re-load as necessary
