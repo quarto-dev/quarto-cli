@@ -10,11 +10,9 @@ import { join } from "path/mod.ts";
 import * as ld from "../core/lodash.ts";
 
 import { safeExistsSync } from "../core/path.ts";
-import { asHtmlId } from "../core/html.ts";
 
 import { readInputTargetIndex } from "./project-index.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
-import { shortUuid } from "../core/uuid.ts";
 
 export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
