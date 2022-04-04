@@ -19,7 +19,8 @@ testRender(docs("latexmk/bibliography-biblatex.Rmd"), "pdf", true);
 testRender(docs("latexmk/bibliography-citeproc.Rmd"), "pdf", true);
 testRender(docs("latexmk/bibliography-natbib.Rmd"), "pdf", true);
 testRender(docs("latexmk/make-index.Rmd"), "pdf", true);
-testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true);
+// Re-enable after texlive update copmletes.
+//testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true);
 
 // Package installation tests
 /*
