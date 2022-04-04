@@ -132,9 +132,18 @@ export function processDocumentTitle(
   const headerEl = doc.querySelector("header#title-block-header");
 
   // Read the basic metadata that we'll use
-  const titleEl = headerEl?.querySelector(".title");
+  const codeToolsTitleEl = headerEl?.querySelector(".quarto-title-block");
+  const titleEl = codeToolsTitleEl !== null
+    ? codeToolsTitleEl
+    : headerEl?.querySelector(".title");
   const subTitleEl = headerEl?.querySelector(".subtitle");
   const dateEl = headerEl?.querySelector(".date");
+
+  // Read any title block created by code tools
+  const titleBlock = headerEl?.querySelector(".quarto-title-block");
+  if (titleBlock) {
+    titleBlock.remove();
+  }
 
   // Remove the doi, we'll deal with this ourselves
   const doiEl = headerEl?.querySelector(".doi");

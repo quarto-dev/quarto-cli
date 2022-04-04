@@ -160,21 +160,21 @@ h6:hover > .anchorjs-link,
   margin-block-end: 0.2rem;
 }
 
-#title-block-header > .quarto-title-block > div {
+#title-block-header .quarto-title-block > div {
   display: flex;
 }
 
-#title-block-header > .quarto-title-block > div > h1 {
+#title-block-header .quarto-title-block > div > h1 {
   flex-grow: 1;
 }
 
-#title-block-header > .quarto-title-block > div > button {
+#title-block-header .quarto-title-block > div > button {
   flex-shrink: 0;
   height: 2.25rem;
   margin-top: 0;
 }
 
-#title-block-header > .quarto-title-block > div > button {
+#title-block-header .quarto-title-block > div > button {
   @if mixin-exists(media-breakpoint-up) {
     @include media-breakpoint-up(lg) {
       margin-top: 5px;
