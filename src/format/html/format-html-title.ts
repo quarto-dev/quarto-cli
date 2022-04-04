@@ -484,6 +484,11 @@ function createBannerEl(
   bannerDiv.classList.add("quarto-title-banner");
   if (color === "navbar") {
     bannerDiv.classList.add("color-navbar");
+    // Also mark up secondary navigation
+    const secondaryNav = doc.querySelector("header .quarto-secondary-nav");
+    if (secondaryNav) {
+      secondaryNav.classList.add("color-navbar");
+    }
   } else if (color === "body-bg" || color === "body") {
     bannerDiv.classList.add(`color-${color}`);
   }
