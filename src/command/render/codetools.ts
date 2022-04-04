@@ -250,8 +250,15 @@ export function codeToolsPostprocessor(format: Format) {
             modalDialogDiv.appendChild(modalContentDiv);
             modalDiv.appendChild(modalDialogDiv);
 
-            // insert it
-            embeddedCode.parentElement?.insertBefore(modalDiv, embeddedCode);
+            // insert it next to the main content
+            const mainEl = doc.querySelector("main.content");
+            if (mainEl) {
+              const mainParentEl = mainEl.parentElement;
+              mainParentEl?.insertBefore(modalDiv, mainParentEl.lastChild);
+            } else {
+              embeddedCode.parentElement?.insertBefore(modalDiv, embeddedCode);
+            }
+
             modalBody.appendChild(embeddedCode);
             embeddedCode.classList.delete(kEmbeddedSourceClass);
           }

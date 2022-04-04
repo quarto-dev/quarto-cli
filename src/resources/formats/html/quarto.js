@@ -368,7 +368,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         offsetTopPadding = offsetEl.style.paddingTop;
       }
       const rect = offsetEl.getBoundingClientRect();
-      const position = Math.max(rect.height, 0);
+      // subtract any headroom offiset, if present
+      const headerEl = window.document.querySelector("header.fixed-top");
+      let headerOffset = 0;
+      if (headerEl) {
+        headerOffset = headerEl.clientHeight;
+      }
+      const position = Math.max(rect.height - headerOffset, 0);
 
       const floating = window.document.querySelector("body.floating");
       const sidebarIds = ["quarto-margin-sidebar"];
@@ -590,9 +596,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   window.addEventListener(
     "resize",
     throttle(() => {
-      if (tocEl) {
-        positionSidebars();
-      }
+      positionSidebars();
 
       if (!isReaderMode()) {
         hideOverlappedSidebars();

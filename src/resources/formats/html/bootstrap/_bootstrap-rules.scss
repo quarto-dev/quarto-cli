@@ -1470,14 +1470,72 @@ nav[role="doc-toc"].slow > * {
 }
 
 // Quarto title block treatment
+nav.quarto-secondary-nav.color-navbar {
+
+  
+  @if variable-exists(navbar-bg) {
+    background-color: $navbar-bg;
+  }
+
+  @if (variable-exists(navbar-fg)) {
+    color: $navbar-fg;
+  }
+} 
+nav.quarto-secondary-nav.color-navbar h1, 
+nav.quarto-secondary-nav.color-navbar .quarto-btn-toggle {
+  @if (variable-exists(navbar-fg)) {
+    color: $navbar-fg;
+  }  
+  
+}
+
+
 
 main.quarto-banner-title-block {
   padding-top: 0 !important;
   margin-top: 0;
   z-index: 0;
+
+  @include media-breakpoint-down(lg) {
+
+    .page-columns .quarto-title-banner,
+    .quarto-title-banner {
+      display: none;
+    }
+  }
+  
+  @include media-breakpoint-up(lg) {
+    .quarto-title-banner {
+      padding-top: 2.5em;
+      padding-bottom: 2.5em;
+    }
+  }  
+
   .quarto-title-banner {
     margin-bottom: 1em;
-    &.color-navbar {
+    
+    &.color-navbar .code-tools-button > .bi::before{
+      @if (variable-exists(navbar-fg)) {
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($navbar-fg)}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');      
+      }
+    }
+
+    &.color-navbar .code-tools-button:hover > .bi::before {
+      @if (variable-exists(navbar-hl)) {
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($navbar-hl)}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');      
+      }
+    }
+
+    &.color-navbar .code-tools-button:hover {
+      @if (variable-exists(navbar-hl)) {
+        color: $navbar-hl;
+      }  
+    }
+     
+
+    &.color-navbar,
+    &.color-navbar button.code-tools-button,
+    &.color-navbar h1.title {
       @if variable-exists(navbar-bg) {
         background-color: $navbar-bg;
       }
@@ -1511,11 +1569,6 @@ main.quarto-banner-title-block {
 p.subtitle {
   margin-top: 0.25em;
   margin-bottom: 0.5em;
-}
-
-.quarto-title-banner {
-  padding-top: 2.5em;
-  padding-bottom: 2.5em;
 }
 
 #title-block-header.quarto-title-block.default {
