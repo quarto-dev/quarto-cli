@@ -36,8 +36,11 @@ function resolveRefs()
               ref:extend(cite.prefix)
               ref:extend({nbspString()})
             elseif cite.mode ~= pandoc.SuppressAuthor then
-              ref:extend(refPrefix(type, upper))
-              ref:extend({nbspString()})
+              local prefix = refPrefix(type, upper)
+              if #prefix > 0 then
+                ref:extend(prefix)
+                ref:extend({nbspString()})
+              end
             end
   
             -- for latex inject a \ref, otherwise format manually
