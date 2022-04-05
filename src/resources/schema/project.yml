@@ -94,3 +94,10 @@
             schema:
               ref: navigation-item
             description: "Custom tools for navbar or sidebar"
+
+- name: type
+  schema:
+    enum: ["cd93424f-d5ba-4e95-91c6-1890eab59fc7"]
+  errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead."
+  # this is a hack so that we "support" an empty schema
+  # in order to provide a good error message, we

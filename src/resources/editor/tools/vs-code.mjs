@@ -15977,6 +15977,15 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          name: "type",
+          schema: {
+            enum: [
+              "cd93424f-d5ba-4e95-91c6-1890eab59fc7"
+            ]
+          },
+          errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead."
         }
       ],
       "schema/schema.yml": [
@@ -19480,6 +19489,39 @@ function locateCursor(annotation, position) {
     }
   }
 }
+function locateAnnotation(annotation, position, kind) {
+  const originalSource = annotation.source.originalString;
+  kind = kind || "value";
+  for (let i = 0; i < position.length; ++i) {
+    const value = position[i];
+    if (typeof value === "number") {
+      const inner = annotation.components[value];
+      if (inner === void 0) {
+        throw new Error("Internal Error: invalid path for locateAnnotation");
+      }
+      annotation = inner;
+    } else {
+      let found = false;
+      for (let j = 0; j < annotation.components.length; j += 2) {
+        if (originalSource.substring(annotation.components[j].start, annotation.components[j].end).trim() === value) {
+          if (i === position.length - 1) {
+            if (kind === "key") {
+              annotation = annotation.components[j];
+            } else {
+              annotation = annotation.components[j + 1];
+            }
+          }
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        throw new Error("Internal Error: invalid path for locateAnnotation");
+      }
+    }
+  }
+  return annotation;
+}
 
 // ../semaphore.ts
 var Semaphore = class {
@@ -22055,531 +22097,6 @@ function walkSchema(schema, f) {
   schemaCall(schema, recur, (_) => false);
 }
 
-// ../yaml-validation/validator.ts
-var ValidationContext = class {
-  constructor() {
-    this.instancePath = [];
-    this.currentNode = { edge: "#", errors: [], children: [] };
-    this.nodeStack = [this.currentNode];
-    this.root = this.currentNode;
-  }
-  error(value, schema, message) {
-    this.currentNode.errors.push({
-      value,
-      schema,
-      message,
-      instancePath: this.instancePath.slice(),
-      schemaPath: this.nodeStack.map((node) => node.edge)
-    });
-  }
-  pushSchema(schemaPath) {
-    const newNode = {
-      edge: schemaPath,
-      errors: [],
-      children: []
-    };
-    this.currentNode.children.push(newNode);
-    this.currentNode = newNode;
-    this.nodeStack.push(newNode);
-  }
-  popSchema(success) {
-    this.nodeStack.pop();
-    this.currentNode = this.nodeStack[this.nodeStack.length - 1];
-    if (success) {
-      this.currentNode.children.pop();
-    }
-    return success;
-  }
-  pushInstance(instance) {
-    this.instancePath.push(instance);
-  }
-  popInstance() {
-    this.instancePath.pop();
-  }
-  withSchemaPath(schemaPath, chunk) {
-    this.pushSchema(schemaPath);
-    return this.popSchema(chunk());
-  }
-  validate(schema, source, value, pruneErrors = true) {
-    if (validateGeneric(value, schema, this)) {
-      return [];
-    }
-    return this.collectErrors(schema, source, value, pruneErrors);
-  }
-  collectErrors(_schema, source, _value, pruneErrors = true) {
-    const inner = (node) => {
-      const result2 = [];
-      if (node.edge === "anyOf" && pruneErrors) {
-        const innerResults = node.children.map(inner);
-        const isRequiredError = (e) => e.schemaPath.indexOf("required") === e.schemaPath.length - 1;
-        const isPropertyNamesError = (e) => e.schemaPath.indexOf("required") !== -1;
-        if (innerResults.some((el) => el.length && isRequiredError(el[0])) && innerResults.some((el) => el.length && isPropertyNamesError(el[0]))) {
-          return innerResults.filter((r) => {
-            return r.length && r[0].schemaPath.slice(-1)[0] === "required";
-          })[0];
-        }
-        const errorTypeQuality = (e) => {
-          const t = e.schemaPath.slice().reverse();
-          if (t[0] === "type") {
-            if (t[1] === "null") {
-              return 10;
-            }
-            return 1;
-          }
-          return 1;
-        };
-        const better = (a, b) => {
-          for (let i = 0; i < a.length; ++i) {
-            if (a[i] < b[i]) {
-              return -1;
-            }
-            if (a[i] > b[i]) {
-              return 1;
-            }
-          }
-          return 0;
-        };
-        let bestResults = [];
-        let bestError = [Infinity, Infinity];
-        for (const resultGroup of innerResults) {
-          let maxQuality = -Infinity;
-          let totalSpan = 0;
-          for (const result3 of resultGroup) {
-            totalSpan += result3.value.end - result3.value.start;
-            maxQuality = Math.max(maxQuality, errorTypeQuality(result3));
-          }
-          const thisError = [maxQuality, totalSpan];
-          if (better(thisError, bestError)) {
-            bestError = thisError;
-            bestResults = resultGroup;
-          }
-        }
-        return bestResults;
-      } else {
-        result2.push(...node.errors);
-        for (const child of node.children) {
-          result2.push(...inner(child));
-        }
-        return result2;
-      }
-    };
-    const errors = inner(this.root);
-    const locF = mappedIndexToRowCol(source);
-    const result = errors.map((validationError) => {
-      let location;
-      try {
-        location = {
-          start: locF(validationError.value.start),
-          end: locF(validationError.value.end)
-        };
-      } catch (_e) {
-        location = {
-          start: { line: 0, column: 0 },
-          end: { line: 0, column: 0 }
-        };
-      }
-      return {
-        source: mappedString(source, [{
-          start: validationError.value.start,
-          end: validationError.value.end
-        }]),
-        violatingObject: validationError.value,
-        instancePath: validationError.instancePath,
-        schemaPath: validationError.schemaPath,
-        schema: validationError.schema,
-        message: validationError.message,
-        location,
-        niceError: {
-          heading: validationError.message,
-          error: [],
-          info: {},
-          fileName: source.fileName,
-          location,
-          sourceContext: createSourceContext(source, location)
-        }
-      };
-    });
-    return result;
-  }
-};
-function createSourceContext(src, location) {
-  const nLines = lines(src.originalString).length;
-  const {
-    start,
-    end
-  } = location;
-  const {
-    prefixWidth,
-    lines: formattedLines
-  } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
-  const contextLines = [];
-  let mustPrintEllipsis = true;
-  for (const { lineNumber, content, rawLine } of formattedLines) {
-    if (lineNumber < start.line || lineNumber > end.line) {
-      if (rawLine.trim().length) {
-        contextLines.push(content);
-      }
-    } else {
-      if (lineNumber >= start.line + 2 && lineNumber <= end.line - 2) {
-        if (mustPrintEllipsis) {
-          mustPrintEllipsis = false;
-          contextLines.push("...");
-        }
-      } else {
-        const startColumn = lineNumber > start.line ? 0 : start.column;
-        const endColumn = lineNumber < end.line ? rawLine.length : end.column;
-        contextLines.push(content);
-        contextLines.push(" ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn));
-      }
-    }
-  }
-  return contextLines.join("\n");
-}
-function validateGeneric(value, s, context) {
-  s = resolveSchema(s);
-  const st = schemaType(s);
-  return context.withSchemaPath(st, () => schemaCall(s, {
-    "false": (schema) => {
-      context.error(value, schema, "false");
-      return false;
-    },
-    "true": (_) => true,
-    "boolean": (schema) => validateBoolean(value, schema, context),
-    "number": (schema) => validateNumber(value, schema, context),
-    "string": (schema) => validateString(value, schema, context),
-    "null": (schema) => validateNull(value, schema, context),
-    "enum": (schema) => validateEnum(value, schema, context),
-    "anyOf": (schema) => validateAnyOf(value, schema, context),
-    "allOf": (schema) => validateAllOf(value, schema, context),
-    "array": (schema) => validateArray(value, schema, context),
-    "object": (schema) => validateObject(value, schema, context),
-    "ref": (schema) => validateGeneric(value, resolveSchema(schema), context)
-  }));
-}
-function typeIsValid(value, schema, context, valid) {
-  if (!valid) {
-    return context.withSchemaPath("type", () => {
-      context.error(value, schema, "type mismatch");
-      return false;
-    });
-  }
-  return valid;
-}
-function validateBoolean(value, schema, context) {
-  return typeIsValid(value, schema, context, typeof value.result === "boolean");
-}
-function validateNumber(value, schema, context) {
-  if (!typeIsValid(value, schema, context, typeof value.result === "number")) {
-    return false;
-  }
-  let result = true;
-  if (schema.minimum !== void 0) {
-    result = context.withSchemaPath("minimum", () => {
-      const v = value.result;
-      if (!(v >= schema.minimum)) {
-        context.error(value, schema, `value ${value.result} is less than required minimum ${schema.minimum}`);
-        return false;
-      }
-      return true;
-    });
-  }
-  if (schema.maximum !== void 0) {
-    result = context.withSchemaPath("maximum", () => {
-      const v = value.result;
-      if (!(v <= schema.maximum)) {
-        context.error(value, schema, `value ${value.result} is greater than required maximum ${schema.maximum}`);
-        return false;
-      }
-      return true;
-    });
-  }
-  if (schema.exclusiveMinimum !== void 0) {
-    result = context.withSchemaPath("exclusiveMinimum", () => {
-      const v = value.result;
-      if (!(v > schema.exclusiveMinimum)) {
-        context.error(value, schema, `value ${value.result} is less than or equal to required (exclusive) minimum ${schema.exclusiveMinimum}`);
-        return false;
-      }
-      return true;
-    });
-  }
-  if (schema.exclusiveMaximum !== void 0) {
-    result = context.withSchemaPath("exclusiveMaximum", () => {
-      const v = value.result;
-      if (!(v < schema.exclusiveMaximum)) {
-        context.error(value, schema, `value ${value.result} is greater than or equal to required (exclusive) maximum ${schema.exclusiveMaximum}`);
-        return false;
-      }
-      return true;
-    });
-  }
-  return result;
-}
-function validateString(value, schema, context) {
-  if (!typeIsValid(value, schema, context, typeof value.result === "string")) {
-    return false;
-  }
-  if (schema.pattern !== void 0) {
-    if (schema.compiledPattern === void 0) {
-      schema.compiledPattern = new RegExp(schema.pattern);
-    }
-    if (!value.result.match(schema.compiledPattern)) {
-      return context.withSchemaPath("pattern", () => {
-        context.error(value, schema, `value doesn't match pattern`);
-        return false;
-      });
-    }
-  }
-  return true;
-}
-function validateNull(value, schema, context) {
-  if (!typeIsValid(value, schema, context, value.result === null)) {
-    return false;
-  }
-  return true;
-}
-function validateEnum(value, schema, context) {
-  for (const enumValue of schema["enum"]) {
-    if (enumValue === value.result) {
-      return true;
-    }
-  }
-  context.error(value, schema, `must match one of the values`);
-  return false;
-}
-function validateAnyOf(value, schema, context) {
-  let passingSchemas = 0;
-  for (let i = 0; i < schema.anyOf.length; ++i) {
-    const subSchema = schema.anyOf[i];
-    context.withSchemaPath(i, () => {
-      if (validateGeneric(value, subSchema, context)) {
-        passingSchemas++;
-        return true;
-      }
-      return false;
-    });
-  }
-  return passingSchemas > 0;
-}
-function validateAllOf(value, schema, context) {
-  let passingSchemas = 0;
-  for (let i = 0; i < schema.allOf.length; ++i) {
-    const subSchema = schema.allOf[i];
-    context.withSchemaPath(i, () => {
-      if (validateGeneric(value, subSchema, context)) {
-        passingSchemas++;
-        return true;
-      }
-      return false;
-    });
-  }
-  return passingSchemas === schema.allOf.length;
-}
-function validateArray(value, schema, context) {
-  let result = true;
-  if (!typeIsValid(value, schema, context, Array.isArray(value.result))) {
-    return false;
-  }
-  const length = value.result.length;
-  if (schema.minItems !== void 0 && length < schema.minItems) {
-    context.withSchemaPath("minItems", () => {
-      context.error(value, schema, `array should have at least ${schema.minItems} items but has ${length} items instead`);
-      return false;
-    });
-    result = false;
-  }
-  if (schema.maxItems !== void 0 && length > schema.maxItems) {
-    context.withSchemaPath("maxItems", () => {
-      context.error(value, schema, `array should have at most ${schema.maxItems} items but has ${length} items instead`);
-      return false;
-    });
-    result = false;
-  }
-  if (schema.items !== void 0) {
-    result = context.withSchemaPath("items", () => {
-      let result2 = true;
-      for (let i = 0; i < value.components.length; ++i) {
-        context.pushInstance(i);
-        result2 = validateGeneric(value.components[i], schema.items, context) && result2;
-        context.popInstance();
-      }
-      return result2;
-    }) && result;
-  }
-  return result;
-}
-function validateObject(value, schema, context) {
-  const isObject = typeof value.result === "object" && !Array.isArray(value.result) && value.result !== null;
-  if (!typeIsValid(value, schema, context, isObject)) {
-    return false;
-  }
-  let result = true;
-  const ownProperties = new Set(Object.getOwnPropertyNames(value.result));
-  const objResult = value.result;
-  const locate = (key, keyOrValue = "value") => {
-    for (let i = 0; i < value.components.length; i += 2) {
-      if (value.components[i].result === key) {
-        if (keyOrValue === "value") {
-          return value.components[i + 1];
-        } else {
-          return value.components[i];
-        }
-      }
-    }
-    throw new Error(`Internal Error, couldn't locate key ${key}`);
-  };
-  const inspectedProps = new Set();
-  if (schema.properties !== void 0) {
-    result = context.withSchemaPath("properties", () => {
-      let result2 = true;
-      for (const [key, subSchema] of Object.entries(schema.properties)) {
-        if (ownProperties.has(key)) {
-          inspectedProps.add(key);
-          context.pushInstance(key);
-          result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
-          context.popInstance();
-        }
-      }
-      return result2;
-    }) && result;
-  }
-  if (schema.patternProperties !== void 0) {
-    result = context.withSchemaPath("patternProperties", () => {
-      let result2 = true;
-      for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
-        if (schema.compiledPatterns === void 0) {
-          schema.compiledPatterns = {};
-        }
-        if (schema.compiledPatterns[key] === void 0) {
-          schema.compiledPatterns[key] = new RegExp(key);
-        }
-        const regexp = schema.compiledPatterns[key];
-        for (const [objectKey, _val] of Object.entries(objResult)) {
-          if (objectKey.match(regexp)) {
-            inspectedProps.add(objectKey);
-            context.pushInstance(objectKey);
-            result2 = context.withSchemaPath(key, () => validateGeneric(locate(objectKey), subSchema, context)) && result2;
-            context.popInstance();
-          }
-        }
-      }
-      return result2;
-    }) && result;
-  }
-  if (schema.additionalProperties !== void 0) {
-    result = context.withSchemaPath("additionalProperties", () => {
-      return Object.keys(objResult).filter((objectKey) => !inspectedProps.has(objectKey)).every((objectKey) => validateGeneric(locate(objectKey), schema.additionalProperties, context));
-    }) && result;
-  }
-  if (schema.propertyNames !== void 0) {
-    result = context.withSchemaPath("propertyNames", () => {
-      return Array.from(ownProperties).every((key) => validateGeneric(locate(key, "key"), schema.propertyNames, context));
-    }) && result;
-  }
-  if (schema.required !== void 0) {
-    result = context.withSchemaPath("required", () => {
-      let result2 = true;
-      for (const reqKey of schema.required) {
-        if (!ownProperties.has(reqKey)) {
-          context.error(value, schema, `object is missing required property ${reqKey}`);
-          result2 = false;
-        }
-      }
-      return result2;
-    }) && result;
-  }
-  return result;
-}
-function validate(value, schema, source) {
-  const context = new ValidationContext();
-  return context.validate(schema, source, value);
-}
-
-// ../yaml-validation/yaml-schema.ts
-function getVerbatimInput(error) {
-  return error.source.value;
-}
-function navigate(path, annotation, returnKey = false, pathIndex = 0) {
-  if (annotation === void 0) {
-    throw new Error("Can't navigate an undefined annotation");
-  }
-  if (pathIndex >= path.length) {
-    return annotation;
-  }
-  if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
-    const { components } = annotation;
-    const searchKey = path[pathIndex];
-    const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
-    for (let i = lastKeyIndex; i >= 0; i -= 2) {
-      const key = components[i].result;
-      if (key === searchKey) {
-        if (returnKey && pathIndex === path.length - 1) {
-          return navigate(path, components[i], returnKey, pathIndex + 1);
-        } else {
-          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
-        }
-      }
-    }
-    return annotation;
-  } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
-    const searchKey = Number(path[pathIndex]);
-    if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
-      return annotation;
-    }
-    return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
-  } else {
-    return annotation;
-  }
-}
-var YAMLSchema = class {
-  constructor(schema) {
-    this.errorHandlers = [];
-    this.schema = schema;
-  }
-  addHandler(handler) {
-    this.errorHandlers.push(handler);
-  }
-  transformErrors(annotation, errors) {
-    return errors.map((error) => {
-      for (const handler of this.errorHandlers) {
-        error = handler(error, annotation, this.schema);
-      }
-      return error;
-    });
-  }
-  async validateParse(src, annotation) {
-    const validationErrors = validate(annotation, this.schema, src);
-    if (validationErrors.length) {
-      const localizedErrors = this.transformErrors(annotation, validationErrors);
-      return {
-        result: annotation.result,
-        errors: localizedErrors
-      };
-    } else {
-      return {
-        result: annotation.result,
-        errors: []
-      };
-    }
-  }
-  reportErrorsInSource(result, _src, message, error, log) {
-    if (result.errors.length) {
-      if (message.length) {
-        error(message);
-      }
-      for (const err of result.errors) {
-        log(err.niceError);
-      }
-    }
-    return result;
-  }
-  async validateParseWithErrors(src, annotation, message, error, log) {
-    const result = await this.validateParse(src, annotation);
-    this.reportErrorsInSource(result, src, message, error, log);
-    return result;
-  }
-};
-
 // ../yaml-validation/errors.ts
 function setDefaultErrorHandlers(validator) {
   validator.addHandler(expandEmptySpan);
@@ -22945,6 +22462,547 @@ function checkForNearbyCorrection(error, parse, _schema) {
   }
   return error;
 }
+function createSourceContext(src, location) {
+  const nLines = lines(src.originalString).length;
+  const {
+    start,
+    end
+  } = location;
+  const {
+    prefixWidth,
+    lines: formattedLines
+  } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+  const contextLines = [];
+  let mustPrintEllipsis = true;
+  for (const { lineNumber, content, rawLine } of formattedLines) {
+    if (lineNumber < start.line || lineNumber > end.line) {
+      if (rawLine.trim().length) {
+        contextLines.push(content);
+      }
+    } else {
+      if (lineNumber >= start.line + 2 && lineNumber <= end.line - 2) {
+        if (mustPrintEllipsis) {
+          mustPrintEllipsis = false;
+          contextLines.push("...");
+        }
+      } else {
+        const startColumn = lineNumber > start.line ? 0 : start.column;
+        const endColumn = lineNumber < end.line ? rawLine.length : end.column;
+        contextLines.push(content);
+        contextLines.push(" ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn));
+      }
+    }
+  }
+  return contextLines.join("\n");
+}
+function createLocalizedError(obj) {
+  const {
+    violatingObject,
+    instancePath,
+    schemaPath,
+    source,
+    message,
+    schema
+  } = obj;
+  const locF = mappedIndexToRowCol(source);
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end)
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 }
+    };
+  }
+  return {
+    source: mappedString(source, [{
+      start: violatingObject.start,
+      end: violatingObject.end
+    }]),
+    violatingObject,
+    instancePath,
+    schemaPath,
+    schema,
+    message,
+    location,
+    niceError: {
+      heading: message,
+      error: [],
+      info: {},
+      fileName: source.fileName,
+      location,
+      sourceContext: createSourceContext(source, location)
+    }
+  };
+}
+
+// ../yaml-validation/validator.ts
+var ValidationContext = class {
+  constructor() {
+    this.instancePath = [];
+    this.currentNode = { edge: "#", errors: [], children: [] };
+    this.nodeStack = [this.currentNode];
+    this.root = this.currentNode;
+  }
+  error(value, schema, message) {
+    this.currentNode.errors.push({
+      value,
+      schema,
+      message,
+      instancePath: this.instancePath.slice(),
+      schemaPath: this.nodeStack.map((node) => node.edge)
+    });
+  }
+  pushSchema(schemaPath) {
+    const newNode = {
+      edge: schemaPath,
+      errors: [],
+      children: []
+    };
+    this.currentNode.children.push(newNode);
+    this.currentNode = newNode;
+    this.nodeStack.push(newNode);
+  }
+  popSchema(success) {
+    this.nodeStack.pop();
+    this.currentNode = this.nodeStack[this.nodeStack.length - 1];
+    if (success) {
+      this.currentNode.children.pop();
+    }
+    return success;
+  }
+  pushInstance(instance) {
+    this.instancePath.push(instance);
+  }
+  popInstance() {
+    this.instancePath.pop();
+  }
+  withSchemaPath(schemaPath, chunk) {
+    this.pushSchema(schemaPath);
+    return this.popSchema(chunk());
+  }
+  validate(schema, source, value, pruneErrors = true) {
+    if (validateGeneric(value, schema, this)) {
+      return [];
+    }
+    return this.collectErrors(schema, source, value, pruneErrors);
+  }
+  collectErrors(_schema, source, _value, pruneErrors = true) {
+    const inner = (node) => {
+      const result2 = [];
+      if (node.edge === "anyOf" && pruneErrors) {
+        const innerResults = node.children.map(inner);
+        const isRequiredError = (e) => e.schemaPath.indexOf("required") === e.schemaPath.length - 1;
+        const isPropertyNamesError = (e) => e.schemaPath.indexOf("required") !== -1;
+        if (innerResults.some((el) => el.length && isRequiredError(el[0])) && innerResults.some((el) => el.length && isPropertyNamesError(el[0]))) {
+          return innerResults.filter((r) => {
+            return r.length && r[0].schemaPath.slice(-1)[0] === "required";
+          })[0];
+        }
+        const errorTypeQuality = (e) => {
+          const t = e.schemaPath.slice().reverse();
+          if (t[0] === "type") {
+            if (t[1] === "null") {
+              return 10;
+            }
+            return 1;
+          }
+          return 1;
+        };
+        const better = (a, b) => {
+          for (let i = 0; i < a.length; ++i) {
+            if (a[i] < b[i]) {
+              return -1;
+            }
+            if (a[i] > b[i]) {
+              return 1;
+            }
+          }
+          return 0;
+        };
+        let bestResults = [];
+        let bestError = [Infinity, Infinity];
+        for (const resultGroup of innerResults) {
+          let maxQuality = -Infinity;
+          let totalSpan = 0;
+          for (const result3 of resultGroup) {
+            totalSpan += result3.value.end - result3.value.start;
+            maxQuality = Math.max(maxQuality, errorTypeQuality(result3));
+          }
+          const thisError = [maxQuality, totalSpan];
+          if (better(thisError, bestError)) {
+            bestError = thisError;
+            bestResults = resultGroup;
+          }
+        }
+        return bestResults;
+      } else {
+        result2.push(...node.errors);
+        for (const child of node.children) {
+          result2.push(...inner(child));
+        }
+        return result2;
+      }
+    };
+    const errors = inner(this.root);
+    const result = errors.map((validationError) => createLocalizedError({
+      violatingObject: validationError.value,
+      instancePath: validationError.instancePath,
+      schemaPath: validationError.schemaPath,
+      schema: validationError.schema,
+      message: validationError.message,
+      source
+    }));
+    return result;
+  }
+};
+function validateGeneric(value, s, context) {
+  s = resolveSchema(s);
+  const st = schemaType(s);
+  return context.withSchemaPath(st, () => schemaCall(s, {
+    "false": (schema) => {
+      context.error(value, schema, "false");
+      return false;
+    },
+    "true": (_) => true,
+    "boolean": (schema) => validateBoolean(value, schema, context),
+    "number": (schema) => validateNumber(value, schema, context),
+    "string": (schema) => validateString(value, schema, context),
+    "null": (schema) => validateNull(value, schema, context),
+    "enum": (schema) => validateEnum(value, schema, context),
+    "anyOf": (schema) => validateAnyOf(value, schema, context),
+    "allOf": (schema) => validateAllOf(value, schema, context),
+    "array": (schema) => validateArray(value, schema, context),
+    "object": (schema) => validateObject(value, schema, context),
+    "ref": (schema) => validateGeneric(value, resolveSchema(schema), context)
+  }));
+}
+function typeIsValid(value, schema, context, valid) {
+  if (!valid) {
+    return context.withSchemaPath("type", () => {
+      context.error(value, schema, "type mismatch");
+      return false;
+    });
+  }
+  return valid;
+}
+function validateBoolean(value, schema, context) {
+  return typeIsValid(value, schema, context, typeof value.result === "boolean");
+}
+function validateNumber(value, schema, context) {
+  if (!typeIsValid(value, schema, context, typeof value.result === "number")) {
+    return false;
+  }
+  let result = true;
+  if (schema.minimum !== void 0) {
+    result = context.withSchemaPath("minimum", () => {
+      const v = value.result;
+      if (!(v >= schema.minimum)) {
+        context.error(value, schema, `value ${value.result} is less than required minimum ${schema.minimum}`);
+        return false;
+      }
+      return true;
+    });
+  }
+  if (schema.maximum !== void 0) {
+    result = context.withSchemaPath("maximum", () => {
+      const v = value.result;
+      if (!(v <= schema.maximum)) {
+        context.error(value, schema, `value ${value.result} is greater than required maximum ${schema.maximum}`);
+        return false;
+      }
+      return true;
+    });
+  }
+  if (schema.exclusiveMinimum !== void 0) {
+    result = context.withSchemaPath("exclusiveMinimum", () => {
+      const v = value.result;
+      if (!(v > schema.exclusiveMinimum)) {
+        context.error(value, schema, `value ${value.result} is less than or equal to required (exclusive) minimum ${schema.exclusiveMinimum}`);
+        return false;
+      }
+      return true;
+    });
+  }
+  if (schema.exclusiveMaximum !== void 0) {
+    result = context.withSchemaPath("exclusiveMaximum", () => {
+      const v = value.result;
+      if (!(v < schema.exclusiveMaximum)) {
+        context.error(value, schema, `value ${value.result} is greater than or equal to required (exclusive) maximum ${schema.exclusiveMaximum}`);
+        return false;
+      }
+      return true;
+    });
+  }
+  return result;
+}
+function validateString(value, schema, context) {
+  if (!typeIsValid(value, schema, context, typeof value.result === "string")) {
+    return false;
+  }
+  if (schema.pattern !== void 0) {
+    if (schema.compiledPattern === void 0) {
+      schema.compiledPattern = new RegExp(schema.pattern);
+    }
+    if (!value.result.match(schema.compiledPattern)) {
+      return context.withSchemaPath("pattern", () => {
+        context.error(value, schema, `value doesn't match pattern`);
+        return false;
+      });
+    }
+  }
+  return true;
+}
+function validateNull(value, schema, context) {
+  if (!typeIsValid(value, schema, context, value.result === null)) {
+    return false;
+  }
+  return true;
+}
+function validateEnum(value, schema, context) {
+  for (const enumValue of schema["enum"]) {
+    if (enumValue === value.result) {
+      return true;
+    }
+  }
+  context.error(value, schema, `must match one of the values`);
+  return false;
+}
+function validateAnyOf(value, schema, context) {
+  let passingSchemas = 0;
+  for (let i = 0; i < schema.anyOf.length; ++i) {
+    const subSchema = schema.anyOf[i];
+    context.withSchemaPath(i, () => {
+      if (validateGeneric(value, subSchema, context)) {
+        passingSchemas++;
+        return true;
+      }
+      return false;
+    });
+  }
+  return passingSchemas > 0;
+}
+function validateAllOf(value, schema, context) {
+  let passingSchemas = 0;
+  for (let i = 0; i < schema.allOf.length; ++i) {
+    const subSchema = schema.allOf[i];
+    context.withSchemaPath(i, () => {
+      if (validateGeneric(value, subSchema, context)) {
+        passingSchemas++;
+        return true;
+      }
+      return false;
+    });
+  }
+  return passingSchemas === schema.allOf.length;
+}
+function validateArray(value, schema, context) {
+  let result = true;
+  if (!typeIsValid(value, schema, context, Array.isArray(value.result))) {
+    return false;
+  }
+  const length = value.result.length;
+  if (schema.minItems !== void 0 && length < schema.minItems) {
+    context.withSchemaPath("minItems", () => {
+      context.error(value, schema, `array should have at least ${schema.minItems} items but has ${length} items instead`);
+      return false;
+    });
+    result = false;
+  }
+  if (schema.maxItems !== void 0 && length > schema.maxItems) {
+    context.withSchemaPath("maxItems", () => {
+      context.error(value, schema, `array should have at most ${schema.maxItems} items but has ${length} items instead`);
+      return false;
+    });
+    result = false;
+  }
+  if (schema.items !== void 0) {
+    result = context.withSchemaPath("items", () => {
+      let result2 = true;
+      for (let i = 0; i < value.components.length; ++i) {
+        context.pushInstance(i);
+        result2 = validateGeneric(value.components[i], schema.items, context) && result2;
+        context.popInstance();
+      }
+      return result2;
+    }) && result;
+  }
+  return result;
+}
+function validateObject(value, schema, context) {
+  const isObject = typeof value.result === "object" && !Array.isArray(value.result) && value.result !== null;
+  if (!typeIsValid(value, schema, context, isObject)) {
+    return false;
+  }
+  let result = true;
+  const ownProperties = new Set(Object.getOwnPropertyNames(value.result));
+  const objResult = value.result;
+  const locate = (key, keyOrValue = "value") => {
+    for (let i = 0; i < value.components.length; i += 2) {
+      if (value.components[i].result === key) {
+        if (keyOrValue === "value") {
+          return value.components[i + 1];
+        } else {
+          return value.components[i];
+        }
+      }
+    }
+    throw new Error(`Internal Error, couldn't locate key ${key}`);
+  };
+  const inspectedProps = new Set();
+  if (schema.properties !== void 0) {
+    result = context.withSchemaPath("properties", () => {
+      let result2 = true;
+      for (const [key, subSchema] of Object.entries(schema.properties)) {
+        if (ownProperties.has(key)) {
+          inspectedProps.add(key);
+          context.pushInstance(key);
+          result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
+          context.popInstance();
+        }
+      }
+      return result2;
+    }) && result;
+  }
+  if (schema.patternProperties !== void 0) {
+    result = context.withSchemaPath("patternProperties", () => {
+      let result2 = true;
+      for (const [key, subSchema] of Object.entries(schema.patternProperties)) {
+        if (schema.compiledPatterns === void 0) {
+          schema.compiledPatterns = {};
+        }
+        if (schema.compiledPatterns[key] === void 0) {
+          schema.compiledPatterns[key] = new RegExp(key);
+        }
+        const regexp = schema.compiledPatterns[key];
+        for (const [objectKey, _val] of Object.entries(objResult)) {
+          if (objectKey.match(regexp)) {
+            inspectedProps.add(objectKey);
+            context.pushInstance(objectKey);
+            result2 = context.withSchemaPath(key, () => validateGeneric(locate(objectKey), subSchema, context)) && result2;
+            context.popInstance();
+          }
+        }
+      }
+      return result2;
+    }) && result;
+  }
+  if (schema.additionalProperties !== void 0) {
+    result = context.withSchemaPath("additionalProperties", () => {
+      return Object.keys(objResult).filter((objectKey) => !inspectedProps.has(objectKey)).every((objectKey) => validateGeneric(locate(objectKey), schema.additionalProperties, context));
+    }) && result;
+  }
+  if (schema.propertyNames !== void 0) {
+    result = context.withSchemaPath("propertyNames", () => {
+      return Array.from(ownProperties).every((key) => validateGeneric(locate(key, "key"), schema.propertyNames, context));
+    }) && result;
+  }
+  if (schema.required !== void 0) {
+    result = context.withSchemaPath("required", () => {
+      let result2 = true;
+      for (const reqKey of schema.required) {
+        if (!ownProperties.has(reqKey)) {
+          context.error(value, schema, `object is missing required property ${reqKey}`);
+          result2 = false;
+        }
+      }
+      return result2;
+    }) && result;
+  }
+  return result;
+}
+function validate(value, schema, source) {
+  const context = new ValidationContext();
+  return context.validate(schema, source, value);
+}
+
+// ../yaml-validation/yaml-schema.ts
+function getVerbatimInput(error) {
+  return error.source.value;
+}
+function navigate(path, annotation, returnKey = false, pathIndex = 0) {
+  if (annotation === void 0) {
+    throw new Error("Can't navigate an undefined annotation");
+  }
+  if (pathIndex >= path.length) {
+    return annotation;
+  }
+  if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
+    const { components } = annotation;
+    const searchKey = path[pathIndex];
+    const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
+    for (let i = lastKeyIndex; i >= 0; i -= 2) {
+      const key = components[i].result;
+      if (key === searchKey) {
+        if (returnKey && pathIndex === path.length - 1) {
+          return navigate(path, components[i], returnKey, pathIndex + 1);
+        } else {
+          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+        }
+      }
+    }
+    return annotation;
+  } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
+    const searchKey = Number(path[pathIndex]);
+    if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
+      return annotation;
+    }
+    return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
+  } else {
+    return annotation;
+  }
+}
+var YAMLSchema2 = class {
+  constructor(schema) {
+    this.errorHandlers = [];
+    this.schema = schema;
+  }
+  addHandler(handler) {
+    this.errorHandlers.push(handler);
+  }
+  transformErrors(annotation, errors) {
+    return errors.map((error) => {
+      for (const handler of this.errorHandlers) {
+        error = handler(error, annotation, this.schema);
+      }
+      return error;
+    });
+  }
+  async validateParse(src, annotation) {
+    const validationErrors = validate(annotation, this.schema, src);
+    if (validationErrors.length) {
+      const localizedErrors = this.transformErrors(annotation, validationErrors);
+      return {
+        result: annotation.result,
+        errors: localizedErrors
+      };
+    } else {
+      return {
+        result: annotation.result,
+        errors: []
+      };
+    }
+  }
+  reportErrorsInSource(result, _src, message, error, log) {
+    if (result.errors.length) {
+      if (message.length) {
+        error(message);
+      }
+      for (const err of result.errors) {
+        log(err.niceError);
+      }
+    }
+    return result;
+  }
+  async validateParseWithErrors(src, annotation, message, error, log) {
+    const result = await this.validateParse(src, annotation);
+    this.reportErrorsInSource(result, src, message, error, log);
+    return result;
+  }
+};
 
 // ../yaml-validation/validator-queue.ts
 var yamlValidators = {};
@@ -22969,7 +23027,7 @@ function getValidator(schema) {
   if (yamlValidators[schemaName]) {
     return yamlValidators[schemaName];
   }
-  const validator = new YAMLSchema(schema);
+  const validator = new YAMLSchema2(schema);
   yamlValidators[schemaName] = validator;
   setDefaultErrorHandlers(validator);
   return validator;
@@ -24136,6 +24194,23 @@ var getProjectConfigFieldsSchema = defineCached(async () => {
     errorHandlers: []
   };
 }, "project-config-fields");
+function disallowTopLevelType(error, parse, _schema) {
+  if (!(error.instancePath.length === 1 && error.instancePath[0] === "type")) {
+    return error;
+  }
+  const violatingObject = locateAnnotation(parse, error.instancePath, "key");
+  const localizedError = createLocalizedError({
+    ...error,
+    message: "top-level key 'type' is not allowed in project configuration.",
+    violatingObject,
+    source: mappedString(parse.source.originalString, [{
+      start: violatingObject.start,
+      end: violatingObject.end + 1
+    }])
+  });
+  localizedError.niceError.info["top-level-type-not-allowed"] = "Did you mean to use 'project: type: ...' instead?";
+  return localizedError;
+}
 var getProjectConfigSchema = defineCached(async () => {
   const projectConfigFields = await getProjectConfigFieldsSchema();
   const execute = await getFormatExecuteOptionsSchema();
@@ -24149,7 +24224,7 @@ var getProjectConfigSchema = defineCached(async () => {
   }), execute, await getFrontMatterSchema(), projectConfigFields);
   return {
     schema: describeSchema(result, "a project configuration object"),
-    errorHandlers: []
+    errorHandlers: [disallowTopLevelType]
   };
 }, "project-config");
 

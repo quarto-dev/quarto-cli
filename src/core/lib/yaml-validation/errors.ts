@@ -11,17 +11,20 @@ import * as colors from "../external/colors.ts";
 
 import { getVerbatimInput, navigate, YAMLSchema } from "./yaml-schema.ts";
 
-import { lines } from "../text.ts";
-
 import {
   addFileInfo,
   addInstancePathInfo,
+  ErrorLocation,
   locationString,
   quotedStringColor,
   TidyverseError,
 } from "../errors.ts";
 
-import { mappedIndexToRowCol } from "../mapped-text.ts";
+import {
+  mappedIndexToRowCol,
+  MappedString,
+  mappedString,
+} from "../mapped-text.ts";
 
 import { possibleSchemaKeys, possibleSchemaValues } from "./schema-utils.ts";
 
@@ -29,14 +32,18 @@ import { editDistance } from "../text.ts";
 
 import {
   AnnotatedParse,
+  InstancePath,
   JSONValue,
   LocalizedError,
   ObjectSchema,
   Schema,
   schemaCall,
   schemaDescription,
+  SchemaPath,
   schemaType,
 } from "../yaml-schema/types.ts";
+
+import { formatLineRange, lines } from "../text.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -661,4 +668,112 @@ function checkForNearbyCorrection(
   }
 
   return error;
+}
+
+/**
+ * Create a formatted string describing the surroundings of an error.
+ * Used in the generation of nicely-formatted error messages.
+ *
+ * @param src the string containing the source of the error
+ * @param location the location in src
+ * @returns a string containing a formatted description of the context around the error
+ */
+export function createSourceContext(
+  src: MappedString,
+  location: ErrorLocation,
+): string {
+  // TODO this is computed every time, might be inefficient on large files.
+  const nLines = lines(src.originalString).length;
+  const {
+    start,
+    end,
+  } = location;
+  const {
+    prefixWidth,
+    lines: formattedLines,
+  } = formatLineRange(
+    src.originalString,
+    Math.max(0, start.line - 1),
+    Math.min(end.line + 1, nLines - 1),
+  );
+  const contextLines: string[] = [];
+  let mustPrintEllipsis = true;
+  for (const { lineNumber, content, rawLine } of formattedLines) {
+    if (lineNumber < start.line || lineNumber > end.line) {
+      if (rawLine.trim().length) {
+        contextLines.push(content);
+      }
+    } else {
+      if (
+        lineNumber >= start.line + 2 && lineNumber <= end.line - 2
+      ) {
+        if (mustPrintEllipsis) {
+          mustPrintEllipsis = false;
+          contextLines.push("...");
+        }
+      } else {
+        const startColumn = (lineNumber > start.line ? 0 : start.column);
+        const endColumn = (lineNumber < end.line ? rawLine.length : end.column);
+        contextLines.push(content);
+        contextLines.push(
+          " ".repeat(prefixWidth + startColumn) +
+            "~".repeat(endColumn - startColumn),
+        );
+      }
+    }
+  }
+  return contextLines.join("\n");
+}
+
+export function createLocalizedError(obj: {
+  violatingObject: AnnotatedParse;
+  instancePath: InstancePath;
+  schemaPath: SchemaPath;
+  source: MappedString;
+  message: string;
+  schema: Schema;
+}): LocalizedError {
+  const {
+    violatingObject,
+    instancePath,
+    schemaPath,
+    source,
+    message,
+    schema,
+  } = obj;
+  const locF = mappedIndexToRowCol(source);
+
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end),
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 },
+    };
+  }
+
+  return {
+    source: mappedString(source, [{
+      start: violatingObject.start,
+      end: violatingObject.end,
+    }]),
+    violatingObject: violatingObject,
+    instancePath,
+    schemaPath,
+    schema,
+    message,
+    location: location!,
+    niceError: {
+      heading: message,
+      error: [],
+      info: {},
+      fileName: source.fileName,
+      location: location!,
+      sourceContext: createSourceContext(source, location!),
+    },
+  };
 }

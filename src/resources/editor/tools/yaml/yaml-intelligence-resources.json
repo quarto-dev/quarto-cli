@@ -8953,6 +8953,15 @@
           }
         }
       }
+    },
+    {
+      "name": "type",
+      "schema": {
+        "enum": [
+          "cd93424f-d5ba-4e95-91c6-1890eab59fc7"
+        ]
+      },
+      "errorMessage": "type key not supported at project type-level. Use `project: type: ...` instead."
     }
   ],
   "schema/schema.yml": [

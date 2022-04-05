@@ -24,6 +24,10 @@ import {
 
 import { defineCached } from "./definitions.ts";
 import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
+import { AnnotatedParse, LocalizedError, Schema } from "./types.ts";
+import { locateAnnotation } from "../yaml-intelligence/tree-sitter-annotated-yaml.ts";
+import { createLocalizedError } from "../yaml-validation/errors.ts";
+import { mappedString } from "../mapped-text.ts";
 
 export const getProjectConfigFieldsSchema = defineCached(
   // deno-lint-ignore require-await
@@ -38,6 +42,40 @@ export const getProjectConfigFieldsSchema = defineCached(
   "project-config-fields",
 );
 
+function disallowTopLevelType(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  /* this is the _outer_ schema, which failed the validation of
+   * parse.result. error also holds error.schema, which is a subschema
+   * of the outer schema which failed the validation of
+   * error.violatingObject (a subobject of parse.result).
+   */
+  _schema: Schema,
+): LocalizedError {
+  if (
+    !(error.instancePath.length === 1 &&
+      error.instancePath[0] === "type")
+  ) {
+    return error;
+  }
+
+  const violatingObject = locateAnnotation(parse, error.instancePath, "key");
+
+  const localizedError = createLocalizedError({
+    ...error,
+    message: "top-level key 'type' is not allowed in project configuration.",
+    violatingObject,
+    source: mappedString(parse.source.originalString, [{
+      start: violatingObject.start,
+      end: violatingObject.end + 1,
+    }]),
+  });
+  localizedError.niceError.info["top-level-type-not-allowed"] =
+    "Did you mean to use 'project: type: ...' instead?";
+
+  return localizedError;
+}
+
 export const getProjectConfigSchema = defineCached(
   async () => {
     const projectConfigFields = await getProjectConfigFieldsSchema();
@@ -48,8 +86,6 @@ export const getProjectConfigSchema = defineCached(
         properties: {
           execute,
           format,
-          // NOTE: we are temporarily disabling format validation
-          // because it's way too strict
         },
         description: "be a Quarto YAML front matter object",
       }),
@@ -59,7 +95,7 @@ export const getProjectConfigSchema = defineCached(
     );
     return {
       schema: describeSchema(result, "a project configuration object"),
-      errorHandlers: [],
+      errorHandlers: [disallowTopLevelType],
     };
   },
   "project-config",

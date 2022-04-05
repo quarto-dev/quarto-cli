@@ -71,20 +71,23 @@ export interface AnnotatedParse {
   components: AnnotatedParse[];
 }
 
+export type InstancePath = (string | number)[];
+export type SchemaPath = (string | number)[];
+
 export interface ValidationError {
   value: AnnotatedParse;
   schema: Schema;
   message: string;
-  instancePath: (number | string)[];
-  schemaPath: (number | string)[];
+  instancePath: InstancePath;
+  schemaPath: SchemaPath;
 }
 
 export interface LocalizedError {
   violatingObject: AnnotatedParse;
   schema: Schema; // this is the *localized* schema, aka the schema that violatingObject failed.
   message: string;
-  instancePath: (number | string)[];
-  schemaPath: (number | string)[];
+  instancePath: InstancePath;
+  schemaPath: SchemaPath;
   source: MappedString;
   location: ErrorLocation;
   niceError: TidyverseError;
