@@ -8,6 +8,10 @@ const headroomChanged = new CustomEvent("quarto-hrChanged", {
 window.document.addEventListener("DOMContentLoaded", function () {
   let init = false;
 
+  // Immediate set the top offset if a fixed top header is present
+  // This prevents a 'flash / jerk' when the page loads
+  window.document.body.style.paddingTop = headerOffset() + "px";
+
   function throttle(func, wait) {
     var timeout;
     return function () {
