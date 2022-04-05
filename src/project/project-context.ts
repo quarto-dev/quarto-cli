@@ -501,7 +501,7 @@ export function toInputRelativePaths(
           ),
         );
       } else if (typeof (value) === "string") {
-        if (!isAbsolute(value)) {
+        if (value.length > 0 && !isAbsolute(value)) {
           // if this is a valid file, then transform it to be relative to the input path
           const projectPath = join(baseDir, value);
 
