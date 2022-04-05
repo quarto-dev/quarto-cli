@@ -19,11 +19,9 @@ testRender(docs("latexmk/bibliography-biblatex.Rmd"), "pdf", true);
 testRender(docs("latexmk/bibliography-citeproc.Rmd"), "pdf", true);
 testRender(docs("latexmk/bibliography-natbib.Rmd"), "pdf", true);
 testRender(docs("latexmk/make-index.Rmd"), "pdf", true);
-// Re-enable after texlive update copmletes.
-//testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true);
+testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true);
 
 // Package installation tests
-/*
 testRender(docs("latexmk/all.Rmd"), "pdf", true, [], {
   setup: async () => {
     await ensurePackageRemoved("fontawesome5");
@@ -39,7 +37,6 @@ testRender(docs("latexmk/babel.Rmd"), "pdf", true, [], {
     await ensurePackageRemoved("babel-portuges");
   },
 });
-
 
 testRender(docs("latexmk/estopdf.Rmd"), "pdf", true, [], {
   prereq: async () => {
@@ -69,7 +66,6 @@ testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true, [], {
   },
 });
 
-*/
 async function ensurePackageRemoved(pkg: string) {
   try {
     await removePackage(pkg);
