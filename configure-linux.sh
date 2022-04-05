@@ -21,6 +21,9 @@ fi
 
 pushd $QUARTO_BIN_DIR
 
+mkdir tools
+pushd tools
+
 # Download Deno
 DENOURL=https://github.com/denoland/deno/releases/download/
 DENOFILE=deno-x86_64-unknown-linux-gnu.zip
@@ -33,8 +36,9 @@ if [ ! -z "$DENO_CANARY_COMMIT" ]; then
 	echo [Upgrading Deno to Canary]
 	./deno upgrade --canary --version $DENO_CANARY_COMMIT
 fi
-./deno cache --reload ../../../src/quarto.ts --unstable --importmap=../../../src/import_map.json
+./deno cache --reload ../../../../src/quarto.ts --unstable --importmap=../../../../src/import_map.json
 
+popd
 popd
 popd
 popd

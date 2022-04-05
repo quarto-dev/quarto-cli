@@ -22,12 +22,6 @@ import {
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
 import { archiveUrl } from "./archive-binary-dependencies.ts";
-import {
-  kHKeyCurrentUser,
-  kHKeyLocalMachine,
-  registryReadString,
-} from "../../../src/core/registry.ts";
-import { quartoCacheDir } from "../../../src/core/appdirs.ts";
 
 export async function configure(
   config: Configuration,
@@ -182,6 +176,7 @@ async function downloadBinaryDependency(
 ) {
   const targetFile = join(
     configuration.directoryInfo.bin,
+    "tools",
     platformDependency.filename,
   );
   const dlUrl = archiveUrl(dependency, platformDependency);

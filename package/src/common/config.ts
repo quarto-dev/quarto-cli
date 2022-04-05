@@ -36,7 +36,7 @@ export function readConfiguration(
   version = version || getEnv("QUARTO_VERSION");
 
   const execPath = Deno.execPath();
-  const root = join(execPath, "..", "..", "..", "..");
+  const root = join(execPath, "..", "..", "..", "..", "..");
   const pkg = join(root, getEnv("QUARTO_PACKAGE_DIR"));
   const dist = join(pkg, getEnv("QUARTO_DIST_DIR"));
   const share = join(dist, getEnv("QUARTO_SHARE_DIR"));
