@@ -1,7 +1,5 @@
 // quarto-ojs.js
-import {
-  Interpreter as Interpreter2
-} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler@0.6.0-alpha.9";
+import { Interpreter as Interpreter2 } from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler@0.6.0-alpha.9";
 import {
   Inspector as Inspector4,
   Runtime as Runtime2,
@@ -1941,12 +1939,7 @@ if (Object.fromEntries === void 0) {
   };
 }
 function calloutBlock(opts) {
-  const {
-    type,
-    heading,
-    message,
-    onclick
-  } = opts;
+  const { type, heading, message, onclick } = opts;
   const outerBlock = document.createElement("div");
   outerBlock.classList.add(`callout-${type}`, "callout", "callout-style-default", "callout-captioned");
   const header = document.createElement("div");
@@ -2246,7 +2239,7 @@ function createRuntime() {
   }
   function transpose(df) {
     const keys = Object.keys(df);
-    return df[keys[0]].map((v2, i2) => Object.fromEntries(keys.map((key) => [key, df[key][i2] || void 0]))).filter((v2) => Object.values(v2).every((e2) => e2 !== void 0));
+    return df[keys[0]].map((v2, i2) => Object.fromEntries(keys.map((key) => [key, df[key][i2] || void 0]))).filter((v2) => !Object.values(v2).every((e2) => e2 === void 0));
   }
   lib.transpose = () => transpose;
   const mainEl = document.querySelector("main");
