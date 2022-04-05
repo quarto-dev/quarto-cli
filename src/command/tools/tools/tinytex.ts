@@ -4,11 +4,11 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
+import { copySync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { basename, join } from "path/mod.ts";
-import { moveSync } from "fs/move.ts";
 
 import { getenv } from "../../../core/env.ts";
 import { expandPath, which } from "../../../core/path.ts";
@@ -194,7 +194,9 @@ async function install(
         { message: `Moving files` },
         () => {
           const from = join(context.workingDir, tinyTexDirName);
-          moveSync(from, installDir, { overwrite: true });
+
+          copySync(from, installDir);
+          Deno.removeSync(from, { recursive: true });
 
           // Note the version that we have installed
           noteInstalledVersion(pkgInfo.version);
