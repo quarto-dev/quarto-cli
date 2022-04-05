@@ -7074,6 +7074,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "cache-path",
+          hidden: true,
           tags: {
             engine: "knitr"
           },

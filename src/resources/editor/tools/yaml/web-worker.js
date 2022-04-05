@@ -7075,6 +7075,7 @@ try {
           },
           {
             name: "cache-path",
+            hidden: true,
             tags: {
               engine: "knitr"
             },
