@@ -15981,12 +15981,14 @@ try {
           },
           {
             name: "type",
+            hidden: true,
             schema: {
               enum: [
                 "cd93424f-d5ba-4e95-91c6-1890eab59fc7"
               ]
             },
-            errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead."
+            errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead.",
+            description: "internal-schema-hack"
           }
         ],
         "schema/schema.yml": [
@@ -18216,6 +18218,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
+          "internal-schema-hack",
           "MISSING_DESCRIPTION",
           "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
           "Files to render (defaults to all files)",
@@ -18411,7 +18414,8 @@ try {
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
-          "Custom tools for navbar or sidebar"
+          "Custom tools for navbar or sidebar",
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
