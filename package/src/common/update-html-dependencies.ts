@@ -646,7 +646,7 @@ async function updatePandocHighlighting(config: Configuration) {
     "pandoc",
     "highlight-styles",
   );
-  const pandoc = join(config.directoryInfo.bin, "pandoc");
+  const pandoc = join(config.directoryInfo.bin, "tools", "pandoc");
 
   // List  the styles
   const result = await runCmd(pandoc, ["--list-highlight-styles"]);

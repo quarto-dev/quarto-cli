@@ -6,5 +6,5 @@ source ../../configuration
 
 # TODO: Consider generating a source map or something to get a good stack
 # Create the Deno bundle
-../$QUARTO_DIST_DIR/$QUARTO_BIN_DIR/deno run --unstable --allow-env --allow-read --allow-write --allow-run --allow-net --allow-ffi --importmap=import_map.json bld.ts $@
+../$QUARTO_DIST_DIR/$QUARTO_BIN_DIR/tools/deno run --unstable --allow-env --allow-read --allow-write --allow-run --allow-net --allow-ffi --importmap=import_map.json bld.ts $@
 

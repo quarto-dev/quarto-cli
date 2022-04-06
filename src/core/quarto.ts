@@ -19,6 +19,7 @@ export interface QuartoConfig {
 
 export const quartoConfig = {
   binPath: () => getenv("QUARTO_BIN_PATH"),
+  toolsPath: () => join(getenv("QUARTO_BIN_PATH"), "tools"),
   sharePath: () => getenv("QUARTO_SHARE_PATH"),
   isDebug: () => getenv("QUARTO_DEBUG", "false") === "true",
   version: () => {

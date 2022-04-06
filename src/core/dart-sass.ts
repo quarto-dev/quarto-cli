@@ -6,13 +6,13 @@
 */
 import { join } from "path/mod.ts";
 
-import { binaryPath } from "./resources.ts";
+import { toolsPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
 import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
 
 export function dartSassInstallDir() {
-  return binaryPath("dart-sass");
+  return toolsPath("dart-sass");
 }
 
 export async function dartSassVersion() {
@@ -51,7 +51,7 @@ export async function dartCompile(
 
 async function dartCommand(args: string[]) {
   const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
-  const sass = binaryPath(join("dart-sass", command));
+  const sass = toolsPath(join("dart-sass", command));
   const cmd = [
     sass,
     ...args,
