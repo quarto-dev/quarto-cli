@@ -1,0 +1,9 @@
+---
+title: "test"
+---
+
+```{r}
+#| label: fig-test
+#| fig-cap: !expr paste("Air", "Quality")
+plot(mtcars)
+```
