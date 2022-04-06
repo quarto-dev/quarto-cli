@@ -370,11 +370,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const rect = offsetEl.getBoundingClientRect();
       // subtract any headroom offiset, if present
       const headerEl = window.document.querySelector("header.fixed-top");
-      let headerOffset = 0;
-      if (headerEl) {
-        headerOffset = headerEl.clientHeight;
-      }
-      const position = Math.max(rect.height - headerOffset, 0);
+      const position = Math.max(rect.height, 0);
 
       const floating = window.document.querySelector("body.floating");
       const sidebarIds = ["quarto-margin-sidebar"];
