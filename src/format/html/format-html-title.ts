@@ -333,7 +333,6 @@ export function processDocumentTitle(
       bannerStyles.push(`color: ${titleBlockColor};`);
     }
 
-    headerEl?.setAttribute("data-sidebar-align", "true");
     if (banner === true) {
       headerEl?.appendChild(createBannerEl(
         doc,
@@ -478,10 +477,12 @@ function createBannerEl(
 ) {
   const mainEl = doc.querySelector("main.content");
   mainEl?.classList.add("quarto-banner-title-block");
+  
 
   const bannerDiv = doc.createElement("div");
 
   bannerDiv.classList.add("quarto-title-banner");
+  bannerDiv.setAttribute("data-sidebar-align", "true");
   if (color === "navbar") {
     bannerDiv.classList.add("color-navbar");
     // Also mark up secondary navigation

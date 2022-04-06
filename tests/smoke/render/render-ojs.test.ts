@@ -6,4 +6,4 @@
 */
 import { testRender } from "./render.ts";
 
-testRender("docs/ojs/test-ojs.md", "html", false);
+testRender("docs/ojs/test-ojs.qmd", "html", false);

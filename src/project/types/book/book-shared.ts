@@ -27,6 +27,7 @@ export type BookConfigKey =
   | "author"
   | "description"
   | "date"
+  | "date-format"
   | "abstract"
   | "cover-image";
 

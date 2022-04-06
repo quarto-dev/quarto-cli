@@ -8,9 +8,10 @@
 *
 */
 
-import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
+import { parse } from "encoding/yaml.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { AnnotatedParse, JSONValue } from "../lib/yaml-schema/types.ts";
+import { QuartoJSONSchema } from "../yaml.ts";
 
 export function readAnnotatedYamlFromMappedString(mappedYaml: MappedString) {
   const yml = mappedYaml.value;
@@ -80,7 +81,7 @@ export function readAnnotatedYamlFromMappedString(mappedYaml: MappedString) {
     }
   }
 
-  parse(yml, { listener, schema: JSON_SCHEMA });
+  parse(yml, { listener, schema: QuartoJSONSchema });
 
   if (results.length === 0) {
     return {

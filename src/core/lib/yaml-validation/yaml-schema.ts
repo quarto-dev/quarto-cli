@@ -11,6 +11,7 @@
 import { MappedString } from "../mapped-text.ts";
 
 import { TidyverseError } from "../errors.ts";
+import { ValidatorErrorHandlerFunction } from "./errors.ts";
 
 import { validate } from "./validator.ts";
 
@@ -109,23 +110,15 @@ export class YAMLSchema {
 
   // These are schema-specific error transformers to yield custom
   // error messages.
-  errorHandlers: ((
-    error: LocalizedError,
-    annotation: AnnotatedParse,
-    schema: Schema,
-  ) => LocalizedError)[];
 
+  errorHandlers: ValidatorErrorHandlerFunction[];
   constructor(schema: Schema) {
     this.errorHandlers = [];
     this.schema = schema;
   }
 
   addHandler(
-    handler: (
-      error: LocalizedError,
-      annotation: AnnotatedParse,
-      schema: Schema,
-    ) => LocalizedError,
+    handler: ValidatorErrorHandlerFunction,
   ) {
     this.errorHandlers.push(handler);
   }
@@ -133,13 +126,17 @@ export class YAMLSchema {
   transformErrors(
     annotation: AnnotatedParse,
     errors: LocalizedError[],
-  ) {
+  ): LocalizedError[] {
     return errors.map((error) => {
       for (const handler of this.errorHandlers) {
-        error = handler(error, annotation, this.schema);
+        const localError = handler(error, annotation, this.schema);
+        if (localError === null) {
+          return null;
+        }
+        error = localError;
       }
       return error;
-    });
+    }).filter((error) => error !== null) as LocalizedError[];
   }
 
   // deno-lint-ignore require-await

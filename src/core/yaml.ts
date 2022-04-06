@@ -8,7 +8,7 @@
 import { existsSync } from "fs/exists.ts";
 import { extname } from "path/mod.ts";
 
-import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
+import { parse } from "encoding/yaml.ts";
 import { lines, matchAll, normalizeNewlines } from "./text.ts";
 import { ErrorEx } from "./error.ts";
 import { getFrontMatterSchema } from "./lib/yaml-schema/front-matter.ts";
@@ -24,6 +24,13 @@ import {
 } from "./mapped-text.ts";
 
 import { readAndValidateYamlFromMappedString } from "./schema/validated-yaml.ts";
+
+/// YAML schema imports
+
+import { Schema } from "encoding/_yaml/schema.ts";
+import { Type } from "encoding/_yaml/type.ts";
+import { bool, float, int, nil } from "encoding/_yaml/type/mod.ts";
+import { failsafe } from "encoding/_yaml/schema/failsafe.ts";
 
 const kRegExBeginYAML = /^---[ \t]*$/;
 const kRegExEndYAML = /^(?:---|\.\.\.)([ \t]*)$/;
@@ -42,7 +49,7 @@ export function readYaml(file: string) {
   if (existsSync(file)) {
     const decoder = new TextDecoder("utf-8");
     const yml = Deno.readFileSync(file);
-    const result = parse(decoder.decode(yml), { schema: JSON_SCHEMA });
+    const result = parse(decoder.decode(yml), { schema: QuartoJSONSchema });
     try {
       JSON.stringify(result);
       return result;
@@ -59,7 +66,7 @@ export function readYaml(file: string) {
 }
 
 export function readYamlFromString(yml: string) {
-  return parse(yml, { schema: JSON_SCHEMA });
+  return parse(yml, { schema: QuartoJSONSchema });
 }
 
 export function readYamlFromMarkdown(
@@ -90,7 +97,7 @@ export function readYamlFromMarkdown(
         (yamlBlock.trim().length > 0)
       ) {
         // surface errors immediately for invalid yaml
-        parse(yamlBlock, { json: true, schema: JSON_SCHEMA });
+        parse(yamlBlock, { json: true, schema: QuartoJSONSchema });
         // add it
         yaml += yamlBlock;
       }
@@ -100,7 +107,7 @@ export function readYamlFromMarkdown(
     kRegExYAML.lastIndex = 0;
 
     // parse the yaml
-    const metadata = parse(yaml, { json: true, schema: JSON_SCHEMA });
+    const metadata = parse(yaml, { json: true, schema: QuartoJSONSchema });
     return (metadata || {}) as { [key: string]: unknown };
   } else {
     return {};
@@ -139,7 +146,7 @@ export async function readAndValidateYamlFromMarkdown(
       (yamlBlockValue.trim().length > 0)
     ) {
       // surface errors immediately for invalid yaml
-      parse(yamlBlockValue, { json: true, schema: JSON_SCHEMA });
+      parse(yamlBlockValue, { json: true, schema: QuartoJSONSchema });
       // add it
       yaml.push(yamlBlock);
     }
@@ -155,7 +162,7 @@ export async function readAndValidateYamlFromMarkdown(
   // parse the yaml
   const metadata = parse(mappedYaml.value, {
     json: true,
-    schema: JSON_SCHEMA,
+    schema: QuartoJSONSchema,
   }) as { [key: string]: unknown };
 
   if (metadata?.["validate-yaml"] as (boolean | undefined) === false) {
@@ -225,3 +232,27 @@ export class YAMLValidationError extends ErrorEx {
     super("YAMLValidationError", message, false, false);
   }
 }
+
+/* Quarto yaml schema
+*
+* We need to define a quarto yaml schema to support !expr tags without failing
+*/
+
+// Standard YAML's JSON schema + an expr tag handler ()
+// http://www.yaml.org/spec/1.2/spec.html#id2803231
+export const QuartoJSONSchema = new Schema({
+  implicit: [nil, bool, int, float],
+  include: [failsafe],
+  explicit: [
+    new Type("!expr", {
+      kind: "scalar",
+      construct(data): Record<string, unknown> {
+        const result: string = data !== null ? data : "";
+        return {
+          value: result,
+          tag: "!expr",
+        };
+      },
+    }),
+  ],
+});

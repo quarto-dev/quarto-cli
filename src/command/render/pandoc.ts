@@ -556,7 +556,7 @@ export async function runPandoc(
   // Resolve the author metadata into a form that Pandoc will recognize
   const authorsRaw = pandocMetadata[kAuthor];
   if (authorsRaw) {
-    const authors = parseAuthor(pandocMetadata[kAuthor]);
+    const authors = parseAuthor(pandocMetadata[kAuthor], true);
     if (authors) {
       pandocMetadata[kAuthor] = authors.map((author) => author.name);
     }
