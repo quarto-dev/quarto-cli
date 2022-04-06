@@ -13,7 +13,7 @@
     "deno.lint": true,
     "deno.enable": true,
     "deno.unstable": true,
-    "deno.path": "./package/dist/bin/deno",
+    "deno.path": "./package/dist/bin/tools/deno",
     "deno.suggest.imports.hosts": {
       "https://deno.land": true,
       "https://den.o.land": false
