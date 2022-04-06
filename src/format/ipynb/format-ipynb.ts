@@ -28,9 +28,9 @@ export function ipynbFormat(): Format {
     },
     formatExtras: () => {
       return {
-        postprocessors: [(output: string) => {
+        postprocessors: [async (output: string) => {
           // convert raw cell metadata format to raw_mimetype used by jupyter
-          const nb = jupyterFromFile(output);
+          const nb = await jupyterFromFile(output);
           nb.cells = nb.cells.map((cell) => {
             if (cell.cell_type == "raw") {
               if (cell.metadata[kCellFormat]) {

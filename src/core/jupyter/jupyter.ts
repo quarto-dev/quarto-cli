@@ -575,9 +575,13 @@ export async function jupyterKernelspecFromFile(
   }
 }
 
-export function jupyterFromFile(input: string): JupyterNotebook {
-  // parse the notebook
-  const nbContents = Deno.readTextFileSync(input);
+export async function jupyterFromFile(
+  input: string,
+  filter: (json: string) => Promise<string> = (json) => Promise.resolve(json),
+): Promise<JupyterNotebook> {
+  // parse the notebook and pass it through the filter
+  const nbContents = await filter(Deno.readTextFileSync(input));
+
   const nbJSON = JSON.parse(nbContents);
   const nb = nbJSON as JupyterNotebook;
 

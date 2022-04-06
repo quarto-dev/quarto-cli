@@ -34,6 +34,7 @@ import {
   kFreeze,
   kInclude,
   kIncludeInHeader,
+  kIpynbFilters,
   kKeepHidden,
   kKeepIpynb,
   kKeepMd,
@@ -183,6 +184,7 @@ function defaultFormat(): Format {
       [kExecuteDaemon]: null,
       [kExecuteDaemonRestart]: false,
       [kExecuteDebug]: false,
+      [kIpynbFilters]: [],
     },
     render: {
       [kKeepTex]: false,

@@ -40,7 +40,7 @@ export async function jupyterNotebookToMarkdown(
   includeIds: boolean,
 ) {
   // read notebook & alias kernelspec
-  const notebook = jupyterFromFile(file);
+  const notebook = await jupyterFromFile(file);
   const kernelspec = notebook.metadata.kernelspec;
 
   // generate markdown

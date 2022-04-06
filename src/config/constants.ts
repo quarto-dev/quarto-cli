@@ -38,6 +38,9 @@ export const kExecuteDaemon = "daemon";
 export const kExecuteDaemonRestart = "daemon-restart";
 export const kExecuteDebug = "debug";
 
+export const kIpynbFilter = "ipynb-filter";
+export const kIpynbFilters = "ipynb-filters";
+
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepYaml = "keep-yaml";
@@ -98,6 +101,8 @@ export const kExecuteDefaultsKeys = [
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,
+  kIpynbFilter,
+  kIpynbFilters,
 ];
 
 export const kRenderDefaultsKeys = [

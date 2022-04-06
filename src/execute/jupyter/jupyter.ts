@@ -33,6 +33,7 @@ import {
   kFigPos,
   kIncludeAfterBody,
   kIncludeInHeader,
+  kIpynbFilters,
   kKeepHidden,
   kKeepIpynb,
 } from "../../config/constants.ts";
@@ -69,6 +70,8 @@ import {
 } from "../types.ts";
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+
+import { jupyterIpynbFilter } from "./jupyter-filters.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -232,7 +235,15 @@ export const jupyterEngine: ExecutionEngine = {
     }
 
     // convert to markdown and write to target
-    const nb = jupyterFromFile(options.target.input);
+
+    // read w/ any filters
+    const nb = await jupyterFromFile(
+      options.target.input,
+      jupyterIpynbFilter(
+        options.target.input,
+        options.format.execute[kIpynbFilters],
+      ),
+    );
     const assets = jupyterAssets(
       options.target.input,
       options.format.pandoc.to,
