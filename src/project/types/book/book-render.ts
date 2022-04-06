@@ -84,6 +84,7 @@ import {
   readYamlFromMarkdown,
 } from "../../../core/yaml.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
+import { kDateFormat } from "../website/listing/website-listing-template.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -562,6 +563,7 @@ function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
     setMetadata(kSubtitle);
     setMetadata(kAuthor);
     setMetadata(kDate);
+    setMetadata(kDateFormat);
     setMetadata(kAbstract);
     setMetadata(kDescription);
   }
