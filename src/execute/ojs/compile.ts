@@ -70,7 +70,6 @@ import {
   kOutput,
 } from "../../config/constants.ts";
 
-import { languagesInMarkdown } from "../../core/jupyter/jupyter.ts";
 import { asHtmlId } from "../../core/html.ts";
 import { TempContext } from "../../core/temp.ts";
 import { quartoConfig } from "../../core/quarto.ts";
@@ -85,6 +84,7 @@ import {
   MappedString,
   mappedString,
 } from "../../core/mapped-text.ts";
+import { languagesInMarkdown } from "../engine-shared.ts";
 
 export interface OjsCompileOptions {
   source: string;

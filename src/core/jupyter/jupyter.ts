@@ -134,6 +134,7 @@ import { JupyterKernelspec } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown, readYamlFromMarkdownFile } from "../yaml.ts";
+import { languagesInMarkdownFile } from "../../execute/engine-shared.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -601,27 +602,6 @@ export function jupyterFromFile(input: string): JupyterNotebook {
   }
 
   return nb;
-}
-
-export function languagesInMarkdownFile(file: string) {
-  return languagesInMarkdown(Deno.readTextFileSync(file));
-}
-
-export function languagesInMarkdown(markdown: string) {
-  // see if there are any code chunks in the file
-  const languages = new Set<string>();
-  const kChunkRegex = /^[\t >]*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/gm;
-  kChunkRegex.lastIndex = 0;
-  let match = kChunkRegex.exec(markdown);
-  while (match) {
-    const language = match[1].toLowerCase();
-    if (!languages.has(language)) {
-      languages.add(language);
-    }
-    match = kChunkRegex.exec(markdown);
-  }
-  kChunkRegex.lastIndex = 0;
-  return languages;
 }
 
 export function jupyterAutoIdentifier(label: string) {
