@@ -62,9 +62,10 @@ IF NOT "%DENO_CANARY_COMMIT%"=="" (
 )
 deno cache --reload ..\..\..\..\src\quarto.ts --unstable --importmap=..\..\..\..\src\import_map.json
 
+POPD
+
 SET FINAL_BIN_PATH=%cd%
 
-POPD
 POPD
 POPD
 POPD
