@@ -81,6 +81,7 @@ export async function makeInstallerMac(config: Configuration) {
       join(config.directoryInfo.bin, "tools", "deno"),
       join(
         config.directoryInfo.bin,
+        "tools",
         "deno_dom",
         "libplugin.dylib",
       ),
