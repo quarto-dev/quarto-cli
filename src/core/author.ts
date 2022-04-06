@@ -64,7 +64,14 @@ export function parseAuthor(authorRaw: unknown) {
         }
       }
     });
-    return parsed;
+
+    // If we didn't know how to parse this author
+    // just stand down - we just don't recognize this.
+    if (parsed.length === 0) {
+      return undefined;
+    } else {
+      return parsed;
+    }
   } else {
     return undefined;
   }
