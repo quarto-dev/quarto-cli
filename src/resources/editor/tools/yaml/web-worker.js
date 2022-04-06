@@ -22113,6 +22113,7 @@ ${heading}`;
 
   // ../yaml-validation/errors.ts
   function setDefaultErrorHandlers(validator) {
+    validator.addHandler(ignoreExprViolations);
     validator.addHandler(expandEmptySpan);
     validator.addHandler(improveErrorHeadingForValueErrors);
     validator.addHandler(checkForTypeMismatch);
@@ -22151,6 +22152,17 @@ ${heading}`;
   }
   function reindent(str) {
     return str;
+  }
+  function ignoreExprViolations(error, _parse, _schema) {
+    const { result } = error.violatingObject;
+    if (typeof result !== "object" || Array.isArray(result) || result === null || error.schemaPath.slice(-1)[0] !== "type") {
+      return error;
+    }
+    if (result.tag === "!expr" && typeof result.value === "string") {
+      return null;
+    } else {
+      return error;
+    }
   }
   function formatHeadingForKeyError(_error, _parse, _schema, key) {
     return `property name ${blue(key)} is invalid`;
@@ -22980,10 +22992,14 @@ ${heading}`;
     transformErrors(annotation, errors) {
       return errors.map((error) => {
         for (const handler of this.errorHandlers) {
-          error = handler(error, annotation, this.schema);
+          const localError = handler(error, annotation, this.schema);
+          if (localError === null) {
+            return null;
+          }
+          error = localError;
         }
         return error;
-      });
+      }).filter((error) => error !== null);
     }
     async validateParse(src, annotation) {
       const validationErrors = validate(annotation, this.schema, src);

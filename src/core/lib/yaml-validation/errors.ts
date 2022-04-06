@@ -56,9 +56,10 @@ export type ValidatorErrorHandlerFunction = (
    * error.violatingObject (a subobject of parse.result).
    */
   schema: Schema,
-) => LocalizedError;
+) => (LocalizedError | null);
 
 export function setDefaultErrorHandlers(validator: YAMLSchema) {
+  validator.addHandler(ignoreExprViolations);
   validator.addHandler(expandEmptySpan);
   validator.addHandler(improveErrorHeadingForValueErrors);
   validator.addHandler(checkForTypeMismatch);
@@ -140,6 +141,29 @@ function reindent(
 ) {
   // TO BE FINISHED WHILE WE HANDLE THE ABOVE COMMENT
   return str;
+}
+
+function ignoreExprViolations(
+  error: LocalizedError,
+  _parse: AnnotatedParse,
+  _schema: Schema,
+): LocalizedError | null {
+  const { result } = error.violatingObject;
+  if (
+    typeof result !== "object" ||
+    Array.isArray(result) ||
+    result === null ||
+    error.schemaPath.slice(-1)[0] !== "type"
+  ) {
+    return error;
+  }
+
+  if (result.tag === "!expr" && typeof result.value === "string") {
+    // assume that this validation error came from !expr, drop the error.
+    return null;
+  } else {
+    return error;
+  }
 }
 
 function formatHeadingForKeyError(
