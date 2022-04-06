@@ -66,24 +66,25 @@ export async function makeInstallerWindows(configuration: Configuration) {
   const tempDir = Deno.makeTempDirSync();
   const workingDistPath = join(tempDir, "dist");
   const workingBinPath = join(workingDistPath, "bin");
+  const workingToolsPath = join(workingBinPath, "tools");
   copySync(configuration.directoryInfo.dist, workingDistPath);
 
   if (sign) {
     info("Signing application files");
 
     const filesToSign = [
-      { file: join(workingBinPath, "deno.exe") },
-      { file: join(workingBinPath, "esbuild.exe") },
-      { file: join(workingBinPath, "pandoc.exe") },
+      { file: join(workingToolsPath, "deno.exe") },
+      { file: join(workingToolsPath, "esbuild.exe") },
+      { file: join(workingToolsPath, "pandoc.exe") },
       {
         file: join(
-          workingBinPath,
+          workingToolsPath,
           "dart-sass",
           "src",
           "dart.exe",
         ),
       },
-      { file: join(workingBinPath, "deno_dom", "plugin.dll") },
+      { file: join(workingToolsPath, "deno_dom", "plugin.dll") },
       { file: join(workingBinPath, "quarto.js") },
     ];
     await signtool(
