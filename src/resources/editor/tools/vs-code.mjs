@@ -10569,7 +10569,12 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "institute",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: {
+              anyOf: [
+                "object",
+                "string"
+              ]
+            }
           },
           tags: {
             formats: [

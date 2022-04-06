@@ -10570,7 +10570,12 @@ try {
           {
             name: "institute",
             schema: {
-              maybeArrayOf: "string"
+              maybeArrayOf: {
+                anyOf: [
+                  "object",
+                  "string"
+                ]
+              }
             },
             tags: {
               formats: [

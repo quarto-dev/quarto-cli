@@ -73,7 +73,10 @@
 
 - name: institute
   schema:
-    maybeArrayOf: string
+    maybeArrayOf:
+      anyOf:
+        - object # This is a temporary fix for https://github.com/quarto-dev/quarto-cli/issues/552
+        - string
   tags:
     formats: [$html-pres, beamer]
   description: Author affiliations for the presentation.
