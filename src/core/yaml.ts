@@ -238,7 +238,7 @@ export class YAMLValidationError extends ErrorEx {
 * We need to define a quarto yaml schema to support !expr tags without failing
 */
 
-const expr = new Type("!expr", {
+const exprType = new Type("!expr", {
   kind: "scalar",
   construct(data): Record<string, unknown> {
     const result: string = data !== null ? data : "";
@@ -254,5 +254,5 @@ const expr = new Type("!expr", {
 export const QuartoJSONSchema = new Schema({
   implicit: [nil, bool, int, float],
   include: [failsafe],
-  explicit: [expr],
+  explicit: [exprType],
 });
