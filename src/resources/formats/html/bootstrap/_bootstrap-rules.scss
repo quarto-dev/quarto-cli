@@ -356,9 +356,11 @@ body.docked {
     z-index: 1;
   }
 
-  #quarto-margin-sidebar.collapse,
-  #quarto-sidebar.collapse {
-    z-index: $zindex-modal;
+  @include media-breakpoint-down(lg) {
+    #quarto-margin-sidebar.collapse,
+    #quarto-sidebar.collapse {
+      z-index: $zindex-modal;
+    }
   }
   
 
