@@ -455,12 +455,8 @@ export async function renderExecute(
     }
   }
 
-  // remove the figures dir before execute (so we don't inherit
-  // cruft from a previous execute)
+  // calculate figsDir
   const figsDir = join(filesDir, figuresDir(context.format.pandoc.to));
-  if (context.engine.generatesFigures) {
-    removeIfExists(figsDir);
-  }
 
   // execute computations
   const executeResult = await context.engine.execute({
