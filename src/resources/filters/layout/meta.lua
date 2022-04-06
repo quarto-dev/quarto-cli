@@ -41,6 +41,7 @@ function layoutMetaInject()
           boxrule = '0pt',
           ['frame hidden'] = "",
           ['sharp corners'] = "",
+          ['breakable'] = "",
           enhanced = "",
           ['borderline west'] = '{3pt}{0pt}{shadecolor}'
         }
