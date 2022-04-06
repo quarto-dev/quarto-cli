@@ -10,7 +10,7 @@ import { copySync } from "fs/copy.ts";
 import { extname, join } from "path/mod.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
-import { binaryPath, resourcePath } from "../resources.ts";
+import { resourcePath, toolsPath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./run.ts";
 import { removeIfExists } from "../path.ts";
 
@@ -32,7 +32,7 @@ export const denoRunHandler: RunHandler = {
 
     return await execProcess({
       cmd: [
-        binaryPath("deno"),
+        toolsPath("deno"),
         "run",
         "--import-map",
         importMap,

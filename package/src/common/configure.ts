@@ -22,12 +22,6 @@ import {
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
 import { archiveUrl } from "./archive-binary-dependencies.ts";
-import {
-  kHKeyCurrentUser,
-  kHKeyLocalMachine,
-  registryReadString,
-} from "../../../src/core/registry.ts";
-import { quartoCacheDir } from "../../../src/core/appdirs.ts";
 
 export async function configure(
   config: Configuration,
@@ -116,7 +110,6 @@ export async function configure(
     ];
     const pathRaw = Deno.env.get("PATH");
     const paths: string[] = pathRaw ? pathRaw.split(":") : [];
-    console.log(paths);
     const symlinksFiltered = symlinkPaths.filter((path) =>
       paths.includes(dirname(path))
     );
@@ -182,6 +175,7 @@ async function downloadBinaryDependency(
 ) {
   const targetFile = join(
     configuration.directoryInfo.bin,
+    "tools",
     platformDependency.filename,
   );
   const dlUrl = archiveUrl(dependency, platformDependency);
@@ -210,7 +204,7 @@ async function downloadBinaryDependency(
 // files on both platforms)
 // deno-lint-ignore no-unused-vars
 async function downloadDenoStdLibrary(config: Configuration) {
-  const denoBinary = join(config.directoryInfo.bin, "deno");
+  const denoBinary = join(config.directoryInfo.bin, "tools", "deno");
   const denoStdTs = join(
     config.directoryInfo.pkg,
     "scripts",

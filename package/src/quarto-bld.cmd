@@ -6,7 +6,7 @@ REM and convert any export statements into set statements
 REM (allows reuse of variables)
 FOR /F "tokens=*" %%A IN (..\..\configuration) DO CALL :convertExportToSet %%A 
 
-..\%QUARTO_DIST_DIR%\%QUARTO_BIN_DIR%\deno run --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi --importmap=import_map.json bld.ts %*
+..\%QUARTO_DIST_DIR%\%QUARTO_BIN_DIR%\tools\deno run --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi --importmap=import_map.json bld.ts %*
 
 GOTO :eof
 
