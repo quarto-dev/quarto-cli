@@ -110,7 +110,6 @@ export async function configure(
     ];
     const pathRaw = Deno.env.get("PATH");
     const paths: string[] = pathRaw ? pathRaw.split(":") : [];
-    console.log(paths);
     const symlinksFiltered = symlinkPaths.filter((path) =>
       paths.includes(dirname(path))
     );
