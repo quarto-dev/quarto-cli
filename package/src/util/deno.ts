@@ -15,7 +15,7 @@ export async function bundle(
 ) {
   // Bundle source code
   const denoBundleCmd: string[] = [];
-  denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
+  denoBundleCmd.push(join(configuration.directoryInfo.bin, "tools", "deno"));
   denoBundleCmd.push("bundle");
   denoBundleCmd.push("--unstable");
   denoBundleCmd.push(
@@ -46,7 +46,7 @@ export async function compile(
   configuration: Configuration,
 ) {
   const denoBundleCmd: string[] = [];
-  denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
+  denoBundleCmd.push(join(configuration.directoryInfo.bin, "tools", "deno"));
   denoBundleCmd.push("compile");
   denoBundleCmd.push("--unstable");
   denoBundleCmd.push(
@@ -72,7 +72,7 @@ export async function install(
   configuration: Configuration,
 ) {
   const denoBundleCmd: string[] = [];
-  denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
+  denoBundleCmd.push(join(configuration.directoryInfo.bin, "tools", "deno"));
   denoBundleCmd.push("install");
   denoBundleCmd.push("--unstable");
   denoBundleCmd.push(
@@ -116,11 +116,11 @@ export function updateDenoPath(installPath: string, config: Configuration) {
     const finalTxt = Deno.build.os === "windows"
       ? installTxt.replace(
         /deno.exe /g,
-        join(config.directoryInfo.bin, "deno.exe") + " ",
+        join(config.directoryInfo.bin, "tools", "deno.exe") + " ",
       )
       : installTxt.replace(
         /deno /g,
-        join(config.directoryInfo.bin, "deno") + " ",
+        join(config.directoryInfo.bin, "tools", "deno") + " ",
       );
     Deno.writeTextFileSync(
       installPath,

@@ -204,7 +204,7 @@ async function downloadBinaryDependency(
 // files on both platforms)
 // deno-lint-ignore no-unused-vars
 async function downloadDenoStdLibrary(config: Configuration) {
-  const denoBinary = join(config.directoryInfo.bin, "deno");
+  const denoBinary = join(config.directoryInfo.bin, "tools", "deno");
   const denoStdTs = join(
     config.directoryInfo.pkg,
     "scripts",
