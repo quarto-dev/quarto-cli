@@ -18,7 +18,12 @@ export const denoRunHandler: RunHandler = {
   canHandle: (script: string) => {
     return [".js", ".ts"].includes(extname(script).toLowerCase());
   },
-  run: async (script: string, args: string[], options?: RunHandlerOptions) => {
+  run: async (
+    script: string,
+    args: string[],
+    stdin?: string,
+    options?: RunHandlerOptions,
+  ) => {
     // add deno std library (one time initialize cache on demand)
     const denoDir = initDenoCache();
     options = {
@@ -43,7 +48,7 @@ export const denoRunHandler: RunHandler = {
         ...args,
       ],
       ...options,
-    });
+    }, stdin);
   },
 };
 

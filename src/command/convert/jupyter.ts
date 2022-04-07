@@ -18,6 +18,7 @@ import {
   JupyterCellOptions,
   jupyterCellOptionsAsComment,
   jupyterFromFile,
+  JupyterNotebook,
   mdEnsureTrailingNewline,
   mdFromContentCell,
   mdFromRawCell,
@@ -25,7 +26,10 @@ import {
 } from "../../core/jupyter/jupyter.ts";
 import { partitionCellOptions } from "../../core/partition-cell-options.ts";
 import { Metadata } from "../../config/types.ts";
-import { jupyterKernelspec } from "../../core/jupyter/kernels.ts";
+import {
+  jupyterDefaultPythonKernelspec,
+  jupyterKernelspec,
+} from "../../core/jupyter/kernels.ts";
 
 export async function markdownToJupyterNotebook(
   file: string,
@@ -40,7 +44,8 @@ export async function jupyterNotebookToMarkdown(
   includeIds: boolean,
 ) {
   // read notebook & alias kernelspec
-  const notebook = jupyterFromFile(file);
+  // const notebook = await jupyterFromFile(file);
+  const notebook: JupyterNotebook = {} as JupyterNotebook;
   const kernelspec = notebook.metadata.kernelspec;
 
   // generate markdown
