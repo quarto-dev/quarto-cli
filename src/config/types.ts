@@ -46,6 +46,9 @@ import {
   kCss,
   kEcho,
   kEngine,
+  kEnvironmentProofTitle,
+  kEnvironmentRemarkTitle,
+  kEnvironmentSolutionTitle,
   kEPubCoverImage,
   kError,
   kEval,
@@ -479,6 +482,9 @@ export interface FormatLanguage {
   [kCrossrefExrTitle]?: string;
   [kCrossrefSecPrefix]?: string;
   [kCrossrefEqPrefix]?: string;
+  [kEnvironmentProofTitle]?: string;
+  [kEnvironmentRemarkTitle]?: string;
+  [kEnvironmentSolutionTitle]?: string;
   [kListingPageOrderBy]?: string;
   [kListingPageOrderByDateAsc]?: string;
   [kListingPageOrderByDefault]?: string;

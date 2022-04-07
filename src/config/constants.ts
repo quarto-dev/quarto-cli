@@ -207,6 +207,9 @@ export const kCrossrefExrPrefix = "crossref-exr-prefix";
 export const kCrossrefLofTitle = "crossref-lof-title";
 export const kCrossrefLotTitle = "crossref-lot-title";
 export const kCrossrefLolTitle = "crossref-lol-title";
+export const kEnvironmentProofTitle = "environment-proof-title";
+export const kEnvironmentRemarkTitle = "environment-remark-title";
+export const kEnvironmentSolutionTitle = "environment-solution-title";
 export const kListingPageOrderBy = "listing-page-order-by";
 export const kListingPageOrderByDefault = "listing-page-order-by-default";
 export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
@@ -291,6 +294,9 @@ export const kLanguageDefaultsKeys = [
   kCrossrefLofTitle,
   kCrossrefLotTitle,
   kCrossrefLolTitle,
+  kEnvironmentProofTitle,
+  kEnvironmentRemarkTitle,
+  kEnvironmentSolutionTitle,
   kListingPageOrderBy,
   kListingPageOrderByDefault,
   kListingPageOrderByDateAsc,

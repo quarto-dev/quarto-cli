@@ -107,7 +107,7 @@ function theorems()
             )))
           else
             local span = pandoc.Span(
-              { pandoc.Emph(pandoc.Str(proof.title))},
+              { pandoc.Emph(pandoc.Str(envTitle(proof.env, proof.title)))},
               pandoc.Attr("", { "proof-title" })
             )
             if name ~= nil then
@@ -167,8 +167,9 @@ function theoremLatexIncludes()
     end
     theoremIncludes = theoremIncludes ..
       "\\theoremstyle{remark}\n" ..
-      "\\newtheorem*{remark}{Remark}\n" ..
-      "\\newtheorem*{solution}{Solution}\n"
+      "\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}\n" ..
+      "\\newtheorem*{remark}{" .. envTitle("remark", "Remark") .. "}\n" ..
+      "\\newtheorem*{solution}{" .. envTitle("solution", "Solution") .. "}\n"
     return theoremIncludes
   else
     return nil

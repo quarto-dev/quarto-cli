@@ -249,7 +249,8 @@ function languageFilterParams(language: FormatLanguage) {
   };
   Object.keys(language).forEach((key) => {
     if (
-      key.startsWith("callout-") || key.startsWith("crossref-")
+      key.startsWith("callout-") || key.startsWith("crossref-") ||
+      key.startsWith("environment-")
     ) {
       params[key] = language[key];
     }

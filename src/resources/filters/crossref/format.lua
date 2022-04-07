@@ -6,6 +6,10 @@ function title(type, default)
   return crossrefOption(type .. "-title", stringToInlines(default))
 end
 
+function envTitle(type, default)
+  return param("environment-" .. type .. "-title", default)
+end
+
 function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
