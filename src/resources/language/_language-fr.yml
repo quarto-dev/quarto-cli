@@ -64,6 +64,10 @@ crossref-lof-title: "Liste des Figures"
 crossref-lot-title: "Liste des Tables"
 crossref-lol-title: "Liste des Listings"
 
+environment-proof-title: "Preuve"
+environment-remark-title: "Remarque"
+environment-solution-title: "Solution"
+
 listing-page-order-by: "Trier par"
 listing-page-order-by-default: "Ordre par defaut"
 listing-page-order-by-date-asc: "Le plus ancien"
