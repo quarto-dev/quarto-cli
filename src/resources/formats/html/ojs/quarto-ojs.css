@@ -3,7 +3,14 @@ span.ojs-inline span div {
 }
 
 /* add some breathing room between display outputs and text especially */
-div.cell + section, div.cell + h1, div.cell + h2, div.cell + h3, div.cell + h4, div.cell + h5, div.cell + h6, div.cell + p {
+div.cell + section,
+div.cell + h1,
+div.cell + h2,
+div.cell + h3,
+div.cell + h4,
+div.cell + h5,
+div.cell + h6,
+div.cell + p {
   margin-top: 1rem;
 }
 
@@ -129,4 +136,9 @@ code span.quarto-ojs-error-pinpoint {
 .observablehq--error .callout {
   margin-bottom: 0;
   margin-top: 0;
+}
+
+/* this counteracts the negative margin which observablehq uses in their tables at runtime */
+.quarto-ojs-table-fixup {
+  padding-left: 14px;
 }

@@ -351,6 +351,7 @@ class QuartoOJSConnector extends OJSConnector {
   }
 
   interpret(src, elementGetter, elementCreator) {
+    // deno-lint-ignore no-this-alias
     const that = this;
     const observer = (targetElement, ojsAst) => {
       return (name) => {
@@ -402,30 +403,28 @@ class QuartoOJSConnector extends OJSConnector {
             const ojsDiv = mutation.target;
 
             if (!forceShowDeclarations) {
-              // hide the inner inspect outputs that aren't errors or
-              // declarations
-              Array.from(mutation.target.childNodes)
-                .filter((n) => {
-                  return (
-                    n.classList.contains("observablehq--inspect") &&
-                    !n.parentNode.classList.contains("observablehq--error") &&
-                    n.parentNode.parentNode.dataset.nodetype !== "expression"
-                  );
-                })
-                .forEach((n) => n.classList.add("quarto-ojs-hide"));
-
-              // show the inspect outputs that aren't errors and are
-              // expressions (they might have been hidden in the past,
-              // since errors can clear)
-              Array.from(mutation.target.childNodes)
-                .filter((n) => {
-                  return (
-                    n.classList.contains("observablehq--inspect") &&
-                    !n.parentNode.classList.contains("observablehq--error") &&
-                    n.parentNode.parentNode.dataset.nodetype === "expression"
-                  );
-                })
-                .forEach((n) => n.classList.remove("quarto-ojs-hide"));
+              const childNodes = Array.from(mutation.target.childNodes);
+              for (const n of childNodes) {
+                // hide the inner inspect outputs that aren't errors or
+                // declarations
+                if (
+                  n.classList.contains("observablehq--inspect") &&
+                  !n.parentNode.classList.contains("observablehq--error") &&
+                  n.parentNode.parentNode.dataset.nodetype !== "expression"
+                ) {
+                  n.classList.add("quarto-ojs-hide");
+                }
+                // show the inspect outputs that aren't errors and are
+                // expressions (they might have been hidden in the past,
+                // since errors can clear)
+                if (
+                  n.classList.contains("observablehq--inspect") &&
+                  !n.parentNode.classList.contains("observablehq--error") &&
+                  n.parentNode.parentNode.dataset.nodetype === "expression"
+                ) {
+                  n.classList.remove("quarto-ojs-hide");
+                }
+              }
             }
 
             // if the ojsDiv shows an error, display a callout block instead of it.
@@ -456,6 +455,17 @@ class QuartoOJSConnector extends OJSConnector {
 
             // hide import statements even if output === "all"
             for (const added of mutation.addedNodes) {
+              console.log(added);
+              if (
+                added.tagName === "FORM" &&
+                Array.from(added.classList).some(
+                  (x) => x.endsWith("table") && x.startsWith("oi-")
+                )
+              ) {
+                added.classList.add("quarto-ojs-table-fixup");
+              }
+              //// Hide imports that aren't javascript code
+              //
               // We search here for code.javascript and node span.hljs-... because
               // at this point in the DOM, observable's runtime hasn't called
               // HLJS yet. if you inspect the DOM yourself, you're likely to see
@@ -750,12 +760,8 @@ export function createRuntime() {
         // in a callout
 
         let cellDiv = targetElement;
-        let cellOutputDisplay;
         while (cellDiv !== null && !cellDiv.classList.contains("cell")) {
           cellDiv = cellDiv.parentElement;
-          if (cellDiv && cellDiv.classList.contains("cell-output-display")) {
-            cellOutputDisplay = cellDiv;
-          }
         }
 
         const ojsDiv = targetElement.querySelector(".observablehq");
