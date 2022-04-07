@@ -85,7 +85,8 @@ import {
   websiteConfigBoolean,
   websiteHtmlFormat,
   websiteRepoBranch,
-  websiteRepoUrl,
+  WebsiteRepoInfo,
+  websiteRepoInfo,
   websiteTitle,
 } from "./website-config.ts";
 import {
@@ -536,9 +537,9 @@ function handleRepoLinks(
   );
 
   if (repoActions.length > 0 || elRepoSource) {
-    const repoUrl = websiteRepoUrl(config);
-    if (repoUrl) {
-      if (isGithubRepoUrl(repoUrl)) {
+    const repoInfo = websiteRepoInfo(config);
+    if (repoInfo) {
+      if (isGithubRepoUrl(repoInfo.baseUrl)) {
         if (repoActions.length > 0) {
           // find the toc
           const toc = doc.querySelector(`nav[role="doc-toc"]`);
@@ -546,7 +547,7 @@ function handleRepoLinks(
             // get the action links
             const links = repoActionLinks(
               repoActions,
-              repoUrl,
+              repoInfo,
               websiteRepoBranch(config),
               source,
               language,
@@ -576,7 +577,9 @@ function handleRepoLinks(
         if (elRepoSource) {
           elRepoSource.setAttribute(
             kDataQuartoSourceUrl,
-            `${repoUrl}blob/${websiteRepoBranch(config)}/${source}`,
+            `${repoInfo.baseUrl}blob/${
+              websiteRepoBranch(config)
+            }/${repoInfo.path}${source}`,
           );
         }
       } else {
@@ -592,7 +595,7 @@ function handleRepoLinks(
 
 function repoActionLinks(
   actions: string[],
-  repoUrl: string,
+  repoInfo: WebsiteRepoInfo,
   branch: string,
   source: string,
   language: FormatLanguage,
@@ -602,17 +605,17 @@ function repoActionLinks(
       case "edit":
         return {
           text: language[kRepoActionLinksEdit],
-          url: `${repoUrl}edit/${branch}/${source}`,
+          url: `${repoInfo.baseUrl}edit/${branch}/${repoInfo.path}${source}`,
         };
       case "source":
         return {
           text: language[kRepoActionLinksSource],
-          url: `${repoUrl}blob/${branch}/${source}`,
+          url: `${repoInfo.baseUrl}blob/${branch}/${repoInfo.path}${source}`,
         };
       case "issue":
         return {
           text: language[kRepoActionLinksIssue],
-          url: `${repoUrl}issues/new`,
+          url: `${repoInfo.baseUrl}issues/new`,
         };
 
       default: {

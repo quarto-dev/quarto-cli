@@ -239,13 +239,31 @@ export function websitePath(project?: ProjectConfig): string {
   }
 }
 
-export function websiteRepoUrl(project?: ProjectConfig): string | undefined {
-  const repoUrl = websiteConfigString(kSiteRepoUrl, project);
+export interface WebsiteRepoInfo {
+  baseUrl: string;
+  path: string;
+}
+
+export function websiteRepoInfo(
+  project?: ProjectConfig,
+): WebsiteRepoInfo | undefined {
+  let repoUrl = websiteConfigString(kSiteRepoUrl, project);
   if (repoUrl) {
     if (!repoUrl.endsWith("/")) {
-      return repoUrl + "/";
+      repoUrl = repoUrl + "/";
+    }
+    // extract into base and path
+    const match = repoUrl.match(/(https?:\/\/(?:[^\/]+\/){3})(.*)/);
+    if (match) {
+      return {
+        baseUrl: match[1],
+        path: match[2] || "",
+      };
     } else {
-      return repoUrl;
+      return {
+        baseUrl: repoUrl,
+        path: "",
+      };
     }
   } else {
     return undefined;
