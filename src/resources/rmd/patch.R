@@ -82,6 +82,12 @@ if (!knitr_has_yaml_chunk_options()) {
 # override wrapping behavior for knitr_asis output (including htmlwidgets)
 # to provide for enclosing output div and support for figure captions
 wrap_asis_output <- function(options, x) {
+
+  # if the options are empty then this is inline output, return unmodified
+  if (length(options) == 0) {
+    return(x)
+  }
+
   # generate output div
   caption <- figure_cap(options)
   if (nzchar(caption)) {
