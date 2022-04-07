@@ -7388,7 +7388,9 @@ try {
           },
           {
             name: "fig-cap",
-            schema: "string",
+            schema: {
+              maybeArrayOf: "string"
+            },
             description: "Figure caption"
           },
           {

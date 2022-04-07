@@ -11,7 +11,8 @@
   description: "Default height for figures"
 
 - name: fig-cap
-  schema: string
+  schema:
+    maybeArrayOf: string
   description: Figure caption
 
 - name: fig-subcap
