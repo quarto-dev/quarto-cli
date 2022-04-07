@@ -2169,12 +2169,15 @@ var QuartoOJSConnector = class extends OJSConnector {
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
             if (!forceShowDeclarations) {
-              Array.from(mutation.target.childNodes).filter((n2) => {
-                return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression";
-              }).forEach((n2) => n2.classList.add("quarto-ojs-hide"));
-              Array.from(mutation.target.childNodes).filter((n2) => {
-                return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype === "expression";
-              }).forEach((n2) => n2.classList.remove("quarto-ojs-hide"));
+              const childNodes = Array.from(mutation.target.childNodes);
+              for (const n2 of childNodes) {
+                if (n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression") {
+                  n2.classList.add("quarto-ojs-hide");
+                }
+                if (n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype === "expression") {
+                  n2.classList.remove("quarto-ojs-hide");
+                }
+              }
             }
             if (ojsDiv.classList.contains("observablehq--error")) {
               ojsDiv.querySelector(".observablehq--inspect").style.display = "none";
@@ -2189,6 +2192,9 @@ var QuartoOJSConnector = class extends OJSConnector {
             }
             that.decorateSource(cellDiv, ojsDiv);
             for (const added of mutation.addedNodes) {
+              if (added.tagName === "FORM" && Array.from(added.classList).some((x2) => x2.endsWith("table") && x2.startsWith("oi-"))) {
+                added.classList.add("quarto-ojs-table-fixup");
+              }
               const result = added.querySelectorAll("code.javascript");
               if (result.length !== 1) {
                 continue;
@@ -2391,12 +2397,8 @@ function createRuntime() {
       };
       return ojsConnector.interpret(src, getElement, makeElement).catch((e2) => {
         let cellDiv = targetElement;
-        let cellOutputDisplay;
         while (cellDiv !== null && !cellDiv.classList.contains("cell")) {
           cellDiv = cellDiv.parentElement;
-          if (cellDiv && cellDiv.classList.contains("cell-output-display")) {
-            cellOutputDisplay = cellDiv;
-          }
         }
         const ojsDiv = targetElement.querySelector(".observablehq");
         for (const div of ojsDiv.querySelectorAll(".callout")) {
