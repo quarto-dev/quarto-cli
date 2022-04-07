@@ -18,7 +18,6 @@ import {
   JupyterCellOptions,
   jupyterCellOptionsAsComment,
   jupyterFromFile,
-  JupyterNotebook,
   mdEnsureTrailingNewline,
   mdFromContentCell,
   mdFromRawCell,
@@ -44,8 +43,7 @@ export async function jupyterNotebookToMarkdown(
   includeIds: boolean,
 ) {
   // read notebook & alias kernelspec
-  // const notebook = await jupyterFromFile(file);
-  const notebook: JupyterNotebook = {} as JupyterNotebook;
+  const notebook = await jupyterFromFile(file);
   const kernelspec = notebook.metadata.kernelspec;
 
   // generate markdown
