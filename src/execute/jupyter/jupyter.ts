@@ -238,7 +238,6 @@ export const jupyterEngine: ExecutionEngine = {
     // convert to markdown and write to target
 
     // read w/ any filters
-    /*
     const nb = await jupyterFromFile(
       options.target.input,
       jupyterIpynbFilter(
@@ -246,8 +245,6 @@ export const jupyterEngine: ExecutionEngine = {
         options.format.execute[kIpynbFilters],
       ),
     );
-    */
-    const nb: JupyterNotebook = {} as JupyterNotebook;
 
     const assets = jupyterAssets(
       options.target.input,
