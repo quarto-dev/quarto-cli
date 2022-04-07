@@ -580,9 +580,9 @@ export async function jupyterFromFile(
   filter?: (json: string) => Promise<string>,
 ): Promise<JupyterNotebook> {
   // parse the notebook and pass it through the filter
-  const nbContents = filter
-    ? filter(Deno.readTextFileSync(input))
-    : Deno.readTextFile(input);
+
+  const json = Deno.readTextFileSync(input);
+  const nbContents = filter ? filter(json) : json;
 
   const nbJSON = JSON.parse(await nbContents);
   const nb = nbJSON as JupyterNotebook;
