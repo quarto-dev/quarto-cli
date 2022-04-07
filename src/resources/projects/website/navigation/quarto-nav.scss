@@ -530,6 +530,12 @@ nav.sidebar.sidebar-navigation {
   }
 }
 
+// Immediate set the top offset if a fixed top header is present
+// This prevents a 'flash / jerk' when the page loads
+body.nav-fixed {
+  padding-top: 66px;
+}
+
 body:not(.floating) .nav-footer {
   @if variable-exists(footer-border) and $footer-border {
     @if variable-exists(footer-border-color) {
