@@ -22,6 +22,7 @@ import {
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
 import { archiveUrl } from "./archive-binary-dependencies.ts";
+import { suggestUserBinPaths } from "../../../src/core/env.ts";
 
 export async function configure(
   config: Configuration,
@@ -101,25 +102,17 @@ export async function configure(
     info("Creating Quarto Symlink");
 
     // Set up a symlink (if appropriate)
-    const symlinkPaths = [
-      "/usr/local/bin/quarto",
-      "~/.local/bin/quarto",
-      expandPath("~/.local/bin/quarto"),
-      "~/bin/quarto",
-      expandPath("~/bin/quarto"),
-    ];
-    const pathRaw = Deno.env.get("PATH");
-    const paths: string[] = pathRaw ? pathRaw.split(":") : [];
-    const symlinksFiltered = symlinkPaths.filter((path) =>
-      paths.includes(dirname(path))
+    const possibleBinPaths = suggestUserBinPaths();
+    const symlinksFiltered = possibleBinPaths.map((path) =>
+      join(path, "quarto")
     );
 
     info(`Found ${symlinksFiltered.length} paths to try.`);
 
     if (symlinksFiltered.length > 0) {
       for (let i = 0; i < symlinksFiltered.length; i++) {
-        info(`> Trying ${symlinkPaths[i]}`);
-        const symlinkPath = expandPath(symlinkPaths[i]);
+        info(`> Trying ${symlinksFiltered[i]}`);
+        const symlinkPath = expandPath(symlinksFiltered[i]);
 
         // Remove existing symlink
         try {
