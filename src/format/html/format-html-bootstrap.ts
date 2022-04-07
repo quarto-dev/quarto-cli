@@ -414,7 +414,9 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
       const column = suggestColumn(doc);
       setMainColumn(doc, column);
     }
+
     // Note whether we need a narrow or wide margin layout
+    const hasToc = !!format.pandoc.toc;
     const leftSidebar = doc.getElementById("quarto-sidebar");
     const hasLeftContent = leftSidebar && leftSidebar.children.length > 0;
     const rightSidebar = doc.getElementById("quarto-margin-sidebar");
@@ -424,7 +426,7 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
       doc.querySelectorAll(".margin-caption").length > 0 ||
       doc.querySelectorAll(".margin-ref").length > 0;
 
-    if (rightSidebar && !hasRightContent && !hasMarginContent) {
+    if (rightSidebar && !hasRightContent && !hasMarginContent && !hasToc) {
       rightSidebar.remove();
     }
     const hasColumnElements = getColumnLayoutElements(doc).length > 0;
@@ -434,13 +436,13 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
         // Slim down the content area so there are sizable margins
         // for the column element
         doc.body.classList.add("slimcontent");
-      } else if (hasRightContent || hasMarginContent || fullLayout) {
+      } else if (hasRightContent || hasMarginContent || fullLayout || hasToc) {
         // Use the default layout, so don't add any classes
       } else {
         doc.body.classList.add("fullcontent");
       }
     } else {
-      if (!hasRightContent && !hasMarginContent) {
+      if (!hasRightContent && !hasMarginContent && !hasToc) {
         doc.body.classList.add("fullcontent");
       } else {
         // Use the deafult layout, don't add any classes
