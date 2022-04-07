@@ -15,6 +15,11 @@ IF EXIST "%QUARTO_TS_PATH%" (
 		GOTO end
 	)
 
+	IF "%1"=="-v" (
+		ECHO 99.9.9
+		GOTO end
+	)
+
 	IF "%QUARTO_ACTION%"=="" (
 		SET QUARTO_ACTION=run
 	)
@@ -51,6 +56,11 @@ IF EXIST "%QUARTO_TS_PATH%" (
 ) ELSE (
 
 	IF "%1"=="--version" (
+		TYPE "%SCRIPT_DIR%..\share\version"
+		GOTO end
+	)
+
+		IF "%1"=="-v" (
 		TYPE "%SCRIPT_DIR%..\share\version"
 		GOTO end
 	)

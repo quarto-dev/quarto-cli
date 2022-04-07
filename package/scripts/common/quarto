@@ -55,7 +55,7 @@ if [ -f "$DEV_PATH" ]; then
     echo $DENO_SOURCE_VERSION > $DENO_VERSION_FILE
   fi
 
-  if [ "$1" == "--version" ]; then
+  if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
     echo "99.9.9"
     exit 0
   fi
@@ -77,7 +77,7 @@ else
     export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
   fi
 
-  if [ "$1" == "--version" ]; then
+  if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
     echo `cat "$QUARTO_SHARE_PATH/version"`
     exit 0
   fi

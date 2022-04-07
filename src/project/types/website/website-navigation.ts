@@ -377,6 +377,16 @@ function navigationHtmlPostprocessor(
       doc.body.classList.add("docked");
     }
 
+    // Note whether navbar is on (this is used)
+    // to create initial padding to prevent a jerk/flash when
+    // loading
+    const headerEl = doc.body.querySelector(
+      "#quarto-header.fixed-top nav.navbar",
+    );
+    if (headerEl) {
+      doc.body.classList.add("nav-fixed");
+    }
+
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");
     for (let i = 0; i < navLinks.length; i++) {
