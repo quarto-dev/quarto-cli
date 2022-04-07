@@ -238,15 +238,10 @@ export const jupyterEngine: ExecutionEngine = {
     // convert to markdown and write to target
 
     // read w/ any filters
-    /*
     const notebookFilter = jupyterIpynbFilter(
       options.target.input,
       options.format.execute[kIpynbFilters],
     );
-    */
-    const notebookFilter = (json: string) => {
-      return Promise.resolve(json);
-    };
 
     const nb = await jupyterFromFile(
       options.target.input,
