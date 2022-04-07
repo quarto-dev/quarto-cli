@@ -8,10 +8,9 @@
 import { info } from "log/mod.ts";
 
 import { dirname, extname } from "path/mod.ts";
-import { quartoInitFilter } from "../../command/render/filters.ts";
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
-import { pandocBinaryPath } from "../resources.ts";
+import { pandocBinaryPath, resourcePath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./run.ts";
 
 export const luaRunHandler: RunHandler = {
@@ -39,7 +38,7 @@ export const luaRunHandler: RunHandler = {
     ];
     if (isWindows()) {
       cmd.push("--lua-filter");
-      cmd.push(quartoInitFilter());
+      cmd.push(resourcePath("filters/init/init.lua"));
     }
     cmd.push(
       "--lua-filter",

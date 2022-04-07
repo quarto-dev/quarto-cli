@@ -6,9 +6,9 @@
 */
 
 import { dirname } from "path/mod.ts";
-import { pythonExec } from "../../core/jupyter/exec.ts";
 
 import { execProcess } from "../../core/process.ts";
+import { handlerForScript } from "../../core/run/run.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
 
 export async function jupyterNotebookFiltered(
@@ -21,15 +21,17 @@ export async function jupyterNotebookFiltered(
     for (const filter of filters) {
       const args = parseShellRunCommand(filter);
       const script = args[0];
-      const result = await execProcess({
-        cmd: [
-          ...(await pythonExec()),
-          script,
-          ...args,
-        ],
-        cwd: dirname(file),
-        stdout: "piped",
-      }, json);
+      const handler = handlerForScript(script);
+      const result = handler
+        ? await handler.run(script, args.splice(1), json, {
+          cwd: dirname(file),
+          stdout: "piped",
+        })
+        : await execProcess({
+          cmd: args,
+          cwd: dirname(file),
+          stdout: "piped",
+        });
 
       if (!result.success) {
         throw new Error();
