@@ -455,7 +455,6 @@ class QuartoOJSConnector extends OJSConnector {
 
             // hide import statements even if output === "all"
             for (const added of mutation.addedNodes) {
-              console.log(added);
               if (
                 added.tagName === "FORM" &&
                 Array.from(added.classList).some(

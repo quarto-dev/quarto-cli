@@ -2192,7 +2192,6 @@ var QuartoOJSConnector = class extends OJSConnector {
             }
             that.decorateSource(cellDiv, ojsDiv);
             for (const added of mutation.addedNodes) {
-              console.log(added);
               if (added.tagName === "FORM" && Array.from(added.classList).some((x2) => x2.endsWith("table") && x2.startsWith("oi-"))) {
                 added.classList.add("quarto-ojs-table-fixup");
               }
