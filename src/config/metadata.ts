@@ -22,8 +22,6 @@ import {
   kHeaderIncludes,
   kIncludeAfter,
   kIncludeBefore,
-  kIpynbFilter,
-  kIpynbFilters,
   kKeepMd,
   kKeepTex,
   kLanguageDefaults,
@@ -197,16 +195,6 @@ export function metadataAsFormat(metadata: Metadata): Format {
       }
     }
   });
-
-  // coalese ipynb-filter to ipynb-filters
-  const filter = format.execute[kIpynbFilter];
-  if (typeof (filter) === "string") {
-    typedFormat.execute[kIpynbFilters] = typedFormat.execute[kIpynbFilters] ||
-      [];
-    typedFormat.execute[kIpynbFilters]?.push(filter);
-    delete (typedFormat.execute as Record<string, unknown>)[kIpynbFilter];
-  }
-
   return typedFormat;
 }
 

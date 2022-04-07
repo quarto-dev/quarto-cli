@@ -53,7 +53,6 @@ import {
 } from "../../core/path.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
-import { parseShellRunCommand } from "../../core/run/shell.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -523,7 +522,7 @@ async function runScripts(
   env?: { [key: string]: string },
 ) {
   for (let i = 0; i < scripts.length; i++) {
-    const args = parseShellRunCommand(scripts[i]);
+    const args = parse(scripts[i]);
     const script = args[0];
 
     if (progress && !quiet) {
@@ -532,7 +531,7 @@ async function runScripts(
 
     const handler = handlerForScript(script);
     if (handler) {
-      await handler.run(script, args.splice(1), undefined, {
+      await handler.run(script, args.splice(1), {
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
         env,
@@ -549,4 +548,21 @@ async function runScripts(
   if (scripts.length > 0) {
     info("");
   }
+}
+
+function parse(cmdLine: string) {
+  let space = "{{space}}";
+  while (cmdLine.indexOf(space) > -1) {
+    space += "&";
+  }
+  const noSpaces = cmdLine.replace(
+    /"([^"]*)"?/g,
+    (_, capture) => {
+      return capture.replace(/ /g, space);
+    },
+  );
+  const paramArray = noSpaces.split(/ +/);
+  return paramArray.map((mangled) => {
+    return mangled.replace(RegExp(space, "g"), " ");
+  });
 }

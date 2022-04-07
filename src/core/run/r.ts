@@ -15,12 +15,7 @@ export const rRunHandler: RunHandler = {
   canHandle: (script: string) => {
     return [".r"].includes(extname(script).toLowerCase());
   },
-  run: async (
-    script: string,
-    args: string[],
-    stdin?: string,
-    options?: RunHandlerOptions,
-  ) => {
+  run: async (script: string, args: string[], options?: RunHandlerOptions) => {
     return await execProcess({
       cmd: [
         await rBinaryPath("Rscript"),
@@ -28,6 +23,6 @@ export const rRunHandler: RunHandler = {
         ...args,
       ],
       ...options,
-    }, stdin);
+    });
   },
 };

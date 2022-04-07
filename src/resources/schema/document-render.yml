@@ -85,13 +85,6 @@
     contexts: [document-execute]
   description: "Keep the notebook file generated from executing code."
 
-- name: ipynb-filters
-  schema:
-    arrayOf: "string"
-  tags:
-    contexts: [document-execute]
-  description: "Filters to pre-process ipynb files before rendering to markdown"
-
 - name: keep-tex
   tags:
     formats: [pdf, beamer]

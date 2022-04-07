@@ -24,7 +24,6 @@ export interface RunHandler {
   run: (
     script: string,
     args: string[],
-    stdin?: string,
     options?: RunHandlerOptions,
   ) => Promise<ProcessResult>;
 }

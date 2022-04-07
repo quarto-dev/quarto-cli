@@ -18,17 +18,7 @@ export const luaRunHandler: RunHandler = {
   canHandle: (script: string) => {
     return [".lua"].includes(extname(script).toLowerCase());
   },
-  run: async (
-    script: string,
-    args: string[],
-    stdin?: string,
-    options?: RunHandlerOptions,
-  ) => {
-    // lua run handlers don't support stdin
-    if (typeof (stdin) === "string") {
-      throw new Error("Lua run handlers cannot be passed stdin");
-    }
-
+  run: async (script: string, args: string[], options?: RunHandlerOptions) => {
     // call pandoc w/ script as a filter
     const cmd = [
       pandocBinaryPath(),

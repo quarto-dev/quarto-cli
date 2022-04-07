@@ -71,7 +71,6 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
-  kIpynbFilters,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -348,7 +347,6 @@ export interface FormatExecute {
   [kInclude]?: boolean;
   [kKeepMd]?: boolean;
   [kKeepIpynb]?: boolean;
-  [kIpynbFilters]?: string[];
 }
 
 export interface FormatPandoc {
