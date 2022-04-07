@@ -581,10 +581,10 @@ export async function jupyterFromFile(
 ): Promise<JupyterNotebook> {
   // parse the notebook and pass it through the filter
   const nbContents = filter
-    ? await filter(Deno.readTextFileSync(input))
-    : Deno.readTextFileSync(input);
+    ? filter(Deno.readTextFileSync(input))
+    : Deno.readTextFile(input);
 
-  const nbJSON = JSON.parse(nbContents);
+  const nbJSON = JSON.parse(await nbContents);
   const nb = nbJSON as JupyterNotebook;
 
   // vscode doesn't write a language to the kernelspec so also try language_info
