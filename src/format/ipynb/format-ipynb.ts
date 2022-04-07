@@ -11,10 +11,7 @@ import {
   kDefaultImageExtension,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
-import {
-  jupyterFromFile,
-  JupyterNotebook,
-} from "../../core/jupyter/jupyter.ts";
+import { jupyterFromFile } from "../../core/jupyter/jupyter.ts";
 import {
   kApplicationRtf,
   kRestructuredText,
@@ -33,8 +30,7 @@ export function ipynbFormat(): Format {
       return {
         postprocessors: [async (output: string) => {
           // convert raw cell metadata format to raw_mimetype used by jupyter
-          // const nb = await jupyterFromFile(output);
-          const nb: JupyterNotebook = {} as JupyterNotebook;
+          const nb = await jupyterFromFile(output);
 
           nb.cells = nb.cells.map((cell) => {
             if (cell.cell_type == "raw") {
