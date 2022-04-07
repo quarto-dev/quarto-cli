@@ -171,21 +171,31 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             }
           }
         }
-        // See if the referrer is a listing page for this item
-        const referredRelativePath = offsetAbsoluteUrl(document.referrer);
-        const referrerListing = listingHrefs.find((listingHref) => {
-          const isListingReferrer =
-            listingHref === referredRelativePath ||
-            listingHref === referredRelativePath + "index.html";
-          return isListingReferrer;
-        });
 
-        if (referrerListing) {
-          // Try to use the referrer if possible
-          activateCategories(referrerListing);
-        } else if (listingHrefs.length > 0) {
-          // Otherwise, just fall back to the first listing
-          activateCategories(listingHrefs[0]);
+        // Look up the tree for a nearby linting and use that if we find one
+        const nearestListing = findNearestParentListing(
+          offsetAbsoluteUrl(window.location.pathname),
+          listingHrefs
+        );
+        if (nearestListing) {
+          activateCategories(nearestListing);
+        } else {
+          // See if the referrer is a listing page for this item
+          const referredRelativePath = offsetAbsoluteUrl(document.referrer);
+          const referrerListing = listingHrefs.find((listingHref) => {
+            const isListingReferrer =
+              listingHref === referredRelativePath ||
+              listingHref === referredRelativePath + "index.html";
+            return isListingReferrer;
+          });
+
+          if (referrerListing) {
+            // Try to use the referrer if possible
+            activateCategories(referrerListing);
+          } else if (listingHrefs.length > 0) {
+            // Otherwise, just fall back to the first listing
+            activateCategories(listingHrefs[0]);
+          }
         }
       });
     }
@@ -193,6 +203,25 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   if (hasTitleCategories()) {
     findAndActivateCategories();
   }
+
+  const findNearestParentListing = (href, listingHrefs) => {
+    if (!href || !listingHrefs) {
+      return undefined;
+    }
+    // Look up the tree for a nearby linting and use that if we find one
+    const relativeParts = href.substring(1).split("/");
+    while (relativeParts.length > 0) {
+      const path = relativeParts.join("/");
+      for (const listingHref of listingHrefs) {
+        if (listingHref.startsWith(path)) {
+          return listingHref;
+        }
+      }
+      relativeParts.pop();
+    }
+
+    return undefined;
+  };
 
   const manageSidebarVisiblity = (el, placeholderDescriptor) => {
     let isVisible = true;
