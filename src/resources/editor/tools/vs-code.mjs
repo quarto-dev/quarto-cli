@@ -7387,7 +7387,9 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "fig-cap",
-          schema: "string",
+          schema: {
+            maybeArrayOf: "string"
+          },
           description: "Figure caption"
         },
         {
