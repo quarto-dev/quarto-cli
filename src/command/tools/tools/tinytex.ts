@@ -299,6 +299,15 @@ async function afterInstall(context: InstallContext) {
       },
     );
 
+    const message =
+      `Unable to determine a path to use when installing TeX Live. 
+To complete the installation, please run the following:
+
+${tlmgrPath} option sys_bin <bin_dir_on_path>
+${tlmgrPath} path add
+
+This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path>.`;
+
     const configureBinPath = async () => {
       if (Deno.build.os !== "windows") {
         // Find bin paths on this machine
@@ -328,20 +337,14 @@ async function afterInstall(context: InstallContext) {
       async () => {
         const pathConfigured = await configureBinPath();
         if (pathConfigured) {
-          await exec(
+          const result = await exec(
             tlmgrPath,
             ["path", "add"],
           );
+          if (!result.success) {
+            warning(message);
+          }
         } else {
-          const message =
-            `Unable to determine a path to use when installing TeX Live. 
-To complete the installation, please run the following:
-
-${tlmgrPath} option sys_bin <bin_dir_on_path>
-${tlmgrPath} path add
-
-This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path>.
-`;
           warning(message);
         }
       },
