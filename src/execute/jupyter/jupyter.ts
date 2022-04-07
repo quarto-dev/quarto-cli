@@ -19,7 +19,7 @@ import { runningInCI } from "../../core/ci-info.ts";
 import {
   isJupyterNotebook,
   jupyterAssets,
-  jupyterFromFile,
+  jupyterFromJSON,
   jupyterToMarkdown,
   kJupyterNotebookExtensions,
   quartoMdToJupyter,
@@ -71,7 +71,7 @@ import {
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 
-import { jupyterIpynbFilter } from "./jupyter-filters.ts";
+import { jupyterNotebookFiltered } from "./jupyter-filters.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -235,15 +235,11 @@ export const jupyterEngine: ExecutionEngine = {
     }
 
     // convert to markdown and write to target
-
-    // read w/ any filters
-    const nb = await jupyterFromFile(
+    const nbContents = await jupyterNotebookFiltered(
       options.target.input,
-      jupyterIpynbFilter(
-        options.target.input,
-        options.format.execute[kIpynbFilters],
-      ),
+      options.format.execute[kIpynbFilters],
     );
+    const nb = jupyterFromJSON(nbContents);
     const assets = jupyterAssets(
       options.target.input,
       options.format.pandoc.to,

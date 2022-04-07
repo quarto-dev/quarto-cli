@@ -575,12 +575,13 @@ export async function jupyterKernelspecFromFile(
   }
 }
 
-export async function jupyterFromFile(
-  input: string,
-  filter: (json: string) => Promise<string> = (json) => Promise.resolve(json),
-): Promise<JupyterNotebook> {
-  // parse the notebook and pass it through the filter
-  const nbContents = await filter(Deno.readTextFileSync(input));
+export function jupyterFromFile(input: string): JupyterNotebook {
+  const nbContents = Deno.readTextFileSync(input);
+  return jupyterFromJSON(nbContents);
+}
+
+export function jupyterFromJSON(nbContents: string): JupyterNotebook {
+  // parse the notebook
 
   const nbJSON = JSON.parse(nbContents);
   const nb = nbJSON as JupyterNotebook;
@@ -597,12 +598,12 @@ export async function jupyterFromFile(
 
   // validate that we have a language
   if (!nb.metadata.kernelspec.language) {
-    throw new Error("No langage set for Jupyter notebook " + input);
+    throw new Error("No langage set for Jupyter notebook");
   }
 
   // validate that we have cells
   if (!nb.cells) {
-    throw new Error("No cells available in Jupyter notebook " + input);
+    throw new Error("No cells available in Jupyter notebook");
   }
 
   return nb;
