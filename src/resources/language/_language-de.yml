@@ -64,6 +64,10 @@ crossref-lof-title: "Abbildungsverzeichnis"
 crossref-lot-title: "Tabellenverzeichnis"
 crossref-lol-title: "Listingverzeichnis"
 
+environment-proof-title: "Nachweisen"
+environment-remark-title: "Bemerkung"
+environment-solution-title: "Lösung"
+
 listing-page-order-by: "Sortieren nach"
 listing-page-order-by-default: "Voreinstellung"
 listing-page-order-by-date-asc: "Älteste"
