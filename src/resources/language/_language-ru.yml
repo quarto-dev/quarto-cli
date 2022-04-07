@@ -64,6 +64,10 @@ crossref-lof-title: "Список Иллюстраций"
 crossref-lot-title: "Список Таблиц"
 crossref-lol-title: "Список Каталогов"
 
+environment-proof-title: "Доказательство"
+environment-remark-title: "Примечание"
+environment-solution-title: "Решение"
+
 listing-page-order-by: "Сортировать по"
 listing-page-order-by-default: "предварительно выбранный"
 listing-page-order-by-date-asc: "Самый старый"
