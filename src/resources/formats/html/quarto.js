@@ -8,6 +8,7 @@ const sectionChanged = new CustomEvent("quarto-sectionChanged", {
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   const tocEl = window.document.querySelector('nav[role="doc-toc"]');
   const sidebarEl = window.document.getElementById("quarto-sidebar");
+  const leftTocEl = window.document.getElementById("quarto-sidebar-toc-left");
   const marginSidebarEl = window.document.getElementById(
     "quarto-margin-sidebar"
   );
@@ -431,6 +432,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     titleSelector: ".title",
     dismissOnClick: false,
   });
+  let tocLeftScrollVisibility;
+  if (leftTocEl) {
+    tocLeftScrollVisibility = manageSidebarVisiblity(leftTocEl, {
+      id: "quarto-lefttoc-toggle",
+      titleSelector: "#toc-title",
+      dismissOnClick: true,
+    });
+  }
+
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
     '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]'
@@ -492,6 +502,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const hideOverlappedSidebars = () => {
     marginScrollVisibility(toRegions(rightSideConflictEls));
     sidebarScrollVisiblity(toRegions(leftSideConflictEls));
+    if (tocLeftScrollVisibility) {
+      tocLeftScrollVisibility(toRegions(leftSideConflictEls));
+    }
   };
 
   window.quartoToggleReader = () => {

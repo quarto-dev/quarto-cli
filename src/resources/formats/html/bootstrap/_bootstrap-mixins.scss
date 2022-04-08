@@ -470,3 +470,38 @@ $grid-body-maxsize-listing: calc(1200px - #{2 * $grid-screen-inset-padding});
     [screen-end-inset] $grid-screen-inset-padding
     [screen-end];
 }
+
+@mixin page-columns-tocleft-wide {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] $grid-screen-inset-padding
+    [screen-start-inset] 5fr
+    [page-start] 35px
+    [page-start-inset] minmax(0px, 175px)
+    [body-start-outset] 35px
+    [body-start] 1.5em
+    [body-content-start] minmax($grid-body-minsize-slim, $grid-body-maxsize-mid)
+    [body-content-end] 1.5em
+    [body-end] 50px
+    [body-end-outset] minmax(0px, 200px)
+    [page-end-inset] 50px
+    [page-end] 5fr
+    [screen-end-inset] $grid-screen-inset-padding
+    [screen-end];
+}
+
+@mixin page-columns-tocleft-mid {
+  @include page-columns();
+  grid-template-columns:
+    [screen-start] $grid-screen-inset-padding
+    [screen-start-inset] 5fr
+    [page-start] 35px
+    [page-start-inset] minmax(0px, 145px)
+    [body-start-outset] 35px
+    [body-start] 1.5em
+    [body-content-start] minmax($grid-body-minsize-slim, $grid-body-maxsize-mid)
+    [body-content-end] 1.5em
+    [body-end body-end-outset page-end-inset page-end] 5fr
+    [screen-end-inset] $grid-screen-inset-padding
+    [screen-end];
+}

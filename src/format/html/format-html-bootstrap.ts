@@ -17,6 +17,7 @@ import {
   kLinkCitations,
   kSectionDivs,
   kTheme,
+  kTocLocation,
 } from "../../config/constants.ts";
 import {
   Format,
@@ -144,10 +145,12 @@ export function boostrapExtras(
   offset?: string,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
+  const tocLocation = format.metadata[kTocLocation];
 
   const renderTemplate = (template: string, pageLayout: string) => {
     return renderEjs(formatResourcePath("html", `templates/${template}`), {
       toc,
+      tocLocation,
       pageLayout,
     });
   };
@@ -162,11 +165,11 @@ export function boostrapExtras(
       before: renderTemplate("before-body-article.ejs", pageLayout),
       afterPreamble: renderTemplate(
         "after-body-article-preamble.ejs",
-        kPageLayoutArticle,
+        pageLayout,
       ),
       afterPostamble: renderTemplate(
         "after-body-article-postamble.ejs",
-        kPageLayoutArticle,
+        pageLayout,
       ),
     }
     : {
