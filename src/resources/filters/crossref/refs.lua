@@ -14,7 +14,7 @@ function resolveRefs()
       local refs = pandoc.List()
       for i, cite in ipairs (citeEl.citations) do
         -- get the label and type, and note if the label is uppercase
-        local label = text.lower(cite.id)
+        local label = cite.id
         local type = refType(label)
         if type ~= nil then
           local upper = not not string.match(cite.id, "^[A-Z]")
