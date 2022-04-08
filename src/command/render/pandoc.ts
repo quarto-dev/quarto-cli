@@ -103,6 +103,8 @@ import {
   kTemplate,
   kTitle,
   kTitlePrefix,
+  kToc,
+  kTocLocation,
   kTocTitle,
   kTocTitleDocument,
   kTocTitleWebsite,
@@ -212,6 +214,14 @@ export async function runPandoc(
         ? kTocTitleWebsite
         : kTocTitleDocument
     ];
+  }
+
+  // if toc-location is set, enable the TOC as well
+  if (
+    options.format.metadata[kTocLocation] &&
+    options.format.pandoc.toc === undefined
+  ) {
+    options.format.pandoc.toc = true;
   }
 
   // if there is an abtract then forward abtract-title
