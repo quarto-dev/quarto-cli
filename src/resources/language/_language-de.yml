@@ -65,7 +65,7 @@ crossref-lot-title: "Tabellenverzeichnis"
 crossref-lol-title: "Listingverzeichnis"
 
 environment-proof-title: "Beweis"
-environment-remark-title: "Anmerkung"
+environment-remark-title: "Bemerkung"
 environment-solution-title: "Lösung"
 
 listing-page-order-by: "Sortieren nach"
