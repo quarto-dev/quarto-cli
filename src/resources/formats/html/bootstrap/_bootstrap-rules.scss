@@ -1570,10 +1570,12 @@ main.quarto-banner-title-block {
 
   
   @include media-breakpoint-down(lg) {
-
-    .page-columns .quarto-title-banner,
-    .quarto-title-banner {
-      display: none;
+    body.floating,
+    body.docked {
+      .page-columns .quarto-title-banner,
+      .quarto-title-banner {
+        display: none;
+      }  
     }
   }
   
@@ -1582,15 +1584,15 @@ main.quarto-banner-title-block {
       padding-top: 2.5em;
       padding-bottom: 2.5em;
     }
-
-
   } 
-  
-  .quarto-sidebar-toc-left {
-    margin-top: 1em;
 
+  @include media-breakpoint-down(lg) {
+    .quarto-title-banner {
+      padding-top: 1em;
+      padding-bottom: 1em;
+    }
   }
-
+  
   .quarto-title-banner {
     margin-bottom: 1em;
     
