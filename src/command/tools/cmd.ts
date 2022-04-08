@@ -165,7 +165,6 @@ async function outputTools() {
     };
 
     // The column widths for output (in chars)
-
     for (const tool of installableTools()) {
       const summary = await toolSummary(tool);
       if (summary) {
@@ -180,6 +179,14 @@ async function outputTools() {
             cols,
           ),
         );
+
+        if (summary.configuration.status !== "ok") {
+          toolRows.push(
+            `[${summary.configuration.status}] ${
+              summary.configuration.message || "No Message"
+            }`,
+          );
+        }
       }
     }
   });
