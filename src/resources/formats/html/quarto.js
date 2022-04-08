@@ -397,9 +397,21 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       if (offsetTopPadding === null) {
         offsetTopPadding = offsetEl.style.paddingTop;
       }
-      const rect = offsetEl.getBoundingClientRect();
+      const headerEl = window.document.querySelector(
+        "#quarto-header.fixed-top nav.navbar"
+      );
+      let offset = 0;
+      if (headerEl) {
+        offset = headerEl.getBoundingClientRect().height;
+      }
+
       // subtract any headroom offiset, if present
-      const position = Math.max(rect.height, 0);
+      const position = Math.max(
+        offsetEl.getBoundingClientRect().top +
+          document.documentElement.scrollTop -
+          offset,
+        0
+      );
 
       const floating = window.document.querySelector("body.floating");
       const sidebarIds = ["quarto-margin-sidebar", "quarto-sidebar-toc-left"];
@@ -409,9 +421,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       sidebarIds.forEach((sidebarId) => {
         const sidebarEl = window.document.getElementById(sidebarId);
         if (sidebarEl) {
-          sidebarEl.style.marginTop = `${position}px`;
+          sidebarEl.style.marginTop = `calc(${position}px - 1em)`;
           if (position > 0) {
-            sidebarEl.style.paddingTop = "0.5em";
+            sidebarEl.style.paddingTop = "0";
           } else {
             sidebarEl.style.paddingTop = offsetTopPadding;
           }

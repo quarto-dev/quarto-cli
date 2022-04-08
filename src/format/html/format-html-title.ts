@@ -309,6 +309,7 @@ export function processDocumentTitle(
   const banner = format.metadata[kTitleBlockBanner] as string | boolean;
   if (banner) {
     const bannerStyles: string[] = [];
+    headerEl?.nextElementSibling?.setAttribute("data-sidebar-align", "true");
 
     const titleColor = (block: unknown) => {
       if (block === "body" || block === "body-bg") {
@@ -334,7 +335,6 @@ export function processDocumentTitle(
     }
 
     if (banner === true) {
-      headerEl?.setAttribute("data-sidebar-align", "true");
       headerEl?.appendChild(createBannerEl(
         doc,
         titleContainerEl,
@@ -342,7 +342,6 @@ export function processDocumentTitle(
       ));
     } else if (isBannerImage(input, banner)) {
       resources.push(banner as string);
-      headerEl?.setAttribute("data-sidebar-align", "true");
       headerEl?.appendChild(
         createBannerEl(
           doc,
@@ -352,7 +351,6 @@ export function processDocumentTitle(
         ),
       );
     } else {
-      headerEl?.setAttribute("data-sidebar-align", "true");
       headerEl?.appendChild(
         createBannerEl(
           doc,
