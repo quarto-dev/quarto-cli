@@ -758,13 +758,17 @@ const referenceMarginProcessor: MarginNodeProcessor = {
 
         // The parent is a figcaption that contains the reference.
         // The parent.parent is the figure
-        const parentCaptionEl = findCaptionEl(el);
-        if (refContentsEl && parentCaptionEl) {
-          addContentToMarginContainerForEl(
-            parentCaptionEl,
-            refContentsEl.cloneNode(true),
-            doc,
-          );
+        const figureCaptionEl = findCaptionEl(el);
+        if (refContentsEl && figureCaptionEl) {
+          if (figureCaptionEl.classList.contains("margin-caption")) {
+            figureCaptionEl.appendChild(refContentsEl.cloneNode(true));
+          } else {
+            addContentToMarginContainerForEl(
+              figureCaptionEl,
+              refContentsEl,
+              doc,
+            );
+          }
         } else if (refContentsEl) {
           const nonSpanParent = findNonSpanParentEl(el);
           if (nonSpanParent) {
