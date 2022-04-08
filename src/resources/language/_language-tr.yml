@@ -64,6 +64,10 @@ crossref-lof-title: "Şekil Listesi"
 crossref-lot-title: "Tablo Listesi"
 crossref-lol-title: "İlan Listesi"
 
+environment-proof-title: "Kanıt"
+environment-remark-title: "Yorum"
+environment-solution-title: "Çözüm"
+
 listing-page-order-by: "Sıralama Öğesi"
 listing-page-order-by-default: "Varsayılan"
 listing-page-order-by-date-asc: "En eski"
