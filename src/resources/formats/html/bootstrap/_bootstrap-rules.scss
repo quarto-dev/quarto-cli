@@ -927,8 +927,17 @@ nav li code:not(.sourceCode) {
   padding-top: 1em;
 }
 
-.sidebar.margin-sidebar > * {
-  padding-top: 1em;
+.sidebar.toc-left,
+.sidebar.margin-sidebar  {
+  &> * {
+    padding-top: .5em;
+  }
+}
+
+.sidebar.quarto-banner-title-block-sidebar {
+  &> * {
+    padding-top: 1.65em;
+  }
 }
 
 .sidebar nav[role="doc-toc"] > h2 {
@@ -1559,6 +1568,7 @@ main.quarto-banner-title-block {
   margin-top: 0;
   z-index: 0;
 
+  
   @include media-breakpoint-down(lg) {
 
     .page-columns .quarto-title-banner,
@@ -1572,7 +1582,14 @@ main.quarto-banner-title-block {
       padding-top: 2.5em;
       padding-bottom: 2.5em;
     }
-  }  
+
+
+  } 
+  
+  .quarto-sidebar-toc-left {
+    margin-top: 1em;
+
+  }
 
   .quarto-title-banner {
     margin-bottom: 1em;

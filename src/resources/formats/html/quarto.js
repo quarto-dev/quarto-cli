@@ -402,7 +402,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const position = Math.max(rect.height, 0);
 
       const floating = window.document.querySelector("body.floating");
-      const sidebarIds = ["quarto-margin-sidebar"];
+      const sidebarIds = ["quarto-margin-sidebar", "quarto-sidebar-toc-left"];
       if (floating) {
         sidebarIds.push("quarto-sidebar");
       }
