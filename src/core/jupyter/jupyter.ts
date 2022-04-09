@@ -251,6 +251,7 @@ export const kJupyterCellInternalOptionKeys = [
   kEval,
   kEcho,
   kWarning,
+  kError,
   kOutput,
   kInclude,
   kCellLabel,
