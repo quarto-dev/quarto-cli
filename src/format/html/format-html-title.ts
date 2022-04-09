@@ -361,21 +361,16 @@ export function processDocumentTitle(
       bannerStyles.push(`background-color: ${banner};`);
     }
 
+    // Move the header above the content
+    const contentEl = doc.getElementById("quarto-content");
+    if (contentEl && headerEl) {
+      headerEl.remove();
+      contentEl.parentElement?.insertBefore(headerEl, contentEl);
+    }
+
     if (bannerStyles.length > 0) {
       createTitleBannerStyleInHead(doc, bannerStyles);
     }
-
-    // Note banner style in sidebars
-    const sidebarsToAdjust = [
-      "quarto-margin-sidebar",
-      "quarto-sidebar-toc-left",
-    ];
-    sidebarsToAdjust.forEach((id) => {
-      const el = doc.getElementById(id);
-      if (el) {
-        el.classList.add("quarto-banner-title-block-sidebar");
-      }
-    });
   } else {
     headerEl?.appendChild(titleContainerEl);
   }
@@ -475,7 +470,7 @@ function isBannerImage(input: string, banner: unknown) {
 function createTitleBannerStyleInHead(doc: Document, styles: string[]) {
   const bannerStyle = doc.createElement("style");
   bannerStyle.innerText = `
-  main.quarto-banner-title-block .quarto-title-banner {\n
+  .quarto-title-banner {\n
     ${styles.join("\n")}
   \n}`;
   const head = doc.querySelector("head");
