@@ -8,6 +8,7 @@ const sectionChanged = new CustomEvent("quarto-sectionChanged", {
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   const tocEl = window.document.querySelector('nav[role="doc-toc"]');
   const sidebarEl = window.document.getElementById("quarto-sidebar");
+  const leftTocEl = window.document.getElementById("quarto-sidebar-toc-left");
   const marginSidebarEl = window.document.getElementById(
     "quarto-margin-sidebar"
   );
@@ -396,21 +397,33 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       if (offsetTopPadding === null) {
         offsetTopPadding = offsetEl.style.paddingTop;
       }
-      const rect = offsetEl.getBoundingClientRect();
+      const headerEl = window.document.querySelector(
+        "#quarto-header.fixed-top nav.navbar"
+      );
+      let offset = 0;
+      if (headerEl) {
+        offset = headerEl.getBoundingClientRect().height;
+      }
+
       // subtract any headroom offiset, if present
-      const position = Math.max(rect.height, 0);
+      const position = Math.max(
+        offsetEl.getBoundingClientRect().top +
+          document.documentElement.scrollTop -
+          offset,
+        0
+      );
 
       const floating = window.document.querySelector("body.floating");
-      const sidebarIds = ["quarto-margin-sidebar"];
+      const sidebarIds = ["quarto-margin-sidebar", "quarto-sidebar-toc-left"];
       if (floating) {
         sidebarIds.push("quarto-sidebar");
       }
       sidebarIds.forEach((sidebarId) => {
         const sidebarEl = window.document.getElementById(sidebarId);
         if (sidebarEl) {
-          sidebarEl.style.marginTop = `${position}px`;
+          sidebarEl.style.marginTop = `calc(${position}px - 1em)`;
           if (position > 0) {
-            sidebarEl.style.paddingTop = "0.5em";
+            sidebarEl.style.paddingTop = "0";
           } else {
             sidebarEl.style.paddingTop = offsetTopPadding;
           }
@@ -431,6 +444,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     titleSelector: ".title",
     dismissOnClick: false,
   });
+  let tocLeftScrollVisibility;
+  if (leftTocEl) {
+    tocLeftScrollVisibility = manageSidebarVisiblity(leftTocEl, {
+      id: "quarto-lefttoc-toggle",
+      titleSelector: "#toc-title",
+      dismissOnClick: true,
+    });
+  }
+
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
     '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]'
@@ -492,6 +514,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const hideOverlappedSidebars = () => {
     marginScrollVisibility(toRegions(rightSideConflictEls));
     sidebarScrollVisiblity(toRegions(leftSideConflictEls));
+    if (tocLeftScrollVisibility) {
+      tocLeftScrollVisibility(toRegions(leftSideConflictEls));
+    }
   };
 
   window.quartoToggleReader = () => {

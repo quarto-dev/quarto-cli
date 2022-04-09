@@ -309,6 +309,7 @@ export function processDocumentTitle(
   const banner = format.metadata[kTitleBlockBanner] as string | boolean;
   if (banner) {
     const bannerStyles: string[] = [];
+    headerEl?.nextElementSibling?.setAttribute("data-sidebar-align", "true");
 
     const titleColor = (block: unknown) => {
       if (block === "body" || block === "body-bg") {
@@ -363,6 +364,18 @@ export function processDocumentTitle(
     if (bannerStyles.length > 0) {
       createTitleBannerStyleInHead(doc, bannerStyles);
     }
+
+    // Note banner style in sidebars
+    const sidebarsToAdjust = [
+      "quarto-margin-sidebar",
+      "quarto-sidebar-toc-left",
+    ];
+    sidebarsToAdjust.forEach((id) => {
+      const el = doc.getElementById(id);
+      if (el) {
+        el.classList.add("quarto-banner-title-block-sidebar");
+      }
+    });
   } else {
     headerEl?.appendChild(titleContainerEl);
   }
@@ -477,12 +490,10 @@ function createBannerEl(
 ) {
   const mainEl = doc.querySelector("main.content");
   mainEl?.classList.add("quarto-banner-title-block");
-  
 
   const bannerDiv = doc.createElement("div");
 
   bannerDiv.classList.add("quarto-title-banner");
-  bannerDiv.setAttribute("data-sidebar-align", "true");
   if (color === "navbar") {
     bannerDiv.classList.add("color-navbar");
     // Also mark up secondary navigation

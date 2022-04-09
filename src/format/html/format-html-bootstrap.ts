@@ -17,6 +17,7 @@ import {
   kLinkCitations,
   kSectionDivs,
   kTheme,
+  kTocLocation,
 } from "../../config/constants.ts";
 import {
   Format,
@@ -143,11 +144,13 @@ export function boostrapExtras(
   format: Format,
   offset?: string,
 ): FormatExtras {
+  const tocLocation = format.metadata[kTocLocation] || "left";
   const toc = hasTableOfContents(flags, format);
 
   const renderTemplate = (template: string, pageLayout: string) => {
     return renderEjs(formatResourcePath("html", `templates/${template}`), {
       toc,
+      tocLocation,
       pageLayout,
     });
   };
@@ -162,11 +165,11 @@ export function boostrapExtras(
       before: renderTemplate("before-body-article.ejs", pageLayout),
       afterPreamble: renderTemplate(
         "after-body-article-preamble.ejs",
-        kPageLayoutArticle,
+        pageLayout,
       ),
       afterPostamble: renderTemplate(
         "after-body-article-postamble.ejs",
-        kPageLayoutArticle,
+        pageLayout,
       ),
     }
     : {
@@ -755,13 +758,17 @@ const referenceMarginProcessor: MarginNodeProcessor = {
 
         // The parent is a figcaption that contains the reference.
         // The parent.parent is the figure
-        const parentCaptionEl = findCaptionEl(el);
-        if (refContentsEl && parentCaptionEl) {
-          addContentToMarginContainerForEl(
-            parentCaptionEl,
-            refContentsEl.cloneNode(true),
-            doc,
-          );
+        const figureCaptionEl = findCaptionEl(el);
+        if (refContentsEl && figureCaptionEl) {
+          if (figureCaptionEl.classList.contains("margin-caption")) {
+            figureCaptionEl.appendChild(refContentsEl.cloneNode(true));
+          } else {
+            addContentToMarginContainerForEl(
+              figureCaptionEl,
+              refContentsEl,
+              doc,
+            );
+          }
         } else if (refContentsEl) {
           const nonSpanParent = findNonSpanParentEl(el);
           if (nonSpanParent) {
