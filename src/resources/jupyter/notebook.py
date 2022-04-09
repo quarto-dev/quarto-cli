@@ -311,9 +311,6 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
    # read cell options
    cell_options = nb_cell_yaml_options(client, cell)
 
-   # ensure we have tags
-   tags = cell.get('metadata', {}).get('tags', [])
-
    # check options for eval and error
    eval = cell_options.get('eval', eval_default)
    allow_errors = cell_options.get('error', False)
@@ -325,6 +322,7 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
       if allow_errors:
          if not "metadata" in cell:
             cell["metadata"] = {}
+         tags = cell.get('metadata', {}).get('tags', [])
          cell["metadata"]["tags"] = tags + ['raises-exception'] 
 
       # execute (w/o yaml options so that cell magics work)
@@ -345,8 +343,9 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
 
       # remove injected raises-exception
       if allow_errors:
-        cell["metadata"]["tags"].remove('raises-exception')
-
+         cell["metadata"]["tags"].remove('raises-exception')
+         if len(cell["metadata"]["tags"]) == 0:
+            del cell["metadata"]["tags"]
 
    # return cell
    return cell
