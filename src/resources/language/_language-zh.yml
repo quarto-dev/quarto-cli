@@ -64,6 +64,10 @@ crossref-lof-title: "插图目录"
 crossref-lot-title: "列表目录"
 crossref-lol-title: "列表目录"
 
+environment-proof-title: "论证"
+environment-remark-title: "评语"
+environment-solution-title: "答案"
+
 listing-page-order-by: "排序方式"
 listing-page-order-by-default: "缺省"
 listing-page-order-by-date-asc: "日期升序"
