@@ -5,7 +5,8 @@
 *
 */
 
-import { dirname } from "path/mod.ts";
+import { existsSync } from "fs/exists.ts";
+import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
 import { execProcess } from "../../core/process.ts";
 import { handlerForScript } from "../../core/run/run.ts";
@@ -21,17 +22,21 @@ export async function jupyterNotebookFiltered(
     for (const filter of filters) {
       const args = parseShellRunCommand(filter);
       const script = args[0];
-      const handler = handlerForScript(script);
-      const result = handler
+      const scriptPath = join(dirname(file), script);
+      const handler = handlerForScript(scriptPath);
+      const result = (handler && existsSync(scriptPath))
         ? await handler.run(script, args.splice(1), json, {
           cwd: dirname(file),
           stdout: "piped",
         })
         : await execProcess({
-          cmd: args,
+          cmd: [
+            isAbsolute(script) ? script : basename(script),
+            ...args.slice(1),
+          ],
           cwd: dirname(file),
           stdout: "piped",
-        });
+        }, json);
 
       if (!result.success) {
         throw new Error();
