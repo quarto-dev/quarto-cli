@@ -200,21 +200,33 @@ export function copyMinimal(
 }
 
 export function copyFileIfNewer(srcFile: string, destFile: string) {
-  ensureDirSync(dirname(destFile));
-  if (existsSync(destFile)) {
-    const srcInfo = Deno.statSync(srcFile);
-    const destInfo = Deno.statSync(destFile);
-    if (!srcInfo.mtime || !destInfo.mtime || destInfo.mtime < srcInfo.mtime) {
-      copySync(srcFile, destFile, {
-        overwrite: true,
-        preserveTimestamps: true,
-      });
-    }
-  } else {
+  // helper to perform the copy
+  const doCopy = () => {
     copySync(srcFile, destFile, {
       overwrite: true,
       preserveTimestamps: true,
     });
+  };
+
+  // ensure target dir
+  ensureDirSync(dirname(destFile));
+
+  // avoid copy if the file exists and we can validate that the src and dest
+  // files have the same timestamp (there can be statSync errors in the case of
+  // e.g. symlinks across volumsn so we also do the copy on errors accessing
+  // file info)
+  try {
+    if (existsSync(destFile)) {
+      const srcInfo = Deno.statSync(srcFile);
+      const destInfo = Deno.statSync(destFile);
+      if (!srcInfo.mtime || !destInfo.mtime || destInfo.mtime < srcInfo.mtime) {
+        doCopy();
+      }
+    } else {
+      doCopy();
+    }
+  } catch {
+    doCopy();
   }
 }
 export function resolveGlobs(
