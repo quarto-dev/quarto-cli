@@ -12,7 +12,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const marginSidebarEl = window.document.getElementById(
     "quarto-margin-sidebar"
   );
-
   // function to determine whether the element has a previous sibling that is active
   const prevSiblingIsActiveLink = (el) => {
     const sibling = el.previousElementSibling;
@@ -388,51 +387,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   };
 
-  const offsetEl = window.document.querySelector(
-    `*[data-sidebar-align="true"]`
-  );
-  let offsetTopPadding = null;
-  const positionSidebars = () => {
-    if (offsetEl !== null) {
-      if (offsetTopPadding === null) {
-        offsetTopPadding = offsetEl.style.paddingTop;
-      }
-      const headerEl = window.document.querySelector(
-        "#quarto-header.fixed-top nav.navbar"
-      );
-      let offset = 0;
-      if (headerEl) {
-        offset = headerEl.getBoundingClientRect().height;
-      }
-
-      // subtract any headroom offiset, if present
-      const position = Math.max(
-        offsetEl.getBoundingClientRect().top +
-          document.documentElement.scrollTop -
-          offset,
-        0
-      );
-
-      const floating = window.document.querySelector("body.floating");
-      const sidebarIds = ["quarto-margin-sidebar", "quarto-sidebar-toc-left"];
-      if (floating) {
-        sidebarIds.push("quarto-sidebar");
-      }
-      sidebarIds.forEach((sidebarId) => {
-        const sidebarEl = window.document.getElementById(sidebarId);
-        if (sidebarEl) {
-          sidebarEl.style.marginTop = `calc(${position}px - 1em)`;
-          if (position > 0) {
-            sidebarEl.style.paddingTop = "0";
-          } else {
-            sidebarEl.style.paddingTop = offsetTopPadding;
-          }
-        }
-      });
-    }
-  };
-  positionSidebars();
-
   // Manage the visibility of the toc and the sidebar
   const marginScrollVisibility = manageSidebarVisiblity(marginSidebarEl, {
     id: "quarto-toc-toggle",
@@ -633,7 +587,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     "scroll",
     throttle(() => {
       if (tocEl) {
-        positionSidebars();
         updateActiveLink();
         walk(tocEl, 0);
       }
@@ -645,8 +598,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   window.addEventListener(
     "resize",
     throttle(() => {
-      positionSidebars();
-
       if (!isReaderMode()) {
         hideOverlappedSidebars();
       }
