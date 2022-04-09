@@ -4,7 +4,7 @@
 kTblCap = "tbl-cap"
 kTblSubCap = "tbl-subcap"
 
-local latexTablePattern = "(\\begin{table}(\\[.*?\\])?)(.*)(\\end{table})"
+local latexTablePattern = "(\\begin{table}(\[.*?\])?)(.*)(\\end{table})"
 local latexLongtablePattern = "(\\begin{longtable})(.*)(\\end{longtable})"
 local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
 
