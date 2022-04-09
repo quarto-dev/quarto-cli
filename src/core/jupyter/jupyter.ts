@@ -91,6 +91,7 @@ import {
   kCellFormat,
   kCellId,
   kCellLabel,
+  kCellLanguage,
   kCellLinesToNext,
   kCellLstCap,
   kCellLstLabel,
@@ -178,6 +179,9 @@ export interface JupyterCellMetadata {
 
   // slideshow
   [kCellSlideshow]?: JupyterCellSlideshow;
+
+  // nbdev language
+  [kCellLanguage]?: string;
 
   // anything else
   [key: string]: unknown;
@@ -310,6 +314,9 @@ export const kJupyterCellThirdPartyMetadataKeys = [
 
   // jupytext
   kCellLinesToNext,
+
+  // nbdev
+  kCellLanguage,
 ];
 
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
@@ -1101,7 +1108,7 @@ function mdFromCodeCell(
       md.push(label + " ");
     }
     if (!fenced) {
-      md.push("." + options.language);
+      md.push("." + (cellOptions.language || options.language));
     }
     md.push(" .cell-code");
     if (hideCode(cell, options)) {
