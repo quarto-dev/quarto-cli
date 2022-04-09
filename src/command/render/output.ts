@@ -129,13 +129,14 @@ export function outputRecipe(
         // read yaml and output markdown
         const inputMd = partitionYamlFrontMatter(context.target.markdown);
         if (inputMd) {
-          const output = Deno.readTextFileSync(recipe.output);
+          const outputFile = join(dirname(context.target.input), recipe.output);
+          const output = Deno.readTextFileSync(outputFile);
           const outputMd = partitionYamlFrontMatter(
-            Deno.readTextFileSync(recipe.output),
+            Deno.readTextFileSync(outputFile),
           );
           const markdown = outputMd?.markdown || output;
           Deno.writeTextFileSync(
-            recipe.output,
+            outputFile,
             inputMd.yaml + "\n\n" + markdown,
           );
         }
