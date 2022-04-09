@@ -147,9 +147,9 @@ export const jupyterEngine: ExecutionEngine = {
     }
   },
 
-  partitionedMarkdown: async (file: string) => {
+  partitionedMarkdown: async (file: string, format?: Format) => {
     if (isJupyterNotebook(file)) {
-      return partitionMarkdown(await markdownFromNotebook(file));
+      return partitionMarkdown(await markdownFromNotebook(file, format));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
     }
@@ -400,10 +400,13 @@ function executeResultEngineDependencies(
   }
 }
 
-async function markdownFromNotebook(file: string) {
-  const decoder = new TextDecoder("utf-8");
-  const nbContents = await Deno.readFile(file);
-  const nb = JSON.parse(decoder.decode(nbContents));
+async function markdownFromNotebook(file: string, format?: Format) {
+  // read file with any filters
+  const nbContents = await jupyterNotebookFiltered(
+    file,
+    format?.execute[kIpynbFilters],
+  );
+  const nb = JSON.parse(nbContents);
   const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
   const markdown = cells.reduce((md, cell) => {
     if (["markdown", "raw"].includes(cell.cell_type)) {

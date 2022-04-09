@@ -69,7 +69,7 @@ export async function inputTargetIndex(
     title: firstFormat
       ? firstFormat.metadata?.[kTitle] as string | undefined
       : undefined,
-    markdown: await engine.partitionedMarkdown(inputFile),
+    markdown: await engine.partitionedMarkdown(inputFile, firstFormat),
     formats,
   };
 

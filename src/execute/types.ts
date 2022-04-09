@@ -32,7 +32,10 @@ export interface ExecutionEngine {
     file: string,
     quiet?: boolean,
   ) => Promise<ExecutionTarget | undefined>;
-  partitionedMarkdown: (file: string) => Promise<PartitionedMarkdown>;
+  partitionedMarkdown: (
+    file: string,
+    format?: Format,
+  ) => Promise<PartitionedMarkdown>;
   filterFormat?: (
     source: string,
     options: RenderOptions,
