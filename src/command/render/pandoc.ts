@@ -67,7 +67,7 @@ import {
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
-import { getPandocArg, havePandocArg, removePandocArgs } from "./flags.ts";
+import { getPandocArg, removePandocArgs } from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
@@ -78,6 +78,7 @@ import {
   kAbstract,
   kAbstractTitle,
   kAuthor,
+  kAuthors,
   kClassOption,
   kColorLinks,
   kDocumentClass,
@@ -595,11 +596,14 @@ export async function runPandoc(
   }
 
   // Resolve the author metadata into a form that Pandoc will recognize
-  const authorsRaw = pandocMetadata[kAuthor];
+  const authorsRaw = pandocMetadata[kAuthors] || pandocMetadata[kAuthor];
   if (authorsRaw) {
     const authors = parseAuthor(pandocMetadata[kAuthor], true);
     if (authors) {
       pandocMetadata[kAuthor] = authors.map((author) => author.name);
+      pandocMetadata[kAuthors] = Array.isArray(authorsRaw)
+        ? authorsRaw
+        : [authorsRaw];
     }
   }
 

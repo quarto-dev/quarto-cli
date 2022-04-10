@@ -392,6 +392,9 @@ export const kTocTitle = "toc-title";
 export const kTocLocation = "toc-location";
 export const kLang = "lang";
 
+// The authors user input
+export const kAuthors = "authors";
+
 export const kServer = "server";
 
 export const kPageTitle = "pagetitle";
