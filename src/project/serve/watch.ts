@@ -27,7 +27,11 @@ import { md5Hash } from "../../core/hash.ts";
 import { logError } from "../../core/log.ts";
 import { isRevealjsOutput } from "../../config/format.ts";
 
-import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
+import {
+  kProjectLibDir,
+  kProjectWatchInputs,
+  ProjectContext,
+} from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 
@@ -141,7 +145,7 @@ export function watchProject(
 
         // render changed input files (if we are watching). then return false
         // as another set of events will come in to trigger the reload
-        if (options.watchInputs) {
+        if (options[kProjectWatchInputs]) {
           // get inputs (filter by whether the last time we rendered
           // this input had the exact same content hash)
           const inputs = paths.filter(isInputFile).filter((input) => {
@@ -229,8 +233,8 @@ export function watchProject(
 
   // http devserver
   const devServer = httpDevServer(
-    options.port,
-    options.timeout,
+    options.port!,
+    options.timeout!,
     () => renderQueue.isRunning(),
     stopServer,
   );
@@ -457,7 +461,7 @@ async function preventReload(
   // if we are in rstudio with watchInputs off then we are using rstudio tooling
   // for the site preview -- in this case presentations are going to be handled
   // separately by the presentation pane
-  if (isRStudio() && !options.watchInputs) {
+  if (isRStudio() && !options[kProjectWatchInputs]) {
     const index = await inputTargetIndexForOutputFile(
       project,
       relative(projectOutputDir(project), lastHtmlFile),

@@ -48,7 +48,11 @@ import {
   pdfJsBaseDir,
   pdfJsFileHandler,
 } from "../../core/pdfjs.ts";
-import { ProjectContext } from "../../project/types.ts";
+import {
+  kProjectWatchInputs,
+  ProjectContext,
+  resolvePreviewOptions,
+} from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
@@ -63,12 +67,12 @@ import {
 import { execProcess } from "../../core/process.ts";
 
 interface PreviewOptions {
-  port: number;
-  host: string;
-  browse: boolean;
+  port?: number;
+  host?: string;
+  browser?: boolean;
+  [kProjectWatchInputs]?: boolean;
+  timeout?: number;
   presentation: boolean;
-  watchInputs: boolean;
-  timeout: number;
 }
 
 export async function preview(
@@ -99,14 +103,21 @@ export async function preview(
   // see if this is project file
   const project = await projectContext(file);
 
+  // resolve options (don't look at the project context b/c we
+  // don't want overlapping ports within the same project)
+  options = {
+    ...options,
+    ...resolvePreviewOptions(options),
+  };
+
   // create listener and callback to stop the server
-  const listener = Deno.listen({ port: options.port, hostname: options.host });
+  const listener = Deno.listen({ port: options.port!, hostname: options.host });
   const stopServer = () => listener.close();
 
   // create client reloader
   const reloader = httpDevServer(
-    options.port,
-    options.timeout,
+    options.port!,
+    options.timeout!,
     () => isRendering,
     stopServer,
     options.presentation || format === "revealjs",
@@ -117,7 +128,7 @@ export async function preview(
     result,
     reloader,
     render,
-    options.watchInputs,
+    options[kProjectWatchInputs]!,
   );
 
   // create file request handler (hook clients up to reloader, provide
@@ -159,7 +170,7 @@ export async function preview(
     : "";
   const url = `http://localhost:${options.port}/${initialPath}`;
   if (
-    options.browse &&
+    options.browser &&
     !isRStudioServer() && !isJupyterHubServer() &&
     isBrowserPreviewable(result.outputFile)
   ) {
@@ -167,7 +178,7 @@ export async function preview(
   }
 
   // print status
-  printBrowsePreviewMessage(options.port, initialPath);
+  printBrowsePreviewMessage(options.port!, initialPath);
 
   // serve project
   for await (const conn of listener) {

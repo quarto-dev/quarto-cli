@@ -15886,6 +15886,38 @@ var require_yaml_intelligence_resources = __commonJS({
                     schema: "path",
                     description: "Additional file resources to be copied to output directory"
                   }
+                },
+                preview: {
+                  object: {
+                    closed: true,
+                    properties: {
+                      port: {
+                        number: {
+                          description: "Port to listen on (defaults to random value between 3000 and 8000)"
+                        }
+                      },
+                      host: {
+                        string: {
+                          description: "Hostname to bind to (defaults to 127.0.0.1)"
+                        }
+                      },
+                      browser: {
+                        boolean: {
+                          description: "Open a web browser to view the preview (defaults to true)"
+                        }
+                      },
+                      "watch-inputs": {
+                        boolean: {
+                          description: "Re-render input files when they change"
+                        }
+                      },
+                      timeout: {
+                        number: {
+                          description: "Time (in seconds) after which to exit if there are no active clients"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -18053,6 +18085,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Port to listen on (defaults to random value between 3000 and\n8000)",
+        "Hostname to bind to (defaults to 127.0.0.1)",
+        "Open a web browser to view the preview (defaults to true)",
+        "Re-render input files when they change",
+        "Time (in seconds) after which to exit if there are no active\nclients",
         "MISSING_DESCRIPTION",
         "MISSING_DESCRIPTION",
         "Book title",
@@ -18250,6 +18287,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Port to listen on (defaults to random value between 3000 and\n8000)",
+        "Hostname to bind to (defaults to 127.0.0.1)",
+        "Open a web browser to view the preview (defaults to true)",
+        "Re-render input files when they change",
+        "Time (in seconds) after which to exit if there are no active\nclients",
         "MISSING_DESCRIPTION",
         "MISSING_DESCRIPTION",
         "Book title",

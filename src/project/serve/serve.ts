@@ -23,6 +23,7 @@ import {
   kProject404File,
   kProjectType,
   ProjectContext,
+  resolvePreviewOptions,
 } from "../../project/types.ts";
 import {
   isProjectInputFile,
@@ -116,12 +117,17 @@ export async function serveProject(
     );
   }
 
+  // resolve options
+  options = {
+    ...options,
+    ...resolvePreviewOptions(options, project),
+  };
+
   // get type
   const projType = projectType(project?.config?.project?.[kProjectType]);
 
   // provide defaults
   options = {
-    watchInputs: true,
     navigate: true,
     ...options,
   };
@@ -211,7 +217,7 @@ export async function serveProject(
     : undefined;
 
   // create listener and callback to close it
-  const listener = Deno.listen({ port: options.port, hostname: options.host });
+  const listener = Deno.listen({ port: options.port!, hostname: options.host });
   const stopServer = () => listener.close();
 
   // create project watcher. later we'll figure out if it should provide renderOutput
@@ -443,11 +449,11 @@ export async function serveProject(
 
   // print browse url and open browser if requested
   printBrowsePreviewMessage(
-    options.port,
+    options.port!,
     (targetPath && targetPath !== "index.html") ? targetPath : "",
   );
 
-  if (options.browse && !isRStudioServer() && !isJupyterHubServer()) {
+  if (options.browser && !isRStudioServer() && !isJupyterHubServer()) {
     const browseUrl = targetPath
       ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
       : siteUrl;
