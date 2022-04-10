@@ -23,6 +23,7 @@ import {
 } from "./dependencies/dependencies.ts";
 import { archiveUrl } from "./archive-binary-dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/env.ts";
+import { formatResourcePath } from "../../../src/core/resources.ts";
 
 export async function configure(
   config: Configuration,
@@ -97,6 +98,12 @@ export async function configure(
   );
   writeDevConfig(devConfig, config.directoryInfo.bin);
   info("");
+
+  // Extract latest pandoc templates
+  await writePandocTemplates(config);
+
+  // Set up a symlink (if appropriate)
+  const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
 
   if (Deno.build.os !== "windows") {
     info("Creating Quarto Symlink");
@@ -234,4 +241,48 @@ async function downloadDenoStdLibrary(config: Configuration) {
       DENO_DIR: denoCacheDir,
     },
   });
+}
+
+async function writePandocTemplates(config: Configuration) {
+  info("Reading latest pandoc templates...");
+  const binPath = config.directoryInfo.bin;
+  const formatTemplates = [{
+    pandoc: "html",
+    output: formatResourcePath("html", "pandoc/html.template"),
+  }, {
+    pandoc: "latex",
+    output: formatResourcePath("pdf", "pandoc/pdf.template"),
+  }];
+  for (const temp of formatTemplates) {
+    info(`> ${temp.pandoc}`);
+    const template = await readTemplate(temp.pandoc, binPath);
+    if (template) {
+      ensureDirSync(dirname(temp.output));
+      Deno.writeTextFileSync(temp.output, template);
+    } else {
+      throw new Error("Failed to read an expected template.");
+    }
+  }
+  info("done.");
+  info("");
+}
+
+async function readTemplate(format: string, bin: string): Promise<string> {
+  const result = await execProcess({
+    cmd: [join(bin, "pandoc"), "--print-default-template", format],
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  if (result.success) {
+    if (result.stdout) {
+      return result.stdout;
+    } else {
+      return "";
+    }
+  } else {
+    throw new Error(
+      `Failed to read default template for ${format} from Pandoc`,
+    );
+  }
 }
