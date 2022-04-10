@@ -8724,6 +8724,39 @@ try {
             }
           },
           {
+            id: "project-preview",
+            object: {
+              closed: true,
+              properties: {
+                port: {
+                  number: {
+                    description: "Port to listen on (defaults to random value between 3000 and 8000)"
+                  }
+                },
+                host: {
+                  string: {
+                    description: "Hostname to bind to (defaults to 127.0.0.1)"
+                  }
+                },
+                browser: {
+                  boolean: {
+                    description: "Open a web browser to view the preview (defaults to true)"
+                  }
+                },
+                "watch-inputs": {
+                  boolean: {
+                    description: "Re-render input files when they change"
+                  }
+                },
+                timeout: {
+                  number: {
+                    description: "Time (in seconds) after which to exit if there are no active clients"
+                  }
+                }
+              }
+            }
+          },
+          {
             id: "base-website",
             object: {
               properties: {
@@ -15889,35 +15922,9 @@ try {
                     }
                   },
                   preview: {
-                    object: {
-                      closed: true,
-                      properties: {
-                        port: {
-                          number: {
-                            description: "Port to listen on (defaults to random value between 3000 and 8000)"
-                          }
-                        },
-                        host: {
-                          string: {
-                            description: "Hostname to bind to (defaults to 127.0.0.1)"
-                          }
-                        },
-                        browser: {
-                          boolean: {
-                            description: "Open a web browser to view the preview (defaults to true)"
-                          }
-                        },
-                        "watch-inputs": {
-                          boolean: {
-                            description: "Re-render input files when they change"
-                          }
-                        },
-                        timeout: {
-                          number: {
-                            description: "Time (in seconds) after which to exit if there are no active clients"
-                          }
-                        }
-                      }
+                    description: "Options for `quarto preview`",
+                    schema: {
+                      ref: "project-preview"
                     }
                   }
                 }
@@ -16630,6 +16637,11 @@ try {
           },
           "Image width (pixels)",
           "Image height (pixels)",
+          "Port to listen on (defaults to random value between 3000 and\n8000)",
+          "Hostname to bind to (defaults to 127.0.0.1)",
+          "Open a web browser to view the preview (defaults to true)",
+          "Re-render input files when they change",
+          "Time (in seconds) after which to exit if there are no active\nclients",
           "Website title",
           "Website description",
           "The path to the favicon for this website",
@@ -18086,11 +18098,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
-          "Port to listen on (defaults to random value between 3000 and\n8000)",
-          "Hostname to bind to (defaults to 127.0.0.1)",
-          "Open a web browser to view the preview (defaults to true)",
-          "Re-render input files when they change",
-          "Time (in seconds) after which to exit if there are no active\nclients",
+          "Options for <code>quarto preview</code>",
           "MISSING_DESCRIPTION",
           "MISSING_DESCRIPTION",
           "Book title",
@@ -18288,11 +18296,7 @@ try {
           "HTML library (JS/CSS/etc.) directory",
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
-          "Port to listen on (defaults to random value between 3000 and\n8000)",
-          "Hostname to bind to (defaults to 127.0.0.1)",
-          "Open a web browser to view the preview (defaults to true)",
-          "Re-render input files when they change",
-          "Time (in seconds) after which to exit if there are no active\nclients",
+          "Options for <code>quarto preview</code>",
           "MISSING_DESCRIPTION",
           "MISSING_DESCRIPTION",
           "Book title",
