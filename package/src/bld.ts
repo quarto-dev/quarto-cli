@@ -24,6 +24,7 @@ import {
   parseSwcLogCommand,
 } from "./common/cyclic-dependencies.ts";
 import { archiveBinaryDependencies } from "./common/archive-binary-dependencies.ts";
+import { updatePandoc } from "./common/update-pandoc.ts";
 
 // Core command dispatch
 export async function quartoBld(args: string[]) {
@@ -102,5 +103,9 @@ function getCommands() {
   commands.push(
     parseSwcLogCommand(),
   );
+  commands.push(
+    updatePandoc(),
+  );
+
   return commands;
 }
