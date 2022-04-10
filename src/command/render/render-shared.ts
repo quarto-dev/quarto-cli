@@ -266,7 +266,9 @@ export async function previewRenderRequestIsCompatible(
   flags: RenderFlags,
   project?: ProjectContext,
 ) {
-  if (flags.to !== "all") {
+  if (flags.to === "default" && (request.format === undefined)) {
+    return true; // rstudio passes 'default'
+  } else if (flags.to !== "all") {
     const format = await previewFormat(request.path, request.format, project);
     return format === flags.to;
   } else {
