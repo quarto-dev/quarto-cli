@@ -964,8 +964,6 @@ export async function ojsExecuteResult(
   // merge in results
   executeResult.markdown = markdown;
 
-  console.log("OJS markdown");
-  console.log(`<<<<<\n${markdown}>>>>>\n`);
   if (includes) {
     executeResult.includes = mergeConfigs(
       includes,
