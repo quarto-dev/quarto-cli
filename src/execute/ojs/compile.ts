@@ -691,6 +691,12 @@ export async function ojsCompile(
           div.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else {
+        // FIXME: this should include better file and LOC information!
+        if (parsedCells.length === 0) {
+          throw new Error(
+            `Fatal: OJS cell starting on line ${cellStartingLoc} is empty. OJS cells require at least one declaration.`,
+          );
+        }
         const innerInfo = parsedCells[0].info;
         if (innerInfo.length > 0 && srcConfig !== undefined) {
           const ourAttrs = srcConfig.attrs.slice();
