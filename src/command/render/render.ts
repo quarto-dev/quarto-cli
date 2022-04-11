@@ -45,6 +45,7 @@ import {
   kCache,
   kCss,
   kDate,
+  kDateFormatted,
   kEcho,
   kEngine,
   kExecuteDaemon,
@@ -148,7 +149,9 @@ import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
 import {
+  formatDate,
   isSpecialDate,
+  parsePandocDate,
   parseSpecialDate,
   setDateLocale,
 } from "../../core/date.ts";
@@ -911,6 +914,12 @@ export async function resolveFormatsFromMetadata(
       input,
       allMetadata[kDate] as string,
     );
+  }
+
+  // Create a formatted version of the date
+  if (allMetadata[kDate]) {
+    const date = parsePandocDate(allMetadata[kDate] as string);
+    allMetadata[kDateFormatted] = formatDate(date, "full");
   }
 
   // divide allMetadata into format buckets

@@ -394,6 +394,7 @@ export const kLang = "lang";
 
 // The authors user input
 export const kAuthors = "authors";
+export const kDateFormatted = "date-formatted";
 
 export const kServer = "server";
 
