@@ -74,7 +74,7 @@
     engine: knitr
   schema: boolean
   default: true
-  description: Including messages in rendered output.
+  description: Include messages in rendered output.
 
 - name: results
   tags:
