@@ -86,6 +86,18 @@ import {
   mappedString,
 } from "../../core/mapped-text.ts";
 
+import {
+  pandocBlock,
+  pandocCode,
+  pandocDiv,
+  pandocRawStr,
+} from "../../core/pandoc/codegen.ts";
+
+import {
+  EitherString,
+  join as mappedJoin,
+} from "../../core/lib/mapped-text.ts";
+
 export interface OjsCompileOptions {
   source: string;
   format: Format;
@@ -179,7 +191,7 @@ export async function ojsCompile(
     });
   }
 
-  const ls: string[] = [];
+  const ls: EitherString[] = [];
   const resourceFiles: string[] = [];
   const pageResources: ResourceDescription[] = [];
   const ojsViews = new Set<string>();
@@ -732,7 +744,7 @@ export async function ojsCompile(
       cell.cell_type === "math"
     ) {
       // The lua filter is in charge of this, we're a NOP.
-      ls.push(cell.source.value);
+      ls.push(cell.source);
     } else if (cell.cell_type?.language === "dot") {
       const newCell = {
         ...cell,
@@ -750,7 +762,7 @@ export async function ojsCompile(
     } else {
       // we just echo these cells while break-quarto-md doesn't know better.
       ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
-      ls.push(cell.source.value);
+      ls.push(cell.source);
       ls.push("```");
     }
   }
@@ -912,7 +924,7 @@ export async function ojsCompile(
   ];
 
   return {
-    markdown: ls.join("\n"),
+    markdown: mappedJoin(ls, "\n").value,
     filters: [
       "ojs",
     ],
@@ -951,6 +963,9 @@ export async function ojsExecuteResult(
 
   // merge in results
   executeResult.markdown = markdown;
+
+  console.log("OJS markdown");
+  console.log(`<<<<<\n${markdown}>>>>>\n`);
   if (includes) {
     executeResult.includes = mergeConfigs(
       includes,
@@ -1005,114 +1020,3 @@ function ojsFormatDependency(selfContained: boolean) {
     scripts,
   };
 }
-
-// minimal pandoc emitting code
-
-interface PandocNode {
-  emit: (s: string[]) => void;
-}
-
-function pandocRawStr(content: string) {
-  return {
-    emit: (ls: string[]) => ls.push(content),
-  };
-}
-
-function pandocHtmlBlock(elementName: string) {
-  return function (
-    opts: {
-      id?: string;
-      classes?: string[];
-      attrs?: string[];
-    } | undefined,
-  ) {
-    let { id, classes, attrs } = opts || {};
-    if (classes === undefined) {
-      classes = [];
-    }
-    if (attrs === undefined) {
-      attrs = [];
-    }
-
-    const contents: PandocNode[] = [];
-    function attrString() {
-      const strs = [];
-      if (id) {
-        strs.push(`id="${id}"`);
-      }
-      if (classes) {
-        strs.push(`class="${classes.join(" ")}"`);
-      }
-      if (attrs) {
-        strs.push(...attrs.map((attr) => `data-${attr}`));
-      }
-      return strs.join(" ");
-    }
-
-    return {
-      push: function (s: PandocNode) {
-        contents.push(s);
-      },
-      emit: function (ls: string[]) {
-        ls.push(`\n<${elementName} ${attrString()}>`);
-        for (const entry of contents) {
-          entry.emit(ls);
-        }
-        ls.push(`\n</${elementName}>\n`);
-      },
-    };
-  };
-}
-
-function pandocBlock(delimiter: string) {
-  return function (
-    opts: {
-      id?: string;
-      classes?: string[];
-      attrs?: string[];
-    } | undefined,
-  ) {
-    let { id, classes, attrs } = opts || {};
-    if (classes === undefined) {
-      classes = [];
-    }
-    if (attrs === undefined) {
-      attrs = [];
-    }
-
-    const contents: PandocNode[] = [];
-    function attrString() {
-      const strs = [];
-      if (id) {
-        strs.push(`#${id}`);
-      }
-      if (classes) {
-        strs.push(...classes.map((c) => `.${c}`));
-      }
-      if (attrs) {
-        strs.push(...attrs);
-      }
-      if (strs.length) {
-        return `{${strs.join(" ")}}`;
-      } else {
-        return "{}";
-      }
-    }
-
-    return {
-      push: function (s: PandocNode) {
-        contents.push(s);
-      },
-      emit: function (ls: string[]) {
-        ls.push(`\n${delimiter}${attrString()}`);
-        for (const entry of contents) {
-          entry.emit(ls);
-        }
-        ls.push(`\n${delimiter}\n`);
-      },
-    };
-  };
-}
-
-const pandocDiv = pandocHtmlBlock("div");
-const pandocCode = pandocBlock("```");

@@ -10,7 +10,12 @@
 
 import { lineOffsets, lines } from "./text.ts";
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
-import { MappedString, mappedString } from "./mapped-text.ts";
+import {
+  asMappedString,
+  EitherString,
+  MappedString,
+  mappedString,
+} from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
@@ -47,9 +52,13 @@ export interface QuartoMdChunks {
 }
 
 export async function breakQuartoMd(
-  src: MappedString,
+  src: EitherString,
   validate = false,
 ) {
+  if (typeof src === "string") {
+    src = asMappedString(src);
+  }
+
   // notebook to return
   const nb: QuartoMdChunks = {
     cells: [],
@@ -61,12 +70,15 @@ export async function breakQuartoMd(
     "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^```\s*$/;
+  const endCodeRegEx = /^```+\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
   let language = ""; // current language block
   let cellStartLine = 0;
 
   // line buffer
+  let codeStartRange: RangedSubstring;
+  let codeEndRange: RangedSubstring;
+
   const lineBuffer: RangedSubstring[] = [];
   const flushLineBuffer = async (
     cell_type: "markdown" | "code" | "raw" | "math",
@@ -80,7 +92,7 @@ export async function breakQuartoMd(
       //   lineBuffer.splice(lineBuffer.length - 1, 1);
       // }
 
-      const mappedChunks: (string | Range)[] = [];
+      const mappedChunks: Range[] = [];
       for (const line of lineBuffer) {
         mappedChunks.push(line.range);
       }
@@ -90,7 +102,7 @@ export async function breakQuartoMd(
       const cell: QuartoMdCell = {
         // deno-lint-ignore camelcase
         cell_type: cell_type === "code" ? { language } : cell_type,
-        source: source,
+        source,
         sourceOffset: 0,
         sourceStartLine: 0,
         sourceVerbatim: source,
@@ -120,16 +132,15 @@ export async function breakQuartoMd(
             strUpToLastBreak = cell.source.value;
           }
         }
+        // TODO Fix ugly way to compute sourceOffset..
         const prefix = "```{" + language + "}\n";
         cell.sourceOffset = strUpToLastBreak.length + prefix.length;
-        cell.sourceVerbatim = mappedString(
-          cell.sourceVerbatim,
-          [
-            prefix,
-            { start: 0, end: cell.sourceVerbatim.value.length },
-            "\n```",
-          ],
-        );
+
+        cell.sourceVerbatim = mappedString(src, [
+          codeStartRange!.range,
+          ...mappedChunks,
+          codeEndRange!.range,
+        ]);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
       }
@@ -146,11 +157,14 @@ export async function breakQuartoMd(
     }
   };
 
+  const tickCount = (s: string): number =>
+    Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
+
   // loop through lines and create cells based on state transitions
   let inYaml = false,
     inMathBlock = false,
     inCodeCell = false,
-    inCode = false;
+    inCode = 0; // inCode stores the tick count of the code block
 
   const srcLines = rangedLines(src.value, true);
 
@@ -170,28 +184,32 @@ export async function breakQuartoMd(
         inYaml = true;
       }
     } // begin code cell: ^```python
-    else if (startCodeCellRegEx.test(line.substring)) {
+    else if (startCodeCellRegEx.test(line.substring) && (inCode === 0)) {
       const m = line.substring.match(startCodeCellRegEx);
       language = (m as string[])[1];
       await flushLineBuffer("markdown", i);
       inCodeCell = true;
+      codeStartRange = line;
 
       // end code block: ^``` (tolerate trailing ws)
-    } else if (endCodeRegEx.test(line.substring)) {
+    } else if (
+      endCodeRegEx.test(line.substring) &&
+      (inCodeCell || (inCode && tickCount(line.substring) === inCode))
+    ) {
       // in a code cell, flush it
       if (inCodeCell) {
+        codeEndRange = line;
         inCodeCell = false;
         await flushLineBuffer("code", i);
-
-        // otherwise this flips the state of in-code
       } else {
-        inCode = !inCode;
+        // otherwise, sets inCode to 0 and continue
+        inCode = 0;
         lineBuffer.push(line);
       }
 
       // begin code block: ^```
     } else if (startCodeRegEx.test(line.substring)) {
-      inCode = true;
+      inCode = tickCount(line.substring);
       lineBuffer.push(line);
     } else if (delimitMathBlockRegEx.test(line.substring)) {
       if (inMathBlock) {

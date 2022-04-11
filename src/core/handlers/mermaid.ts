@@ -11,8 +11,19 @@ import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat } from "../lib/mapped-text.ts";
 import { schemaFromString } from "../lib/yaml-schema/from-yaml.ts";
 
+import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
+
 const mermaidHandler = {
   ...baseHandler,
+
+  languageName: "mermaid",
+
+  defaultOptions: {
+    echo: false,
+    eval: true,
+    "code-fold": false,
+    include: true,
+  },
 
   comment: "%%",
   async schema() {
@@ -38,7 +49,17 @@ object:
       );
 
       handlerContext.addInclude(
-        `<script>mermaid.initialize({ startOnLoad: true });</script>`,
+        `<script>
+        mermaid.initialize({ startOnLoad: false });
+        window.addEventListener(
+          'load',
+          function () {
+            debugger;
+            mermaid.init("div.cell-output-display > pre.mermaid");
+          },
+          false
+        );
+        </script>`,
         kIncludeAfterBody,
       );
     }
@@ -49,19 +70,24 @@ object:
     cell: QuartoMdCell,
   ) {
     if (isJavascriptCompatible(handlerContext.options.format)) {
-      return mappedConcat([
-        `\n<pre class="mermaid">`,
-        cell.source,
-        `\n</pre>\n`,
-      ]);
+      const preEl = pandocHtmlBlock("pre")({
+        classes: ["mermaid"],
+      });
+      preEl.push(pandocRawStr(cell.source));
+
+      return this.build(handlerContext, cell, preEl.mappedString());
     } else if (
       isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
     ) {
-      return mappedConcat(["\n``` mermaid\n", cell.source, "\n```\n"]);
+      return this.build(
+        handlerContext,
+        cell,
+        mappedConcat(["\n``` mermaid\n", cell.source, "\n```\n"]),
+      );
     } else {
       return cell.source;
     }
   },
 };
 
-install("mermaid", mermaidHandler);
+install(mermaidHandler);

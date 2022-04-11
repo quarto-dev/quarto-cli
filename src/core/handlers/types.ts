@@ -48,5 +48,14 @@ export interface LanguageHandler {
   ) => MappedString;
 
   comment?: LanguageComment;
+  defaultOptions: Record<string, unknown>;
   schema?: () => Promise<ConcreteSchema>;
+  build: (
+    handlerContext: LanguageCellHandlerContext,
+    cell: QuartoMdCell,
+    content: MappedString,
+  ) => MappedString;
+
+  languageName: string;
+  languageClass?: string;
 }

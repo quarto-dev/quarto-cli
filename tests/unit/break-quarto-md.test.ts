@@ -6,11 +6,10 @@
 */
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
-import { asMappedString } from "../../src/core/lib/mapped-text.ts";
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
 
-unitTest("break-quarto-md", async () => {
+unitTest("break-quarto-md - math", async () => {
   const qmd = `---
 title: foo
 ---
@@ -24,7 +23,64 @@ $$ {#eq-black-scholes}
 Some more text;
 `;
 
-  const cells = (await breakQuartoMd(asMappedString(qmd), false)).cells;
+  const cells = (await breakQuartoMd(qmd, false)).cells;
   assert(cells.length === 4);
   assert(!cells[3].source.value.startsWith("$$"));
+});
+
+unitTest("break-quarto-md - code", async () => {
+  const qmd = `---
+title: mermaid test
+format: html
+---
+
+## Some title
+
+Some text
+
+\`\`\`{mermaid}
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+\`\`\`
+
+A cell that shouldn't be rendered by mermaid:
+
+\`\`\`mermaid
+Do not touch this, please.
+\`\`\`
+`;
+
+  const cells = (await breakQuartoMd(qmd, false)).cells;
+  assert(cells.length === 4);
+  assert(!cells[3].sourceVerbatim.value.startsWith("```"));
+});
+
+unitTest("break-quarto-md - nested code", async () => {
+  const qmd = `---
+title: mermaid test
+format: html
+---
+
+## Some title
+
+Some text, and a markdown code chunk that shouldn't be split into a real code chunk.
+
+\`\`\`\`{.markdown}
+\`\`\`{mermaid}
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+\`\`\`
+\`\`\`\`
+
+Then some text.
+`;
+
+  const cells = (await breakQuartoMd(qmd, false)).cells;
+  assert(cells.length === 2);
 });

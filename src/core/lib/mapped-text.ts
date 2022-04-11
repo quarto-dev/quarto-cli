@@ -6,7 +6,7 @@
 
 import { glb } from "./binary-search.ts";
 
-import { Range } from "./ranged-text.ts";
+import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
 
 import {
   indexToRowCol as unmappedIndexToRowCol,
@@ -386,13 +386,16 @@ export function skipRegexp(eitherText: EitherString, re: RegExp): MappedString {
 }
 
 /**
- * join an array of MappedStrings into a single MappedString. This
- * is effectively the MappedString version of Array.prototype.join.
+ * join an array of EitherStrings into a single MappedString. This
+ * is effectively the EitherString version of Array.prototype.join.
  *
- * mappedStrs should all come from the same originalString.
+ * all mappedStrs values that are MappedStrings should come from the same originalString.
  */
-export function join(mappedStrs: MappedString[], sep: string): MappedString {
+export function join(mappedStrs: EitherString[], sep: string): MappedString {
   return mappedConcat(mappedStrs.map((x, i) => {
+    if (typeof x === "string") {
+      return asMappedString(x);
+    }
     if (i === mappedStrs.length) {
       return x;
     } else {
@@ -402,4 +405,40 @@ export function join(mappedStrs: MappedString[], sep: string): MappedString {
       ]);
     }
   }));
+}
+
+export function mappedLines(
+  str: MappedString,
+  keepNewLines = false,
+): MappedString[] {
+  const lines = rangedLines(str.value, keepNewLines);
+  return lines.map((v: RangedSubstring) => mappedString(str, [v.range]));
+}
+
+/**
+ * breakOnDelimiter() behaves like split(), except that it:
+ *
+ * - operates on MappedStrings
+ * - returns an array of MappedStrings
+ * - keeps the delimiters inside the string's results by default. This last
+ *   quirk is often useful
+ */
+export function breakOnDelimiter(
+  string: MappedString,
+  delimiter: string,
+  keepDelimiters = true,
+): MappedString[] {
+  let currentPosition = 0;
+  let r = string.value.indexOf(delimiter, currentPosition);
+  const substrings: MappedString[] = [];
+  while (r !== -1) {
+    const end = keepDelimiters ? r + delimiter.length : r;
+    substrings.push(mappedString(string, [{
+      start: currentPosition,
+      end,
+    }]));
+    currentPosition = r + delimiter.length;
+    r = string.value.indexOf(delimiter, currentPosition);
+  }
+  return substrings;
 }

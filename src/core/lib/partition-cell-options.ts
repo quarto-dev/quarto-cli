@@ -8,12 +8,7 @@
 */
 
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
-import {
-  asMappedString,
-  EitherString,
-  MappedString,
-  mappedString,
-} from "./mapped-text.ts";
+import { asMappedString, MappedString, mappedString } from "./mapped-text.ts";
 /*import {
   langCommentChars,
   optionCommentPrefix,
@@ -267,6 +262,10 @@ export function addLanguageComment(
   comment: string | [string, string],
 ) {
   kLangCommentChars[language] = comment;
+}
+
+export function optionCommentPrefixFromLanguage(language: string) {
+  return optionCommentPrefix(langCommentChars(language)[0]);
 }
 
 export const kLangCommentChars: Record<string, string | [string, string]> = {

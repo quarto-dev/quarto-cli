@@ -14,14 +14,24 @@ import {
 } from "../../config/types.ts";
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import { dirname } from "path/mod.ts";
-import { kIncludeInHeader } from "../../config/constants.ts";
+import { kCodeFold, kIncludeInHeader } from "../../config/constants.ts";
 import {
   asMappedString,
   join as mappedJoin,
+  mappedConcat,
+  mappedLines,
   MappedString,
 } from "../lib/mapped-text.ts";
-import { addLanguageComment } from "../lib/partition-cell-options.ts";
+import {
+  addLanguageComment,
+  optionCommentPrefixFromLanguage,
+} from "../lib/partition-cell-options.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
+import {
+  pandocBlock,
+  pandocHtmlBlock,
+  pandocRawStr,
+} from "../pandoc/codegen.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -110,7 +120,8 @@ export async function languageSchema(
   }
 }
 
-export function install(language: string, handler: LanguageHandler) {
+export function install(handler: LanguageHandler) {
+  const language = handler.languageName;
   handlers[language] = handler;
   if (handler.comment !== undefined) {
     addLanguageComment(language, handler.comment);
@@ -122,9 +133,17 @@ export async function handleLanguageCells(
   executeResult: ExecuteResult,
   options: LanguageCellHandlerOptions,
 ) {
+  console.log("MARKDOWN BEFORE HANDLING");
+  console.log(`<<<<<\n${executeResult.markdown}>>>>>\n`);
+
   const mdCells =
     (await breakQuartoMd(asMappedString(executeResult.markdown), false))
       .cells;
+
+  console.log("MARKDOWN BEFORE CELLS:");
+  for (const cell of mdCells) {
+    console.log(`<<<<\n${cell.sourceVerbatim.value}>>>>\n`);
+  }
   const newCells: MappedString[] = [];
   const languageCellsPerLanguage: Record<
     string,
@@ -192,6 +211,13 @@ export async function handleLanguageCells(
 }
 
 export const baseHandler: LanguageHandler = {
+  languageName:
+    "<<<< baseHandler: languageName should have been overridden >>>>",
+
+  defaultOptions: {
+    echo: true,
+  },
+
   document(
     handlerContext: LanguageCellHandlerContext,
     cells: QuartoMdCell[],
@@ -219,5 +245,109 @@ export const baseHandler: LanguageHandler = {
     cell: QuartoMdCell,
   ): MappedString {
     return cell.sourceVerbatim;
+  },
+
+  // FIXME attributes we're not handling yet:
+  // - code-summary
+  // - code-overflow
+  // - code-line-numbers
+  //
+  // FIXME how do we set up support for:
+  // - things that include subfigures, like tables?
+  //
+  // FIXME how should we interpret the difference between output and eval
+  // here?
+
+  build(
+    _handlerContext: LanguageCellHandlerContext,
+    cell: QuartoMdCell,
+    content: MappedString,
+  ): MappedString {
+    // FIXME this should get the project+document options as well.
+    const options = mergeConfigs(this.defaultOptions, cell.options ?? {});
+
+    // split content into front matter vs input
+    const contentLines = mappedLines(cell.source, true);
+    const frontMatterLines: MappedString[] = [];
+    const comment: string = optionCommentPrefixFromLanguage(this.languageName);
+    let inputIndex = 0;
+    for (const contentLine of contentLines) {
+      if (contentLine.value.startsWith(comment)) {
+        if (contentLine.value.indexOf("echo: fenced") === -1) {
+          frontMatterLines.push(contentLine);
+        }
+        ++inputIndex;
+      } else {
+        break;
+      }
+    }
+    const inputLines = contentLines.slice(inputIndex);
+
+    const q3 = pandocBlock(":::");
+    const t3 = pandocBlock("```");
+    const t4 = pandocBlock("````");
+    const cellBlock = q3({
+      classes: ["cell"],
+    });
+
+    const cellInputClasses = [
+      this.languageClass ?? this.languageName,
+      "cell-code",
+      ...((options["class-source"] as (string[] | undefined)) ?? []),
+    ];
+    const cellInputAttrs: string[] = [
+      ...((options["attr-source"] as (string[] | undefined)) ?? []),
+    ];
+    const cellOutputClasses = [
+      "cell-output-display",
+      ...((options["class-output"] as (string[] | undefined)) ?? []),
+    ];
+    const cellOutputAttrs: string[] = [
+      ...((options["attr-output"] as (string[] | undefined)) ?? []),
+    ];
+
+    if (options[kCodeFold] !== undefined) {
+      cellOutputAttrs.push(`code-fold="${options[kCodeFold]}"`);
+    }
+
+    switch (options.echo) {
+      case true: {
+        const cellInput = t3({
+          classes: cellInputClasses,
+          attrs: cellInputAttrs,
+        });
+        cellInput.push(pandocRawStr(mappedConcat(inputLines)));
+        cellBlock.push(cellInput);
+        break;
+      }
+      case "fenced": {
+        const cellInput = t4({
+          classes: ["markdown", ...cellInputClasses.slice(1)], // replace the language class with markdown
+          attrs: cellInputAttrs,
+        });
+        const cellFence = t3({
+          language: this.languageName,
+        });
+        const fencedInput = mappedConcat([
+          ...frontMatterLines,
+          ...inputLines,
+        ]);
+        cellFence.push(pandocRawStr(fencedInput));
+        cellInput.push(cellFence);
+        cellBlock.push(cellInput);
+        break;
+      }
+    }
+
+    if (options.eval === true) {
+      const cellOutput = pandocHtmlBlock("div")({
+        attrs: cellOutputAttrs,
+        classes: cellOutputClasses,
+      });
+      cellOutput.push(pandocRawStr(content));
+      cellBlock.push(cellOutput);
+    }
+
+    return cellBlock.mappedString();
   },
 };
