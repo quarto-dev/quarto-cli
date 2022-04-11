@@ -133,17 +133,10 @@ export async function handleLanguageCells(
   executeResult: ExecuteResult,
   options: LanguageCellHandlerOptions,
 ) {
-  console.log("MARKDOWN BEFORE HANDLING");
-  console.log(`<<<<<\n${executeResult.markdown}>>>>>\n`);
-
   const mdCells =
     (await breakQuartoMd(asMappedString(executeResult.markdown), false))
       .cells;
 
-  console.log("MARKDOWN BEFORE CELLS:");
-  for (const cell of mdCells) {
-    console.log(`<<<<\n${cell.sourceVerbatim.value}>>>>\n`);
-  }
   const newCells: MappedString[] = [];
   const languageCellsPerLanguage: Record<
     string,
