@@ -17,7 +17,6 @@ import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
-import { PromiseQueue } from "../../core/promise.ts";
 
 import {
   kProject404File,
@@ -54,7 +53,6 @@ import {
   HttpFileRequestOptions,
 } from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
-import { copyProjectForServe } from "./serve-shared.ts";
 import { watchProject } from "./watch.ts";
 import {
   isPreviewRenderRequest,
@@ -83,6 +81,7 @@ import { bookOutputStem } from "../../project/types/book/book-config.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
 import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
+import { ServeRenderManager } from "./render.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -196,17 +195,13 @@ export async function serveProject(
 
   const finalOutput = renderResultFinalOutput(renderResult);
 
-  // create mirror of project for serving
-  const serveDir = copyProjectForServe(project, true, temp.createDir());
-  const serveProject = (await projectContext(serveDir, flags, false, true))!;
-
   // append resource files from render results
   resourceFiles.push(...ld.uniq(
     renderResult.files.flatMap((file) => file.resourceFiles),
   ) as string[]);
 
-  // create a promise queue so we only do one renderProject at a time
-  const renderQueue = new PromiseQueue<RenderResult>();
+  // render manager for tracking need to re-render outputs
+  const renderManager = new ServeRenderManager();
 
   // function that can return the current target pdf output file
   const pdfOutputFile = (finalOutput && pdfOutput)
@@ -226,23 +221,22 @@ export async function serveProject(
   // create project watcher. later we'll figure out if it should provide renderOutput
   const watcher = await watchProject(
     project,
-    serveProject,
     resourceFiles,
     flags,
     pandocArgs,
     options,
     !pdfOutput, // we don't render on reload for pdf output
-    renderQueue,
+    renderManager,
     stopServer,
     pdfOutputFile,
   );
 
   // serve output dir
-  const serveOutputDir = projectOutputDir(serveProject);
+  const outputDir = projectOutputDir(project);
 
   const handlerOptions: HttpFileRequestOptions = {
     //  base dir
-    baseDir: serveOutputDir,
+    baseDir: outputDir,
 
     // print all urls
     printUrls: "all",
@@ -284,7 +278,16 @@ export async function serveProject(
                       basename(prevReq.path),
                   );
                 }
+
+                renderManager.onRenderResult(
+                  result,
+                  resourceFiles,
+                  watcher.project(),
+                );
+
                 info("Output created: " + finalOutput + "\n");
+
+                watcher.reloadClients();
               }
             }).finally(() => {
               requestTemp.cleanup();
@@ -309,10 +312,10 @@ export async function serveProject(
         // if we can't find an input file for this .html file it may have
         // been an input added after the server started running, to catch
         // this case run a refresh on the watcher then try again
-        const serveDir = projectOutputDir(watcher.serveProject());
+        const serveDir = projectOutputDir(watcher.project());
         const filePathRelative = relative(serveDir, file);
         let inputFile = await inputFileForOutputFile(
-          watcher.serveProject(),
+          watcher.project(),
           filePathRelative,
         );
         if (!inputFile || !existsSync(inputFile)) {
@@ -324,43 +327,55 @@ export async function serveProject(
         let result: RenderResult | undefined;
         let renderError: Error | undefined;
         if (inputFile) {
-          const renderFlags = { ...flags, quiet: true };
-          // remove 'to' argument to allow the file to be rendered in it's default format
-          // (only if we are in a project type e.g. websites that allows multiple formats)
-          const renderPandocArgs = projType.projectFormatsOnly
-            ? pandocArgs
-            : removePandocToArg(pandocArgs);
-          if (!projType.projectFormatsOnly) {
-            delete renderFlags?.to;
-          }
-          // if to is 'all' then choose html
-          if (renderFlags?.to == "all") {
-            renderFlags.to = isHtmlContent(file) ? "html" : "pdf";
-          }
-          const tempContext = createTempContext();
-          try {
-            result = await renderQueue.enqueue(() =>
-              renderProject(
-                watcher.serveProject(),
-                {
-                  temp: tempContext,
-                  useFreezer: true,
-                  devServerReload: true,
-                  flags: renderFlags,
-                  pandocArgs: renderPandocArgs,
-                },
-                [inputFile!],
-              )
-            );
-            if (result.error) {
-              logError(result.error);
-              renderError = result.error;
+          // render the file if we haven't already done a render for the current input state
+          if (
+            renderManager.fileRequiresReRender(
+              file,
+              inputFile,
+              resourceFiles,
+              watcher.project(),
+            )
+          ) {
+            const renderFlags = { ...flags, quiet: true };
+            // remove 'to' argument to allow the file to be rendered in it's default format
+            // (only if we are in a project type e.g. websites that allows multiple formats)
+            const renderPandocArgs = projType.projectFormatsOnly
+              ? pandocArgs
+              : removePandocToArg(pandocArgs);
+            if (!projType.projectFormatsOnly) {
+              delete renderFlags?.to;
             }
-          } catch (e) {
-            logError(e);
-            renderError = e;
-          } finally {
-            tempContext.cleanup();
+            // if to is 'all' then choose html
+            if (renderFlags?.to == "all") {
+              renderFlags.to = isHtmlContent(file) ? "html" : "pdf";
+            }
+            const tempContext = createTempContext();
+            try {
+              result = await renderManager.renderQueue().enqueue(() =>
+                renderProject(
+                  watcher.project(),
+                  {
+                    temp: tempContext,
+                    useFreezer: true,
+                    devServerReload: true,
+                    flags: renderFlags,
+                    pandocArgs: renderPandocArgs,
+                  },
+                  [inputFile!],
+                )
+              );
+              if (result.error) {
+                logError(result.error);
+                renderError = result.error;
+              } else {
+                renderManager.onRenderResult(result, resourceFiles, project!);
+              }
+            } catch (e) {
+              logError(e);
+              renderError = e;
+            } finally {
+              tempContext.cleanup();
+            }
           }
         }
 
@@ -373,7 +388,7 @@ export async function serveProject(
         if (isHtmlContent(file) && inputFile) {
           const projInputFile = join(
             project!.dir,
-            relative(watcher.serveProject().dir, inputFile),
+            relative(watcher.project().dir, inputFile),
           );
           return watcher.injectClient(
             fileContents,
@@ -391,7 +406,7 @@ export async function serveProject(
     on404: (url: string, req: Request) => {
       const print = !basename(url).startsWith("jupyter-");
       let body = new TextEncoder().encode("Not Found");
-      const custom404 = join(serveOutputDir, kProject404File);
+      const custom404 = join(outputDir, kProject404File);
       if (existsSync(custom404)) {
         let content404 = Deno.readTextFileSync(custom404);
         // replace site-path references with / so they work in dev server mode
