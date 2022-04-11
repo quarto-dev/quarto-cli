@@ -57,6 +57,11 @@ export async function render(
   // determine target context/files
   const context = await projectContext(path, options.flags);
 
+  // set env var if requested
+  if (context && options.setProjectDir) {
+    Deno.env.set("QUARTO_PROJECT_DIR", context.dir);
+  }
+
   if (Deno.statSync(path).isDirectory) {
     // if the path is a sub-directory of the project, then create
     // a files list that is only those files in the subdirectory

@@ -117,6 +117,9 @@ export async function serveProject(
     );
   }
 
+  // set QUARTO_PROJECT_DIR
+  Deno.env.set("QUARTO_PROJECT_DIR", project.dir);
+
   // resolve options
   options = {
     ...options,

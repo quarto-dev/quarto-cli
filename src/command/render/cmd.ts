@@ -181,6 +181,7 @@ export const renderCommand = new Command()
             flags,
             pandocArgs: args,
             useFreezer: flags.useFreezer === true,
+            setProjectDir: true,
           });
 
           // check for error
