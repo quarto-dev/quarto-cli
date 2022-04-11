@@ -126,14 +126,10 @@ export async function serveProject(
     ...resolvePreviewOptions(options, project),
   };
 
+  console.log(options);
+
   // get type
   const projType = projectType(project?.config?.project?.[kProjectType]);
-
-  // provide defaults
-  options = {
-    navigate: true,
-    ...options,
-  };
 
   // are we rendering?
   const renderBefore = options.render !== kRenderNone;

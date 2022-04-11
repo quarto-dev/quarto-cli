@@ -8744,7 +8744,12 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               "watch-inputs": {
                 boolean: {
-                  description: "Re-render input files when they change"
+                  description: "Re-render input files when they change (defaults to true)"
+                }
+              },
+              navigate: {
+                boolean: {
+                  description: "Navigate the browser automatically when outputs are updated (defaults to true)"
                 }
               },
               timeout: {
@@ -16639,7 +16644,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Port to listen on (defaults to random value between 3000 and\n8000)",
         "Hostname to bind to (defaults to 127.0.0.1)",
         "Open a web browser to view the preview (defaults to true)",
-        "Re-render input files when they change",
+        "Re-render input files when they change (defaults to true)",
+        "Navigate the browser automatically when outputs are updated (defaults\nto true)",
         "Time (in seconds) after which to exit if there are no active\nclients",
         "Website title",
         "Website description",
