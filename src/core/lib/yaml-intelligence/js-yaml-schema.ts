@@ -7,7 +7,12 @@
 
 /* Quarto yaml schema
 *
-* We need to define a quarto yaml schema to support !expr tags without failing
+* We need to define a quarto yaml schema to support !expr tags without failing.
+*
+* Note that this file needs to track the definitions in src/core/yaml.ts, but we
+* but we duplicate them here because lib uses js-yaml, and src/core uses the deno standard library.
+*
+* It's very possible that we should src/core.yaml.ts wholesale into whatever lib does.
 */
 
 import {

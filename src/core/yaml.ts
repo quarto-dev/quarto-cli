@@ -246,7 +246,11 @@ export class YAMLValidationError extends ErrorEx {
 
 /* Quarto yaml schema
 *
-* We need to define a quarto yaml schema to support !expr tags without failing
+* Note that this file needs to track the definitions in core/lib/yaml-intelligence/js-yaml-schema.ts, but we
+* but we duplicate them here because lib uses js-yaml, and src/core uses the deno standard library.
+*
+* It's very possible that this file should be ported to use
+* the core/lib parsing tools
 */
 
 // Standard YAML's JSON schema + an expr tag handler ()
