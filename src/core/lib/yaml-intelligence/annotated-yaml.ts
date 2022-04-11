@@ -142,9 +142,19 @@ export function buildTreeSitterAnnotation(
   const singletonBuild = (node: TreeSitterNode) => {
     // some singleton nodes can contain more than one child, especially in the case of comments.
     // So we find the first non-comment to return.
+    let tag: TreeSitterNode | undefined = undefined;
     for (const child of node.children) {
+      if (child.type === "tag") {
+        tag = child;
+        continue;
+      }
       if (child.type !== "comment") {
-        return buildNode(child, node.endIndex);
+        const result = buildNode(child, node.endIndex);
+        if (tag) {
+          return annotateTag(result, tag, node);
+        } else {
+          return result;
+        }
       }
     }
     // if there's only comments, we fail.
@@ -195,6 +205,19 @@ export function buildTreeSitterAnnotation(
         end: node.endIndex,
       }]),
     };
+  };
+
+  const annotateTag = (
+    innerParse: AnnotatedParse,
+    tagNode: TreeSitterNode,
+    outerNode: TreeSitterNode,
+  ): AnnotatedParse => {
+    const tagParse = annotate(tagNode, tagNode.text, []);
+    const result = annotate(outerNode, {
+      tag: tagNode.text,
+      value: innerParse.result,
+    }, [tagParse, innerParse]);
+    return result;
   };
 
   const buildPair = (node: TreeSitterNode) => {

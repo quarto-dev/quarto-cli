@@ -10,6 +10,7 @@ import { Metadata } from "../../src/config/types.ts";
 import { readYamlFromString } from "../../src/core/yaml.ts";
 
 import { readAnnotatedYamlFromString } from "../../src/core/lib/yaml-intelligence/annotated-yaml.ts";
+import { yamlValidationUnitTest } from "./schema-validation/utils.ts";
 
 const yamlStr = `
 project:
@@ -68,6 +69,14 @@ fig-cap: !expr paste("Air Quality")`;
 unitTest("yaml-expr-tag-should-pass", async () => {
   // deno-lint-ignore no-explicit-any
   const yml = readYamlFromString(exprYml) as any;
+  assert(yml["fig-cap"].tag === "!expr");
+  assert(yml["fig-cap"].value === 'paste("Air Quality")');
+});
+
+// deno-lint-ignore require-await
+yamlValidationUnitTest("annotated-yaml-expr-tag-should-pass", async () => {
+  // deno-lint-ignore no-explicit-any
+  const yml = readAnnotatedYamlFromString(exprYml).result as any;
   assert(yml["fig-cap"].tag === "!expr");
   assert(yml["fig-cap"].value === 'paste("Air Quality")');
 });
