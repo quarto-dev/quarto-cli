@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
@@ -130,7 +130,7 @@ import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
-import { kTemplatePartials, readPartials, stageTemplate } from "./template.ts";
+import { readPartials, stageTemplate } from "./template.ts";
 import { formatLanguage } from "../../core/language.ts";
 import {
   pandocFormatWith,
@@ -369,7 +369,11 @@ export async function runPandoc(
     const userPartials = readPartials(options.format.metadata);
     const inputDir = Deno.realPathSync(cwd);
     const resolvePath = (path: string) => {
-      return join(inputDir, path);
+      if (isAbsolute(path)) {
+        return path;
+      } else {
+        return join(inputDir, path);
+      }
     };
 
     const templateContext = extras.templateContext;
