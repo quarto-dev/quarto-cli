@@ -7074,6 +7074,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "cache-path",
+          hidden: true,
           tags: {
             engine: "knitr"
           },
@@ -7386,7 +7387,9 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "fig-cap",
-          schema: "string",
+          schema: {
+            maybeArrayOf: "string"
+          },
           description: "Figure caption"
         },
         {
@@ -7982,12 +7985,14 @@ var require_yaml_intelligence_resources = __commonJS({
             enum: [
               "default",
               "fragment",
-              "slide"
+              "slide",
+              "column",
+              "column-fragment"
             ]
           },
           description: {
-            short: "Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)",
-            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `slide`: Show output on a new slide after the curent one\n\nNote that this option is supported only for the `revealjs` format.\n"
+            short: "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
+            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
           }
         },
         {
@@ -7997,7 +8002,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "boolean",
           default: true,
-          description: "Including messages in rendered output."
+          description: "Include messages in rendered output."
         },
         {
           name: "results",
@@ -8715,6 +8720,39 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               }
             ]
+          }
+        },
+        {
+          id: "project-preview",
+          object: {
+            closed: true,
+            properties: {
+              port: {
+                number: {
+                  description: "Port to listen on (defaults to random value between 3000 and 8000)"
+                }
+              },
+              host: {
+                string: {
+                  description: "Hostname to bind to (defaults to 127.0.0.1)"
+                }
+              },
+              browser: {
+                boolean: {
+                  description: "Open a web browser to view the preview (defaults to true)"
+                }
+              },
+              "watch-inputs": {
+                boolean: {
+                  description: "Re-render input files when they change"
+                }
+              },
+              timeout: {
+                number: {
+                  description: "Time (in seconds) after which to exit if there are no active clients"
+                }
+              }
+            }
           }
         },
         {
@@ -10566,7 +10604,12 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "institute",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: {
+              anyOf: [
+                "object",
+                "string"
+              ]
+            }
           },
           tags: {
             formats: [
@@ -14059,6 +14102,18 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Keep the notebook file generated from executing code."
         },
         {
+          name: "ipynb-filters",
+          schema: {
+            arrayOf: "string"
+          },
+          tags: {
+            contexts: [
+              "document-execute"
+            ]
+          },
+          description: "Filters to pre-process ipynb files before rendering to markdown"
+        },
+        {
           name: "keep-tex",
           tags: {
             formats: [
@@ -15864,6 +15919,12 @@ var require_yaml_intelligence_resources = __commonJS({
                     schema: "path",
                     description: "Additional file resources to be copied to output directory"
                   }
+                },
+                preview: {
+                  description: "Options for `quarto preview`",
+                  schema: {
+                    ref: "project-preview"
+                  }
                 }
               }
             }
@@ -15975,6 +16036,17 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          name: "type",
+          hidden: true,
+          schema: {
+            enum: [
+              "cd93424f-d5ba-4e95-91c6-1890eab59fc7"
+            ]
+          },
+          errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead.",
+          description: "internal-schema-hack"
         }
       ],
       "schema/schema.yml": [
@@ -16564,6 +16636,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Image width (pixels)",
         "Image height (pixels)",
+        "Port to listen on (defaults to random value between 3000 and\n8000)",
+        "Hostname to bind to (defaults to 127.0.0.1)",
+        "Open a web browser to view the preview (defaults to true)",
+        "Re-render input files when they change",
+        "Time (in seconds) after which to exit if there are no active\nclients",
         "Website title",
         "Website description",
         "The path to the favicon for this website",
@@ -17169,10 +17246,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Catch all for preventing any output (code or results) from being\nincluded in output.",
         "Panel type for cell output (<code>tabset</code>, <code>input</code>,\n<code>sidebar</code>, <code>fill</code>, <code>center</code>)",
         {
-          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, or <code>slide</code>)",
+          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
           long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
         },
-        "Including messages in rendered output.",
+        "Include messages in rendered output.",
         {
           short: "How to display text results",
           long: "How to display text results. Note that this option only applies to\nnormal text output (not warnings, messages, or errors). The possible\nvalues are as follows:"
@@ -17792,6 +17869,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify executables or Lua scripts to be used as a filter\ntransforming the pandoc AST after the input is parsed and before the\noutput is written.",
         "Keep the markdown file generated by executing code",
         "Keep the notebook file generated from executing code.",
+        "Filters to pre-process ipynb files before rendering to markdown",
         "Keep the intermediate tex file used during render.",
         {
           short: "Extract images and other media contained in or linked from the source\ndocument to the path DIR.",
@@ -18019,6 +18097,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Options for <code>quarto preview</code>",
         "MISSING_DESCRIPTION",
         "MISSING_DESCRIPTION",
         "Book title",
@@ -18204,6 +18283,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Custom tools for navbar or sidebar",
+        "internal-schema-hack",
         "MISSING_DESCRIPTION",
         "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
         "Files to render (defaults to all files)",
@@ -18215,6 +18295,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "HTML library (JS/CSS/etc.) directory",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Options for <code>quarto preview</code>",
         "MISSING_DESCRIPTION",
         "MISSING_DESCRIPTION",
         "Book title",
@@ -18399,7 +18480,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
-        "Custom tools for navbar or sidebar"
+        "Custom tools for navbar or sidebar",
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -18960,6 +19042,64 @@ function toCapitalizationCase(str2) {
   return toUnderscoreCase(str2).replace(/_(.)/g, (_match, p1) => p1.toLocaleUpperCase());
 }
 
+// ../ranged-text.ts
+function matchAll2(str2, regex) {
+  let match;
+  regex = new RegExp(regex);
+  const result = [];
+  while ((match = regex.exec(str2)) != null) {
+    result.push(match);
+  }
+  return result;
+}
+function rangedLines(text, includeNewLines = false) {
+  const regex = /\r?\n/g;
+  const result = [];
+  let startOffset = 0;
+  if (!includeNewLines) {
+    for (const r of matchAll2(text, regex)) {
+      result.push({
+        substring: text.substring(startOffset, r.index),
+        range: {
+          start: startOffset,
+          end: r.index
+        }
+      });
+      startOffset = r.index + r[0].length;
+    }
+    result.push({
+      substring: text.substring(startOffset, text.length),
+      range: {
+        start: startOffset,
+        end: text.length
+      }
+    });
+    return result;
+  } else {
+    const matches = matchAll2(text, regex);
+    let prevOffset = 0;
+    for (const r of matches) {
+      const stringEnd = r.index + 1;
+      result.push({
+        substring: text.substring(prevOffset, stringEnd),
+        range: {
+          start: prevOffset,
+          end: stringEnd
+        }
+      });
+      prevOffset = stringEnd;
+    }
+    result.push({
+      substring: text.substring(prevOffset, text.length),
+      range: {
+        start: prevOffset,
+        end: text.length
+      }
+    });
+    return result;
+  }
+}
+
 // ../mapped-text.ts
 function mappedString(source, pieces, fileName) {
   if (typeof source === "string") {
@@ -19101,64 +19241,6 @@ function mappedIndexToRowCol(eitherText) {
     }
     return f(n);
   };
-}
-
-// ../ranged-text.ts
-function matchAll2(str2, regex) {
-  let match;
-  regex = new RegExp(regex);
-  const result = [];
-  while ((match = regex.exec(str2)) != null) {
-    result.push(match);
-  }
-  return result;
-}
-function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
-  const result = [];
-  let startOffset = 0;
-  if (!includeNewLines) {
-    for (const r of matchAll2(text, regex)) {
-      result.push({
-        substring: text.substring(startOffset, r.index),
-        range: {
-          start: startOffset,
-          end: r.index
-        }
-      });
-      startOffset = r.index + r[0].length;
-    }
-    result.push({
-      substring: text.substring(startOffset, text.length),
-      range: {
-        start: startOffset,
-        end: text.length
-      }
-    });
-    return result;
-  } else {
-    const matches = matchAll2(text, regex);
-    let prevOffset = 0;
-    for (const r of matches) {
-      const stringEnd = r.index + 1;
-      result.push({
-        substring: text.substring(prevOffset, stringEnd),
-        range: {
-          start: prevOffset,
-          end: stringEnd
-        }
-      });
-      prevOffset = stringEnd;
-    }
-    result.push({
-      substring: text.substring(prevOffset, text.length),
-      range: {
-        start: prevOffset,
-        end: text.length
-      }
-    });
-    return result;
-  }
 }
 
 // parsing.ts
@@ -21926,13 +22008,32 @@ function renamed(from, to) {
     throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
   };
 }
-var JSON_SCHEMA = json;
+var Type = type;
+var Schema = schema;
 var load = loader.load;
 var loadAll = loader.loadAll;
 var dump = dumper.dump;
 var safeLoad = renamed("safeLoad", "load");
 var safeLoadAll = renamed("safeLoadAll", "loadAll");
 var safeDump = renamed("safeDump", "dump");
+
+// js-yaml-schema.ts
+var QuartoJSONSchema = new Schema({
+  implicit: [_null, bool, int, float],
+  include: [failsafe],
+  explicit: [
+    new Type("!expr", {
+      kind: "scalar",
+      construct(data) {
+        const result = data !== null ? data : "";
+        return {
+          value: result,
+          tag: "!expr"
+        };
+      }
+    })
+  ]
+});
 
 // annotated-yaml.ts
 function readAnnotatedYamlFromMappedString(mappedSource2) {
@@ -21999,7 +22100,7 @@ function buildJsYamlAnnotation(mappedYaml) {
       stack.push({ position });
     }
   }
-  load(yml, { listener, schema: JSON_SCHEMA });
+  load(yml, { listener, schema: QuartoJSONSchema });
   if (results.length === 0) {
     return {
       start: 0,
@@ -22271,6 +22372,39 @@ function locateCursor(annotation, position) {
       throw e;
     }
   }
+}
+function locateAnnotation(annotation, position, kind) {
+  const originalSource = annotation.source.originalString;
+  kind = kind || "value";
+  for (let i = 0; i < position.length; ++i) {
+    const value = position[i];
+    if (typeof value === "number") {
+      const inner = annotation.components[value];
+      if (inner === void 0) {
+        throw new Error("Internal Error: invalid path for locateAnnotation");
+      }
+      annotation = inner;
+    } else {
+      let found = false;
+      for (let j = 0; j < annotation.components.length; j += 2) {
+        if (originalSource.substring(annotation.components[j].start, annotation.components[j].end).trim() === value) {
+          if (i === position.length - 1) {
+            if (kind === "key") {
+              annotation = annotation.components[j];
+            } else {
+              annotation = annotation.components[j + 1];
+            }
+          }
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        throw new Error("Internal Error: invalid path for locateAnnotation");
+      }
+    }
+  }
+  return annotation;
 }
 
 // ../semaphore.ts
@@ -24618,533 +24752,9 @@ function walkSchema(schema2, f) {
   schemaCall(schema2, recur, (_) => false);
 }
 
-// ../yaml-validation/validator.ts
-var ValidationContext = class {
-  constructor() {
-    this.instancePath = [];
-    this.currentNode = { edge: "#", errors: [], children: [] };
-    this.nodeStack = [this.currentNode];
-    this.root = this.currentNode;
-  }
-  error(value, schema2, message) {
-    this.currentNode.errors.push({
-      value,
-      schema: schema2,
-      message,
-      instancePath: this.instancePath.slice(),
-      schemaPath: this.nodeStack.map((node) => node.edge)
-    });
-  }
-  pushSchema(schemaPath) {
-    const newNode = {
-      edge: schemaPath,
-      errors: [],
-      children: []
-    };
-    this.currentNode.children.push(newNode);
-    this.currentNode = newNode;
-    this.nodeStack.push(newNode);
-  }
-  popSchema(success) {
-    this.nodeStack.pop();
-    this.currentNode = this.nodeStack[this.nodeStack.length - 1];
-    if (success) {
-      this.currentNode.children.pop();
-    }
-    return success;
-  }
-  pushInstance(instance) {
-    this.instancePath.push(instance);
-  }
-  popInstance() {
-    this.instancePath.pop();
-  }
-  withSchemaPath(schemaPath, chunk) {
-    this.pushSchema(schemaPath);
-    return this.popSchema(chunk());
-  }
-  validate(schema2, source, value, pruneErrors = true) {
-    if (validateGeneric(value, schema2, this)) {
-      return [];
-    }
-    return this.collectErrors(schema2, source, value, pruneErrors);
-  }
-  collectErrors(_schema, source, _value, pruneErrors = true) {
-    const inner = (node) => {
-      const result2 = [];
-      if (node.edge === "anyOf" && pruneErrors) {
-        const innerResults = node.children.map(inner);
-        const isRequiredError = (e) => e.schemaPath.indexOf("required") === e.schemaPath.length - 1;
-        const isPropertyNamesError = (e) => e.schemaPath.indexOf("required") !== -1;
-        if (innerResults.some((el) => el.length && isRequiredError(el[0])) && innerResults.some((el) => el.length && isPropertyNamesError(el[0]))) {
-          return innerResults.filter((r) => {
-            return r.length && r[0].schemaPath.slice(-1)[0] === "required";
-          })[0];
-        }
-        const errorTypeQuality = (e) => {
-          const t = e.schemaPath.slice().reverse();
-          if (t[0] === "type") {
-            if (t[1] === "null") {
-              return 10;
-            }
-            return 1;
-          }
-          return 1;
-        };
-        const better = (a, b) => {
-          for (let i = 0; i < a.length; ++i) {
-            if (a[i] < b[i]) {
-              return -1;
-            }
-            if (a[i] > b[i]) {
-              return 1;
-            }
-          }
-          return 0;
-        };
-        let bestResults = [];
-        let bestError = [Infinity, Infinity];
-        for (const resultGroup of innerResults) {
-          let maxQuality = -Infinity;
-          let totalSpan = 0;
-          for (const result3 of resultGroup) {
-            totalSpan += result3.value.end - result3.value.start;
-            maxQuality = Math.max(maxQuality, errorTypeQuality(result3));
-          }
-          const thisError = [maxQuality, totalSpan];
-          if (better(thisError, bestError)) {
-            bestError = thisError;
-            bestResults = resultGroup;
-          }
-        }
-        return bestResults;
-      } else {
-        result2.push(...node.errors);
-        for (const child of node.children) {
-          result2.push(...inner(child));
-        }
-        return result2;
-      }
-    };
-    const errors = inner(this.root);
-    const locF = mappedIndexToRowCol(source);
-    const result = errors.map((validationError) => {
-      let location;
-      try {
-        location = {
-          start: locF(validationError.value.start),
-          end: locF(validationError.value.end)
-        };
-      } catch (_e) {
-        location = {
-          start: { line: 0, column: 0 },
-          end: { line: 0, column: 0 }
-        };
-      }
-      return {
-        source: mappedString(source, [{
-          start: validationError.value.start,
-          end: validationError.value.end
-        }]),
-        violatingObject: validationError.value,
-        instancePath: validationError.instancePath,
-        schemaPath: validationError.schemaPath,
-        schema: validationError.schema,
-        message: validationError.message,
-        location,
-        niceError: {
-          heading: validationError.message,
-          error: [],
-          info: {},
-          fileName: source.fileName,
-          location,
-          sourceContext: createSourceContext(source, location)
-        }
-      };
-    });
-    return result;
-  }
-};
-function createSourceContext(src, location) {
-  const nLines = lines(src.originalString).length;
-  const {
-    start,
-    end
-  } = location;
-  const {
-    prefixWidth,
-    lines: formattedLines
-  } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
-  const contextLines = [];
-  let mustPrintEllipsis = true;
-  for (const { lineNumber, content, rawLine } of formattedLines) {
-    if (lineNumber < start.line || lineNumber > end.line) {
-      if (rawLine.trim().length) {
-        contextLines.push(content);
-      }
-    } else {
-      if (lineNumber >= start.line + 2 && lineNumber <= end.line - 2) {
-        if (mustPrintEllipsis) {
-          mustPrintEllipsis = false;
-          contextLines.push("...");
-        }
-      } else {
-        const startColumn = lineNumber > start.line ? 0 : start.column;
-        const endColumn = lineNumber < end.line ? rawLine.length : end.column;
-        contextLines.push(content);
-        contextLines.push(" ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn));
-      }
-    }
-  }
-  return contextLines.join("\n");
-}
-function validateGeneric(value, s, context) {
-  s = resolveSchema(s);
-  const st = schemaType(s);
-  return context.withSchemaPath(st, () => schemaCall(s, {
-    "false": (schema2) => {
-      context.error(value, schema2, "false");
-      return false;
-    },
-    "true": (_) => true,
-    "boolean": (schema2) => validateBoolean(value, schema2, context),
-    "number": (schema2) => validateNumber(value, schema2, context),
-    "string": (schema2) => validateString(value, schema2, context),
-    "null": (schema2) => validateNull(value, schema2, context),
-    "enum": (schema2) => validateEnum(value, schema2, context),
-    "anyOf": (schema2) => validateAnyOf(value, schema2, context),
-    "allOf": (schema2) => validateAllOf(value, schema2, context),
-    "array": (schema2) => validateArray(value, schema2, context),
-    "object": (schema2) => validateObject(value, schema2, context),
-    "ref": (schema2) => validateGeneric(value, resolveSchema(schema2), context)
-  }));
-}
-function typeIsValid(value, schema2, context, valid) {
-  if (!valid) {
-    return context.withSchemaPath("type", () => {
-      context.error(value, schema2, "type mismatch");
-      return false;
-    });
-  }
-  return valid;
-}
-function validateBoolean(value, schema2, context) {
-  return typeIsValid(value, schema2, context, typeof value.result === "boolean");
-}
-function validateNumber(value, schema2, context) {
-  if (!typeIsValid(value, schema2, context, typeof value.result === "number")) {
-    return false;
-  }
-  let result = true;
-  if (schema2.minimum !== void 0) {
-    result = context.withSchemaPath("minimum", () => {
-      const v = value.result;
-      if (!(v >= schema2.minimum)) {
-        context.error(value, schema2, `value ${value.result} is less than required minimum ${schema2.minimum}`);
-        return false;
-      }
-      return true;
-    });
-  }
-  if (schema2.maximum !== void 0) {
-    result = context.withSchemaPath("maximum", () => {
-      const v = value.result;
-      if (!(v <= schema2.maximum)) {
-        context.error(value, schema2, `value ${value.result} is greater than required maximum ${schema2.maximum}`);
-        return false;
-      }
-      return true;
-    });
-  }
-  if (schema2.exclusiveMinimum !== void 0) {
-    result = context.withSchemaPath("exclusiveMinimum", () => {
-      const v = value.result;
-      if (!(v > schema2.exclusiveMinimum)) {
-        context.error(value, schema2, `value ${value.result} is less than or equal to required (exclusive) minimum ${schema2.exclusiveMinimum}`);
-        return false;
-      }
-      return true;
-    });
-  }
-  if (schema2.exclusiveMaximum !== void 0) {
-    result = context.withSchemaPath("exclusiveMaximum", () => {
-      const v = value.result;
-      if (!(v < schema2.exclusiveMaximum)) {
-        context.error(value, schema2, `value ${value.result} is greater than or equal to required (exclusive) maximum ${schema2.exclusiveMaximum}`);
-        return false;
-      }
-      return true;
-    });
-  }
-  return result;
-}
-function validateString(value, schema2, context) {
-  if (!typeIsValid(value, schema2, context, typeof value.result === "string")) {
-    return false;
-  }
-  if (schema2.pattern !== void 0) {
-    if (schema2.compiledPattern === void 0) {
-      schema2.compiledPattern = new RegExp(schema2.pattern);
-    }
-    if (!value.result.match(schema2.compiledPattern)) {
-      return context.withSchemaPath("pattern", () => {
-        context.error(value, schema2, `value doesn't match pattern`);
-        return false;
-      });
-    }
-  }
-  return true;
-}
-function validateNull(value, schema2, context) {
-  if (!typeIsValid(value, schema2, context, value.result === null)) {
-    return false;
-  }
-  return true;
-}
-function validateEnum(value, schema2, context) {
-  for (const enumValue of schema2["enum"]) {
-    if (enumValue === value.result) {
-      return true;
-    }
-  }
-  context.error(value, schema2, `must match one of the values`);
-  return false;
-}
-function validateAnyOf(value, schema2, context) {
-  let passingSchemas = 0;
-  for (let i = 0; i < schema2.anyOf.length; ++i) {
-    const subSchema = schema2.anyOf[i];
-    context.withSchemaPath(i, () => {
-      if (validateGeneric(value, subSchema, context)) {
-        passingSchemas++;
-        return true;
-      }
-      return false;
-    });
-  }
-  return passingSchemas > 0;
-}
-function validateAllOf(value, schema2, context) {
-  let passingSchemas = 0;
-  for (let i = 0; i < schema2.allOf.length; ++i) {
-    const subSchema = schema2.allOf[i];
-    context.withSchemaPath(i, () => {
-      if (validateGeneric(value, subSchema, context)) {
-        passingSchemas++;
-        return true;
-      }
-      return false;
-    });
-  }
-  return passingSchemas === schema2.allOf.length;
-}
-function validateArray(value, schema2, context) {
-  let result = true;
-  if (!typeIsValid(value, schema2, context, Array.isArray(value.result))) {
-    return false;
-  }
-  const length = value.result.length;
-  if (schema2.minItems !== void 0 && length < schema2.minItems) {
-    context.withSchemaPath("minItems", () => {
-      context.error(value, schema2, `array should have at least ${schema2.minItems} items but has ${length} items instead`);
-      return false;
-    });
-    result = false;
-  }
-  if (schema2.maxItems !== void 0 && length > schema2.maxItems) {
-    context.withSchemaPath("maxItems", () => {
-      context.error(value, schema2, `array should have at most ${schema2.maxItems} items but has ${length} items instead`);
-      return false;
-    });
-    result = false;
-  }
-  if (schema2.items !== void 0) {
-    result = context.withSchemaPath("items", () => {
-      let result2 = true;
-      for (let i = 0; i < value.components.length; ++i) {
-        context.pushInstance(i);
-        result2 = validateGeneric(value.components[i], schema2.items, context) && result2;
-        context.popInstance();
-      }
-      return result2;
-    }) && result;
-  }
-  return result;
-}
-function validateObject(value, schema2, context) {
-  const isObject3 = typeof value.result === "object" && !Array.isArray(value.result) && value.result !== null;
-  if (!typeIsValid(value, schema2, context, isObject3)) {
-    return false;
-  }
-  let result = true;
-  const ownProperties = new Set(Object.getOwnPropertyNames(value.result));
-  const objResult = value.result;
-  const locate = (key, keyOrValue = "value") => {
-    for (let i = 0; i < value.components.length; i += 2) {
-      if (value.components[i].result === key) {
-        if (keyOrValue === "value") {
-          return value.components[i + 1];
-        } else {
-          return value.components[i];
-        }
-      }
-    }
-    throw new Error(`Internal Error, couldn't locate key ${key}`);
-  };
-  const inspectedProps = new Set();
-  if (schema2.properties !== void 0) {
-    result = context.withSchemaPath("properties", () => {
-      let result2 = true;
-      for (const [key, subSchema] of Object.entries(schema2.properties)) {
-        if (ownProperties.has(key)) {
-          inspectedProps.add(key);
-          context.pushInstance(key);
-          result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
-          context.popInstance();
-        }
-      }
-      return result2;
-    }) && result;
-  }
-  if (schema2.patternProperties !== void 0) {
-    result = context.withSchemaPath("patternProperties", () => {
-      let result2 = true;
-      for (const [key, subSchema] of Object.entries(schema2.patternProperties)) {
-        if (schema2.compiledPatterns === void 0) {
-          schema2.compiledPatterns = {};
-        }
-        if (schema2.compiledPatterns[key] === void 0) {
-          schema2.compiledPatterns[key] = new RegExp(key);
-        }
-        const regexp = schema2.compiledPatterns[key];
-        for (const [objectKey, _val] of Object.entries(objResult)) {
-          if (objectKey.match(regexp)) {
-            inspectedProps.add(objectKey);
-            context.pushInstance(objectKey);
-            result2 = context.withSchemaPath(key, () => validateGeneric(locate(objectKey), subSchema, context)) && result2;
-            context.popInstance();
-          }
-        }
-      }
-      return result2;
-    }) && result;
-  }
-  if (schema2.additionalProperties !== void 0) {
-    result = context.withSchemaPath("additionalProperties", () => {
-      return Object.keys(objResult).filter((objectKey) => !inspectedProps.has(objectKey)).every((objectKey) => validateGeneric(locate(objectKey), schema2.additionalProperties, context));
-    }) && result;
-  }
-  if (schema2.propertyNames !== void 0) {
-    result = context.withSchemaPath("propertyNames", () => {
-      return Array.from(ownProperties).every((key) => validateGeneric(locate(key, "key"), schema2.propertyNames, context));
-    }) && result;
-  }
-  if (schema2.required !== void 0) {
-    result = context.withSchemaPath("required", () => {
-      let result2 = true;
-      for (const reqKey of schema2.required) {
-        if (!ownProperties.has(reqKey)) {
-          context.error(value, schema2, `object is missing required property ${reqKey}`);
-          result2 = false;
-        }
-      }
-      return result2;
-    }) && result;
-  }
-  return result;
-}
-function validate(value, schema2, source) {
-  const context = new ValidationContext();
-  return context.validate(schema2, source, value);
-}
-
-// ../yaml-validation/yaml-schema.ts
-function getVerbatimInput(error) {
-  return error.source.value;
-}
-function navigate(path, annotation, returnKey = false, pathIndex = 0) {
-  if (annotation === void 0) {
-    throw new Error("Can't navigate an undefined annotation");
-  }
-  if (pathIndex >= path.length) {
-    return annotation;
-  }
-  if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
-    const { components } = annotation;
-    const searchKey = path[pathIndex];
-    const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
-    for (let i = lastKeyIndex; i >= 0; i -= 2) {
-      const key = components[i].result;
-      if (key === searchKey) {
-        if (returnKey && pathIndex === path.length - 1) {
-          return navigate(path, components[i], returnKey, pathIndex + 1);
-        } else {
-          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
-        }
-      }
-    }
-    return annotation;
-  } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
-    const searchKey = Number(path[pathIndex]);
-    if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
-      return annotation;
-    }
-    return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
-  } else {
-    return annotation;
-  }
-}
-var YAMLSchema = class {
-  constructor(schema2) {
-    this.errorHandlers = [];
-    this.schema = schema2;
-  }
-  addHandler(handler) {
-    this.errorHandlers.push(handler);
-  }
-  transformErrors(annotation, errors) {
-    return errors.map((error) => {
-      for (const handler of this.errorHandlers) {
-        error = handler(error, annotation, this.schema);
-      }
-      return error;
-    });
-  }
-  async validateParse(src, annotation) {
-    const validationErrors = validate(annotation, this.schema, src);
-    if (validationErrors.length) {
-      const localizedErrors = this.transformErrors(annotation, validationErrors);
-      return {
-        result: annotation.result,
-        errors: localizedErrors
-      };
-    } else {
-      return {
-        result: annotation.result,
-        errors: []
-      };
-    }
-  }
-  reportErrorsInSource(result, _src, message, error, log) {
-    if (result.errors.length) {
-      if (message.length) {
-        error(message);
-      }
-      for (const err of result.errors) {
-        log(err.niceError);
-      }
-    }
-    return result;
-  }
-  async validateParseWithErrors(src, annotation, message, error, log) {
-    const result = await this.validateParse(src, annotation);
-    this.reportErrorsInSource(result, src, message, error, log);
-    return result;
-  }
-};
-
 // ../yaml-validation/errors.ts
 function setDefaultErrorHandlers(validator) {
+  validator.addHandler(ignoreExprViolations);
   validator.addHandler(expandEmptySpan);
   validator.addHandler(improveErrorHeadingForValueErrors);
   validator.addHandler(checkForTypeMismatch);
@@ -25183,6 +24793,17 @@ function getLastFragment(instancePath) {
 }
 function reindent(str2) {
   return str2;
+}
+function ignoreExprViolations(error, _parse, _schema) {
+  const { result } = error.violatingObject;
+  if (typeof result !== "object" || Array.isArray(result) || result === null || error.schemaPath.slice(-1)[0] !== "type") {
+    return error;
+  }
+  if (result.tag === "!expr" && typeof result.value === "string") {
+    return null;
+  } else {
+    return error;
+  }
 }
 function formatHeadingForKeyError(_error, _parse, _schema, key) {
   return `property name ${blue(key)} is invalid`;
@@ -25508,6 +25129,551 @@ function checkForNearbyCorrection(error, parse, _schema) {
   }
   return error;
 }
+function createSourceContext(src, location) {
+  const nLines = lines(src.originalString).length;
+  const {
+    start,
+    end
+  } = location;
+  const {
+    prefixWidth,
+    lines: formattedLines
+  } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+  const contextLines = [];
+  let mustPrintEllipsis = true;
+  for (const { lineNumber, content, rawLine } of formattedLines) {
+    if (lineNumber < start.line || lineNumber > end.line) {
+      if (rawLine.trim().length) {
+        contextLines.push(content);
+      }
+    } else {
+      if (lineNumber >= start.line + 2 && lineNumber <= end.line - 2) {
+        if (mustPrintEllipsis) {
+          mustPrintEllipsis = false;
+          contextLines.push("...");
+        }
+      } else {
+        const startColumn = lineNumber > start.line ? 0 : start.column;
+        const endColumn = lineNumber < end.line ? rawLine.length : end.column;
+        contextLines.push(content);
+        contextLines.push(" ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn));
+      }
+    }
+  }
+  return contextLines.join("\n");
+}
+function createLocalizedError(obj) {
+  const {
+    violatingObject,
+    instancePath,
+    schemaPath,
+    source,
+    message,
+    schema: schema2
+  } = obj;
+  const locF = mappedIndexToRowCol(source);
+  let location;
+  try {
+    location = {
+      start: locF(violatingObject.start),
+      end: locF(violatingObject.end)
+    };
+  } catch (_e) {
+    location = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 }
+    };
+  }
+  return {
+    source: mappedString(source, [{
+      start: violatingObject.start,
+      end: violatingObject.end
+    }]),
+    violatingObject,
+    instancePath,
+    schemaPath,
+    schema: schema2,
+    message,
+    location,
+    niceError: {
+      heading: message,
+      error: [],
+      info: {},
+      fileName: source.fileName,
+      location,
+      sourceContext: createSourceContext(source, location)
+    }
+  };
+}
+
+// ../yaml-validation/validator.ts
+var ValidationContext = class {
+  constructor() {
+    this.instancePath = [];
+    this.currentNode = { edge: "#", errors: [], children: [] };
+    this.nodeStack = [this.currentNode];
+    this.root = this.currentNode;
+  }
+  error(value, schema2, message) {
+    this.currentNode.errors.push({
+      value,
+      schema: schema2,
+      message,
+      instancePath: this.instancePath.slice(),
+      schemaPath: this.nodeStack.map((node) => node.edge)
+    });
+  }
+  pushSchema(schemaPath) {
+    const newNode = {
+      edge: schemaPath,
+      errors: [],
+      children: []
+    };
+    this.currentNode.children.push(newNode);
+    this.currentNode = newNode;
+    this.nodeStack.push(newNode);
+  }
+  popSchema(success) {
+    this.nodeStack.pop();
+    this.currentNode = this.nodeStack[this.nodeStack.length - 1];
+    if (success) {
+      this.currentNode.children.pop();
+    }
+    return success;
+  }
+  pushInstance(instance) {
+    this.instancePath.push(instance);
+  }
+  popInstance() {
+    this.instancePath.pop();
+  }
+  withSchemaPath(schemaPath, chunk) {
+    this.pushSchema(schemaPath);
+    return this.popSchema(chunk());
+  }
+  validate(schema2, source, value, pruneErrors = true) {
+    if (validateGeneric(value, schema2, this)) {
+      return [];
+    }
+    return this.collectErrors(schema2, source, value, pruneErrors);
+  }
+  collectErrors(_schema, source, _value, pruneErrors = true) {
+    const inner = (node) => {
+      const result2 = [];
+      if (node.edge === "anyOf" && pruneErrors) {
+        const innerResults = node.children.map(inner);
+        const isRequiredError = (e) => e.schemaPath.indexOf("required") === e.schemaPath.length - 1;
+        const isPropertyNamesError = (e) => e.schemaPath.indexOf("required") !== -1;
+        if (innerResults.some((el) => el.length && isRequiredError(el[0])) && innerResults.some((el) => el.length && isPropertyNamesError(el[0]))) {
+          return innerResults.filter((r) => {
+            return r.length && r[0].schemaPath.slice(-1)[0] === "required";
+          })[0];
+        }
+        const errorTypeQuality = (e) => {
+          const t = e.schemaPath.slice().reverse();
+          if (t[0] === "type") {
+            if (t[1] === "null") {
+              return 10;
+            }
+            return 1;
+          }
+          return 1;
+        };
+        const better = (a, b) => {
+          for (let i = 0; i < a.length; ++i) {
+            if (a[i] < b[i]) {
+              return -1;
+            }
+            if (a[i] > b[i]) {
+              return 1;
+            }
+          }
+          return 0;
+        };
+        let bestResults = [];
+        let bestError = [Infinity, Infinity];
+        for (const resultGroup of innerResults) {
+          let maxQuality = -Infinity;
+          let totalSpan = 0;
+          for (const result3 of resultGroup) {
+            totalSpan += result3.value.end - result3.value.start;
+            maxQuality = Math.max(maxQuality, errorTypeQuality(result3));
+          }
+          const thisError = [maxQuality, totalSpan];
+          if (better(thisError, bestError)) {
+            bestError = thisError;
+            bestResults = resultGroup;
+          }
+        }
+        return bestResults;
+      } else {
+        result2.push(...node.errors);
+        for (const child of node.children) {
+          result2.push(...inner(child));
+        }
+        return result2;
+      }
+    };
+    const errors = inner(this.root);
+    const result = errors.map((validationError) => createLocalizedError({
+      violatingObject: validationError.value,
+      instancePath: validationError.instancePath,
+      schemaPath: validationError.schemaPath,
+      schema: validationError.schema,
+      message: validationError.message,
+      source
+    }));
+    return result;
+  }
+};
+function validateGeneric(value, s, context) {
+  s = resolveSchema(s);
+  const st = schemaType(s);
+  return context.withSchemaPath(st, () => schemaCall(s, {
+    "false": (schema2) => {
+      context.error(value, schema2, "false");
+      return false;
+    },
+    "true": (_) => true,
+    "boolean": (schema2) => validateBoolean(value, schema2, context),
+    "number": (schema2) => validateNumber(value, schema2, context),
+    "string": (schema2) => validateString(value, schema2, context),
+    "null": (schema2) => validateNull(value, schema2, context),
+    "enum": (schema2) => validateEnum(value, schema2, context),
+    "anyOf": (schema2) => validateAnyOf(value, schema2, context),
+    "allOf": (schema2) => validateAllOf(value, schema2, context),
+    "array": (schema2) => validateArray(value, schema2, context),
+    "object": (schema2) => validateObject(value, schema2, context),
+    "ref": (schema2) => validateGeneric(value, resolveSchema(schema2), context)
+  }));
+}
+function typeIsValid(value, schema2, context, valid) {
+  if (!valid) {
+    return context.withSchemaPath("type", () => {
+      context.error(value, schema2, "type mismatch");
+      return false;
+    });
+  }
+  return valid;
+}
+function validateBoolean(value, schema2, context) {
+  return typeIsValid(value, schema2, context, typeof value.result === "boolean");
+}
+function validateNumber(value, schema2, context) {
+  if (!typeIsValid(value, schema2, context, typeof value.result === "number")) {
+    return false;
+  }
+  let result = true;
+  if (schema2.minimum !== void 0) {
+    result = context.withSchemaPath("minimum", () => {
+      const v = value.result;
+      if (!(v >= schema2.minimum)) {
+        context.error(value, schema2, `value ${value.result} is less than required minimum ${schema2.minimum}`);
+        return false;
+      }
+      return true;
+    });
+  }
+  if (schema2.maximum !== void 0) {
+    result = context.withSchemaPath("maximum", () => {
+      const v = value.result;
+      if (!(v <= schema2.maximum)) {
+        context.error(value, schema2, `value ${value.result} is greater than required maximum ${schema2.maximum}`);
+        return false;
+      }
+      return true;
+    });
+  }
+  if (schema2.exclusiveMinimum !== void 0) {
+    result = context.withSchemaPath("exclusiveMinimum", () => {
+      const v = value.result;
+      if (!(v > schema2.exclusiveMinimum)) {
+        context.error(value, schema2, `value ${value.result} is less than or equal to required (exclusive) minimum ${schema2.exclusiveMinimum}`);
+        return false;
+      }
+      return true;
+    });
+  }
+  if (schema2.exclusiveMaximum !== void 0) {
+    result = context.withSchemaPath("exclusiveMaximum", () => {
+      const v = value.result;
+      if (!(v < schema2.exclusiveMaximum)) {
+        context.error(value, schema2, `value ${value.result} is greater than or equal to required (exclusive) maximum ${schema2.exclusiveMaximum}`);
+        return false;
+      }
+      return true;
+    });
+  }
+  return result;
+}
+function validateString(value, schema2, context) {
+  if (!typeIsValid(value, schema2, context, typeof value.result === "string")) {
+    return false;
+  }
+  if (schema2.pattern !== void 0) {
+    if (schema2.compiledPattern === void 0) {
+      schema2.compiledPattern = new RegExp(schema2.pattern);
+    }
+    if (!value.result.match(schema2.compiledPattern)) {
+      return context.withSchemaPath("pattern", () => {
+        context.error(value, schema2, `value doesn't match pattern`);
+        return false;
+      });
+    }
+  }
+  return true;
+}
+function validateNull(value, schema2, context) {
+  if (!typeIsValid(value, schema2, context, value.result === null)) {
+    return false;
+  }
+  return true;
+}
+function validateEnum(value, schema2, context) {
+  for (const enumValue of schema2["enum"]) {
+    if (enumValue === value.result) {
+      return true;
+    }
+  }
+  context.error(value, schema2, `must match one of the values`);
+  return false;
+}
+function validateAnyOf(value, schema2, context) {
+  let passingSchemas = 0;
+  for (let i = 0; i < schema2.anyOf.length; ++i) {
+    const subSchema = schema2.anyOf[i];
+    context.withSchemaPath(i, () => {
+      if (validateGeneric(value, subSchema, context)) {
+        passingSchemas++;
+        return true;
+      }
+      return false;
+    });
+  }
+  return passingSchemas > 0;
+}
+function validateAllOf(value, schema2, context) {
+  let passingSchemas = 0;
+  for (let i = 0; i < schema2.allOf.length; ++i) {
+    const subSchema = schema2.allOf[i];
+    context.withSchemaPath(i, () => {
+      if (validateGeneric(value, subSchema, context)) {
+        passingSchemas++;
+        return true;
+      }
+      return false;
+    });
+  }
+  return passingSchemas === schema2.allOf.length;
+}
+function validateArray(value, schema2, context) {
+  let result = true;
+  if (!typeIsValid(value, schema2, context, Array.isArray(value.result))) {
+    return false;
+  }
+  const length = value.result.length;
+  if (schema2.minItems !== void 0 && length < schema2.minItems) {
+    context.withSchemaPath("minItems", () => {
+      context.error(value, schema2, `array should have at least ${schema2.minItems} items but has ${length} items instead`);
+      return false;
+    });
+    result = false;
+  }
+  if (schema2.maxItems !== void 0 && length > schema2.maxItems) {
+    context.withSchemaPath("maxItems", () => {
+      context.error(value, schema2, `array should have at most ${schema2.maxItems} items but has ${length} items instead`);
+      return false;
+    });
+    result = false;
+  }
+  if (schema2.items !== void 0) {
+    result = context.withSchemaPath("items", () => {
+      let result2 = true;
+      for (let i = 0; i < value.components.length; ++i) {
+        context.pushInstance(i);
+        result2 = validateGeneric(value.components[i], schema2.items, context) && result2;
+        context.popInstance();
+      }
+      return result2;
+    }) && result;
+  }
+  return result;
+}
+function validateObject(value, schema2, context) {
+  const isObject3 = typeof value.result === "object" && !Array.isArray(value.result) && value.result !== null;
+  if (!typeIsValid(value, schema2, context, isObject3)) {
+    return false;
+  }
+  let result = true;
+  const ownProperties = new Set(Object.getOwnPropertyNames(value.result));
+  const objResult = value.result;
+  const locate = (key, keyOrValue = "value") => {
+    for (let i = 0; i < value.components.length; i += 2) {
+      if (value.components[i].result === key) {
+        if (keyOrValue === "value") {
+          return value.components[i + 1];
+        } else {
+          return value.components[i];
+        }
+      }
+    }
+    throw new Error(`Internal Error, couldn't locate key ${key}`);
+  };
+  const inspectedProps = new Set();
+  if (schema2.properties !== void 0) {
+    result = context.withSchemaPath("properties", () => {
+      let result2 = true;
+      for (const [key, subSchema] of Object.entries(schema2.properties)) {
+        if (ownProperties.has(key)) {
+          inspectedProps.add(key);
+          context.pushInstance(key);
+          result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
+          context.popInstance();
+        }
+      }
+      return result2;
+    }) && result;
+  }
+  if (schema2.patternProperties !== void 0) {
+    result = context.withSchemaPath("patternProperties", () => {
+      let result2 = true;
+      for (const [key, subSchema] of Object.entries(schema2.patternProperties)) {
+        if (schema2.compiledPatterns === void 0) {
+          schema2.compiledPatterns = {};
+        }
+        if (schema2.compiledPatterns[key] === void 0) {
+          schema2.compiledPatterns[key] = new RegExp(key);
+        }
+        const regexp = schema2.compiledPatterns[key];
+        for (const [objectKey, _val] of Object.entries(objResult)) {
+          if (objectKey.match(regexp)) {
+            inspectedProps.add(objectKey);
+            context.pushInstance(objectKey);
+            result2 = context.withSchemaPath(key, () => validateGeneric(locate(objectKey), subSchema, context)) && result2;
+            context.popInstance();
+          }
+        }
+      }
+      return result2;
+    }) && result;
+  }
+  if (schema2.additionalProperties !== void 0) {
+    result = context.withSchemaPath("additionalProperties", () => {
+      return Object.keys(objResult).filter((objectKey) => !inspectedProps.has(objectKey)).every((objectKey) => validateGeneric(locate(objectKey), schema2.additionalProperties, context));
+    }) && result;
+  }
+  if (schema2.propertyNames !== void 0) {
+    result = context.withSchemaPath("propertyNames", () => {
+      return Array.from(ownProperties).every((key) => validateGeneric(locate(key, "key"), schema2.propertyNames, context));
+    }) && result;
+  }
+  if (schema2.required !== void 0) {
+    result = context.withSchemaPath("required", () => {
+      let result2 = true;
+      for (const reqKey of schema2.required) {
+        if (!ownProperties.has(reqKey)) {
+          context.error(value, schema2, `object is missing required property ${reqKey}`);
+          result2 = false;
+        }
+      }
+      return result2;
+    }) && result;
+  }
+  return result;
+}
+function validate(value, schema2, source) {
+  const context = new ValidationContext();
+  return context.validate(schema2, source, value);
+}
+
+// ../yaml-validation/yaml-schema.ts
+function getVerbatimInput(error) {
+  return error.source.value;
+}
+function navigate(path, annotation, returnKey = false, pathIndex = 0) {
+  if (annotation === void 0) {
+    throw new Error("Can't navigate an undefined annotation");
+  }
+  if (pathIndex >= path.length) {
+    return annotation;
+  }
+  if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
+    const { components } = annotation;
+    const searchKey = path[pathIndex];
+    const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
+    for (let i = lastKeyIndex; i >= 0; i -= 2) {
+      const key = components[i].result;
+      if (key === searchKey) {
+        if (returnKey && pathIndex === path.length - 1) {
+          return navigate(path, components[i], returnKey, pathIndex + 1);
+        } else {
+          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+        }
+      }
+    }
+    return annotation;
+  } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
+    const searchKey = Number(path[pathIndex]);
+    if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
+      return annotation;
+    }
+    return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
+  } else {
+    return annotation;
+  }
+}
+var YAMLSchema2 = class {
+  constructor(schema2) {
+    this.errorHandlers = [];
+    this.schema = schema2;
+  }
+  addHandler(handler) {
+    this.errorHandlers.push(handler);
+  }
+  transformErrors(annotation, errors) {
+    return errors.map((error) => {
+      for (const handler of this.errorHandlers) {
+        const localError = handler(error, annotation, this.schema);
+        if (localError === null) {
+          return null;
+        }
+        error = localError;
+      }
+      return error;
+    }).filter((error) => error !== null);
+  }
+  async validateParse(src, annotation) {
+    const validationErrors = validate(annotation, this.schema, src);
+    if (validationErrors.length) {
+      const localizedErrors = this.transformErrors(annotation, validationErrors);
+      return {
+        result: annotation.result,
+        errors: localizedErrors
+      };
+    } else {
+      return {
+        result: annotation.result,
+        errors: []
+      };
+    }
+  }
+  reportErrorsInSource(result, _src, message, error, log) {
+    if (result.errors.length) {
+      if (message.length) {
+        error(message);
+      }
+      for (const err of result.errors) {
+        log(err.niceError);
+      }
+    }
+    return result;
+  }
+  async validateParseWithErrors(src, annotation, message, error, log) {
+    const result = await this.validateParse(src, annotation);
+    this.reportErrorsInSource(result, src, message, error, log);
+    return result;
+  }
+};
 
 // ../yaml-validation/validator-queue.ts
 var yamlValidators = {};
@@ -25532,7 +25698,7 @@ function getValidator(schema2) {
   if (yamlValidators[schemaName]) {
     return yamlValidators[schemaName];
   }
-  const validator = new YAMLSchema(schema2);
+  const validator = new YAMLSchema2(schema2);
   yamlValidators[schemaName] = validator;
   setDefaultErrorHandlers(validator);
   return validator;
@@ -26774,16 +26940,21 @@ var kLangCommentChars = {
 
 // ../break-quarto-md.ts
 async function breakQuartoMd(src, validate2 = false) {
+  if (typeof src === "string") {
+    src = asMappedString(src);
+  }
   const nb = {
     cells: []
   };
   const yamlRegEx = /^---\s*$/;
   const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
   const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^```\s*$/;
+  const endCodeRegEx = /^```+\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
   let language = "";
   let cellStartLine = 0;
+  let codeStartRange;
+  let codeEndRange;
   const lineBuffer = [];
   const flushLineBuffer = async (cell_type, index) => {
     if (lineBuffer.length) {
@@ -26815,10 +26986,10 @@ async function breakQuartoMd(src, validate2 = false) {
         }
         const prefix = "```{" + language + "}\n";
         cell.sourceOffset = strUpToLastBreak.length + prefix.length;
-        cell.sourceVerbatim = mappedString(cell.sourceVerbatim, [
-          prefix,
-          { start: 0, end: cell.sourceVerbatim.value.length },
-          "\n```"
+        cell.sourceVerbatim = mappedString(src, [
+          codeStartRange.range,
+          ...mappedChunks,
+          codeEndRange.range
         ]);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
@@ -26829,7 +27000,8 @@ async function breakQuartoMd(src, validate2 = false) {
       lineBuffer.splice(0, lineBuffer.length);
     }
   };
-  let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = false;
+  const tickCount = (s) => Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
+  let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = 0;
   const srcLines = rangedLines(src.value, true);
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
@@ -26843,21 +27015,23 @@ async function breakQuartoMd(src, validate2 = false) {
         lineBuffer.push(line);
         inYaml = true;
       }
-    } else if (startCodeCellRegEx.test(line.substring)) {
+    } else if (startCodeCellRegEx.test(line.substring) && inCode === 0) {
       const m = line.substring.match(startCodeCellRegEx);
       language = m[1];
       await flushLineBuffer("markdown", i);
       inCodeCell = true;
-    } else if (endCodeRegEx.test(line.substring)) {
+      codeStartRange = line;
+    } else if (endCodeRegEx.test(line.substring) && (inCodeCell || inCode && tickCount(line.substring) === inCode)) {
       if (inCodeCell) {
+        codeEndRange = line;
         inCodeCell = false;
         await flushLineBuffer("code", i);
       } else {
-        inCode = !inCode;
+        inCode = 0;
         lineBuffer.push(line);
       }
     } else if (startCodeRegEx.test(line.substring)) {
-      inCode = true;
+      inCode = tickCount(line.substring);
       lineBuffer.push(line);
     } else if (delimitMathBlockRegEx.test(line.substring)) {
       if (inMathBlock) {
@@ -27011,6 +27185,23 @@ var getProjectConfigFieldsSchema = defineCached(async () => {
     errorHandlers: []
   };
 }, "project-config-fields");
+function disallowTopLevelType(error, parse, _schema) {
+  if (!(error.instancePath.length === 1 && error.instancePath[0] === "type")) {
+    return error;
+  }
+  const violatingObject = locateAnnotation(parse, error.instancePath, "key");
+  const localizedError = createLocalizedError({
+    ...error,
+    message: "top-level key 'type' is not allowed in project configuration.",
+    violatingObject,
+    source: mappedString(parse.source.originalString, [{
+      start: violatingObject.start,
+      end: violatingObject.end + 1
+    }])
+  });
+  localizedError.niceError.info["top-level-type-not-allowed"] = "Did you mean to use 'project: type: ...' instead?";
+  return localizedError;
+}
 var getProjectConfigSchema = defineCached(async () => {
   const projectConfigFields = await getProjectConfigFieldsSchema();
   const execute = await getFormatExecuteOptionsSchema();
@@ -27024,7 +27215,7 @@ var getProjectConfigSchema = defineCached(async () => {
   }), execute, await getFrontMatterSchema(), projectConfigFields);
   return {
     schema: describeSchema(result, "a project configuration object"),
-    errorHandlers: []
+    errorHandlers: [disallowTopLevelType]
   };
 }, "project-config");
 

@@ -12,7 +12,8 @@
     function postMessage(message, data) {
       if (window.parent.postMessage) {
         window.parent.postMessage({
-          message: message,
+          type: message, 
+          message: message, 
           data: data
         }, "*");
       }

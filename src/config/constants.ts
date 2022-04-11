@@ -38,6 +38,9 @@ export const kExecuteDaemon = "daemon";
 export const kExecuteDaemonRestart = "daemon-restart";
 export const kExecuteDebug = "debug";
 
+export const kIpynbFilter = "ipynb-filter";
+export const kIpynbFilters = "ipynb-filters";
+
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepYaml = "keep-yaml";
@@ -55,6 +58,7 @@ export const kCodeLineNumbers = "code-line-numbers";
 export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";
+export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
 export const kPreferHtml = "prefer-html";
@@ -97,6 +101,8 @@ export const kExecuteDefaultsKeys = [
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,
+  kIpynbFilter,
+  kIpynbFilters,
 ];
 
 export const kRenderDefaultsKeys = [
@@ -201,6 +207,9 @@ export const kCrossrefExrPrefix = "crossref-exr-prefix";
 export const kCrossrefLofTitle = "crossref-lof-title";
 export const kCrossrefLotTitle = "crossref-lot-title";
 export const kCrossrefLolTitle = "crossref-lol-title";
+export const kEnvironmentProofTitle = "environment-proof-title";
+export const kEnvironmentRemarkTitle = "environment-remark-title";
+export const kEnvironmentSolutionTitle = "environment-solution-title";
 export const kListingPageOrderBy = "listing-page-order-by";
 export const kListingPageOrderByDefault = "listing-page-order-by-default";
 export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
@@ -285,6 +294,9 @@ export const kLanguageDefaultsKeys = [
   kCrossrefLofTitle,
   kCrossrefLotTitle,
   kCrossrefLolTitle,
+  kEnvironmentProofTitle,
+  kEnvironmentRemarkTitle,
+  kEnvironmentSolutionTitle,
   kListingPageOrderBy,
   kListingPageOrderByDefault,
   kListingPageOrderByDateAsc,
@@ -509,6 +521,7 @@ export const kCellFormat = "format";
 export const kCellName = "name";
 export const kCellTags = "tags";
 export const kCellLinesToNext = "lines_to_next_cell";
+export const kCellLanguage = "language";
 export const kCellSlideshow = "slideshow";
 export const kCellSlideshowSlideType = "slide_type";
 export const kCellRawMimeType = "raw_mimetype";

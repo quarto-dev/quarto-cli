@@ -8,10 +8,10 @@ const sectionChanged = new CustomEvent("quarto-sectionChanged", {
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   const tocEl = window.document.querySelector('nav[role="doc-toc"]');
   const sidebarEl = window.document.getElementById("quarto-sidebar");
+  const leftTocEl = window.document.getElementById("quarto-sidebar-toc-left");
   const marginSidebarEl = window.document.getElementById(
     "quarto-margin-sidebar"
   );
-
   // function to determine whether the element has a previous sibling that is active
   const prevSiblingIsActiveLink = (el) => {
     const sibling = el.previousElementSibling;
@@ -59,7 +59,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   const sections = tocLinks.map((link) => {
     const target = link.getAttribute("data-scroll-target");
-    return window.document.querySelector(`${target}`);
+    return window.document.querySelector(decodeURI(`${target}`));
   });
 
   const sectionMargin = 200;
@@ -171,21 +171,31 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             }
           }
         }
-        // See if the referrer is a listing page for this item
-        const referredRelativePath = offsetAbsoluteUrl(document.referrer);
-        const referrerListing = listingHrefs.find((listingHref) => {
-          const isListingReferrer =
-            listingHref === referredRelativePath ||
-            listingHref === referredRelativePath + "index.html";
-          return isListingReferrer;
-        });
 
-        if (referrerListing) {
-          // Try to use the referrer if possible
-          activateCategories(referrerListing);
-        } else if (listingHrefs.length > 0) {
-          // Otherwise, just fall back to the first listing
-          activateCategories(listingHrefs[0]);
+        // Look up the tree for a nearby linting and use that if we find one
+        const nearestListing = findNearestParentListing(
+          offsetAbsoluteUrl(window.location.pathname),
+          listingHrefs
+        );
+        if (nearestListing) {
+          activateCategories(nearestListing);
+        } else {
+          // See if the referrer is a listing page for this item
+          const referredRelativePath = offsetAbsoluteUrl(document.referrer);
+          const referrerListing = listingHrefs.find((listingHref) => {
+            const isListingReferrer =
+              listingHref === referredRelativePath ||
+              listingHref === referredRelativePath + "index.html";
+            return isListingReferrer;
+          });
+
+          if (referrerListing) {
+            // Try to use the referrer if possible
+            activateCategories(referrerListing);
+          } else if (listingHrefs.length > 0) {
+            // Otherwise, just fall back to the first listing
+            activateCategories(listingHrefs[0]);
+          }
         }
       });
     }
@@ -193,6 +203,25 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   if (hasTitleCategories()) {
     findAndActivateCategories();
   }
+
+  const findNearestParentListing = (href, listingHrefs) => {
+    if (!href || !listingHrefs) {
+      return undefined;
+    }
+    // Look up the tree for a nearby linting and use that if we find one
+    const relativeParts = href.substring(1).split("/");
+    while (relativeParts.length > 0) {
+      const path = relativeParts.join("/");
+      for (const listingHref of listingHrefs) {
+        if (listingHref.startsWith(path)) {
+          return listingHref;
+        }
+      }
+      relativeParts.pop();
+    }
+
+    return undefined;
+  };
 
   const manageSidebarVisiblity = (el, placeholderDescriptor) => {
     let isVisible = true;
@@ -358,38 +387,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   };
 
-  const offsetEl = window.document.querySelector(
-    `*[data-sidebar-align="true"]`
-  );
-  let offsetTopPadding = null;
-  const positionSidebars = () => {
-    if (offsetEl !== null) {
-      if (offsetTopPadding === null) {
-        offsetTopPadding = offsetEl.style.paddingTop;
-      }
-      const rect = offsetEl.getBoundingClientRect();
-      const position = Math.max(rect.height, 0);
-
-      const floating = window.document.querySelector("body.floating");
-      const sidebarIds = ["quarto-margin-sidebar"];
-      if (floating) {
-        sidebarIds.push("quarto-sidebar");
-      }
-      sidebarIds.forEach((sidebarId) => {
-        const sidebarEl = window.document.getElementById(sidebarId);
-        if (sidebarEl) {
-          sidebarEl.style.marginTop = `${position}px`;
-          if (position > 0) {
-            sidebarEl.style.paddingTop = "0.5em";
-          } else {
-            sidebarEl.style.paddingTop = offsetTopPadding;
-          }
-        }
-      });
-    }
-  };
-  positionSidebars();
-
   // Manage the visibility of the toc and the sidebar
   const marginScrollVisibility = manageSidebarVisiblity(marginSidebarEl, {
     id: "quarto-toc-toggle",
@@ -401,6 +398,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     titleSelector: ".title",
     dismissOnClick: false,
   });
+  let tocLeftScrollVisibility;
+  if (leftTocEl) {
+    tocLeftScrollVisibility = manageSidebarVisiblity(leftTocEl, {
+      id: "quarto-lefttoc-toggle",
+      titleSelector: "#toc-title",
+      dismissOnClick: true,
+    });
+  }
+
   // Find the first element that uses formatting in special columns
   const conflictingEls = window.document.body.querySelectorAll(
     '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]'
@@ -462,6 +468,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const hideOverlappedSidebars = () => {
     marginScrollVisibility(toRegions(rightSideConflictEls));
     sidebarScrollVisiblity(toRegions(leftSideConflictEls));
+    if (tocLeftScrollVisibility) {
+      tocLeftScrollVisibility(toRegions(leftSideConflictEls));
+    }
   };
 
   window.quartoToggleReader = () => {
@@ -578,7 +587,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     "scroll",
     throttle(() => {
       if (tocEl) {
-        positionSidebars();
         updateActiveLink();
         walk(tocEl, 0);
       }
@@ -590,10 +598,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   window.addEventListener(
     "resize",
     throttle(() => {
-      if (tocEl) {
-        positionSidebars();
-      }
-
       if (!isReaderMode()) {
         hideOverlappedSidebars();
       }

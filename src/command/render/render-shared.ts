@@ -57,6 +57,11 @@ export async function render(
   // determine target context/files
   const context = await projectContext(path, options.flags);
 
+  // set env var if requested
+  if (context && options.setProjectDir) {
+    Deno.env.set("QUARTO_PROJECT_DIR", context.dir);
+  }
+
   if (Deno.statSync(path).isDirectory) {
     // if the path is a sub-directory of the project, then create
     // a files list that is only those files in the subdirectory
@@ -266,8 +271,14 @@ export async function previewRenderRequestIsCompatible(
   flags: RenderFlags,
   project?: ProjectContext,
 ) {
-  const format = await previewFormat(request.path, request.format, project);
-  return format === flags.to;
+  if (flags.to === "default" && (request.format === undefined)) {
+    return true; // rstudio passes 'default'
+  } else if (flags.to !== "all") {
+    const format = await previewFormat(request.path, request.format, project);
+    return format === flags.to;
+  } else {
+    return true;
+  }
 }
 
 export function previewUnableToRenderResponse() {

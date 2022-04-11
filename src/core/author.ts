@@ -23,10 +23,11 @@ const kAfilliationUrl = "affiliation-url";
 const kOrcid = "orcid";
 const kUrl = "url";
 
-export function parseAuthor(authorRaw: unknown) {
+export function parseAuthor(authorRaw: unknown, strict?: boolean) {
   if (authorRaw) {
     const parsed: Author[] = [];
     const authors = Array.isArray(authorRaw) ? authorRaw : [authorRaw];
+    let unrecognized = 0;
     authors.forEach((author) => {
       if (typeof (author) === "string") {
         // Its a string, so make it a name
@@ -61,10 +62,19 @@ export function parseAuthor(authorRaw: unknown) {
           }
 
           parsed.push(auth);
+        } else {
+          unrecognized = unrecognized + 1;
         }
       }
     });
-    return parsed;
+
+    // If we didn't know how to parse this author
+    // just stand down - we just don't recognize this.
+    if (strict && unrecognized > 0) {
+      return undefined;
+    } else {
+      return parsed;
+    }
   } else {
     return undefined;
   }

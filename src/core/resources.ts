@@ -29,8 +29,8 @@ export function formatResourcePath(format: string, resource: string) {
   return join(resourcePath("formats"), format, resource);
 }
 
-export function binaryPath(binary: string): string {
-  return join(quartoConfig.binPath(), binary);
+export function toolsPath(binary: string): string {
+  return join(quartoConfig.toolsPath(), binary);
 }
 
 export function pandocBinaryPath(): string {
@@ -47,7 +47,7 @@ export function pandocBinaryPath(): string {
     }
   }
 
-  return binaryPath("pandoc");
+  return toolsPath("pandoc");
 }
 
 export async function rBinaryPath(binary: string): Promise<string> {

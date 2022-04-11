@@ -46,6 +46,9 @@ import {
   kCss,
   kEcho,
   kEngine,
+  kEnvironmentProofTitle,
+  kEnvironmentRemarkTitle,
+  kEnvironmentSolutionTitle,
   kEPubCoverImage,
   kError,
   kEval,
@@ -71,6 +74,7 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kIpynbFilters,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -347,6 +351,7 @@ export interface FormatExecute {
   [kInclude]?: boolean;
   [kKeepMd]?: boolean;
   [kKeepIpynb]?: boolean;
+  [kIpynbFilters]?: string[];
 }
 
 export interface FormatPandoc {
@@ -477,6 +482,9 @@ export interface FormatLanguage {
   [kCrossrefExrTitle]?: string;
   [kCrossrefSecPrefix]?: string;
   [kCrossrefEqPrefix]?: string;
+  [kEnvironmentProofTitle]?: string;
+  [kEnvironmentRemarkTitle]?: string;
+  [kEnvironmentSolutionTitle]?: string;
   [kListingPageOrderBy]?: string;
   [kListingPageOrderByDateAsc]?: string;
   [kListingPageOrderByDefault]?: string;

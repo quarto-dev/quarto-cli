@@ -24,7 +24,6 @@ import { cssImports, cssResources } from "../../core/css.ts";
 import { compileSass } from "../../core/sass.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
-
 import {
   readHighlightingTheme,
   readTheme,

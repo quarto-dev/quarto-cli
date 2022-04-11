@@ -5,14 +5,30 @@
  *
  */
 import { info } from "log/mod.ts";
+import { existsSync } from "fs/mod.ts";
+
 import * as ld from "../../../core/lodash.ts";
 
 import { execProcess, safeWindowsExec } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
+import { tinyTexInstallDir } from "../../tools/tools/tinytex.ts";
 
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
+  if (await texLiveInPath()) {
+    return true;
+  } else {
+    const installDir = tinyTexInstallDir();
+    if (installDir && existsSync(installDir)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+export async function texLiveInPath(): Promise<boolean> {
   try {
     const result = await tlmgrCommand("--version", []);
     return result.code === 0;

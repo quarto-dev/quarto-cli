@@ -7,6 +7,9 @@
 
 import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { mergeConfigs } from "../core/config.ts";
+import { isRStudio } from "../core/platform.ts";
+import { findOpenPort, kLocalhost } from "../core/port.ts";
 import { TempContext } from "../core/temp.ts";
 
 export const kProjectType = "type";
@@ -17,6 +20,8 @@ export const kProjectExecuteDir = "execute-dir";
 export const kProjectOutputDir = "output-dir";
 export const kProjectLibDir = "lib-dir";
 export const kProjectResources = "resources";
+
+export const kProjectWatchInputs = "watch-inputs";
 
 export interface ProjectContext {
   dir: string;
@@ -47,8 +52,38 @@ export interface ProjectConfig {
     [kProjectOutputDir]?: string;
     [kProjectLibDir]?: string;
     [kProjectResources]?: string[];
+    preview?: ProjectPreview;
   };
   [key: string]: unknown;
+}
+
+export interface ProjectPreview {
+  port?: number;
+  host?: string;
+  browser?: boolean;
+  [kProjectWatchInputs]?: boolean;
+  timeout?: number;
+}
+
+export function resolvePreviewOptions(
+  options: ProjectPreview,
+  project?: ProjectContext,
+): ProjectPreview {
+  // start with project options if we have them
+  if (project?.config?.project.preview) {
+    options = mergeConfigs(project.config.project.preview, options);
+  }
+  // provide defaults
+  const resolved = mergeConfigs({
+    host: kLocalhost,
+    browser: true,
+    [kProjectWatchInputs]: !isRStudio(),
+    timeout: 0,
+  }, options) as ProjectPreview;
+  if (!resolved.port) {
+    resolved.port = findOpenPort();
+  }
+  return resolved;
 }
 
 export const kProject404File = "404.html";

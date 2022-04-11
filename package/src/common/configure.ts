@@ -22,12 +22,7 @@ import {
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
 import { archiveUrl } from "./archive-binary-dependencies.ts";
-import {
-  kHKeyCurrentUser,
-  kHKeyLocalMachine,
-  registryReadString,
-} from "../../../src/core/registry.ts";
-import { quartoCacheDir } from "../../../src/core/appdirs.ts";
+import { suggestUserBinPaths } from "../../../src/core/env.ts";
 
 export async function configure(
   config: Configuration,
@@ -103,53 +98,65 @@ export async function configure(
   writeDevConfig(devConfig, config.directoryInfo.bin);
   info("");
 
-  // Set up a symlink (if appropriate)
-  const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
-
   if (Deno.build.os !== "windows") {
     info("Creating Quarto Symlink");
-    for (let i = 0; i < symlinkPaths.length; i++) {
-      const symlinkPath = symlinkPaths[i];
-      info(`> Trying ${symlinkPath}`);
-      try {
-        if (existsSync(symlinkPath)) {
-          Deno.removeSync(symlinkPath);
+
+    // Set up a symlink (if appropriate)
+    const possibleBinPaths = suggestUserBinPaths();
+    const symlinksFiltered = possibleBinPaths.map((path) =>
+      join(path, "quarto")
+    );
+
+    info(`Found ${symlinksFiltered.length} paths to try.`);
+
+    if (symlinksFiltered.length > 0) {
+      for (let i = 0; i < symlinksFiltered.length; i++) {
+        info(`> Trying ${symlinksFiltered[i]}`);
+        const symlinkPath = expandPath(symlinksFiltered[i]);
+
+        // Remove existing symlink
+        try {
+          if (existsSync(symlinkPath)) {
+            Deno.removeSync(symlinkPath);
+          }
+        } catch (error) {
+          info(error);
+          warning(
+            "\n> Failed to remove existing symlink.\n> Did you previously install with sudo? Run 'which quarto' to test which version will be used.",
+          );
         }
-      } catch (error) {
-        info(error);
-        warning(
-          "\n> Failed to remove existing symlink.\n> Did you previously install with sudo? Run 'which quarto' to test which version will be used.",
-        );
-      }
-      try {
-        // for the last path, try even creating a directory as a last ditch effort
-        if (i === symlinkPaths.length - 1) {
-          if (!existsSync(dirname(symlinkPath))) {
+
+        // Create new symlink
+        try {
+          ensureDirSync(dirname(symlinkPath) + SEP);
+
+          Deno.symlinkSync(
+            join(config.directoryInfo.bin, "quarto"),
+            symlinkPath,
+          );
+
+          info(`> Symlink created at ${symlinkPath}`);
+          info("> Success");
+          // it worked, just move on
+          break;
+        } catch (_error) {
+          info(`> Didn't create symlink at ${symlinkPath}`);
+          if (i === symlinksFiltered.length - 1) {
             warning(
-              `We couldn't find an existing directory in which to create the Quarto symlink. Configuration created a symlink at\n${symlinkPath}\nPlease ensure that this is on your PATH.`,
+              `\n> Please ensure that ${
+                join(config.directoryInfo.bin, "quarto")
+              } is in your path.`,
             );
           }
-          // append path separator to resolve the dir name (in case it's a symlink)
-          ensureDirSync(dirname(symlinkPath) + SEP);
-        }
-        Deno.symlinkSync(
-          join(config.directoryInfo.bin, "quarto"),
-          symlinkPath,
-        );
-
-        info("> Success");
-        // it worked, just move on
-        break;
-      } catch (_error) {
-        // NOTE: printing this error makes the user think that something went wrong when it didn't
-        // info(error);
-        // none of them worked!
-        if (i === symlinkPaths.length - 1) {
-          warning("Failed to create symlink to quarto.");
-        } else {
-          info("> Failed");
         }
       }
+    } else {
+      // Just warn the user and create a symlink in our last resort
+      warning(
+        `\n> Please ensure that ${
+          join(config.directoryInfo.bin, "quarto")
+        } is in your path.`,
+      );
     }
   }
 }
@@ -161,6 +168,7 @@ async function downloadBinaryDependency(
 ) {
   const targetFile = join(
     configuration.directoryInfo.bin,
+    "tools",
     platformDependency.filename,
   );
   const dlUrl = archiveUrl(dependency, platformDependency);
@@ -189,7 +197,7 @@ async function downloadBinaryDependency(
 // files on both platforms)
 // deno-lint-ignore no-unused-vars
 async function downloadDenoStdLibrary(config: Configuration) {
-  const denoBinary = join(config.directoryInfo.bin, "deno");
+  const denoBinary = join(config.directoryInfo.bin, "tools", "deno");
   const denoStdTs = join(
     config.directoryInfo.pkg,
     "scripts",

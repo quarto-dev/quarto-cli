@@ -6,7 +6,7 @@
 */
 
 import { execProcess } from "./process.ts";
-import { binaryPath } from "./resources.ts";
+import { toolsPath } from "./resources.ts";
 
 export async function esbuildCompile(
   input: string,
@@ -30,7 +30,7 @@ async function esbuildCommand(
   workingDir: string,
 ) {
   const cmd = [
-    binaryPath("esbuild"),
+    toolsPath("esbuild"),
     ...args,
   ];
 

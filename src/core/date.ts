@@ -19,7 +19,7 @@ export const kToday = "today";
 export const rSysDate = "`r Sys.time()`";
 export const kNow = "now";
 
-export type DateFormat = "full" | "long" | "medium" | "short" | string;
+export type DateFormat = "full" | "long" | "medium" | "short" | "iso" | string;
 export type TimeFormat = "full" | "long" | "medium" | "short";
 
 export function today(): Date {
@@ -100,6 +100,7 @@ export const formatDate = (
     }
     return date.toLocaleString(dayjs.locale(), options);
   } else {
+    if (dateStyle === "iso") dateStyle = "YYYY-MM-DD";
     return dayjs(date).format(dateStyle);
   }
 };

@@ -17,6 +17,7 @@
       a different MD5 digest, and hence invalidate the cache.
 
 - name: cache-path
+  hidden: true
   tags:
     engine: knitr
   schema: path

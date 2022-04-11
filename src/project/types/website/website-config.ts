@@ -239,13 +239,31 @@ export function websitePath(project?: ProjectConfig): string {
   }
 }
 
-export function websiteRepoUrl(project?: ProjectConfig): string | undefined {
-  const repoUrl = websiteConfigString(kSiteRepoUrl, project);
+export interface WebsiteRepoInfo {
+  baseUrl: string;
+  path: string;
+}
+
+export function websiteRepoInfo(
+  project?: ProjectConfig,
+): WebsiteRepoInfo | undefined {
+  let repoUrl = websiteConfigString(kSiteRepoUrl, project);
   if (repoUrl) {
     if (!repoUrl.endsWith("/")) {
-      return repoUrl + "/";
+      repoUrl = repoUrl + "/";
+    }
+    // extract into base and path
+    const match = repoUrl.match(/(https?:\/\/(?:[^\/]+\/){3})(.*)/);
+    if (match) {
+      return {
+        baseUrl: match[1],
+        path: match[2] || "",
+      };
     } else {
-      return repoUrl;
+      return {
+        baseUrl: repoUrl,
+        path: "",
+      };
     }
   } else {
     return undefined;
@@ -292,25 +310,19 @@ export function websiteConfigActions(
   }
 }
 
-// provide a project context that elevates html to the default
-// format for documents (unless they explicitly declare another format)
-export function websiteProjectConfig(
-  _projectDir: string,
-  config: ProjectConfig,
+export function normalizeWebsiteFormat(
+  format: string | Record<string, unknown> | undefined,
   forceHtml: boolean,
-): Promise<ProjectConfig> {
-  config = ld.cloneDeep(config);
-  const format = config[kMetadataFormat] as
-    | string
-    | Record<string, unknown>
-    | undefined;
+): string | Record<string, unknown> {
   if (format !== undefined) {
     if (typeof (format) === "string") {
       if (!isHtmlOutput(format, true) && forceHtml) {
-        config[kMetadataFormat] = {
+        return {
           html: "default",
           [format]: "default",
         };
+      } else {
+        return format;
       }
     } else {
       const formats = Object.keys(format);
@@ -329,11 +341,26 @@ export function websiteProjectConfig(
       for (const formatName of formats) {
         orderedFormats[formatName] = format[formatName];
       }
-      config[kMetadataFormat] = orderedFormats;
+      return orderedFormats;
     }
   } else {
-    config[kMetadataFormat] = "html";
+    return "html";
   }
+}
+
+// provide a project context that elevates html to the default
+// format for documents (unless they explicitly declare another format)
+export function websiteProjectConfig(
+  _projectDir: string,
+  config: ProjectConfig,
+  forceHtml: boolean,
+): Promise<ProjectConfig> {
+  config = ld.cloneDeep(config);
+  const format = config[kMetadataFormat] as
+    | string
+    | Record<string, unknown>
+    | undefined;
+  config[kMetadataFormat] = normalizeWebsiteFormat(format, forceHtml);
 
   // Resolve elements to be sure they're arrays, they will be resolve later
   const ensureArray = (val: unknown) => {

@@ -1,4 +1,12 @@
 // deno-lint-ignore-file
+
+/** NB: we needed to hack our way around the fact that js-yaml doesn't export some entry points
+ * that are necessary to define custom schema. We added those exports by hand on the output of esbuild.
+ *
+ * FIXME This needs a better solution.
+ *
+ */
+
 /*! js-yaml 4.1.0 https://github.com/nodeca/js-yaml @license MIT */
 function isNothing(subject) {
   return typeof subject === "undefined" || subject === null;
@@ -3293,4 +3301,11 @@ export {
   safeLoad,
   safeLoadAll,
   types,
+  // 2022-04-11: this was added _by hand_ by cscheid. It's a terrible hack
+  // but it's the easiest way forward right now.
+  failsafe,
+  int,
+  bool,
+  float,
+  _null,
 };

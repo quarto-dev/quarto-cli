@@ -15,6 +15,11 @@ IF EXIST "%QUARTO_TS_PATH%" (
 		GOTO end
 	)
 
+	IF "%1"=="-v" (
+		ECHO 99.9.9
+		GOTO end
+	)
+
 	IF "%QUARTO_ACTION%"=="" (
 		SET QUARTO_ACTION=run
 	)
@@ -54,6 +59,11 @@ IF EXIST "%QUARTO_TS_PATH%" (
 		TYPE "%SCRIPT_DIR%..\share\version"
 		GOTO end
 	)
+
+		IF "%1"=="-v" (
+		TYPE "%SCRIPT_DIR%..\share\version"
+		GOTO end
+	)
 	
 	SET QUARTO_ACTION=run
 	SET QUARTO_TARGET="%SCRIPT_DIR%quarto.js"
@@ -72,10 +82,10 @@ IF %ERRORLEVEL% EQU 0 (
 SET NO_COLOR=TRUE
 )
 
-set "DENO_DOM_PLUGIN=%QUARTO_BIN_PATH%deno_dom\plugin.dll"
+set "DENO_DOM_PLUGIN=%QUARTO_BIN_PATH%\tools\deno_dom\plugin.dll"
 
 SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi
-"%SCRIPT_DIR%deno" %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
+"%SCRIPT_DIR%\tools\deno" %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
 
 
 GOTO :end

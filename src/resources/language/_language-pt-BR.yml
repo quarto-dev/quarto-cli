@@ -63,3 +63,7 @@ crossref-eq-prefix: "Equação"
 crossref-lof-title: "Lista de Figuras"
 crossref-lot-title: "Lista de Tabelas"
 crossref-lol-title: "Lista de Listagens"
+
+environment-proof-title: "Comprovação"
+environment-remark-title: "Comentário"
+environment-solution-title: "Solução"

@@ -30,15 +30,8 @@ import {
 
 import { resolveSchema } from "./schema-utils.ts";
 
-import {
-  mappedIndexToRowCol,
-  MappedString,
-  mappedString,
-} from "../mapped-text.ts";
-
-import { formatLineRange, lines } from "../text.ts";
-
-import { ErrorLocation } from "../errors.ts";
+import { MappedString } from "../mapped-text.ts";
+import { createLocalizedError } from "./errors.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -211,93 +204,19 @@ class ValidationContext {
     };
     const errors = inner(this.root);
 
-    const locF = mappedIndexToRowCol(source);
-
-    const result = errors.map((validationError) => {
-      let location;
-      try {
-        location = {
-          start: locF(validationError.value.start),
-          end: locF(validationError.value.end),
-        };
-      } catch (_e) {
-        location = {
-          start: { line: 0, column: 0 },
-          end: { line: 0, column: 0 },
-        };
-      }
-
-      return {
-        source: mappedString(source, [{
-          start: validationError.value.start,
-          end: validationError.value.end,
-        }]),
+    const result = errors.map((validationError) =>
+      createLocalizedError({
         violatingObject: validationError.value,
         instancePath: validationError.instancePath,
         schemaPath: validationError.schemaPath,
         schema: validationError.schema,
         message: validationError.message,
-        location: location!,
-        niceError: {
-          heading: validationError.message,
-          error: [],
-          info: {},
-          fileName: source.fileName,
-          location: location!,
-          sourceContext: createSourceContext(source, location!),
-        },
-      };
-    });
+        source,
+      })
+    );
 
     return result;
   }
-}
-
-function createSourceContext(
-  src: MappedString,
-  location: ErrorLocation,
-): string {
-  // TODO this is computed every time, might be inefficient on large files.
-  const nLines = lines(src.originalString).length;
-  const {
-    start,
-    end,
-  } = location;
-  const {
-    prefixWidth,
-    lines: formattedLines,
-  } = formatLineRange(
-    src.originalString,
-    Math.max(0, start.line - 1),
-    Math.min(end.line + 1, nLines - 1),
-  );
-  const contextLines: string[] = [];
-  let mustPrintEllipsis = true;
-  for (const { lineNumber, content, rawLine } of formattedLines) {
-    if (lineNumber < start.line || lineNumber > end.line) {
-      if (rawLine.trim().length) {
-        contextLines.push(content);
-      }
-    } else {
-      if (
-        lineNumber >= start.line + 2 && lineNumber <= end.line - 2
-      ) {
-        if (mustPrintEllipsis) {
-          mustPrintEllipsis = false;
-          contextLines.push("...");
-        }
-      } else {
-        const startColumn = (lineNumber > start.line ? 0 : start.column);
-        const endColumn = (lineNumber < end.line ? rawLine.length : end.column);
-        contextLines.push(content);
-        contextLines.push(
-          " ".repeat(prefixWidth + startColumn) +
-            "~".repeat(endColumn - startColumn),
-        );
-      }
-    }
-  }
-  return contextLines.join("\n");
 }
 
 function validateGeneric(

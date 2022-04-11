@@ -93,7 +93,7 @@ export function httpDevServer(
         return Promise.resolve(undefined);
       }
     },
-    injectClient: (file: Uint8Array, inputFile?: string) => {
+    injectClient: (file: Uint8Array, inputFile?: string): FileResponse => {
       const scriptContents = new TextEncoder().encode(
         "\n" + devServerClientScript(port, inputFile, isPresentation),
       );
@@ -103,7 +103,7 @@ export function httpDevServer(
       fileWithScript.set(file);
       fileWithScript.set(scriptContents, file.length);
       return {
-        contenType: kTextHtml,
+        contentType: kTextHtml,
         body: fileWithScript,
       };
     },

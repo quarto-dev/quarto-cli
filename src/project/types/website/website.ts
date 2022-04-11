@@ -321,11 +321,11 @@ export async function websitePostRender(
   // Any full content feeds need to be 'completed'
   completeListingGeneration(context, outputFiles, incremental);
 
-  // write redirecting index.html if there is none
-  ensureIndexPage(context);
-
   // generate any page aliases
   await updateAliases(context, outputFiles, incremental);
+
+  // write redirecting index.html if there is none
+  ensureIndexPage(context);
 }
 
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {

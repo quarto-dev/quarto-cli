@@ -29,6 +29,10 @@
           maybeArrayOf:
             schema: path
             description: "Additional file resources to be copied to output directory"
+        preview:
+          description: Options for `quarto preview`
+          schema:
+            ref: project-preview
 
 - name: website
   description: MISSING_DESCRIPTION
@@ -94,3 +98,19 @@
             schema:
               ref: navigation-item
             description: "Custom tools for navbar or sidebar"
+
+- name: type
+  hidden: true
+  schema:
+    enum: ["cd93424f-d5ba-4e95-91c6-1890eab59fc7"]
+  errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead."
+  description: "internal-schema-hack"
+  # this is a hack so that we "support" an empty schema.
+  # The value in the enum should never appear in actual documents.
+  #
+  # In order to provide a good error message, we need an error
+  # to be reported with instancePath ["type"].
+  # Tis is a hacky way to do it.
+  #
+  # In general, full json schema would allow negative assertions,
+  # but that makes our error localization heuristics worse. So we hack.

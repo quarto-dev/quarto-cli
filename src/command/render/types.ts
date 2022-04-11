@@ -28,6 +28,7 @@ export interface RenderOptions {
   progress?: boolean;
   useFreezer?: boolean;
   devServerReload?: boolean;
+  setProjectDir?: boolean;
 }
 
 // context for render

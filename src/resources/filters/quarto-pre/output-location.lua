@@ -36,6 +36,21 @@ local function slideOutputLocation(block)
   return partitionCell(block, "output-location-slide")
 end
 
+local function columnOutputLocation(el, fragment)
+  local codeDiv = pandoc.Div({ el.content[1] })
+  local outputDiv = pandoc.Div(tslice(el.content, 2, #el.content))
+  codeDiv.attr.classes:insert("column")
+  outputDiv.attr.identifier = ""
+  outputDiv.attr.classes:insert("column")
+  if fragment then
+    outputDiv.attr.classes:insert("fragment")
+  end
+  columns = pandoc.Div( {codeDiv, outputDiv}, el.attr )
+  tappend(columns.attr.classes, {
+    "columns", "column-output-location"
+  })
+  return { columns }
+end
 
 function outputLocation()
   if isRevealJsOutput() then
@@ -49,6 +64,10 @@ function outputLocation()
             if outputLocationCellHasCode(block) then
               if outputLoc == "fragment" then
                 tappend(newBlocks, fragmentOutputLocation(block))
+              elseif outputLoc == "column" then
+                tappend(newBlocks, columnOutputLocation(block))
+              elseif outputLoc == "column-fragment" then
+                tappend(newBlocks, columnOutputLocation(block, true))
               elseif outputLoc == "slide" then
                 tappend(newBlocks, slideOutputLocation(block))
               else

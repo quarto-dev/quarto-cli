@@ -25,6 +25,8 @@ IF NOT EXIST %QUARTO_BIN_DIR% (
 	MKDIR %QUARTO_BIN_DIR% 
 )
 PUSHD %QUARTO_BIN_DIR%
+MKDIR tools
+PUSHD tools
 
 ECHO Bootstrapping Deno...
 ECHO Deno
@@ -58,7 +60,9 @@ REM  Update to deno canary commit if it is set
 IF NOT "%DENO_CANARY_COMMIT%"=="" (
 	deno upgrade --canary --version %DENO_CANARY_COMMIT%
 )
-deno cache --reload ..\..\..\src\quarto.ts --unstable --importmap=..\..\..\src\import_map.json
+deno cache --reload ..\..\..\..\src\quarto.ts --unstable --importmap=..\..\..\..\src\import_map.json
+
+POPD
 
 SET FINAL_BIN_PATH=%cd%
 

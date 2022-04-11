@@ -15,7 +15,12 @@ export const pythonRunHandler: RunHandler = {
   canHandle: (script: string) => {
     return [".py"].includes(extname(script).toLowerCase());
   },
-  run: async (script: string, args: string[], options?: RunHandlerOptions) => {
+  run: async (
+    script: string,
+    args: string[],
+    stdin?: string,
+    options?: RunHandlerOptions,
+  ) => {
     return await execProcess({
       cmd: [
         ...(await pythonExec()),
@@ -23,6 +28,6 @@ export const pythonRunHandler: RunHandler = {
         ...args,
       ],
       ...options,
-    });
+    }, stdin);
   },
 };

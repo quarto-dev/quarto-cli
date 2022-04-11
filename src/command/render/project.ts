@@ -53,6 +53,7 @@ import {
 } from "../../core/path.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
+import { parseShellRunCommand } from "../../core/run/shell.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -242,256 +243,250 @@ export async function renderProject(
     return resourceFiles;
   };
 
-  // set QUARTO_PROJECT_DIR
-  Deno.env.set("QUARTO_PROJECT_DIR", projDir);
-  try {
-    // render the files
-    const fileResults = await renderFiles(
-      filesToRender,
-      options,
-      alwaysExecuteFiles,
-      projType?.pandocRenderer
-        ? projType.pandocRenderer(options, context)
-        : undefined,
-      context,
-    );
+  // render the files
+  const fileResults = await renderFiles(
+    filesToRender,
+    options,
+    alwaysExecuteFiles,
+    projType?.pandocRenderer
+      ? projType.pandocRenderer(options, context)
+      : undefined,
+    context,
+  );
 
-    if (outputDirAbsolute) {
-      // move or copy dir
-      const relocateDir = (dir: string, copy = false) => {
-        const targetDir = join(outputDirAbsolute, dir);
-        if (existsSync(targetDir)) {
-          Deno.removeSync(targetDir, { recursive: true });
+  if (outputDirAbsolute) {
+    // move or copy dir
+    const relocateDir = (dir: string, copy = false) => {
+      const targetDir = join(outputDirAbsolute, dir);
+      if (existsSync(targetDir)) {
+        Deno.removeSync(targetDir, { recursive: true });
+      }
+      const srcDir = join(projDir, dir);
+      if (existsSync(srcDir)) {
+        ensureDirSync(dirname(targetDir));
+        if (copy) {
+          copySync(srcDir, targetDir);
+        } else {
+          Deno.renameSync(srcDir, targetDir);
         }
-        const srcDir = join(projDir, dir);
-        if (existsSync(srcDir)) {
-          ensureDirSync(dirname(targetDir));
-          if (copy) {
-            copySync(srcDir, targetDir);
-          } else {
-            Deno.renameSync(srcDir, targetDir);
-          }
+      }
+    };
+    const moveDir = relocateDir;
+    const copyDir = (dir: string) => relocateDir(dir, true);
+
+    // track whether we need to keep the lib dir around
+    let keepLibsDir = false;
+
+    // move/copy projResults to output_dir
+    for (let i = 0; i < fileResults.files.length; i++) {
+      const renderedFile = fileResults.files[i];
+
+      // move the renderedFile to the output dir
+      const outputFile = join(outputDirAbsolute, renderedFile.file);
+      ensureDirSync(dirname(outputFile));
+      Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+
+      // files dir
+      const keepFiles = !!renderedFile.format.execute[kKeepMd];
+      keepLibsDir = keepLibsDir || keepFiles;
+      if (renderedFile.supporting) {
+        // lib-dir is handled separately for projects so filter it out of supporting
+        renderedFile.supporting = renderedFile.supporting.filter((file) =>
+          file !== libDir
+        );
+        if (keepFiles) {
+          renderedFile.supporting.map((file) => copyDir(file));
+        } else {
+          renderedFile.supporting.map((file) => moveDir(file));
         }
-      };
-      const moveDir = relocateDir;
-      const copyDir = (dir: string) => relocateDir(dir, true);
-
-      // track whether we need to keep the lib dir around
-      let keepLibsDir = false;
-
-      // move/copy projResults to output_dir
-      for (let i = 0; i < fileResults.files.length; i++) {
-        const renderedFile = fileResults.files[i];
-
-        // move the renderedFile to the output dir
-        const outputFile = join(outputDirAbsolute, renderedFile.file);
-        ensureDirSync(dirname(outputFile));
-        Deno.renameSync(join(projDir, renderedFile.file), outputFile);
-
-        // files dir
-        const keepFiles = !!renderedFile.format.execute[kKeepMd];
-        keepLibsDir = keepLibsDir || keepFiles;
-        if (renderedFile.supporting) {
-          // lib-dir is handled separately for projects so filter it out of supporting
-          renderedFile.supporting = renderedFile.supporting.filter((file) =>
-            file !== libDir
-          );
-          if (keepFiles) {
-            renderedFile.supporting.map((file) => copyDir(file));
-          } else {
-            renderedFile.supporting.map((file) => moveDir(file));
-          }
-        }
-
-        // remove empty files dir
-        if (!keepFiles) {
-          const filesDir = join(
-            projDir,
-            dirname(renderedFile.file),
-            inputFilesDir(renderedFile.file),
-          );
-          removeIfEmptyDir(filesDir);
-        }
-
-        // render file renderedFile
-        projResults.files.push({
-          input: renderedFile.input,
-          markdown: renderedFile.markdown,
-          format: renderedFile.format,
-          file: renderedFile.file,
-          supporting: renderedFile.supporting,
-          resourceFiles: await resourcesFrom(renderedFile),
-        });
       }
 
-      // move or copy the lib dir if we have one (move one subdirectory at a time
-      // so that we can merge with what's already there)
-      if (libDir) {
-        const libDirFull = join(context.dir, libDir);
-        if (existsSync(libDirFull)) {
-          // if this is an incremental render or we are uzing the freezer, then
-          // copy lib dirs incrementally (don't replace the whole directory).
-          // otherwise, replace the whole thing so we get a clean start
-          const libsIncremental = !!(incremental || options.useFreezer);
+      // remove empty files dir
+      if (!keepFiles) {
+        const filesDir = join(
+          projDir,
+          dirname(renderedFile.file),
+          inputFilesDir(renderedFile.file),
+        );
+        removeIfEmptyDir(filesDir);
+      }
 
-          // determine format lib dirs (for pruning)
-          const formatLibDirs = projType.formatLibDirs
-            ? projType.formatLibDirs()
-            : [];
+      // render file renderedFile
+      projResults.files.push({
+        input: renderedFile.input,
+        markdown: renderedFile.markdown,
+        format: renderedFile.format,
+        file: renderedFile.file,
+        supporting: renderedFile.supporting,
+        resourceFiles: await resourcesFrom(renderedFile),
+      });
+    }
 
-          // lib dir to freezer
-          const freezeLibDir = (hidden: boolean) => {
-            copyToProjectFreezer(context, libDir, hidden, false);
-            pruneProjectFreezerDir(context, libDir, formatLibDirs, hidden);
-            pruneProjectFreezer(context, hidden);
-          };
+    // move or copy the lib dir if we have one (move one subdirectory at a time
+    // so that we can merge with what's already there)
+    if (libDir) {
+      const libDirFull = join(context.dir, libDir);
+      if (existsSync(libDirFull)) {
+        // if this is an incremental render or we are uzing the freezer, then
+        // copy lib dirs incrementally (don't replace the whole directory).
+        // otherwise, replace the whole thing so we get a clean start
+        const libsIncremental = !!(incremental || options.useFreezer);
 
-          // copy to hidden freezer
-          freezeLibDir(true);
+        // determine format lib dirs (for pruning)
+        const formatLibDirs = projType.formatLibDirs
+          ? projType.formatLibDirs()
+          : [];
 
-          // if we have a visible freezer then copy to it as well
-          if (existsSync(join(context.dir, kProjectFreezeDir))) {
-            freezeLibDir(false);
-          }
+        // lib dir to freezer
+        const freezeLibDir = (hidden: boolean) => {
+          copyToProjectFreezer(context, libDir, hidden, false);
+          pruneProjectFreezerDir(context, libDir, formatLibDirs, hidden);
+          pruneProjectFreezer(context, hidden);
+        };
 
-          if (libsIncremental) {
-            for (const lib of Deno.readDirSync(libDirFull)) {
-              if (lib.isDirectory) {
-                const copyDir = join(libDir, lib.name);
-                const srcDir = join(projDir, copyDir);
-                const targetDir = join(outputDirAbsolute, copyDir);
-                copyMinimal(srcDir, targetDir);
-                if (!keepLibsDir) {
-                  removeIfExists(srcDir);
-                }
+        // copy to hidden freezer
+        freezeLibDir(true);
+
+        // if we have a visible freezer then copy to it as well
+        if (existsSync(join(context.dir, kProjectFreezeDir))) {
+          freezeLibDir(false);
+        }
+
+        if (libsIncremental) {
+          for (const lib of Deno.readDirSync(libDirFull)) {
+            if (lib.isDirectory) {
+              const copyDir = join(libDir, lib.name);
+              const srcDir = join(projDir, copyDir);
+              const targetDir = join(outputDirAbsolute, copyDir);
+              copyMinimal(srcDir, targetDir);
+              if (!keepLibsDir) {
+                removeIfExists(srcDir);
               }
             }
-            if (!keepLibsDir) {
-              Deno.removeSync(libDirFull, { recursive: true });
-            }
+          }
+          if (!keepLibsDir) {
+            Deno.removeSync(libDirFull, { recursive: true });
+          }
+        } else {
+          if (keepLibsDir) {
+            copyDir(libDir);
           } else {
-            if (keepLibsDir) {
-              copyDir(libDir);
-            } else {
-              moveDir(libDir);
-            }
+            moveDir(libDir);
           }
         }
       }
-
-      // determine the output files and filter them out of the resourceFiles
-      const outputFiles = projResults.files.map((result) =>
-        join(projDir, result.file)
-      );
-      projResults.files.forEach((file) => {
-        file.resourceFiles = file.resourceFiles.filter((resource) =>
-          !outputFiles.includes(resource)
-        );
-      });
-
-      // copy all of the resource files
-      const allResourceFiles = ld.uniq(
-        (context.files.resources || []).concat(
-          projResults.files.flatMap((file) => file.resourceFiles),
-        ),
-      );
-
-      // copy the resource files to the output dir
-      allResourceFiles.forEach((file: string) => {
-        const sourcePath = relative(projDir, file);
-        const destPath = join(outputDirAbsolute, sourcePath);
-        if (existsSync(file)) {
-          if (Deno.statSync(file).isFile) {
-            copyResourceFile(context.dir, file, destPath);
-          }
-        } else if (!existsSync(destPath)) {
-          warning(`File '${sourcePath}' was not found.`);
-        }
-      });
-    } else {
-      for (const result of fileResults.files) {
-        const resourceFiles = await resourcesFrom(result);
-        projResults.files.push({
-          input: result.input,
-          markdown: result.markdown,
-          format: result.format,
-          file: result.file,
-          supporting: result.supporting,
-          resourceFiles,
-        });
-      }
     }
 
-    // forward error to projResults
-    projResults.error = fileResults.error;
-
-    // call project post-render
-    if (!projResults.error) {
-      const outputFiles = projResults.files.map((result) => {
-        const file = outputDir ? join(outputDir, result.file) : result.file;
-        return {
-          file: join(projDir, file),
-          format: result.format,
-        };
-      });
-
-      if (projType.postRender) {
-        await projType.postRender(
-          context,
-          incremental,
-          outputFiles,
-        );
-      }
-
-      // run post-render if this isn't incremental
-      if (
-        filesToRender.length > 0 &&
-        context.config?.project?.[kProjectPostRender]
-      ) {
-        await runPostRender(
-          projDir,
-          context.config?.project?.[kProjectPostRender]!,
-          progress,
-          !!options.flags?.quiet,
-          {
-            ...prePostEnv,
-            QUARTO_PROJECT_OUTPUT_FILES: outputFiles
-              .map((outputFile) => relative(projDir, outputFile.file))
-              .join("\n"),
-          },
-        );
-      }
-    }
-
-    // Mark any rendered files as supplemental if that
-    // is how they got into the render list
+    // determine the output files and filter them out of the resourceFiles
+    const outputFiles = projResults.files.map((result) =>
+      join(projDir, result.file)
+    );
     projResults.files.forEach((file) => {
-      if (
-        supplements.files.find((supFile) => {
-          return supFile.path === join(projDir, file.input);
-        })
-      ) {
-        file.supplemental = true;
-      }
+      file.resourceFiles = file.resourceFiles.filter((resource) =>
+        !outputFiles.includes(resource)
+      );
     });
 
-    // Also let the project know that the render has completed for
-    // any non supplemental files
-    const nonSupplementalFiles = projResults.files.filter((file) =>
-      !file.supplemental
-    ).map((file) => file.file);
-    if (supplements.onRenderComplete) {
-      await supplements.onRenderComplete(
+    // copy all of the resource files
+    const allResourceFiles = ld.uniq(
+      (context.files.resources || []).concat(
+        projResults.files.flatMap((file) => file.resourceFiles),
+      ),
+    );
+
+    // copy the resource files to the output dir
+    allResourceFiles.forEach((file: string) => {
+      const sourcePath = relative(projDir, file);
+      const destPath = join(outputDirAbsolute, sourcePath);
+      if (existsSync(file)) {
+        if (Deno.statSync(file).isFile) {
+          copyResourceFile(context.dir, file, destPath);
+        }
+      } else if (!existsSync(destPath)) {
+        warning(`File '${sourcePath}' was not found.`);
+      }
+    });
+  } else {
+    for (const result of fileResults.files) {
+      const resourceFiles = await resourcesFrom(result);
+      projResults.files.push({
+        input: result.input,
+        markdown: result.markdown,
+        format: result.format,
+        file: result.file,
+        supporting: result.supporting,
+        resourceFiles,
+      });
+    }
+  }
+
+  // forward error to projResults
+  projResults.error = fileResults.error;
+
+  // call project post-render
+  if (!projResults.error) {
+    const outputFiles = projResults.files.map((result) => {
+      const file = outputDir ? join(outputDir, result.file) : result.file;
+      return {
+        file: join(projDir, file),
+        format: result.format,
+      };
+    });
+
+    if (projType.postRender) {
+      await projType.postRender(
         context,
-        nonSupplementalFiles,
         incremental,
+        outputFiles,
       );
     }
 
-    return projResults;
-  } finally {
-    Deno.env.delete("QUARTO_PROJECT_DIR");
+    // run post-render if this isn't incremental
+    if (
+      filesToRender.length > 0 &&
+      context.config?.project?.[kProjectPostRender]
+    ) {
+      await runPostRender(
+        projDir,
+        context.config?.project?.[kProjectPostRender]!,
+        progress,
+        !!options.flags?.quiet,
+        {
+          ...prePostEnv,
+          QUARTO_PROJECT_OUTPUT_FILES: outputFiles
+            .map((outputFile) => relative(projDir, outputFile.file))
+            .join("\n"),
+        },
+      );
+    }
   }
+
+  // Mark any rendered files as supplemental if that
+  // is how they got into the render list
+  projResults.files.forEach((file) => {
+    if (
+      supplements.files.find((supFile) => {
+        return supFile.path === join(projDir, file.input);
+      })
+    ) {
+      file.supplemental = true;
+    }
+  });
+
+  // Also let the project know that the render has completed for
+  // any non supplemental files
+  const nonSupplementalFiles = projResults.files.filter((file) =>
+    !file.supplemental
+  ).map((file) => file.file);
+  if (supplements.onRenderComplete) {
+    await supplements.onRenderComplete(
+      context,
+      nonSupplementalFiles,
+      incremental,
+    );
+  }
+
+  return projResults;
 }
 
 async function runPreRender(
@@ -522,7 +517,7 @@ async function runScripts(
   env?: { [key: string]: string },
 ) {
   for (let i = 0; i < scripts.length; i++) {
-    const args = parse(scripts[i]);
+    const args = parseShellRunCommand(scripts[i]);
     const script = args[0];
 
     if (progress && !quiet) {
@@ -531,7 +526,7 @@ async function runScripts(
 
     const handler = handlerForScript(script);
     if (handler) {
-      await handler.run(script, args.splice(1), {
+      await handler.run(script, args.splice(1), undefined, {
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
         env,
@@ -548,21 +543,4 @@ async function runScripts(
   if (scripts.length > 0) {
     info("");
   }
-}
-
-function parse(cmdLine: string) {
-  let space = "{{space}}";
-  while (cmdLine.indexOf(space) > -1) {
-    space += "&";
-  }
-  const noSpaces = cmdLine.replace(
-    /"([^"]*)"?/g,
-    (_, capture) => {
-      return capture.replace(/ /g, space);
-    },
-  );
-  const paramArray = noSpaces.split(/ +/);
-  return paramArray.map((mangled) => {
-    return mangled.replace(RegExp(space, "g"), " ");
-  });
 }

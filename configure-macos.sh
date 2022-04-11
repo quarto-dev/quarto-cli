@@ -21,6 +21,9 @@ fi
 
 pushd $QUARTO_BIN_DIR
 
+mkdir tools
+pushd tools
+
 # Download Dependencies
 DENOURL=https://github.com/denoland/deno/releases/download/
 DENOFILE=deno-x86_64-apple-darwin.zip
@@ -28,13 +31,15 @@ curl -fail -L $DENOURL/$DENO/$DENOFILE -o $DENOFILE --no-include
 unzip -o $DENOFILE
 rm $DENOFILE
 
+
 # If a canary commit is provided, upgrade to that
 if [ ! -z "$DENO_CANARY_COMMIT" ]; then
 	echo [Upgrading Deno to Canary]
 	./deno upgrade --canary --version $DENO_CANARY_COMMIT
 fi
-./deno cache --reload ../../../src/quarto.ts --unstable --importmap=../../../src/import_map.json
+./deno cache --reload ../../../../src/quarto.ts --unstable --importmap=../../../../src/import_map.json
 
+popd
 popd
 popd
 popd

@@ -14,5 +14,6 @@
   "deno.enable": true,
   "deno.lint": true,
   "deno.unstable": true,
-  "deno.importMap": "./src/import_map.json"
+  "deno.importMap": "./src/import_map.json",
+  "deno.path": "${workspaceFolder}/package/dist/bin/tools/deno"
 }

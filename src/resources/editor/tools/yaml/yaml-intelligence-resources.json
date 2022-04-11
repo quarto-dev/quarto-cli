@@ -50,6 +50,7 @@
     },
     {
       "name": "cache-path",
+      "hidden": true,
       "tags": {
         "engine": "knitr"
       },
@@ -362,7 +363,9 @@
     },
     {
       "name": "fig-cap",
-      "schema": "string",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
       "description": "Figure caption"
     },
     {
@@ -958,12 +961,14 @@
         "enum": [
           "default",
           "fragment",
-          "slide"
+          "slide",
+          "column",
+          "column-fragment"
         ]
       },
       "description": {
-        "short": "Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)",
-        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Show output in the normal flow of the slide after the code\n- `fragment`: Show output in a fragment (not visible until you advance)\n- `slide`: Show output on a new slide after the curent one\n\nNote that this option is supported only for the `revealjs` format.\n"
+        "short": "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
+        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
       }
     },
     {
@@ -973,7 +978,7 @@
       },
       "schema": "boolean",
       "default": true,
-      "description": "Including messages in rendered output."
+      "description": "Include messages in rendered output."
     },
     {
       "name": "results",
@@ -1691,6 +1696,39 @@
             }
           }
         ]
+      }
+    },
+    {
+      "id": "project-preview",
+      "object": {
+        "closed": true,
+        "properties": {
+          "port": {
+            "number": {
+              "description": "Port to listen on (defaults to random value between 3000 and 8000)"
+            }
+          },
+          "host": {
+            "string": {
+              "description": "Hostname to bind to (defaults to 127.0.0.1)"
+            }
+          },
+          "browser": {
+            "boolean": {
+              "description": "Open a web browser to view the preview (defaults to true)"
+            }
+          },
+          "watch-inputs": {
+            "boolean": {
+              "description": "Re-render input files when they change"
+            }
+          },
+          "timeout": {
+            "number": {
+              "description": "Time (in seconds) after which to exit if there are no active clients"
+            }
+          }
+        }
       }
     },
     {
@@ -3542,7 +3580,12 @@
     {
       "name": "institute",
       "schema": {
-        "maybeArrayOf": "string"
+        "maybeArrayOf": {
+          "anyOf": [
+            "object",
+            "string"
+          ]
+        }
       },
       "tags": {
         "formats": [
@@ -7035,6 +7078,18 @@
       "description": "Keep the notebook file generated from executing code."
     },
     {
+      "name": "ipynb-filters",
+      "schema": {
+        "arrayOf": "string"
+      },
+      "tags": {
+        "contexts": [
+          "document-execute"
+        ]
+      },
+      "description": "Filters to pre-process ipynb files before rendering to markdown"
+    },
+    {
       "name": "keep-tex",
       "tags": {
         "formats": [
@@ -8840,6 +8895,12 @@
                 "schema": "path",
                 "description": "Additional file resources to be copied to output directory"
               }
+            },
+            "preview": {
+              "description": "Options for `quarto preview`",
+              "schema": {
+                "ref": "project-preview"
+              }
             }
           }
         }
@@ -8951,6 +9012,17 @@
           }
         }
       }
+    },
+    {
+      "name": "type",
+      "hidden": true,
+      "schema": {
+        "enum": [
+          "cd93424f-d5ba-4e95-91c6-1890eab59fc7"
+        ]
+      },
+      "errorMessage": "type key not supported at project type-level. Use `project: type: ...` instead.",
+      "description": "internal-schema-hack"
     }
   ],
   "schema/schema.yml": [
@@ -9540,6 +9612,11 @@
     },
     "Image width (pixels)",
     "Image height (pixels)",
+    "Port to listen on (defaults to random value between 3000 and\n8000)",
+    "Hostname to bind to (defaults to 127.0.0.1)",
+    "Open a web browser to view the preview (defaults to true)",
+    "Re-render input files when they change",
+    "Time (in seconds) after which to exit if there are no active\nclients",
     "Website title",
     "Website description",
     "The path to the favicon for this website",
@@ -10145,10 +10222,10 @@
     "Catch all for preventing any output (code or results) from being\nincluded in output.",
     "Panel type for cell output (<code>tabset</code>, <code>input</code>,\n<code>sidebar</code>, <code>fill</code>, <code>center</code>)",
     {
-      "short": "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, or <code>slide</code>)",
+      "short": "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
       "long": "Location of output relative to the code that generated it. The\npossible values are as follows:"
     },
-    "Including messages in rendered output.",
+    "Include messages in rendered output.",
     {
       "short": "How to display text results",
       "long": "How to display text results. Note that this option only applies to\nnormal text output (not warnings, messages, or errors). The possible\nvalues are as follows:"
@@ -10768,6 +10845,7 @@
     "Specify executables or Lua scripts to be used as a filter\ntransforming the pandoc AST after the input is parsed and before the\noutput is written.",
     "Keep the markdown file generated by executing code",
     "Keep the notebook file generated from executing code.",
+    "Filters to pre-process ipynb files before rendering to markdown",
     "Keep the intermediate tex file used during render.",
     {
       "short": "Extract images and other media contained in or linked from the source\ndocument to the path DIR.",
@@ -10995,6 +11073,7 @@
     "HTML library (JS/CSS/etc.) directory",
     "Additional file resources to be copied to output directory",
     "Additional file resources to be copied to output directory",
+    "Options for <code>quarto preview</code>",
     "MISSING_DESCRIPTION",
     "MISSING_DESCRIPTION",
     "Book title",
@@ -11180,6 +11259,7 @@
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
     "Custom tools for navbar or sidebar",
+    "internal-schema-hack",
     "MISSING_DESCRIPTION",
     "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
     "Files to render (defaults to all files)",
@@ -11191,6 +11271,7 @@
     "HTML library (JS/CSS/etc.) directory",
     "Additional file resources to be copied to output directory",
     "Additional file resources to be copied to output directory",
+    "Options for <code>quarto preview</code>",
     "MISSING_DESCRIPTION",
     "MISSING_DESCRIPTION",
     "Book title",
@@ -11375,7 +11456,8 @@
     "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
-    "Custom tools for navbar or sidebar"
+    "Custom tools for navbar or sidebar",
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {

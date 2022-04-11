@@ -6,7 +6,7 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 
 import { Configuration } from "../common/config.ts";
@@ -73,10 +73,13 @@ export async function prepareDist(
 
   // Remove the config directory, if present
   info(`Cleaning config`);
-  info(join(config.directoryInfo.dist, "config"));
-  Deno.removeSync(join(config.directoryInfo.dist, "config"), {
-    recursive: true,
-  });
+  const configDir = join(config.directoryInfo.dist, "config");
+  info(configDir);
+  if (existsSync(configDir)) {
+    Deno.removeSync(configDir, {
+      recursive: true,
+    });
+  }
 
   info("");
 }

@@ -14,30 +14,43 @@ export const kLocalhost = "127.0.0.1";
 const kMinPort = 3000;
 const kMaxPort = 8000;
 
+function isPortSafe(port: number): boolean {
+  // excludes port numbers that chrome considers unsafe
+  return ![3659, 4045, 6000, 6665, 6666, 6667, 6668, 6669, 6697].includes(
+    port,
+  );
+}
+
+function randomSafePort(): number {
+  let result: number;
+  do {
+    result = randomInt(kMinPort, kMaxPort);
+  } while (!isPortSafe(result));
+  return result;
+}
+
 export function findOpenPort(defaultPort?: number): number {
-  defaultPort = defaultPort || randomInt(kMinPort, kMaxPort);
+  defaultPort = defaultPort || randomSafePort();
   if (isPortAvailableSync({ port: defaultPort, hostname: kLocalhost })) {
     return defaultPort;
   } else {
-    let ports = new Array<number>(kMaxPort - kMinPort);
-    for (let i = 0; i < ports.length; i++) {
-      ports[i] = kMinPort + i;
+    let ports: number[] = [];
+    for (let i = kMinPort; i < kMaxPort; ++i) {
+      if (isPortSafe(i)) {
+        ports.push(i);
+      }
     }
-    ports = ld.shuffle(ports);
     while (true) {
+      ports = ld.shuffle(ports);
       const port = getAvailablePortSync({
         port: ports,
         hostname: kLocalhost,
       });
       if (port === undefined) {
-        throw new Error("Unabled to find open port for serve");
+        throw new Error("Unable to find open port");
       }
       // don't use ports considered unsafe by chrome
-      if (
-        ![3659, 4045, 6000, 6665, 6666, 6667, 6668, 6669, 6697].includes(
-          port,
-        )
-      ) {
+      if (isPortSafe(port)) {
         return port;
       }
     }

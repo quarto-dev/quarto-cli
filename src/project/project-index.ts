@@ -25,6 +25,7 @@ import { projectScratchPath } from "./project-scratch.ts";
 import { parsePandocTitle } from "../core/pandoc/pandoc-partition.ts";
 import { readYaml } from "../core/yaml.ts";
 import { formatKeys } from "../config/metadata.ts";
+import { normalizeWebsiteFormat } from "./types/website/website-config.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -68,7 +69,7 @@ export async function inputTargetIndex(
     title: firstFormat
       ? firstFormat.metadata?.[kTitle] as string | undefined
       : undefined,
-    markdown: await engine.partitionedMarkdown(inputFile),
+    markdown: await engine.partitionedMarkdown(inputFile, firstFormat),
     formats,
   };
 
@@ -98,6 +99,13 @@ export function readInputTargetIndex(
   // if its still current visa-vi the input file, we then need to
   // check if the format list has changed (which is also an invalidation)
   if (index) {
+    // normalize html to first if its included in the formats
+    if (Object.keys(index.formats).includes("html")) {
+      index.formats = normalizeWebsiteFormat(index.formats, true) as Record<
+        string,
+        Format
+      >;
+    }
     const formats = Object.keys(index.formats);
     const projConfigFile = projectConfigFile(projectDir);
     if (projConfigFile) {

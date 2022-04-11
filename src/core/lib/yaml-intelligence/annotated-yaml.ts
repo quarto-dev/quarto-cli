@@ -11,7 +11,9 @@ import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { getTreeSitterSync } from "./parsing.ts";
 
-import { JSON_SCHEMA, load as jsYamlParse } from "../external/js-yaml.js";
+import { load as jsYamlParse } from "../external/js-yaml.js";
+
+import { QuartoJSONSchema } from "./js-yaml-schema.ts";
 
 // deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
@@ -111,7 +113,7 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
     }
   }
 
-  jsYamlParse(yml, { listener, schema: JSON_SCHEMA });
+  jsYamlParse(yml, { listener, schema: QuartoJSONSchema });
 
   if (results.length === 0) {
     return {
@@ -497,4 +499,53 @@ export function locateCursor(
       throw e;
     }
   }
+}
+
+export function locateAnnotation(
+  annotation: AnnotatedParse,
+  position: (number | string)[],
+  kind?: "key" | "value",
+): AnnotatedParse {
+  // FIXME we temporarily work around AnnotatedParse bugs
+  // here
+
+  const originalSource = annotation.source.originalString;
+
+  kind = kind || "value";
+  for (let i = 0; i < position.length; ++i) {
+    const value = position[i];
+    if (typeof value === "number") {
+      const inner = annotation.components[value];
+      if (inner === undefined) {
+        throw new Error("Internal Error: invalid path for locateAnnotation");
+      }
+      annotation = inner;
+    } else {
+      let found = false;
+      for (let j = 0; j < annotation.components.length; j += 2) {
+        if (
+          originalSource.substring(
+            annotation.components[j].start,
+            annotation.components[j].end,
+          ).trim() ===
+            value
+        ) {
+          // on last entry, we discriminate between key and value contexts
+          if (i === position.length - 1) {
+            if (kind === "key") {
+              annotation = annotation.components[j];
+            } else {
+              annotation = annotation.components[j + 1];
+            }
+          }
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        throw new Error("Internal Error: invalid path for locateAnnotation");
+      }
+    }
+  }
+  return annotation;
 }

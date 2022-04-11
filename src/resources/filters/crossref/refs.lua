@@ -14,7 +14,7 @@ function resolveRefs()
       local refs = pandoc.List()
       for i, cite in ipairs (citeEl.citations) do
         -- get the label and type, and note if the label is uppercase
-        local label = text.lower(cite.id)
+        local label = cite.id
         local type = refType(label)
         if type ~= nil then
           local upper = not not string.match(cite.id, "^[A-Z]")
@@ -36,8 +36,11 @@ function resolveRefs()
               ref:extend(cite.prefix)
               ref:extend({nbspString()})
             elseif cite.mode ~= pandoc.SuppressAuthor then
-              ref:extend(refPrefix(type, upper))
-              ref:extend({nbspString()})
+              local prefix = refPrefix(type, upper)
+              if #prefix > 0 then
+                ref:extend(prefix)
+                ref:extend({nbspString()})
+              end
             end
   
             -- for latex inject a \ref, otherwise format manually

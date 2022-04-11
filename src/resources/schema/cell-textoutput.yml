@@ -55,15 +55,17 @@
   tags:
     formats: [revealjs]
   schema:
-    enum: [default, fragment, slide]
+    enum: [default, fragment, slide, column, column-fragment]
   description:
-    short: Location of output relative to the code that generated it (`default`, `fragment`, or `slide`)
+    short: Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)
     long: |
       Location of output relative to the code that generated it. The possible values are as follows:
 
-      - `default`: Show output in the normal flow of the slide after the code
-      - `fragment`: Show output in a fragment (not visible until you advance)
-      - `slide`: Show output on a new slide after the curent one
+      - `default`: Normal flow of the slide after the code
+      - `fragment`: In a fragment (not visible until you advance)
+      - `slide`: On a new slide after the curent one
+      - 'column': In an adjacent column 
+      - `column-fragment`:   In an adjacent column (not visible until you advance)
 
       Note that this option is supported only for the `revealjs` format.
 
@@ -72,7 +74,7 @@
     engine: knitr
   schema: boolean
   default: true
-  description: Including messages in rendered output.
+  description: Include messages in rendered output.
 
 - name: results
   tags:

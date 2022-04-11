@@ -132,9 +132,18 @@ export function processDocumentTitle(
   const headerEl = doc.querySelector("header#title-block-header");
 
   // Read the basic metadata that we'll use
-  const titleEl = headerEl?.querySelector(".title");
+  const codeToolsTitleEl = headerEl?.querySelector(".quarto-title-block");
+  const titleEl = codeToolsTitleEl !== null
+    ? codeToolsTitleEl
+    : headerEl?.querySelector(".title");
   const subTitleEl = headerEl?.querySelector(".subtitle");
   const dateEl = headerEl?.querySelector(".date");
+
+  // Read any title block created by code tools
+  const titleBlock = headerEl?.querySelector(".quarto-title-block");
+  if (titleBlock) {
+    titleBlock.remove();
+  }
 
   // Remove the doi, we'll deal with this ourselves
   const doiEl = headerEl?.querySelector(".doi");
@@ -300,6 +309,7 @@ export function processDocumentTitle(
   const banner = format.metadata[kTitleBlockBanner] as string | boolean;
   if (banner) {
     const bannerStyles: string[] = [];
+    headerEl?.nextElementSibling?.setAttribute("data-sidebar-align", "true");
 
     const titleColor = (block: unknown) => {
       if (block === "body" || block === "body-bg") {
@@ -324,7 +334,6 @@ export function processDocumentTitle(
       bannerStyles.push(`color: ${titleBlockColor};`);
     }
 
-    headerEl?.setAttribute("data-sidebar-align", "true");
     if (banner === true) {
       headerEl?.appendChild(createBannerEl(
         doc,
@@ -350,6 +359,13 @@ export function processDocumentTitle(
         ),
       );
       bannerStyles.push(`background-color: ${banner};`);
+    }
+
+    // Move the header above the content
+    const contentEl = doc.getElementById("quarto-content");
+    if (contentEl && headerEl) {
+      headerEl.remove();
+      contentEl.parentElement?.insertBefore(headerEl, contentEl);
     }
 
     if (bannerStyles.length > 0) {
@@ -454,7 +470,7 @@ function isBannerImage(input: string, banner: unknown) {
 function createTitleBannerStyleInHead(doc: Document, styles: string[]) {
   const bannerStyle = doc.createElement("style");
   bannerStyle.innerText = `
-  main.quarto-banner-title-block .quarto-title-banner {\n
+  .quarto-title-banner {\n
     ${styles.join("\n")}
   \n}`;
   const head = doc.querySelector("head");
@@ -475,6 +491,11 @@ function createBannerEl(
   bannerDiv.classList.add("quarto-title-banner");
   if (color === "navbar") {
     bannerDiv.classList.add("color-navbar");
+    // Also mark up secondary navigation
+    const secondaryNav = doc.querySelector("header .quarto-secondary-nav");
+    if (secondaryNav) {
+      secondaryNav.classList.add("color-navbar");
+    }
   } else if (color === "body-bg" || color === "body") {
     bannerDiv.classList.add(`color-${color}`);
   }

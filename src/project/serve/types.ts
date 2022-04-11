@@ -6,7 +6,7 @@
 */
 
 import { FileResponse } from "../../core/http.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
 
 export interface ProjectWatcher {
   handle: (req: Request) => boolean;
@@ -22,12 +22,12 @@ export interface ProjectWatcher {
 }
 
 export type ServeOptions = {
-  port: number;
-  host: string;
   render: string;
-  timeout: number;
-  browse: boolean;
+  port?: number;
+  host?: string;
+  browser?: boolean;
+  [kProjectWatchInputs]?: boolean;
+  timeout?: number;
   browserPath?: string;
-  watchInputs?: boolean;
   navigate?: boolean;
 };

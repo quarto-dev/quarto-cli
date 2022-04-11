@@ -12,7 +12,7 @@ import * as colors from "fmt/colors.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { findOpenPort, kLocalhost } from "../../core/port.ts";
+import { isPortAvailableSync, kLocalhost } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import {
   handleRenderResult,
@@ -25,7 +25,6 @@ import {
   kRenderNone,
   serveProject,
 } from "../../project/serve/serve.ts";
-import { isRStudio } from "../../core/platform.ts";
 import { createTempContext } from "../../core/temp.ts";
 
 import {
@@ -33,7 +32,7 @@ import {
   setInitializer,
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
 import {
   projectContext,
   projectIsWebsite,
@@ -218,9 +217,8 @@ export const previewCommand = new Command()
     if (timeoutPos !== -1) {
       options.timeout = parseInt(args[timeoutPos + 1]);
       args.splice(timeoutPos, 2);
-    } else {
-      options.timeout = 0;
     }
+
     // alias for --no-watch-inputs (used by older versions of quarto r package)
     const noWatchPos = args.indexOf("--no-watch");
     if (noWatchPos !== -1) {
@@ -234,19 +232,14 @@ export const previewCommand = new Command()
       args.splice(noRenderPos, 1);
     }
 
-    // default watch-inputs if not specified
-    if (options.watchInputs === undefined) {
-      options.watchInputs = !isRStudio();
-    }
-
-    // default host if not specified
-    options.host = options.host || kLocalhost;
-
-    // select a port
-    if (!options.port) {
-      options.port = findOpenPort();
-    } else {
-      options.port = findOpenPort(parseInt(options.port));
+    if (options.port) {
+      // try to bind to requested port (error if its in use)
+      const port = parseInt(options.port);
+      if (isPortAvailableSync({ port, hostname: kLocalhost })) {
+        options.port = port;
+      } else {
+        throw new Error(`Requested port ${options.port} is already in use.`);
+      }
     }
 
     // extract pandoc flag values we know/care about, then fixup args as
@@ -296,12 +289,14 @@ export const previewCommand = new Command()
         await serveProject(projectTarget, tempContext, flags, args, {
           port: options.port,
           host: options.host,
-          render: options.render,
-          browse: !!(options.browser && options.browse),
-          browserPath: options.browserPath,
-          watchInputs: options.watchInputs,
-          navigate: options.navigate,
+          browser: (options.browser === false || options.browse === false)
+            ? false
+            : undefined,
+          [kProjectWatchInputs]: options.watchInputs,
           timeout: options.timeout,
+          render: options.render,
+          browserPath: options.browserPath,
+          navigate: options.navigate,
         });
       } finally {
         tempContext.cleanup();
@@ -318,10 +313,12 @@ export const previewCommand = new Command()
       await preview(relative(Deno.cwd(), file), flags, args, {
         port: options.port,
         host: options.host,
-        browse: !!(options.browser && options.browse),
-        presentation: options.presentation,
-        watchInputs: !!options.watchInputs,
+        browser: (options.browser === false || options.browse === false)
+          ? false
+          : undefined,
+        [kProjectWatchInputs]: options.watchInputs,
         timeout: options.timeout,
+        presentation: options.presentation,
       });
     }
   });

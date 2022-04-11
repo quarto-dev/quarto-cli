@@ -8,17 +8,26 @@
 import { info } from "log/mod.ts";
 
 import { dirname, extname } from "path/mod.ts";
-import { quartoInitFilter } from "../../command/render/filters.ts";
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
-import { pandocBinaryPath } from "../resources.ts";
+import { pandocBinaryPath, resourcePath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./run.ts";
 
 export const luaRunHandler: RunHandler = {
   canHandle: (script: string) => {
     return [".lua"].includes(extname(script).toLowerCase());
   },
-  run: async (script: string, args: string[], options?: RunHandlerOptions) => {
+  run: async (
+    script: string,
+    args: string[],
+    stdin?: string,
+    options?: RunHandlerOptions,
+  ) => {
+    // lua run handlers don't support stdin
+    if (typeof (stdin) === "string") {
+      throw new Error("Lua run handlers cannot be passed stdin");
+    }
+
     // call pandoc w/ script as a filter
     const cmd = [
       pandocBinaryPath(),
@@ -29,7 +38,7 @@ export const luaRunHandler: RunHandler = {
     ];
     if (isWindows()) {
       cmd.push("--lua-filter");
-      cmd.push(quartoInitFilter());
+      cmd.push(resourcePath("filters/init/init.lua"));
     }
     cmd.push(
       "--lua-filter",

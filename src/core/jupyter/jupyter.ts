@@ -91,6 +91,7 @@ import {
   kCellFormat,
   kCellId,
   kCellLabel,
+  kCellLanguage,
   kCellLinesToNext,
   kCellLstCap,
   kCellLstLabel,
@@ -119,12 +120,14 @@ import {
   kLayoutNrow,
   kLayoutVAlign,
   kOutput,
+  kTblCap,
   kTblCapLoc,
   kTblColwidths,
   kWarning,
 } from "../../config/constants.ts";
 import {
   isJupyterKernelspec,
+  jupyterDefaultPythonKernelspec,
   jupyterKernelspec,
   jupyterKernelspecs,
 } from "./kernels.ts";
@@ -132,6 +135,7 @@ import { JupyterKernelspec } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown, readYamlFromMarkdownFile } from "../yaml.ts";
+import { languagesInMarkdownFile } from "../../execute/engine-shared.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -175,6 +179,9 @@ export interface JupyterCellMetadata {
 
   // slideshow
   [kCellSlideshow]?: JupyterCellSlideshow;
+
+  // nbdev language
+  [kCellLanguage]?: string;
 
   // anything else
   [key: string]: unknown;
@@ -248,6 +255,7 @@ export const kJupyterCellInternalOptionKeys = [
   kEval,
   kEcho,
   kWarning,
+  kError,
   kOutput,
   kInclude,
   kCellLabel,
@@ -259,6 +267,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigScap,
   kFigCapLoc,
   kTblCapLoc,
+  kTblColwidths,
   kCapLoc,
   kCellFigColumn,
   kCellTblColumn,
@@ -284,6 +293,7 @@ export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
   kLayoutNcol,
   kLayoutNrow,
   kLayout,
+  kTblCap,
   kTblColwidths,
 ]);
 
@@ -304,6 +314,9 @@ export const kJupyterCellThirdPartyMetadataKeys = [
 
   // jupytext
   kCellLinesToNext,
+
+  // nbdev
+  kCellLanguage,
 ];
 
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
@@ -571,48 +584,37 @@ export async function jupyterKernelspecFromFile(
 }
 
 export function jupyterFromFile(input: string): JupyterNotebook {
-  // parse the notebook
   const nbContents = Deno.readTextFileSync(input);
+  return jupyterFromJSON(nbContents);
+}
+
+export function jupyterFromJSON(nbContents: string): JupyterNotebook {
+  // parse the notebook
+
   const nbJSON = JSON.parse(nbContents);
   const nb = nbJSON as JupyterNotebook;
 
   // vscode doesn't write a language to the kernelspec so also try language_info
-  if (!nb.metadata.kernelspec.language) {
-    nb.metadata.kernelspec.language = nbJSON.metadata.language_info?.name;
+  if (!nb.metadata.kernelspec?.language) {
+    if (nb.metadata.kernelspec) {
+      nb.metadata.kernelspec.language = nbJSON.metadata.language_info?.name;
+    } else {
+      // provide default
+      nb.metadata.kernelspec = jupyterDefaultPythonKernelspec();
+    }
   }
 
   // validate that we have a language
   if (!nb.metadata.kernelspec.language) {
-    throw new Error("No langage set for Jupyter notebook " + input);
+    throw new Error("No langage set for Jupyter notebook");
   }
 
   // validate that we have cells
   if (!nb.cells) {
-    throw new Error("No cells available in Jupyter notebook " + input);
+    throw new Error("No cells available in Jupyter notebook");
   }
 
   return nb;
-}
-
-export function languagesInMarkdownFile(file: string) {
-  return languagesInMarkdown(Deno.readTextFileSync(file));
-}
-
-export function languagesInMarkdown(markdown: string) {
-  // see if there are any code chunks in the file
-  const languages = new Set<string>();
-  const kChunkRegex = /^[\t >]*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/gm;
-  kChunkRegex.lastIndex = 0;
-  let match = kChunkRegex.exec(markdown);
-  while (match) {
-    const language = match[1].toLowerCase();
-    if (!languages.has(language)) {
-      languages.add(language);
-    }
-    match = kChunkRegex.exec(markdown);
-  }
-  kChunkRegex.lastIndex = 0;
-  return languages;
 }
 
 export function jupyterAutoIdentifier(label: string) {
@@ -1029,34 +1031,30 @@ function mdFromCodeCell(
   }
 
   // css classes
-  if (
-    cell.options[kCellClasses] || cell.options[kCellPanel] ||
-    cell.options[kCellColumn]
-  ) {
-    const cellClasses = cell.options[kCellClasses]! || new Array<string>();
-    const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
-    if (typeof cell.options[kCellPanel] === "string") {
-      classes.push(`panel-${cell.options[kCellPanel]}`);
-    }
-    if (typeof cell.options[kCellColumn] === "string") {
-      classes.push(`column-${cell.options[kCellColumn]}`);
-    }
-    if (typeof cell.options[kCellFigColumn] === "string") {
-      classes.push(`fig-column-${cell.options[kCellFigColumn]}`);
-    }
-    if (typeof cell.options[kCellTblColumn] === "string") {
-      classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
-    }
-    if (typeof cell.options[kCapLoc] === "string") {
-      classes.push(`caption-${cell.options[kFigCapLoc]}`);
-    }
-    if (typeof cell.options[kFigCapLoc] === "string") {
-      classes.push(`fig-cap-location-${cell.options[kFigCapLoc]}`);
-    }
-    if (typeof cell.options[kTblCapLoc] === "string") {
-      classes.push(`tbl-cap-location-${cell.options[kTblCapLoc]}`);
-    }
-
+  const cellClasses = cell.options[kCellClasses]! || new Array<string>();
+  const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
+  if (typeof cell.options[kCellPanel] === "string") {
+    classes.push(`panel-${cell.options[kCellPanel]}`);
+  }
+  if (typeof cell.options[kCellColumn] === "string") {
+    classes.push(`column-${cell.options[kCellColumn]}`);
+  }
+  if (typeof cell.options[kCellFigColumn] === "string") {
+    classes.push(`fig-column-${cell.options[kCellFigColumn]}`);
+  }
+  if (typeof cell.options[kCellTblColumn] === "string") {
+    classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
+  }
+  if (typeof cell.options[kCapLoc] === "string") {
+    classes.push(`caption-${cell.options[kFigCapLoc]}`);
+  }
+  if (typeof cell.options[kFigCapLoc] === "string") {
+    classes.push(`fig-cap-location-${cell.options[kFigCapLoc]}`);
+  }
+  if (typeof cell.options[kTblCapLoc] === "string") {
+    classes.push(`tbl-cap-location-${cell.options[kTblCapLoc]}`);
+  }
+  if (classes.length > 0) {
     const classText = classes
       .map((clz: string) => {
         clz = ld.toString(clz) as string;
@@ -1110,7 +1108,7 @@ function mdFromCodeCell(
       md.push(label + " ");
     }
     if (!fenced) {
-      md.push("." + options.language);
+      md.push("." + (cellOptions.language || options.language));
     }
     md.push(" .cell-code");
     if (hideCode(cell, options)) {

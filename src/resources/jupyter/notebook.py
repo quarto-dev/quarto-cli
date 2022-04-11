@@ -311,9 +311,6 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
    # read cell options
    cell_options = nb_cell_yaml_options(client, cell)
 
-   # ensure we have tags
-   tags = cell.get('metadata', {}).get('tags', [])
-
    # check options for eval and error
    eval = cell_options.get('eval', eval_default)
    allow_errors = cell_options.get('error', False)
@@ -325,15 +322,19 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
       if allow_errors:
          if not "metadata" in cell:
             cell["metadata"] = {}
+         tags = cell.get('metadata', {}).get('tags', [])
          cell["metadata"]["tags"] = tags + ['raises-exception'] 
 
-      # execute
+      # execute (w/o yaml options so that cell magics work)
+      source = cell.source
+      cell.source = nb_strip_yaml_options(client, cell.source)
       cell = client.execute_cell(
          cell = cell, 
          cell_index = index, 
          execution_count = execution_count,
          store_history = store_history
       )
+      cell.source = source
       
       # if lines_to_next_cell is 0 then fix it to be 1
       lines_to_next_cell = cell.get('metadata', {}).get('lines_to_next_cell', -1)
@@ -342,8 +343,9 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
 
       # remove injected raises-exception
       if allow_errors:
-        cell["metadata"]["tags"].remove('raises-exception')
-
+         cell["metadata"]["tags"].remove('raises-exception')
+         if len(cell["metadata"]["tags"]) == 0:
+            del cell["metadata"]["tags"]
 
    # return cell
    return cell
@@ -419,27 +421,19 @@ def find_first_tagged_cell_index(nb, tag):
       return -1
    return parameters_indices[0]
 
+def nb_strip_yaml_options(client, source):
+   yaml_lines = nb_cell_yaml_lines(client, source)  
+   num_yaml_lines = len(yaml_lines)
+   if num_yaml_lines > 0:
+      return "\n".join(source.splitlines()[num_yaml_lines:])
+   else:
+      return source
 
 def nb_cell_yaml_options(client, cell):
 
-   # determine language comment chars
-   lang = client.nb.metadata.kernelspec.language
-   comment_chars = nb_language_comment_chars(lang)
-   option_prefix = comment_chars[0] + "| "
-   option_suffix = comment_chars[1] if len(comment_chars) > 1 else None
-
    # go through the lines until we've found all of the yaml
-   yaml_lines = []
-   for line in cell.source.splitlines():
-      if line.startswith(option_prefix):
-         if (not option_suffix) or line.rstrip().endswith(option_suffix):
-            yaml_option = line[len(option_prefix):]
-            if (option_suffix):
-               yaml_option = yaml_option.rstrip()[:-len(option_suffix)]
-            yaml_lines.append(yaml_option)
-            continue
-      break
-
+   yaml_lines = nb_cell_yaml_lines(client, cell.source)
+   
    # if we have yaml then parse it
    if len(yaml_lines) > 0:
       yaml_code = "\n".join(yaml_lines)
@@ -454,6 +448,27 @@ def nb_cell_yaml_options(client, cell):
    else:
       return dict()
    
+def nb_cell_yaml_lines(client, source):
+   # determine language comment chars
+   lang = client.nb.metadata.kernelspec.language
+   comment_chars = nb_language_comment_chars(lang)
+   option_prefix = comment_chars[0] + "| "
+   option_suffix = comment_chars[1] if len(comment_chars) > 1 else None
+
+   # go through the lines until we've found all of the yaml
+   yaml_lines = []
+   for line in source.splitlines():
+      if line.startswith(option_prefix):
+         if (not option_suffix) or line.rstrip().endswith(option_suffix):
+            yaml_option = line[len(option_prefix):]
+            if (option_suffix):
+               yaml_option = yaml_option.rstrip()[:-len(option_suffix)]
+            yaml_lines.append(yaml_option)
+            continue
+      break
+
+   # return the lines
+   return yaml_lines
 
 def nb_language_comment_chars(lang):
    langs = dict(

@@ -139,7 +139,7 @@ function parseSwcBundlerLog(
 async function loadModules(config: Configuration) {
   info("Reading modules");
   const result = await runCmd(
-    join(config.directoryInfo.bin, "deno"),
+    join(config.directoryInfo.bin, "tools", "deno"),
     [
       "info",
       join(config.directoryInfo.src, "quarto.ts"),

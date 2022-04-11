@@ -435,7 +435,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
     tappend(content, cell.content)
 
     -- vertically align the minipage
-    if miniPageVAlign == "[t]" and tbl == nil then
+    if miniPageVAlign == "[t]" and image ~= nil then
       tprepend(content, { pandoc.RawBlock("latex", "\\raisebox{-\\height}{")})
       tappend(content, { pandoc.RawBlock("latex", "}") })
     end  

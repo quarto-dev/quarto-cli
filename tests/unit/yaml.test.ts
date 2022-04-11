@@ -60,3 +60,14 @@ unitTest("yaml-shared-should-pass", async () => {
   readYamlFromString(sharedYml);
   readYamlFromString(circularYml);
 });
+
+const exprYml = `label: fig-test
+fig-cap: !expr paste("Air Quality")`;
+
+// deno-lint-ignore require-await
+unitTest("yaml-expr-tag-should-pass", async () => {
+  // deno-lint-ignore no-explicit-any
+  const yml = readYamlFromString(exprYml) as any;
+  assert(yml["fig-cap"].tag === "!expr");
+  assert(yml["fig-cap"].value === 'paste("Air Quality")');
+});

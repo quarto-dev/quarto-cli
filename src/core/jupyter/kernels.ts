@@ -85,10 +85,14 @@ export async function jupyterKernelspecs(): Promise<
   }
 }
 
+export function jupyterDefaultPythonKernelspec(): JupyterKernelspec {
+  return {
+    "display_name": "Python 3",
+    "language": "python",
+    "name": "python3",
+  };
+}
+
 // default kernelspecs for when we can't talk to to jupyter
 const kDefaultKernelspecs = new Map<string, JupyterKernelspec>();
-kDefaultKernelspecs.set("python3", {
-  "display_name": "Python 3",
-  "language": "python",
-  "name": "python3",
-});
+kDefaultKernelspecs.set("python3", jupyterDefaultPythonKernelspec());

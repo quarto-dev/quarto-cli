@@ -5,6 +5,8 @@
 *
 */
 
+import { extname } from "path/mod.ts";
+
 import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
@@ -17,6 +19,7 @@ import {
   kQmdExtensions,
   PostProcessOptions,
 } from "./types.ts";
+import { languagesInMarkdown } from "./engine-shared.ts";
 
 export const kMdExtensions = [".md", ".markdown"];
 
@@ -56,6 +59,16 @@ export const markdownEngine: ExecutionEngine = {
   execute: (options: ExecuteOptions) => {
     // read markdown
     const markdown = Deno.readTextFileSync(options.target.input);
+
+    // if it's plain md, validate that it doesn't have executable cells in it
+    if (extname(options.target.input).toLowerCase() === ".md") {
+      const languages = languagesInMarkdown(markdown);
+      if (languages.size > 0) {
+        throw new Error(
+          "You must use the .qmd extension for documents with executable code.",
+        );
+      }
+    }
 
     return Promise.resolve({
       markdown,

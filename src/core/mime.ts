@@ -52,7 +52,9 @@ export function isHtmlContent(path?: string) {
 }
 
 export function isTextContent(path?: string) {
-  return path && contentType(path)?.startsWith("text/");
+  return path &&
+    (contentType(path) === kTextMarkdown ||
+      contentType(path) === kTextPlain);
 }
 
 const MEDIA_TYPES: Record<string, string> = {

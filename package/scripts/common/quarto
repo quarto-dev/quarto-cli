@@ -55,7 +55,7 @@ if [ -f "$DEV_PATH" ]; then
     echo $DENO_SOURCE_VERSION > $DENO_VERSION_FILE
   fi
 
-  if [ "$1" == "--version" ]; then
+  if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
     echo "99.9.9"
     exit 0
   fi
@@ -77,7 +77,7 @@ else
     export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
   fi
 
-  if [ "$1" == "--version" ]; then
+  if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
     echo `cat "$QUARTO_SHARE_PATH/version"`
     exit 0
   fi
@@ -91,11 +91,11 @@ if [ "$1" == "--paths" ]; then
 fi
 
 if [ "$(uname)" = "Darwin" ]; then
-  export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/deno_dom/libplugin.dylib
+  export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/deno_dom/libplugin.dylib
 else
-  export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/deno_dom/libplugin.so
+  export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/deno_dom/libplugin.so
 fi
 
 QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
 
-${SCRIPT_PATH}/deno ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_TARGET} "$@"
+${SCRIPT_PATH}/tools/deno ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_TARGET} "$@"

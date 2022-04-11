@@ -10,7 +10,7 @@ import { copySync } from "fs/copy.ts";
 import { extname, join } from "path/mod.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
-import { binaryPath, resourcePath } from "../resources.ts";
+import { resourcePath, toolsPath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./run.ts";
 import { removeIfExists } from "../path.ts";
 
@@ -18,7 +18,12 @@ export const denoRunHandler: RunHandler = {
   canHandle: (script: string) => {
     return [".js", ".ts"].includes(extname(script).toLowerCase());
   },
-  run: async (script: string, args: string[], options?: RunHandlerOptions) => {
+  run: async (
+    script: string,
+    args: string[],
+    stdin?: string,
+    options?: RunHandlerOptions,
+  ) => {
     // add deno std library (one time initialize cache on demand)
     const denoDir = initDenoCache();
     options = {
@@ -32,7 +37,7 @@ export const denoRunHandler: RunHandler = {
 
     return await execProcess({
       cmd: [
-        binaryPath("deno"),
+        toolsPath("deno"),
         "run",
         "--import-map",
         importMap,
@@ -43,7 +48,7 @@ export const denoRunHandler: RunHandler = {
         ...args,
       ],
       ...options,
-    });
+    }, stdin);
   },
 };
 

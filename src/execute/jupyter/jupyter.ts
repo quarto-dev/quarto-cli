@@ -19,7 +19,7 @@ import { runningInCI } from "../../core/ci-info.ts";
 import {
   isJupyterNotebook,
   jupyterAssets,
-  jupyterFromFile,
+  jupyterFromJSON,
   jupyterToMarkdown,
   kJupyterNotebookExtensions,
   quartoMdToJupyter,
@@ -33,6 +33,7 @@ import {
   kFigPos,
   kIncludeAfterBody,
   kIncludeInHeader,
+  kIpynbFilters,
   kKeepHidden,
   kKeepIpynb,
 } from "../../config/constants.ts";
@@ -69,6 +70,8 @@ import {
 } from "../types.ts";
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+
+import { jupyterNotebookFiltered } from "./jupyter-filters.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -144,9 +147,9 @@ export const jupyterEngine: ExecutionEngine = {
     }
   },
 
-  partitionedMarkdown: async (file: string) => {
+  partitionedMarkdown: async (file: string, format?: Format) => {
     if (isJupyterNotebook(file)) {
-      return partitionMarkdown(await markdownFromNotebook(file));
+      return partitionMarkdown(await markdownFromNotebook(file, format));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
     }
@@ -232,7 +235,11 @@ export const jupyterEngine: ExecutionEngine = {
     }
 
     // convert to markdown and write to target
-    const nb = jupyterFromFile(options.target.input);
+    const nbContents = await jupyterNotebookFiltered(
+      options.target.input,
+      options.format.execute[kIpynbFilters],
+    );
+    const nb = jupyterFromJSON(nbContents);
     const assets = jupyterAssets(
       options.target.input,
       options.format.pandoc.to,
@@ -393,10 +400,13 @@ function executeResultEngineDependencies(
   }
 }
 
-async function markdownFromNotebook(file: string) {
-  const decoder = new TextDecoder("utf-8");
-  const nbContents = await Deno.readFile(file);
-  const nb = JSON.parse(decoder.decode(nbContents));
+async function markdownFromNotebook(file: string, format?: Format) {
+  // read file with any filters
+  const nbContents = await jupyterNotebookFiltered(
+    file,
+    format?.execute[kIpynbFilters],
+  );
+  const nb = JSON.parse(nbContents);
   const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
   const markdown = cells.reduce((md, cell) => {
     if (["markdown", "raw"].includes(cell.cell_type)) {

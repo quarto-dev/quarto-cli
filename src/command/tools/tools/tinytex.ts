@@ -4,16 +4,21 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
+import { copySync, ensureDirSync } from "fs/mod.ts";
+import { warning } from "log/mod.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { basename, join } from "path/mod.ts";
-import { moveSync } from "fs/move.ts";
 
-import { getenv } from "../../../core/env.ts";
+import { getenv, suggestUserBinPaths } from "../../../core/env.ts";
 import { expandPath, which } from "../../../core/path.ts";
 import { unzip } from "../../../core/zip.ts";
 import { hasLatexDistribution } from "../../render/latexmk/latex.ts";
-import { hasTexLive, removePath } from "../../render/latexmk/texlive.ts";
+import {
+  hasTexLive,
+  removePath,
+  texLiveInPath,
+} from "../../render/latexmk/texlive.ts";
 import { execProcess } from "../../../core/process.ts";
 
 import {
@@ -21,6 +26,7 @@ import {
   InstallContext,
   PackageInfo,
   RemotePackageInfo,
+  ToolConfigurationState,
 } from "../tools.ts";
 import { getLatestRelease } from "../github.ts";
 
@@ -77,7 +83,9 @@ export const tinyTexInstallable: InstallableTool = {
   }],
   installed,
   installDir,
+  binDir,
   installedVersion,
+  verifyConfiguration,
   latestRelease: remotePackageInfo,
   preparePackage,
   install,
@@ -97,6 +105,34 @@ async function installed() {
 async function installDir() {
   if (await installed()) {
     return Promise.resolve(tinyTexInstallDir());
+  } else {
+    return Promise.resolve(undefined);
+  }
+}
+
+async function verifyConfiguration(): Promise<ToolConfigurationState> {
+  const textLiveConfigured = await texLiveInPath();
+  if (textLiveConfigured) {
+    return { status: "ok" };
+  } else {
+    return {
+      status: "warning",
+      message: "TeX Live is not available on the path.",
+    };
+  }
+}
+
+async function binDir() {
+  if (await installed()) {
+    const installDir = tinyTexInstallDir();
+    if (installDir) {
+      return Promise.resolve(binFolder(installDir));
+    } else {
+      warning(
+        "Failed to resolve tinytex install directory even though it is installed.",
+      );
+      return Promise.resolve(undefined);
+    }
   } else {
     return Promise.resolve(undefined);
   }
@@ -143,7 +179,6 @@ async function preparePackage(
   if (url) {
     // Download the package
     await context.download(`TinyTex ${version}`, url, filePath);
-
     return { filePath, version };
   } else {
     context.error("Couldn't determine what URL to use to download");
@@ -176,7 +211,9 @@ async function install(
         { message: `Moving files` },
         () => {
           const from = join(context.workingDir, tinyTexDirName);
-          moveSync(from, installDir, { overwrite: true });
+
+          copySync(from, installDir);
+          Deno.removeSync(from, { recursive: true });
 
           // Note the version that we have installed
           noteInstalledVersion(pkgInfo.version);
@@ -184,35 +221,9 @@ async function install(
         },
       );
 
-      const macBinFolder = () => {
-        const oldBinFolder = join(
-          installDir,
-          "bin",
-          `${Deno.build.arch}-${Deno.build.os}`,
-        );
-        if (existsSync(oldBinFolder)) {
-          return oldBinFolder;
-        } else {
-          return join(
-            installDir,
-            "bin",
-            `universal-${Deno.build.os}`,
-          );
-        }
-      };
-
-      // Find the tlmgr and note its location
-      const binFolder = Deno.build.os === "windows"
-        ? join(
-          installDir,
-          "bin",
-          "win32",
-        )
-        : macBinFolder();
-
       context.props[kTlMgrKey] = Deno.build.os === "windows"
-        ? join(binFolder, "tlmgr.bat")
-        : join(binFolder, "tlmgr");
+        ? join(binFolder(installDir), "tlmgr.bat")
+        : join(binFolder(installDir), "tlmgr");
 
       return Promise.resolve();
     } else {
@@ -223,6 +234,34 @@ async function install(
     context.error("Unable to determine installation directory");
     return Promise.reject();
   }
+}
+
+function binFolder(installDir: string) {
+  const nixBinFolder = () => {
+    const oldBinFolder = join(
+      installDir,
+      "bin",
+      `${Deno.build.arch}-${Deno.build.os}`,
+    );
+    if (existsSync(oldBinFolder)) {
+      return oldBinFolder;
+    } else {
+      return join(
+        installDir,
+        "bin",
+        `universal-${Deno.build.os}`,
+      );
+    }
+  };
+
+  // Find the tlmgr and note its location
+  return Deno.build.os === "windows"
+    ? join(
+      installDir,
+      "bin",
+      "win32",
+    )
+    : nixBinFolder();
 }
 
 async function afterInstall(context: InstallContext) {
@@ -278,14 +317,54 @@ async function afterInstall(context: InstallContext) {
       },
     );
 
+    const message =
+      `Unable to determine a path to use when installing TeX Live. 
+To complete the installation, please run the following:
+
+${tlmgrPath} option sys_bin <bin_dir_on_path>
+${tlmgrPath} path add
+
+This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path>.`;
+
+    const configureBinPath = async () => {
+      if (Deno.build.os !== "windows") {
+        // Find bin paths on this machine
+        const paths = suggestUserBinPaths();
+        if (paths.length > 0) {
+          // Ensure the directory exists
+          const path = expandPath(paths[0]);
+          ensureDirSync(path);
+
+          // Set the sys_bin for texlive
+          await exec(
+            tlmgrPath,
+            ["option", "sys_bin", path],
+          );
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    };
+
     // Ensure symlinks are all set
     await context.withSpinner(
       { message: "Updating paths" },
       async () => {
-        await exec(
-          tlmgrPath,
-          ["path", "add"],
-        );
+        const pathConfigured = await configureBinPath();
+        if (pathConfigured) {
+          const result = await exec(
+            tlmgrPath,
+            ["path", "add"],
+          );
+          if (!result.success) {
+            warning(message);
+          }
+        } else {
+          warning(message);
+        }
       },
     );
 
@@ -307,17 +386,20 @@ async function uninstall(context: InstallContext) {
     context.error("Current LateX installation does not appear to be TinyTex");
     return Promise.reject();
   }
+
   // remove symlinks
-  await context.withSpinner(
-    { message: "Removing commands" },
-    async () => {
-      const result = await removePath();
-      if (!result.success) {
-        context.error("Failed to uninstall");
-        return Promise.reject();
-      }
-    },
-  );
+  if (await texLiveInPath()) {
+    await context.withSpinner(
+      { message: "Removing commands" },
+      async () => {
+        const result = await removePath();
+        if (!result.success) {
+          context.error("Failed to uninstall");
+          return Promise.reject();
+        }
+      },
+    );
+  }
 
   await context.withSpinner(
     { message: "Removing directory" },
@@ -445,6 +527,11 @@ async function texLiveRoot() {
       }
     }
   } else {
-    return undefined;
+    const installDir = tinyTexInstallDir();
+    if (installDir && existsSync(installDir)) {
+      return installDir;
+    } else {
+      return undefined;
+    }
   }
 }

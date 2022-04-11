@@ -184,6 +184,16 @@ async function execJupyter(
           ...(await pythonExec()),
           resourcePath("jupyter/jupyter.py"),
         ],
+        env: {
+          // Force default matplotlib backend. something simillar is done here:
+          // https://github.com/ipython/ipykernel/blob/d7339c2c70115bbe6042880d29eeb273b5a2e350/ipykernel/kernelapp.py#L549-L554
+          // however this respects existing environment variables, which we've seen in at least
+          // one case result in an inability to render due to the iTerm2 backend being configured
+          // (see https://github.com/quarto-dev/quarto-cli/issues/502). Our current position is
+          // that the way to use a different backend w/ Quarto is to call the matplotlib.use()
+          // function within the notebook
+          "MPLBACKEND": "module://matplotlib_inline.backend_inline",
+        },
         stdout: "piped",
       },
       kernelCommand(command, "", options),

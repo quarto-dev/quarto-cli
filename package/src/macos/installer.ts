@@ -78,21 +78,22 @@ export async function makeInstallerMac(config: Configuration) {
     // Sign these executable / binary files
     // and include our entitlements declaration
     const signWithEntitlements = [
-      join(config.directoryInfo.bin, "deno"),
+      join(config.directoryInfo.bin, "tools", "deno"),
       join(
         config.directoryInfo.bin,
+        "tools",
         "deno_dom",
         "libplugin.dylib",
       ),
-      join(config.directoryInfo.bin, "esbuild"),
-      join(config.directoryInfo.bin, "dart-sass", "src", "dart"),
-      join(config.directoryInfo.bin, "pandoc"),
+      join(config.directoryInfo.bin, "tools", "esbuild"),
+      join(config.directoryInfo.bin, "tools", "dart-sass", "src", "dart"),
+      join(config.directoryInfo.bin, "tools", "pandoc"),
     ];
 
     // Sign these non-binary files and don't include
     // the entitlements declaration
     const signWithoutEntitlements = [
-      join(config.directoryInfo.bin, "dart-sass", "sass"),
+      join(config.directoryInfo.bin, "tools", "dart-sass", "sass"),
       join(config.directoryInfo.bin, "quarto.js"),
       join(config.directoryInfo.bin, "quarto"),
     ];

@@ -22,9 +22,11 @@ export interface InstallableTool {
   prereqs: InstallPreReq[];
   installed: () => Promise<boolean>;
   installDir: () => Promise<string | undefined>;
+  binDir?: () => Promise<string | undefined>;
   installedVersion: () => Promise<string | undefined>;
   latestRelease: () => Promise<RemotePackageInfo>;
   preparePackage: (ctx: InstallContext) => Promise<PackageInfo>;
+  verifyConfiguration?: () => Promise<ToolConfigurationState>;
   install: (pkgInfo: PackageInfo, ctx: InstallContext) => Promise<void>;
   afterInstall: (ctx: InstallContext) => Promise<boolean>; // return true if restart is required, false if not
   uninstall: (ctx: InstallContext) => Promise<void>;
@@ -56,6 +58,11 @@ export interface RemotePackageInfo {
 export interface ToolInfo {
   version?: string;
   latest: GitHubRelease;
+}
+
+export interface ToolConfigurationState {
+  status: "ok" | "warning" | "error";
+  message?: string;
 }
 
 // InstallContext provides the API for installable tools
@@ -91,13 +98,21 @@ export async function printToolInfo(name: string) {
   // Run the install
   const installableTool = kInstallableTools[name.toLowerCase()];
   if (installableTool) {
-    const response = {
+    const response: Record<string, unknown> = {
       name: installableTool.name,
       installed: await installableTool.installed(),
       version: await installableTool.installedVersion(),
       directory: await installableTool.installDir(),
     };
-    info(JSON.stringify(response, null, 2));
+    if (installableTool.binDir) {
+      response["bin-directory"] = await installableTool.binDir();
+    }
+    if (response.installed && installableTool.verifyConfiguration) {
+      response["configuration"] = await installableTool.verifyConfiguration();
+    }
+    Deno.stdout.writeSync(
+      new TextEncoder().encode(JSON.stringify(response, null, 2) + "\n"),
+    );
   }
 }
 
@@ -244,6 +259,7 @@ export interface ToolSummaryData {
   installed: boolean;
   installedVersion?: string;
   latestRelease: RemotePackageInfo;
+  configuration: ToolConfigurationState;
 }
 
 export async function toolSummary(
@@ -257,7 +273,10 @@ export async function toolSummary(
     const installed = await tool.installed();
     const installedVersion = await tool.installedVersion();
     const latestRelease = await tool.latestRelease();
-    return { installed, installedVersion, latestRelease };
+    const configuration = tool.verifyConfiguration && installed
+      ? await tool.verifyConfiguration()
+      : { status: "ok" } as ToolConfigurationState;
+    return { installed, installedVersion, latestRelease, configuration };
   } else {
     return undefined;
   }
