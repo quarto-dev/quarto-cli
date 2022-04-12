@@ -277,7 +277,7 @@ export async function ojsCompile(
         preDiv.push(pandocRawStr(cell.sourceVerbatim.value));
         div.push(preDiv);
         const errMsgDiv = pandocDiv({
-          classes: ["cell-output-error"],
+          classes: ["cell-output", "cell-output-error"],
         });
         const calloutDiv = pandocDiv({
           classes: ["callout-important"],
@@ -553,7 +553,7 @@ export async function ojsCompile(
       }
 
       // handle output of computation
-      const outputCellClasses = ["cell-output-display"];
+      const outputCellClasses = ["cell-output", "cell-output-display"];
       if (!outputVal || !includeVal) {
         outputCellClasses.push("hidden");
       }

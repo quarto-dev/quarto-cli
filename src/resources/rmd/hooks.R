@@ -139,7 +139,7 @@ knitr_hooks <- function(format, resourceDir) {
         x
       } else {
         # prefix for classes
-        classes <- paste0("cell-output-", classes)
+        classes <- c("cell-output", paste0("cell-output-", classes))
         # add .hidden class if keep-hidden hook injected an option
         if (isTRUE(options[[paste0(type,".hidden")]]))
           classes <- c(classes, "hidden")
