@@ -107,7 +107,7 @@ export async function preview(
   // don't want overlapping ports within the same project)
   options = {
     ...options,
-    ...resolvePreviewOptions(options),
+    ...(await resolvePreviewOptions(options)),
   };
 
   // create listener and callback to stop the server
@@ -488,6 +488,7 @@ function htmlFileRequestHandlerOptions(
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply
+          console.log("render from ide command");
           renderHandler();
           return Promise.resolve(httpContentResponse("rendered"));
         } else {

@@ -221,6 +221,7 @@ export function printBrowsePreviewMessage(port: number, path: string) {
 const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
 
 export interface PreviewRenderRequest {
+  version: 1 | 2;
   path: string;
   format?: string;
 }
@@ -249,6 +250,7 @@ export function previewRenderRequest(
   );
   if (match && baseDir) {
     return {
+      version: 1,
       path: join(baseDir, match[1]),
     };
   } else if (hasClients) {
@@ -258,6 +260,7 @@ export function previewRenderRequest(
       const path = url.searchParams.get("path");
       if (path) {
         return {
+          version: 2,
           path,
           format: url.searchParams.get("format") || undefined,
         };
@@ -271,8 +274,8 @@ export async function previewRenderRequestIsCompatible(
   flags: RenderFlags,
   project?: ProjectContext,
 ) {
-  if (flags.to === "default" && (request.format === undefined)) {
-    return true; // rstudio passes 'default'
+  if (request.version === 1) {
+    return true; // rstudio manages its own request compatibility state
   } else if (flags.to !== "all") {
     const format = await previewFormat(request.path, request.format, project);
     return format === flags.to;
