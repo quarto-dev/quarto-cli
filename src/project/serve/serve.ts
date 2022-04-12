@@ -8,6 +8,7 @@
 import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
+import * as colors from "fmt/colors.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -82,6 +83,7 @@ import { removePandocToArg } from "../../command/render/flags.ts";
 import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
 import { ServeRenderManager } from "./render.ts";
+import { projectScratchPath } from "../project-scratch.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -115,6 +117,9 @@ export async function serveProject(
       }' (try using project type 'website').`,
     );
   }
+
+  // acquire the preview lock
+  acquirePreviewLock(project);
 
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", project.dir);
@@ -349,7 +354,6 @@ export async function serveProject(
             }
             const tempContext = createTempContext();
             try {
-              console.log("render on GET");
               result = await renderManager.renderQueue().enqueue(() =>
                 renderProject(
                   watcher.project(),
@@ -510,6 +514,45 @@ export async function serveProject(
       }
     })();
   }
+}
+
+function acquirePreviewLock(project: ProjectContext) {
+  // get lockfile
+  const lockfile = projectScratchPath(project.dir, join("preview", "lock"));
+
+  // if there is a lockfile send a kill signal to the pid therin
+  if (existsSync(lockfile)) {
+    const pid = parseInt(Deno.readTextFileSync(lockfile)) || undefined;
+    if (pid) {
+      warning(
+        "A preview server is already running for this project\n",
+      );
+      info(
+        colors.bold(colors.blue("Termimating existing preview server....")),
+        { newline: false },
+      );
+      try {
+        Deno.kill(pid, "SIGTERM");
+        Deno.sleepSync(3000);
+      } catch {
+        //
+      } finally {
+        info(colors.bold(colors.blue("DONE\n")));
+      }
+    }
+  }
+
+  // write our pid to the lockfile
+  Deno.writeTextFileSync(lockfile, String(Deno.pid));
+
+  // rmeove the lockfile when we exit
+  addEventListener("unload", () => {
+    try {
+      Deno.removeSync(lockfile);
+    } catch {
+      //
+    }
+  });
 }
 
 function renderErrorPage(e: Error) {

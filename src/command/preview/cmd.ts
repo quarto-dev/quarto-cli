@@ -12,11 +12,7 @@ import * as colors from "fmt/colors.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import {
-  isPortAvailableSync,
-  kLocalhost,
-  waitForPort,
-} from "../../core/port.ts";
+import { kLocalhost, waitForPort } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import {
   handleRenderResult,
