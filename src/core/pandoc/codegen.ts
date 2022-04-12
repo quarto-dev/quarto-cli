@@ -62,7 +62,7 @@ export function pandocHtmlBlock(elementName: string) {
       if (id) {
         strs.push(`id="${id}"`);
       }
-      if (classes) {
+      if (classes && classes.length) {
         strs.push(`class="${classes.join(" ")}"`);
       }
       if (attrs) {
