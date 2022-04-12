@@ -28,6 +28,8 @@ import {
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 import {
   pandocBlock,
+  pandocFigCaption,
+  pandocFigure,
   pandocHtmlBlock,
   pandocRawStr,
 } from "../pandoc/codegen.ts";
@@ -308,10 +310,16 @@ export const baseHandler: LanguageHandler = {
       }
     }
     const inputLines = contentLines.slice(inputIndex);
+    const hasFigureLabel = () => {
+      if (!cell.options?.label) {
+        return false;
+      }
+      return (cell.options.label as string).startsWith("fig-");
+    };
 
     const { classes, attrs } = getDivAttributes(cell);
 
-    const q3 = pandocBlock(":::");
+    const q3 = hasFigureLabel() ? pandocBlock(":::") : pandocFigure;
     const t3 = pandocBlock("```");
     const t4 = pandocBlock("````");
     console.log("general div");
@@ -380,7 +388,13 @@ export const baseHandler: LanguageHandler = {
     }
 
     if (cell.options?.[kCellFigCap]) {
-      cellBlock.push(pandocRawStr(cell.options[kCellFigCap] as string));
+      if (hasFigureLabel()) {
+        cellBlock.push(pandocRawStr(cell.options[kCellFigCap] as string));
+      } else {
+        const cap = pandocFigCaption();
+        cap.push(pandocRawStr(cell.options[kCellFigCap] as string));
+        cellBlock.push(cap);
+      }
     }
 
     return cellBlock.mappedString();
