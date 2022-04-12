@@ -9,14 +9,8 @@ import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { isRStudio } from "../core/platform.ts";
-import {
-  findOpenPort,
-  isPortAvailableSync,
-  kLocalhost,
-  waitForPort,
-} from "../core/port.ts";
+import { findOpenPort, kLocalhost, waitForPort } from "../core/port.ts";
 import { TempContext } from "../core/temp.ts";
-import { sleep } from "../core/wait.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
