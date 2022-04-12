@@ -42,11 +42,11 @@ export function pandocRawStr(content: EitherString) {
 
 export function pandocHtmlBlock(elementName: string) {
   return function (
-    opts: {
+    opts?: {
       id?: string;
       classes?: string[];
       attrs?: string[];
-    } | undefined,
+    },
   ) {
     let { id, classes, attrs } = opts || {};
     if (classes === undefined) {

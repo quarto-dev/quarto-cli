@@ -90,6 +90,7 @@ import {
   pandocBlock,
   pandocCode,
   pandocDiv,
+  pandocHtmlBlock,
   pandocRawStr,
 } from "../../core/pandoc/codegen.ts";
 
@@ -97,6 +98,9 @@ import {
   EitherString,
   join as mappedJoin,
 } from "../../core/lib/mapped-text.ts";
+
+const pandocFigure = pandocHtmlBlock("figure");
+const pandocFigCaption = pandocHtmlBlock("figcaption");
 
 export interface OjsCompileOptions {
   source: string;
