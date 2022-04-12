@@ -5,36 +5,36 @@
 -- without reshaped data that has been 
 -- restructured into the standard author
 -- format
-kAuthorInput =  'authors'
+local kAuthorInput =  'authors'
 
 -- By default, simply replace the input structure with the 
 -- normalized versions of the output
-kAuthorOutput = kAuthorInput
+local kAuthorOutput = kAuthorInput
 
 -- Where we'll write the normalized list of affiliations
-kAffiliationOutput = "affiliations"
+local kAffiliationOutput = "affiliations"
 
 -- Where we'll write the 'by-author' list of authors which
 -- includes expanded affiliation information inline with the author
-kByAuthor = "by-author"
+local kByAuthor = "by-author"
 
 -- Where we'll write the 'by-affiliation' list of affiliations which
 -- includes expanded author information inline with each affiliation
-kByAffiliation = "by-affiliation"
-kAuthors = "authors"
+local kByAffiliation = "by-affiliation"
+local kAuthors = "authors"
 
 -- Properties that may appear on an individual author
-kId = 'id'
-kName = 'name'
-kUrl = 'url'
-kEmail = 'email'
-kFax = 'fax'
-kOrcid = 'orcid'
-kNotes = 'notes'
-kAcknowledgements = 'acknowledgements'
-kAffiliations = 'affiliations'
-kAffiliation = 'affiliation'
-kRef = 'ref'
+local kId = 'id'
+local kName = 'name'
+local kUrl = 'url'
+local kEmail = 'email'
+local kFax = 'fax'
+local kOrcid = 'orcid'
+local kNotes = 'notes'
+local kAcknowledgements = 'acknowledgements'
+local kAffiliations = 'affiliations'
+local kAffiliation = 'affiliation'
+local kRef = 'ref'
 
 -- attributes hold a list of strings which
 -- represent true characteristics of the author
@@ -51,12 +51,12 @@ kRef = 'ref'
 --     name: John Hamm
 --     corresponding: true
 --     is-equal-contributor: true
-kAttributes = 'attributes'
+local kAttributes = 'attributes'
 
 -- flag values for attributes (attributes is a list of 
 -- flag names)
-kCorresponding = 'corresponding'
-kEqualContributor = 'equal-contributor'
+local kCorresponding = 'corresponding'
+local kEqualContributor = 'equal-contributor'
 
 -- metadata holds options that appear in the author key
 -- that are not common to our author schema. we would like
@@ -64,7 +64,7 @@ kEqualContributor = 'equal-contributor'
 -- it will be difficult to reliably share across templates and
 -- author representations, so we bucketize it here to 
 -- suggest to users that this is 'other' data 
-kMetadata = 'metadata'
+local kMetadata = 'metadata'
 
 -- a name which will be structured into a name object that
 -- look like:
@@ -74,41 +74,63 @@ kMetadata = 'metadata'
 --   literal:
 -- We can accept a literal string (which we parse to get the family and given)
 -- or a structured object that declares all or some of the options directly
-kGivenName = 'given'
-kFamilyName = 'family'
-kLiteralName = 'literal'
-kNameFields = { kGivenName, kFamilyName, kLiteralName}
+local kGivenName = 'given'
+local kFamilyName = 'family'
+local kLiteralName = 'literal'
+local kNameFields = { kGivenName, kFamilyName, kLiteralName}
 
 -- an affiliation which will be structured into a standalone
-kName = 'name'
-kDepartment = 'department'
-kAddress = 'address'
-kCity = 'city'
-kRegion = 'region'
-kState = 'state'
-kCountry = 'country'
-kPostalCode = 'postal-code'
+local kName = 'name'
+local kDepartment = 'department'
+local kAddress = 'address'
+local kCity = 'city'
+local kRegion = 'region'
+local kState = 'state'
+local kCountry = 'country'
+local kPostalCode = 'postal-code'
+
+-- labels contains the suggested labels for the various elements which 
+-- are localized and should correctly deal with plurals, etc...
+local kLabels = 'labels'
+local kAuthor = 'author'
+local kAffiliation = 'affiliation'
+local kPublished = 'published'
+local kDoi = 'doi'
+local kDescription = 'description'
+local kAbstract = 'abstract'
+
+-- Titles are the values that we will accept in metadata to override the
+-- default value for the above labels (e.g. abstract-title will provide the label)
+-- for the abstract
+local kAuthorTitle = 'author-title'
+local kAffiliationTitle = 'affiliation-title'
+local kAbstractTitle = 'abstract-title'
+local kDescriptionTitle = 'description-title'
+local kPublishedTitle = 'published-title'
+local kDoiTitle = 'doi-title'
 
 -- The field types for an author (maps the field in an author table)
 -- to the way the field should be processed
-kAuthorNameFields = { kName }
-kSuthorSimpleFields = { kId, kUrl, kEmail, kFax, kOrcid, kNotes, kAcknowledgements }
-kAuthorAttributeFields = { kCorresponding, kEqualContributor }
-kAuthorAffiliationFields = { kAffiliation, kAffiliations }
+local kAuthorNameFields = { kName }
+local kSuthorSimpleFields = { kId, kUrl, kEmail, kFax, kOrcid, kNotes, kAcknowledgements }
+local kAuthorAttributeFields = { kCorresponding, kEqualContributor }
+local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
 -- Fields for affiliations (either inline in authors or 
 -- separately in a affiliations key)
-kAffiliationFields = { kId, kName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode }
+local kAffiliationFields = { kId, kName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode }
 
 -- These affiliation fields will be mapped into 'region' 
 -- (so users may also write 'state')
-kAffiliationRegionFields = { kRegion, kState }
+local kAffiliationRegionFields = { kRegion, kState }
 
 -- Normalizes author metadata from the 'input' field into 
 -- consistently structured metadata in the 'output' field
 function authorsMeta()
   return {
     Meta = function(meta)
+      -- Forward language fields along in the labels bucket
+
       local authorsRaw = meta[kAuthorInput]
       
       -- the normalized authors
@@ -169,6 +191,9 @@ function authorsMeta()
       -- Write the de-normalized versions back to metadata
       meta[kByAuthor] = byAuthors(authors, affiliations)
       meta[kByAffiliation] = byAffiliations(authors, affiliations)
+
+      -- Provide localized or user specified strings for title block elements
+      meta = computeLabels(authors, affiliations, meta)
 
       return meta
     end
@@ -494,6 +519,54 @@ function findAuthors(id, authors)
     end
   end
   return matchingAuthors
+end
+
+-- Resolve labels for elements into metadata
+function computeLabels(authors, affiliations, meta) 
+  local language = param("language", nil);
+  meta[kLabels] = {
+    authors = {pandoc.Str("Authors")},
+    affilations = {pandoc.Str("Affiliations")}
+  }
+  if #authors == 1 then
+    meta[kLabels][kAuthors] = {pandoc.Str(language["title-block-author-single"])}
+  else 
+    meta[kLabels][kAuthors] = {pandoc.Str(language["title-block-author-plural"])}
+  end
+  if meta[kAuthorTitle] then
+    meta[kLabels][kAuthors] = meta[kAuthorTitle]
+  end
+
+  if #affiliations == 1 then
+    meta[kLabels][kAffiliations] = {pandoc.Str(language["title-block-affiliation-single"])}
+  else
+    meta[kLabels][kAffiliations] = {pandoc.Str(language["title-block-affiliation-plural"])}
+  end
+  if meta[kAffiliationTitle] then
+    meta[kLabels][kAffiliation] = meta[kAffiliationTitle]
+  end
+
+  meta[kLabels][kPublished] = {pandoc.Str(language["title-block-published"])}
+  if meta[kPublishedTitle] then
+    meta[kLabels][kPublished] = meta[kPublishedTitle]
+  end
+
+  meta[kLabels][kDoi] = {pandoc.Str("Doi")}
+  if meta[kDoiTitle] then
+    meta[kLabels][kDoi] = meta[kDoiTitle]
+  end
+
+  meta[kLabels][kAbstract] = {pandoc.Str(language["section-title-abstract"])}
+  if meta[kAbstractTitle] then
+    meta[kLabels][kAbstract] = meta[kAbstractTitle]
+  end
+
+  meta[kLabels][kDescription] = {pandoc.Str(language["listing-page-field-description"])}
+  if meta[kDescriptionTitle] then
+    meta[kLabels][kDescription] = meta[kDescriptionTitle]
+  end
+
+  return meta
 end
 
 -- Remove Spaces from the ends of tables

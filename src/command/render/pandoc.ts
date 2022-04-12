@@ -205,6 +205,7 @@ export async function runPandoc(
     options.format.language,
     options.flags,
   );
+  formatFilterParams["language"] = options.format.language;
 
   // if there is no toc title then provide the appropirate default
   if (!options.format.metadata[kTocTitle]) {
