@@ -8,6 +8,7 @@
 import * as ld from "./lodash.ts";
 
 import { randomInt } from "./random.ts";
+import { sleep } from "./wait.ts";
 
 export const kLocalhost = "127.0.0.1";
 
@@ -75,6 +76,25 @@ interface IOptions {
   port?: number[] | IPortRange;
   hostname?: string;
   transport?: "tcp";
+}
+
+// wait for a port for specified internval
+export async function waitForPort(
+  options: IListenerOptions,
+  timeout = 5000,
+): Promise<boolean> {
+  const kWaitInterval = 200;
+  let waited = 0;
+  while (waited <= timeout) {
+    if (
+      isPortAvailableSync(options)
+    ) {
+      return true;
+    }
+    await sleep(kWaitInterval);
+    waited += kWaitInterval;
+  }
+  return false;
 }
 
 /**

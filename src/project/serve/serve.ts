@@ -122,7 +122,7 @@ export async function serveProject(
   // resolve options
   options = {
     ...options,
-    ...resolvePreviewOptions(options, project),
+    ...(await resolvePreviewOptions(options, project)),
   };
 
   // get type

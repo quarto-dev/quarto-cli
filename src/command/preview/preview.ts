@@ -107,7 +107,7 @@ export async function preview(
   // don't want overlapping ports within the same project)
   options = {
     ...options,
-    ...resolvePreviewOptions(options),
+    ...(await resolvePreviewOptions(options)),
   };
 
   // create listener and callback to stop the server

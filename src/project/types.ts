@@ -9,8 +9,14 @@ import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { isRStudio } from "../core/platform.ts";
-import { findOpenPort, kLocalhost } from "../core/port.ts";
+import {
+  findOpenPort,
+  isPortAvailableSync,
+  kLocalhost,
+  waitForPort,
+} from "../core/port.ts";
 import { TempContext } from "../core/temp.ts";
+import { sleep } from "../core/wait.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
@@ -66,10 +72,10 @@ export interface ProjectPreview {
   timeout?: number;
 }
 
-export function resolvePreviewOptions(
+export async function resolvePreviewOptions(
   options: ProjectPreview,
   project?: ProjectContext,
-): ProjectPreview {
+): Promise<ProjectPreview> {
   // start with project options if we have them
   if (project?.config?.project.preview) {
     options = mergeConfigs(project.config.project.preview, options);
@@ -82,9 +88,16 @@ export function resolvePreviewOptions(
     timeout: 0,
     navigate: true,
   }, options) as ProjectPreview;
-  if (!resolved.port) {
+
+  // if a specific port is requested then wait for it up to 5 seconds
+  if (resolved.port) {
+    if (!await waitForPort({ port: resolved.port, hostname: resolved.host })) {
+      throw new Error(`Requested port ${options.port} is already in use.`);
+    }
+  } else {
     resolved.port = findOpenPort();
   }
+
   return resolved;
 }
 
