@@ -1188,6 +1188,9 @@ function mdFromCodeCell(
           md.push(outputLabel + " ");
         }
 
+        // add generic output class
+        md.push(".cell-output ");
+
         // add output class name
         if (output.output_type === "stream") {
           const stream = output as JupyterOutputStream;

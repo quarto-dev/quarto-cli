@@ -12,7 +12,7 @@ import * as colors from "fmt/colors.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { isPortAvailableSync, kLocalhost } from "../../core/port.ts";
+import { kLocalhost, waitForPort } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import {
   handleRenderResult,
@@ -74,12 +74,22 @@ export const previewCommand = new Command()
     },
   )
   .option(
+    "--navigate",
+    "Navigate the browser automatically when outputs are updated",
+    {
+      hidden: true,
+    },
+  )
+  .option(
     "--no-navigate",
     "Don't navigate the browser automatically when outputs are updated.",
   )
   .option(
     "--browser-path",
     "Initial path to navigate browser to",
+    {
+      hidden: true,
+    },
   )
   .option(
     "--no-browser",
@@ -95,6 +105,9 @@ export const previewCommand = new Command()
   .option(
     "--watch-inputs",
     "Re-render input files when they change.",
+    {
+      hidden: true,
+    },
   )
   .option(
     "--no-watch-inputs",
@@ -198,6 +211,11 @@ export const previewCommand = new Command()
       options.browser = false;
       args.splice(noBrowserPos, 1);
     }
+    const navigatePos = args.indexOf("--navigate");
+    if (navigatePos !== -1) {
+      options.navigate = true;
+      args.splice(navigatePos, 1);
+    }
     const noNavigatePos = args.indexOf("--no-navigate");
     if (noNavigatePos !== -1) {
       options.navigate = false;
@@ -235,7 +253,7 @@ export const previewCommand = new Command()
     if (options.port) {
       // try to bind to requested port (error if its in use)
       const port = parseInt(options.port);
-      if (isPortAvailableSync({ port, hostname: kLocalhost })) {
+      if (await waitForPort({ port, hostname: kLocalhost })) {
         options.port = port;
       } else {
         throw new Error(`Requested port ${options.port} is already in use.`);

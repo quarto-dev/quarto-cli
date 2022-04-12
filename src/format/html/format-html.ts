@@ -538,6 +538,16 @@ function htmlFormatPostprocessor(
     for (let i = 0; i < codeBlocks.length; i++) {
       const code = codeBlocks[i] as Element;
 
+      // hoist hidden and cell-code to parent div
+      const parentHoist = (clz: string) => {
+        if (code.classList.contains(clz)) {
+          code.classList.delete(clz);
+          code.parentElement?.classList.add(clz);
+        }
+      };
+      parentHoist("cell-code");
+      parentHoist("hidden");
+
       // hoist hidden to parent div
       if (code.classList.contains("hidden")) {
         code.classList.delete("hidden");

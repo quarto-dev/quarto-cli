@@ -240,15 +240,7 @@ function commonmarkFormat(to: string) {
 }
 
 function pandocMarkdownFormat(): Format {
-  return createFormat("md", plaintextFormat("md"), {
-    // preserve yaml exactly as the user wrote it
-    // (if we don't do this they get other metadata that was
-    // injected e.g. toc-title)
-    render: {
-      [kKeepYaml]: true,
-      [kVariant]: "-yaml_metadata_block-pandoc_title_block",
-    },
-  });
+  return createFormat("md", plaintextFormat("md"), {});
 }
 
 function markdownFormat(): Format {

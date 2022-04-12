@@ -27,6 +27,9 @@ export async function jupyterNotebookFiltered(
       const result = (handler && existsSync(scriptPath))
         ? await handler.run(script, args.splice(1), json, {
           cwd: dirname(file),
+          env: {
+            PYTHONUNBUFFERED: "1",
+          },
           stdout: "piped",
         })
         : await execProcess({
@@ -35,6 +38,9 @@ export async function jupyterNotebookFiltered(
             ...args.slice(1),
           ],
           cwd: dirname(file),
+          env: {
+            PYTHONUNBUFFERED: "1",
+          },
           stdout: "piped",
         }, json);
 

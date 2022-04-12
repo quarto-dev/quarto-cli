@@ -428,7 +428,10 @@
           description: Open a web browser to view the preview (defaults to true)
       watch-inputs:
         boolean:
-          description: Re-render input files when they change
+          description: Re-render input files when they change (defaults to true)
+      navigate:
+        boolean:
+          description: Navigate the browser automatically when outputs are updated (defaults to true)
       timeout:
         number:
           description: Time (in seconds) after which to exit if there are no active clients
