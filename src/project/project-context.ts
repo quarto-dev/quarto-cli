@@ -380,6 +380,7 @@ export async function projectMetadataForInputFile(
     // If there is directory and configuration information
     // process paths
     return toInputRelativePaths(
+      projectType(project?.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
       project.config,
@@ -391,9 +392,10 @@ export async function projectMetadataForInputFile(
 }
 
 export async function directoryMetadataForInputFile(
-  projectDir: string,
+  project: ProjectContext,
   inputDir: string,
 ) {
+  const projectDir = project.dir;
   // Finds a metadata file in a directory
   const metadataFile = (dir: string) => {
     return ["_metadata.yml", "_metadata.yaml"]
@@ -435,6 +437,7 @@ export async function directoryMetadataForInputFile(
       config = mergeConfigs(
         config,
         toInputRelativePaths(
+          projectType(project?.config?.project?.[kProjectType]),
           currentDir,
           inputDir,
           yaml as Record<string, unknown>,
@@ -467,11 +470,13 @@ export function normalizeFormatYaml(yamlFormat: unknown) {
 }
 
 export function toInputRelativePaths(
+  type: ProjectType,
   baseDir: string,
   inputDir: string,
   collection: Array<unknown> | Record<string, unknown>,
   parentKey?: unknown,
 ) {
+  const resourceIgnoreFields = ignoreFieldsForProjectType(type);
   ld.forEach(
     collection,
     (
@@ -487,13 +492,17 @@ export function toInputRelativePaths(
         }
       };
 
-      if (parentKey === kHtmlMathMethod && index === "method") {
+      if (
+        resourceIgnoreFields.includes(index as string) ||
+        (parentKey === kHtmlMathMethod && index === "method")
+      ) {
         // don't fixup html-math-method
       } else if (Array.isArray(value)) {
-        assign(toInputRelativePaths(baseDir, inputDir, value));
+        assign(toInputRelativePaths(type, baseDir, inputDir, value));
       } else if (typeof (value) === "object") {
         assign(
           toInputRelativePaths(
+            type,
             baseDir,
             inputDir,
             value as Record<string, unknown>,
@@ -639,16 +648,21 @@ function projectInputFiles(
   return { files: inputFiles, engines };
 }
 
+function ignoreFieldsForProjectType(type?: ProjectType) {
+  const resourceIgnoreFields = type
+    ? ["project"].concat(
+      type.resourceIgnoreFields ? type.resourceIgnoreFields() : [],
+    )
+    : [] as string[];
+  return resourceIgnoreFields;
+}
+
 function projectConfigResources(
   dir: string,
   metadata: Metadata,
   type?: ProjectType,
 ) {
-  const resourceIgnoreFields = type
-    ? ["project"].concat(
-      type.resourceIgnoreFields ? type.resourceIgnoreFields() : [],
-    )
-    : [];
+  const resourceIgnoreFields = ignoreFieldsForProjectType(type);
   const resources: string[] = [];
   const findResources = (
     collection: Array<unknown> | Record<string, unknown>,
