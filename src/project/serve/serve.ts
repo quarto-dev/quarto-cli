@@ -126,8 +126,6 @@ export async function serveProject(
     ...resolvePreviewOptions(options, project),
   };
 
-  console.log(options);
-
   // get type
   const projType = projectType(project?.config?.project?.[kProjectType]);
 
