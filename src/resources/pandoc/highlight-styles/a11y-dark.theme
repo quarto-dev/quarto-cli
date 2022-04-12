@@ -1,0 +1,228 @@
+{
+    "text-color": null,
+        "background-color": "#2b2b2b",
+            "line-number-color": "#97947a",
+                "line-number-background-color": null,
+                    "_comments": [
+                        "Last update: Mar 08, 2022 (revision 1)",
+                        "This file has been adapted from: https://github.com/ericwbailey/a11y-syntax-highlighting#a11y-dark",
+                        "Also see: https://github.com/ericwbailey/a11y-syntax-highlighting/blob/main/dist/highlight/a11y-dark.css"
+                    ],
+                        "metadata": {
+        "copyright": [
+            "SPDX-FileCopyrightText: 2017 Eric W Bailey",
+            "SPDX-FileCopyrightText: 2022 Mara Averick"
+        ],
+            "license": "SPDX-License-Identifier: MIT",
+                "name": "a11y dark",
+                    "revision": 1
+    },
+    "text-styles": {
+        "Normal": {
+            "text-color": "#f8f8f2"
+        },
+        "Other": {
+            "text-color": "#ffa07a",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Attribute": {
+            "text-color": "#ffd700",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "SpecialString": {
+            "text-color": "#abe338",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Annotation": {
+            "text-color": "#d4d0ab",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Function": {
+            "text-color": "#ffd700",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "String": {
+            "text-color": "#abe338",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "ControlFlow": {
+            "text-color": "#ffa07a",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Operator": {
+            "text-color": "#00e0e0",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Error": {
+            "text-color": "#dcc6e0",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "BaseN": {
+            "text-color": "#dcc6e0",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Alert": {
+            "text-color": "#dcc6e0",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Variable": {
+            "text-color": "#f5ab35",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "BuiltIn": {
+            "text-color": null,
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Extension": {
+            "text-color": null,
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Preprocessor": {
+            "text-color": "#dcc6e0",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Information": {
+            "text-color": "#d4d0ab",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "VerbatimString": {
+            "text-color": "#abe338",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Warning": {
+            "text-color": "#d4d0ab",
+                "background-color": null,
+                    "bold": false,
+                        "italic": true,
+                            "underline": false
+        },
+        "Documentation": {
+            "text-color": "#d4d0ab",
+                "background-color": null,
+                    "bold": false,
+                        "italic": true,
+                            "underline": false
+        },
+        "Import": {
+            "text-color": null,
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Char": {
+            "text-color": "#abe338",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "DataType": {
+            "text-color": "#dcc6e0",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Float": {
+            "text-color": "#f5ab35",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Comment": {
+            "text-color": "#d4d0ab",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "CommentVar": {
+            "text-color": "#d4d0ab",
+                "background-color": null,
+                    "bold": false,
+                        "italic": true,
+                            "underline": false
+        },
+        "Constant": {
+            "text-color": "#ffa07a",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "SpecialChar": {
+            "text-color": "#00e0e0",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "DecVal": {
+            "text-color": "#dcc6e0",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        },
+        "Keyword": {
+            "text-color": "#ffa07a",
+                "background-color": null,
+                    "bold": false,
+                        "italic": false,
+                            "underline": false
+        }
+    }
+}
