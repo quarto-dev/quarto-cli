@@ -281,7 +281,7 @@ export async function serveProject(
 
                 info("Output created: " + finalOutput + "\n");
 
-                watcher.reloadClients();
+                watcher.reloadClients(true);
               }
             }).finally(() => {
               requestTemp.cleanup();

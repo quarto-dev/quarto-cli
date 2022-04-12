@@ -49,6 +49,7 @@ import { ServeRenderManager } from "./render.ts";
 
 interface WatchChanges {
   config?: boolean;
+  output?: boolean;
 }
 
 export function watchProject(
@@ -171,6 +172,7 @@ export function watchProject(
                 renderManager.onRenderResult(result, resourceFiles, project!);
                 return {
                   config: false,
+                  output: true,
                 };
               }
             } finally {
@@ -190,12 +192,16 @@ export function watchProject(
         );
         const resourceFile = paths.some(isResourceFile);
 
+        const outputDirFile = !outputFile &&
+          await hasOutputFileForProjectInput(paths, project);
+
         const reload = configFile || configResourceFile || resourceFile ||
-          inputFileRemoved;
+          outputDirFile || inputFileRemoved;
 
         if (reload) {
           return {
             config: configFile || inputFileRemoved,
+            output: outputDirFile,
           };
         } else {
           return;
@@ -224,7 +230,7 @@ export function watchProject(
     const tempContext = createTempContext();
     try {
       // fully render project if we aren't aleady rendering on reload (e.g. for pdf)
-      if (!renderingOnReload) {
+      if (!changes.output && !renderingOnReload) {
         await refreshProjectConfig();
         const result = await renderManager.renderQueue().enqueue(() =>
           renderProject(
@@ -304,7 +310,7 @@ export function watchProject(
         if (
           prevMod !== undefined && lastMod?.getTime() !== prevMod?.getTime()
         ) {
-          await reloadClients({});
+          await reloadClients({ output: true });
         }
       }
       setTimeout(pollForOutputChange, 100);
@@ -368,7 +374,7 @@ export function watchProject(
       return devServer.injectClient(file, inputFile);
     },
     hasClients: () => devServer.hasClients(),
-    reloadClients: () => reloadClients({}),
+    reloadClients: (output: boolean) => reloadClients({ output }),
     project: () => project,
     refreshProject: async () => {
       await refreshProjectConfig();
@@ -377,7 +383,6 @@ export function watchProject(
   });
 }
 
-// deno-lint-ignore no-unused-vars
 async function hasOutputFileForProjectInput(
   paths: string[],
   project: ProjectContext,
