@@ -45,6 +45,7 @@ import {
   kCache,
   kCss,
   kDate,
+  kDateFormat,
   kDateFormatted,
   kEcho,
   kEngine,
@@ -961,6 +962,13 @@ export async function resolveFormatsFromMetadata(
     const resolveFormat = defaultWriterFormat(to).resolveFormat;
     if (resolveFormat) {
       resolveFormat(config);
+    }
+
+    // Create a formatted version of the date
+    if (config.metadata[kDate]) {
+      const date = parsePandocDate(config.metadata[kDate] as string);
+      const format = config.metadata[kDateFormat] as string;
+      config.metadata[kDateFormatted] = formatDate(date, format || "full");
     }
 
     // apply command line arguments
