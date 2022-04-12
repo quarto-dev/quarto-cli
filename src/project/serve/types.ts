@@ -16,7 +16,7 @@ export interface ProjectWatcher {
     inputFile?: string,
   ) => FileResponse;
   hasClients: () => boolean;
-  reloadClients: (output: boolean) => Promise<void>;
+  reloadClients: (output: boolean, reloadTarget?: string) => Promise<void>;
   project: () => ProjectContext;
   refreshProject: () => Promise<ProjectContext>;
 }

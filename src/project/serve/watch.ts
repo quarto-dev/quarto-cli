@@ -5,14 +5,7 @@
 *
 */
 
-import {
-  dirname,
-  extname,
-  globToRegExp,
-  join,
-  relative,
-  SEP,
-} from "path/mod.ts";
+import { dirname, globToRegExp, join, relative, SEP } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -37,19 +30,17 @@ import { RenderFlags } from "../../command/render/types.ts";
 import { renderProject } from "../../command/render/project.ts";
 import { render } from "../../command/render/render-shared.ts";
 import { isRStudio } from "../../core/platform.ts";
-import {
-  inputFileForOutputFile,
-  inputTargetIndexForOutputFile,
-} from "../../project/project-index.ts";
+import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { engineIgnoreDirs } from "../../execute/engine.ts";
 import { asArray } from "../../core/array.ts";
-import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
+import { isPdfContent } from "../../core/mime.ts";
 import { ServeRenderManager } from "./render.ts";
 
 interface WatchChanges {
-  config?: boolean;
-  output?: boolean;
+  config: boolean;
+  output: boolean;
+  reloadTarget?: string;
 }
 
 export function watchProject(
@@ -61,7 +52,6 @@ export function watchProject(
   renderingOnReload: boolean,
   renderManager: ServeRenderManager,
   stopServer: VoidFunction,
-  outputFile?: () => string,
 ): Promise<ProjectWatcher> {
   // helper to refresh project config
   const refreshProjectConfig = async () => {
@@ -99,9 +89,6 @@ export function watchProject(
     return project.files.input.includes(path);
   };
 
-  // track every path that has been modified since the last reload
-  const modified: string[] = [];
-
   // track rendered inputs and outputs so we don't double render if the file notifications are chatty
   const rendered = new Map<string, string>();
 
@@ -113,7 +100,9 @@ export function watchProject(
       const paths = ld.uniq(
         event.paths
           // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
-          .filter((path) => !path.startsWith(projDirHidden)),
+          .filter((path) => !path.startsWith(projDirHidden))
+          // filter out the output dir
+          .filter((path) => !path.startsWith(outputDir)),
       );
 
       // return if there are no paths
@@ -122,11 +111,8 @@ export function watchProject(
       }
 
       if (["modify", "create"].includes(event.kind)) {
-        // note modified
-        modified.push(...paths);
-
-        // render changed input files (if we are watching). then return false
-        // as another set of events will come in to trigger the reload
+        // render changed input files (if we are watching). then
+        // arrange for client reload
         if (options[kProjectWatchInputs]) {
           // get inputs (filter by whether the last time we rendered
           // this input had the exact same content hash)
@@ -173,6 +159,10 @@ export function watchProject(
                 return {
                   config: false,
                   output: true,
+                  reloadTarget:
+                    (result.files.length && !isPdfContent(result.files[0].file))
+                      ? join(outputDir, result.files[0].file)
+                      : undefined,
                 };
               }
             } finally {
@@ -192,16 +182,13 @@ export function watchProject(
         );
         const resourceFile = paths.some(isResourceFile);
 
-        const outputDirFile = !outputFile &&
-          await hasOutputFileForProjectInput(paths, project);
-
         const reload = configFile || configResourceFile || resourceFile ||
-          outputDirFile || inputFileRemoved;
+          inputFileRemoved;
 
         if (reload) {
           return {
-            config: configFile || inputFileRemoved,
-            output: outputDirFile,
+            config: configFile || configResourceFile || inputFileRemoved,
+            output: false,
           };
         } else {
           return;
@@ -246,6 +233,12 @@ export function watchProject(
         );
         if (result.error) {
           logError(result.error);
+        } else {
+          renderManager.onRenderResult(
+            result,
+            resourceFiles,
+            project,
+          );
         }
       }
 
@@ -254,35 +247,27 @@ export function watchProject(
         await refreshProjectConfig();
       }
 
-      // see if there is a reload target (last html file modified)
-      const lastHtmlFile = modified.reverse().find(
-        (file) => {
-          return extname(file) === ".html";
-        },
-      );
-
-      // clear out the modified list
-      modified.splice(0, modified.length);
-
       // if this is a reveal presentation running inside rstudio then bail
       // because rstudio is handling preview separately
-      if (lastHtmlFile && await preventReload(project, lastHtmlFile, options)) {
+      let reloadTarget = changes.reloadTarget || "";
+      if (reloadTarget && await preventReload(project, reloadTarget, options)) {
         return;
       }
 
       // verify that its okay to reload this file
-      let reloadTarget = "";
-      if (lastHtmlFile && options.navigate) {
-        if (lastHtmlFile.startsWith(outputDir)) {
-          reloadTarget = relative(outputDir, lastHtmlFile);
+      if (reloadTarget && options.navigate) {
+        if (reloadTarget.startsWith(outputDir)) {
+          reloadTarget = relative(outputDir, reloadTarget);
         } else {
-          reloadTarget = relative(projDir, lastHtmlFile);
+          reloadTarget = relative(projDir, reloadTarget);
         }
         if (existsSync(join(outputDir, reloadTarget))) {
           reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
         } else {
           reloadTarget = "";
         }
+      } else {
+        reloadTarget = "";
       }
 
       // reload clients
@@ -293,30 +278,6 @@ export function watchProject(
       tempContext.cleanup();
     }
   }, 100);
-
-  // if we have been given an explicit outputFile function
-  // for monitoring then do that with a timer (this is for PDFs which
-  // sometimes miss their notification b/c there are too many fs
-  // events generated by latex compilatons)
-  if (outputFile) {
-    const kPollingInterval = 100;
-    const lastOutput = new Map<string, Date | null>();
-    const pollForOutputChange = async () => {
-      const file = outputFile();
-      if (existsSync(file)) {
-        const lastMod = Deno.statSync(file).mtime;
-        const prevMod = lastOutput.get(file);
-        lastOutput.set(file, lastMod);
-        if (
-          prevMod !== undefined && lastMod?.getTime() !== prevMod?.getTime()
-        ) {
-          await reloadClients({ output: true });
-        }
-      }
-      setTimeout(pollForOutputChange, 100);
-    };
-    setTimeout(pollForOutputChange, kPollingInterval);
-  }
 
   // initalize watchers
   const runWatcher = (watcherOptions: WatcherOptions) => {
@@ -374,33 +335,19 @@ export function watchProject(
       return devServer.injectClient(file, inputFile);
     },
     hasClients: () => devServer.hasClients(),
-    reloadClients: (output: boolean) => reloadClients({ output }),
+    reloadClients: async (output: boolean, reloadTarget?: string) => {
+      await reloadClients({
+        config: false,
+        output,
+        reloadTarget,
+      });
+    },
     project: () => project,
     refreshProject: async () => {
       await refreshProjectConfig();
       return project;
     },
   });
-}
-
-async function hasOutputFileForProjectInput(
-  paths: string[],
-  project: ProjectContext,
-) {
-  const outputDir = projectOutputDir(project);
-  for (const path of paths) {
-    if (
-      path.startsWith(outputDir) &&
-      (isHtmlContent(path) || isPdfContent(path))
-    ) {
-      const filePathRelative = relative(outputDir, path);
-      return !!(await inputFileForOutputFile(
-        project,
-        filePathRelative,
-      ));
-    }
-  }
-  return false;
 }
 
 interface WatcherOptions {

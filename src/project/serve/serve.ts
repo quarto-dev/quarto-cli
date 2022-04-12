@@ -222,7 +222,6 @@ export async function serveProject(
     !pdfOutput, // we don't render on reload for pdf output
     renderManager,
     stopServer,
-    pdfOutputFile,
   );
 
   // serve output dir
@@ -281,7 +280,12 @@ export async function serveProject(
 
                 info("Output created: " + finalOutput + "\n");
 
-                watcher.reloadClients(true);
+                watcher.reloadClients(
+                  true,
+                  !isPdfContent(finalOutput)
+                    ? join(project!.dir, finalOutput)
+                    : undefined,
+                );
               }
             }).finally(() => {
               requestTemp.cleanup();
@@ -345,6 +349,7 @@ export async function serveProject(
             }
             const tempContext = createTempContext();
             try {
+              console.log("render on GET");
               result = await renderManager.renderQueue().enqueue(() =>
                 renderProject(
                   watcher.project(),
