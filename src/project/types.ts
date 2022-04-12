@@ -62,6 +62,7 @@ export interface ProjectPreview {
   host?: string;
   browser?: boolean;
   [kProjectWatchInputs]?: boolean;
+  navigate?: boolean;
   timeout?: number;
 }
 
@@ -79,6 +80,7 @@ export function resolvePreviewOptions(
     browser: true,
     [kProjectWatchInputs]: !isRStudio(),
     timeout: 0,
+    navigate: true,
   }, options) as ProjectPreview;
   if (!resolved.port) {
     resolved.port = findOpenPort();

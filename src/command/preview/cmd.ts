@@ -74,12 +74,22 @@ export const previewCommand = new Command()
     },
   )
   .option(
+    "--navigate",
+    "Navigate the browser automatically when outputs are updated",
+    {
+      hidden: true,
+    },
+  )
+  .option(
     "--no-navigate",
     "Don't navigate the browser automatically when outputs are updated.",
   )
   .option(
     "--browser-path",
     "Initial path to navigate browser to",
+    {
+      hidden: true,
+    },
   )
   .option(
     "--no-browser",
@@ -95,6 +105,9 @@ export const previewCommand = new Command()
   .option(
     "--watch-inputs",
     "Re-render input files when they change.",
+    {
+      hidden: true,
+    },
   )
   .option(
     "--no-watch-inputs",
@@ -197,6 +210,11 @@ export const previewCommand = new Command()
     if (noBrowserPos !== -1) {
       options.browser = false;
       args.splice(noBrowserPos, 1);
+    }
+    const navigatePos = args.indexOf("--navigate");
+    if (navigatePos !== -1) {
+      options.navigate = true;
+      args.splice(navigatePos, 1);
     }
     const noNavigatePos = args.indexOf("--no-navigate");
     if (noNavigatePos !== -1) {

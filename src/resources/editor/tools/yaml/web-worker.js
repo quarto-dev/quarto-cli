@@ -8003,7 +8003,7 @@ try {
             },
             schema: "boolean",
             default: true,
-            description: "Including messages in rendered output."
+            description: "Include messages in rendered output."
           },
           {
             name: "results",
@@ -8745,7 +8745,12 @@ try {
                 },
                 "watch-inputs": {
                   boolean: {
-                    description: "Re-render input files when they change"
+                    description: "Re-render input files when they change (defaults to true)"
+                  }
+                },
+                navigate: {
+                  boolean: {
+                    description: "Navigate the browser automatically when outputs are updated (defaults to true)"
                   }
                 },
                 timeout: {
@@ -16640,7 +16645,8 @@ try {
           "Port to listen on (defaults to random value between 3000 and\n8000)",
           "Hostname to bind to (defaults to 127.0.0.1)",
           "Open a web browser to view the preview (defaults to true)",
-          "Re-render input files when they change",
+          "Re-render input files when they change (defaults to true)",
+          "Navigate the browser automatically when outputs are updated (defaults\nto true)",
           "Time (in seconds) after which to exit if there are no active\nclients",
           "Website title",
           "Website description",
@@ -17250,7 +17256,7 @@ try {
             short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
             long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
           },
-          "Including messages in rendered output.",
+          "Include messages in rendered output.",
           {
             short: "How to display text results",
             long: "How to display text results. Note that this option only applies to\nnormal text output (not warnings, messages, or errors). The possible\nvalues are as follows:"
