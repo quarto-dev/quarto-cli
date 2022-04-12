@@ -371,6 +371,7 @@ export const kEPubCoverImage = "epub-cover-image";
 export const kReferenceLocation = "reference-location";
 export const kCitationLocation = "citation-location";
 export const kQuartoVarsKey = "_quarto-vars";
+export const kQuartoTemplateParams = "quarto-template-params";
 
 // command line flags
 export const kMathjax = "mathjax";

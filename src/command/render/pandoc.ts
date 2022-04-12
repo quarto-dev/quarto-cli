@@ -96,6 +96,7 @@ import {
   kNumberOffset,
   kNumberSections,
   kPageTitle,
+  kQuartoTemplateParams,
   kQuartoVarsKey,
   kResources,
   kSectionTitleAbstract,
@@ -178,6 +179,7 @@ export async function runPandoc(
     delete metadata.params;
     delete metadata[kQuartoVarsKey];
     delete metadata[kFigResponsive];
+    delete metadata[kQuartoTemplateParams];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
   };

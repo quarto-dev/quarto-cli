@@ -627,22 +627,6 @@ function htmlFormatPostprocessor(
       }
     }
 
-    // add doi to header if provided
-    const doi = format.metadata[kDoi];
-    if (typeof (doi) === "string") {
-      const header = doc.getElementById("title-block-header");
-      if (header) {
-        const p = doc.createElement("p");
-        p.classList.add("doi");
-        const doiUrl = `https://doi.org/${doi}`;
-        const a = doc.createElement("a");
-        a.innerHTML = doiUrl;
-        a.setAttribute("href", doiUrl);
-        p.appendChild(a);
-        header.appendChild(p);
-      }
-    }
-
     // no resource refs
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };

@@ -51,6 +51,7 @@ import {
   sassUtilFunctions,
 } from "./format-html-shared.ts";
 import { readHighlightingTheme } from "../../quarto-core/text-highlighting.ts";
+import { documentTitleScssLayer } from "./format-html-title.ts";
 
 export interface Themes {
   light: string[];
@@ -120,6 +121,7 @@ function layerQuartoScss(
 export function resolveBootstrapScss(
   input: string,
   format: Format,
+  sassLayers: SassLayer[],
 ): SassBundle[] {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath(
@@ -134,6 +136,7 @@ export function resolveBootstrapScss(
     input,
     theme,
     quartoThemesDir,
+    sassLayers,
   );
 
   // Find light and dark sass layers
@@ -274,6 +277,7 @@ function resolveThemeLayer(
   input: string,
   themes: string | string[] | Themes | unknown,
   quartoThemesDir: string,
+  sassLayers: SassLayer[],
 ): [ThemeSassLayer, boolean, string[]] {
   let theme = undefined;
   let defaultDark = false;
@@ -313,6 +317,7 @@ function resolveThemeLayer(
     theme = { light: [] };
   }
   const lightLayerContext = layerTheme(input, theme.light, quartoThemesDir);
+  lightLayerContext.layers.push(...sassLayers);
   const highlightingLayer = resolveTextHighlightingLayer(
     input,
     format,
@@ -326,6 +331,7 @@ function resolveThemeLayer(
     ? layerTheme(input, theme.dark, quartoThemesDir)
     : undefined;
   if (darkLayerContext) {
+    darkLayerContext.layers.push(...sassLayers);
     const darkHighlightingLayer = resolveTextHighlightingLayer(
       input,
       format,
