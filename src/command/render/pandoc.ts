@@ -401,7 +401,7 @@ export async function runPandoc(
       });
       allDefaults[kTemplate] = stagedTemplate;
     } else {
-      if (userPartials) {
+      if (userPartials.length > 0) {
         // The user passed partials to a format that doesn't support
         // staging and partials.
         throw new Error(
