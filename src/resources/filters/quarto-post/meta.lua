@@ -11,7 +11,7 @@ function quartoPostMetaInject()
         end
       end)
       
-      -- Purge the twitter card / creator metdata
+      -- Purge the twitter card / creator metadata
       -- Citeproc interprets this as a cite, and provides
       -- a warning of unresolve citation. But we know
       -- that a citation is never allowed in the creator field
