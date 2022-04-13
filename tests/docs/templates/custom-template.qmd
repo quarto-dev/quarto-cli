@@ -1,0 +1,18 @@
+---
+title: Template test example
+author: Charles Teague
+date: last-modified
+date-format: full
+format:
+    pdf:
+        template: "eisvogel.tex"
+---
+
+## Hello World
+
+In vitae mi metus. Proin maximus tortor tellus, sit amet tristique libero blandit quis. Maecenas ut nunc nunc. Cras suscipit odio non felis rutrum, et tincidunt ex interdum. Maecenas vel lacus vel mi bibendum fermentum in vel quam. Sed vulputate nec ex at rhoncus. Morbi ac risus sed eros cursus ultricies id et tortor.
+
+
+## What Up?
+
+In vitae mi metus. Proin maximus tortor tellus, sit amet tristique libero blandit quis. Maecenas ut nunc nunc. Cras suscipit odio non felis rutrum, et tincidunt ex interdum. Maecenas vel lacus vel mi bibendum fermentum in vel quam. Sed vulputate nec ex at rhoncus. Morbi ac risus sed eros cursus ultricies id et tortor.
