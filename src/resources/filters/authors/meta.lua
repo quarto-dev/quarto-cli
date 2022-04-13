@@ -475,10 +475,10 @@ end
 
 function byAuthors(authors, affiliations) 
   local denormalizedAuthors = deepCopy(authors)
-  if authors then
+  if denormalizedAuthors then
     for i, author in ipairs(denormalizedAuthors) do
       local authorAffiliations = author[kAffiliations]
-      if authorAffilations then
+      if authorAffiliations then
         for j, affilRef in ipairs(authorAffiliations) do 
           local id = affilRef[kRef]
           author[kAffiliations][j] = findAffiliation(id, affiliations)
