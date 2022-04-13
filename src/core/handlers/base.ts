@@ -401,7 +401,7 @@ export const baseHandler: LanguageHandler = {
   },
 };
 
-function getDivAttributes(
+export function getDivAttributes(
   cell: QuartoMdCell,
 ): { attrs: string[]; classes: string[] } {
   const attrs: string[] = [];

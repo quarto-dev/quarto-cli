@@ -99,6 +99,7 @@ import {
   EitherString,
   join as mappedJoin,
 } from "../../core/lib/mapped-text.ts";
+import { getDivAttributes } from "../../core/handlers/base.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -413,55 +414,6 @@ export async function ojsCompile(
         }
       };
 
-      const keysToNotSerialize = new Set([
-        kEcho,
-        kCellLabel,
-        kCellFigCap,
-        kCellFigSubCap,
-        kCellFigScap,
-        kCapLoc,
-        kFigCapLoc,
-        kTblCapLoc,
-        kCellFigColumn,
-        kCellTblColumn,
-        kCellFigLink,
-        kCellFigAlign,
-        kCellFigEnv,
-        kCellFigPos,
-        kCellFigAlt, // FIXME see if it's possible to do this right wrt accessibility
-        kOutput,
-        kCellLstCap,
-        kCellLstLabel,
-        kCodeFold,
-        kCodeLineNumbers,
-        kCodeSummary,
-        kCodeOverflow,
-        kCellClasses,
-        kCellPanel,
-        kCellColumn,
-        "include.hidden",
-        "source.hidden",
-        "plot.hidden",
-        "output.hidden",
-        "echo.hidden",
-      ]);
-
-      for (const [key, value] of Object.entries(cell.options || {})) {
-        if (!keysToNotSerialize.has(key)) {
-          const t = typeof value;
-          if (t === "object") {
-            attrs.push(`${key}="${JSON.stringify(value)}"`);
-          } else if (t === "string") {
-            attrs.push(`${key}=${JSON.stringify(value)}`);
-          } else if (t === "number") {
-            attrs.push(`${key}="${value}"`);
-          } else if (t === "boolean") {
-            attrs.push(`${key}=${value}`);
-          } else {
-            throw new Error(`Can't serialize yaml metadata value of type ${t}`);
-          }
-        }
-      }
       const outputVal = cell.options?.[kOutput] ??
         options.format.execute[kOutput] ?? true;
       if (outputVal === "all") {
@@ -470,28 +422,11 @@ export async function ojsCompile(
       if (cell.options?.[kCellLstCap]) {
         attrs.push(`caption="${cell.options?.[kCellLstCap]}"`);
       }
-      const classes = (cell.options?.classes as (undefined | string[])) || [];
-      if (typeof cell.options?.panel === "string") {
-        classes.push(`panel-${cell.options?.panel}`);
-      }
-      if (typeof cell.options?.column === "string") {
-        classes.push(`column-${cell.options?.column}`);
-      }
-      if (typeof cell.options?.[kCapLoc] === "string") {
-        classes.push(`caption-${cell.options?.[kCapLoc]}`);
-      }
-      if (typeof cell.options?.[kFigCapLoc] === "string") {
-        classes.push(`fig-cap-location-${cell.options?.[kFigCapLoc]}`);
-      }
-      if (typeof cell.options?.[kTblCapLoc] === "string") {
-        classes.push(`tbl-cap-location-${cell.options?.[kTblCapLoc]}`);
-      }
-      if (typeof cell.options?.[kCellFigColumn] === "string") {
-        classes.push(`fig-caption-${cell.options?.[kCellFigColumn]}`);
-      }
-      if (typeof cell.options?.[kCellTblColumn] === "string") {
-        classes.push(`fig-caption-${cell.options?.[kCellTblColumn]}`);
-      }
+      const {
+        classes,
+        attrs: otherAttrs,
+      } = getDivAttributes(cell); // TODO this import is weird but eventually OJS will be a handler
+      attrs.push(...otherAttrs);
 
       const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??
         true;
