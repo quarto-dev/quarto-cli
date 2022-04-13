@@ -22,7 +22,6 @@ import {
 } from "./dependencies/dependencies.ts";
 import { archiveUrl } from "./archive-binary-dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/env.ts";
-import { formatResourcePath } from "../../../src/core/resources.ts";
 
 export async function configure(
   config: Configuration,
@@ -67,9 +66,6 @@ export async function configure(
   );
   writeDevConfig(devConfig, config.directoryInfo.bin);
   info("");
-
-  // Set up a symlink (if appropriate)
-  const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
 
   if (Deno.build.os !== "windows") {
     info("Creating Quarto Symlink");
@@ -132,79 +128,4 @@ export async function configure(
       );
     }
   }
-}
-
-async function downloadBinaryDependency(
-  dependency: Dependency,
-  platformDependency: PlatformDependency,
-  configuration: Configuration,
-) {
-  const targetFile = join(
-    configuration.directoryInfo.bin,
-    "tools",
-    platformDependency.filename,
-  );
-  const dlUrl = archiveUrl(dependency, platformDependency);
-
-  info("Downloading " + dlUrl);
-  info("to " + targetFile);
-  const response = await fetch(dlUrl);
-  if (response.status === 200) {
-    const blob = await response.blob();
-
-    const bytes = await blob.arrayBuffer();
-    const data = new Uint8Array(bytes);
-
-    Deno.writeFileSync(
-      targetFile,
-      data,
-    );
-    return targetFile;
-  } else {
-    throw new Error(response.statusText);
-  }
-}
-
-// note that this didn't actually work on windows (it froze and then deno was
-// inoperable on the machine until reboot!) so we moved it to script/batch
-// files on both platforms)
-// deno-lint-ignore no-unused-vars
-async function downloadDenoStdLibrary(config: Configuration) {
-  const denoBinary = join(config.directoryInfo.bin, "tools", "deno");
-  const denoStdTs = join(
-    config.directoryInfo.pkg,
-    "scripts",
-    "deno_std",
-    "deno_std.ts",
-  );
-
-  const denoCacheLock = join(
-    config.directoryInfo.pkg,
-    "scripts",
-    "deno_std",
-    "deno_std.lock",
-  );
-  const denoCacheDir = join(
-    config.directoryInfo.src,
-    "resources",
-    "deno_std",
-    "cache",
-  );
-  ensureDirSync(denoCacheDir);
-
-  info("Updating Deno Stdlib");
-  info("");
-  await execProcess({
-    cmd: [
-      denoBinary,
-      "cache",
-      "--unstable",
-      "--lock",
-      denoCacheLock,
-      denoStdTs,
-    ],
-    env: {
-      DENO_DIR: denoCacheDir,
-    },
-  });
 }
