@@ -161,6 +161,7 @@ export interface JupyterCell {
   execution_count?: null | number;
   metadata: JupyterCellMetadata;
   source: string[];
+  attachments?: Record<string, Record<string, string>>;
   outputs?: JupyterOutput[];
 }
 
@@ -747,7 +748,7 @@ export function jupyterToMarkdown(
     // markdown from cell
     switch (cell.cell_type) {
       case "markdown":
-        md.push(...mdFromContentCell(cell));
+        md.push(...mdFromContentCell(cell, options));
         break;
       case "raw":
         md.push(...mdFromRawCell(cell));
@@ -856,8 +857,51 @@ export function jupyterCellOptionsAsComment(
   }
 }
 
-export function mdFromContentCell(cell: JupyterCell) {
-  return mdEnsureTrailingNewline(cell.source);
+export function mdFromContentCell(
+  cell: JupyterCell,
+  options?: JupyterToMarkdownOptions,
+) {
+  // if we have attachments then extract them and markup the source
+  if (options && cell.attachments && cell.source) {
+    // close source so we can modify it
+    const source = ld.cloneDeep(cell.source) as string[];
+    // process each file attachment
+    Object.keys(cell.attachments).forEach((file) => {
+      const attachment = cell.attachments![file];
+      for (const mimeType of Object.keys(attachment)) {
+        if (extensionForMimeImageType(mimeType, undefined)) {
+          // save attachment in the figures dir
+          const imageFile = options.assets.figures_dir + "/" + file;
+          const outputFile = join(options.assets.base_dir, imageFile);
+          ensureDirSync(dirname(outputFile));
+          const data = attachment[mimeType];
+          // get the data
+          const imageText = Array.isArray(data)
+            ? (data as string[]).join("")
+            : data as string;
+          // base 64 decode if its not svg
+          if (!imageText.trimStart().startsWith("<svg")) {
+            const imageData = base64decode(imageText);
+            Deno.writeFileSync(outputFile, imageData);
+          } else {
+            Deno.writeTextFileSync(outputFile, imageText);
+          }
+          // replace it in source
+          for (let i = 0; i < source.length; i++) {
+            source[i] = source[i].replaceAll(
+              `attachment:${file}`,
+              imageFile,
+            );
+          }
+          // only process one supported mime type
+          break;
+        }
+      }
+    });
+    return mdEnsureTrailingNewline(source);
+  } else {
+    return mdEnsureTrailingNewline(cell.source);
+  }
 }
 
 export function mdFromRawCell(cell: JupyterCell) {

@@ -26,6 +26,7 @@ import { parsePandocTitle } from "../core/pandoc/pandoc-partition.ts";
 import { readYaml } from "../core/yaml.ts";
 import { formatKeys } from "../config/metadata.ts";
 import { normalizeWebsiteFormat } from "./types/website/website-config.ts";
+import { isJupyterNotebook } from "../core/jupyter/jupyter.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -56,20 +57,25 @@ export async function inputTargetIndex(
     return Promise.resolve(undefined);
   }
 
-  // see if we have an up to date index file
-  const targetIndex = readInputTargetIndex(project.dir, input);
-  if (targetIndex) {
-    return targetIndex;
+  // see if we have an up to date index file (but not for notebooks
+  // as they could have ipynb-filters that vary based on config)
+  if (!isJupyterNotebook(input)) {
+    const targetIndex = readInputTargetIndex(project.dir, input);
+    if (targetIndex) {
+      return targetIndex;
+    }
   }
 
   // otherwise read the metadata and index it
   const formats = await renderFormats(inputFile, "all", project);
   const firstFormat = Object.values(formats)[0];
+  const markdown = await engine.partitionedMarkdown(inputFile, firstFormat);
   const index = {
-    title: firstFormat
-      ? firstFormat.metadata?.[kTitle] as string | undefined
-      : undefined,
-    markdown: await engine.partitionedMarkdown(inputFile, firstFormat),
+    title: (firstFormat?.metadata?.[kTitle] || markdown.yaml?.[kTitle] ||
+      markdown.headingText) as
+        | string
+        | undefined,
+    markdown,
     formats,
   };
 
