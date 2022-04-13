@@ -228,9 +228,6 @@ export async function ojsCompile(
         }
         return (cell.options.label as string).startsWith("fig-");
       };
-      const hasFigureCaption = () => {
-        return cell.options?.[kCellFigCap];
-      };
       const hasFigureSubCaptions = () => {
         // FIXME figure out runtime type validation. This should check
         // if fig-subcap is an array of strings.
@@ -499,15 +496,6 @@ export async function ojsCompile(
       const includeVal = cell.options?.[kInclude] ??
         options.format.execute[kInclude] ?? true;
 
-      if (hasFigureCaption() && !hasFigureLabel()) {
-        throw new Error("Cannot have figure caption without figure label");
-      }
-      if (hasFigureSubCaptions() && !hasFigureLabel()) {
-        throw new Error(
-          "Cannot have figure subcaptions without figure caption",
-        );
-      }
-
       const srcClasses = mdClassList ?? ["js", "cell-code"];
       const srcAttrs = [];
 
@@ -593,7 +581,7 @@ export async function ojsCompile(
           ...(parsedCells.map((n) => n.info)),
         );
         for (const spec of specs) {
-          const outputDiv = pandocDiv({
+          const outputDiv = (hasFigureLabel() ? pandocDiv : pandocFigure)({
             classes: outputCellClasses,
           });
           const outputInnerDiv = pandocDiv({
@@ -638,6 +626,7 @@ export async function ojsCompile(
           outputDiv.push(outputInnerDiv);
           outputInnerDiv.push(ojsDiv);
           if (spec.caption) {
+            // FIXME does this also need figcaption?
             outputInnerDiv.push(pandocRawStr(spec.caption as string));
           }
           div.push(outputDiv);
@@ -652,7 +641,13 @@ export async function ojsCompile(
         }
         makeSubFigures(specs);
         if (cell.options?.[kCellFigCap]) {
-          div.push(pandocRawStr(cell.options[kCellFigCap] as string));
+          if (hasFigureLabel()) {
+            div.push(pandocRawStr(cell.options[kCellFigCap] as string));
+          } else {
+            const cap = pandocFigCaption();
+            div.push(cap);
+            cap.push(pandocRawStr(cell.options[kCellFigCap] as string));
+          }
         }
       } else if (hasFigureSubCaptions()) {
         let subCap = (cell.options?.[kCellFigSubCap]) as string[] | true;
@@ -676,7 +671,9 @@ export async function ojsCompile(
         );
         makeSubFigures(specs);
         if (cell.options?.[kCellFigCap]) {
-          div.push(pandocRawStr(cell.options[kCellFigCap] as string));
+          const cap = pandocFigCaption();
+          div.push(cap);
+          cap.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else {
         const innerInfo = parsedCells[0].info;
@@ -709,7 +706,7 @@ export async function ojsCompile(
             div.push(srcDiv);
           }
         }
-        const outputDiv = pandocDiv({
+        const outputDiv = (hasFigureLabel() ? pandocDiv : pandocFigure)({
           id: idPlacement() === "inner" ? userId : undefined,
           classes: outputCellClasses,
         });
@@ -719,7 +716,13 @@ export async function ojsCompile(
           attrs: [`nodetype="${innerInfo[0].cellType}"`],
         }));
         if (cell.options?.[kCellFigCap]) {
-          outputDiv.push(pandocRawStr(cell.options[kCellFigCap] as string));
+          if (hasFigureLabel()) {
+            outputDiv.push(pandocRawStr(cell.options[kCellFigCap] as string));
+          } else {
+            const cap = pandocFigCaption();
+            outputDiv.push(cap);
+            cap.push(pandocRawStr(cell.options[kCellFigCap] as string));
+          }
         }
       }
 
@@ -1020,11 +1023,11 @@ function pandocRawStr(content: string) {
 
 function pandocHtmlBlock(elementName: string) {
   return function (
-    opts: {
+    opts?: {
       id?: string;
       classes?: string[];
       attrs?: string[];
-    } | undefined,
+    },
   ) {
     let { id, classes, attrs } = opts || {};
     if (classes === undefined) {
@@ -1040,8 +1043,8 @@ function pandocHtmlBlock(elementName: string) {
       if (id) {
         strs.push(`id="${id}"`);
       }
-      if (classes) {
-        strs.push(`class="${classes.join(" ")}"`);
+      if (classes!.length) {
+        strs.push(`class="${classes!.join(" ")}"`);
       }
       if (attrs) {
         strs.push(...attrs.map((attr) => `data-${attr}`));
@@ -1115,4 +1118,6 @@ function pandocBlock(delimiter: string) {
 }
 
 const pandocDiv = pandocHtmlBlock("div");
+const pandocFigure = pandocHtmlBlock("figure");
+const pandocFigCaption = pandocHtmlBlock("figcaption");
 const pandocCode = pandocBlock("```");
