@@ -81,6 +81,9 @@ import {
   kAuthors,
   kClassOption,
   kColorLinks,
+  kDate,
+  kDateFormat,
+  kDateFormatted,
   kDocumentClass,
   kFigResponsive,
   kFilterParams,
@@ -140,6 +143,12 @@ import {
 import { parseAuthor } from "../../core/author.ts";
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
+import {
+  formatDate,
+  isSpecialDate,
+  parsePandocDate,
+  parseSpecialDate,
+} from "../../core/date.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -601,6 +610,40 @@ export async function runPandoc(
       pandocMetadata[key] = engineMetadata[key];
     }
   }
+
+  // Resolve the date if there are any special
+  // date specifiers
+  if (isSpecialDate(pandocMetadata[kDate])) {
+    // Replace the date with its resolved form
+    pandocMetadata[kDate] = parseSpecialDate(
+      options.source,
+      pandocMetadata[kDate] as string,
+    );
+  }
+
+  // Format the date
+  if (pandocMetadata[kDate] && pandocMetadata[kDateFormat]) {
+    console.log(pandocMetadata[kDateFormat]);
+    const parsed = parsePandocDate(pandocMetadata[kDate]);
+    pandocMetadata[kDate] = formatDate(
+      parsed,
+      pandocMetadata[kDateFormat] as string || "iso",
+    );
+  }
+
+  console.log(pandocMetadata[kDate]);
+
+  // Create a formatted version of the date
+  /*
+  if (pandocMetadata.metadata[kDate]) {
+    const date = parsePandocDate(pandocMetadata[kDate] as string);
+    const format = pandocMetadata[kDateFormat] as string;
+    pandocMetadata[kDateFormatted] = formatDate(
+      date,
+      format || "full",
+    );
+  }
+  */
 
   // Resolve the author metadata into a form that Pandoc will recognize
   const authorsRaw = pandocMetadata[kAuthors] || pandocMetadata[kAuthor];

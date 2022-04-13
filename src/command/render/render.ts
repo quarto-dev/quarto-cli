@@ -149,13 +149,7 @@ import { getFrontMatterSchema } from "../../core/lib/yaml-schema/front-matter.ts
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
-import {
-  formatDate,
-  isSpecialDate,
-  parsePandocDate,
-  parseSpecialDate,
-  setDateLocale,
-} from "../../core/date.ts";
+import { setDateLocale } from "../../core/date.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -908,21 +902,6 @@ export async function resolveFormatsFromMetadata(
   // resolve any language file references
   await resolveLanguageMetadata(allMetadata, includeDir);
 
-  // Resolve the date if there are any special
-  // date specifiers
-  if (isSpecialDate(allMetadata[kDate])) {
-    allMetadata[kDate] = parseSpecialDate(
-      input,
-      allMetadata[kDate] as string,
-    );
-  }
-
-  // Create a formatted version of the date
-  if (allMetadata[kDate]) {
-    const date = parsePandocDate(allMetadata[kDate] as string);
-    allMetadata[kDateFormatted] = formatDate(date, "full");
-  }
-
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
 
@@ -962,13 +941,6 @@ export async function resolveFormatsFromMetadata(
     const resolveFormat = defaultWriterFormat(to).resolveFormat;
     if (resolveFormat) {
       resolveFormat(config);
-    }
-
-    // Create a formatted version of the date
-    if (config.metadata[kDate]) {
-      const date = parsePandocDate(config.metadata[kDate] as string);
-      const format = config.metadata[kDateFormat] as string;
-      config.metadata[kDateFormatted] = formatDate(date, format || "full");
     }
 
     // apply command line arguments

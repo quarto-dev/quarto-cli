@@ -40,11 +40,14 @@ export function resolveDate(input: string | string[], val: unknown) {
 }
 
 export function isSpecialDate(val?: unknown) {
-  return val === kLastModified || val === kToday || val === rSysDate ||
+  return val === kLastModified || val === kToday ||
     val === kNow;
 }
 
-export function parseSpecialDate(input: string | string[], val: unknown) {
+export function parseSpecialDate(
+  input: string | string[],
+  val: unknown,
+): string {
   if (val === kLastModified || val === rSysDate) {
     if (!Array.isArray(input)) {
       input = [input];
@@ -65,7 +68,7 @@ export function parseSpecialDate(input: string | string[], val: unknown) {
   } else if (val === kNow) {
     return formatDate(new Date(), "YYYY-MM-DDTHH:mm:ssZ");
   } else {
-    return val;
+    return val as string;
   }
 }
 
@@ -122,7 +125,7 @@ export const formattedDate = (
   }
 };
 
-export const parsePandocDate = (dateRaw: string) => {
+export const parsePandocDate = (dateRaw: string): Date => {
   const formats = [
     "MM/dd/yyyy",
     "MM-dd-yyyy",
