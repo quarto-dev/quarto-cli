@@ -623,27 +623,12 @@ export async function runPandoc(
 
   // Format the date
   if (pandocMetadata[kDate] && pandocMetadata[kDateFormat]) {
-    console.log(pandocMetadata[kDateFormat]);
     const parsed = parsePandocDate(pandocMetadata[kDate]);
     pandocMetadata[kDate] = formatDate(
       parsed,
       pandocMetadata[kDateFormat] as string || "iso",
     );
   }
-
-  console.log(pandocMetadata[kDate]);
-
-  // Create a formatted version of the date
-  /*
-  if (pandocMetadata.metadata[kDate]) {
-    const date = parsePandocDate(pandocMetadata[kDate] as string);
-    const format = pandocMetadata[kDateFormat] as string;
-    pandocMetadata[kDateFormatted] = formatDate(
-      date,
-      format || "full",
-    );
-  }
-  */
 
   // Resolve the author metadata into a form that Pandoc will recognize
   const authorsRaw = pandocMetadata[kAuthors] || pandocMetadata[kAuthor];

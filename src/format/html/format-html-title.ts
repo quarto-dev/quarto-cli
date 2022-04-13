@@ -61,7 +61,6 @@ export function documentTitleScssLayer(input: string, format: Format) {
         variables.push(`$title-banner-bg: ${banner};`);
       }
     }
-    console.log(variables);
 
     // Inject rules
     layer.defaults = `${variables.join("\n")}\n` + layer.defaults || "";
