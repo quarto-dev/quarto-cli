@@ -24,7 +24,10 @@ export const kApplicationJupyterWidgetView =
 export const kRestructuredText = "text/restructuredtext";
 export const kApplicationRtf = "application/rtf";
 
-export function extensionForMimeImageType(mimeType: string) {
+export function extensionForMimeImageType(
+  mimeType: string,
+  defaultType = "bin",
+) {
   switch (mimeType) {
     case kImagePng:
       return "png";
@@ -35,7 +38,7 @@ export function extensionForMimeImageType(mimeType: string) {
     case kApplicationPdf:
       return "pdf";
     default:
-      return "bin";
+      return defaultType;
   }
 }
 
