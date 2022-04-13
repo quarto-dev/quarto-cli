@@ -609,6 +609,13 @@ function repoActionLinks(
             text: language[kRepoActionLinksEdit],
             url: `${repoInfo.baseUrl}edit/${branch}/${repoInfo.path}${source}`,
           };
+        } else if (repoInfo.baseUrl.indexOf("github.com") !== -1) {
+          return {
+            text: language[kRepoActionLinksEdit],
+            url: `${
+              repoInfo.baseUrl.replace("github.com", "github.dev")
+            }blob/${branch}/${repoInfo.path}${source}`,
+          };
         } else {
           return null;
         }
