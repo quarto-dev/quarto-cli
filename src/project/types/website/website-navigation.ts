@@ -116,6 +116,7 @@ import {
   HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
 } from "../../../command/render/types.ts";
+import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -603,10 +604,14 @@ function repoActionLinks(
   return actions.map((action) => {
     switch (action) {
       case "edit":
-        return {
-          text: language[kRepoActionLinksEdit],
-          url: `${repoInfo.baseUrl}edit/${branch}/${repoInfo.path}${source}`,
-        };
+        if (!isJupyterNotebook(source)) {
+          return {
+            text: language[kRepoActionLinksEdit],
+            url: `${repoInfo.baseUrl}edit/${branch}/${repoInfo.path}${source}`,
+          };
+        } else {
+          return null;
+        }
       case "source":
         return {
           text: language[kRepoActionLinksSource],
