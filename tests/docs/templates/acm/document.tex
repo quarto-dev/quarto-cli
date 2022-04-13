@@ -1,0 +1,266 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass{acm_proc_article-sp}
+
+\renewcommand{\paragraph}[1]{\vskip 6pt\noindent\textbf{#1 }}\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Short Paper},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+% Make \paragraph and \subparagraph free-standing
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {% don't indent paragraphs
+  \setlength{\parindent}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+  \let\oldpar\par
+  \def\par{\hangindent=\cslhangindent\oldpar}
+  \fi
+  % set entry spacing
+  \setlength{\parskip}{#2\cslentryspacingunit}
+ }%
+ {}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{tcolorbox}{}{\usepackage[many]{tcolorbox}}
+\makeatother
+\makeatletter
+\@ifundefined{shadecolor}{\definecolor{shadecolor}{rgb}{.97, .97, .97}}
+\makeatother
+\makeatletter
+\makeatother
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Short Paper}
+
+
+\numberofauthors{2}
+\author{
+\alignauthor Alice Anonymous \\
+        \affaddr{Some Institute of Technology}\\
+       \email{alice@example.com}
+\and \alignauthor Bob Security \\
+        \affaddr{Another University}\\
+       \email{bob@example.com}
+\and }
+
+\date{2022-04-13T14:25:38-04:00}
+
+%Remove copyright shit
+\permission{}
+\conferenceinfo{} {}
+\CopyrightYear{}
+\crdata{}
+\begin{document}
+\maketitle
+\begin{abstract}
+This is the abstract.
+
+It consists of two paragraphs.
+\end{abstract}
+
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[frame hidden, interior hidden, breakable, borderline west={3pt}{0pt}{shadecolor}, enhanced, sharp corners, boxrule=0pt]}{\end{tcolorbox}}\fi
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+Lorem ipsum dolor sit{[}2{]} amet, consectetur adipiscing{[}1{]} elit.
+Pellentesque rhoncus ut tellus eu tristique. Duis pharetra velit vitae
+viverra elementum. Nulla metus dui, pulvinar id enim at, pellentesque
+semper ipsum. Phasellus cursus dignissim ipsum, sed congue orci pretium
+quis. Maecenas rhoncus leo a cursus euismod. Fusce a erat eu ipsum
+tristique tempus at sed tortor. Aliquam erat volutpat. Donec at pretium
+lorem. Donec pretium nunc id nunc bibendum convallis. Phasellus quis
+enim id massa feugiat egestas hendrerit sollicitudin nibh. Sed blandit
+eros id tellus porta, eget ullamcorper urna posuere. Pellentesque
+laoreet lacus nibh, a mattis libero viverra sit amet. Sed vitae diam
+interdum, pharetra neque sit amet, dictum lectus.
+
+Donec massa justo, ultricies quis facilisis sed, tristique nec metus.
+Vestibulum id condimentum diam. Integer semper augue id porttitor
+ultrices. Cras vulputate felis eu diam porttitor, ac pulvinar nisi
+imperdiet. Donec eros felis, imperdiet vel malesuada at, varius et quam.
+Phasellus facilisis non risus eu placerat. Sed ac mollis lorem.
+
+\hypertarget{evaluation}{%
+\section{Evaluation}\label{evaluation}}
+
+Nullam semper imperdiet orci, at lacinia est aliquet et. Sed justo nibh,
+aliquet et velit at, pharetra consequat velit. Nullam nec ligula
+sagittis, adipiscing nisl sed, varius massa. Mauris quam ante, aliquet a
+nunc et, faucibus imperdiet libero. Suspendisse odio tortor, bibendum
+vel semper sit amet, euismod ac ante. Nunc nec dignissim turpis, ac
+blandit massa. Donec auctor massa ac vestibulum aliquam. Fusce auctor
+dictum lobortis. Vivamus tortor augue, convallis quis augue sit amet,
+laoreet tristique quam. Donec id volutpat orci. Suspendisse at mi vel
+elit accumsan porta ac ut diam. Nulla ut dapibus quam.
+
+Sed est odio, ornare in rutrum et, dapibus in urna. Suspendisse varius
+massa in ipsum placerat, quis tristique magna consequat. Suspendisse non
+convallis augue. Quisque fermentum justo et lorem volutpat euismod.
+Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere
+cubilia Curae; Morbi sagittis interdum justo, eu consequat nisi
+convallis in. Sed tincidunt risus id lacinia ultrices. Phasellus ac
+ligula sed mi mattis lacinia ac non felis. Etiam at dui tellus.
+
+\hypertarget{conclusion}{%
+\section{Conclusion}\label{conclusion}}
+
+Duis nec purus sed neque porttitor tincidunt vitae quis augue. Donec
+porttitor aliquam ante, nec convallis nisl ornare eu. Morbi ut purus et
+justo commodo dignissim et nec nisl. Donec imperdiet tellus dolor, vel
+dignissim risus venenatis eu. Aliquam tempor imperdiet massa, nec
+fermentum tellus sollicitudin vulputate. Integer posuere porttitor
+pharetra. Praesent vehicula elementum diam a suscipit. Morbi viverra
+velit eget placerat pellentesque. Nunc congue augue non nisi ultrices
+tempor.
+
+\hypertarget{references}{%
+\section*{References}\label{references}}
+\addcontentsline{toc}{section}{References}
+
+\hypertarget{refs}{}
+\begin{CSLReferences}{0}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-fenner2012a}{}}%
+\CSLLeftMargin{{[}1{]} }%
+\CSLRightInline{Fenner, M. 2012.
+\href{https://doi.org/10.1038/nmat3283}{One-click science marketing}.
+\emph{Nature Materials}. 11, 4 (Mar. 2012), 261--263.}
+
+\leavevmode\vadjust pre{\hypertarget{ref-meier2012}{}}%
+\CSLLeftMargin{{[}2{]} }%
+\CSLRightInline{Meier, R. 2012. \emph{Professinal Android 4 Application
+Development}. John Wiley \& Sons, Inc.}
+
+\end{CSLReferences}
+
+
+\end{document}
