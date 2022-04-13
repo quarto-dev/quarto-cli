@@ -73,7 +73,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
     editor: options.editor,
     ext: engine.defaultExt,
   }, false);
-  await Deno.writeTextFileSync(join(options.dir, "_quarto.yml"), quartoConfig);
+  Deno.writeTextFileSync(join(options.dir, "_quarto.yml"), quartoConfig);
   info(
     "- Created _quarto.yml",
     { indent: 2 },
@@ -82,7 +82,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
     await ensureGitignore(options.dir, !!options.venv || !!options.condaenv)
   ) {
     info(
-      "- Created .gitignore\n",
+      "- Created .gitignore",
       { indent: 2 },
     );
   }
