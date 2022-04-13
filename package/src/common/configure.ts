@@ -8,7 +8,6 @@ import { dirname, join, SEP } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
-import { execProcess } from "../../../src/core/process.ts";
 import { expandPath } from "../../../src/core/path.ts";
 import {
   createDevConfig,
@@ -20,7 +19,6 @@ import {
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { archiveUrl } from "./archive-binary-dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/env.ts";
 
 export async function configure(

@@ -103,6 +103,7 @@ async function downloadBinaryDependency(
 ) {
   const targetFile = join(
     configuration.directoryInfo.bin,
+    "tools",
     platformDependency.filename,
   );
   const dlUrl = archiveUrl(dependency, platformDependency);
