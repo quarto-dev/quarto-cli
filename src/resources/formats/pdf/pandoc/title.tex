@@ -14,7 +14,11 @@ $endif$
 \subtitle{$subtitle$}
 $endif$
 \author{$for(author)$$author$$sep$ \and $endfor$}
+$if(date-formatted)$
+\date{$date-formatted$}
+$else$
 \date{$date$}
+$endif$
 $if(beamer)$
 $if(institute)$
 \institute{$for(institute)$$institute$$sep$ \and $endfor$}
