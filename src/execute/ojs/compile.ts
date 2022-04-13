@@ -14,25 +14,9 @@ import { parseModule } from "observablehq/parser";
 import { Format, kDependencies } from "../../config/types.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
-  kCapLoc,
-  kCellClasses,
-  kCellColumn,
-  kCellFigAlign,
-  kCellFigAlt,
-  kCellFigColumn,
-  kCellFigEnv,
-  kCellFigLink,
-  kCellFigPos,
-  kCellFigScap,
-  kCellLabel,
-  kCellPanel,
-  kCellTblColumn,
-  kCodeSummary,
-  kFigCapLoc,
   kIncludeAfterBody,
   kIncludeInHeader,
   kSelfContained,
-  kTblCapLoc,
 } from "../../config/constants.ts";
 import { RenderContext } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
