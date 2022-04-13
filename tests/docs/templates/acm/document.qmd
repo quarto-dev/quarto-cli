@@ -19,7 +19,6 @@ format:
       - partials/doc-class.tex
       - partials/title.tex
 date: last-modified
-keep-tex: true
 ---
 
 
