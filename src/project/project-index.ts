@@ -71,9 +71,10 @@ export async function inputTargetIndex(
   const firstFormat = Object.values(formats)[0];
   const markdown = await engine.partitionedMarkdown(inputFile, firstFormat);
   const index = {
-    title: (markdown.yaml?.[kTitle] || firstFormat?.metadata?.[kTitle]) as
-      | string
-      | undefined,
+    title: (markdown.yaml?.[kTitle] || firstFormat?.metadata?.[kTitle] ||
+      markdown.headingText) as
+        | string
+        | undefined,
     markdown,
     formats,
   };
