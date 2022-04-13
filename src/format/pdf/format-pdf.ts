@@ -49,6 +49,7 @@ import { readLines } from "io/bufio.ts";
 import { TempContext } from "../../core/temp.ts";
 import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
+import { kTemplatePartials } from "../../command/render/template.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -127,17 +128,22 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         const documentclass = format.metadata[kDocumentClass] as
           | string
           | undefined;
+
+        const usingCustomTemplates = format.pandoc.template === undefined ||
+          format.metadata[kTemplatePartials] === undefined;
+
         if (
-          documentclass &&
-          ![
-            "srcbook",
-            "scrreprt",
-            "scrreport",
-            "scrartcl",
-            "scrarticle",
-          ].includes(
-            documentclass,
-          )
+          usingCustomTemplates ||
+          (documentclass &&
+            ![
+              "srcbook",
+              "scrreprt",
+              "scrreport",
+              "scrartcl",
+              "scrarticle",
+            ].includes(
+              documentclass,
+            ))
         ) {
           koma = false;
         }
@@ -177,11 +183,9 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           });
 
           const headerIncludes = [];
-          if (format.pandoc.template === undefined) {
-            headerIncludes.push(
-              "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
-            );
-          }
+          headerIncludes.push(
+            "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
+          );
 
           extras.metadata = {
             [kDocumentClass]: "scrartcl",
