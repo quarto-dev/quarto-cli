@@ -182,15 +182,12 @@ export function boostrapExtras(
       ),
     };
 
-  const { partials, templateParams, styles } = documentTitlePartial(
-    input,
+  const { partials, templateParams } = documentTitlePartial(
     format,
   );
   const sassLayers: SassLayer[] = [];
-  const titleSassLayer = documentTitleScssLayer(format);
+  const titleSassLayer = documentTitleScssLayer(input, format);
   if (titleSassLayer) {
-    titleSassLayer.rules = titleSassLayer.rules || "";
-    titleSassLayer.rules = titleSassLayer.rules + "\n" + styles;
     sassLayers.push(titleSassLayer);
   }
 

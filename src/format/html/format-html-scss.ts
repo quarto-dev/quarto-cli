@@ -51,7 +51,6 @@ import {
   sassUtilFunctions,
 } from "./format-html-shared.ts";
 import { readHighlightingTheme } from "../../quarto-core/text-highlighting.ts";
-import { documentTitleScssLayer } from "./format-html-title.ts";
 
 export interface Themes {
   light: string[];

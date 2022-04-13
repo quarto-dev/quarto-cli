@@ -133,7 +133,7 @@ export function codeToolsPostprocessor(format: Format) {
       // resolve what sort of code tools we will present
       const codeTools = resolveCodeTools(format, doc);
       if (codeTools.source || codeTools.toggle) {
-        const title = doc.querySelector("#title-block-header > h1");
+        const title = doc.querySelector("#title-block-header h1");
         if (title) {
           const header = (title as Element).parentElement;
           const titleDiv = doc.createElement("div");

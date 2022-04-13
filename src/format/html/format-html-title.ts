@@ -25,7 +25,7 @@ export interface DocumentTitleContext {
   pipeline: MarkdownPipeline;
 }
 
-export function documentTitleScssLayer(format: Format) {
+export function documentTitleScssLayer(input: string, format: Format) {
   if (
     format.metadata[kTitleBlockStyle] === false ||
     format.metadata[kTitleBlockStyle] === "none" ||
@@ -33,16 +33,45 @@ export function documentTitleScssLayer(format: Format) {
   ) {
     return undefined;
   } else {
-    const themePath = formatResourcePath(
+    const titleBlockScss = formatResourcePath(
       "html",
       join("templates", "title-block.scss"),
     );
-    return sassLayer(themePath);
+    const layer = sassLayer(titleBlockScss);
+
+    // Inject variables
+    const variables: string[] = [];
+    const rules: string[] = [];
+    const banner = format.metadata[kTitleBlockBanner] as string | boolean;
+    if (banner) {
+      // $title-banner-bg
+      // $title-banner-color
+      // $title-banner-image
+      const titleBlockColor = titleColor(format.metadata[ktitleBlockColor]);
+      if (titleBlockColor) {
+        variables.push(`$title-banner-color: ${titleBlockColor};`);
+      }
+
+      if (banner === true) {
+        // The default appearance, use navbar color
+      } else if (isBannerImage(input, banner)) {
+        // An image background
+        variables.push(`$title-banner-image: url(${banner});`);
+      } else {
+        variables.push(`$title-banner-bg: ${banner};`);
+      }
+    }
+    console.log(variables);
+
+    // Inject rules
+    layer.defaults = `${variables.join("\n")}\n` + layer.defaults || "";
+    layer.rules = layer.rules || "" + `\n${rules.join("\n")}`;
+
+    return layer;
   }
 }
 
 export function documentTitlePartial(
-  input: string,
   format: Format,
 ) {
   if (
@@ -56,7 +85,6 @@ export function documentTitlePartial(
   } else {
     const partials = [];
     const templateParams: Metadata = {};
-    const bannerStyles: string[] = [];
 
     // Note whether we should be showing categories
     templateParams[kTitleBlockCategories] =
@@ -73,51 +101,18 @@ export function documentTitlePartial(
 
     // For banner partials, configure the options and pass them along in the metadata
     if (banner) {
-      const titleBlockColor = titleColor(format.metadata[ktitleBlockColor]);
-      if (titleBlockColor) {
-        bannerStyles.push(`color: ${titleBlockColor};`);
-      }
-
       // When the toc is on the left, be sure to add the special grid notation
       const tocLeft = format.metadata[kTocLocation] === "left";
       if (tocLeft) {
         templateParams["banner-header-class"] = "toc-left";
       }
-
-      if (banner === true) {
-        // The default appearance, use navbar color
-        templateParams["banner-background-color-class"] = "color-navbar";
-      } else if (isBannerImage(input, banner)) {
-        // An image background
-        templateParams["banner-background-color-class"] = `color-${
-          titleColorClass(
-            format.metadata[ktitleBlockColor],
-          )
-        }`;
-        bannerStyles.push(`background-image: url('${banner}');`);
-        bannerStyles.push(`background-size: cover;`);
-      } else {
-        // A color has been specified for the banner
-        templateParams["banner-background-color-class"] = `color-${
-          titleColorClass(
-            format.metadata[ktitleBlockColor],
-          )
-        }`;
-        bannerStyles.push(`background-color: ${banner};`);
-      }
     }
-
-    // Styles that should be applied based upon the banner style
-    const styles = `.quarto-title-banner {\n
-      ${bannerStyles.join("\n")}
-    \n}`;
 
     return {
       partials: partials.map((partial) => {
         return formatResourcePath("html", join("templates", partial));
       }),
       templateParams,
-      styles,
     };
   }
 }
@@ -130,18 +125,18 @@ export function processDocumentTitle(
 ) {
   const resources: string[] = [];
 
-  // Move the header above the content
-  const headerEl = doc.getElementById("title-block-header");
-  const contentEl = doc.getElementById("quarto-content");
-  if (contentEl && headerEl) {
-    headerEl.remove();
-    contentEl.parentElement?.insertBefore(headerEl, contentEl);
-  }
-
   // when in banner mode, note on the main content region and
   // add any image to resources
   const banner = format.metadata[kTitleBlockBanner] as string | boolean;
   if (banner) {
+    // Move the header above the content
+    const headerEl = doc.getElementById("title-block-header");
+    const contentEl = doc.getElementById("quarto-content");
+    if (contentEl && headerEl) {
+      headerEl.remove();
+      contentEl.parentElement?.insertBefore(headerEl, contentEl);
+    }
+
     const mainEl = doc.querySelector("main.content");
     mainEl?.classList.add("quarto-banner-title-block");
 

@@ -1,7 +1,65 @@
+/*-- scss: functions --*/
+
+@function bannerColor() {
+  @if $title-banner-color {
+    @return $title-banner-color;
+  } @else {
+    @if variable-exists(navbar-fg) {
+      @return $navbar-fg;
+    } @else {
+      @return $body-bg;
+    }
+  }
+}
+
+@function bannerDim() {
+  @return theme-fade(bannerColor(), bannerBg(), 20%);
+}
+
+@function bannerBg() {
+  @if $title-banner-bg {
+    @return $title-banner-bg;
+  } @else {
+    // figure out default background, navbar  of body color
+    @if variable-exists(navbar-bg) {
+      @return $navbar-bg;
+    } @else {
+      @return $body-color;
+    }
+  }
+}
+
+/*-- scss:variables --*/
+$title-banner-color: null !default;
+$title-banner-bg: null !default;
+$title-banner-image: null !default;
+
 /*-- scss:rules --*/
 
 .quarto-title-banner {
   margin-bottom: 1em;
+
+  color: bannerColor();
+  background: bannerBg();
+  @if $title-banner-image {
+    background-image: $title-banner-image;
+    background-size: cover;
+  }
+
+  .code-tools-button {
+    color: bannerDim();
+  }
+  .code-tools-button:hover {
+    color: bannerColor();
+  }
+
+  .code-tools-button > .bi::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB(bannerDim())}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');
+  }
+
+  .code-tools-button:hover > .bi::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB(bannerColor())}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');
+  }
 
   .quarto-title .title {
     font-weight: 600;
@@ -19,32 +77,6 @@
   @include media-breakpoint-down(lg) {
     padding-top: 1em;
     padding-bottom: 1em;
-  }
-
-  @if variable-exists(navbar-bg) {
-    background-color: $navbar-bg;
-  }
-
-  @if (variable-exists(navbar-fg)) {
-    color: $navbar-fg;
-  }
-
-  &.color-navbar .code-tools-button > .bi::before {
-    @if (variable-exists(navbar-fg)) {
-      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($navbar-fg)}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');
-    }
-  }
-
-  &.color-navbar .code-tools-button:hover > .bi::before {
-    @if (variable-exists(navbar-hl)) {
-      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($navbar-hl)}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');
-    }
-  }
-
-  &.color-navbar .code-tools-button:hover {
-    @if (variable-exists(navbar-hl)) {
-      color: $navbar-hl;
-    }
   }
 }
 
