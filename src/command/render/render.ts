@@ -300,6 +300,12 @@ export async function renderFiles(
           );
         resourceFiles.push(...ojsResourceFiles);
 
+        // keep md if requested
+        const keepMd = executionEngineKeepMd(context.target.input);
+        if (keepMd && context.format.execute[kKeepMd]) {
+          Deno.writeTextFileSync(keepMd, executeResult.markdown);
+        }
+
         // callback
         await pandocRenderer.onRender(format, {
           context,
@@ -498,12 +504,6 @@ export async function renderExecute(
     quiet: flags.quiet,
     handledLanguages: languages(),
   });
-
-  // keep md if requested
-  const keepMd = executionEngineKeepMd(context.target.input);
-  if (keepMd && context.format.execute[kKeepMd]) {
-    Deno.writeTextFileSync(keepMd, executeResult.markdown);
-  }
 
   // write the freeze file if we are in a project
   if (context.project && canFreeze) {
