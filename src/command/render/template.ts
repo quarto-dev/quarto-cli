@@ -65,3 +65,13 @@ export async function stageTemplate(
     return undefined;
   }
 }
+
+export function cleanTemplatePartials(metadata: Metadata, builtIns: string[]) {
+  const partials = metadata[kTemplatePartials] as string[];
+  const cleansed = partials.filter((part) => builtIns.includes(part));
+  if (cleansed.length === 0) {
+    delete metadata[kTemplatePartials];
+  } else {
+    metadata[kTemplatePartials] = cleansed;
+  }
+}
