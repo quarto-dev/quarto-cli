@@ -13,6 +13,7 @@ import { Format, FormatPandoc, Metadata } from "../config/types.ts";
 
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { RenderOptions } from "../command/render/types.ts";
+import { MappedString } from "../core/lib/text-types.ts";
 
 export const kQmdExtensions = [".qmd"];
 
@@ -79,6 +80,20 @@ export interface ExecuteOptions {
 // result of execution
 export interface ExecuteResult {
   markdown: string;
+  supporting: string[];
+  filters: string[];
+  metadata?: Metadata;
+  pandoc?: FormatPandoc;
+  includes?: PandocIncludes;
+  engineDependencies?: Record<string, Array<unknown>>;
+  preserve?: Record<string, string>;
+  postProcess?: boolean;
+  resourceFiles?: string[];
+}
+
+// result of execution after restoring source map
+export interface MappedExecuteResult {
+  markdown: MappedString;
   supporting: string[];
   filters: string[];
   metadata?: Metadata;

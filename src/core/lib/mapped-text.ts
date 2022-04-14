@@ -6,7 +6,7 @@
 
 import { glb } from "./binary-search.ts";
 
-import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
+import { rangedLines } from "./ranged-text.ts";
 
 import {
   indexToRowCol as unmappedIndexToRowCol,
@@ -14,16 +14,21 @@ import {
   matchAll,
 } from "./text.ts";
 
-export interface MappedString {
-  readonly value: string;
-  readonly originalString: string;
-  readonly fileName?: string;
-  map: (a: number) => number | undefined;
-  mapClosest: (a: number) => number | undefined;
-}
+import {
+  EitherString,
+  MappedString,
+  Range,
+  RangedSubstring,
+  StringChunk,
+} from "./text-types.ts";
 
-export type EitherString = string | MappedString;
-export type StringChunk = string | Range;
+export type {
+  EitherString,
+  MappedString,
+  Range,
+  RangedSubstring,
+  StringChunk,
+} from "./text-types.ts";
 
 /**
 mappedString provides a mechanism for maintaining offset information

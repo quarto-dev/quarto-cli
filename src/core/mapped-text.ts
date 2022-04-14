@@ -5,9 +5,11 @@
  */
 
 import { diffLines } from "diff";
-import { Range, rangedLines } from "./lib/ranged-text.ts";
+import { rangedLines } from "./lib/ranged-text.ts";
 
 import { mappedString } from "./lib/mapped-text.ts";
+
+import { Range } from "./lib/text-types.ts";
 
 import * as mt from "./lib/mapped-text.ts";
 
@@ -26,7 +28,7 @@ export {
 } from "./lib/mapped-text.ts";
 
 // uses a diff algorithm to map on a line-by-line basis target lines
-// for `target` to `source`, allowing us to mostly recover
+// for `target` to `source`, allowing us to somewhat recover
 // MappedString information from third-party tools like knitr.
 export function mappedDiff(
   source: MappedString,

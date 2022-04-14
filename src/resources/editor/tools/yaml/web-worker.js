@@ -22139,9 +22139,19 @@ ${heading}`;
   }
   function buildTreeSitterAnnotation(tree, mappedSource2) {
     const singletonBuild = (node) => {
+      let tag = void 0;
       for (const child of node.children) {
+        if (child.type === "tag") {
+          tag = child;
+          continue;
+        }
         if (child.type !== "comment") {
-          return buildNode(child, node.endIndex);
+          const result2 = buildNode(child, node.endIndex);
+          if (tag) {
+            return annotateTag(result2, tag, node);
+          } else {
+            return result2;
+          }
         }
       }
       return annotateEmpty(node.endIndex);
@@ -22177,6 +22187,14 @@ ${heading}`;
           end: node.endIndex
         }])
       };
+    };
+    const annotateTag = (innerParse, tagNode, outerNode) => {
+      const tagParse = annotate(tagNode, tagNode.text, []);
+      const result2 = annotate(outerNode, {
+        tag: tagNode.text,
+        value: innerParse.result
+      }, [tagParse, innerParse]);
+      return result2;
     };
     const buildPair = (node) => {
       let key, value;

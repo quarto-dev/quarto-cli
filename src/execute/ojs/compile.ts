@@ -12,7 +12,7 @@ import { warning } from "log/mod.ts";
 import { parseModule } from "observablehq/parser";
 
 import { Format, kDependencies } from "../../config/types.ts";
-import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
+import { MappedExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -62,12 +62,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 
-import {
-  asMappedString,
-  mappedDiff,
-  MappedString,
-  mappedString,
-} from "../../core/mapped-text.ts";
+import { MappedString, mappedString } from "../../core/mapped-text.ts";
 import { languagesInMarkdown } from "../engine-shared.ts";
 
 import {
@@ -96,7 +91,7 @@ export interface OjsCompileOptions {
 }
 
 export interface OjsCompileResult {
-  markdown: string;
+  markdown: MappedString;
   filters?: string[];
   includes?: PandocIncludes;
   resourceFiles?: string[];
@@ -114,11 +109,11 @@ export async function ojsCompile(
   const { markdown, project, ojsBlockLineNumbers } = options;
 
   if (!isJavascriptCompatible(options.format)) {
-    return { markdown: markdown.value };
+    return { markdown: markdown };
   }
   const languages = languagesInMarkdown(markdown.value);
   if (!languages.has("ojs") && !languages.has("dot")) {
-    return { markdown: markdown.value };
+    return { markdown: markdown };
   }
 
   const projDir = project?.dir;
@@ -854,7 +849,7 @@ export async function ojsCompile(
   ];
 
   return {
-    markdown: mappedJoin(ls, "\n").value,
+    markdown: mappedJoin(ls, "\n"),
     filters: [
       "ojs",
     ],
@@ -868,23 +863,16 @@ export async function ojsCompile(
 
 export async function ojsExecuteResult(
   context: RenderContext,
-  executeResult: ExecuteResult,
+  executeResult: MappedExecuteResult,
   ojsBlockLineNumbers: number[],
 ) {
   executeResult = ld.cloneDeep(executeResult);
-
-  const source = Deno.readTextFileSync(context.target.source);
-
-  const mappedMarkdown = mappedDiff(
-    asMappedString(source),
-    executeResult.markdown,
-  );
 
   // evaluate ojs chunks
   const { markdown, includes, filters, resourceFiles } = await ojsCompile({
     source: context.target.source,
     format: context.format,
-    markdown: mappedMarkdown,
+    markdown: executeResult.markdown,
     libDir: context.libDir,
     project: context.project,
     temp: context.options.temp,

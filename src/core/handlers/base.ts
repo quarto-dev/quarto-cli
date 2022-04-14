@@ -5,7 +5,7 @@ import {
   PandocIncludeType,
 } from "./types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
+import { MappedExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import { mergeConfigs } from "../config.ts";
 import {
   DependencyFile,
@@ -77,7 +77,7 @@ interface HandlerContextResults {
 }
 
 function makeHandlerContext(
-  _executeResult: ExecuteResult,
+  _executeResult: MappedExecuteResult,
   options: LanguageCellHandlerOptions,
 ): {
   context: LanguageCellHandlerContext;
@@ -165,7 +165,7 @@ export function install(handler: LanguageHandler) {
 
 // this mutates executeResult.markdown!
 export async function handleLanguageCells(
-  executeResult: ExecuteResult,
+  executeResult: MappedExecuteResult,
   options: LanguageCellHandlerOptions,
 ) {
   const mdCells =
@@ -235,7 +235,7 @@ export async function handleLanguageCells(
     }
   }
 
-  executeResult.markdown = mappedJoin(newCells, "\n").value;
+  executeResult.markdown = mappedJoin(newCells, "\n");
 }
 
 export const baseHandler: LanguageHandler = {
@@ -322,8 +322,6 @@ export const baseHandler: LanguageHandler = {
     const q3 = hasFigureLabel() ? pandocBlock(":::") : pandocFigure;
     const t3 = pandocBlock("```");
     const t4 = pandocBlock("````");
-    console.log("general div");
-    console.log({ attrs, classes });
     const cellBlock = q3({
       classes: ["cell", ...classes],
       attrs,
@@ -405,7 +403,6 @@ export function getDivAttributes(
   cell: QuartoMdCell,
 ): { attrs: string[]; classes: string[] } {
   const attrs: string[] = [];
-  console.log({ cell });
 
   const keysToNotSerialize = new Set([
     kEcho,
@@ -441,7 +438,6 @@ export function getDivAttributes(
   ]);
 
   for (const [key, value] of Object.entries(cell.options || {})) {
-    console.log({ key, value });
     if (!keysToNotSerialize.has(key)) {
       const t = typeof value;
       if (t === "object") {

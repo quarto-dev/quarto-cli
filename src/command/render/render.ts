@@ -128,6 +128,7 @@ import {
   ExecuteResult,
   ExecutionEngine,
   ExecutionTarget,
+  MappedExecuteResult,
   PandocIncludes,
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
@@ -158,6 +159,7 @@ import {
   parseSpecialDate,
   setDateLocale,
 } from "../../core/date.ts";
+import { mappedDiff } from "../../core/mapped-text.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -272,30 +274,43 @@ export async function renderFiles(
           executeOptions,
         );
 
+        // recover source map from diff and create a mappedExecuteResult
+        // for markdown processing pre-pandoc with mapped strings
+        const source = Deno.readTextFileSync(context.target.source);
+        const mappedMarkdown = mappedDiff(
+          asMappedString(source),
+          baseExecuteResult.markdown,
+        );
+
         const resourceFiles: string[] = [];
+        if (baseExecuteResult.resourceFiles) {
+          resourceFiles.push(...baseExecuteResult.resourceFiles);
+        }
+
+        const mappedExecuteResult: MappedExecuteResult = {
+          ...baseExecuteResult,
+          markdown: mappedMarkdown,
+        };
+
         const languageCellHandlerOptions: LanguageCellHandlerOptions = {
           temp: tempContext,
           name: "",
           format: recipe.format,
-          markdown: asMappedString(baseExecuteResult.markdown),
+          markdown: mappedMarkdown,
           source: context.target.source,
           libDir: context.libDir,
           project: context.project,
         };
         await handleLanguageCells(
-          baseExecuteResult,
+          mappedExecuteResult,
           languageCellHandlerOptions,
         );
-
-        if (baseExecuteResult.resourceFiles) {
-          resourceFiles.push(...baseExecuteResult.resourceFiles);
-        }
 
         // process ojs
         const { executeResult, resourceFiles: ojsResourceFiles } =
           await ojsExecuteResult(
             context,
-            baseExecuteResult,
+            mappedExecuteResult,
             ojsBlockLineNumbers,
           );
         resourceFiles.push(...ojsResourceFiles);
@@ -303,14 +318,20 @@ export async function renderFiles(
         // keep md if requested
         const keepMd = executionEngineKeepMd(context.target.input);
         if (keepMd && context.format.execute[kKeepMd]) {
-          Deno.writeTextFileSync(keepMd, executeResult.markdown);
+          Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
         }
+
+        // now get "unmapped" execute result back to send to pandoc
+        const unmappedExecuteResult: ExecuteResult = {
+          ...executeResult,
+          markdown: executeResult.markdown.value,
+        };
 
         // callback
         await pandocRenderer.onRender(format, {
           context,
           recipe,
-          executeResult,
+          executeResult: unmappedExecuteResult,
           resourceFiles,
         }, pandocQuiet);
       }
