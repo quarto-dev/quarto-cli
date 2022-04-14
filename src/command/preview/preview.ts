@@ -488,7 +488,6 @@ function htmlFileRequestHandlerOptions(
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply
-          console.log("render from ide command");
           renderHandler();
           return Promise.resolve(httpContentResponse("rendered"));
         } else {
