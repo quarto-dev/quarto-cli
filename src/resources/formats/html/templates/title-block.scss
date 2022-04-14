@@ -132,6 +132,7 @@ main.quarto-banner-title-block section:first-of-type h4:first-of-type {
     }
   }
 
+  .quarto-title-meta-contents p,
   .quarto-title-authors p,
   .quarto-title-affiliations p {
     margin-bottom: 0.1em;
@@ -150,6 +151,14 @@ main.quarto-banner-title-block section:first-of-type h4:first-of-type {
     a {
       color: $body-color;
     }
+
+    p.affiliation:last-of-type {
+      margin-bottom: 0.7em;
+    }
+  }
+
+  p.affiliation {
+    margin-bottom: 0.1em;
   }
 
   .description,
@@ -170,5 +179,10 @@ main.quarto-banner-title-block section:first-of-type h4:first-of-type {
       opacity: 0.8;
       font-weight: 400;
     }
+  }
+
+  .quarto-title-meta-author {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 }
