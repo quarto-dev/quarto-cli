@@ -4,6 +4,9 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
+import { ensureDirSync } from "fs/mod.ts";
+import { dirname } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
 import * as log from "log/mod.ts";
 import { LogRecord } from "log/logger.ts";
@@ -66,6 +69,9 @@ export function appendLogOptions(cmd: Command): Command {
 export function logOptions(args: Args) {
   const logOptions: LogOptions = {};
   logOptions.log = args.l || args.log || Deno.env.get("QUARTO_LOG");
+  if (logOptions.log) {
+    ensureDirSync(dirname(logOptions.log));
+  }
   logOptions.level = args.ll || args["log-level"] ||
     Deno.env.get("QUARTO_LOG_LEVEL");
   logOptions.quiet = args.q || args.quiet;
