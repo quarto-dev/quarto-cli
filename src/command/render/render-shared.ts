@@ -45,6 +45,7 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 import { kTextPlain } from "../../core/mime.ts";
 import { previewFormat } from "../preview/preview.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { isBrowserPreviewable } from "../../core/http.ts";
 
 export async function render(
   path: string,
@@ -253,17 +254,19 @@ export function previewRenderRequest(
       version: 1,
       path: join(baseDir, match[1]),
     };
-  } else if (hasClients) {
+  } else {
     const token = renderToken();
     if (token && req.url.includes(token)) {
       const url = new URL(req.url);
       const path = url.searchParams.get("path");
       if (path) {
-        return {
-          version: 2,
-          path,
-          format: url.searchParams.get("format") || undefined,
-        };
+        if (hasClients || !isBrowserPreviewable(path)) {
+          return {
+            version: 2,
+            path,
+            format: url.searchParams.get("format") || undefined,
+          };
+        }
       }
     }
   }
