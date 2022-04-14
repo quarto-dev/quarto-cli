@@ -185,12 +185,22 @@ function authorsMeta()
       validateRefs(authors, affiliations)
 
       -- Write the normalized data back to metadata
-      meta[kAuthorOutput] = authors
-      meta[kAffiliations] = affiliations
+      if #authors ~= 0 then
+        meta[kAuthorOutput] = authors
+      end
+
+      if #affiliations ~= 0 then
+        meta[kAffiliations] = affiliations
+      end
 
       -- Write the de-normalized versions back to metadata
-      meta[kByAuthor] = byAuthors(authors, affiliations)
-      meta[kByAffiliation] = byAffiliations(authors, affiliations)
+      if #authors ~= 0 then
+        meta[kByAuthor] = byAuthors(authors, affiliations)
+      end
+
+      if #affiliations ~= 0 then
+        meta[kByAffiliation] = byAffiliations(authors, affiliations)
+      end
 
       -- Provide localized or user specified strings for title block elements
       meta = computeLabels(authors, affiliations, meta)
