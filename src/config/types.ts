@@ -148,7 +148,6 @@ import {
   kSectionTitleReferences,
   kSectionTitleReuse,
   kSelfContained,
-  kSelfContainedMath,
   kShiftHeadingLevelBy,
   kSlideLevel,
   kSyntaxDefinitions,
@@ -178,7 +177,6 @@ export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
 export const kHtmlPostprocessors = "html-postprocessors";
 export const kHtmlFinalizers = "html-finalizers";
-export const kTemplatePatches = "template-patches";
 export const kBodyEnvelope = "body-envelope";
 export const kTextHighlightingMode = "text-highlighting-mode";
 export const kQuartoCssVariables = "css-variables";
@@ -252,11 +250,11 @@ export interface FormatExtras {
   };
   [kFilterParams]?: Record<string, unknown>;
   postprocessors?: Array<(output: string) => Promise<void>>;
+  templateContext?: FormatTemplateContext;
   html?: {
     [kDependencies]?: FormatDependency[];
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
-    [kTemplatePatches]?: Array<(template: string) => string>;
     [kHtmlPostprocessors]?: Array<HtmlPostProcessor>;
     [kHtmlFinalizers]?: Array<
       (doc: Document) => Promise<void>
@@ -314,7 +312,6 @@ export interface FormatRender {
   };
   [kTblColwidths]?: "auto" | boolean | number[];
   [kMergeIncludes]?: boolean;
-  [kSelfContainedMath]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;
@@ -506,4 +503,9 @@ export interface FormatLanguage {
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;
+}
+
+export interface FormatTemplateContext {
+  template?: string;
+  partials?: string[];
 }

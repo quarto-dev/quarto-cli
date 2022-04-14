@@ -62,7 +62,6 @@ export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
 export const kPreferHtml = "prefer-html";
-export const kSelfContainedMath = "self-contained-math";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -79,6 +78,8 @@ export const kLatexOutputDir = "latex-output-dir";
 export const kLinkExternalIcon = "link-external-icon";
 export const kLinkExternalNewwindow = "link-external-newwindow";
 export const kLinkExternalFilter = "link-external-filter";
+
+export const kQuartoVersion = "quarto-version";
 
 export const kExecuteDefaultsKeys = [
   kFigWidth,
@@ -124,7 +125,6 @@ export const kRenderDefaultsKeys = [
   kCodeOverflow,
   kCodeTools,
   kTblColwidths,
-  kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,
   kLatexMinRuns,
@@ -371,6 +371,7 @@ export const kEPubCoverImage = "epub-cover-image";
 export const kReferenceLocation = "reference-location";
 export const kCitationLocation = "citation-location";
 export const kQuartoVarsKey = "_quarto-vars";
+export const kQuartoTemplateParams = "quarto-template-params";
 
 // command line flags
 export const kMathjax = "mathjax";
@@ -384,6 +385,7 @@ export const kTitle = "title";
 export const kSubtitle = "subtitle";
 export const kAuthor = "author";
 export const kDate = "date";
+export const kDateFormat = "date-format";
 export const kDoi = "doi";
 export const kAbstract = "abstract";
 export const kAbstractTitle = "abstract-title";
@@ -391,6 +393,10 @@ export const kDescription = "description";
 export const kTocTitle = "toc-title";
 export const kTocLocation = "toc-location";
 export const kLang = "lang";
+
+// The authors user input
+export const kAuthors = "authors";
+export const kDateFormatted = "date-formatted";
 
 export const kServer = "server";
 

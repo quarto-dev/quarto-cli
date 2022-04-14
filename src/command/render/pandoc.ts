@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
@@ -37,7 +37,6 @@ import {
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
-  kTemplatePatches,
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import {
@@ -68,7 +67,7 @@ import {
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
-import { havePandocArg, removePandocArgs } from "./flags.ts";
+import { getPandocArg, havePandocArg, removePandocArgs } from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
@@ -79,8 +78,12 @@ import {
   kAbstract,
   kAbstractTitle,
   kAuthor,
+  kAuthors,
   kClassOption,
   kColorLinks,
+  kDate,
+  kDateFormat,
+  kDateFormatted,
   kDocumentClass,
   kFigResponsive,
   kFilterParams,
@@ -96,6 +99,7 @@ import {
   kNumberOffset,
   kNumberSections,
   kPageTitle,
+  kQuartoTemplateParams,
   kQuartoVarsKey,
   kResources,
   kSectionTitleAbstract,
@@ -130,7 +134,7 @@ import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
-import { patchHtmlTemplate } from "./output.ts";
+import { readPartials, stageTemplate } from "./template.ts";
 import { formatLanguage } from "../../core/language.ts";
 import {
   pandocFormatWith,
@@ -139,6 +143,12 @@ import {
 import { parseAuthor } from "../../core/author.ts";
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
+import {
+  formatDate,
+  isSpecialDate,
+  parsePandocDate,
+  parseSpecialDate,
+} from "../../core/date.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -178,6 +188,7 @@ export async function runPandoc(
     delete metadata.params;
     delete metadata[kQuartoVarsKey];
     delete metadata[kFigResponsive];
+    delete metadata[kQuartoTemplateParams];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
   };
@@ -205,6 +216,7 @@ export async function runPandoc(
     options.format.language,
     options.flags,
   );
+  formatFilterParams["language"] = options.format.language;
 
   // if there is no toc title then provide the appropirate default
   if (!options.format.metadata[kTocTitle]) {
@@ -361,16 +373,52 @@ export async function runPandoc(
       cleanMetadataForPrinting(printMetadata);
     }
 
-    // patch template (if its a built-in pandoc template)
-    if (!allDefaults[kTemplate] && !havePandocArg(args, "--template")) {
-      if (allDefaults.to && isHtmlOutput(allDefaults.to)) {
-        allDefaults[kTemplate] = await patchHtmlTemplate(
-          allDefaults.to,
-          options.format,
-          options.temp,
-          extras.html?.[kTemplatePatches],
-          options.flags,
+    // The user template (if any)
+    const userTemplate = getPandocArg(args, "--template") ||
+      allDefaults[kTemplate];
+
+    // The user partials (if any)
+    const userPartials = readPartials(options.format.metadata);
+    const inputDir = Deno.realPathSync(cwd);
+    const resolvePath = (path: string) => {
+      if (isAbsolute(path)) {
+        return path;
+      } else {
+        return join(inputDir, path);
+      }
+    };
+
+    const templateContext = extras.templateContext;
+    if (templateContext) {
+      // The format is providing a more robust local template
+      // to use, stage the template and pass it on to pandoc
+      const template = userTemplate
+        ? resolvePath(userTemplate)
+        : templateContext.template;
+
+      // Place any user partials at the end of the list of partials
+      const partials: string[] = templateContext.partials || [];
+      partials.push(
+        ...userPartials.map((path) => {
+          return resolvePath(path);
+        }),
+      );
+
+      const stagedTemplate = await stageTemplate(extras, options.temp, {
+        template,
+        partials,
+      });
+      allDefaults[kTemplate] = stagedTemplate;
+    } else {
+      if (userPartials.length > 0) {
+        // The user passed partials to a format that doesn't support
+        // staging and partials.
+        throw new Error(
+          "Unable to use template partials with the format " + allDefaults.to,
         );
+      } else if (userTemplate) {
+        // Use the template provided by the user
+        allDefaults[kTemplate] = userTemplate;
       }
     }
 
@@ -563,12 +611,34 @@ export async function runPandoc(
     }
   }
 
+  // Resolve the date if there are any special
+  // date specifiers
+  if (isSpecialDate(pandocMetadata[kDate])) {
+    // Replace the date with its resolved form
+    pandocMetadata[kDate] = parseSpecialDate(
+      options.source,
+      pandocMetadata[kDate] as string,
+    );
+  }
+
+  // Format the date
+  if (pandocMetadata[kDate] && pandocMetadata[kDateFormat]) {
+    const parsed = parsePandocDate(pandocMetadata[kDate]);
+    pandocMetadata[kDate] = formatDate(
+      parsed,
+      pandocMetadata[kDateFormat] as string || "iso",
+    );
+  }
+
   // Resolve the author metadata into a form that Pandoc will recognize
-  const authorsRaw = pandocMetadata[kAuthor];
+  const authorsRaw = pandocMetadata[kAuthors] || pandocMetadata[kAuthor];
   if (authorsRaw) {
     const authors = parseAuthor(pandocMetadata[kAuthor], true);
     if (authors) {
       pandocMetadata[kAuthor] = authors.map((author) => author.name);
+      pandocMetadata[kAuthors] = Array.isArray(authorsRaw)
+        ? authorsRaw
+        : [authorsRaw];
     }
   }
 

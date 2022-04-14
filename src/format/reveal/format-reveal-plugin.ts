@@ -16,7 +16,6 @@ import {
   FormatDependency,
   FormatExtras,
   kDependencies,
-  kTemplatePatches,
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
@@ -24,11 +23,7 @@ import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
-import {
-  injectRevealConfig,
-  optionsToKebab,
-  revealMetadataFilter,
-} from "./format-reveal.ts";
+import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render.ts";
 
@@ -100,7 +95,7 @@ interface RevealPlugin {
   [kSelfContained]?: boolean;
 }
 
-interface RevealPluginScript {
+export interface RevealPluginScript {
   path: string;
   async?: boolean;
 }
@@ -262,7 +257,6 @@ export async function revealPluginExtras(
     [kIncludeInHeader]: [],
     html: {
       [kDependencies]: dependencies,
-      [kTemplatePatches]: [],
     },
   };
 
@@ -274,43 +268,24 @@ export async function revealPluginExtras(
   Deno.writeTextFileSync(linkTagsInclude, linkTags);
   extras[kIncludeInHeader]?.push(linkTagsInclude);
 
-  // patch function for script + reveal registration
-  extras.html?.[kTemplatePatches]?.push((template) => {
-    // plugin scripts
-    const kRevealJsPlugins = "<!-- reveal.js plugins -->";
-    const scriptTags = scripts.map((file) => {
-      const async = file.async ? " async" : "";
-      return `  <script src="${file.path}"${async}></script>`;
-    }).join("\n");
-    template = template.replace(
-      kRevealJsPlugins,
-      kRevealJsPlugins + "\n" + scriptTags,
-    );
-    // plugin registration
-    if (register.length > 0) {
-      const kRevealPluginArray = "plugins: [";
-      template = template.replace(
-        kRevealPluginArray,
-        kRevealPluginArray + register.join(", ") + ",\n",
-      );
+  // inject top level options used by plugins into config
+  metadata.forEach((option) => {
+    if (format.metadata[option] !== undefined) {
+      config[option] = format.metadata[option];
     }
-
-    // inject top level options used by plugins into config
-    metadata.forEach((option) => {
-      if (format.metadata[option] !== undefined) {
-        config[option] = format.metadata[option];
-      }
-    });
-
-    // plugin config
-    template = injectRevealConfig(config, template);
-
-    // return patched template
-    return template;
   });
 
+  const result = {
+    pluginInit: {
+      scripts,
+      register,
+      revealConfig: config,
+    },
+    extras,
+  };
+
   // return
-  return extras;
+  return result;
 }
 
 function revealMenuPlugin(format: Format) {

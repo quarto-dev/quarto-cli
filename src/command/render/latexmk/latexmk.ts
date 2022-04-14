@@ -22,6 +22,7 @@ import { OutputRecipe } from "../types.ts";
 import { generatePdf } from "./pdf.ts";
 import { LatexmkOptions } from "./types.ts";
 import { texToPdfOutputRecipe } from "../output-tex.ts";
+import { dirname } from "path/mod.ts";
 
 export function useQuartoLatexmk(
   format: Format,
@@ -68,6 +69,9 @@ export function quartoLatexmkOutputRecipe(
       autoMk: format.render[kLatexAutoMk],
       minRuns: format.render[kLatexMinRuns],
       maxRuns: format.render[kLatexMaxRuns],
+      texInputDir: format.pandoc.template
+        ? dirname(format.pandoc.template)
+        : undefined,
       outputDir: outputDir === null ? undefined : outputDir,
       clean: !options.flags?.debug && format.render[kLatexClean] !== false,
       quiet: pandocOptions.flags?.quiet,
