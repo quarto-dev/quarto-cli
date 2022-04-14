@@ -350,6 +350,22 @@ export function normalizeWebsiteFormat(
   }
 }
 
+export function formatsPreferHtml(formats: Record<string, unknown>) {
+  const orderedFormats = {} as Record<string, unknown>;
+  const formatNames = Object.keys(formats);
+  const htmlFormatPos = formatNames.findIndex((format) =>
+    isHtmlOutput(format, true)
+  );
+  if (htmlFormatPos !== -1) {
+    const htmlFormatName = formatNames.splice(htmlFormatPos, 1)[0];
+    orderedFormats[htmlFormatName] = formats[htmlFormatName];
+  }
+  for (const formatName of formatNames) {
+    orderedFormats[formatName] = formats[formatName];
+  }
+  return orderedFormats;
+}
+
 // provide a project context that elevates html to the default
 // format for documents (unless they explicitly declare another format)
 export function websiteProjectConfig(
