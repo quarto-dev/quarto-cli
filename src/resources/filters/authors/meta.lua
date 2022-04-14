@@ -99,6 +99,10 @@ local kDoi = 'doi'
 local kDescription = 'description'
 local kAbstract = 'abstract'
 
+-- affiliation fields that might be parsed into other fields
+-- (e.g. if we see affiliation-url with author, we make that affiliation/url)
+local kAffiliationUrl = 'affiliation-url'
+
 -- Titles are the values that we will accept in metadata to override the
 -- default value for the above labels (e.g. abstract-title will provide the label)
 -- for the abstract
@@ -118,11 +122,16 @@ local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
 -- Fields for affiliations (either inline in authors or 
 -- separately in a affiliations key)
-local kAffiliationFields = { kId, kName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode }
+local kAffiliationFields = { kId, kName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl }
 
 -- These affiliation fields will be mapped into 'region' 
 -- (so users may also write 'state')
 local kAffiliationRegionFields = { kRegion, kState }
+
+local kAffiliationAliasedFields = {
+  [kState]=kRegion,
+  [kAffiliationUrl]=kUrl
+}
 
 -- Normalizes author metadata from the 'input' field into 
 -- consistently structured metadata in the 'output' field
@@ -153,7 +162,6 @@ function authorsMeta()
           if author[kId] == nil then
             author[kId] = authorNumber
           end        
-
 
           -- go through the affilations and add any to the list
           -- assigning an id if needed
@@ -349,8 +357,8 @@ function processAffilationObj(affiliation)
   
 
   for affilKey, affilVal in pairs(affiliation) do
-    if tcontains(kAffiliationRegionFields, affilKey) then
-      affiliationNormalized[kRegion] = affilVal
+    if (tcontains(tkeys(kAffiliationAliasedFields), affilKey)) then
+      affiliationNormalized[kAffiliationAliasedFields[affilKey]] = affilVal
     elseif tcontains(kAffiliationFields, affilKey) then
       affiliationNormalized[affilKey] = affilVal
     else
