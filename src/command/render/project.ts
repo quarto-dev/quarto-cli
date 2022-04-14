@@ -54,6 +54,7 @@ import {
 import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
+import { clearProjectIndex } from "../../project/project-index.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -160,6 +161,7 @@ export async function renderProject(
     (options.flags?.clean == true)
   ) {
     const realProjectDir = Deno.realPathSync(context.dir);
+    // ouptut dir
     let realOutputDir = join(realProjectDir, projOutputDir);
     if (existsSync(realOutputDir)) {
       realOutputDir = Deno.realPathSync(realOutputDir);
@@ -170,6 +172,8 @@ export async function renderProject(
         removeIfExists(realOutputDir);
       }
     }
+    // remove index
+    clearProjectIndex(realProjectDir);
   }
 
   // run pre-render step if we are rendering all files

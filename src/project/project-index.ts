@@ -15,7 +15,11 @@ import { Metadata } from "../config/types.ts";
 import { Format } from "../config/types.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 
-import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
+import {
+  dirAndStem,
+  pathWithForwardSlashes,
+  removeIfExists,
+} from "../core/path.ts";
 import { kOutputFile, kTitle } from "../config/constants.ts";
 import { renderFormats } from "../command/render/render.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
@@ -25,7 +29,10 @@ import { projectScratchPath } from "./project-scratch.ts";
 import { parsePandocTitle } from "../core/pandoc/pandoc-partition.ts";
 import { readYaml } from "../core/yaml.ts";
 import { formatKeys } from "../config/metadata.ts";
-import { normalizeWebsiteFormat } from "./types/website/website-config.ts";
+import {
+  formatsPreferHtml,
+  normalizeWebsiteFormat,
+} from "./types/website/website-config.ts";
 import { isJupyterNotebook } from "../core/jupyter/jupyter.ts";
 
 export interface InputTargetIndex extends Metadata {
@@ -155,9 +162,10 @@ export async function resolveInputTarget(
 ) {
   const index = await inputTargetIndex(project, href);
   if (index) {
-    const format = Object.values(index.formats)[0];
+    const formats = formatsPreferHtml(index.formats) as Record<string, Format>;
+    const format = Object.values(formats)[0];
     const [hrefDir, hrefStem] = dirAndStem(href);
-    const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
+    const outputFile = format.pandoc[kOutputFile] || `${hrefStem}.html`;
     const outputHref = pathWithForwardSlashes(
       (absolute ? "/" : "") + join(hrefDir, outputFile),
     );
@@ -211,10 +219,15 @@ export async function inputTargetIndexForOutputFile(
   }
 }
 
+export function clearProjectIndex(projectDir: string) {
+  const indexPath = projectScratchPath(projectDir, "idx");
+  removeIfExists(indexPath);
+}
+
 function inputTargetIndexFile(projectDir: string, input: string): string {
   return indexPath(projectDir, `${input}.json`);
 }
 
-function indexPath(projectDir: string, path = ""): string {
+function indexPath(projectDir: string, path: string): string {
   return projectScratchPath(projectDir, join("idx", path));
 }

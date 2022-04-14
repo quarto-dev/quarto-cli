@@ -134,7 +134,11 @@ import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
-import { readPartials, stageTemplate } from "./template.ts";
+import {
+  cleanTemplatePartials,
+  readPartials,
+  stageTemplate,
+} from "./template.ts";
 import { formatLanguage } from "../../core/language.ts";
 import {
   pandocFormatWith,
@@ -390,6 +394,9 @@ export async function runPandoc(
 
     const templateContext = extras.templateContext;
     if (templateContext) {
+      // Clean the template partial output
+      cleanTemplatePartials(printMetadata, templateContext.partials || []);
+
       // The format is providing a more robust local template
       // to use, stage the template and pass it on to pandoc
       const template = userTemplate
