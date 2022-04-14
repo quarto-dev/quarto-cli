@@ -589,7 +589,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
 
     const date = documentMeta?.date
-      ? parsePandocDate(resolveDate(input, documentMeta?.date))
+      ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
       : undefined;
 
     const authors = parseAuthor(documentMeta?.author);

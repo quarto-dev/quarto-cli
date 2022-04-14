@@ -48,6 +48,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { isWindows } from "../../core/platform.ts";
 import { readCodePage } from "../../core/windows.ts";
+import { authorsFilter, authorsFilterActive } from "./authors.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -354,6 +355,9 @@ export function resolveFilters(filters: string[], options: PandocOptions) {
   quartoFilters.push(quartoPreFilter());
   if (crossrefFilterActive(options)) {
     quartoFilters.push(crossrefFilter());
+  }
+  if (authorsFilterActive(options)) {
+    quartoFilters.push(authorsFilter());
   }
   quartoFilters.push(layoutFilter());
   quartoFilters.push(quartoPostFilter());

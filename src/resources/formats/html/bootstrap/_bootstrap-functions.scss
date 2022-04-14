@@ -57,6 +57,14 @@
   }
 }
 
+@function theme-highlight($baseColor, $backgroundColor, $amount) {
+  @if (tone($backgroundColor) == "dark") {
+    @return lighten($baseColor, $amount);
+  } @else {
+    @return darken($baseColor, $amount);
+  }
+}
+
 @function theme-override-value($theme, $varname, $default) {
   // These will be defined in bootstrap, but creating values here
   // That will make this function accessible to callers prior to bootstrap variables

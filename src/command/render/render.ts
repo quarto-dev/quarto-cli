@@ -45,6 +45,8 @@ import {
   kCache,
   kCss,
   kDate,
+  kDateFormat,
+  kDateFormatted,
   kEcho,
   kEngine,
   kExecuteDaemon,
@@ -147,11 +149,7 @@ import { getFrontMatterSchema } from "../../core/lib/yaml-schema/front-matter.ts
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
-import {
-  isSpecialDate,
-  parseSpecialDate,
-  setDateLocale,
-} from "../../core/date.ts";
+import { setDateLocale } from "../../core/date.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -903,15 +901,6 @@ export async function resolveFormatsFromMetadata(
 
   // resolve any language file references
   await resolveLanguageMetadata(allMetadata, includeDir);
-
-  // Resolve the date if there are any special
-  // date specifiers
-  if (isSpecialDate(allMetadata[kDate])) {
-    allMetadata[kDate] = parseSpecialDate(
-      input,
-      allMetadata[kDate] as string,
-    );
-  }
 
   // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);

@@ -334,6 +334,18 @@ export function replacePandocArg(
   return newArgs;
 }
 
+export function getPandocArg(
+  pandocArgs: string[],
+  arg: string,
+) {
+  const argIndex = pandocArgs.indexOf(arg);
+  if (argIndex !== -1 && argIndex + 1 < pandocArgs.length) {
+    return pandocArgs[argIndex + 1];
+  } else {
+    return undefined;
+  }
+}
+
 export function replacePandocOutputArg(pandocArgs: string[], output: string) {
   if (havePandocArg(pandocArgs, "--output")) {
     return replacePandocArg(pandocArgs, "--output", output);

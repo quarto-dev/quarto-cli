@@ -1,0 +1,174 @@
+/*-- scss: functions --*/
+
+@function bannerColor() {
+  @if $title-banner-color {
+    @return $title-banner-color;
+  } @else {
+    @if variable-exists(navbar-fg) {
+      @return $navbar-fg;
+    } @else {
+      @return $body-bg;
+    }
+  }
+}
+
+@function bannerDim() {
+  @return theme-fade(bannerColor(), bannerBg(), 20%);
+}
+
+@function bannerBg() {
+  @if $title-banner-bg {
+    @return $title-banner-bg;
+  } @else {
+    // figure out default background, navbar  of body color
+    @if variable-exists(navbar-bg) {
+      @return $navbar-bg;
+    } @else {
+      @return $body-color;
+    }
+  }
+}
+
+/*-- scss:variables --*/
+$title-banner-color: null !default;
+$title-banner-bg: null !default;
+$title-banner-image: null !default;
+
+/*-- scss:rules --*/
+
+.quarto-title-banner {
+  margin-bottom: 1em;
+
+  color: bannerColor();
+  background: bannerBg();
+  @if $title-banner-image {
+    background-image: $title-banner-image;
+    background-size: cover;
+  }
+
+  .code-tools-button {
+    color: bannerDim();
+  }
+  .code-tools-button:hover {
+    color: bannerColor();
+  }
+
+  .code-tools-button > .bi::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB(bannerDim())}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');
+  }
+
+  .code-tools-button:hover > .bi::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB(bannerColor())}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');
+  }
+
+  .quarto-title .title {
+    font-weight: 600;
+  }
+
+  .quarto-categories {
+    margin-top: 0.75em;
+  }
+
+  @include media-breakpoint-up(lg) {
+    padding-top: 2.5em;
+    padding-bottom: 2.5em;
+  }
+
+  @include media-breakpoint-down(lg) {
+    padding-top: 1em;
+    padding-bottom: 1em;
+  }
+}
+
+main.quarto-banner-title-block section:first-of-type h2:first-of-type,
+main.quarto-banner-title-block section:first-of-type h3:first-of-type,
+main.quarto-banner-title-block section:first-of-type h4:first-of-type {
+  margin-top: 0;
+}
+
+.quarto-title {
+  .quarto-categories {
+    display: flex;
+    column-gap: 0.4em;
+    padding-bottom: 0.5em;
+    margin-top: 0.25em;
+
+    .quarto-category {
+      padding: 0.25em 0.75em;
+      font-size: 0.65em;
+      text-transform: uppercase;
+      border: solid 1px;
+      border-radius: $border-radius;
+      opacity: 0.6;
+
+      a {
+        color: inherit;
+      }
+    }
+  }
+}
+
+#title-block-header.quarto-title-block.default {
+  .quarto-title-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quarto-title {
+    .title {
+      margin-bottom: 0;
+    }
+  }
+
+  .quarto-title-author-orcid {
+    img {
+      margin-top: -5px;
+    }
+  }
+
+  .quarto-description {
+    p:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+
+  .quarto-title-authors p,
+  .quarto-title-affiliations p {
+    margin-bottom: 0.1em;
+  }
+
+  .quarto-title-meta-heading {
+    text-transform: uppercase;
+    margin-top: 1em;
+    font-size: 0.8em;
+    opacity: 0.8;
+    font-weight: 400;
+  }
+
+  .quarto-title-meta-contents {
+    font-size: 0.9em;
+    a {
+      color: $body-color;
+    }
+  }
+
+  .description,
+  .abstract {
+    margin-top: 0;
+
+    & > p {
+      font-size: 0.9em;
+    }
+    & > p:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .abstract-title {
+      margin-top: 1em;
+      text-transform: uppercase;
+      font-size: 0.8em;
+      opacity: 0.8;
+      font-weight: 400;
+    }
+  }
+}

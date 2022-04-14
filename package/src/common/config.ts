@@ -62,3 +62,13 @@ export function readConfiguration(
     directoryInfo,
   };
 }
+
+// Utility that provides a working directory and cleans it up
+export async function withWorkingDir(fn: (wkDir: string) => Promise<void>) {
+  const workingDir = Deno.makeTempDirSync();
+  try {
+    await fn(workingDir);
+  } finally {
+    Deno.removeSync(workingDir, { recursive: true });
+  }
+}
