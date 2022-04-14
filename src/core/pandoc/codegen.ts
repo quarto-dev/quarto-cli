@@ -138,7 +138,7 @@ export function pandocBlock(delimiter: string) {
         contents.push(s);
       },
       emit: function (ls: EitherString[]) {
-        ls.push(`${delimiter}${attrString()}\n`);
+        ls.push(`\n${delimiter}${attrString()}\n`);
         for (const entry of contents) {
           entry.emit(ls);
         }

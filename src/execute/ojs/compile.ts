@@ -669,7 +669,7 @@ export async function ojsCompile(
       cell.cell_type === "math"
     ) {
       // The lua filter is in charge of this, we're a NOP.
-      ls.push(cell.source);
+      ls.push(cell.sourceVerbatim);
     } else if (cell.cell_type?.language === "dot") {
       const newCell = {
         ...cell,
@@ -685,10 +685,7 @@ export async function ojsCompile(
     } else if (cell.cell_type?.language === "ojs") {
       await handleOJSCell(cell);
     } else {
-      // we just echo these cells while break-quarto-md doesn't know better.
-      ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
-      ls.push(cell.source);
-      ls.push("```");
+      ls.push(cell.sourceVerbatim);
     }
   }
 
@@ -849,7 +846,7 @@ export async function ojsCompile(
   ];
 
   return {
-    markdown: mappedJoin(ls, "\n"),
+    markdown: mappedJoin(ls, ""),
     filters: [
       "ojs",
     ],
