@@ -1,3 +1,11 @@
+$if(description)$
+<div>
+  <div class="description">
+    $description$
+  </div>
+</div>
+$endif$
+
 <div class="quarto-title-meta">
 
   $if(by-author)$
@@ -45,20 +53,13 @@
     </div>
   </div>
   $endif$
-  </div>
+</div>
   
-  $if(abstract)$
-  <div>
-    <div class="abstract">
-      <div class="abstract-title">$labels.abstract$</div>
-      $abstract$
-    </div>
+$if(abstract)$
+<div>
+  <div class="abstract">
+    <div class="abstract-title">$labels.abstract$</div>
+    $abstract$
   </div>
-  $elseif(description)$
-  <div>
-    <div class="abstract">
-      <div class="abstract-title">$labels.description$</div>
-      $description$
-    </div>
-  </div>
-  $endif$
+</div>
+$endif$
