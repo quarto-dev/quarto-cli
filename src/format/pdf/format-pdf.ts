@@ -48,6 +48,8 @@ import { BookExtension } from "../../project/types/book/book-shared.ts";
 import { readLines } from "io/bufio.ts";
 import { TempContext } from "../../core/temp.ts";
 import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
+import { formatResourcePath } from "../../core/resources.ts";
+import { kTemplatePartials } from "../../command/render/template.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -126,17 +128,22 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         const documentclass = format.metadata[kDocumentClass] as
           | string
           | undefined;
+
+        const usingCustomTemplates = format.pandoc.template === undefined ||
+          format.metadata[kTemplatePartials] === undefined;
+
         if (
-          documentclass &&
-          ![
-            "srcbook",
-            "scrreprt",
-            "scrreport",
-            "scrartcl",
-            "scrarticle",
-          ].includes(
-            documentclass,
-          )
+          usingCustomTemplates ||
+          (documentclass &&
+            ![
+              "srcbook",
+              "scrreprt",
+              "scrreport",
+              "scrartcl",
+              "scrarticle",
+            ].includes(
+              documentclass,
+            ))
         ) {
           koma = false;
         }
@@ -175,15 +182,40 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
             }
           });
 
+          const headerIncludes = [];
+          headerIncludes.push(
+            "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
+          );
+
           extras.metadata = {
             [kDocumentClass]: "scrartcl",
             [kClassOption]: classOptions,
             [kPaperSize]: "letter",
-            [kHeaderIncludes]: [
-              "\\KOMAoption{captions}{" + captionOptions.join(",") + "}",
-            ],
+            [kHeaderIncludes]: headerIncludes,
           };
         }
+
+        // Provide a custom template for this format
+        const partialNames = [
+          "beamer",
+          "biblio",
+          "citations",
+          "doc-class",
+          "graphics",
+          "pandoc-after-body",
+          "pandoc-before-body",
+          "pandoc-before-doc",
+          "tables",
+          "tightlist",
+          "title",
+          "toc",
+        ];
+        extras.templateContext = {
+          template: formatResourcePath("pdf", "pandoc/template.tex"),
+          partials: partialNames.map((name) => {
+            return formatResourcePath("pdf", `pandoc/${name}.tex`);
+          }),
+        };
 
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (

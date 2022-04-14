@@ -25,7 +25,7 @@ import {
   kTo,
 } from "../../config/constants.ts";
 
-import { kPatchedTemplateExt } from "./output.ts";
+import { kPatchedTemplateExt } from "./template.ts";
 import { PandocOptions } from "./types.ts";
 import { crossrefFilter } from "./crossref.ts";
 import { layoutFilter } from "./layout.ts";

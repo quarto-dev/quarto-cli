@@ -18,6 +18,7 @@ export interface LatexmkOptions {
   minRuns?: number;
   maxRuns?: number;
   outputDir?: string;
+  texInputDir?: string;
   clean?: boolean;
   quiet?: boolean;
 }

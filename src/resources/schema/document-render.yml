@@ -24,6 +24,13 @@
   description: |
     Use the specified file as a custom template for the generated document.
 
+- name: template-partials
+  disabled: [$office-all, ipynb]
+  schema:
+    maybeArrayOf: path
+  description: |
+    Include the specified files as partials accessible to the template for the generated content.
+
 - name: standalone
   schema: boolean
   default: true
@@ -51,18 +58,6 @@
       file is remote).  Elements with the attribute
       `data-external="1"` will be left alone; the documents they
       link to will not be incorporated in the document.
-
-- name: self-contained-math
-  tags:
-    formats: [$html-files]
-  schema: boolean
-  default: false
-  description:
-    short: "Embed math libraries (e.g. MathJax) within `self-contained` output."
-    long: |
-      Embed math libraries (e.g. MathJax) within `self-contained` output.
-      Note that math libraries are not embedded by default because they are 
-      quite large and often time consuming to download.
 
 - name: filters
   schema:

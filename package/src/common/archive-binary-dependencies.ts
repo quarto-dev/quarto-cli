@@ -8,7 +8,7 @@ import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
 import { execProcess } from "../../../src/core/process.ts";
-import { Configuration } from "./config.ts";
+import { Configuration, withWorkingDir } from "./config.ts";
 import {
   ArchitectureDependency,
   Dependency,
@@ -33,68 +33,65 @@ export async function archiveBinaryDependencies(_config: Configuration) {
     info(`Updating binary dependencies...\n`);
 
     for (const dependency of kDependencies) {
-      info(`** ${dependency.name} ${dependency.version} **`);
-
-      const dependencyBucketPath = `${dependency.bucket}/${dependency.version}`;
-      info("Checking archive status...\n");
-
-      const archive = async (
-        architectureDependency: ArchitectureDependency,
-      ) => {
-        const platformDeps = [
-          architectureDependency.darwin,
-          architectureDependency.linux,
-          architectureDependency.windows,
-        ];
-        for (const platformDep of platformDeps) {
-          const dependencyAwsPath =
-            `${kBucket}/${dependencyBucketPath}/${platformDep.filename}`;
-          const response = await s3cmd("ls", [dependencyAwsPath]);
-          if (!response) {
-            // This dependency doesn't exist, archive it
-            info(
-              `Archiving ${dependencyBucketPath} - ${platformDep.filename}`,
-            );
-
-            // Download the file
-            const localPath = await download(
-              workingDir,
-              platformDep,
-            );
-
-            // Sync to S3
-            info(`Copying to ${dependencyAwsPath}\n`);
-            await s3cmd("cp", [
-              localPath,
-              dependencyAwsPath,
-              "--acl",
-              "public-read",
-            ]);
-          } else {
-            info(`${dependencyAwsPath} already archived.`);
-          }
-        }
-      };
-
-      for (const arch of Object.keys(dependency.architectureDependencies)) {
-        info(`Archiving ${dependency.name}`);
-        const archDep = dependency.architectureDependencies[arch];
-        await archive(archDep);
-      }
-
-      info("");
+      await archiveBinaryDependency(dependency, workingDir);
     }
   });
 }
 
-// Utility that provides a working directory and cleans it up
-async function withWorkingDir(fn: (wkDir: string) => Promise<void>) {
-  const workingDir = Deno.makeTempDirSync();
-  try {
-    await fn(workingDir);
-  } finally {
-    Deno.removeSync(workingDir, { recursive: true });
+export async function archiveBinaryDependency(
+  dependency: Dependency,
+  workingDir: string,
+) {
+  info(`** ${dependency.name} ${dependency.version} **`);
+
+  const dependencyBucketPath = `${dependency.bucket}/${dependency.version}`;
+  info("Checking archive status...\n");
+
+  const archive = async (
+    architectureDependency: ArchitectureDependency,
+  ) => {
+    const platformDeps = [
+      architectureDependency.darwin,
+      architectureDependency.linux,
+      architectureDependency.windows,
+    ];
+    for (const platformDep of platformDeps) {
+      const dependencyAwsPath =
+        `${kBucket}/${dependencyBucketPath}/${platformDep.filename}`;
+      const response = await s3cmd("ls", [dependencyAwsPath]);
+      if (!response) {
+        // This dependency doesn't exist, archive it
+        info(
+          `Archiving ${dependencyBucketPath} - ${platformDep.filename}`,
+        );
+
+        // Download the file
+        const localPath = await download(
+          workingDir,
+          platformDep,
+        );
+
+        // Sync to S3
+        info(`Copying to ${dependencyAwsPath}\n`);
+        await s3cmd("cp", [
+          localPath,
+          dependencyAwsPath,
+          "--acl",
+          "public-read",
+        ]);
+      } else {
+        info(`${dependencyAwsPath} already archived.`);
+      }
+    }
+  };
+
+  for (const arch of Object.keys(dependency.architectureDependencies)) {
+    info(`Archiving ${dependency.name}`);
+    const archDep = dependency.architectureDependencies[arch];
+    await archive(archDep);
   }
+
+  info("");
 }
 
 async function s3cmd(cmd: string, args: string[]) {

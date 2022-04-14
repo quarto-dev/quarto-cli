@@ -11963,7 +11963,7 @@ try {
             },
             description: {
               short: "The sans serif font options for use with `xelatex` or `lualatex`.",
-              long: "The sans serif font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
+              long: "The sans serif font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
             }
           },
           {
@@ -11978,7 +11978,7 @@ try {
             },
             description: {
               short: "The monospace font options for use with `xelatex` or `lualatex`.",
-              long: "The monospace font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
+              long: "The monospace font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
             }
           },
           {
@@ -11992,8 +11992,8 @@ try {
               ]
             },
             description: {
-              short: "The monospace font options for use with `xelatex` or `lualatex`.",
-              long: "The monospace font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
+              short: "The math font options for use with `xelatex` or `lualatex`.",
+              long: "The math font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
             }
           },
           {
@@ -12008,7 +12008,7 @@ try {
             },
             description: {
               short: "The CJK font options for use with `xelatex` or `lualatex`.",
-              long: "The CJK font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
+              long: "The CJK font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
             }
           },
           {
@@ -14045,6 +14045,17 @@ try {
             description: "Use the specified file as a custom template for the generated document.\n"
           },
           {
+            name: "template-partials",
+            disabled: [
+              "$office-all",
+              "ipynb"
+            ],
+            schema: {
+              maybeArrayOf: "path"
+            },
+            description: "Include the specified files as partials accessible to the template for the generated content.\n"
+          },
+          {
             name: "standalone",
             schema: "boolean",
             default: true,
@@ -14062,20 +14073,6 @@ try {
             description: {
               short: "Produce a standalone HTML file with no external dependencies",
               long: 'Produce a standalone HTML file with no external dependencies, using\n`data:` URIs to incorporate the contents of linked scripts, stylesheets,\nimages, and videos. The resulting file should be\n"self-contained," in the sense that it needs no external files and no net\naccess to be displayed properly by a browser. This option works only with\nHTML output formats, including `html4`, `html5`, `html+lhs`, `html5+lhs`,\n`s5`, `slidy`, `slideous`, `dzslides`, and `revealjs`. Scripts, images,\nand stylesheets at absolute URLs will be downloaded; those at relative\nURLs will be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source\nfile is remote).  Elements with the attribute\n`data-external="1"` will be left alone; the documents they\nlink to will not be incorporated in the document.\n'
-            }
-          },
-          {
-            name: "self-contained-math",
-            tags: {
-              formats: [
-                "$html-files"
-              ]
-            },
-            schema: "boolean",
-            default: false,
-            description: {
-              short: "Embed math libraries (e.g. MathJax) within `self-contained` output.",
-              long: "Embed math libraries (e.g. MathJax) within `self-contained` output.\nNote that math libraries are not embedded by default because they are \nquite large and often time consuming to download.\n"
             }
           },
           {
@@ -17520,19 +17517,19 @@ try {
           },
           {
             short: "The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+            long: 'The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
           },
           {
             short: "The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+            long: 'The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
           },
           {
-            short: "The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+            short: "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+            long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
           },
           {
             short: "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+            long: 'The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
           },
           {
             short: "Options to pass to the microtype package.",
@@ -17864,14 +17861,11 @@ try {
           "Output file to write to",
           "Extension to use for generated output file",
           "Use the specified file as a custom template for the generated\ndocument.",
+          "Include the specified files as partials accessible to the template\nfor the generated content.",
           "Produce output with an appropriate header and footer (e.g.&nbsp;a\nstandalone HTML, LaTeX, TEI, or RTF file, not a fragment)",
           {
             short: "Produce a standalone HTML file with no external dependencies",
             long: 'Produce a standalone HTML file with no external dependencies, using\n<code>data:</code> URIs to incorporate the contents of linked scripts,\nstylesheets, images, and videos. The resulting file should be\n\u201Cself-contained,\u201D in the sense that it needs no external files and no\nnet access to be displayed properly by a browser. This option works only\nwith HTML output formats, including <code>html4</code>,\n<code>html5</code>, <code>html+lhs</code>, <code>html5+lhs</code>,\n<code>s5</code>, <code>slidy</code>, <code>slideous</code>,\n<code>dzslides</code>, and <code>revealjs</code>. Scripts, images, and\nstylesheets at absolute URLs will be downloaded; those at relative URLs\nwill be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source file is\nremote). Elements with the attribute <code>data-external="1"</code> will\nbe left alone; the documents they link to will not be incorporated in\nthe document.'
-          },
-          {
-            short: "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output.",
-            long: "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output. Note that math libraries are not\nembedded by default because they are quite large and often time\nconsuming to download."
           },
           "Specify executables or Lua scripts to be used as a filter\ntransforming the pandoc AST after the input is parsed and before the\noutput is written.",
           "Keep the markdown file generated by executing code",

@@ -84,6 +84,7 @@ export function hasAdaptiveTheme(pandoc: FormatPandoc) {
 export function isAdaptiveTheme(theme: string | Record<string, string>) {
   if (typeof (theme) === "string") {
     return [
+      "a11y",
       "arrow",
       "atom-one",
       "ayu",

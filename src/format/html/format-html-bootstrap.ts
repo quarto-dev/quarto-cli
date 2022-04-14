@@ -15,6 +15,7 @@ import { findParent } from "../../core/html.ts";
 import {
   kHtmlMathMethod,
   kLinkCitations,
+  kQuartoTemplateParams,
   kSectionDivs,
   kTheme,
   kTocLocation,
@@ -26,9 +27,9 @@ import {
   kDependencies,
   kHtmlFinalizers,
   kHtmlPostprocessors,
-  kMarkdownAfterBody,
   kSassBundles,
   Metadata,
+  SassLayer,
 } from "../../config/types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { PandocFlags } from "../../config/types.ts";
@@ -53,10 +54,11 @@ import {
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
-  DocumentTitleContext,
-  preProcessDocumentTitle,
+  documentTitlePartial,
+  documentTitleScssLayer,
   processDocumentTitle,
 } from "./format-html-title.ts";
+import { kTemplatePartials } from "../../command/render/template.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
@@ -155,10 +157,6 @@ export function boostrapExtras(
     });
   };
 
-  const documentTitleContext = preProcessDocumentTitle(
-    format,
-  );
-
   const pageLayout = formatPageLayout(format);
   const bodyEnvelope = formatHasArticleLayout(format)
     ? {
@@ -184,6 +182,17 @@ export function boostrapExtras(
       ),
     };
 
+  const { partials, templateParams } = documentTitlePartial(
+    format,
+  );
+  const sassLayers: SassLayer[] = [];
+  const titleSassLayer = documentTitleScssLayer(input, format);
+  if (titleSassLayer) {
+    sassLayers.push(titleSassLayer);
+  }
+
+  const scssBundles = resolveBootstrapScss(input, format, sassLayers);
+
   return {
     pandoc: {
       [kSectionDivs]: true,
@@ -192,18 +201,18 @@ export function boostrapExtras(
     metadata: {
       [kDocumentCss]: false,
       [kLinkCitations]: true,
+      [kTemplatePartials]: partials,
+      [kQuartoTemplateParams]: templateParams,
     },
     html: {
-      [kSassBundles]: resolveBootstrapScss(input, format),
+      [kSassBundles]: scssBundles,
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
-      [kMarkdownAfterBody]: [documentTitleContext.pipeline.markdownAfterBody()],
       [kHtmlPostprocessors]: [
         bootstrapHtmlPostprocessor(
           input,
           format,
           flags,
-          documentTitleContext,
           offset,
         ),
       ],
@@ -225,7 +234,6 @@ function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
-  documentTitleContext: DocumentTitleContext,
   offset?: string,
 ): HtmlPostProcessor {
   return async (
@@ -364,13 +372,10 @@ function bootstrapHtmlPostprocessor(
     // Process the title elements of this document
     const resources: string[] = [];
     const titleResourceFiles = processDocumentTitle(
-      documentTitleContext,
       input,
-      inputMetadata,
       format,
       flags,
       doc,
-      offset,
     );
     resources.push(...titleResourceFiles);
 

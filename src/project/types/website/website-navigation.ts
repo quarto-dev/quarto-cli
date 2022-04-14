@@ -74,13 +74,13 @@ import {
 } from "./website-search.ts";
 
 import {
-  isGithubRepoUrl,
   kSiteNavbar,
   kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
+  repoUrlIcon,
   websiteConfigActions,
   websiteConfigBoolean,
   websiteHtmlFormat,
@@ -540,51 +540,47 @@ function handleRepoLinks(
   if (repoActions.length > 0 || elRepoSource) {
     const repoInfo = websiteRepoInfo(config);
     if (repoInfo) {
-      if (isGithubRepoUrl(repoInfo.baseUrl)) {
-        if (repoActions.length > 0) {
-          // find the toc
-          const toc = doc.querySelector(`nav[role="doc-toc"]`);
-          if (toc) {
-            // get the action links
-            const links = repoActionLinks(
-              repoActions,
-              repoInfo,
-              websiteRepoBranch(config),
-              source,
-              language,
-            );
-            const actionsDiv = doc.createElement("div");
-            actionsDiv.classList.add("toc-actions");
-            const iconDiv = doc.createElement("div");
-            const iconEl = doc.createElement("i");
-            iconEl.classList.add("bi").add("bi-github");
-            iconDiv.appendChild(iconEl);
-            actionsDiv.appendChild(iconDiv);
-            const linksDiv = doc.createElement("div");
-            linksDiv.classList.add("action-links");
-            links.forEach((link) => {
-              const a = doc.createElement("a");
-              a.setAttribute("href", link.url);
-              a.classList.add("toc-action");
-              a.innerHTML = link.text;
-              const p = doc.createElement("p");
-              p.appendChild(a);
-              linksDiv.appendChild(p);
-            });
-            actionsDiv.appendChild(linksDiv);
-            toc.appendChild(actionsDiv);
-          }
-        }
-        if (elRepoSource) {
-          elRepoSource.setAttribute(
-            kDataQuartoSourceUrl,
-            `${repoInfo.baseUrl}blob/${
-              websiteRepoBranch(config)
-            }/${repoInfo.path}${source}`,
+      if (repoActions.length > 0) {
+        // find the toc
+        const toc = doc.querySelector(`nav[role="doc-toc"]`);
+        if (toc) {
+          // get the action links
+          const links = repoActionLinks(
+            repoActions,
+            repoInfo,
+            websiteRepoBranch(config),
+            source,
+            language,
           );
+          const actionsDiv = doc.createElement("div");
+          actionsDiv.classList.add("toc-actions");
+          const iconDiv = doc.createElement("div");
+          const iconEl = doc.createElement("i");
+          iconEl.classList.add("bi").add("bi-" + repoUrlIcon(repoInfo.baseUrl));
+          iconDiv.appendChild(iconEl);
+          actionsDiv.appendChild(iconDiv);
+          const linksDiv = doc.createElement("div");
+          linksDiv.classList.add("action-links");
+          links.forEach((link) => {
+            const a = doc.createElement("a");
+            a.setAttribute("href", link.url);
+            a.classList.add("toc-action");
+            a.innerHTML = link.text;
+            const p = doc.createElement("p");
+            p.appendChild(a);
+            linksDiv.appendChild(p);
+          });
+          actionsDiv.appendChild(linksDiv);
+          toc.appendChild(actionsDiv);
         }
-      } else {
-        warnOnce(`Repository links require a github.com ${kSiteRepoUrl}`);
+      }
+      if (elRepoSource) {
+        elRepoSource.setAttribute(
+          kDataQuartoSourceUrl,
+          `${repoInfo.baseUrl}blob/${
+            websiteRepoBranch(config)
+          }/${repoInfo.path}${source}`,
+        );
       }
     } else {
       warnOnce(

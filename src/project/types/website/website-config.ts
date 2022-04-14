@@ -278,10 +278,12 @@ export function websiteMetadataFields(): Array<string | RegExp> {
   return [kWebsite, "site"];
 }
 
-export function isGithubRepoUrl(_url: string): boolean {
-  // always validate `true` to account for GH enterprise
-  // (see https://github.com/quarto-dev/quarto-cli/issues/421)
-  return true;
+export function repoUrlIcon(url: string): string {
+  if (url.indexOf("github.com") !== -1) {
+    return "github";
+  } else {
+    return "git";
+  }
 }
 
 export function websiteConfigActions(

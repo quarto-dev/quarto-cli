@@ -4,6 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { join } from "path/mod.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 import {
@@ -20,7 +21,6 @@ import {
   Format,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
-  kTemplatePatches,
   kTextHighlightingMode,
   Metadata,
   PandocFlags,
@@ -33,7 +33,10 @@ import { findParent } from "../../core/html.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
-import { revealPluginExtras } from "./format-reveal-plugin.ts";
+import {
+  revealPluginExtras,
+  RevealPluginScript,
+} from "./format-reveal-plugin.ts";
 import { revealTheme } from "./format-reveal-theme.ts";
 import {
   revealMuliplexPreviewFile,
@@ -152,25 +155,6 @@ export function revealResolveFormat(format: Format) {
   }
 }
 
-export function injectRevealConfig(
-  config: Record<string, unknown>,
-  template: string,
-) {
-  // plugin config
-  const configJs: string[] = [];
-  Object.keys(config).forEach((key) => {
-    configJs.push(`'${key}': ${JSON.stringify(config[key])}`);
-  });
-  if (configJs.length > 0) {
-    const kRevealInitialize = "Reveal.initialize({";
-    template = template.replace(
-      kRevealInitialize,
-      kRevealInitialize + "\n" + configJs.join(",\n") + ",\n",
-    );
-  }
-  return template;
-}
-
 export function revealMetadataFilter(
   metadata: Metadata,
   kebabOptions = kRevealKebabOptions,
@@ -240,27 +224,35 @@ export function revealjsFormat() {
         }
 
         // additional options not supported by pandoc
-        const extraConfigPatch = (template: string) => {
-          const extraConfig = {
-            [kControlsAuto]: controlsAuto,
-            [kPreviewLinksAuto]: previewLinksAuto,
-            [kSmaller]: !!format.metadata[kSmaller],
-            [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
-            [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
-            [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
-              1.0,
-            [kAutoAnimateUnmatched]:
-              format.metadata[kAutoAnimateUnmatched] !== undefined
-                ? format.metadata[kAutoAnimateUnmatched]
-                : true,
-          };
-          return injectRevealConfig(extraConfig, template);
+        const extraConfig: Record<string, unknown> = {
+          [kControlsAuto]: controlsAuto,
+          [kPreviewLinksAuto]: previewLinksAuto,
+          [kSmaller]: !!format.metadata[kSmaller],
+          [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
+          [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
+          [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
+            1.0,
+          [kAutoAnimateUnmatched]:
+            format.metadata[kAutoAnimateUnmatched] !== undefined
+              ? format.metadata[kAutoAnimateUnmatched]
+              : true,
         };
+
+        // get theme info (including text highlighing mode)
+        const theme = await revealTheme(format, input, libDir, temp);
+
+        const revealPluginData = await revealPluginExtras(
+          format,
+          flags,
+          temp,
+          theme.revealUrl,
+          theme.revealDestDir,
+        );
 
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
-          await htmlFormatExtras(input, offset, format, temp, {
+          await htmlFormatExtras(input, flags, offset, format, temp, {
             tabby: true,
             anchors: false,
             copyCode: true,
@@ -286,51 +278,40 @@ export function revealjsFormat() {
               [kLinkCitations]: true,
             } as Metadata,
             metadataOverride,
+            templateContext: {
+              template: join(
+                formatResourcePath("revealjs", "pandoc"),
+                "template.revealjs",
+              ),
+              partials: [],
+            },
+
             [kIncludeInHeader]: [
               formatResourcePath("html", "styles-callout.html"),
               stylesFile,
             ],
             html: {
-              [kTemplatePatches]: [
-                extraConfigPatch,
-                revealRequireJsPatch,
-                /* TODO: Remove when the template has changed in Pandoc
-                    https://github.com/jgm/pandoc/blob/master/data/templates/default.revealjs#L22 */
-                (template: string) => {
-                  template = template.replace(
-                    /\s*\.reveal \.sourceCode \{[^}]+\}/m,
-                    "",
-                  );
-                  return template;
-                },
-              ],
               [kHtmlPostprocessors]: [
-                revealHtmlPostprocessor(format),
+                revealHtmlPostprocessor(
+                  format,
+                  extraConfig,
+                  revealPluginData.pluginInit,
+                ),
               ],
               [kMarkdownAfterBody]: [revealMarkdownAfterBody(format)],
             },
           },
         );
 
-        // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, input, libDir, temp);
         extras.metadataOverride = {
           ...extras.metadataOverride,
           ...theme.metadata,
         };
         extras.html![kTextHighlightingMode] = theme[kTextHighlightingMode];
 
-        const revealPluginExtrasConfig = await revealPluginExtras(
-          format,
-          flags,
-          temp,
-          theme.revealUrl,
-          theme.revealDestDir,
-        );
-
         // add plugins
         extras = mergeConfigs(
-          revealPluginExtrasConfig,
+          revealPluginData.extras,
           extras,
         );
 
@@ -396,22 +377,6 @@ export function revealjsFormat() {
   );
 }
 
-const kRevelJsRegEx =
-  /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m;
-
-function revealRequireJsPatch(template: string) {
-  // fix require usages to be compatible with jupyter widgets
-  template = template.replace(
-    kRevelJsRegEx,
-    "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
-  );
-  template = template.replace(
-    /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>(?:\r?\n|\r)\$endif\$)/,
-    "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
-  );
-  return template;
-}
-
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
   if (format.metadata[kSlideLogo]) {
@@ -433,8 +398,29 @@ function revealMarkdownAfterBody(format: Format) {
 }
 
 const kOutputLocationSlide = "output-location-slide";
+const kRevealJsPlugins = " reveal.js plugins ";
+/*
+    // plugin scripts
 
-function revealHtmlPostprocessor(format: Format) {
+    const scriptTags = scripts.map((file) => {
+      const async = file.async ? " async" : "";
+      return `  <script src="${file.path}"${async}></script>`;
+    }).join("\n");
+    template = template.replace(
+      kRevealJsPlugins,
+      kRevealJsPlugins + "\n" + scriptTags,
+    );
+    */
+
+function revealHtmlPostprocessor(
+  format: Format,
+  extraConfig: Record<string, unknown>,
+  pluginInit: {
+    scripts: RevealPluginScript[];
+    register: string[];
+    revealConfig: Record<string, unknown>;
+  },
+) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     // determine if we are embedding footnotes on slides
     const slideFootnotes = format.pandoc[kReferenceLocation] !== "document";
@@ -484,6 +470,45 @@ function revealHtmlPostprocessor(format: Format) {
       }
     }
 
+    // Find the plugin comment marker
+    let scriptPositionNode;
+    const rootNodes = doc.querySelector("body")?.childNodes;
+    if (rootNodes) {
+      for (const node of rootNodes) {
+        if (node.nodeType === NodeType.COMMENT_NODE) {
+          if (node.nodeValue === kRevealJsPlugins) {
+            scriptPositionNode = node;
+            break;
+          }
+        }
+      }
+    }
+
+    // Add reveal plugin script tags
+    if (scriptPositionNode) {
+      const createPluginScript = (pluginScript: RevealPluginScript) => {
+        const el = doc.createElement("script");
+        el.setAttribute("src", pluginScript.path);
+        if (pluginScript.async) {
+          el.setAttribute("async", "");
+        }
+
+        const spacing = doc.createTextNode("  ");
+        const newLine = doc.createTextNode("\n");
+
+        return [spacing, el, newLine];
+      };
+      const els = pluginInit.scripts.flatMap((script) => {
+        return createPluginScript(script);
+      });
+      const newLine = doc.createTextNode("\n");
+      scriptPositionNode.after(newLine, ...els);
+    } else {
+      throw new Error(
+        "Unable to determine where to insert Reveal plugin initialization scripts",
+      );
+    }
+
     // find reveal initialization and perform fixups
     const scripts = doc.querySelectorAll("script");
     for (const script of scripts) {
@@ -496,6 +521,37 @@ function revealHtmlPostprocessor(format: Format) {
         scriptEl.innerText = scriptEl.innerText.replace(
           /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
           "slideNumber: '$1'",
+        );
+
+        // plugin registration
+        if (pluginInit.register.length > 0) {
+          const kRevealPluginArray = "plugins: [";
+          scriptEl.innerText = scriptEl.innerText.replace(
+            kRevealPluginArray,
+            kRevealPluginArray + pluginInit.register.join(", ") + ",\n",
+          );
+        }
+
+        // Write any additional configuration of reveal
+        const configJs: string[] = [];
+        Object.keys(extraConfig).forEach((key) => {
+          configJs.push(
+            `'${key}': ${JSON.stringify(extraConfig[key])}`,
+          );
+        });
+
+        // Plugin initialization
+        Object.keys(pluginInit.revealConfig).forEach((key) => {
+          configJs.push(
+            `'${key}': ${JSON.stringify(pluginInit.revealConfig[key])}`,
+          );
+        });
+
+        const configStr = configJs.join(",\n");
+
+        scriptEl.innerText = scriptEl.innerText.replace(
+          "Reveal.initialize({",
+          `Reveal.initialize({\n${configStr},\n`,
         );
       }
     }
