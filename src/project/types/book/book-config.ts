@@ -30,7 +30,6 @@ import {
 import { kProjectRender, ProjectConfig } from "../../types.ts";
 
 import {
-  isGithubRepoUrl,
   kBodyFooter,
   kBodyHeader,
   kContents,
@@ -53,6 +52,7 @@ import {
   kSiteUrl,
   kTwitterCard,
   kWebsite,
+  repoUrlIcon,
   websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";
@@ -186,11 +186,11 @@ export async function bookProjectConfig(
 
   // if we have tools then fold those into the sidebar
 
-  // Prorcess the repo-url (github or journal-code) and other
+  // code tools
   const tools = [];
   if (site[kSiteRepoUrl]) {
     const repoUrl = site[kSiteRepoUrl] as string;
-    const icon = isGithubRepoUrl(repoUrl) ? "github" : "journal-code";
+    const icon = repoUrlIcon(repoUrl);
     tools.push({
       text: "Source Code",
       icon,
