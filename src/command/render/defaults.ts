@@ -36,6 +36,7 @@ import {
   resolveFilters,
 } from "./filters.ts";
 import { TempContext } from "../../core/temp.ts";
+import { authorsFilter } from "./authors.ts";
 
 export function generateDefaults(
   options: PandocOptions,
@@ -135,6 +136,7 @@ export function pandocDefaultsMessage(
           filter !== quartoPreFilter() &&
           filter !== quartoPostFilter() &&
           filter !== layoutFilter() &&
+          filter !== authorsFilter() &&
           !sysFilters.includes(filter);
       });
     if (defaults.filters?.length === 0) {
