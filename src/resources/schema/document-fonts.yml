@@ -157,16 +157,6 @@
       The sans serif font options for use with `xelatex` or `lualatex` allowing
       any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
 
-      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
-      version of Palatino with lowercase figures:
-
-      ```yaml
-      mainfont: TeX Gyre Pagella
-      mainfontoptions:
-        - Numbers=Lowercase
-        - Numbers=Proportional    
-      ```
-
 - name: monofontoptions
   schema:
     maybeArrayOf: string
@@ -178,36 +168,16 @@
       The monospace font options for use with `xelatex` or `lualatex` allowing
       any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
 
-      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
-      version of Palatino with lowercase figures:
-
-      ```yaml
-      mainfont: TeX Gyre Pagella
-      mainfontoptions:
-        - Numbers=Lowercase
-        - Numbers=Proportional    
-      ```
-
 - name: mathfontoptions
   schema:
     maybeArrayOf: string
   tags:
     formats: [$pdf-all]
   description:
-    short: The monospace font options for use with `xelatex` or `lualatex`.
+    short: The math font options for use with `xelatex` or `lualatex`.
     long: |
-      The monospace font options for use with `xelatex` or `lualatex` allowing
+      The math font options for use with `xelatex` or `lualatex` allowing
       any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
-
-      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
-      version of Palatino with lowercase figures:
-
-      ```yaml
-      mainfont: TeX Gyre Pagella
-      mainfontoptions:
-        - Numbers=Lowercase
-        - Numbers=Proportional    
-      ```
 
 - name: CJKoptions
   schema:
@@ -219,16 +189,6 @@
     long: |
       The CJK font options for use with `xelatex` or `lualatex` allowing
       any options available through [`fontspec`](https://ctan.org/pkg/fontspec).
-
-      For example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) 
-      version of Palatino with lowercase figures:
-
-      ```yaml
-      mainfont: TeX Gyre Pagella
-      mainfontoptions:
-        - Numbers=Lowercase
-        - Numbers=Proportional    
-      ```
 
 - name: microtypeoptions
   schema:

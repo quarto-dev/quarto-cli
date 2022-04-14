@@ -11963,7 +11963,7 @@ try {
             },
             description: {
               short: "The sans serif font options for use with `xelatex` or `lualatex`.",
-              long: "The sans serif font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
+              long: "The sans serif font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
             }
           },
           {
@@ -11978,7 +11978,7 @@ try {
             },
             description: {
               short: "The monospace font options for use with `xelatex` or `lualatex`.",
-              long: "The monospace font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
+              long: "The monospace font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
             }
           },
           {
@@ -11992,8 +11992,8 @@ try {
               ]
             },
             description: {
-              short: "The monospace font options for use with `xelatex` or `lualatex`.",
-              long: "The monospace font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
+              short: "The math font options for use with `xelatex` or `lualatex`.",
+              long: "The math font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
             }
           },
           {
@@ -12008,7 +12008,7 @@ try {
             },
             description: {
               short: "The CJK font options for use with `xelatex` or `lualatex`.",
-              long: "The CJK font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
+              long: "The CJK font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
             }
           },
           {
@@ -17520,19 +17520,19 @@ try {
           },
           {
             short: "The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+            long: 'The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
           },
           {
             short: "The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+            long: 'The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
           },
           {
-            short: "The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+            short: "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+            long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
           },
           {
             short: "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-            long: 'The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+            long: 'The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
           },
           {
             short: "Options to pass to the microtype package.",
