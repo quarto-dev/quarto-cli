@@ -10,6 +10,8 @@ import { join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { removeIfExists } from "./path.ts";
 
+export type { TempContext } from "./temp-types.ts";
+
 let tempDir: string | undefined;
 
 export function initSessionTempDir() {
@@ -21,12 +23,6 @@ export function cleanupSessionTempDir() {
     removeIfExists(tempDir);
     tempDir = undefined;
   }
-}
-
-export interface TempContext {
-  createFile: (options?: Deno.MakeTempOptions) => string;
-  createDir: (options?: Deno.MakeTempOptions) => string;
-  cleanup: () => void;
 }
 
 export function createTempContext(options?: Deno.MakeTempOptions) {

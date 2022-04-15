@@ -15,7 +15,7 @@ import {
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { TempContext } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp-types.ts";
 
 export const kMarkdownBlockSeparator = "\n\n<!-- -->\n\n";
 export const kDefaultHighlightStyle = "arrow";

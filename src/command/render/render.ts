@@ -156,6 +156,7 @@ import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
 import { asMappedString } from "../../core/lib/mapped-text.ts";
 import { mappedDiff } from "../../core/mapped-text.ts";
 import { setDateLocale } from "../../core/date.ts";
+import { filesDirLibDir } from "./render-paths.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -1048,10 +1049,6 @@ export async function resolveFormatsFromMetadata(
   });
 
   return resolved;
-}
-
-export function filesDirLibDir(input: string) {
-  return join(inputFilesDir(input), "libs");
 }
 
 async function runHtmlPostprocessors(

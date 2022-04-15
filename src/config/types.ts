@@ -170,7 +170,7 @@ import {
   kWebtex,
 } from "./constants.ts";
 
-import { TempContext } from "../core/temp.ts";
+import { TempContext } from "../core/temp-types.ts";
 import { HtmlPostProcessor } from "../command/render/types.ts";
 
 export const kDependencies = "dependencies";

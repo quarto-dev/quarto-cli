@@ -8,7 +8,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { MappedString } from "../lib/text-types.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
-import { TempContext } from "../temp.ts";
+import { TempContext } from "../temp-types.ts";
 export type PandocIncludeType =
   | typeof kIncludeBeforeBody
   | typeof kIncludeAfterBody

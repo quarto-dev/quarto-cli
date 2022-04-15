@@ -15,7 +15,7 @@ import {
 } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
 import { ProjectConfig, ProjectContext } from "../types.ts";
-import { TempContext } from "../../core/temp.ts";
+import { TempContext } from "../../core/temp-types.ts";
 
 export interface ProjectType {
   type: string;

@@ -17,7 +17,7 @@ import { Format } from "../../config/types.ts";
 import { isHtmlFileOutput } from "../../config/format.ts";
 import { kKeepMd, kKeepTex } from "../../config/constants.ts";
 
-import { filesDirLibDir } from "./render.ts";
+import { filesDirLibDir } from "./render-paths.ts";
 
 export function renderCleanup(
   input: string,
