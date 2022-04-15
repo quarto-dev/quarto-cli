@@ -25,7 +25,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
 import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
-import { isSelfContained } from "../../command/render/render.ts";
+import { isSelfContained } from "../../command/render/render-info.ts";
 
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
 

@@ -18,7 +18,7 @@ import { Format } from "../../config/types.ts";
 import { projectContext } from "../../project/project-context.ts";
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
-import { renderFormats } from "../render/render.ts";
+import { renderFormats } from "../render/render-contexts.ts";
 import {
   resolveFileResources,
   resourcesFromMetadata,

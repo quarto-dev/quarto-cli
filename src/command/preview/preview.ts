@@ -38,7 +38,8 @@ import {
   RenderResult,
   RenderResultFile,
 } from "../render/types.ts";
-import { renderFormats, renderResultFinalOutput } from "../render/render.ts";
+import { renderFormats } from "../render/render-contexts.ts";
+import { renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 
 import { Format } from "../../config/types.ts";

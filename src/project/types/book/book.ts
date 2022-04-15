@@ -61,7 +61,7 @@ import {
   setBookConfig,
 } from "./book-shared.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
-import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
+import { formatHasBootstrap } from "../../../format/html/format-html-info.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { isSpecialDate, parseSpecialDate } from "../../../core/date.ts";
 

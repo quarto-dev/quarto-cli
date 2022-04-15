@@ -26,7 +26,9 @@ import {
   kTopLevelDivision,
 } from "../../config/constants.ts";
 import { isQuartoMetadata } from "../../config/metadata.ts";
-import { RenderFlags } from "./types.ts";
+import { RenderFlags, RenderOptions } from "./types.ts";
+
+import * as ld from "../../core/lodash.ts";
 
 export const kStdOut = "-";
 
@@ -431,6 +433,15 @@ export function removePandocToArg(args: string[]) {
   removeArgs.set("--to", true);
   removeArgs.set("-t", true);
   return removePandocArgs(args, removeArgs);
+}
+
+export function removePandocTo(renderOptions: RenderOptions) {
+  renderOptions = ld.cloneDeep(renderOptions);
+  delete renderOptions.flags?.to;
+  if (renderOptions.pandocArgs) {
+    renderOptions.pandocArgs = removePandocToArg(renderOptions.pandocArgs);
+  }
+  return renderOptions;
 }
 
 function removeQuartoMetadataFlags(pandocArgs: string[]) {

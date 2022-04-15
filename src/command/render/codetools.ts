@@ -1,5 +1,5 @@
 /*
-* keepsource.ts
+* codetools.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -26,7 +26,7 @@ import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 
 import { isHtmlOutput } from "../../config/format.ts";
 import { executionEngineCanKeepSource } from "../../execute/engine.ts";
-import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
+import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 
 const kHideAllCodeLinkId = "quarto-hide-all-code";
 const kShowAllCodeLinkId = "quarto-show-all-code";

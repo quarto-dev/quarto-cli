@@ -31,11 +31,10 @@ import {
 import { Format, Metadata } from "../../../config/types.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 
-import {
-  removePandocTo,
-  renderContexts,
-  renderPandoc,
-} from "../../../command/render/render.ts";
+import { renderPandoc } from "../../../command/render/render.ts";
+
+import { renderContexts } from "../../../command/render/render-contexts.ts";
+
 import {
   ExecutedFile,
   RenderContext,
@@ -85,6 +84,7 @@ import {
 } from "../../../core/yaml.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { kDateFormat } from "../website/listing/website-listing-template.ts";
+import { removePandocTo } from "../../../command/render/flags.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,

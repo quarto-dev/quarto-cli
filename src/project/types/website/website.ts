@@ -35,7 +35,7 @@ import {
   kTitle,
   kTitlePrefix,
 } from "../../../config/constants.ts";
-import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
+import { formatHasBootstrap } from "../../../format/html/format-html-info.ts";
 
 import {
   ensureIndexPage,

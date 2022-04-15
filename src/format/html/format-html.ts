@@ -46,11 +46,12 @@ import { formatHasCodeTools } from "../../command/render/codetools.ts";
 import { createHtmlFormat } from "./../formats-shared.ts";
 
 import {
-  boostrapExtras,
   darkModeDefault,
   formatDarkMode,
   formatHasBootstrap,
-} from "./format-html-bootstrap.ts";
+} from "./format-html-info.ts";
+
+import { boostrapExtras } from "./format-html-bootstrap.ts";
 
 import {
   clipboardDependency,

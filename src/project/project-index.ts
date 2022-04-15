@@ -21,7 +21,7 @@ import {
   removeIfExists,
 } from "../core/path.ts";
 import { kOutputFile, kTitle } from "../config/constants.ts";
-import { renderFormats } from "../command/render/render.ts";
+import { renderFormats } from "../command/render/render-contexts.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { projectConfigFile, projectOutputDir } from "./project-shared.ts";

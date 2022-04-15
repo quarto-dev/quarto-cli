@@ -37,8 +37,9 @@ import {
 } from "../../../config/toc.ts";
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
+import { formatDarkMode } from "../../../format/html/format-html-info.ts";
+
 import {
-  formatDarkMode,
   formatHasArticleLayout,
   formatPageLayout,
 } from "../../../format/html/format-html-bootstrap.ts";
