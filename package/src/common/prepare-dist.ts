@@ -14,6 +14,7 @@ import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { info } from "log/mod.ts";
 import { buildAssets } from "../../../src/command/build-js/cmd.ts";
+import { initTreeSitter } from "../../../src/core/lib/yaml-validation/deno-init-tree-sitter.ts";
 
 export async function prepareDist(
   config: Configuration,
@@ -56,6 +57,7 @@ export async function prepareDist(
   info("");
 
   info("\nBuilding JS assets");
+  await initTreeSitter();
   await buildAssets();
   const buildAssetFiles = [
     "formats/html/ojs/esbuild-bundle.js",
