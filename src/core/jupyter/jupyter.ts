@@ -268,7 +268,6 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigScap,
   kFigCapLoc,
   kTblCapLoc,
-  kTblColwidths,
   kCapLoc,
   kCellFigColumn,
   kCellTblColumn,
@@ -1114,6 +1113,8 @@ function mdFromCodeCell(
     ...cell.metadata,
     ...cell.options,
   };
+
+  console.log(cellOptions);
 
   for (const key of Object.keys(cellOptions)) {
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
