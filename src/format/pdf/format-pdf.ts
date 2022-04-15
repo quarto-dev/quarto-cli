@@ -198,13 +198,14 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         // Provide a custom template for this format
         const partialNames = [
           "beamer",
+          "before-bib",
           "biblio",
           "citations",
           "doc-class",
           "graphics",
           "pandoc-after-body",
           "pandoc-before-body",
-          "pandoc-before-doc",
+          "pandoc-base",
           "tables",
           "tightlist",
           "title",
