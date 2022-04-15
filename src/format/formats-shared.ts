@@ -90,6 +90,7 @@ export function createHtmlFormat(
     metadata: {
       [kLang]: "en",
       [kFigResponsive]: true,
+      [kQuartoVersion]: quartoConfig.version(),
     },
     execute: {
       [kFigFormat]: "retina",
@@ -219,8 +220,6 @@ function defaultFormat(): Format {
     },
     pandoc: {},
     language: {},
-    metadata: {
-      [kQuartoVersion]: quartoConfig.version(),
-    },
+    metadata: {},
   };
 }

@@ -136,9 +136,16 @@ local kAffiliationAliasedFields = {
 -- Normalizes author metadata from the 'input' field into 
 -- consistently structured metadata in the 'output' field
 function authorsMeta()
+
+
+  
+
+
   return {
     Meta = function(meta)
-      -- Forward language fields along in the labels bucket
+      if not isHtmlOutput() and not isLatexOutput() then
+        return
+      end
 
       local authorsRaw = meta[kAuthorInput]
       
