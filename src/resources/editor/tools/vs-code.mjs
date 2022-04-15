@@ -18628,66 +18628,6 @@ var require_yaml_intelligence_resources = __commonJS({
       "handlers/languages.yml": [
         "mermaid"
       ],
-      "handlers/${language}/schema.yml": {
-        type: "object",
-        description: "be an object",
-        properties: {
-          echo: {
-            type: "anyOf",
-            anyOf: [
-              {
-                type: "boolean",
-                description: "be `true` or `false`",
-                completions: [
-                  "true",
-                  "false"
-                ],
-                exhaustiveCompletions: true
-              },
-              {
-                type: "enum",
-                enum: [
-                  "bad",
-                  "fenced"
-                ],
-                description: "be one of: `bad`, `fenced`",
-                completions: [
-                  "bad",
-                  "fenced"
-                ],
-                exhaustiveCompletions: true
-              }
-            ],
-            description: "be at least one of: `true` or `false`, one of: `bad`, `fenced`"
-          }
-        },
-        patternProperties: {}
-      },
-      "handlers/mermaid/schema.yml": {
-        type: "object",
-        description: "be an object",
-        properties: {
-          echo: {
-            type: "enum",
-            enum: [
-              true,
-              false,
-              "fenced",
-              "fancy-mermaid-echo"
-            ],
-            description: "be one of: `true`, `false`, `fenced`, `fancy-mermaid-echo`",
-            completions: [
-              "true",
-              "false",
-              "fenced",
-              "fancy-mermaid-echo"
-            ],
-            exhaustiveCompletions: true
-          }
-        },
-        patternProperties: {},
-        $id: "handlers/mermaid"
-      },
       "handlers/lang-comment-chars.yml": {
         r: "#",
         python: "#",
@@ -18740,6 +18680,31 @@ var require_yaml_intelligence_resources = __commonJS({
         dot: "//",
         ojs: "//",
         mermaid: "%%"
+      },
+      "handlers/mermaid/schema.yml": {
+        type: "object",
+        description: "be an object",
+        properties: {
+          echo: {
+            type: "enum",
+            enum: [
+              true,
+              false,
+              "fenced",
+              "fancy-mermaid-echo"
+            ],
+            description: "be one of: `true`, `false`, `fenced`, `fancy-mermaid-echo`",
+            completions: [
+              "true",
+              "false",
+              "fenced",
+              "fancy-mermaid-echo"
+            ],
+            exhaustiveCompletions: true
+          }
+        },
+        patternProperties: {},
+        $id: "handlers/mermaid"
       }
     };
   }

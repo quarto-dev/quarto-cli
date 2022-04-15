@@ -83,7 +83,7 @@ import {
   RenderFile,
   RenderFlags,
 } from "./types.ts";
-import { runPandoc } from "./pandoc.ts";
+import { resolveDependencies, runPandoc } from "./pandoc.ts";
 import { removePandocToArg, resolveParams } from "./flags.ts";
 import { renderCleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
@@ -297,10 +297,37 @@ export async function renderFiles(
           libDir: context.libDir,
           project: context.project,
         };
-        await handleLanguageCells(
+
+        // handle language cells
+        const { markdown, results } = await handleLanguageCells(
           mappedExecuteResult,
           languageCellHandlerOptions,
         );
+        // merge cell language results
+        mappedExecuteResult.markdown = markdown;
+
+        if (results) {
+          if (mappedExecuteResult.includes) {
+            mappedExecuteResult.includes = mergeConfigs(
+              mappedExecuteResult.includes,
+              results.includes,
+            );
+          } else {
+            mappedExecuteResult.includes = results.includes;
+          }
+          const extras = resolveDependencies(
+            results.extras,
+            dirname(context.target.source),
+            context.libDir,
+            tempContext,
+          );
+          if (extras[kIncludeInHeader]) {
+            mappedExecuteResult.includes[kIncludeInHeader] = [
+              ...(mappedExecuteResult.includes[kIncludeInHeader] || []),
+              ...(extras[kIncludeInHeader] || []),
+            ];
+          }
+        }
 
         // process ojs
         const { executeResult, resourceFiles: ojsResourceFiles } =

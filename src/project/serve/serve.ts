@@ -59,6 +59,8 @@ import {
   isPreviewRenderRequest,
   previewRenderRequest,
   previewRenderRequestIsCompatible,
+} from "../../command/preview/preview.ts";
+import {
   previewUnableToRenderResponse,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,

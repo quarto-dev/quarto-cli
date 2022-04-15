@@ -12,8 +12,6 @@ import {
   FormatExtras,
   kDependencies,
 } from "../../config/types.ts";
-import { resolveDependencies } from "../../command/render/pandoc.ts";
-import { dirname } from "path/mod.ts";
 import {
   asMappedString,
   join as mappedJoin,
@@ -81,7 +79,7 @@ function makeHandlerContext(
   options: LanguageCellHandlerOptions,
 ): {
   context: LanguageCellHandlerContext;
-  results: HandlerContextResults;
+  results?: HandlerContextResults;
 } {
   const formatDependency = {
     name: options.name,
@@ -163,11 +161,13 @@ export function install(handler: LanguageHandler) {
   }
 }
 
-// this mutates executeResult.markdown!
 export async function handleLanguageCells(
   executeResult: MappedExecuteResult,
   options: LanguageCellHandlerOptions,
-) {
+): Promise<{
+  markdown: MappedString;
+  results?: HandlerContextResults;
+}> {
   const mdCells =
     (await breakQuartoMd(asMappedString(executeResult.markdown), false))
       .cells;
@@ -200,6 +200,8 @@ export async function handleLanguageCells(
       source: cell,
     });
   }
+  let results: HandlerContextResults | undefined = undefined;
+
   for (const [language, cells] of Object.entries(languageCellsPerLanguage)) {
     const handler = makeHandlerContext(executeResult, {
       ...options,
@@ -213,29 +215,16 @@ export async function handleLanguageCells(
     for (let i = 0; i < transformedCells.length; ++i) {
       newCells[cells[i].index] = transformedCells[i];
     }
-    if (executeResult.includes) {
-      executeResult.includes = mergeConfigs(
-        executeResult.includes,
-        handler.results.includes,
-      );
+    if (results === undefined) {
+      results = handler.results;
     } else {
-      executeResult.includes = handler.results.includes;
-    }
-    const extras = resolveDependencies(
-      handler.results.extras,
-      dirname(options.source),
-      options.libDir,
-      options.temp,
-    );
-    if (extras[kIncludeInHeader]) {
-      executeResult.includes[kIncludeInHeader] = [
-        ...(executeResult.includes[kIncludeInHeader] || []),
-        ...(extras[kIncludeInHeader] || []),
-      ];
+      results = mergeConfigs(results, handler.results);
     }
   }
-
-  executeResult.markdown = mappedJoin(newCells, "\n");
+  return {
+    markdown: mappedJoin(newCells, "\n"),
+    results,
+  };
 }
 
 export const baseHandler: LanguageHandler = {

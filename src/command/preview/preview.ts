@@ -26,13 +26,12 @@ import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
 import {
-  isPreviewRenderRequest,
-  previewRenderRequest,
-  previewRenderRequestIsCompatible,
+  kQuartoRenderCommand,
   previewUnableToRenderResponse,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
+  renderToken,
 } from "../render/render-shared.ts";
 import {
   RenderFlags,
@@ -193,7 +192,71 @@ export async function preview(
     })();
   }
 }
+export interface PreviewRenderRequest {
+  version: 1 | 2;
+  path: string;
+  format?: string;
+}
 
+export function isPreviewRenderRequest(req: Request) {
+  if (req.url.includes(kQuartoRenderCommand)) {
+    return true;
+  } else {
+    const token = renderToken();
+    if (token) {
+      return req.url.includes(token);
+    } else {
+      return false;
+    }
+  }
+}
+
+export function previewRenderRequest(
+  req: Request,
+  hasClients: boolean,
+  baseDir?: string,
+): PreviewRenderRequest | undefined {
+  // look for v1 rstudio format (requires baseDir b/c its a relative path)
+  const match = req.url.match(
+    new RegExp(`/${kQuartoRenderCommand}/(.*)$`),
+  );
+  if (match && baseDir) {
+    return {
+      version: 1,
+      path: join(baseDir, match[1]),
+    };
+  } else {
+    const token = renderToken();
+    if (token && req.url.includes(token)) {
+      const url = new URL(req.url);
+      const path = url.searchParams.get("path");
+      if (path) {
+        if (hasClients || !isBrowserPreviewable(path)) {
+          return {
+            version: 2,
+            path,
+            format: url.searchParams.get("format") || undefined,
+          };
+        }
+      }
+    }
+  }
+}
+
+export async function previewRenderRequestIsCompatible(
+  request: PreviewRenderRequest,
+  flags: RenderFlags,
+  project?: ProjectContext,
+) {
+  if (request.version === 1) {
+    return true; // rstudio manages its own request compatibility state
+  } else if (flags.to !== "all") {
+    const format = await previewFormat(request.path, request.format, project);
+    return format === flags.to;
+  } else {
+    return true;
+  }
+}
 // determine the format to preview
 export async function previewFormat(
   file: string,

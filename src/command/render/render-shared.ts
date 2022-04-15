@@ -22,7 +22,6 @@ import { renderFiles } from "./render.ts";
 import { resolveFileResources } from "./resources.ts";
 import {
   RenderedFile,
-  RenderFlags,
   RenderOptions,
   RenderResourceFiles,
   RenderResult,
@@ -43,9 +42,6 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kTextPlain } from "../../core/mime.ts";
-import { previewFormat } from "../preview/preview.ts";
-import { ProjectContext } from "../../project/types.ts";
-import { isBrowserPreviewable } from "../../core/http.ts";
 
 export async function render(
   path: string,
@@ -219,73 +215,7 @@ export function printBrowsePreviewMessage(port: number, path: string) {
   }
 }
 
-const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
-
-export interface PreviewRenderRequest {
-  version: 1 | 2;
-  path: string;
-  format?: string;
-}
-
-export function isPreviewRenderRequest(req: Request) {
-  if (req.url.includes(kQuartoRenderCommand)) {
-    return true;
-  } else {
-    const token = renderToken();
-    if (token) {
-      return req.url.includes(token);
-    } else {
-      return false;
-    }
-  }
-}
-
-export function previewRenderRequest(
-  req: Request,
-  hasClients: boolean,
-  baseDir?: string,
-): PreviewRenderRequest | undefined {
-  // look for v1 rstudio format (requires baseDir b/c its a relative path)
-  const match = req.url.match(
-    new RegExp(`/${kQuartoRenderCommand}/(.*)$`),
-  );
-  if (match && baseDir) {
-    return {
-      version: 1,
-      path: join(baseDir, match[1]),
-    };
-  } else {
-    const token = renderToken();
-    if (token && req.url.includes(token)) {
-      const url = new URL(req.url);
-      const path = url.searchParams.get("path");
-      if (path) {
-        if (hasClients || !isBrowserPreviewable(path)) {
-          return {
-            version: 2,
-            path,
-            format: url.searchParams.get("format") || undefined,
-          };
-        }
-      }
-    }
-  }
-}
-
-export async function previewRenderRequestIsCompatible(
-  request: PreviewRenderRequest,
-  flags: RenderFlags,
-  project?: ProjectContext,
-) {
-  if (request.version === 1) {
-    return true; // rstudio manages its own request compatibility state
-  } else if (flags.to !== "all") {
-    const format = await previewFormat(request.path, request.format, project);
-    return format === flags.to;
-  } else {
-    return true;
-  }
-}
+export const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
 
 export function previewUnableToRenderResponse() {
   return new Response("not found", {
@@ -298,7 +228,7 @@ export function previewUnableToRenderResponse() {
 
 // QUARTO_RENDER_TOKEN
 let quartoRenderToken: string | null | undefined;
-function renderToken(): string | null {
+export function renderToken(): string | null {
   const kQuartoRenderToken = "QUARTO_RENDER_TOKEN";
   if (quartoRenderToken === undefined) {
     quartoRenderToken = Deno.env.get(kQuartoRenderToken) || null;

@@ -15,6 +15,9 @@ import { simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
+// initialize language handlers
+import "../../core/handlers/handlers.ts";
+
 function ensureAllowableIDESyntax(src: string, filename: string) {
   const ast = parseES6(src, {
     ecmaVersion: "2020",
