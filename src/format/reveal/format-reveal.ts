@@ -14,6 +14,7 @@ import {
   kIncludeInHeader,
   kLinkCitations,
   kReferenceLocation,
+  kRevealJsScripts,
   kSlideLevel,
 } from "../../config/constants.ts";
 
@@ -247,7 +248,7 @@ export function revealjsFormat() {
           temp,
           theme.revealUrl,
           theme.revealDestDir,
-        );
+        ); // Add plugin scripts to metadata for template to use
 
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
@@ -276,6 +277,11 @@ export function revealjsFormat() {
             pandoc: {},
             metadata: {
               [kLinkCitations]: true,
+              [kRevealJsScripts]: revealPluginData.pluginInit.scripts.map(
+                (script) => {
+                  return script.path;
+                },
+              ),
             } as Metadata,
             metadataOverride,
             templateContext: {
@@ -398,19 +404,6 @@ function revealMarkdownAfterBody(format: Format) {
 }
 
 const kOutputLocationSlide = "output-location-slide";
-const kRevealJsPlugins = " reveal.js plugins ";
-/*
-    // plugin scripts
-
-    const scriptTags = scripts.map((file) => {
-      const async = file.async ? " async" : "";
-      return `  <script src="${file.path}"${async}></script>`;
-    }).join("\n");
-    template = template.replace(
-      kRevealJsPlugins,
-      kRevealJsPlugins + "\n" + scriptTags,
-    );
-    */
 
 function revealHtmlPostprocessor(
   format: Format,
@@ -468,45 +461,6 @@ function revealHtmlPostprocessor(
       if (titleSlide) {
         titleSlide.removeAttribute("id");
       }
-    }
-
-    // Find the plugin comment marker
-    let scriptPositionNode;
-    const rootNodes = doc.querySelector("body")?.childNodes;
-    if (rootNodes) {
-      for (const node of rootNodes) {
-        if (node.nodeType === NodeType.COMMENT_NODE) {
-          if (node.nodeValue === kRevealJsPlugins) {
-            scriptPositionNode = node;
-            break;
-          }
-        }
-      }
-    }
-
-    // Add reveal plugin script tags
-    if (scriptPositionNode) {
-      const createPluginScript = (pluginScript: RevealPluginScript) => {
-        const el = doc.createElement("script");
-        el.setAttribute("src", pluginScript.path);
-        if (pluginScript.async) {
-          el.setAttribute("async", "");
-        }
-
-        const spacing = doc.createTextNode("  ");
-        const newLine = doc.createTextNode("\n");
-
-        return [spacing, el, newLine];
-      };
-      const els = pluginInit.scripts.flatMap((script) => {
-        return createPluginScript(script);
-      });
-      const newLine = doc.createTextNode("\n");
-      scriptPositionNode.after(newLine, ...els);
-    } else {
-      throw new Error(
-        "Unable to determine where to insert Reveal plugin initialization scripts",
-      );
     }
 
     // find reveal initialization and perform fixups
