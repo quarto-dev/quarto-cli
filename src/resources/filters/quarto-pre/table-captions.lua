@@ -4,11 +4,13 @@
 kTblCap = "tbl-cap"
 kTblSubCap = "tbl-subcap"
 
+local latexTableWithOptionsPattern = "(\\begin{table}%[%w+%])(.*)(\\end{table})"
 local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
 local latexLongtablePattern = "(\\begin{longtable})(.*)(\\end{longtable})"
 local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
 
 local latexTablePatterns = pandoc.List({
+  latexTableWithOptionsPattern,
   latexTablePattern,
   latexLongtablePattern,
   latexTabularPattern,

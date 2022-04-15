@@ -259,8 +259,8 @@
       },
       "default": false,
       "description": {
-        "short": "Choose how to include line numbers in code block output.",
-        "long": "Choose how to include line numbers in code block output.\n`true` or `false` influence all line numbering.\n\nUse a string to control the presence of specific line numbering.\n\n* Sets of lines are denoted with commas:\n  * `3,4,5`\n  * `1,10,12`\n* Ranges can be denoted with dashes and combined with commas:\n  * `1-3,5` \n  * `5-10,12,14`\n* Finally, animation steps are separated by `|`:\n  * `1-3|1-3,5` first shows `1-3`, then `1-3,5`\n  * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10\n    and 12\n"
+        "short": "Include line numbers in code block output (`true` or `false`)",
+        "long": "Include line numbers in code block output (`true` or `false`).\n\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines).\n\n* Sets of lines are denoted with commas:\n  * `3,4,5`\n  * `1,10,12`\n* Ranges can be denoted with dashes and combined with commas:\n  * `1-3,5` \n  * `5-10,12,14`\n* Finally, animation steps are separated by `|`:\n  * `1-3|1-3,5` first shows `1-3`, then `1-3,5`\n  * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10\n    and 12\n"
       }
     },
     {
@@ -10122,8 +10122,8 @@
       "long": "Choose how to handle code overflow, when code lines are too wide for\ntheir container. One of:"
     },
     {
-      "short": "Choose how to include line numbers in code block output.",
-      "long": "Choose how to include line numbers in code block output.\n<code>true</code> or <code>false</code> influence all line\nnumbering.\nUse a string to control the presence of specific line numbering."
+      "short": "Include line numbers in code block output (<code>true</code> or\n<code>false</code>)",
+      "long": "Include line numbers in code block output (<code>true</code> or\n<code>false</code>).\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines)."
     },
     "Unique label for code listing (used in cross references)",
     "Caption for code listing",

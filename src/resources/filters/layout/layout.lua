@@ -138,7 +138,11 @@ function partitionCells(divEl)
   for _,block in ipairs(divEl.content) do
     
     if isPreambleBlock(block) then
-      preamble:insert(block)
+      if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
+        preamble[#preamble].text = preamble[#preamble].text .. "\n\n" .. block.text
+      else
+        preamble:insert(block)
+      end
     elseif block.t == "Header" then
       if isRevealJsOutput() then
         heading = pandoc.Para({ pandoc.Strong(block.content)})

@@ -626,6 +626,16 @@ export async function runPandoc(
       options.source,
       pandocMetadata[kDate] as string,
     );
+
+    // Since there is no date format specified, we
+    // should default format this so it isn't a timestamp
+    if (!pandocMetadata[kDateFormat]) {
+      const parsed = parsePandocDate(pandocMetadata[kDate]);
+      pandocMetadata[kDate] = formatDate(
+        parsed,
+        "short",
+      );
+    }
   }
 
   // Format the date
@@ -633,7 +643,7 @@ export async function runPandoc(
     const parsed = parsePandocDate(pandocMetadata[kDate]);
     pandocMetadata[kDate] = formatDate(
       parsed,
-      pandocMetadata[kDateFormat] as string || "iso",
+      pandocMetadata[kDateFormat] as string,
     );
   }
 

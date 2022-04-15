@@ -279,6 +279,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 }
 
 .quarto-secondary-nav-title {
+  margin-top: 0.3em;
   color: $sidebar-color;
   padding-top: 4px;
 }

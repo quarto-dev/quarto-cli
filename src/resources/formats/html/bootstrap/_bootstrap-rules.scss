@@ -594,9 +594,16 @@ main {
   margin-bottom: 1em;
 }
 
-h2 {
+h1, h2 {
   margin-top: 2rem;
   margin-bottom: 1rem;
+}
+
+h1.title {
+  margin-top: 0;
+}
+
+h2 {
   border-bottom: 1px solid $table-border-color;
   padding-bottom: 0.5rem;
 }

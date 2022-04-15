@@ -76,12 +76,12 @@
     errorDescription: "be `true`, `false`, or a string specifying the lines to highlight"
   default: false
   description:
-    short: "Choose how to include line numbers in code block output."
+    short: "Include line numbers in code block output (`true` or `false`)"
     long: |
-      Choose how to include line numbers in code block output.
-      `true` or `false` influence all line numbering.
+      Include line numbers in code block output (`true` or `false`).
 
-      Use a string to control the presence of specific line numbering.
+      For revealjs output only, you can also specify a string to highlight
+      specific lines (and/or animate between sets of highlighted lines).
 
       * Sets of lines are denoted with commas:
         * `3,4,5`

@@ -268,7 +268,6 @@ export const kJupyterCellInternalOptionKeys = [
   kCellFigScap,
   kFigCapLoc,
   kTblCapLoc,
-  kTblColwidths,
   kCapLoc,
   kCellFigColumn,
   kCellTblColumn,
