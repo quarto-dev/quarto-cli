@@ -223,7 +223,7 @@ $endif$
 $if(pagestyle)$
 \pagestyle{$pagestyle$}
 $endif$
-$pandoc-before-doc.tex()$
+$pandoc-base.tex()$
 $if(lang)$
 \ifLuaTeX
 \usepackage[bidi=basic]{babel}
@@ -295,6 +295,8 @@ $if(has-frontmatter)$
 \mainmatter
 $endif$
 $body$
+
+$before-bib.tex()$
 
 $if(has-frontmatter)$
 \backmatter
