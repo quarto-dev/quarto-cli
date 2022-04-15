@@ -1544,8 +1544,19 @@ function mdImageOutput(
     Deno.writeTextFileSync(outputFile, imageText);
   }
 
+  const kFigOptions = [
+    kCellFigAlign,
+    kCellFigEnv,
+    kCellFigAlt,
+    kCellFigPos,
+    kCellFigScap,
+  ];
+
   let image = `![${alt}](${imageFile})`;
-  if (label || width || height) {
+  if (
+    label || width || height ||
+    Object.keys(figureOptions).some((option) => kFigOptions.includes(option))
+  ) {
     image += "{";
     if (label) {
       image += `${label} `;
@@ -1556,7 +1567,7 @@ function mdImageOutput(
     if (height) {
       image += `height=${height} `;
     }
-    [kCellFigAlign, kCellFigEnv, kCellFigAlt, kCellFigPos, kCellFigScap]
+    kFigOptions
       .forEach(
         (attrib) => {
           // deno-lint-ignore no-explicit-any
