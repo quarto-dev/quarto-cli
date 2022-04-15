@@ -16,6 +16,7 @@ function import(script)
   dofile(path .. script)
 end
 import("meta.lua")
+import("../common/pandoc.lua")
 import("../common/string.lua")
 import("../common/table.lua")
 import("../common/lunacolors.lua")
