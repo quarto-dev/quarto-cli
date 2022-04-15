@@ -1114,8 +1114,6 @@ function mdFromCodeCell(
     ...cell.options,
   };
 
-  console.log(cellOptions);
-
   for (const key of Object.keys(cellOptions)) {
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
