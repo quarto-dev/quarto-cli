@@ -479,7 +479,7 @@ function htmlFileRequestHandlerOptions(
         renderHandler();
         return Promise.resolve(httpContentResponse("rendered"));
       } else if (isPreviewRenderRequest(req)) {
-        const prevReq = previewRenderRequest(req, reloader.hasClients());
+        const prevReq = previewRenderRequest(req);
         if (
           prevReq &&
           existsSync(prevReq.path) &&

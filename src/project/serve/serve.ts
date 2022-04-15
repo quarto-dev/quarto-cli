@@ -244,11 +244,7 @@ export async function serveProject(
       if (watcher.handle(req)) {
         return await watcher.connect(req);
       } else if (isPreviewRenderRequest(req)) {
-        const prevReq = previewRenderRequest(
-          req,
-          watcher.hasClients(),
-          project!.dir,
-        );
+        const prevReq = previewRenderRequest(req, project!.dir);
         if (
           prevReq &&
           (await previewRenderRequestIsCompatible(prevReq, flags, project))

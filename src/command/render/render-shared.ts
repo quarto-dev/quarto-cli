@@ -242,7 +242,6 @@ export function isPreviewRenderRequest(req: Request) {
 
 export function previewRenderRequest(
   req: Request,
-  hasClients: boolean,
   baseDir?: string,
 ): PreviewRenderRequest | undefined {
   // look for v1 rstudio format (requires baseDir b/c its a relative path)
@@ -260,13 +259,11 @@ export function previewRenderRequest(
       const url = new URL(req.url);
       const path = url.searchParams.get("path");
       if (path) {
-        if (hasClients || !isBrowserPreviewable(path)) {
-          return {
-            version: 2,
-            path,
-            format: url.searchParams.get("format") || undefined,
-          };
-        }
+        return {
+          version: 2,
+          path,
+          format: url.searchParams.get("format") || undefined,
+        };
       }
     }
   }
