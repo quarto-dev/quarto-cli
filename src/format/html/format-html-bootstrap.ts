@@ -146,8 +146,8 @@ export function boostrapExtras(
   format: Format,
   offset?: string,
 ): FormatExtras {
-  const tocLocation = format.metadata[kTocLocation] || "left";
   const toc = hasTableOfContents(flags, format);
+  const tocLocation = toc ? format.metadata[kTocLocation] || "left" : undefined;
 
   const renderTemplate = (template: string, pageLayout: string) => {
     return renderEjs(formatResourcePath("html", `templates/${template}`), {
