@@ -15,8 +15,8 @@ import { renderEjs } from "../../../../core/ejs.ts";
 import { quartoConfig } from "../../../../core/quarto.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { ProjectContext } from "../../../types.ts";
+import { kImage } from "../website-constants.ts";
 import {
-  kImage,
   websiteBaseurl,
   websiteDescription,
   websiteImage,

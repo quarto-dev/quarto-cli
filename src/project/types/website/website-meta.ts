@@ -30,7 +30,7 @@ import {
   kSiteUrl,
   kTwitterCard,
   kWebsite,
-} from "./website-config.ts";
+} from "./website-constants.ts";
 import { computePageTitle } from "./website-shared.ts";
 import {
   createMarkdownPipeline,

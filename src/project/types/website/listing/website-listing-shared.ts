@@ -8,7 +8,7 @@
 
 import { kTitle } from "../../../../config/constants.ts";
 import { Metadata } from "../../../../config/types.ts";
-import { kImage } from "../website-config.ts";
+import { kImage } from "../website-constants.ts";
 
 // The root listing key
 export const kListing = "listing";

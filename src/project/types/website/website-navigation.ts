@@ -81,6 +81,9 @@ import {
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
+} from "./website-constants.ts";
+
+import {
   repoUrlIcon,
   websiteConfigActions,
   websiteConfigBoolean,

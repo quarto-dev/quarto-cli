@@ -65,7 +65,7 @@ import { gitignoreEntries } from "./project-gitignore.ts";
 
 import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
-import { kWebsite } from "./types/website/website-config.ts";
+import { kWebsite } from "./types/website/website-constants.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 

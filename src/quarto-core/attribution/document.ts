@@ -24,8 +24,10 @@ import {
   cslType,
   suggestId,
 } from "../../core/csl.ts";
-import { kSiteUrl } from "../../project/types/website/website-config.ts";
-import { kWebsite } from "../../project/types/website/website-config.ts";
+import {
+  kSiteUrl,
+  kWebsite,
+} from "../../project/types/website/website-constants.ts";
 
 const kDOI = "DOI";
 const kCitation = "citation";

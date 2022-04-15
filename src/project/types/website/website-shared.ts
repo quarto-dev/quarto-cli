@@ -23,6 +23,9 @@ import {
   kSitePageNavigation,
   kSiteSidebar,
   kWebsite,
+} from "./website-constants.ts";
+
+import {
   websiteConfig,
   websiteConfigArray,
   websiteConfigBoolean,

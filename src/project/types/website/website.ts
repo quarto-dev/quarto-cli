@@ -45,9 +45,8 @@ import {
 
 import { updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
+import { kSiteFavicon, kWebsite } from "./website-constants.ts";
 import {
-  kSiteFavicon,
-  kWebsite,
   websiteConfigString,
   websiteMetadataFields,
   websiteProjectConfig,

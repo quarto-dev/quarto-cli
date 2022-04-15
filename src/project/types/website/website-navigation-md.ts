@@ -16,7 +16,7 @@ import {
   kMarginFooter,
   kMarginHeader,
   kWebsite,
-} from "./website-config.ts";
+} from "./website-constants.ts";
 import { kTitle } from "../../../config/constants.ts";
 import {
   BodyDecorators,

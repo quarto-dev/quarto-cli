@@ -11,7 +11,7 @@ import { Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { ProjectContext } from "../../types.ts";
-import { kWebsite } from "./website-config.ts";
+import { kWebsite } from "./website-constants.ts";
 import {
   HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,

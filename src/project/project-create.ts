@@ -24,7 +24,7 @@ import { ExecutionEngine } from "../execute/types.ts";
 
 import { projectConfigFile } from "./project-shared.ts";
 import { ensureGitignore } from "./project-gitignore.ts";
-import { kWebsite } from "./types/website/website-config.ts";
+import { kWebsite } from "./types/website/website-constants.ts";
 
 export interface ProjectCreateOptions {
   dir: string;

@@ -76,7 +76,7 @@ import {
 import {
   kSiteUrl,
   kWebsite,
-} from "../../project/types/website/website-config.ts";
+} from "../../project/types/website/website-constants.ts";
 import {
   HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,

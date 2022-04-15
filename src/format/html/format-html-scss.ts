@@ -29,7 +29,7 @@ import {
   kSiteNavbar,
   kSiteSidebar,
   kWebsite,
-} from "../../project/types/website/website-config.ts";
+} from "../../project/types/website/website-constants.ts";
 import {
   bootstrapFunctions,
   bootstrapMixins,

@@ -11,7 +11,7 @@ import { bibliographyCslJson } from "../../core/bibliography.ts";
 import { CSL, cslDateToEDTFDate } from "../../core/csl.ts";
 import { Document } from "../../core/deno-dom.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
-import { kWebsite } from "../../project/types/website/website-config.ts";
+import { kWebsite } from "../../project/types/website/website-constants.ts";
 import { documentCSL } from "../../quarto-core/attribution/document.ts";
 import { writeMetaTag } from "./format-html-shared.ts";
 

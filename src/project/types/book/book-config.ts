@@ -52,10 +52,14 @@ import {
   kSiteUrl,
   kTwitterCard,
   kWebsite,
+} from "../website/website-constants.ts";
+
+import {
   repoUrlIcon,
   websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";
+
 import { kSidebarLogo } from "../website/website-navigation.ts";
 
 import {
