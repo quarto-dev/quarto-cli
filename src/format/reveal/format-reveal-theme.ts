@@ -22,7 +22,7 @@ import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { compileSass, mergeLayers, sassLayerFile } from "../../core/sass.ts";
 
-import { kRevealJsUrl } from "./format-reveal.ts";
+import { kRevealJsUrl } from "./constants.ts";
 import { cssHasDarkModeSentinel } from "../../command/render/pandoc-html.ts";
 import {
   pandocVariablesToThemeScss,
