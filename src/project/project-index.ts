@@ -66,11 +66,9 @@ export async function inputTargetIndex(
 
   // see if we have an up to date index file (but not for notebooks
   // as they could have ipynb-filters that vary based on config)
-  if (!isJupyterNotebook(input)) {
-    const targetIndex = readInputTargetIndex(project.dir, input);
-    if (targetIndex) {
-      return targetIndex;
-    }
+  const targetIndex = readInputTargetIndex(project.dir, input);
+  if (targetIndex) {
+    return targetIndex;
   }
 
   // otherwise read the metadata and index it
