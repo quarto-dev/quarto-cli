@@ -51,13 +51,6 @@ export function executionEngineKeepMd(input: string) {
   }
 }
 
-export function executionEngineCanKeepSource(
-  engine: ExecutionEngine,
-  target: ExecutionTarget,
-) {
-  return !engine.canKeepSource || engine.canKeepSource(target);
-}
-
 export function executionEngineKeepFiles(
   engine: ExecutionEngine,
   input: string,

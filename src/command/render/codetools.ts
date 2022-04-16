@@ -25,7 +25,7 @@ import {
 import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 
 import { isHtmlOutput } from "../../config/format.ts";
-import { executionEngineCanKeepSource } from "../../execute/engine.ts";
+import { executionEngineCanKeepSource } from "../../execute/engine-info.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 
 const kHideAllCodeLinkId = "quarto-hide-all-code";

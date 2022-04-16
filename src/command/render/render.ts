@@ -13,35 +13,10 @@ import { Document, DOMParser } from "../../core/deno-dom.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { figuresDir, inputFilesDir } from "../../core/render.ts";
-import {
-  dirAndStem,
-  pathWithForwardSlashes,
-  removeIfEmptyDir,
-  removeIfExists,
-} from "../../core/path.ts";
-import { warnOnce } from "../../core/log.ts";
+import { inputFilesDir } from "../../core/render.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
-import {
-  formatKeys,
-  mergeFormatMetadata,
-  resolveFormatsFromMetadata,
-} from "../../config/metadata.ts";
-import {
-  kEcho,
-  kEngine,
-  kExecuteEnabled,
-  kFreeze,
-  kIpynbFilters,
-  kKeepMd,
-  kLang,
-  kOutputExt,
-  kOutputFile,
-  kSelfContained,
-  kServer,
-  kTheme,
-} from "../../config/constants.ts";
-import { Format, FormatExecute, FormatPandoc } from "../../config/types.ts";
+import { FormatPandoc } from "../../config/types.ts";
 import {
   executionEngine,
   executionEngineKeepMd,
