@@ -20,6 +20,9 @@ import {
 } from "../../project/types/project-types.ts";
 import { kMarkdownEngine } from "../../execute/types.ts";
 
+// ensures project types are registered
+import "../../project/types/register.ts";
+
 const kProjectTypes = projectTypes();
 const kProjectTypeAliases = projectTypeAliases();
 const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
