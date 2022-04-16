@@ -37,8 +37,7 @@ import {
   kKeepHidden,
   kKeepIpynb,
 } from "../../config/constants.ts";
-import { Format, FormatExecute } from "../../config/types.ts";
-import { resolveFormatsFromMetadata } from "../../config/metadata.ts";
+import { Format } from "../../config/types.ts";
 import {
   isHtmlCompatible,
   isIpynbOutput,
@@ -72,8 +71,10 @@ import {
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 
-import { jupyterNotebookFiltered } from "./jupyter-filters.ts";
-import { mergeConfigs } from "../../core/config.ts";
+import {
+  jupyterNotebookFiltered,
+  markdownFromNotebook,
+} from "../../core/jupyter/jupyter-filters.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -157,11 +158,10 @@ export const jupyterEngine: ExecutionEngine = {
     }
   },
 
-  filterFormat: async (
+  filterFormat: (
     source: string,
     options: RenderOptions,
     format: Format,
-    formatName: string,
   ) => {
     if (isJupyterNotebook(source)) {
       // see if we want to override execute enabled
@@ -182,24 +182,6 @@ export const jupyterEngine: ExecutionEngine = {
         // otherwise default to NOT executing
       } else {
         executeEnabled = false;
-      }
-
-      // run any ipynb-filters to discover generated metadata, then merge it back in
-      if (hasIpynbFilters(format.execute)) {
-        // read markdown w/ filter
-        const markdown = partitionMarkdown(
-          await markdownFromNotebook(source, format),
-        );
-        // merge back metadata
-        if (markdown.yaml) {
-          const nbFormats = await resolveFormatsFromMetadata(
-            markdown.yaml,
-            source,
-            [formatName],
-            { ...options.flags, to: undefined },
-          );
-          format = mergeConfigs(format, nbFormats[formatName]);
-        }
       }
 
       // return format w/ execution policy
@@ -389,10 +371,6 @@ function cleanupNotebook(target: ExecutionTarget, format: Format) {
   }
 }
 
-function hasIpynbFilters(execute: FormatExecute) {
-  return execute[kIpynbFilters] && execute[kIpynbFilters]?.length;
-}
-
 interface JupyterTargetData {
   transient: boolean;
 }
@@ -427,22 +405,4 @@ function executeResultEngineDependencies(
   } else {
     return undefined;
   }
-}
-
-async function markdownFromNotebook(file: string, format?: Format) {
-  // read file with any filters
-  const nbContents = await jupyterNotebookFiltered(
-    file,
-    format?.execute[kIpynbFilters],
-  );
-  const nb = JSON.parse(nbContents);
-  const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
-  const markdown = cells.reduce((md, cell) => {
-    if (["markdown", "raw"].includes(cell.cell_type)) {
-      return md + "\n" + cell.source.join("") + "\n";
-    } else {
-      return md;
-    }
-  }, "");
-  return markdown;
 }

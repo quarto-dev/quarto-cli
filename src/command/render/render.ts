@@ -43,6 +43,7 @@ import {
   kEngine,
   kExecuteEnabled,
   kFreeze,
+  kIpynbFilters,
   kKeepMd,
   kLang,
   kOutputExt,
@@ -51,7 +52,7 @@ import {
   kServer,
   kTheme,
 } from "../../config/constants.ts";
-import { Format, FormatPandoc } from "../../config/types.ts";
+import { Format, FormatExecute, FormatPandoc } from "../../config/types.ts";
 import {
   executionEngine,
   executionEngineKeepMd,
@@ -130,6 +131,8 @@ import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
 import { setDateLocale } from "../../core/date.ts";
+import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
+import { markdownFromNotebook } from "../../core/jupyter/jupyter-filters.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -1047,19 +1050,44 @@ async function resolveFormats(
     }
   }
 
-  // apply engine format filters
-  if (engine.filterFormat) {
-    for (const format of Object.keys(mergedFormats)) {
-      mergedFormats[format] = await engine.filterFormat(
+  // apply some others
+  for (const formatName of Object.keys(mergedFormats)) {
+    let format = mergedFormats[formatName];
+
+    // run any ipynb-filters to discover generated metadata, then merge it back in
+    if (hasIpynbFilters(format.execute)) {
+      // read markdown w/ filter
+      const markdown = partitionMarkdown(
+        await markdownFromNotebook(target.source, format),
+      );
+      // merge back metadata
+      if (markdown.yaml) {
+        const nbFormats = await resolveFormatsFromMetadata(
+          markdown.yaml,
+          target.source,
+          [formatName],
+          { ...options.flags, to: undefined },
+        );
+        format = mergeConfigs(format, nbFormats[formatName]);
+      }
+    }
+
+    if (engine.filterFormat) {
+      format = await engine.filterFormat(
         target.source,
         options,
-        mergedFormats[format],
         format,
       );
     }
+
+    mergedFormats[formatName] = format;
   }
 
   return mergedFormats;
+}
+
+function hasIpynbFilters(execute: FormatExecute) {
+  return execute[kIpynbFilters] && execute[kIpynbFilters]?.length;
 }
 
 class RenderInvalidYAMLError extends YAMLValidationError {
