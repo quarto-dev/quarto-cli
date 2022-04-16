@@ -23,7 +23,7 @@ import { camelToKebab, mergeConfigs } from "../../core/config.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
-import { optionsToKebab, revealMetadataFilter } from "./format-reveal.ts";
+import { optionsToKebab, revealMetadataFilter } from "./metadata.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
 import { isSelfContained } from "../../command/render/render-info.ts";
 

@@ -26,7 +26,7 @@ import {
   Metadata,
   PandocFlags,
 } from "../../config/types.ts";
-import { camelToKebab, kebabToCamel, mergeConfigs } from "../../core/config.ts";
+import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
 import { TempContext } from "../../core/temp.ts";
@@ -51,101 +51,23 @@ import {
   HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
 } from "../../command/render/types.ts";
-
-const kRevealOptions = [
-  "controls",
-  "controlsTutorial",
-  "controlsLayout",
-  "controlsBackArrows",
-  "progress",
-  "slideNumber",
-  "showSlideNumber",
-  "hash",
-  "hashOneBasedIndex",
-  "respondToHashChanges",
-  "history",
-  "keyboard",
-  "overview",
-  "disableLayout",
-  "center",
-  "touch",
-  "loop",
-  "rtl",
-  "navigationMode",
-  "shuffle",
-  "fragments",
-  "fragmentInURL",
-  "embedded",
-  "help",
-  "pause",
-  "showNotes",
-  "autoPlayMedia",
-  "preloadIframes",
-  "autoAnimate",
-  "autoAnimateMatcher",
-  "autoAnimateEasing",
-  "autoAnimateDuration",
-  "autoAnimateUnmatched",
-  "autoAnimateStyles",
-  "autoSlide",
-  "autoSlideStoppable",
-  "autoSlideMethod",
-  "defaultTiming",
-  "mouseWheel",
-  "display",
-  "hideInactiveCursor",
-  "hideCursorTime",
-  "previewLinks",
-  "transition",
-  "transitionSpeed",
-  "backgroundTransition",
-  "viewDistance",
-  "mobileViewDistance",
-  "parallaxBackgroundImage",
-  "parallaxBackgroundSize",
-  "parallaxBackgroundHorizontal",
-  "parallaxBackgroundVertical",
-  "width",
-  "height",
-  "margin",
-  "minScale",
-  "maxScale",
-  "mathjax",
-  "pdfSeparateFragments",
-  "pdfPageHeightOffset",
-];
-
-const kRevealKebabOptions = optionsToKebab(kRevealOptions);
-
-export const kRevealJsUrl = "revealjs-url";
-export const kRevealJsConfig = "revealjs-config";
-
-export const kSlideLogo = "logo";
-export const kSlideFooter = "footer";
-export const kHashType = "hash-type";
-export const kScrollable = "scrollable";
-export const kSmaller = "smaller";
-export const kCenterTitleSlide = "center-title-slide";
-export const kControlsAuto = "controlsAuto";
-export const kPreviewLinksAuto = "previewLinksAuto";
-export const kPdfSeparateFragments = "pdfSeparateFragments";
-export const kAutoAnimateEasing = "autoAnimateEasing";
-export const kAutoAnimateDuration = "autoAnimateDuration";
-export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
-export const kAutoStretch = "auto-stretch";
-
-export function optionsToKebab(options: string[]) {
-  return options.reduce(
-    (options: string[], option: string) => {
-      const kebab = camelToKebab(option);
-      if (kebab !== option) {
-        options.push(kebab);
-      }
-      return options;
-    },
-    [],
-  );
-}
+import {
+  kAutoAnimateDuration,
+  kAutoAnimateEasing,
+  kAutoAnimateUnmatched,
+  kAutoStretch,
+  kCenterTitleSlide,
+  kControlsAuto,
+  kHashType,
+  kPdfSeparateFragments,
+  kPreviewLinksAuto,
+  kRevealJsConfig,
+  kScrollable,
+  kSlideFooter,
+  kSlideLogo,
+  kSmaller,
+} from "./constants.ts";
+import { revealMetadataFilter } from "./metadata.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -154,25 +76,6 @@ export function revealResolveFormat(format: Format) {
   if (format.metadata["navigationMode"] === "vertical") {
     format.metadata["navigationMode"] = "default";
   }
-}
-
-export function revealMetadataFilter(
-  metadata: Metadata,
-  kebabOptions = kRevealKebabOptions,
-) {
-  // convert kebab case to camel case for reveal options
-  const filtered: Metadata = {};
-  Object.keys(metadata).forEach((key) => {
-    const value = metadata[key];
-    if (
-      kebabOptions.includes(key)
-    ) {
-      filtered[kebabToCamel(key)] = value;
-    } else {
-      filtered[key] = value;
-    }
-  });
-  return filtered;
 }
 
 export function revealjsFormat() {
