@@ -6,16 +6,13 @@
 */
 import { ProjectType } from "./types.ts";
 
-import { bookProjectType } from "./book/book.ts";
-import { defaultProjectType } from "./project-default.ts";
-import { websiteProjectType } from "./website/website.ts";
+const _types: ProjectType[] = [];
+export function registerProjectType(projectType: ProjectType) {
+  _types.push(projectType);
+}
 
 function kTypes() {
-  return [
-    defaultProjectType,
-    websiteProjectType,
-    bookProjectType,
-  ];
+  return _types.slice();
 }
 
 export function parseProjectType(

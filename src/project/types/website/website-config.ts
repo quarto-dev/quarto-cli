@@ -17,7 +17,7 @@ import {
 import { Format, Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 import { kComments } from "../../../format/html/format-html-shared.ts";
-import { Sidebar } from "../../project-config.ts";
+import { Sidebar } from "../../types.ts";
 
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {

@@ -66,8 +66,8 @@ import {
   printWatchingForChangesMessage,
   render,
   renderProgress,
-  resourceFilesFromFile,
 } from "../../command/render/render-shared.ts";
+import { resourceFilesFromFile } from "../../command/render/resources.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { htmlResourceResolverPostprocessor } from "../../project/types/website/website-resources.ts";
 import { inputFilesDir } from "../../core/render.ts";

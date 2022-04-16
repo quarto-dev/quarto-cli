@@ -21,8 +21,7 @@ import { projectTypeResourcePath } from "../../../../core/resources.ts";
 import { sassLayerFile } from "../../../../core/sass.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
-import { NavItem } from "../../../project-config.ts";
-import { ProjectContext } from "../../../types.ts";
+import { NavItem, ProjectContext } from "../../../types.ts";
 import { kImage } from "../website-constants.ts";
 import { navigationItem } from "../website-navigation.ts";
 import {

@@ -5,8 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { dirname } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
@@ -18,15 +17,9 @@ import {
 } from "../../project/project-context.ts";
 
 import { renderProject } from "./project.ts";
-import { renderFiles } from "./render.ts";
-import { resolveFileResources } from "./resources.ts";
-import {
-  RenderedFile,
-  RenderOptions,
-  RenderResourceFiles,
-  RenderResult,
-} from "./types.ts";
-import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
+import { renderFiles } from "./render-files.ts";
+import { resourceFilesFromRenderedFile } from "./resources.ts";
+import { RenderOptions, RenderResult } from "./types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import {
   isJupyterHubServer,
@@ -125,67 +118,6 @@ export function renderProgress(message: string) {
 
 export function pandocMetadataPath(path: string) {
   return pathWithForwardSlashes(path);
-}
-
-export function resourceFilesFromRenderedFile(
-  baseDir: string,
-  renderedFile: RenderedFile,
-  partitioned?: PartitionedMarkdown,
-) {
-  return resourceFilesFromFile(
-    baseDir,
-    renderedFile.file,
-    renderedFile.resourceFiles,
-    renderedFile.selfContained,
-    renderedFile.supporting,
-    partitioned,
-  );
-}
-
-export async function resourceFilesFromFile(
-  baseDir: string,
-  file: string,
-  resources: RenderResourceFiles,
-  selfContained: boolean,
-  supporting?: string[],
-  partitioned?: PartitionedMarkdown,
-) {
-  const resourceDir = join(baseDir, dirname(file));
-  const markdown = partitioned ? partitioned.markdown : "";
-  const globs = resources.globs;
-  const fileResourceFiles = await resolveFileResources(
-    baseDir,
-    resourceDir,
-    markdown,
-    globs,
-  );
-
-  // add the explicitly discovered files (if they exist and
-  // the output isn't self-contained)
-  if (!selfContained) {
-    const resultFiles = resources.files
-      .map((file) => join(resourceDir, file))
-      .filter(existsSync)
-      .map(Deno.realPathSync);
-    fileResourceFiles.include.push(...resultFiles);
-  }
-
-  // apply removes and filter files dir
-  const resourceFiles = fileResourceFiles.include.filter(
-    (file: string) => {
-      if (fileResourceFiles.exclude.includes(file)) {
-        return false;
-      } else if (
-        supporting &&
-        supporting.some((support) => file.startsWith(join(baseDir, support)))
-      ) {
-        return false;
-      } else {
-        return true;
-      }
-    },
-  );
-  return resourceFiles;
 }
 
 export function printWatchingForChangesMessage() {

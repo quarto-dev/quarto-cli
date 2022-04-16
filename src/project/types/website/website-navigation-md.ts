@@ -8,7 +8,7 @@ import { dirname, extname, isAbsolute, join } from "path/mod.ts";
 import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
-import { NavbarItem, NavItem, Sidebar } from "../../project-config.ts";
+import { NavbarItem, NavItem, Sidebar } from "../../types.ts";
 
 import {
   kBodyFooter,

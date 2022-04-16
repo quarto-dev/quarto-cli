@@ -12,7 +12,7 @@ import * as ld from "../../../core/lodash.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 
 import { ProjectContext } from "../../types.ts";
-import { Navbar, NavItem, Sidebar, SidebarItem } from "../../project-config.ts";
+import { Navbar, NavItem, Sidebar, SidebarItem } from "../../types.ts";
 import {
   kBodyFooter,
   kBodyHeader,

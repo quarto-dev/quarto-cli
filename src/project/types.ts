@@ -96,3 +96,103 @@ export async function resolvePreviewOptions(
 }
 
 export const kProject404File = "404.html";
+
+export type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
+
+export const kAriaLabel = "aria-label";
+export const kCollapseLevel = "collapse-level";
+export const kCollapseBelow = "collapse-below";
+
+export const kSidebarMenus = "sidebar-menus";
+
+export interface Navbar {
+  title?: string | false;
+  logo?: string;
+  background:
+    | "primary"
+    | "secondary"
+    | "success"
+    | "danger"
+    | "warning"
+    | "info"
+    | "light"
+    | "dark";
+  search?: boolean | string;
+  left?: NavbarItem[];
+  right?: NavbarItem[];
+  collapse?: boolean;
+  tools?: SidebarTool[];
+  pinned?: boolean;
+  [kCollapseBelow]?: LayoutBreak;
+  [kSidebarMenus]?: boolean;
+  darkToggle?: boolean;
+  readerToggle?: boolean;
+}
+
+export interface NavItem {
+  // href + more readable/understndable aliases
+  icon?: string;
+  href?: string;
+  file?: string;
+  text?: string;
+  url?: string;
+  [kAriaLabel]?: string;
+}
+
+export interface NavbarItem extends NavItem {
+  // core identification
+  id?: string;
+
+  // more
+  menu?: NavbarItem[];
+}
+
+export interface Sidebar {
+  id?: string;
+  title?: string;
+  subtitle?: string;
+  logo?: string;
+  aligment?: "left" | "right" | "center";
+  background?:
+    | "none"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "danger"
+    | "warning"
+    | "info"
+    | "light"
+    | "dark"
+    | "white";
+  search?: boolean | string;
+  [kCollapseLevel]?: number;
+  contents: SidebarItem[];
+  tools: SidebarTool[];
+  style: "docked" | "floating";
+  pinned?: boolean;
+  header?: Array<string> | string;
+  footer?: Array<string> | string;
+}
+
+export interface SidebarItem extends NavItem {
+  // core structure/contents
+  section?: string;
+  sectionId?: string;
+  contents?: SidebarItem[];
+
+  // more
+  expanded?: boolean;
+  active?: boolean;
+}
+
+export interface SidebarTool {
+  // label/contents
+  icon?: string;
+  text?: string;
+  menu?: NavbarItem[];
+
+  // href + more readable/understndable aliases
+  href?: string;
+  file?: string;
+  url?: string;
+}

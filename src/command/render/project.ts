@@ -31,7 +31,7 @@ import { copyResourceFile } from "../../project/project-resources.ts";
 import { ensureGitignore } from "../../project/project-gitignore.ts";
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
-import { renderFiles } from "./render.ts";
+import { renderFiles } from "./render-files.ts";
 import {
   RenderedFile,
   RenderFile,
@@ -44,7 +44,7 @@ import {
   pruneProjectFreezer,
   pruneProjectFreezerDir,
 } from "./freeze.ts";
-import { resourceFilesFromRenderedFile } from "./render-shared.ts";
+import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import {
   copyMinimal,

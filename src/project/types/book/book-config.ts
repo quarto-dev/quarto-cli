@@ -19,13 +19,12 @@ import {
 } from "../../../execute/engine.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
+import { Navbar, SidebarItem, SidebarTool } from "../../types.ts";
+
 import {
-  Navbar,
   normalizeSidebarItem,
   partitionedMarkdownForInput,
   sidebarContext,
-  SidebarItem,
-  SidebarTool,
 } from "../../project-config.ts";
 import { kProjectRender, ProjectConfig } from "../../types.ts";
 

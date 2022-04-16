@@ -58,12 +58,14 @@ import {
   Navbar,
   NavbarItem,
   NavItem,
-  normalizeSidebarItem,
-  resolveHrefAttribute,
   Sidebar,
-  sidebarContext,
   SidebarItem,
   SidebarTool,
+} from "../../types.ts";
+import {
+  normalizeSidebarItem,
+  resolveHrefAttribute,
+  sidebarContext,
 } from "../../project-config.ts";
 import { projectType } from "../project-types.ts";
 
