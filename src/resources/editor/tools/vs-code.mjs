@@ -22566,6 +22566,59 @@ function expandAliasesFrom(lst, defs) {
   return result;
 }
 
+// ../yaml-validation/resolve.ts
+function resolveSchema(schema2, visit, hasRef, next) {
+  if (schema2 === false || schema2 === true) {
+    return schema2;
+  }
+  if (hasRef === void 0) {
+    hasRef = (cursor) => {
+      return schemaCall(cursor, {
+        ref: (_s) => true
+      }, (_s) => false);
+    };
+  }
+  if (!hasRef(schema2)) {
+    return schema2;
+  }
+  if (visit === void 0) {
+    visit = (_schema) => {
+    };
+  }
+  if (next === void 0) {
+    next = (cursor) => {
+      const result = schemaCall(cursor, {
+        ref: (s) => getSchemaDefinition(s.$ref)
+      });
+      if (result === void 0) {
+        throw new Error("Internal Error, couldn't resolve schema ${JSON.stringify(cursor)}");
+      }
+      return result;
+    };
+  }
+  let cursor1 = schema2;
+  let cursor2 = schema2;
+  let stopped = false;
+  do {
+    cursor1 = next(cursor1);
+    visit(cursor1);
+    if (hasRef(cursor2)) {
+      cursor2 = next(cursor2);
+    } else {
+      stopped = true;
+    }
+    if (hasRef(cursor2)) {
+      cursor2 = next(cursor2);
+    } else {
+      stopped = true;
+    }
+    if (!stopped && cursor1 === cursor2) {
+      throw new Error(`reference cycle detected at ${JSON.stringify(cursor1)}`);
+    }
+  } while (hasRef(cursor1));
+  return cursor1;
+}
+
 // ../external/regexpp.mjs
 var largeIdStartRanges = void 0;
 var largeIdContinueRanges = void 0;
@@ -24475,57 +24528,6 @@ function resolveDescription(s) {
     return "";
   }
 }
-function resolveSchema(schema2, visit, hasRef, next) {
-  if (schema2 === false || schema2 === true) {
-    return schema2;
-  }
-  if (hasRef === void 0) {
-    hasRef = (cursor) => {
-      return schemaCall(cursor, {
-        ref: (_s) => true
-      }, (_s) => false);
-    };
-  }
-  if (!hasRef(schema2)) {
-    return schema2;
-  }
-  if (visit === void 0) {
-    visit = (_schema) => {
-    };
-  }
-  if (next === void 0) {
-    next = (cursor) => {
-      const result = schemaCall(cursor, {
-        ref: (s) => getSchemaDefinition(s.$ref)
-      });
-      if (result === void 0) {
-        throw new Error("Internal Error, couldn't resolve schema ${JSON.stringify(cursor)}");
-      }
-      return result;
-    };
-  }
-  let cursor1 = schema2;
-  let cursor2 = schema2;
-  let stopped = false;
-  do {
-    cursor1 = next(cursor1);
-    visit(cursor1);
-    if (hasRef(cursor2)) {
-      cursor2 = next(cursor2);
-    } else {
-      stopped = true;
-    }
-    if (hasRef(cursor2)) {
-      cursor2 = next(cursor2);
-    } else {
-      stopped = true;
-    }
-    if (!stopped && cursor1 === cursor2) {
-      throw new Error(`reference cycle detected at ${JSON.stringify(cursor1)}`);
-    }
-  } while (hasRef(cursor1));
-  return cursor1;
-}
 function schemaCompletions(s) {
   if (s === true || s === false) {
     return [];
@@ -24763,6 +24765,41 @@ function getBadKey(error) {
     throw new Error("Internal Error: propertyNames error has a violating non-string.");
   }
   return result;
+}
+function getVerbatimInput(error) {
+  return error.source.value;
+}
+function navigate(path, annotation, returnKey = false, pathIndex = 0) {
+  if (annotation === void 0) {
+    throw new Error("Can't navigate an undefined annotation");
+  }
+  if (pathIndex >= path.length) {
+    return annotation;
+  }
+  if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
+    const { components } = annotation;
+    const searchKey = path[pathIndex];
+    const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
+    for (let i = lastKeyIndex; i >= 0; i -= 2) {
+      const key = components[i].result;
+      if (key === searchKey) {
+        if (returnKey && pathIndex === path.length - 1) {
+          return navigate(path, components[i], returnKey, pathIndex + 1);
+        } else {
+          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
+        }
+      }
+    }
+    return annotation;
+  } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
+    const searchKey = Number(path[pathIndex]);
+    if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
+      return annotation;
+    }
+    return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
+  } else {
+    return annotation;
+  }
 }
 function isEmptyValue(error) {
   const rawVerbatimInput = getVerbatimInput(error);
@@ -25570,42 +25607,7 @@ function validate(value, schema2, source) {
 }
 
 // ../yaml-validation/yaml-schema.ts
-function getVerbatimInput(error) {
-  return error.source.value;
-}
-function navigate(path, annotation, returnKey = false, pathIndex = 0) {
-  if (annotation === void 0) {
-    throw new Error("Can't navigate an undefined annotation");
-  }
-  if (pathIndex >= path.length) {
-    return annotation;
-  }
-  if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
-    const { components } = annotation;
-    const searchKey = path[pathIndex];
-    const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
-    for (let i = lastKeyIndex; i >= 0; i -= 2) {
-      const key = components[i].result;
-      if (key === searchKey) {
-        if (returnKey && pathIndex === path.length - 1) {
-          return navigate(path, components[i], returnKey, pathIndex + 1);
-        } else {
-          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
-        }
-      }
-    }
-    return annotation;
-  } else if (["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !== -1) {
-    const searchKey = Number(path[pathIndex]);
-    if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
-      return annotation;
-    }
-    return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
-  } else {
-    return annotation;
-  }
-}
-var YAMLSchema2 = class {
+var YAMLSchema = class {
   constructor(schema2) {
     this.errorHandlers = [];
     this.schema = schema2;
@@ -25681,7 +25683,7 @@ function getValidator(schema2) {
   if (yamlValidators[schemaName]) {
     return yamlValidators[schemaName];
   }
-  const validator = new YAMLSchema2(schema2);
+  const validator = new YAMLSchema(schema2);
   yamlValidators[schemaName] = validator;
   setDefaultErrorHandlers(validator);
   return validator;
