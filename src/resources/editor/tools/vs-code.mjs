@@ -25708,7 +25708,7 @@ function addValidatorErrorHandler(schema2, handler) {
   });
 }
 
-// ../yaml-schema/common.ts
+// ../yaml-schema/constants.ts
 var booleanSchema = {
   "type": "boolean",
   "description": "be `true` or `false`",
@@ -25729,6 +25729,8 @@ var nullSchema = {
   "completions": ["null"],
   "exhaustiveCompletions": true
 };
+
+// ../yaml-schema/common.ts
 function tagSchema(schema2, tags) {
   return {
     ...schema2,

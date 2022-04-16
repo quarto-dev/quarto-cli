@@ -8,11 +8,14 @@
 import {
   anyOfSchema as anyOfS,
   arraySchema as arrayS,
-  booleanSchema as booleanS,
   idSchema as withId,
   objectSchema as objectS,
-  stringSchema as stringS,
 } from "../../core/lib/yaml-schema/common.ts";
+
+import {
+  booleanSchema as booleanS,
+  stringSchema as stringS,
+} from "../../core/lib/yaml-schema/constants.ts";
 
 import { kSelfContained } from "../../config/constants.ts";
 

@@ -7,12 +7,13 @@
 *
 */
 
+import { nullSchema as nullS } from "./constants.ts";
+
 import {
   allOfSchema as allOfS,
   anyOfSchema as anyOfS,
   completeSchema,
   describeSchema,
-  nullSchema as nullS,
   objectSchema as objectS,
   regexSchema as regexS,
 } from "./common.ts";

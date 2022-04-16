@@ -25722,7 +25722,7 @@ ${heading}`;
     });
   }
 
-  // ../yaml-schema/common.ts
+  // ../yaml-schema/constants.ts
   var booleanSchema = {
     "type": "boolean",
     "description": "be `true` or `false`",
@@ -25743,6 +25743,8 @@ ${heading}`;
     "completions": ["null"],
     "exhaustiveCompletions": true
   };
+
+  // ../yaml-schema/common.ts
   function tagSchema(schema2, tags) {
     return {
       ...schema2,
