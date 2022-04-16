@@ -38,6 +38,7 @@ import {
   kKeepIpynb,
 } from "../../config/constants.ts";
 import { Format, FormatExecute } from "../../config/types.ts";
+import { resolveFormatsFromMetadata } from "../../config/metadata.ts";
 import {
   isHtmlCompatible,
   isIpynbOutput,
@@ -72,7 +73,6 @@ import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 
 import { jupyterNotebookFiltered } from "./jupyter-filters.ts";
-import { resolveFormatsFromMetadata } from "../../command/render/render.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 export const jupyterEngine: ExecutionEngine = {
