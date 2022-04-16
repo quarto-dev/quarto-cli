@@ -36,6 +36,12 @@ import { runScript } from "./command/run/run.ts";
 // ensures run handlers are registered
 import "./core/run/register.ts";
 
+// ensures language handlers are registered
+import "./core/handlers/handlers.ts";
+
+// ensures project types are registered
+import "./project/types/register.ts";
+
 export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,

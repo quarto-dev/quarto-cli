@@ -4,6 +4,9 @@
 * Copyright (C) 2022 by RStudio, PBC
 *
 */
+import { info } from "log/mod.ts";
+
+import * as colors from "fmt/colors.ts";
 
 import { kOutputExt, kSelfContained } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
@@ -43,4 +46,8 @@ export function isSelfContainedOutput(
 
 export function isStandaloneFormat(format: Format) {
   return kStandaloneExtensionNames.includes(format.render[kOutputExt] || "");
+}
+
+export function renderProgress(message: string) {
+  info(colors.bold(colors.blue(message)));
 }

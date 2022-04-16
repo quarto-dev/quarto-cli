@@ -83,7 +83,6 @@ import {
   kColorLinks,
   kDate,
   kDateFormat,
-  kDateFormatted,
   kDocumentClass,
   kFigResponsive,
   kFilterParams,
@@ -108,7 +107,6 @@ import {
   kTemplate,
   kTitle,
   kTitlePrefix,
-  kToc,
   kTocLocation,
   kTocTitle,
   kTocTitleDocument,
@@ -131,7 +129,7 @@ import {
   formatHasCodeTools,
   keepSourceBlock,
 } from "./codetools.ts";
-import { pandocMetadataPath } from "./render-shared.ts";
+import { pandocMetadataPath } from "./render-paths.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";

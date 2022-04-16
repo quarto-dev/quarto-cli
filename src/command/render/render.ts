@@ -32,12 +32,6 @@ import { PandocIncludes } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { isHtmlFileOutput } from "../../config/format.ts";
 
-// registers language handlers
-import "../../core/handlers/handlers.ts";
-
-// registers project types
-import "../../project/types/register.ts";
-
 import { isSelfContainedOutput } from "./render-info.ts";
 
 export async function renderPandoc(

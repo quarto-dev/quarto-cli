@@ -21,7 +21,7 @@ import {
   crossrefIndexForOutputFile,
   kCrossrefIndexFile,
 } from "../../project/project-crossrefs.ts";
-import { pandocMetadataPath } from "./render-shared.ts";
+import { pandocMetadataPath } from "./render-paths.ts";
 
 export function crossrefFilter() {
   return resourcePath("filters/crossref/crossref.lua");

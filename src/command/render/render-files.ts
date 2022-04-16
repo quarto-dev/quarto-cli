@@ -39,7 +39,7 @@ import { outputRecipe } from "./output.ts";
 import { resolveDependencies } from "./pandoc.ts";
 import { renderPandoc } from "./render.ts";
 import { renderContexts } from "./render-contexts.ts";
-import { renderProgress } from "./render-shared.ts";
+import { renderProgress } from "./render-info.ts";
 import {
   ExecutedFile,
   PandocRenderer,

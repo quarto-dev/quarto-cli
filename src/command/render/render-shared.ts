@@ -10,7 +10,6 @@ import { dirname } from "path/mod.ts";
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
 
-import { pathWithForwardSlashes } from "../../core/path.ts";
 import {
   projectContext,
   projectContextForDirectory,
@@ -110,14 +109,6 @@ export async function render(
     })),
     error: result.error,
   };
-}
-
-export function renderProgress(message: string) {
-  info(colors.bold(colors.blue(message)));
-}
-
-export function pandocMetadataPath(path: string) {
-  return pathWithForwardSlashes(path);
 }
 
 export function printWatchingForChangesMessage() {

@@ -41,7 +41,7 @@ import {
   crossrefFilterParams,
 } from "./crossref.ts";
 import { layoutFilter, layoutFilterParams } from "./layout.ts";
-import { pandocMetadataPath } from "./render-shared.ts";
+import { pandocMetadataPath } from "./render-paths.ts";
 import { removePandocArgs } from "./flags.ts";
 import * as ld from "../../core/lodash.ts";
 import { mergeConfigs } from "../../core/config.ts";
