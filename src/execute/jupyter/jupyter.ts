@@ -51,9 +51,9 @@ import {
   executeKernelOneshot,
   JupyterExecuteOptions,
 } from "./jupyter-kernel.ts";
+import { JupyterWidgetDependencies } from "../../core/jupyter/types.ts";
 import {
   includesForJupyterWidgetDependencies,
-  JupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
 
 import { RenderOptions } from "../../command/render/types.ts";

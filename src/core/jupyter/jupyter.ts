@@ -61,12 +61,8 @@ import {
   isCaptionableData,
   isDisplayData,
 } from "./display-data.ts";
-import {
-  extractJupyterWidgetDependencies,
-  JupyterWidgetDependencies,
-} from "./widgets.ts";
+import { extractJupyterWidgetDependencies } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
-import { FormatExecute, FormatPandoc } from "../../config/types.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
 import {
@@ -103,7 +99,6 @@ import {
   kCellRawMimeType,
   kCellSlideshow,
   kCellSlideshowSlideType,
-  kCellTags,
   kCellTblColumn,
   kCodeFold,
   kCodeLineNumbers,
@@ -131,7 +126,18 @@ import {
   jupyterKernelspec,
   jupyterKernelspecs,
 } from "./kernels.ts";
-import { JupyterKernelspec } from "./types.ts";
+import {
+  JupyterCell,
+  JupyterCellWithOptions,
+  JupyterKernelspec,
+  JupyterNotebook,
+  JupyterOutput,
+  JupyterOutputDisplayData,
+  JupyterOutputFigureOptions,
+  JupyterOutputStream,
+  JupyterToMarkdownOptions,
+  JupyterToMarkdownResult,
+} from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown, readYamlFromMarkdownFile } from "../yaml.ts";
@@ -142,113 +148,6 @@ export const kJupyterNotebookExtensions = [
 ];
 export function isJupyterNotebook(file: string) {
   return kJupyterNotebookExtensions.includes(extname(file).toLowerCase());
-}
-
-export interface JupyterNotebook {
-  metadata: {
-    kernelspec: JupyterKernelspec;
-    widgets?: Record<string, unknown>;
-    [key: string]: unknown;
-  };
-  cells: JupyterCell[];
-  nbformat: number;
-  nbformat_minor: number;
-}
-
-export interface JupyterCell {
-  id?: string;
-  cell_type: "markdown" | "code" | "raw";
-  execution_count?: null | number;
-  metadata: JupyterCellMetadata;
-  source: string[];
-  attachments?: Record<string, Record<string, string>>;
-  outputs?: JupyterOutput[];
-}
-
-export interface JupyterCellMetadata {
-  // nbformat v4 spec
-  [kCellCollapsed]?: boolean;
-  [kCellAutoscroll]?: boolean | "auto";
-  [kCellDeletable]?: boolean;
-  [kCellFormat]?: string; // for "raw"
-  [kCellName]?: string; // optional alias for 'label'
-  [kCellTags]?: string[];
-  [kCellRawMimeType]?: string;
-
-  // used to preserve line spacing
-  [kCellLinesToNext]?: number;
-
-  // slideshow
-  [kCellSlideshow]?: JupyterCellSlideshow;
-
-  // nbdev language
-  [kCellLanguage]?: string;
-
-  // anything else
-  [key: string]: unknown;
-}
-
-export interface JupyterCellSlideshow {
-  [kCellSlideshowSlideType]: string;
-}
-
-export interface JupyterCellWithOptions extends JupyterCell {
-  options: JupyterCellOptions;
-  optionsSource: string[];
-}
-
-export interface JupyterOutput {
-  output_type: "stream" | "display_data" | "execute_result" | "error";
-  execution_count?: null | number;
-  isolated?: boolean;
-}
-
-export interface JupyterOutputStream extends JupyterOutput {
-  name: "stdout" | "stderr";
-  text: string[];
-}
-
-export interface JupyterOutputDisplayData extends JupyterOutput {
-  data: { [mimeType: string]: unknown };
-  metadata: { [mimeType: string]: Record<string, unknown> };
-  noCaption?: boolean;
-}
-
-export interface JupyterCellOptions extends JupyterOutputFigureOptions {
-  [kCellLabel]?: string;
-  [kCellFigCap]?: string | string[];
-  [kCellFigSubCap]?: string[] | true;
-  [kFigCapLoc]?: string;
-  [kTblCapLoc]?: string;
-  [kCapLoc]?: string;
-  [kCellFigColumn]?: string;
-  [kCellTblColumn]?: string;
-  [kCellLstLabel]?: string;
-  [kCellLstCap]?: string;
-  [kCellClasses]?: string;
-  [kCellPanel]?: string;
-  [kCellColumn]?: string;
-  [kCodeFold]?: string;
-  [kCodeLineNumbers]?: boolean | string;
-  [kCodeSummary]?: string;
-  [kCodeOverflow]?: string;
-  [kCellMdIndent]?: string;
-  [kEval]?: true | false | null;
-  [kEcho]?: boolean | "fenced";
-  [kWarning]?: boolean;
-  [kError]?: boolean;
-  [kOutput]?: boolean | "all" | "asis";
-  [kInclude]?: boolean;
-  [key: string]: unknown;
-}
-
-export interface JupyterOutputFigureOptions {
-  [kCellFigScap]?: string;
-  [kCellFigLink]?: string;
-  [kCellFigAlign]?: string;
-  [kCellFigEnv]?: string;
-  [kCellFigPos]?: string;
-  [kCellFigAlt]?: string;
 }
 
 // option keys we handle internally so should not forward into generated markdown
@@ -636,13 +535,6 @@ export function jupyterAutoIdentifier(label: string) {
   }
 }
 
-export interface JupyterAssets {
-  base_dir: string;
-  files_dir: string;
-  figures_dir: string;
-  supporting_dir: string;
-}
-
 export function jupyterAssets(input: string, to?: string) {
   // calculate and create directories
   input = Deno.realPathSync(input);
@@ -671,29 +563,6 @@ export function jupyterAssets(input: string, to?: string) {
     figures_dir: relative(base_dir, figures_dir),
     supporting_dir: relative(base_dir, supporting_dir),
   };
-}
-
-export interface JupyterToMarkdownOptions {
-  language: string;
-  assets: JupyterAssets;
-  execute: FormatExecute;
-  keepHidden?: boolean;
-  toHtml?: boolean;
-  toLatex?: boolean;
-  toMarkdown?: boolean;
-  toIpynb?: boolean;
-  toPresentation?: boolean;
-  figFormat?: string;
-  figDpi?: number;
-  figPos?: string | null;
-}
-
-export interface JupyterToMarkdownResult {
-  markdown: string;
-  metadata?: Metadata;
-  pandoc?: FormatPandoc;
-  dependencies?: JupyterWidgetDependencies;
-  htmlPreserve?: Record<string, string>;
 }
 
 export function jupyterToMarkdown(

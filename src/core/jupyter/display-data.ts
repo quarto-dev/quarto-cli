@@ -22,7 +22,7 @@ import {
   JupyterOutput,
   JupyterOutputDisplayData,
   JupyterToMarkdownOptions,
-} from "./jupyter.ts";
+} from "./types.ts";
 
 export function isDisplayData(output: JupyterOutput) {
   return ["display_data", "execute_result"].includes(output.output_type);

@@ -7,7 +7,7 @@
 
 import { kEcho, kInclude, kOutput, kWarning } from "../../config/constants.ts";
 
-import { JupyterCellWithOptions, JupyterToMarkdownOptions } from "./jupyter.ts";
+import { JupyterCellWithOptions, JupyterToMarkdownOptions } from "./types.ts";
 
 export function hideCell(
   cell: JupyterCellWithOptions,

@@ -12,10 +12,9 @@ import {
   readYamlFromMarkdown,
 } from "../../core/yaml.ts";
 import { kCellId, kCellLabel } from "../../config/constants.ts";
+import { JupyterCell, JupyterCellOptions } from "../../core/jupyter/types.ts";
 import {
   jupyterAutoIdentifier,
-  JupyterCell,
-  JupyterCellOptions,
   jupyterCellOptionsAsComment,
   jupyterFromFile,
   mdEnsureTrailingNewline,

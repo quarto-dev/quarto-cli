@@ -15,20 +15,12 @@ import {
   kTextHtml,
 } from "../mime.ts";
 import { isDisplayData } from "./display-data.ts";
-import { JupyterNotebook, JupyterOutputDisplayData } from "./jupyter.ts";
-
-export interface JupyterWidgetsState {
-  state: Record<string, unknown>;
-  version_major: number;
-  version_minor: number;
-}
-
-export interface JupyterWidgetDependencies {
-  jsWidgets: boolean;
-  jupyterWidgets: boolean;
-  htmlLibraries: string[];
-  widgetsState?: JupyterWidgetsState;
-}
+import {
+  JupyterNotebook,
+  JupyterOutputDisplayData,
+  JupyterWidgetDependencies,
+  JupyterWidgetsState,
+} from "./types.ts";
 
 export function extractJupyterWidgetDependencies(
   nb: JupyterNotebook,

@@ -20,7 +20,7 @@ import {
   JupyterOutput,
   JupyterOutputDisplayData,
   JupyterToMarkdownOptions,
-} from "./jupyter.ts";
+} from "./types.ts";
 
 import {
   kCellFigCap,
