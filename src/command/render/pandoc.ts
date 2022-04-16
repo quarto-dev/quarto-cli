@@ -102,6 +102,7 @@ import {
   kQuartoTemplateParams,
   kQuartoVarsKey,
   kResources,
+  kRevealJsScripts,
   kSectionTitleAbstract,
   kSyntaxDefinitions,
   kTemplate,
@@ -193,6 +194,7 @@ export async function runPandoc(
     delete metadata[kQuartoVarsKey];
     delete metadata[kFigResponsive];
     delete metadata[kQuartoTemplateParams];
+    delete metadata[kRevealJsScripts];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
   };
