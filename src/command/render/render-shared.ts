@@ -45,7 +45,6 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 import { kTextPlain } from "../../core/mime.ts";
 import { previewFormat } from "../preview/preview.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { isBrowserPreviewable } from "../../core/http.ts";
 
 export async function render(
   path: string,
