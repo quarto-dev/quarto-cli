@@ -8,7 +8,7 @@
 *
 */
 
-import { resolveSchema } from "./schema-utils.ts";
+import { resolveSchema } from "./resolve.ts";
 
 import { prefixes } from "../regexp.js";
 

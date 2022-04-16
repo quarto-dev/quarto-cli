@@ -19,7 +19,7 @@ import {
   Schema,
 } from "../yaml-schema/types.ts";
 import { YamlIntelligenceContext } from "./types.ts";
-import { resolveSchema } from "../yaml-validation/schema-utils.ts";
+import { resolveSchema } from "../yaml-validation/resolve.ts";
 import { getFrontMatterSchema } from "../../lib/yaml-schema/front-matter.ts";
 import { getEngineOptionsSchema } from "../../lib/yaml-schema/chunk-metadata.ts";
 import { getProjectConfigSchema } from "../yaml-schema/project-config.ts";

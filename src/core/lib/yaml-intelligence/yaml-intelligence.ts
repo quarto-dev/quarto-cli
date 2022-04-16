@@ -38,8 +38,9 @@ import { withValidator } from "../yaml-validation/validator-queue.ts";
 
 import { navigateSchemaByInstancePath as navigateSchema } from "../yaml-validation/schema-navigation.ts";
 
+import { resolveSchema } from "../yaml-validation/resolve.ts";
+
 import {
-  resolveSchema,
   schemaCompletions,
   walkSchema,
 } from "../yaml-validation/schema-utils.ts";

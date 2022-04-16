@@ -28,7 +28,7 @@ import {
   ValidationTraceNode,
 } from "../yaml-schema/types.ts";
 
-import { resolveSchema } from "./schema-utils.ts";
+import { resolveSchema } from "./resolve.ts";
 
 import { MappedString } from "../text-types.ts";
 import { createLocalizedError } from "./errors.ts";
