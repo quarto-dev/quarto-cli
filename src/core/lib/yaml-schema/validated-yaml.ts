@@ -7,7 +7,7 @@
 *
 */
 
-import { MappedString } from "../mapped-text.ts";
+import { MappedString } from "../text-types.ts";
 import { readAnnotatedYamlFromMappedString } from "../yaml-intelligence/annotated-yaml.ts";
 import { Schema } from "./types.ts";
 import { withValidator } from "../yaml-validation/validator-queue.ts";

@@ -9,7 +9,7 @@
 // except for "parseAndValidate".
 
 import { YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";
-import { MappedString } from "../mapped-text.ts";
+import { MappedString } from "../lib/text-types.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { loadDefaultSchemaDefinitions } from "../lib/yaml-schema/definitions.ts";
 import { expandGlobSync } from "fs/mod.ts";

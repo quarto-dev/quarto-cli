@@ -8,102 +8,21 @@
 *
 */
 
-import { MappedString } from "../mapped-text.ts";
+import { MappedString } from "../text-types.ts";
 
 import { TidyverseError } from "../errors.ts";
-import { ValidatorErrorHandlerFunction } from "./errors.ts";
+import { ValidatorErrorHandlerFunction } from "./types.ts";
 
 import { validate } from "./validator.ts";
+import { ValidatedParseResult } from "./types.ts";
 
 import {
   AnnotatedParse,
-  JSONValue,
   LocalizedError,
   Schema,
 } from "../yaml-schema/types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
-
-export function getVerbatimInput(error: LocalizedError) {
-  return error.source.value;
-}
-
-// this supports AnnotatedParse results built
-// from deno yaml as well as tree-sitter.
-export function navigate(
-  path: (number | string)[],
-  annotation: AnnotatedParse | undefined,
-  returnKey = false, // if true, then return the *key* entry as the final result rather than the *value* entry.
-  pathIndex = 0,
-): AnnotatedParse | undefined {
-  // this looks a little strange, but it's easier to catch the error
-  // here than in the different cases below
-  if (annotation === undefined) {
-    throw new Error("Can't navigate an undefined annotation");
-  }
-  if (pathIndex >= path.length) {
-    return annotation;
-  }
-  if (annotation.kind === "mapping" || annotation.kind === "block_mapping") {
-    const { components } = annotation;
-    const searchKey = path[pathIndex];
-    // this loop is inverted to provide better error messages in the
-    // case of repeated keys. Repeated keys are an error in any case, but
-    // the parsing by the validation infrastructure reports the last
-    // entry of a given key in the mapping as the one that counts
-    // (instead of the first, which would be what we'd get if running
-    // the loop forward).
-    //
-    // In that case, the validation errors will also point to the last
-    // entry. In order for the errors to be at least consistent,
-    // we then loop backwards
-    const lastKeyIndex = ~~((components.length - 1) / 2) * 2;
-    for (let i = lastKeyIndex; i >= 0; i -= 2) {
-      const key = components[i]!.result;
-      if (key === searchKey) {
-        if (returnKey && pathIndex === path.length - 1) {
-          return navigate(path, components[i], returnKey, pathIndex + 1);
-        } else {
-          return navigate(path, components[i + 1], returnKey, pathIndex + 1);
-        }
-      }
-    }
-    return annotation;
-    // throw new Error(
-    //   `Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`,
-    // );
-  } else if (
-    ["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !==
-      -1
-  ) {
-    const searchKey = Number(path[pathIndex]);
-    if (
-      isNaN(searchKey) || searchKey < 0 ||
-      searchKey >= annotation.components.length
-    ) {
-      return annotation;
-    }
-    return navigate(
-      path,
-      annotation.components[searchKey],
-      returnKey,
-      pathIndex + 1,
-    );
-  } else {
-    return annotation;
-    // throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
-  }
-}
-
-interface ValidatedParseResult {
-  result: JSONValue;
-  errors: LocalizedError[];
-}
-
-// NB: YAMLSchema is not reentrant because ajv isn't - see the use of
-// the "errors" field in the validate closure (!). We work around this in
-// automation.js by using a request queue that serializes validation
-// requests over any one schema.
 
 export class YAMLSchema {
   schema: Schema;

@@ -7,10 +7,9 @@
 
 import { YAMLSchema } from "./yaml-schema.ts";
 
-import {
-  setDefaultErrorHandlers,
-  ValidatorErrorHandlerFunction,
-} from "./errors.ts";
+import { setDefaultErrorHandlers } from "./errors.ts";
+
+import { ValidatorErrorHandlerFunction } from "./types.ts";
 
 import { RefSchema, Schema, schemaType } from "../yaml-schema/types.ts";
 

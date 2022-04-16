@@ -30,7 +30,7 @@ import {
 
 import { resolveSchema } from "./schema-utils.ts";
 
-import { MappedString } from "../mapped-text.ts";
+import { MappedString } from "../text-types.ts";
 import { createLocalizedError } from "./errors.ts";
 
 ////////////////////////////////////////////////////////////////////////////////

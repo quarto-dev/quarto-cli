@@ -9,7 +9,7 @@ import { idSchema, refSchema } from "./common.ts";
 import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
 import { buildResourceSchemas, convertFromYaml } from "./from-yaml.ts";
 
-import { ValidatorErrorHandlerFunction } from "../yaml-validation/errors.ts";
+import { ValidatorErrorHandlerFunction } from "../yaml-validation/types.ts";
 
 import {
   addValidatorErrorHandler,

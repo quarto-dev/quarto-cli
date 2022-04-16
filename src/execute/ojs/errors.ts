@@ -6,7 +6,7 @@
 */
 
 import { error } from "log/mod.ts";
-import { MappedString } from "../../core/mapped-text.ts";
+import { MappedString } from "../../core/lib/text-types.ts";
 import { indexToRowCol } from "../../core/text.ts";
 
 export function ojsParseError(

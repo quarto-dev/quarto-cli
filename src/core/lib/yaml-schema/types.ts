@@ -7,7 +7,7 @@
 *
 */
 
-import { MappedString } from "../mapped-text.ts";
+import { MappedString } from "../text-types.ts";
 import { ErrorLocation, TidyverseError } from "../errors.ts";
 
 // https://github.com/microsoft/TypeScript/issues/1897#issuecomment-822032151

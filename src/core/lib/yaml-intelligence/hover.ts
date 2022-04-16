@@ -7,7 +7,8 @@
 
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
-import { asMappedString, MappedString } from "../mapped-text.ts";
+import { asMappedString } from "../mapped-text.ts";
+import { MappedString } from "../text-types.ts";
 import { kLangCommentChars } from "../partition-cell-options.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { indexToRowCol, lines } from "../text.ts";

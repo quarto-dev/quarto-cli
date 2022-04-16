@@ -8,7 +8,7 @@
 */
 
 import * as colors from "./external/colors.ts";
-import { MappedString } from "./mapped-text.ts";
+import { MappedString } from "./text-types.ts";
 
 // tidyverse error message styling
 // https://style.tidyverse.org/error-messages.html
