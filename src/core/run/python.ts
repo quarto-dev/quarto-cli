@@ -9,7 +9,7 @@ import { extname } from "path/mod.ts";
 import { pythonExec } from "../jupyter/exec.ts";
 
 import { execProcess } from "../process.ts";
-import { RunHandler, RunHandlerOptions } from "./run.ts";
+import { RunHandler, RunHandlerOptions } from "./types.ts";
 
 export const pythonRunHandler: RunHandler = {
   canHandle: (script: string) => {

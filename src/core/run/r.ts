@@ -9,7 +9,7 @@ import { extname } from "path/mod.ts";
 
 import { execProcess } from "../process.ts";
 import { rBinaryPath } from "../resources.ts";
-import { RunHandler, RunHandlerOptions } from "./run.ts";
+import { RunHandler, RunHandlerOptions } from "./types.ts";
 
 export const rRunHandler: RunHandler = {
   canHandle: (script: string) => {
