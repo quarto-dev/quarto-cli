@@ -16,21 +16,24 @@ import {
 import { withValidator } from "../yaml-validation/validator-queue.ts";
 
 import {
+  booleanSchema as booleanS,
+  nullSchema as nullS,
+  numberSchema as numberS,
+  stringSchema as stringS,
+} from "./constants.ts";
+
+import {
   allOfSchema as allOfS,
   anyOfSchema as anyOfS,
   arraySchema as arrayOfS,
-  booleanSchema as booleanS,
   completeSchema,
   completeSchemaOverwrite,
   documentSchema,
   enumSchema as enumS,
   idSchema as withId,
-  nullSchema as nullS,
-  numberSchema as numberS,
   objectSchema as objectS,
   refSchema as refS,
   regexSchema,
-  stringSchema as stringS,
   tagSchema,
   valueSchema,
 } from "./common.ts";

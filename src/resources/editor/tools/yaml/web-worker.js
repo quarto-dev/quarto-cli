@@ -23402,7 +23402,7 @@ ${heading}`;
     return expandAliasesFrom(lst, getFormatAliases());
   }
 
-  // ../yaml-schema/common.ts
+  // ../yaml-schema/constants.ts
   var booleanSchema = {
     "type": "boolean",
     "description": "be `true` or `false`",
@@ -23423,6 +23423,8 @@ ${heading}`;
     "completions": ["null"],
     "exhaustiveCompletions": true
   };
+
+  // ../yaml-schema/common.ts
   function tagSchema(schema, tags) {
     return {
       ...schema,
