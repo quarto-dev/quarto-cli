@@ -11,12 +11,13 @@ import { info } from "log/mod.ts";
 
 import { formatLine, withSpinner } from "../../core/console.ts";
 
+import { ToolSummaryData } from "./types.ts";
+
 import {
   installableTools,
   installTool,
   printToolInfo,
   toolSummary,
-  ToolSummaryData,
   uninstallTool,
   updateTool,
 } from "./tools.ts";

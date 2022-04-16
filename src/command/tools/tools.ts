@@ -4,80 +4,19 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
 import { writeAll } from "io/mod.ts";
 import { info } from "log/mod.ts";
-import {
-  progressBar,
-  SpinnerOptions,
-  withSpinner,
-} from "../../core/console.ts";
+import { progressBar, withSpinner } from "../../core/console.ts";
 import { logError } from "../../core/log.ts";
 
-import { GitHubRelease } from "./github.ts";
+import {
+  InstallableTool,
+  InstallContext,
+  ToolConfigurationState,
+  ToolSummaryData,
+} from "./types.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
-
-// Installable Tool interface
-export interface InstallableTool {
-  name: string;
-  prereqs: InstallPreReq[];
-  installed: () => Promise<boolean>;
-  installDir: () => Promise<string | undefined>;
-  binDir?: () => Promise<string | undefined>;
-  installedVersion: () => Promise<string | undefined>;
-  latestRelease: () => Promise<RemotePackageInfo>;
-  preparePackage: (ctx: InstallContext) => Promise<PackageInfo>;
-  verifyConfiguration?: () => Promise<ToolConfigurationState>;
-  install: (pkgInfo: PackageInfo, ctx: InstallContext) => Promise<void>;
-  afterInstall: (ctx: InstallContext) => Promise<boolean>; // return true if restart is required, false if not
-  uninstall: (ctx: InstallContext) => Promise<void>;
-}
-
-// Prerequisites to installation. These will be checked before installation
-// and if any return false, the message will be displaed and installation will be
-// halted
-export interface InstallPreReq {
-  check: () => Promise<boolean>;
-  os: string[];
-  message: string;
-}
-
-// Locally accessible Package information
-export interface PackageInfo {
-  filePath: string;
-  version: string;
-}
-
-// Remove package information
-export interface RemotePackageInfo {
-  url: string;
-  version: string;
-  assets: Array<{ name: string; url: string }>;
-}
-
-// Tool Remote information
-export interface ToolInfo {
-  version?: string;
-  latest: GitHubRelease;
-}
-
-export interface ToolConfigurationState {
-  status: "ok" | "warning" | "error";
-  message?: string;
-}
-
-// InstallContext provides the API for installable tools
-// InstallableTools can use the context to show progress, show info, etc...
-export interface InstallContext {
-  workingDir: string;
-  info: (msg: string) => void;
-  withSpinner: (
-    options: SpinnerOptions,
-    op: () => Promise<void>,
-  ) => Promise<void>;
-  error: (msg: string) => void;
-  download: (name: string, url: string, target: string) => Promise<void>;
-  props: { [key: string]: unknown };
-}
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
@@ -253,13 +192,6 @@ export async function updateTool(name: string) {
       `${name} is not installed Use 'quarto install ${name} to install it.`,
     );
   }
-}
-
-export interface ToolSummaryData {
-  installed: boolean;
-  installedVersion?: string;
-  latestRelease: RemotePackageInfo;
-  configuration: ToolConfigurationState;
 }
 
 export async function toolSummary(

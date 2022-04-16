@@ -10,7 +10,7 @@ import { warning } from "log/mod.ts";
 import { existsSync } from "fs/exists.ts";
 import { basename, join } from "path/mod.ts";
 
-import { getenv, suggestUserBinPaths } from "../../../core/env.ts";
+import { suggestUserBinPaths } from "../../../core/env.ts";
 import { expandPath, which } from "../../../core/path.ts";
 import { unzip } from "../../../core/zip.ts";
 import { hasLatexDistribution } from "../../render/latexmk/latex.ts";
@@ -27,8 +27,9 @@ import {
   PackageInfo,
   RemotePackageInfo,
   ToolConfigurationState,
-} from "../tools.ts";
+} from "../types.ts";
 import { getLatestRelease } from "../github.ts";
+import { tinyTexInstallDir } from "./tinytex-info.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [
@@ -425,19 +426,6 @@ const kTlMgrKey = "tlmgr";
 function textLiveRepo(): string {
   const randomInt = Math.floor(Math.random() * kDefaultRepos.length);
   return kDefaultRepos[randomInt];
-}
-
-export function tinyTexInstallDir(): string | undefined {
-  switch (Deno.build.os) {
-    case "windows":
-      return expandPath(join(getenv("APPDATA", undefined), "TinyTeX"));
-    case "linux":
-      return expandPath("~/.TinyTeX");
-    case "darwin":
-      return expandPath("~/Library/TinyTeX");
-    default:
-      return undefined;
-  }
 }
 
 function tinyTexPkgName(base?: string, ver?: string) {

@@ -5,20 +5,11 @@
 *
 */
 
+import { GitHubRelease } from "./types.ts";
+
 // deno-lint-ignore-file camelcase
 
 // A Github Release for a Github Repo
-export interface GitHubRelease {
-  html_url: string;
-  tag_name: string;
-  assets: GitHubAsset[];
-}
-
-// A Downloadable Github Asset
-export interface GitHubAsset {
-  name: string;
-  browser_download_url: string;
-}
 
 // Look up the latest release for a Github Repo
 export async function getLatestRelease(repo: string): Promise<GitHubRelease> {

@@ -52,7 +52,8 @@ import {
   readAndValidateYamlFromMappedString,
   ValidationError,
 } from "./validated-yaml.ts";
-import { getSchemaSchemas } from "./yaml-schema-schema.ts";
+
+import { Schema } from "../yaml-schema/types.ts";
 
 function setBaseSchemaProperties(
   // deno-lint-ignore no-explicit-any
@@ -717,4 +718,19 @@ export async function buildResourceSchemas() {
       });
     }
   }
+}
+
+export function getSchemaSchemas(): Record<string, Schema> {
+  const yaml = getYamlIntelligenceResource("schema/schema.yml") as Record<
+    string,
+    // deno-lint-ignore no-explicit-any
+    any
+  >[];
+  const dict: Record<string, Schema> = {};
+  for (const obj of yaml) {
+    const schema = convertFromYaml(obj) as ConcreteSchema;
+    setSchemaDefinition(schema);
+    dict[schema.$id!] = schema;
+  }
+  return dict;
 }

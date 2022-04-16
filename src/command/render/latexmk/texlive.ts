@@ -12,7 +12,7 @@ import * as ld from "../../../core/lodash.ts";
 import { execProcess, safeWindowsExec } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
-import { tinyTexInstallDir } from "../../tools/tools/tinytex.ts";
+import { tinyTexInstallDir } from "../../tools/tools/tinytex-info.ts";
 
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
