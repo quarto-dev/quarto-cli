@@ -17,6 +17,7 @@ import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId, getDecodedAttribute } from "../../../core/html.ts";
 import { sassLayer } from "../../../core/sass.ts";
+import { removeChapterNumber } from "./website-utils.ts";
 
 import {
   Format,
@@ -514,17 +515,6 @@ function navigationHtmlPostprocessor(
     }
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
-}
-
-export function removeChapterNumber(item: Element) {
-  const numberSpan = item.querySelector(".chapter-number");
-  const titleSpan = item.querySelector(".chapter-title");
-  if (numberSpan && titleSpan) {
-    if (numberSpan && titleSpan) {
-      item.innerHTML = "";
-      item.appendChild(titleSpan);
-    }
-  }
 }
 
 function handleRepoLinks(

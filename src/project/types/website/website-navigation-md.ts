@@ -25,7 +25,7 @@ import {
   NavigationPagination,
   PageMargin,
 } from "./website-shared.ts";
-import { removeChapterNumber } from "./website-navigation.ts";
+import { removeChapterNumber } from "./website-utils.ts";
 import { MarkdownPipelineHandler } from "./website-pipeline-md.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
