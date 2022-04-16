@@ -36,6 +36,7 @@ import {
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import {
+  clearProjectIndex,
   inputFileForOutputFile,
   resolveInputTarget,
 } from "../../project/project-index.ts";
@@ -122,6 +123,9 @@ export async function serveProject(
 
   // acquire the preview lock
   acquirePreviewLock(project);
+
+  // clear the project index
+  clearProjectIndex(project.dir);
 
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", project.dir);
