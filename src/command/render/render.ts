@@ -1165,10 +1165,11 @@ async function resolveFormats(
   // apply engine format filters
   if (engine.filterFormat) {
     for (const format of Object.keys(mergedFormats)) {
-      mergedFormats[format] = engine.filterFormat(
+      mergedFormats[format] = await engine.filterFormat(
         target.source,
         options,
         mergedFormats[format],
+        format,
       );
     }
   }

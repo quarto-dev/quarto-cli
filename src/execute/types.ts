@@ -40,7 +40,8 @@ export interface ExecutionEngine {
     source: string,
     options: RenderOptions,
     format: Format,
-  ) => Format;
+    formatName: string,
+  ) => Promise<Format>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
