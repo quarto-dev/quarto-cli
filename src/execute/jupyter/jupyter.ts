@@ -71,7 +71,10 @@ import {
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 
-import { jupyterNotebookFiltered } from "./jupyter-filters.ts";
+import {
+  jupyterNotebookFiltered,
+  markdownFromNotebook,
+} from "../../core/jupyter/jupyter-filters.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -155,7 +158,11 @@ export const jupyterEngine: ExecutionEngine = {
     }
   },
 
-  filterFormat: (source: string, options: RenderOptions, format: Format) => {
+  filterFormat: (
+    source: string,
+    options: RenderOptions,
+    format: Format,
+  ) => {
     if (isJupyterNotebook(source)) {
       // see if we want to override execute enabled
       let executeEnabled: boolean | null | undefined;
@@ -398,22 +405,4 @@ function executeResultEngineDependencies(
   } else {
     return undefined;
   }
-}
-
-async function markdownFromNotebook(file: string, format?: Format) {
-  // read file with any filters
-  const nbContents = await jupyterNotebookFiltered(
-    file,
-    format?.execute[kIpynbFilters],
-  );
-  const nb = JSON.parse(nbContents);
-  const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
-  const markdown = cells.reduce((md, cell) => {
-    if (["markdown", "raw"].includes(cell.cell_type)) {
-      return md + "\n" + cell.source.join("") + "\n";
-    } else {
-      return md;
-    }
-  }, "");
-  return markdown;
 }
