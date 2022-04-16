@@ -11,7 +11,7 @@ import { dirname, extname } from "path/mod.ts";
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath, resourcePath } from "../resources.ts";
-import { RunHandler, RunHandlerOptions } from "./run.ts";
+import { RunHandler, RunHandlerOptions } from "./types.ts";
 
 export const luaRunHandler: RunHandler = {
   canHandle: (script: string) => {

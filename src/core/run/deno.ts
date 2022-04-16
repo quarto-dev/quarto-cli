@@ -11,7 +11,7 @@ import { extname, join } from "path/mod.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath, toolsPath } from "../resources.ts";
-import { RunHandler, RunHandlerOptions } from "./run.ts";
+import { RunHandler, RunHandlerOptions } from "./types.ts";
 import { removeIfExists } from "../path.ts";
 
 export const denoRunHandler: RunHandler = {
