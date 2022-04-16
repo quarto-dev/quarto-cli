@@ -7,30 +7,10 @@
 
 import { existsSync } from "fs/exists.ts";
 import { basename, dirname, isAbsolute, join } from "path/mod.ts";
-import { kIpynbFilters } from "../../config/constants.ts";
-import { Format } from "../../config/types.ts";
 
 import { execProcess } from "../../core/process.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
-
-export async function markdownFromNotebook(file: string, format?: Format) {
-  // read file with any filters
-  const nbContents = await jupyterNotebookFiltered(
-    file,
-    format?.execute[kIpynbFilters],
-  );
-  const nb = JSON.parse(nbContents);
-  const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
-  const markdown = cells.reduce((md, cell) => {
-    if (["markdown", "raw"].includes(cell.cell_type)) {
-      return md + "\n" + cell.source.join("") + "\n";
-    } else {
-      return md;
-    }
-  }, "");
-  return markdown;
-}
 
 export async function jupyterNotebookFiltered(
   file: string,

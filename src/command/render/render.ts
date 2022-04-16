@@ -34,25 +34,39 @@ import {
 import { warnOnce } from "../../core/log.ts";
 
 import {
+  formatFromMetadata,
   formatKeys,
+  includedMetadata,
   mergeFormatMetadata,
-  resolveFormatsFromMetadata,
+  metadataAsFormat,
 } from "../../config/metadata.ts";
 import {
+  kBibliography,
+  kCache,
+  kCss,
   kEcho,
   kEngine,
+  kExecuteDaemon,
+  kExecuteDaemonRestart,
+  kExecuteDebug,
   kExecuteEnabled,
   kFreeze,
-  kIpynbFilters,
+  kHeaderIncludes,
+  kIncludeAfter,
+  kIncludeAfterBody,
+  kIncludeBefore,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
   kKeepMd,
   kLang,
+  kMetadataFormat,
   kOutputExt,
   kOutputFile,
   kSelfContained,
   kServer,
   kTheme,
 } from "../../config/constants.ts";
-import { Format, FormatExecute, FormatPandoc } from "../../config/types.ts";
+import { Format, FormatPandoc } from "../../config/types.ts";
 import {
   executionEngine,
   executionEngineKeepMd,
@@ -121,18 +135,18 @@ import {
   isHtmlFileOutput,
   isHtmlOutput,
 } from "../../config/format.ts";
+import { resolveLanguageMetadata } from "../../core/language.ts";
 
 import {
   validateDocument,
   validateDocumentFromSource,
 } from "../../core/schema/validate-document.ts";
 
+import { getFrontMatterSchema } from "../../core/lib/yaml-schema/front-matter.ts";
 import { renderProgress } from "./render-shared.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
 import { setDateLocale } from "../../core/date.ts";
-import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
-import { markdownFromNotebook } from "../../core/jupyter/jupyter-filters.ts";
 
 export async function renderFiles(
   files: RenderFile[],
@@ -861,6 +875,104 @@ export function isStandaloneFormat(format: Format) {
   return kStandaloneExtensionNames.includes(format.render[kOutputExt] || "");
 }
 
+export async function resolveFormatsFromMetadata(
+  metadata: Metadata,
+  input: string,
+  formats: string[],
+  flags?: RenderFlags,
+): Promise<Record<string, Format>> {
+  const includeDir = dirname(input);
+
+  // Read any included metadata files and merge in and metadata from the command
+  const frontMatterSchema = await getFrontMatterSchema();
+  const included = await includedMetadata(
+    includeDir,
+    metadata,
+    frontMatterSchema,
+  );
+  const allMetadata = mergeQuartoConfigs(
+    metadata,
+    included.metadata,
+    flags?.metadata || {},
+  );
+
+  // resolve any language file references
+  await resolveLanguageMetadata(allMetadata, includeDir);
+
+  // divide allMetadata into format buckets
+  const baseFormat = metadataAsFormat(allMetadata);
+
+  if (formats === undefined) {
+    formats = formatKeys(allMetadata);
+  }
+
+  // provide a default format
+  if (formats.length === 0) {
+    formats.push(baseFormat.pandoc.to || baseFormat.pandoc.writer || "html");
+  }
+
+  // determine render formats
+  const renderFormats: string[] = [];
+  if (flags?.to === undefined || flags?.to === "all") {
+    renderFormats.push(...formats);
+  } else if (flags?.to === "default") {
+    renderFormats.push(formats[0]);
+  } else {
+    renderFormats.push(...flags.to.split(","));
+  }
+
+  const resolved: Record<string, Format> = {};
+
+  renderFormats.forEach((to) => {
+    // determine the target format
+    const format = formatFromMetadata(
+      baseFormat,
+      to,
+      flags?.debug,
+    );
+
+    // merge configs
+    const config = mergeFormatMetadata(baseFormat, format);
+
+    // apply any metadata filter
+    const resolveFormat = defaultWriterFormat(to).resolveFormat;
+    if (resolveFormat) {
+      resolveFormat(config);
+    }
+
+    // apply command line arguments
+
+    // --no-execute-code
+    if (flags?.execute !== undefined) {
+      config.execute[kExecuteEnabled] = flags?.execute;
+    }
+
+    // --cache
+    if (flags?.executeCache !== undefined) {
+      config.execute[kCache] = flags?.executeCache;
+    }
+
+    // --execute-daemon
+    if (flags?.executeDaemon !== undefined) {
+      config.execute[kExecuteDaemon] = flags.executeDaemon;
+    }
+
+    // --execute-daemon-restart
+    if (flags?.executeDaemonRestart !== undefined) {
+      config.execute[kExecuteDaemonRestart] = flags.executeDaemonRestart;
+    }
+
+    // --execute-debug
+    if (flags?.executeDebug !== undefined) {
+      config.execute[kExecuteDebug] = flags.executeDebug;
+    }
+
+    resolved[to] = config;
+  });
+
+  return resolved;
+}
+
 export function filesDirLibDir(input: string) {
   return join(inputFilesDir(input), "libs");
 }
@@ -1050,44 +1162,68 @@ async function resolveFormats(
     }
   }
 
-  // apply some others
-  for (const formatName of Object.keys(mergedFormats)) {
-    let format = mergedFormats[formatName];
-
-    // run any ipynb-filters to discover generated metadata, then merge it back in
-    if (hasIpynbFilters(format.execute)) {
-      // read markdown w/ filter
-      const markdown = partitionMarkdown(
-        await markdownFromNotebook(target.source, format),
-      );
-      // merge back metadata
-      if (markdown.yaml) {
-        const nbFormats = await resolveFormatsFromMetadata(
-          markdown.yaml,
-          target.source,
-          [formatName],
-          { ...options.flags, to: undefined },
-        );
-        format = mergeConfigs(format, nbFormats[formatName]);
-      }
-    }
-
-    if (engine.filterFormat) {
-      format = await engine.filterFormat(
+  // apply engine format filters
+  if (engine.filterFormat) {
+    for (const format of Object.keys(mergedFormats)) {
+      mergedFormats[format] = engine.filterFormat(
         target.source,
         options,
-        format,
+        mergedFormats[format],
       );
     }
-
-    mergedFormats[formatName] = format;
   }
 
   return mergedFormats;
 }
 
-function hasIpynbFilters(execute: FormatExecute) {
-  return execute[kIpynbFilters] && execute[kIpynbFilters]?.length;
+function mergeQuartoConfigs(
+  config: Metadata,
+  ...configs: Array<Metadata>
+): Metadata {
+  // copy all configs so we don't mutate them
+  config = ld.cloneDeep(config);
+  configs = ld.cloneDeep(configs);
+
+  // bibliography needs to always be an array so it can be merged
+  const fixupMergeableScalars = (metadata: Metadata) => {
+    [
+      kBibliography,
+      kCss,
+      kHeaderIncludes,
+      kIncludeBefore,
+      kIncludeAfter,
+      kIncludeInHeader,
+      kIncludeBeforeBody,
+      kIncludeAfterBody,
+    ]
+      .forEach((key) => {
+        if (typeof (metadata[key]) === "string") {
+          metadata[key] = [metadata[key]];
+        }
+      });
+  };
+
+  // formats need to always be objects
+  const fixupFormat = (config: Record<string, unknown>) => {
+    const format = config[kMetadataFormat];
+    if (typeof (format) === "string") {
+      config.format = { [format]: {} };
+    } else if (format instanceof Object) {
+      Object.keys(format).forEach((key) => {
+        if (typeof (Reflect.get(format, key)) !== "object") {
+          Reflect.set(format, key, {});
+        }
+        fixupMergeableScalars(Reflect.get(format, key) as Metadata);
+      });
+    }
+    fixupMergeableScalars(config);
+    return config;
+  };
+
+  return mergeConfigs(
+    fixupFormat(config),
+    ...configs.map((c) => fixupFormat(c)),
+  );
 }
 
 class RenderInvalidYAMLError extends YAMLValidationError {
