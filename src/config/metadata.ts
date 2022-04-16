@@ -8,20 +8,29 @@
 import * as ld from "../core/lodash.ts";
 
 import { exists } from "fs/exists.ts";
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
-import { mergeArrayCustomizer } from "../core/config.ts";
+import { mergeArrayCustomizer, mergeConfigs } from "../core/config.ts";
 import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 import {
+  kBibliography,
+  kCache,
+  kCss,
+  kExecuteDaemon,
+  kExecuteDaemonRestart,
+  kExecuteDebug,
   kExecuteDefaults,
   kExecuteDefaultsKeys,
   kExecuteEnabled,
   kHeaderIncludes,
   kIncludeAfter,
+  kIncludeAfterBody,
   kIncludeBefore,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
   kIpynbFilter,
   kIpynbFilters,
   kKeepMd,
@@ -39,6 +48,9 @@ import {
   kTblColwidths,
 } from "./constants.ts";
 import { Format, Metadata } from "./types.ts";
+import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
+import { defaultWriterFormat } from "../format/formats.ts";
+import { resolveLanguageMetadata } from "../core/language.ts";
 
 export async function includedMetadata(
   dir: string,
@@ -257,5 +269,164 @@ export function mergeFormatMetadata<T>(
         return mergeArrayCustomizer(objValue, srcValue);
       }
     },
+  );
+}
+
+export interface MetadataFlags {
+  to?: string;
+  execute?: boolean;
+  executeCache?: true | false | "refresh";
+  executeDaemon?: number;
+  executeDaemonRestart?: boolean;
+  executeDebug?: boolean;
+  metadata?: { [key: string]: unknown };
+  debug?: boolean;
+}
+
+export async function resolveFormatsFromMetadata(
+  metadata: Metadata,
+  input: string,
+  formats: string[],
+  flags?: MetadataFlags,
+): Promise<Record<string, Format>> {
+  const includeDir = dirname(input);
+
+  // Read any included metadata files and merge in and metadata from the command
+  const frontMatterSchema = await getFrontMatterSchema();
+  const included = await includedMetadata(
+    includeDir,
+    metadata,
+    frontMatterSchema,
+  );
+  const allMetadata = mergeQuartoConfigs(
+    metadata,
+    included.metadata,
+    flags?.metadata || {},
+  );
+
+  // resolve any language file references
+  await resolveLanguageMetadata(allMetadata, includeDir);
+
+  // divide allMetadata into format buckets
+  const baseFormat = metadataAsFormat(allMetadata);
+
+  if (formats === undefined) {
+    formats = formatKeys(allMetadata);
+  }
+
+  // provide a default format
+  if (formats.length === 0) {
+    formats.push(baseFormat.pandoc.to || baseFormat.pandoc.writer || "html");
+  }
+
+  // determine render formats
+  const renderFormats: string[] = [];
+  if (flags?.to === undefined || flags?.to === "all") {
+    renderFormats.push(...formats);
+  } else if (flags?.to === "default") {
+    renderFormats.push(formats[0]);
+  } else {
+    renderFormats.push(...flags.to.split(","));
+  }
+
+  const resolved: Record<string, Format> = {};
+
+  renderFormats.forEach((to) => {
+    // determine the target format
+    const format = formatFromMetadata(
+      baseFormat,
+      to,
+      flags?.debug,
+    );
+
+    // merge configs
+    const config = mergeFormatMetadata(baseFormat, format);
+
+    // apply any metadata filter
+    const resolveFormat = defaultWriterFormat(to).resolveFormat;
+    if (resolveFormat) {
+      resolveFormat(config);
+    }
+
+    // apply command line arguments
+
+    // --no-execute-code
+    if (flags?.execute !== undefined) {
+      config.execute[kExecuteEnabled] = flags?.execute;
+    }
+
+    // --cache
+    if (flags?.executeCache !== undefined) {
+      config.execute[kCache] = flags?.executeCache;
+    }
+
+    // --execute-daemon
+    if (flags?.executeDaemon !== undefined) {
+      config.execute[kExecuteDaemon] = flags.executeDaemon;
+    }
+
+    // --execute-daemon-restart
+    if (flags?.executeDaemonRestart !== undefined) {
+      config.execute[kExecuteDaemonRestart] = flags.executeDaemonRestart;
+    }
+
+    // --execute-debug
+    if (flags?.executeDebug !== undefined) {
+      config.execute[kExecuteDebug] = flags.executeDebug;
+    }
+
+    resolved[to] = config;
+  });
+
+  return resolved;
+}
+
+function mergeQuartoConfigs(
+  config: Metadata,
+  ...configs: Array<Metadata>
+): Metadata {
+  // copy all configs so we don't mutate them
+  config = ld.cloneDeep(config);
+  configs = ld.cloneDeep(configs);
+
+  // bibliography needs to always be an array so it can be merged
+  const fixupMergeableScalars = (metadata: Metadata) => {
+    [
+      kBibliography,
+      kCss,
+      kHeaderIncludes,
+      kIncludeBefore,
+      kIncludeAfter,
+      kIncludeInHeader,
+      kIncludeBeforeBody,
+      kIncludeAfterBody,
+    ]
+      .forEach((key) => {
+        if (typeof (metadata[key]) === "string") {
+          metadata[key] = [metadata[key]];
+        }
+      });
+  };
+
+  // formats need to always be objects
+  const fixupFormat = (config: Record<string, unknown>) => {
+    const format = config[kMetadataFormat];
+    if (typeof (format) === "string") {
+      config.format = { [format]: {} };
+    } else if (format instanceof Object) {
+      Object.keys(format).forEach((key) => {
+        if (typeof (Reflect.get(format, key)) !== "object") {
+          Reflect.set(format, key, {});
+        }
+        fixupMergeableScalars(Reflect.get(format, key) as Metadata);
+      });
+    }
+    fixupMergeableScalars(config);
+    return config;
+  };
+
+  return mergeConfigs(
+    fixupFormat(config),
+    ...configs.map((c) => fixupFormat(c)),
   );
 }

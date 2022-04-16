@@ -197,7 +197,6 @@ function bootstrapHtmlPostprocessor(
 ): HtmlPostProcessor {
   return async (
     doc: Document,
-    inputMetadata: Metadata,
   ): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");

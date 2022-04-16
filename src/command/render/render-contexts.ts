@@ -5,7 +5,7 @@
 *
 */
 
-import { Format, Metadata } from "../../config/types.ts";
+import { Format, FormatExecute, Metadata } from "../../config/types.ts";
 import {
   RenderContext,
   RenderFile,
@@ -43,6 +43,7 @@ import {
   kIncludeBefore,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kIpynbFilters,
   kMetadataFormat,
   kOutputExt,
   kOutputFile,
@@ -72,6 +73,8 @@ import { createTempContext } from "../../core/temp.ts";
 import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
 import { filesDirLibDir } from "./render-paths.ts";
+import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
+import { markdownFromNotebook } from "../../core/jupyter/jupyter-filters.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -450,16 +453,45 @@ async function resolveFormats(
     }
   }
 
-  // apply engine format filters
-  if (engine.filterFormat) {
-    for (const format of Object.keys(mergedFormats)) {
-      mergedFormats[format] = engine.filterFormat(
-        target.source,
-        options,
-        mergedFormats[format],
+  // apply some others
+  for (const formatName of Object.keys(mergedFormats)) {
+    let format = mergedFormats[formatName];
+
+    // run any ipynb-filters to discover generated metadata, then merge it back in
+    if (hasIpynbFilters(format.execute)) {
+      // read markdown w/ filter
+      const markdown = partitionMarkdown(
+        await markdownFromNotebook(target.source, format),
       );
+      // merge back metadata
+      if (markdown.yaml) {
+        const nbFormats = await resolveFormatsFromMetadata(
+          markdown.yaml,
+          target.source,
+          [formatName],
+          { ...options.flags, to: undefined },
+        );
+        format = mergeConfigs(format, nbFormats[formatName]);
+      }
     }
+
+    // apply engine format filters
+    if (engine.filterFormat) {
+      for (const format of Object.keys(mergedFormats)) {
+        mergedFormats[format] = engine.filterFormat(
+          target.source,
+          options,
+          mergedFormats[format],
+        );
+      }
+    }
+
+    mergedFormats[formatName] = format;
   }
 
   return mergedFormats;
+}
+
+function hasIpynbFilters(execute: FormatExecute) {
+  return execute[kIpynbFilters] && execute[kIpynbFilters]?.length;
 }

@@ -33,6 +33,9 @@ import {
 import { parse } from "flags/mod.ts";
 import { runScript } from "./command/run/run.ts";
 
+// ensures run handlers are registered
+import "./core/run/register.ts";
+
 export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,
