@@ -337,7 +337,8 @@ export function setMainColumn(doc: Document, column: string) {
   const selectors = [
     "main.content",
     ".page-navigation",
-    ".quarto-banner-title-block .quarto-title",
+    ".quarto-title-block .quarto-title-banner .quarto-title",
+    ".quarto-title-block .quarto-title-meta-container",
   ];
   selectors.forEach((selector) => {
     const el = doc.querySelector(selector);

@@ -1,47 +1,33 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$"$if(dir)$ dir="$dir$"$endif$>
-
 <head>
-
 $metadata.html()$
-
 <style>
 $styles.html()$
 </style>
-
 $for(header-includes)$
 $header-includes$
 $endfor$
-
 $if(math)$
   $math$
 $endif$
-
 $for(css)$
 <link rel="stylesheet" href="$css$" />
 $endfor$
 </head>
-
 <body>
-
 $for(include-before)$
 $include-before$
 $endfor$
-
 $if(title)$
 $title-block.html()$
 $endif$
-
 $if(toc)$
 $toc.html()$
 $endif$
-
 $body$
-
 $for(include-after)$
 $include-after$
 $endfor$
-
 </body>
-
 </html>

@@ -101,9 +101,7 @@ export function documentTitlePartial(
     // For banner partials, configure the options and pass them along in the metadata
     if (banner) {
       // When the toc is on the left, be sure to add the special grid notation
-      const tocLeft = format.metadata[kTocLocation] === "left" ||
-        (format.pandoc.toc &&
-          format.metadata[kTocLocation] === undefined);
+      const tocLeft = format.metadata[kTocLocation] === "left";
       if (tocLeft) {
         templateParams["banner-header-class"] = "toc-left";
       }

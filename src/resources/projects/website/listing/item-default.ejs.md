@@ -22,6 +22,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 }
 %>
 
+```{=html}
 <div class="quarto-post image-<%= imageAlign %>" <%= listing.utilities.metadataAttrs(item) %>>
 <% if (fields.includes('image')) { %>
 <div class="thumbnail">
@@ -36,10 +37,22 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% } %>
 <div class="body"><a href="<%- item.path %>">
 <% if (fields.includes('title')) { %>
-<h3 class="no-anchor listing-title"><%= item.title %></h3>
-<div class="listing-subtitle"><%= item.subtitle %></div>
+<h3 class="no-anchor listing-title">
+```
+
+<%= item.title %>
+
+```{=html}
+</h3>
+<div class="listing-subtitle">
+```
+
+<%= item.subtitle %>
+
+```{=html}
+</div>
 <% } %>
-<% if (fields.includes('categories') && item.categories) { %> 
+<% if (fields.includes('categories') && item.categories) { %>
 </a>
 <div class="listing-categories">
 <% for (const category of item.categories) { %>
@@ -47,10 +60,14 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% } %>
 </div>
 <a href="<%- item.path %>">
-<% } %> 
+<% } %>
 <% if (fields.includes('description')) { %>
 <div class="delink listing-description">
+```
+
 <%= item.description %>
+
+```{=html}
 </div>
 <% } %>
 </a></div>
@@ -62,3 +79,4 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% outputMetadata(item, field) %><% } %></a></div>
 
 </div>
+```
