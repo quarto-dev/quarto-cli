@@ -48,7 +48,6 @@ import {
   kTblColwidths,
 } from "./constants.ts";
 import { Format, Metadata } from "./types.ts";
-import { RenderFlags } from "../command/render/types.ts";
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { defaultWriterFormat } from "../format/formats.ts";
 import { resolveLanguageMetadata } from "../core/language.ts";
@@ -273,11 +272,22 @@ export function mergeFormatMetadata<T>(
   );
 }
 
+export interface MetadataFlags {
+  to?: string;
+  execute?: boolean;
+  executeCache?: true | false | "refresh";
+  executeDaemon?: number;
+  executeDaemonRestart?: boolean;
+  executeDebug?: boolean;
+  metadata?: { [key: string]: unknown };
+  debug?: boolean;
+}
+
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
   input: string,
   formats: string[],
-  flags?: RenderFlags,
+  flags?: MetadataFlags,
 ): Promise<Record<string, Format>> {
   const includeDir = dirname(input);
 
