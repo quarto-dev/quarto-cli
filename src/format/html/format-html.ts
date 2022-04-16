@@ -77,15 +77,13 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
-import {
-  HtmlPostProcessResult,
-  kHtmlEmptyPostProcessResult,
-} from "../../command/render/types.ts";
+import { HtmlPostProcessResult } from "../../command/render/types.ts";
 import {
   getDiscussionCategoryId,
   getGithubDiscussionsMetadata,
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
+import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 
 export function htmlFormat(
   figwidth: number,

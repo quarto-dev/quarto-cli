@@ -17,9 +17,6 @@ import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 
-export const kMarkdownBlockSeparator = "\n\n<!-- -->\n\n";
-export const kDefaultHighlightStyle = "arrow";
-
 // options for render
 export interface RenderOptions {
   temp: TempContext;
@@ -60,12 +57,6 @@ export interface HtmlPostProcessResult {
   // Supporting files should be absolute paths to the files or directories
   supporting: string[];
 }
-
-export const kHtmlEmptyPostProcessResult = {
-  resources: [],
-  supporting: [],
-};
-
 export interface RenderResourceFiles {
   globs: string[];
   files: string[];

@@ -36,7 +36,6 @@ import {
 
 import {
   HtmlPostProcessResult,
-  kHtmlEmptyPostProcessResult,
   PandocOptions,
 } from "../../../command/render/types.ts";
 
@@ -64,6 +63,7 @@ import { kBootstrapDependencyName } from "../../../format/html/format-html-share
 import { formatHasBootstrap } from "../../../format/html/format-html-info.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { isSpecialDate, parseSpecialDate } from "../../../core/date.ts";
+import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 
 const kSingleFileBook = "single-file-book";
 

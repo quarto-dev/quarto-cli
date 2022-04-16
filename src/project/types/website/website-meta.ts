@@ -39,9 +39,9 @@ import {
 import { findPreviewImg } from "./util/discover-meta.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
 import {
-  HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
-} from "../../../command/render/types.ts";
+} from "../../../command/render/constants.ts";
+import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 

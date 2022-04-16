@@ -6,12 +6,11 @@
 */
 
 import { Document, Element } from "../../core/deno-dom.ts";
-
 import {
-  HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
   kMarkdownBlockSeparator,
-} from "./types.ts";
+} from "./constants.ts";
+import { HtmlPostProcessResult } from "./types.ts";
 import { Format } from "../../config/types.ts";
 import {
   kCodeTools,

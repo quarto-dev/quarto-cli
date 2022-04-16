@@ -5,7 +5,7 @@
 *
 */
 
-import { kHtmlEmptyPostProcessResult } from "../../command/render/types.ts";
+import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
 import { CSL, cslDateToEDTFDate } from "../../core/csl.ts";

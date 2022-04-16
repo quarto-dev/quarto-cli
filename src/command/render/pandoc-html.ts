@@ -17,7 +17,7 @@ import {
   SassBundle,
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { kDefaultHighlightStyle } from "./types.ts";
+import { kDefaultHighlightStyle } from "./constants.ts";
 
 import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";

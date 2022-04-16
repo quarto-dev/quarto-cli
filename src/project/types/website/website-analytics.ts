@@ -13,9 +13,9 @@ import { TempContext } from "../../../core/temp.ts";
 import { ProjectContext } from "../../types.ts";
 import { kWebsite } from "./website-constants.ts";
 import {
-  HtmlPostProcessResult,
   kHtmlEmptyPostProcessResult,
-} from "../../../command/render/types.ts";
+} from "../../../command/render/constants.ts";
+import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 
 // tracking id for google analytics
 // GA3 calls this 'tracking id'

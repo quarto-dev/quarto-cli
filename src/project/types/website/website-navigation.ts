@@ -119,11 +119,9 @@ import {
 } from "./website-pipeline-md.ts";
 import { engineValidExtensions } from "../../../execute/engine.ts";
 import { TempContext } from "../../../core/temp.ts";
-import {
-  HtmlPostProcessResult,
-  kHtmlEmptyPostProcessResult,
-} from "../../../command/render/types.ts";
+import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
+import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {

@@ -47,10 +47,7 @@ import {
   insertFootnotesTitle,
   removeFootnoteBacklinks,
 } from "../html/format-html-shared.ts";
-import {
-  HtmlPostProcessResult,
-  kHtmlEmptyPostProcessResult,
-} from "../../command/render/types.ts";
+import { HtmlPostProcessResult } from "../../command/render/types.ts";
 import {
   kAutoAnimateDuration,
   kAutoAnimateEasing,
@@ -68,6 +65,7 @@ import {
   kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
+import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);

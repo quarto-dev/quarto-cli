@@ -6,7 +6,7 @@
 */
 import { join } from "path/mod.ts";
 
-import { kDefaultHighlightStyle } from "../command/render/types.ts";
+import { kDefaultHighlightStyle } from "../command/render/constants.ts";
 import { kHighlightStyle } from "../config/constants.ts";
 import { FormatPandoc } from "../config/types.ts";
 

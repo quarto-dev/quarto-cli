@@ -116,12 +116,8 @@ import {
 import { TempContext } from "../../core/temp.ts";
 import { discoverResourceRefs } from "../../core/html.ts";
 
-import {
-  HtmlPostProcessor,
-  kDefaultHighlightStyle,
-  PandocOptions,
-  RunPandocResult,
-} from "./types.ts";
+import { kDefaultHighlightStyle } from "./constants.ts";
+import { HtmlPostProcessor, PandocOptions, RunPandocResult } from "./types.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 import { selectInputPostprocessor } from "./layout.ts";
 import {
