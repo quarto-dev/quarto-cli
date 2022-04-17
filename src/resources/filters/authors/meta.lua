@@ -492,7 +492,7 @@ function normalizeName(name)
       name[kGivenName] = name[kLiteralName][1]
       name[kFamilyName] = trimspace(tslice(name[kLiteralName], 2))
     elseif name[kLiteralName] then
-      name[kFamilyName] = n[kLiteralName]
+      name[kFamilyName] = name[kLiteralName]
     end
   end
   return name
