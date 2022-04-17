@@ -71,7 +71,7 @@ export function rangedLines(
     const matches = matchAll(text, regex);
     let prevOffset = 0;
     for (const r of matches) {
-      const stringEnd = r.index! + 1;
+      const stringEnd = r.index! + r[0].length;
       result.push({
         substring: text.substring(prevOffset, stringEnd),
         range: {
