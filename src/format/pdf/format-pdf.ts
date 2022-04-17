@@ -129,8 +129,8 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           | string
           | undefined;
 
-        const usingCustomTemplates = format.pandoc.template === undefined ||
-          format.metadata[kTemplatePartials] === undefined;
+        const usingCustomTemplates = format.pandoc.template !== undefined ||
+          format.metadata[kTemplatePartials] !== undefined;
 
         if (
           usingCustomTemplates ||
