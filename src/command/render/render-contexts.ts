@@ -460,9 +460,7 @@ async function resolveFormats(
     // run any ipynb-filters to discover generated metadata, then merge it back in
     if (hasIpynbFilters(format.execute)) {
       // read markdown w/ filter
-      const markdown = partitionMarkdown(
-        await markdownFromNotebook(target.source, format),
-      );
+      const markdown = await engine.partitionedMarkdown(target.source, format);
       // merge back metadata
       if (markdown.yaml) {
         const nbFormats = await resolveFormatsFromMetadata(
@@ -477,13 +475,11 @@ async function resolveFormats(
 
     // apply engine format filters
     if (engine.filterFormat) {
-      for (const format of Object.keys(mergedFormats)) {
-        mergedFormats[format] = engine.filterFormat(
-          target.source,
-          options,
-          mergedFormats[format],
-        );
-      }
+      format = engine.filterFormat(
+        target.source,
+        options,
+        format,
+      );
     }
 
     mergedFormats[formatName] = format;
