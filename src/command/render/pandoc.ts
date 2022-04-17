@@ -100,6 +100,7 @@ import {
   kPageTitle,
   kQuartoTemplateParams,
   kQuartoVarsKey,
+  kQuartoVersion,
   kResources,
   kRevealJsScripts,
   kSectionTitleAbstract,
@@ -186,6 +187,7 @@ export async function runPandoc(
   const cleanMetadataForPrinting = (metadata: Metadata) => {
     delete metadata.params;
     delete metadata[kQuartoVarsKey];
+    delete metadata[kQuartoVersion];
     delete metadata[kFigResponsive];
     delete metadata[kQuartoTemplateParams];
     delete metadata[kRevealJsScripts];
