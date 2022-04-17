@@ -17,7 +17,6 @@ import {
   kLinkCitations,
   kQuartoTemplateParams,
   kSectionDivs,
-  kTheme,
   kTocLocation,
 } from "../../config/constants.ts";
 import {
@@ -28,10 +27,8 @@ import {
   kHtmlFinalizers,
   kHtmlPostprocessors,
   kSassBundles,
-  Metadata,
   SassLayer,
 } from "../../config/types.ts";
-import { isHtmlOutput } from "../../config/format.ts";
 import { PandocFlags } from "../../config/types.ts";
 import { hasTableOfContents } from "../../config/toc.ts";
 

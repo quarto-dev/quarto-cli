@@ -33,7 +33,6 @@ import {
   formatsPreferHtml,
   normalizeWebsiteFormat,
 } from "./types/website/website-config.ts";
-import { isJupyterNotebook } from "../core/jupyter/jupyter.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;

@@ -21,7 +21,7 @@ import { kEngine } from "../config/constants.ts";
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { markdownEngine } from "./markdown.ts";
-import { ExecutionEngine, ExecutionTarget } from "./types.ts";
+import { ExecutionEngine } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 
 const kEngines: ExecutionEngine[] = [
