@@ -3,7 +3,7 @@
 *
 * registers available project types for use in quarto.
 *
-* Copyright (C) 202 basy RStudio, PBC
+* Copyright (C) 2022 by RStudio, PBC
 *
 */
 
