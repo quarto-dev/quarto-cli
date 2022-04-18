@@ -531,9 +531,6 @@ function acquirePreviewLock(project: ProjectContext) {
   if (existsSync(lockfile)) {
     const pid = parseInt(Deno.readTextFileSync(lockfile)) || undefined;
     if (pid) {
-      warning(
-        "A preview server is already running for this project\n",
-      );
       info(
         colors.bold(colors.blue("Termimating existing preview server....")),
         { newline: false },
