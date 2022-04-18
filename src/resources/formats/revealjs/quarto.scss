@@ -7,7 +7,8 @@
 
 // fonts
 $font-family-sans-serif: "Source Sans Pro", Helvetica, sans-serif !default;
-$font-family-monospace: monospace !default;
+$font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
+  "Liberation Mono", "Courier New", monospace !default;
 $presentation-font-size-root: 40px !default;
 $presentation-font-smaller: 0.7 !default;
 $presentation-line-height: 1.3 !default;
