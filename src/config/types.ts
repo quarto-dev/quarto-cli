@@ -11,7 +11,7 @@ import {
   kAppendixAttributionCiteAs,
   kAtxHeaders,
   kCache,
-  kCalloutDangerCaption,
+  kCalloutCautionCaption,
   kCalloutImportantCaption,
   kCalloutNoteCaption,
   kCalloutTipCaption,
@@ -433,7 +433,7 @@ export interface FormatLanguage {
   [kCalloutNoteCaption]?: string;
   [kCalloutWarningCaption]?: string;
   [kCalloutImportantCaption]?: string;
-  [kCalloutDangerCaption]?: string;
+  [kCalloutCautionCaption]?: string;
   [kSectionTitleAbstract]?: string;
   [kSectionTitleCitation]?: string;
   [kAppendixAttributionBibTex]?: string;
