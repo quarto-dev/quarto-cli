@@ -248,11 +248,9 @@ export async function previewRenderRequestIsCompatible(
 ) {
   if (request.version === 1) {
     return true; // rstudio manages its own request compatibility state
-  } else if (flags.to !== "all") {
+  } else {
     const format = await previewFormat(request.path, request.format, project);
     return format === flags.to;
-  } else {
-    return true;
   }
 }
 

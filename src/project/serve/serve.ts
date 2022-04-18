@@ -257,9 +257,14 @@ export async function serveProject(
         ) {
           if (isProjectInputFile(prevReq.path, project!)) {
             const requestTemp = createTempContext();
+            // if there is no specific format requested then 'all' needs
+            // to become 'html' so we don't render all formats
+            const to = flags.to === "all"
+              ? (prevReq.format || "html")
+              : flags.to;
             render(prevReq.path, {
               temp: requestTemp,
-              flags,
+              flags: { ...flags, to },
               pandocArgs,
             }).then((result) => {
               if (result.error) {
