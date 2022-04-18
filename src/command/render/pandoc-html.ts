@@ -414,7 +414,23 @@ function processCssIntoExtras(
     if (dirty) {
       const cleanedCss = css.replaceAll(kVariablesRegex, "");
       const newCssPath = temp.createFile({ suffix: ".css" });
-      Deno.writeTextFileSync(newCssPath, cleanedCss);
+
+      // Preserve the existing permissions if possible
+      // See https://github.com/quarto-dev/quarto-cli/issues/660
+      let mode;
+      if (Deno.build.os !== "windows") {
+        const stat = Deno.statSync(cssPath);
+        if (stat.mode !== null) {
+          mode = stat.mode;
+        }
+      }
+
+      if (mode !== undefined) {
+        Deno.writeTextFileSync(newCssPath, cleanedCss, { mode });
+      } else {
+        Deno.writeTextFileSync(newCssPath, cleanedCss);
+      }
+
       return newCssPath;
     }
   }
