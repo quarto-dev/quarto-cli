@@ -21,7 +21,7 @@ callout-tip-caption: "Tip"
 callout-note-caption: "Nota"
 callout-warning-caption: "Advertencia"
 callout-important-caption: "Importante"
-callout-danger-caption: "Peligro"
+callout-caution-caption: "Precaución"
 
 code-summary: "Código"
 

@@ -916,7 +916,7 @@
       callout-note-caption: string
       callout-warning-caption: string
       callout-important-caption: string
-      callout-danger-caption: string
+      callout-caution-caption: string
       section-title-abstract: string
       section-title-footnotes: string
       section-title-appendices: string
