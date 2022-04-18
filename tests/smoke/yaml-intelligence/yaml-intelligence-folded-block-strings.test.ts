@@ -28,12 +28,11 @@ async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
 }
 
-unitTest("yaml-intelligence-embedded-html", async () => {
+unitTest("yaml-intelligence-folded-block-strings", async () => {
   setInitializer(fullInit);
   await initState();
   const configSchema = await getProjectConfigSchema();
 
-  debugger;
   const { yamlValidationErrors } = await readAndValidateYamlFromMappedString(
     asMappedString(yamlStr),
     configSchema,
