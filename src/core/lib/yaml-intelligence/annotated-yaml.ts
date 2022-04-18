@@ -248,7 +248,7 @@ export function buildTreeSitterAnnotation(
     "block_node": singletonBuild,
     "flow_node": singletonBuild,
     "block_scalar": (node) => {
-      if (!node.text.startsWith("|")) {
+      if (!node.text.startsWith("|") && !node.text(startsWith(">"))) {
         // throw new Error(
         //   `Internal error: can only build block_scalar if content starts with | (got "${
         //     node.text[0]
@@ -256,6 +256,8 @@ export function buildTreeSitterAnnotation(
         // );
         return annotateEmpty(node.endIndex);
       }
+      const joinString = node.text.startsWith("|") ? "\n" : "";
+
       const ls = lines(node.text);
       if (ls.length < 2) {
         // throw new Error(
@@ -264,7 +266,9 @@ export function buildTreeSitterAnnotation(
         return annotateEmpty(node.endIndex);
       }
       const indent = ls[1].length - ls[1].trimStart().length;
-      const result = ls.slice(1).map((l: string) => l.slice(indent)).join("\n");
+      const result = ls.slice(1).map((l: string) => l.slice(indent)).join(
+        joinString,
+      );
       return annotate(node, result, []);
     },
     "block_sequence": (node) => {
