@@ -139,6 +139,7 @@ export function buildTreeSitterAnnotation(
   tree: TreeSitterParse,
   mappedSource: MappedString,
 ): AnnotatedParse | null {
+  const errors: { start: number; end: number; message: string }[] = [];
   const singletonBuild = (node: TreeSitterNode) => {
     // some singleton nodes can contain more than one child, especially in the case of comments.
     // So we find the first non-comment to return.
@@ -173,6 +174,22 @@ export function buildTreeSitterAnnotation(
       return annotateEmpty(endIndex || node.endIndex || -1);
     }
     return dispatch[node.type](node);
+  };
+
+  const annotateError = (
+    start: number,
+    end: number,
+    message: string,
+  ): AnnotatedParse => {
+    errors.push({ start, end, message });
+    return {
+      start,
+      end,
+      result: null,
+      kind: "<<ERROR>>",
+      components: [],
+      source: mappedString(mappedSource, [{ start, end }]),
+    };
   };
 
   const annotateEmpty = (position: number): AnnotatedParse => {
@@ -248,17 +265,36 @@ export function buildTreeSitterAnnotation(
     "block_node": singletonBuild,
     "flow_node": singletonBuild,
     "block_scalar": (node) => {
-      if (!node.text.startsWith("|") && !node.text(startsWith(">"))) {
-        // throw new Error(
-        //   `Internal error: can only build block_scalar if content starts with | (got "${
-        //     node.text[0]
-        //   }" instead)`,
-        // );
-        return annotateEmpty(node.endIndex);
+      // block scalar style
+      if (!node.text.startsWith("|") && !node.text.startsWith(">")) {
+        return annotateError(
+          node.startIndex,
+          node.endIndex,
+          "Block scalar must start with either `|` or `>`",
+        );
       }
       const joinString = node.text.startsWith("|") ? "\n" : "";
 
       const ls = lines(node.text);
+
+      // block chomping
+      let chompChar = "";
+      if (ls[0].endsWith("-")) {
+        // strip
+        while (ls[ls.length - 1] === "") {
+          ls.pop();
+        }
+      } else if (ls[1].endsWith("+")) {
+        // keep
+        chompChar = "\n";
+      } else {
+        // clip
+        while (ls[ls.length - 1] === "") {
+          ls.pop();
+        }
+        chompChar = "\n";
+      }
+
       if (ls.length < 2) {
         // throw new Error(
         //   `Internal error: can only handle block_scalar of multiline strings`,
@@ -268,7 +304,7 @@ export function buildTreeSitterAnnotation(
       const indent = ls[1].length - ls[1].trimStart().length;
       const result = ls.slice(1).map((l: string) => l.slice(indent)).join(
         joinString,
-      );
+      ) + chompChar;
       return annotate(node, result, []);
     },
     "block_sequence": (node) => {
@@ -391,6 +427,9 @@ export function buildTreeSitterAnnotation(
   };
 
   const result = buildNode(tree.rootNode, tree.rootNode.endIndex);
+  if (errors.length) {
+    result.errors = errors;
+  }
 
   // some tree-sitter "error-tolerant parses" are particularly bad
   // for us here. We must guard against "partial" parses where

@@ -69,6 +69,8 @@ export interface AnnotatedParse {
   kind: string;
   source: MappedString;
   components: AnnotatedParse[];
+
+  errors?: { start: number; end: number; message: string }[]; // this field is only populated at the top level
 }
 
 export type InstancePath = (string | number)[];
