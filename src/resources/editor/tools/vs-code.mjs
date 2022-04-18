@@ -9459,7 +9459,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "callout-note-caption": "string",
               "callout-warning-caption": "string",
               "callout-important-caption": "string",
-              "callout-danger-caption": "string",
+              "callout-caution-caption": "string",
               "section-title-abstract": "string",
               "section-title-footnotes": "string",
               "section-title-appendices": "string",
@@ -19044,7 +19044,7 @@ function rangedLines(text, includeNewLines = false) {
     const matches = matchAll2(text, regex);
     let prevOffset = 0;
     for (const r of matches) {
-      const stringEnd = r.index + 1;
+      const stringEnd = r.index + r[0].length;
       result.push({
         substring: text.substring(prevOffset, stringEnd),
         range: {
