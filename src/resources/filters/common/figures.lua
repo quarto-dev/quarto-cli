@@ -92,8 +92,10 @@ function discoverLinkedFigureDiv(el, captionRequired)
   return nil
 end
 
+local anonymousCount = 0
 function anonymousFigId()
-  return "fig-anonymous-" .. tostring(math.random(10000000))
+  anonymousCount = anonymousCount + 1
+  return "fig-anonymous-" .. tostring(anonymousCount)
 end
 
 function isAnonymousFigId(identifier)
