@@ -124,7 +124,7 @@ function bootstrapTabs()
         attribs.classes:insert("active")
       end
       attribs.attributes["role"] = "tabpanel"
-      attribs.attributes["aria-labeledby"] = tablinkid
+      attribs.attributes["aria-labelledby"] = tablinkid
       return attribs
     end
   }
