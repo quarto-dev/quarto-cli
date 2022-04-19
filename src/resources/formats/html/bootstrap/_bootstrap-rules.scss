@@ -617,6 +617,10 @@ h4 {
   @include body-secondary;
 }
 
+.nav-link.active .header-section-number {
+  color: inherit;
+}
+
 mark {
   padding: 0em;
 }
