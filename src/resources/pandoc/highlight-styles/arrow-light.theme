@@ -5,10 +5,10 @@
     "line-number-background-color": null,
     "text-styles": {
         "Normal": {
-            "text-color": "#00769E"
+            "text-color": "#003B4F"
         },
         "Other": {
-            "text-color": "#00769E",
+            "text-color": "#003B4F",
             "background-color": null,
             "bold": false,
             "italic": false,
@@ -50,7 +50,7 @@
             "underline": false
         },
         "ControlFlow": {
-            "text-color": "#00769E",
+            "text-color": "#003B4F",
             "background-color": null,
             "bold": false,
             "italic": false,
@@ -141,7 +141,7 @@
             "underline": false
         },
         "Import": {
-            "text-color": null,
+            "text-color": "#00769E",
             "background-color": null,
             "bold": false,
             "italic": false,
@@ -204,7 +204,7 @@
             "underline": false
         },
         "Keyword": {
-            "text-color": "#00769E",
+            "text-color": "#003B4F",
             "background-color": null,
             "bold": false,
             "italic": false,
