@@ -100,6 +100,11 @@ export async function findPackages(
             }
           }
         });
+      } else {
+        const errorMessage = tlMgrError(result.stderr);
+        if (errorMessage) {
+          throw new Error(errorMessage);
+        }
       }
     }
   }
@@ -265,6 +270,16 @@ export async function tlVersion() {
       return undefined;
     }
   } catch {
+    return undefined;
+  }
+}
+
+function tlMgrError(msg?: string) {
+  if (msg && msg.indexOf("is older than remote repository") > -1) {
+    const message =
+      `Your TexLive version is not updated enough to connect to the remote repository and download packages. Please update your installation of TexLive or TinyTex.\n\nUnderlying message:`;
+    return `${message} ${msg.replace("\ntlmgr: ", "")}`;
+  } else {
     return undefined;
   }
 }
