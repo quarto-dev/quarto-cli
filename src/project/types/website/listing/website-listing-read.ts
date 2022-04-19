@@ -837,9 +837,9 @@ function expandGlob(
     if (Deno.statSync(globOrPathAsPath).isDirectory) {
       return { glob: join(globOrPath, "**"), inputs: true };
     } else {
-      return { glob: globOrPath, inputs: false };
+      return { glob: globOrPath, inputs: true };
     }
   } catch {
-    return { glob: globOrPath, inputs: false };
+    return { glob: globOrPath, inputs: true };
   }
 }
