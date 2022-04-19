@@ -14,6 +14,7 @@ import { findParent } from "../../core/html.ts";
 
 import {
   kHtmlMathMethod,
+  kIncludeInHeader,
   kLinkCitations,
   kQuartoTemplateParams,
   kSectionDivs,
@@ -51,11 +52,13 @@ import {
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
+  documentTitleIncludeInHeader,
   documentTitlePartial,
   documentTitleScssLayer,
   processDocumentTitle,
 } from "./format-html-title.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
+import { TempContext } from "../../core/temp-types.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -100,6 +103,7 @@ export function boostrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
+  temp: TempContext,
   offset?: string,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
@@ -144,9 +148,14 @@ export function boostrapExtras(
     format,
   );
   const sassLayers: SassLayer[] = [];
-  const titleSassLayer = documentTitleScssLayer(input, format);
+  const titleSassLayer = documentTitleScssLayer(format);
   if (titleSassLayer) {
     sassLayers.push(titleSassLayer);
+  }
+  const includeInHeader: string[] = [];
+  const titleInclude = documentTitleIncludeInHeader(input, format, temp);
+  if (titleInclude) {
+    includeInHeader.push(titleInclude);
   }
 
   const scssBundles = resolveBootstrapScss(input, format, sassLayers);
@@ -162,6 +171,7 @@ export function boostrapExtras(
       [kTemplatePartials]: partials,
       [kQuartoTemplateParams]: templateParams,
     },
+    [kIncludeInHeader]: includeInHeader,
     html: {
       [kSassBundles]: scssBundles,
       [kDependencies]: [bootstrapFormatDependency()],

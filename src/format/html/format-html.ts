@@ -113,7 +113,7 @@ export function htmlFormat(
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
           await htmlFormatExtras(input, flags, offset, format, temp),
-          themeFormatExtras(input, flags, format, offset),
+          themeFormatExtras(input, flags, format, temp, offset),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -638,6 +638,7 @@ function themeFormatExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
+  temp: TempContext,
   offset?: string,
 ) {
   const theme = format.metadata[kTheme];
@@ -650,7 +651,7 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format, offset);
+    return boostrapExtras(input, flags, format, temp, offset);
   }
 }
 

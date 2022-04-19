@@ -12,6 +12,7 @@ import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { Document } from "../../core/deno-dom.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sassLayer } from "../../core/sass.ts";
+import { TempContext } from "../../core/temp-types.ts";
 import {
   MarkdownPipeline,
 } from "../../project/types/website/website-pipeline-md.ts";
@@ -25,7 +26,7 @@ export interface DocumentTitleContext {
   pipeline: MarkdownPipeline;
 }
 
-export function documentTitleScssLayer(input: string, format: Format) {
+export function documentTitleScssLayer(format: Format) {
   if (
     format.metadata[kTitleBlockStyle] === false ||
     format.metadata[kTitleBlockStyle] === "none" ||
@@ -37,37 +38,57 @@ export function documentTitleScssLayer(input: string, format: Format) {
       "html",
       join("templates", "title-block.scss"),
     );
-    const layer = sassLayer(titleBlockScss);
+    return sassLayer(titleBlockScss);
+  }
+}
 
-    // Inject variables
-    const variables: string[] = [];
-    const rules: string[] = [];
-    const banner = format.metadata[kTitleBlockBanner] as string | boolean;
-    if (banner) {
-      // $title-banner-bg
-      // $title-banner-color
-      // $title-banner-image
-      const titleBlockColor = titleColor(format.metadata[ktitleBlockColor]);
-      if (titleBlockColor) {
-        variables.push(`$title-banner-color: ${titleBlockColor};`);
-      }
+export function documentTitleIncludeInHeader(
+  input: string,
+  format: Format,
+  temp: TempContext,
+) {
+  /*
+      .quarto-title-banner {
+    margin-bottom: 1em;
 
-      if (banner === true) {
-        // The default appearance, use navbar color
-      } else if (isBannerImage(input, banner)) {
-        // An image background
-        variables.push(`$title-banner-image: url(${banner});`);
-      } else {
-        variables.push(`$title-banner-bg: ${banner};`);
-      }
+    color: bannerColor();
+    background: bannerBg();
+    @if $title-banner-image {
+      background-image: $title-banner-image;
+      background-size: cover;
+    }
+    */
+  // Inject variables
+  const variables: string[] = [];
+  const banner = format.metadata[kTitleBlockBanner] as string | boolean;
+  if (banner) {
+    // $title-banner-bg
+    // $title-banner-color
+    // $title-banner-image
+    const titleBlockColor = titleColor(format.metadata[ktitleBlockColor]);
+    if (titleBlockColor) {
+      variables.push(`color: ${titleBlockColor};`);
     }
 
-    // Inject rules
-    layer.defaults = `${variables.join("\n")}\n` + layer.defaults || "";
-    layer.rules = layer.rules || "" + `\n${rules.join("\n")}`;
-
-    return layer;
+    if (banner === true) {
+      // The default appearance, use navbar color
+    } else if (isBannerImage(input, banner)) {
+      // An image background
+      variables.push(`background-image: url(${banner});`);
+      variables.push(`background-size: cover;`);
+    } else {
+      variables.push(`background: ${banner};`);
+    }
   }
+
+  const styles = `<style>
+.quarto-title-banner {
+  ${variables.join("\n")}
+}
+</style>`;
+  const file = temp.createFile({ suffix: ".css" });
+  Deno.writeTextFileSync(file, styles);
+  return file;
 }
 
 export function documentTitlePartial(
