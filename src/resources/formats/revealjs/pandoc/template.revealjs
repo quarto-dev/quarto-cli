@@ -83,8 +83,7 @@ $body$
   <script>window.backupDefine = window.define; window.define = undefined;</script>
   <script src="$revealjs-url$/dist/reveal.js"></script>
   <!-- reveal.js plugins -->
-  $for(reveal-jsscripts)$
-  <script src="$reveal-jsscripts$"></script>
+  $for(reveal-jsscripts)$<script src="$reveal-jsscripts$"></script>
   $endfor$
 
   <script src="$revealjs-url$/plugin/notes/notes.js"></script>
