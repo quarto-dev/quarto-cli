@@ -7,17 +7,7 @@
 
 import { RunHandler } from "./types.ts";
 
-//import { denoRunHandler } from "./deno.ts";
-//import { luaRunHandler } from "./lua.ts";
-//import { pythonRunHandler } from "./python.ts";
-//import { rRunHandler } from "./r.ts";
-
-const kRunHandlers: RunHandler[] = [
-  //  denoRunHandler,
-  //  luaRunHandler,
-  //  pythonRunHandler,
-  //  rRunHandler,
-];
+const kRunHandlers: RunHandler[] = [];
 
 export function installRunHandler(handler: RunHandler) {
   kRunHandlers.push(handler);
