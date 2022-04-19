@@ -258,6 +258,11 @@ async function resolveQuartoSyntaxHighlighting(
         rules.push(...textHighlightCssRules);
       }
 
+      // Add this string literal to the rule set, which prevents pandoc
+      // from inlining this style sheet
+      // See https://github.com/jgm/pandoc/commit/7c0a80c323f81e6262848bfcfc922301e3f406e0
+      rules.push(".prevent-inlining { content: '</' }");
+
       // Compile the scss
       const highlightCssPath = await compileSass(
         [{
