@@ -21,6 +21,14 @@ export function isRStudio() {
   return !!Deno.env.get("RSTUDIO");
 }
 
+export function isVSCodeOutputChannel() {
+  return !!Deno.env.get("VSCODE_PID");
+}
+
+export function isVSCodeTerminal() {
+  return Deno.env.get("TERM_PROGRAM") === "vscode";
+}
+
 export function isRStudioTerminal() {
   return !!Deno.env.get("RSTUDIO_TERM");
 }
@@ -50,7 +58,7 @@ export function isInteractiveTerminal() {
 }
 
 export function isInteractiveSession() {
-  return isRStudio() || isInteractiveTerminal();
+  return isRStudio() || isInteractiveTerminal() || isVSCodeOutputChannel();
 }
 
 export function isGithubAction() {
