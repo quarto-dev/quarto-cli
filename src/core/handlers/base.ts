@@ -222,7 +222,7 @@ export async function handleLanguageCells(
     }
   }
   return {
-    markdown: mappedJoin(newCells, "\n"),
+    markdown: mappedJoin(newCells, ""),
     results,
   };
 }
