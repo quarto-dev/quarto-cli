@@ -2594,6 +2594,13 @@
               "long": "Sort items in the listing by these fields. The sort key is made up of a \nfield name followed by a direction `asc` or `desc`.\n\nFor example:\n`date asc`\n"
             }
           },
+          "max-items": {
+            "number": {
+              "description": {
+                "short": "The maximum number of items to include in this listing."
+              }
+            }
+          },
           "page-size": {
             "number": {
               "description": {

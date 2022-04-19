@@ -1062,6 +1062,10 @@
 
             For example:
             `date asc`
+      max-items:
+        number:
+          description:
+            short: The maximum number of items to include in this listing.
       page-size:
         number:
           description:
@@ -1099,6 +1103,7 @@
               - `numbered`: Category list with number of items
               - `unnumbered`: Category list
               - `cloud`: Word cloud style categories
+
       feed:
         anyOf:
           - boolean

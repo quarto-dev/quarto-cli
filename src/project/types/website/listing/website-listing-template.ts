@@ -29,6 +29,7 @@ import {
   kImageHeight,
   kImagePlaceholder,
   kMaxDescLength,
+  kMaxItems,
   kPageSize,
   kSortAsc,
   kSortDesc,
@@ -122,13 +123,17 @@ export function templateMarkdownHandler(
   );
 
   const reshapedListing = reshapeListing(listing, format);
+  const tempateItems = listing[kMaxItems]
+    ? reshapedItems.slice(0, listing[kMaxItems])
+    : reshapedItems;
 
   const paramsForType = (type: ListingType) => {
     // For built in templates, provide the listing and items
     // For custom templates, provide only the list of items
     const ejsParams: Record<string, unknown> = {
-      items: reshapedItems,
+      items: tempateItems,
     };
+    ``;
 
     if (type !== ListingType.Custom) {
       ejsParams.listing = reshapedListing;

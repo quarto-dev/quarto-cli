@@ -37,6 +37,9 @@ export const kFieldFilter = "field-filter";
 // The number of rows to display per page
 export const kPageSize = "page-size";
 
+// The maximum number of items to include
+export const kMaxItems = "max-items";
+
 // Configuration of the filtering and sorting options
 export const kFilterUi = "filter-ui";
 export const kSortUi = "sort-ui";
@@ -132,6 +135,7 @@ export interface Listing extends ListingDehydrated {
   [kFieldFilter]: string[];
   [kFieldRequired]: string[];
   [kPageSize]: number;
+  [kMaxItems]?: number;
   [kFilterUi]: boolean;
   [kSortUi]: boolean;
   [kImagePlaceholder]?: string;

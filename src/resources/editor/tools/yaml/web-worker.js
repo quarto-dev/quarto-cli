@@ -9619,6 +9619,13 @@ try {
                     long: "Sort items in the listing by these fields. The sort key is made up of a \nfield name followed by a direction `asc` or `desc`.\n\nFor example:\n`date asc`\n"
                   }
                 },
+                "max-items": {
+                  number: {
+                    description: {
+                      short: "The maximum number of items to include in this listing."
+                    }
+                  }
+                },
                 "page-size": {
                   number: {
                     description: {
@@ -22097,6 +22104,7 @@ ${heading}`;
     return results[0];
   }
   function buildTreeSitterAnnotation(tree, mappedSource2) {
+    const errors = [];
     const singletonBuild = (node) => {
       let tag = void 0;
       for (const child of node.children) {
@@ -22123,6 +22131,17 @@ ${heading}`;
         return annotateEmpty(endIndex || node.endIndex || -1);
       }
       return dispatch[node.type](node);
+    };
+    const annotateError = (start, end, message) => {
+      errors.push({ start, end, message });
+      return {
+        start,
+        end,
+        result: null,
+        kind: "<<ERROR>>",
+        components: [],
+        source: mappedString(mappedSource2, [{ start, end }])
+      };
     };
     const annotateEmpty = (position) => {
       return {
@@ -22178,15 +22197,29 @@ ${heading}`;
       "block_node": singletonBuild,
       "flow_node": singletonBuild,
       "block_scalar": (node) => {
-        if (!node.text.startsWith("|")) {
-          return annotateEmpty(node.endIndex);
+        if (!node.text.startsWith("|") && !node.text.startsWith(">")) {
+          return annotateError(node.startIndex, node.endIndex, "Block scalar must start with either `|` or `>`");
         }
+        const joinString = node.text.startsWith("|") ? "\n" : "";
         const ls = lines(node.text);
+        let chompChar = "";
+        if (ls[0].endsWith("-")) {
+          while (ls[ls.length - 1] === "") {
+            ls.pop();
+          }
+        } else if (ls[1].endsWith("+")) {
+          chompChar = "\n";
+        } else {
+          while (ls[ls.length - 1] === "") {
+            ls.pop();
+          }
+          chompChar = "\n";
+        }
         if (ls.length < 2) {
           return annotateEmpty(node.endIndex);
         }
         const indent = ls[1].length - ls[1].trimStart().length;
-        const result2 = ls.slice(1).map((l) => l.slice(indent)).join("\n");
+        const result2 = ls.slice(1).map((l) => l.slice(indent)).join(joinString) + chompChar;
         return annotate(node, result2, []);
       },
       "block_sequence": (node) => {
@@ -22294,6 +22327,9 @@ ${heading}`;
       "block_mapping_pair": buildPair
     };
     const result = buildNode(tree.rootNode, tree.rootNode.endIndex);
+    if (errors.length) {
+      result.errors = errors;
+    }
     const parsedSize = tree.rootNode.text.trim().length;
     const codeSize = mappedSource2.value.trim().length;
     const lossage = parsedSize / codeSize;
