@@ -32,6 +32,7 @@ code-tools-view-source: "Quellcode anzeigen"
 code-tools-source-code: "Quellcode"
 
 copy-button-tooltip: "In die Zwischenablage kopieren"
+copy-button-tooltip-success: "Kopiert"
 
 repo-action-links-edit: "Seite editieren"
 repo-action-links-source: "Quellcode anzeigen"

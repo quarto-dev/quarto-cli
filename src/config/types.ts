@@ -30,6 +30,7 @@ import {
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
   kCopyButtonTooltip,
+  kCopyButtonTooltipSuccess,
   kCrossrefCnjTitle,
   kCrossrefCorTitle,
   kCrossrefDefTitle,
@@ -458,6 +459,7 @@ export interface FormatLanguage {
   [kRepoActionLinksIssue]?: string;
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
+  [kCopyButtonTooltipSuccess]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchHideMatchesText]?: string; // FIXME duplicate?

@@ -32,6 +32,7 @@ code-tools-view-source: "Kaynağı Görüntüle"
 code-tools-source-code: "Kaynak Kodu"
 
 copy-button-tooltip: "Panoya Kopyala"
+copy-button-tooltip-success: "Kopyalandı"
 
 repo-action-links-edit: "Bu sayfayı düzenle"
 repo-action-links-source: "Kaynağı görüntüle"

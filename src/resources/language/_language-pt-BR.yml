@@ -32,6 +32,7 @@ code-tools-view-source: "Ver o código fonte"
 code-tools-source-code: "Código fonte"
 
 copy-button-tooltip: "Copiar para a área de transferência"
+copy-button-tooltip-success: "Copiada"
 
 repo-action-links-edit: "Editar essa página"
 repo-action-links-source: "Ver o código fonte"

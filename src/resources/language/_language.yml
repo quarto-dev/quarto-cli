@@ -32,6 +32,7 @@ code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
 copy-button-tooltip: "Copy to Clipboard"
+copy-button-tooltip-success: "Copied!"
 
 repo-action-links-edit: "Edit this page"
 repo-action-links-source: "View source"

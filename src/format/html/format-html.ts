@@ -325,6 +325,9 @@ export async function htmlFormatExtras(
     dependencies.push(clipboardDependency());
   }
 
+  // Add localization strings
+  options.language = format.language;
+
   // anchors if required
   if (options.anchors) {
     scripts.push({

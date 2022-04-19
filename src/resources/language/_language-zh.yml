@@ -32,6 +32,7 @@ code-tools-view-source: "查看源代码"
 code-tools-source-code: "源代码"
 
 copy-button-tooltip: "复制到剪贴板"
+copy-button-tooltip-success: "已复制"
 
 repo-action-links-edit: "编辑该页面"
 repo-action-links-source: "查看代码"

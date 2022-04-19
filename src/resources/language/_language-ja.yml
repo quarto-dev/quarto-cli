@@ -32,6 +32,7 @@ code-tools-view-source: "ソースコードを表示"
 code-tools-source-code: "ソースコードを表示"
 
 copy-button-tooltip: "コピー"
+copy-button-tooltip-success: "完了"
 
 repo-action-links-edit: "編集"
 repo-action-links-source: "ソースコード"
