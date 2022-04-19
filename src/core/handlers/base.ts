@@ -55,13 +55,7 @@ import {
   kCodeOverflow,
   kCodeSummary,
   kEcho,
-  kError,
-  kEval,
   kFigCapLoc,
-  kInclude,
-  kIncludeInHeader,
-  kLayoutNcol,
-  kLayoutNrow,
   kOutput,
   kTblCapLoc,
 } from "../../config/constants.ts";

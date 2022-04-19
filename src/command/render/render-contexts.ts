@@ -73,8 +73,6 @@ import { createTempContext } from "../../core/temp.ts";
 import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
 import { filesDirLibDir } from "./render-paths.ts";
-import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
-import { markdownFromNotebook } from "../../core/jupyter/jupyter-filters.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
