@@ -405,7 +405,7 @@ export async function runPandoc(
         : templateContext.template;
 
       // Validate any user partials
-      if (!userTemplate && userPartials) {
+      if (!userTemplate && userPartials.length > 0) {
         const templateNames = templateContext.partials?.map((temp) =>
           basename(temp)
         );
