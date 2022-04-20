@@ -47,17 +47,6 @@ export function documentTitleIncludeInHeader(
   format: Format,
   temp: TempContext,
 ) {
-  /*
-      .quarto-title-banner {
-    margin-bottom: 1em;
-
-    color: bannerColor();
-    background: bannerBg();
-    @if $title-banner-image {
-      background-image: $title-banner-image;
-      background-size: cover;
-    }
-    */
   // Inject variables
   const variables: string[] = [];
   const banner = format.metadata[kTitleBlockBanner] as string | boolean;
@@ -81,14 +70,18 @@ export function documentTitleIncludeInHeader(
     }
   }
 
-  const styles = `<style>
-.quarto-title-banner {
-  ${variables.join("\n")}
-}
-</style>`;
-  const file = temp.createFile({ suffix: ".css" });
-  Deno.writeTextFileSync(file, styles);
-  return file;
+  if (variables.length > 0) {
+    const styles = `<style>
+    .quarto-title-banner {
+      ${variables.join("\n")}
+    }
+    </style>`;
+    const file = temp.createFile({ suffix: ".css" });
+    Deno.writeTextFileSync(file, styles);
+    return file;
+  } else {
+    return undefined;
+  }
 }
 
 export function documentTitlePartial(
