@@ -37,7 +37,7 @@ import { ipynbFormat } from "./ipynb/format-ipynb.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
-  const lookupTo = to.split("+")[0];
+  const lookupTo = to.split(/[+-]/)[0];
   let pandocTo = lookupTo;
 
   // get defaults for writer

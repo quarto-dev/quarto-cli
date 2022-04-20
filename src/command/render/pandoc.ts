@@ -564,6 +564,7 @@ export async function runPandoc(
     !allDefaults[kTemplate] && !havePandocArg(args, "--template") &&
     allDefaults.to
   ) {
+    const lookupTo = allDefaults.to.split(/[+-]/)[0];
     if (
       [
         "gfm",
@@ -573,7 +574,7 @@ export async function runPandoc(
         "markdown_github",
         "markua",
       ].includes(
-        allDefaults.to,
+        lookupTo,
       )
     ) {
       allDefaults[kTemplate] = resourcePath(
