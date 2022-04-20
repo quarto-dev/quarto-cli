@@ -276,7 +276,8 @@ function processAuthor(value)
   local author = pandoc.List({})
 
   -- initialize their affilations
-  local authorAffilations = {}
+  local authorAffiliations = {}
+  local affiliationUrl = nil
 
   if pandoc.utils.type(value) == 'Inlines' then
     -- The value is simply an array, treat them as the author name
@@ -302,7 +303,9 @@ function processAuthor(value)
         processAttributes(author, authorValue)
       elseif tcontains(kAuthorAffiliationFields, authorKey) then
         -- process affiliations that are specified in the author
-        authorAffilations = processAffiliation(author, authorValue)
+        authorAffiliations = processAffiliation(author, authorValue)
+      elseif authorKey == kAffiliationUrl then
+        affiliationUrl = authorValue
       else 
         -- since we don't recognize this value, place it under
         -- metadata to make it accessible to consumers of this 
@@ -312,9 +315,14 @@ function processAuthor(value)
     end            
   end
 
+  -- If there is an affiliation url, forward that along
+  if authorAffiliations and affiliationUrl then
+    authorAffiliations[1][kUrl] = affiliationUrl
+  end
+
   return {
     author=author,
-    affiliations=authorAffilations
+    affiliations=authorAffiliations
   }
 end
 
