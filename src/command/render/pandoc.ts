@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
@@ -131,7 +131,7 @@ import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
 import {
-  cleanTemplatePartials,
+  cleanTemplatePartialMetadata,
   readPartials,
   stageTemplate,
 } from "./template.ts";
@@ -393,13 +393,45 @@ export async function runPandoc(
     const templateContext = extras.templateContext;
     if (templateContext) {
       // Clean the template partial output
-      cleanTemplatePartials(printMetadata, templateContext.partials || []);
+      cleanTemplatePartialMetadata(
+        printMetadata,
+        templateContext.partials || [],
+      );
 
       // The format is providing a more robust local template
       // to use, stage the template and pass it on to pandoc
       const template = userTemplate
         ? resolvePath(userTemplate)
         : templateContext.template;
+
+      // Validate any user partials
+      if (!userTemplate && userPartials) {
+        const templateNames = templateContext.partials?.map((temp) =>
+          basename(temp)
+        );
+
+        if (templateNames) {
+          const userPartialNames = userPartials.map((userPartial) =>
+            basename(userPartial)
+          );
+
+          const hasAtLeastOnePartial = userPartialNames.find((userPartial) => {
+            return templateNames.includes(userPartial);
+          });
+
+          if (!hasAtLeastOnePartial) {
+            const errorMsg =
+              `The format '${allDefaults.to}' only supports the following partials:\n${
+                templateNames.join("\n")
+              }\n\nPlease provide one or more of these partials.`;
+            throw new Error(errorMsg);
+          }
+        } else {
+          throw new Error(
+            `The format ${allDefaults.to} does not support providing any template partials.`,
+          );
+        }
+      }
 
       // Place any user partials at the end of the list of partials
       const partials: string[] = templateContext.partials || [];
@@ -419,7 +451,7 @@ export async function runPandoc(
         // The user passed partials to a format that doesn't support
         // staging and partials.
         throw new Error(
-          "Unable to use template partials with the format " + allDefaults.to,
+          `The format ${allDefaults.to} does not support providing any template partials.`,
         );
       } else if (userTemplate) {
         // Use the template provided by the user

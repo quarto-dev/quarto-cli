@@ -480,7 +480,11 @@ export async function htmlFormatExtras(
 
   // Provide a template and partials
   const templateDir = formatResourcePath("html", "pandoc");
-  const partials = ["metadata.html", "title-block.html", "toc.html"];
+  const partials = [
+    "metadata.html",
+    "title-block.html",
+    "toc.html",
+  ];
   const templateContext = {
     template: join(templateDir, "template.html"),
     partials: partials.map((partial) => join(templateDir, partial)),
