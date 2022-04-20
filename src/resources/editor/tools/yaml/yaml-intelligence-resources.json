@@ -2447,6 +2447,7 @@
           "code-tools-source-code": "string",
           "search-no-results-text": "string",
           "copy-button-tooltip": "string",
+          "copy-button-tooltip-success": "string",
           "repo-action-links-edit": "string",
           "repo-action-links-source": "string",
           "repo-action-links-issue": "string",
@@ -9839,6 +9840,10 @@
     {
       "short": "Sort items in the listing by these fields.",
       "long": "Sort items in the listing by these fields. The sort key is made up of\na field name followed by a direction <code>asc</code> or\n<code>desc</code>.\nFor example: <code>date asc</code>"
+    },
+    {
+      "short": "The maximum number of items to include in this listing.",
+      "long": ""
     },
     {
       "short": "The number of items to display on a page.",

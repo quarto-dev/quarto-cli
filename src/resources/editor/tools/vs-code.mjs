@@ -9471,6 +9471,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "code-tools-source-code": "string",
               "search-no-results-text": "string",
               "copy-button-tooltip": "string",
+              "copy-button-tooltip-success": "string",
               "repo-action-links-edit": "string",
               "repo-action-links-source": "string",
               "repo-action-links-issue": "string",
@@ -16865,6 +16866,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Sort items in the listing by these fields. The sort key is made up of\na field name followed by a direction <code>asc</code> or\n<code>desc</code>.\nFor example: <code>date asc</code>"
         },
         {
+          short: "The maximum number of items to include in this listing.",
+          long: ""
+        },
+        {
           short: "The number of items to display on a page.",
           long: ""
         },
@@ -22162,11 +22167,12 @@ function buildTreeSitterAnnotation(tree, mappedSource2) {
   };
   const buildPair = (node) => {
     let key, value;
-    if (node.childCount === 3) {
-      key = annotate(node.child(0), node.child(0).text, []);
-      value = buildNode(node.child(2), node.endIndex);
-    } else if (node.childCount === 2) {
-      key = annotate(node.child(0), node.child(0).text, []);
+    const children = node.children.filter((n) => n.type !== "comment");
+    if (children.length === 3) {
+      key = annotate(children[0], children[0].text, []);
+      value = buildNode(children[2], node.endIndex);
+    } else if (children.length === 2) {
+      key = annotate(children[0], children[0].text, []);
       value = annotateEmpty(node.endIndex);
     } else {
       key = annotateEmpty(node.endIndex);
