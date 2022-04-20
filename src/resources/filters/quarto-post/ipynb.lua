@@ -57,11 +57,12 @@ function ipynb()
           'cell-output-display', 
           { 'display_data' }
         )
+        el.attr.classes = removeClass(el.attr.classes, 'cell-output')
         return el
       end,
     
       CodeBlock = function(el)
-        if (el.attr.classes.includes('cell-code')) then
+        if (el.attr.classes:includes('cell-code')) then
           el.attr.classes = removeClass(el.attr.classes, 'cell-code')
         end
       end,
