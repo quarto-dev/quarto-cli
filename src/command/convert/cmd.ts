@@ -17,6 +17,7 @@ import {
   markdownToJupyterNotebook,
 } from "./jupyter.ts";
 import { isObservableUrl, observableNotebookToMarkdown } from "./observable.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
 const kNotebookFormat = "notebook";
 const kMarkdownFormat = "markdown";
@@ -49,6 +50,8 @@ export const convertCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string) => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
     // separate codepath for observable urls
     if (isObservableUrl(input)) {
       await observableNotebookToMarkdown(
