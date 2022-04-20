@@ -434,7 +434,7 @@ async function readContents(
         return resolvePathGlobs(
           dirname(source),
           [expanded.glob],
-          ["_*", ".*", "**/_*", "**/.*"],
+          ["_*", ".*", "**/_*", "**/.*", source],
         );
       }
     } else {
@@ -837,9 +837,9 @@ function expandGlob(
     if (Deno.statSync(globOrPathAsPath).isDirectory) {
       return { glob: join(globOrPath, "**"), inputs: true };
     } else {
-      return { glob: globOrPath, inputs: true };
+      return { glob: globOrPath, inputs: false };
     }
   } catch {
-    return { glob: globOrPath, inputs: true };
+    return { glob: globOrPath, inputs: false };
   }
 }
