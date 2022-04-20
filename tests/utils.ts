@@ -20,6 +20,9 @@ export function outputForInput(input: string, to: string) {
   if (to === "revealjs") {
     outputExt = "html";
   }
+  if (to === "commonmark") {
+    outputExt = "md";
+  }
 
   const outputPath = join(dir, `${stem}.${outputExt}`);
   const supportPath = join(dir, `${stem}_files`);
