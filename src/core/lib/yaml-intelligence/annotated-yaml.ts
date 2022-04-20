@@ -239,13 +239,16 @@ export function buildTreeSitterAnnotation(
 
   const buildPair = (node: TreeSitterNode) => {
     let key, value;
-    if (node.childCount === 3) {
+    // deno-lint-ignore no-explicit-any
+    const children = node.children.filter((n: any) => n.type !== "comment");
+
+    if (children.length === 3) {
       // when three children exist, we assume a good parse
-      key = annotate(node.child(0), node.child(0).text, []);
-      value = buildNode(node.child(2), node.endIndex);
-    } else if (node.childCount === 2) {
+      key = annotate(children[0], children[0].text, []);
+      value = buildNode(children[2], node.endIndex);
+    } else if (children.length === 2) {
       // when two children exist, we assume a bad parse with missing value
-      key = annotate(node.child(0), node.child(0).text, []);
+      key = annotate(children[0], children[0].text, []);
       value = annotateEmpty(node.endIndex);
     } else {
       // otherwise, we assume a bad parse, return empty on both key and value
