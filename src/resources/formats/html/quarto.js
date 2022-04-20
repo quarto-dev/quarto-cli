@@ -59,7 +59,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   const sections = tocLinks.map((link) => {
     const target = link.getAttribute("data-scroll-target");
-    return window.document.querySelector(decodeURI(`${target}`));
+    if (target.startsWith("#")) {
+      return window.document.getElementById(decodeURI(`${target}`));
+    } else {
+      return window.document.querySelector(decodeURI(`${target}`));
+    }
   });
 
   const sectionMargin = 200;
