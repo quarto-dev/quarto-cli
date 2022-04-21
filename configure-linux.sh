@@ -25,9 +25,9 @@ mkdir tools
 pushd tools
 
 # Download Deno
-DENOURL=https://github.com/denoland/deno/releases/download/
+DENOURL=https://github.com/denoland/deno/releases/download
 DENOFILE=deno-x86_64-unknown-linux-gnu.zip
-wget -q -O $DENOFILE $DENOURL/$DENO/$DENOFILE
+curl --fail -L -o $DENOFILE $DENOURL/$DENO/$DENOFILE
 unzip -o $DENOFILE
 rm $DENOFILE
 
