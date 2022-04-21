@@ -8,7 +8,6 @@ import { ensureDir, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
-import { copyMinimal } from "../../../src/core/path.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
 import { Repo, withRepo } from "../util/git.ts";
@@ -16,6 +15,7 @@ import { Repo, withRepo } from "../util/git.ts";
 import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
+import { copyMinimal } from "../../../src/core/copy.ts";
 
 export async function updateHtmlDepedencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
