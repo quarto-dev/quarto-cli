@@ -184,7 +184,7 @@ export async function handleLanguageCells(
       continue;
     }
     const language = cell.cell_type.language;
-    if (handlers[language] === undefined) {
+    if (language !== "_component" && handlers[language] === undefined) {
       continue;
     }
     if (languageCellsPerLanguage[language] === undefined) {
@@ -222,37 +222,48 @@ export async function handleLanguageCells(
           localCellHandlerOptions,
         );
 
+        const componentCellType = cell.source.cell_type as ComponentCell;
+        const innerLanguage = componentCellType.tag;
+        const innerLanguageHandler = handlers[innerLanguage]!;
+
         // set results of component recursion
-        newCells[cell.index] = localMarkdown;
         if (results === undefined) {
           results = localResults;
         } else {
           results = mergeConfigs(results, localResults);
         }
 
-        const innerLanguage = (cell.source.cell_type as ComponentCell).tag;
-        // call specific handler
-        const innerHandler = makeHandlerContext(executeResult, {
-          ...options,
-          name: innerLanguage,
-        });
-        const innerLanguageHandler = handlers[innerLanguage]!;
-
-        const innerMdCell = {
-          ...cell.source,
-          source: localMarkdown,
-        };
-
-        const transformedCell = innerLanguageHandler.document(
-          innerHandler.context,
-          [innerMdCell],
-        )[0];
-        newCells[cell.index] = transformedCell;
-
-        if (results === undefined) {
-          results = innerHandler.results;
+        if (innerLanguageHandler === undefined) {
+          // if no handler is present, just reconstitute
+          // the tags and return.
+          newCells[cell.index] = mappedConcat([
+            componentCellType.sourceOpenTag,
+            localMarkdown,
+            componentCellType.sourceCloseTag,
+          ]);
         } else {
-          results = mergeConfigs(results, innerHandler.results);
+          // call specific handler
+          const innerHandler = makeHandlerContext(executeResult, {
+            ...options,
+            name: innerLanguage,
+          });
+
+          const innerMdCell = {
+            ...cell.source,
+            source: localMarkdown,
+          };
+
+          const transformedCell = innerLanguageHandler.document(
+            innerHandler.context,
+            [innerMdCell],
+          )[0];
+          newCells[cell.index] = transformedCell;
+
+          if (results === undefined) {
+            results = innerHandler.results;
+          } else {
+            results = mergeConfigs(results, innerHandler.results);
+          }
         }
       }
     } else {
