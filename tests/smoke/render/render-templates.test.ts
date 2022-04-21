@@ -16,3 +16,6 @@ testRender(docs("templates/title-partial-html.qmd"), "html", false);
 
 // ACM template test
 testRender(docs("templates/acm/document.qmd"), "pdf", true);
+
+// Elsevier template test
+testRender(docs("templates/elsevier/document.qmd"), "pdf", true);
