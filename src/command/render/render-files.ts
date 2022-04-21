@@ -19,7 +19,11 @@ import { isHtmlCompatible } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { setDateLocale } from "../../core/date.ts";
 import { initDenoDom } from "../../core/deno-dom.ts";
-import { handleLanguageCells, languages } from "../../core/handlers/base.ts";
+import {
+  handleLanguageCells,
+  HandlerContextResults,
+  languages,
+} from "../../core/handlers/base.ts";
 import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
 import { asMappedString, mappedDiff } from "../../core/mapped-text.ts";
 import {
@@ -69,6 +73,8 @@ import {
   kProjectFreezeDir,
   removeFreezeResults,
 } from "./freeze.ts";
+import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
+import { MappedString } from "../../core/lib/text-types.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -144,6 +150,8 @@ export async function renderExecute(
 
   // calculate figsDir
   const figsDir = join(filesDir, figuresDir(context.format.pandoc.to));
+
+  debugger;
 
   // execute computations
   const executeResult = await context.engine.execute({
@@ -276,8 +284,38 @@ export async function renderFiles(
         }
       }
 
+      const mergeHandlerResults = (
+        results: HandlerContextResults | undefined,
+        executeResult: MappedExecuteResult,
+        context: RenderContext,
+      ) => {
+        if (results === undefined) {
+          return;
+        }
+        if (executeResult.includes) {
+          executeResult.includes = mergeConfigs(
+            executeResult.includes,
+            results.includes,
+          );
+        } else {
+          executeResult.includes = results.includes;
+        }
+        const extras = resolveDependencies(
+          results.extras,
+          dirname(context.target.source),
+          context.libDir,
+          tempContext,
+        );
+        if (extras[kIncludeInHeader]) {
+          executeResult.includes[kIncludeInHeader] = [
+            ...(executeResult.includes[kIncludeInHeader] || []),
+            ...(extras[kIncludeInHeader] || []),
+          ];
+        }
+      };
+
       for (const format of Object.keys(contexts)) {
-        const context = contexts[format];
+        const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
 
         // Set the date locale for this render
         // Used for date formatting
@@ -290,6 +328,44 @@ export async function renderFiles(
 
         // get output recipe
         const recipe = await outputRecipe(context);
+
+        let startingMarkdown: MappedString;
+        let preEngineHandlerResults: HandlerContextResults | undefined =
+          undefined;
+
+        if (!isJupyterNotebook(context.target.source)) {
+          // this is not a jupyter notebook input,
+          // so we can run pre-engine handlers
+
+          startingMarkdown = asMappedString(
+            Deno.readTextFileSync(context.target.source),
+            context.target.source,
+          );
+
+          const preEngineCellHandlerOptions: LanguageCellHandlerOptions = {
+            temp: tempContext,
+            name: "",
+            format: recipe.format,
+            markdown: startingMarkdown,
+            source: context.target.source,
+            libDir: context.libDir,
+            project: context.project,
+            stage: "pre-engine",
+          };
+
+          const { markdown, results } = await handleLanguageCells(
+            preEngineCellHandlerOptions,
+          );
+
+          startingMarkdown = markdown;
+          context.target.markdown = markdown.value;
+          console.log("HERE!");
+          console.log(context.target.markdown);
+
+          if (results) {
+            preEngineHandlerResults = results;
+          }
+        }
 
         // determine execute options
         const executeOptions = mergeConfigs(
@@ -322,21 +398,21 @@ export async function renderFiles(
 
         // recover source map from diff and create a mappedExecuteResult
         // for markdown processing pre-pandoc with mapped strings
-        const source = Deno.readTextFileSync(context.target.source);
-        const mappedMarkdown = mappedDiff(
-          asMappedString(source),
-          baseExecuteResult.markdown,
-        );
+        let mappedMarkdown: MappedString;
+
+        if (!isJupyterNotebook(context.target.source)) {
+          mappedMarkdown = mappedDiff(
+            startingMarkdown!,
+            baseExecuteResult.markdown,
+          );
+        } else {
+          mappedMarkdown = asMappedString(baseExecuteResult.markdown);
+        }
 
         const resourceFiles: string[] = [];
         if (baseExecuteResult.resourceFiles) {
           resourceFiles.push(...baseExecuteResult.resourceFiles);
         }
-
-        const mappedExecuteResult: MappedExecuteResult = {
-          ...baseExecuteResult,
-          markdown: mappedMarkdown,
-        };
 
         const languageCellHandlerOptions: LanguageCellHandlerOptions = {
           temp: tempContext,
@@ -346,38 +422,24 @@ export async function renderFiles(
           source: context.target.source,
           libDir: context.libDir,
           project: context.project,
+          stage: "post-engine",
         };
 
         // handle language cells
         const { markdown, results } = await handleLanguageCells(
-          mappedExecuteResult,
           languageCellHandlerOptions,
         );
-        // merge cell language results
-        mappedExecuteResult.markdown = markdown;
+        const mappedExecuteResult: MappedExecuteResult = {
+          ...baseExecuteResult,
+          markdown,
+        };
 
-        if (results) {
-          if (mappedExecuteResult.includes) {
-            mappedExecuteResult.includes = mergeConfigs(
-              mappedExecuteResult.includes,
-              results.includes,
-            );
-          } else {
-            mappedExecuteResult.includes = results.includes;
-          }
-          const extras = resolveDependencies(
-            results.extras,
-            dirname(context.target.source),
-            context.libDir,
-            tempContext,
-          );
-          if (extras[kIncludeInHeader]) {
-            mappedExecuteResult.includes[kIncludeInHeader] = [
-              ...(mappedExecuteResult.includes[kIncludeInHeader] || []),
-              ...(extras[kIncludeInHeader] || []),
-            ];
-          }
-        }
+        mergeHandlerResults(
+          preEngineHandlerResults,
+          mappedExecuteResult,
+          context,
+        );
+        mergeHandlerResults(results, mappedExecuteResult, context);
 
         // process ojs
         const { executeResult, resourceFiles: ojsResourceFiles } =
