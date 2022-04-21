@@ -19589,9 +19589,9 @@ ${heading}`;
   }
   function Type$1(tag, options) {
     options = options || {};
-    Object.keys(options).forEach(function(name) {
-      if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
-        throw new exception('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
+    Object.keys(options).forEach(function(name2) {
+      if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name2) === -1) {
+        throw new exception('Unknown option "' + name2 + '" is met in definition of "' + tag + '" YAML type.');
       }
     });
     this.options = options;
@@ -19615,9 +19615,9 @@ ${heading}`;
     }
   }
   var type = Type$1;
-  function compileList(schema2, name) {
+  function compileList(schema2, name2) {
     var result = [];
-    schema2[name].forEach(function(currentType) {
+    schema2[name2].forEach(function(currentType) {
       var newIndex = result.length;
       result.forEach(function(previousType, previousIndex) {
         if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
@@ -20333,7 +20333,7 @@ ${heading}`;
     }
   }
   var directiveHandlers = {
-    YAML: function handleYamlDirective(state, name, args) {
+    YAML: function handleYamlDirective(state, name2, args) {
       var match, major, minor;
       if (state.version !== null) {
         throwError(state, "duplication of %YAML directive");
@@ -20356,7 +20356,7 @@ ${heading}`;
         throwWarning(state, "unsupported YAML version of the document");
       }
     },
-    TAG: function handleTagDirective(state, name, args) {
+    TAG: function handleTagDirective(state, name2, args) {
       var handle, prefix;
       if (args.length !== 2) {
         throwError(state, "TAG directive accepts exactly two arguments");
@@ -22763,11 +22763,11 @@ ${heading}`;
   var gcValueSets = new DataSet("C Cased_Letter Cc Cf Close_Punctuation Cn Co Combining_Mark Connector_Punctuation Control Cs Currency_Symbol Dash_Punctuation Decimal_Number Enclosing_Mark Final_Punctuation Format Initial_Punctuation L LC Letter Letter_Number Line_Separator Ll Lm Lo Lowercase_Letter Lt Lu M Mark Math_Symbol Mc Me Mn Modifier_Letter Modifier_Symbol N Nd Nl No Nonspacing_Mark Number Open_Punctuation Other Other_Letter Other_Number Other_Punctuation Other_Symbol P Paragraph_Separator Pc Pd Pe Pf Pi Po Private_Use Ps Punctuation S Sc Separator Sk Sm So Space_Separator Spacing_Mark Surrogate Symbol Titlecase_Letter Unassigned Uppercase_Letter Z Zl Zp Zs cntrl digit punct", "", "", "");
   var scValueSets = new DataSet("Adlam Adlm Aghb Ahom Anatolian_Hieroglyphs Arab Arabic Armenian Armi Armn Avestan Avst Bali Balinese Bamu Bamum Bass Bassa_Vah Batak Batk Beng Bengali Bhaiksuki Bhks Bopo Bopomofo Brah Brahmi Brai Braille Bugi Buginese Buhd Buhid Cakm Canadian_Aboriginal Cans Cari Carian Caucasian_Albanian Chakma Cham Cher Cherokee Common Copt Coptic Cprt Cuneiform Cypriot Cyrillic Cyrl Deseret Deva Devanagari Dsrt Dupl Duployan Egyp Egyptian_Hieroglyphs Elba Elbasan Ethi Ethiopic Geor Georgian Glag Glagolitic Gonm Goth Gothic Gran Grantha Greek Grek Gujarati Gujr Gurmukhi Guru Han Hang Hangul Hani Hano Hanunoo Hatr Hatran Hebr Hebrew Hira Hiragana Hluw Hmng Hung Imperial_Aramaic Inherited Inscriptional_Pahlavi Inscriptional_Parthian Ital Java Javanese Kaithi Kali Kana Kannada Katakana Kayah_Li Khar Kharoshthi Khmer Khmr Khoj Khojki Khudawadi Knda Kthi Lana Lao Laoo Latin Latn Lepc Lepcha Limb Limbu Lina Linb Linear_A Linear_B Lisu Lyci Lycian Lydi Lydian Mahajani Mahj Malayalam Mand Mandaic Mani Manichaean Marc Marchen Masaram_Gondi Meetei_Mayek Mend Mende_Kikakui Merc Mero Meroitic_Cursive Meroitic_Hieroglyphs Miao Mlym Modi Mong Mongolian Mro Mroo Mtei Mult Multani Myanmar Mymr Nabataean Narb Nbat New_Tai_Lue Newa Nko Nkoo Nshu Nushu Ogam Ogham Ol_Chiki Olck Old_Hungarian Old_Italic Old_North_Arabian Old_Permic Old_Persian Old_South_Arabian Old_Turkic Oriya Orkh Orya Osage Osge Osma Osmanya Pahawh_Hmong Palm Palmyrene Pau_Cin_Hau Pauc Perm Phag Phags_Pa Phli Phlp Phnx Phoenician Plrd Prti Psalter_Pahlavi Qaac Qaai Rejang Rjng Runic Runr Samaritan Samr Sarb Saur Saurashtra Sgnw Sharada Shavian Shaw Shrd Sidd Siddham SignWriting Sind Sinh Sinhala Sora Sora_Sompeng Soyo Soyombo Sund Sundanese Sylo Syloti_Nagri Syrc Syriac Tagalog Tagb Tagbanwa Tai_Le Tai_Tham Tai_Viet Takr Takri Tale Talu Tamil Taml Tang Tangut Tavt Telu Telugu Tfng Tglg Thaa Thaana Thai Tibetan Tibt Tifinagh Tirh Tirhuta Ugar Ugaritic Vai Vaii Wara Warang_Citi Xpeo Xsux Yi Yiii Zanabazar_Square Zanb Zinh Zyyy", "Dogr Dogra Gong Gunjala_Gondi Hanifi_Rohingya Maka Makasar Medefaidrin Medf Old_Sogdian Rohg Sogd Sogdian Sogo", "Elym Elymaic Hmnp Nand Nandinagari Nyiakeng_Puachue_Hmong Wancho Wcho", "Chorasmian Chrs Diak Dives_Akuru Khitan_Small_Script Kits Yezi Yezidi");
   var binPropertySets = new DataSet("AHex ASCII ASCII_Hex_Digit Alpha Alphabetic Any Assigned Bidi_C Bidi_Control Bidi_M Bidi_Mirrored CI CWCF CWCM CWKCF CWL CWT CWU Case_Ignorable Cased Changes_When_Casefolded Changes_When_Casemapped Changes_When_Lowercased Changes_When_NFKC_Casefolded Changes_When_Titlecased Changes_When_Uppercased DI Dash Default_Ignorable_Code_Point Dep Deprecated Dia Diacritic Emoji Emoji_Component Emoji_Modifier Emoji_Modifier_Base Emoji_Presentation Ext Extender Gr_Base Gr_Ext Grapheme_Base Grapheme_Extend Hex Hex_Digit IDC IDS IDSB IDST IDS_Binary_Operator IDS_Trinary_Operator ID_Continue ID_Start Ideo Ideographic Join_C Join_Control LOE Logical_Order_Exception Lower Lowercase Math NChar Noncharacter_Code_Point Pat_Syn Pat_WS Pattern_Syntax Pattern_White_Space QMark Quotation_Mark RI Radical Regional_Indicator SD STerm Sentence_Terminal Soft_Dotted Term Terminal_Punctuation UIdeo Unified_Ideograph Upper Uppercase VS Variation_Selector White_Space XIDC XIDS XID_Continue XID_Start space", "Extended_Pictographic", "", "EBase EComp EMod EPres ExtPict");
-  function isValidUnicodeProperty(version, name, value) {
-    if (gcNameSet.has(name)) {
+  function isValidUnicodeProperty(version, name2, value) {
+    if (gcNameSet.has(name2)) {
       return version >= 2018 && gcValueSets.es2018.has(value);
     }
-    if (scNameSet.has(name)) {
+    if (scNameSet.has(name2)) {
       return version >= 2018 && scValueSets.es2018.has(value) || version >= 2019 && scValueSets.es2019.has(value) || version >= 2020 && scValueSets.es2020.has(value) || version >= 2021 && scValueSets.es2021.has(value);
     }
     return false;
@@ -23149,14 +23149,14 @@ ${heading}`;
         this._options.onGroupLeave(start, end);
       }
     }
-    onCapturingGroupEnter(start, name) {
+    onCapturingGroupEnter(start, name2) {
       if (this._options.onCapturingGroupEnter) {
-        this._options.onCapturingGroupEnter(start, name);
+        this._options.onCapturingGroupEnter(start, name2);
       }
     }
-    onCapturingGroupLeave(start, end, name) {
+    onCapturingGroupLeave(start, end, name2) {
       if (this._options.onCapturingGroupLeave) {
-        this._options.onCapturingGroupLeave(start, end, name);
+        this._options.onCapturingGroupLeave(start, end, name2);
       }
     }
     onQuantifier(start, end, min, max, greedy) {
@@ -23309,8 +23309,8 @@ ${heading}`;
         const c = String.fromCodePoint(cp);
         this.raise(`Unexpected character '${c}'`);
       }
-      for (const name of this._backreferenceNames) {
-        if (!this._groupNames.has(name)) {
+      for (const name2 of this._backreferenceNames) {
+        if (!this._groupNames.has(name2)) {
           this.raise("Invalid named capture referenced");
         }
       }
@@ -23494,20 +23494,20 @@ ${heading}`;
     consumeCapturingGroup() {
       const start = this.index;
       if (this.eat(LeftParenthesis)) {
-        let name = null;
+        let name2 = null;
         if (this.ecmaVersion >= 2018) {
           if (this.consumeGroupSpecifier()) {
-            name = this._lastStrValue;
+            name2 = this._lastStrValue;
           }
         } else if (this.currentCodePoint === QuestionMark) {
           this.raise("Invalid group");
         }
-        this.onCapturingGroupEnter(start, name);
+        this.onCapturingGroupEnter(start, name2);
         this.consumeDisjunction();
         if (!this.eat(RightParenthesis)) {
           this.raise("Unterminated group");
         }
-        this.onCapturingGroupLeave(start, this.index, name);
+        this.onCapturingGroupLeave(start, this.index, name2);
         return true;
       }
       return false;
@@ -24100,11 +24100,11 @@ ${heading}`;
     onPatternLeave(start, end) {
       this._node.end = end;
       this._node.raw = this.source.slice(start, end);
-      for (const reference of this._backreferences) {
-        const ref = reference.ref;
+      for (const reference2 of this._backreferences) {
+        const ref = reference2.ref;
         const group = typeof ref === "number" ? this._capturingGroups[ref - 1] : this._capturingGroups.find((g) => g.name === ref);
-        reference.resolved = group;
-        group.references.push(reference);
+        reference2.resolved = group;
+        group.references.push(reference2);
       }
     }
     onAlternativeEnter(start) {
@@ -24155,7 +24155,7 @@ ${heading}`;
       node.raw = this.source.slice(start, end);
       this._node = node.parent;
     }
-    onCapturingGroupEnter(start, name) {
+    onCapturingGroupEnter(start, name2) {
       const parent = this._node;
       if (parent.type !== "Alternative") {
         throw new Error("UnknownError");
@@ -24166,7 +24166,7 @@ ${heading}`;
         start,
         end: start,
         raw: "",
-        name,
+        name: name2,
         alternatives: [],
         references: []
       };
@@ -24489,7 +24489,7 @@ ${heading}`;
         if (index !== path.length - 1) {
           return [];
         }
-        const completions2 = Object.getOwnPropertyNames(subSchema.properties || {}).filter((name) => name.startsWith(key));
+        const completions2 = Object.getOwnPropertyNames(subSchema.properties || {}).filter((name2) => name2.startsWith(key));
         if (completions2.length === 0) {
           return [];
         }
@@ -26982,6 +26982,151 @@ ${heading}`;
   };
 
   // ../break-quarto-md.ts
+  var nameStartChar = `[:A-Z_a-z\xC0-\xD6\xD8-\xF6\xF8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u{10000}-\u{EFFFF}]`;
+  var nameChar = `(?:${nameStartChar}|[-.0-9\xB7\u0300-\u036F\u203F-\u2040])`;
+  var name = `(?:${nameStartChar}${nameChar}*)`;
+  var entityRef = `[&]${name}[;]`;
+  var charRef = `(?:[&][#][0-9]+[;]|[&][#]x[0-9a-fA-F]+[;])`;
+  var reference = `(?:${entityRef}|${charRef})`;
+  var attrValue = `(?:["](?:[^<&"]|${reference})*["]|['](?:[^<&']|${reference})*['])`;
+  var attribute = `(?:${name}\\s*=\\s*${attrValue})`;
+  var htmlTagNames = new Set([
+    "a",
+    "abbr",
+    "acronym",
+    "address",
+    "applet",
+    "area",
+    "article",
+    "aside",
+    "audio",
+    "b",
+    "base",
+    "basefont",
+    "bdi",
+    "bdo",
+    "bgsound",
+    "big",
+    "blink",
+    "blockquote",
+    "body",
+    "br",
+    "button",
+    "canvas",
+    "caption",
+    "center",
+    "cite",
+    "code",
+    "col",
+    "colgroup",
+    "content",
+    "data",
+    "datalist",
+    "dd",
+    "del",
+    "details",
+    "dfn",
+    "dialog",
+    "dir",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "embed",
+    "fieldset",
+    "figcaption",
+    "figure",
+    "font",
+    "footer",
+    "form",
+    "frame",
+    "frameset",
+    "head",
+    "header",
+    "h1",
+    "hgroup",
+    "hr",
+    "html",
+    "i",
+    "iframe",
+    "image",
+    "img",
+    "input",
+    "ins",
+    "kbd",
+    "keygen",
+    "label",
+    "legend",
+    "li",
+    "link",
+    "main",
+    "map",
+    "mark",
+    "marquee",
+    "menu",
+    "menuitem",
+    "meta",
+    "meter",
+    "nav",
+    "nobr",
+    "noembed",
+    "noframes",
+    "noscript",
+    "object",
+    "ol",
+    "optgroup",
+    "option",
+    "output",
+    "p",
+    "param",
+    "picture",
+    "plaintext",
+    "portal",
+    "pre",
+    "progress",
+    "q",
+    "rb",
+    "rp",
+    "rt",
+    "rtc",
+    "ruby",
+    "s",
+    "samp",
+    "script",
+    "section",
+    "select",
+    "shadow",
+    "slot",
+    "small",
+    "source",
+    "spacer",
+    "span",
+    "strike",
+    "strong",
+    "style",
+    "sub",
+    "summary",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "template",
+    "textarea",
+    "tfoot",
+    "th",
+    "thead",
+    "time",
+    "title",
+    "tr",
+    "track",
+    "tt",
+    "u",
+    "ul",
+    "var",
+    "video",
+    "wbr",
+    "xmp"
+  ]);
   async function breakQuartoMd(src, validate2 = false) {
     if (typeof src === "string") {
       src = asMappedString(src);
@@ -26989,12 +27134,21 @@ ${heading}`;
     const nb = {
       cells: []
     };
+    const startComponent = new RegExp(`^\\s*<(${name})(\\s+${attribute})*\\s*>\\s*$`, "u");
+    const emptyComponent = new RegExp(`^\\s*<(${name})(\\s+${attribute})*\\s*/>\\s*$`, "u");
+    const endComponent = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
+    const isHtmlTag = (str2) => {
+      const someMatch = str2.match(startComponent) || str2.match(emptyComponent) || str2.match(endComponent);
+      return htmlTagNames.has(someMatch[1]);
+    };
     const yamlRegEx = /^---\s*$/;
     const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
     const startCodeRegEx = /^```/;
     const endCodeRegEx = /^```+\s*$/;
     const delimitMathBlockRegEx = /^\$\$/;
     let language = "";
+    const tagName = [];
+    const tagOptions = [];
     let cellStartLine = 0;
     let codeStartRange;
     let codeEndRange;
@@ -27006,8 +27160,21 @@ ${heading}`;
           mappedChunks.push(line.range);
         }
         const source = mappedString(src, mappedChunks);
+        const makeCellType = () => {
+          if (cell_type === "code") {
+            return { language };
+          } else if (cell_type === "component" || cell_type === "empty_component") {
+            return {
+              language: "_component",
+              tag: tagName[tagName.length - 1],
+              options: tagOptions[tagOptions.length - 1]
+            };
+          } else {
+            return cell_type;
+          }
+        };
         const cell = {
-          cell_type: cell_type === "code" ? { language } : cell_type,
+          cell_type: makeCellType(),
           source,
           sourceOffset: 0,
           sourceStartLine: 0,
@@ -27036,8 +27203,10 @@ ${heading}`;
           ]);
           cell.options = yaml;
           cell.sourceStartLine = sourceStartLine;
+        } else if (cell_type === "empty_component" || cell_type === "component") {
+          cell.source = mappedString(src, mappedChunks.slice(1, -1));
         }
-        if (mdTrimEmptyLines(lines(cell.source.value)).length > 0 || cell.options !== void 0) {
+        if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
           nb.cells.push(cell);
         }
         lineBuffer.splice(0, lineBuffer.length);
@@ -27045,10 +27214,12 @@ ${heading}`;
     };
     const tickCount = (s) => Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
     let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = 0;
+    const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml && tagName.length === 0;
     const srcLines = rangedLines(src.value, true);
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
-      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
+      console.log({ line, inPlainText: inPlainText() });
+      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock && tagName.length === 0) {
         if (inYaml) {
           lineBuffer.push(line);
           await flushLineBuffer("raw", i);
@@ -27058,7 +27229,51 @@ ${heading}`;
           lineBuffer.push(line);
           inYaml = true;
         }
-      } else if (startCodeCellRegEx.test(line.substring) && inCode === 0) {
+      } else if (inPlainText() && emptyComponent.test(line.substring) && !isHtmlTag(line.substring)) {
+        await flushLineBuffer("markdown", i);
+        const m = line.substring.match(emptyComponent);
+        tagName.push(m[1]);
+        if (m[2] !== void 0) {
+          tagOptions.push(parseAttributes(m[2]));
+        } else {
+          tagOptions.push({});
+        }
+        lineBuffer.push(line);
+        await flushLineBuffer("empty_component", i);
+        tagOptions.pop();
+        tagName.pop();
+      } else if (inPlainText() && startComponent.test(line.substring) && !isHtmlTag(line.substring)) {
+        await flushLineBuffer("markdown", i);
+        const m = line.substring.match(startComponent);
+        tagName.push(m[1]);
+        if (m[2] !== void 0) {
+          tagOptions.push(parseAttributes(m[2]));
+        } else {
+          tagOptions.push({});
+        }
+        lineBuffer.push(line);
+      } else if (tagName.length > 0 && startComponent.test(line.substring) && !isHtmlTag(line.substring)) {
+        const m = line.substring.match(startComponent);
+        tagName.push(m[1]);
+        if (m[2] !== void 0) {
+          tagOptions.push(parseAttributes(m[2]));
+        } else {
+          tagOptions.push({});
+        }
+        lineBuffer.push(line);
+      } else if (tagName.length > 0 && endComponent.test(line.substring) && !isHtmlTag(line.substring)) {
+        const m = line.substring.match(endComponent);
+        const closeTagName = m[1];
+        if (tagName[tagName.length - 1].toLocaleLowerCase() !== closeTagName.toLocaleLowerCase()) {
+          console.log("mismatched tags!!!");
+        }
+        lineBuffer.push(line);
+        if (tagName.length === 1) {
+          await flushLineBuffer("component", i);
+        }
+        tagName.pop();
+        tagOptions.pop();
+      } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
         const m = line.substring.match(startCodeCellRegEx);
         language = m[1];
         await flushLineBuffer("markdown", i);
@@ -27081,7 +27296,7 @@ ${heading}`;
           lineBuffer.push(line);
           await flushLineBuffer("math", i);
         } else {
-          if (inYaml || inCode || inCodeCell) {
+          if (inYaml || inCode || inCodeCell || tagName.length > 0) {
           } else {
             await flushLineBuffer("markdown", i);
           }
@@ -27112,6 +27327,57 @@ ${heading}`;
       lines2 = lines2.slice(0, lastNonEmpty + 1);
     }
     return lines2;
+  }
+  var htmlUnescapes = {
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"'
+  };
+  function unescapeEntities(str2) {
+    return str2.replace(new RegExp(reference, "u"), function(match) {
+      if (match.startsWith("&#x")) {
+        return String.fromCharCode(Number(match.slice(3, -1)));
+      } else if (match.startsWith("&#")) {
+        return String.fromCharCode(parseInt(match.slice(2, -1), 16));
+      } else {
+        if (htmlUnescapes[match] !== void 0) {
+          return htmlUnescapes[match];
+        } else {
+          return match;
+        }
+      }
+    });
+  }
+  function parseAttributes(attrString) {
+    const result = {};
+    attrString = attrString.trim();
+    while (attrString.indexOf("=") !== -1) {
+      const l = attrString.split("=")[0];
+      const attrName = l.trim();
+      const rest = attrString.slice(l.length + 1);
+      let attrValue2;
+      if (rest.startsWith('"')) {
+        const end = rest.slice(1).indexOf('"') + 1;
+        attrValue2 = rest.slice(1, end);
+        attrString = rest.slice(end + 1);
+      } else if (rest.startsWith("'")) {
+        const end = rest.slice(1).indexOf("'") + 1;
+        attrValue2 = rest.slice(1, end);
+        attrString = rest.slice(end + 1);
+      } else {
+        const end = rest.indexOf(" ");
+        if (end === -1) {
+          attrValue2 = rest;
+          attrString = "";
+        } else {
+          attrValue2 = rest.slice(0, end);
+          attrString = rest.slice(end + 1);
+        }
+      }
+      result[attrName] = unescapeEntities(attrValue2);
+    }
+    return result;
   }
 
   // ../yaml-schema/format-aliases.ts
@@ -27170,25 +27436,25 @@ ${heading}`;
     };
     const formatSchemaDescriptorList = (await pandocFormatsResource()).concat("hugo").map((format) => {
       const {
-        name,
+        name: name2,
         hidden
       } = hideFormat(format);
       return {
-        regex: `^${name}(\\+.+)?$`,
-        schema: getFormatSchema(name),
-        name,
+        regex: `^${name2}(\\+.+)?$`,
+        schema: getFormatSchema(name2),
+        name: name2,
         hidden
       };
     });
     const formatSchemas = formatSchemaDescriptorList.map(({ regex, schema: schema2 }) => [regex, schema2]);
-    const plusFormatStringSchemas = formatSchemaDescriptorList.map(({ regex, name, hidden }) => {
-      const schema2 = regexSchema(regex, `be '${name}'`);
+    const plusFormatStringSchemas = formatSchemaDescriptorList.map(({ regex, name: name2, hidden }) => {
+      const schema2 = regexSchema(regex, `be '${name2}'`);
       if (hidden) {
         return schema2;
       }
-      return completeSchema(schema2, name);
+      return completeSchema(schema2, name2);
     });
-    const completionsObject = fromEntries(formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, ""]));
+    const completionsObject = fromEntries(formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name: name2 }) => [name2, ""]));
     return errorMessageSchema(anyOfSchema(describeSchema(anyOfSchema(...plusFormatStringSchemas), "the name of a pandoc-supported output format"), allOfSchema(objectSchema({
       patternProperties: fromEntries(formatSchemas),
       completions: completionsObject,
