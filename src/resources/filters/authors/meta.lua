@@ -29,6 +29,7 @@ local kName = 'name'
 local kUrl = 'url'
 local kEmail = 'email'
 local kFax = 'fax'
+local kPhone = 'phone'
 local kOrcid = 'orcid'
 local kNote = 'note'
 local kAcknowledgements = 'acknowledgements'
@@ -116,7 +117,7 @@ local kDoiTitle = 'doi-title'
 -- The field types for an author (maps the field in an author table)
 -- to the way the field should be processed
 local kAuthorNameFields = { kName }
-local kSuthorSimpleFields = { kId, kUrl, kEmail, kFax, kOrcid, kAcknowledgements }
+local kSuthorSimpleFields = { kId, kUrl, kEmail, kFax, kPhone, kOrcid, kAcknowledgements }
 local kAuthorAttributeFields = { kCorresponding, kEqualContributor }
 local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
@@ -552,7 +553,10 @@ end
 function byAffiliations(authors, affiliations)
   local denormalizedAffiliations = deepCopy(affiliations)
   for i, affiliation in ipairs(denormalizedAffiliations) do
-    affiliation[kAuthors] = findAuthors(affiliation[kId], authors)
+    local affilAuthor = findAuthors(affiliation[kId], authors)
+    if affilAuthor then
+      affiliation[kAuthors] = affilAuthor
+    end
   end
   return denormalizedAffiliations
 end
@@ -572,9 +576,11 @@ function findAuthors(id, authors)
   local matchingAuthors = {}
   for i, author in ipairs(authors) do
     local authorAffils = author[kAffiliations]
-    for j, authorAffil in ipairs(authorAffils) do
-      if authorAffil[kRef][1].text == id[1].text then
-        matchingAuthors[#matchingAuthors + 1] = author
+    if authorAffils then
+      for j, authorAffil in ipairs(authorAffils) do
+        if authorAffil[kRef][1].text == id[1].text then
+          matchingAuthors[#matchingAuthors + 1] = author
+        end
       end
     end
   end
