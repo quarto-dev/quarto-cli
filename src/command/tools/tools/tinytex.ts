@@ -4,7 +4,7 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
-import { copySync, ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { existsSync } from "fs/exists.ts";
@@ -30,6 +30,7 @@ import {
 } from "../types.ts";
 import { getLatestRelease } from "../github.ts";
 import { tinyTexInstallDir } from "./tinytex-info.ts";
+import { copyTo } from "../../../core/copy.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [
@@ -213,7 +214,7 @@ async function install(
         () => {
           const from = join(context.workingDir, tinyTexDirName);
 
-          copySync(from, installDir);
+          copyTo(from, installDir);
           Deno.removeSync(from, { recursive: true });
 
           // Note the version that we have installed

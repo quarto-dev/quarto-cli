@@ -10,11 +10,7 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import * as ld from "../core/lodash.ts";
 import { asArray } from "../core/array.ts";
 
-import {
-  copyFileIfNewer,
-  resolvePathGlobs,
-  safeExistsSync,
-} from "../core/path.ts";
+import { resolvePathGlobs, safeExistsSync } from "../core/path.ts";
 import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";
 
 import {
@@ -25,6 +21,7 @@ import {
 } from "./types.ts";
 
 import { kQuartoIgnore } from "./project-gitignore.ts";
+import { copyFileIfNewer } from "../core/copy.ts";
 
 export function projectResourceFiles(
   dir: string,

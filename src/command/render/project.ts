@@ -6,12 +6,12 @@
 */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { copySync } from "fs/copy.ts";
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { info, warning } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
+import { copyMinimal, copyTo } from "../../core/copy.ts";
 import * as ld from "../../core/lodash.ts";
 
 import { kKeepMd } from "../../config/constants.ts";
@@ -46,11 +46,7 @@ import {
 } from "./freeze.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import {
-  copyMinimal,
-  removeIfEmptyDir,
-  removeIfExists,
-} from "../../core/path.ts";
+import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
@@ -269,7 +265,7 @@ export async function renderProject(
       if (existsSync(srcDir)) {
         ensureDirSync(dirname(targetDir));
         if (copy) {
-          copySync(srcDir, targetDir);
+          copyTo(srcDir, targetDir);
         } else {
           Deno.renameSync(srcDir, targetDir);
         }

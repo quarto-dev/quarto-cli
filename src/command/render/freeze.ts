@@ -20,11 +20,7 @@ import { cloneDeep } from "../../core/lodash.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { TempContext } from "../../core/temp.ts";
 import { md5Hash } from "../../core/hash.ts";
-import {
-  copyMinimal,
-  removeIfEmptyDir,
-  removeIfExists,
-} from "../../core/path.ts";
+import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,
@@ -36,6 +32,7 @@ import { ExecuteResult } from "../../execute/types.ts";
 
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
+import { copyMinimal, copyTo } from "../../core/copy.ts";
 
 export const kProjectFreezeDir = "_freeze";
 export const kOldFreezeExecuteResults = "execute";
@@ -158,7 +155,7 @@ export function copyToProjectFreezer(
         ensureDirSync(destResultsDir);
         for (const json of Deno.readDirSync(resultsDir)) {
           if (json.isFile) {
-            Deno.copyFileSync(
+            copyTo(
               join(resultsDir, json.name),
               join(destResultsDir, json.name),
             );

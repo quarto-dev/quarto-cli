@@ -6,13 +6,13 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { copySync } from "fs/copy.ts";
 import { extname, join } from "path/mod.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath, toolsPath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./types.ts";
 import { removeIfExists } from "../path.ts";
+import { copyTo } from "../copy.ts";
 
 export const denoRunHandler: RunHandler = {
   canHandle: (script: string) => {
@@ -63,7 +63,7 @@ function initDenoCache() {
     Deno.readTextFileSync(cacheLock) != Deno.readTextFileSync(distLock)
   ) {
     removeIfExists(cacheDenoStd);
-    copySync(distDenoStd, cacheDenoStd, { overwrite: true });
+    copyTo(distDenoStd, cacheDenoStd);
   }
 
   return join(cacheDenoStd, "cache");

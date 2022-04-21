@@ -11,6 +11,7 @@ import {
   FormatTemplateContext,
   Metadata,
 } from "../../config/types.ts";
+import { copyTo } from "../../core/copy.ts";
 import { TempContext } from "../../core/temp.ts";
 
 export const kPatchedTemplateExt = ".patched";
@@ -31,20 +32,20 @@ export async function stageTemplate(
   const stagingDir = temp.createDir();
   const template = "template.patched";
 
-  const stageContext = async (
+  const stageContext = (
     dir: string,
     template: string,
     context?: FormatTemplateContext,
   ) => {
     if (context) {
       if (context.template) {
-        await Deno.copyFile(context.template, join(dir, template));
+        copyTo(context.template, join(dir, template));
       }
 
       if (context.partials) {
         for (const partial of context.partials) {
           // TODO: Confirm that partial is a file not a directory
-          await Deno.copyFile(partial, join(stagingDir, basename(partial)));
+          copyTo(partial, join(stagingDir, basename(partial)));
         }
       }
       return true;
@@ -53,7 +54,7 @@ export async function stageTemplate(
     }
   };
 
-  const formatStaged = await stageContext(
+  const formatStaged = stageContext(
     stagingDir,
     template,
     extras.templateContext,

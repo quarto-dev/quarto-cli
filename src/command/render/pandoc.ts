@@ -19,11 +19,7 @@ import * as ld from "../../core/lodash.ts";
 import { Document } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
-import {
-  copyFileIfNewer,
-  dirAndStem,
-  pathWithForwardSlashes,
-} from "../../core/path.ts";
+import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
@@ -149,6 +145,7 @@ import {
   parsePandocDate,
   parseSpecialDate,
 } from "../../core/date.ts";
+import { copyFileIfNewer } from "../../core/copy.ts";
 
 export async function runPandoc(
   options: PandocOptions,

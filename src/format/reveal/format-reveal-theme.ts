@@ -18,7 +18,7 @@ import {
 } from "../../config/types.ts";
 
 import { isFileRef } from "../../core/http.ts";
-import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { compileSass, mergeLayers, sassLayerFile } from "../../core/sass.ts";
 
@@ -31,6 +31,7 @@ import {
 import { quartoBaseLayer } from "../html/format-html-shared.ts";
 import { TempContext } from "../../core/temp.ts";
 import { hasAdaptiveTheme } from "../../quarto-core/text-highlighting.ts";
+import { copyMinimal, copyTo } from "../../core/copy.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -158,7 +159,7 @@ export async function revealTheme(
 
   // compile sass
   const css = await compileSass([bundleLayers], temp);
-  Deno.copyFileSync(
+  copyTo(
     css,
     join(revealDestDir, "dist", "theme", "quarto.css"),
   );

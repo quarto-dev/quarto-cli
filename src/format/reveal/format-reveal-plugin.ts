@@ -20,7 +20,7 @@ import {
   PandocFlags,
 } from "../../config/types.ts";
 import { camelToKebab, mergeConfigs } from "../../core/config.ts";
-import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
 import { optionsToKebab, revealMetadataFilter } from "./metadata.ts";
@@ -30,6 +30,7 @@ import { isSelfContained } from "../../command/render/render-info.ts";
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
 
 import { revealPluginSchema } from "./schemas.ts";
+import { copyMinimal } from "../../core/copy.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 

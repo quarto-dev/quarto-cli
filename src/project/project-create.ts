@@ -25,6 +25,7 @@ import { ExecutionEngine } from "../execute/types.ts";
 import { projectConfigFile } from "./project-shared.ts";
 import { ensureGitignore } from "./project-gitignore.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
+import { copyTo } from "../core/copy.ts";
 
 export interface ProjectCreateOptions {
   dir: string;
@@ -132,7 +133,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
       }
 
       ensureDirSync(dirname(dest));
-      Deno.copyFileSync(src, dest);
+      copyTo(src, dest);
       info("- Created " + displayName, { indent: 2 });
     }
   }
@@ -246,7 +247,7 @@ function projectMarkdownFile(
     supporting?.forEach((from) => {
       const name = basename(from);
       const target = join(dirname(path), name);
-      Deno.copyFileSync(from, target);
+      copyTo(from, target);
     });
 
     return subdirectory ? join(subdirectory, name) : name;

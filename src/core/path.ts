@@ -5,17 +5,8 @@
 *
 */
 
-import {
-  basename,
-  dirname,
-  extname,
-  globToRegExp,
-  join,
-  relative,
-} from "path/mod.ts";
+import { basename, dirname, extname, globToRegExp, join } from "path/mod.ts";
 
-import { copySync } from "fs/copy.ts";
-import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 
@@ -156,79 +147,6 @@ export function pathWithForwardSlashes(path: string) {
   return path.replace(/\\/g, "/");
 }
 
-export function copyMinimal(
-  srcDir: string,
-  destDir: string,
-  skip?: RegExp[],
-  filter?: (path: string) => boolean,
-) {
-  // 2022-02-16: 0.125.0 walkSync appears to throw in the presence of .DS_Store
-  skip = [...(skip || []), /\.DS_Store/];
-
-  // build list of src files
-  const srcFiles: string[] = [];
-  for (
-    const walk of walkSync(
-      srcDir,
-      {
-        includeDirs: false,
-        followSymlinks: false,
-        skip,
-      },
-    )
-  ) {
-    // alias source file
-    const srcFile = walk.path;
-
-    // apply filter
-    if (filter && !filter(srcFile)) {
-      continue;
-    }
-
-    // add to src files
-    srcFiles.push(srcFile);
-  }
-
-  // copy src files
-  for (const srcFile of srcFiles) {
-    if (!existsSync(srcFile)) {
-      continue;
-    }
-    const destFile = join(destDir, relative(srcDir, srcFile));
-    copyFileIfNewer(srcFile, destFile);
-  }
-}
-
-export function copyFileIfNewer(srcFile: string, destFile: string) {
-  // helper to perform the copy
-  const doCopy = () => {
-    copySync(srcFile, destFile, {
-      overwrite: true,
-      preserveTimestamps: true,
-    });
-  };
-
-  // ensure target dir
-  ensureDirSync(dirname(destFile));
-
-  // avoid copy if the file exists and we can validate that the src and dest
-  // files have the same timestamp (there can be statSync errors in the case of
-  // e.g. symlinks across volumsn so we also do the copy on errors accessing
-  // file info)
-  try {
-    if (existsSync(destFile)) {
-      const srcInfo = Deno.statSync(srcFile);
-      const destInfo = Deno.statSync(destFile);
-      if (!srcInfo.mtime || !destInfo.mtime || destInfo.mtime < srcInfo.mtime) {
-        doCopy();
-      }
-    } else {
-      doCopy();
-    }
-  } catch {
-    doCopy();
-  }
-}
 export function resolveGlobs(
   root: string,
   globs: string[],

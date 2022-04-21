@@ -6,7 +6,6 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { copySync } from "fs/copy.ts";
 import { join, relative } from "path/mod.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
@@ -21,6 +20,7 @@ import { resourcePath } from "../../../core/resources.ts";
 import { ProjectOutputFile } from "../types.ts";
 import { websiteBaseurl } from "./website-config.ts";
 import { kDraft } from "../../../format/html/format-html-shared.ts";
+import { copyTo } from "../../../core/copy.ts";
 
 export async function updateSitemap(
   context: ProjectContext,
@@ -35,10 +35,7 @@ export async function updateSitemap(
   const srcRobotsTxt = existsSync(robotsTxtPath) ? robotsTxtPath : undefined;
   const destRobotsTxt = join(outputDir, "robots.txt");
   if (srcRobotsTxt) {
-    copySync(srcRobotsTxt, destRobotsTxt, {
-      overwrite: true,
-      preserveTimestamps: true,
-    });
+    copyTo(srcRobotsTxt, destRobotsTxt);
   }
 
   const baseUrlConfig = websiteBaseurl(context.config);

@@ -50,6 +50,7 @@ import { TempContext } from "../../core/temp.ts";
 import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
+import { copyTo } from "../../core/copy.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -360,7 +361,7 @@ async function processLines(
 
     // Always overwrite the input file with an incompletely processed file
     // which should make debugging the error easier (I hope)
-    Deno.copyFileSync(outputFile, inputFile);
+    copyTo(outputFile, inputFile);
   }
 }
 
