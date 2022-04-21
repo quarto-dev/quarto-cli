@@ -15,12 +15,13 @@ import {
   isPdfOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { asMappedString } from "../lib/mapped-text.ts";
+import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
 
 const keepIfHandler: LanguageHandler = {
   ...baseHandler,
 
-  handlerType: "component",
+  type: "component",
+  stage: "post-engine",
 
   languageName: "keep-if",
 
@@ -60,9 +61,9 @@ const keepIfHandler: LanguageHandler = {
         cell.options?.[name] === undefined || checker
       )
     ) {
-      return cell.source;
+      return mappedConcat([cell.source, asMappedString("\n")]);
     } else {
-      return asMappedString("");
+      return asMappedString("\n");
     }
   },
 };

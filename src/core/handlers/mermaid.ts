@@ -23,7 +23,8 @@ import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
 
-  handlerType: "cell",
+  type: "cell",
+  stage: "post-engine",
 
   languageName: "mermaid",
 

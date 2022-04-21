@@ -23,6 +23,7 @@ export interface LanguageCellHandlerOptions {
   libDir: string;
   temp: TempContext;
   project?: ProjectContext;
+  stage: "pre-engine" | "post-engine";
 }
 export interface LanguageCellHandlerContext {
   options: LanguageCellHandlerOptions;
@@ -56,7 +57,9 @@ export interface LanguageHandler {
     content: MappedString,
   ) => MappedString;
 
-  handlerType: "cell" | "component" | "any";
+  type: "cell" | "component" | "any";
+  stage: "pre-engine" | "post-engine" | "any";
+
   languageName: string;
   languageClass?: string;
 }

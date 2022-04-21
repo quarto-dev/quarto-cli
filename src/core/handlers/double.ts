@@ -20,7 +20,8 @@ import { mappedConcat } from "../lib/mapped-text.ts";
 const doubleHandler: LanguageHandler = {
   ...baseHandler,
 
-  handlerType: "component",
+  type: "component",
+  stage: "post-engine",
 
   languageName: "double",
 
