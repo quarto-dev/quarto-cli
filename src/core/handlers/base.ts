@@ -59,6 +59,7 @@ import {
   kOutput,
   kTblCapLoc,
 } from "../../config/constants.ts";
+import { ComponentCell } from "../lib/break-quarto-md-types.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -197,22 +198,81 @@ export async function handleLanguageCells(
   let results: HandlerContextResults | undefined = undefined;
 
   for (const [language, cells] of Object.entries(languageCellsPerLanguage)) {
-    const handler = makeHandlerContext(executeResult, {
-      ...options,
-      name: language,
-    });
-    const languageHandler = handlers[language]!;
-    const transformedCells = languageHandler.document(
-      handler.context,
-      cells.map((x) => x.source),
-    );
-    for (let i = 0; i < transformedCells.length; ++i) {
-      newCells[cells[i].index] = transformedCells[i];
-    }
-    if (results === undefined) {
-      results = handler.results;
+    if (language === "_component") {
+      // if this is a component, the semantics are that each the _contents_ of the cell
+      // are first treated as if they were an entire markdown document that will be fully
+      // parsed/handled etc. The _resulting_ markdown is then sent for handling by the
+      // component handler
+      for (const cell of cells) {
+        const localExecuteResult = {
+          ...executeResult,
+          markdown: cell.source.source,
+        };
+        const localCellHandlerOptions = {
+          ...options,
+          markdown: cell.source.source,
+        };
+
+        // recurse
+        const {
+          markdown: localMarkdown,
+          results: localResults,
+        } = await handleLanguageCells(
+          localExecuteResult,
+          localCellHandlerOptions,
+        );
+
+        // set results of component recursion
+        newCells[cell.index] = localMarkdown;
+        if (results === undefined) {
+          results = localResults;
+        } else {
+          results = mergeConfigs(results, localResults);
+        }
+
+        const innerLanguage = (cell.source.cell_type as ComponentCell).tag;
+        // call specific handler
+        const innerHandler = makeHandlerContext(executeResult, {
+          ...options,
+          name: innerLanguage,
+        });
+        const innerLanguageHandler = handlers[innerLanguage]!;
+
+        const innerMdCell = {
+          ...cell.source,
+          source: localMarkdown,
+        };
+
+        const transformedCell = innerLanguageHandler.document(
+          innerHandler.context,
+          [innerMdCell],
+        )[0];
+        newCells[cell.index] = transformedCell;
+
+        if (results === undefined) {
+          results = innerHandler.results;
+        } else {
+          results = mergeConfigs(results, innerHandler.results);
+        }
+      }
     } else {
-      results = mergeConfigs(results, handler.results);
+      const handler = makeHandlerContext(executeResult, {
+        ...options,
+        name: language,
+      });
+      const languageHandler = handlers[language]!;
+      const transformedCells = languageHandler.document(
+        handler.context,
+        cells.map((x) => x.source),
+      );
+      for (let i = 0; i < transformedCells.length; ++i) {
+        newCells[cells[i].index] = transformedCells[i];
+      }
+      if (results === undefined) {
+        results = handler.results;
+      } else {
+        results = mergeConfigs(results, handler.results);
+      }
     }
   }
   return {
