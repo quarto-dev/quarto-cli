@@ -17,6 +17,11 @@ export interface ComponentCell {
   language: "_component";
   tag: string;
   attrs: Record<string, string>;
+
+  // we need to carry components' individual tag information for
+  // later reconstruction.
+  sourceOpenTag: MappedString;
+  sourceCloseTag: MappedString;
 }
 
 export interface QuartoMdCell {

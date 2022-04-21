@@ -48,7 +48,7 @@ export interface LanguageHandler {
   ) => MappedString;
 
   comment?: LanguageComment;
-  defaultOptions: Record<string, unknown>;
+  defaultOptions?: Record<string, unknown>;
   schema?: () => Promise<ConcreteSchema>;
   build: (
     handlerContext: LanguageCellHandlerContext,
@@ -56,6 +56,7 @@ export interface LanguageHandler {
     content: MappedString,
   ) => MappedString;
 
+  handlerType: "cell" | "component" | "any";
   languageName: string;
   languageClass?: string;
 }

@@ -233,7 +233,10 @@ export async function handleLanguageCells(
           results = mergeConfigs(results, localResults);
         }
 
-        if (innerLanguageHandler === undefined) {
+        if (
+          innerLanguageHandler === undefined ||
+          innerLanguageHandler.handlerType === "cell"
+        ) {
           // if no handler is present, just reconstitute
           // the tags and return.
           newCells[cell.index] = mappedConcat([
@@ -271,18 +274,23 @@ export async function handleLanguageCells(
         ...options,
         name: language,
       });
-      const languageHandler = handlers[language]!;
-      const transformedCells = languageHandler.document(
-        handler.context,
-        cells.map((x) => x.source),
-      );
-      for (let i = 0; i < transformedCells.length; ++i) {
-        newCells[cells[i].index] = transformedCells[i];
-      }
-      if (results === undefined) {
-        results = handler.results;
-      } else {
-        results = mergeConfigs(results, handler.results);
+      const languageHandler = handlers[language];
+      if (
+        languageHandler !== undefined &&
+        languageHandler.handlerType !== "component"
+      ) {
+        const transformedCells = languageHandler.document(
+          handler.context,
+          cells.map((x) => x.source),
+        );
+        for (let i = 0; i < transformedCells.length; ++i) {
+          newCells[cells[i].index] = transformedCells[i];
+        }
+        if (results === undefined) {
+          results = handler.results;
+        } else {
+          results = mergeConfigs(results, handler.results);
+        }
       }
     }
   }
@@ -293,6 +301,8 @@ export async function handleLanguageCells(
 }
 
 export const baseHandler: LanguageHandler = {
+  handlerType: "any",
+
   languageName:
     "<<<< baseHandler: languageName should have been overridden >>>>",
 
@@ -346,7 +356,7 @@ export const baseHandler: LanguageHandler = {
     content: MappedString,
   ): MappedString {
     // FIXME this should get the project+document options as well.
-    const options = mergeConfigs(this.defaultOptions, cell.options ?? {});
+    const options = mergeConfigs(this.defaultOptions ?? {}, cell.options ?? {});
 
     // split content into front matter vs input
     const contentLines = mappedLines(cell.source, true);

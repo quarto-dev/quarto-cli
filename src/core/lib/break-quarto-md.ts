@@ -14,7 +14,11 @@ import { asMappedString, EitherString, mappedString } from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
-import { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
+import {
+  ComponentCell,
+  QuartoMdCell,
+  QuartoMdChunks,
+} from "./break-quarto-md-types.ts";
 
 export type { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
 
@@ -214,6 +218,7 @@ export async function breakQuartoMd(
   const delimitMathBlockRegEx = /^\$\$/;
 
   let language = ""; // current language block
+  const openTags: RangedSubstring[] = [];
   const tagName: string[] = [];
   const tagOptions: Record<string, string>[] = []; // tag options needs to be a stack to remember the options as we close the tag
   let cellStartLine = 0;
@@ -257,7 +262,13 @@ export async function breakQuartoMd(
           return {
             language: "_component",
             tag: tagName[tagName.length - 1],
-            options: tagOptions[tagOptions.length - 1]!,
+            attrs: tagOptions[tagOptions.length - 1]!,
+            sourceOpenTag: mappedString(src, [
+              openTags[openTags.length - 1].range,
+            ]),
+            sourceCloseTag: mappedString(src, [
+              lineBuffer[lineBuffer.length - 1].range,
+            ]),
           };
         } else {
           return cell_type;
@@ -311,6 +322,8 @@ export async function breakQuartoMd(
       } else if (cell_type === "empty_component" || cell_type === "component") {
         // components only carry tag source in sourceVerbatim, analogously to code
         cell.source = mappedString(src, mappedChunks.slice(1, -1));
+        // components carry options in cell_type, use that
+        cell.options = (cell.cell_type as ComponentCell).attrs;
       }
       // if the source is empty then don't add it
       if (
@@ -322,6 +335,22 @@ export async function breakQuartoMd(
 
       lineBuffer.splice(0, lineBuffer.length);
     }
+  };
+
+  const pushStacks = (
+    tagOption: Record<string, string>,
+    tagNameVal: string,
+    openTag: RangedSubstring,
+  ) => {
+    tagOptions.push(tagOption);
+    tagName.push(tagNameVal);
+    openTags.push(openTag);
+  };
+
+  const popStacks = () => {
+    tagOptions.pop();
+    openTags.pop();
+    tagName.pop();
   };
 
   const tickCount = (s: string): number =>
@@ -341,7 +370,6 @@ export async function breakQuartoMd(
 
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    console.log({ line, inPlainText: inPlainText() });
     // yaml front matter
     if (
       yamlRegEx.test(line.substring) && !inCodeCell && !inCode &&
@@ -363,16 +391,11 @@ export async function breakQuartoMd(
     ) {
       await flushLineBuffer("markdown", i);
       const m = line.substring.match(emptyComponent);
-      tagName.push(m![1] as string);
-      if (m![2] !== undefined) {
-        tagOptions.push(parseAttributes(m![2]));
-      } else {
-        tagOptions.push({});
-      }
+
+      pushStacks(m![2] ? parseAttributes(m![2]) : {}, m![1], line);
       lineBuffer.push(line);
       await flushLineBuffer("empty_component", i);
-      tagOptions.pop();
-      tagName.pop();
+      popStacks();
     } // found component start
     else if (
       inPlainText() && startComponent.test(line.substring) &&
@@ -380,12 +403,7 @@ export async function breakQuartoMd(
     ) {
       await flushLineBuffer("markdown", i);
       const m = line.substring.match(startComponent);
-      tagName.push(m![1] as string);
-      if (m![2] !== undefined) {
-        tagOptions.push(parseAttributes(m![2]));
-      } else {
-        tagOptions.push({});
-      }
+      pushStacks(m![2] ? parseAttributes(m![2]) : {}, m![1], line);
       lineBuffer.push(line);
     } // found inner component start
     else if (
@@ -393,12 +411,7 @@ export async function breakQuartoMd(
       !isHtmlTag(line.substring)
     ) {
       const m = line.substring.match(startComponent);
-      tagName.push(m![1] as string);
-      if (m![2] !== undefined) {
-        tagOptions.push(parseAttributes(m![2]));
-      } else {
-        tagOptions.push({});
-      }
+      pushStacks(m![2] ? parseAttributes(m![2]) : {}, m![1], line);
       lineBuffer.push(line);
     } // found inner component end
     else if (
@@ -411,14 +424,13 @@ export async function breakQuartoMd(
         tagName[tagName.length - 1].toLocaleLowerCase() !==
           closeTagName.toLocaleLowerCase()
       ) {
-        console.log("mismatched tags!!!");
+        // Mismatched tags, what do we do?
       }
       lineBuffer.push(line);
       if (tagName.length === 1) {
         await flushLineBuffer("component", i);
       }
-      tagName.pop();
-      tagOptions.pop();
+      popStacks();
     } // begin code cell: ^```python
     else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
       const m = line.substring.match(startCodeCellRegEx);

@@ -1,4 +1,11 @@
-import { LanguageCellHandlerContext } from "./types.ts";
+/*
+* mermaid.ts
+*
+* Copyright (C) 2022 by RStudio, PBC
+*
+*/
+
+import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { kIncludeAfterBody } from "../../config/constants.ts";
 import { formatResourcePath } from "../resources.ts";
@@ -13,8 +20,10 @@ import { schemaFromString } from "../lib/yaml-schema/from-yaml.ts";
 
 import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 
-const mermaidHandler = {
+const mermaidHandler: LanguageHandler = {
   ...baseHandler,
+
+  handlerType: "cell",
 
   languageName: "mermaid",
 
@@ -26,14 +35,6 @@ const mermaidHandler = {
   },
 
   comment: "%%",
-  async schema() {
-    return await schemaFromString(`
-object:
-  properties:
-    echo:
-       enum: [true, false, fenced, fancy-mermaid-echo]
-`);
-  },
 
   // called once per document, no cells in particular
   documentStart(
