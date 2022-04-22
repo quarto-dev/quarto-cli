@@ -63,12 +63,6 @@ import { ComponentCell } from "../lib/break-quarto-md-types.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
-export interface HandlerContextResults {
-  includes: PandocIncludes;
-  resourceFiles: string[];
-  extras: FormatExtras;
-}
-
 function makeHandlerContext(
   options: LanguageCellHandlerOptions,
 ): {

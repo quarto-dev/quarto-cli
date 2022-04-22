@@ -16,7 +16,6 @@ import {
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat } from "../lib/mapped-text.ts";
-import { schemaFromString } from "../lib/yaml-schema/from-yaml.ts";
 
 import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 

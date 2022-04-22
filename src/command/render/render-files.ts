@@ -19,11 +19,8 @@ import { isHtmlCompatible } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { setDateLocale } from "../../core/date.ts";
 import { initDenoDom } from "../../core/deno-dom.ts";
-import {
-  handleLanguageCells,
-  HandlerContextResults,
-  languages,
-} from "../../core/handlers/base.ts";
+import { HandlerContextResults } from "../../core/handlers/types.ts";
+import { handleLanguageCells, languages } from "../../core/handlers/base.ts";
 import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
 import { asMappedString, mappedDiff } from "../../core/mapped-text.ts";
 import {
@@ -151,8 +148,6 @@ export async function renderExecute(
   // calculate figsDir
   const figsDir = join(filesDir, figuresDir(context.format.pandoc.to));
 
-  debugger;
-
   // execute computations
   const executeResult = await context.engine.execute({
     target: context.target,
@@ -274,7 +269,6 @@ export async function renderFiles(
           target.markdown,
           engine.name,
           error,
-          file.path,
         );
         if (validationResult.length) {
           throw new RenderInvalidYAMLError();
@@ -337,19 +331,11 @@ export async function renderFiles(
           // this is not a jupyter notebook input,
           // so we can run pre-engine handlers
 
-          startingMarkdown = asMappedString(
-            Deno.readTextFileSync(context.target.source),
-            context.target.source,
-          );
-
           const preEngineCellHandlerOptions: LanguageCellHandlerOptions = {
             temp: tempContext,
-            name: "",
-            format: recipe.format,
-            markdown: startingMarkdown,
+            format: context.format,
+            markdown: context.target.markdown,
             source: context.target.source,
-            libDir: context.libDir,
-            project: context.project,
             stage: "pre-engine",
           };
 
@@ -358,9 +344,7 @@ export async function renderFiles(
           );
 
           startingMarkdown = markdown;
-          context.target.markdown = markdown.value;
-          console.log("HERE!");
-          console.log(context.target.markdown);
+          context.target.markdown = markdown;
 
           if (results) {
             preEngineHandlerResults = results;
@@ -416,12 +400,9 @@ export async function renderFiles(
 
         const languageCellHandlerOptions: LanguageCellHandlerOptions = {
           temp: tempContext,
-          name: "",
           format: recipe.format,
           markdown: mappedMarkdown,
           source: context.target.source,
-          libDir: context.libDir,
-          project: context.project,
           stage: "post-engine",
         };
 

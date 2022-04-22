@@ -20,6 +20,7 @@ import {
   PostProcessOptions,
 } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
+import { mappedStringFromFile } from "../core/mapped-text.ts";
 
 export const kMdExtensions = [".md", ".markdown"];
 
@@ -42,12 +43,12 @@ export const markdownEngine: ExecutionEngine = {
   },
 
   target: (file: string) => {
-    const markdown = Deno.readTextFileSync(file);
+    const markdown = mappedStringFromFile(file);
     const target: ExecutionTarget = {
       source: file,
       input: file,
       markdown,
-      metadata: readYamlFromMarkdown(markdown),
+      metadata: readYamlFromMarkdown(markdown.value),
     };
     return Promise.resolve(target);
   },

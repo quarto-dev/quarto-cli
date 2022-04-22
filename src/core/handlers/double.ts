@@ -32,8 +32,6 @@ const doubleHandler: LanguageHandler = {
     include: true,
   },
 
-  comment: "%%",
-
   cell(
     _handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,

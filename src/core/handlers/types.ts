@@ -3,7 +3,8 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../../config/constants.ts";
-import { DependencyFile, Format } from "../../config/types.ts";
+import { DependencyFile, Format, FormatExtras } from "../../config/types.ts";
+import { PandocIncludes } from "../../execute/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { MappedString } from "../lib/text-types.ts";
@@ -15,14 +16,10 @@ export type PandocIncludeType =
   | typeof kIncludeInHeader;
 
 export interface LanguageCellHandlerOptions {
-  name: string;
-  version?: string;
   source: string;
   format: Format;
   markdown: MappedString;
-  libDir: string;
   temp: TempContext;
-  project?: ProjectContext;
   stage: "pre-engine" | "post-engine";
 }
 export interface LanguageCellHandlerContext {
@@ -33,6 +30,11 @@ export interface LanguageCellHandlerContext {
     dependencyType: "script" | "stylesheet" | "resource",
     dependency: DependencyFile,
   ) => void;
+}
+export interface HandlerContextResults {
+  includes: PandocIncludes;
+  resourceFiles: string[];
+  extras: FormatExtras;
 }
 
 export type LanguageComment = string | [string, string];

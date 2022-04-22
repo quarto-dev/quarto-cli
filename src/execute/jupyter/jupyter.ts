@@ -75,6 +75,8 @@ import {
   jupyterNotebookFiltered,
   markdownFromNotebook,
 } from "../../core/jupyter/jupyter-filters.ts";
+import { asMappedString } from "../../core/lib/mapped-text.ts";
+import { mappedStringFromFile } from "../../core/mapped-text.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -117,11 +119,11 @@ export const jupyterEngine: ExecutionEngine = {
     file: string,
   ): Promise<ExecutionTarget | undefined> => {
     const markdown = isJupyterNotebook(file)
-      ? await markdownFromNotebook(file)
-      : Deno.readTextFileSync(file);
+      ? asMappedString(await markdownFromNotebook(file)) // FIXME how do we do source mapping from .ipynb?
+      : asMappedString(mappedStringFromFile(file));
 
     // get the metadata
-    const metadata = readYamlFromMarkdown(markdown);
+    const metadata = readYamlFromMarkdown(markdown.value);
 
     // if this is a text markdown file then create a notebook for use as the execution target
     if (isQmdFile(file)) {

@@ -77,7 +77,9 @@ export function engineValidExtensions(): string[] {
   return ld.uniq(kEngines.flatMap((engine) => engine.validExtensions()));
 }
 
-export function fileExecutionEngine(file: string) {
+export function fileExecutionEngine(
+  file: string,
+) {
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
   if (!kEngines.some((engine) => engine.validExtensions().includes(ext))) {

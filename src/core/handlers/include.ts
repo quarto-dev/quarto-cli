@@ -28,12 +28,21 @@ const includeHandler: LanguageHandler = {
       return cell.sourceVerbatim;
     }
 
-    return asMappedString(
+    const includeSrc = asMappedString(
       Deno.readTextFileSync(
         join(dirname(handlerContext.options.source), fileName as string),
       ),
       fileName as string,
     );
+
+    const includeDirMetadata = asMappedString("");
+    const currentDirMetadata = asMappedString("");
+
+    if (cell.options.fixup) {
+      return mappedConcat([includeDirMetadata, includeSrc, currentDirMetadata]);
+    } else {
+      return includeSrc;
+    }
   },
 };
 
