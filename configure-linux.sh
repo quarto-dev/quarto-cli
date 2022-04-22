@@ -2,6 +2,17 @@
 set -e
 source configuration
 
+# Selects curl or wget based on availability and https support.
+function download() {
+	url=$1
+	destination=$2
+
+	if curl --version | grep -qF ' https '; then
+	  curl --fail -L -o "$destination" "$url"
+	else
+	  wget -q -O "$destination" "$url"
+	fi
+}
 
 # Ensure directory is there for Deno
 echo "Bootstrapping Deno..."
@@ -27,7 +38,7 @@ pushd tools
 # Download Deno
 DENOURL=https://github.com/denoland/deno/releases/download
 DENOFILE=deno-x86_64-unknown-linux-gnu.zip
-curl --fail -L -o $DENOFILE $DENOURL/$DENO/$DENOFILE
+download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
 unzip -o $DENOFILE
 rm $DENOFILE
 
