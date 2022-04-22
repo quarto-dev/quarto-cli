@@ -60,7 +60,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const sections = tocLinks.map((link) => {
     const target = link.getAttribute("data-scroll-target");
     if (target.startsWith("#")) {
-      return window.document.getElementById(decodeURI(`${target}`));
+      return window.document.getElementById(decodeURI(`${target.slice(1)}`));
     } else {
       return window.document.querySelector(decodeURI(`${target}`));
     }

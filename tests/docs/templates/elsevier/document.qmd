@@ -1,0 +1,128 @@
+---
+title: Short Paper
+authors:
+  - name: Alice Anonymous
+    email: alice@example.com
+    affiliation:
+      - ref: sit
+    attributes:
+      corresponding: true
+    note: "This is the first author footnote."
+  - name: Bob Security
+    email: bob@example.com
+    affiliation: 
+      - ref: au
+  - name: Cat Memes
+    email: cat@example.com
+    affiliation: 
+      - ref: au
+    note: "Another author footnote."
+  - name: Derek Zoolander
+    email: derek@example.com
+    affiliation: 
+      - ref: sit
+    note: "Another author footnote."
+
+affiliations:
+  - id: sit
+    name: Some Institute of Technology
+    department: Department
+    address: Street
+    city: City
+    state: State
+    postal-code: Zip
+  - id: au
+    name: Another University
+    department: Department
+    address: Street
+    city: City
+    state: State
+    postal-code: Zip
+
+abstract: |
+  This is the abstract.
+
+  It consists of two paragraphs.
+keywords: 
+  - keyword1
+  - keyword2
+
+number-lines: false
+date: last-modified
+bibliography: mybibfile.bib
+
+# Use a CSL with `citation_package = "default"`
+# csl: https://www.zotero.org/styles/elsevier-harvard
+format:
+  pdf:
+    keep-tex: false
+    citation-package: natbib
+    template-partials: [frontmatter.tex, doc-class.tex, title.tex]
+    classoption: preprint, 3p, authoryear
+    number-sections: true
+    journal: "An awesome journal"
+---
+
+Please make sure that your manuscript follows the guidelines in the 
+Guide for Authors of the relevant journal. It is not necessary to 
+typeset your manuscript in exactly the same way as an article, 
+unless you are submitting to a camera-ready copy (CRC) journal.
+
+For detailed instructions regarding the elsevier article class, see   <https://www.elsevier.com/authors/policies-and-guidelines/latex-instructions>
+
+## Bibliography styles
+
+Here are two sample references: @Feynman1963118 [@Dirac1953888].
+
+By default, natbib will be used with the `authoryear` style, set in `classoption` variable in YAML. 
+You can sets extra options with `natbiboptions` variable in YAML header. Example 
+```yaml
+natbiboptions: longnamesfirst,angle,semicolon
+```
+
+There are various more specific bibliography styles available at
+<https://support.stmdocs.in/wiki/index.php?title=Model-wise_bibliographic_style_files>. 
+To use one of these, add it in the header using, for example, `biblio-style: model1-num-names`.
+
+### Using CSL 
+
+If `citation_package` is set to `default` in `elsevier_article()`, then pandoc is used for citations instead of `natbib`. In this case, the `csl` option is used to format the references. Alternative `csl` files are available from <https://www.zotero.org/styles?q=elsevier>. These can be downloaded
+and stored locally, or the url can be used as in the example header.
+
+## Equations
+
+Here is an equation:
+$$ 
+  f_{X}(x) = \left(\frac{\alpha}{\beta}\right)
+  \left(\frac{x}{\beta}\right)^{\alpha-1}
+  e^{-\left(\frac{x}{\beta}\right)^{\alpha}}; 
+  \alpha,\beta,x > 0 .
+$$
+
+Here is another:
+\begin{align}
+  a^2+b^2=c^2.
+\end{align}
+
+Inline equations: $\sum_{i = 2}^\infty\{\alpha_i^\beta\}$
+
+## Figures and tables
+
+Figure \ref{fig2} is generated using an R chunk.
+
+```{r fig2, fig.width = 5, fig.height = 5, fig.align='center', out.width="50%", fig.cap = "\\label{fig2}A meaningless scatterplot.", echo = FALSE}
+plot(runif(25), runif(25))
+```
+
+## Tables coming from R
+
+Tables can also be generated using R chunks, as shown in Table \ref{tab1} for example.
+
+```{r tab1, echo = TRUE}
+knitr::kable(head(mtcars)[,1:4], 
+    caption = "\\label{tab1}Caption centered above table"
+)
+```
+
+## References {-}
+

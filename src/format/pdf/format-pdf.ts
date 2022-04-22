@@ -209,6 +209,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           "pandoc-base",
           "tables",
           "tightlist",
+          "frontmatter",
           "title",
           "toc",
         ];
