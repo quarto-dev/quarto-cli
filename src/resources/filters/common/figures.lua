@@ -64,9 +64,6 @@ function discoverLinkedFigure(el, captionRequired)
   if el.t ~= "Para" then
     return nil
   end
-  if withCaption == nil then
-    withCaption = true
-  end
   if #el.content == 1 then 
     if el.content[1].t == "Link" then
       local link = el.content[1]
