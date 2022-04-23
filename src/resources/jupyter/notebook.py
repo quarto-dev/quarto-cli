@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+
 import os
 import atexit
 import glob
