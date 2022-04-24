@@ -101,15 +101,9 @@ export function templateMarkdownHandler(
           }
         } else if (fieldTypes[field] === "minutes") {
           const val = item[field] as number;
-          if (val) {
-            record[field] = localizedString(
-              format,
-              kListingPageMinutesCompact,
-              [
-                Math.floor(val).toString(),
-              ],
-            );
-          }
+          record[field] = localizedString(format, kListingPageMinutesCompact, [
+            Math.floor(val).toString(),
+          ]);
         }
       }
 
@@ -122,10 +116,7 @@ export function templateMarkdownHandler(
       }
 
       // If there is no image and there is a placeholder, use that
-      const itemImage = record.image || listing[kImagePlaceholder];
-      if (itemImage) {
-        record.image = itemImage;
-      }
+      record.image = record.image || listing[kImagePlaceholder];
 
       return record;
     },
