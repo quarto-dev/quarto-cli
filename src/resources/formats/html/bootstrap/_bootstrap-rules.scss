@@ -1544,7 +1544,7 @@ nav[role="doc-toc"].slow > * {
 
   section {
     padding-bottom: 1.5em;
-    *[role="doc-endnote"],
+    *[role="doc-endnotes"],
     > *:not(a) {
       opacity: 0.9;
       word-wrap: break-word;
