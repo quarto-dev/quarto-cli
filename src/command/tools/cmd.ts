@@ -31,7 +31,7 @@ export const toolsCommand = new Command()
   .name("tools")
   .arguments("[command:string] [tool:string]")
   .description(
-    `Manage the installation, update, and uninstallation of useful tools.
+    `Installation and update of ancillary tools.
     
   tools:\n  ${installableTools().map((name: string) => "  " + name).join("\n")}
 

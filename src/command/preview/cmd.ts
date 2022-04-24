@@ -119,8 +119,8 @@ export const previewCommand = new Command()
   )
   .arguments("[file:string] [...args:string]")
   .description(
-    "Render and preview a Quarto document or website project. Automatically reloads the browser when\n" +
-      "input files are re-rendered or document resources (e.g. CSS) change.\n\n" +
+    "Render and preview a document or website project.\n\nAutomatically reloads the browser when" +
+      "input files or document resources (e.g. CSS) change.\n\n" +
       "For website preview, the most recent execution results of computational documents are used to render\n" +
       "the site (this is to optimize startup time). If you want to perform a full render prior to\n" +
       'previewing pass the --render option with "all" or a comma-separated list of formats to render.\n\n' +

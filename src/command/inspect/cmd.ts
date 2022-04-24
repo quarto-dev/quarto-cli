@@ -36,10 +36,11 @@ export const inspectCommand = new Command()
   .name("inspect")
   .arguments("[path:string]")
   .description(
-    "Inspect a Quarto project or input path. Inspecting a project returns its config and engines.\n" +
+    "Inspect a Quarto project or input path.\n\nInspecting a project returns its config and engines.\n" +
       "Inspecting an input path return its formats, engine, and dependent resources.\n\n" +
       "Emits results of inspection as JSON to stdout.",
   )
+  .hidden()
   .example(
     "Inspect project in current directory",
     "quarto inspect",
