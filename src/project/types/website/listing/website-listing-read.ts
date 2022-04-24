@@ -137,7 +137,13 @@ const kDefaultFieldSort = [
   kFieldFileModified,
 ];
 
-const kDefaultFieldRequired: string[] = [];
+const defaultRequiredFields = (type: ListingType) => {
+  if (type === ListingType.Table) {
+    return [];
+  } else {
+    return [kFieldTitle];
+  }
+};
 
 export async function readListings(
   source: string,
@@ -333,7 +339,7 @@ function hydrateListing(
     [kFieldLinks]: defaultLinks,
     [kFieldSort]: defaultSort,
     [kFieldFilter]: hydratedFields,
-    [kFieldRequired]: kDefaultFieldRequired,
+    [kFieldRequired]: defaultRequiredFields(listing.type),
     [kPageSize]: defaultPageSize(),
     [kFilterUi]: listing.type !== ListingType.Custom || listing[kFilterUi],
     [kSortUi]: listing.type !== ListingType.Custom || listing[kSortUi],
@@ -408,14 +414,14 @@ async function readContents(
   // Accumulate the files that would be allowed to be included
   // This will include:
   //   - project input files
+  // We stopped accepting all yml files because this caused
+  // weird behavior. Instead, we should ask the user to make
+  // a glob to include yml files if needed
   const inputsWithoutSource = project.files.input.filter((file) =>
     file !== source
   );
-  //   - YAML files in the source directory or a child directory
-  const yamlFiles: string[] = projectYamlFiles(dirname(source));
   const possibleListingFiles = [
     ...inputsWithoutSource,
-    ...yamlFiles,
   ];
 
   const filterListingFiles = (globOrPath: string) => {
@@ -491,7 +497,7 @@ async function readContents(
           } else {
             const item = await listItemFromFile(file, project);
             if (item) {
-              validateItem(listing, item, (field: string) => {
+              validateItem(listing, item.item, (field: string) => {
                 return `The file ${file} is missing the required field '${field}'.`;
               });
               listingItemSources.add(item.source);
@@ -509,7 +515,6 @@ async function readContents(
       listingItems.push(listingItem);
     }
   }
-
   return {
     items: listingItems,
     sources: listingItemSources,
@@ -523,7 +528,8 @@ function validateItem(
   message: (field: string) => string,
 ) {
   const requiredFields = (listing: ListingDehydrated) => {
-    const fields = listing[kFieldRequired];
+    const fields = listing[kFieldRequired] ||
+      defaultRequiredFields(listing.type);
     if (fields) {
       if (Array.isArray(fields)) {
         return fields;
