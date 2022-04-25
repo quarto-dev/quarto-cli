@@ -35,10 +35,11 @@ const includeHandler: LanguageHandler = {
       fileName as string,
     );
 
+    // FIXME WORK THIS OUT
     const includeDirMetadata = asMappedString("");
     const currentDirMetadata = asMappedString("");
 
-    if (cell.options.fixup) {
+    if (cell?.options?.fixup) {
       return mappedConcat([includeDirMetadata, includeSrc, currentDirMetadata]);
     } else {
       return includeSrc;

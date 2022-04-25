@@ -1,4 +1,5 @@
 import {
+  HandlerContextResults,
   LanguageCellHandlerContext,
   LanguageCellHandlerOptions,
   LanguageHandler,
@@ -9,6 +10,7 @@ import { PandocIncludes } from "../../execute/types.ts";
 import { mergeConfigs } from "../config.ts";
 import {
   DependencyFile,
+  FormatDependency,
   FormatExtras,
   kDependencies,
 } from "../../config/types.ts";
@@ -60,6 +62,7 @@ import {
   kTblCapLoc,
 } from "../../config/constants.ts";
 import { ComponentCell } from "../lib/break-quarto-md-types.ts";
+import { isHtmlCompatible } from "../../config/format.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -69,19 +72,12 @@ function makeHandlerContext(
   context: LanguageCellHandlerContext;
   results?: HandlerContextResults;
 } {
-  const formatDependency = {
-    name: options.name,
-    version: options.version,
-    scripts: [],
-    stylesheets: [],
-    resources: [],
-  };
   const results: HandlerContextResults = {
     resourceFiles: [],
     includes: {},
     extras: {
       html: {
-        [kDependencies]: [formatDependency],
+        [kDependencies]: [],
       },
     },
   };
@@ -91,20 +87,31 @@ function makeHandlerContext(
     addDependency(
       dependencyType: "script" | "stylesheet" | "resource",
       dependency: DependencyFile,
+      dependencyName?: string,
+      dependencyVersion?: string,
     ) {
-      let lst: DependencyFile[];
+      if (!isHtmlCompatible(options.format)) {
+        throw new Error("addDepdendency only supported in html formats");
+      }
+      dependencyName = dependencyName || options.name;
+      const dep: FormatDependency = {
+        name: dependencyName,
+        version: dependencyVersion,
+        scripts: [],
+        stylesheets: [],
+        resources: [],
+      };
       switch (dependencyType) {
         case "script":
-          lst = formatDependency.scripts;
+          dep.scripts = [dependency];
           break;
         case "stylesheet":
-          lst = formatDependency.stylesheets;
+          dep.stylesheets = [dependency];
           break;
         case "resource":
-          lst = formatDependency.resources;
+          dep.resources = [dependency];
           break;
       }
-      lst.push(dependency);
     },
     addResource(fileName: string) {
       results.resourceFiles.push(fileName);
@@ -155,8 +162,6 @@ export async function handleLanguageCells(
   markdown: MappedString;
   results?: HandlerContextResults;
 }> {
-  debugger;
-
   const mdCells = (await breakQuartoMd(options.markdown, false))
     .cells;
 

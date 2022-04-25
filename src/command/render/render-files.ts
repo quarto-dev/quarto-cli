@@ -332,6 +332,7 @@ export async function renderFiles(
           // so we can run pre-engine handlers
 
           const preEngineCellHandlerOptions: LanguageCellHandlerOptions = {
+            name: "", // will be filled out by handleLanguageCells internally
             temp: tempContext,
             format: context.format,
             markdown: context.target.markdown,
@@ -399,6 +400,7 @@ export async function renderFiles(
         }
 
         const languageCellHandlerOptions: LanguageCellHandlerOptions = {
+          name: "", // will be filled out by handleLanguageCells internally
           temp: tempContext,
           format: recipe.format,
           markdown: mappedMarkdown,

@@ -12435,7 +12435,9 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
-          schema: "string",
+          schema: {
+            maybeArrayOf: "string"
+          },
           description: "Content to include at the end of the document header."
         },
         {
@@ -12445,7 +12447,9 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
-          schema: "string",
+          schema: {
+            maybeArrayOf: "string"
+          },
           description: "Content to include at the beginning of the document body (e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command in LaTeX)."
         },
         {
@@ -12455,7 +12459,9 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
-          schema: "string",
+          schema: {
+            maybeArrayOf: "string"
+          },
           description: "Content to include at the end of the document body (before the `</body>` tag in HTML, or the `\\end{document}` command in LaTeX)."
         },
         {
@@ -18638,6 +18644,9 @@ var require_yaml_intelligence_resources = __commonJS({
         }
       ],
       "handlers/languages.yml": [
+        "double",
+        "keep-if",
+        "include",
         "mermaid"
       ],
       "handlers/lang-comment-chars.yml": {
@@ -27133,6 +27142,7 @@ async function breakQuartoMd(src, validate2 = false) {
   const endCodeRegEx = /^```+\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
   let language = "";
+  const openTags = [];
   const tagName = [];
   const tagOptions = [];
   let cellStartLine = 0;
@@ -27153,7 +27163,13 @@ async function breakQuartoMd(src, validate2 = false) {
           return {
             language: "_component",
             tag: tagName[tagName.length - 1],
-            options: tagOptions[tagOptions.length - 1]
+            attrs: tagOptions[tagOptions.length - 1],
+            sourceOpenTag: mappedString(src, [
+              openTags[openTags.length - 1].range
+            ]),
+            sourceCloseTag: mappedString(src, [
+              lineBuffer[lineBuffer.length - 1].range
+            ])
           };
         } else {
           return cell_type;
@@ -27191,6 +27207,7 @@ async function breakQuartoMd(src, validate2 = false) {
         cell.sourceStartLine = sourceStartLine;
       } else if (cell_type === "empty_component" || cell_type === "component") {
         cell.source = mappedString(src, mappedChunks.slice(1, -1));
+        cell.options = cell.cell_type.attrs;
       }
       if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
         nb.cells.push(cell);
@@ -27198,13 +27215,22 @@ async function breakQuartoMd(src, validate2 = false) {
       lineBuffer.splice(0, lineBuffer.length);
     }
   };
+  const pushStacks = (tagOption, tagNameVal, openTag) => {
+    tagOptions.push(tagOption);
+    tagName.push(tagNameVal);
+    openTags.push(openTag);
+  };
+  const popStacks = () => {
+    tagOptions.pop();
+    openTags.pop();
+    tagName.pop();
+  };
   const tickCount = (s) => Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
   let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = 0;
   const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml && tagName.length === 0;
   const srcLines = rangedLines(src.value, true);
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    console.log({ line, inPlainText: inPlainText() });
     if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock && tagName.length === 0) {
       if (inYaml) {
         lineBuffer.push(line);
@@ -27218,47 +27244,29 @@ async function breakQuartoMd(src, validate2 = false) {
     } else if (inPlainText() && emptyComponent.test(line.substring) && !isHtmlTag(line.substring)) {
       await flushLineBuffer("markdown", i);
       const m = line.substring.match(emptyComponent);
-      tagName.push(m[1]);
-      if (m[2] !== void 0) {
-        tagOptions.push(parseAttributes(m[2]));
-      } else {
-        tagOptions.push({});
-      }
+      pushStacks(m[2] ? parseAttributes(m[2]) : {}, m[1], line);
       lineBuffer.push(line);
       await flushLineBuffer("empty_component", i);
-      tagOptions.pop();
-      tagName.pop();
+      popStacks();
     } else if (inPlainText() && startComponent.test(line.substring) && !isHtmlTag(line.substring)) {
       await flushLineBuffer("markdown", i);
       const m = line.substring.match(startComponent);
-      tagName.push(m[1]);
-      if (m[2] !== void 0) {
-        tagOptions.push(parseAttributes(m[2]));
-      } else {
-        tagOptions.push({});
-      }
+      pushStacks(m[2] ? parseAttributes(m[2]) : {}, m[1], line);
       lineBuffer.push(line);
     } else if (tagName.length > 0 && startComponent.test(line.substring) && !isHtmlTag(line.substring)) {
       const m = line.substring.match(startComponent);
-      tagName.push(m[1]);
-      if (m[2] !== void 0) {
-        tagOptions.push(parseAttributes(m[2]));
-      } else {
-        tagOptions.push({});
-      }
+      pushStacks(m[2] ? parseAttributes(m[2]) : {}, m[1], line);
       lineBuffer.push(line);
     } else if (tagName.length > 0 && endComponent.test(line.substring) && !isHtmlTag(line.substring)) {
       const m = line.substring.match(endComponent);
       const closeTagName = m[1];
       if (tagName[tagName.length - 1].toLocaleLowerCase() !== closeTagName.toLocaleLowerCase()) {
-        console.log("mismatched tags!!!");
       }
       lineBuffer.push(line);
       if (tagName.length === 1) {
         await flushLineBuffer("component", i);
       }
-      tagName.pop();
-      tagOptions.pop();
+      popStacks();
     } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
       const m = line.substring.match(startCodeCellRegEx);
       language = m[1];
@@ -27426,7 +27434,7 @@ async function makeFrontMatterFormatSchema(nonStrict = false) {
       hidden
     } = hideFormat(format);
     return {
-      regex: `^${name2}(\\+.+)?$`,
+      regex: `^${name2}(?:(?:[[][^\\]\\ s]+[\\]])|(?:[:][^:+\\s]+))?(?:[+].+)?$`,
       schema: getFormatSchema(name2),
       name: name2,
       hidden

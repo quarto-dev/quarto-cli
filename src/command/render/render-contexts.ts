@@ -225,6 +225,7 @@ export async function renderContexts(
       // so we can run pre-engine handlers
 
       const preEngineCellHandlerOptions: LanguageCellHandlerOptions = {
+        name: "", // this gets filled out by handleLanguageCells later.
         temp: options.temp,
         format: context.format,
         markdown: context.target.markdown,

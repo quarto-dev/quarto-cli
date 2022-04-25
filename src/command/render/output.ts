@@ -115,7 +115,7 @@ export function outputRecipe(
     if (format.render[kKeepYaml]) {
       completeActions.push(() => {
         // read yaml and output markdown
-        const inputMd = partitionYamlFrontMatter(context.target.markdown);
+        const inputMd = partitionYamlFrontMatter(context.target.markdown.value);
         if (inputMd) {
           const outputFile = join(dirname(context.target.input), recipe.output);
           const output = Deno.readTextFileSync(outputFile);

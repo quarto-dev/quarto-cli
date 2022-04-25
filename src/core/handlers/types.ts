@@ -5,7 +5,6 @@ import {
 } from "../../config/constants.ts";
 import { DependencyFile, Format, FormatExtras } from "../../config/types.ts";
 import { PandocIncludes } from "../../execute/types.ts";
-import { ProjectContext } from "../../project/types.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { MappedString } from "../lib/text-types.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
@@ -16,6 +15,7 @@ export type PandocIncludeType =
   | typeof kIncludeInHeader;
 
 export interface LanguageCellHandlerOptions {
+  name: string; // language name
   source: string;
   format: Format;
   markdown: MappedString;
