@@ -34,5 +34,15 @@ catch e
   # @warn "Plots init" exception=(e, catch_backtrace())
 end
 
+# Set run_path if specified
+try
+  run_path = "{4}"
+  if !isempty(run_path)
+    cd(run_path)
+  end
+catch e
+  @warn "Run path init:" exception=(e, catch_backtrace())
+end
+
 # don't return kernel dependencies (b/c Revise should take care of dependencies)
 nothing

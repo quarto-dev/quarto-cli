@@ -84,14 +84,24 @@ function readCodePageCache() {
 }
 
 export function readCodePage() {
-  // Try reading our code page token, if that isn't present,
-  try {
+  const readCache = () => {
     const codepage = readCodePageCache();
     if (codepage) {
       return codepage;
     }
+  };
+
+  try {
+    // Read the cache and return it
+    return readCache();
   } catch {
-    throw new Error("Expected a cached code page for this installation");
+    try {
+      // Retry creating the cache
+      cacheCodePage();
+      return readCache();
+    } catch {
+      // We couldn't read the cache at all, so just give up
+      return undefined;
+    }
   }
-  return undefined;
 }

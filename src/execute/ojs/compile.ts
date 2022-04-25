@@ -70,7 +70,6 @@ import {
   pandocCode,
   pandocDiv,
   pandocFigCaption,
-  pandocFigure,
   pandocRawStr,
 } from "../../core/pandoc/codegen.ts";
 
@@ -188,6 +187,11 @@ export async function ojsCompile(
       mdClassList?: string[],
     ) => {
       const cellSrcStr = cell.source;
+      const bumpOjsCellIdString = () => {
+        ojsCellID += 1;
+        return `ojs-cell-${ojsCellID}`;
+      };
+      const ojsId = bumpOjsCellIdString();
       const userCellId = () => {
         const chooseId = (label: string) => {
           const htmlLabel = asHtmlId(label as string);
@@ -204,24 +208,18 @@ export async function ojsCompile(
           return chooseId(cell.options.label as string);
         } else if (cell.options?.[kCellLstLabel]) {
           return chooseId(cell.options[kCellLstLabel] as string);
+        } else if (
+          cell.options?.[kCellFigCap] || cell.options?.[kCellFigSubCap] ||
+          cell.options?.[kCellLstCap]
+        ) {
+          return chooseId(`fig-${ojsId}`);
         } else {
           return undefined;
         }
       };
-      const bumpOjsCellIdString = () => {
-        ojsCellID += 1;
-        return `ojs-cell-${ojsCellID}`;
-      };
-      const ojsId = bumpOjsCellIdString();
       const userId = userCellId();
       const attrs = [];
 
-      const hasFigureLabel = () => {
-        if (!cell.options?.label) {
-          return false;
-        }
-        return (cell.options.label as string).startsWith("fig-");
-      };
       const hasFigureSubCaptions = () => {
         // FIXME figure out runtime type validation. This should check
         // if fig-subcap is an array of strings.
@@ -509,7 +507,7 @@ export async function ojsCompile(
           ...(parsedCells.map((n) => n.info)),
         );
         for (const spec of specs) {
-          const outputDiv = (hasFigureLabel() ? pandocDiv : pandocFigure)({
+          const outputDiv = pandocDiv({
             classes: outputCellClasses,
           });
           const outputInnerDiv = pandocDiv({
@@ -569,13 +567,7 @@ export async function ojsCompile(
         }
         makeSubFigures(specs);
         if (cell.options?.[kCellFigCap]) {
-          if (hasFigureLabel()) {
-            div.push(pandocRawStr(cell.options[kCellFigCap] as string));
-          } else {
-            const cap = pandocFigCaption();
-            div.push(cap);
-            cap.push(pandocRawStr(cell.options[kCellFigCap] as string));
-          }
+          div.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else if (hasFigureSubCaptions()) {
         let subCap = (cell.options?.[kCellFigSubCap]) as string[] | true;
@@ -640,7 +632,7 @@ export async function ojsCompile(
             div.push(srcDiv);
           }
         }
-        const outputDiv = (hasFigureLabel() ? pandocDiv : pandocFigure)({
+        const outputDiv = pandocDiv({
           id: idPlacement() === "inner" ? userId : undefined,
           classes: outputCellClasses,
         });
@@ -650,13 +642,7 @@ export async function ojsCompile(
           attrs: [`nodetype="${innerInfo[0].cellType}"`],
         }));
         if (cell.options?.[kCellFigCap]) {
-          if (hasFigureLabel()) {
-            outputDiv.push(pandocRawStr(cell.options[kCellFigCap] as string));
-          } else {
-            const cap = pandocFigCaption();
-            outputDiv.push(cap);
-            cap.push(pandocRawStr(cell.options[kCellFigCap] as string));
-          }
+          outputDiv.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       }
 

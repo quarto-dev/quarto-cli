@@ -29,8 +29,9 @@ local kName = 'name'
 local kUrl = 'url'
 local kEmail = 'email'
 local kFax = 'fax'
+local kPhone = 'phone'
 local kOrcid = 'orcid'
-local kNotes = 'notes'
+local kNote = 'note'
 local kAcknowledgements = 'acknowledgements'
 local kAffiliations = 'affiliations'
 local kAffiliation = 'affiliation'
@@ -116,7 +117,7 @@ local kDoiTitle = 'doi-title'
 -- The field types for an author (maps the field in an author table)
 -- to the way the field should be processed
 local kAuthorNameFields = { kName }
-local kSuthorSimpleFields = { kId, kUrl, kEmail, kFax, kOrcid, kNotes, kAcknowledgements }
+local kSuthorSimpleFields = { kId, kUrl, kEmail, kFax, kPhone, kOrcid, kAcknowledgements }
 local kAuthorAttributeFields = { kCorresponding, kEqualContributor }
 local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
@@ -132,6 +133,10 @@ local kAffiliationAliasedFields = {
   [kState]=kRegion,
   [kAffiliationUrl]=kUrl
 }
+
+-- This field will be included with 'by-author' and 'by-affiliation' and provides
+-- a simple incremental counter that can be used for things like note numbers
+local kNumber = "number"
 
 -- Normalizes author metadata from the 'input' field into 
 -- consistently structured metadata in the 'output' field
@@ -198,6 +203,14 @@ function authorsMeta()
       -- validate that every author affiliation has a corresponding 
       -- affiliation defined in the affiliations key
       validateRefs(authors, affiliations)
+
+      -- number the authors and affiliations
+      for i,affil in ipairs(affiliations) do
+        affil[kNumber] = i
+      end
+      for i,auth in ipairs(authors) do
+        auth[kNumber] = i
+      end
 
       -- Write the normalized data back to metadata
       if #authors ~= 0 then
@@ -301,6 +314,8 @@ function processAuthor(value)
       elseif authorKey == kAttributes then
         -- process an explicit attributes key
         processAttributes(author, authorValue)
+      elseif authorKey == kNote then
+        processAuthorNote(author, authorValue)
       elseif tcontains(kAuthorAffiliationFields, authorKey) then
         -- process affiliations that are specified in the author
         authorAffiliations = processAffiliation(author, authorValue)
@@ -433,6 +448,16 @@ function processAttributes(author, attributes)
   end
 end
 
+-- Process an author note (including numbering it)
+local noteNumber = 1
+function processAuthorNote(author, note) 
+  author[kNote] = {
+    number=noteNumber, 
+    text=note
+  }
+  noteNumber = noteNumber + 1
+end
+
 -- Sets a metadata value, initializing the table if
 -- it not yet defined
 function setMetadata(author, key, value) 
@@ -449,9 +474,10 @@ function setAttribute(author, attribute)
     author[kAttributes] = {}
   end
   
+  local attrStr = pandoc.utils.stringify(attribute)
   -- Don't duplicate attributes
-  if not tcontains(author[kAttributes], attribute) then
-    author[kAttributes][#author[kAttributes] + 1] = attribute
+  if not author[kAttributes][attrStr] then
+    author[kAttributes][attrStr] = pandoc.Str('true')
   end
 end
 
@@ -508,8 +534,10 @@ end
 
 function byAuthors(authors, affiliations) 
   local denormalizedAuthors = deepCopy(authors)
+
   if denormalizedAuthors then
     for i, author in ipairs(denormalizedAuthors) do
+      denormalizedAuthors[kNumber] = i
       local authorAffiliations = author[kAffiliations]
       if authorAffiliations then
         for j, affilRef in ipairs(authorAffiliations) do 
@@ -525,7 +553,10 @@ end
 function byAffiliations(authors, affiliations)
   local denormalizedAffiliations = deepCopy(affiliations)
   for i, affiliation in ipairs(denormalizedAffiliations) do
-    affiliation[kAuthors] = findAuthors(affiliation[kId], authors)
+    local affilAuthor = findAuthors(affiliation[kId], authors)
+    if affilAuthor then
+      affiliation[kAuthors] = affilAuthor
+    end
   end
   return denormalizedAffiliations
 end
@@ -545,9 +576,11 @@ function findAuthors(id, authors)
   local matchingAuthors = {}
   for i, author in ipairs(authors) do
     local authorAffils = author[kAffiliations]
-    for j, authorAffil in ipairs(authorAffils) do
-      if authorAffil[kRef][1].text == id[1].text then
-        matchingAuthors[#matchingAuthors + 1] = author
+    if authorAffils then
+      for j, authorAffil in ipairs(authorAffils) do
+        if authorAffil[kRef][1].text == id[1].text then
+          matchingAuthors[#matchingAuthors + 1] = author
+        end
       end
     end
   end

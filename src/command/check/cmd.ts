@@ -16,7 +16,7 @@ export const checkCommand = new Command()
   .name("check")
   .arguments("[target:string]")
   .description(
-    "Check and verify correct functioning of Quarto installation and computation engines.\n" +
+    "Verify correct functioning of Quarto installation.\n\n" +
       "Check specific functionality with argument install, jupyter, knitr, or all.",
   )
   .example("Check Quarto installation", "quarto check install")

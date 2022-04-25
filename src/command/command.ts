@@ -21,12 +21,12 @@ import { buildJsCommand } from "./build-js/cmd.ts";
 export function commands(): Command[] {
   return [
     renderCommand,
+    previewCommand,
     serveCommand,
     createProjectCommand,
-    previewCommand,
     convertCommand,
-    capabilitiesCommand,
     checkCommand,
+    capabilitiesCommand,
     inspectCommand,
     toolsCommand,
     buildJsCommand,

@@ -58,6 +58,9 @@ for module in list(sys.modules.values()):
   kernel_deps[path] = os.stat(path).st_mtime
 print(json.dumps(kernel_deps))
 
+# set run_path if requested
+if '{4}':
+  os.chdir('{4}')
 
 # reset state
 %reset

@@ -271,21 +271,7 @@ $endif$
 $title.tex()$
 
 \begin{document}
-$if(has-frontmatter)$
-\frontmatter
-$endif$
-$if(title)$
-$if(beamer)$
-\frame{\titlepage}
-$else$
-\maketitle
-$endif$
-$if(abstract)$
-\begin{abstract}
-$abstract$
-\end{abstract}
-$endif$
-$endif$
+$frontmatter.tex()$
 
 $pandoc-before-body.tex()$
 $toc.tex()$

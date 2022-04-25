@@ -161,7 +161,7 @@ class ValidationContext {
           return 1;
         };
 
-        const better = (a: number[], b: number[]): number => {
+        const errorComparator = (a: number[], b: number[]): number => {
           for (let i = 0; i < a.length; ++i) {
             if (a[i] < b[i]) {
               return -1;
@@ -187,7 +187,7 @@ class ValidationContext {
             maxQuality = Math.max(maxQuality, errorTypeQuality(result));
           }
           const thisError = [maxQuality, totalSpan];
-          if (better(thisError, bestError)) {
+          if (errorComparator(thisError, bestError) === -1) {
             bestError = thisError;
             bestResults = resultGroup;
           }

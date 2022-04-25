@@ -53,6 +53,7 @@ import {
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
   documentTitleIncludeInHeader,
+  documentTitleMetadata,
   documentTitlePartial,
   documentTitleScssLayer,
   processDocumentTitle,
@@ -144,6 +145,7 @@ export function boostrapExtras(
       ),
     };
 
+  // Gather the title data for this page
   const { partials, templateParams } = documentTitlePartial(
     format,
   );
@@ -158,6 +160,8 @@ export function boostrapExtras(
     includeInHeader.push(titleInclude);
   }
 
+  const titleMetadata = documentTitleMetadata(format);
+
   const scssBundles = resolveBootstrapScss(input, format, sassLayers);
 
   return {
@@ -170,6 +174,7 @@ export function boostrapExtras(
       [kLinkCitations]: true,
       [kTemplatePartials]: partials,
       [kQuartoTemplateParams]: templateParams,
+      ...titleMetadata,
     },
     [kIncludeInHeader]: includeInHeader,
     html: {

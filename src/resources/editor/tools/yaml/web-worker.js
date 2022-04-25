@@ -25355,7 +25355,7 @@ ${heading}`;
             }
             return 1;
           };
-          const better = (a, b) => {
+          const errorComparator = (a, b) => {
             for (let i = 0; i < a.length; ++i) {
               if (a[i] < b[i]) {
                 return -1;
@@ -25376,7 +25376,7 @@ ${heading}`;
               maxQuality = Math.max(maxQuality, errorTypeQuality(result3));
             }
             const thisError = [maxQuality, totalSpan];
-            if (better(thisError, bestError)) {
+            if (errorComparator(thisError, bestError) === -1) {
               bestError = thisError;
               bestResults = resultGroup;
             }

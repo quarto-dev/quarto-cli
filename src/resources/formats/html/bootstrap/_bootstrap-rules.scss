@@ -1115,7 +1115,7 @@ div.hanging-indent {
   padding-left: 1.6em;
 }
 
-.callout.callout-captioned .callout-header {
+.callout.callout-captioned > .callout-header {
   padding-top: 0.2em;
   margin-bottom: -0.2em;
 }
@@ -1221,7 +1221,7 @@ $code-block-border-left-color: $table-border-color !default;
   padding-right: 0.35em;
 }
 
-.callout .no-icon {
+.callout > .callout-header > .callout-icon-container > .no-icon {
   display: none;
 }
 
@@ -1276,7 +1276,7 @@ div.callout.callout {
   border-left-color: $text-muted;
 }
 
-div.callout.callout-style-default .callout-header {
+div.callout.callout-style-default > .callout-header {
   background-color: $text-muted;
 }
 
@@ -1288,7 +1288,7 @@ div.callout.callout-style-default .callout-header {
     );
   }
 
-  div.callout-#{$name}.callout-style-default .callout-header {
+  div.callout-#{$name}.callout-style-default > .callout-header {
     @if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
       background-color: shift-color(quarto-map.get($info, "color"), 70%);
     } @else {
@@ -1544,7 +1544,7 @@ nav[role="doc-toc"].slow > * {
 
   section {
     padding-bottom: 1.5em;
-    *[role="doc-endnote"],
+    *[role="doc-endnotes"],
     > *:not(a) {
       opacity: 0.9;
       word-wrap: break-word;

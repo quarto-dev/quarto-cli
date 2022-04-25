@@ -28,7 +28,7 @@ export const serveCommand = new Command()
     "Hostname to bind to (defaults to 127.0.0.1)",
   )
   .description(
-    "Serve an interactive document.\n\nBy default, the document will be rendered first and then served. " +
+    "Serve a Shiny interactive document.\n\nBy default, the document will be rendered first and then served. " +
       "If you have previously rendered the document, pass --no-render to skip the rendering step.",
   )
   .example(
