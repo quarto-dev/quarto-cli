@@ -411,42 +411,24 @@ async function readContents(
   const inputsWithoutSource = project.files.input.filter((file) =>
     file !== source
   );
-  //   - YAML files in the source directory or a child directory
-  const yamlFiles: string[] = projectYamlFiles(dirname(source));
-  const possibleListingFiles = [
-    ...inputsWithoutSource,
-    ...yamlFiles,
-  ];
 
   const filterListingFiles = (globOrPath: string) => {
     // Convert a bare directory path into a consumer
     // of everything in the directory
     const expanded = expandGlob(source, project, globOrPath);
-    if (isGlob(expanded.glob)) {
-      if (expanded.inputs) {
-        // If this is a glob, expand it
-        return filterPaths(
-          dirname(source),
-          possibleListingFiles,
-          [expanded.glob],
-        );
-      } else {
-        return resolvePathGlobs(
-          dirname(source),
-          [expanded.glob],
-          ["_*", ".*", "**/_*", "**/.*", source],
-        );
-      }
+    if (expanded.inputs) {
+      // If this is a glob, expand it
+      return filterPaths(
+        dirname(source),
+        inputsWithoutSource,
+        [expanded.glob],
+      );
     } else {
-      // This is not a glob, filter to an exact match
-      const fullPath = join(dirname(source), expanded.glob);
-      const matchingFiles = possibleListingFiles.filter((file) => {
-        return file === fullPath;
-      });
-      return {
-        include: matchingFiles,
-        exclude: [],
-      };
+      return resolvePathGlobs(
+        dirname(source),
+        [expanded.glob],
+        ["_*", ".*", "**/_*", "**/.*", source],
+      );
     }
   };
 
@@ -832,6 +814,13 @@ function expandGlob(
     }
   };
 
+  // If the glob resolves to a directory, we will
+  // interpret this as meaning that we should glob _inputs_
+  // from that directory (rather than all files, for example)
+  //
+  // If the glob resolves to a non-directory path
+  // we will treat it as globbing against the file system,
+  // not limiting itself to considering project inputs
   const globOrPathAsPath = getPath();
   try {
     if (Deno.statSync(globOrPathAsPath).isDirectory) {
