@@ -7,7 +7,7 @@
 
 import { existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join } from "path/mod.ts";
-import { kTocLocation } from "../../config/constants.ts";
+import { kDateFormat, kTocLocation } from "../../config/constants.ts";
 import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { Document } from "../../core/deno-dom.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -39,6 +39,22 @@ export function documentTitleScssLayer(format: Format) {
       join("templates", "title-block.scss"),
     );
     return sassLayer(titleBlockScss);
+  }
+}
+
+export function documentTitleMetadata(
+  format: Format,
+) {
+  if (
+    format.metadata[kTitleBlockStyle] !== false &&
+    format.metadata[kTitleBlockStyle] !== "none" &&
+    format.metadata[kDateFormat] === undefined
+  ) {
+    return {
+      [kDateFormat]: "long",
+    };
+  } else {
+    return undefined;
   }
 }
 

@@ -70,6 +70,7 @@ import {
 import { aboutHtmlDependencies } from "./about/website-about.ts";
 import { resolveFormatForGiscus } from "./website-giscus.ts";
 import { RenderFile } from "../../../command/render/types.ts";
+import { formatDate } from "../../../core/date.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -351,9 +352,9 @@ function websiteTemplate(
 ) {
   if (template === kSiteTemplateBlog) {
     const today = new Date();
-    const secondPostDateStr = today.toLocaleDateString();
+    const secondPostDateStr = formatDate(today, "iso");
     today.setDate(today.getDate() - 3);
-    const firstPostDateStr = today.toLocaleDateString();
+    const firstPostDateStr = formatDate(today, "iso");
 
     return {
       configTemplate: join(
