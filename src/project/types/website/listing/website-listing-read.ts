@@ -335,8 +335,12 @@ function hydrateListing(
     [kFieldFilter]: hydratedFields,
     [kFieldRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
-    [kFilterUi]: listing.type !== ListingType.Custom || listing[kFilterUi],
-    [kSortUi]: listing.type !== ListingType.Custom || listing[kSortUi],
+    [kFilterUi]: listing[kFilterUi] !== undefined
+      ? listing[kFilterUi]
+      : listing.type === ListingType.Table,
+    [kSortUi]: listing[kSortUi] !== undefined
+      ? listing[kSortUi]
+      : listing.type === ListingType.Table,
     ...listing,
   });
 

@@ -370,7 +370,7 @@ function websiteTemplate(
           noEngineContent: true,
           title,
           yaml:
-            'listing:\n  contents: posts\n  sort: "date desc"\n  type: default\n  categories: true\npage-layout: full\ntitle-block-banner: true',
+            'listing:\n  contents: posts\n  sort: "date desc"\n  type: default\n  categories: true\n  sort-ui: false\n  filter-ui: false\npage-layout: full\ntitle-block-banner: true',
         },
         {
           name: "index",
