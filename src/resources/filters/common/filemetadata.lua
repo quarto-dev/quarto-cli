@@ -5,6 +5,7 @@
 fileMetadataState = {
   file = nil,
   appendix = false,
+  directory = nil,
 }
 
 
@@ -25,6 +26,14 @@ function parseFileMetadata(el)
       -- flip into appendix mode as appropriate
       if file.bookItemType == "appendix" then
         fileMetadataState.appendix = true
+      end
+
+      -- set and unset file directory for includes
+      if file.directory ~= nil then
+        fileMetadataState.directory = file.directory
+      end
+      if file.clear_directory ~= nil then
+        fileMetadataState.directory = nil
       end
     end
   end

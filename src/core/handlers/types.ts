@@ -26,7 +26,7 @@ export interface LanguageCellHandlerContext {
   options: LanguageCellHandlerOptions;
   addResource: (name: string, contents: string) => void;
   addInclude: (content: string, where: PandocIncludeType) => void;
-  addDependency: (
+  addHtmlDependency: (
     dependencyType: "script" | "stylesheet" | "resource",
     dependency: DependencyFile,
   ) => void;
@@ -48,6 +48,7 @@ export interface LanguageHandler {
   cell: (
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
+    options: Record<string, unknown>,
   ) => MappedString;
 
   comment?: LanguageComment;
@@ -57,6 +58,7 @@ export interface LanguageHandler {
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     content: MappedString,
+    options: Record<string, unknown>,
   ) => MappedString;
 
   type: "cell" | "component" | "any";

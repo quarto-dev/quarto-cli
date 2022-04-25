@@ -1,48 +1,58 @@
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
-import {
-  isJavascriptCompatible,
-  isMarkdownOutput,
-} from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
 
-import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
-
 import { dirname, join } from "path/mod.ts";
+import { encodeMetadata } from "../encode-metadata.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
 
   languageName: "include",
 
+  defaultOptions: {
+    fixup: true,
+  },
+
   type: "component",
   stage: "pre-engine",
 
   cell(
     handlerContext: LanguageCellHandlerContext,
-    cell: QuartoMdCell,
+    _cell: QuartoMdCell,
+    options: Record<string, unknown>,
   ) {
-    const fileName = cell.options?.["file"];
+    const fileName = options?.["file"];
     if (fileName === undefined) {
-      return cell.sourceVerbatim;
+      throw new Error("Include directive needs attribute `file`");
     }
 
+    const sourceDir = dirname(handlerContext.options.source);
+    const includeName = join(sourceDir, fileName as string);
+
     const includeSrc = asMappedString(
-      Deno.readTextFileSync(
-        join(dirname(handlerContext.options.source), fileName as string),
-      ),
+      Deno.readTextFileSync(includeName),
       fileName as string,
     );
 
-    // FIXME WORK THIS OUT
-    const includeDirMetadata = asMappedString("");
-    const currentDirMetadata = asMappedString("");
+    const includeDirMetadata = encodeMetadata({
+      directory: dirname(includeName),
+    });
+    const currentDirMetadata = encodeMetadata({
+      clear_directory: true,
+    });
 
-    if (cell?.options?.fixup) {
-      return mappedConcat([includeDirMetadata, includeSrc, currentDirMetadata]);
+    if (options?.fixup) {
+      return mappedConcat([
+        "\n",
+        includeDirMetadata,
+        includeSrc,
+        includeSrc.value.endsWith("\n") ? "\n" : "\n\n",
+        currentDirMetadata,
+      ]);
     } else {
-      return includeSrc;
+      return mappedConcat(["\n", includeSrc, "\n"]);
     }
   },
 };

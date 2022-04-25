@@ -41,7 +41,7 @@ const mermaidHandler: LanguageHandler = {
     handlerContext: LanguageCellHandlerContext,
   ) {
     if (isJavascriptCompatible(handlerContext.options.format)) {
-      handlerContext.addDependency(
+      handlerContext.addHtmlDependency(
         "script",
         {
           name: "mermaid.min.js",
@@ -69,6 +69,7 @@ const mermaidHandler: LanguageHandler = {
   cell(
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
+    options: Record<string, unknown>,
   ) {
     if (isJavascriptCompatible(handlerContext.options.format)) {
       const preEl = pandocHtmlBlock("pre")({
@@ -76,7 +77,7 @@ const mermaidHandler: LanguageHandler = {
       });
       preEl.push(pandocRawStr(cell.source));
 
-      return this.build(handlerContext, cell, preEl.mappedString());
+      return this.build(handlerContext, cell, preEl.mappedString(), options);
     } else if (
       isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
     ) {
@@ -84,6 +85,7 @@ const mermaidHandler: LanguageHandler = {
         handlerContext,
         cell,
         mappedConcat(["\n``` mermaid\n", cell.source, "\n```\n"]),
+        options,
       );
     } else {
       return cell.source;

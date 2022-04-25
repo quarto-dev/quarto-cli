@@ -84,7 +84,7 @@ function makeHandlerContext(
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
     options,
-    addDependency(
+    addHtmlDependency(
       dependencyType: "script" | "stylesheet" | "resource",
       dependency: DependencyFile,
       dependencyName?: string,
@@ -345,7 +345,14 @@ export const baseHandler: LanguageHandler = {
     cells: QuartoMdCell[],
   ): MappedString[] {
     this.documentStart(handlerContext);
-    const result = cells.map((cell) => this.cell(handlerContext, cell));
+    const result = cells.map((cell) => {
+      return this.cell(
+        handlerContext,
+        cell,
+        // FIXME this should get the project+document options as well.
+        mergeConfigs(this.defaultOptions ?? {}, cell.options ?? {}),
+      );
+    });
     this.documentEnd(handlerContext);
     return result;
   },
@@ -365,6 +372,7 @@ export const baseHandler: LanguageHandler = {
   cell(
     _handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
+    _options: Record<string, unknown>,
   ): MappedString {
     return cell.sourceVerbatim;
   },
@@ -384,10 +392,8 @@ export const baseHandler: LanguageHandler = {
     _handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     content: MappedString,
+    options: Record<string, unknown>,
   ): MappedString {
-    // FIXME this should get the project+document options as well.
-    const options = mergeConfigs(this.defaultOptions ?? {}, cell.options ?? {});
-
     // split content into front matter vs input
     const contentLines = mappedLines(cell.source, true);
     const frontMatterLines: MappedString[] = [];

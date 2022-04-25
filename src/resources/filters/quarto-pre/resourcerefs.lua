@@ -5,7 +5,10 @@ function resourceRefs()
   return {
     Image = function(el)
       local file = currentFileMetadataState().file
-      if file ~= nil then
+      if file ~= nil and file.directory ~= nil then 
+        el.src = resourceRef(el.src, file.directory)
+      end
+      if file ~= nil and file.resourceDir ~= nil then
         el.src = resourceRef(el.src, file.resourceDir)
       end
       return el
@@ -16,18 +19,29 @@ function resourceRefs()
   }
 end
 
+function handlePaths(el, path)
+  el.text = handleHtmlRefs(el.text, path, "img", "src")
+  el.text = handleHtmlRefs(el.text, path, "img", "data-src")
+  el.text = handleHtmlRefs(el.text, path, "link", "href")
+  el.text = handleHtmlRefs(el.text, path, "script", "src")
+  el.text = handleHtmlRefs(el.text, path, "source", "src")
+  el.text = handleHtmlRefs(el.text, path, "embed", "src")
+  el.text = handleCssRefs(el.text, path, "@import%s+")
+  el.text = handleCssRefs(el.text, path, "url%(")
+
+  print("Processed!")
+  print(el.text)
+end
+
 function handleRawElement(el)
   if isRawHtml(el) then
     local file = currentFileMetadataState().file
-    if file ~= nil then
-      el.text = handleHtmlRefs(el.text, file.resourceDir, "img", "src")
-      el.text = handleHtmlRefs(el.text, file.resourceDir, "img", "data-src")
-      el.text = handleHtmlRefs(el.text, file.resourceDir, "link", "href")
-      el.text = handleHtmlRefs(el.text, file.resourceDir, "script", "src")
-      el.text = handleHtmlRefs(el.text, file.resourceDir, "source", "src")
-      el.text = handleHtmlRefs(el.text, file.resourceDir, "embed", "src")
-      el.text = handleCssRefs(el.text, file.resourceDir, "@import%s+")
-      el.text = handleCssRefs(el.text, file.resourceDir, "url%(")
+    if file ~= nil and file.directory ~= nil then
+      handlePaths(el, file.directory)
+      return el
+    end
+    if file ~= nil and file.resourceDir ~= nil then
+      handlePaths(el, file.resourceDir)
       return el
     end
   end
