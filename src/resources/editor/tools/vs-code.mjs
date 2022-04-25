@@ -12435,7 +12435,9 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
-          schema: "string",
+          schema: {
+            maybeArrayOf: "string"
+          },
           description: "Content to include at the end of the document header."
         },
         {
@@ -12445,7 +12447,9 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
-          schema: "string",
+          schema: {
+            maybeArrayOf: "string"
+          },
           description: "Content to include at the beginning of the document body (e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command in LaTeX)."
         },
         {
@@ -12455,7 +12459,9 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
-          schema: "string",
+          schema: {
+            maybeArrayOf: "string"
+          },
           description: "Content to include at the end of the document body (before the `</body>` tag in HTML, or the `\\end{document}` command in LaTeX)."
         },
         {
