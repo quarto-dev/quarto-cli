@@ -70,7 +70,6 @@ import {
   pandocCode,
   pandocDiv,
   pandocFigCaption,
-  pandocFigure,
   pandocRawStr,
 } from "../../core/pandoc/codegen.ts";
 
