@@ -15,11 +15,11 @@ import { asMappedString, EitherString, mappedString } from "./mapped-text.ts";
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
 import {
-  ComponentCell,
+  DirectiveCell,
   QuartoMdCell,
   QuartoMdChunks,
 } from "./break-quarto-md-types.ts";
-import { isComponentTag } from "./parse-component-tag.ts";
+import { isDirectiveTag } from "./parse-directive-tag.ts";
 
 export type { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
 
@@ -62,8 +62,8 @@ export async function breakQuartoMd(
       | "code"
       | "raw"
       | "math"
-      | "empty_component"
-      | "component",
+      | "empty_directive"
+      | "directive",
     index: number,
   ) => {
     if (lineBuffer.length) {
@@ -85,10 +85,10 @@ export async function breakQuartoMd(
         if (cell_type === "code") {
           return { language };
         } else if (
-          cell_type === "component" || cell_type === "empty_component"
+          cell_type === "directive" || cell_type === "empty_directive"
         ) {
           return {
-            language: "_component",
+            language: "_directive",
             tag: tagName[tagName.length - 1],
             attrs: tagOptions[tagOptions.length - 1]!,
             sourceOpenTag: mappedString(src, [
@@ -147,11 +147,11 @@ export async function breakQuartoMd(
         ]);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
-      } else if (cell_type === "empty_component" || cell_type === "component") {
-        // components only carry tag source in sourceVerbatim, analogously to code
+      } else if (cell_type === "empty_directive" || cell_type === "directive") {
+        // directives only carry tag source in sourceVerbatim, analogously to code
         cell.source = mappedString(src, mappedChunks.slice(1, -1));
-        // components carry options in cell_type, use that
-        cell.options = (cell.cell_type as ComponentCell).attrs;
+        // directives carry options in cell_type, use that
+        cell.options = (cell.cell_type as DirectiveCell).attrs;
       }
       // if the source is empty then don't add it
       if (
@@ -198,7 +198,7 @@ export async function breakQuartoMd(
 
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    const componentMatch = isComponentTag(line.substring);
+    const directiveMatch = isDirectiveTag(line.substring);
     // yaml front matter
     if (
       yamlRegEx.test(line.substring) && !inCodeCell && !inCode &&
@@ -213,37 +213,37 @@ export async function breakQuartoMd(
         lineBuffer.push(line);
         inYaml = true;
       }
-    } // found empty component
+    } // found empty directive
     else if (
-      inPlainText() && componentMatch &&
-      componentMatch.which === "emptyComponent"
+      inPlainText() && directiveMatch &&
+      directiveMatch.which === "emptyDirective"
     ) {
       await flushLineBuffer("markdown", i);
-      pushStacks(componentMatch.attributes, componentMatch.name, line);
+      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
       lineBuffer.push(line);
-      await flushLineBuffer("empty_component", i);
+      await flushLineBuffer("empty_directive", i);
       popStacks();
-    } // found component start
+    } // found directive start
     else if (
-      inPlainText() && componentMatch &&
-      componentMatch.which == "startComponent"
+      inPlainText() && directiveMatch &&
+      directiveMatch.which == "startDirective"
     ) {
       await flushLineBuffer("markdown", i);
-      pushStacks(componentMatch.attributes, componentMatch.name, line);
+      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
       lineBuffer.push(line);
-    } // found inner component start
+    } // found inner directive start
     else if (
-      tagName.length > 0 && componentMatch &&
-      componentMatch.which === "startComponent"
+      tagName.length > 0 && directiveMatch &&
+      directiveMatch.which === "startDirective"
     ) {
-      pushStacks(componentMatch.attributes, componentMatch.name, line);
+      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
       lineBuffer.push(line);
-    } // found inner component end
+    } // found inner directive end
     else if (
-      tagName.length > 0 && componentMatch &&
-      componentMatch.which === "endComponent"
+      tagName.length > 0 && directiveMatch &&
+      directiveMatch.which === "endDirective"
     ) {
-      const closeTagName = componentMatch.name as string;
+      const closeTagName = directiveMatch.name as string;
       if (
         tagName[tagName.length - 1].toLocaleLowerCase() !==
           closeTagName.toLocaleLowerCase()
@@ -252,7 +252,7 @@ export async function breakQuartoMd(
       }
       lineBuffer.push(line);
       if (tagName.length === 1) {
-        await flushLineBuffer("component", i);
+        await flushLineBuffer("directive", i);
       }
       popStacks();
     } // begin code cell: ^```python

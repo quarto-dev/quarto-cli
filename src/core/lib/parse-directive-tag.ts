@@ -1,7 +1,7 @@
 /*
-* parse-component-tag.ts
+* parse-directive-tag.ts
 *
-* Recognizes and parses component opening, closing and self-closing tags.
+* Recognizes and parses directive opening, closing and self-closing tags.
 *
 * Copyright (C) 2022 by RStudio, PBC
 *
@@ -164,24 +164,24 @@ const htmlTagNames = new Set([
   "xmp",
 ]);
 
-export function isComponentTag(str: string) {
-  const startComponent = new RegExp(
+export function isDirectiveTag(str: string) {
+  const startDirective = new RegExp(
     `^\\s*<(${name})((?:\\s+${attribute})*)\\s*>\\s*$`,
     "u",
   );
-  const emptyComponent = new RegExp(
+  const emptyDirective = new RegExp(
     `^\\s*<(${name})((?:\\s+${attribute})*)\\s*/>\\s*$`,
     "u",
   );
-  const endComponent = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
+  const endDirective = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
 
   const matchers = [
-    { component: startComponent, which: "startComponent" },
-    { component: endComponent, which: "endComponent" },
-    { component: emptyComponent, which: "emptyComponent" },
+    { directive: startDirective, which: "startDirective" },
+    { directive: endDirective, which: "endDirective" },
+    { directive: emptyDirective, which: "emptyDirective" },
   ];
-  for (const { component, which } of matchers) {
-    const matches = str.match(component);
+  for (const { directive, which } of matchers) {
+    const matches = str.match(directive);
     if (matches) {
       if (htmlTagNames.has(matches[1])) {
         return false;

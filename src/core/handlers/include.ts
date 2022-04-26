@@ -11,14 +11,14 @@ import {
 import { dirname, join, normalize, relative } from "path/mod.ts";
 import { encodeMetadata } from "../encode-metadata.ts";
 import { rangedLines } from "../lib/ranged-text.ts";
-import { isComponentTag } from "../lib/parse-component-tag.ts";
+import { isDirectiveTag } from "../lib/parse-directive-tag.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
 
   languageName: "include",
 
-  type: "component",
+  type: "directive",
   stage: "pre-engine",
 
   cell(
@@ -89,9 +89,9 @@ const includeHandler: LanguageHandler = {
 
       let rangeStart = 0;
       for (const { substring, range } of rangedLines(includeSrc.value)) {
-        const m = isComponentTag(substring);
+        const m = isDirectiveTag(substring);
         if (
-          m && m.which === "emptyComponent" &&
+          m && m.which === "emptyDirective" &&
           m.name.toLocaleLowerCase() === "include"
         ) {
           textFragments.push(

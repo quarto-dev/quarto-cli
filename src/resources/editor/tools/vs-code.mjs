@@ -26976,7 +26976,7 @@ var kLangCommentChars = {
   ojs: "//"
 };
 
-// ../parse-component-tag.ts
+// ../parse-directive-tag.ts
 var nameStartChar = `[:A-Z_a-z\xC0-\xD6\xD8-\xF6\xF8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u{10000}-\u{EFFFF}]`;
 var nameChar = `(?:${nameStartChar}|[-.0-9\xB7\u0300-\u036F\u203F-\u2040])`;
 var name = `(?:${nameStartChar}${nameChar}*)`;
@@ -27122,17 +27122,17 @@ var htmlTagNames = new Set([
   "wbr",
   "xmp"
 ]);
-function isComponentTag(str2) {
-  const startComponent = new RegExp(`^\\s*<(${name})((?:\\s+${attribute})*)\\s*>\\s*$`, "u");
-  const emptyComponent = new RegExp(`^\\s*<(${name})((?:\\s+${attribute})*)\\s*/>\\s*$`, "u");
-  const endComponent = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
+function isDirectiveTag(str2) {
+  const startDirective = new RegExp(`^\\s*<(${name})((?:\\s+${attribute})*)\\s*>\\s*$`, "u");
+  const emptyDirective = new RegExp(`^\\s*<(${name})((?:\\s+${attribute})*)\\s*/>\\s*$`, "u");
+  const endDirective = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
   const matchers = [
-    { component: startComponent, which: "startComponent" },
-    { component: endComponent, which: "endComponent" },
-    { component: emptyComponent, which: "emptyComponent" }
+    { directive: startDirective, which: "startDirective" },
+    { directive: endDirective, which: "endDirective" },
+    { directive: emptyDirective, which: "emptyDirective" }
   ];
-  for (const { component, which } of matchers) {
-    const matches = str2.match(component);
+  for (const { directive, which } of matchers) {
+    const matches = str2.match(directive);
     if (matches) {
       if (htmlTagNames.has(matches[1])) {
         return false;
@@ -27231,9 +27231,9 @@ async function breakQuartoMd(src, validate2 = false) {
       const makeCellType = () => {
         if (cell_type === "code") {
           return { language };
-        } else if (cell_type === "component" || cell_type === "empty_component") {
+        } else if (cell_type === "directive" || cell_type === "empty_directive") {
           return {
-            language: "_component",
+            language: "_directive",
             tag: tagName[tagName.length - 1],
             attrs: tagOptions[tagOptions.length - 1],
             sourceOpenTag: mappedString(src, [
@@ -27277,7 +27277,7 @@ async function breakQuartoMd(src, validate2 = false) {
         ]);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
-      } else if (cell_type === "empty_component" || cell_type === "component") {
+      } else if (cell_type === "empty_directive" || cell_type === "directive") {
         cell.source = mappedString(src, mappedChunks.slice(1, -1));
         cell.options = cell.cell_type.attrs;
       }
@@ -27303,7 +27303,7 @@ async function breakQuartoMd(src, validate2 = false) {
   const srcLines = rangedLines(src.value, true);
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    const componentMatch = isComponentTag(line.substring);
+    const directiveMatch = isDirectiveTag(line.substring);
     if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock && tagName.length === 0) {
       if (inYaml) {
         lineBuffer.push(line);
@@ -27314,26 +27314,26 @@ async function breakQuartoMd(src, validate2 = false) {
         lineBuffer.push(line);
         inYaml = true;
       }
-    } else if (inPlainText() && componentMatch && componentMatch.which === "emptyComponent") {
+    } else if (inPlainText() && directiveMatch && directiveMatch.which === "emptyDirective") {
       await flushLineBuffer("markdown", i);
-      pushStacks(componentMatch.attributes, componentMatch.name, line);
+      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
       lineBuffer.push(line);
-      await flushLineBuffer("empty_component", i);
+      await flushLineBuffer("empty_directive", i);
       popStacks();
-    } else if (inPlainText() && componentMatch && componentMatch.which == "startComponent") {
+    } else if (inPlainText() && directiveMatch && directiveMatch.which == "startDirective") {
       await flushLineBuffer("markdown", i);
-      pushStacks(componentMatch.attributes, componentMatch.name, line);
+      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
       lineBuffer.push(line);
-    } else if (tagName.length > 0 && componentMatch && componentMatch.which === "startComponent") {
-      pushStacks(componentMatch.attributes, componentMatch.name, line);
+    } else if (tagName.length > 0 && directiveMatch && directiveMatch.which === "startDirective") {
+      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
       lineBuffer.push(line);
-    } else if (tagName.length > 0 && componentMatch && componentMatch.which === "endComponent") {
-      const closeTagName = componentMatch.name;
+    } else if (tagName.length > 0 && directiveMatch && directiveMatch.which === "endDirective") {
+      const closeTagName = directiveMatch.name;
       if (tagName[tagName.length - 1].toLocaleLowerCase() !== closeTagName.toLocaleLowerCase()) {
       }
       lineBuffer.push(line);
       if (tagName.length === 1) {
-        await flushLineBuffer("component", i);
+        await flushLineBuffer("directive", i);
       }
       popStacks();
     } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {

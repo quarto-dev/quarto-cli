@@ -61,7 +61,7 @@ export interface LanguageHandler {
     options: Record<string, unknown>,
   ) => MappedString;
 
-  type: "cell" | "component" | "any";
+  type: "cell" | "directive" | "any";
   stage: "pre-engine" | "post-engine" | "any";
 
   languageName: string;

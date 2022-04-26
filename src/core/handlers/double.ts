@@ -7,20 +7,13 @@
 
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
-import { kIncludeAfterBody } from "../../config/constants.ts";
-import { formatResourcePath } from "../resources.ts";
-import { join } from "path/mod.ts";
-import {
-  isJavascriptCompatible,
-  isMarkdownOutput,
-} from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat } from "../lib/mapped-text.ts";
 
 const doubleHandler: LanguageHandler = {
   ...baseHandler,
 
-  type: "component",
+  type: "directive",
   stage: "post-engine",
 
   languageName: "double",

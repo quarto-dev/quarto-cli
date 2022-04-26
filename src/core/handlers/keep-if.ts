@@ -20,7 +20,7 @@ import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
 const keepIfHandler: LanguageHandler = {
   ...baseHandler,
 
-  type: "component",
+  type: "directive",
   stage: "post-engine",
 
   languageName: "keep-if",

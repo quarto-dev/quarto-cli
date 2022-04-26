@@ -13,12 +13,12 @@ export interface CodeCellType {
   language: string;
 }
 
-export interface ComponentCell {
-  language: "_component";
+export interface DirectiveCell {
+  language: "_directive";
   tag: string;
   attrs: Record<string, string>;
 
-  // we need to carry components' individual tag information for
+  // we need to carry directives' individual tag information for
   // later reconstruction.
   sourceOpenTag: MappedString;
   sourceCloseTag: MappedString;
@@ -28,7 +28,7 @@ export interface QuartoMdCell {
   id?: string;
 
   // deno-lint-ignore camelcase
-  cell_type: CodeCellType | ComponentCell | "markdown" | "raw" | "math";
+  cell_type: CodeCellType | DirectiveCell | "markdown" | "raw" | "math";
   options?: Record<string, unknown>;
 
   source: MappedString;

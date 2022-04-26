@@ -6,12 +6,10 @@ import {
   PandocIncludeType,
 } from "./types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { PandocIncludes } from "../../execute/types.ts";
 import { mergeConfigs } from "../config.ts";
 import {
   DependencyFile,
   FormatDependency,
-  FormatExtras,
   kDependencies,
 } from "../../config/types.ts";
 import {
@@ -61,7 +59,7 @@ import {
   kOutput,
   kTblCapLoc,
 } from "../../config/constants.ts";
-import { ComponentCell } from "../lib/break-quarto-md-types.ts";
+import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
@@ -186,7 +184,7 @@ export async function handleLanguageCells(
       continue;
     }
     const language = cell.cell_type.language;
-    if (language !== "_component" && handlers[language] === undefined) {
+    if (language !== "_directive" && handlers[language] === undefined) {
       continue;
     }
     if (
@@ -207,19 +205,19 @@ export async function handleLanguageCells(
   let results: HandlerContextResults | undefined = undefined;
 
   for (const [language, cells] of Object.entries(languageCellsPerLanguage)) {
-    if (language === "_component") {
-      // if this is a component, the semantics are that each the _contents_ of the cell
+    if (language === "_directive") {
+      // if this is a directive, the semantics are that each the _contents_ of the cell
       // are first treated as if they were an entire markdown document that will be fully
       // parsed/handled etc. The _resulting_ markdown is then sent for handling by the
-      // component handler
+      // directive handler
       for (const cell of cells) {
         const localCellHandlerOptions = {
           ...options,
           markdown: cell.source.source,
         };
 
-        const componentCellType = cell.source.cell_type as ComponentCell;
-        const innerLanguage = componentCellType.tag;
+        const directiveCellType = cell.source.cell_type as DirectiveCell;
+        const innerLanguage = directiveCellType.tag;
         const innerLanguageHandler = handlers[innerLanguage]!;
 
         if (
@@ -227,14 +225,14 @@ export async function handleLanguageCells(
           (innerLanguageHandler.stage !== "any" &&
             innerLanguageHandler.stage !== options.stage)
         ) { // we're in the wrong stage, so we don't actually do anything
-          if (componentCellType.sourceOpenTag.value.trim().endsWith("/>")) { // empty component, it's a single line
-            newCells[cell.index] = componentCellType.sourceOpenTag;
+          if (directiveCellType.sourceOpenTag.value.trim().endsWith("/>")) { // empty directive, it's a single line
+            newCells[cell.index] = directiveCellType.sourceOpenTag;
           } else {
             newCells[cell.index] = mappedConcat(
               [
-                componentCellType.sourceOpenTag,
+                directiveCellType.sourceOpenTag,
                 localCellHandlerOptions.markdown,
-                componentCellType.sourceCloseTag,
+                directiveCellType.sourceCloseTag,
               ],
             );
             continue;
@@ -249,7 +247,7 @@ export async function handleLanguageCells(
           localCellHandlerOptions,
         );
 
-        // set results of component recursion
+        // set results of directive recursion
         results = mergeConfigs(results, localResults);
 
         if (
@@ -259,18 +257,18 @@ export async function handleLanguageCells(
           // if no handler is present, just create a div tag
           // tag and return.
           const missingTagStartTag = mappedReplace(
-            componentCellType.sourceOpenTag,
-            new RegExp(`<${componentCellType.tag}`),
-            `<div quarto-component="${componentCellType.tag}"`,
+            directiveCellType.sourceOpenTag,
+            new RegExp(`<${directiveCellType.tag}`),
+            `<div quarto-directive="${directiveCellType.tag}"`,
           );
-          if (componentCellType.sourceOpenTag.value.trim().endsWith("/>")) {
+          if (directiveCellType.sourceOpenTag.value.trim().endsWith("/>")) {
             newCells[cell.index] = missingTagStartTag;
           } else {
             newCells[cell.index] = mappedConcat(
               [
                 missingTagStartTag,
                 localMarkdown,
-                componentCellType.sourceCloseTag,
+                directiveCellType.sourceCloseTag,
               ],
             );
           }
@@ -304,7 +302,7 @@ export async function handleLanguageCells(
       const languageHandler = handlers[language];
       if (
         languageHandler !== undefined &&
-        languageHandler.type !== "component"
+        languageHandler.type !== "directive"
       ) {
         const transformedCells = languageHandler.document(
           handler.context,
