@@ -17,7 +17,11 @@ end
 function fixIncludePath(ref, dir)
   -- if it's a relative ref then prepend the resource dir
   if isRelativeRef(ref) then
-    return dir .. "/" .. ref
+    if dir ~= "." then
+      return dir .. "/" .. ref
+    else
+      return ref
+    end
   else
   -- otherwise just return it
     return ref
