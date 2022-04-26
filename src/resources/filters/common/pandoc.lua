@@ -55,6 +55,31 @@ function isEpubOutput()
   return tcontains(formats, FORMAT)
 end
 
+-- check for markdown output
+function isMarkdownOutput()
+  local formats = {
+    "markdown",
+    "markdown_github",
+    "markdown_mmd", 
+    "markdown_phpextra",
+    "markdown_strict",
+    "gfm",
+    "commonmark",
+    "markua"
+  }
+  return tcontains(formats, FORMAT)
+end
+
+-- check for markdown with raw_html enabled
+function isMarkdownWithHtmlOutput()
+  return isMarkdownOutput() and tcontains(PANDOC_WRITER_OPTIONS.extensions, "raw_html")
+end
+
+-- check for ipynb output
+function isIpynbOutput()
+  return FORMAT == "ipynb"
+end
+
 -- check for html output
 function isHtmlOutput()
   local formats = {
