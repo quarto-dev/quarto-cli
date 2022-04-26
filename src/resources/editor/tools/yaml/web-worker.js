@@ -18645,7 +18645,6 @@ try {
           }
         ],
         "handlers/languages.yml": [
-          "double",
           "keep-if",
           "include",
           "mermaid"

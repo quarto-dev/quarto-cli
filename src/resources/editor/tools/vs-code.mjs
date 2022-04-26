@@ -18644,7 +18644,6 @@ var require_yaml_intelligence_resources = __commonJS({
         }
       ],
       "handlers/languages.yml": [
-        "double",
         "keep-if",
         "include",
         "mermaid"
