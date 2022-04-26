@@ -1,10 +1,17 @@
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
+import {
+  asMappedString,
+  EitherString,
+  mappedConcat,
+  mappedString,
+} from "../lib/mapped-text.ts";
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, normalize } from "path/mod.ts";
 import { encodeMetadata } from "../encode-metadata.ts";
+import { rangedLines } from "../lib/ranged-text.ts";
+import { isComponentTag } from "../lib/parse-component-tag.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -23,6 +30,88 @@ const includeHandler: LanguageHandler = {
     _cell: QuartoMdCell,
     options: Record<string, unknown>,
   ) {
+    const retrievedFiles: string[] = [];
+    const retrievedDirectories: string[] = [];
+    const fixups: boolean[] = [];
+
+    const textFragments: EitherString[] = [];
+
+    const retrieveInclude = (filename: string, fixup: boolean) => {
+      const norm = normalize(filename);
+      if (retrievedFiles.indexOf(norm) !== -1) {
+        throw new Error(
+          `Include directive found circular include of file ${norm}.`,
+        );
+      }
+      retrievedFiles.push(norm);
+      retrievedDirectories.push(dirname(norm));
+      fixups.push(fixup);
+      const includeSrc = asMappedString(
+        Deno.readTextFileSync(filename),
+        filename,
+      );
+      if (fixup) {
+        textFragments.push(encodeMetadata({
+          include_directory: dirname(norm),
+        }));
+      } else {
+        textFragments.push(encodeMetadata({
+          clear_include_directory: true,
+        }));
+      }
+
+      let rangeStart = 0;
+      for (const { substring, range } of rangedLines(includeSrc.value)) {
+        const m = isComponentTag(substring);
+        if (
+          m && m.which === "emptyComponent" &&
+          m.name.toLocaleLowerCase() === "include"
+        ) {
+          textFragments.push(
+            mappedString(includeSrc, [{ start: rangeStart, end: range.start }]),
+          );
+          rangeStart = range.end;
+          if (typeof m.attributes.file !== "string") {
+            throw new Error("Include directive needs attribute `file`");
+          }
+          const fixup = (m.attributes.fixup === undefined) ||
+            ((m.attributes.fixup as string).toLocaleLowerCase() !== "false");
+          retrieveInclude(
+            join(
+              retrievedDirectories[retrievedDirectories.length - 1],
+              m.attributes.file,
+            ),
+            fixup,
+          );
+        }
+      }
+      if (rangeStart !== includeSrc.value.length) {
+        textFragments.push(
+          mappedString(includeSrc, [{
+            start: rangeStart,
+            end: includeSrc.value.length,
+          }]),
+        );
+      }
+      textFragments.push(includeSrc.value.endsWith("\n") ? "\n" : "\n\n");
+
+      retrievedFiles.pop();
+      retrievedDirectories.pop();
+      fixups.pop();
+
+      if (fixups.length === 0 || fixups[fixups.length - 1] === false) {
+        textFragments.push(encodeMetadata({
+          clear_include_directory: true,
+        }));
+      } else {
+        // assert(retrievedDirectories.length > 0 && fixups[fixups.length - 1] === true)
+        textFragments.push(encodeMetadata({
+          include_directory:
+            retrievedDirectories[retrievedDirectories.length - 1],
+        }));
+      }
+    };
+
     const fileName = options?.["file"];
     if (fileName === undefined) {
       throw new Error("Include directive needs attribute `file`");
@@ -31,29 +120,13 @@ const includeHandler: LanguageHandler = {
     const sourceDir = dirname(handlerContext.options.source);
     const includeName = join(sourceDir, fileName as string);
 
-    const includeSrc = asMappedString(
-      Deno.readTextFileSync(includeName),
-      fileName as string,
-    );
+    const fixup = (options?.fixup === true) ||
+      ((typeof options.fixup === "string") &&
+        options.fixup.toLocaleLowerCase() !== "false");
 
-    const includeDirMetadata = encodeMetadata({
-      directory: dirname(includeName),
-    });
-    const currentDirMetadata = encodeMetadata({
-      clear_directory: true,
-    });
+    retrieveInclude(includeName, fixup);
 
-    if (options?.fixup) {
-      return mappedConcat([
-        "\n",
-        includeDirMetadata,
-        includeSrc,
-        includeSrc.value.endsWith("\n") ? "\n" : "\n\n",
-        currentDirMetadata,
-      ]);
-    } else {
-      return mappedConcat(["\n", includeSrc, "\n"]);
-    }
+    return mappedConcat(textFragments);
   },
 };
 

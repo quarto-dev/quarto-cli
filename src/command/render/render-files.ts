@@ -323,35 +323,6 @@ export async function renderFiles(
         // get output recipe
         const recipe = await outputRecipe(context);
 
-        let startingMarkdown: MappedString;
-        let preEngineHandlerResults: HandlerContextResults | undefined =
-          undefined;
-
-        if (!isJupyterNotebook(context.target.source)) {
-          // this is not a jupyter notebook input,
-          // so we can run pre-engine handlers
-
-          const preEngineCellHandlerOptions: LanguageCellHandlerOptions = {
-            name: "", // will be filled out by handleLanguageCells internally
-            temp: tempContext,
-            format: context.format,
-            markdown: context.target.markdown,
-            source: context.target.source,
-            stage: "pre-engine",
-          };
-
-          const { markdown, results } = await handleLanguageCells(
-            preEngineCellHandlerOptions,
-          );
-
-          startingMarkdown = markdown;
-          context.target.markdown = markdown;
-
-          if (results) {
-            preEngineHandlerResults = results;
-          }
-        }
-
         // determine execute options
         const executeOptions = mergeConfigs(
           {
@@ -387,7 +358,7 @@ export async function renderFiles(
 
         if (!isJupyterNotebook(context.target.source)) {
           mappedMarkdown = mappedDiff(
-            startingMarkdown!,
+            context.target.markdown,
             baseExecuteResult.markdown,
           );
         } else {
@@ -418,7 +389,7 @@ export async function renderFiles(
         };
 
         mergeHandlerResults(
-          preEngineHandlerResults,
+          context.target.preEngineExecuteResults,
           mappedExecuteResult,
           context,
         );
