@@ -12,16 +12,11 @@ import { dirname, join, normalize, relative } from "path/mod.ts";
 import { encodeMetadata } from "../encode-metadata.ts";
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isComponentTag } from "../lib/parse-component-tag.ts";
-import { error } from "log/mod.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
 
   languageName: "include",
-
-  defaultOptions: {
-    fixup: true,
-  },
 
   type: "component",
   stage: "pre-engine",
@@ -34,11 +29,20 @@ const includeHandler: LanguageHandler = {
     const sourceDir = dirname(handlerContext.options.source);
     const retrievedFiles: string[] = [handlerContext.options.source];
     const retrievedDirectories: string[] = [sourceDir];
-    const fixups: boolean[] = [];
+    const fixups: (boolean | undefined)[] = [];
 
     const textFragments: EitherString[] = [];
 
-    const retrieveInclude = (filename: string, fixup: boolean) => {
+    const needsFixup = () => {
+      for (let i = fixups.length - 1; i >= 0; --i) {
+        if (fixups[i] !== undefined) {
+          return fixups[i];
+        }
+      }
+      return true;
+    };
+
+    const retrieveInclude = (filename: string, fixup: boolean | undefined) => {
       const norm = relative(
         join(...retrievedDirectories),
         normalize(filename),
@@ -59,7 +63,6 @@ const includeHandler: LanguageHandler = {
         const errMsg: string[] = [`Include directive failed.`];
         errMsg.push(...retrievedFiles.map((s) => `  in file ${s}, `));
         errMsg.push(`  could not find file ${norm}.`);
-        //error(errMsg.join("\n"))
         throw new Error(errMsg.join("\n"));
       }
 
@@ -67,7 +70,7 @@ const includeHandler: LanguageHandler = {
       retrievedDirectories.push(dirname(norm));
       fixups.push(fixup);
 
-      if (fixup) {
+      if (needsFixup()) {
         textFragments.push(encodeMetadata({
           include_directory: dirname(norm),
         }));
@@ -133,9 +136,10 @@ const includeHandler: LanguageHandler = {
 
     const includeName = join(sourceDir, fileName as string);
 
-    const fixup = (options?.fixup === true) ||
-      ((typeof options.fixup === "string") &&
-        options.fixup.toLocaleLowerCase() !== "false");
+    const fixup = options.fixup === undefined
+      ? undefined
+      : ((typeof options.fixup === "string") &&
+        (options.fixup.toLocaleLowerCase() !== "false"));
 
     retrieveInclude(includeName, fixup);
 
