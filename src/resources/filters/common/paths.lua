@@ -12,8 +12,18 @@ function resourceRef(ref, dir)
   -- otherwise just return it
     return ref
   end
-
 end
+
+function fixIncludePath(ref, dir)
+  -- if it's a relative ref then prepend the resource dir
+  if isRelativeRef(ref) then
+    return dir .. "/" .. ref
+  else
+  -- otherwise just return it
+    return ref
+  end
+end
+
 
 function isRelativeRef(ref)
   return ref:find("^/") == nil and 
@@ -22,26 +32,26 @@ function isRelativeRef(ref)
          ref:find("^#") == nil
 end
 
-function handlePaths(el, path)
-  el.text = handleHtmlRefs(el.text, path, "img", "src")
-  el.text = handleHtmlRefs(el.text, path, "img", "data-src")
-  el.text = handleHtmlRefs(el.text, path, "link", "href")
-  el.text = handleHtmlRefs(el.text, path, "script", "src")
-  el.text = handleHtmlRefs(el.text, path, "source", "src")
-  el.text = handleHtmlRefs(el.text, path, "embed", "src")
-  el.text = handleCssRefs(el.text, path, "@import%s+")
-  el.text = handleCssRefs(el.text, path, "url%(")
+function handlePaths(el, path, replacer)
+  el.text = handleHtmlRefs(el.text, path, "img", "src", replacer)
+  el.text = handleHtmlRefs(el.text, path, "img", "data-src", replacer)
+  el.text = handleHtmlRefs(el.text, path, "link", "href", replacer)
+  el.text = handleHtmlRefs(el.text, path, "script", "src", replacer)
+  el.text = handleHtmlRefs(el.text, path, "source", "src", replacer)
+  el.text = handleHtmlRefs(el.text, path, "embed", "src", replacer)
+  el.text = handleCssRefs(el.text, path, "@import%s+", replacer)
+  el.text = handleCssRefs(el.text, path, "url%(", replacer)
 end
 
 
-function handleHtmlRefs(text, resourceDir, tag, attrib)
+function handleHtmlRefs(text, resourceDir, tag, attrib, replacer)
   return text:gsub("(<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*)\"([^\"]+)\"", function(preface, value)
-    return preface .. "\"" .. resourceRef(value, resourceDir) .. "\""
+    return preface .. "\"" .. replacer(value, resourceDir) .. "\""
   end)
 end
 
-function handleCssRefs(text, resourceDir, prefix)
+function handleCssRefs(text, resourceDir, prefix, replacer)
   return text:gsub("(" .. prefix .. ")\"([^\"]+)\"", function(preface, value)
-    return preface .. "\"" .. resourceRef(value, resourceDir) .. "\""
+    return preface .. "\"" .. replacer(value, resourceDir) .. "\""
   end) 
 end

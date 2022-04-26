@@ -9,7 +9,6 @@ function includePaths()
     Link = function(el)
       local file = currentFileMetadataState().file
       if file ~= nil and file.include_directory ~= nil then
-        print(el.target, file.include_directory)
         el.target = resourceRef(el.target, file.include_directory)
       end
       return el
@@ -33,7 +32,7 @@ function handleRawElementIncludePath(el)
   if isRawHtml(el) then
     local file = currentFileMetadataState().file
     if file ~= nil and file.include_directory ~= nil then
-      handlePaths(el, file.include_directory)
+      handlePaths(el, file.include_directory, fixIncludePath)
     end
     return el
   end

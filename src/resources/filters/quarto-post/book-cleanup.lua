@@ -10,7 +10,10 @@ function bookCleanup()
       Div = cleanupBookPart
     }
   else
-    return {}
+    return {
+      RawInline = cleanupFileMetadata,
+      RawBlock = cleanupFileMetadata,
+    }
   end
 end
 
