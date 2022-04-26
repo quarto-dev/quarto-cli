@@ -24,6 +24,8 @@ function currentFile()
     local fileState = currentFileMetadataState()
     if fileState ~= nil and fileState.file ~= nil and fileState.file.bookItemFile ~= nil then
       return fileState.file.bookItemFile
+    elseif fileState ~= nil and fileState.include_directory ~= nil then
+      return fileState.include_directory
     else
       return nil
     end
