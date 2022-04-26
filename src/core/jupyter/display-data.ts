@@ -105,7 +105,7 @@ export function displayDataHasHtmlTable(output: JupyterOutputDisplayData) {
   if (html) {
     const htmlLower = html.map((line) => line.toLowerCase());
     return htmlLower.some((line) => !!line.match(/<[Tt][Aa][Bb][Ll][Ee]/)) &&
-      htmlLower.some((line) => !!line.match(/\/<[Tt][Aa][Bb][Ll][Ee]/));
+      htmlLower.some((line) => !!line.match(/<\/[Tt][Aa][Bb][Ll][Ee]/));
   } else {
     return false;
   }
