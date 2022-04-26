@@ -42,14 +42,30 @@ const includeHandler: LanguageHandler = {
       return true;
     };
 
+    const addFixup = (filename: string) => {
+      if (fixups.length > 0 && needsFixup()) {
+        let includeDir = relative(sourceDir, dirname(filename));
+        if (includeDir === "") {
+          includeDir = ".";
+        }
+        textFragments.push(encodeMetadata({
+          include_directory: includeDir,
+        }));
+      } else {
+        textFragments.push(encodeMetadata({
+          clear_include_directory: true,
+        }));
+      }
+    };
+
     const retrieveInclude = (filename: string, fixup: boolean | undefined) => {
       const norm = relative(
         join(...retrievedDirectories),
         normalize(filename),
       );
-      if (retrievedFiles.indexOf(norm) !== -1) {
+      if (retrievedFiles.indexOf(filename) !== -1) {
         throw new Error(
-          `Include directive found circular include of file ${norm}.`,
+          `Include directive found circular include of file ${filename}.`,
         );
       }
 
@@ -66,19 +82,10 @@ const includeHandler: LanguageHandler = {
         throw new Error(errMsg.join("\n"));
       }
 
-      retrievedFiles.push(norm);
+      retrievedFiles.push(filename);
       retrievedDirectories.push(dirname(norm));
       fixups.push(fixup);
-
-      if (needsFixup()) {
-        textFragments.push(encodeMetadata({
-          include_directory: dirname(norm),
-        }));
-      } else {
-        textFragments.push(encodeMetadata({
-          clear_include_directory: true,
-        }));
-      }
+      addFixup(filename);
 
       let rangeStart = 0;
       for (const { substring, range } of rangedLines(includeSrc.value)) {
@@ -94,8 +101,9 @@ const includeHandler: LanguageHandler = {
           if (typeof m.attributes.file !== "string") {
             throw new Error("Include directive needs attribute `file`");
           }
-          const fixup = (m.attributes.fixup === undefined) ||
-            ((m.attributes.fixup as string).toLocaleLowerCase() !== "false");
+          const fixup = m.attributes.fixup === undefined
+            ? undefined
+            : ((m.attributes.fixup as string).toLocaleLowerCase() !== "false");
           retrieveInclude(
             join(...[...retrievedDirectories, m.attributes.file]),
             fixup,
@@ -115,18 +123,7 @@ const includeHandler: LanguageHandler = {
       retrievedFiles.pop();
       retrievedDirectories.pop();
       fixups.pop();
-
-      if (fixups.length === 0 || fixups[fixups.length - 1] === false) {
-        textFragments.push(encodeMetadata({
-          clear_include_directory: true,
-        }));
-      } else {
-        // assert(retrievedDirectories.length > 0 && fixups[fixups.length - 1] === true)
-        textFragments.push(encodeMetadata({
-          include_directory:
-            retrievedDirectories[retrievedDirectories.length - 1],
-        }));
-      }
+      addFixup(filename);
     };
 
     const fileName = options?.["file"];
