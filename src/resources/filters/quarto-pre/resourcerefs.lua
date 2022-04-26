@@ -20,7 +20,7 @@ function handleRawElementResourceRef(el)
   if isRawHtml(el) then
     local file = currentFileMetadataState().file
     if file ~= nil and file.resourceDir ~= nil then
-      handlePaths(el, file.resourceDir)
+      handlePaths(el, file.resourceDir, resourceRef)
       return el
     end
   end

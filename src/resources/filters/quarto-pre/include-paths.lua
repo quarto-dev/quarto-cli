@@ -9,7 +9,7 @@ function includePaths()
     Link = function(el)
       local file = currentFileMetadataState().file
       if file ~= nil and file.include_directory ~= nil then
-        el.target = resourceRef(el.target, file.include_directory)
+        el.target = fixIncludePath(el.target, file.include_directory)
       end
       return el
     end,
@@ -17,7 +17,7 @@ function includePaths()
     Image = function(el)
       local file = currentFileMetadataState().file
       if file ~= nil and file.include_directory ~= nil then 
-        el.src = resourceRef(el.src, file.include_directory)
+        el.src = fixIncludePath(el.src, file.include_directory)
       end
       return el
     end,
