@@ -27360,12 +27360,13 @@ ${heading}`;
         if (inCodeCell) {
           codeEndRange = line;
           inCodeCell = false;
+          inCode = 0;
           await flushLineBuffer("code", i);
         } else {
           inCode = 0;
           lineBuffer.push(line);
         }
-      } else if (startCodeRegEx.test(line.substring)) {
+      } else if (startCodeRegEx.test(line.substring) && inCode === 0) {
         inCode = tickCount(line.substring);
         lineBuffer.push(line);
       } else if (delimitMathBlockRegEx.test(line.substring)) {

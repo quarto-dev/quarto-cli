@@ -75,11 +75,7 @@ function makeHandlerContext(
   const results: HandlerContextResults = {
     resourceFiles: [],
     includes: {},
-    extras: {
-      html: {
-        [kDependencies]: [],
-      },
-    },
+    extras: {},
   };
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
@@ -97,9 +93,6 @@ function makeHandlerContext(
       const dep: FormatDependency = {
         name: dependencyName,
         version: dependencyVersion,
-        scripts: [],
-        stylesheets: [],
-        resources: [],
       };
       switch (dependencyType) {
         case "script":
@@ -111,6 +104,11 @@ function makeHandlerContext(
         case "resource":
           dep.resources = [dependency];
           break;
+      }
+      if (results.extras.html === undefined) {
+        results.extras.html = { [kDependencies]: [dep] };
+      } else {
+        results.extras.html[kDependencies]!.push(dep);
       }
     },
     addResource(fileName: string) {
