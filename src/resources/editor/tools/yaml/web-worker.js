@@ -26990,7 +26990,7 @@ ${heading}`;
     ojs: "//"
   };
 
-  // ../break-quarto-md.ts
+  // ../parse-component-tag.ts
   var nameStartChar = `[:A-Z_a-z\xC0-\xD6\xD8-\xF6\xF8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u{10000}-\u{EFFFF}]`;
   var nameChar = `(?:${nameStartChar}|[-.0-9\xB7\u0300-\u036F\u203F-\u2040])`;
   var name = `(?:${nameStartChar}${nameChar}*)`;
@@ -27136,19 +27136,91 @@ ${heading}`;
     "wbr",
     "xmp"
   ]);
+  function isComponentTag(str2) {
+    const startComponent = new RegExp(`^\\s*<(${name})((?:\\s+${attribute})*)\\s*>\\s*$`, "u");
+    const emptyComponent = new RegExp(`^\\s*<(${name})((?:\\s+${attribute})*)\\s*/>\\s*$`, "u");
+    const endComponent = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
+    const matchers = [
+      { component: startComponent, which: "startComponent" },
+      { component: endComponent, which: "endComponent" },
+      { component: emptyComponent, which: "emptyComponent" }
+    ];
+    for (const { component, which } of matchers) {
+      const matches = str2.match(component);
+      if (matches) {
+        if (htmlTagNames.has(matches[1])) {
+          return false;
+        }
+        const name2 = matches[1];
+        const attributes = matches[2].length > 0 ? parseAttributes(matches[2]) : {};
+        return {
+          which,
+          name: name2,
+          attributes
+        };
+      }
+    }
+    return false;
+  }
+  var htmlUnescapes = {
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"'
+  };
+  function unescapeEntities(str2) {
+    return str2.replace(new RegExp(reference, "u"), function(match) {
+      if (match.startsWith("&#x")) {
+        return String.fromCharCode(Number(match.slice(3, -1)));
+      } else if (match.startsWith("&#")) {
+        return String.fromCharCode(parseInt(match.slice(2, -1), 16));
+      } else {
+        if (htmlUnescapes[match] !== void 0) {
+          return htmlUnescapes[match];
+        } else {
+          return match;
+        }
+      }
+    });
+  }
+  function parseAttributes(attrString) {
+    const result = {};
+    attrString = attrString.trim();
+    while (attrString.indexOf("=") !== -1) {
+      const l = attrString.split("=")[0];
+      const attrName = l.trim();
+      const rest = attrString.slice(l.length + 1);
+      let attrValue2;
+      if (rest.startsWith('"')) {
+        const end = rest.slice(1).indexOf('"') + 1;
+        attrValue2 = rest.slice(1, end);
+        attrString = rest.slice(end + 1);
+      } else if (rest.startsWith("'")) {
+        const end = rest.slice(1).indexOf("'") + 1;
+        attrValue2 = rest.slice(1, end);
+        attrString = rest.slice(end + 1);
+      } else {
+        const end = rest.indexOf(" ");
+        if (end === -1) {
+          attrValue2 = rest;
+          attrString = "";
+        } else {
+          attrValue2 = rest.slice(0, end);
+          attrString = rest.slice(end + 1);
+        }
+      }
+      result[attrName] = unescapeEntities(attrValue2);
+    }
+    return result;
+  }
+
+  // ../break-quarto-md.ts
   async function breakQuartoMd(src, validate2 = false) {
     if (typeof src === "string") {
       src = asMappedString(src);
     }
     const nb = {
       cells: []
-    };
-    const startComponent = new RegExp(`^\\s*<(${name})(\\s+${attribute})*\\s*>\\s*$`, "u");
-    const emptyComponent = new RegExp(`^\\s*<(${name})(\\s+${attribute})*\\s*/>\\s*$`, "u");
-    const endComponent = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
-    const isHtmlTag = (str2) => {
-      const someMatch = str2.match(startComponent) || str2.match(emptyComponent) || str2.match(endComponent);
-      return htmlTagNames.has(someMatch[1]);
     };
     const yamlRegEx = /^---\s*$/;
     const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
@@ -27245,6 +27317,7 @@ ${heading}`;
     const srcLines = rangedLines(src.value, true);
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
+      const componentMatch = isComponentTag(line.substring);
       if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock && tagName.length === 0) {
         if (inYaml) {
           lineBuffer.push(line);
@@ -27255,25 +27328,21 @@ ${heading}`;
           lineBuffer.push(line);
           inYaml = true;
         }
-      } else if (inPlainText() && emptyComponent.test(line.substring) && !isHtmlTag(line.substring)) {
+      } else if (inPlainText() && componentMatch && componentMatch.which === "emptyComponent") {
         await flushLineBuffer("markdown", i);
-        const m = line.substring.match(emptyComponent);
-        pushStacks(m[2] ? parseAttributes(m[2]) : {}, m[1], line);
+        pushStacks(componentMatch.attributes, componentMatch.name, line);
         lineBuffer.push(line);
         await flushLineBuffer("empty_component", i);
         popStacks();
-      } else if (inPlainText() && startComponent.test(line.substring) && !isHtmlTag(line.substring)) {
+      } else if (inPlainText() && componentMatch && componentMatch.which == "startComponent") {
         await flushLineBuffer("markdown", i);
-        const m = line.substring.match(startComponent);
-        pushStacks(m[2] ? parseAttributes(m[2]) : {}, m[1], line);
+        pushStacks(componentMatch.attributes, componentMatch.name, line);
         lineBuffer.push(line);
-      } else if (tagName.length > 0 && startComponent.test(line.substring) && !isHtmlTag(line.substring)) {
-        const m = line.substring.match(startComponent);
-        pushStacks(m[2] ? parseAttributes(m[2]) : {}, m[1], line);
+      } else if (tagName.length > 0 && componentMatch && componentMatch.which === "startComponent") {
+        pushStacks(componentMatch.attributes, componentMatch.name, line);
         lineBuffer.push(line);
-      } else if (tagName.length > 0 && endComponent.test(line.substring) && !isHtmlTag(line.substring)) {
-        const m = line.substring.match(endComponent);
-        const closeTagName = m[1];
+      } else if (tagName.length > 0 && componentMatch && componentMatch.which === "endComponent") {
+        const closeTagName = componentMatch.name;
         if (tagName[tagName.length - 1].toLocaleLowerCase() !== closeTagName.toLocaleLowerCase()) {
         }
         lineBuffer.push(line);
@@ -27335,57 +27404,6 @@ ${heading}`;
       lines2 = lines2.slice(0, lastNonEmpty + 1);
     }
     return lines2;
-  }
-  var htmlUnescapes = {
-    "&amp;": "&",
-    "&lt;": "<",
-    "&gt;": ">",
-    "&quot;": '"'
-  };
-  function unescapeEntities(str2) {
-    return str2.replace(new RegExp(reference, "u"), function(match) {
-      if (match.startsWith("&#x")) {
-        return String.fromCharCode(Number(match.slice(3, -1)));
-      } else if (match.startsWith("&#")) {
-        return String.fromCharCode(parseInt(match.slice(2, -1), 16));
-      } else {
-        if (htmlUnescapes[match] !== void 0) {
-          return htmlUnescapes[match];
-        } else {
-          return match;
-        }
-      }
-    });
-  }
-  function parseAttributes(attrString) {
-    const result = {};
-    attrString = attrString.trim();
-    while (attrString.indexOf("=") !== -1) {
-      const l = attrString.split("=")[0];
-      const attrName = l.trim();
-      const rest = attrString.slice(l.length + 1);
-      let attrValue2;
-      if (rest.startsWith('"')) {
-        const end = rest.slice(1).indexOf('"') + 1;
-        attrValue2 = rest.slice(1, end);
-        attrString = rest.slice(end + 1);
-      } else if (rest.startsWith("'")) {
-        const end = rest.slice(1).indexOf("'") + 1;
-        attrValue2 = rest.slice(1, end);
-        attrString = rest.slice(end + 1);
-      } else {
-        const end = rest.indexOf(" ");
-        if (end === -1) {
-          attrValue2 = rest;
-          attrString = "";
-        } else {
-          attrValue2 = rest.slice(0, end);
-          attrString = rest.slice(end + 1);
-        }
-      }
-      result[attrName] = unescapeEntities(attrValue2);
-    }
-    return result;
   }
 
   // ../yaml-schema/format-aliases.ts
