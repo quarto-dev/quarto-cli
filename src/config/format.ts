@@ -119,7 +119,16 @@ export function isIpynbOutput(format: FormatPandoc) {
 
 export function isMarkdownOutput(
   format: FormatPandoc,
-  flavors = ["markdown", "gfm", "commonmark"],
+  flavors = [
+    "markdown",
+    "markdown_github",
+    "markdown_mmd",
+    "markdown_phpextra",
+    "markdown_strict",
+    "gfm",
+    "commonmark",
+    "markua",
+  ],
 ) {
   const to = (format.to || "").replace(/[\+\-_].*$/, "");
   return flavors.includes(to) || isIpynbOutput(format);
