@@ -61,7 +61,7 @@ export interface FormatDescriptor {
   formatWithVariants: string;
 }
 
-const extensionRegex = /\[(\S*)\]$/;
+const extensionRegex = /\{(\S*)\}$/;
 
 // Format strings are of the form:
 // baseName+<variants | modifiers>-<variants>[<extension>]
