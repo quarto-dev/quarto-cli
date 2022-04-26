@@ -79,6 +79,14 @@ export function displayDataMimeType(
       kTextHtml,
     );
   }
+
+  // if there is an html table then add html (as we can read this directly
+  // into the pandoc AST in our lua filters)
+  if (displayDataHasHtmlTable(output) && !displayPriority.includes(kTextHtml)) {
+    displayPriority.push(kTextHtml);
+  }
+
+  // always add text/plain
   displayPriority.push(
     kTextPlain,
   );
@@ -90,6 +98,17 @@ export function displayDataMimeType(
     }
   }
   return null;
+}
+
+export function displayDataHasHtmlTable(output: JupyterOutputDisplayData) {
+  const html = output.data[kTextHtml] as string[] || undefined;
+  if (html) {
+    const htmlLower = html.map((line) => line.toLowerCase());
+    return htmlLower.some((line) => !!line.match(/<[Tt][Aa][Bb][Ll][Ee]/)) &&
+      htmlLower.some((line) => !!line.match(/\/<[Tt][Aa][Bb][Ll][Ee]/));
+  } else {
+    return false;
+  }
 }
 
 export function displayDataIsImage(mimeType: string) {
