@@ -40,7 +40,7 @@ const includeHandler: LanguageHandler = {
 
     const retrieveInclude = (filename: string, fixup: boolean) => {
       const norm = relative(
-        retrievedDirectories[retrievedDirectories.length - 1],
+        join(...retrievedDirectories),
         normalize(filename),
       );
       if (retrievedFiles.indexOf(norm) !== -1) {
