@@ -55,6 +55,7 @@ import("shortcodes.lua")
 import("shortcodes-handlers.lua")
 import("outputs.lua")
 import("figures.lua")
+import("table-rawhtml.lua")
 import("table-captions.lua")
 import("table-colwidth.lua")
 import("theorems.lua")
@@ -81,6 +82,7 @@ return {
   readIncludes(),
   initOptions(),
   shortCodes(),  
+  tableRawhtml(),
   tableColwidthCell(),
   tableColwidth(),
   hidden(),
