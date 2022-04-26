@@ -12,6 +12,7 @@ import { dirname, join, normalize, relative } from "path/mod.ts";
 import { encodeMetadata } from "../encode-metadata.ts";
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isComponentTag } from "../lib/parse-component-tag.ts";
+import { error } from "log/mod.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -31,26 +32,41 @@ const includeHandler: LanguageHandler = {
     options: Record<string, unknown>,
   ) {
     const sourceDir = dirname(handlerContext.options.source);
-    const retrievedFiles: string[] = [];
-    const retrievedDirectories: string[] = [];
+    const retrievedFiles: string[] = [handlerContext.options.source];
+    const retrievedDirectories: string[] = [sourceDir];
     const fixups: boolean[] = [];
 
     const textFragments: EitherString[] = [];
 
     const retrieveInclude = (filename: string, fixup: boolean) => {
-      const norm = relative(sourceDir, normalize(filename));
+      const norm = relative(
+        retrievedDirectories[retrievedDirectories.length - 1],
+        normalize(filename),
+      );
       if (retrievedFiles.indexOf(norm) !== -1) {
         throw new Error(
           `Include directive found circular include of file ${norm}.`,
         );
       }
+
+      let includeSrc;
+      try {
+        includeSrc = asMappedString(
+          Deno.readTextFileSync(filename),
+          filename,
+        );
+      } catch (_e) {
+        const errMsg: string[] = [`Include directive failed.`];
+        errMsg.push(...retrievedFiles.map((s) => `  in file ${s}, `));
+        errMsg.push(`  could not find file ${norm}.`);
+        //error(errMsg.join("\n"))
+        throw new Error(errMsg.join("\n"));
+      }
+
       retrievedFiles.push(norm);
       retrievedDirectories.push(dirname(norm));
       fixups.push(fixup);
-      const includeSrc = asMappedString(
-        Deno.readTextFileSync(filename),
-        filename,
-      );
+
       if (fixup) {
         textFragments.push(encodeMetadata({
           include_directory: dirname(norm),
@@ -78,10 +94,7 @@ const includeHandler: LanguageHandler = {
           const fixup = (m.attributes.fixup === undefined) ||
             ((m.attributes.fixup as string).toLocaleLowerCase() !== "false");
           retrieveInclude(
-            join(
-              retrievedDirectories[retrievedDirectories.length - 1],
-              m.attributes.file,
-            ),
+            join(...[...retrievedDirectories, m.attributes.file]),
             fixup,
           );
         }
