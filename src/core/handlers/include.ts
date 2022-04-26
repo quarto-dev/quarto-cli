@@ -8,7 +8,7 @@ import {
   mappedString,
 } from "../lib/mapped-text.ts";
 
-import { dirname, join, normalize } from "path/mod.ts";
+import { dirname, join, normalize, relative } from "path/mod.ts";
 import { encodeMetadata } from "../encode-metadata.ts";
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isComponentTag } from "../lib/parse-component-tag.ts";
@@ -30,6 +30,7 @@ const includeHandler: LanguageHandler = {
     _cell: QuartoMdCell,
     options: Record<string, unknown>,
   ) {
+    const sourceDir = dirname(handlerContext.options.source);
     const retrievedFiles: string[] = [];
     const retrievedDirectories: string[] = [];
     const fixups: boolean[] = [];
@@ -37,7 +38,7 @@ const includeHandler: LanguageHandler = {
     const textFragments: EitherString[] = [];
 
     const retrieveInclude = (filename: string, fixup: boolean) => {
-      const norm = normalize(filename);
+      const norm = relative(sourceDir, normalize(filename));
       if (retrievedFiles.indexOf(norm) !== -1) {
         throw new Error(
           `Include directive found circular include of file ${norm}.`,
@@ -117,7 +118,6 @@ const includeHandler: LanguageHandler = {
       throw new Error("Include directive needs attribute `file`");
     }
 
-    const sourceDir = dirname(handlerContext.options.source);
     const includeName = join(sourceDir, fileName as string);
 
     const fixup = (options?.fixup === true) ||
