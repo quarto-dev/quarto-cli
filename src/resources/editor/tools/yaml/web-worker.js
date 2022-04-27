@@ -18645,7 +18645,6 @@ try {
           }
         ],
         "handlers/languages.yml": [
-          "keep-if",
           "include",
           "mermaid"
         ],
@@ -27136,28 +27135,18 @@ ${heading}`;
     "xmp"
   ]);
   function isDirectiveTag(str2) {
-    const startDirective = new RegExp(`^\\s*<(${name})((?:\\s+${attribute})*)\\s*>\\s*$`, "u");
     const emptyDirective = new RegExp(`^\\s*<(${name})((?:\\s+${attribute})*)\\s*/>\\s*$`, "u");
-    const endDirective = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
-    const matchers = [
-      { directive: startDirective, which: "startDirective" },
-      { directive: endDirective, which: "endDirective" },
-      { directive: emptyDirective, which: "emptyDirective" }
-    ];
-    for (const { directive, which } of matchers) {
-      const matches = str2.match(directive);
-      if (matches) {
-        if (htmlTagNames.has(matches[1])) {
-          return false;
-        }
-        const name2 = matches[1];
-        const attributes = matches[2].length > 0 ? parseAttributes(matches[2]) : {};
-        return {
-          which,
-          name: name2,
-          attributes
-        };
+    const matches = str2.match(emptyDirective);
+    if (matches) {
+      if (htmlTagNames.has(matches[1])) {
+        return false;
       }
+      const name2 = matches[1];
+      const attributes = matches[2].length > 0 ? parseAttributes(matches[2]) : {};
+      return {
+        name: name2,
+        attributes
+      };
     }
     return false;
   }
@@ -27227,9 +27216,8 @@ ${heading}`;
     const endCodeRegEx = /^```+\s*$/;
     const delimitMathBlockRegEx = /^\$\$/;
     let language = "";
-    const openTags = [];
-    const tagName = [];
-    const tagOptions = [];
+    let tagName = "";
+    let tagOptions = {};
     let cellStartLine = 0;
     let codeStartRange;
     let codeEndRange;
@@ -27244,17 +27232,11 @@ ${heading}`;
         const makeCellType = () => {
           if (cell_type === "code") {
             return { language };
-          } else if (cell_type === "directive" || cell_type === "empty_directive") {
+          } else if (cell_type === "directive") {
             return {
               language: "_directive",
-              tag: tagName[tagName.length - 1],
-              attrs: tagOptions[tagOptions.length - 1],
-              sourceOpenTag: mappedString(src, [
-                openTags[openTags.length - 1].range
-              ]),
-              sourceCloseTag: mappedString(src, [
-                lineBuffer[lineBuffer.length - 1].range
-              ])
+              tag: tagName,
+              attrs: tagOptions
             };
           } else {
             return cell_type;
@@ -27290,7 +27272,7 @@ ${heading}`;
           ]);
           cell.options = yaml;
           cell.sourceStartLine = sourceStartLine;
-        } else if (cell_type === "empty_directive" || cell_type === "directive") {
+        } else if (cell_type === "directive") {
           cell.source = mappedString(src, mappedChunks.slice(1, -1));
           cell.options = cell.cell_type.attrs;
         }
@@ -27300,19 +27282,9 @@ ${heading}`;
         lineBuffer.splice(0, lineBuffer.length);
       }
     };
-    const pushStacks = (tagOption, tagNameVal, openTag) => {
-      tagOptions.push(tagOption);
-      tagName.push(tagNameVal);
-      openTags.push(openTag);
-    };
-    const popStacks = () => {
-      tagOptions.pop();
-      openTags.pop();
-      tagName.pop();
-    };
     const tickCount = (s) => Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
     let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = 0;
-    const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml && tagName.length === 0;
+    const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml;
     const srcLines = rangedLines(src.value, true);
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
@@ -27327,28 +27299,12 @@ ${heading}`;
           lineBuffer.push(line);
           inYaml = true;
         }
-      } else if (inPlainText() && directiveMatch && directiveMatch.which === "emptyDirective") {
+      } else if (inPlainText() && directiveMatch) {
         await flushLineBuffer("markdown", i);
-        pushStacks(directiveMatch.attributes, directiveMatch.name, line);
+        tagName = directiveMatch.name;
+        tagOptions = directiveMatch.attributes;
         lineBuffer.push(line);
-        await flushLineBuffer("empty_directive", i);
-        popStacks();
-      } else if (inPlainText() && directiveMatch && directiveMatch.which == "startDirective") {
-        await flushLineBuffer("markdown", i);
-        pushStacks(directiveMatch.attributes, directiveMatch.name, line);
-        lineBuffer.push(line);
-      } else if (tagName.length > 0 && directiveMatch && directiveMatch.which === "startDirective") {
-        pushStacks(directiveMatch.attributes, directiveMatch.name, line);
-        lineBuffer.push(line);
-      } else if (tagName.length > 0 && directiveMatch && directiveMatch.which === "endDirective") {
-        const closeTagName = directiveMatch.name;
-        if (tagName[tagName.length - 1].toLocaleLowerCase() !== closeTagName.toLocaleLowerCase()) {
-        }
-        lineBuffer.push(line);
-        if (tagName.length === 1) {
-          await flushLineBuffer("directive", i);
-        }
-        popStacks();
+        await flushLineBuffer("directive", i);
       } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
         const m = line.substring.match(startCodeCellRegEx);
         language = m[1];

@@ -51,6 +51,11 @@ export interface LanguageHandler {
     options: Record<string, unknown>,
   ) => MappedString;
 
+  directive?: (
+    handlerContext: LanguageCellHandlerContext,
+    options: Record<string, string>,
+  ) => MappedString;
+
   comment?: LanguageComment;
   defaultOptions?: Record<string, unknown>;
   schema?: () => Promise<ConcreteSchema>;

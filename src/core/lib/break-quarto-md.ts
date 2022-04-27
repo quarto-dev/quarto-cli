@@ -46,9 +46,8 @@ export async function breakQuartoMd(
   const delimitMathBlockRegEx = /^\$\$/;
 
   let language = ""; // current language block
-  const openTags: RangedSubstring[] = [];
-  const tagName: string[] = [];
-  const tagOptions: Record<string, string>[] = []; // tag options needs to be a stack to remember the options as we close the tag
+  let tagName = "";
+  let tagOptions: Record<string, string> = {}; // tag options needs to be a stack to remember the options as we close the tag
   let cellStartLine = 0;
 
   // line buffer
@@ -62,7 +61,6 @@ export async function breakQuartoMd(
       | "code"
       | "raw"
       | "math"
-      | "empty_directive"
       | "directive",
     index: number,
   ) => {
@@ -85,18 +83,12 @@ export async function breakQuartoMd(
         if (cell_type === "code") {
           return { language };
         } else if (
-          cell_type === "directive" || cell_type === "empty_directive"
+          cell_type === "directive"
         ) {
           return {
             language: "_directive",
-            tag: tagName[tagName.length - 1],
-            attrs: tagOptions[tagOptions.length - 1]!,
-            sourceOpenTag: mappedString(src, [
-              openTags[openTags.length - 1].range,
-            ]),
-            sourceCloseTag: mappedString(src, [
-              lineBuffer[lineBuffer.length - 1].range,
-            ]),
+            tag: tagName,
+            attrs: tagOptions,
           };
         } else {
           return cell_type;
@@ -147,7 +139,7 @@ export async function breakQuartoMd(
         ]);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
-      } else if (cell_type === "empty_directive" || cell_type === "directive") {
+      } else if (cell_type === "directive") {
         // directives only carry tag source in sourceVerbatim, analogously to code
         cell.source = mappedString(src, mappedChunks.slice(1, -1));
         // directives carry options in cell_type, use that
@@ -165,22 +157,6 @@ export async function breakQuartoMd(
     }
   };
 
-  const pushStacks = (
-    tagOption: Record<string, string>,
-    tagNameVal: string,
-    openTag: RangedSubstring,
-  ) => {
-    tagOptions.push(tagOption);
-    tagName.push(tagNameVal);
-    openTags.push(openTag);
-  };
-
-  const popStacks = () => {
-    tagOptions.pop();
-    openTags.pop();
-    tagName.pop();
-  };
-
   const tickCount = (s: string): number =>
     Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
 
@@ -190,9 +166,7 @@ export async function breakQuartoMd(
     inCodeCell = false,
     inCode = 0; // inCode stores the tick count of the code block
 
-  const inPlainText = () =>
-    !inCodeCell && !inCode && !inMathBlock && !inYaml &&
-    tagName.length === 0;
+  const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml;
 
   const srcLines = rangedLines(src.value, true);
 
@@ -214,47 +188,12 @@ export async function breakQuartoMd(
         inYaml = true;
       }
     } // found empty directive
-    else if (
-      inPlainText() && directiveMatch &&
-      directiveMatch.which === "emptyDirective"
-    ) {
+    else if (inPlainText() && directiveMatch) {
       await flushLineBuffer("markdown", i);
-      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
+      tagName = directiveMatch.name;
+      tagOptions = directiveMatch.attributes;
       lineBuffer.push(line);
-      await flushLineBuffer("empty_directive", i);
-      popStacks();
-    } // found directive start
-    else if (
-      inPlainText() && directiveMatch &&
-      directiveMatch.which == "startDirective"
-    ) {
-      await flushLineBuffer("markdown", i);
-      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
-      lineBuffer.push(line);
-    } // found inner directive start
-    else if (
-      tagName.length > 0 && directiveMatch &&
-      directiveMatch.which === "startDirective"
-    ) {
-      pushStacks(directiveMatch.attributes, directiveMatch.name, line);
-      lineBuffer.push(line);
-    } // found inner directive end
-    else if (
-      tagName.length > 0 && directiveMatch &&
-      directiveMatch.which === "endDirective"
-    ) {
-      const closeTagName = directiveMatch.name as string;
-      if (
-        tagName[tagName.length - 1].toLocaleLowerCase() !==
-          closeTagName.toLocaleLowerCase()
-      ) {
-        // Mismatched tags, what do we do?
-      }
-      lineBuffer.push(line);
-      if (tagName.length === 1) {
-        await flushLineBuffer("directive", i);
-      }
-      popStacks();
+      await flushLineBuffer("directive", i);
     } // begin code cell: ^```python
     else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
       const m = line.substring.match(startCodeCellRegEx);

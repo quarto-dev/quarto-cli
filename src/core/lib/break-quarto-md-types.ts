@@ -17,11 +17,6 @@ export interface DirectiveCell {
   language: "_directive";
   tag: string;
   attrs: Record<string, string>;
-
-  // we need to carry directives' individual tag information for
-  // later reconstruction.
-  sourceOpenTag: MappedString;
-  sourceCloseTag: MappedString;
 }
 
 export interface QuartoMdCell {

@@ -11620,7 +11620,6 @@
     }
   ],
   "handlers/languages.yml": [
-    "keep-if",
     "include",
     "mermaid"
   ],

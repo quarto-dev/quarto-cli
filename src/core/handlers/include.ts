@@ -1,6 +1,5 @@
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
-import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import {
   asMappedString,
   EitherString,
@@ -21,10 +20,9 @@ const includeHandler: LanguageHandler = {
   type: "directive",
   stage: "pre-engine",
 
-  cell(
+  directive(
     handlerContext: LanguageCellHandlerContext,
-    _cell: QuartoMdCell,
-    options: Record<string, unknown>,
+    options: Record<string, string>,
   ) {
     const sourceDir = dirname(handlerContext.options.source);
     const retrievedFiles: string[] = [handlerContext.options.source];
@@ -90,10 +88,7 @@ const includeHandler: LanguageHandler = {
       let rangeStart = 0;
       for (const { substring, range } of rangedLines(includeSrc.value)) {
         const m = isDirectiveTag(substring);
-        if (
-          m && m.which === "emptyDirective" &&
-          m.name.toLocaleLowerCase() === "include"
-        ) {
+        if (m && m.name.toLocaleLowerCase() === "include") {
           textFragments.push(
             mappedString(includeSrc, [{ start: rangeStart, end: range.start }]),
           );

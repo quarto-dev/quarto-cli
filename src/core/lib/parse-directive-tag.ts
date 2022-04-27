@@ -165,37 +165,22 @@ const htmlTagNames = new Set([
 ]);
 
 export function isDirectiveTag(str: string) {
-  const startDirective = new RegExp(
-    `^\\s*<(${name})((?:\\s+${attribute})*)\\s*>\\s*$`,
-    "u",
-  );
   const emptyDirective = new RegExp(
     `^\\s*<(${name})((?:\\s+${attribute})*)\\s*/>\\s*$`,
     "u",
   );
-  const endDirective = new RegExp(`^\\s*</(${name})\\s*>\\s*$`, "u");
 
-  const matchers = [
-    { directive: startDirective, which: "startDirective" },
-    { directive: endDirective, which: "endDirective" },
-    { directive: emptyDirective, which: "emptyDirective" },
-  ];
-  for (const { directive, which } of matchers) {
-    const matches = str.match(directive);
-    if (matches) {
-      if (htmlTagNames.has(matches[1])) {
-        return false;
-      }
-      const name = matches[1];
-      const attributes = matches[2].length > 0
-        ? parseAttributes(matches[2])
-        : {};
-      return {
-        which,
-        name,
-        attributes,
-      };
+  const matches = str.match(emptyDirective);
+  if (matches) {
+    if (htmlTagNames.has(matches[1])) {
+      return false;
     }
+    const name = matches[1];
+    const attributes = matches[2].length > 0 ? parseAttributes(matches[2]) : {};
+    return {
+      name,
+      attributes,
+    };
   }
   return false;
 }

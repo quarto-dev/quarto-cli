@@ -211,11 +211,6 @@ export async function handleLanguageCells(
       // parsed/handled etc. The _resulting_ markdown is then sent for handling by the
       // directive handler
       for (const cell of cells) {
-        const localCellHandlerOptions = {
-          ...options,
-          markdown: cell.source.source,
-        };
-
         const directiveCellType = cell.source.cell_type as DirectiveCell;
         const innerLanguage = directiveCellType.tag;
         const innerLanguageHandler = handlers[innerLanguage]!;
@@ -225,54 +220,25 @@ export async function handleLanguageCells(
           (innerLanguageHandler.stage !== "any" &&
             innerLanguageHandler.stage !== options.stage)
         ) { // we're in the wrong stage, so we don't actually do anything
-          if (directiveCellType.sourceOpenTag.value.trim().endsWith("/>")) { // empty directive, it's a single line
-            newCells[cell.index] = directiveCellType.sourceOpenTag;
-          } else {
-            newCells[cell.index] = mappedConcat(
-              [
-                directiveCellType.sourceOpenTag,
-                localCellHandlerOptions.markdown,
-                directiveCellType.sourceCloseTag,
-              ],
-            );
-            continue;
-          }
+          continue;
         }
-
-        // recurse
-        const {
-          markdown: localMarkdown,
-          results: localResults,
-        } = await handleLanguageCells(
-          localCellHandlerOptions,
-        );
-
-        // set results of directive recursion
-        results = mergeConfigs(results, localResults);
-
         if (
           innerLanguageHandler === undefined ||
           innerLanguageHandler.type === "cell"
         ) {
-          // if no handler is present, just create a div tag
-          // tag and return.
-          const missingTagStartTag = mappedReplace(
-            directiveCellType.sourceOpenTag,
-            new RegExp(`<${directiveCellType.tag}`),
+          // if no handler is present (or a directive was included for something
+          // that responds to cells instead), just create a div tag
+          newCells[cell.index] = mappedReplace(
+            cell.source.source,
+            new RegExp(`<${directiveCellType.tag}`, "i"),
             `<div quarto-directive="${directiveCellType.tag}"`,
           );
-          if (directiveCellType.sourceOpenTag.value.trim().endsWith("/>")) {
-            newCells[cell.index] = missingTagStartTag;
-          } else {
-            newCells[cell.index] = mappedConcat(
-              [
-                missingTagStartTag,
-                localMarkdown,
-                directiveCellType.sourceCloseTag,
-              ],
-            );
-          }
           continue;
+        }
+        if (innerLanguageHandler.directive === undefined) {
+          throw new Error(
+            "Bad language handler: directive callback is undefined",
+          );
         }
 
         // call specific handler
@@ -281,16 +247,10 @@ export async function handleLanguageCells(
           name: innerLanguage,
         });
 
-        const innerMdCell = {
-          ...cell.source,
-          source: localMarkdown,
-        };
-
-        const transformedCell = innerLanguageHandler.document(
+        newCells[cell.index] = innerLanguageHandler.directive(
           innerHandler.context,
-          [innerMdCell],
-        )[0];
-        newCells[cell.index] = transformedCell;
+          directiveCellType.attrs,
+        );
 
         results = mergeConfigs(results, innerHandler.results);
       }

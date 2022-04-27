@@ -59,7 +59,7 @@ export const markdownEngine: ExecutionEngine = {
 
   execute: (options: ExecuteOptions) => {
     // read markdown
-    const markdown = Deno.readTextFileSync(options.target.input);
+    const markdown = options.target.markdown.value;
 
     // if it's plain md, validate that it doesn't have executable cells in it
     if (extname(options.target.input).toLowerCase() === ".md") {
