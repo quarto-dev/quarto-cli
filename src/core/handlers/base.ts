@@ -345,7 +345,6 @@ export const baseHandler: LanguageHandler = {
       return this.cell(
         handlerContext,
         cell,
-        // FIXME this should get the project+document options as well.
         mergeConfigs(this.defaultOptions ?? {}, cell.options ?? {}),
       );
     });
