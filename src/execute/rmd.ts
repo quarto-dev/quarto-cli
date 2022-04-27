@@ -34,6 +34,7 @@ import {
   RunOptions,
 } from "./types.ts";
 import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
+import { mappedStringFromFile } from "../core/mapped-text.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -61,12 +62,12 @@ export const knitrEngine: ExecutionEngine = {
   },
 
   target: (file: string, _quiet?: boolean) => {
-    const markdown = Deno.readTextFileSync(file);
+    const markdown = mappedStringFromFile(file);
     const target: ExecutionTarget = {
       source: file,
       input: file,
       markdown,
-      metadata: readYamlFromMarkdown(markdown),
+      metadata: readYamlFromMarkdown(markdown.value),
     };
     return Promise.resolve(target);
   },

@@ -420,6 +420,63 @@ export function mappedLines(
   return lines.map((v: RangedSubstring) => mappedString(str, [v.range]));
 }
 
+export function mappedReplace(
+  str: MappedString,
+  target: string | RegExp,
+  replacement: EitherString,
+): MappedString {
+  if (typeof target === "string") {
+    const index = str.value.indexOf(target);
+    if (index === -1) {
+      return str;
+    }
+    return mappedConcat([
+      mappedString(str, [{ start: 0, end: index }]),
+      asMappedString(replacement),
+      mappedString(str, [{
+        start: index + target.length,
+        end: str.value.length,
+      }]),
+    ]);
+  }
+
+  if (!target.global) {
+    const result = target.exec(str.value);
+    if (!result) {
+      return str;
+    }
+    return mappedConcat([
+      mappedString(str, [{ start: 0, end: target.lastIndex }]),
+      asMappedString(replacement),
+      mappedString(str, [{
+        start: target.lastIndex + result[0].length,
+        end: str.value.length,
+      }]),
+    ]);
+  }
+
+  let result = target.exec(str.value);
+  if (!result) {
+    return str;
+  }
+  let currentRange = 0;
+  const pieces: MappedString[] = [];
+  while (result) {
+    pieces.push(
+      mappedString(str, [{ start: currentRange, end: target.lastIndex }]),
+    );
+    pieces.push(asMappedString(replacement));
+    currentRange = target.lastIndex + result[0].length;
+
+    result = target.exec(str.value);
+  }
+  pieces.push(
+    mappedString(str, [{ start: currentRange, end: str.value.length }]),
+  );
+
+  return mappedConcat(pieces);
+}
+
 /**
  * breakOnDelimiter() behaves like split(), except that it:
  *

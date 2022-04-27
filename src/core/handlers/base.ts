@@ -1,22 +1,22 @@
 import {
+  HandlerContextResults,
   LanguageCellHandlerContext,
   LanguageCellHandlerOptions,
   LanguageHandler,
   PandocIncludeType,
 } from "./types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { MappedExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import { mergeConfigs } from "../config.ts";
 import {
   DependencyFile,
-  FormatExtras,
+  FormatDependency,
   kDependencies,
 } from "../../config/types.ts";
 import {
-  asMappedString,
   join as mappedJoin,
   mappedConcat,
   mappedLines,
+  mappedReplace,
   MappedString,
 } from "../lib/mapped-text.ts";
 import {
@@ -59,58 +59,55 @@ import {
   kOutput,
   kTblCapLoc,
 } from "../../config/constants.ts";
+import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
+import { isHtmlCompatible } from "../../config/format.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
-interface HandlerContextResults {
-  includes: PandocIncludes;
-  resourceFiles: string[];
-  extras: FormatExtras;
-}
-
 function makeHandlerContext(
-  _executeResult: MappedExecuteResult,
   options: LanguageCellHandlerOptions,
 ): {
   context: LanguageCellHandlerContext;
   results?: HandlerContextResults;
 } {
-  const formatDependency = {
-    name: options.name,
-    version: options.version,
-    scripts: [],
-    stylesheets: [],
-    resources: [],
-  };
   const results: HandlerContextResults = {
     resourceFiles: [],
     includes: {},
-    extras: {
-      html: {
-        [kDependencies]: [formatDependency],
-      },
-    },
+    extras: {},
   };
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
     options,
-    addDependency(
+    addHtmlDependency(
       dependencyType: "script" | "stylesheet" | "resource",
       dependency: DependencyFile,
+      dependencyName?: string,
+      dependencyVersion?: string,
     ) {
-      let lst: DependencyFile[];
+      if (!isHtmlCompatible(options.format)) {
+        throw new Error("addDepdendency only supported in html formats");
+      }
+      dependencyName = dependencyName || options.name;
+      const dep: FormatDependency = {
+        name: dependencyName,
+        version: dependencyVersion,
+      };
       switch (dependencyType) {
         case "script":
-          lst = formatDependency.scripts;
+          dep.scripts = [dependency];
           break;
         case "stylesheet":
-          lst = formatDependency.stylesheets;
+          dep.stylesheets = [dependency];
           break;
         case "resource":
-          lst = formatDependency.resources;
+          dep.resources = [dependency];
           break;
       }
-      lst.push(dependency);
+      if (results.extras.html === undefined) {
+        results.extras.html = { [kDependencies]: [dep] };
+      } else {
+        results.extras.html[kDependencies]!.push(dep);
+      }
     },
     addResource(fileName: string) {
       results.resourceFiles.push(fileName);
@@ -156,15 +153,19 @@ export function install(handler: LanguageHandler) {
 }
 
 export async function handleLanguageCells(
-  executeResult: MappedExecuteResult,
   options: LanguageCellHandlerOptions,
 ): Promise<{
   markdown: MappedString;
   results?: HandlerContextResults;
 }> {
-  const mdCells =
-    (await breakQuartoMd(asMappedString(executeResult.markdown), false))
-      .cells;
+  const mdCells = (await breakQuartoMd(options.markdown, false))
+    .cells;
+
+  if (mdCells.length === 0) {
+    return {
+      markdown: options.markdown,
+    };
+  }
 
   const newCells: MappedString[] = [];
   const languageCellsPerLanguage: Record<
@@ -183,7 +184,14 @@ export async function handleLanguageCells(
       continue;
     }
     const language = cell.cell_type.language;
-    if (handlers[language] === undefined) {
+    if (language !== "_directive" && handlers[language] === undefined) {
+      continue;
+    }
+    if (
+      handlers[language]?.stage &&
+      handlers[language].stage !== "any" &&
+      options.stage !== handlers[language].stage
+    ) {
       continue;
     }
     if (languageCellsPerLanguage[language] === undefined) {
@@ -197,22 +205,78 @@ export async function handleLanguageCells(
   let results: HandlerContextResults | undefined = undefined;
 
   for (const [language, cells] of Object.entries(languageCellsPerLanguage)) {
-    const handler = makeHandlerContext(executeResult, {
-      ...options,
-      name: language,
-    });
-    const languageHandler = handlers[language]!;
-    const transformedCells = languageHandler.document(
-      handler.context,
-      cells.map((x) => x.source),
-    );
-    for (let i = 0; i < transformedCells.length; ++i) {
-      newCells[cells[i].index] = transformedCells[i];
-    }
-    if (results === undefined) {
-      results = handler.results;
+    if (language === "_directive") {
+      // if this is a directive, the semantics are that each the _contents_ of the cell
+      // are first treated as if they were an entire markdown document that will be fully
+      // parsed/handled etc. The _resulting_ markdown is then sent for handling by the
+      // directive handler
+      for (const cell of cells) {
+        const directiveCellType = cell.source.cell_type as DirectiveCell;
+        const innerLanguage = directiveCellType.tag;
+        const innerLanguageHandler = handlers[innerLanguage]!;
+
+        if (
+          innerLanguageHandler &&
+          (innerLanguageHandler.stage !== "any" &&
+            innerLanguageHandler.stage !== options.stage)
+        ) { // we're in the wrong stage, so we don't actually do anything
+          continue;
+        }
+        if (
+          innerLanguageHandler === undefined ||
+          innerLanguageHandler.type === "cell"
+        ) {
+          // if no handler is present (or a directive was included for something
+          // that responds to cells instead), just create a div tag
+          newCells[cell.index] = mappedReplace(
+            cell.source.source,
+            new RegExp(`<${directiveCellType.tag}`, "i"),
+            `<div quarto-directive="${directiveCellType.tag}"`,
+          );
+          continue;
+        }
+        if (innerLanguageHandler.directive === undefined) {
+          throw new Error(
+            "Bad language handler: directive callback is undefined",
+          );
+        }
+
+        // call specific handler
+        const innerHandler = makeHandlerContext({
+          ...options,
+          name: innerLanguage,
+        });
+
+        newCells[cell.index] = innerLanguageHandler.directive(
+          innerHandler.context,
+          directiveCellType.attrs,
+        );
+
+        results = mergeConfigs(results, innerHandler.results);
+      }
     } else {
-      results = mergeConfigs(results, handler.results);
+      const handler = makeHandlerContext({
+        ...options,
+        name: language,
+      });
+      const languageHandler = handlers[language];
+      if (
+        languageHandler !== undefined &&
+        languageHandler.type !== "directive"
+      ) {
+        const transformedCells = languageHandler.document(
+          handler.context,
+          cells.map((x) => x.source),
+        );
+        for (let i = 0; i < transformedCells.length; ++i) {
+          newCells[cells[i].index] = transformedCells[i];
+        }
+        if (results === undefined) {
+          results = handler.results;
+        } else {
+          results = mergeConfigs(results, handler.results);
+        }
+      }
     }
   }
   return {
@@ -222,6 +286,9 @@ export async function handleLanguageCells(
 }
 
 export const baseHandler: LanguageHandler = {
+  type: "any",
+  stage: "any",
+
   languageName:
     "<<<< baseHandler: languageName should have been overridden >>>>",
 
@@ -234,7 +301,13 @@ export const baseHandler: LanguageHandler = {
     cells: QuartoMdCell[],
   ): MappedString[] {
     this.documentStart(handlerContext);
-    const result = cells.map((cell) => this.cell(handlerContext, cell));
+    const result = cells.map((cell) => {
+      return this.cell(
+        handlerContext,
+        cell,
+        mergeConfigs(this.defaultOptions ?? {}, cell.options ?? {}),
+      );
+    });
     this.documentEnd(handlerContext);
     return result;
   },
@@ -254,6 +327,7 @@ export const baseHandler: LanguageHandler = {
   cell(
     _handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
+    _options: Record<string, unknown>,
   ): MappedString {
     return cell.sourceVerbatim;
   },
@@ -273,10 +347,8 @@ export const baseHandler: LanguageHandler = {
     _handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     content: MappedString,
+    options: Record<string, unknown>,
   ): MappedString {
-    // FIXME this should get the project+document options as well.
-    const options = mergeConfigs(this.defaultOptions, cell.options ?? {});
-
     // split content into front matter vs input
     const contentLines = mappedLines(cell.source, true);
     const frontMatterLines: MappedString[] = [];

@@ -1,4 +1,11 @@
-import { LanguageCellHandlerContext } from "./types.ts";
+/*
+* mermaid.ts
+*
+* Copyright (C) 2022 by RStudio, PBC
+*
+*/
+
+import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { kIncludeAfterBody } from "../../config/constants.ts";
 import { formatResourcePath } from "../resources.ts";
@@ -9,12 +16,14 @@ import {
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat } from "../lib/mapped-text.ts";
-import { schemaFromString } from "../lib/yaml-schema/from-yaml.ts";
 
 import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 
-const mermaidHandler = {
+const mermaidHandler: LanguageHandler = {
   ...baseHandler,
+
+  type: "cell",
+  stage: "post-engine",
 
   languageName: "mermaid",
 
@@ -26,21 +35,13 @@ const mermaidHandler = {
   },
 
   comment: "%%",
-  async schema() {
-    return await schemaFromString(`
-object:
-  properties:
-    echo:
-       enum: [true, false, fenced, fancy-mermaid-echo]
-`);
-  },
 
   // called once per document, no cells in particular
   documentStart(
     handlerContext: LanguageCellHandlerContext,
   ) {
     if (isJavascriptCompatible(handlerContext.options.format)) {
-      handlerContext.addDependency(
+      handlerContext.addHtmlDependency(
         "script",
         {
           name: "mermaid.min.js",
@@ -68,6 +69,7 @@ object:
   cell(
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
+    options: Record<string, unknown>,
   ) {
     if (isJavascriptCompatible(handlerContext.options.format)) {
       const preEl = pandocHtmlBlock("pre")({
@@ -75,7 +77,7 @@ object:
       });
       preEl.push(pandocRawStr(cell.source));
 
-      return this.build(handlerContext, cell, preEl.mappedString());
+      return this.build(handlerContext, cell, preEl.mappedString(), options);
     } else if (
       isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
     ) {
@@ -83,6 +85,7 @@ object:
         handlerContext,
         cell,
         mappedConcat(["\n``` mermaid\n", cell.source, "\n```\n"]),
+        options,
       );
     } else {
       return cell.source;

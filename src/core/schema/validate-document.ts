@@ -7,14 +7,13 @@
 
 import { RenderContext } from "../../command/render/types.ts";
 import { breakQuartoMd } from "../lib/break-quarto-md.ts";
-import { asMappedString, mappedString } from "../mapped-text.ts";
+import { mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { error } from "log/mod.ts";
 import { partitionCellOptionsMapped } from "../lib/partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
-import { relative } from "path/mod.ts";
 
 import {
   reportOnce,
@@ -25,21 +24,18 @@ import { isObject } from "../lodash.ts";
 
 import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";
 import { JSONValue, LocalizedError } from "../lib/yaml-schema/types.ts";
+import { MappedString } from "../lib/mapped-text.ts";
 
 export async function validateDocumentFromSource(
-  src: string,
+  src: MappedString,
   engine: string,
   // deno-lint-ignore no-explicit-any
   errorFn: (msg: string) => any,
-  filename?: string,
 ): Promise<LocalizedError[]> {
   const result: LocalizedError[] = [];
   const reportSet: Set<string> = new Set();
 
-  if (filename?.startsWith("/")) {
-    filename = relative(Deno.cwd(), filename);
-  }
-  const nb = await breakQuartoMd(asMappedString(src, filename));
+  const nb = await breakQuartoMd(src);
 
   if (nb.cells.length < 1) {
     // no cells -> no validation
@@ -133,7 +129,7 @@ export async function validateDocumentFromSource(
 export async function validateDocument(
   context: RenderContext,
 ): Promise<LocalizedError[]> {
-  if (context.target.markdown === "") {
+  if (context.target.markdown.value === "") {
     // no markdown -> no validation.
     return [];
   }
@@ -142,6 +138,5 @@ export async function validateDocument(
     context.target.markdown,
     context.engine.name,
     error,
-    context.target.source,
   );
 }

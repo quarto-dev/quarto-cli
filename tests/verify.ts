@@ -6,7 +6,7 @@
 */
 
 import { exists, existsSync } from "fs/exists.ts";
-import { DOMParser } from "../src/core/deno-dom.ts";
+import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
 import { join } from "path/mod.ts";
 
@@ -271,3 +271,24 @@ export function verifyNoPath(path: string) {
   const pathExists = existsSync(path);
   assert(!pathExists, `Unexpected directory: ${path}`);
 }
+
+export const ensureHtmlSelectorSatisfies = (
+  file: string,
+  selector: string,
+  predicate: (list: NodeList) => boolean,
+): Verify => {
+  return {
+    name: "Inspecting HTML for Selectors",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      // quirk: deno claims the result of this is "NodeListPublic", which is not an exported type in deno-dom.
+      // so we cast.
+      const nodeList = doc.querySelectorAll(selector) as NodeList;
+      assert(
+        predicate(nodeList),
+        `Selector ${selector} didn't satisfy predicate`,
+      );
+    },
+  };
+};
