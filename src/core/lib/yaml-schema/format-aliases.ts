@@ -26,6 +26,11 @@ export function getFormatAliases(): Record<string, string[]> {
   return formatAliases as Record<string, string[]>;
 }
 
+export function getBuiltInFormatAliases(): string[] {
+  const formatAliases = getFormatAliases();
+  return formatAliases["pandoc-all"];
+}
+
 export function getExpandedFormatAliases(): Record<string, string[]> {
   const aliases = getFormatAliases();
   const result: Record<string, string[]> = {};

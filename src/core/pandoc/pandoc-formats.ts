@@ -4,6 +4,11 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
+import { extname } from "path/mod.ts";
+import {
+  getBuiltInFormatAliases,
+  getFormatAliases,
+} from "../lib/yaml-schema/format-aliases.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath } from "../resources.ts";
 import { lines } from "../text.ts";
@@ -61,49 +66,84 @@ export interface FormatDescriptor {
   formatWithVariants: string;
 }
 
-const extensionRegex = /\{(\S*)\}$/;
-
 // Format strings are of the form:
 // baseName+<variants | modifiers>-<variants>[<extension>]
 // Where modifiers and variants can be in any order
 // and basename must start the string and extension must end the string
 export const parseFormatString = (formatStr: string): FormatDescriptor => {
-  // Parse the extension ouf of the string
-  const extensionMatch = formatStr.match(extensionRegex);
-  let extension;
-  if (extensionMatch) {
-    extension = extensionMatch[1];
-    formatStr = formatStr.replace(extensionRegex, "");
-  }
+  // acm-pdf+foo
+  // gfm-raw_html
+  // acm-2023-pdf+foobar
+  // pdf
+  // acm
+  // acm-gfm-raw_html <-- not allowed
 
-  // Parse the base format out of the string
-  const baseFormat = formatStr.split(/[+-]/)[0];
-
-  // Grab anything that could be a variant
-  const variantMatches = formatStr.matchAll(/[\+\-]\S*?(?=\-|\+|$)/g);
-  const variantCommands: string[] = [];
-  for (const match of variantMatches) {
-    variantCommands.push(match[0]);
-  }
-
-  const variants: string[] = [];
-  const modifiers: string[] = [];
-  variantCommands.forEach((cmd) => {
-    if (pandocVariants.includes(cmd)) {
-      variants.push(cmd);
+  // Try breaking the format string as a format without an extension
+  const formatDesc = breakFormatString(formatStr);
+  if (formatDesc) {
+    return formatDesc;
+  } else {
+    // Split off th string after the last '-' and try to use that
+    const splitFormat = formatStr.split(/-/);
+    const lastEl = splitFormat.pop();
+    if (lastEl) {
+      const lastElFormatDesc = breakFormatString(lastEl);
+      if (lastElFormatDesc) {
+        // The last element was a valid format string, so
+        // use the prefix parts as the extension name
+        lastElFormatDesc.extension = splitFormat.join("-");
+        return lastElFormatDesc;
+      } else {
+        // The last element wasn't a valid format string
+        // This is invalid!
+        throw new Error("Invalid format string");
+      }
     } else {
-      modifiers.push(cmd);
+      throw new Error("Invalid format string");
     }
-  });
-
-  return {
-    baseFormat,
-    variants,
-    modifiers,
-    extension,
-    formatWithVariants: `${baseFormat}${variants.join("")}`,
-  };
+  }
 };
+
+function isBuiltInFormat(format: string) {
+  // Allow either a built in format or a path to a LUA file
+  return getBuiltInFormatAliases().includes(format) ||
+    extname(format) === ".lua";
+}
+
+function breakFormatString(formatStr: string): FormatDescriptor | undefined {
+  const firstEl = formatStr.split(/[+-]/)[0];
+  if (isBuiltInFormat(firstEl)) {
+    // Grab anything that could be a variant
+    const variantMatches = formatStr.matchAll(/[\+\-]\S*?(?=\-|\+|$)/g);
+    const variantCommands: string[] = [];
+    for (const match of variantMatches) {
+      variantCommands.push(match[0]);
+    }
+
+    // Group the items into variants and modifiers
+    // variants are valid markdown variants
+    // modifiers are gmail style `+` syntax to allow the same base format
+    // to be used with varying options (e.g. pdf+draft, pdf+final)
+    const variants: string[] = [];
+    const modifiers: string[] = [];
+    variantCommands.forEach((cmd) => {
+      if (pandocVariants.includes(cmd)) {
+        variants.push(cmd);
+      } else {
+        modifiers.push(cmd);
+      }
+    });
+
+    return {
+      baseFormat: firstEl,
+      variants,
+      modifiers,
+      formatWithVariants: `${firstEl}${variants.join("")}`,
+    };
+  } else {
+    return undefined;
+  }
+}
 
 const pandocVariants = [
   "-abbreviations",
