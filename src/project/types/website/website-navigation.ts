@@ -11,7 +11,7 @@ import * as ld from "../../../core/lodash.ts";
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 
-import { safeExistsSync } from "../../../core/path.ts";
+import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
@@ -482,7 +482,12 @@ function navigationHtmlPostprocessor(
     }
 
     // handle repo links
-    handleRepoLinks(doc, sourceRelative, language, project.config);
+    handleRepoLinks(
+      doc,
+      pathWithForwardSlashes(sourceRelative),
+      language,
+      project.config,
+    );
 
     // remove section numbers from sidebar if they have been turned off in the project file
     const numberSections =
