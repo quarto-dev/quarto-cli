@@ -83,7 +83,6 @@ function RawBlock (el)
   if is_newpage_command(el.text) then
     -- use format-specific pagebreak marker. FORMAT is set by pandoc to
     -- the targeted output format.
-    print("matched!")
     return newpage(FORMAT)
   end
   -- otherwise, leave the block unchanged
