@@ -1,5 +1,5 @@
 /*
-* convert-empty-frontmatter.test.ts
+* include-fixups.test.ts
 *
 * Copyright (C) 2021 by RStudio, PBC
 *

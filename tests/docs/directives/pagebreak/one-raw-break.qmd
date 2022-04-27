@@ -1,0 +1,17 @@
+---
+title: Pagebreak test
+---
+
+## Here's a subheading with some text
+
+A short page.
+
+```{r}
+rnorm(10)
+```
+
+\pagebreak
+
+## Another page
+
+Did it work?
