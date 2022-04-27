@@ -54,9 +54,13 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
           hidden,
         } = hideFormat(format);
         return {
-          regex:
-            `^${name}(?:(?:[[][^\\]\\ s]+[\\]])|(?:[:][^:+\\s]+))?(?:[+].+)?$`,
-          // regex: `^${name}(?:(?::[^+]+)|(?:\[[^]]+\]))?(\\+.+)?$`,
+          regex: `^${name}(\\+.+)?$`,
+          // NOTE: the following regex supports format:foo and format[foo]. It currently breaks
+          // our autocompletion because it uses non-capturing groups. Since we haven't decided
+          // on it, we're reverting for now.
+          //
+          // regex:
+          //   `^${name}(?:(?:[[][^\\]\\ s]+[\\]])|(?:[:][^:+\\s]+))?(?:[+].+)?$`,
           schema: getFormatSchema(name),
           name,
           hidden,
