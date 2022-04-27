@@ -274,6 +274,10 @@ $title.tex()$
 $frontmatter.tex()$
 
 $pandoc-before-body.tex()$
+$for(include-before)$
+$include-before$
+
+$endfor$
 $toc.tex()$
 $if(linestretch)$
 \setstretch{$linestretch$}
@@ -290,5 +294,9 @@ $if(has-frontmatter)$
 $endif$
 $biblio.tex()$
 
+$for(include-after)$
+$include-after$
+
+$endfor$
 $pandoc-after-body.tex()$
 \end{document}
