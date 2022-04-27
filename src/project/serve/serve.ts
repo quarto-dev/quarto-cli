@@ -87,6 +87,7 @@ import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
+import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -123,6 +124,9 @@ export async function serveProject(
 
   // acquire the preview lock
   acquirePreviewLock(project);
+
+  // monitor the src dir
+  monitorQuartoSrcChanges(() => releasePreviewLock(project!));
 
   // clear the project index
   clearProjectIndex(project.dir);
@@ -529,7 +533,7 @@ export async function serveProject(
 
 function acquirePreviewLock(project: ProjectContext) {
   // get lockfile
-  const lockfile = projectScratchPath(project.dir, join("preview", "lock"));
+  const lockfile = previewLockFile(project);
 
   // if there is a lockfile send a kill signal to the pid therin
   if (existsSync(lockfile)) {
@@ -555,12 +559,20 @@ function acquirePreviewLock(project: ProjectContext) {
 
   // rmeove the lockfile when we exit
   addEventListener("unload", () => {
-    try {
-      Deno.removeSync(lockfile);
-    } catch {
-      //
-    }
+    releasePreviewLock(project);
   });
+}
+
+function releasePreviewLock(project: ProjectContext) {
+  try {
+    Deno.removeSync(previewLockFile(project));
+  } catch {
+    //
+  }
+}
+
+function previewLockFile(project: ProjectContext) {
+  return projectScratchPath(project.dir, join("preview", "lock"));
 }
 
 function renderErrorPage(e: Error) {

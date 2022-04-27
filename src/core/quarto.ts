@@ -6,8 +6,10 @@
 */
 import { existsSync } from "fs/exists.ts";
 import { join } from "path/mod.ts";
+import { info } from "log/mod.ts";
 
 import { getenv } from "./env.ts";
+import { logError } from "./log.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -31,3 +33,25 @@ export const quartoConfig = {
     }
   },
 };
+
+export function monitorQuartoSrcChanges(cleanup: VoidFunction) {
+  if (quartoConfig.isDebug()) {
+    const srcDir = Deno.realPathSync(
+      join(quartoConfig.binPath(), "../../../src"),
+    );
+    const watcher = Deno.watchFs([srcDir], { recursive: true });
+    const watchForChanges = async () => {
+      for await (const _event of watcher) {
+        try {
+          info("quarto src code changed: preview terminating");
+        } catch (e) {
+          logError(e);
+        } finally {
+          cleanup();
+          Deno.exit(1);
+        }
+      }
+    };
+    watchForChanges();
+  }
+}
