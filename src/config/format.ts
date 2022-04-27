@@ -127,6 +127,7 @@ export function isMarkdownOutput(
     "markdown_strict",
     "gfm",
     "commonmark",
+    "commonmark_x",
     "markua",
   ],
 ) {
