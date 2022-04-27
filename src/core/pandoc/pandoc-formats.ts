@@ -5,10 +5,7 @@
  *
  */
 import { extname } from "path/mod.ts";
-import {
-  getBuiltInFormatAliases,
-  getFormatAliases,
-} from "../lib/yaml-schema/format-aliases.ts";
+import { getBuiltInFormatAliases } from "../lib/yaml-schema/format-aliases.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath } from "../resources.ts";
 import { lines } from "../text.ts";

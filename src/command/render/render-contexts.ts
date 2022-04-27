@@ -44,6 +44,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kIpynbFilters,
+  kLatexInputPaths,
   kMetadataFormat,
   kOutputExt,
   kOutputFile,
@@ -76,7 +77,12 @@ import { filesDirLibDir } from "./render-paths.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
 import { handleLanguageCells } from "../../core/handlers/base.ts";
-import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
+import {
+  FormatDescriptor,
+  parseFormatString,
+} from "../../core/pandoc/pandoc-formats.ts";
+import { formatExtensionYaml } from "../../format/format-extension.ts";
+import { toInputRelativePaths } from "../../project/project-shared.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -464,30 +470,21 @@ async function resolveFormats(
       }
     }
 
-    // resolve any "-" format (exclude markdown extensions)
-    // the 'format' argument passed to defaulWriterFormat needs to
-    // have the custom format suffix removed (principially for markdown)
-    // then, we need to merge the custom format stuff between the
-    // default and user formats
-    // Read _format file
-    // Resolve paths and so on
-
-    // TODO: Read the format file and populate this
-    const extensionMetadata: Metadata = {};
-
     // The format description
     const formatDesc = parseFormatString(format);
 
-    const extensionFormatMetadata = await resolveFormatsFromMetadata(
-      extensionMetadata,
+    // Read any extension metadata and merge it into the
+    // format metadata
+    const extensionMetadata = await readExtensionMetadata(
       target.source,
-      [formatDesc.baseFormat],
+      formatDesc,
+      project,
     );
 
     // do the merge of the writer format into this format
     mergedFormats[format] = mergeFormatMetadata(
       defaultWriterFormat(formatDesc.formatWithVariants),
-      extensionFormatMetadata,
+      extensionMetadata,
       userFormat,
     );
   }
@@ -539,6 +536,56 @@ async function resolveFormats(
 
   return mergedFormats;
 }
+
+const readExtensionMetadata = async (
+  file: string,
+  formatDesc: FormatDescriptor,
+  project?: ProjectContext,
+) => {
+  // Read the format file and populate this
+  if (formatDesc.extension) {
+    // Find the yaml file
+    const extensionYaml = await formatExtensionYaml(
+      file,
+      formatDesc.extension,
+      project,
+    );
+
+    if (extensionYaml) {
+      // Read the yaml file and resolve / bucketize
+      const extensionFormatMetadata = await resolveFormatsFromMetadata(
+        extensionYaml.metadata,
+        extensionYaml.path,
+        [formatDesc.baseFormat],
+      );
+
+      // Process any paths
+      const metadata = toInputRelativePaths(
+        projectType(project?.config?.project?.[kProjectType]),
+        dirname(extensionYaml.path),
+        Deno.cwd(),
+        extensionFormatMetadata,
+      );
+
+      // Use the metadata for the format
+      const formatMetadata = (metadata as Record<string, unknown>)[
+        formatDesc.baseFormat
+      ] as Metadata;
+
+      // Add the extension directory to any tex input paths
+      // Note the trailing // which will make LaTeX search recursively
+      const taxInputPaths = `${dirname(extensionYaml.path)}//`;
+      formatMetadata.render = formatMetadata.render || {};
+      (formatMetadata.render as Metadata)[kLatexInputPaths] = [taxInputPaths];
+
+      return formatMetadata;
+    } else {
+      return {};
+    }
+  } else {
+    return {};
+  }
+};
 
 function hasIpynbFilters(execute: FormatExecute) {
   return execute[kIpynbFilters] && execute[kIpynbFilters]?.length;
