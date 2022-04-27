@@ -7,18 +7,29 @@ function bookCleanup()
     return {
       RawInline = cleanupFileMetadata,
       RawBlock = cleanupFileMetadata,
-      Div = cleanupBookPart
+      Div = cleanupBookPart,
+      Para = cleanupEmptyParas
     }
   else
-    return {}
+    return {
+      RawInline = cleanupFileMetadata,
+      RawBlock = cleanupFileMetadata,
+      Para = cleanupEmptyParas
+    }
   end
+end
+
+function cleanupEmptyParas(el)
+  if not next(el.content) then
+    return {}
+  end  
 end
 
 function cleanupFileMetadata(el)
   if isRawHtml(el) then
     local rawMetadata = string.match(el.text, "^<!%-%- quarto%-file%-metadata: ([^ ]+) %-%->$")
     if rawMetadata then
-      el.text = ""
+      return {}
     end
   end
   return el

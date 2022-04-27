@@ -3,10 +3,10 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../../config/constants.ts";
-import { DependencyFile, Format } from "../../config/types.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { DependencyFile, Format, FormatExtras } from "../../config/types.ts";
+import { PandocIncludes } from "../../execute/types.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md-types.ts";
-import { MappedString } from "../lib/text-types.ts";
+import { EitherString, MappedString } from "../lib/text-types.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 import { TempContext } from "../temp-types.ts";
 export type PandocIncludeType =
@@ -15,23 +15,26 @@ export type PandocIncludeType =
   | typeof kIncludeInHeader;
 
 export interface LanguageCellHandlerOptions {
-  name: string;
-  version?: string;
+  name: string; // language name
   source: string;
   format: Format;
   markdown: MappedString;
-  libDir: string;
   temp: TempContext;
-  project?: ProjectContext;
+  stage: "pre-engine" | "post-engine";
 }
 export interface LanguageCellHandlerContext {
   options: LanguageCellHandlerOptions;
   addResource: (name: string, contents: string) => void;
   addInclude: (content: string, where: PandocIncludeType) => void;
-  addDependency: (
+  addHtmlDependency: (
     dependencyType: "script" | "stylesheet" | "resource",
     dependency: DependencyFile,
   ) => void;
+}
+export interface HandlerContextResults {
+  includes: PandocIncludes;
+  resourceFiles: string[];
+  extras: FormatExtras;
 }
 
 export type LanguageComment = string | [string, string];
@@ -45,16 +48,26 @@ export interface LanguageHandler {
   cell: (
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
+    options: Record<string, unknown>,
   ) => MappedString;
 
+  directive?: (
+    handlerContext: LanguageCellHandlerContext,
+    options: Record<string, string>,
+  ) => EitherString;
+
   comment?: LanguageComment;
-  defaultOptions: Record<string, unknown>;
+  defaultOptions?: Record<string, unknown>;
   schema?: () => Promise<ConcreteSchema>;
   build: (
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     content: MappedString,
+    options: Record<string, unknown>,
   ) => MappedString;
+
+  type: "cell" | "directive" | "any";
+  stage: "pre-engine" | "post-engine" | "any";
 
   languageName: string;
   languageClass?: string;

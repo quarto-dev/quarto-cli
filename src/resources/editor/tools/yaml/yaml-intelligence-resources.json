@@ -11620,6 +11620,7 @@
     }
   ],
   "handlers/languages.yml": [
+    "include",
     "mermaid"
   ],
   "handlers/lang-comment-chars.yml": {

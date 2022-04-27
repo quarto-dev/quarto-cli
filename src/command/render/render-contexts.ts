@@ -73,6 +73,9 @@ import { createTempContext } from "../../core/temp.ts";
 import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
 import { filesDirLibDir } from "./render-paths.ts";
+import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
+import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
+import { handleLanguageCells } from "../../core/handlers/base.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -202,9 +205,9 @@ export async function renderContexts(
 
   // return contexts
   const contexts: Record<string, RenderContext> = {};
-  Object.keys(formats).forEach((format: string) => {
+  for (const format of Object.keys(formats)) {
     // set format
-    contexts[format] = {
+    const context: RenderContext = {
       target,
       options,
       engine,
@@ -212,11 +215,40 @@ export async function renderContexts(
       project,
       libDir: libDir!,
     };
+    contexts[format] = context;
+
+    // at this point we have enough to fix up the target and engine
+    // in case that's needed.
+
+    if (!isJupyterNotebook(context.target.source)) {
+      // this is not a jupyter notebook input,
+      // so we can run pre-engine handlers
+
+      const preEngineCellHandlerOptions: LanguageCellHandlerOptions = {
+        name: "", // this gets filled out by handleLanguageCells later.
+        temp: options.temp,
+        format: context.format,
+        markdown: context.target.markdown,
+        source: context.target.source,
+        stage: "pre-engine",
+      };
+
+      const { markdown, results } = await handleLanguageCells(
+        preEngineCellHandlerOptions,
+      );
+
+      context.target.markdown = markdown;
+
+      if (results) {
+        context.target.preEngineExecuteResults = results;
+      }
+    }
+
     // if this isn't for execute then cleanup context
     if (!forExecute && engine.executeTargetSkipped) {
       engine.executeTargetSkipped(target, formats[format]);
     }
-  });
+  }
   return contexts;
 }
 

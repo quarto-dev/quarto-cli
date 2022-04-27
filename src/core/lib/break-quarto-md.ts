@@ -14,7 +14,12 @@ import { asMappedString, EitherString, mappedString } from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
-import { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
+import {
+  DirectiveCell,
+  QuartoMdCell,
+  QuartoMdChunks,
+} from "./break-quarto-md-types.ts";
+import { isDirectiveTag } from "./parse-directive-tag.ts";
 
 export type { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
 
@@ -39,7 +44,10 @@ export async function breakQuartoMd(
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^```+\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
+
   let language = ""; // current language block
+  let tagName = "";
+  let tagOptions: Record<string, string> = {}; // tag options needs to be a stack to remember the options as we close the tag
   let cellStartLine = 0;
 
   // line buffer
@@ -48,7 +56,12 @@ export async function breakQuartoMd(
 
   const lineBuffer: RangedSubstring[] = [];
   const flushLineBuffer = async (
-    cell_type: "markdown" | "code" | "raw" | "math",
+    cell_type:
+      | "markdown"
+      | "code"
+      | "raw"
+      | "math"
+      | "directive",
     index: number,
   ) => {
     if (lineBuffer.length) {
@@ -66,9 +79,25 @@ export async function breakQuartoMd(
 
       const source = mappedString(src, mappedChunks);
 
+      const makeCellType = () => {
+        if (cell_type === "code") {
+          return { language };
+        } else if (
+          cell_type === "directive"
+        ) {
+          return {
+            language: "_directive",
+            tag: tagName,
+            attrs: tagOptions,
+          };
+        } else {
+          return cell_type;
+        }
+      };
+
       const cell: QuartoMdCell = {
         // deno-lint-ignore camelcase
-        cell_type: cell_type === "code" ? { language } : cell_type,
+        cell_type: makeCellType(),
         source,
         sourceOffset: 0,
         sourceStartLine: 0,
@@ -110,11 +139,15 @@ export async function breakQuartoMd(
         ]);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
+      } else if (cell_type === "directive") {
+        // directives only carry tag source in sourceVerbatim, analogously to code
+        cell.source = mappedString(src, mappedChunks.slice(1, -1));
+        // directives carry options in cell_type, use that
+        cell.options = (cell.cell_type as DirectiveCell).attrs;
       }
-
       // if the source is empty then don't add it
       if (
-        mdTrimEmptyLines(lines(cell.source.value)).length > 0 ||
+        mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 ||
         cell.options !== undefined
       ) {
         nb.cells.push(cell);
@@ -133,13 +166,17 @@ export async function breakQuartoMd(
     inCodeCell = false,
     inCode = 0; // inCode stores the tick count of the code block
 
+  const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml;
+
   const srcLines = rangedLines(src.value, true);
 
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
+    const directiveMatch = isDirectiveTag(line.substring);
     // yaml front matter
     if (
-      yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock
+      yamlRegEx.test(line.substring) && !inCodeCell && !inCode &&
+      !inMathBlock && tagName.length === 0
     ) {
       if (inYaml) {
         lineBuffer.push(line);
@@ -150,8 +187,15 @@ export async function breakQuartoMd(
         lineBuffer.push(line);
         inYaml = true;
       }
+    } // found empty directive
+    else if (inPlainText() && directiveMatch) {
+      await flushLineBuffer("markdown", i);
+      tagName = directiveMatch.name;
+      tagOptions = directiveMatch.attributes;
+      lineBuffer.push(line);
+      await flushLineBuffer("directive", i);
     } // begin code cell: ^```python
-    else if (startCodeCellRegEx.test(line.substring) && (inCode === 0)) {
+    else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
       const m = line.substring.match(startCodeCellRegEx);
       language = (m as string[])[1];
       await flushLineBuffer("markdown", i);
@@ -167,6 +211,7 @@ export async function breakQuartoMd(
       if (inCodeCell) {
         codeEndRange = line;
         inCodeCell = false;
+        inCode = 0;
         await flushLineBuffer("code", i);
       } else {
         // otherwise, sets inCode to 0 and continue
@@ -175,7 +220,7 @@ export async function breakQuartoMd(
       }
 
       // begin code block: ^```
-    } else if (startCodeRegEx.test(line.substring)) {
+    } else if (startCodeRegEx.test(line.substring) && inCode === 0) {
       inCode = tickCount(line.substring);
       lineBuffer.push(line);
     } else if (delimitMathBlockRegEx.test(line.substring)) {
@@ -183,7 +228,7 @@ export async function breakQuartoMd(
         lineBuffer.push(line);
         await flushLineBuffer("math", i);
       } else {
-        if (inYaml || inCode || inCodeCell) {
+        if (inYaml || inCode || inCodeCell || tagName.length > 0) {
           // TODO signal a parse error?
           // for now, we just skip.
         } else {

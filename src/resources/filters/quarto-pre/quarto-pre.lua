@@ -47,6 +47,7 @@ import("../common/list.lua")
 import("../common/lunacolors.lua")
 import("../common/log.lua")
 import("../common/url.lua")
+import("../common/paths.lua")
 import("results.lua")
 import("includes.lua")
 import("options.lua")
@@ -72,6 +73,8 @@ import("panel-layout.lua")
 import("hidden.lua")
 import("line-numbers.lua")
 import("output-location.lua")
+import("include-paths.lua")
+import("pagebreak.lua")
 -- [/import]
 
 initParams()
@@ -90,6 +93,7 @@ return {
     fileMetadata(),
     indexBookFileTargets(),
     bookNumbering(),
+    includePaths(),
     resourceRefs(),
     resourceFiles(),
     figures(),
@@ -102,6 +106,7 @@ return {
     panelTabset(),
     panelLayout(),
     panelSidebar(),
+    pageBreaks(),
   }),
   combineFilters({
     fileMetadata(),

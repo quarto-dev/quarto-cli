@@ -9,6 +9,7 @@ import { existsSync } from "fs/mod.ts";
 import { outputForInput } from "../../utils.ts";
 import { TestContext, testQuartoCmd, Verify } from "../../test.ts";
 import {
+  ensureFileRegexMatches,
   hasSupportingFiles,
   noSupportingFiles,
   outputCreated,
@@ -64,3 +65,10 @@ export function cleanoutput(input: string, to: string) {
     Deno.removeSync(out.supportPath, { recursive: true });
   }
 }
+
+export const renderVerifyLatexOutput = (input: string, regexes: RegExp[]) => {
+  const teXOutput = outputForInput(input, "latex");
+  testRender(input, "latex", true, [
+    ensureFileRegexMatches(teXOutput.outputPath, regexes),
+  ]);
+};

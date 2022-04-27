@@ -1,20 +1,12 @@
 /*
-* render.latext-output.test.ts
+* render.latex-output.test.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
 
-import { docs, outputForInput } from "../../utils.ts";
-import { ensureFileRegexMatches } from "../../verify.ts";
-import { testRender } from "./render.ts";
-
-const renderVerifyLatexOutput = (input: string, regexes: RegExp[]) => {
-  const teXOutput = outputForInput(input, "latex");
-  testRender(input, "latex", true, [
-    ensureFileRegexMatches(teXOutput.outputPath, regexes),
-  ]);
-};
+import { docs } from "../../utils.ts";
+import { renderVerifyLatexOutput } from "./render.ts";
 
 renderVerifyLatexOutput(docs("latex-output/captionless-margin-image.qmd"), [
   /\\begin{marginfigure}/,

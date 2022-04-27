@@ -13,11 +13,17 @@ export interface CodeCellType {
   language: string;
 }
 
+export interface DirectiveCell {
+  language: "_directive";
+  tag: string;
+  attrs: Record<string, string>;
+}
+
 export interface QuartoMdCell {
   id?: string;
 
   // deno-lint-ignore camelcase
-  cell_type: CodeCellType | "markdown" | "raw" | "math";
+  cell_type: CodeCellType | DirectiveCell | "markdown" | "raw" | "math";
   options?: Record<string, unknown>;
 
   source: MappedString;

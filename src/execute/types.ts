@@ -14,6 +14,10 @@ import { Format, FormatPandoc, Metadata } from "../config/types.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { RenderOptions } from "../command/render/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
+import {
+  HandlerContextResults,
+  LanguageCellHandlerOptions,
+} from "../core/handlers/types.ts";
 
 export const kQmdExtensions = [".qmd"];
 
@@ -58,9 +62,10 @@ export interface ExecutionEngine {
 export interface ExecutionTarget {
   source: string;
   input: string;
-  markdown: string;
+  markdown: MappedString;
   metadata: Metadata;
   data?: unknown;
+  preEngineExecuteResults?: HandlerContextResults;
 }
 
 // execute options
