@@ -65,6 +65,7 @@ import {
   textHighlightThemePath,
 } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
+import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
 
 interface PreviewOptions {
   port?: number;
@@ -179,6 +180,9 @@ export async function preview(
 
   // print status
   printBrowsePreviewMessage(options.port!, initialPath);
+
+  // watch for src changes in dev mode
+  monitorQuartoSrcChanges(stopServer);
 
   // serve project
   for await (const conn of listener) {

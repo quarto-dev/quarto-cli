@@ -27408,7 +27408,7 @@ async function makeFrontMatterFormatSchema(nonStrict = false) {
       hidden
     } = hideFormat(format);
     return {
-      regex: `^${name2}(?:(?:[[][^\\]\\ s]+[\\]])|(?:[:][^:+\\s]+))?(?:[+].+)?$`,
+      regex: `^${name2}(\\+.+)?$`,
       schema: getFormatSchema(name2),
       name: name2,
       hidden

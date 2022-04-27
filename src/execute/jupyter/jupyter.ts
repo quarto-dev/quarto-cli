@@ -9,6 +9,8 @@ import { extname, join } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
+import * as ld from "../../core/lodash.ts";
+
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { isInteractiveSession } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
@@ -77,6 +79,7 @@ import {
 } from "../../core/jupyter/jupyter-filters.ts";
 import { asMappedString } from "../../core/lib/mapped-text.ts";
 import { mappedStringFromFile } from "../../core/mapped-text.ts";
+import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -230,7 +233,11 @@ export const jupyterEngine: ExecutionEngine = {
       // or rstudio) and not running in a CI system.
       let executeDaemon = options.format.execute[kExecuteDaemon];
       if (executeDaemon === null || executeDaemon === undefined) {
-        executeDaemon = isInteractiveSession() && !runningInCI();
+        if (await disableDaemonForNotebook(options.target)) {
+          executeDaemon = false;
+        } else {
+          executeDaemon = isInteractiveSession() && !runningInCI();
+        }
       }
       const jupyterExecOptions: JupyterExecuteOptions = {
         python_cmd: await pythonExec(),
@@ -361,6 +368,40 @@ function isQmdFile(file: string) {
 async function createNotebookforTarget(target: ExecutionTarget) {
   const nb = await quartoMdToJupyter(target.source, true);
   Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
+}
+
+async function disableDaemonForNotebook(target: ExecutionTarget) {
+  const kShellMagics = [
+    "cd",
+    "cat",
+    "cp",
+    "env",
+    "ls",
+    "man",
+    "mkdir",
+    "more",
+    "mv",
+    "pwd",
+    "rm",
+    "rmdir",
+  ];
+  const nb = await breakQuartoMd(target.markdown);
+  for (const cell of nb.cells) {
+    if (ld.isObject(cell.cell_type)) {
+      const language = (cell.cell_type as { language: string }).language;
+      if (language === "python") {
+        if (cell.source.value.includes("!")) {
+          return true;
+        }
+        return (kShellMagics.some((cmd) => {
+          return cell.source.value.includes("%" + cmd) ||
+            cell.source.value.startsWith(cmd);
+        }));
+      }
+    }
+  }
+
+  return false;
 }
 
 function cleanupNotebook(target: ExecutionTarget, format: Format) {

@@ -10,6 +10,7 @@
 import { ensureDirSync } from "fs/ensure_dir.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
+import * as colors from "fmt/colors.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 import { stringify, StringifyOptions } from "encoding/yaml.ts";
 import { partitionCellOptions } from "../lib/partition-cell-options.ts";
@@ -1292,12 +1293,14 @@ function mdOutputStream(output: JupyterOutputStream) {
         /<ipython-input.*?>:\d+:\s+/,
         "",
       );
-      return mdCodeOutput([firstLine, ...output.text.slice(1)]);
+      return mdCodeOutput(
+        [firstLine, ...output.text.slice(1)].map(colors.stripColor),
+      );
     }
   }
 
   // normal default handling
-  return mdCodeOutput(output.text);
+  return mdCodeOutput(output.text.map(colors.stripColor));
 }
 
 function mdOutputError(output: JupyterOutputError) {
