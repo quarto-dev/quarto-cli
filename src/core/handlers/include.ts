@@ -1,3 +1,10 @@
+/*
+* include.ts
+*
+* Copyright (C) 2022 by RStudio, PBC
+*
+*/
+
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import {

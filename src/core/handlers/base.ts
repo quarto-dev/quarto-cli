@@ -1,3 +1,10 @@
+/*
+* base.ts
+*
+* Copyright (C) 2022 by RStudio, PBC
+*
+*/
+
 import {
   HandlerContextResults,
   LanguageCellHandlerContext,
@@ -13,6 +20,7 @@ import {
   kDependencies,
 } from "../../config/types.ts";
 import {
+  asMappedString,
   join as mappedJoin,
   mappedConcat,
   mappedLines,
@@ -247,10 +255,10 @@ export async function handleLanguageCells(
           name: innerLanguage,
         });
 
-        newCells[cell.index] = innerLanguageHandler.directive(
+        newCells[cell.index] = asMappedString(innerLanguageHandler.directive(
           innerHandler.context,
           directiveCellType.attrs,
-        );
+        ));
 
         results = mergeConfigs(results, innerHandler.results);
       }
