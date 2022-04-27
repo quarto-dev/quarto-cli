@@ -86,6 +86,7 @@ import {
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
+  kLatexInputPaths,
   kLatexMakeIndex,
   kLatexMakeIndexOpts,
   kLatexMaxRuns,
@@ -318,6 +319,7 @@ export interface FormatRender {
   [kLatexMinRuns]?: number;
   [kLatexMaxRuns]?: number;
   [kLatexClean]?: boolean;
+  [kLatexInputPaths]?: string[];
   [kLatexMakeIndex]?: string;
   [kLatexMakeIndexOpts]?: string[];
   [kLatexTlmgrOpts]?: string[];

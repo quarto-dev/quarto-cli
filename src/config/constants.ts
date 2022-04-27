@@ -68,7 +68,7 @@ export const kLatexAutoInstall = "latex-auto-install";
 export const kLatexMinRuns = "latex-min-runs";
 export const kLatexMaxRuns = "latex-max-runs";
 export const kLatexClean = "latex-clean";
-
+export const kLatexInputPaths = "latex-input-paths";
 export const kLatexMakeIndex = "latex-makeindex";
 export const kLatexMakeIndexOpts = "latex-makeindex-opts";
 
@@ -130,6 +130,7 @@ export const kRenderDefaultsKeys = [
   kLatexMinRuns,
   kLatexMaxRuns,
   kLatexClean,
+  kLatexInputPaths,
   kLatexMakeIndex,
   kLatexMakeIndexOpts,
   kLatexTlmgrOpts,
