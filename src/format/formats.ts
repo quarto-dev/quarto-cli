@@ -34,10 +34,11 @@ import {
 } from "./formats-shared.ts";
 import { revealjsFormat } from "./reveal/format-reveal.ts";
 import { ipynbFormat } from "./ipynb/format-ipynb.ts";
+import { parseFormatString } from "../core/pandoc/pandoc-formats.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
-  const lookupTo = to.split(/[+-]/)[0];
+  const lookupTo = parseFormatString(to).baseFormat;
   let pandocTo = lookupTo;
 
   // get defaults for writer

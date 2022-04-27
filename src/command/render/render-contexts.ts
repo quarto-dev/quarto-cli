@@ -76,6 +76,7 @@ import { filesDirLibDir } from "./render-paths.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
 import { handleLanguageCells } from "../../core/handlers/base.ts";
+import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -429,7 +430,7 @@ async function resolveFormats(
   );
 
   const mergedFormats: Record<string, Format> = {};
-  targetFormats.forEach((format: string) => {
+  for (const format of targetFormats) {
     // alias formats
     const projFormat = projFormats[format];
     const directoryFormat = directoryFormats[format];
@@ -463,12 +464,33 @@ async function resolveFormats(
       }
     }
 
-    // do the merge
+    // resolve any "-" format (exclude markdown extensions)
+    // the 'format' argument passed to defaulWriterFormat needs to
+    // have the custom format suffix removed (principially for markdown)
+    // then, we need to merge the custom format stuff between the
+    // default and user formats
+    // Read _format file
+    // Resolve paths and so on
+
+    // TODO: Read the format file and populate this
+    const extensionMetadata: Metadata = {};
+
+    // The format description
+    const formatDesc = parseFormatString(format);
+
+    const extensionFormatMetadata = await resolveFormatsFromMetadata(
+      extensionMetadata,
+      target.source,
+      [formatDesc.baseFormat],
+    );
+
+    // do the merge of the writer format into this format
     mergedFormats[format] = mergeFormatMetadata(
-      defaultWriterFormat(format),
+      defaultWriterFormat(formatDesc.formatWithVariants),
+      extensionFormatMetadata,
       userFormat,
     );
-  });
+  }
 
   // filter on formats supported by this project
   for (const formatName of Object.keys(mergedFormats)) {
