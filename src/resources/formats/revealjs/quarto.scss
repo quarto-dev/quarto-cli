@@ -452,7 +452,8 @@ $panel-sidebar-padding: 0.5em;
   font-size: inherit;
 }
 
-.reveal .callout.callout-style-default .callout-icon::before {
+.reveal .callout.callout-style-default .callout-icon::before,
+.reveal .callout.callout-style-simple .callout-icon::before {
   height: 2rem;
   width: 2rem;
   background-size: 2rem 2rem;
@@ -466,8 +467,11 @@ $panel-sidebar-padding: 0.5em;
   margin-top: 1rem;
 }
 
-.reveal .callout.callout-captioned .callout-body > :last-child,
-.reveal .callout.callout-captioned .callout-body > div > :last-child {
+.reveal
+  .callout.callout-captioned
+  .callout-body
+  > .callout-content
+  > :last-child {
   margin-bottom: 1rem;
 }
 

@@ -1137,9 +1137,12 @@ div.hanging-indent {
 }
 
 .callout.callout-style-default div.callout-body {
-  margin-top: 0.5em;
   padding-left: 0.5em;
   padding-right: 0.5em;
+}
+
+.callout.callout-style-default div.callout-body > :first-child {
+  margin-top: 0.5em;
 }
 
 .callout > div.callout-header[data-bs-toggle="collapse"] {
