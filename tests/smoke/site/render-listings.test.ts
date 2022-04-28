@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
 
 import { docs } from "../../utils.ts";
@@ -27,9 +27,7 @@ verify.push(ensureHtmlElements(htmlOutput, [
 testQuartoCmd(
   "render",
   [
-    input,
-    "--to",
-    "html",
+    dirname(input),
   ],
   verify,
   {

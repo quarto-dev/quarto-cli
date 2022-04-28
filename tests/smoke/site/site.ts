@@ -12,6 +12,7 @@ import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
 
 export const testSite = (
   input: string,
+  renderTarget: string,
   includeSelectors: string[],
   excludeSelectors: string[],
 ) => {
@@ -26,7 +27,7 @@ export const testSite = (
   // Run the command
   testQuartoCmd(
     "render",
-    [input],
+    [renderTarget],
     [noErrorsOrWarnings, verifySel],
     {
       teardown: async () => {
