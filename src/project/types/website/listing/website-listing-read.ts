@@ -16,12 +16,14 @@ import {
   pathWithForwardSlashes,
   resolvePathGlobs,
 } from "../../../../core/path.ts";
-import { inputTargetIndex } from "../../../project-index.ts";
+import {
+  inputTargetIndex,
+  resolveInputTarget,
+} from "../../../project-index.ts";
 import { ProjectContext } from "../../../types.ts";
 
 import {
   estimateReadingTimeMinutes,
-  findDescriptionMd,
   findPreviewImgMd,
 } from "../util/discover-meta.ts";
 import {
@@ -67,6 +69,7 @@ import {
   ListingSharedOptions,
   ListingSort,
   ListingType,
+  renderedContentReader,
 } from "./website-listing-shared.ts";
 import {
   kListingPageFieldAuthor,
@@ -84,6 +87,8 @@ import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { projectYamlFiles } from "../../../project-context.ts";
 import { parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
+import { ProjectOutputFile } from "../../types.ts";
+import { projectOutputDir } from "../../../project-shared.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -248,6 +253,55 @@ export async function readListings(
   }
   return { listingDescriptors: listingItems, options: sharedOptions };
 }
+
+export function completeListingDescriptions(
+  context: ProjectContext,
+  outputFiles: ProjectOutputFile[],
+  _incremental: boolean,
+) {
+  const contentReader = renderedContentReader(context, false);
+
+  // Go through any output files and fix up any feeds associated with them
+  outputFiles.forEach((outputFile) => {
+    // Does this output file contain a listing?
+    if (outputFile.format.metadata[kListing]) {
+      // Read the listing page
+      let fileContents = Deno.readTextFileSync(outputFile.file);
+
+      // Use a regex to identify any placeholders
+      const regex = descriptionPlaceholderRegex;
+      regex.lastIndex = 0;
+      let match = regex.exec(fileContents);
+      while (match) {
+        // For each placeholder, get its target href, then read the contents of that
+        // file and inject the contents.
+        const relativePath = match[1];
+        const absolutePath = relativePath.startsWith("/")
+          ? join(projectOutputDir(context), relativePath)
+          : join(dirname(outputFile.file), relativePath);
+        const contents = contentReader(absolutePath);
+        const placeholder = descriptionPlaceholder(relativePath);
+        fileContents = fileContents.replace(
+          placeholder,
+          contents.firstPara || "",
+        );
+
+        match = regex.exec(fileContents);
+      }
+      regex.lastIndex = 0;
+      Deno.writeTextFileSync(
+        outputFile.file,
+        fileContents,
+      );
+    }
+  });
+}
+
+function descriptionPlaceholder(file?: string): string {
+  return file ? `<!-- desc(5A0113B34292):${file} -->` : "";
+}
+
+const descriptionPlaceholderRegex = /<!-- desc\(5A0113B34292\):(.*) -->/;
 
 function hydrateListing(
   format: Format,
@@ -559,6 +613,12 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     project,
     projectRelativePath,
   );
+  const inputTarget = await resolveInputTarget(
+    project,
+    projectRelativePath,
+    false,
+  );
+
   const documentMeta = target?.markdown.yaml;
   if (documentMeta?.draft) {
     // This is a draft, don't include it in the listing
@@ -569,7 +629,8 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     const filemodified = fileModifiedDate(input);
     const description = documentMeta?.description as string ||
       documentMeta?.abstract as string ||
-      findDescriptionMd(target?.markdown.markdown);
+      descriptionPlaceholder(inputTarget?.outputHref);
+
     const imageRaw = documentMeta?.image as string ||
       findPreviewImgMd(target?.markdown.markdown);
     const image = imageRaw !== undefined

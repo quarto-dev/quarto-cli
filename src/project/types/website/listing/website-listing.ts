@@ -44,7 +44,10 @@ import {
   templateJsScript,
   templateMarkdownHandler,
 } from "./website-listing-template.ts";
-import { readListings } from "./website-listing-read.ts";
+import {
+  completeListingDescriptions,
+  readListings,
+} from "./website-listing-read.ts";
 import { categorySidebar } from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { completeStagedFeeds, createFeed } from "./website-listing-feed.ts";
@@ -282,6 +285,9 @@ export function completeListingGeneration(
 ) {
   // Complete any staged feeds
   completeStagedFeeds(context, outputFiles, incremental);
+
+  // Ensure any listing items have their rendered descriptions populated
+  completeListingDescriptions(context, outputFiles, incremental);
 
   // Write a global listing index
   updateGlobalListingIndex(context, outputFiles, incremental);
