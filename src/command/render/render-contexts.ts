@@ -559,11 +559,13 @@ const readExtensionMetadata = async (
         [formatDesc.baseFormat],
       );
 
+      const path = join(Deno.cwd(), dirname(file));
+
       // Process any paths
       const metadata = toInputRelativePaths(
         projectType(project?.config?.project?.[kProjectType]),
         dirname(extensionYaml.path),
-        Deno.cwd(),
+        path,
         extensionFormatMetadata,
       );
 

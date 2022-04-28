@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { error, warning } from "log/mod.ts";
+import { warning } from "log/mod.ts";
 import { ProjectContext } from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
 
