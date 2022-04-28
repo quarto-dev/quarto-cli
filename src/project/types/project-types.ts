@@ -44,6 +44,6 @@ export function projectType(type = "default"): ProjectType {
   if (projectType) {
     return projectType;
   } else {
-    throw new Error(`Unsuppported project type ${type}`);
+    throw new Error(`Unsupported project type ${type}`);
   }
 }
