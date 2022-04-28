@@ -5,10 +5,10 @@
  *
  */
 import { extname } from "path/mod.ts";
-import { getBuiltInFormatAliases } from "../lib/yaml-schema/format-aliases.ts";
 import { execProcess } from "../process.ts";
-import { pandocBinaryPath } from "../resources.ts";
+import { pandocBinaryPath, resourcePath } from "../resources.ts";
 import { lines } from "../text.ts";
+import { readYaml } from "../yaml.ts";
 
 export async function pandocListFormats() {
   const result = await execProcess({
@@ -101,9 +101,24 @@ export const parseFormatString = (formatStr: string): FormatDescriptor => {
   }
 };
 
+// Static container to hang on to aliases once they've been read once
+class FormatAliases {
+  static pandoc: string[];
+}
+
 function isBuiltInFormat(format: string) {
+  if (!FormatAliases.pandoc) {
+    const formatAliases = readYaml(
+      resourcePath("schema/format-aliases.yml"),
+    ) as Record<string, unknown>;
+    const pandocFormats = (formatAliases["aliases"] as Record<string, unknown>)[
+      "pandoc-all"
+    ] as string[];
+    FormatAliases.pandoc = pandocFormats;
+  }
+
   // Allow either a built in format or a path to a LUA file
-  return getBuiltInFormatAliases().includes(format) ||
+  return FormatAliases.pandoc.includes(format) ||
     extname(format) === ".lua";
 }
 
