@@ -7,4 +7,3 @@
 
 import "./mermaid.ts";
 import "./include.ts";
-import "./pagebreak.ts";

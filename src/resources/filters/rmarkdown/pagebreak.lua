@@ -78,9 +78,9 @@ function RawBlock (el)
   if FORMAT:match 'tex$' then
     return nil
   end
-  -- check that the block contains only
+  -- check that the block is TeX or LaTeX and contains only
   -- \newpage or \pagebreak.
-  if is_newpage_command(el.text) then
+  if el.format:match 'tex' and is_newpage_command(el.text) then
     -- use format-specific pagebreak marker. FORMAT is set by pandoc to
     -- the targeted output format.
     return newpage(FORMAT)
@@ -97,9 +97,7 @@ function Para (el)
   end
 end
 
-function pageBreaks() 
-  return {
-    Meta = pagebreaks_from_config,
-    RawBlock = RawBlock, Para = Para
-  }
-end
+return {
+  {Meta = pagebreaks_from_config},
+  {RawBlock = RawBlock, Para = Para}
+}
