@@ -4,13 +4,11 @@ import {
   FormatDescriptor,
   parseFormatString,
 } from "../../src/core/pandoc/pandoc-formats.ts";
-import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 
 unitTest(
   "pandoc-format",
+  // deno-lint-ignore require-await
   async () => {
-    await initYamlIntelligenceResourcesFromFilesystem();
-
     const tests: Record<string, FormatDescriptor> = {
       "pdf": {
         baseFormat: "pdf",

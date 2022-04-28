@@ -1,0 +1,29 @@
+
+\begin{frontmatter}
+
+    \title{$title$}
+    $for(by-author)$\author[$for(by-author.affiliations)$$it.number$$endfor$]{$by-author.name.literal$%
+    $if(by-author.attributes.corresponding)$\corref{cor1}$endif$%
+    $if(by-author.note.text)$\fnref{fn$by-author.note.number$}$endif$}
+    $if(by-author.email)$ \ead{$by-author.email$} $endif$
+    $endfor$
+    $for(by-affiliation)$
+    \affiliation[$it.number$]{$it.name$ $it.address$ $it.city$ $it.region$ $it.postal-code$}
+    $endfor$
+    \cortext[cor1]{Corresponding author}
+    $for(by-author)$
+    $if(by-author.note.text)$\fntext[fn$by-author.note.number$]{$by-author.note.text$}$endif$
+    $endfor$
+  
+    \begin{abstract}
+    $abstract$
+    \end{abstract}
+    $if(keywords)$
+    \begin{keyword}
+        $for(keywords/allbutlast)$$keywords$ \sep $endfor$
+        $for(keywords/last)$$keywords$$endfor$
+    \end{keyword}
+    $endif$
+      
+  
+\end{frontmatter}
