@@ -6,6 +6,8 @@
 */
 import { join } from "path/mod.ts";
 
+import * as ld from "../../core/lodash.ts";
+
 import { Document, Element } from "../../core/deno-dom.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
@@ -189,19 +191,22 @@ export async function htmlFormatExtras(
   const sassBundles: SassBundle[] = [];
   const dependencies: FormatDependency[] = [];
 
-  const options: Record<string, unknown> = format.metadata[kComments]
-    ? {
-      [kHypothesis]:
-        (format.metadata[kComments] as Record<string, unknown>)[kHypothesis] ||
-        false,
-      [kUtterances]:
-        (format.metadata[kComments] as Record<string, unknown>)[kUtterances] ||
-        false,
-      [kGiscus]:
-        (format.metadata[kComments] as Record<string, unknown>)[kGiscus] ||
-        false,
-    }
-    : {};
+  const options: Record<string, unknown> =
+    ld.isObject(format.metadata[kComments])
+      ? {
+        [kHypothesis]: (format.metadata[kComments] as Record<string, unknown>)[
+          kHypothesis
+        ] ||
+          false,
+        [kUtterances]: (format.metadata[kComments] as Record<string, unknown>)[
+          kUtterances
+        ] ||
+          false,
+        [kGiscus]:
+          (format.metadata[kComments] as Record<string, unknown>)[kGiscus] ||
+          false,
+      }
+      : {};
   options.codeLink = format.metadata[kCodeLink] || false;
 
   // apply defaults

@@ -8288,353 +8288,362 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "comments",
-          object: {
-            closed: true,
-            properties: {
-              utterances: {
-                object: {
-                  properties: {
-                    repo: {
-                      string: {
-                        description: "The Github repo that will be used to store comments."
-                      }
-                    },
-                    label: {
-                      string: {
-                        description: "The label that will be assigned to issues created by Utterances."
-                      }
-                    },
-                    theme: {
-                      string: {
-                        description: {
-                          short: "The Github theme that should be used for Utterances.",
-                          long: "The Github theme that should be used for Utterances\n(`github-light`, `github-dark`, `github-dark-orange`,\n`icy-dark`, `dark-blue`, `photon-dark`, `body-light`,\nor `gruvbox-dark`)\n"
-                        },
-                        completions: [
-                          "github-light",
-                          "github-dark",
-                          "github-dark-orange",
-                          "icy-dark",
-                          "dark-blue",
-                          "photon-dark",
-                          "body-light",
-                          "gruvbox-dark"
-                        ]
-                      },
-                      "issue-term": {
-                        string: {
-                          description: {
-                            short: "How posts should be mapped to Github issues",
-                            long: "How posts should be mapped to Github issues\n(`pathname`, `url`, `title` or `og:title`)\n"
-                          },
-                          completions: [
-                            "pathname",
-                            "url",
-                            "title",
-                            "og:title"
-                          ]
-                        }
-                      }
-                    }
-                  },
-                  required: [
-                    "repo"
-                  ]
-                }
-              },
-              giscus: {
-                object: {
-                  properties: {
-                    repo: {
-                      string: {
-                        description: {
-                          short: "The Github repo that will be used to store comments.",
-                          long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
-                        }
-                      }
-                    },
-                    "repo-id": {
-                      string: {
-                        description: {
-                          short: "The Github repository identifier.",
-                          long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                        }
-                      }
-                    },
-                    category: {
-                      string: {
-                        description: {
-                          short: "The discussion category where new discussions will be created.",
-                          long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
-                        }
-                      }
-                    },
-                    "category-id": {
-                      string: {
-                        description: {
-                          short: "The Github category identifier.",
-                          long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                        }
-                      }
-                    },
-                    mapping: {
-                      anyOf: [
-                        {
-                          enum: [
-                            "pathname",
-                            "url",
-                            "title",
-                            "og:title"
-                          ]
-                        },
-                        "string"
-                      ],
-                      description: {
-                        short: "The mapping between the page and the embedded discussion.",
-                        long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
-                      }
-                    },
-                    "reactions-enabled": {
-                      boolean: {
-                        description: "Display reactions for the discussion's main post before the comments."
-                      }
-                    },
-                    "input-position": {
-                      enum: [
-                        "top",
-                        "bottom"
-                      ],
-                      description: "Place the comment input box above or below the comments."
-                    },
-                    theme: {
-                      enum: [
-                        "light",
-                        "light_high_contrast",
-                        "light_protanopia",
-                        "dark",
-                        "dark_high_contrast",
-                        "dark_protanopia",
-                        "dark_dimmed",
-                        "transparent_dark",
-                        "preferred_color_scheme"
-                      ],
-                      description: "The giscus theme to use when displaying comments."
-                    },
-                    language: {
-                      string: {
-                        description: "The language that should be used when displaying the commenting interface."
-                      }
-                    }
-                  },
-                  required: [
-                    "repo"
-                  ]
-                }
-              },
-              hypothesis: {
-                anyOf: [
-                  "boolean",
-                  {
+          anyOf: [
+            {
+              enum: [
+                false
+              ]
+            },
+            {
+              object: {
+                closed: true,
+                properties: {
+                  utterances: {
                     object: {
                       properties: {
-                        openSidebar: {
-                          boolean: {
-                            default: false,
-                            description: "Controls whether the sidebar opens automatically on startup."
+                        repo: {
+                          string: {
+                            description: "The Github repo that will be used to store comments."
                           }
                         },
-                        showHighlights: {
-                          anyOf: [
-                            "boolean",
-                            {
-                              enum: [
-                                "always",
-                                "never"
+                        label: {
+                          string: {
+                            description: "The label that will be assigned to issues created by Utterances."
+                          }
+                        },
+                        theme: {
+                          string: {
+                            description: {
+                              short: "The Github theme that should be used for Utterances.",
+                              long: "The Github theme that should be used for Utterances\n(`github-light`, `github-dark`, `github-dark-orange`,\n`icy-dark`, `dark-blue`, `photon-dark`, `body-light`,\nor `gruvbox-dark`)\n"
+                            },
+                            completions: [
+                              "github-light",
+                              "github-dark",
+                              "github-dark-orange",
+                              "icy-dark",
+                              "dark-blue",
+                              "photon-dark",
+                              "body-light",
+                              "gruvbox-dark"
+                            ]
+                          },
+                          "issue-term": {
+                            string: {
+                              description: {
+                                short: "How posts should be mapped to Github issues",
+                                long: "How posts should be mapped to Github issues\n(`pathname`, `url`, `title` or `og:title`)\n"
+                              },
+                              completions: [
+                                "pathname",
+                                "url",
+                                "title",
+                                "og:title"
                               ]
                             }
+                          }
+                        }
+                      },
+                      required: [
+                        "repo"
+                      ]
+                    }
+                  },
+                  giscus: {
+                    object: {
+                      properties: {
+                        repo: {
+                          string: {
+                            description: {
+                              short: "The Github repo that will be used to store comments.",
+                              long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
+                            }
+                          }
+                        },
+                        "repo-id": {
+                          string: {
+                            description: {
+                              short: "The Github repository identifier.",
+                              long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                            }
+                          }
+                        },
+                        category: {
+                          string: {
+                            description: {
+                              short: "The discussion category where new discussions will be created.",
+                              long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
+                            }
+                          }
+                        },
+                        "category-id": {
+                          string: {
+                            description: {
+                              short: "The Github category identifier.",
+                              long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
+                            }
+                          }
+                        },
+                        mapping: {
+                          anyOf: [
+                            {
+                              enum: [
+                                "pathname",
+                                "url",
+                                "title",
+                                "og:title"
+                              ]
+                            },
+                            "string"
                           ],
-                          default: "always",
-                          description: "Controls whether the in-document highlights are shown by default (`always` or `never`)"
+                          description: {
+                            short: "The mapping between the page and the embedded discussion.",
+                            long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
+                          }
+                        },
+                        "reactions-enabled": {
+                          boolean: {
+                            description: "Display reactions for the discussion's main post before the comments."
+                          }
+                        },
+                        "input-position": {
+                          enum: [
+                            "top",
+                            "bottom"
+                          ],
+                          description: "Place the comment input box above or below the comments."
                         },
                         theme: {
                           enum: [
-                            "classic",
-                            "clean"
+                            "light",
+                            "light_high_contrast",
+                            "light_protanopia",
+                            "dark",
+                            "dark_high_contrast",
+                            "dark_protanopia",
+                            "dark_dimmed",
+                            "transparent_dark",
+                            "preferred_color_scheme"
                           ],
-                          default: "classic",
-                          description: "Controls the overall look of the sidebar (`classic` or `clean`)"
+                          description: "The giscus theme to use when displaying comments."
                         },
-                        enableExperimentalNewNoteButton: {
-                          boolean: {
-                            default: false,
-                            description: "Controls whether the experimental New Note button \nshould be shown in the notes tab in the sidebar.\n"
+                        language: {
+                          string: {
+                            description: "The language that should be used when displaying the commenting interface."
                           }
-                        },
-                        usernameUrl: {
-                          schema: "string",
-                          description: "Specify a URL to direct a user to, \nin a new tab. when they click on the annotation author \nlink in the header of an annotation.\n"
-                        },
-                        services: {
-                          arrayOf: {
-                            object: {
-                              properties: {
-                                apiUrl: {
-                                  string: {
-                                    description: "The base URL of the service API."
-                                  }
-                                },
-                                authority: {
-                                  string: {
-                                    description: "The domain name which the annotation service is associated with."
-                                  }
-                                },
-                                grantToken: {
-                                  string: {
-                                    description: "An OAuth 2 grant token which the client can send to the service in order to get an access token for making authenticated requests to the service."
-                                  }
-                                },
-                                allowLeavingGroups: {
-                                  boolean: {
-                                    default: true,
-                                    description: "A flag indicating whether users should be able to leave groups of which they are a member."
-                                  }
-                                },
-                                enableShareLinks: {
-                                  boolean: {
-                                    default: true,
-                                    description: "A flag indicating whether annotation cards should show links that take the user to see an annotation in context."
-                                  }
-                                },
-                                groups: {
-                                  anyOf: [
-                                    {
-                                      enum: [
-                                        "$rpc:requestGroups"
-                                      ]
-                                    },
-                                    {
-                                      arrayOf: "string"
-                                    }
-                                  ],
-                                  description: "An array of Group IDs or the literal string `$rpc:requestGroups`"
-                                },
-                                icon: {
-                                  string: {
-                                    description: "The URL to an image for the annotation service. This image will appear to the left of the name of the currently selected group."
-                                  }
-                                }
-                              },
-                              required: [
-                                "apiUrl",
-                                "authority",
-                                "grantToken"
-                              ],
-                              description: "Alternative annotation services which the client should \nconnect to instead of connecting to the public Hypothesis \nservice at hypothes.is.\n"
-                            }
-                          }
-                        },
-                        branding: {
-                          object: {
-                            properties: {
-                              accentColor: {
-                                string: {
-                                  description: "Secondary color for elements of the commenting UI."
-                                }
-                              },
-                              appBackgroundColor: {
-                                string: {
-                                  description: "The main background color of the commenting UI."
-                                }
-                              },
-                              ctaBackgroundColor: {
-                                string: {
-                                  description: "The background color for call to action buttons."
-                                }
-                              },
-                              selectionFontFamily: {
-                                string: {
-                                  description: "The font family for selection text in the annotation card."
-                                }
-                              },
-                              annotationFontFamily: {
-                                string: {
-                                  description: "The font family for the actual annotation value that the user writes about the page or selection."
-                                }
+                        }
+                      },
+                      required: [
+                        "repo"
+                      ]
+                    }
+                  },
+                  hypothesis: {
+                    anyOf: [
+                      "boolean",
+                      {
+                        object: {
+                          properties: {
+                            openSidebar: {
+                              boolean: {
+                                default: false,
+                                description: "Controls whether the sidebar opens automatically on startup."
                               }
                             },
-                            description: "Settings to adjust the commenting sidebar's look and feel."
-                          }
-                        },
-                        externalContainerSelector: {
-                          string: {
-                            description: "A CSS selector specifying the containing element into which the sidebar iframe will be placed."
-                          }
-                        },
-                        focus: {
-                          object: {
-                            properties: {
-                              user: {
+                            showHighlights: {
+                              anyOf: [
+                                "boolean",
+                                {
+                                  enum: [
+                                    "always",
+                                    "never"
+                                  ]
+                                }
+                              ],
+                              default: "always",
+                              description: "Controls whether the in-document highlights are shown by default (`always` or `never`)"
+                            },
+                            theme: {
+                              enum: [
+                                "classic",
+                                "clean"
+                              ],
+                              default: "classic",
+                              description: "Controls the overall look of the sidebar (`classic` or `clean`)"
+                            },
+                            enableExperimentalNewNoteButton: {
+                              boolean: {
+                                default: false,
+                                description: "Controls whether the experimental New Note button \nshould be shown in the notes tab in the sidebar.\n"
+                              }
+                            },
+                            usernameUrl: {
+                              schema: "string",
+                              description: "Specify a URL to direct a user to, \nin a new tab. when they click on the annotation author \nlink in the header of an annotation.\n"
+                            },
+                            services: {
+                              arrayOf: {
                                 object: {
                                   properties: {
-                                    username: {
+                                    apiUrl: {
                                       string: {
-                                        description: "The username of the user to focus on."
+                                        description: "The base URL of the service API."
                                       }
                                     },
-                                    userid: {
+                                    authority: {
                                       string: {
-                                        description: "The userid of the user to focus on."
+                                        description: "The domain name which the annotation service is associated with."
                                       }
                                     },
-                                    displayName: {
+                                    grantToken: {
                                       string: {
-                                        description: "The display name of the user to focus on."
+                                        description: "An OAuth 2 grant token which the client can send to the service in order to get an access token for making authenticated requests to the service."
                                       }
+                                    },
+                                    allowLeavingGroups: {
+                                      boolean: {
+                                        default: true,
+                                        description: "A flag indicating whether users should be able to leave groups of which they are a member."
+                                      }
+                                    },
+                                    enableShareLinks: {
+                                      boolean: {
+                                        default: true,
+                                        description: "A flag indicating whether annotation cards should show links that take the user to see an annotation in context."
+                                      }
+                                    },
+                                    groups: {
+                                      anyOf: [
+                                        {
+                                          enum: [
+                                            "$rpc:requestGroups"
+                                          ]
+                                        },
+                                        {
+                                          arrayOf: "string"
+                                        }
+                                      ],
+                                      description: "An array of Group IDs or the literal string `$rpc:requestGroups`"
+                                    },
+                                    icon: {
+                                      string: {
+                                        description: "The URL to an image for the annotation service. This image will appear to the left of the name of the currently selected group."
+                                      }
+                                    }
+                                  },
+                                  required: [
+                                    "apiUrl",
+                                    "authority",
+                                    "grantToken"
+                                  ],
+                                  description: "Alternative annotation services which the client should \nconnect to instead of connecting to the public Hypothesis \nservice at hypothes.is.\n"
+                                }
+                              }
+                            },
+                            branding: {
+                              object: {
+                                properties: {
+                                  accentColor: {
+                                    string: {
+                                      description: "Secondary color for elements of the commenting UI."
+                                    }
+                                  },
+                                  appBackgroundColor: {
+                                    string: {
+                                      description: "The main background color of the commenting UI."
+                                    }
+                                  },
+                                  ctaBackgroundColor: {
+                                    string: {
+                                      description: "The background color for call to action buttons."
+                                    }
+                                  },
+                                  selectionFontFamily: {
+                                    string: {
+                                      description: "The font family for selection text in the annotation card."
+                                    }
+                                  },
+                                  annotationFontFamily: {
+                                    string: {
+                                      description: "The font family for the actual annotation value that the user writes about the page or selection."
+                                    }
+                                  }
+                                },
+                                description: "Settings to adjust the commenting sidebar's look and feel."
+                              }
+                            },
+                            externalContainerSelector: {
+                              string: {
+                                description: "A CSS selector specifying the containing element into which the sidebar iframe will be placed."
+                              }
+                            },
+                            focus: {
+                              object: {
+                                properties: {
+                                  user: {
+                                    object: {
+                                      properties: {
+                                        username: {
+                                          string: {
+                                            description: "The username of the user to focus on."
+                                          }
+                                        },
+                                        userid: {
+                                          string: {
+                                            description: "The userid of the user to focus on."
+                                          }
+                                        },
+                                        displayName: {
+                                          string: {
+                                            description: "The display name of the user to focus on."
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                required: [
+                                  "user"
+                                ]
+                              },
+                              description: "Defines a focused filter set for the available annotations on a page."
+                            },
+                            requestConfigFromFrame: {
+                              object: {
+                                properties: {
+                                  origin: {
+                                    string: {
+                                      description: "Host url and port number of receiving iframe"
+                                    }
+                                  },
+                                  ancestorLevel: {
+                                    number: {
+                                      description: "Number of nested iframes deep the client is relative from the receiving iframe."
                                     }
                                   }
                                 }
                               }
                             },
-                            required: [
-                              "user"
-                            ]
-                          },
-                          description: "Defines a focused filter set for the available annotations on a page."
-                        },
-                        requestConfigFromFrame: {
-                          object: {
-                            properties: {
-                              origin: {
-                                string: {
-                                  description: "Host url and port number of receiving iframe"
-                                }
-                              },
-                              ancestorLevel: {
-                                number: {
-                                  description: "Number of nested iframes deep the client is relative from the receiving iframe."
-                                }
+                            assetRoot: {
+                              string: {
+                                description: "The root URL from which assets are loaded."
+                              }
+                            },
+                            sidebarAppUrl: {
+                              string: {
+                                description: "The URL for the sidebar application which displays annotations.",
+                                default: "https://hypothes.is/app.html"
                               }
                             }
-                          }
-                        },
-                        assetRoot: {
-                          string: {
-                            description: "The root URL from which assets are loaded."
-                          }
-                        },
-                        sidebarAppUrl: {
-                          string: {
-                            description: "The URL for the sidebar application which displays annotations.",
-                            default: "https://hypothes.is/app.html"
                           }
                         }
                       }
-                    }
+                    ]
                   }
-                ]
+                }
               }
             }
-          }
+          ]
         },
         {
           id: "social-metadata",
