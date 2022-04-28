@@ -598,6 +598,7 @@ export async function runPandoc(
       [
         "gfm",
         "commonmark",
+        "commonmark_x",
         "markdown_strict",
         "markdown_phpextra",
         "markdown_github",

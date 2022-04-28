@@ -65,6 +65,7 @@ function isMarkdownOutput()
     "markdown_strict",
     "gfm",
     "commonmark",
+    "commonmark_x",
     "markua"
   }
   return tcontains(formats, FORMAT)

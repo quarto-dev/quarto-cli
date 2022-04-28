@@ -1,7 +1,7 @@
 aliases:
   epub-all: [epub, epub2, epub3]
   pdf-all: [latex, pdf, beamer]
-  markdown-all: [markdown, gfm, commonmark, markua, hugo]
+  markdown-all: [markdown, gfm, commonmark, commonmark_x, markua, hugo]
   office-all: [docx, pptx]
   docbook-all: [docbook, docbook4, docbook5]
   odt-all: [odt, opendocument]
