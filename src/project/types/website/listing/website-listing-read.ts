@@ -5,8 +5,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-
-import { basename, dirname, isGlob, join, relative } from "path/mod.ts";
+import { warning } from "log/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -84,7 +84,6 @@ import {
 } from "../../../../config/constants.ts";
 import { isAbsoluteRef } from "../../../../core/http.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
-import { projectYamlFiles } from "../../../project-context.ts";
 import { parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
 import { ProjectOutputFile } from "../../types.ts";
@@ -276,16 +275,23 @@ export function completeListingDescriptions(
         // For each placeholder, get its target href, then read the contents of that
         // file and inject the contents.
         const relativePath = match[1];
-        const absolutePath = relativePath.startsWith("/")
-          ? join(projectOutputDir(context), relativePath)
-          : join(dirname(outputFile.file), relativePath);
-        const contents = contentReader(absolutePath);
+        const absolutePath = join(projectOutputDir(context), relativePath);
         const placeholder = descriptionPlaceholder(relativePath);
-        fileContents = fileContents.replace(
-          placeholder,
-          contents.firstPara || "",
-        );
-
+        if (existsSync(absolutePath)) {
+          const contents = contentReader(absolutePath);
+          fileContents = fileContents.replace(
+            placeholder,
+            contents.firstPara || "",
+          );
+        } else {
+          fileContents = fileContents.replace(
+            placeholder,
+            "",
+          );
+          warning(
+            `Unable to read listing item description from ${relativePath}`,
+          );
+        }
         match = regex.exec(fileContents);
       }
       regex.lastIndex = 0;
