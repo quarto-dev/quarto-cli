@@ -5,12 +5,12 @@ format: html
 
 ## With inherited fixup
 
-<include file="sub/include-1.md"/>
+{{< include sub/include-1.md >}}
 
 ## With forced fixup
 
-<include file="sub/include-1.md" fixup="true"/>
+{{< include sub/include-1.md fixup=true >}}
 
 ## With no fixup
 
-<include file="sub/include-1.md" fixup="false"/>
+{{< include sub/include-1.md fixup=false >}}

@@ -4,12 +4,12 @@ Here is a [relative link](../link.qmd).
 
 ## inherited fixup
 
-<include file="sub/include-2.md"/>
+{{< include sub/include-2.md >}}
 
 ## forced fixup
 
-<include file="sub/include-2.md" fixup="true"/>
+{{< include sub/include-2.md fixup=true >}}
 
 ## forced no fixup
 
-<include file="sub/include-2.md" fixup="false"/>
+{{< include sub/include-2.md fixup=false >}}

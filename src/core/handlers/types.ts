@@ -5,7 +5,7 @@ import {
 } from "../../config/constants.ts";
 import { DependencyFile, Format, FormatExtras } from "../../config/types.ts";
 import { PandocIncludes } from "../../execute/types.ts";
-import { QuartoMdCell } from "../lib/break-quarto-md-types.ts";
+import { DirectiveCell, QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { EitherString, MappedString } from "../lib/text-types.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 import { TempContext } from "../temp-types.ts";
@@ -53,7 +53,7 @@ export interface LanguageHandler {
 
   directive?: (
     handlerContext: LanguageCellHandlerContext,
-    options: Record<string, string>,
+    directiveCell: DirectiveCell,
   ) => EitherString;
 
   comment?: LanguageComment;

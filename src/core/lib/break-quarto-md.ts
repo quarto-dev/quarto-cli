@@ -14,12 +14,8 @@ import { asMappedString, EitherString, mappedString } from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
-import {
-  DirectiveCell,
-  QuartoMdCell,
-  QuartoMdChunks,
-} from "./break-quarto-md-types.ts";
-import { isDirectiveTag } from "./parse-directive-tag.ts";
+import { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
+import { isBlockShortcode } from "./parse-shortcode.ts";
 
 export type { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
 
@@ -46,8 +42,13 @@ export async function breakQuartoMd(
   const delimitMathBlockRegEx = /^\$\$/;
 
   let language = ""; // current language block
-  let tagName = "";
-  let tagOptions: Record<string, string> = {}; // tag options needs to be a stack to remember the options as we close the tag
+  let directiveParams: {
+    name: string;
+    params: {
+      name?: string;
+      value: string;
+    }[];
+  } | undefined = undefined;
   let cellStartLine = 0;
 
   // line buffer
@@ -87,8 +88,8 @@ export async function breakQuartoMd(
         ) {
           return {
             language: "_directive",
-            tag: tagName,
-            attrs: tagOptions,
+            name: directiveParams!.name,
+            params: directiveParams!.params,
           };
         } else {
           return cell_type;
@@ -142,8 +143,6 @@ export async function breakQuartoMd(
       } else if (cell_type === "directive") {
         // directives only carry tag source in sourceVerbatim, analogously to code
         cell.source = mappedString(src, mappedChunks.slice(1, -1));
-        // directives carry options in cell_type, use that
-        cell.options = (cell.cell_type as DirectiveCell).attrs;
       }
       // if the source is empty then don't add it
       if (
@@ -172,11 +171,11 @@ export async function breakQuartoMd(
 
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    const directiveMatch = isDirectiveTag(line.substring);
+    const directiveMatch = isBlockShortcode(line.substring);
     // yaml front matter
     if (
       yamlRegEx.test(line.substring) && !inCodeCell && !inCode &&
-      !inMathBlock && tagName.length === 0
+      !inMathBlock
     ) {
       if (inYaml) {
         lineBuffer.push(line);
@@ -190,8 +189,7 @@ export async function breakQuartoMd(
     } // found empty directive
     else if (inPlainText() && directiveMatch) {
       await flushLineBuffer("markdown", i);
-      tagName = directiveMatch.name;
-      tagOptions = directiveMatch.attributes;
+      directiveParams = directiveMatch;
       lineBuffer.push(line);
       await flushLineBuffer("directive", i);
     } // begin code cell: ^```python
@@ -228,7 +226,7 @@ export async function breakQuartoMd(
         lineBuffer.push(line);
         await flushLineBuffer("math", i);
       } else {
-        if (inYaml || inCode || inCodeCell || tagName.length > 0) {
+        if (inYaml || inCode || inCodeCell) {
           // TODO signal a parse error?
           // for now, we just skip.
         } else {

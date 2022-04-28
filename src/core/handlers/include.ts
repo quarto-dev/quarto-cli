@@ -17,7 +17,12 @@ import {
 import { dirname, join, normalize, relative } from "path/mod.ts";
 import { encodeMetadata } from "../encode-metadata.ts";
 import { rangedLines } from "../lib/ranged-text.ts";
-import { isDirectiveTag } from "../lib/parse-directive-tag.ts";
+import {
+  getShortcodeNamedParams,
+  getShortcodeUnnamedParams,
+  isBlockShortcode,
+} from "../lib/parse-shortcode.ts";
+import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -29,7 +34,7 @@ const includeHandler: LanguageHandler = {
 
   directive(
     handlerContext: LanguageCellHandlerContext,
-    options: Record<string, string>,
+    directive: DirectiveCell,
   ) {
     const sourceDir = dirname(handlerContext.options.source);
     const retrievedFiles: string[] = [handlerContext.options.source];
@@ -94,20 +99,24 @@ const includeHandler: LanguageHandler = {
 
       let rangeStart = 0;
       for (const { substring, range } of rangedLines(includeSrc.value)) {
-        const m = isDirectiveTag(substring);
+        const m = isBlockShortcode(substring);
         if (m && m.name.toLocaleLowerCase() === "include") {
           textFragments.push(
             mappedString(includeSrc, [{ start: rangeStart, end: range.start }]),
           );
           rangeStart = range.end;
-          if (typeof m.attributes.file !== "string") {
-            throw new Error("Include directive needs attribute `file`");
+          const params = getShortcodeUnnamedParams(m);
+          const options = getShortcodeNamedParams(m);
+          if (params.length === 0) {
+            throw new Error("Include directive needs file parameter");
           }
-          const fixup = m.attributes.fixup === undefined
+          const file = params[0];
+          const fixup = options.fixup === undefined
             ? undefined
-            : ((m.attributes.fixup as string).toLocaleLowerCase() !== "false");
+            : (options.fixup.toLocaleLowerCase() !== "false");
+
           retrieveInclude(
-            join(...[...retrievedDirectories, m.attributes.file]),
+            join(...[...retrievedDirectories, file]),
             fixup,
           );
         }
@@ -128,17 +137,16 @@ const includeHandler: LanguageHandler = {
       addFixup(filename);
     };
 
-    const fileName = options?.["file"];
-    if (fileName === undefined) {
-      throw new Error("Include directive needs attribute `file`");
+    const params = getShortcodeUnnamedParams(directive);
+    const options = getShortcodeNamedParams(directive);
+    if (params.length === 0) {
+      throw new Error("Include directive needs filename as a parameter");
     }
-
-    const includeName = join(sourceDir, fileName as string);
+    const includeName = join(sourceDir, params[0]);
 
     const fixup = options.fixup === undefined
       ? undefined
-      : ((typeof options.fixup === "string") &&
-        (options.fixup.toLocaleLowerCase() !== "false"));
+      : (options.fixup.toLocaleLowerCase() !== "false");
 
     retrieveInclude(includeName, fixup);
 

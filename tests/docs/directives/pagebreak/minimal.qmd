@@ -1,13 +1,12 @@
 ---
 title: Pagebreak test
-keep-md: true
 ---
 
 ## Here's a subheading with some text
 
 A short page.
 
-<pagebreak/>
+{{< pagebreak >}}
 
 ## Another page
 

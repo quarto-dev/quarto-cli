@@ -15,8 +15,8 @@ export interface CodeCellType {
 
 export interface DirectiveCell {
   language: "_directive";
-  tag: string;
-  attrs: Record<string, string>;
+  name: string;
+  params: { name?: string; value: string }[];
 }
 
 export interface QuartoMdCell {

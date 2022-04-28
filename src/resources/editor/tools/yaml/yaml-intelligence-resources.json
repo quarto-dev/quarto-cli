@@ -8597,6 +8597,7 @@
         "markdown",
         "gfm",
         "commonmark",
+        "commonmark_x",
         "markua",
         "hugo"
       ],
@@ -11621,6 +11622,7 @@
   ],
   "handlers/languages.yml": [
     "include",
+    "pagebreak",
     "mermaid"
   ],
   "handlers/lang-comment-chars.yml": {

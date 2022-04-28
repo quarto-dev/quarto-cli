@@ -7,6 +7,7 @@
 
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
+import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -17,7 +18,7 @@ const includeHandler: LanguageHandler = {
 
   directive(
     _handlerContext: LanguageCellHandlerContext,
-    _options: Record<string, string>,
+    _directive: DirectiveCell,
   ) {
     return "\n\n\\pagebreak\n\n";
   },

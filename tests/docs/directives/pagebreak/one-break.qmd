@@ -6,7 +6,7 @@ title: Pagebreak test
 
 A short page.
 
-<pagebreak/>
+{{< pagebreak >}}
 
 ## Another page
 

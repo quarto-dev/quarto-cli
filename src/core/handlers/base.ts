@@ -220,7 +220,7 @@ export async function handleLanguageCells(
       // directive handler
       for (const cell of cells) {
         const directiveCellType = cell.source.cell_type as DirectiveCell;
-        const innerLanguage = directiveCellType.tag;
+        const innerLanguage = directiveCellType.name;
         const innerLanguageHandler = handlers[innerLanguage]!;
 
         if (
@@ -235,12 +235,7 @@ export async function handleLanguageCells(
           innerLanguageHandler.type === "cell"
         ) {
           // if no handler is present (or a directive was included for something
-          // that responds to cells instead), just create a div tag
-          newCells[cell.index] = mappedReplace(
-            cell.source.source,
-            new RegExp(`<${directiveCellType.tag}`, "i"),
-            `<div quarto-directive="${directiveCellType.tag}"`,
-          );
+          // that responds to cells instead), we're a no-op
           continue;
         }
         if (innerLanguageHandler.directive === undefined) {
@@ -257,7 +252,7 @@ export async function handleLanguageCells(
 
         newCells[cell.index] = asMappedString(innerLanguageHandler.directive(
           innerHandler.context,
-          directiveCellType.attrs,
+          directiveCellType,
         ));
 
         results = mergeConfigs(results, innerHandler.results);
