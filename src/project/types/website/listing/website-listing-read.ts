@@ -11,7 +11,11 @@ import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
-import { filterPaths, resolvePathGlobs } from "../../../../core/path.ts";
+import {
+  filterPaths,
+  pathWithForwardSlashes,
+  resolvePathGlobs,
+} from "../../../../core/path.ts";
 import { inputTargetIndex } from "../../../project-index.ts";
 import { ProjectContext } from "../../../types.ts";
 
@@ -569,7 +573,9 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     const imageRaw = documentMeta?.image as string ||
       findPreviewImgMd(target?.markdown.markdown);
     const image = imageRaw !== undefined
-      ? listingItemHref(imageRaw, dirname(projectRelativePath))
+      ? pathWithForwardSlashes(
+        listingItemHref(imageRaw, dirname(projectRelativePath)),
+      )
       : undefined;
 
     const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
