@@ -9,6 +9,7 @@ import {
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
+  kLatexInputPaths,
   kLatexMaxRuns,
   kLatexMinRuns,
   kLatexOutputDir,
@@ -61,6 +62,14 @@ export function quartoLatexmkOutputRecipe(
     format: Format,
     pandocOptions: PandocOptions,
   ): Promise<string> => {
+    // Resolve any tex input paths
+    const texInputDirs: string[] = format.pandoc.template
+      ? [`${dirname(format.pandoc.template)}//`]
+      : [];
+    if (format.render[kLatexInputPaths]) {
+      texInputDirs.push(...format.render[kLatexInputPaths]!);
+    }
+
     // determine latexmk options
     const mkOptions: LatexmkOptions = {
       input,
@@ -69,9 +78,7 @@ export function quartoLatexmkOutputRecipe(
       autoMk: format.render[kLatexAutoMk],
       minRuns: format.render[kLatexMinRuns],
       maxRuns: format.render[kLatexMaxRuns],
-      texInputDir: format.pandoc.template
-        ? dirname(format.pandoc.template)
-        : undefined,
+      texInputDirs,
       outputDir: outputDir === null ? undefined : outputDir,
       clean: !options.flags?.debug && format.render[kLatexClean] !== false,
       quiet: pandocOptions.flags?.quiet,

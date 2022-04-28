@@ -6,6 +6,7 @@
 */
 
 import { basename, dirname, extname, join } from "path/mod.ts";
+import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 
 // Gets output that should be created for this input file and target format
 export function outputForInput(input: string, to: string) {
@@ -13,14 +14,17 @@ export function outputForInput(input: string, to: string) {
   const dir = dirname(input);
   const stem = basename(input, extname(input));
 
-  let outputExt = to || "html";
-  if (to === "latex" || to == "context") {
+  const formatDesc = parseFormatString(to);
+  const baseFormat = formatDesc.baseFormat;
+
+  let outputExt = baseFormat || "html";
+  if (baseFormat === "latex" || baseFormat == "context") {
     outputExt = "tex";
   }
-  if (to === "revealjs") {
+  if (baseFormat === "revealjs") {
     outputExt = "html";
   }
-  if (to === "commonmark") {
+  if (baseFormat === "commonmark") {
     outputExt = "md";
   }
 

@@ -134,6 +134,7 @@ import {
 import { formatLanguage } from "../../core/language.ts";
 import {
   pandocFormatWith,
+  parseFormatString,
   splitPandocFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
 import { parseAuthor } from "../../core/author.ts";
@@ -593,7 +594,8 @@ export async function runPandoc(
     !allDefaults[kTemplate] && !havePandocArg(args, "--template") &&
     allDefaults.to
   ) {
-    const lookupTo = allDefaults.to.split(/[+-]/)[0];
+    const formatDesc = parseFormatString(allDefaults.to);
+    const lookupTo = formatDesc.baseFormat;
     if (
       [
         "gfm",

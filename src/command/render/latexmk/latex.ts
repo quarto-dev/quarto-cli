@@ -44,7 +44,7 @@ export async function runPdfEngine(
   input: string,
   engine: PdfEngine,
   outputDir?: string,
-  texInputDir?: string,
+  texInputDirs?: string[],
   pkgMgr?: PackageManager,
   quiet?: boolean,
 ): Promise<LatexCommandReponse> {
@@ -84,7 +84,7 @@ export async function runPdfEngine(
     {
       pkgMgr,
       cwd,
-      texInputDir,
+      texInputDirs,
     },
     quiet,
   );
@@ -163,7 +163,7 @@ export async function runBibEngine(
 export interface LatexCommandContext {
   pkgMgr?: PackageManager;
   cwd?: string;
-  texInputDir?: string;
+  texInputDirs?: string[];
 }
 
 async function runLatexCommand(
@@ -186,9 +186,10 @@ async function runLatexCommand(
   // Add a tex search path
   // The // means that TeX programs will search recursively in that folder;
   // the trailing colon means "append the standard value of TEXINPUTS" (which you don't need to provide).
-  if (context.texInputDir) {
+  if (context.texInputDirs) {
+    // note this  //
     runOptions.env = runOptions.env || {};
-    runOptions.env["TEXINPUTS"] = `${context.texInputDir}//:`;
+    runOptions.env["TEXINPUTS"] = `${context.texInputDirs.join(";")};`;
   }
 
   // Run the command

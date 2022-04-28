@@ -124,6 +124,7 @@ export function resolvePathGlobs(
   root: string,
   globs: string[],
   exclude: string[],
+  strict?: boolean,
 ): ResolvedPathGlobs {
   // expand a set of globs
   const expandGlobs = (targetGlobs: string[]) => {
@@ -140,7 +141,7 @@ export function resolvePathGlobs(
     }
     return ld.uniq(expanded);
   };
-  return resolveGlobs(root, globs, expandGlobs);
+  return resolveGlobs(root, globs, expandGlobs, strict);
 }
 
 export function pathWithForwardSlashes(path: string) {
@@ -151,6 +152,7 @@ export function resolveGlobs(
   root: string,
   globs: string[],
   expandGlobs: (targetGlobs: string[]) => string[],
+  strict?: boolean,
 ): ResolvedPathGlobs {
   // preprocess the globs for **, negation -> exclude, etc
   const includeGlobs: string[] = [];
@@ -163,17 +165,19 @@ export function resolveGlobs(
       glob = glob.slice(1);
     }
     // ending w/ a slash means everything in the dir
-    if (glob.endsWith("/")) {
-      glob = glob + "**/*";
-    } else {
-      // literal relative reference to any directory means everything in the dir
-      const fullPath = join(root, glob);
-      try {
-        if (Deno.statSync(fullPath).isDirectory) {
-          glob = glob + "/**/*";
+    if (!strict) {
+      if (glob.endsWith("/")) {
+        glob = glob + "**/*";
+      } else {
+        // literal relative reference to any directory means everything in the dir
+        const fullPath = join(root, glob);
+        try {
+          if (Deno.statSync(fullPath).isDirectory) {
+            glob = glob + "/**/*";
+          }
+        } catch {
+          // Leave the glob alone, this must not be a directory
         }
-      } catch {
-        // Leave the glob alone, this must not be a directory
       }
     }
 

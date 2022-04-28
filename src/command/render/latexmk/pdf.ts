@@ -60,7 +60,7 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
     mkOptions.engine,
     pkgMgr,
     mkOptions.outputDir,
-    mkOptions.texInputDir,
+    mkOptions.texInputDirs,
     mkOptions.quiet,
   );
   const initialCompileNeedsRerun = needsRecompilation(response.log);
@@ -99,7 +99,7 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
       mkOptions.minRuns || 1,
       maxRuns,
       mkOptions.outputDir,
-      mkOptions.texInputDir,
+      mkOptions.texInputDirs,
       mkOptions.quiet,
     );
   }
@@ -125,7 +125,7 @@ async function initialCompileLatex(
   engine: PdfEngine,
   pkgMgr: PackageManager,
   outputDir?: string,
-  texInputDir?: string,
+  texInputDirs?: string[],
   quiet?: boolean,
 ) {
   let packagesUpdated = false;
@@ -135,7 +135,7 @@ async function initialCompileLatex(
       input,
       engine,
       outputDir,
-      texInputDir,
+      texInputDirs,
       pkgMgr,
       quiet,
     );
@@ -455,7 +455,7 @@ async function recompileLatexUntilComplete(
   minRuns: number,
   maxRuns: number,
   outputDir?: string,
-  texInputDir?: string,
+  texInputDirs?: string[],
   quiet?: boolean,
 ) {
   // Run the engine until the bibliography is fully resolved
@@ -486,7 +486,7 @@ async function recompileLatexUntilComplete(
       input,
       engine,
       outputDir,
-      texInputDir,
+      texInputDirs,
       pkgMgr,
       quiet,
     );
