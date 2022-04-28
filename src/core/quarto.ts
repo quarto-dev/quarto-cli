@@ -5,11 +5,10 @@
 *
 */
 import { existsSync } from "fs/exists.ts";
-import { join } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
 import { getenv } from "./env.ts";
-import { logError } from "./log.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -41,12 +40,9 @@ export function monitorQuartoSrcChanges(cleanup: VoidFunction) {
     );
     const watcher = Deno.watchFs([srcDir], { recursive: true });
     const watchForChanges = async () => {
-      for await (const _event of watcher) {
-        try {
+      for await (const event of watcher) {
+        if (event.paths.some((path) => extname(path).toLowerCase() === ".ts")) {
           info("quarto src code changed: preview terminating");
-        } catch (e) {
-          logError(e);
-        } finally {
           cleanup();
           Deno.exit(1);
         }
