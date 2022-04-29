@@ -8,24 +8,20 @@ local kOpenShortcodeEscape = "/*"
 local kCloseShortcode = ">}}"
 local kCloseShortcodeEscape = "*/"
 
-function shortCodes() 
+function shortCodesBlocks() 
+  return {
+    Blocks = transformShortcodeBlocks,
+    CodeBlock =  transformShortcodeCode
+  }
+end
 
-  initShortcodeHandlers()
+function shortCodesInlines() 
 
   return {
-
-    Blocks = transformShortcodeBlocks,
-
     Inlines = transformShortcodeInlines,
-
     Code = transformShortcodeCode,
-
-    CodeBlock =  transformShortcodeCode,
-
     Link = transformLink,
-
-    Image = transformImage,
-    
+    Image = transformImage
   }
 end
 

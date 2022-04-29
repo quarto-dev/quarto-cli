@@ -78,11 +78,13 @@ import("include-paths.lua")
 -- [/import]
 
 initParams()
+initShortcodeHandlers()
 
 return {
   readIncludes(),
   initOptions(),
-  shortCodes(),  
+  shortCodesBlocks(),  
+  shortCodesInlines(),  
   tableRawhtml(),
   tableColwidthCell(),
   tableColwidth(),
