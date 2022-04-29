@@ -228,6 +228,7 @@ export async function handleLanguageCells(
           (innerLanguageHandler.stage !== "any" &&
             innerLanguageHandler.stage !== options.stage)
         ) { // we're in the wrong stage, so we don't actually do anything
+          newCells[cell.index] = mappedConcat([newCells[cell.index], "\n"]);
           continue;
         }
         if (
@@ -236,6 +237,7 @@ export async function handleLanguageCells(
         ) {
           // if no handler is present (or a directive was included for something
           // that responds to cells instead), we're a no-op
+          newCells[cell.index] = mappedConcat([newCells[cell.index], "\n"]);
           continue;
         }
         if (innerLanguageHandler.directive === undefined) {
