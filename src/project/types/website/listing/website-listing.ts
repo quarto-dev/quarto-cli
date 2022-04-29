@@ -7,7 +7,7 @@
 */
 
 import { basename, dirname, join, relative } from "path/mod.ts";
-import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
 
 import {
@@ -178,6 +178,18 @@ export async function listingHtmlDependencies(
         listingDescriptor.items,
       ),
     );
+  });
+
+  markdownHandlers.push({
+    getUnrendered: () => {
+      return {
+        inlines: {
+          "quarto-enable-math-inline": "$e = mC^2$",
+        },
+      };
+    },
+    processRendered: (_rendered: Record<string, Element>, _doc: Document) => {
+    },
   });
 
   const pipeline = createMarkdownPipeline(
