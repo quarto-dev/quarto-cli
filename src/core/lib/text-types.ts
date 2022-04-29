@@ -27,7 +27,6 @@ export interface RangedSubstring {
 export type StringMapResult = {
   index: number;
   originalString: MappedString;
-  // originalString: EitherString;
 } | undefined;
 
 export interface MappedString {

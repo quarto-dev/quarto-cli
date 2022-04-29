@@ -90,10 +90,7 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
           result: result as JSONValue,
           components,
           kind,
-          source: mappedString(mappedYaml, [{
-            start: position - rightTrim,
-            end: position - rightTrim,
-          }]),
+          source: mappedYaml,
         });
       } else {
         results.push({
@@ -102,10 +99,7 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
           result: result,
           components,
           kind,
-          source: mappedString(mappedYaml, [{
-            start: position + leftTrim,
-            end: position - rightTrim,
-          }]),
+          source: mappedYaml,
         });
       }
     } else {
@@ -122,7 +116,7 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
       result: null,
       kind: "null",
       components: [],
-      source: mappedString(mappedYaml, [{ start: 0, end: 0 }]),
+      source: mappedYaml,
     };
   }
   if (results.length !== 1) {
@@ -188,7 +182,7 @@ export function buildTreeSitterAnnotation(
       result: null,
       kind: "<<ERROR>>",
       components: [],
-      source: mappedString(mappedSource, [{ start, end }]),
+      source: mappedSource,
     };
   };
 
@@ -199,7 +193,7 @@ export function buildTreeSitterAnnotation(
       result: null,
       kind: "<<EMPTY>>",
       components: [],
-      source: mappedString(mappedSource, [{ start: position, end: position }]),
+      source: mappedSource,
     };
   };
 
@@ -217,10 +211,7 @@ export function buildTreeSitterAnnotation(
       // to make sure your annotated walkers know
       // about tree-sitter and js-yaml both.
       components,
-      source: mappedString(mappedSource, [{
-        start: node.startIndex,
-        end: node.endIndex,
-      }]),
+      source: mappedSource,
     };
   };
 
@@ -578,7 +569,7 @@ export function locateAnnotation(
   // FIXME we temporarily work around AnnotatedParse bugs
   // here
 
-  const originalSource = annotation.source.originalString;
+  const originalSource = annotation.source;
 
   kind = kind || "value";
   for (let i = 0; i < position.length; ++i) {
@@ -593,7 +584,7 @@ export function locateAnnotation(
       let found = false;
       for (let j = 0; j < annotation.components.length; j += 2) {
         if (
-          originalSource.substring(
+          originalSource.value.substring(
             annotation.components[j].start,
             annotation.components[j].end,
           ).trim() ===

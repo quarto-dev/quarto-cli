@@ -32,37 +32,13 @@ export type {
 } from "./text-types.ts";
 
 /**
-mappedString provides a mechanism for maintaining offset information
-through substrings. This comes up often in quarto, where we often pull
-a part of a larger string, send that to an interpreter, compiler or
-validator, and then want to report error information with respect to
-line information in the first string.
-
-You construct a mappedString from a list of substring ranges of an
-original string (or unmappable "new" substrings), which are
-concatenated into the result in the field `value`.
-
-In the field `originalString`, we keep the "original string"
-
-In the field `fileName`, we (optionally) keep a filename, strictly as
-metadata for error reporting.
-
-In addition to this new string, mappedString returns two functions:
-
-- a function `map` that sends offset from this new
-string into offsets of the old string.
-
-- a function `mapClosest` attempts to avoid undefined results by
-returning the closest smaller result that is valid in case it's called
-with a value that has no inverse.
-
-If you pass a MappedString as the input to this function, the result's
-map will walk the inverse maps all the way to the raw, unmapped
-string (which will be stored in `originalString`).
-
-This provides a natural composition for mapped strings.
-*/
-
+ * returns a substring of the mapped string, together with associated maps
+ *
+ * @param source
+ * @param start index for start of substring
+ * @param end index for end of substring (optional)
+ * @returns mapped string
+ */
 export function mappedSubstring(
   source: EitherString,
   start: number,
@@ -89,6 +65,33 @@ export function mappedSubstring(
     },
   };
 }
+
+/**
+mappedString provides a mechanism for maintaining offset information
+through substrings. This comes up often in quarto, where we often pull
+a part of a larger string, send that to an interpreter, compiler or
+validator, and then want to report error information with respect to
+line information in the first string.
+
+You construct a mappedString from a list of substring ranges of an
+original string (or unmappable "new" substrings), which are
+concatenated into the result in the field `value`.
+
+In the field `fileName`, we (optionally) keep a filename, strictly as
+metadata for error reporting.
+
+In addition to this new string, mappedString provides `map` that sends offsets from this new
+string into offsets of the original "base" mappedString. If closest=true,
+`map` attempts to avoid undefined results by
+returning the closest smaller result that is valid in case it's called
+with a value that has no inverse (such as an out-of-bounds access).
+
+If you pass a MappedString as the input to this function, the result's
+map will walk the inverse maps all the way to the base mappedString
+(constructed from asMappedString).
+
+This provides a natural composition for mapped strings.
+*/
 
 export function mappedString(
   source: EitherString,

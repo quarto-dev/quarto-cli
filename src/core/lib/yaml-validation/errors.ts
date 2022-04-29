@@ -24,6 +24,7 @@ import {
   mappedIndexToRowCol,
   MappedString,
   mappedString,
+  Range,
 } from "../mapped-text.ts";
 
 import { possibleSchemaKeys, possibleSchemaValues } from "./schema-utils.ts";
@@ -759,24 +760,55 @@ function checkForNearbyCorrection(
  * Used in the generation of nicely-formatted error messages.
  *
  * @param src the string containing the source of the error
- * @param location the location in src
+ * @param location the location range in src
  * @returns a string containing a formatted description of the context around the error
  */
 export function createSourceContext(
   src: MappedString,
-  location: ErrorLocation,
+  location: Range,
 ): string {
+  const startMapResult = src.map(location.start)!;
+  const endMapResult = src.map(location.end);
+
+  const locF = mappedIndexToRowCol(src);
+
+  let sourceLocation;
+  try {
+    sourceLocation = {
+      start: locF(location.start),
+      end: locF(location.end),
+    };
+  } catch (_e) {
+    sourceLocation = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 },
+    };
+  }
+
+  if (startMapResult === undefined || endMapResult === undefined) {
+    throw new Error(
+      "Internal Error: createSourceContext called with bad location.",
+    );
+  }
+
+  if (startMapResult.originalString !== endMapResult.originalString) {
+    throw new Error(
+      "Internal Error: don't know how to create source context across different source files",
+    );
+  }
+  const originalString = startMapResult.originalString;
   // TODO this is computed every time, might be inefficient on large files.
-  const nLines = lines(src.originalString).length;
+  const nLines = lines(originalString.value).length;
+
   const {
     start,
     end,
-  } = location;
+  } = sourceLocation;
   const {
     prefixWidth,
     lines: formattedLines,
   } = formatLineRange(
-    src.originalString,
+    originalString.value,
     Math.max(0, start.line - 1),
     Math.min(end.line + 1, nLines - 1),
   );
@@ -857,7 +889,10 @@ export function createLocalizedError(obj: {
       info: {},
       fileName: source.fileName,
       location: location!,
-      sourceContext: createSourceContext(source, location!),
+      sourceContext: createSourceContext(violatingObject.source, {
+        start: violatingObject.start,
+        end: violatingObject.end,
+      }), // location!),
     },
   };
 }

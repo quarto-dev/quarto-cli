@@ -27,7 +27,7 @@ import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
 import { AnnotatedParse, LocalizedError, Schema } from "./types.ts";
 import { locateAnnotation } from "../yaml-intelligence/annotated-yaml.ts";
 import { createLocalizedError } from "../yaml-validation/errors.ts";
-import { mappedString } from "../mapped-text.ts";
+import { mappedString, mappedSubstring } from "../mapped-text.ts";
 
 export const getProjectConfigFieldsSchema = defineCached(
   // deno-lint-ignore require-await
@@ -65,10 +65,11 @@ function disallowTopLevelType(
     ...error,
     message: "top-level key 'type' is not allowed in project configuration.",
     violatingObject,
-    source: mappedString(parse.source.originalString, [{
-      start: violatingObject.start,
-      end: violatingObject.end + 1,
-    }]),
+    source: mappedSubstring(
+      parse.source,
+      violatingObject.start,
+      violatingObject.end + 1,
+    ),
   });
   localizedError.niceError.info["top-level-type-not-allowed"] =
     "Did you mean to use 'project: type: ...' instead?";
