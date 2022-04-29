@@ -54,14 +54,13 @@ export function mappedSubstring(
   return {
     value,
     map: (index: number, closest?: boolean) => {
-      index -= start;
       if (closest) {
-        index = Math.min(Math.max(0, index), value.length - 1);
+        index = Math.max(0, Math.min(value.length, index - 1));
       }
-      return {
-        index,
-        originalString: mappedSource,
-      };
+      if (index < 0 || index >= value.length) {
+        return undefined;
+      }
+      return mappedSource.map(index + start, closest);
     },
   };
 }
@@ -130,10 +129,13 @@ export function asMappedString(
     return {
       value: str,
       fileName,
-      map: function (index: number, _closest?: boolean): {
-        index: number;
-        originalString: MappedString;
-      } {
+      map: function (index: number, closest?: boolean): StringMapResult {
+        if (closest) {
+          index = Math.min(str.length - 1, Math.max(0, index));
+        }
+        if (index < 0 || index >= str.length) {
+          return undefined;
+        }
         return {
           index,
           originalString: this,
@@ -166,7 +168,7 @@ export function mappedConcat(strings: EitherString[]): MappedString {
     } else return s;
   });
   let currentOffset = 0;
-  const offsets: number[] = [];
+  const offsets: number[] = [0];
   for (const s of mappedStrings) {
     currentOffset += s.value.length;
     offsets.push(currentOffset);
