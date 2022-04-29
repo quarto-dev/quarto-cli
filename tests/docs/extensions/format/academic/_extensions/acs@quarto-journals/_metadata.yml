@@ -1,4 +1,0 @@
-csl: american-chemical-society.csl
-format:
-  pdf:
-    template-partials: ["doc-class.tex", "title.tex", "print-affiliation.tex"]

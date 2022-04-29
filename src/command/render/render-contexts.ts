@@ -81,8 +81,7 @@ import {
   FormatDescriptor,
   parseFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
-import { formatExtensionYaml } from "../../format/format-extension.ts";
-import { toInputRelativePaths } from "../../project/project-shared.ts";
+import { loadExtension } from "../../extension/extension.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -475,18 +474,20 @@ async function resolveFormats(
 
     // Read any extension metadata and merge it into the
     // format metadata
-    const extensionMetadata = await readExtensionMetadata(
+    const extensionMetadata = await readExtensionFormat(
       target.source,
       formatDesc,
       project,
     );
 
     // do the merge of the writer format into this format
-    mergedFormats[format] = mergeFormatMetadata(
-      defaultWriterFormat(formatDesc.formatWithVariants),
-      extensionMetadata,
-      userFormat,
-    );
+    if (extensionMetadata) {
+      mergedFormats[format] = mergeFormatMetadata(
+        defaultWriterFormat(formatDesc.formatWithVariants),
+        extensionMetadata[formatDesc.baseFormat],
+        userFormat,
+      );
+    }
   }
 
   // filter on formats supported by this project
@@ -537,7 +538,7 @@ async function resolveFormats(
   return mergedFormats;
 }
 
-const readExtensionMetadata = async (
+const readExtensionFormat = async (
   file: string,
   formatDesc: FormatDescriptor,
   project?: ProjectContext,
@@ -545,42 +546,35 @@ const readExtensionMetadata = async (
   // Read the format file and populate this
   if (formatDesc.extension) {
     // Find the yaml file
-    const extensionYaml = await formatExtensionYaml(
-      file,
+    const extension = loadExtension(
       formatDesc.extension,
+      file,
       project,
     );
 
-    if (extensionYaml) {
+    if (extension) {
       // Read the yaml file and resolve / bucketize
-      const extensionFormatMetadata = await resolveFormatsFromMetadata(
-        extensionYaml.metadata,
-        extensionYaml.path,
-        [formatDesc.baseFormat],
-      );
+      const extensionFormat = extension.contributes.format;
+      if (extensionFormat) {
+        const extensionMetadata =
+          (extensionFormat[formatDesc.baseFormat] || {}) as Metadata;
 
-      const path = join(Deno.cwd(), dirname(file));
+        // Add the extension directory to any tex input paths
+        // Note the trailing // which will make LaTeX search recursively
+        const texInputPaths = `${dirname(extension.path)}//`;
+        extensionMetadata[kLatexInputPaths] = [
+          texInputPaths,
+        ];
 
-      // Process any paths
-      const metadata = toInputRelativePaths(
-        projectType(project?.config?.project?.[kProjectType]),
-        dirname(extensionYaml.path),
-        path,
-        extensionFormatMetadata,
-      );
+        const formats = await resolveFormatsFromMetadata(
+          extensionMetadata,
+          extension.path,
+          [formatDesc.baseFormat],
+        );
 
-      // Use the metadata for the format
-      const formatMetadata = (metadata as Record<string, unknown>)[
-        formatDesc.baseFormat
-      ] as Metadata;
-
-      // Add the extension directory to any tex input paths
-      // Note the trailing // which will make LaTeX search recursively
-      const taxInputPaths = `${dirname(extensionYaml.path)}//`;
-      formatMetadata.render = formatMetadata.render || {};
-      (formatMetadata.render as Metadata)[kLatexInputPaths] = [taxInputPaths];
-
-      return formatMetadata;
+        return formats;
+      } else {
+      }
     } else {
       return {};
     }
