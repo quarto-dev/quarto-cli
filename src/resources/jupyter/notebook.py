@@ -311,7 +311,7 @@ def nb_kernel_depenencies(cell):
 def cell_execute(client, cell, index, execution_count, eval_default, store_history):
 
    # read cell options
-   cell_options = nb_cell_yaml_options(client, cell)
+   cell_options = nb_cell_yaml_options(client.nb.metadata.kernelspec.language, cell)
 
    # check options for eval and error
    eval = cell_options.get('eval', eval_default)
@@ -369,9 +369,20 @@ def nb_parameterize(nb, params):
    if not papermill_translate:
       raise ImportError('The papermill package is required for processing --execute-params')
 
-   # Generate parameter content based on the kernel_name
+   # alias kernel name and language
    kernel_name = nb.metadata.kernelspec.name
    language = nb.metadata.kernelspec.language
+
+   # find params index and note any tags/yaml on it (exit if no params)
+   params_index = find_first_tagged_cell_index(nb, "parameters")
+   if params_index != -1:
+      params_cell_tags = nb.cells[params_index].get('metadata', {}).get('tags', []).copy()
+      params_cell_yaml = nb_cell_yaml_lines(language, nb.cells[params_index].source)
+      params_cell_tags.remove("parameters")
+   else:
+      return
+
+   # Generate parameter content based on the kernel_name
    params_content = papermill_translate.translate_parameters(
       kernel_name, 
       language, 
@@ -379,14 +390,18 @@ def nb_parameterize(nb, params):
       'Injected Parameters'
    )
 
-    # find params index and note any tags on it
-   params_index = find_first_tagged_cell_index(nb, "parameters")
-   if params_index != -1:
-      params_cell_tags = nb.cells[params_index].get('metadata', {}).get('tags', []).copy()
-      params_cell_tags.remove("parameters")
-   else:
-      params_cell_tags = []
-      
+   # prepend options
+   if len(params_cell_yaml):
+      comment_chars = nb_language_comment_chars(language)
+      option_prefix = comment_chars[0] + "| "
+      option_suffix = comment_chars[1] if len(comment_chars) > 1 else None
+      def enclose(yaml):
+         yaml = option_prefix + yaml
+         if option_suffix:
+            yaml = yaml + option_suffix
+         return yaml
+      params_content = "\n".join(map(enclose, params_cell_yaml)) + "\n" + params_content
+
    # create params cell
    params_cell = nbformat.v4.new_code_cell(source=params_content)
    params_cell.metadata['tags'] = ['injected-parameters'] + params_cell_tags
@@ -399,15 +414,11 @@ def nb_parameterize(nb, params):
       # Replace the injected cell with a new version
       before = nb.cells[:injected_params_index]
       after = nb.cells[injected_params_index + 1 :]
-   elif params_index >= 0:
+   else:
       # Add an injected cell after the parameter cell
       before = nb.cells[: params_index + 1]
       after = nb.cells[params_index + 1 :]
-   else:
-      # Inject to the top of the notebook
-      before = []
-      after = nb.cells
-
+  
    nb.cells = before + [params_cell] + after
    if not nb.metadata.get('papermill'):
       nb.metadata.papermill = {}
@@ -424,17 +435,17 @@ def find_first_tagged_cell_index(nb, tag):
    return parameters_indices[0]
 
 def nb_strip_yaml_options(client, source):
-   yaml_lines = nb_cell_yaml_lines(client, source)  
+   yaml_lines = nb_cell_yaml_lines(client.nb.metadata.kernelspec.language, source)  
    num_yaml_lines = len(yaml_lines)
    if num_yaml_lines > 0:
       return "\n".join(source.splitlines()[num_yaml_lines:])
    else:
       return source
 
-def nb_cell_yaml_options(client, cell):
+def nb_cell_yaml_options(lang, cell):
 
    # go through the lines until we've found all of the yaml
-   yaml_lines = nb_cell_yaml_lines(client, cell.source)
+   yaml_lines = nb_cell_yaml_lines(lang, cell.source)
    
    # if we have yaml then parse it
    if len(yaml_lines) > 0:
@@ -450,9 +461,8 @@ def nb_cell_yaml_options(client, cell):
    else:
       return dict()
    
-def nb_cell_yaml_lines(client, source):
+def nb_cell_yaml_lines(lang, source):
    # determine language comment chars
-   lang = client.nb.metadata.kernelspec.language
    comment_chars = nb_language_comment_chars(lang)
    option_prefix = comment_chars[0] + "| "
    option_suffix = comment_chars[1] if len(comment_chars) > 1 else None
