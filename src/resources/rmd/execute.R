@@ -157,7 +157,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   list(
     markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
-    filters = as.character(c()),
+    filters = I("rmarkdown/pagebreak.lua"),
     includes = includes,
     engineDependencies = engineDependencies,
     preserve = preserve,

@@ -44,6 +44,7 @@ import {
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
+import { joinUrl } from "../../../core/url.ts";
 
 const kCard = "card";
 
@@ -333,7 +334,7 @@ function imageMetadata(
 
     // resolve the image path into an absolute href
     return {
-      href: `${baseUrl}/${imageProjectRelative}`,
+      href: joinUrl(baseUrl, imageProjectRelative),
       height: size?.height,
       width: size?.width,
     };

@@ -632,4 +632,8 @@ div.quarto-post {
   .listing-categories {
     @include listing-category();
   }
+
+  .listing-description {
+    margin-bottom: 0.5em;
+  }
 }

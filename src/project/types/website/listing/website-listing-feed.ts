@@ -5,9 +5,9 @@
 *
 */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
-import { Document, DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { uniqBy } from "../../../../core/lodash.ts";
 import { Format } from "../../../../config/types.ts";
@@ -23,6 +23,7 @@ import {
   websiteTitle,
 } from "../website-config.ts";
 import {
+  absoluteUrl,
   kDescription,
   kFieldAuthor,
   kFieldCategories,
@@ -32,13 +33,12 @@ import {
   ListingDescriptor,
   ListingFeedOptions,
   ListingItem,
+  renderedContentReader,
+  RenderedContents,
 } from "./website-listing-shared.ts";
 import { dirAndStem, resolvePathGlobs } from "../../../../core/path.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { resolveInputTarget } from "../../../project-index.ts";
-import {
-  defaultSyntaxHighlightingClassMap,
-} from "../../../../command/render/pandoc-html.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType, imageSize } from "../../../../core/image.ts";
 import { warnOnce } from "../../../../core/log.ts";
@@ -247,7 +247,7 @@ export function completeStagedFeeds(
         // Any feed files for this output file
         const files = resolvePathGlobs(dir, [`${stem}${kStagedFileGlob}`], []);
 
-        const contentReader = renderedContentReader(context, siteUrl!);
+        const contentReader = renderedContentReader(context, true, siteUrl);
 
         for (const feedFile of files.include) {
           // Info about this feed file
@@ -544,173 +544,6 @@ function feedPath(dir: string, stem: string, full: boolean) {
   const file = `${stem}.${ext}`;
   return join(dir, file);
 }
-
-interface RenderedContents {
-  title: string | undefined;
-  firstPara: string | undefined;
-  fullContents: string | undefined;
-}
-
-const renderedContentReader = (project: ProjectContext, siteUrl: string) => {
-  const renderedContent: Record<string, RenderedContents> = {};
-  return (filePath: string): RenderedContents => {
-    if (!renderedContent[filePath]) {
-      renderedContent[filePath] = readRenderedContents(
-        filePath,
-        siteUrl,
-        project,
-      );
-    }
-    return renderedContent[filePath];
-  };
-};
-
-// This reads a rendered HTML file and extracts its contents.
-// The contents will be cleaned to make them conformant to any
-// RSS validators (I used W3 validator to identify problematic HTML)
-function readRenderedContents(
-  filePath: string,
-  siteUrl: string,
-  project: ProjectContext,
-): RenderedContents {
-  const htmlInput = Deno.readTextFileSync(filePath);
-  const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-
-  const fileRelPath = relative(projectOutputDir(project), filePath);
-  const fileRelFolder = dirname(fileRelPath);
-
-  const mainEl = doc.querySelector("main.content");
-
-  // Capture the rendered title and remove it from the content
-  const titleEl = doc.getElementById("title-block-header");
-  const titleText = titleEl?.querySelector("h1.title")?.innerText;
-  if (titleEl) {
-    titleEl.remove();
-  }
-
-  // Remove any navigation elements from the content region
-  const navEls = doc.querySelectorAll("nav");
-  if (navEls) {
-    for (const navEl of navEls) {
-      navEl.remove();
-    }
-  }
-
-  // Convert any images to have absolute paths
-  const imgNodes = doc.querySelectorAll("img");
-  if (imgNodes) {
-    for (const imgNode of imgNodes) {
-      const imgEl = imgNode as Element;
-      let src = imgEl.getAttribute("src");
-      if (src) {
-        if (!src.startsWith("/")) {
-          src = join(fileRelFolder, src);
-        }
-        imgEl.setAttribute("src", absoluteUrl(siteUrl, src));
-      }
-    }
-  }
-
-  // Strip unacceptable elements
-  const stripSelectors = [
-    '*[aria-hidden="true"]', // Feeds should not contain aria hidden elements
-    "button.code-copy-button", // Code copy buttons looks weird and don't work
-  ];
-  stripSelectors.forEach((sel) => {
-    const nodes = doc.querySelectorAll(sel);
-    nodes?.forEach((node) => {
-      node.remove();
-    });
-  });
-
-  // Strip unacceptable attributes
-  const stripAttrs = [
-    "role",
-  ];
-  stripAttrs.forEach((attr) => {
-    const nodes = doc.querySelectorAll(`[${attr}]`);
-    nodes?.forEach((node) => {
-      const el = node as Element;
-      el.removeAttribute(attr);
-    });
-  });
-
-  // String unacceptable links
-  const relativeLinkSel = 'a[href^="#"]';
-  const linkNodes = doc.querySelectorAll(relativeLinkSel);
-  linkNodes.forEach((linkNode) => {
-    const nodesToMove = linkNode.childNodes;
-    linkNode.after(...nodesToMove);
-    linkNode.remove();
-  });
-
-  // Process code to apply styles for syntax highlighting
-  const highlightingMap = defaultSyntaxHighlightingClassMap();
-  const spanNodes = doc.querySelectorAll("code span");
-  for (const spanNode of spanNodes) {
-    const spanEl = spanNode as Element;
-
-    for (const clz of spanEl.classList) {
-      const styles = highlightingMap[clz];
-      if (styles) {
-        spanEl.setAttribute("style", styles.join("\n"));
-        break;
-      }
-    }
-  }
-
-  // Apply a code background color
-  const codeStyle = "background: #f1f3f5;";
-  const codeBlockNodes = doc.querySelectorAll("div.sourceCode");
-  for (const codeBlockNode of codeBlockNodes) {
-    const codeBlockEl = codeBlockNode as Element;
-    codeBlockEl.setAttribute("style", codeStyle);
-  }
-
-  // Process math using webtex
-  const trimMath = (str: string) => {
-    // Text of math is prefixed by the below
-    if (str.length > 4 && (str.startsWith("\\[") || str.startsWith("\\("))) {
-      const trimStart = str.slice(2);
-      return trimStart.slice(0, trimStart.length - 2);
-    } else {
-      return str;
-    }
-  };
-  const mathNodes = doc.querySelectorAll("span.math");
-  for (const mathNode of mathNodes) {
-    const mathEl = mathNode as Element;
-    const math = trimMath(mathEl.innerText);
-    const imgEl = doc.createElement("IMG");
-    imgEl.setAttribute(
-      "src",
-      kWebTexUrl(math),
-    );
-    mathNode.parentElement?.replaceChild(imgEl, mathNode);
-  }
-
-  return {
-    title: titleText,
-    fullContents: mainEl?.innerHTML,
-    firstPara: mainEl?.querySelector("p")?.innerHTML,
-  };
-}
-
-const kWebTexUrl = (
-  math: string,
-  type: "png" | "svg" | "gif" | "emf" | "pdf" = "png",
-) => {
-  const encodedMath = encodeURI(math);
-  return `https://latex.codecogs.com/${type}.latex?${encodedMath}`;
-};
-
-const absoluteUrl = (siteUrl: string, url: string) => {
-  if (url.startsWith("http:") || url.startsWith("https:")) {
-    return url;
-  } else {
-    return `${siteUrl}/${url}`;
-  }
-};
 
 // See https://validator.w3.org/feed/docs/rss2.html#ltimagegtSubelementOfLtchannelgt
 const kMaxWidth = 144;

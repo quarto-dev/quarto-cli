@@ -8,7 +8,6 @@
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { getDecodedAttribute } from "../../../../core/html.ts";
-import { lines } from "../../../../core/text.ts";
 
 // Image discovery happens by either:
 // Finding an image with the class 'preview-image'
@@ -92,40 +91,6 @@ export function findPreviewImgMd(markdown?: string): string | undefined {
     if (match) {
       return match[1];
     }
-  }
-  return undefined;
-}
-
-export function findDescriptionMd(markdown?: string): string | undefined {
-  if (markdown) {
-    const previewText: string[] = [];
-    let accum = false;
-
-    // Controls what counts as ignorable lines (empty or markdown of
-    // specific types)
-    const skipLines = [/^\#+/, /^\:\:\:[\:]*/];
-    const emptyLine = (line: string) => {
-      return line.trim() === "";
-    };
-
-    // Go through each line and find the first paragraph, then accumulate
-    // that text as the description
-    for (const line of lines(markdown)) {
-      if (!accum) {
-        // When we encounter the first
-        if (!emptyLine(line) && !skipLines.find((skip) => line.match(skip))) {
-          accum = true;
-          previewText.push(line);
-        }
-      } else {
-        if (emptyLine(line) || skipLines.find((skip) => line.match(skip))) {
-          break;
-        } else {
-          previewText.push(line);
-        }
-      }
-    }
-    return previewText.join("\n");
   }
   return undefined;
 }

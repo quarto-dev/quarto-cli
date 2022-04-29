@@ -74,7 +74,6 @@ import("hidden.lua")
 import("line-numbers.lua")
 import("output-location.lua")
 import("include-paths.lua")
-import("pagebreak.lua")
 -- [/import]
 
 initParams()
@@ -106,7 +105,6 @@ return {
     panelTabset(),
     panelLayout(),
     panelSidebar(),
-    pageBreaks(),
   }),
   combineFilters({
     fileMetadata(),
