@@ -1,38 +1,15 @@
 -- shortcodes-handlers.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- handlers process shortcode into either a list of inlines or into a block
--- their structure is:
--- {
---   type = "inline" | "block"
---     * the inline type will only be called when processing inlines and will be expected to return a list of inlines
---     * the block type will only be called when processing a block that contains a single shortcode and will be expected to
---       return a block which will replace the block that is being processed
---    handle = function(shortCode)
---      * this function should handle the shortcode and return inlines or blocks as appropriate
--- }        
-function handlerForShortcode(shortCode, type)
+-- handlers process shortcode into either a list of inlines or into a list of blocks
+        
+function handlerForShortcode(shortCode)
   local handlers = {
-    meta = { 
-      type = "inline",
-      handle = handleMeta 
-    },
-    var = {
-      type = "inline",
-      handle = handleVars
-    },
-    env = {
-      type = "inline",
-      handle = handleEnv
-    }
+    meta = handleMeta,
+    var = handleVars,
+    env = handleEnv
   }
-  
-  local handler = handlers[shortCode.name]
-  if handler ~= nil and handler.type == type then
-    return handler
-  else
-    return nil
-  end
+  return handlers[shortCode.name]
 end
 
 -- Implements reading values from envrionment variables

@@ -94,11 +94,11 @@ function transformShortcodeBlocks(blocks)
       if onlyShortcode ~= nil then
         -- there is a shortcode here, process it and return the blocks
           local shortCode = processShortCode(onlyShortcode)
-          local handler = handlerForShortcode(shortCode, "block")
+          local handler = handlerForShortcode(shortCode)
           if handler ~= nil then
-            local transformedShortcode = handler.handle(shortCode)
+            local transformedShortcode = handler(shortCode)
             if transformedShortcode ~= nil then
-              scannedBlocks:insert(transformedShortcode)
+              tappend(scannedBlocks, shortcodeResultAsBlocks(transformedShortcode, shortCode.name))
               transformed = true                  
             end
           else
@@ -170,11 +170,12 @@ function transformShortcodeInlines(inlines)
         local shortCode = processShortCode(shortcodeInlines)
 
         -- find the handler for this shortcode and transform
-        local handler = handlerForShortcode(shortCode, "inline")
+        local handler = handlerForShortcode(shortCode)
         if handler ~= nil then
-          local expanded = handler.handle(shortCode)
+          local expanded = handler(shortCode)
           if expanded ~= nil then
             -- process recursively
+            expanded = shortcodeResultAsInlines(expanded, shortCode.name)
             local expandedAgain = transformShortcodeInlines(expanded)
             if (expandedAgain ~= nil) then
               tappend(accum, expandedAgain)
@@ -373,4 +374,60 @@ function trimEmpty(contents)
   return contents
 end
 
+
+function shortcodeResultAsInlines(result, name)
+  local type = pandoc.utils.type(result)
+  if type == "Inlines" then
+    return result
+  elseif type == "Blocks" then
+    return pandoc.utils.blocks_to_inlines(result, { pandoc.Space() })
+  elseif type == "string" then
+    return pandoc.Inlines( { pandoc.Str(result) })
+  elseif tisarray(result) then
+    local items = pandoc.List(result)
+    local inlines = items:filter(isInlineEl)
+    if #inlines > 0 then
+      return pandoc.Inlines(inlines)
+    else
+      local blocks = items:filter(isBlockEl)
+      return pandoc.utils.blocks_to_inlines(blocks, { pandoc.Space() })
+    end
+  elseif isInlineEl(result) then
+    return pandoc.Inlines( { result })
+  elseif isBlockEl(result) then
+    return pandoc.utils.blocks_to_inlines( { result }, { pandoc.Space() })
+  else
+    error("Unexepected result from shortcode " .. name .. "")
+    dump(result)
+    os.exit(1)
+  end
+end
+  
+function shortcodeResultAsBlocks(result, name)
+  local type = pandoc.utils.type(result)
+  if type == "Blocks" then
+    return result
+  elseif type == "Inlines" then
+    return pandoc.Blocks( {pandoc.Para(result) })
+  elseif type == "string" then
+    return pandoc.Blocks( {pandoc.Para({pandoc.Str(result)})} )
+  elseif tisarray(result) then
+    local items = pandoc.List(result)
+    local blocks = items:filter(isBlockEl)
+    if #blocks > 0 then
+      return pandoc.Blcoks(inlblocksines)
+    else
+      local inlines = items:filter(isInlineEl)
+      return pandoc.Para(inlines)
+    end
+  elseif isBlockEl(result) then
+    return pandoc.Blocks( { result } )
+  elseif isInlineEl(result) then
+    return pandoc.Blocks( {pandoc.Para( {result} ) })
+  else
+    error("Unexepected result from shortcode " .. name .. "")
+    dump(result)
+    os.exit(1)
+  end
+end
 

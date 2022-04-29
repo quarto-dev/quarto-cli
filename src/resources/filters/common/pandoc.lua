@@ -224,3 +224,29 @@ function resolveHeadingCaption(div)
     return nil
   end
 end
+
+local kBlockTypes = {
+  "BlockQuote",
+  "BulletList", 
+  "CodeBlock ",
+  "DefinitionList",
+  "Div",
+  "Header",
+  "HorizontalRule",
+  "LineBlock",
+  "Null",
+  "OrderedList",
+  "Para",
+  "Plain",
+  "RawBlock",
+  "Table"
+}
+
+function isBlockEl(el)
+  return tcontains(kBlockTypes, el.t)
+end
+
+function isInlineEl(el)
+  return not isBlockEl(el)
+end
+
