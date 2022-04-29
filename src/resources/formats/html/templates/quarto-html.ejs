@@ -1,4 +1,5 @@
-<script type="application/javascript">
+<% if (darkMode !== undefined || tabby || anchors || copyCode || codeTools || tippy || hoverFootnotes || hoverCitations || linkExternalIcon || linkExternalNewwindow) { %> 
+<script id = "quarto-html-after-body" type="application/javascript">
 
 window.document.addEventListener("DOMContentLoaded", function (event) {
 
@@ -327,3 +328,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 
 </script>
+<% } %>
