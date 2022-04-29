@@ -26,6 +26,9 @@
           type:
             enum: [citeproc]
 
+- id: pandoc-shortcodes
+  arrayOf: path
+
 - id: page-column
   enum:
     [

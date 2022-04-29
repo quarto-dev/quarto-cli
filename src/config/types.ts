@@ -151,6 +151,7 @@ import {
   kSectionTitleReuse,
   kSelfContained,
   kShiftHeadingLevelBy,
+  kShortcodes,
   kSlideLevel,
   kSyntaxDefinitions,
   kTableOfContents,
@@ -313,6 +314,7 @@ export interface FormatRender {
     caption?: string;
   };
   [kTblColwidths]?: "auto" | boolean | number[];
+  [kShortcodes]?: string[];
   [kMergeIncludes]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;

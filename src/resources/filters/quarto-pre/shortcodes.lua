@@ -9,6 +9,9 @@ local kCloseShortcode = ">}}"
 local kCloseShortcodeEscape = "*/"
 
 function shortCodes() 
+
+  initShortcodeHandlers()
+
   return {
 
     Blocks = transformShortcodeBlocks,
@@ -96,7 +99,7 @@ function transformShortcodeBlocks(blocks)
           local shortCode = processShortCode(onlyShortcode)
           local handler = handlerForShortcode(shortCode)
           if handler ~= nil then
-            local transformedShortcode = handler(shortCode)
+            local transformedShortcode = handler(shortCode.args)
             if transformedShortcode ~= nil then
               tappend(scannedBlocks, shortcodeResultAsBlocks(transformedShortcode, shortCode.name))
               transformed = true                  
@@ -172,7 +175,7 @@ function transformShortcodeInlines(inlines)
         -- find the handler for this shortcode and transform
         local handler = handlerForShortcode(shortCode)
         if handler ~= nil then
-          local expanded = handler(shortCode)
+          local expanded = handler(shortCode.args)
           if expanded ~= nil then
             -- process recursively
             expanded = shortcodeResultAsInlines(expanded, shortCode.name)
@@ -255,7 +258,7 @@ function processShortCode(inlines)
       pendingName = nil
     else
       -- split the string on equals
-      if #argInlines == 1 and string.match(argInlines[1].text, kSep) then 
+      if #argInlines == 1 and argInlines[1].t == "Str" and string.match(argInlines[1].text, kSep) then 
         -- if we can, split the string and assign name / value arg
         -- otherwise just put the whole thing in unnamed
         local parts = split(argInlines[1].text, kSep)
@@ -263,7 +266,7 @@ function processShortCode(inlines)
           args:insert(
               { 
                 name = parts[1], 
-                value = parts[2]
+                value = stringToInlines(parts[2])
               })
         else
           args:insert(
@@ -300,6 +303,8 @@ function processShortCode(inlines)
     elseif el.t == "Quoted" then 
       -- this is either an unnamed arg or an arg value
       insertArg(el.content)
+    elseif el.t ~= "Space" then
+      insertArg({el})
     end
   end
 

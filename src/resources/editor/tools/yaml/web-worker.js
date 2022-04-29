@@ -8183,6 +8183,10 @@ try {
             }
           },
           {
+            id: "pandoc-shortcodes",
+            arrayOf: "path"
+          },
+          {
             id: "page-column",
             enum: [
               "body",
@@ -14106,6 +14110,13 @@ try {
             description: "Specify executables or Lua scripts to be used as a filter transforming\nthe pandoc AST after the input is parsed and before the output is written.\n"
           },
           {
+            name: "shortcodes",
+            schema: {
+              ref: "pandoc-shortcodes"
+            },
+            description: "Speicfy Lua scripts that implement shortcode handlers\n"
+          },
+          {
             name: "keep-md",
             schema: "boolean",
             default: false,
@@ -18510,7 +18521,8 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Speicfy Lua scripts that implement shortcode handlers"
         ],
         "schema/external-schemas.yml": [
           {
@@ -18656,7 +18668,6 @@ try {
         ],
         "handlers/languages.yml": [
           "include",
-          "pagebreak",
           "mermaid"
         ],
         "handlers/lang-comment-chars.yml": {

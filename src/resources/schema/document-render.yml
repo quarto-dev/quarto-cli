@@ -66,6 +66,12 @@
     Specify executables or Lua scripts to be used as a filter transforming
     the pandoc AST after the input is parsed and before the output is written.
 
+- name: shortcodes
+  schema:
+    ref: pandoc-shortcodes
+  description: |
+    Speicfy Lua scripts that implement shortcode handlers
+
 - name: keep-md
   schema: boolean
   default: false

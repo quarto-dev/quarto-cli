@@ -1,0 +1,7 @@
+---
+title: "Foobar"
+shortcodes:
+   - shorty.lua
+---
+
+{{< shorty _bringit_ >}}

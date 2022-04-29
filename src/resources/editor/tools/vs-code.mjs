@@ -8182,6 +8182,10 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "pandoc-shortcodes",
+          arrayOf: "path"
+        },
+        {
           id: "page-column",
           enum: [
             "body",
@@ -14105,6 +14109,13 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Specify executables or Lua scripts to be used as a filter transforming\nthe pandoc AST after the input is parsed and before the output is written.\n"
         },
         {
+          name: "shortcodes",
+          schema: {
+            ref: "pandoc-shortcodes"
+          },
+          description: "Speicfy Lua scripts that implement shortcode handlers\n"
+        },
+        {
           name: "keep-md",
           schema: "boolean",
           default: false,
@@ -18509,7 +18520,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Custom tools for navbar or sidebar",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Speicfy Lua scripts that implement shortcode handlers"
       ],
       "schema/external-schemas.yml": [
         {
@@ -18655,7 +18667,6 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "handlers/languages.yml": [
         "include",
-        "pagebreak",
         "mermaid"
       ],
       "handlers/lang-comment-chars.yml": {

@@ -15,6 +15,16 @@ testRender(input, "html", false, [
   ]),
 ]);
 
+const inputCustom = docs(join("shortcodes", "custom.qmd"));
+const outputCustom = outputForInput(inputCustom, "html");
+testRender(inputCustom, "html", false, [
+  ensureFileRegexMatches(outputCustom.outputPath, [
+    /<strong><em>bringit<\/em><\/strong>/,
+  ], [
+    /\?shorty/,
+  ]),
+]);
+
 const inputError = docs(join("shortcodes", "metadata-error.qmd"));
 const outputError = outputForInput(inputError, "html");
 testRender(inputError, "html", false, [

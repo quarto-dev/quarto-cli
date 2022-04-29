@@ -2,21 +2,45 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- handlers process shortcode into either a list of inlines or into a list of blocks
-        
+   
+local handlers = setmetatable({}, {__index=_G})
+
+function initShortcodeHandlers()
+  -- user provided handlers
+  local shortcodeFiles = pandoc.List(param("shortcodes", {}))
+  for _,shortcodeFile in ipairs(shortcodeFiles) do
+    local chunk, err = loadfile(shortcodeFile, "bt", handlers)
+    if not err then
+      local result = chunk()
+      if result then
+        handlers = setmetatable({}, {__index=_G})
+        for k,v in pairs(result) do
+          handlers[k] = v
+        end
+      end
+    else
+      error(err)
+      os.exit(1)
+    end
+  end
+
+
+  -- built in handlers (these override any user handlers)
+  handlers['meta'] = handleMeta
+  handlers['var'] = handleVars
+  handlers['env'] = handleEnv
+
+end
+
 function handlerForShortcode(shortCode)
-  local handlers = {
-    meta = handleMeta,
-    var = handleVars,
-    env = handleEnv
-  }
   return handlers[shortCode.name]
 end
 
 -- Implements reading values from envrionment variables
-function handleEnv(shortCode)
-  if #shortCode.args > 0 then
+function handleEnv(args)
+  if #args > 0 then
     -- the args are the var name
-    local varName = inlinesToString(shortCode.args[1].value)
+    local varName = inlinesToString(args[1].value)
 
     -- read the environment variable
     local envValue = os.getenv(varName)
@@ -36,10 +60,10 @@ end
 -- as {{< meta title >}}
 -- or {{< meta key.subkey.subkey >}}
 -- This only supports emitting simple types (not arrays or maps)
-function handleMeta(shortCode) 
-  if #shortCode.args > 0 then
+function handleMeta(args) 
+  if #args > 0 then
     -- the args are the var name
-    local varName = inlinesToString(shortCode.args[1].value)
+    local varName = inlinesToString(args[1].value)
 
     -- read the option value
     local optionValue = option(varName, nil)
@@ -59,11 +83,11 @@ end
 -- as {{< var title >}}
 -- or {{< var key.subkey.subkey >}}
 -- This only supports emitting simple types (not arrays or maps)
-function handleVars(shortCode) 
-  if #shortCode.args > 0 then
+function handleVars(args) 
+  if #args > 0 then
     
     -- the args are the var name
-    local varName = inlinesToString(shortCode.args[1].value)
+    local varName = inlinesToString(args[1].value)
     
     -- read the option value
     local varValue = var(varName, nil)

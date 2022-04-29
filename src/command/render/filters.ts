@@ -26,6 +26,7 @@ import {
   kMergeIncludes,
   kOutputDivs,
   kReferenceLocation,
+  kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
 } from "../../config/constants.ts";
@@ -310,7 +311,6 @@ function quartoFilterParams(format: Format) {
   if (figEnv) {
     params[kFigEnv] = figEnv;
   }
-
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;
@@ -318,6 +318,10 @@ function quartoFilterParams(format: Format) {
   const tblColwidths = format.render[kTblColwidths];
   if (tblColwidths !== undefined) {
     params[kTblColwidths] = tblColwidths;
+  }
+  const shortcodes = format.render[kShortcodes];
+  if (shortcodes !== undefined) {
+    params[kShortcodes] = shortcodes;
   }
   const figResponsive = format.metadata[kFigResponsive] === true;
   if (figResponsive) {

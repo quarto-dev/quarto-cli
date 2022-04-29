@@ -41,6 +41,8 @@ export const kExecuteDebug = "debug";
 export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
 
+export const kShortcodes = "shortcodes";
+
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepYaml = "keep-yaml";
@@ -124,6 +126,7 @@ export const kRenderDefaultsKeys = [
   kCodeLineNumbers,
   kCodeOverflow,
   kCodeTools,
+  kShortcodes,
   kTblColwidths,
   kLatexAutoMk,
   kLatexAutoInstall,
