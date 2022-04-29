@@ -300,16 +300,16 @@ export function readRenderedContents(
     });
   });
 
-  // String unacceptable links
-  const relativeLinkSel = 'a[href^="#"]';
-  const linkNodes = doc.querySelectorAll(relativeLinkSel);
-  linkNodes.forEach((linkNode) => {
-    const nodesToMove = linkNode.childNodes;
-    linkNode.after(...nodesToMove);
-    linkNode.remove();
-  });
-
   if (forFeed) {
+    // String unacceptable links
+    const relativeLinkSel = 'a[href^="#"]';
+    const linkNodes = doc.querySelectorAll(relativeLinkSel);
+    linkNodes.forEach((linkNode) => {
+      const nodesToMove = linkNode.childNodes;
+      linkNode.after(...nodesToMove);
+      linkNode.remove();
+    });
+
     // Process code to apply styles for syntax highlighting
     const highlightingMap = defaultSyntaxHighlightingClassMap();
     const spanNodes = doc.querySelectorAll("code span");
@@ -354,6 +354,15 @@ export function readRenderedContents(
       );
       mathNode.parentElement?.replaceChild(imgEl, mathNode);
     }
+  } else {
+    // String all links
+    const relativeLinkSel = "a";
+    const linkNodes = doc.querySelectorAll(relativeLinkSel);
+    linkNodes.forEach((linkNode) => {
+      const nodesToMove = linkNode.childNodes;
+      linkNode.after(...nodesToMove);
+      linkNode.remove();
+    });
   }
 
   return {
