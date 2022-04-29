@@ -103,7 +103,7 @@ async function writePandocTemplates(config: Configuration) {
 
 async function readTemplate(format: string, bin: string): Promise<string> {
   const result = await execProcess({
-    cmd: [join(bin, "pandoc"), "--print-default-template", format],
+    cmd: [join(bin, "tools", "pandoc"), "--print-default-template", format],
     stdout: "piped",
     stderr: "piped",
   });
