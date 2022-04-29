@@ -71,6 +71,7 @@ import("panel-tabset.lua")
 import("panel-input.lua")
 import("panel-layout.lua")
 import("hidden.lua")
+import("content-hidden.lua")
 import("line-numbers.lua")
 import("output-location.lua")
 import("include-paths.lua")
@@ -86,6 +87,7 @@ return {
   tableColwidthCell(),
   tableColwidth(),
   hidden(),
+  contentHidden(),
   outputs(),
   outputLocation(),
   combineFilters({
