@@ -399,14 +399,14 @@ export async function htmlFormatExtras(
   if (quartoHtmlRequired) {
     // html orchestration script
     const quartoHtmlScript = temp.createFile();
-    Deno.writeTextFileSync(
-      quartoHtmlScript,
-      renderEjs(
-        formatResourcePath("html", join("templates", "quarto-html.ejs")),
-        options,
-      ),
+    const renderedHtml = renderEjs(
+      formatResourcePath("html", join("templates", "quarto-html.ejs")),
+      options,
     );
-    includeAfterBody.push(quartoHtmlScript);
+    if (renderedHtml.trim() !== "") {
+      Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
+      includeAfterBody.push(quartoHtmlScript);
+    }
   }
 
   // utterances
