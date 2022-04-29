@@ -156,7 +156,10 @@ export function asMappedString(
 // MappedString
 export function mappedConcat(strings: EitherString[]): MappedString {
   if (strings.length === 0) {
-    throw new Error("strings must be non-empty");
+    return {
+      value: "",
+      map: (_index: number, _closest?: boolean) => undefined,
+    };
   }
   if (strings.every((s) => typeof s === "string")) {
     return asMappedString(strings.join(""));
