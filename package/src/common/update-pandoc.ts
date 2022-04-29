@@ -7,7 +7,7 @@
 import { Command } from "cliffy/command/mod.ts";
 import { dirname, join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { info } from "log/mod.ts";
 
 import {
   Configuration,
