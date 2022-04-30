@@ -54,7 +54,11 @@ local function createHandlerEnv(scriptFile)
     lpeg = lpeg,
     re = re,
     -- quarto functions
-    dump = dump,
+    quarto = {
+      utils = {
+        dump = dump
+      }
+    }
   }})
 end
 
