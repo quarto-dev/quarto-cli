@@ -122,7 +122,7 @@ export interface ListingFeedOptions {
   [kItems]?: number;
   [kType]: "summary" | "full";
   [kDescription]?: string;
-  [kFieldCategories]?: string[];
+  [kFieldCategories]?: string | string[];
   [kImage]?: string;
   [kLanguage]?: string;
 }

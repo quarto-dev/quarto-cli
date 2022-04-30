@@ -190,7 +190,11 @@ export async function createFeed(
   }
 
   // Categories to render
-  const categoriesToRender = options[kFieldCategories]?.map((category) => {
+  options[kFieldCategories] = options[kFieldCategories] || [];
+  const feedCategories = Array.isArray(options[kFieldCategories])
+    ? options[kFieldCategories] as string[]
+    : [options[kFieldCategories] as string];
+  const categoriesToRender = feedCategories?.map((category) => {
     const finalRelPath = relative(
       project.dir,
       join(dir, `${stem}-${category.toLocaleLowerCase()}.xml`),
