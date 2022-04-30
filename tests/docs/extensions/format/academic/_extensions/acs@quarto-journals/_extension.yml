@@ -1,1 +1,7 @@
 name: Elsevier Journal Format
+contributes:
+  format:
+    common:
+      csl: american-chemical-society.csl
+    pdf:
+      template-partials: ["doc-class.tex", "title.tex", "print-affiliation.tex"]

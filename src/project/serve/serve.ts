@@ -540,7 +540,7 @@ function acquirePreviewLock(project: ProjectContext) {
     const pid = parseInt(Deno.readTextFileSync(lockfile)) || undefined;
     if (pid) {
       info(
-        colors.bold(colors.blue("Termimating existing preview server....")),
+        colors.bold(colors.blue("Terminating existing preview server....")),
         { newline: false },
       );
       try {

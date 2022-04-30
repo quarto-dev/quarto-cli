@@ -416,10 +416,10 @@ function shortcodeResultAsBlocks(result, name)
     local items = pandoc.List(result)
     local blocks = items:filter(isBlockEl)
     if #blocks > 0 then
-      return pandoc.Blcoks(inlblocksines)
+      return pandoc.Blocks(blocks)
     else
       local inlines = items:filter(isInlineEl)
-      return pandoc.Para(inlines)
+      return pandoc.Blocks({pandoc.Para(inlines)})
     end
   elseif isBlockEl(result) then
     return pandoc.Blocks( { result } )
