@@ -99,7 +99,7 @@ function transformShortcodeBlocks(blocks)
           local shortCode = processShortCode(onlyShortcode)
           local handler = handlerForShortcode(shortCode)
           if handler ~= nil then
-            local transformedShortcode = handler(shortCode.args)
+            local transformedShortcode = callShortcodeHandler(handler, shortCode)
             if transformedShortcode ~= nil then
               tappend(scannedBlocks, shortcodeResultAsBlocks(transformedShortcode, shortCode.name))
               transformed = true                  
@@ -122,6 +122,20 @@ function transformShortcodeBlocks(blocks)
   else
     return nil
   end
+end
+
+-- call a handler w/ args & kwargs
+function callShortcodeHandler(handler, shortCode)
+  local args = pandoc.List()
+  local kwargs = {}
+  for _,arg in ipairs(shortCode.args) do
+    if arg.name then
+      kwargs[arg.name] = arg.value
+    else
+      args:insert(arg.value)
+    end
+  end
+  return handler(args, kwargs)
 end
 
 -- scans through a list of inlines, finds shortcodes, and processes them
@@ -187,7 +201,7 @@ function transformShortcodeInlines(inlines)
         -- find the handler for this shortcode and transform
         local handler = handlerForShortcode(shortCode)
         if handler ~= nil then
-          local expanded = handler(shortCode.args)
+          local expanded = callShortcodeHandler(handler, shortCode)
           if expanded ~= nil then
             -- process recursively
             expanded = shortcodeResultAsInlines(expanded, shortCode.name)
@@ -259,12 +273,12 @@ function processShortCode(inlines)
 
   -- Adds an argument to the args list (either named or unnamed args)
   insertArg = function(argInlines) 
-    if nextValueName ~= nil then
+    if pendingName ~= nil then
       -- there is a pending name, insert this arg
       -- with that name
       args:insert(
         {
-          name = nextValueName,
+          name = pendingName,
           value = argInlines
         })
       pendingName = nil

@@ -104,7 +104,7 @@ end
 function handleEnv(args)
   if #args > 0 then
     -- the args are the var name
-    local varName = inlinesToString(args[1].value)
+    local varName = inlinesToString(args[1])
 
     -- read the environment variable
     local envValue = os.getenv(varName)
@@ -127,7 +127,7 @@ end
 function handleMeta(args) 
   if #args > 0 then
     -- the args are the var name
-    local varName = inlinesToString(args[1].value)
+    local varName = inlinesToString(args[1])
 
     -- read the option value
     local optionValue = option(varName, nil)
@@ -151,7 +151,7 @@ function handleVars(args)
   if #args > 0 then
     
     -- the args are the var name
-    local varName = inlinesToString(args[1].value)
+    local varName = inlinesToString(args[1])
     
     -- read the option value
     local varValue = var(varName, nil)
