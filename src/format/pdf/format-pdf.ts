@@ -90,8 +90,8 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
     "pdf",
     {
       execute: {
-        [kFigWidth]: 6.5,
-        [kFigHeight]: 4.5,
+        [kFigWidth]: 5.5,
+        [kFigHeight]: 3.5,
         [kFigFormat]: "pdf",
         [kFigDpi]: 300,
       },
