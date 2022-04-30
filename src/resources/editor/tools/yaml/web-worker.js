@@ -13530,6 +13530,17 @@ try {
             description: "Enables hover over a section title to see an anchor link."
           },
           {
+            name: "smooth-scroll",
+            schema: "boolean",
+            default: false,
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Enables smooth scrolling within the page."
+          },
+          {
             name: "html-math-method",
             tags: {
               formats: [
@@ -18531,7 +18542,8 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Enables smooth scrolling within the page."
         ],
         "schema/external-schemas.yml": [
           {
