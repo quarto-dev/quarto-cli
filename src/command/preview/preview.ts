@@ -66,6 +66,7 @@ import {
 } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
+import { exitWithCleanup } from "../../core/cleanup.ts";
 
 interface PreviewOptions {
   port?: number;
@@ -214,6 +215,11 @@ export function isPreviewRenderRequest(req: Request) {
       return false;
     }
   }
+}
+
+export function isPreviewTerminateRequest(req: Request) {
+  const kTerminateToken = "4231F431-58D3-4320-9713-994558E4CC45";
+  return req.url.includes(kTerminateToken);
 }
 
 export function previewRenderRequest(
@@ -540,6 +546,8 @@ function htmlFileRequestHandlerOptions(
     onRequest: async (req: Request) => {
       if (reloader.handle(req)) {
         return Promise.resolve(reloader.connect(req));
+      } else if (isPreviewTerminateRequest(req)) {
+        exitWithCleanup(0);
       } else if (req.url.endsWith("/quarto-render/")) {
         // don't wait for the promise so the
         // caller gets an immediate reply

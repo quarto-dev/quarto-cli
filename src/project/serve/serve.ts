@@ -58,6 +58,7 @@ import { ServeOptions } from "./types.ts";
 import { watchProject } from "./watch.ts";
 import {
   isPreviewRenderRequest,
+  isPreviewTerminateRequest,
   previewRenderRequest,
   previewRenderRequestIsCompatible,
 } from "../../command/preview/preview.ts";
@@ -88,7 +89,7 @@ import { createTempContext, TempContext } from "../../core/temp.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
-import { onCleanup } from "../../core/cleanup.ts";
+import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -254,6 +255,8 @@ export async function serveProject(
     onRequest: async (req: Request) => {
       if (watcher.handle(req)) {
         return await watcher.connect(req);
+      } else if (isPreviewTerminateRequest(req)) {
+        exitWithCleanup(0);
       } else if (isPreviewRenderRequest(req)) {
         const prevReq = previewRenderRequest(
           req,
