@@ -61,14 +61,18 @@ function transformShortcodeCode(el)
   end
   
   -- process shortcodes
-  local text = el.text:gsub(kOpenShortcode .. "(.-)" .. kCloseShortcode, function(code)
-    -- see if any of the shortcode handlers want it (and transform results to plain text)
-    local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
-    local transformed = transformShortcodeInlines(inlines)
-    if transformed ~= nil then
-      return inlinesToString(transformed)
+  local text = el.text:gsub("(%{%{%{*<)" ..  "(.-)" .. "(>%}%}%}*)", function(beginCode, code, endCode) 
+    if #beginCode > 3 or #endCode > 3 then
+      return beginCode:sub(2) .. code .. endCode:sub(1, #endCode-1)
     else
-      return code
+      -- see if any of the shortcode handlers want it (and transform results to plain text)
+      local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
+      local transformed = transformShortcodeInlines(inlines)
+      if transformed ~= nil then
+        return inlinesToString(transformed)
+      else
+        return beginCode .. code .. endCode
+      end
     end
   end)
 
@@ -132,8 +136,20 @@ function transformShortcodeInlines(inlines)
 
     if el.t == "Str" then 
 
+      -- find escaped shortcodes
+      local beginEscapeMatch = el.text:match("^%{%{%{+<")
+      local endEscapeMatch = el.text:match(">%}%}%}+$")
+     
+      -- handle shocrtcode escape -- e.g. {{{< >}}}
+      if beginEscapeMatch then
+        transformed = true
+        accum:insert(pandoc.Str(beginEscapeMatch:sub(2)))
+      elseif endEscapeMatch then
+        transformed = true
+        accum:insert(endEscapeMatch:sub(1, #endEscapeMatch-1))
+
       -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
-      if endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
+      elseif endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
         -- This is an escape, so insert the raw shortcode as text (remove the comment chars)
         transformed = true
         accum:insert(pandoc.Str(kOpenShortcode))
