@@ -1573,8 +1573,7 @@ nav.quarto-secondary-nav.color-navbar .quarto-btn-toggle {
   }    
 }
 
-body.floating,
-body.docked {
+body.nav-sidebar {
   @include media-breakpoint-down(lg) {
     .quarto-title-banner,
     .quarto-title-banner {
