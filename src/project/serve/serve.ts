@@ -88,6 +88,7 @@ import { createTempContext, TempContext } from "../../core/temp.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
+import { onCleanup } from "../../core/cleanup.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -126,7 +127,7 @@ export async function serveProject(
   acquirePreviewLock(project);
 
   // monitor the src dir
-  monitorQuartoSrcChanges(() => releasePreviewLock(project!));
+  monitorQuartoSrcChanges();
 
   // clear the project index
   clearProjectIndex(project.dir);
@@ -558,9 +559,7 @@ function acquirePreviewLock(project: ProjectContext) {
   Deno.writeTextFileSync(lockfile, String(Deno.pid));
 
   // rmeove the lockfile when we exit
-  addEventListener("unload", () => {
-    releasePreviewLock(project);
-  });
+  onCleanup(() => releasePreviewLock(project));
 }
 
 function releasePreviewLock(project: ProjectContext) {
