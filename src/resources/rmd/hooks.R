@@ -279,6 +279,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
     unknown_opts <- setdiff(names(options), known_opts)
     unknown_opts <- Filter(Negate(is.null), unknown_opts)
+    unknown_opts <- Filter(function(opt) !startsWith(opt, "."), unknown_opts)
     # json encode if necessary
     unknown_values <- lapply(options[unknown_opts], 
                              function(value) {
