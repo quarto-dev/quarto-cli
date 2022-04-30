@@ -8787,7 +8787,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Website description"
                 }
               },
-              "fav-icon": {
+              favicon: {
                 string: {
                   description: "The path to the favicon for this website"
                 }
@@ -16941,6 +16941,8 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The language of the feed.",
           long: 'The language of the feed. Omitted if not specified. See <a href="https://www.rssboard.org/rss-language-codes">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes.'
         },
+        "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
+        "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
           long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'

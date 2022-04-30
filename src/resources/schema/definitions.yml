@@ -450,7 +450,7 @@
       description:
         string:
           description: "Website description"
-      fav-icon:
+      favicon:
         string:
           description: "The path to the favicon for this website"
       site-url:
