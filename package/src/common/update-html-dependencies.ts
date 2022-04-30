@@ -180,6 +180,24 @@ export async function updateHtmlDepedencies(config: Configuration) {
     },
   );
 
+  // Zenscroll
+  const zenscrollJs = join(formatDir, "zenscroll", "zenscroll-min.js");
+  await updateGithubSourceCodeDependency(
+    "zenscroll",
+    "zengabor/zenscroll",
+    "ZENSCROLL_JS",
+    workingDir,
+    (dir: string, version: string) => {
+      ensureDirSync(dirname(zenscrollJs));
+      // Copy the js file
+      Deno.copyFileSync(
+        join(dir, `zenscroll-${version}`, "zenscroll-min.js"),
+        zenscrollJs,
+      );
+    },
+  );
+
+  // Tippy
   const tippyCss = join(formatDir, "tippy", "tippy.css");
   await updateUnpkgDependency(
     "TIPPY_JS",

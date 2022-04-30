@@ -18,7 +18,6 @@ import { asCssSize } from "../../core/css.ts";
 
 import {
   kCodeLink,
-  kDoi,
   kFigResponsive,
   kFilterParams,
   kHeaderIncludes,
@@ -70,6 +69,7 @@ import {
   kGiscusRepoId,
   kHypothesis,
   kMinimal,
+  kSmoothScroll,
   kTabsets,
   kUtterances,
   quartoBaseLayer,
@@ -240,6 +240,7 @@ export async function htmlFormatExtras(
   } else {
     options.figResponsive = format.metadata[kFigResponsive] || false;
   }
+  options.zenscroll = format.metadata[kSmoothScroll];
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
   options.darkModeDefault = darkModeDefault(format.metadata);
@@ -273,6 +274,25 @@ export async function htmlFormatExtras(
       name: "tabby.min.js",
       path: formatResourcePath("html", join("tabby", "js", "tabby.js")),
     });
+  }
+
+  // header includes
+  const includeInHeader: string[] = [];
+
+  // zenscroll if required
+  if (options.zenscroll) {
+    scripts.push({
+      name: "zenscroll-min.js",
+      path: formatResourcePath("html", join("zenscroll", "zenscroll-min.js")),
+      afterBody: true,
+    });
+
+    const zenscrollStyle = temp.createFile({ suffix: ".html" });
+    Deno.writeTextFileSync(
+      zenscrollStyle,
+      "<style>html{ scroll-behavior: smooth; }</style>",
+    );
+    includeInHeader.push(zenscrollStyle);
   }
 
   // popper if required
@@ -372,9 +392,6 @@ export async function htmlFormatExtras(
       });
     }
   }
-
-  // header includes
-  const includeInHeader: string[] = [];
 
   // hypothesis
   if (options.hypothesis) {

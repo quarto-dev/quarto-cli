@@ -913,6 +913,7 @@ export function resolveDependencies(
   );
 
   const lines: string[] = [];
+  const afterBodyLines: string[] = [];
   if (extras.html?.[kDependencies]) {
     const copiedDependencies: string[] = [];
     for (const dependency of extras.html?.[kDependencies]!) {
@@ -940,9 +941,15 @@ export function resolveDependencies(
             }).join(" ")
             : "";
           const href = join(libDir, dir, file.name);
-          lines.push(
-            template({ href: pathWithForwardSlashes(href), attribs }),
-          );
+          if (file.afterBody) {
+            afterBodyLines.push(
+              template({ href: pathWithForwardSlashes(href), attribs }),
+            );
+          } else {
+            lines.push(
+              template({ href: pathWithForwardSlashes(href), attribs }),
+            );
+          }
         }
       };
       if (dependency.meta) {
@@ -987,6 +994,18 @@ export function resolveDependencies(
     extras[kIncludeInHeader] = [dependenciesHead].concat(
       extras[kIncludeInHeader] || [],
     );
+
+    // after body
+    if (afterBodyLines.length > 0) {
+      const dependenciesAfter = temp.createFile({
+        prefix: "dependencies-after",
+        suffix: ".html",
+      });
+      Deno.writeTextFileSync(dependenciesAfter, afterBodyLines.join("\n"));
+      extras[kIncludeAfterBody] = [dependenciesAfter].concat(
+        extras[kIncludeAfterBody] || [],
+      );
+    }
   }
 
   return extras;
