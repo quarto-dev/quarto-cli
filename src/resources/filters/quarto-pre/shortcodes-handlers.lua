@@ -93,6 +93,7 @@ function initShortcodeHandlers()
   handlers['meta'] = handleMeta
   handlers['var'] = handleVars
   handlers['env'] = handleEnv
+  handlers['pagebreak'] = handlePagebreak
 
 end
 
@@ -183,4 +184,34 @@ function processValue(val, name, t)
   else 
     return { pandoc.Str( tostring(val) ) }  
   end
+end
+
+function handlePagebreak()
+ 
+  local pagebreak = {
+    epub = '<p style="page-break-after: always;"> </p>',
+    html = '<div style="page-break-after: always;"></div>',
+    latex = '\\newpage{}',
+    ooxml = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>',
+    odt = '<text:p text:style-name="Pagebreak"/>',
+    context = '\\page'
+  }
+
+  if FORMAT == 'docx' then
+    return pandoc.RawBlock('openxml', pagebreak.ooxml)
+  elseif FORMAT:match 'latex' then
+    return pandoc.RawBlock('tex', pagebreak.latex)
+  elseif FORMAT:match 'odt' then
+    return pandoc.RawBlock('opendocument', pagebreak.odt)
+  elseif FORMAT:match 'html.*' then
+    return pandoc.RawBlock('html', pagebreak.html)
+  elseif FORMAT:match 'epub' then
+    return pandoc.RawBlock('html', pagebreak.epub)
+  elseif FORMAT:match 'context' then
+    return pandoc.RawBlock('context', pagebreak.context)
+  else
+    -- fall back to insert a form feed character
+    return pandoc.Para{pandoc.Str '\f'}
+  end
+
 end
