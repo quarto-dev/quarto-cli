@@ -323,6 +323,7 @@ export async function websiteNavigationExtras(
       [kHtmlPostprocessors]: [
         navigationHtmlPostprocessor(
           project,
+          format,
           source,
           markdownPipeline,
           format.language,
@@ -362,6 +363,7 @@ export function writeRedirectPage(path: string, href: string) {
 
 function navigationHtmlPostprocessor(
   project: ProjectContext,
+  format: Format,
   source: string,
   markdownPipeline: MarkdownPipeline,
   language: FormatLanguage,
@@ -373,6 +375,12 @@ function navigationHtmlPostprocessor(
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // Process any markdown rendered through the render envelope
     markdownPipeline.processRenderedMarkdown(doc);
+
+    // Mark the body with a sidebar, if present
+    const sidebar = sidebarForHref(href, format);
+    if (sidebar) {
+      doc.body.classList.add("nav-sidebar");
+    }
 
     // Note sidebar style on body
     // TODO: Should we compute this using the using project instead?
