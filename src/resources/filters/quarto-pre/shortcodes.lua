@@ -124,10 +124,29 @@ function transformShortcodeBlocks(blocks)
   end
 end
 
+-- helper function to read metadata options
+local function readMetadata(value)
+  local metaValue = option(value, pandoc.Inlines({}))
+  if type(metaValue) == "table" then
+    if #metaValue == 0 then
+      return pandoc.Inlines({})
+    elseif pandoc.utils.type(metaValue) == "Inlines" then
+      return metaValue
+    elseif pandoc.utils.type(metaValue) == "Blocks" then
+      return pandoc.utils.blocks_to_inlines(metaValue)
+    else
+      warn("Unsupported type '" .. pandoc.utils.type(metaValue)  .. "' for key " .. value)
+      return pandoc.Inlines({})      
+    end
+  else 
+    return pandoc.Inlines({ pandoc.Str( tostring(val) ) })
+  end
+end
+
 -- call a handler w/ args & kwargs
 function callShortcodeHandler(handler, shortCode)
   local args = pandoc.List()
-  local kwargs = {}
+  local kwargs = setmetatable({}, { __index = function () return pandoc.Inlines({}) end })
   for _,arg in ipairs(shortCode.args) do
     if arg.name then
       kwargs[arg.name] = arg.value
@@ -135,7 +154,10 @@ function callShortcodeHandler(handler, shortCode)
       args:insert(arg.value)
     end
   end
-  return handler(args, kwargs)
+  local meta = setmetatable({}, { __index = function(t, i) 
+    return readMetadata(i)
+  end})
+  return handler(args, kwargs, meta)
 end
 
 -- scans through a list of inlines, finds shortcodes, and processes them
