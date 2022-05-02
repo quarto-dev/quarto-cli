@@ -54,6 +54,13 @@
     formats: [$html-doc]
   description: Enables hover over a section title to see an anchor link.
 
+- name: smooth-scroll
+  schema: boolean
+  default: false
+  tags:
+    formats: [$html-doc]
+  description: Enables smooth scrolling within the page.
+
 - name: html-math-method
   tags:
     formats: [$html-doc, $epub-all, gfm, hugo]

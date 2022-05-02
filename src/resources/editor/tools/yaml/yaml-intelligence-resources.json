@@ -1763,7 +1763,7 @@
               "description": "Website description"
             }
           },
-          "fav-icon": {
+          "favicon": {
             "string": {
               "description": "The path to the favicon for this website"
             }
@@ -2713,6 +2713,13 @@
                         "description": {
                           "short": "The language of the feed.",
                           "long": "The language of the feed. Omitted if not specified. \nSee [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)\nfor a list of valid language codes.\n"
+                        }
+                      }
+                    },
+                    "categories": {
+                      "maybeArrayOf": {
+                        "string": {
+                          "description": "A list of categories for which to create separate RSS feeds containing only posts with that category."
                         }
                       }
                     }
@@ -6498,6 +6505,17 @@
       "description": "Enables hover over a section title to see an anchor link."
     },
     {
+      "name": "smooth-scroll",
+      "schema": "boolean",
+      "default": false,
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": "Enables smooth scrolling within the page."
+    },
+    {
       "name": "html-math-method",
       "tags": {
         "formats": [
@@ -9910,6 +9928,8 @@
       "short": "The language of the feed.",
       "long": "The language of the feed. Omitted if not specified. See <a href=\"https://www.rssboard.org/rss-language-codes\">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes."
     },
+    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
+    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
     {
       "short": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
       "long": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href=\"https://deno.land/std@0.125.0/datetime\">here</a>."
@@ -10793,6 +10813,7 @@
     "Enables inclusion of Pandoc default CSS for this document.",
     "One or more CSS style sheets.",
     "Enables hover over a section title to see an anchor link.",
+    "Enables smooth scrolling within the page.",
     {
       "short": "Method use to render math in HTML output",
       "long": "Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href=\"https://pandoc.org/MANUAL.html#math-rendering-in-html\">Math\nRendering in HTML</a> for additional details."

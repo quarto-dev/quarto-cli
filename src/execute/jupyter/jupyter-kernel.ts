@@ -15,7 +15,10 @@ import { execProcess, ProcessResult } from "../../core/process.ts";
 import { md5Hash } from "../../core/hash.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
-import { JupyterCapabilities } from "../../core/jupyter/types.ts";
+import {
+  JupyterCapabilities,
+  JupyterKernelspec,
+} from "../../core/jupyter/types.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import {
   jupyterCapabilitiesMessage,
@@ -33,6 +36,7 @@ import {
 import { ExecuteOptions } from "../types.ts";
 
 export interface JupyterExecuteOptions extends ExecuteOptions {
+  kernelspec: JupyterKernelspec;
   python_cmd: string[];
 }
 
@@ -44,7 +48,7 @@ export async function executeKernelOneshot(
 
   // execute the notebook (save back in place)
   if (!options.quiet) {
-    messageStartingKernel();
+    messageStartingKernel(options.kernelspec);
   }
 
   trace(options, "Executing notebook with oneshot kernel");
@@ -373,7 +377,7 @@ async function connectToKernel(
 
   // start the kernel
   if (!options.quiet) {
-    messageStartingKernel();
+    messageStartingKernel(options.kernelspec);
   }
 
   // determine timeout
@@ -446,8 +450,8 @@ async function denoConnectToKernel(
   }
 }
 
-function messageStartingKernel() {
-  info("\nStarting Jupyter kernel...", { newline: false });
+function messageStartingKernel(kernelspec: JupyterKernelspec) {
+  info(`\nStarting ${kernelspec.name} kernel...`, { newline: false });
 }
 
 function trace(options: ExecuteOptions, msg: string) {

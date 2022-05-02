@@ -7,8 +7,10 @@
 import { existsSync } from "fs/exists.ts";
 import { extname, join } from "path/mod.ts";
 import { info } from "log/mod.ts";
+import * as colors from "fmt/colors.ts";
 
 import { getenv } from "./env.ts";
+import { exitWithCleanup } from "./cleanup.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -33,7 +35,7 @@ export const quartoConfig = {
   },
 };
 
-export function monitorQuartoSrcChanges(cleanup: VoidFunction) {
+export function monitorQuartoSrcChanges(cleanup?: VoidFunction) {
   if (quartoConfig.isDebug()) {
     const srcDir = Deno.realPathSync(
       join(quartoConfig.binPath(), "../../../src"),
@@ -42,9 +44,16 @@ export function monitorQuartoSrcChanges(cleanup: VoidFunction) {
     const watchForChanges = async () => {
       for await (const event of watcher) {
         if (event.paths.some((path) => extname(path).toLowerCase() === ".ts")) {
-          info("quarto src code changed: preview terminating");
-          cleanup();
-          Deno.exit(1);
+          info(
+            colors.bold(
+              colors.blue("\nquarto src code changed: preview terminating\n"),
+            ),
+          );
+
+          if (cleanup) {
+            cleanup();
+          }
+          exitWithCleanup(1);
         }
       }
     };

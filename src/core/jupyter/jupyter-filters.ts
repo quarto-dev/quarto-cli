@@ -13,16 +13,20 @@ import { Format } from "../../config/types.ts";
 import { execProcess } from "../../core/process.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
+import { JupyterNotebook } from "./types.ts";
 
-export async function markdownFromNotebook(file: string, format?: Format) {
+export async function markdownFromNotebookFile(file: string, format?: Format) {
   // read file with any filters
   const nbContents = await jupyterNotebookFiltered(
     file,
     format?.execute[kIpynbFilters],
   );
   const nb = JSON.parse(nbContents);
-  const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
-  const markdown = cells.reduce((md, cell) => {
+  return markdownFromNotebookJSON(nb);
+}
+
+export function markdownFromNotebookJSON(nb: JupyterNotebook) {
+  const markdown = nb.cells.reduce((md, cell) => {
     if (["markdown", "raw"].includes(cell.cell_type)) {
       return md + "\n" + cell.source.join("") + "\n";
     } else {

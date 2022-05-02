@@ -450,7 +450,7 @@
       description:
         string:
           description: "Website description"
-      fav-icon:
+      favicon:
         string:
           description: "The path to the favicon for this website"
       site-url:
@@ -1159,6 +1159,10 @@
                         The language of the feed. Omitted if not specified. 
                         See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)
                         for a list of valid language codes.
+                categories:
+                  maybeArrayOf:
+                    string:
+                      description: A list of categories for which to create separate RSS feeds containing only posts with that category.
         description: Enables an RSS feed for the listing.
       date-format:
         string:

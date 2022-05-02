@@ -1,7 +1,0 @@
-date-format: full
-format:
-  pdf:
-    citation-package: natbib
-    template-partials: [frontmatter.tex, doc-class.tex, title.tex, elsarticle.cls]
-    classoption: preprint, 3p, authoryear
-    number-sections: true

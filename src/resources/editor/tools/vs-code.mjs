@@ -8787,7 +8787,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Website description"
                 }
               },
-              "fav-icon": {
+              favicon: {
                 string: {
                   description: "The path to the favicon for this website"
                 }
@@ -9737,6 +9737,13 @@ var require_yaml_intelligence_resources = __commonJS({
                             description: {
                               short: "The language of the feed.",
                               long: "The language of the feed. Omitted if not specified. \nSee [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)\nfor a list of valid language codes.\n"
+                            }
+                          }
+                        },
+                        categories: {
+                          maybeArrayOf: {
+                            string: {
+                              description: "A list of categories for which to create separate RSS feeds containing only posts with that category."
                             }
                           }
                         }
@@ -13522,6 +13529,17 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Enables hover over a section title to see an anchor link."
         },
         {
+          name: "smooth-scroll",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Enables smooth scrolling within the page."
+        },
+        {
           name: "html-math-method",
           tags: {
             formats: [
@@ -16934,6 +16952,8 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The language of the feed.",
           long: 'The language of the feed. Omitted if not specified. See <a href="https://www.rssboard.org/rss-language-codes">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes.'
         },
+        "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
+        "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
           long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
@@ -17817,6 +17837,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables inclusion of Pandoc default CSS for this document.",
         "One or more CSS style sheets.",
         "Enables hover over a section title to see an anchor link.",
+        "Enables smooth scrolling within the page.",
         {
           short: "Method use to render math in HTML output",
           long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
@@ -19116,14 +19137,13 @@ function mappedSubstring(source, start, end) {
   return {
     value,
     map: (index, closest) => {
-      index -= start;
       if (closest) {
-        index = Math.min(Math.max(0, index), value.length - 1);
+        index = Math.max(0, Math.min(value.length, index - 1));
       }
-      return {
-        index,
-        originalString: mappedSource2
-      };
+      if (index < 0 || index >= value.length) {
+        return void 0;
+      }
+      return mappedSource2.map(index + start, closest);
     }
   };
 }
@@ -19148,7 +19168,13 @@ function asMappedString(str2, fileName) {
     return {
       value: str2,
       fileName,
-      map: function(index, _closest) {
+      map: function(index, closest) {
+        if (closest) {
+          index = Math.min(str2.length - 1, Math.max(0, index));
+        }
+        if (index < 0 || index >= str2.length) {
+          return void 0;
+        }
         return {
           index,
           originalString: this
@@ -19163,7 +19189,10 @@ function asMappedString(str2, fileName) {
 }
 function mappedConcat(strings) {
   if (strings.length === 0) {
-    throw new Error("strings must be non-empty");
+    return {
+      value: "",
+      map: (_index, _closest) => void 0
+    };
   }
   if (strings.every((s) => typeof s === "string")) {
     return asMappedString(strings.join(""));
@@ -19175,7 +19204,7 @@ function mappedConcat(strings) {
       return s;
   });
   let currentOffset = 0;
-  const offsets = [];
+  const offsets = [0];
   for (const s of mappedStrings) {
     currentOffset += s.value.length;
     offsets.push(currentOffset);

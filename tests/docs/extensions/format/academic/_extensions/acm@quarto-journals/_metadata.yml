@@ -1,8 +1,0 @@
-csl: acm-sig-proceedings.csl
-format:
-  pdf:
-    template-partials:
-      - partials/before-bib.tex
-      - partials/pandoc-before-body.tex
-      - partials/doc-class.tex
-      - partials/title.tex

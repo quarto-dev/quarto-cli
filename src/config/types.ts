@@ -203,6 +203,7 @@ export interface DependencyFile {
   name: string;
   path: string;
   attribs?: Record<string, string>;
+  afterBody?: boolean;
 }
 
 export interface BodyEnvelope {

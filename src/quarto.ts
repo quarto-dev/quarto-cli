@@ -29,6 +29,7 @@ import {
   readSourceDevConfig,
   reconfigureQuarto,
 } from "./core/devconfig.ts";
+import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { parse } from "flags/mod.ts";
 import { runScript } from "./command/run/run.ts";
@@ -98,6 +99,7 @@ export async function quarto(
 
   // init temp dir
   initSessionTempDir();
+  onCleanup(cleanupSessionTempDir);
 
   await quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
@@ -124,7 +126,7 @@ if (import.meta.main) {
     await cleanupLogger();
 
     // exit
-    Deno.exit(0);
+    exitWithCleanup(0);
   } catch (e) {
     if (e) {
       logError(e);
@@ -134,10 +136,5 @@ if (import.meta.main) {
 }
 
 function abend() {
-  cleanup();
-  Deno.exit(1);
-}
-
-function cleanup() {
-  cleanupSessionTempDir();
+  exitWithCleanup(1);
 }

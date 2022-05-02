@@ -58,6 +58,7 @@ import { ServeOptions } from "./types.ts";
 import { watchProject } from "./watch.ts";
 import {
   isPreviewRenderRequest,
+  isPreviewTerminateRequest,
   previewRenderRequest,
   previewRenderRequestIsCompatible,
 } from "../../command/preview/preview.ts";
@@ -88,6 +89,7 @@ import { createTempContext, TempContext } from "../../core/temp.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
+import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -126,7 +128,7 @@ export async function serveProject(
   acquirePreviewLock(project);
 
   // monitor the src dir
-  monitorQuartoSrcChanges(() => releasePreviewLock(project!));
+  monitorQuartoSrcChanges();
 
   // clear the project index
   clearProjectIndex(project.dir);
@@ -253,6 +255,8 @@ export async function serveProject(
     onRequest: async (req: Request) => {
       if (watcher.handle(req)) {
         return await watcher.connect(req);
+      } else if (isPreviewTerminateRequest(req)) {
+        exitWithCleanup(0);
       } else if (isPreviewRenderRequest(req)) {
         const prevReq = previewRenderRequest(
           req,
@@ -540,7 +544,7 @@ function acquirePreviewLock(project: ProjectContext) {
     const pid = parseInt(Deno.readTextFileSync(lockfile)) || undefined;
     if (pid) {
       info(
-        colors.bold(colors.blue("Termimating existing preview server....")),
+        colors.bold(colors.blue("Terminating existing preview server....")),
         { newline: false },
       );
       try {
@@ -558,9 +562,7 @@ function acquirePreviewLock(project: ProjectContext) {
   Deno.writeTextFileSync(lockfile, String(Deno.pid));
 
   // rmeove the lockfile when we exit
-  addEventListener("unload", () => {
-    releasePreviewLock(project);
-  });
+  onCleanup(() => releasePreviewLock(project));
 }
 
 function releasePreviewLock(project: ProjectContext) {

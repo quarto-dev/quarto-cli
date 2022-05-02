@@ -88,6 +88,8 @@ import { parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
+import { directoryMetadataForInputFile } from "../../../project-context.ts";
+import { mergeConfigs } from "../../../../core/config.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -625,7 +627,16 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     false,
   );
 
-  const documentMeta = target?.markdown.yaml;
+  const docRawMetadata = target?.markdown.yaml;
+  const directoryMetadata = directoryMetadataForInputFile(
+    project,
+    dirname(input),
+  );
+  const documentMeta = await mergeConfigs(
+    directoryMetadata,
+    docRawMetadata,
+  ) as Metadata;
+
   if (documentMeta?.draft) {
     // This is a draft, don't include it in the listing
     return undefined;

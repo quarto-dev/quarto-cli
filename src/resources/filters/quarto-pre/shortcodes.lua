@@ -61,14 +61,18 @@ function transformShortcodeCode(el)
   end
   
   -- process shortcodes
-  local text = el.text:gsub(kOpenShortcode .. "(.-)" .. kCloseShortcode, function(code)
-    -- see if any of the shortcode handlers want it (and transform results to plain text)
-    local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
-    local transformed = transformShortcodeInlines(inlines)
-    if transformed ~= nil then
-      return inlinesToString(transformed)
+  local text = el.text:gsub("(%{%{%{*<)" ..  "(.-)" .. "(>%}%}%}*)", function(beginCode, code, endCode) 
+    if #beginCode > 3 or #endCode > 3 then
+      return beginCode:sub(2) .. code .. endCode:sub(1, #endCode-1)
     else
-      return code
+      -- see if any of the shortcode handlers want it (and transform results to plain text)
+      local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
+      local transformed = transformShortcodeInlines(inlines)
+      if transformed ~= nil then
+        return inlinesToString(transformed)
+      else
+        return beginCode .. code .. endCode
+      end
     end
   end)
 
@@ -95,7 +99,7 @@ function transformShortcodeBlocks(blocks)
           local shortCode = processShortCode(onlyShortcode)
           local handler = handlerForShortcode(shortCode)
           if handler ~= nil then
-            local transformedShortcode = handler(shortCode.args)
+            local transformedShortcode = callShortcodeHandler(handler, shortCode)
             if transformedShortcode ~= nil then
               tappend(scannedBlocks, shortcodeResultAsBlocks(transformedShortcode, shortCode.name))
               transformed = true                  
@@ -120,6 +124,42 @@ function transformShortcodeBlocks(blocks)
   end
 end
 
+-- helper function to read metadata options
+local function readMetadata(value)
+  local metaValue = option(value, pandoc.Inlines({}))
+  if type(metaValue) == "table" then
+    if #metaValue == 0 then
+      return pandoc.Inlines({})
+    elseif pandoc.utils.type(metaValue) == "Inlines" then
+      return metaValue
+    elseif pandoc.utils.type(metaValue) == "Blocks" then
+      return pandoc.utils.blocks_to_inlines(metaValue)
+    else
+      warn("Unsupported type '" .. pandoc.utils.type(metaValue)  .. "' for key " .. value)
+      return pandoc.Inlines({})      
+    end
+  else 
+    return pandoc.Inlines({ pandoc.Str( tostring(val) ) })
+  end
+end
+
+-- call a handler w/ args & kwargs
+function callShortcodeHandler(handler, shortCode)
+  local args = pandoc.List()
+  local kwargs = setmetatable({}, { __index = function () return pandoc.Inlines({}) end })
+  for _,arg in ipairs(shortCode.args) do
+    if arg.name then
+      kwargs[arg.name] = arg.value
+    else
+      args:insert(arg.value)
+    end
+  end
+  local meta = setmetatable({}, { __index = function(t, i) 
+    return readMetadata(i)
+  end})
+  return handler(args, kwargs, meta)
+end
+
 -- scans through a list of inlines, finds shortcodes, and processes them
 function transformShortcodeInlines(inlines) 
   local transformed = false
@@ -132,8 +172,20 @@ function transformShortcodeInlines(inlines)
 
     if el.t == "Str" then 
 
+      -- find escaped shortcodes
+      local beginEscapeMatch = el.text:match("^%{%{%{+<")
+      local endEscapeMatch = el.text:match(">%}%}%}+$")
+     
+      -- handle shocrtcode escape -- e.g. {{{< >}}}
+      if beginEscapeMatch then
+        transformed = true
+        accum:insert(pandoc.Str(beginEscapeMatch:sub(2)))
+      elseif endEscapeMatch then
+        transformed = true
+        accum:insert(endEscapeMatch:sub(1, #endEscapeMatch-1))
+
       -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
-      if endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
+      elseif endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
         -- This is an escape, so insert the raw shortcode as text (remove the comment chars)
         transformed = true
         accum:insert(pandoc.Str(kOpenShortcode))
@@ -171,7 +223,7 @@ function transformShortcodeInlines(inlines)
         -- find the handler for this shortcode and transform
         local handler = handlerForShortcode(shortCode)
         if handler ~= nil then
-          local expanded = handler(shortCode.args)
+          local expanded = callShortcodeHandler(handler, shortCode)
           if expanded ~= nil then
             -- process recursively
             expanded = shortcodeResultAsInlines(expanded, shortCode.name)
@@ -243,12 +295,12 @@ function processShortCode(inlines)
 
   -- Adds an argument to the args list (either named or unnamed args)
   insertArg = function(argInlines) 
-    if nextValueName ~= nil then
+    if pendingName ~= nil then
       -- there is a pending name, insert this arg
       -- with that name
       args:insert(
         {
-          name = nextValueName,
+          name = pendingName,
           value = argInlines
         })
       pendingName = nil
@@ -416,10 +468,10 @@ function shortcodeResultAsBlocks(result, name)
     local items = pandoc.List(result)
     local blocks = items:filter(isBlockEl)
     if #blocks > 0 then
-      return pandoc.Blcoks(inlblocksines)
+      return pandoc.Blocks(blocks)
     else
       local inlines = items:filter(isInlineEl)
-      return pandoc.Para(inlines)
+      return pandoc.Blocks({pandoc.Para(inlines)})
     end
   elseif isBlockEl(result) then
     return pandoc.Blocks( { result } )

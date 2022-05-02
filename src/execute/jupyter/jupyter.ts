@@ -53,7 +53,11 @@ import {
   executeKernelOneshot,
   JupyterExecuteOptions,
 } from "./jupyter-kernel.ts";
-import { JupyterWidgetDependencies } from "../../core/jupyter/types.ts";
+import {
+  JupyterKernelspec,
+  JupyterNotebook,
+  JupyterWidgetDependencies,
+} from "../../core/jupyter/types.ts";
 import {
   includesForJupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
@@ -75,10 +79,11 @@ import { pythonExec } from "../../core/jupyter/exec.ts";
 
 import {
   jupyterNotebookFiltered,
-  markdownFromNotebook,
+  markdownFromNotebookFile,
+  markdownFromNotebookJSON,
 } from "../../core/jupyter/jupyter-filters.ts";
 import { asMappedString } from "../../core/lib/mapped-text.ts";
-import { mappedStringFromFile } from "../../core/mapped-text.ts";
+import { MappedString, mappedStringFromFile } from "../../core/mapped-text.ts";
 import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
 
 export const jupyterEngine: ExecutionEngine = {
@@ -121,9 +126,16 @@ export const jupyterEngine: ExecutionEngine = {
   target: async (
     file: string,
   ): Promise<ExecutionTarget | undefined> => {
-    const markdown = isJupyterNotebook(file)
-      ? asMappedString(await markdownFromNotebook(file)) // FIXME how do we do source mapping from .ipynb?
-      : asMappedString(mappedStringFromFile(file));
+    // at some point we'll resolve a full notebook/kernelspec
+    let nb: JupyterNotebook | undefined;
+    let markdown: MappedString;
+    if (isJupyterNotebook(file)) {
+      const nbJSON = Deno.readTextFileSync(file);
+      nb = JSON.parse(nbJSON) as JupyterNotebook;
+      markdown = asMappedString(markdownFromNotebookJSON(nb));
+    } else {
+      markdown = asMappedString(mappedStringFromFile(file));
+    }
 
     // get the metadata
     const metadata = readYamlFromMarkdown(markdown.value);
@@ -138,9 +150,10 @@ export const jupyterEngine: ExecutionEngine = {
         input: notebook,
         markdown,
         metadata,
-        data: { transient: true },
+        data: { transient: true, kernelspec: {} },
       };
-      await createNotebookforTarget(target);
+      nb = await createNotebookforTarget(target);
+      target.data.kernelspec = nb.metadata.kernelspec;
       return target;
     } else if (isJupyterNotebook(file)) {
       return {
@@ -148,7 +161,7 @@ export const jupyterEngine: ExecutionEngine = {
         input: file,
         markdown,
         metadata,
-        data: { transient: false },
+        data: { transient: false, kernelspec: nb?.metadata.kernelspec },
       };
     } else {
       return undefined;
@@ -157,7 +170,7 @@ export const jupyterEngine: ExecutionEngine = {
 
   partitionedMarkdown: async (file: string, format?: Format) => {
     if (isJupyterNotebook(file)) {
-      return partitionMarkdown(await markdownFromNotebook(file, format));
+      return partitionMarkdown(await markdownFromNotebookFile(file, format));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
     }
@@ -215,6 +228,9 @@ export const jupyterEngine: ExecutionEngine = {
       await createNotebookforTarget(options.target);
     }
 
+    // determine the kernel (it's in the custom execute options data)
+    const kernelspec = (options.target.data as JupyterTargetData).kernelspec;
+
     // determine execution behavior
     const execute = options.format.execute[kExecuteEnabled] !== false;
     if (execute) {
@@ -240,6 +256,7 @@ export const jupyterEngine: ExecutionEngine = {
         }
       }
       const jupyterExecOptions: JupyterExecuteOptions = {
+        kernelspec,
         python_cmd: await pythonExec(),
         ...execOptions,
       };
@@ -368,6 +385,7 @@ function isQmdFile(file: string) {
 async function createNotebookforTarget(target: ExecutionTarget) {
   const nb = await quartoMdToJupyter(target.source, true);
   Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
+  return nb;
 }
 
 async function disableDaemonForNotebook(target: ExecutionTarget) {
@@ -416,6 +434,7 @@ function cleanupNotebook(target: ExecutionTarget, format: Format) {
 
 interface JupyterTargetData {
   transient: boolean;
+  kernelspec: JupyterKernelspec;
 }
 
 function executeResultIncludes(

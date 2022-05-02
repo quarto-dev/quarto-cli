@@ -4,3 +4,4 @@
 # (see https://quarto.org/docs/projects/code-execution.html#freeze)
 freeze: true
 title-block-banner: true
+toc-location: left
