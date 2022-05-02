@@ -183,7 +183,9 @@ export async function handleLanguageCells(
 
   for (let i = 0; i < mdCells.length; ++i) {
     const cell = mdCells[i];
-    newCells.push(cell.sourceVerbatim);
+    newCells.push(
+      i === 0 ? cell.sourceVerbatim : mappedConcat(["\n", cell.sourceVerbatim]),
+    );
     if (
       cell.cell_type === "math" ||
       cell.cell_type === "raw" ||

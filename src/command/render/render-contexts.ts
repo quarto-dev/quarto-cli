@@ -71,7 +71,11 @@ import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { createTempContext } from "../../core/temp.ts";
-import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
+import {
+  fileEngineClaimReason,
+  fileExecutionEngineAndTarget,
+  markdownExecutionEngine,
+} from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
 import { filesDirLibDir } from "./render-paths.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
@@ -195,6 +199,8 @@ export async function renderContexts(
     options.flags?.quiet,
   );
 
+  const engineClaimReason = fileEngineClaimReason(file.path);
+
   // resolve render target
   const formats = await resolveFormats(file, target, engine, options, project);
 
@@ -237,6 +243,7 @@ export async function renderContexts(
         markdown: context.target.markdown,
         source: context.target.source,
         stage: "pre-engine",
+        engine,
       };
 
       const { markdown, results } = await handleLanguageCells(
@@ -247,6 +254,12 @@ export async function renderContexts(
 
       if (results) {
         context.target.preEngineExecuteResults = results;
+      }
+
+      if (engineClaimReason === "markdown") {
+        // since the content decided the engine, and the content now changed,
+        // we need to re-evaluate the engine based on new content.
+        context.engine = markdownExecutionEngine(markdown.value);
       }
     }
 

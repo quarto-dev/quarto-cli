@@ -79,7 +79,12 @@ export const knitrEngine: ExecutionEngine = {
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     const result = await callR<ExecuteResult>(
       "execute",
-      { ...options, target: undefined, input: options.target.input },
+      {
+        ...options,
+        target: undefined,
+        input: options.target.input,
+        markdown: options.target.markdown.value,
+      },
       options.tempDir,
       options.quiet,
     );

@@ -2,7 +2,7 @@
 # Copyright (C) 2020 by RStudio, PBC
 
 # execute rmarkdown::render
-execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir, handledLanguages) {
+execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir, handledLanguages, markdown) {
 
   # calculate knit_root_dir (before we setwd below)
   knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
@@ -13,6 +13,13 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   on.exit(setwd(oldwd), add = TRUE)
   input <- basename(input)
 
+  md_temporary_uuid = "_01526f37-4c95-4227-97ce-a40983616e4d.qmd"
+  markdown_input <- paste0(xfun::sans_ext(input), md_temporary_uuid)
+
+  write(markdown, markdown_input);
+  on.exit(unlink(markdown_input));
+  input <- markdown_input;
+
   # give the input an .Rmd extension if it doesn't already have one
   # (this is a temporary copy which we'll remove before exiting). note
   # that we only need to do this for older versions of rmarkdown
@@ -22,7 +29,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
       rmd_input <- paste0(xfun::sans_ext(input), ".Rmd")
       
       # swap out the input
-      file.copy(input, rmd_input)
+      write(markdown, rmd_input)
       input <- rmd_input
       
       # remove the rmd input on exit
@@ -98,6 +105,8 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     clean_supporting = TRUE
   )
 
+  print(output_format)
+
   # FIXME this test isn't failing in shiny mode, but it doesn't look to be
   # breaking quarto-shiny-ojs. We should make sure this is right.
   if (!is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime"))) {
@@ -152,6 +161,8 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # read and then delete the rendered output file
   markdown <- xfun::read_utf8(output_file)
   unlink(output_file)
+
+  print(markdown)
 
   # results
   list(

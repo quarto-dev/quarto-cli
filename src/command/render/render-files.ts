@@ -377,6 +377,7 @@ export async function renderFiles(
           markdown: mappedMarkdown,
           source: context.target.source,
           stage: "post-engine",
+          engine: context.engine,
         };
 
         // handle language cells

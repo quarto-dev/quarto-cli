@@ -77,26 +77,12 @@ export function engineValidExtensions(): string[] {
   return ld.uniq(kEngines.flatMap((engine) => engine.validExtensions()));
 }
 
-export function fileExecutionEngine(
-  file: string,
+export function markdownExecutionEngine(
+  markdown: string,
 ) {
-  // get the extension and validate that it can be handled by at least one of our engines
-  const ext = extname(file).toLowerCase();
-  if (!kEngines.some((engine) => engine.validExtensions().includes(ext))) {
-    return undefined;
-  }
-
-  // try to find an engine that claims this extension outright
-  for (const engine of kEngines) {
-    if (engine.claimsExtension(ext)) {
-      return engine;
-    }
-  }
-
   // read yaml and see if the engine is declared in yaml
   // (note that if the file were a non text-file like ipynb
   //  it would have already been claimed via extension)
-  const markdown = Deno.readTextFileSync(file);
   const result = partitionYamlFrontMatter(markdown);
   if (result) {
     const yaml = readYamlFromMarkdown(result.yaml);
@@ -139,6 +125,52 @@ export function fileExecutionEngine(
   } else {
     return engineForMarkdownWithNoLanguages(markdown);
   }
+}
+
+/**
+ * return the reason an execution engine could claim this file. This is
+ * used to determine if the engine should be resolved again after
+ * running pre-engine handlers.
+ *
+ * @param file filename
+ * @returns the reason
+ */
+export function fileEngineClaimReason(
+  file: string,
+) {
+  // get the extension and validate that it can be handled by at least one of our engines
+  const ext = extname(file).toLowerCase();
+  if (!kEngines.some((engine) => engine.validExtensions().includes(ext))) {
+    return "invalid";
+  }
+
+  // try to find an engine that claims this extension outright
+  for (const engine of kEngines) {
+    if (engine.claimsExtension(ext)) {
+      return "extension";
+    }
+  }
+
+  return "markdown";
+}
+
+export function fileExecutionEngine(
+  file: string,
+) {
+  // get the extension and validate that it can be handled by at least one of our engines
+  const ext = extname(file).toLowerCase();
+  if (!kEngines.some((engine) => engine.validExtensions().includes(ext))) {
+    return undefined;
+  }
+
+  // try to find an engine that claims this extension outright
+  for (const engine of kEngines) {
+    if (engine.claimsExtension(ext)) {
+      return engine;
+    }
+  }
+
+  return markdownExecutionEngine(Deno.readTextFileSync(file));
 }
 
 export async function fileExecutionEngineAndTarget(
