@@ -14,7 +14,6 @@ import { YAMLSchemaT } from "./types.ts";
 import {
   addFileInfo,
   addInstancePathInfo,
-  ErrorLocation,
   locationString,
   quotedStringColor,
   TidyverseError,
