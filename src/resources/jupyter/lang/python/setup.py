@@ -59,8 +59,8 @@ for module in list(sys.modules.values()):
 print(json.dumps(kernel_deps))
 
 # set run_path if requested
-if '{4}':
-  os.chdir('{4}')
+if r'{4}':
+  os.chdir(r'{4}')
 
 # reset state
 %reset
