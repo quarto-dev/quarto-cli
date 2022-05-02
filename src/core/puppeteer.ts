@@ -5,13 +5,11 @@
 *
 */
 
-import puppeteer, {
-  Browser,
-  Page,
-} from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
+import puppeteer, { Browser, Page } from "puppeteer/mod.ts";
 import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
 import { warning } from "log/mod.ts";
+import { fetcher } from "../command/tools/tools/chromium.ts";
 
 export async function extractImagesFromElements(
   url: string,
@@ -177,9 +175,8 @@ async function findChrome(): Promise<string | undefined> {
 
 async function fetchBrowser() {
   // Cook up a new instance
-  const options = {};
-  const fetcher = puppeteer.createBrowserFetcher(options);
-  const availableRevisions = await fetcher.localRevisions();
+  const browserFetcher = fetcher();
+  const availableRevisions = await browserFetcher.localRevisions();
   const isChromiumInstalled = availableRevisions.length > 0;
   const executablePath = !isChromiumInstalled ? await findChrome() : undefined;
   if (isChromiumInstalled || executablePath) {
@@ -189,7 +186,7 @@ async function fetchBrowser() {
     });
   } else {
     warning(
-      "Screenshotting of embedded web content disabled (chromium not installed)",
+      "Capturing of embedded web content disabled (chromium not installed)",
     );
     return undefined;
   }

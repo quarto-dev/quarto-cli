@@ -8,7 +8,7 @@
 */
 
 import { ExecuteOutput, Verify } from "../../../test.ts";
-import { Browser } from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
+import { Browser } from "puppeteer/mod.ts";
 import {
   inPuppeteer,
   withHeadlessBrowser,
