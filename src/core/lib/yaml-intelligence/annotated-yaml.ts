@@ -8,7 +8,7 @@
 import { lines, matchAll } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
-import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
+import { asMappedString, MappedString } from "../mapped-text.ts";
 import { getTreeSitterSync } from "./parsing.ts";
 
 import { load as jsYamlParse } from "../external/js-yaml.js";
