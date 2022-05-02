@@ -208,9 +208,18 @@ export async function validationFromGoodParseYAML(
     return [];
   }
   const locF = mappedIndexToRowCol(code);
+
+  // ignore bad lookups (from empty lines at the end of file)
   const ls = Array
     .from(lineOffsets(code.value))
-    .map((offset) => locF(offset).line);
+    .map((offset) => {
+      try {
+        return locF(offset).line;
+      } catch (_e) {
+        return undefined;
+      }
+    }).filter((x) => x !== undefined);
+
   const toOriginSourceLines = (targetSourceLine: number) =>
     ls[targetSourceLine];
 

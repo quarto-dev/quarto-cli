@@ -57,6 +57,11 @@ export function mappedSubstring(
       if (closest) {
         index = Math.max(0, Math.min(value.length, index - 1));
       }
+      // we need to special-case a zero-offset lookup from an empty string,
+      // since those are necessary during error resolution of empty YAML values.
+      if (index === 0 && index === value.length) {
+        return mappedSource.map(index + start, closest);
+      }
       if (index < 0 || index >= value.length) {
         return undefined;
       }
@@ -180,7 +185,15 @@ export function mappedConcat(strings: EitherString[]): MappedString {
 
   return {
     value,
-    map(offset: number, _closest?: boolean): StringMapResult {
+    map: (offset: number, closest?: boolean): StringMapResult => {
+      if (closest) {
+        offset = Math.max(0, Math.min(offset, value.length - 1));
+      }
+      // we need to special-case an offset-0 lookup into an empty mapped string
+      // since those are necessary during error resolution of empty YAML values.
+      if (offset === 0 && offset == value.length && mappedStrings.length) {
+        return mappedStrings[0].map(0, closest);
+      }
       if (offset < 0 || offset >= value.length) {
         return undefined;
       }

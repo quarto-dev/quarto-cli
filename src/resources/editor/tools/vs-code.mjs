@@ -19140,6 +19140,9 @@ function mappedSubstring(source, start, end) {
       if (closest) {
         index = Math.max(0, Math.min(value.length, index - 1));
       }
+      if (index === 0 && index === value.length) {
+        return mappedSource2.map(index + start, closest);
+      }
       if (index < 0 || index >= value.length) {
         return void 0;
       }
@@ -19212,7 +19215,13 @@ function mappedConcat(strings) {
   const value = mappedStrings.map((s) => s.value).join("");
   return {
     value,
-    map(offset, _closest) {
+    map: (offset, closest) => {
+      if (closest) {
+        offset = Math.max(0, Math.min(offset, value.length - 1));
+      }
+      if (offset === 0 && offset == value.length && mappedStrings.length) {
+        return mappedStrings[0].map(0, closest);
+      }
       if (offset < 0 || offset >= value.length) {
         return void 0;
       }
@@ -24944,8 +24953,8 @@ function expandEmptySpan(error, parse, _schema) {
   const locF = mappedIndexToRowCol(parse.source);
   try {
     const location = {
-      start: locF(lastKey.start - 1),
-      end: locF(lastKey.end - 1)
+      start: locF(lastKey.start),
+      end: locF(lastKey.end)
     };
     return {
       ...error,
@@ -25197,8 +25206,8 @@ function checkForNearbyCorrection(error, parse, _schema) {
   return error;
 }
 function createSourceContext(src, location) {
-  const startMapResult = src.map(location.start);
-  const endMapResult = src.map(location.end);
+  const startMapResult = src.map(location.start, true);
+  const endMapResult = src.map(location.end, true);
   const locF = mappedIndexToRowCol(src);
   let sourceLocation;
   try {
@@ -27576,7 +27585,13 @@ async function validationFromGoodParseYAML(context) {
     return [];
   }
   const locF = mappedIndexToRowCol(code2);
-  const ls = Array.from(lineOffsets(code2.value)).map((offset) => locF(offset).line);
+  const ls = Array.from(lineOffsets(code2.value)).map((offset) => {
+    try {
+      return locF(offset).line;
+    } catch (_e) {
+      return void 0;
+    }
+  }).filter((x) => x !== void 0);
   const toOriginSourceLines = (targetSourceLine) => ls[targetSourceLine];
   const predecessors = getYamlPredecessors(code2.value, context.position.row - 1).map(toOriginSourceLines);
   if (context.explicit === void 0) {

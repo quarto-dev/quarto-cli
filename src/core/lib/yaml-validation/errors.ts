@@ -382,8 +382,8 @@ function expandEmptySpan(
   const locF = mappedIndexToRowCol(parse.source);
   try {
     const location = {
-      start: locF(lastKey.start - 1),
-      end: locF(lastKey.end - 1),
+      start: locF(lastKey.start),
+      end: locF(lastKey.end),
     };
 
     return {
@@ -767,8 +767,8 @@ export function createSourceContext(
   src: MappedString,
   location: Range,
 ): string {
-  const startMapResult = src.map(location.start)!;
-  const endMapResult = src.map(location.end);
+  const startMapResult = src.map(location.start, true);
+  const endMapResult = src.map(location.end, true);
 
   const locF = mappedIndexToRowCol(src);
 
