@@ -17,6 +17,7 @@
     "moment-guess": "https://cdn.skypack.dev/moment-guess@1.2.4",
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
+    "puppeteer/": "https://deno.land/x/puppeteer@9.0.2/",
     "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.5.0",
     "xmlp/": "https://deno.land/x/xmlp@v0.2.8/",
     "ajv": "https://cdn.skypack.dev/ajv@8.8.2",
