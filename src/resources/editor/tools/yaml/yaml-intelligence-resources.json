@@ -10813,6 +10813,7 @@
     "Enables inclusion of Pandoc default CSS for this document.",
     "One or more CSS style sheets.",
     "Enables hover over a section title to see an anchor link.",
+    "Enables smooth scrolling within the page.",
     {
       "short": "Method use to render math in HTML output",
       "long": "Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href=\"https://pandoc.org/MANUAL.html#math-rendering-in-html\">Math\nRendering in HTML</a> for additional details."
@@ -11517,8 +11518,7 @@
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
     "Custom tools for navbar or sidebar",
-    "internal-schema-hack",
-    "Enables smooth scrolling within the page."
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {

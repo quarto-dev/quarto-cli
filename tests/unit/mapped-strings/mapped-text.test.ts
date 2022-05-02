@@ -4,13 +4,14 @@
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
-import { unitTest } from "../test.ts";
+import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts.ts";
 import {
   asMappedString,
   mappedDiff,
   mappedString,
-} from "../../src/core/mapped-text.ts";
+} from "../../../src/core/mapped-text.ts";
+import { mappedSubstring } from "../../../src/core/lib/mapped-text.ts";
 
 // deno-lint-ignore require-await
 unitTest("mapped-text - mappedString()", async () => {
@@ -30,9 +31,7 @@ print(time.time())
 
 `;
 
-  const yamlFrontMatterRangedS = mappedString(source, [
-    { start: 4, end: 27 },
-  ]);
+  const yamlFrontMatterRangedS = mappedSubstring(source, 4, 27);
   const pythonChunkS = mappedString(source, [
     { start: 62, end: 144 },
   ]);
@@ -50,22 +49,22 @@ print(time.time())
 
   assert(
     allMatch(
-      [0, 22, -1, 23].map(yamlFrontMatterRangedS.map),
+      [0, 22, -1, 23].map((n) => yamlFrontMatterRangedS.map(n)?.index),
       [4, 26, undefined, undefined],
     ),
-    "range map",
+    "range map 1",
   );
   assert(
     allMatch(
-      [0, 144 - 62 - 1, 144 - 62].map(pythonChunkS.map),
+      [0, 144 - 62 - 1, 144 - 62].map((n) => pythonChunkS.map(n)?.index),
       [62, 143, undefined],
     ),
-    "range map",
+    "range map 2",
   );
   assert(
     allMatch(
       [0, 14 - 3 - 1, 14 - 3, 14 - 3 + (33 - 17 - 1), 14 - 3 + (33 - 17)].map(
-        chunkMetadataS.map,
+        (n) => chunkMetadataS.map(n)?.index,
       ),
       [65, 75, 79, 94, undefined],
     ),
@@ -85,34 +84,33 @@ print(time.time())
     { start: 79, end: 94 },
     "\n",
   ]);
-
   assert(
     allMatch(
-      [0, 9, 10, 11].map(chunkMetadata2S.map),
-      [65, 74, undefined, 79],
+      [0, 9, 10, 11].map((n) => chunkMetadata2S.map(n)?.index),
+      [65, 74, 0, 79],
     ),
     "composed range map 2",
   );
   assert(
     allMatch(
-      [0, 9, 10, 11].map(chunkMetadata2S.mapClosest),
-      [65, 74, 74, 79],
+      [0, 9, 10, 11].map((n) => chunkMetadata2S.map(n, true)?.index),
+      [65, 74, 0, 79],
     ),
-    "composed range map 2",
+    "composed range map 3",
   );
   assert(
     allMatch(
-      [0, 9, 10, 11].map(chunkMetadata3S.map),
-      [65, 74, undefined, 79],
+      [0, 9, 10, 11].map((n) => chunkMetadata3S.map(n)?.index),
+      [65, 74, 0, 79],
     ),
-    "range map 2",
+    "range map 3",
   );
   assert(
     allMatch(
-      [0, 9, 10, 11].map(chunkMetadata3S.mapClosest),
-      [65, 74, 74, 79],
+      [0, 9, 10, 11].map((n) => chunkMetadata3S.map(n, true)?.index),
+      [65, 74, 0, 79],
     ),
-    "range map 2",
+    "range map 4",
   );
 });
 

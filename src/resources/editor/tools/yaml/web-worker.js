@@ -17838,6 +17838,7 @@ try {
           "Enables inclusion of Pandoc default CSS for this document.",
           "One or more CSS style sheets.",
           "Enables hover over a section title to see an anchor link.",
+          "Enables smooth scrolling within the page.",
           {
             short: "Method use to render math in HTML output",
             long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
@@ -18542,8 +18543,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack",
-          "Enables smooth scrolling within the page."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -19142,129 +19142,61 @@ ${heading}`;
   }
 
   // ../mapped-text.ts
+  function mappedSubstring(source, start, end) {
+    if (typeof source === "string") {
+      source = asMappedString(source);
+    }
+    const value = source.value.substring(start, end);
+    const mappedSource2 = source;
+    return {
+      value,
+      map: (index, closest) => {
+        if (closest) {
+          index = Math.max(0, Math.min(value.length, index - 1));
+        }
+        if (index === 0 && index === value.length) {
+          return mappedSource2.map(index + start, closest);
+        }
+        if (index < 0 || index >= value.length) {
+          return void 0;
+        }
+        return mappedSource2.map(index + start, closest);
+      }
+    };
+  }
   function mappedString(source, pieces, fileName) {
     if (typeof source === "string") {
-      const offsetInfo = [];
-      let offset = 0;
-      const resultList = pieces.filter((piece) => typeof piece === "string" || piece.start !== piece.end).map((piece) => {
-        if (typeof piece === "string") {
-          offsetInfo.push({
-            fromSource: false,
-            length: piece.length,
-            offset
-          });
-          offset += piece.length;
-          return piece;
-        } else {
-          const resultPiece = source.substring(piece.start, piece.end);
-          offsetInfo.push({
-            fromSource: true,
-            length: resultPiece.length,
-            offset,
-            range: {
-              start: piece.start,
-              end: piece.end
-            }
-          });
-          offset += resultPiece.length;
-          return resultPiece;
-        }
-      });
-      const value = resultList.join("");
-      const map2 = (targetOffset) => {
-        const ix = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
-        if (ix < 0) {
-          return void 0;
-        }
-        const info = offsetInfo[ix];
-        if (!info.fromSource) {
-          return void 0;
-        }
-        const localOffset = targetOffset - info.offset;
-        if (localOffset >= info.length) {
-          return void 0;
-        }
-        return info.range.start + localOffset;
-      };
-      const mapClosest = (targetOffset) => {
-        if (offsetInfo.length === 0 || targetOffset < 0) {
-          return void 0;
-        }
-        const firstIx = glb(offsetInfo, { offset: targetOffset }, (a, b) => a.offset - b.offset);
-        let ix = firstIx;
-        let smallestSourceInfo = void 0;
-        while (ix >= 0) {
-          const info = offsetInfo[ix];
-          if (!info.fromSource) {
-            ix--;
-            continue;
-          }
-          smallestSourceInfo = info;
-          if (ix === firstIx) {
-            const localOffset = targetOffset - info.offset;
-            if (localOffset < info.length) {
-              return info.range.start + localOffset;
-            }
-          }
-          return info.range.end - 1;
-        }
-        if (smallestSourceInfo === void 0) {
-          return void 0;
-        } else {
-          return smallestSourceInfo.range.start;
-        }
-      };
-      return {
-        value,
-        originalString: source,
-        fileName,
-        map: map2,
-        mapClosest
-      };
-    } else {
-      const {
-        value,
-        originalString,
-        map: previousMap,
-        mapClosest: previousMapClosest,
-        fileName: previousFileName
-      } = source;
-      const {
-        value: resultValue,
-        map: nextMap,
-        mapClosest: nextMapClosest
-      } = mappedString(value, pieces);
-      const composeMap = (offset) => {
-        const v = nextMap(offset);
-        if (v === void 0) {
-          return v;
-        }
-        return previousMap(v);
-      };
-      const composeMapClosest = (offset) => {
-        const v = nextMapClosest(offset);
-        if (v === void 0) {
-          return v;
-        }
-        return previousMapClosest(v);
-      };
-      return {
-        value: resultValue,
-        originalString,
-        map: composeMap,
-        mapClosest: composeMapClosest,
-        fileName: previousFileName
-      };
+      source = asMappedString(source, fileName);
     }
+    const mappedPieces = pieces.map((piece) => {
+      if (typeof piece === "string") {
+        return asMappedString(piece);
+      } else if (piece.value !== void 0) {
+        return piece;
+      } else {
+        const { start, end } = piece;
+        return mappedSubstring(source, start, end);
+      }
+    });
+    return mappedConcat(mappedPieces);
   }
   function asMappedString(str2, fileName) {
     if (typeof str2 === "string") {
       return {
         value: str2,
-        originalString: str2,
-        map: (x) => x,
-        mapClosest: (x) => x,
-        fileName
+        fileName,
+        map: function(index, closest) {
+          if (closest) {
+            index = Math.min(str2.length - 1, Math.max(0, index));
+          }
+          if (index < 0 || index >= str2.length) {
+            return void 0;
+          }
+          return {
+            index,
+            originalString: this
+          };
+        }
       };
     } else if (fileName !== void 0) {
       throw new Error("Internal error: can't change the fileName of an existing MappedString");
@@ -19272,15 +19204,56 @@ ${heading}`;
       return str2;
     }
   }
+  function mappedConcat(strings) {
+    if (strings.length === 0) {
+      return {
+        value: "",
+        map: (_index, _closest) => void 0
+      };
+    }
+    if (strings.every((s) => typeof s === "string")) {
+      return asMappedString(strings.join(""));
+    }
+    const mappedStrings = strings.map((s) => {
+      if (typeof s === "string") {
+        return asMappedString(s);
+      } else
+        return s;
+    });
+    let currentOffset = 0;
+    const offsets = [0];
+    for (const s of mappedStrings) {
+      currentOffset += s.value.length;
+      offsets.push(currentOffset);
+    }
+    const value = mappedStrings.map((s) => s.value).join("");
+    return {
+      value,
+      map: (offset, closest) => {
+        if (closest) {
+          offset = Math.max(0, Math.min(offset, value.length - 1));
+        }
+        if (offset === 0 && offset == value.length && mappedStrings.length) {
+          return mappedStrings[0].map(0, closest);
+        }
+        if (offset < 0 || offset >= value.length) {
+          return void 0;
+        }
+        const ix = glb(offsets, offset);
+        const v = mappedStrings[ix];
+        return v.map(offset - offsets[ix]);
+      }
+    };
+  }
   function mappedIndexToRowCol(eitherText) {
     const text = asMappedString(eitherText);
-    const f = indexToRowCol(text.originalString);
     return function(offset) {
-      const n = text.mapClosest(offset);
-      if (n === void 0) {
+      const mapResult = text.map(offset, true);
+      if (mapResult === void 0) {
         throw new Error("Internal Error: bad offset in mappedIndexRowCol");
       }
-      return f(n);
+      const { index, originalString } = mapResult;
+      return indexToRowCol(originalString.value)(index);
     };
   }
 
@@ -22119,10 +22092,7 @@ ${heading}`;
             result,
             components,
             kind,
-            source: mappedString(mappedYaml, [{
-              start: position - rightTrim,
-              end: position - rightTrim
-            }])
+            source: mappedYaml
           });
         } else {
           results.push({
@@ -22131,10 +22101,7 @@ ${heading}`;
             result,
             components,
             kind,
-            source: mappedString(mappedYaml, [{
-              start: position + leftTrim,
-              end: position - rightTrim
-            }])
+            source: mappedYaml
           });
         }
       } else {
@@ -22149,7 +22116,7 @@ ${heading}`;
         result: null,
         kind: "null",
         components: [],
-        source: mappedString(mappedYaml, [{ start: 0, end: 0 }])
+        source: mappedYaml
       };
     }
     if (results.length !== 1) {
@@ -22195,7 +22162,7 @@ ${heading}`;
         result: null,
         kind: "<<ERROR>>",
         components: [],
-        source: mappedString(mappedSource2, [{ start, end }])
+        source: mappedSource2
       };
     };
     const annotateEmpty = (position) => {
@@ -22205,7 +22172,7 @@ ${heading}`;
         result: null,
         kind: "<<EMPTY>>",
         components: [],
-        source: mappedString(mappedSource2, [{ start: position, end: position }])
+        source: mappedSource2
       };
     };
     const annotate = (node, result2, components) => {
@@ -22215,10 +22182,7 @@ ${heading}`;
         result: result2,
         kind: node.type,
         components,
-        source: mappedString(mappedSource2, [{
-          start: node.startIndex,
-          end: node.endIndex
-        }])
+        source: mappedSource2
       };
     };
     const annotateTag = (innerParse, tagNode, outerNode) => {
@@ -22463,7 +22427,7 @@ ${heading}`;
     }
   }
   function locateAnnotation(annotation, position, kind) {
-    const originalSource = annotation.source.originalString;
+    const originalSource = annotation.source;
     kind = kind || "value";
     for (let i = 0; i < position.length; ++i) {
       const value = position[i];
@@ -22476,7 +22440,7 @@ ${heading}`;
       } else {
         let found = false;
         for (let j = 0; j < annotation.components.length; j += 2) {
-          if (originalSource.substring(annotation.components[j].start, annotation.components[j].end).trim() === value) {
+          if (originalSource.value.substring(annotation.components[j].start, annotation.components[j].end).trim() === value) {
             if (i === position.length - 1) {
               if (kind === "key") {
                 annotation = annotation.components[j];
@@ -25003,8 +24967,8 @@ ${heading}`;
     const locF = mappedIndexToRowCol(parse.source);
     try {
       const location = {
-        start: locF(lastKey.start - 1),
-        end: locF(lastKey.end - 1)
+        start: locF(lastKey.start),
+        end: locF(lastKey.end)
       };
       return {
         ...error,
@@ -25256,15 +25220,37 @@ ${heading}`;
     return error;
   }
   function createSourceContext(src, location) {
-    const nLines = lines(src.originalString).length;
+    const startMapResult = src.map(location.start, true);
+    const endMapResult = src.map(location.end, true);
+    const locF = mappedIndexToRowCol(src);
+    let sourceLocation;
+    try {
+      sourceLocation = {
+        start: locF(location.start),
+        end: locF(location.end)
+      };
+    } catch (_e) {
+      sourceLocation = {
+        start: { line: 0, column: 0 },
+        end: { line: 0, column: 0 }
+      };
+    }
+    if (startMapResult === void 0 || endMapResult === void 0) {
+      throw new Error("Internal Error: createSourceContext called with bad location.");
+    }
+    if (startMapResult.originalString !== endMapResult.originalString) {
+      throw new Error("Internal Error: don't know how to create source context across different source files");
+    }
+    const originalString = startMapResult.originalString;
+    const nLines = lines(originalString.value).length;
     const {
       start,
       end
-    } = location;
+    } = sourceLocation;
     const {
       prefixWidth,
       lines: formattedLines
-    } = formatLineRange(src.originalString, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+    } = formatLineRange(originalString.value, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
     const contextLines = [];
     let mustPrintEllipsis = true;
     for (const { lineNumber, content, rawLine } of formattedLines) {
@@ -25327,7 +25313,10 @@ ${heading}`;
         info: {},
         fileName: source.fileName,
         location,
-        sourceContext: createSourceContext(source, location)
+        sourceContext: createSourceContext(violatingObject.source, {
+          start: violatingObject.start,
+          end: violatingObject.end
+        })
       }
     };
   }
@@ -27333,10 +27322,7 @@ ${heading}`;
       ...error,
       message: "top-level key 'type' is not allowed in project configuration.",
       violatingObject,
-      source: mappedString(parse.source.originalString, [{
-        start: violatingObject.start,
-        end: violatingObject.end + 1
-      }])
+      source: mappedSubstring(parse.source, violatingObject.start, violatingObject.end + 1)
     });
     localizedError.niceError.info["top-level-type-not-allowed"] = "Did you mean to use 'project: type: ...' instead?";
     return localizedError;
@@ -27468,7 +27454,13 @@ ${heading}`;
       return [];
     }
     const locF = mappedIndexToRowCol(code2);
-    const ls = Array.from(lineOffsets(code2.value)).map((offset) => locF(offset).line);
+    const ls = Array.from(lineOffsets(code2.value)).map((offset) => {
+      try {
+        return locF(offset).line;
+      } catch (_e) {
+        return void 0;
+      }
+    }).filter((x) => x !== void 0);
     const toOriginSourceLines = (targetSourceLine) => ls[targetSourceLine];
     const predecessors = getYamlPredecessors(code2.value, context.position.row - 1).map(toOriginSourceLines);
     if (context.explicit === void 0) {

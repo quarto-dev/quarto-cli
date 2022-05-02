@@ -24,14 +24,16 @@ export interface RangedSubstring {
   readonly range: Range;
 }
 
-// types from mapped-text.ts
+export type StringMapResult = {
+  index: number;
+  originalString: MappedString;
+} | undefined;
+
 export interface MappedString {
   readonly value: string;
-  readonly originalString: string;
   readonly fileName?: string;
-  map: (a: number) => number | undefined;
-  mapClosest: (a: number) => number | undefined;
+  readonly map: (index: number, closest?: boolean) => StringMapResult;
 }
 
 export type EitherString = string | MappedString;
-export type StringChunk = string | Range;
+export type StringChunk = string | MappedString | Range;
