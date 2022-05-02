@@ -36,7 +36,7 @@ end
 
 # Set run_path if specified
 try
-  run_path = "{4}"
+  run_path = raw"{4}"
   if !isempty(run_path)
     cd(run_path)
   end
