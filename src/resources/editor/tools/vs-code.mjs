@@ -27078,10 +27078,11 @@ async function breakQuartoMd(src, validate2 = false) {
       cellStartLine = index + 1;
       if (cell_type === "code") {
         const { yaml, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
-        const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
+        const breaks = Array.from(lineOffsets(cell.source.value));
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
-          if (breaks.length) {
+          cell.source = mappedSubstring(cell.source, breaks[sourceStartLine]);
+          if (breaks.length > 1) {
             const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
             strUpToLastBreak = cell.source.value.substring(0, lastBreak);
           } else {
@@ -27452,7 +27453,7 @@ async function createVirtualDocument(context) {
   const chunks = [];
   let schema2;
   for (const cell of cells) {
-    const cellLines = rangedLines(cell.source.value, true);
+    const cellLines = rangedLines(cell.sourceVerbatim.value, true).slice(1, -1);
     const size = cellLines.length;
     if (size + cell.cellStartLine > context.position.row) {
       if (cell.cell_type === "raw") {

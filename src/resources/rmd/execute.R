@@ -13,30 +13,34 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   on.exit(setwd(oldwd), add = TRUE)
   input <- basename(input)
 
-  md_temporary_uuid = "_01526f37-4c95-4227-97ce-a40983616e4d.qmd"
-  markdown_input <- paste0(xfun::sans_ext(input), md_temporary_uuid)
-
-  write(markdown, markdown_input);
-  on.exit(unlink(markdown_input));
-  input <- markdown_input;
+  # rmd input filename
+  rmd_input <- paste0(xfun::sans_ext(input), ".rmarkdown")
+      
+  # swap out the input
+  write(markdown, rmd_input)
+  input <- rmd_input
+      
+  # remove the rmd input on exit
+  rmd_input_path <- rmarkdown:::abs_path(rmd_input)
+  on.exit(unlink(rmd_input_path))
 
   # give the input an .Rmd extension if it doesn't already have one
   # (this is a temporary copy which we'll remove before exiting). note
   # that we only need to do this for older versions of rmarkdown
-  if (utils::packageVersion("rmarkdown") < "2.9.4") {
-    if (!tolower(xfun::file_ext(input)) %in% c("r", "rmd", "rmarkdown")) {
-      # rmd input filename
-      rmd_input <- paste0(xfun::sans_ext(input), ".Rmd")
-      
-      # swap out the input
-      write(markdown, rmd_input)
-      input <- rmd_input
-      
-      # remove the rmd input on exit
-      rmd_input_path <- rmarkdown:::abs_path(rmd_input)
-      on.exit(unlink(rmd_input_path))
-    }
-  }
+  #if (utils::packageVersion("rmarkdown") < "2.9.4") {
+  #  if (!tolower(xfun::file_ext(input)) %in% c("r", "rmd", "rmarkdown")) {
+  #    # rmd input filename
+  #    rmd_input <- paste0(xfun::sans_ext(input), ".Rmd")
+  #    
+  #    # swap out the input
+  #    write(markdown, rmd_input)
+  #    input <- rmd_input
+  #    
+  #    # remove the rmd input on exit
+  #    rmd_input_path <- rmarkdown:::abs_path(rmd_input)
+  #    on.exit(unlink(rmd_input_path))
+  #  }
+  #}
   
   # pass through ojs chunks
   knitr::knit_engines$set(ojs = function(options) {
