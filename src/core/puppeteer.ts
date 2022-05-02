@@ -51,8 +51,8 @@ export function extractHtmlFromElements(
 
 export async function withPuppeteerBrowserAndPage<T>(
   url: string,
-  f: (b: Browser, p: Page) => Promise<unknown>,
-): Promise<void> {
+  f: (b: Browser, p: Page) => Promise<T>,
+): Promise<T> {
   const allowedErrorMessages = [
     "Navigation failed because browser has disconnected!",
     "Navigation timeout of 30000 ms exceeded",
@@ -64,14 +64,15 @@ export async function withPuppeteerBrowserAndPage<T>(
   while (attempts++ < maxAttempts) {
     try {
       let finished = false;
+      let result: T;
       await withHeadlessBrowser(async (browser: Browser) => {
         const page = await browser.newPage();
         await page.goto(url);
-        await f(browser, page);
+        result = await f(browser, page);
         finished = true;
       });
       if (finished) {
-        return;
+        return result!;
       }
     } catch (error) {
       if (
@@ -135,10 +136,14 @@ export async function withHeadlessBrowser<T>(
   const browser = await fetchBrowser();
   if (browser !== undefined) {
     try {
-      await fn(browser);
-      return;
-    } finally {
+      const result = await fn(browser);
       await browser.close();
+      return result;
+    } catch (e) {
+      // we can't try ... finally here because it plays badly with async
+      // and return values.
+      await browser.close();
+      throw e;
     }
   }
 }
