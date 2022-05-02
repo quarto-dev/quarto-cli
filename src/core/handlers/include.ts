@@ -11,6 +11,7 @@ import {
   asMappedString,
   EitherString,
   mappedConcat,
+  MappedString,
   mappedString,
 } from "../lib/mapped-text.ts";
 
@@ -35,7 +36,7 @@ const includeHandler: LanguageHandler = {
   directive(
     handlerContext: LanguageCellHandlerContext,
     directive: DirectiveCell,
-  ) {
+  ): Promise<MappedString> {
     const sourceDir = dirname(handlerContext.options.source);
     const retrievedFiles: string[] = [handlerContext.options.source];
     const retrievedDirectories: string[] = [sourceDir];
@@ -150,7 +151,7 @@ const includeHandler: LanguageHandler = {
 
     retrieveInclude(includeName, fixup);
 
-    return mappedConcat(textFragments);
+    return Promise.resolve(mappedConcat(textFragments));
   },
 };
 

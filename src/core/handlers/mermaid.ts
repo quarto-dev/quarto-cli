@@ -7,7 +7,6 @@
 
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
-import { kIncludeAfterBody } from "../../config/constants.ts";
 import { formatResourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
 import {
@@ -15,9 +14,14 @@ import {
   isMarkdownOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { mappedConcat } from "../lib/mapped-text.ts";
+import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
 
-import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
+import {
+  extractHtmlFromElements,
+  extractImagesFromElements,
+} from "../puppeteer.ts";
+
+let globalFigureCounter = 0;
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -30,54 +34,40 @@ const mermaidHandler: LanguageHandler = {
   defaultOptions: {
     echo: false,
     eval: true,
-    "code-fold": false,
     include: true,
   },
 
   comment: "%%",
 
-  // called once per document, no cells in particular
-  documentStart(
-    handlerContext: LanguageCellHandlerContext,
-  ) {
-    if (isJavascriptCompatible(handlerContext.options.format)) {
-      handlerContext.addHtmlDependency(
-        "script",
-        {
-          name: "mermaid.min.js",
-          path: formatResourcePath("html", join("mermaid", "mermaid.min.js")),
-        },
-      );
-
-      handlerContext.addInclude(
-        `<script>
-        mermaid.initialize({ startOnLoad: false });
-        window.addEventListener(
-          'load',
-          function () {
-            debugger;
-            mermaid.init("div.cell-output-display > pre.mermaid");
-          },
-          false
-        );
-        </script>`,
-        kIncludeAfterBody,
-      );
-    }
-  },
-
-  cell(
+  async cell(
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     options: Record<string, unknown>,
   ) {
-    if (isJavascriptCompatible(handlerContext.options.format)) {
-      const preEl = pandocHtmlBlock("pre")({
-        classes: ["mermaid"],
-      });
-      preEl.push(pandocRawStr(cell.source));
+    // create puppeteer target page
+    const dirName = handlerContext.options.temp.createDir();
+    const content = `<html>
+    <head>
+    <script src="./mermaid.min.js"></script>
+    </head>
+    <body>
+    <pre class="mermaid">\n${cell.source.value}\n</pre>
+    <script>
+    mermaid.initialize();
+    </script>
+    </html>`;
+    const fileName = join(dirName, "index.html");
+    Deno.writeTextFileSync(fileName, content);
+    Deno.copyFileSync(
+      formatResourcePath("html", join("mermaid", "mermaid.min.js")),
+      join(dirName, "mermaid.min.js"),
+    );
+    const url = `file://${fileName}`;
+    const selector = "pre.mermaid svg";
 
-      return this.build(handlerContext, cell, preEl.mappedString(), options);
+    if (isJavascriptCompatible(handlerContext.options.format)) {
+      const svgText = (await extractHtmlFromElements(url, selector))[0];
+      return this.build(handlerContext, cell, asMappedString(svgText), options);
     } else if (
       isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
     ) {
@@ -88,7 +78,15 @@ const mermaidHandler: LanguageHandler = {
         options,
       );
     } else {
-      return cell.source;
+      const pngName = `mermaid-figure-${++globalFigureCounter}.png`;
+      const tempName = join(dirName, pngName);
+      await extractImagesFromElements(url, selector, [tempName]);
+      return this.build(
+        handlerContext,
+        cell,
+        mappedConcat([`\n![](${tempName})\n`]),
+        options,
+      );
     }
   },
 };

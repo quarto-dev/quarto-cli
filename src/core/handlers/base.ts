@@ -254,10 +254,12 @@ export async function handleLanguageCells(
           name: innerLanguage,
         });
 
-        newCells[cell.index] = asMappedString(innerLanguageHandler.directive(
-          innerHandler.context,
-          directiveCellType,
-        ));
+        newCells[cell.index] = asMappedString(
+          await innerLanguageHandler.directive(
+            innerHandler.context,
+            directiveCellType,
+          ),
+        );
 
         results = mergeConfigs(results, innerHandler.results);
       }
@@ -271,7 +273,7 @@ export async function handleLanguageCells(
         languageHandler !== undefined &&
         languageHandler.type !== "directive"
       ) {
-        const transformedCells = languageHandler.document(
+        const transformedCells = await languageHandler.document(
           handler.context,
           cells.map((x) => x.source),
         );
@@ -303,18 +305,18 @@ export const baseHandler: LanguageHandler = {
     echo: true,
   },
 
-  document(
+  async document(
     handlerContext: LanguageCellHandlerContext,
     cells: QuartoMdCell[],
-  ): MappedString[] {
+  ): Promise<MappedString[]> {
     this.documentStart(handlerContext);
-    const result = cells.map((cell) => {
+    const result = await Promise.all(cells.map((cell) => {
       return this.cell(
         handlerContext,
         cell,
         mergeConfigs(this.defaultOptions ?? {}, cell.options ?? {}),
       );
-    });
+    }));
     this.documentEnd(handlerContext);
     return result;
   },
@@ -335,8 +337,8 @@ export const baseHandler: LanguageHandler = {
     _handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     _options: Record<string, unknown>,
-  ): MappedString {
-    return cell.sourceVerbatim;
+  ): Promise<MappedString> {
+    return Promise.resolve(cell.sourceVerbatim);
   },
 
   // FIXME attributes we're not handling yet:
@@ -437,22 +439,24 @@ export const baseHandler: LanguageHandler = {
         break;
       }
     }
+    const cellOutput = pandocHtmlBlock("div")({
+      id: cell.options?.label as (string | undefined),
+      attrs: cellOutputAttrs,
+      classes: cellOutputClasses,
+    });
+    cellBlock.push(cellOutput);
 
     if (options.eval === true) {
-      const cellOutput = pandocHtmlBlock("div")({
-        attrs: cellOutputAttrs,
-        classes: cellOutputClasses,
-      });
       cellOutput.push(pandocRawStr(content));
-      cellBlock.push(cellOutput);
     }
-
     if (cell.options?.[kCellFigCap]) {
       if (hasFigureLabel()) {
-        cellBlock.push(pandocRawStr(cell.options[kCellFigCap] as string));
+        cellOutput.push(
+          pandocRawStr(`\n\n${cell.options[kCellFigCap] as string}`),
+        );
       } else {
         const cap = pandocFigCaption();
-        cap.push(pandocRawStr(cell.options[kCellFigCap] as string));
+        cap.push(pandocRawStr(`\n\n${cell.options[kCellFigCap] as string}`));
         cellBlock.push(cap);
       }
     }
