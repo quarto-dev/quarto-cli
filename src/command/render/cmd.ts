@@ -37,6 +37,10 @@ export const renderCommand = new Command()
     "Write project output to DIR (path is project relative)",
   )
   .option(
+    "-M, --metadata",
+    "Metadata value (KEY:VALUE).",
+  )
+  .option(
     "--execute",
     "Execute code (--no-execute to skip execution).",
   )
@@ -89,24 +93,25 @@ export const renderCommand = new Command()
     "Additional pandoc command line arguments.",
   )
   .example(
-    "Render Markdown (w/ Knitr engine)",
-    "quarto render notebook.Rmd\n" +
-      "quarto render notebook.Rmd --to html\n" +
-      "quarto render notebook.Rmd --to pdf --toc",
+    "Render Markdown",
+    "quarto render document.qmd\n" +
+      "quarto render document.qmd --to html\n" +
+      "quarto render document.qmd --to pdf --toc",
   )
   .example(
-    "Render Markdown (w/ Jupyter engine)",
-    "quarto render notebook.qmd\n" +
-      "quarto render notebook.qmd --to docx --highlight-style=espresso",
-  )
-  .example(
-    "Render Jupyter Notebook",
-    "quarto render notebook.ipynb --to docx\n" +
+    "Render Notebook",
+    "quarto render notebook.ipynb\n" +
+      "quarto render notebook.ipynb --to docx\n" +
       "quarto render notebook.ipynb --to pdf --toc",
   )
   .example(
-    "Render to Standard Output",
-    "quarto render notebook.Rmd --output -",
+    "Render w/ Metadata",
+    "quarto render document.qmd -M echo:false\n" +
+      "quarto render document.qmd -M code-fold:true",
+  )
+  .example(
+    "Render to Stdout",
+    "quarto render document.qmd --output -",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input?: string, args?: string[]) => {
