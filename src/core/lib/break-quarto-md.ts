@@ -10,7 +10,12 @@
 
 import { lineOffsets, lines } from "./text.ts";
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
-import { asMappedString, EitherString, mappedString } from "./mapped-text.ts";
+import {
+  asMappedString,
+  EitherString,
+  mappedString,
+  mappedSubstring,
+} from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
@@ -118,10 +123,12 @@ export async function breakQuartoMd(
         );
         // TODO I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure
-        const breaks = Array.from(lineOffsets(cell.source.value)).slice(1);
+        const breaks = Array.from(lineOffsets(cell.source.value));
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
-          if (breaks.length) {
+          cell.source = mappedSubstring(cell.source, breaks[sourceStartLine]);
+
+          if (breaks.length > 1) {
             const lastBreak =
               breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
             strUpToLastBreak = cell.source.value.substring(0, lastBreak);
