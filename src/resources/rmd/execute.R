@@ -160,8 +160,6 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   markdown <- xfun::read_utf8(output_file)
   unlink(output_file)
 
-  print(markdown)
-
   # results
   list(
     markdown = paste(markdown, collapse="\n"),
