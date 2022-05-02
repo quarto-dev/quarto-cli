@@ -185,7 +185,7 @@ export async function createVirtualDocument(
   const chunks = [];
   let schema: ConcreteSchema;
   for (const cell of cells) {
-    const cellLines = rangedLines(cell.source.value, true);
+    const cellLines = rangedLines(cell.sourceVerbatim.value, true).slice(1, -1);
     const size = cellLines.length;
     if (size + cell.cellStartLine > context.position.row) {
       if (cell.cell_type === "raw") {
