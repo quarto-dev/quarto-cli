@@ -339,8 +339,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     x <- knitr:::one_string(c('', x))
     
     # leave verbatim alone
-    if (identical(options[["engine"]], "default")) {
-      return(paste0('\n\n````default', x, '\n````', '\n\n'))
+    if (identical(options[["engine"]], "verbatim")) {
+      return(paste0('\n\n````', options[["lang"]] %||% 'default', x, '\n````', '\n\n'))
     }
     
     class <- options$class.source
