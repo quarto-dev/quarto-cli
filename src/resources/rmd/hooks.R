@@ -272,7 +272,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
                      "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "yaml.code", "code", "params.src", "original.params.src", 
-                    "fenced.echo", "chunk.echo",
+                    "fenced.echo", "chunk.echo", "lang",
                     "out.width.px", "out.height.px", "indent", "class.source", 
                     "class.output", "class.message", "class.warning", "class.error", "attr.source", 
                     "attr.output", "attr.message", "attr.warning", "attr.error")
