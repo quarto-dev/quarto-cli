@@ -191,37 +191,30 @@ window.document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Scroll the active navigation item into view, if necessary
-    const navSidebars = window.document.querySelectorAll(
-      "div#quarto-sidebar > nav"
-    );
-    if (navSidebars.length === 1) {
+    const navSidebar = window.document.querySelector("nav#quarto-sidebar");
+    if (navSidebar) {
       // Find the active item
-      const targetNode = navSidebars[0];
-      const activeItems = window.document.querySelectorAll(
-        "li.sidebar-item a.active"
-      );
-      const activeItem = activeItems[0];
-
-      if (activeItems.length === 1) {
+      const activeItem = navSidebar.querySelector("li.sidebar-item a.active");
+      if (activeItem) {
         // Wait for the scroll height and height to resolve by observing size changes on the
         // nav element that is scrollable
         const resizeObserver = new ResizeObserver((_entries) => {
           // The bottom of the element
           const elBottom = activeItem.offsetTop;
-          const viewBottom = targetNode.scrollTop + targetNode.clientHeight;
+          const viewBottom = navSidebar.scrollTop + navSidebar.clientHeight;
 
           // The element height and scroll height are the same, then we are still loading
-          if (viewBottom !== targetNode.scrollHeight) {
+          if (viewBottom !== navSidebar.scrollHeight) {
             // Determine if the item isn't visible and scroll to it
             if (elBottom >= viewBottom) {
-              targetNode.scrollTop = elBottom;
+              navSidebar.scrollTop = elBottom;
             }
 
             // stop observing now since we've completed the scroll
-            resizeObserver.unobserve(targetNode);
+            resizeObserver.unobserve(navSidebar);
           }
         });
-        resizeObserver.observe(targetNode);
+        resizeObserver.observe(navSidebar);
       }
     }
   }
