@@ -339,7 +339,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     x <- knitr:::one_string(c('', x))
     
     # leave verbatim alone
-    if (identical(options[["engine"]], "verbatim")) {
+    if (options[["engine"]] %in% c("verbatim", "embed")) {
       return(paste0('\n\n````', options[["lang"]] %||% 'default', x, '\n````', '\n\n'))
     }
     
