@@ -84,7 +84,11 @@ import {
 import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-config.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
-import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
+import {
+  isJupyterHubServer,
+  isRStudioServer,
+  isRStudioWorkbench,
+} from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
@@ -493,7 +497,12 @@ export async function serveProject(
     (targetPath && targetPath !== "index.html") ? targetPath : "",
   );
 
-  if (options.browser && !isRStudioServer() && !isJupyterHubServer()) {
+  if (
+    options.browser &&
+    !isRStudioServer() &&
+    !isRStudioWorkbench() &&
+    !isJupyterHubServer()
+  ) {
     const browseUrl = targetPath
       ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
       : siteUrl;

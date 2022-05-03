@@ -23,6 +23,8 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 import {
   isJupyterHubServer,
   isRStudioServer,
+  isRStudioWorkbench,
+  isVSCodeTerminal,
   jupyterHubHttpReferrer,
   jupyterHubUser,
 } from "../../core/platform.ts";
@@ -126,6 +128,11 @@ export function printBrowsePreviewMessage(port: number, path: string) {
         format: colors.green,
       },
     );
+  } else if (isVSCodeTerminal() && isRStudioWorkbench()) {
+    const server = Deno.env.get("RS_SERVER_URL");
+    const session = Deno.env.get("RS_SESSION_URL");
+    const url = `${server}${session}p/${port}/${path}`;
+    info(`\nBrowse at ${url}`, { format: colors.green });
   } else {
     const url = `http://localhost:${port}/${path}`;
     if (!isRStudioServer()) {

@@ -56,7 +56,11 @@ import {
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
-import { isJupyterHubServer, isRStudioServer } from "../../core/platform.ts";
+import {
+  isJupyterHubServer,
+  isRStudioServer,
+  isRStudioWorkbench,
+} from "../../core/platform.ts";
 import { createTempContext, TempContext } from "../../core/temp.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
@@ -173,7 +177,7 @@ export async function preview(
   const url = `http://localhost:${options.port}/${initialPath}`;
   if (
     options.browser &&
-    !isRStudioServer() && !isJupyterHubServer() &&
+    !isRStudioServer() && !isRStudioWorkbench() && !isJupyterHubServer() &&
     isBrowserPreviewable(result.outputFile)
   ) {
     await openUrl(url);

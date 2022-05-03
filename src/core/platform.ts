@@ -29,6 +29,12 @@ export function isVSCodeTerminal() {
   return Deno.env.get("TERM_PROGRAM") === "vscode";
 }
 
+export function isRStudioWorkbench() {
+  // RS_SERVER_URL e.g. https://daily-rsw.soleng.rstudioservices.com/
+  // RS_SESSION_URL e.g. /s/eae053c9ab5a71168ee19/
+  return !!Deno.env.get("RS_SERVER_URL") && !!Deno.env.get("RS_SESSION_URL");
+}
+
 export function isRStudioTerminal() {
   return !!Deno.env.get("RSTUDIO_TERM");
 }
