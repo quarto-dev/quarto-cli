@@ -6,16 +6,15 @@
 */
 
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
-import { graphviz } from "../graphviz/graphviz-wasm.js";
 import { baseHandler, install } from "./base.ts";
-import { formatResourcePath } from "../resources.ts";
+import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
 import {
   isJavascriptCompatible,
   isMarkdownOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
+import { mappedConcat } from "../lib/mapped-text.ts";
 
 import { extractImagesFromElements } from "../puppeteer.ts";
 
@@ -42,9 +41,14 @@ const dotHandler: LanguageHandler = {
     cell: QuartoMdCell,
     options: Record<string, unknown>,
   ) {
-    console.log(cell.source.value);
-    const svg = await graphviz().layout(cell.source.value, "svg", "dot");
-    console.log(svg);
+    const graphvizModule = await import(
+      resourcePath(join("js", "graphviz-wasm.js"))
+    );
+    const svg = await graphvizModule.graphviz().layout(
+      cell.source.value,
+      "svg",
+      "dot",
+    );
 
     if (isJavascriptCompatible(handlerContext.options.format)) {
       return this.build(
