@@ -18688,7 +18688,8 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "handlers/languages.yml": [
         "include",
-        "mermaid"
+        "mermaid",
+        "dot"
       ],
       "handlers/lang-comment-chars.yml": {
         r: "#",
