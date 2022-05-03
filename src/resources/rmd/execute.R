@@ -58,6 +58,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
       function(options) {
         knitr:::one_string(c(
           paste0("```{", lang, "}"),
+          options$yaml.code,
           options$code,
           "```"
         ))
