@@ -36,6 +36,7 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kTextPlain } from "../../core/mime.ts";
+import { execProcess } from "../../core/process.ts";
 
 export async function render(
   path: string,
@@ -129,9 +130,10 @@ export function printBrowsePreviewMessage(port: number, path: string) {
       },
     );
   } else if (isVSCodeTerminal() && isRStudioWorkbench()) {
-    const server = Deno.env.get("RS_SERVER_URL");
-    const session = Deno.env.get("RS_SESSION_URL");
-    const url = `${server}${session}p/${port}/${path}`;
+    const server = Deno.env.get("RS_SERVER_URL")!;
+    const session = Deno.env.get("RS_SESSION_URL")!;
+    const portToken = mapRSWPortToken(port);
+    const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else {
     const url = `http://localhost:${port}/${path}`;
@@ -142,6 +144,23 @@ export function printBrowsePreviewMessage(port: number, path: string) {
       });
     }
     info(url, { format: (str: string) => colors.underline(colors.green(str)) });
+  }
+}
+
+async function mapRSWPortToken(port: number) {
+  const result = await execProcess(
+    {
+      cmd: ["/usr/lib/rstudio-server/bin/rserver-url", String(port)],
+      stdout: "piped",
+      stderr: "piped",
+    },
+  );
+  if (result.success) {
+    return result.stdout;
+  } else {
+    throw new Error(
+      `Failed to map RSW port token (status ${result.code})\n${result.stderr}`,
+    );
   }
 }
 
