@@ -5,11 +5,21 @@
 *
 */
 
-import puppeteer, { Browser, Page } from "puppeteer/mod.ts";
 import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
 import { warning } from "log/mod.ts";
 import { fetcher } from "../command/tools/tools/chromium.ts";
+
+// deno-lint-ignore no-explicit-any
+let puppeteerImport: any = undefined;
+export async function getPuppeteer() {
+  if (puppeteerImport !== undefined) {
+    return puppeteerImport;
+  }
+  puppeteerImport =
+    (await import("https://deno.land/x/puppeteer@9.0.2/mod.ts")).default;
+  return puppeteerImport;
+}
 
 export async function extractImagesFromElements(
   url: string,
@@ -18,7 +28,8 @@ export async function extractImagesFromElements(
 ): Promise<void> {
   await withPuppeteerBrowserAndPage(
     url,
-    async (_browser: Browser, page: Page) => {
+    // deno-lint-ignore no-explicit-any
+    async (_browser: any, page: any) => {
       const elements = await page.$$(selector);
       if (elements.length !== filenames.length) {
         throw new Error(
@@ -49,7 +60,8 @@ export function extractHtmlFromElements(
 
 export async function withPuppeteerBrowserAndPage<T>(
   url: string,
-  f: (b: Browser, p: Page) => Promise<T>,
+  // deno-lint-ignore no-explicit-any
+  f: (b: any, p: any) => Promise<T>,
 ): Promise<T> {
   const allowedErrorMessages = [
     "Navigation failed because browser has disconnected!",
@@ -63,7 +75,8 @@ export async function withPuppeteerBrowserAndPage<T>(
     try {
       let finished = false;
       let result: T;
-      await withHeadlessBrowser(async (browser: Browser) => {
+      // deno-lint-ignore no-explicit-any
+      await withHeadlessBrowser(async (browser: any) => {
         const page = await browser.newPage();
         await page.goto(url);
         result = await f(browser, page);
@@ -106,7 +119,8 @@ export async function inPuppeteer(
   const maxAttempts = 5;
   while (attempts++ < maxAttempts) {
     try {
-      return await withHeadlessBrowser(async (browser: Browser) => {
+      // deno-lint-ignore no-explicit-any
+      return await withHeadlessBrowser(async (browser: any) => {
         const page = await browser.newPage();
         await page.goto(url);
         const clientSideResult = await page.evaluate(f, ...params);
@@ -129,7 +143,8 @@ export async function inPuppeteer(
 }
 
 export async function withHeadlessBrowser<T>(
-  fn: (browser: Browser) => Promise<T>,
+  // deno-lint-ignore no-explicit-any
+  fn: (browser: any) => Promise<T>,
 ) {
   const browser = await fetchBrowser();
   if (browser !== undefined) {
@@ -175,11 +190,12 @@ async function findChrome(): Promise<string | undefined> {
 
 async function fetchBrowser() {
   // Cook up a new instance
-  const browserFetcher = fetcher();
+  const browserFetcher = await fetcher();
   const availableRevisions = await browserFetcher.localRevisions();
   const isChromiumInstalled = availableRevisions.length > 0;
   const executablePath = !isChromiumInstalled ? await findChrome() : undefined;
   if (isChromiumInstalled || executablePath) {
+    const puppeteer = await getPuppeteer();
     return await puppeteer.launch({
       product: "chrome",
       executablePath,

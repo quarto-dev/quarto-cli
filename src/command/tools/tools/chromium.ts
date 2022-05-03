@@ -4,7 +4,8 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
-import puppeteer from "puppeteer/mod.ts";
+
+import { getPuppeteer } from "../../../core/puppeteer.ts";
 import { join } from "path/mod.ts";
 import { getenv } from "../../../core/env.ts";
 
@@ -53,23 +54,27 @@ export const chromiumInstallable: InstallableTool = {
 };
 
 export async function installed(): Promise<boolean> {
-  const localRevisions = await fetcher().localRevisions();
+  const fetcherObj = await fetcher();
+  const localRevisions = await fetcherObj.localRevisions();
   return localRevisions.includes(supportedRevision());
 }
 
 async function installedVersion(): Promise<string | undefined> {
-  const localRevisions = await fetcher().localRevisions();
+  const fetcherObj = await fetcher();
+  const localRevisions = await fetcherObj.localRevisions();
   if (localRevisions.length) {
     return localRevisions[localRevisions.length - 1];
   }
 }
 
-function latestRelease() {
-  const revisionInfo = fetcher().revisionInfo(supportedRevision());
+async function latestRelease() {
+  const fetcherObj = await fetcher();
+  const revisionInfo = await fetcherObj.revisionInfo(supportedRevision());
+  const version = await supportedRevision();
 
   return Promise.resolve({
     url: revisionInfo.url,
-    version: supportedRevision(),
+    version,
     assets: [{ name: "", url: "" }],
   });
 }
@@ -82,7 +87,8 @@ async function preparePackage(_ctx: InstallContext): Promise<PackageInfo> {
   );
   //  const spin = spinner("Installing");
   let spinnerStatus: ((() => void) | undefined);
-  const revisionInfo = await fetcher().download(
+  const fetcherObj = await fetcher();
+  const revisionInfo = await fetcherObj.download(
     revision,
     (x: number, total: number) => {
       const percent = x / total * 100;
@@ -116,21 +122,21 @@ function afterInstall(_ctx: InstallContext): Promise<boolean> {
 async function uninstall(_ctx: InstallContext): Promise<void> {
   await withSpinner({
     message: "Removing Chromium...",
-  }, () => {
-    return fetcher().remove(supportedRevision());
+  }, async () => {
+    return (await fetcher()).remove(supportedRevision());
   });
   return Promise.resolve();
 }
 
-export function fetcher() {
+export async function fetcher() {
   const options = {
     path: chromiumInstallDir(),
   };
-  const fetcher = puppeteer.createBrowserFetcher(options);
+  const fetcher = (await getPuppeteer()).createBrowserFetcher(options);
   return fetcher;
 }
 
 // TODO: https://github.com/puppeteer/puppeteer/blob/main/versions.js
-function supportedRevision(): string {
-  return puppeteer._preferredRevision;
+async function supportedRevision(): Promise<string> {
+  return (await getPuppeteer())._preferredRevision;
 }
