@@ -9,7 +9,7 @@
 */
 
 import { ExecuteOutput } from "../../../test.ts";
-import { inPuppeteer } from "../../../puppeteer.ts";
+import { inPuppeteer } from "../../../../src/core/puppeteer.ts";
 import { assert } from "testing/asserts.ts";
 import { testRender } from "../../../smoke/render/render.ts";
 import { localFileURL } from "../../../puppeteer.ts";
@@ -26,12 +26,11 @@ testRender("docs/ojs/test-no-ojs.qmd", "html", false, [
       const url = localFileURL("docs/ojs/test-no-ojs.qmd");
       const result = await inPuppeteer(url, () => {
         return (window._ojs === undefined);
-      })();
+      });
       assert(result === true, `Expected true, got false instead`);
     },
   },
 ]);
-
 
 testRender("docs/ojs/test-ojs-es-modules.qmd", "html", false, [
   {
@@ -40,7 +39,7 @@ testRender("docs/ojs/test-ojs-es-modules.qmd", "html", false, [
       const url = localFileURL("docs/ojs/test-ojs-es-modules.qmd");
       const result = await inPuppeteer(url, () => {
         return (window._ojs !== undefined);
-      })();
+      });
       assert(result === true, `Expected true, got false instead`);
     },
   },

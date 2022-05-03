@@ -8,8 +8,11 @@
 */
 
 import { ExecuteOutput, Verify } from "../../../test.ts";
-import { Browser } from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
-import { inPuppeteer, withHeadlessBrowser } from "../../../puppeteer.ts";
+import { Browser } from "puppeteer/mod.ts";
+import {
+  inPuppeteer,
+  withHeadlessBrowser,
+} from "../../../../src/core/puppeteer.ts";
 import { assert } from "testing/asserts.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -77,7 +80,7 @@ export function verifyDomTextValue(
         // FIXME this doesn't seem robust in the long run
         await new Promise((resolve) => setTimeout(resolve, 1000));
         return document.getElementById(name).innerText;
-      })(elementName);
+      }, elementName);
       assert(
         textVal === value,
         `Expected ${value} in document element ${elementName}, got ${textVal} instead`,
@@ -139,7 +142,7 @@ export function verifyOjsValue(
         await window._ojs.runtime.finishInterpreting();
         const val = await window._ojs.runtime.value(name);
         return val;
-      })(valName);
+      }, valName);
       assert(
         ojsVal === value,
         `Expected ${value} in ojs variable ${valName}, got ${ojsVal} instead`,

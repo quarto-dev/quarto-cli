@@ -17,10 +17,12 @@ import {
   ToolSummaryData,
 } from "./types.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
+import { chromiumInstallable } from "./tools/chromium.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
   tinytex: tinyTexInstallable,
+  chromium: chromiumInstallable,
 };
 
 export function installableTools(): string[] {

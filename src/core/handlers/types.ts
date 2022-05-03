@@ -43,19 +43,19 @@ export interface LanguageHandler {
   document: (
     handlerContext: LanguageCellHandlerContext,
     cells: QuartoMdCell[],
-  ) => MappedString[];
+  ) => Promise<MappedString[]>;
   documentStart: (handlerContext: LanguageCellHandlerContext) => void;
   documentEnd: (handlerContext: LanguageCellHandlerContext) => void;
   cell: (
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     options: Record<string, unknown>,
-  ) => MappedString;
+  ) => Promise<MappedString>;
 
   directive?: (
     handlerContext: LanguageCellHandlerContext,
     directiveCell: DirectiveCell,
-  ) => EitherString;
+  ) => Promise<EitherString>;
 
   comment?: LanguageComment;
   defaultOptions?: Record<string, unknown>;
