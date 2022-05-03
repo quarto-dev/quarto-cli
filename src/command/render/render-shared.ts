@@ -118,7 +118,7 @@ export function printWatchingForChangesMessage() {
   info("Watching files for changes", { format: colors.green });
 }
 
-export function printBrowsePreviewMessage(port: number, path: string) {
+export async function printBrowsePreviewMessage(port: number, path: string) {
   if (isJupyterHubServer()) {
     const httpReferrer = `${
       jupyterHubHttpReferrer() || "<jupyterhub-server-url>/"
@@ -132,7 +132,7 @@ export function printBrowsePreviewMessage(port: number, path: string) {
   } else if (isVSCodeTerminal() && isRStudioWorkbench()) {
     const server = Deno.env.get("RS_SERVER_URL")!;
     const session = Deno.env.get("RS_SESSION_URL")!;
-    const portToken = mapRSWPortToken(port);
+    const portToken = await mapRSWPortToken(port);
     const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else {

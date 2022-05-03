@@ -184,7 +184,7 @@ export async function preview(
   }
 
   // print status
-  printBrowsePreviewMessage(options.port!, initialPath);
+  await printBrowsePreviewMessage(options.port!, initialPath);
 
   // watch for src changes in dev mode
   monitorQuartoSrcChanges(stopServer);
