@@ -24,7 +24,6 @@ import {
   join as mappedJoin,
   mappedConcat,
   mappedLines,
-  mappedReplace,
   MappedString,
 } from "../lib/mapped-text.ts";
 import {
@@ -35,7 +34,6 @@ import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 import {
   pandocBlock,
   pandocFigCaption,
-  pandocFigure,
   pandocHtmlBlock,
   pandocRawStr,
 } from "../pandoc/codegen.ts";
@@ -383,7 +381,7 @@ export const baseHandler: LanguageHandler = {
 
     const { classes, attrs } = getDivAttributes(cell);
 
-    const q3 = hasFigureLabel() ? pandocBlock(":::") : pandocFigure;
+    const q3 = pandocBlock(":::");
     const t3 = pandocBlock("```");
     const t4 = pandocBlock("````");
     const cellBlock = q3({
