@@ -19,9 +19,26 @@ function handleHiddenVisible(el)
   end
 end
 
+-- we have some special rules to allow formats to behave more intuitively
 function formatMatches(to)
-  print(to, FORMAT)
-  return to == FORMAT    
+  -- latex and pdf are synonyms
+  if to == "latex" or to == "pdf" then
+    return isLatexOutput()
+  -- odt and opendocument are synonyms
+  elseif to == "odt" or to == "opendocument" then
+    return isOdtOutput()
+  -- epub: epub, epub2, or epub3
+  elseif to:match 'epub' then 
+    return isEpubOutput()
+  -- html: html, html4, html4, epub*, or slides (e.g. revealjs)
+  elseif to == "html" then
+    return isHtmlOutput()
+  -- markdown: markdown*, commonmark*, gfm, markua
+  elseif to == "markdown" then
+    return isMarkdownOutput()
+  else
+    return FORMAT == to
+  end 
 end
 
 function attributesMatch(el)
