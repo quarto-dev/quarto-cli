@@ -18,6 +18,7 @@ import {
   kPreferHtml,
   kVariant,
   kWarning,
+  kWrap,
 } from "../config/constants.ts";
 
 import { Format } from "../config/types.ts";
@@ -213,6 +214,7 @@ function hugoFormat(): Format {
     pandoc: {
       to: "gfm",
       [kHtmlMathMethod]: "webtex",
+      [kWrap]: "preserve",
     },
   });
 }
