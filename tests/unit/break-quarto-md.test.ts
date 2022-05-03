@@ -9,6 +9,33 @@ import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
 
+unitTest("break-quarto-md - indented code cells", async () => {
+  const qmd = `---
+title: Blah
+---
+
+Blah blah
+
+\`\`\`{r}
+1 + 1
+\`\`\`
+
+*   The same in a list:
+
+    \`\`\`{r}
+    1 + 1
+    \`\`\`
+
+*   The same in a list again:
+
+    \`\`\`{r}
+    1 + 1
+    \`\`\`
+`;
+  const cells = (await breakQuartoMd(qmd, false)).cells;
+  assert(cells.map((cell) => cell.sourceVerbatim.value).join("") === qmd);
+});
+
 unitTest("break-quarto-md - math", async () => {
   const qmd = `---
 title: foo
