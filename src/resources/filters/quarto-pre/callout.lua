@@ -196,8 +196,9 @@ function calloutDiv(div)
       headerDiv.content:insert(pandoc.Plain(toggleButton));
 
       -- configure the header div for collapse
+      local bsTargetClz = calloutid .. "-contents"
       headerDiv.attr.attributes["bs-toggle"] = "collapse"
-      headerDiv.attr.attributes["bs-target"] = "#" .. calloutid
+      headerDiv.attr.attributes["bs-target"] = "." .. bsTargetClz
       headerDiv.attr.attributes["aria-controls"] = calloutid
       headerDiv.attr.attributes["aria-expanded"] = expandedAttrVal
       headerDiv.attr.attributes["aria-label"] = 'Toggle callout'
@@ -205,6 +206,7 @@ function calloutDiv(div)
       -- configure the body div for collapse
       local collapseDiv = pandoc.Div({})
       collapseDiv.attr.identifier = calloutid
+      collapseDiv.attr.classes:insert(bsTargetClz)
       collapseDiv.attr.classes:insert("callout-collapse")
       collapseDiv.attr.classes:insert("collapse")
       if expandedAttrVal == "true" then

@@ -655,10 +655,23 @@ aside,
   font-size: 0.825rem;
 }
 
-.column-margin.column-container > * {
+.column-margin.column-container > *:not(.collapse) {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
   display: block;
+}
+
+.column-margin.column-container > *.collapse:not(.show) {
+  display: none;
+}
+
+@include media-breakpoint-up(md) {
+.column-margin.column-container .callout-margin-content:first-child {
+  margin-top: 4.5em;
+}
+.column-margin.column-container .callout-margin-content-simple:first-child {
+  margin-top: 3.5em;
+}
 }
 
 .margin-caption > * {
