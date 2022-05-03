@@ -11,7 +11,8 @@ local kCloseShortcodeEscape = "*/"
 function shortCodesBlocks() 
   return {
     Blocks = transformShortcodeBlocks,
-    CodeBlock =  transformShortcodeCode
+    CodeBlock =  transformShortcodeCode,
+    RawBlock = transformShortcodeCode
   }
 end
 
@@ -20,6 +21,7 @@ function shortCodesInlines()
   return {
     Inlines = transformShortcodeInlines,
     Code = transformShortcodeCode,
+    RawInline = transformShortcodeCode,
     Link = transformLink,
     Image = transformImage
   }
@@ -51,12 +53,12 @@ function transformShortcodeCode(el)
   -- don't process shortcodes in code output from engines
   -- (anything in an engine processed code block was actually
   --  proccessed by the engine, so should be printed as is)
-  if el.attr.classes:includes("cell-code") then
+  if el.attr and el.attr.classes:includes("cell-code") then
     return
   end
 
   -- don't process shortcodes if they are explicitly turned off
-  if el.attr.attributes["shortcodes"] == "false" then
+  if el.attr and el.attr.attributes["shortcodes"] == "false" then
     return
   end
   
