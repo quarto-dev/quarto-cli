@@ -8,7 +8,6 @@
 */
 
 import { ExecuteOutput, Verify } from "../../../test.ts";
-import { Browser } from "puppeteer/mod.ts";
 import {
   inPuppeteer,
   withHeadlessBrowser,
@@ -159,7 +158,7 @@ export function verifyClickingDoesNotThrow(
     name: "page does not throw when selected element is clicked",
     // deno-lint-ignore no-explicit-any
     verify: (async (..._params: any[]) => {
-      return await withHeadlessBrowser<void>(async (browser: Browser) => {
+      return await withHeadlessBrowser<void>(async (browser) => {
         const page = await browser.newPage();
         try {
           await page.goto(url);
@@ -169,12 +168,14 @@ export function verifyClickingDoesNotThrow(
           assert(false);
         }
         let threwError = false;
-        page.on("pageerror", function (err) {
+        // deno-lint-ignore no-explicit-any
+        page.on("pageerror", function (err: any) {
           const theTempValue = err.toString();
           console.log("Page error: " + theTempValue);
           threwError = true;
         });
-        page.on("error", (err) => {
+        // deno-lint-ignore no-explicit-any
+        page.on("error", (err: any) => {
           const theTempValue = err.toString();
           console.log("Error: " + theTempValue);
           threwError = true;
