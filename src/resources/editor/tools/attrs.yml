@@ -37,6 +37,28 @@
     - value: 'collapse="false"'
       doc: Make the callout collapsable (initially expanded).
 
+## content-visibile
+
+- group: "content"
+  contexts: [div]
+  completions:
+    - value: '.content-visible when-format="$0"'
+      doc: "Make content visible for a given format."
+    - value: '.content-visible unless-format="$0"'
+      doc: "Make content visible except for a given format."
+    - value: '.content-hidden when-format="$0"'
+      doc: "Make content hidden for a given format."
+    - value: '.content-hidden unless-format="$0"'
+      doc: "Make content hidden except for a given format."
+
+- group: "contentAttribs"
+  contexts: [div]
+  completions:
+    - value: 'when-format="$0"'
+      doc: "Show or hide content when format matches"
+    - value: 'unless-format="$0"'
+      doc: "Show or hide content unless format matches"
+
 ## columns
 
 - group: "columns"
