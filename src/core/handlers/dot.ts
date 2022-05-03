@@ -32,6 +32,7 @@ const dotHandler: LanguageHandler = {
     echo: false,
     eval: true,
     include: true,
+    "graph-layout": "dot",
   },
 
   comment: "//",
@@ -47,7 +48,7 @@ const dotHandler: LanguageHandler = {
     const svg = await graphvizModule.graphviz().layout(
       cell.source.value,
       "svg",
-      "dot",
+      options["graph-layout"],
     );
 
     if (isJavascriptCompatible(handlerContext.options.format)) {
