@@ -391,6 +391,13 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
 
     const fullLayout = formatHasFullLayout(format);
     if (fullLayout) {
+      // If we're in a full layout, get rid of empty sidebar elements
+      const leftSidebar = hasContents(kSidebarId, doc);
+      if (!leftSidebar) {
+        const sidebarEl = doc.getElementById(kSidebarId);
+        sidebarEl?.remove();
+      }
+
       const column = suggestColumn(doc);
       setMainColumn(doc, column);
     }
@@ -918,28 +925,28 @@ const findOutermostParentElOfType = (
   }
 };
 
+const hasContents = (id: string, doc: Document) => {
+  const el = doc.getElementById(id);
+  // Does the element exist
+  if (el === null) {
+    return false;
+  }
+
+  // Does it have any element children?
+  if (el.children.length > 0) {
+    return true;
+  }
+
+  // If it doesn't have any element children
+  // see if there is any text
+  return !!el.innerText.trim();
+};
+
 // Suggests a default column by inspecting sidebars
 // if there are none or some, take up the extra space!
 function suggestColumn(doc: Document) {
-  const hasContents = (id: string) => {
-    const el = doc.getElementById(id);
-    // Does the element exist
-    if (el === null) {
-      return false;
-    }
-
-    // Does it have any element children?
-    if (el.children.length > 0) {
-      return true;
-    }
-
-    // If it doesn't have any element children
-    // see if there is any text
-    return !!el.innerText.trim();
-  };
-
-  const leftSidebar = hasContents(kSidebarId);
-  const rightSidebar = hasContents(kMarginSidebarId);
+  const leftSidebar = hasContents(kSidebarId, doc);
+  const rightSidebar = hasContents(kMarginSidebarId, doc);
 
   const columnClasses = getColumnClasses(doc);
   const leftContent = [...fullOccludeClz, ...leftOccludeClz].some((clz) => {
