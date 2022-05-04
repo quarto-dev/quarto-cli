@@ -78,6 +78,8 @@ local kMetadata = 'metadata'
 local kGivenName = 'given'
 local kFamilyName = 'family'
 local kLiteralName = 'literal'
+local kDroppingParticle = 'dropping-particle'
+local kNonDroppingParticle = 'non-dropping-particle'
 local kNameFields = { kGivenName, kFamilyName, kLiteralName}
 
 -- an affiliation which will be structured into a standalone
@@ -141,11 +143,6 @@ local kNumber = "number"
 -- Normalizes author metadata from the 'input' field into 
 -- consistently structured metadata in the 'output' field
 function authorsMeta()
-
-
-  
-
-
   return {
     Meta = function(meta)
       if not isHtmlOutput() and not isLatexOutput() then
@@ -522,14 +519,49 @@ function normalizeName(name)
 
   -- no family or given name, parse the literal and create one
   if name[kFamilyName] == nil or name[kGivenName] == nil then
-    if name[kLiteralName] and #name[kLiteralName] > 1 then
-      name[kGivenName] = name[kLiteralName][1]
-      name[kFamilyName] = trimspace(tslice(name[kLiteralName], 2))
-    elseif name[kLiteralName] then
-      name[kFamilyName] = name[kLiteralName]
+    if name[kLiteralName] then 
+      local parsedName = bibtexParseName(name)
+      if type(parsedName) == 'table' then
+        name[kGivenName] = parsedName.given
+        name[kFamilyName] = parsedName.family
+        name[kDroppingParticle] = parsedName[kDroppingParticle]
+        name[kNonDroppingParticle] = parsedName[kNonDroppingParticle]
+      else
+        if #name[kLiteralName] > 1 then
+          -- bibtex parsing failed, just split on space
+          name[kGivenName] = name[kLiteralName][1]
+          name[kFamilyName] = trimspace(tslice(name[kLiteralName], 2))
+        elseif name[kLiteralName] then
+          -- what is this thing, just make it family name
+          name[kFamilyName] = name[kLiteralName]
+        end    
+      end
     end
   end
   return name
+end
+
+local kBibtexNameTemplate = [[
+@misc{x,
+  author = {%s}
+}
+]]
+
+--- Returns a CSLJSON-like name table. BibTeX knows how to parse names,
+--- so we leverage that.
+function bibtexParseName(nameRaw)
+  local bibtex = kBibtexNameTemplate:format(pandoc.utils.stringify(nameRaw))
+  local name = pandoc.read(bibtex, 'bibtex').meta.references[1].author[1]
+  if type(name) ~= 'table' then
+    return nameRaw
+  else
+    -- most dropping particles are really non-dropping
+    if name['dropping-particle'] and not name['non-dropping-particle'] then
+      name['non-dropping-particle'] = name['dropping-particle']
+      name['dropping-particle'] = nil
+    end
+    return name
+  end
 end
 
 function byAuthors(authors, affiliations) 
