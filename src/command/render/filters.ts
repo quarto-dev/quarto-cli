@@ -190,7 +190,6 @@ function extractIncludeParams(
     [kIncludeBeforeBody]: beforeBodyFiles.map(pandocMetadataPath),
     [kIncludeAfterBody]: afterBodyFiles.map(pandocMetadataPath),
   };
-  console.log({ result });
   return result;
 }
 
