@@ -301,21 +301,6 @@ async function afterInstall(context: InstallContext) {
           tlmgrPath,
           ["-q", "option", "repository", defaultRepo],
         );
-
-        if (Deno.build.os === "linux") {
-          const binPath = expandPath("~/bin");
-          if (!existsSync(binPath)) {
-            // Make the directory
-            Deno.mkdirSync(binPath);
-            restartRequired = true;
-          }
-
-          // Notify tlmgr of it
-          await exec(
-            tlmgrPath,
-            ["option", "sys_bin", binPath],
-          );
-        }
       },
     );
 
@@ -328,24 +313,19 @@ ${tlmgrPath} path add
 
 This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path>.`;
 
-    const configureBinPath = async () => {
+    const configureBinPath = async (path: string) => {
       if (Deno.build.os !== "windows") {
         // Find bin paths on this machine
-        const paths = suggestUserBinPaths();
-        if (paths.length > 0) {
-          // Ensure the directory exists
-          const path = expandPath(paths[0]);
-          ensureDirSync(path);
+        // Ensure the directory exists
+        const expandedPath = expandPath(path);
+        ensureDirSync(expandedPath);
 
-          // Set the sys_bin for texlive
-          await exec(
-            tlmgrPath,
-            ["option", "sys_bin", path],
-          );
-          return true;
-        } else {
-          return false;
-        }
+        // Set the sys_bin for texlive
+        await exec(
+          tlmgrPath,
+          ["option", "sys_bin", expandedPath],
+        );
+        return true;
       } else {
         return true;
       }
@@ -355,16 +335,21 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
     await context.withSpinner(
       { message: "Updating paths" },
       async () => {
-        const pathConfigured = await configureBinPath();
-        if (pathConfigured) {
-          const result = await exec(
-            tlmgrPath,
-            ["path", "add"],
-          );
-          if (!result.success) {
-            warning(message);
+        let result;
+        const paths = suggestUserBinPaths();
+        for (const path of paths) {
+          const pathConfigured = await configureBinPath(path);
+          if (pathConfigured) {
+            result = await exec(
+              tlmgrPath,
+              ["path", "add"],
+            );
+            if (result.success) {
+              break;
+            }
           }
-        } else {
+        }
+        if (!result?.success) {
           warning(message);
         }
       },
@@ -419,7 +404,7 @@ async function uninstall(context: InstallContext) {
 }
 
 function exec(path: string, cmd: string[]) {
-  return execProcess({ cmd: [path, ...cmd], stdout: "piped" });
+  return execProcess({ cmd: [path, ...cmd], stdout: "piped", stderr: "piped" });
 }
 
 const kTlMgrKey = "tlmgr";

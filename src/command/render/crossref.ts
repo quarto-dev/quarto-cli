@@ -57,9 +57,10 @@ export function crossrefFilterParams(
           );
         }
         // implies number-sections
-        params[kNumberSections] = true;
+        if (defaults?.[kNumberSections] === undefined) {
+          params[kNumberSections] = true;
+        }
       }
-
       params[option] = value;
     }
   });
