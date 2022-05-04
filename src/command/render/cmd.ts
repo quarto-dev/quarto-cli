@@ -169,7 +169,7 @@ export const renderCommand = new Command()
 
     // extract pandoc flag values we know/care about, then fixup args as
     // necessary (remove our flags that pandoc doesn't know about)
-    const flags = parseRenderFlags(args);
+    const flags = await parseRenderFlags(args);
     args = fixupPandocArgs(args, flags);
 
     // run render on input files

@@ -262,7 +262,7 @@ export const previewCommand = new Command()
 
     // extract pandoc flag values we know/care about, then fixup args as
     // necessary (remove our flags that pandoc doesn't know about)
-    const flags = parseRenderFlags(args);
+    const flags = await parseRenderFlags(args);
     args = fixupPandocArgs(args, flags);
 
     // if this is a single-file html preview within a project

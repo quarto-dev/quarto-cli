@@ -6,11 +6,7 @@
 */
 import { existsSync } from "fs/mod.ts";
 
-import {
-  readYaml,
-  readYamlFromMarkdownFile,
-  readYamlFromString,
-} from "../../core/yaml.ts";
+import { readYaml, readYamlFromString } from "../../core/yaml.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 
@@ -32,7 +28,7 @@ import * as ld from "../../core/lodash.ts";
 
 export const kStdOut = "-";
 
-export function parseRenderFlags(args: string[]) {
+export async function parseRenderFlags(args: string[]) {
   const flags: RenderFlags = {};
 
   const argsStack = [...args];
@@ -289,8 +285,14 @@ export function parseRenderFlags(args: string[]) {
         arg = argsStack.shift();
         if (arg) {
           if (existsSync(arg)) {
-            const metadata = readYamlFromMarkdownFile(arg);
+            const metadata =
+              (await readYamlFromString(Deno.readTextFileSync(arg))) as Record<
+                string,
+                unknown
+              >;
+            console.log(metadata);
             flags.metadata = { ...flags.metadata, ...metadata };
+            // flags.metadata = mergeConfigs(flags.metadata, metadata); // { ...flags.metadata, ...metadata };
           }
         }
         break;
