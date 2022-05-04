@@ -592,6 +592,7 @@ export async function runPandoc(
   // provide alternate markdown template that actually prints the title block
   if (
     !allDefaults[kTemplate] && !havePandocArg(args, "--template") &&
+    !options.format.render["keep-yaml"] &&
     allDefaults.to
   ) {
     const formatDesc = parseFormatString(allDefaults.to);
