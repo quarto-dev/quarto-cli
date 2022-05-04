@@ -19,87 +19,32 @@ export function firstHeadingFromMarkdown(markdown: string): string | undefined {
   return partitioned.headingText;
 }
 
+const kPandocTitleRegex = /^\#{1,}\s(.*)\s\{(.*)\}$/;
+const kRemoveHeadingRegex = /^#{1,}\s*/;
+
 export function parsePandocTitle(title: string) {
   // trim any whitespace
   title = title ? title.trim() : title;
-
-  let beginAttrPos = -1;
-  let previousCh = undefined;
-
-  let state: "none" | "scanning" | "reading" = "none";
-
-  // Find the start of the attributes section
-  // walk from the back until we find the opening character
-  // this doesn't do any depth matching - it simply looks
-  // for the first valid unescaped '{' char once it is scanning
-  // for attributes
-  for (let i = title.length - 1; i > -1; i--) {
-    const ch = title.charAt(i);
-
-    if (previousCh === undefined && ch !== "}") {
-      // attributes must be at the end of the title
-      // If the string isn't terminated by } then there
-      // are no valid attributes
-      break;
+  const match = title.match(kPandocTitleRegex);
+  if (match) {
+    const titleRaw = match[1];
+    const attrRaw = match[2];
+    const parsed = pandocAttrParseText(attrRaw);
+    if (parsed) {
+      return {
+        heading: titleRaw,
+        attr: parsed,
+      };
+    } else {
+      return {
+        heading: titleRaw,
+      };
     }
-
-    // If the last character is a '}', start scaninng
-    // to determine if this is an attribute
-    if (previousCh === undefined && ch === "}") {
-      state = "scanning";
-      previousCh = ch;
-      continue;
-    }
-
-    // We are scannning to determine whether this is indeed an attribute string
-    if (state === "scanning") {
-      // This is not a valid attribute string (e.g. }}, /}, ]})
-      if (["/", "}", "]"].includes(ch)) {
-        break;
-      }
-
-      // This is an attribute, change state from scanning to reading
-      state = "reading";
-      previousCh = ch;
-      continue;
-    }
-
-    // We're reading the attribute contents to find the opening attribute brace
-    if (state === "reading") {
-      // Wait until we get to the previous character and then confirm that it wasn't
-      // an escape character
-      if (!["/"].includes(ch) && previousCh === "{") {
-        beginAttrPos = i + 1;
-        break;
-      }
-      previousCh = ch;
-    }
+  } else {
+    return {
+      heading: title.replace(kRemoveHeadingRegex, "").trim(),
+    };
   }
-
-  let markdownHeading = beginAttrPos !== -1
-    ? title.slice(0, beginAttrPos)
-    : title;
-  markdownHeading = markdownHeading.trim().replace(
-    /^#{1,}\s*/,
-    "",
-  );
-
-  let markdownHeadingAttr;
-  if (beginAttrPos !== -1) {
-    const endAttrPos = title.lastIndexOf("}");
-    if (endAttrPos !== -1) {
-      const attr = title.slice(beginAttrPos + 1, endAttrPos);
-      const parsed = pandocAttrParseText(attr);
-      if (parsed) {
-        markdownHeadingAttr = parsed;
-      }
-    }
-  }
-
-  return {
-    heading: markdownHeading,
-    attr: markdownHeadingAttr,
-  };
 }
 
 // partition markdown into yaml, the first heading, and the rest of the markdown text
