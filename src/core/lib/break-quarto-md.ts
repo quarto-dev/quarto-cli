@@ -45,6 +45,7 @@ export async function breakQuartoMd(
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*```+\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
+  const singleLineMathBlockRegEx = /^\s*\$\$.+\$\$\s*$/;
 
   let language = ""; // current language block
   let directiveParams: {
@@ -228,6 +229,10 @@ export async function breakQuartoMd(
     } else if (startCodeRegEx.test(line.substring) && inCode === 0) {
       inCode = tickCount(line.substring);
       lineBuffer.push(line);
+    } else if (singleLineMathBlockRegEx.test(line.substring)) {
+      await flushLineBuffer("markdown", i);
+      lineBuffer.push(line);
+      await flushLineBuffer("math", i);
     } else if (delimitMathBlockRegEx.test(line.substring)) {
       if (inMathBlock) {
         lineBuffer.push(line);
