@@ -68,6 +68,7 @@ export async function renderPandoc(
         output: recipe.output,
         resourceDir: resourcePath(),
         tempDir: context.options.temp.createDir(),
+        projectDir: context.project?.dir,
         libDir: context.libDir,
         dependencies: executeResult.engineDependencies[engineName],
         quiet: context.options.flags?.quiet,
@@ -113,6 +114,7 @@ export async function renderPandoc(
       format,
       output: recipe.output,
       tempDir: context.options.temp.createDir(),
+      projectDir: context.project?.dir,
       preserve: executeResult.preserve,
       quiet: context.options.flags?.quiet,
     });

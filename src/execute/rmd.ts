@@ -86,6 +86,7 @@ export const knitrEngine: ExecutionEngine = {
         markdown: options.target.markdown.value,
       },
       options.tempDir,
+      options.projectDir,
       options.quiet,
     );
     const includes = result.includes as unknown;
@@ -101,6 +102,7 @@ export const knitrEngine: ExecutionEngine = {
       "dependencies",
       { ...options, target: undefined, input: options.target.input },
       options.tempDir,
+      options.projectDir,
       options.quiet,
     );
   },
@@ -120,6 +122,7 @@ export const knitrEngine: ExecutionEngine = {
           input: options.target.input,
         },
         options.tempDir,
+        options.projectDir,
         options.quiet,
         false,
       ).then(() => {
@@ -145,6 +148,7 @@ export const knitrEngine: ExecutionEngine = {
       "run",
       options,
       options.tempDir,
+      options.projectDir,
     );
   },
 };
@@ -153,6 +157,7 @@ async function callR<T>(
   action: string,
   params: unknown,
   tempDir: string,
+  projectDir?: string,
   quiet?: boolean,
   reportError = true,
 ): Promise<T> {
@@ -174,6 +179,7 @@ async function callR<T>(
           await rBinaryPath("Rscript"),
           resourcePath("rmd/rmd.R"),
         ],
+        cwd: projectDir,
         stderr: quiet ? "piped" : "inherit",
       },
       input,

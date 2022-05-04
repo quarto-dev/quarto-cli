@@ -156,6 +156,7 @@ export async function renderExecute(
     dependencies: resolveDependencies,
     libDir: context.libDir,
     format: context.format,
+    projectDir: context.project?.dir,
     cwd: flags.executeDir,
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
