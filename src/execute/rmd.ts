@@ -6,6 +6,7 @@
 */
 
 import { error, info, warning } from "log/mod.ts";
+import { existsSync } from "fs/exists.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -161,6 +162,10 @@ async function callR<T>(
   quiet?: boolean,
   reportError = true,
 ): Promise<T> {
+  // establish cwd for execute (the current dir if there is an renv
+  // otherwise the project dir if specified)
+  const cwd = withinActiveRenv() ? undefined : projectDir;
+
   // create a temp file for writing the results
   const resultsFile = Deno.makeTempFileSync(
     { dir: tempDir, prefix: "r-results", suffix: ".json" },
@@ -179,7 +184,7 @@ async function callR<T>(
           await rBinaryPath("Rscript"),
           resourcePath("rmd/rmd.R"),
         ],
-        cwd: projectDir,
+        cwd,
         stderr: quiet ? "piped" : "inherit",
       },
       input,
@@ -212,6 +217,18 @@ async function callR<T>(
       await printCallRDiagnostics();
     }
     return Promise.reject();
+  }
+}
+
+function withinActiveRenv() {
+  const kRProfile = ".Rprofile";
+  const kREnvActivate = 'source("renv/activate.R")';
+  if (existsSync(".Rprofile")) {
+    const profile = Deno.readTextFileSync(kRProfile);
+    return profile.includes(kREnvActivate) &&
+      !profile.includes("# " + kREnvActivate);
+  } else {
+    return false;
   }
 }
 
