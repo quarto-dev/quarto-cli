@@ -22,6 +22,7 @@ import { RenderOptions, RenderResult } from "./types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import {
   isJupyterHubServer,
+  isJupyterServer,
   isRStudioServer,
   isRStudioWorkbench,
   isVSCodeTerminal,
@@ -129,7 +130,9 @@ export async function printBrowsePreviewMessage(port: number, path: string) {
         format: colors.green,
       },
     );
-  } else if (isVSCodeTerminal() && isRStudioWorkbench()) {
+  } else if (
+    (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
+  ) {
     const server = Deno.env.get("RS_SERVER_URL")!;
     const session = Deno.env.get("RS_SESSION_URL")!;
     const portToken = await mapRSWPortToken(port);

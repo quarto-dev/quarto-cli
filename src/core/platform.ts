@@ -47,6 +47,10 @@ export function isRStudioPreview() {
   return isRStudio() && !isRStudioTerminal();
 }
 
+export function isJupyterServer() {
+  return !!Deno.env.get("JUPYTER_SERVER_URL");
+}
+
 export function isJupyterHubServer() {
   return jupyterHubUser() !== undefined;
 }
