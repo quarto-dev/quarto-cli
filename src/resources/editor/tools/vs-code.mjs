@@ -10512,9 +10512,9 @@ var require_yaml_intelligence_resources = __commonJS({
           anyOf: [
             {
               record: {
-                content: {
+                text: {
                   string: {
-                    description: "Content to add to includes"
+                    description: "Textual content to add to includes"
                   }
                 }
               }
@@ -12472,48 +12472,6 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "schema/document-includes.yml": [
         {
-          name: "add-to-header",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
-          schema: {
-            maybeArrayOf: {
-              ref: "smart-include"
-            }
-          },
-          description: "Content or files to include at the end of the document header."
-        },
-        {
-          name: "add-before-body",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
-          schema: {
-            maybeArrayOf: {
-              ref: "smart-include"
-            }
-          },
-          description: "Content or files to include at the beginning of the document body (e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command in LaTeX).."
-        },
-        {
-          name: "add-after-body",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
-          schema: {
-            maybeArrayOf: {
-              ref: "smart-include"
-            }
-          },
-          description: "Content or files to include at the end of the document body (e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command in LaTeX).."
-        },
-        {
           name: "header-includes",
           disabled: [
             "$office-all",
@@ -12557,9 +12515,16 @@ var require_yaml_intelligence_resources = __commonJS({
             "ipynb"
           ],
           schema: {
-            maybeArrayOf: "path"
+            maybeArrayOf: {
+              anyOf: [
+                "path",
+                {
+                  ref: "smart-include"
+                }
+              ]
+            }
           },
-          description: "Include contents of files, verbatim, at the beginning of the document body\n(e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command \nin LaTeX).\n"
+          description: 'Include contents at the beginning of the document body\n(e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command \nin LaTeX).\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
         },
         {
           name: "include-after-body",
@@ -12569,9 +12534,16 @@ var require_yaml_intelligence_resources = __commonJS({
             "ipynb"
           ],
           schema: {
-            maybeArrayOf: "path"
+            maybeArrayOf: {
+              anyOf: [
+                "path",
+                {
+                  ref: "smart-include"
+                }
+              ]
+            }
           },
-          description: "Include contents of files, verbatim, at the end of the document body (before\nthe `</body>` tag in HTML, or the `\\end{document}` command in LaTeX).\n"
+          description: 'Include contents at the end of the document body (before\nthe `</body>` tag in HTML, or the `\\end{document}` command in LaTeX).\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
         },
         {
           name: "include-in-header",
@@ -12581,9 +12553,16 @@ var require_yaml_intelligence_resources = __commonJS({
             "ipynb"
           ],
           schema: {
-            maybeArrayOf: "path"
+            maybeArrayOf: {
+              anyOf: [
+                "path",
+                {
+                  ref: "smart-include"
+                }
+              ]
+            }
           },
-          description: "Include contents of files, verbatim, at the end of the header. This can\nbe used, for example, to include special CSS or JavaScript in HTML \ndocuments.\n"
+          description: 'Include contents at the end of the header. This can\nbe used, for example, to include special CSS or JavaScript in HTML \ndocuments.\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
         },
         {
           name: "resources",
@@ -17227,8 +17206,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "Content to add to includes",
-        "Filename to add to includes",
+        "Textual content to add to includes",
+        "Name of file with content to add to includes",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -17728,15 +17707,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Indicates that computational output should not be written within\ndivs. This is necessary for some formats (e.g.&nbsp;<code>pptx</code>) to\nproperly layout figures.",
         "Disable merging of string based and file based includes (some\nformats, specifically ePub, do not correctly handle this merging)",
-        "Content or files to include at the end of the document header.",
-        "Content or files to include at the beginning of the document body\n(e.g.&nbsp;after the <code>&lt;body&gt;</code> tag in HTML, or the\n<code>\\begin{document}</code> command in LaTeX)..",
-        "Content or files to include at the end of the document body\n(e.g.&nbsp;after the <code>&lt;body&gt;</code> tag in HTML, or the\n<code>\\begin{document}</code> command in LaTeX)..",
         "Content to include at the end of the document header.",
         "Content to include at the beginning of the document body (e.g.&nbsp;after\nthe <code>&lt;body&gt;</code> tag in HTML, or the\n<code>\\begin{document}</code> command in LaTeX).",
         "Content to include at the end of the document body (before the\n<code>&lt;/body&gt;</code> tag in HTML, or the\n<code>\\end{document}</code> command in LaTeX).",
-        "Include contents of files, verbatim, at the beginning of the document\nbody (e.g.&nbsp;after the <code>&lt;body&gt;</code> tag in HTML, or the\n<code>\\begin{document}</code> command in LaTeX).",
-        "Include contents of files, verbatim, at the end of the document body\n(before the <code>&lt;/body&gt;</code> tag in HTML, or the\n<code>\\end{document}</code> command in LaTeX).",
-        "Include contents of files, verbatim, at the end of the header. This\ncan be used, for example, to include special CSS or JavaScript in HTML\ndocuments.",
+        "Include contents at the beginning of the document body (e.g.&nbsp;after\nthe <code>&lt;body&gt;</code> tag in HTML, or the\n<code>\\begin{document}</code> command in LaTeX).\nA string value or an object with key \u201Cfile\u201D indicates a filename\nwhose contents are to be included\nAn object with key \u201Ctext\u201D indicates textual content to be\nincluded",
+        "Include contents at the end of the document body (before the\n<code>&lt;/body&gt;</code> tag in HTML, or the\n<code>\\end{document}</code> command in LaTeX).\nA string value or an object with key \u201Cfile\u201D indicates a filename\nwhose contents are to be included\nAn object with key \u201Ctext\u201D indicates textual content to be\nincluded",
+        "Include contents at the end of the header. This can be used, for\nexample, to include special CSS or JavaScript in HTML documents.\nA string value or an object with key \u201Cfile\u201D indicates a filename\nwhose contents are to be included\nAn object with key \u201Ctext\u201D indicates textual content to be\nincluded",
         "Path (or glob) to files to publish with this document.",
         {
           short: "Text to be in a running header.",

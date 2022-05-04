@@ -1777,9 +1777,9 @@
 - id: smart-include
   anyOf:
     - record:
-        content:
+        text:
           string:
-            description: Content to add to includes
+            description: Textual content to add to includes
     - record:
         file:
           string:

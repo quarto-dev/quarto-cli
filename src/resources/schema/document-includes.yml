@@ -1,24 +1,3 @@
-- name: add-to-header
-  disabled: [$office-all, $jats-all, ipynb]
-  schema:
-    maybeArrayOf:
-      ref: smart-include
-  description: Content or files to include at the end of the document header.
-
-- name: add-before-body
-  disabled: [$office-all, $jats-all, ipynb]
-  schema:
-    maybeArrayOf:
-      ref: smart-include
-  description: Content or files to include at the beginning of the document body (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command in LaTeX)..
-
-- name: add-after-body
-  disabled: [$office-all, $jats-all, ipynb]
-  schema:
-    maybeArrayOf:
-      ref: smart-include
-  description: Content or files to include at the end of the document body (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command in LaTeX)..
-
 - name: header-includes
   disabled: [$office-all, $jats-all, ipynb]
   schema:
@@ -40,28 +19,49 @@
 - name: include-before-body
   disabled: [$office-all, $jats-all, ipynb]
   schema:
-    maybeArrayOf: path
+    maybeArrayOf:
+      anyOf:
+        - path
+        - ref: smart-include
   description: |
-    Include contents of files, verbatim, at the beginning of the document body
+    Include contents at the beginning of the document body
     (e.g. after the `<body>` tag in HTML, or the `\begin{document}` command 
     in LaTeX).
+
+    A string value or an object with key "file" indicates a filename whose contents are to be included
+
+    An object with key "text" indicates textual content to be included
 
 - name: include-after-body
   disabled: [$office-all, $jats-all, ipynb]
   schema:
-    maybeArrayOf: path
+    maybeArrayOf:
+      anyOf:
+        - path
+        - ref: smart-include
   description: |
-    Include contents of files, verbatim, at the end of the document body (before
+    Include contents at the end of the document body (before
     the `</body>` tag in HTML, or the `\end{document}` command in LaTeX).
+
+    A string value or an object with key "file" indicates a filename whose contents are to be included
+
+    An object with key "text" indicates textual content to be included
 
 - name: include-in-header
   disabled: [$office-all, $jats-all, ipynb]
   schema:
-    maybeArrayOf: path
+    maybeArrayOf:
+      anyOf:
+        - path
+        - ref: smart-include
   description: |
-    Include contents of files, verbatim, at the end of the header. This can
+    Include contents at the end of the header. This can
     be used, for example, to include special CSS or JavaScript in HTML 
     documents.
+
+    A string value or an object with key "file" indicates a filename whose contents are to be included
+
+    An object with key "text" indicates textual content to be included
 
 - name: resources
   schema:

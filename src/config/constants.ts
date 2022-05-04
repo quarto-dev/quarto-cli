@@ -420,10 +420,6 @@ export const kDocumentClass = "documentclass";
 export const kClassOption = "classoption";
 export const kSlideLevel = "slide-level";
 
-export const kSmartIncludeInHeader = "add-to-header";
-export const kSmartIncludeBeforeBody = "add-before-body";
-export const kSmartIncludeAfterBody = "add-after-body";
-
 export const kTheme = "theme";
 export const kCrossref = "crossref";
 export const kCrossrefChapters = "chapters";
