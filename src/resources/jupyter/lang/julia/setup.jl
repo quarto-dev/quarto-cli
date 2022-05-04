@@ -19,6 +19,7 @@ fig_dpi = {3}
 if fig_format == :retina
   fig_format = :svg
 elseif fig_format == :pdf
+  fig_dpi = 96
   # Enable PDF support for IJulia
   IJulia.register_mime(MIME("application/pdf"))
 end
@@ -34,7 +35,7 @@ try
   # Plots.jl doesn't support PDF output for versions < 1.28.1
   # so use png (if the DPI remains the default of 300 then set to 96)
   if (Plots._current_plots_version < v"1.28.1") & (fig_format == :pdf)
-    Plots.gr(size=(fig_width / fig_dpi * 96, fig_height / fig_dpi * 96), fmt = :png, dpi = fig_dpi)
+    Plots.gr(size=(fig_width, fig_height), fmt = :png, dpi = fig_dpi)
   else
     Plots.gr(size=(fig_width, fig_height), fmt = fig_format, dpi = fig_dpi)
   end
