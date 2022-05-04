@@ -134,6 +134,7 @@ export async function printBrowsePreviewMessage(port: number, path: string) {
     const session = Deno.env.get("RS_SESSION_URL")!;
     const portToken = await mapRSWPortToken(port);
     const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
+    info(`\nPreview server: http://localhost:${port}/`);
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else {
     const url = `http://localhost:${port}/${path}`;
