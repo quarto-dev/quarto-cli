@@ -14,10 +14,7 @@ import { Format, FormatPandoc, Metadata } from "../config/types.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { RenderOptions } from "../command/render/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
-import {
-  HandlerContextResults,
-  LanguageCellHandlerOptions,
-} from "../core/handlers/types.ts";
+import { HandlerContextResults } from "../core/handlers/types.ts";
 
 export const kQmdExtensions = [".qmd"];
 

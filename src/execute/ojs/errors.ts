@@ -8,7 +8,6 @@
 import { error } from "log/mod.ts";
 import { mappedIndexToRowCol } from "../../core/lib/mapped-text.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
-import { indexToRowCol } from "../../core/text.ts";
 
 export function ojsParseError(
   // deno-lint-ignore no-explicit-any

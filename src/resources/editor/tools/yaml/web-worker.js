@@ -27054,7 +27054,7 @@ ${heading}`;
     const yamlRegEx = /^---\s*$/;
     const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
     const startCodeRegEx = /^```/;
-    const endCodeRegEx = /^```+\s*$/;
+    const endCodeRegEx = /^\s*```+\s*$/;
     const delimitMathBlockRegEx = /^\$\$/;
     let language = "";
     let directiveParams = void 0;

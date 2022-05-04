@@ -6,9 +6,6 @@
  */
 
 import { getPuppeteer } from "../../../core/puppeteer.ts";
-import { join } from "path/mod.ts";
-import { getenv } from "../../../core/env.ts";
-
 import {
   clearLine,
   progressBar,

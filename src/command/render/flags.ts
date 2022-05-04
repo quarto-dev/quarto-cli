@@ -6,11 +6,7 @@
 */
 import { existsSync } from "fs/mod.ts";
 
-import {
-  readYaml,
-  readYamlFromMarkdownFile,
-  readYamlFromString,
-} from "../../core/yaml.ts";
+import { readYaml, readYamlFromString } from "../../core/yaml.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 

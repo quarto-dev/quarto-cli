@@ -200,7 +200,7 @@ const titleColor = (block: unknown) => {
   }
 };
 
-const titleColorClass = (block: unknown) => {
+const _titleColorClass = (block: unknown) => {
   if (block === "body") {
     return "body";
   } else if (block === "body-bg" || block === undefined) {

@@ -27,7 +27,7 @@ import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
 import { AnnotatedParse, LocalizedError, Schema } from "./types.ts";
 import { locateAnnotation } from "../yaml-intelligence/annotated-yaml.ts";
 import { createLocalizedError } from "../yaml-validation/errors.ts";
-import { mappedString, mappedSubstring } from "../mapped-text.ts";
+import { mappedSubstring } from "../mapped-text.ts";
 
 export const getProjectConfigFieldsSchema = defineCached(
   // deno-lint-ignore require-await
