@@ -10,30 +10,48 @@ import IJulia
 # clear console history
 IJulia.clear_history()
 
+fig_width = {0}
+fig_height = {1}
+fig_format = :{2}
+fig_dpi = {3}
+
+# no retina format type, use svg for high quality type/marks
+if fig_format == :retina
+  fig_format = :svg
+elseif fig_format == :pdf
+  # Enable PDF support for IJulia
+  IJulia.register_mime(MIME("application/pdf"))
+end
+
+# convert inches to pixels
+fig_width = fig_width * fig_dpi
+fig_height = fig_height * fig_dpi
+
 # Intialize Plots w/ default fig width/height
 try
-  fig_width = {0}
-  fig_height = {1}
-  fig_format = :{2}
-  fig_dpi = {3}
-  # no retina format type, use svg for high quality type/marks
-  if fig_format == :retina
-    fig_format = :svg
-  # IJulia doesn't support PDF output so use png (if the DPI 
-  # remains the default of 300 then set to 96)
-  elseif fig_format == :pdf
-    fig_format = :png
-    fig_dpi = 96
+  import Plots
+
+  # Plots.jl doesn't support PDF output for versions < 1.28.1
+  # so use png (if the DPI remains the default of 300 then set to 96)
+  if (Plots._current_plots_version < v"1.28.1") & (fig_format == :pdf)
+    Plots.gr(size=(fig_width / fig_dpi * 96, fig_height / fig_dpi * 96), fmt = :png, dpi = fig_dpi)
+  else
+    Plots.gr(size=(fig_width, fig_height), fmt = fig_format, dpi = fig_dpi)
   end
-  # convert inches to pixels
-  fig_width = fig_width * fig_dpi
-  fig_height = fig_height * fig_dpi
-  using Plots
-  gr(size=(fig_width, fig_height), fmt = fig_format, dpi = fig_dpi)
 catch e
   # @warn "Plots init" exception=(e, catch_backtrace())
 end
 
+# Initialize CairoMakie with default fig width/height
+try
+  import CairoMakie
+  
+  CairoMakie.activate!(type = string(fig_format))
+  CairoMakie.update_theme!(resolution=(fig_width, fig_height))
+catch e
+    # @warn "CairoMakie init" exception=(e, catch_backtrace())
+end
+  
 # Set run_path if specified
 try
   run_path = raw"{4}"
