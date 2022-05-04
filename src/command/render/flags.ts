@@ -290,7 +290,6 @@ export async function parseRenderFlags(args: string[]) {
                 string,
                 unknown
               >;
-            console.log(metadata);
             flags.metadata = { ...flags.metadata, ...metadata };
             // flags.metadata = mergeConfigs(flags.metadata, metadata); // { ...flags.metadata, ...metadata };
           }
