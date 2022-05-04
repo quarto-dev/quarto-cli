@@ -9,6 +9,7 @@ import { Command } from "cliffy/command/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 import { error } from "log/mod.ts";
+import { projectContext } from "../../project/project-context.ts";
 
 import { serve } from "./serve.ts";
 
@@ -49,11 +50,13 @@ export const serveCommand = new Command()
       );
       Deno.exit(1);
     }
+    const context = await projectContext(options.input);
     const result = await serve({
       input,
       render: options.render,
       port: options.port,
       host: options.host,
+      projectDir: context?.dir,
       tempDir: Deno.makeTempDirSync(),
     });
 

@@ -18689,7 +18689,8 @@ try {
         ],
         "handlers/languages.yml": [
           "include",
-          "mermaid"
+          "mermaid",
+          "dot"
         ],
         "handlers/lang-comment-chars.yml": {
           r: "#",

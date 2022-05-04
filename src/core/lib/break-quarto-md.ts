@@ -43,7 +43,7 @@ export async function breakQuartoMd(
     "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^```+\s*$/;
+  const endCodeRegEx = /^\s*```+\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
 
   let language = ""; // current language block

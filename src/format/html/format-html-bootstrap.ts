@@ -450,6 +450,9 @@ function processColumnElements(
   // Process captions that may appear in the margin
   processMarginCaptions(doc);
 
+  // Process margin elements that may appear in callouts
+  processMarginElsInCallouts(doc);
+
   // Group margin elements by their parents and wrap them in a container
   // Be sure to ignore containers which are already processed
   // and should be left alone
@@ -637,6 +640,41 @@ const processMarginCaptions = (doc: Document) => {
       }
     }
     removeCaptionClass(figureEl);
+  });
+};
+
+const processMarginElsInCallouts = (doc: Document) => {
+  const calloutNodes = doc.querySelectorAll("div.callout");
+  calloutNodes.forEach((calloutNode) => {
+    const calloutEl = calloutNode as Element;
+    const collapseEl = calloutEl.querySelector(".callout-collapse");
+    const isSimple = calloutEl.classList.contains("callout-style-simple");
+
+    //Get the collapse classes (if any) to forward long
+    const collapseClasses: string[] = [];
+    if (collapseEl) {
+      collapseEl.classList.forEach((clz) => collapseClasses.push(clz));
+    }
+
+    const marginNodes = calloutEl.querySelectorAll(
+      ".callout-body > .column-margin, .callout-body > aside",
+    );
+
+    if (marginNodes.length > 0) {
+      const marginArr = Array.from(marginNodes);
+      marginArr.reverse().forEach((marginNode) => {
+        const marginEl = marginNode as Element;
+        collapseClasses.forEach((clz) => {
+          marginEl.classList.add(clz);
+        });
+        marginEl.classList.add("callout-margin-content");
+        if (isSimple) {
+          marginEl.classList.add("callout-margin-content-simple");
+        }
+
+        calloutEl.after(marginEl);
+      });
+    }
   });
 };
 

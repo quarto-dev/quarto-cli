@@ -75,6 +75,7 @@ export interface ExecuteOptions {
   resourceDir: string;
   tempDir: string;
   dependencies: boolean;
+  projectDir?: string;
   libDir?: string;
   cwd?: string;
   params?: { [key: string]: unknown };
@@ -123,6 +124,7 @@ export interface DependenciesOptions {
   output: string;
   resourceDir: string;
   tempDir: string;
+  projectDir?: string;
   libDir?: string;
   dependencies?: Array<unknown>;
   quiet?: boolean;
@@ -140,6 +142,7 @@ export interface PostProcessOptions {
   format: Format;
   output: string;
   tempDir: string;
+  projectDir?: string;
   preserve?: Record<string, string>;
   quiet?: boolean;
 }
@@ -149,6 +152,7 @@ export interface RunOptions {
   input: string;
   render: boolean;
   tempDir: string;
+  projectDir?: string;
   port?: number;
   host?: string;
   quiet?: boolean;

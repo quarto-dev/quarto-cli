@@ -15,21 +15,12 @@ import {
   spinner,
   withSpinner,
 } from "../../../core/console.ts";
-import { expandPath } from "../../../core/path.ts";
 
 import { InstallableTool, InstallContext, PackageInfo } from "../types.ts";
+import { quartoDataDir } from "../../../core/appdirs.ts";
 
 export function chromiumInstallDir(): string | undefined {
-  switch (Deno.build.os) {
-    case "windows":
-      return expandPath(join(getenv("APPDATA", undefined), "quarto-chromium"));
-    case "linux":
-      return expandPath("~/.quarto-chromium");
-    case "darwin":
-      return expandPath("~/Library/quarto-chromium");
-    default:
-      return undefined;
-  }
+  return quartoDataDir("chromium");
 }
 
 async function installDir() {
