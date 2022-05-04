@@ -27,6 +27,9 @@ import {
   kOutputDivs,
   kReferenceLocation,
   kShortcodes,
+  kSmartIncludeAfterBody,
+  kSmartIncludeBeforeBody,
+  kSmartIncludeInHeader,
   kTblColwidths,
   kTocTitleDocument,
 } from "../../config/constants.ts";
@@ -121,6 +124,8 @@ function extractIncludeParams(
   const includes = mergeConfigs(
     extractIncludeVariables(metadata),
     extractIncludeVariables(defaults.variables || {}),
+    extractSmartInclude(metadata, "content"),
+    extractSmartInclude(defaults.variables || {}, "content"),
   );
   if (defaults.variables && Object.keys(defaults.variables).length === 0) {
     delete defaults.variables;
@@ -132,6 +137,18 @@ function extractIncludeParams(
     [];
   const afterBodyFiles: string[] = defaults[kIncludeAfterBody] ||
     [];
+
+  const smartMetadataFiles = extractSmartInclude(metadata, "file");
+  const smartDefaultsFiles = extractSmartInclude(
+    defaults.variables || {},
+    "file",
+  );
+  inHeaderFiles.push(...smartMetadataFiles[kHeaderIncludes]);
+  beforeBodyFiles.push(...smartMetadataFiles[kIncludeBefore]);
+  afterBodyFiles.push(...smartMetadataFiles[kIncludeAfter]);
+  inHeaderFiles.push(...smartDefaultsFiles[kHeaderIncludes]);
+  beforeBodyFiles.push(...smartDefaultsFiles[kIncludeBefore]);
+  afterBodyFiles.push(...smartDefaultsFiles[kIncludeAfter]);
 
   // erase from format/options
   delete defaults[kIncludeInHeader];
@@ -164,6 +181,43 @@ function extractIncludeParams(
     [kIncludeInHeader]: inHeaderFiles.map(pandocMetadataPath),
     [kIncludeBeforeBody]: beforeBodyFiles.map(pandocMetadataPath),
     [kIncludeAfterBody]: afterBodyFiles.map(pandocMetadataPath),
+  };
+}
+
+function extractSmartInclude(obj: { [key: string]: unknown }, key: string): {
+  [kHeaderIncludes]: string[];
+  [kIncludeBefore]: string[];
+  [kIncludeAfter]: string[];
+} {
+  const isContent = (v: unknown) => {
+    if (typeof v !== "object") {
+      return false;
+    }
+    return typeof ((v as Record<string, unknown>)[key]) === "string";
+  };
+  const extractVariable = (name: string): string[] => {
+    const value = obj[name];
+    if (value === undefined) {
+      return [];
+    }
+    if (ld.isArray(value)) {
+      const contents = value.filter(isContent);
+      const nonContents = value.filter((v) => !isContent(v));
+      obj[name] = nonContents;
+      return contents.map((v) => v[key]);
+    } else if (isContent(value)) {
+      delete obj[name];
+      // deno-lint-ignore no-explicit-any
+      return [(value as any)[key]];
+    } else {
+      return [];
+    }
+  };
+
+  return {
+    [kHeaderIncludes]: extractVariable(kSmartIncludeInHeader),
+    [kIncludeBefore]: extractVariable(kSmartIncludeBeforeBody),
+    [kIncludeAfter]: extractVariable(kSmartIncludeAfterBody),
   };
 }
 

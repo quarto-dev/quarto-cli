@@ -1773,3 +1773,14 @@
       year-suffix:
         string:
           description: Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").
+
+- id: smart-include
+  anyOf:
+    - record:
+        content:
+          string:
+            description: Content to add to includes
+    - record:
+        file:
+          string:
+            description: Name of file with content to add to includes
