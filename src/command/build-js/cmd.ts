@@ -47,27 +47,6 @@ function ensureAllowableIDESyntax(src: string, filename: string) {
   }
 }
 
-async function buildQuartoOJS() {
-  const src = await esbuildCompile(
-    "",
-    resourcePath("formats/html/ojs"),
-    ["quarto-ojs.js"],
-    "esm",
-  );
-  await Deno.writeTextFile(resourcePath("build/quarto-ojs.js"), src!);
-
-  ensureAllowableIDESyntax(src!, "quarto-ojs.js");
-
-  // FIXME ideally we'd use the one directly in build, but right now
-  // we depend on the file being in a particular place (and with an
-  // especially bad name).  We copy for now.
-  return copy(
-    resourcePath("build/quarto-ojs.js"),
-    resourcePath("formats/html/ojs/esbuild-bundle.js"),
-    { overwrite: true },
-  );
-}
-
 async function buildYAMLJS() {
   // convert tree-sitter-yaml to a JSON object that can be imported directly.
   // In principle this never changes so running it every time is overkill, but this
@@ -152,10 +131,7 @@ export async function buildAssets() {
   // this has to come first because buildYAMLJS depends on it.
   await buildIntelligenceResources();
 
-  await Promise.all([
-    buildQuartoOJS(),
-    buildYAMLJS(),
-  ]);
+  await buildYAMLJS();
 }
 
 export const buildJsCommand = new Command()
