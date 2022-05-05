@@ -5,9 +5,8 @@
 *
 */
 
-import { writeAll } from "io/mod.ts";
 import { info } from "log/mod.ts";
-import { progressBar, withSpinner } from "../../core/console.ts";
+import { withSpinner } from "../../core/console.ts";
 import { logError } from "../../core/log.ts";
 
 import {
@@ -18,6 +17,7 @@ import {
 } from "./types.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
 import { chromiumInstallable } from "./tools/chromium.ts";
+import { downloadWithProgress } from "../../core/download.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
@@ -237,40 +237,11 @@ const installContext = (workingDir: string): InstallContext => {
       url: string,
       target: string,
     ) => {
-      // Fetch the data
-      const response = await fetch(
-        url,
-        {
-          redirect: "follow",
-        },
-      );
-
-      // Write the data to a file
-      if (response.status === 200 && response.body) {
-        const pkgFile = await Deno.open(target, { create: true, write: true });
-
-        const contentLength =
-          (response.headers.get("content-length") || 0) as number;
-        const contentLengthMb = contentLength / 1024 / 1024;
-
-        const prog = progressBar(contentLengthMb, `Downloading ${name}`);
-
-        let totalLength = 0;
-        for await (const chunk of response.body) {
-          await writeAll(pkgFile, chunk);
-          totalLength = totalLength + chunk.length;
-          if (contentLength > 0) {
-            prog.update(
-              totalLength / 1024 / 1024,
-              `${(totalLength / 1024 / 1024).toFixed(1)}MB`,
-            );
-          }
-        }
-        prog.complete();
-        pkgFile.close();
-      } else {
+      try {
+        await downloadWithProgress(url, `Downloading ${name}`, target);
+      } catch (error) {
         installMessaging.error(
-          `download failed (HTTP status ${response.status} - ${response.statusText})`,
+          error.message,
         );
         return Promise.reject();
       }

@@ -17,35 +17,39 @@ import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
+import {
+  Extension,
+  ExtensionId,
+  kAuthor,
+  kCommon,
+  kContributes,
+  kExtensionDir,
+  kTitle,
+  kVersion,
+} from "./extension-shared.ts";
+import { parseVersion } from "./extension-version.ts";
 
-const kContributes = "contributes";
-const kCommon = "common";
-
-export interface Extension {
-  path: string;
-  [kContributes]: {
-    shortcodes?: string[];
-    filters?: string[];
-    format?: Record<string, unknown>;
-  };
+export function readExtensions(path: string) {
+  const extensions: Extension[] = [];
+  const extensionDirs = Deno.readDirSync(path);
+  for (const extensionDir of extensionDirs) {
+    if (extensionDir.isDirectory) {
+      const extFile = extensionFile(join(path, extensionDir.name));
+      if (extFile) {
+        const extensionId = toExtensionId(extensionDir.name);
+        const extension = readExtension(extensionId, extFile);
+        extensions.push(extension);
+      }
+    }
+  }
+  return extensions;
 }
-export interface ExtensionId {
-  name: string;
-  organization?: string;
-}
-
-export interface ExtensionMetadata {
-  path: string;
-  metadata: Metadata;
-}
-
-const kExtensionDir = "_extensions";
 
 export function loadExtension(
   extension: string,
   input: string,
   project?: ProjectContext,
-): Extension | undefined {
+): Extension {
   const extensionId = toExtensionId(extension);
   const extensionPath = discoverExtensionPath(input, extensionId, project);
 
@@ -53,64 +57,28 @@ export function loadExtension(
     // Find the metadata file, if any
     const file = extensionFile(extensionPath);
     if (file) {
-      const yaml = readYaml(file) as Metadata;
-      const contributes = yaml[kContributes] as Metadata | undefined;
+      const extension = readExtension(extensionId, file);
+      validateExtension(extension);
 
-      if (contributes) {
-        // TODO: Read additional extension metadata such as name and version
-
-        // The items that can be contributed
-        const shortcodes = contributes.shortcodes as string[];
-        const filters = contributes.filters as string[];
-        const format = contributes.format as Metadata;
-
-        // Process the special 'common' key by merging it
-        // into any key that isn't 'common' and then removing it
-        Object.keys(format).filter((key) => {
-          return key !== kCommon;
-        }).forEach((key) => {
-          format[key] = mergeConfigs(
-            format[kCommon] || {},
-            format[key],
-          );
-        });
-        delete format[kCommon];
-
-        // Create the extension data structure
-        const extensionMeta = {
-          path: extensionPath,
-          [kContributes]: {
-            shortcodes,
-            filters,
-            format,
-          },
-        };
-
-        // Resolve paths in the extension relative to the extension
-        // metadata file
-        const path = join(Deno.cwd(), dirname(input));
-        return toInputRelativePaths(
-          projectType(project?.config?.project?.[kProjectType]),
-          extensionPath,
-          path,
-          extensionMeta,
-        ) as unknown as Extension;
-      } else {
-        // This extension has no 'contributes' so it is invalid
-        throw new Error(
-          `Extension ${extension} contributes nothing.`,
-        );
-      }
+      // Resolve paths in the extension relative to the extension
+      // metadata file
+      const path = dirname(input);
+      return toInputRelativePaths(
+        projectType(project?.config?.project?.[kProjectType]),
+        extensionPath,
+        path,
+        extension,
+      ) as unknown as Extension;
     } else {
       // This extension doesn't have an _extension file
       throw new Error(
-        `Extension ${extension} is missing the expection _extensions.yml file.`,
+        `Extension ${extension} is missing the expected _extensions.yml file.`,
       );
     }
   } else {
     // There is no extension with this name!
     throw new Error(
-      `Unable to find extension ${extension}.`,
+      `Unable to find extension ${extension}. Please ensure that the extension is installed.`,
     );
   }
 }
@@ -172,6 +140,75 @@ export function discoverExtensionPath(
   } else {
     return findExtensionDir(sourceDirAbs, extensionDirGlobs);
   }
+}
+
+function validateExtension(extension: Extension) {
+  let contribCount = 0;
+  const contribs = [
+    extension[kContributes].filters,
+    extension[kContributes].shortcodes,
+    extension[kContributes].format,
+  ];
+  contribs.forEach((contrib) => {
+    if (contrib) {
+      if (Array.isArray(contrib)) {
+        contribCount = contribCount + contrib.length;
+      } else if (typeof (contrib) === "object") {
+        contribCount = contribCount + Object.keys(contrib).length;
+      }
+    }
+  });
+
+  if (contribCount === 0) {
+    throw new Error(
+      `The extension ${
+        extension.title || extension.id.name
+      } is not valid- it does not contribute anything.`,
+    );
+  }
+}
+
+function readExtension(
+  extensionId: ExtensionId,
+  extensionFile: string,
+): Extension {
+  const yaml = readYaml(extensionFile) as Metadata;
+  const contributes = yaml[kContributes] as Metadata | undefined;
+
+  const title = yaml[kTitle] as string;
+  const author = yaml[kAuthor] as string;
+  const version = parseVersion(yaml[kVersion] as string | undefined);
+
+  // The items that can be contributed
+  const shortcodes = contributes?.shortcodes as string[] || [];
+  const filters = contributes?.filters as string[] || [];
+  const format = contributes?.format as Metadata || [];
+
+  // Process the special 'common' key by merging it
+  // into any key that isn't 'common' and then removing it
+  Object.keys(format).filter((key) => {
+    return key !== kCommon;
+  }).forEach((key) => {
+    format[key] = mergeConfigs(
+      format[kCommon] || {},
+      format[key],
+    );
+  });
+  delete format[kCommon];
+
+  // Create the extension data structure
+  return {
+    title,
+    author,
+    version,
+    id: extensionId,
+    path: dirname(extensionFile),
+    [kContributes]: {
+      shortcodes,
+      filters,
+      format,
+    },
+  };
 }
 
 function toExtensionId(extension: string) {
