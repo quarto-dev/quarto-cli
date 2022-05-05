@@ -151,12 +151,12 @@ export async function printBrowsePreviewMessage(port: number, path: string) {
 export async function rswURL(port: number, path: string) {
   const server = Deno.env.get("RS_SERVER_URL")!;
   const session = Deno.env.get("RS_SESSION_URL")!;
-  const portToken = await mapRSWPortToken(port);
+  const portToken = await rswPortToken(port);
   const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
   return url;
 }
 
-async function mapRSWPortToken(port: number) {
+async function rswPortToken(port: number) {
   const result = await execProcess(
     {
       cmd: ["/usr/lib/rstudio-server/bin/rserver-url", String(port)],
