@@ -119,6 +119,9 @@ function extractIncludeParams(
 ) {
   // pull out string based includes
   const includes = mergeConfigs(
+    extractSmartIncludeText(metadata),
+    extractSmartIncludeText((defaults as Record<string, unknown>) || {}),
+    extractSmartIncludeText(defaults.variables || {}),
     extractIncludeVariables(metadata),
     extractIncludeVariables(defaults.variables || {}),
   );
@@ -127,11 +130,33 @@ function extractIncludeParams(
   }
 
   // pull out file based includes
-  const inHeaderFiles: string[] = defaults[kIncludeInHeader] || [];
-  const beforeBodyFiles: string[] = defaults[kIncludeBeforeBody] ||
-    [];
-  const afterBodyFiles: string[] = defaults[kIncludeAfterBody] ||
-    [];
+  const inHeaderFiles: string[] = [];
+  const beforeBodyFiles: string[] = [];
+  const afterBodyFiles: string[] = [];
+
+  const smartMetadataFiles = extractSmartIncludeFile(metadata);
+  const smartDefaultsFiles = extractSmartIncludeFile(
+    (defaults as Record<string, unknown>) || {},
+  );
+  const smartDefaultsVariablesFiles = extractSmartIncludeFile(
+    defaults.variables || {},
+  );
+
+  inHeaderFiles.push(...(defaults[kIncludeInHeader] || []));
+  beforeBodyFiles.push(...(defaults[kIncludeBeforeBody] || []));
+  afterBodyFiles.push(...(defaults[kIncludeAfterBody] || []));
+
+  inHeaderFiles.push(...smartMetadataFiles[kIncludeInHeader]);
+  beforeBodyFiles.push(...smartMetadataFiles[kIncludeBeforeBody]);
+  afterBodyFiles.push(...smartMetadataFiles[kIncludeAfterBody]);
+
+  inHeaderFiles.push(...smartDefaultsFiles[kIncludeInHeader]);
+  beforeBodyFiles.push(...smartDefaultsFiles[kIncludeBeforeBody]);
+  afterBodyFiles.push(...smartDefaultsFiles[kIncludeAfterBody]);
+
+  inHeaderFiles.push(...smartDefaultsVariablesFiles[kIncludeInHeader]);
+  beforeBodyFiles.push(...smartDefaultsVariablesFiles[kIncludeBeforeBody]);
+  afterBodyFiles.push(...smartDefaultsVariablesFiles[kIncludeAfterBody]);
 
   // erase from format/options
   delete defaults[kIncludeInHeader];
@@ -159,11 +184,78 @@ function extractIncludeParams(
   removeArgs.set(kIncludeBeforeBody, true);
   removeArgs.set(kIncludeAfterBody, true);
   removePandocArgsInPlace(args, removeArgs);
-  return {
+  const result = {
     ...includes,
     [kIncludeInHeader]: inHeaderFiles.map(pandocMetadataPath),
     [kIncludeBeforeBody]: beforeBodyFiles.map(pandocMetadataPath),
     [kIncludeAfterBody]: afterBodyFiles.map(pandocMetadataPath),
+  };
+  return result;
+}
+
+function extractSmartIncludeText(
+  obj: { [key: string]: unknown },
+): {
+  [kHeaderIncludes]: string[];
+  [kIncludeBefore]: string[];
+  [kIncludeAfter]: string[];
+} {
+  return extractSmartIncludeInternal(obj, "text");
+}
+
+function extractSmartIncludeFile(
+  obj: { [key: string]: unknown },
+): {
+  [kIncludeInHeader]: string[];
+  [kIncludeBeforeBody]: string[];
+  [kIncludeAfterBody]: string[];
+} {
+  const inner = extractSmartIncludeInternal(obj, "file");
+
+  return {
+    [kIncludeInHeader]: inner[kHeaderIncludes],
+    [kIncludeBeforeBody]: inner[kIncludeBefore],
+    [kIncludeAfterBody]: inner[kIncludeAfter],
+  };
+}
+
+function extractSmartIncludeInternal(
+  obj: { [key: string]: unknown },
+  key: string,
+): {
+  [kHeaderIncludes]: string[];
+  [kIncludeBefore]: string[];
+  [kIncludeAfter]: string[];
+} {
+  const isContent = (v: unknown) => {
+    if (typeof v !== "object") {
+      return false;
+    }
+    return typeof ((v as Record<string, unknown>)[key]) === "string";
+  };
+  const extractVariable = (name: string): string[] => {
+    const value = obj[name];
+    if (value === undefined) {
+      return [];
+    }
+    if (ld.isArray(value)) {
+      const contents = value.filter(isContent);
+      const nonContents = value.filter((v) => !isContent(v));
+      obj[name] = nonContents;
+      return contents.map((v) => v[key]);
+    } else if (isContent(value)) {
+      delete obj[name];
+      // deno-lint-ignore no-explicit-any
+      return [(value as any)[key]];
+    } else {
+      return [];
+    }
+  };
+
+  return {
+    [kHeaderIncludes]: extractVariable(kIncludeInHeader),
+    [kIncludeBefore]: extractVariable(kIncludeBeforeBody),
+    [kIncludeAfter]: extractVariable(kIncludeAfterBody),
   };
 }
 
