@@ -141,8 +141,8 @@ import {
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
-import { readYamlFromMarkdown, readYamlFromMarkdownFile } from "../yaml.ts";
-import { languagesInMarkdownFile } from "../../execute/engine-shared.ts";
+import { readYamlFromMarkdown } from "../yaml.ts";
+import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -230,10 +230,10 @@ export interface JupyterOutputError extends JupyterOutput {
 }
 
 export async function quartoMdToJupyter(
-  input: string,
+  markdown: string,
   includeIds: boolean,
 ): Promise<JupyterNotebook> {
-  const [kernelspec, metadata] = await jupyterKernelspecFromFile(input);
+  const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(markdown);
 
   // notebook to return
   const nb: JupyterNotebook = {
@@ -259,7 +259,7 @@ export async function quartoMdToJupyter(
   };
 
   // read the file into lines
-  const inputContent = Deno.readTextFileSync(input);
+  const inputContent = markdown;
 
   // line buffer & code indent
   let codeIndent = "";
@@ -420,16 +420,16 @@ export async function quartoMdToJupyter(
   return nb;
 }
 
-export async function jupyterKernelspecFromFile(
-  file: string,
+export async function jupyterKernelspecFromMarkdown(
+  markdown: string,
 ): Promise<[JupyterKernelspec, Metadata]> {
-  const yaml = await readYamlFromMarkdownFile(file);
+  const yaml = await readYamlFromMarkdown(markdown);
   const yamlJupyter = yaml.jupyter;
 
   // if there is no yaml.jupyter then detect the file's language(s) and
   // find a kernelspec that supports this language
   if (!yamlJupyter) {
-    const languages = languagesInMarkdownFile(file);
+    const languages = languagesInMarkdown(markdown);
     languages.add("python"); // python as a default/failsafe
     const kernelspecs = await jupyterKernelspecs();
     for (const language of languages) {
@@ -481,6 +481,13 @@ export async function jupyterKernelspecFromFile(
       ),
     );
   }
+}
+
+export function jupyterKernelspecFromFile(
+  file: string,
+): Promise<[JupyterKernelspec, Metadata]> {
+  const markdown = Deno.readTextFileSync(file);
+  return jupyterKernelspecFromMarkdown(markdown);
 }
 
 export function jupyterFromFile(input: string): JupyterNotebook {

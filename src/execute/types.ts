@@ -33,6 +33,7 @@ export interface ExecutionEngine {
   target: (
     file: string,
     quiet?: boolean,
+    markdown?: MappedString,
   ) => Promise<ExecutionTarget | undefined>;
   partitionedMarkdown: (
     file: string,

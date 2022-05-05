@@ -23,6 +23,7 @@ import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { markdownEngine } from "./markdown.ts";
 import { ExecutionEngine } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
+import { MappedString } from "../core/lib/text-types.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
@@ -176,13 +177,14 @@ export function fileExecutionEngine(
 export async function fileExecutionEngineAndTarget(
   file: string,
   quiet?: boolean,
+  markdown?: MappedString,
 ) {
   const engine = fileExecutionEngine(file);
   if (!engine) {
     throw new Error("Unable to render " + file);
   }
 
-  const target = await engine.target(file, quiet);
+  const target = await engine.target(file, quiet, markdown);
   if (!target) {
     throw new Error("Unable to render " + file);
   }

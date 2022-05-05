@@ -258,8 +258,15 @@ export async function renderContexts(
 
       if (engineClaimReason === "markdown") {
         // since the content decided the engine, and the content now changed,
-        // we need to re-evaluate the engine based on new content.
-        context.engine = markdownExecutionEngine(markdown.value);
+        // we need to re-evaluate the engine and target based on new content.
+
+        const { engine, target } = await fileExecutionEngineAndTarget(
+          file.path,
+          options.flags?.quiet,
+          markdown,
+        );
+        context.engine = engine;
+        context.target = target;
       }
     }
 
