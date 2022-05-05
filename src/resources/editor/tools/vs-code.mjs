@@ -12478,6 +12478,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
+          hidden: true,
           schema: {
             maybeArrayOf: "string"
           },
@@ -12490,6 +12491,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
+          hidden: true,
           schema: {
             maybeArrayOf: "string"
           },
@@ -12502,6 +12504,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "$jats-all",
             "ipynb"
           ],
+          hidden: true,
           schema: {
             maybeArrayOf: "string"
           },
@@ -27088,6 +27091,7 @@ async function breakQuartoMd(src, validate2 = false) {
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*```+\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
+  const singleLineMathBlockRegEx = /^\s*\$\$.+\$\$\s*$/;
   let language = "";
   let directiveParams = void 0;
   let cellStartLine = 0;
@@ -27195,6 +27199,10 @@ async function breakQuartoMd(src, validate2 = false) {
     } else if (startCodeRegEx.test(line.substring) && inCode === 0) {
       inCode = tickCount(line.substring);
       lineBuffer.push(line);
+    } else if (singleLineMathBlockRegEx.test(line.substring)) {
+      await flushLineBuffer("markdown", i);
+      lineBuffer.push(line);
+      await flushLineBuffer("math", i);
     } else if (delimitMathBlockRegEx.test(line.substring)) {
       if (inMathBlock) {
         lineBuffer.push(line);
