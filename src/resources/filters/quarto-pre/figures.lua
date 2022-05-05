@@ -35,7 +35,18 @@ function figures()
       if linkedFig then
         return createFigureDiv(el, linkedFig)
       end
-      
+
+      -- create figure div for fig-align
+      if param(kFigAlign, "default") ~= "default" then
+        local alignedFig = discoverFigure(el, false)
+        if alignedFig then
+          if #alignedFig.caption == 0 then
+            alignedFig.caption:insert(emptyCaption())
+          end
+          return createFigureDiv(el, alignedFig)
+        end
+      end
+
     end,
 
     Image = function(image)
