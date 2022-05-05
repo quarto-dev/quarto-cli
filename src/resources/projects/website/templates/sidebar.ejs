@@ -37,7 +37,7 @@
   <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
     <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
-      <a href="/">
+      <a href="/" class="sidebar-logo-link">
       <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
       </a>
     <% } %>
