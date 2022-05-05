@@ -19,6 +19,7 @@ import {
   httpFileRequestHandler,
   HttpFileRequestOptions,
   isBrowserPreviewable,
+  serveRedirect,
 } from "../../core/http.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
 import { isHtmlContent, isPdfContent, isTextContent } from "../../core/mime.ts";
@@ -617,7 +618,20 @@ function pdfFileRequestHandler(
   );
 
   // pdf customizations
+
   pdfOptions.baseDir = pdfJsBaseDir();
+
+  if (pdfOptions.onRequest) {
+    const onRequest = pdfOptions.onRequest;
+    pdfOptions.onRequest = (req: Request) => {
+      if (new URL(req.url).pathname === "/") {
+        return Promise.resolve(serveRedirect("/" + kPdfJsInitialPath));
+      } else {
+        return Promise.resolve(onRequest(req));
+      }
+    };
+  }
+
   pdfOptions.onFile = pdfJsFileHandler(() => pdfFile, pdfOptions.onFile);
 
   return httpFileRequestHandler(pdfOptions);

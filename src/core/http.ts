@@ -243,7 +243,7 @@ export function maybeDisplaySocketError(e: unknown) {
   }
 }
 
-function serveRedirect(url: string): Response {
+export function serveRedirect(url: string): Response {
   const headers = new Headers();
   headers.set("Location", url);
   return new Response(null, {
