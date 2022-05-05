@@ -71,5 +71,5 @@ export interface LanguageHandler {
   stage: "pre-engine" | "post-engine" | "any";
 
   languageName: string;
-  languageClass?: string;
+  languageClass?: string | ((options: LanguageCellHandlerOptions) => string);
 }

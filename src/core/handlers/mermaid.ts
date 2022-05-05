@@ -5,7 +5,11 @@
 *
 */
 
-import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
+import {
+  LanguageCellHandlerContext,
+  LanguageCellHandlerOptions,
+  LanguageHandler,
+} from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { formatResourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
@@ -30,6 +34,13 @@ const mermaidHandler: LanguageHandler = {
   stage: "post-engine",
 
   languageName: "mermaid",
+  languageClass: (options: LanguageCellHandlerOptions) => {
+    if (isMarkdownOutput(options.format.pandoc, ["gfm"])) {
+      return "mermaid-source"; // sidestep github's in-band signaling of mermaid diagrams
+    } else {
+      return "mermaid";
+    }
+  },
 
   defaultOptions: {
     echo: false,

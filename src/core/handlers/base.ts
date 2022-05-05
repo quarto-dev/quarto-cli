@@ -351,7 +351,7 @@ export const baseHandler: LanguageHandler = {
   // here?
 
   build(
-    _handlerContext: LanguageCellHandlerContext,
+    handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     content: MappedString,
     options: Record<string, unknown>,
@@ -389,8 +389,14 @@ export const baseHandler: LanguageHandler = {
       attrs,
     });
 
+    const languageClass: string = this.languageClass === undefined
+      ? this.languageName
+      : (typeof this.languageClass === "string"
+        ? this.languageClass
+        : this.languageClass(handlerContext.options));
+
     const cellInputClasses = [
-      this.languageClass ?? this.languageName,
+      languageClass,
       "cell-code",
       ...((options["class-source"] as (string[] | undefined)) ?? []),
     ];
