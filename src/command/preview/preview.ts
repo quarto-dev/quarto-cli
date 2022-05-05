@@ -33,6 +33,7 @@ import {
   printWatchingForChangesMessage,
   render,
   renderToken,
+  rswURL,
 } from "../render/render-shared.ts";
 import {
   RenderFlags,
@@ -146,6 +147,7 @@ export async function preview(
       Deno.realPathSync(file),
       flags,
       result.format,
+      options.port!,
       reloader,
       changeHandler.render,
     )
@@ -603,6 +605,7 @@ function pdfFileRequestHandler(
   inputFile: string,
   flags: RenderFlags,
   format: Format,
+  port: number,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
 ) {
@@ -623,9 +626,12 @@ function pdfFileRequestHandler(
 
   if (pdfOptions.onRequest) {
     const onRequest = pdfOptions.onRequest;
-    pdfOptions.onRequest = (req: Request) => {
+    pdfOptions.onRequest = async (req: Request) => {
       if (new URL(req.url).pathname === "/") {
-        return Promise.resolve(serveRedirect("/" + kPdfJsInitialPath));
+        const url = isRStudioWorkbench()
+          ? await rswURL(port, kPdfJsInitialPath)
+          : "/" + kPdfJsInitialPath;
+        return Promise.resolve(serveRedirect(url));
       } else {
         return Promise.resolve(onRequest(req));
       }

@@ -133,10 +133,7 @@ export async function printBrowsePreviewMessage(port: number, path: string) {
   } else if (
     (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
   ) {
-    const server = Deno.env.get("RS_SERVER_URL")!;
-    const session = Deno.env.get("RS_SESSION_URL")!;
-    const portToken = await mapRSWPortToken(port);
-    const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
+    const url = await rswURL(port, path);
     info(`\nPreview server: http://localhost:${port}/`);
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else {
@@ -149,6 +146,14 @@ export async function printBrowsePreviewMessage(port: number, path: string) {
     }
     info(url, { format: (str: string) => colors.underline(colors.green(str)) });
   }
+}
+
+export async function rswURL(port: number, path: string) {
+  const server = Deno.env.get("RS_SERVER_URL")!;
+  const session = Deno.env.get("RS_SESSION_URL")!;
+  const portToken = await mapRSWPortToken(port);
+  const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
+  return url;
 }
 
 async function mapRSWPortToken(port: number) {
