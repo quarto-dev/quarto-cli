@@ -125,16 +125,20 @@ export const jupyterEngine: ExecutionEngine = {
 
   target: async (
     file: string,
+    _quiet?: boolean,
+    markdown?: MappedString,
   ): Promise<ExecutionTarget | undefined> => {
     // at some point we'll resolve a full notebook/kernelspec
     let nb: JupyterNotebook | undefined;
-    let markdown: MappedString;
-    if (isJupyterNotebook(file)) {
-      const nbJSON = Deno.readTextFileSync(file);
-      nb = JSON.parse(nbJSON) as JupyterNotebook;
-      markdown = asMappedString(markdownFromNotebookJSON(nb));
-    } else {
-      markdown = asMappedString(mappedStringFromFile(file));
+
+    if (markdown === undefined) {
+      if (isJupyterNotebook(file)) {
+        const nbJSON = Deno.readTextFileSync(file);
+        nb = JSON.parse(nbJSON) as JupyterNotebook;
+        markdown = asMappedString(markdownFromNotebookJSON(nb));
+      } else {
+        markdown = asMappedString(mappedStringFromFile(file));
+      }
     }
 
     // get the metadata
@@ -383,7 +387,7 @@ function isQmdFile(file: string) {
 }
 
 async function createNotebookforTarget(target: ExecutionTarget) {
-  const nb = await quartoMdToJupyter(target.source, true);
+  const nb = await quartoMdToJupyter(target.markdown.value, true);
   Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
   return nb;
 }

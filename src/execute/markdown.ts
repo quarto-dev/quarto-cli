@@ -21,6 +21,7 @@ import {
 } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
+import { MappedString } from "../core/lib/text-types.ts";
 
 export const kMdExtensions = [".md", ".markdown"];
 
@@ -42,8 +43,10 @@ export const markdownEngine: ExecutionEngine = {
     return false;
   },
 
-  target: (file: string) => {
-    const markdown = mappedStringFromFile(file);
+  target: (file: string, _quiet?: boolean, markdown?: MappedString) => {
+    if (markdown === undefined) {
+      markdown = mappedStringFromFile(file);
+    }
     const target: ExecutionTarget = {
       source: file,
       input: file,

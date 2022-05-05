@@ -36,6 +36,7 @@ import {
 } from "./types.ts";
 import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
+import { MappedString } from "../core/lib/mapped-text.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -62,8 +63,10 @@ export const knitrEngine: ExecutionEngine = {
     return language.toLowerCase() === "r";
   },
 
-  target: (file: string, _quiet?: boolean) => {
-    const markdown = mappedStringFromFile(file);
+  target: (file: string, _quiet?: boolean, markdown?: MappedString) => {
+    if (markdown === undefined) {
+      markdown = mappedStringFromFile(file);
+    }
     const target: ExecutionTarget = {
       source: file,
       input: file,

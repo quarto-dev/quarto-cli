@@ -30,7 +30,8 @@ export async function markdownToJupyterNotebook(
   file: string,
   includeIds: boolean,
 ) {
-  const notebook = await quartoMdToJupyter(file, includeIds);
+  const markdown = Deno.readTextFileSync(file);
+  const notebook = await quartoMdToJupyter(markdown, includeIds);
   return JSON.stringify(notebook, null, 2);
 }
 
