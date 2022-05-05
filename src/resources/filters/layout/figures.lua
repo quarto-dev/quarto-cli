@@ -12,6 +12,8 @@ function extendedFigures()
           return htmlImageFigure(image)
         elseif isLatexOutput() then
           return latexImageFigure(image)
+        elseif isDocxOutput() then
+          return wpDivFigure(createFigureDiv(el, image))
         end
       end
     end,
