@@ -118,7 +118,7 @@ export function markdownExecutionEngine(
   const handlerLanguagesVal = handlerLanguages();
   // if there is a non-cell handler language then this must be jupyter
   for (const language of languages) {
-    if (language === "ojs" || handlerLanguagesVal.includes(language)) {
+    if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
       return jupyterEngine;
     }
   }
