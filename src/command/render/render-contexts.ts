@@ -572,31 +572,30 @@ const readExtensionFormat = async (
       project,
     );
 
-    if (extension) {
-      // Read the yaml file and resolve / bucketize
-      const extensionFormat = extension.contributes.format;
-      if (extensionFormat) {
-        const extensionMetadata =
-          (extensionFormat[formatDesc.baseFormat] || {}) as Metadata;
+    // Read the yaml file and resolve / bucketize
+    const extensionFormat = extension.contributes.format;
+    if (extensionFormat) {
+      const extensionMetadata =
+        (extensionFormat[formatDesc.baseFormat] || {}) as Metadata;
 
-        // Add the extension directory to any tex input paths
-        // Note the trailing // which will make LaTeX search recursively
-        const texInputPaths = `${dirname(extension.path)}//`;
-        extensionMetadata[kLatexInputPaths] = [
-          texInputPaths,
-        ];
+      // Add the extension directory to any tex input paths
+      // Note the trailing // which will make LaTeX search recursively
+      const texInputPaths = `${dirname(extension.path)}//`;
+      extensionMetadata[kLatexInputPaths] = [
+        texInputPaths,
+      ];
 
-        const formats = await resolveFormatsFromMetadata(
-          extensionMetadata,
-          extension.path,
-          [formatDesc.baseFormat],
-        );
+      const formats = await resolveFormatsFromMetadata(
+        extensionMetadata,
+        extension.path,
+        [formatDesc.baseFormat],
+      );
 
-        return formats;
-      } else {
-      }
+      return formats;
     } else {
-      return {};
+      throw new Error(
+        `No valid format ${formatDesc.baseFormat} is provided by the extension ${formatDesc.extension}`,
+      );
     }
   } else {
     return {};

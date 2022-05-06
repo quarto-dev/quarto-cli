@@ -17,6 +17,7 @@ import { capabilitiesCommand } from "./capabilities/cmd.ts";
 import { checkCommand } from "./check/cmd.ts";
 import { inspectCommand } from "./inspect/cmd.ts";
 import { buildJsCommand } from "./build-js/cmd.ts";
+import { installCommand } from "./install/cmd.ts";
 
 export function commands(): Command[] {
   return [
@@ -26,6 +27,7 @@ export function commands(): Command[] {
     createProjectCommand,
     convertCommand,
     checkCommand,
+    installCommand,
     capabilitiesCommand,
     inspectCommand,
     toolsCommand,
