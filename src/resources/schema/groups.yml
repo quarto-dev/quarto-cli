@@ -102,5 +102,7 @@ document:
     title: "Text Output"
   library:
     title: "Library"
+  editor:
+    title: "Editor"
   hidden:
     title: "Hidden"

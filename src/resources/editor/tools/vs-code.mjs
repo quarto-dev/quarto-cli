@@ -15968,6 +15968,9 @@ var require_yaml_intelligence_resources = __commonJS({
           library: {
             title: "Library"
           },
+          editor: {
+            title: "Editor"
+          },
           hidden: {
             title: "Hidden"
           }
@@ -18394,6 +18397,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Custom tools for navbar or sidebar",
         "internal-schema-hack",
+        "Visual editor configuration",
+        "Default editing mode for document",
+        "Markdown writing options for visual editor",
+        "A column number (e.g.&nbsp;72), <code>sentence</code>, or\n<code>none</code>",
+        "Write standard visual editor markdown from source mode.",
+        "Reference writing options for visual editor",
+        "Location to write references (<code>block</code>,\n<code>section</code>, or <code>document</code>)",
+        "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
         "MISSING_DESCRIPTION",
         "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
         "Files to render (defaults to all files)",
@@ -18817,7 +18828,83 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         patternProperties: {},
         $id: "handlers/mermaid"
-      }
+      },
+      "schema/document-editor.yml": [
+        {
+          name: "editor",
+          schema: {
+            anyOf: [
+              {
+                enum: [
+                  "source",
+                  "visual"
+                ]
+              },
+              {
+                object: {
+                  hidden: true,
+                  properties: {
+                    mode: {
+                      enum: [
+                        "source",
+                        "visual"
+                      ],
+                      description: "Default editing mode for document"
+                    },
+                    markdown: {
+                      object: {
+                        properties: {
+                          wrap: {
+                            anyOf: [
+                              {
+                                enum: [
+                                  "sentence",
+                                  "none"
+                                ]
+                              },
+                              "number"
+                            ],
+                            description: "A column number (e.g. 72), `sentence`, or `none`"
+                          },
+                          canonical: {
+                            boolean: {
+                              description: "Write standard visual editor markdown from source mode."
+                            }
+                          },
+                          references: {
+                            object: {
+                              properties: {
+                                location: {
+                                  schema: {
+                                    enum: [
+                                      "block",
+                                      "section",
+                                      "document"
+                                    ],
+                                    description: "Location to write references (`block`, `section`, or `document`)"
+                                  }
+                                },
+                                prefix: {
+                                  string: {
+                                    description: "Unique prefix for references (`none` to prevent automatic prefixes)"
+                                  }
+                                }
+                              }
+                            },
+                            description: "Reference writing options for visual editor"
+                          }
+                        }
+                      },
+                      description: "Markdown writing options for visual editor"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          description: "Visual editor configuration"
+        }
+      ]
     };
   }
 });

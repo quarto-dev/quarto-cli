@@ -1,0 +1,34 @@
+- name: editor
+  schema:
+    anyOf:
+      - enum: [source, visual]
+      - object:
+          hidden: true # don't complete through a single-key object
+          properties:
+            mode:
+              enum: [source, visual]
+              description: "Default editing mode for document"
+            markdown:
+              object:
+                properties:
+                  wrap:
+                    anyOf:
+                      - enum: [sentence, none]
+                      - number
+                    description: "A column number (e.g. 72), `sentence`, or `none`"
+                  canonical:
+                    boolean:
+                      description: "Write standard visual editor markdown from source mode."
+                  references:
+                    object:
+                      properties:
+                        location:
+                          schema:
+                            enum: [block, section, document]
+                            description: "Location to write references (`block`, `section`, or `document`)"
+                        prefix:
+                          string:
+                            description: "Unique prefix for references (`none` to prevent automatic prefixes)"
+                    description: "Reference writing options for visual editor"
+              description: "Markdown writing options for visual editor"
+  description: Visual editor configuration
