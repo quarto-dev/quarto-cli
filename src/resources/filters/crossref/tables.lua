@@ -62,7 +62,7 @@ function preprocessRawTableBlock(rawEl, parentId)
       local caption, label = extractRefLabel("tbl", caption)
       if label then
         -- remove label from caption
-        rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption .. "%3", 1)
+        rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption:gsub("%%", "%%%%") .. "%3", 1)
       elseif parentId then
         label = autoRefLabel(parentId)
       end
@@ -260,7 +260,7 @@ function processLatexTable(divEl, el, captionPattern, label, caption)
     divEl.content:insert(pandoc.Para(stringToInlines(caption)))
     order = nextSubrefOrder()
   else
-    el.text = el.text:gsub(captionPattern, "\\caption{\\label{" .. label .. "}" .. caption .. "}", 1)
+    el.text = el.text:gsub(captionPattern, "\\caption{\\label{" .. label .. "}" .. caption:gsub("%%", "%%%%") .. "}", 1)
     order = indexNextOrder("tbl")
   end
   

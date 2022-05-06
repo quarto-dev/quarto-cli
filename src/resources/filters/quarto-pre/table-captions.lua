@@ -184,7 +184,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           if #tblLabels[idx] > 0 then
             captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
           end
-          raw.text = raw.text:gsub(captionPattern, "%1" .. captionText .. "%3", 1)
+          raw.text = raw.text:gsub(captionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
         elseif hasRawLatexTable(raw) then
           for i,pattern in ipairs(latexTablePatterns) do
             if raw.text:match(pattern) then
@@ -216,7 +216,7 @@ function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
   if #tblLabel > 0 then
     captionText = captionText .. " {#" .. tblLabel .. "}"
   end
-  latex = latex:gsub(latexCaptionPattern, "%1" .. captionText .. "%3", 1)
+  latex = latex:gsub(latexCaptionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
   return latex
 end
 
