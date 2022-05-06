@@ -95,7 +95,6 @@ async function isTrusted(
 // If the installation is happening in a project
 // we should offer to install the extension into the project
 async function determineInstallDir(dir: string) {
-  console.log(dir);
   const project = await projectContext(dir);
   if (project) {
     const question = "Install extension into project?";
