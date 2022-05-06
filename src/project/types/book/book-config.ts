@@ -152,10 +152,8 @@ export async function bookProjectConfig(
   // if we have a top-level 'contents' or 'appendix' fields fold into sidebar
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
-  const bookSidebar = (book[kSiteSidebar] || {}) as Metadata;
-  siteSidebar[kSiteTitle] = book[kSiteTitle];
-  siteSidebar[kSidebarLogo] = bookSidebar[kSidebarLogo] || book[kSidebarLogo];
-
+  siteSidebar[kSiteTitle] = siteSidebar[kSiteTitle] || book?.[kSiteTitle];
+  siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] || book?.[kSidebarLogo];
   siteSidebar[kContents] = [];
   const bookContents = bookConfig(kBookChapters, config);
 
@@ -180,7 +178,7 @@ export async function bookProjectConfig(
   }
 
   // if search for book isn't false then enable search
-  if (book[kBookSearch] !== false && bookSidebar[kBookSearch] !== false) {
+  if (book?.[kBookSearch] !== false && siteSidebar[kBookSearch] !== false) {
     siteSidebar[kBookSearch] = true;
   }
 

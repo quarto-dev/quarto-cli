@@ -23,6 +23,7 @@ import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { markdownEngine } from "./markdown.ts";
 import { ExecutionEngine } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
+import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 
 const kEngines: ExecutionEngine[] = [
@@ -114,9 +115,10 @@ export function markdownExecutionEngine(
     }
   }
 
+  const handlerLanguagesVal = handlerLanguages();
   // if there is a non-cell handler language then this must be jupyter
   for (const language of languages) {
-    if (!["ojs", "mermaid", "dot"].includes(language)) {
+    if (language !== "ojs" && !handlerLanguagesVal.includes(language)) {
       return jupyterEngine;
     }
   }
