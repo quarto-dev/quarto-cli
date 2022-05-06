@@ -213,6 +213,8 @@ function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
   if #tblCaption > 0 then
     captionText = pandoc.utils.stringify(tblCaption)
   end
+  -- escape special characters for LaTeX
+  captionText = stringEscape(captionText, "latex")
   if #tblLabel > 0 then
     captionText = captionText .. " {#" .. tblLabel .. "}"
   end
