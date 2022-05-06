@@ -104,28 +104,26 @@ export function markdownExecutionEngine(
 
   // if there are languages see if any engines want to claim them
   const languages = languagesInMarkdown(markdown);
-  if (languages.size > 0) {
-    for (const language of languages) {
-      for (const engine of kEngines) {
-        if (engine.claimsLanguage(language)) {
-          return engine;
-        }
+
+  // see if there is an engine that claims this language
+  for (const language of languages) {
+    for (const engine of kEngines) {
+      if (engine.claimsLanguage(language)) {
+        return engine;
       }
     }
+  }
 
-    // if there is no language or just ojs then it's plain markdown
-    // or the knitr engine if there are inline r expressions
-    if (
-      languages.size === 0 ||
-      (languages.size == 1 && languages.has("ojs"))
-    ) {
-      return engineForMarkdownWithNoLanguages(markdown);
-    } else {
+  // if there is a non-cell handler language then this must be jupyter
+  for (const language of languages) {
+    if (!["ojs", "mermaid", "dot"].includes(language)) {
       return jupyterEngine;
     }
-  } else {
-    return engineForMarkdownWithNoLanguages(markdown);
   }
+
+  // if there is no computational engine discovered then bind
+  // to the knitr engine if there are inline r expressions
+  return engineForMarkdownWithNoLanguages(markdown);
 }
 
 /**
