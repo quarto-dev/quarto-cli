@@ -30,5 +30,5 @@ end
 -- escape string by converting using Pandoc
 function stringEscape(str, format)
   local doc = pandoc.Pandoc({pandoc.Para(str)})
-  return pandoc.write(doc, 'latex')
+  return pandoc.write(doc, format)
 end
