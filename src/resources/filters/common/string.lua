@@ -28,7 +28,7 @@ function split(str, sep)
 end
 
 -- escape string by converting using Pandoc
-function inlineEscape(str, format)
+function stringEscape(str, format)
   local doc = pandoc.Pandoc({pandoc.Para(str)})
   return pandoc.write(doc, 'latex')
 end
