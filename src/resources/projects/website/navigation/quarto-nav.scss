@@ -306,7 +306,7 @@ div.sidebar-item-container {
   }
 }
 
-nav.sidebar.sidebar-navigation {
+nav.sidebar.sidebar-navigation:not(.rollup) {
   @if $sidebar-bg {
     background-color: $sidebar-bg;
   } @else {
