@@ -62,8 +62,9 @@ export function readAnnotatedYamlFromMappedString(
         start: offset,
         end: offset + 1,
       });
-      e.stack =
-        `${e.reason} (${filename}, ${line}:${column})\n${sourceContext}`;
+      e.stack = `${e.reason} (${filename}, ${line + 1}:${
+        column + 1
+      })\n${sourceContext}`;
       e.message = e.stack;
       e.stack = "";
     }
