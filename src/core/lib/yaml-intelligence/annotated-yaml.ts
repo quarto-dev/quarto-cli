@@ -5,15 +5,20 @@
 *
 */
 
-import { lines, matchAll } from "../text.ts";
+import { lines, matchAll, rowColToIndex } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
-import { asMappedString, MappedString } from "../mapped-text.ts";
+import {
+  asMappedString,
+  mappedIndexToRowCol,
+  MappedString,
+} from "../mapped-text.ts";
 import { getTreeSitterSync } from "./parsing.ts";
 
 import { load as jsYamlParse } from "../external/js-yaml.js";
 
 import { QuartoJSONSchema } from "./js-yaml-schema.ts";
+import { createSourceContext } from "../yaml-validation/errors.ts";
 
 // deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
@@ -42,7 +47,28 @@ export function readAnnotatedYamlFromMappedString(
   if (treeSitterAnnotation) {
     return treeSitterAnnotation;
   }
-  return buildJsYamlAnnotation(mappedSource);
+  try {
+    return buildJsYamlAnnotation(mappedSource);
+  } catch (e) {
+    const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
+    if (m) {
+      const f = rowColToIndex(mappedSource.value);
+      const offset = f({ row: Number(m[1]) - 1, column: Number(m[2] - 1) });
+      const { originalString } = mappedSource.map(offset, true)!;
+      const filename = originalString.fileName!;
+      const f2 = mappedIndexToRowCol(mappedSource);
+      const { line, column } = f2(offset);
+      const sourceContext = createSourceContext(mappedSource, {
+        start: offset,
+        end: offset + 1,
+      });
+      e.stack =
+        `${e.reason} (${filename}, ${line}:${column})\n${sourceContext}`;
+      e.message = e.stack;
+      e.stack = "";
+    }
+    throw e;
+  }
 }
 
 export function buildJsYamlAnnotation(mappedYaml: MappedString) {
