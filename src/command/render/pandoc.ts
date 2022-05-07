@@ -462,6 +462,15 @@ export async function runPandoc(
     printMetadata = cleanupPandocMetadata(printMetadata);
 
     if (extras[kIncludeInHeader]) {
+      if (
+        allDefaults[kIncludeInHeader] !== undefined &&
+        !ld.isArray(allDefaults[kIncludeInHeader])
+      ) {
+        // FIXME we need to fix the type up in FormatExtras..
+        allDefaults[kIncludeInHeader] = [
+          allDefaults[kIncludeInHeader],
+        ] as unknown as string[];
+      }
       allDefaults = {
         ...allDefaults,
         [kIncludeInHeader]: [
@@ -470,7 +479,18 @@ export async function runPandoc(
         ],
       };
     }
-    if (extras[kIncludeBeforeBody]) {
+    if (
+      extras[kIncludeBeforeBody]
+    ) {
+      if (
+        allDefaults[kIncludeBeforeBody] !== undefined &&
+        !ld.isArray(allDefaults[kIncludeBeforeBody])
+      ) {
+        // FIXME we need to fix the type up in FormatExtras..
+        allDefaults[kIncludeBeforeBody] = [
+          allDefaults[kIncludeBeforeBody],
+        ] as unknown as string[];
+      }
       allDefaults = {
         ...allDefaults,
         [kIncludeBeforeBody]: [
@@ -480,6 +500,15 @@ export async function runPandoc(
       };
     }
     if (extras[kIncludeAfterBody]) {
+      if (
+        allDefaults[kIncludeAfterBody] !== undefined &&
+        !ld.isArray(allDefaults[kIncludeAfterBody])
+      ) {
+        // FIXME we need to fix the type up in FormatExtras..
+        allDefaults[kIncludeAfterBody] = [
+          allDefaults[kIncludeAfterBody],
+        ] as unknown as string[];
+      }
       allDefaults = {
         ...allDefaults,
         [kIncludeAfterBody]: [
