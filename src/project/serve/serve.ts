@@ -5,7 +5,7 @@
 *
 */
 
-import { info, warning } from "log/mod.ts";
+import { error, info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
@@ -533,12 +533,13 @@ export async function serveProject(
   const handler = httpFileRequestHandler(handlerOptions);
   for await (const conn of listener) {
     (async () => {
-      for await (const { request, respondWith } of Deno.serveHttp(conn)) {
-        try {
+      try {
+        for await (const { request, respondWith } of Deno.serveHttp(conn)) {
           await respondWith(handler(request));
-        } catch (err) {
-          warning(err.message);
         }
+      } catch (err) {
+        error(err.message);
+        exitWithCleanup(1);
       }
     })();
   }
