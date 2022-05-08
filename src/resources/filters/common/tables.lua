@@ -5,8 +5,12 @@ function htmlTableCaptionPattern()
   return tagPattern("[Cc][Aa][Pp][Tt][Ii][Oo][Nn]")
 end
 
+function htmlTableTagNamePattern()
+  return "[Tt][Aa][Bb][Ll][Ee]"
+end
+
 function htmlTablePattern()
-  return tagPattern("[Tt][Aa][Bb][Ll][Ee]")
+  return tagPattern(htmlTableTagNamePattern())
 end
 
 

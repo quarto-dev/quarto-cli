@@ -1,7 +1,41 @@
 -- table-rawhtml.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function tableRawhtml() 
+-- flextable outputs consecutive html blocks so we merge them
+-- back together here so they can be processed by ourraw  table
+-- caption handling
+function tableMergeRawHtml()
+  if isHtmlOutput() then
+    return {
+      Blocks = function(blocks)
+        local pendingRaw = ''
+        local merged = pandoc.List()
+        for i,el in ipairs(blocks) do
+          if isRawHtml(el) and el.text:find(htmlTableTagNamePattern()) then
+            pendingRaw = pendingRaw .. "\n" .. el.text
+          else
+            if #pendingRaw > 0 then
+              merged:insert(pandoc.RawBlock("html", pendingRaw))
+              pendingRaw = ''
+            end
+            merged:insert(el)
+          end
+        end
+        if #pendingRaw > 0 then
+          merged:insert(pandoc.RawBlock("html", pendingRaw))
+        end
+        return merged
+      end
+    }
+  else
+    return {
+
+    }
+  end
+end
+
+
+function tableRenderRawHtml() 
   return {
     RawBlock = function(el)
       if isRawHtml(el) then
