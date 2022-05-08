@@ -354,7 +354,8 @@ export const baseHandler: LanguageHandler = {
     handlerContext: LanguageCellHandlerContext,
     cell: QuartoMdCell,
     content: MappedString,
-    options: Record<string, unknown>,
+    options: Record<string, unknown>, // these include handler options
+    extraCellOptions?: Record<string, unknown>, // these will be passed directly to getDivAttributes
   ): MappedString {
     // split content into front matter vs input
     const contentLines = mappedLines(cell.source, true);
@@ -379,7 +380,10 @@ export const baseHandler: LanguageHandler = {
       return (cell.options.label as string).startsWith("fig-");
     };
 
-    const { classes, attrs } = getDivAttributes(cell);
+    const { classes, attrs } = getDivAttributes({
+      ...(extraCellOptions || {}),
+      ...cell.options,
+    });
 
     const q3 = pandocBlock(":::");
     const t3 = pandocBlock("```");
@@ -470,7 +474,7 @@ export const baseHandler: LanguageHandler = {
 };
 
 export function getDivAttributes(
-  cell: QuartoMdCell,
+  options: Record<string, unknown>,
 ): { attrs: string[]; classes: string[] } {
   const attrs: string[] = [];
 
@@ -507,7 +511,7 @@ export function getDivAttributes(
     "echo.hidden",
   ]);
 
-  for (const [key, value] of Object.entries(cell.options || {})) {
+  for (const [key, value] of Object.entries(options || {})) {
     if (!keysToNotSerialize.has(key)) {
       const t = typeof value;
       if (t === "object") {
@@ -523,30 +527,30 @@ export function getDivAttributes(
       }
     }
   }
-  if (cell.options?.[kCellLstCap]) {
-    attrs.push(`caption="${cell.options?.[kCellLstCap]}"`);
+  if (options?.[kCellLstCap]) {
+    attrs.push(`caption="${options?.[kCellLstCap]}"`);
   }
-  const classes = (cell.options?.classes as (undefined | string[])) || [];
-  if (typeof cell.options?.panel === "string") {
-    classes.push(`panel-${cell.options?.panel}`);
+  const classes = (options?.classes as (undefined | string[])) || [];
+  if (typeof options?.panel === "string") {
+    classes.push(`panel-${options?.panel}`);
   }
-  if (typeof cell.options?.column === "string") {
-    classes.push(`column-${cell.options?.column}`);
+  if (typeof options?.column === "string") {
+    classes.push(`column-${options?.column}`);
   }
-  if (typeof cell.options?.[kCapLoc] === "string") {
-    classes.push(`caption-${cell.options?.[kCapLoc]}`);
+  if (typeof options?.[kCapLoc] === "string") {
+    classes.push(`caption-${options?.[kCapLoc]}`);
   }
-  if (typeof cell.options?.[kFigCapLoc] === "string") {
-    classes.push(`fig-cap-location-${cell.options?.[kFigCapLoc]}`);
+  if (typeof options?.[kFigCapLoc] === "string") {
+    classes.push(`fig-cap-location-${options?.[kFigCapLoc]}`);
   }
-  if (typeof cell.options?.[kTblCapLoc] === "string") {
-    classes.push(`tbl-cap-location-${cell.options?.[kTblCapLoc]}`);
+  if (typeof options?.[kTblCapLoc] === "string") {
+    classes.push(`tbl-cap-location-${options?.[kTblCapLoc]}`);
   }
-  if (typeof cell.options?.[kCellFigColumn] === "string") {
-    classes.push(`fig-caption-${cell.options?.[kCellFigColumn]}`);
+  if (typeof options?.[kCellFigColumn] === "string") {
+    classes.push(`fig-caption-${options?.[kCellFigColumn]}`);
   }
-  if (typeof cell.options?.[kCellTblColumn] === "string") {
-    classes.push(`fig-caption-${cell.options?.[kCellTblColumn]}`);
+  if (typeof options?.[kCellTblColumn] === "string") {
+    classes.push(`fig-caption-${options?.[kCellTblColumn]}`);
   }
   return { attrs, classes };
 }

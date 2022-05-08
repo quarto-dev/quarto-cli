@@ -23,7 +23,7 @@ export async function getPuppeteer() {
 }
 
 export async function extractImagesFromElements(
-  url: string,
+  url: string | PageOptions,
   selector: string,
   filenames: string[],
 ): Promise<void> {
@@ -59,8 +59,20 @@ export function extractHtmlFromElements(
   }, selector);
 }
 
+export interface PageOptions {
+  url: string;
+  viewport?: {
+    // https://github.com/puppeteer/puppeteer/blob/v0.12.0/docs/api.md#pagesetviewportviewport
+    width: number;
+    height: number;
+    deviceScaleFactor?: number;
+    isMobile?: boolean;
+    hasTouch?: boolean;
+    isLandscape?: boolean;
+  };
+}
 export async function withPuppeteerBrowserAndPage<T>(
-  url: string,
+  url: string | PageOptions,
   // deno-lint-ignore no-explicit-any
   f: (b: any, p: any) => Promise<T>,
 ): Promise<T> {
@@ -79,7 +91,14 @@ export async function withPuppeteerBrowserAndPage<T>(
       // deno-lint-ignore no-explicit-any
       await withHeadlessBrowser(async (browser: any) => {
         const page = await browser.newPage();
-        await page.goto(url);
+        if (typeof url === "string") {
+          await page.goto(url);
+        } else {
+          if (url.viewport) {
+            page.setViewport(url.viewport);
+          }
+          await page.goto(url.url);
+        }
         result = await f(browser, page);
         finished = true;
       });

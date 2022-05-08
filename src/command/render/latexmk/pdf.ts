@@ -30,7 +30,7 @@ import { info, warning } from "log/mod.ts";
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
     info(
-      `runnning ${mkOptions.engine.pdfEngine} - 1`,
+      `running ${mkOptions.engine.pdfEngine} - 1`,
       kLatexHeaderMessageOptions,
     );
   }

@@ -402,7 +402,7 @@ export async function ojsCompile(
       const {
         classes,
         attrs: otherAttrs,
-      } = getDivAttributes(cell); // TODO this import is weird but eventually OJS will be a handler
+      } = getDivAttributes(cell.options || {}); // TODO this import is weird but eventually OJS will be a handler
       attrs.push(...otherAttrs);
 
       const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??

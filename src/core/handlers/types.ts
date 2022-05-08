@@ -65,6 +65,7 @@ export interface LanguageHandler {
     cell: QuartoMdCell,
     content: MappedString,
     options: Record<string, unknown>,
+    extraCellOptions?: Record<string, unknown>,
   ) => MappedString;
 
   type: "cell" | "directive" | "any";
