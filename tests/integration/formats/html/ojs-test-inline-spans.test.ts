@@ -11,10 +11,8 @@ import { testRender } from "../../../smoke/render/render.ts";
 import { verifyDomTextValue, verifyOjsValue } from "./ojs-utils.ts";
 import { localFileURL } from "../../../puppeteer.ts";
 
-
 const doc = "docs/ojs/test-inline-spans.qmd";
-testRender(doc, "html", false, [
+testRender(doc, "html", true, [
   verifyOjsValue(localFileURL(doc), "y", 25),
-  verifyDomTextValue(localFileURL(doc), "test-value", "25")
+  verifyDomTextValue(localFileURL(doc), "test-value", "25"),
 ]);
-

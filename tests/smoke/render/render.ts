@@ -18,7 +18,7 @@ import {
 export function testRender(
   input: string,
   to: string,
-  standalone: boolean,
+  noSupporting: boolean,
   addtlVerify?: Verify[],
   context?: TestContext,
   args?: string[],
@@ -28,7 +28,7 @@ export function testRender(
   const verify: Verify[] = [];
   if (!input.endsWith("/")) {
     verify.push(outputCreated(input, to));
-    if (standalone) {
+    if (noSupporting) {
       verify.push(noSupportingFiles(input, to));
     } else {
       verify.push(hasSupportingFiles(input, to));

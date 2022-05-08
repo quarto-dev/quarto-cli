@@ -20,7 +20,7 @@ tests.forEach((test) => {
   testRender(
     input,
     "commonmark",
-    !test.python,
+    true,
     [ensureFileRegexMatches(output.outputPath, [
       /test\n================/,
     ])],

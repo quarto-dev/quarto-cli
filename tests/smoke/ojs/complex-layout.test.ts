@@ -6,4 +6,4 @@
 */
 import { testRender } from "../render/render.ts";
 
-testRender("docs/ojs/test-complex-layout-string.qmd", "html", false);
+testRender("docs/ojs/test-complex-layout-string.qmd", "html", true);

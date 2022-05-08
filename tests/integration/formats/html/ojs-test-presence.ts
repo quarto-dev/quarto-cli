@@ -19,7 +19,7 @@ import { localFileURL } from "../../../puppeteer.ts";
 // deno-lint-ignore no-explicit-any
 const window = (undefined as any);
 
-testRender("docs/ojs/test-no-ojs.qmd", "html", false, [
+testRender("docs/ojs/test-no-ojs.qmd", "html", true, [
   {
     name: "OJS runtime is absent",
     verify: async (_output: ExecuteOutput[]) => {
@@ -32,7 +32,7 @@ testRender("docs/ojs/test-no-ojs.qmd", "html", false, [
   },
 ]);
 
-testRender("docs/ojs/test-ojs-es-modules.qmd", "html", false, [
+testRender("docs/ojs/test-ojs-es-modules.qmd", "html", true, [
   {
     name: "OJS runtime is absent",
     verify: async (_output: ExecuteOutput[]) => {

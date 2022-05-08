@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { dirname, extname, isAbsolute, join } from "path/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -14,7 +14,7 @@ import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
 import { Format } from "../../config/types.ts";
-import { isHtmlFileOutput } from "../../config/format.ts";
+import { isHtmlFileOutput, isLatexOutput } from "../../config/format.ts";
 import { kKeepMd, kKeepTex } from "../../config/constants.ts";
 
 import { filesDirLibDir } from "./render-paths.ts";
@@ -26,6 +26,11 @@ export function renderCleanup(
   supporting?: string[],
   keepMd?: string,
 ) {
+  // compute figure format
+  const figureFormat = isLatexOutput(format.pandoc)
+    ? extname(output).slice(1)
+    : format.pandoc.to;
+
   // resolve output (could be either input relative or absolute)
   if (!isAbsolute(output)) {
     output = join(dirname(input), output);
@@ -50,6 +55,19 @@ export function renderCleanup(
       if (existsSync(libDir)) {
         supporting.push(Deno.realPathSync(libDir));
       }
+      // narrow supporting to figures dir for non-html formats
+    } else {
+      const filesDir = join(
+        dirname(Deno.realPathSync(input)),
+        inputFilesDir(input),
+      );
+      supporting = supporting.map((supportingDir) => {
+        if (filesDir === supportingDir) {
+          return join(filesDir, figuresDir(figureFormat));
+        } else {
+          return supportingDir;
+        }
+      });
     }
 
     // clean supporting
@@ -61,9 +79,10 @@ export function renderCleanup(
   }
 
   // remove empty files/lib dirs
-  const filesDir = inputFilesDir(input);
-  const figsDir = join(filesDir, figuresDir(format.pandoc.to));
-  const libDir = filesDirLibDir(input);
+  const filesDir = join(dirname(input), inputFilesDir(input));
+  const figsDir = join(filesDir, figuresDir(figureFormat));
+  const libDir = join(dirname(input), filesDirLibDir(input));
+
   removeIfEmptyDir(figsDir);
   removeIfEmptyDir(libDir);
   removeIfEmptyDir(filesDir);

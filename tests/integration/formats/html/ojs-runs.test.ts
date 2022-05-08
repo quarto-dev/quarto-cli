@@ -12,6 +12,6 @@ import { verifyOjsValue } from "./ojs-utils.ts";
 import { localFileURL } from "../../../puppeteer.ts";
 
 const computes = "docs/ojs/test-ojs-computes.qmd";
-testRender(computes, "html", false, [
+testRender(computes, "html", true, [
   verifyOjsValue(localFileURL(computes), "y", 25),
 ]);

@@ -13,7 +13,7 @@ import { localFileURL } from "../../../puppeteer.ts";
 import { verifyOjsValue } from "./ojs-utils.ts";
 
 const filename = "docs/ojs/test-ojs-static-data.qmd";
-testRender(filename, "html", false, [
+testRender(filename, "html", true, [
   verifyOjsValue(localFileURL(filename), "v2", 6.9),
 ], {
   teardown: () => {
