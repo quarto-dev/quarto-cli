@@ -48,7 +48,7 @@ function processEquations(blockEl)
           targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
           targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
         else
-          eq.text = eq.text .. " \\qquad(" .. inlinesToString(numberOption("eq", order)) .. ")"
+          eq.text = eq.text .. " \\tag{" .. inlinesToString(numberOption("eq", order)) .. "}"
           local span = pandoc.Span(eq, pandoc.Attr(label))
           targetInlines:insert(span)
         end
