@@ -60,7 +60,7 @@ export async function prepareDist(
   await initTreeSitter();
   await buildAssets();
   const buildAssetFiles = [
-    "formats/html/ojs/esbuild-bundle.js",
+    "formats/html/ojs/quarto-ojs-runtime.js",
     "editor/tools/yaml/yaml-intelligence-resources.json",
     "editor/tools/yaml/web-worker.js",
     "editor/tools/yaml/yaml.js",
