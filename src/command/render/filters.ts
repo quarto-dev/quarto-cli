@@ -31,7 +31,7 @@ import {
   kTocTitleDocument,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
-import { Format, FormatLanguage, FormatPandoc } from "../../config/types.ts";
+import { FormatLanguage, FormatPandoc } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
@@ -85,14 +85,13 @@ export async function filterParamsJson(
     ...await initFilterParams(),
     ...projectFilterParams(options),
     ...quartoColumnParams,
-    ...quartoFilterParams(options.format),
+    ...quartoFilterParams(options),
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...languageFilterParams(options.format.language),
     ...filterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
   };
-
   return JSON.stringify(params);
 }
 
@@ -387,7 +386,10 @@ function projectFilterParams(options: PandocOptions) {
   }
 }
 
-function quartoFilterParams(format: Format) {
+function quartoFilterParams(
+  options: PandocOptions,
+) {
+  const format = options.format;
   const params: Metadata = {
     [kOutputDivs]: format.render[kOutputDivs],
   };
@@ -415,6 +417,12 @@ function quartoFilterParams(format: Format) {
   if (shortcodes !== undefined) {
     params[kShortcodes] = shortcodes;
   }
+  const extShortcodes = extensionShortcodes(options);
+  if (extShortcodes) {
+    params[kShortcodes] = params[kShortcodes] || [];
+    (params[kShortcodes] as string[]).push(...extShortcodes);
+  }
+
   const figResponsive = format.metadata[kFigResponsive] === true;
   if (figResponsive) {
     params[kFigResponsive] = figResponsive;
@@ -428,6 +436,22 @@ function quartoFilterParams(format: Format) {
     params[kKeepHidden] = kKeepHidden;
   }
   return params;
+}
+
+function extensionShortcodes(options: PandocOptions) {
+  const extensionShortcodes: string[] = [];
+  if (options.extension) {
+    const allExtensions = options.extension?.extensions(
+      options.source,
+      options.project,
+    );
+    Object.values(allExtensions).forEach((extension) => {
+      if (extension.contributes.shortcodes) {
+        extensionShortcodes.push(...extension.contributes.shortcodes);
+      }
+    });
+  }
+  return extensionShortcodes;
 }
 
 function initFilterParams() {
