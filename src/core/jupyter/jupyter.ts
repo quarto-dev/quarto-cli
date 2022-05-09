@@ -513,7 +513,7 @@ export function jupyterFromJSON(nbContents: string): JupyterNotebook {
 
   // validate that we have a language
   if (!nb.metadata.kernelspec.language) {
-    throw new Error("No langage set for Jupyter notebook");
+    throw new Error("No language set for Jupyter notebook");
   }
 
   // validate that we have cells
