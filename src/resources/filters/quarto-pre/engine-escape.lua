@@ -20,7 +20,7 @@ function engineEscape()
       -- handle escaped engines within a code block
       el.text = el.text:gsub("```" .. kEngineEscapePattern, function(engine, lang)
         if #el.attr.classes == 0 or not isHighlightClass(el.attr.classes[1]) then
-          el.attr.classes:insert(1, "markdown")
+          el.attr.classes:insert(1, "default")
         end
         return "```" .. engine 
       end)
