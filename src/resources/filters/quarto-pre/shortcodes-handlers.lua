@@ -3,8 +3,6 @@
 
 -- handlers process shortcode into either a list of inlines or into a list of blocks
 
--- local JSON = (loadfile "./JSON.lua")()
-
 local function shortcodeMetatable(scriptFile) 
   return {
     -- https://www.lua.org/manual/5.3/manual.html#6.1
