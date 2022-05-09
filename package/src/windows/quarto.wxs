@@ -12,7 +12,7 @@
     <Property Id="WixAppFolder" Value="WixPerUserFolder" />
 
     <SetProperty Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Please restart any existing Command windows prior to using Quarto." Sequence="ui" After="ExecuteAction">
-      <![CDATA[ALLUSERS="" OR ALLUSERS=2]]>
+      <![CDATA[ALLUSERS="" OR ALLUSERS=1 OR ALLUSERS=2]]>
     </SetProperty>
 
     <UIRef Id="WixUI_Advanced_Custom" />
