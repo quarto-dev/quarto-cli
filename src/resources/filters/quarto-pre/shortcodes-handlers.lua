@@ -2,7 +2,9 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- handlers process shortcode into either a list of inlines or into a list of blocks
-   
+
+-- local JSON = (loadfile "./JSON.lua")()
+
 local function shortcodeMetatable(scriptFile) 
   return {
     -- https://www.lua.org/manual/5.3/manual.html#6.1
@@ -188,7 +190,7 @@ end
 
 
 function handlePagebreak()
- 
+
   local pagebreak = {
     epub = '<p style="page-break-after: always;"> </p>',
     html = '<div style="page-break-after: always;"></div>',
@@ -216,8 +218,6 @@ function handlePagebreak()
   end
 
 end
-
-JSON = (loadfile "JSON.lua")()
 
 function isempty(s)
   return s == nil or s == ''
@@ -319,7 +319,7 @@ function handleTweet(args, kwargs)
 
     if string.find(mime_type, "json") ~= nil then
       -- http request returned json (good) rather than html (bad, 404 error)
-      local parsed = JSON:decode(contents)
+      local parsed = jsonDecode(contents)
       return pandoc.RawBlock('html', parsed.html)
     else
       error("Could not find tweet with that tweet id")
