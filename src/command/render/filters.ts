@@ -5,6 +5,8 @@
 *
 */
 
+import { existsSync } from "fs/mod.ts";
+
 import {
   kBibliography,
   kCitationLocation,
@@ -50,6 +52,10 @@ import { projectType } from "../../project/types/project-types.ts";
 import { isWindows } from "../../core/platform.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
+import {
+  Extension,
+  extensionIdString,
+} from "../../extension/extension-shared.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -465,6 +471,8 @@ function initFilterParams() {
   return params;
 }
 
+const kQuartoFilterMarker = "quarto";
+
 export function resolveFilters(filters: string[], options: PandocOptions) {
   // build list of quarto filters
   const quartoFilters: string[] = [];
@@ -482,11 +490,16 @@ export function resolveFilters(filters: string[], options: PandocOptions) {
   quartoFilters.push(layoutFilter());
   quartoFilters.push(quartoPostFilter());
 
+  // Resolve any filters that are provided by an extension
+  filters = resolveFilterExtension(options, filters);
+
   // if 'quarto' is in the filters, inject our filters at that spot,
   // otherwise inject them at the beginning so user filters can take
   // advantage of e.g. resourceeRef resolution (note that citeproc
   // will in all cases run last)
-  const quartoLoc = filters.findIndex((filter) => filter === "quarto");
+  const quartoLoc = filters.findIndex((filter) =>
+    filter === kQuartoFilterMarker
+  );
   if (quartoLoc !== -1) {
     filters = [
       ...filters.slice(0, quartoLoc),
@@ -536,4 +549,52 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   } else {
     return null;
   }
+}
+
+function resolveFilterExtension(options: PandocOptions, filters: string[]) {
+  // Resolve any filters that are provided by an extension
+  const extensions = filterExtensions(options);
+  return filters.flatMap((filter) => {
+    if (filter !== kQuartoFilterMarker && !existsSync(filter)) {
+      // Try to resolve this path to an extension
+      const exactMatch = extensions.find((ext) => {
+        const idStr = extensionIdString(ext.id);
+        if (filter === idStr) {
+          return true;
+        }
+      });
+      if (exactMatch) {
+        return exactMatch.contributes.filters || [];
+      } else {
+        const nameMatch = extensions.find((ext) => {
+          if (filter === ext.id.name) {
+            return true;
+          }
+        });
+        if (nameMatch) {
+          return nameMatch.contributes.filters || [];
+        } else {
+          return filter;
+        }
+      }
+    } else {
+      return filter;
+    }
+  });
+}
+
+function filterExtensions(options: PandocOptions) {
+  const filterExts: Extension[] = [];
+  if (options.extension) {
+    const allExtensions = options.extension?.extensions(
+      options.source,
+      options.project,
+    );
+    Object.values(allExtensions).forEach((extension) => {
+      if (extension.contributes.filters) {
+        filterExts.push(extension);
+      }
+    });
+  }
+  return filterExts;
 }
