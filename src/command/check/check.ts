@@ -7,8 +7,7 @@
 
 import { info } from "log/mod.ts";
 
-import { createTempContext, TempContext } from "../../core/temp.ts";
-import { render } from "../render/render-shared.ts";
+import { render, renderServices } from "../render/render-shared.ts";
 import { JupyterCapabilities } from "../../core/jupyter/types.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import {
@@ -27,30 +26,31 @@ import {
 } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { readCodePage } from "../../core/windows.ts";
+import { RenderServices } from "../render/types.ts";
 
 const kIndent = "      ";
 
 export type Target = "install" | "jupyter" | "knitr" | "all";
 
 export async function check(target: Target): Promise<void> {
-  const temp = createTempContext();
+  const services = renderServices();
   try {
     info("");
     if (target === "install" || target === "all") {
-      await checkInstall(temp);
+      await checkInstall(services);
     }
     if (target === "jupyter" || target === "all") {
-      await checkJupyterInstallation(temp);
+      await checkJupyterInstallation(services);
     }
     if (target === "knitr" || target === "all") {
-      await checkKnitrInstallation(temp);
+      await checkKnitrInstallation(services);
     }
   } finally {
-    temp.cleanup();
+    services.cleanup();
   }
 }
 
-async function checkInstall(temp: TempContext) {
+async function checkInstall(services: RenderServices) {
   completeMessage("Checking Quarto installation......OK");
   info(`      Version: ${quartoConfig.version()}`);
   info(`      Path: ${quartoConfig.binPath()}`);
@@ -68,7 +68,7 @@ async function checkInstall(temp: TempContext) {
     message: kMessage,
     doneMessage: kMessage + "OK\n",
   }, async () => {
-    const mdPath = temp.createFile({ suffix: "check.md" });
+    const mdPath = services.temp.createFile({ suffix: "check.md" });
     Deno.writeTextFileSync(
       mdPath,
       `
@@ -79,14 +79,17 @@ title: "Title"
 ## Header
 `,
     );
-    const result = await render(mdPath, { temp, flags: { quiet: true } });
+    const result = await render(mdPath, {
+      services,
+      flags: { quiet: true },
+    });
     if (result.error) {
       throw result.error;
     }
   });
 }
 
-async function checkJupyterInstallation(temp: TempContext) {
+async function checkJupyterInstallation(services: RenderServices) {
   const kMessage = "Checking Python 3 installation....";
   let caps: JupyterCapabilities | undefined;
   await withSpinner({
@@ -105,7 +108,7 @@ async function checkJupyterInstallation(temp: TempContext) {
         message: kJupyterMessage,
         doneMessage: kJupyterMessage + "OK\n",
       }, async () => {
-        await checkJupyterRender(temp);
+        await checkJupyterRender(services);
       });
     } else {
       info(await jupyterInstallationMessage(caps, kIndent));
@@ -123,8 +126,8 @@ async function checkJupyterInstallation(temp: TempContext) {
   }
 }
 
-async function checkJupyterRender(temp: TempContext) {
-  const qmdPath = temp.createFile({ suffix: "check.qmd" });
+async function checkJupyterRender(services: RenderServices) {
+  const qmdPath = services.temp.createFile({ suffix: "check.qmd" });
   Deno.writeTextFileSync(
     qmdPath,
     `
@@ -140,7 +143,7 @@ title: "Title"
 `,
   );
   const result = await render(qmdPath, {
-    temp,
+    services,
     flags: { quiet: true, executeDaemon: 0 },
   });
   if (result.error) {
@@ -148,7 +151,7 @@ title: "Title"
   }
 }
 
-async function checkKnitrInstallation(temp: TempContext) {
+async function checkKnitrInstallation(services: RenderServices) {
   const kMessage = "Checking R installation...........";
   let caps: KnitrCapabilities | undefined;
   await withSpinner({
@@ -167,7 +170,7 @@ async function checkKnitrInstallation(temp: TempContext) {
         message: kKnitrMessage,
         doneMessage: kKnitrMessage + "OK\n",
       }, async () => {
-        await checkKnitrRender(temp);
+        await checkKnitrRender(services);
       });
     } else {
       info(knitrInstallationMessage(kIndent));
@@ -180,8 +183,8 @@ async function checkKnitrInstallation(temp: TempContext) {
   }
 }
 
-async function checkKnitrRender(temp: TempContext) {
-  const rmdPath = temp.createFile({ suffix: "check.rmd" });
+async function checkKnitrRender(services: RenderServices) {
+  const rmdPath = services.temp.createFile({ suffix: "check.rmd" });
   Deno.writeTextFileSync(
     rmdPath,
     `
@@ -196,7 +199,10 @@ title: "Title"
 \`\`\`
 `,
   );
-  const result = await render(rmdPath, { temp, flags: { quiet: true } });
+  const result = await render(rmdPath, {
+    services,
+    flags: { quiet: true },
+  });
   if (result.error) {
     throw result.error;
   }

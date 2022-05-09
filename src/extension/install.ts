@@ -9,7 +9,7 @@ import { existsSync } from "fs/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { writeAllSync } from "streams/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 
 import { projectContext } from "../project/project-context.ts";
 import { TempContext } from "../core/temp-types.ts";
@@ -324,9 +324,14 @@ async function confirmInstallation(
 
 // Copy the extension files into place
 async function completeInstallation(downloadDir: string, installDir: string) {
+  writeAllSync(
+    Deno.stdout,
+    new TextEncoder().encode("\n"),
+  );
+
   await withSpinner({
     message: `Copying`,
-    doneMessage: `Complete`,
+    doneMessage: `Extension installation complete`,
   }, () => {
     copyTo(downloadDir, installDir, { overwrite: true });
     return Promise.resolve();
@@ -335,7 +340,7 @@ async function completeInstallation(downloadDir: string, installDir: string) {
 
 // Is this _extensions or does this contain _extensions?
 const extensionDir = (path: string) => {
-  if (dirname(path) === kExtensionDir) {
+  if (basename(path) === kExtensionDir) {
     return path;
   } else {
     const extDir = join(path, kExtensionDir);

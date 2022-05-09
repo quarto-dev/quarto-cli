@@ -5,6 +5,7 @@
 *
 */
 import { Metadata } from "../config/types.ts";
+import { ProjectContext } from "../project/types.ts";
 
 export const kContributes = "contributes";
 export const kCommon = "common";
@@ -27,6 +28,18 @@ export interface Extension extends Record<string, unknown> {
   };
 }
 
+export interface ExtensionContext {
+  extensions(
+    input: string,
+    project?: ProjectContext,
+  ): Extension[];
+  extension(
+    name: string,
+    input: string,
+    project?: ProjectContext,
+  ): Extension | undefined;
+}
+
 export interface ExtensionId {
   name: string;
   organization?: string;
@@ -42,4 +55,12 @@ export interface ExtensionVersion {
 export interface ExtensionMetadata {
   path: string;
   metadata: Metadata;
+}
+
+export function extensionIdString(extensionId: ExtensionId) {
+  if (extensionId.organization) {
+    return `${extensionId.name}@${extensionId.organization}`;
+  } else {
+    return extensionId.name;
+  }
 }

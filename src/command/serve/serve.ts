@@ -6,22 +6,23 @@
 */
 
 import { ProcessResult, processSuccessResult } from "../../core/process.ts";
-import { createTempContext } from "../../core/temp.ts";
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { RunOptions } from "../../execute/types.ts";
 
-import { render } from "../render/render-shared.ts";
+import { render, renderServices } from "../render/render-shared.ts";
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
   const engine = await fileExecutionEngine(options.input);
   if (engine?.run) {
     const target = await engine.target(options.input, options.quiet);
     if (target) {
-      const temp = createTempContext();
+      const services = renderServices();
       try {
         if (options.render) {
-          const result = await render(target.input, { temp });
+          const result = await render(target.input, {
+            services,
+          });
           if (result.error) {
             throw result.error;
           }
@@ -29,7 +30,7 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
         await engine.run({ ...options, input: target.input });
         return processSuccessResult();
       } finally {
-        temp.cleanup();
+        services.cleanup();
       }
     }
   }
