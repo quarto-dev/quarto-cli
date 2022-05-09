@@ -6,12 +6,15 @@
 */
 import { assert } from "testing/asserts.ts";
 
-import { hover } from "../../../src/core/lib/yaml-intelligence/hover.ts";
+import {
+  createVirtualDocument,
+  hover,
+} from "../../../src/core/lib/yaml-intelligence/hover.ts";
 import { yamlValidationUnitTest } from "../schema-validation/utils.ts";
 import { getYamlIntelligenceResource } from "../../../src/core/lib/yaml-intelligence/resources.ts";
+import { YamlIntelligenceContext } from "../../../src/core/lib/yaml-intelligence/types.ts";
 
-yamlValidationUnitTest("hover-info - simple()", async () => {
-  const source = `---
+const source = `---
 title: foo
 echo: false
 ---
@@ -26,17 +29,25 @@ print(time.time())
 \`\`\`
 `;
 
-  const result = await hover({
-    code: source,
-    position: { row: 7, column: 3 },
-    engine: "knitr",
-    project_formats: [],
-    formats: ["html"],
-    path: null,
-    filetype: "markdown",
-    embedded: false,
-    line: "",
-  });
+const context: YamlIntelligenceContext = {
+  code: source,
+  position: { row: 8, column: 3 },
+  engine: "knitr",
+  project_formats: [],
+  formats: ["html"],
+  path: null,
+  filetype: "markdown",
+  embedded: false,
+  line: "",
+};
+
+yamlValidationUnitTest("createVirtualDocument - simple()", async () => {
+  const result = await createVirtualDocument(context);
+  assert(result.doc.length === source.length);
+});
+
+yamlValidationUnitTest("hover-info - simple()", async () => {
+  const result = await hover(context);
 
   const hoverInfo = `**code-fold**\n\n${
     // deno-lint-ignore no-explicit-any
