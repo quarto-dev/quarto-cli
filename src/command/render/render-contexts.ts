@@ -70,11 +70,9 @@ import { isHtmlOutput } from "../../config/format.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
-import { createTempContext } from "../../core/temp.ts";
 import {
   fileEngineClaimReason,
   fileExecutionEngineAndTarget,
-  markdownExecutionEngine,
 } from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
 import { filesDirLibDir } from "./render-paths.ts";
@@ -85,7 +83,8 @@ import {
   FormatDescriptor,
   parseFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
-import { loadExtension } from "../../extension/extension.ts";
+import { ExtensionContext } from "../../extension/extension-shared.ts";
+import { renderServices } from "./render-shared.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -238,7 +237,7 @@ export async function renderContexts(
 
       const preEngineCellHandlerOptions: LanguageCellHandlerOptions = {
         name: "", // this gets filled out by handleLanguageCells later.
-        temp: options.temp,
+        temp: options.services.temp,
         format: context.format,
         markdown: context.target.markdown,
         source: context.target.source,
@@ -283,11 +282,11 @@ export async function renderFormats(
   to = "all",
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
-  const tempContext = createTempContext();
+  const services = renderServices();
   try {
     const contexts = await renderContexts(
       { path: file },
-      { temp: tempContext, flags: { to } },
+      { services, flags: { to } },
       false,
       project,
     );
@@ -311,7 +310,7 @@ export async function renderFormats(
     });
     return formats;
   } finally {
-    tempContext.cleanup();
+    services.cleanup();
   }
 }
 
@@ -497,6 +496,7 @@ async function resolveFormats(
     const extensionMetadata = await readExtensionFormat(
       target.source,
       formatDesc,
+      options.services.extension,
       project,
     );
 
@@ -561,19 +561,20 @@ async function resolveFormats(
 const readExtensionFormat = async (
   file: string,
   formatDesc: FormatDescriptor,
+  extensionContext: ExtensionContext,
   project?: ProjectContext,
 ) => {
   // Read the format file and populate this
   if (formatDesc.extension) {
     // Find the yaml file
-    const extension = loadExtension(
+    const extension = extensionContext.extension(
       formatDesc.extension,
       file,
       project,
     );
 
     // Read the yaml file and resolve / bucketize
-    const extensionFormat = extension.contributes.format;
+    const extensionFormat = extension?.contributes.format;
     if (extensionFormat) {
       const extensionMetadata =
         (extensionFormat[formatDesc.baseFormat] || {}) as Metadata;

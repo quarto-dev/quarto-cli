@@ -18,7 +18,7 @@ import {
 import { renderProject } from "./project.ts";
 import { renderFiles } from "./render-files.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
-import { RenderOptions, RenderResult } from "./types.ts";
+import { RenderOptions, RenderResult, RenderServices } from "./types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import {
   isJupyterHubServer,
@@ -38,6 +38,8 @@ import {
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kTextPlain } from "../../core/mime.ts";
 import { execProcess } from "../../core/process.ts";
+import { createExtensionContext } from "../../extension/extension.ts";
+import { createTempContext } from "../../core/temp.ts";
 
 export async function render(
   path: string,
@@ -112,6 +114,18 @@ export async function render(
       };
     })),
     error: result.error,
+  };
+}
+
+export function renderServices() {
+  const temp = createTempContext();
+  const extension = createExtensionContext();
+  return {
+    temp,
+    extension,
+    cleanup: () => {
+      temp.cleanup();
+    },
   };
 }
 

@@ -22172,494 +22172,6 @@ var QuartoJSONSchema = new Schema({
   ]
 });
 
-// annotated-yaml.ts
-function readAnnotatedYamlFromMappedString(mappedSource2) {
-  const parser = getTreeSitterSync();
-  const tree = parser.parse(mappedSource2.value);
-  const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource2);
-  if (treeSitterAnnotation) {
-    return treeSitterAnnotation;
-  }
-  return buildJsYamlAnnotation(mappedSource2);
-}
-function buildJsYamlAnnotation(mappedYaml) {
-  const yml = mappedYaml.value;
-  const stack = [];
-  const results = [];
-  function listener(what, state) {
-    const { result, position, kind } = state;
-    if (what === "close") {
-      const { position: openPosition } = stack.pop();
-      if (results.length > 0) {
-        const last = results[results.length - 1];
-        if (last.start === openPosition && last.end === position) {
-          return;
-        }
-      }
-      const components = [];
-      while (results.length > 0) {
-        const last = results[results.length - 1];
-        if (last.end <= openPosition) {
-          break;
-        }
-        components.push(results.pop());
-      }
-      components.reverse();
-      const rawRange = yml.substring(openPosition, position);
-      const leftTrim = rawRange.length - rawRange.trimLeft().length;
-      const rightTrim = rawRange.length - rawRange.trimRight().length;
-      if (rawRange.trim().length === 0) {
-        results.push({
-          start: position - rightTrim,
-          end: position - rightTrim,
-          result,
-          components,
-          kind,
-          source: mappedYaml
-        });
-      } else {
-        results.push({
-          start: openPosition + leftTrim,
-          end: position - rightTrim,
-          result,
-          components,
-          kind,
-          source: mappedYaml
-        });
-      }
-    } else {
-      stack.push({ position });
-    }
-  }
-  load(yml, { listener, schema: QuartoJSONSchema });
-  if (results.length === 0) {
-    return {
-      start: 0,
-      end: 0,
-      result: null,
-      kind: "null",
-      components: [],
-      source: mappedYaml
-    };
-  }
-  if (results.length !== 1) {
-    throw new Error(`Internal Error - expected a single result, got ${results.length} instead`);
-  }
-  JSON.stringify(results[0]);
-  return results[0];
-}
-function buildTreeSitterAnnotation(tree, mappedSource2) {
-  const errors = [];
-  const singletonBuild = (node) => {
-    let tag = void 0;
-    for (const child of node.children) {
-      if (child.type === "tag") {
-        tag = child;
-        continue;
-      }
-      if (child.type !== "comment") {
-        const result2 = buildNode(child, node.endIndex);
-        if (tag) {
-          return annotateTag(result2, tag, node);
-        } else {
-          return result2;
-        }
-      }
-    }
-    return annotateEmpty(node.endIndex);
-  };
-  const buildNode = (node, endIndex) => {
-    if (node === null) {
-      return annotateEmpty(endIndex === void 0 ? -1 : endIndex);
-    }
-    if (dispatch[node.type] === void 0) {
-      return annotateEmpty(endIndex || node.endIndex || -1);
-    }
-    return dispatch[node.type](node);
-  };
-  const annotateError = (start, end, message) => {
-    errors.push({ start, end, message });
-    return {
-      start,
-      end,
-      result: null,
-      kind: "<<ERROR>>",
-      components: [],
-      source: mappedSource2
-    };
-  };
-  const annotateEmpty = (position) => {
-    return {
-      start: position,
-      end: position,
-      result: null,
-      kind: "<<EMPTY>>",
-      components: [],
-      source: mappedSource2
-    };
-  };
-  const annotate = (node, result2, components) => {
-    return {
-      start: node.startIndex,
-      end: node.endIndex,
-      result: result2,
-      kind: node.type,
-      components,
-      source: mappedSource2
-    };
-  };
-  const annotateTag = (innerParse, tagNode, outerNode) => {
-    const tagParse = annotate(tagNode, tagNode.text, []);
-    const result2 = annotate(outerNode, {
-      tag: tagNode.text,
-      value: innerParse.result
-    }, [tagParse, innerParse]);
-    return result2;
-  };
-  const buildPair = (node) => {
-    let key, value;
-    const children = node.children.filter((n) => n.type !== "comment");
-    if (children.length === 3) {
-      key = annotate(children[0], children[0].text, []);
-      value = buildNode(children[2], node.endIndex);
-    } else if (children.length === 2) {
-      key = annotate(children[0], children[0].text, []);
-      value = annotateEmpty(node.endIndex);
-    } else {
-      key = annotateEmpty(node.endIndex);
-      value = annotateEmpty(node.endIndex);
-    }
-    return annotate(node, {
-      key: key.result,
-      value: value.result
-    }, [key, value]);
-  };
-  const dispatch = {
-    "stream": singletonBuild,
-    "document": singletonBuild,
-    "block_node": singletonBuild,
-    "flow_node": singletonBuild,
-    "block_scalar": (node) => {
-      if (!node.text.startsWith("|") && !node.text.startsWith(">")) {
-        return annotateError(node.startIndex, node.endIndex, "Block scalar must start with either `|` or `>`");
-      }
-      const joinString = node.text.startsWith("|") ? "\n" : "";
-      const ls = lines(node.text);
-      let chompChar = "";
-      if (ls[0].endsWith("-")) {
-        while (ls[ls.length - 1] === "") {
-          ls.pop();
-        }
-      } else if (ls[1].endsWith("+")) {
-        chompChar = "\n";
-      } else {
-        while (ls[ls.length - 1] === "") {
-          ls.pop();
-        }
-        chompChar = "\n";
-      }
-      if (ls.length < 2) {
-        return annotateEmpty(node.endIndex);
-      }
-      const indent = ls[1].length - ls[1].trimStart().length;
-      const result2 = ls.slice(1).map((l) => l.slice(indent)).join(joinString) + chompChar;
-      return annotate(node, result2, []);
-    },
-    "block_sequence": (node) => {
-      const result2 = [], components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
-        if (child.type !== "block_sequence_item") {
-          continue;
-        }
-        const component = buildNode(child, node.endIndex);
-        components.push(component);
-        result2.push(component && component.result);
-      }
-      return annotate(node, result2, components);
-    },
-    "block_sequence_item": (node) => {
-      if (node.childCount < 2) {
-        return annotateEmpty(node.endIndex);
-      } else {
-        return buildNode(node.child(1), node.endIndex);
-      }
-    },
-    "double_quote_scalar": (node) => {
-      return annotate(node, JSON.parse(node.text), []);
-    },
-    "single_quote_scalar": (node) => {
-      const str2 = node.text.slice(1, -1);
-      const matches = [
-        -2,
-        ...Array.from(matchAll(str2, /''/g)).map((x) => x.index),
-        str2.length
-      ];
-      const lst = [];
-      for (let i = 0; i < matches.length - 1; ++i) {
-        lst.push(str2.substring(matches[i] + 2, matches[i + 1]));
-      }
-      const result2 = lst.join("'");
-      return annotate(node, result2, []);
-    },
-    "plain_scalar": (node) => {
-      function getV() {
-        try {
-          return JSON.parse(node.text);
-        } catch (_e) {
-          return node.text;
-        }
-      }
-      const v = getV();
-      return annotate(node, v, []);
-    },
-    "flow_sequence": (node) => {
-      const result2 = [], components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
-        if (child.type !== "flow_node") {
-          continue;
-        }
-        const component = buildNode(child, node.endIndex);
-        components.push(component);
-        result2.push(component.result);
-      }
-      return annotate(node, result2, components);
-    },
-    "block_mapping": (node) => {
-      const result2 = {}, components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
-        let component;
-        if (child.type === "ERROR") {
-          result2[child.text] = "<<ERROR>>";
-          const key2 = annotate(child, child.text, []);
-          const value2 = annotateEmpty(child.endIndex);
-          component = annotate(child, {
-            key: key2.result,
-            value: value2.result
-          }, [key2, value2]);
-        } else if (child.type !== "block_mapping_pair") {
-          continue;
-        } else {
-          component = buildNode(child, node.endIndex);
-        }
-        const { key, value } = component.result;
-        result2[String(key)] = value;
-        components.push(...component.components);
-      }
-      return annotate(node, result2, components);
-    },
-    "flow_pair": buildPair,
-    "flow_mapping": (node) => {
-      const result2 = {}, components = [];
-      for (let i = 0; i < node.childCount; ++i) {
-        const child = node.child(i);
-        if (child.type === "flow_node") {
-          continue;
-        }
-        if (child.type === "flow_pair") {
-          const component = buildNode(child, node.endIndex);
-          const { key, value } = component.result;
-          result2[String(key)] = value;
-          components.push(...component.components);
-        }
-      }
-      return annotate(node, result2, components);
-    },
-    "block_mapping_pair": buildPair
-  };
-  const result = buildNode(tree.rootNode, tree.rootNode.endIndex);
-  if (errors.length) {
-    result.errors = errors;
-  }
-  const parsedSize = tree.rootNode.text.trim().length;
-  const codeSize = mappedSource2.value.trim().length;
-  const lossage = parsedSize / codeSize;
-  if (lossage < 0.95) {
-    return null;
-  }
-  return result;
-}
-function locateCursor(annotation, position) {
-  let failedLast = false;
-  let innermostAnnotation;
-  let keyOrValue;
-  const result = [];
-  const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
-  function locate(node) {
-    if (node.kind === "block_mapping" || node.kind === "flow_mapping" || node.kind === "mapping") {
-      for (let i = 0; i < node.components.length; i += 2) {
-        const keyC = node.components[i], valueC = node.components[i + 1];
-        if (keyC.start <= position && position <= keyC.end) {
-          innermostAnnotation = keyC;
-          result.push(keyC.result);
-          keyOrValue = "key";
-          return;
-        } else if (valueC.start <= position && position <= valueC.end) {
-          result.push(keyC.result);
-          innermostAnnotation = valueC;
-          return locate(valueC);
-        }
-      }
-      failedLast = true;
-      return;
-    } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
-      for (let i = 0; i < node.components.length; ++i) {
-        const valueC = node.components[i];
-        if (valueC.start <= position && position <= valueC.end) {
-          result.push(i);
-          innermostAnnotation = valueC;
-          return locate(valueC);
-        }
-        if (valueC.start > position) {
-          if (i === 0) {
-            return;
-          } else {
-            result.push(i - 1);
-            return;
-          }
-        }
-      }
-      throw new Error(kInternalLocateError);
-    } else {
-      if (node.kind !== "<<EMPTY>>") {
-        keyOrValue = "value";
-        return;
-      } else {
-        return;
-      }
-    }
-  }
-  try {
-    locate(annotation);
-    return {
-      withError: failedLast,
-      value: result,
-      kind: keyOrValue,
-      annotation: innermostAnnotation
-    };
-  } catch (e) {
-    if (e.message === kInternalLocateError) {
-      return {
-        withError: true
-      };
-    } else {
-      throw e;
-    }
-  }
-}
-function locateAnnotation(annotation, position, kind) {
-  const originalSource = annotation.source;
-  kind = kind || "value";
-  for (let i = 0; i < position.length; ++i) {
-    const value = position[i];
-    if (typeof value === "number") {
-      const inner = annotation.components[value];
-      if (inner === void 0) {
-        throw new Error("Internal Error: invalid path for locateAnnotation");
-      }
-      annotation = inner;
-    } else {
-      let found = false;
-      for (let j = 0; j < annotation.components.length; j += 2) {
-        if (originalSource.value.substring(annotation.components[j].start, annotation.components[j].end).trim() === value) {
-          if (i === position.length - 1) {
-            if (kind === "key") {
-              annotation = annotation.components[j];
-            } else {
-              annotation = annotation.components[j + 1];
-            }
-          }
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        throw new Error("Internal Error: invalid path for locateAnnotation");
-      }
-    }
-  }
-  return annotation;
-}
-
-// ../semaphore.ts
-var Semaphore = class {
-  constructor(value) {
-    this.value = value;
-    this.tasks = [];
-  }
-  release() {
-    this.value += 1;
-    if (this.tasks.length) {
-      const { resolve } = this.tasks.pop();
-      resolve();
-    }
-  }
-  async acquire() {
-    if (this.value > 0) {
-      this.value -= 1;
-      return;
-    }
-    const result = new Promise((resolve, reject) => {
-      this.tasks.push({ resolve, reject });
-    });
-    await result;
-    await this.acquire();
-  }
-  async runExclusive(fun) {
-    await this.acquire();
-    try {
-      fun();
-    } finally {
-      this.release();
-    }
-  }
-};
-
-// ../yaml-validation/state.ts
-function makeInitializer(thunk) {
-  let initStarted = false;
-  const hasInitSemaphore = new Semaphore(0);
-  return async () => {
-    if (initStarted) {
-      await hasInitSemaphore.runExclusive(async () => {
-      });
-      return;
-    }
-    initStarted = true;
-    await thunk();
-    hasInitSemaphore.release();
-  };
-}
-var initializer = () => {
-  throw new Error("initializer not set!!");
-};
-async function initState() {
-  await initializer();
-}
-var hasSet = false;
-function setInitializer(init2) {
-  if (hasSet) {
-    return;
-  }
-  initializer = makeInitializer(init2);
-  hasSet = true;
-}
-
-// ../guess-chunk-options-format.ts
-function guessChunkOptionsFormat(options) {
-  const noIndentOrColon = /^[^:\s]+[^:]+$/;
-  const chunkLines = lines(options);
-  if (chunkLines.filter((l) => l.match(noIndentOrColon)).length === 0) {
-    return "yaml";
-  }
-  if (chunkLines.some((l) => l.trim() !== "" && !l.trimRight().endsWith(",") && l.indexOf("=") === -1)) {
-    return "yaml";
-  }
-  return "knitr";
-}
-
 // ../yaml-schema/types.ts
 function schemaType(schema2) {
   if (schema2 === false) {
@@ -25444,6 +24956,515 @@ function createLocalizedError(obj) {
   };
 }
 
+// annotated-yaml.ts
+function readAnnotatedYamlFromMappedString(mappedSource2) {
+  const parser = getTreeSitterSync();
+  const tree = parser.parse(mappedSource2.value);
+  const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource2);
+  if (treeSitterAnnotation) {
+    return treeSitterAnnotation;
+  }
+  try {
+    return buildJsYamlAnnotation(mappedSource2);
+  } catch (e) {
+    const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
+    if (m) {
+      const f = rowColToIndex(mappedSource2.value);
+      const offset = f({ row: Number(m[1]) - 1, column: Number(m[2] - 1) });
+      const { originalString } = mappedSource2.map(offset, true);
+      const filename = originalString.fileName;
+      const f2 = mappedIndexToRowCol(mappedSource2);
+      const { line, column } = f2(offset);
+      const sourceContext = createSourceContext(mappedSource2, {
+        start: offset,
+        end: offset + 1
+      });
+      e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
+${sourceContext}`;
+      e.message = e.stack;
+      e.stack = "";
+    }
+    throw e;
+  }
+}
+function buildJsYamlAnnotation(mappedYaml) {
+  const yml = mappedYaml.value;
+  const stack = [];
+  const results = [];
+  function listener(what, state) {
+    const { result, position, kind } = state;
+    if (what === "close") {
+      const { position: openPosition } = stack.pop();
+      if (results.length > 0) {
+        const last = results[results.length - 1];
+        if (last.start === openPosition && last.end === position) {
+          return;
+        }
+      }
+      const components = [];
+      while (results.length > 0) {
+        const last = results[results.length - 1];
+        if (last.end <= openPosition) {
+          break;
+        }
+        components.push(results.pop());
+      }
+      components.reverse();
+      const rawRange = yml.substring(openPosition, position);
+      const leftTrim = rawRange.length - rawRange.trimLeft().length;
+      const rightTrim = rawRange.length - rawRange.trimRight().length;
+      if (rawRange.trim().length === 0) {
+        results.push({
+          start: position - rightTrim,
+          end: position - rightTrim,
+          result,
+          components,
+          kind,
+          source: mappedYaml
+        });
+      } else {
+        results.push({
+          start: openPosition + leftTrim,
+          end: position - rightTrim,
+          result,
+          components,
+          kind,
+          source: mappedYaml
+        });
+      }
+    } else {
+      stack.push({ position });
+    }
+  }
+  load(yml, { listener, schema: QuartoJSONSchema });
+  if (results.length === 0) {
+    return {
+      start: 0,
+      end: 0,
+      result: null,
+      kind: "null",
+      components: [],
+      source: mappedYaml
+    };
+  }
+  if (results.length !== 1) {
+    throw new Error(`Internal Error - expected a single result, got ${results.length} instead`);
+  }
+  JSON.stringify(results[0]);
+  return results[0];
+}
+function buildTreeSitterAnnotation(tree, mappedSource2) {
+  const errors = [];
+  const singletonBuild = (node) => {
+    let tag = void 0;
+    for (const child of node.children) {
+      if (child.type === "tag") {
+        tag = child;
+        continue;
+      }
+      if (child.type !== "comment") {
+        const result2 = buildNode(child, node.endIndex);
+        if (tag) {
+          return annotateTag(result2, tag, node);
+        } else {
+          return result2;
+        }
+      }
+    }
+    return annotateEmpty(node.endIndex);
+  };
+  const buildNode = (node, endIndex) => {
+    if (node === null) {
+      return annotateEmpty(endIndex === void 0 ? -1 : endIndex);
+    }
+    if (dispatch[node.type] === void 0) {
+      return annotateEmpty(endIndex || node.endIndex || -1);
+    }
+    return dispatch[node.type](node);
+  };
+  const annotateError = (start, end, message) => {
+    errors.push({ start, end, message });
+    return {
+      start,
+      end,
+      result: null,
+      kind: "<<ERROR>>",
+      components: [],
+      source: mappedSource2
+    };
+  };
+  const annotateEmpty = (position) => {
+    return {
+      start: position,
+      end: position,
+      result: null,
+      kind: "<<EMPTY>>",
+      components: [],
+      source: mappedSource2
+    };
+  };
+  const annotate = (node, result2, components) => {
+    return {
+      start: node.startIndex,
+      end: node.endIndex,
+      result: result2,
+      kind: node.type,
+      components,
+      source: mappedSource2
+    };
+  };
+  const annotateTag = (innerParse, tagNode, outerNode) => {
+    const tagParse = annotate(tagNode, tagNode.text, []);
+    const result2 = annotate(outerNode, {
+      tag: tagNode.text,
+      value: innerParse.result
+    }, [tagParse, innerParse]);
+    return result2;
+  };
+  const buildPair = (node) => {
+    let key, value;
+    const children = node.children.filter((n) => n.type !== "comment");
+    if (children.length === 3) {
+      key = annotate(children[0], children[0].text, []);
+      value = buildNode(children[2], node.endIndex);
+    } else if (children.length === 2) {
+      key = annotate(children[0], children[0].text, []);
+      value = annotateEmpty(node.endIndex);
+    } else {
+      key = annotateEmpty(node.endIndex);
+      value = annotateEmpty(node.endIndex);
+    }
+    return annotate(node, {
+      key: key.result,
+      value: value.result
+    }, [key, value]);
+  };
+  const dispatch = {
+    "stream": singletonBuild,
+    "document": singletonBuild,
+    "block_node": singletonBuild,
+    "flow_node": singletonBuild,
+    "block_scalar": (node) => {
+      if (!node.text.startsWith("|") && !node.text.startsWith(">")) {
+        return annotateError(node.startIndex, node.endIndex, "Block scalar must start with either `|` or `>`");
+      }
+      const joinString = node.text.startsWith("|") ? "\n" : "";
+      const ls = lines(node.text);
+      let chompChar = "";
+      if (ls[0].endsWith("-")) {
+        while (ls[ls.length - 1] === "") {
+          ls.pop();
+        }
+      } else if (ls[1].endsWith("+")) {
+        chompChar = "\n";
+      } else {
+        while (ls[ls.length - 1] === "") {
+          ls.pop();
+        }
+        chompChar = "\n";
+      }
+      if (ls.length < 2) {
+        return annotateEmpty(node.endIndex);
+      }
+      const indent = ls[1].length - ls[1].trimStart().length;
+      const result2 = ls.slice(1).map((l) => l.slice(indent)).join(joinString) + chompChar;
+      return annotate(node, result2, []);
+    },
+    "block_sequence": (node) => {
+      const result2 = [], components = [];
+      for (let i = 0; i < node.childCount; ++i) {
+        const child = node.child(i);
+        if (child.type !== "block_sequence_item") {
+          continue;
+        }
+        const component = buildNode(child, node.endIndex);
+        components.push(component);
+        result2.push(component && component.result);
+      }
+      return annotate(node, result2, components);
+    },
+    "block_sequence_item": (node) => {
+      if (node.childCount < 2) {
+        return annotateEmpty(node.endIndex);
+      } else {
+        return buildNode(node.child(1), node.endIndex);
+      }
+    },
+    "double_quote_scalar": (node) => {
+      return annotate(node, JSON.parse(node.text), []);
+    },
+    "single_quote_scalar": (node) => {
+      const str2 = node.text.slice(1, -1);
+      const matches = [
+        -2,
+        ...Array.from(matchAll(str2, /''/g)).map((x) => x.index),
+        str2.length
+      ];
+      const lst = [];
+      for (let i = 0; i < matches.length - 1; ++i) {
+        lst.push(str2.substring(matches[i] + 2, matches[i + 1]));
+      }
+      const result2 = lst.join("'");
+      return annotate(node, result2, []);
+    },
+    "plain_scalar": (node) => {
+      function getV() {
+        try {
+          return JSON.parse(node.text);
+        } catch (_e) {
+          return node.text;
+        }
+      }
+      const v = getV();
+      return annotate(node, v, []);
+    },
+    "flow_sequence": (node) => {
+      const result2 = [], components = [];
+      for (let i = 0; i < node.childCount; ++i) {
+        const child = node.child(i);
+        if (child.type !== "flow_node") {
+          continue;
+        }
+        const component = buildNode(child, node.endIndex);
+        components.push(component);
+        result2.push(component.result);
+      }
+      return annotate(node, result2, components);
+    },
+    "block_mapping": (node) => {
+      const result2 = {}, components = [];
+      for (let i = 0; i < node.childCount; ++i) {
+        const child = node.child(i);
+        let component;
+        if (child.type === "ERROR") {
+          result2[child.text] = "<<ERROR>>";
+          const key2 = annotate(child, child.text, []);
+          const value2 = annotateEmpty(child.endIndex);
+          component = annotate(child, {
+            key: key2.result,
+            value: value2.result
+          }, [key2, value2]);
+        } else if (child.type !== "block_mapping_pair") {
+          continue;
+        } else {
+          component = buildNode(child, node.endIndex);
+        }
+        const { key, value } = component.result;
+        result2[String(key)] = value;
+        components.push(...component.components);
+      }
+      return annotate(node, result2, components);
+    },
+    "flow_pair": buildPair,
+    "flow_mapping": (node) => {
+      const result2 = {}, components = [];
+      for (let i = 0; i < node.childCount; ++i) {
+        const child = node.child(i);
+        if (child.type === "flow_node") {
+          continue;
+        }
+        if (child.type === "flow_pair") {
+          const component = buildNode(child, node.endIndex);
+          const { key, value } = component.result;
+          result2[String(key)] = value;
+          components.push(...component.components);
+        }
+      }
+      return annotate(node, result2, components);
+    },
+    "block_mapping_pair": buildPair
+  };
+  const result = buildNode(tree.rootNode, tree.rootNode.endIndex);
+  if (errors.length) {
+    result.errors = errors;
+  }
+  const parsedSize = tree.rootNode.text.trim().length;
+  const codeSize = mappedSource2.value.trim().length;
+  const lossage = parsedSize / codeSize;
+  if (lossage < 0.95) {
+    return null;
+  }
+  return result;
+}
+function locateCursor(annotation, position) {
+  let failedLast = false;
+  let innermostAnnotation;
+  let keyOrValue;
+  const result = [];
+  const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
+  function locate(node) {
+    if (node.kind === "block_mapping" || node.kind === "flow_mapping" || node.kind === "mapping") {
+      for (let i = 0; i < node.components.length; i += 2) {
+        const keyC = node.components[i], valueC = node.components[i + 1];
+        if (keyC.start <= position && position <= keyC.end) {
+          innermostAnnotation = keyC;
+          result.push(keyC.result);
+          keyOrValue = "key";
+          return;
+        } else if (valueC.start <= position && position <= valueC.end) {
+          result.push(keyC.result);
+          innermostAnnotation = valueC;
+          return locate(valueC);
+        }
+      }
+      failedLast = true;
+      return;
+    } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
+      for (let i = 0; i < node.components.length; ++i) {
+        const valueC = node.components[i];
+        if (valueC.start <= position && position <= valueC.end) {
+          result.push(i);
+          innermostAnnotation = valueC;
+          return locate(valueC);
+        }
+        if (valueC.start > position) {
+          if (i === 0) {
+            return;
+          } else {
+            result.push(i - 1);
+            return;
+          }
+        }
+      }
+      throw new Error(kInternalLocateError);
+    } else {
+      if (node.kind !== "<<EMPTY>>") {
+        keyOrValue = "value";
+        return;
+      } else {
+        return;
+      }
+    }
+  }
+  try {
+    locate(annotation);
+    return {
+      withError: failedLast,
+      value: result,
+      kind: keyOrValue,
+      annotation: innermostAnnotation
+    };
+  } catch (e) {
+    if (e.message === kInternalLocateError) {
+      return {
+        withError: true
+      };
+    } else {
+      throw e;
+    }
+  }
+}
+function locateAnnotation(annotation, position, kind) {
+  const originalSource = annotation.source;
+  kind = kind || "value";
+  for (let i = 0; i < position.length; ++i) {
+    const value = position[i];
+    if (typeof value === "number") {
+      const inner = annotation.components[value];
+      if (inner === void 0) {
+        throw new Error("Internal Error: invalid path for locateAnnotation");
+      }
+      annotation = inner;
+    } else {
+      let found = false;
+      for (let j = 0; j < annotation.components.length; j += 2) {
+        if (originalSource.value.substring(annotation.components[j].start, annotation.components[j].end).trim() === value) {
+          if (i === position.length - 1) {
+            if (kind === "key") {
+              annotation = annotation.components[j];
+            } else {
+              annotation = annotation.components[j + 1];
+            }
+          }
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        throw new Error("Internal Error: invalid path for locateAnnotation");
+      }
+    }
+  }
+  return annotation;
+}
+
+// ../semaphore.ts
+var Semaphore = class {
+  constructor(value) {
+    this.value = value;
+    this.tasks = [];
+  }
+  release() {
+    this.value += 1;
+    if (this.tasks.length) {
+      const { resolve } = this.tasks.pop();
+      resolve();
+    }
+  }
+  async acquire() {
+    if (this.value > 0) {
+      this.value -= 1;
+      return;
+    }
+    const result = new Promise((resolve, reject) => {
+      this.tasks.push({ resolve, reject });
+    });
+    await result;
+    await this.acquire();
+  }
+  async runExclusive(fun) {
+    await this.acquire();
+    try {
+      fun();
+    } finally {
+      this.release();
+    }
+  }
+};
+
+// ../yaml-validation/state.ts
+function makeInitializer(thunk) {
+  let initStarted = false;
+  const hasInitSemaphore = new Semaphore(0);
+  return async () => {
+    if (initStarted) {
+      await hasInitSemaphore.runExclusive(async () => {
+      });
+      return;
+    }
+    initStarted = true;
+    await thunk();
+    hasInitSemaphore.release();
+  };
+}
+var initializer = () => {
+  throw new Error("initializer not set!!");
+};
+async function initState() {
+  await initializer();
+}
+var hasSet = false;
+function setInitializer(init2) {
+  if (hasSet) {
+    return;
+  }
+  initializer = makeInitializer(init2);
+  hasSet = true;
+}
+
+// ../guess-chunk-options-format.ts
+function guessChunkOptionsFormat(options) {
+  const noIndentOrColon = /^[^:\s]+[^:]+$/;
+  const chunkLines = lines(options);
+  if (chunkLines.filter((l) => l.match(noIndentOrColon)).length === 0) {
+    return "yaml";
+  }
+  if (chunkLines.some((l) => l.trim() !== "" && !l.trimRight().endsWith(",") && l.indexOf("=") === -1)) {
+    return "yaml";
+  }
+  return "knitr";
+}
+
 // ../yaml-validation/validator.ts
 var ValidationContext = class {
   constructor() {
@@ -27219,6 +27240,7 @@ async function breakQuartoMd(src, validate2 = false) {
         const breaks = Array.from(lineOffsets(cell.source.value));
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
+          cell.sourceWithYaml = cell.source;
           cell.source = mappedSubstring(cell.source, breaks[sourceStartLine]);
           if (breaks.length > 1) {
             const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)];
@@ -27226,6 +27248,8 @@ async function breakQuartoMd(src, validate2 = false) {
           } else {
             strUpToLastBreak = cell.source.value;
           }
+        } else {
+          cell.sourceWithYaml = cell.source;
         }
         const prefix = "```{" + language + "}\n";
         cell.sourceOffset = strUpToLastBreak.length + prefix.length;
@@ -27542,8 +27566,11 @@ async function hover(context) {
     return null;
   }
   const { doc: vd, schema: schema2 } = await createVirtualDocument(context);
+  if (schema2 === void 0) {
+    return null;
+  }
   const mappedVd = asMappedString(vd);
-  const annotation = await readAnnotatedYamlFromMappedString(mappedVd);
+  const annotation = readAnnotatedYamlFromMappedString(mappedVd);
   if (annotation === null) {
     return null;
   }
@@ -27583,7 +27610,7 @@ async function hover(context) {
     }
   };
 }
-async function createVirtualDocument(context) {
+async function createVirtualDocument(context, replacement = " ") {
   if (context.filetype === "yaml") {
     return {
       doc: asMappedString(context.code).value,
@@ -27593,35 +27620,36 @@ async function createVirtualDocument(context) {
   const nonSpace = /[^\r\n]/g;
   const { cells } = await breakQuartoMd(asMappedString(context.code));
   const chunks = [];
-  let schema2;
+  let schema2 = void 0;
   for (const cell of cells) {
-    const cellLines = rangedLines(cell.sourceVerbatim.value, true).slice(1, -1);
+    const cellLines = rangedLines(cell.sourceVerbatim.value, true);
     const size = cellLines.length;
     if (size + cell.cellStartLine > context.position.row) {
       if (cell.cell_type === "raw") {
         for (const { substring } of cellLines) {
           if (substring.trim() === "---") {
-            chunks.push(substring.replace(nonSpace, " "));
+            chunks.push(substring.replace(nonSpace, replacement));
           } else {
             chunks.push(substring);
           }
         }
         schema2 = await getFrontMatterSchema();
       } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
+        chunks.push(cell.sourceVerbatim.value.replace(/[^\r\n]/g, replacement));
       } else {
         schema2 = (await getEngineOptionsSchema())[context.engine || "markdown"];
         const commentPrefix = kLangCommentChars[cell.cell_type.language] + "| ";
         for (const { substring } of cellLines) {
           if (substring.startsWith(commentPrefix)) {
-            chunks.push(substring.replace(commentPrefix, " ".repeat(commentPrefix.length)));
+            chunks.push(substring.replace(commentPrefix, replacement.repeat(commentPrefix.length)));
           } else {
-            chunks.push(substring.replace(nonSpace, " "));
+            chunks.push(substring.replace(nonSpace, replacement));
           }
         }
       }
       break;
     } else {
-      chunks.push(cell.source.value.replace(/[^\r\n]/g, " "));
+      chunks.push(cell.sourceVerbatim.value.replace(/[^\r\n]/g, replacement));
     }
   }
   return {
@@ -27633,7 +27661,7 @@ async function locateCellWithCursor(context) {
   const result = await breakQuartoMd(asMappedString(context.code));
   let foundCell = void 0;
   for (const cell of result.cells) {
-    const size = lines(cell.source.value).length;
+    const size = lines(cell.sourceVerbatim.value).length;
     if (size + cell.cellStartLine > context.position.row) {
       foundCell = cell;
       break;
@@ -28124,7 +28152,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
       return automationFromGoodParseScript(kind, {
         ...context,
         language: foundCell.cell_type.language,
-        code: foundCell.source,
+        code: foundCell.sourceWithYaml,
         position: {
           row: position.row - foundCell.cellStartLine,
           column: position.column
@@ -28152,10 +28180,13 @@ async function automationFromGoodParseMarkdown(kind, context) {
       } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
         continue;
       } else if (cell.cell_type.language) {
+        if (cell.sourceWithYaml === void 0) {
+          console.log({ cell });
+        }
         const innerLints = await automationFromGoodParseScript(kind, {
           ...context,
           filetype: "script",
-          code: cell.source,
+          code: cell.sourceWithYaml,
           language: cell.cell_type.language,
           line,
           position: {

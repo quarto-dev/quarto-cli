@@ -855,7 +855,7 @@ export async function ojsExecuteResult(
     markdown: executeResult.markdown,
     libDir: context.libDir,
     project: context.project,
-    temp: context.options.temp,
+    temp: context.options.services.temp,
     ojsBlockLineNumbers,
   });
 

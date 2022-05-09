@@ -16,16 +16,25 @@ import {
 import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
+import { ExtensionContext } from "../../extension/extension-shared.ts";
 
 // options for render
 export interface RenderOptions {
-  temp: TempContext;
+  services: {
+    temp: TempContext;
+    extension: ExtensionContext;
+  };
   flags?: RenderFlags;
   pandocArgs?: string[];
   progress?: boolean;
   useFreezer?: boolean;
   devServerReload?: boolean;
   setProjectDir?: boolean;
+}
+
+export interface RenderServices {
+  temp: TempContext;
+  extension: ExtensionContext;
 }
 
 // context for render
@@ -149,6 +158,9 @@ export interface PandocOptions {
 
   // optoinal project context
   project?: ProjectContext;
+
+  // optional extension context
+  extension?: ExtensionContext;
 
   // quiet quarto pandoc informational output
   quiet?: boolean;

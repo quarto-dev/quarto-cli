@@ -5,6 +5,8 @@
 *
 */
 
+import { existsSync } from "fs/mod.ts";
+
 import {
   kBibliography,
   kCitationLocation,
@@ -31,7 +33,7 @@ import {
   kTocTitleDocument,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
-import { Format, FormatLanguage, FormatPandoc } from "../../config/types.ts";
+import { FormatLanguage, FormatPandoc } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
@@ -50,6 +52,10 @@ import { projectType } from "../../project/types/project-types.ts";
 import { isWindows } from "../../core/platform.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
+import {
+  Extension,
+  extensionIdString,
+} from "../../extension/extension-shared.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -85,14 +91,13 @@ export async function filterParamsJson(
     ...await initFilterParams(),
     ...projectFilterParams(options),
     ...quartoColumnParams,
-    ...quartoFilterParams(options.format),
+    ...quartoFilterParams(options),
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...languageFilterParams(options.format.language),
     ...filterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
   };
-
   return JSON.stringify(params);
 }
 
@@ -387,7 +392,10 @@ function projectFilterParams(options: PandocOptions) {
   }
 }
 
-function quartoFilterParams(format: Format) {
+function quartoFilterParams(
+  options: PandocOptions,
+) {
+  const format = options.format;
   const params: Metadata = {
     [kOutputDivs]: format.render[kOutputDivs],
   };
@@ -415,6 +423,12 @@ function quartoFilterParams(format: Format) {
   if (shortcodes !== undefined) {
     params[kShortcodes] = shortcodes;
   }
+  const extShortcodes = extensionShortcodes(options);
+  if (extShortcodes) {
+    params[kShortcodes] = params[kShortcodes] || [];
+    (params[kShortcodes] as string[]).push(...extShortcodes);
+  }
+
   const figResponsive = format.metadata[kFigResponsive] === true;
   if (figResponsive) {
     params[kFigResponsive] = figResponsive;
@@ -430,6 +444,22 @@ function quartoFilterParams(format: Format) {
   return params;
 }
 
+function extensionShortcodes(options: PandocOptions) {
+  const extensionShortcodes: string[] = [];
+  if (options.extension) {
+    const allExtensions = options.extension?.extensions(
+      options.source,
+      options.project,
+    );
+    Object.values(allExtensions).forEach((extension) => {
+      if (extension.contributes.shortcodes) {
+        extensionShortcodes.push(...extension.contributes.shortcodes);
+      }
+    });
+  }
+  return extensionShortcodes;
+}
+
 function initFilterParams() {
   const params: Metadata = {};
   if (Deno.build.os === "windows") {
@@ -440,6 +470,8 @@ function initFilterParams() {
   }
   return params;
 }
+
+const kQuartoFilterMarker = "quarto";
 
 export function resolveFilters(filters: string[], options: PandocOptions) {
   // build list of quarto filters
@@ -458,11 +490,16 @@ export function resolveFilters(filters: string[], options: PandocOptions) {
   quartoFilters.push(layoutFilter());
   quartoFilters.push(quartoPostFilter());
 
+  // Resolve any filters that are provided by an extension
+  filters = resolveFilterExtension(options, filters);
+
   // if 'quarto' is in the filters, inject our filters at that spot,
   // otherwise inject them at the beginning so user filters can take
   // advantage of e.g. resourceeRef resolution (note that citeproc
   // will in all cases run last)
-  const quartoLoc = filters.findIndex((filter) => filter === "quarto");
+  const quartoLoc = filters.findIndex((filter) =>
+    filter === kQuartoFilterMarker
+  );
   if (quartoLoc !== -1) {
     filters = [
       ...filters.slice(0, quartoLoc),
@@ -512,4 +549,52 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   } else {
     return null;
   }
+}
+
+function resolveFilterExtension(options: PandocOptions, filters: string[]) {
+  // Resolve any filters that are provided by an extension
+  const extensions = filterExtensions(options);
+  return filters.flatMap((filter) => {
+    if (filter !== kQuartoFilterMarker && !existsSync(filter)) {
+      // Try to resolve this path to an extension
+      const exactMatch = extensions.find((ext) => {
+        const idStr = extensionIdString(ext.id);
+        if (filter === idStr) {
+          return true;
+        }
+      });
+      if (exactMatch) {
+        return exactMatch.contributes.filters || [];
+      } else {
+        const nameMatch = extensions.find((ext) => {
+          if (filter === ext.id.name) {
+            return true;
+          }
+        });
+        if (nameMatch) {
+          return nameMatch.contributes.filters || [];
+        } else {
+          return filter;
+        }
+      }
+    } else {
+      return filter;
+    }
+  });
+}
+
+function filterExtensions(options: PandocOptions) {
+  const filterExts: Extension[] = [];
+  if (options.extension) {
+    const allExtensions = options.extension?.extensions(
+      options.source,
+      options.project,
+    );
+    Object.values(allExtensions).forEach((extension) => {
+      if (extension.contributes.filters) {
+        filterExts.push(extension);
+      }
+    });
+  }
+  return filterExts;
 }

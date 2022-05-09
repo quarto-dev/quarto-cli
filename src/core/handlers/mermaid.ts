@@ -38,7 +38,7 @@ const mermaidHandler: LanguageHandler = {
     if (isMarkdownOutput(options.format.pandoc, ["gfm"])) {
       return "mermaid-source"; // sidestep github's in-band signaling of mermaid diagrams
     } else {
-      return "mermaid";
+      return "default"; // no pandoc highlighting yet so we use 'default' to get grey shading
     }
   },
 

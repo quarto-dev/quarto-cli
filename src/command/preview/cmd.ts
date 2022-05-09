@@ -25,7 +25,6 @@ import {
   kRenderNone,
   serveProject,
 } from "../../project/serve/serve.ts";
-import { createTempContext } from "../../core/temp.ts";
 
 import {
   initState,
@@ -39,6 +38,7 @@ import {
 } from "../../project/project-context.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
+import { renderServices } from "../render/render-shared.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -275,10 +275,10 @@ export const previewCommand = new Command()
         const format = await previewFormat(file, flags.to);
         if (isHtmlOutput(format, true)) {
           setPreviewFormat(format, flags, args);
-          const tempContext = createTempContext();
+          const services = renderServices();
           try {
             const renderResult = await renderProject(project, {
-              temp: tempContext,
+              services,
               progress: false,
               useFreezer: false,
               flags,
@@ -289,7 +289,7 @@ export const previewCommand = new Command()
             }
             handleRenderResult(file, renderResult);
           } finally {
-            tempContext.cleanup();
+            services.cleanup();
           }
           // re-write various targets to redirect to project preview
           options.browserPath = relative(project.dir, file);
@@ -302,9 +302,9 @@ export const previewCommand = new Command()
     // see if we are serving a project or a file
     if (Deno.statSync(file).isDirectory) {
       // project preview
-      const tempContext = createTempContext();
+      const services = renderServices();
       try {
-        await serveProject(projectTarget, tempContext, flags, args, {
+        await serveProject(projectTarget, services, flags, args, {
           port: options.port,
           host: options.host,
           browser: (options.browser === false || options.browse === false)
@@ -317,7 +317,7 @@ export const previewCommand = new Command()
           navigate: options.navigate,
         });
       } finally {
-        tempContext.cleanup();
+        services.cleanup();
       }
     } else {
       // single file preview
