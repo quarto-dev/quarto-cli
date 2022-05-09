@@ -83,15 +83,6 @@ const dotHandler: LanguageHandler = {
         mappedConcat(["```{=html}\n", svg, "```"]),
         options,
       );
-    } else if (
-      isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
-    ) {
-      return this.build(
-        handlerContext,
-        cell,
-        mappedConcat(["\n``` dot\n", cell.source, "\n```\n"]),
-        options,
-      );
     } else {
       const dims = svg.split("\n").filter((a: string) =>
         a.indexOf("<svg") !== -1
