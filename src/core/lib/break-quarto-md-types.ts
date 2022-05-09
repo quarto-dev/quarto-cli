@@ -28,6 +28,7 @@ export interface QuartoMdCell {
 
   source: MappedString;
   sourceVerbatim: MappedString;
+  sourceWithYaml?: MappedString;
 
   sourceOffset: number; // TODO these might be unnecessary now. Check back
   sourceStartLine: number;
