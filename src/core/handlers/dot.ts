@@ -18,7 +18,6 @@ import { mappedConcat, mappedIndexToRowCol } from "../lib/mapped-text.ts";
 
 import { extractImagesFromElements } from "../puppeteer.ts";
 import { lineOffsets } from "../lib/text.ts";
-import { execProcess } from "../process.ts";
 
 let globalFigureCounter = 0;
 
@@ -125,7 +124,7 @@ const dotHandler: LanguageHandler = {
           viewport: {
             width: 800,
             height: 600,
-            deviceScaleFactor: 4,
+            deviceScaleFactor: Number(options.deviceScaleFactor) || 4,
           },
         },
         selector,
@@ -135,13 +134,9 @@ const dotHandler: LanguageHandler = {
         handlerContext,
         cell,
         mappedConcat([
-          `\n![](${tempName})\n`,
+          `\n![](${tempName}){width="${widthInInches}in" height="${heightInInches}in"}\n`,
         ]),
         options,
-        {
-          "fig-width": `${widthInInches}in`,
-          "fig-height": `${heightInInches}in`,
-        },
       );
     }
   },
