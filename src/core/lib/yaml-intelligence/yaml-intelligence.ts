@@ -827,7 +827,7 @@ async function automationFromGoodParseMarkdown(
       return automationFromGoodParseScript(kind, {
         ...context,
         language: foundCell.cell_type.language,
-        code: foundCell.source,
+        code: foundCell.sourceWithYaml!,
         position: {
           row: position.row - foundCell.cellStartLine,
           column: position.column,
@@ -862,10 +862,13 @@ async function automationFromGoodParseMarkdown(
         // nothing to lint in markdown or math cells
         continue;
       } else if (cell.cell_type.language) {
+        if (cell.sourceWithYaml === undefined) {
+          console.log({ cell });
+        }
         const innerLints = await automationFromGoodParseScript(kind, {
           ...context,
           filetype: "script",
-          code: cell.source,
+          code: cell.sourceWithYaml!,
           language: cell.cell_type.language,
           line,
           position: {

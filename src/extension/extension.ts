@@ -19,7 +19,9 @@ import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import {
   Extension,
+  ExtensionContext,
   ExtensionId,
+  extensionIdString,
   kAuthor,
   kCommon,
   kContributes,
@@ -29,27 +31,80 @@ import {
 } from "./extension-shared.ts";
 import { parseVersion } from "./extension-version.ts";
 
-export function readExtensions(path: string) {
-  const extensions: Extension[] = [];
-  const extensionDirs = Deno.readDirSync(path);
-  for (const extensionDir of extensionDirs) {
-    if (extensionDir.isDirectory) {
-      const extFile = extensionFile(join(path, extensionDir.name));
-      if (extFile) {
-        const extensionId = toExtensionId(extensionDir.name);
-        const extension = readExtension(extensionId, extFile);
-        extensions.push(extension);
-      }
-    }
-  }
-  return extensions;
+// Create an extension context that can be used to load extensions
+// Provides caching such that directories will not be rescanned
+// pmore than once for an extension context.
+export function createExtensionContext(): ExtensionContext {
+  const extensionCache: Record<string, Extension[]> = {};
+
+  // Reads all extensions available to an input
+  const extensions = (
+    input: string,
+    project?: ProjectContext,
+  ): Extension[] => {
+    // Load the extensions and resolve extension paths
+    const extensions = loadExtensions(input, extensionCache, project);
+    return Object.values(extensions).map((extension) =>
+      resolveExtensionPaths(extension, input, project)
+    );
+  };
+
+  // Reads a specific extension avialable to an input
+  const extension = (
+    name: string,
+    input: string,
+    project?: ProjectContext,
+  ): Extension | undefined => {
+    // Load the extension and resolve any paths
+    const unresolved = loadExtension(name, input, project);
+    return resolveExtensionPaths(unresolved, input, project);
+  };
+
+  return {
+    extension,
+    extensions,
+  };
 }
 
-export function loadExtension(
+// Loads all extensions for a given input
+const loadExtensions = (
+  input: string,
+  cache: Record<string, Extension[]>,
+  project?: ProjectContext,
+) => {
+  const extensionPath = allExtensionDirs(input, project);
+  const allExtensions: Record<string, Extension> = {};
+
+  extensionPath.forEach((extensionDir) => {
+    if (cache[extensionDir]) {
+      cache[extensionDir].forEach((ext) => {
+        allExtensions[extensionIdString(ext.id)] = resolveExtensionPaths(
+          ext,
+          input,
+          project,
+        );
+      });
+    } else {
+      const extensions = readExtensions(extensionDir);
+      extensions.forEach((extension) => {
+        allExtensions[extensionIdString(extension.id)] = resolveExtensionPaths(
+          extension,
+          input,
+          project,
+        );
+      });
+      cache[extensionDir] = extensions;
+    }
+  });
+  return allExtensions;
+};
+
+// Loads a single extension using a name (e.g. elsevier or elsevier@quarto-journals)
+const loadExtension = (
   extension: string,
   input: string,
   project?: ProjectContext,
-): Extension {
+): Extension => {
   const extensionId = toExtensionId(extension);
   const extensionPath = discoverExtensionPath(input, extensionId, project);
 
@@ -59,16 +114,7 @@ export function loadExtension(
     if (file) {
       const extension = readExtension(extensionId, file);
       validateExtension(extension);
-
-      // Resolve paths in the extension relative to the extension
-      // metadata file
-      const path = dirname(input);
-      return toInputRelativePaths(
-        projectType(project?.config?.project?.[kProjectType]),
-        extensionPath,
-        path,
-        extension,
-      ) as unknown as Extension;
+      return extension;
     } else {
       // This extension doesn't have an _extension file
       throw new Error(
@@ -81,8 +127,85 @@ export function loadExtension(
       `Unable to find extension ${extension}. Please ensure that the extension is installed.`,
     );
   }
+};
+
+// Fixes up paths for metatadata provided by an extension
+function resolveExtensionPaths(
+  extension: Extension,
+  input: string,
+  project?: ProjectContext,
+) {
+  const inputDir = dirname(input);
+  return toInputRelativePaths(
+    projectType(project?.config?.project?.[kProjectType]),
+    extension.path,
+    inputDir,
+    extension,
+  ) as unknown as Extension;
 }
 
+// Read the raw extension information out of a directory
+// (e.g. read all the extensions from _extensions)
+export function readExtensions(
+  extensionsDirectory: string,
+) {
+  const extensions: Extension[] = [];
+  const extensionDirs = Deno.readDirSync(extensionsDirectory);
+  for (const extensionDir of extensionDirs) {
+    if (extensionDir.isDirectory) {
+      const extFile = extensionFile(
+        join(extensionsDirectory, extensionDir.name),
+      );
+      if (extFile) {
+        const extensionId = toExtensionId(extensionDir.name);
+        const extension = readExtension(
+          extensionId,
+          extFile,
+        );
+        extensions.push(extension);
+      }
+    }
+  }
+  return extensions;
+}
+
+// Find all the extension directories available for a given input and project
+// This will recursively search valid extension directories
+function allExtensionDirs(input: string, project?: ProjectContext) {
+  const extensionsDirPath = (path: string) => {
+    const extPath = join(path, kExtensionDir);
+    try {
+      if (Deno.statSync(extPath).isDirectory) {
+        return extPath;
+      } else {
+        return undefined;
+      }
+    } catch {
+      return undefined;
+    }
+  };
+
+  const extensionDirectories: string[] = [];
+  if (project) {
+    let currentDir = Deno.realPathSync(dirname(input));
+    do {
+      const extensionPath = extensionsDirPath(currentDir);
+      if (extensionPath) {
+        extensionDirectories.push(extensionPath);
+      }
+      currentDir = dirname(currentDir);
+    } while (isSubdir(project.dir, currentDir) || project.dir === currentDir);
+    return extensionDirectories;
+  } else {
+    const dir = extensionsDirPath(dirname(input));
+    if (dir) {
+      extensionDirectories.push(dir);
+    }
+  }
+  return extensionDirectories;
+}
+
+// Finds the path to a specific extension by name/id
 export function discoverExtensionPath(
   input: string,
   extensionId: ExtensionId,
@@ -142,6 +265,7 @@ export function discoverExtensionPath(
   }
 }
 
+// Validate the extension
 function validateExtension(extension: Extension) {
   let contribCount = 0;
   const contribs = [
@@ -168,6 +292,7 @@ function validateExtension(extension: Extension) {
   }
 }
 
+// Reads raw extension data
 function readExtension(
   extensionId: ExtensionId,
   extensionFile: string,
@@ -196,15 +321,19 @@ function readExtension(
   });
   delete format[kCommon];
 
+  // Resolve paths in the extension relative to the extension
+  // metadata file
+  const extensionDir = dirname(extensionFile);
+
   // Create the extension data structure
   return {
     title,
     author,
     version,
     id: extensionId,
-    path: dirname(extensionFile),
+    path: extensionDir,
     [kContributes]: {
-      shortcodes,
+      shortcodes: shortcodes.map((code) => join(extensionDir, code)),
       filters,
       format,
     },

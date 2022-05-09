@@ -32,6 +32,7 @@ import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
+  renderServices,
   renderToken,
   rswURL,
 } from "../render/render-shared.ts";
@@ -39,6 +40,7 @@ import {
   RenderFlags,
   RenderResult,
   RenderResultFile,
+  RenderServices,
 } from "../render/types.ts";
 import { renderFormats } from "../render/render-contexts.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
@@ -63,7 +65,6 @@ import {
   isRStudioServer,
   isRStudioWorkbench,
 } from "../../core/platform.ts";
-import { createTempContext, TempContext } from "../../core/temp.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
 import {
@@ -97,13 +98,13 @@ export async function preview(
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
   const render = async () => {
-    const temp = createTempContext();
+    const services = renderServices();
     try {
       isRendering = true;
-      return await renderForPreview(file, temp, flags, pandocArgs);
+      return await renderForPreview(file, services, flags, pandocArgs);
     } finally {
       isRendering = false;
-      temp.cleanup();
+      services.cleanup();
     }
   };
   const result = await render();
@@ -315,13 +316,13 @@ interface RenderForPreviewResult {
 
 async function renderForPreview(
   file: string,
-  temp: TempContext,
+  services: RenderServices,
   flags: RenderFlags,
   pandocArgs: string[],
 ): Promise<RenderForPreviewResult> {
   // render
   const renderResult = await render(file, {
-    temp,
+    services,
     flags,
     pandocArgs: pandocArgs,
   });

@@ -28,10 +28,9 @@ import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpDevServer } from "../../core/http-devserver.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 import { renderProject } from "../../command/render/project.ts";
-import { render } from "../../command/render/render-shared.ts";
+import { render, renderServices } from "../../command/render/render-shared.ts";
 import { isRStudio } from "../../core/platform.ts";
 import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
-import { createTempContext } from "../../core/temp.ts";
 import { engineIgnoreDirs } from "../../execute/engine.ts";
 import { asArray } from "../../core/array.ts";
 import { isPdfContent } from "../../core/mime.ts";
@@ -126,14 +125,14 @@ export function watchProject(
               rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
             }
             // render
-            const tempContext = createTempContext();
+            const services = renderServices();
             try {
               const result = await renderManager.renderQueue().enqueue(() => {
                 if (inputs.length > 1) {
                   return renderProject(
                     project!,
                     {
-                      temp: tempContext,
+                      services,
                       progress: true,
                       flags,
                       pandocArgs,
@@ -142,7 +141,7 @@ export function watchProject(
                   );
                 } else {
                   return render(inputs[0], {
-                    temp: tempContext,
+                    services,
                     flags,
                     pandocArgs: pandocArgs,
                   });
@@ -166,7 +165,7 @@ export function watchProject(
                 };
               }
             } finally {
-              tempContext.cleanup();
+              services.cleanup();
             }
           }
         }
@@ -214,7 +213,7 @@ export function watchProject(
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
   const reloadClients = ld.debounce(async (changes: WatchChanges) => {
-    const tempContext = createTempContext();
+    const services = renderServices();
     try {
       // fully render project if we aren't aleady rendering on reload (e.g. for pdf)
       if (!changes.output && !renderingOnReload) {
@@ -223,7 +222,7 @@ export function watchProject(
           renderProject(
             project,
             {
-              temp: tempContext,
+              services,
               useFreezer: true,
               devServerReload: true,
               flags,
@@ -275,7 +274,7 @@ export function watchProject(
     } catch (e) {
       logError(e);
     } finally {
-      tempContext.cleanup();
+      services.cleanup();
     }
   }, 100);
 

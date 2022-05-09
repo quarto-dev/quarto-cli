@@ -67,6 +67,7 @@ import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
+  renderServices,
 } from "../../command/render/render-shared.ts";
 import { renderProgress } from "../../command/render/render-info.ts";
 import { resourceFilesFromFile } from "../../command/render/resources.ts";
@@ -75,7 +76,11 @@ import { htmlResourceResolverPostprocessor } from "../../project/types/website/w
 import { inputFilesDir } from "../../core/render.ts";
 import { kResources } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
-import { RenderFlags, RenderResult } from "../../command/render/types.ts";
+import {
+  RenderFlags,
+  RenderResult,
+  RenderServices,
+} from "../../command/render/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -89,7 +94,6 @@ import {
   isRStudioServer,
   isRStudioWorkbench,
 } from "../../core/platform.ts";
-import { createTempContext, TempContext } from "../../core/temp.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
@@ -100,7 +104,7 @@ export const kRenderDefault = "default";
 
 export async function serveProject(
   target: string | ProjectContext,
-  temp: TempContext,
+  services: RenderServices,
   flags: RenderFlags,
   pandocArgs: string[],
   options: ServeOptions,
@@ -194,7 +198,7 @@ export async function serveProject(
   const renderResult = await renderProject(
     project,
     {
-      temp,
+      services,
       progress: true,
       useFreezer: !renderBefore,
       flags,
@@ -272,14 +276,14 @@ export async function serveProject(
           (await previewRenderRequestIsCompatible(prevReq, flags, project))
         ) {
           if (isProjectInputFile(prevReq.path, project!)) {
-            const requestTemp = createTempContext();
+            const services = renderServices();
             // if there is no specific format requested then 'all' needs
             // to become 'html' so we don't render all formats
             const to = flags.to === "all"
               ? (prevReq.format || "html")
               : flags.to;
             render(prevReq.path, {
-              temp: requestTemp,
+              services,
               flags: { ...flags, to },
               pandocArgs,
             }).then((result) => {
@@ -316,7 +320,7 @@ export async function serveProject(
                 );
               }
             }).finally(() => {
-              requestTemp.cleanup();
+              services.cleanup();
             });
             return httpContentResponse("rendered");
           } else {
@@ -375,13 +379,13 @@ export async function serveProject(
             if (renderFlags?.to == "all") {
               renderFlags.to = isHtmlContent(file) ? "html" : "pdf";
             }
-            const tempContext = createTempContext();
+            const services = renderServices();
             try {
               result = await renderManager.renderQueue().enqueue(() =>
                 renderProject(
                   watcher.project(),
                   {
-                    temp: tempContext,
+                    services,
                     useFreezer: true,
                     devServerReload: true,
                     flags: renderFlags,
@@ -400,7 +404,7 @@ export async function serveProject(
               logError(e);
               renderError = e;
             } finally {
-              tempContext.cleanup();
+              services.cleanup();
             }
           }
         }

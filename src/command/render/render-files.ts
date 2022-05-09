@@ -121,7 +121,7 @@ export async function renderExecute(
       const thawedResult = defrostExecuteResult(
         context.target.source,
         output,
-        context.options.temp,
+        context.options.services.temp,
         thaw === true,
       );
       if (thawedResult) {
@@ -152,7 +152,7 @@ export async function renderExecute(
   const executeResult = await context.engine.execute({
     target: context.target,
     resourceDir: resourcePath(),
-    tempDir: context.options.temp.createDir(),
+    tempDir: context.options.services.temp.createDir(),
     dependencies: resolveDependencies,
     libDir: context.libDir,
     format: context.format,

@@ -127,6 +127,7 @@ export async function breakQuartoMd(
         const breaks = Array.from(lineOffsets(cell.source.value));
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
+          cell.sourceWithYaml = cell.source;
           cell.source = mappedSubstring(cell.source, breaks[sourceStartLine]);
 
           if (breaks.length > 1) {
@@ -136,6 +137,8 @@ export async function breakQuartoMd(
           } else {
             strUpToLastBreak = cell.source.value;
           }
+        } else {
+          cell.sourceWithYaml = cell.source;
         }
         // TODO Fix ugly way to compute sourceOffset..
         const prefix = "```{" + language + "}\n";
