@@ -100,9 +100,10 @@ export function pandocBlock(delimiter: string) {
       id?: string;
       classes?: string[];
       attrs?: string[];
+      skipFirstLineBreak?: boolean;
     } | undefined,
   ) {
-    let { id, classes, attrs, language } = opts || {};
+    let { id, classes, attrs, language, skipFirstLineBreak } = opts || {};
     if (classes === undefined) {
       classes = [];
     }
@@ -138,7 +139,8 @@ export function pandocBlock(delimiter: string) {
         contents.push(s);
       },
       emit: function (ls: EitherString[]) {
-        ls.push(`\n${delimiter}${attrString()}\n`);
+        const lb = skipFirstLineBreak ? "" : "\n";
+        ls.push(`${lb}${delimiter}${attrString()}\n`);
         for (const entry of contents) {
           entry.emit(ls);
         }

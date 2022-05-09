@@ -358,7 +358,7 @@ export const baseHandler: LanguageHandler = {
     extraCellOptions?: Record<string, unknown>, // these will be passed directly to getDivAttributes
   ): MappedString {
     // split content into front matter vs input
-    const contentLines = mappedLines(cell.source, true);
+    const contentLines = mappedLines(cell.sourceWithYaml!, true);
     const frontMatterLines: MappedString[] = [];
     const comment: string = optionCommentPrefixFromLanguage(this.languageName);
     let inputIndex = 0;
@@ -436,6 +436,7 @@ export const baseHandler: LanguageHandler = {
         });
         const cellFence = t3({
           language: this.languageName,
+          skipFirstLineBreak: true,
         });
         const fencedInput = mappedConcat([
           ...frontMatterLines,
