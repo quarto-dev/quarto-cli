@@ -9,17 +9,12 @@ import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
-import {
-  isJavascriptCompatible,
-  isMarkdownOutput,
-} from "../../config/format.ts";
+import { isJavascriptCompatible } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat, mappedIndexToRowCol } from "../lib/mapped-text.ts";
 
 import { extractImagesFromElements } from "../puppeteer.ts";
 import { lineOffsets } from "../lib/text.ts";
-
-let globalFigureCounter = 0;
 
 const dotHandler: LanguageHandler = {
   ...baseHandler,
@@ -106,9 +101,8 @@ const dotHandler: LanguageHandler = {
       const url = `file://${fileName}`;
       const selector = "svg";
 
-      const pngName = `dot-figure-${++globalFigureCounter}.png`;
-
-      const tempName = join(handlerContext.figuresDir(), pngName);
+      const { sourceName, fullName: tempName } = handlerContext
+        .uniqueFigureName("dot-figure-", ".png");
       await extractImagesFromElements(
         {
           url,
@@ -125,7 +119,7 @@ const dotHandler: LanguageHandler = {
         handlerContext,
         cell,
         mappedConcat([
-          `\n![](${tempName}){width="${widthInInches}in" height="${heightInInches}in"}\n`,
+          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in"}\n`,
         ]),
         options,
       );

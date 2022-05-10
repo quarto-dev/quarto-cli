@@ -26,7 +26,11 @@ export interface LanguageCellHandlerOptions {
 export interface LanguageCellHandlerContext {
   options: LanguageCellHandlerOptions;
 
-  figuresDir: () => string;
+  uniqueFigureName(prefix?: string, extension?: string): {
+    sourceName: string; // path relative to the source, to be included in the output
+    fullName: string; // full path, to be used to create the file
+  };
+  figuresDir(): string;
 
   addResource: (name: string, contents: string) => void;
   addInclude: (content: string, where: PandocIncludeType) => void;

@@ -12,7 +12,7 @@ import {
 } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { formatResourcePath } from "../resources.ts";
-import { join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import {
   isJavascriptCompatible,
   isMarkdownOutput,
@@ -56,7 +56,7 @@ const mermaidHandler: LanguageHandler = {
     options: Record<string, unknown>,
   ) {
     // create puppeteer target page
-    const dirName = handlerContext.options.temp.createDir();
+    const tempDirName = handlerContext.options.temp.createDir();
     const content = `<html>
     <head>
     <script src="./mermaid.min.js"></script>
@@ -67,11 +67,11 @@ const mermaidHandler: LanguageHandler = {
     mermaid.initialize();
     </script>
     </html>`;
-    const fileName = join(dirName, "index.html");
+    const fileName = join(tempDirName, "index.html");
     Deno.writeTextFileSync(fileName, content);
     Deno.copyFileSync(
       formatResourcePath("html", join("mermaid", "mermaid.min.js")),
-      join(dirName, "mermaid.min.js"),
+      join(tempDirName, "mermaid.min.js"),
     );
     const url = `file://${fileName}`;
     const selector = "pre.mermaid svg";
@@ -89,13 +89,13 @@ const mermaidHandler: LanguageHandler = {
         options,
       );
     } else {
-      const pngName = `mermaid-figure-${++globalFigureCounter}.png`;
-      const tempName = join(handlerContext.figuresDir(), pngName);
+      const { sourceName, fullName: tempName } = handlerContext
+        .uniqueFigureName("dot-figure-", ".png");
       await extractImagesFromElements(url, selector, [tempName]);
       return this.build(
         handlerContext,
         cell,
-        mappedConcat([`\n![](${tempName})\n`]),
+        mappedConcat([`\n![](${sourceName})\n`]),
         options,
       );
     }

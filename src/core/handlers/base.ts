@@ -67,15 +67,13 @@ import {
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
+import { ensureDirSync } from "fs/mod.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
-export function getFiguresDir(
-  handlerContext: LanguageCellHandlerContext,
-): string {
-}
+let globalFigureCounter = 0;
 
 function makeHandlerContext(
   options: LanguageCellHandlerOptions,
@@ -91,13 +89,28 @@ function makeHandlerContext(
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
     options,
+    uniqueFigureName(prefix?: string, extension?: string) {
+      prefix = prefix || "figure-";
+      extension = extension || ".png";
+
+      const pngName = `mermaid-figure-${++globalFigureCounter}.png`;
+      const tempName = join(context.figuresDir(), pngName);
+      const mdName = relative(dirname(context.options.source), tempName);
+
+      return {
+        sourceName: mdName,
+        fullName: tempName,
+      };
+    },
     figuresDir() {
       const file = Deno.realPathSync(context.options.source);
       const filesDir = join(dirname(file), inputFilesDir(file));
-      return join(
+      const result = join(
         filesDir,
         figuresDir(context.options.format.pandoc.to),
       );
+      ensureDirSync(result);
+      return result;
     },
     addHtmlDependency(
       dependencyType: "script" | "stylesheet" | "resource",
