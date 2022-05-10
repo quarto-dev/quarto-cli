@@ -391,6 +391,21 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   };
 
+  // Find any conflicting margin elements and add margins to the
+  // top to prevent overlap
+  const marginChildren = window.document.querySelectorAll(
+    ".column-margin.column-container > * "
+  );
+  let lastBottom = 0;
+  for (const marginChild of marginChildren) {
+    const top = marginChild.getBoundingClientRect().top;
+    if (top < lastBottom) {
+      const margin = lastBottom - top;
+      marginChild.style.marginTop = `${margin}px`;
+    }
+    lastBottom = top + marginChild.getBoundingClientRect().height;
+  }
+
   // Manage the visibility of the toc and the sidebar
   const marginScrollVisibility = manageSidebarVisiblity(marginSidebarEl, {
     id: "quarto-toc-toggle",

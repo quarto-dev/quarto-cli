@@ -655,6 +655,10 @@ aside,
   font-size: 0.825rem;
 }
 
+.column-margin.column-container p {
+	margin-bottom: 0;
+}
+
 .column-margin.column-container > *:not(.collapse) {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
