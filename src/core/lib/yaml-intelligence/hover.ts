@@ -107,19 +107,20 @@ export async function hover(
 
   const { doc: vd, schema } = await createVirtualDocument(context);
 
+  // if schema is undefined, then we were told to find yaml where there wouldn't be none.
+  // return null
+  if (schema === undefined) {
+    return null;
+  }
+
   const mappedVd = asMappedString(vd);
-  const annotation = await readAnnotatedYamlFromMappedString(
+  const annotation = readAnnotatedYamlFromMappedString(
     mappedVd,
   );
   if (annotation === null) {
     // failed to produce partial parsed yaml, don't give hover info
     return null;
   }
-  /*const offset = rowColToIndex(vd)(context.position);
-  const { withError, value, kind, annotation: innerAnnotation } = locateCursor(
-    annotation,
-    offset,
-  );*/
   const mapping = buildLineMap(annotation, mappedVd);
   if (mapping[context.position.row] === undefined) {
     return null;
@@ -169,9 +170,10 @@ export async function hover(
 
 export async function createVirtualDocument(
   context: YamlIntelligenceContext,
+  replacement = " ",
 ): Promise<{
   doc: string;
-  schema: ConcreteSchema;
+  schema?: ConcreteSchema;
 }> {
   if (context.filetype === "yaml") {
     // right now we assume this is _quarto.yml
@@ -183,16 +185,16 @@ export async function createVirtualDocument(
   const nonSpace = /[^\r\n]/g;
   const { cells } = await breakQuartoMd(asMappedString(context.code));
   const chunks = [];
-  let schema: ConcreteSchema;
+  let schema: ConcreteSchema | undefined = undefined;
   for (const cell of cells) {
-    const cellLines = rangedLines(cell.sourceVerbatim.value, true).slice(1, -1);
+    const cellLines = rangedLines(cell.sourceVerbatim.value, true);
     const size = cellLines.length;
     if (size + cell.cellStartLine > context.position.row) {
       if (cell.cell_type === "raw") {
         // cursor is in a yaml block, so we don't push the triple-tick context
         for (const { substring } of cellLines) {
           if (substring.trim() === "---") {
-            chunks.push(substring.replace(nonSpace, " "));
+            chunks.push(substring.replace(nonSpace, replacement));
           } else {
             chunks.push(substring);
           }
@@ -200,6 +202,7 @@ export async function createVirtualDocument(
         schema = await getFrontMatterSchema();
       } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
         // no yaml in a markdown block;
+        chunks.push(cell.sourceVerbatim.value.replace(/[^\r\n]/g, replacement));
       } else {
         // code chunk of some kind
         schema = (await getEngineOptionsSchema())[context.engine || "markdown"];
@@ -210,22 +213,22 @@ export async function createVirtualDocument(
             chunks.push(
               substring.replace(
                 commentPrefix,
-                " ".repeat(commentPrefix.length),
+                replacement.repeat(commentPrefix.length),
               ),
             );
           } else {
-            chunks.push(substring.replace(nonSpace, " "));
+            chunks.push(substring.replace(nonSpace, replacement));
           }
         }
       }
       break;
     } else {
-      chunks.push(cell.source.value.replace(/[^\r\n]/g, " "));
+      chunks.push(cell.sourceVerbatim.value.replace(/[^\r\n]/g, replacement));
     }
   }
   return {
     doc: chunks.join(""),
-    schema: schema!,
+    schema: schema,
   };
 }
 
@@ -236,7 +239,7 @@ async function locateCellWithCursor(
 
   let foundCell = undefined;
   for (const cell of result.cells) {
-    const size = lines(cell.source.value).length;
+    const size = lines(cell.sourceVerbatim.value).length;
     if (size + cell.cellStartLine > context.position.row) {
       foundCell = cell;
       break;

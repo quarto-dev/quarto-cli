@@ -83,16 +83,21 @@ const dotHandler: LanguageHandler = {
         mappedConcat(["```{=html}\n", svg, "```"]),
         options,
       );
-    } else if (
-      isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
-    ) {
-      return this.build(
-        handlerContext,
-        cell,
-        mappedConcat(["\n``` dot\n", cell.source, "\n```\n"]),
-        options,
-      );
     } else {
+      const dims = svg.split("\n").filter((a: string) =>
+        a.indexOf("<svg") !== -1
+      );
+      if (dims.length === 0) {
+        throw new Error("Internal error: couldn't find figure dimensions");
+      }
+      const m1 = dims[0].match(/^.*width="(\d+)pt".*$/);
+      const m2 = dims[0].match(/^.*height="(\d+)pt".*$/);
+      if (!(m1 && m2)) {
+        throw new Error("Internal error: couldn't find figure dimensions");
+      }
+      const widthInInches = Number(m1[1]) / 96; // https://graphviz.org/docs/attrs/dpi/
+      const heightInInches = Number(m2[1]) / 96;
+
       // create puppeteer target page
       const dirName = handlerContext.options.temp.createDir();
       const content = `<!DOCTYPE html><html><body>${svg}</body></html>`;
@@ -102,12 +107,26 @@ const dotHandler: LanguageHandler = {
       const selector = "svg";
 
       const pngName = `dot-figure-${++globalFigureCounter}.png`;
+
       const tempName = join(dirName, pngName);
-      await extractImagesFromElements(url, selector, [tempName]);
+      await extractImagesFromElements(
+        {
+          url,
+          viewport: {
+            width: 800,
+            height: 600,
+            deviceScaleFactor: Number(options.deviceScaleFactor) || 4,
+          },
+        },
+        selector,
+        [tempName],
+      );
       return this.build(
         handlerContext,
         cell,
-        mappedConcat([`\n![](${tempName})\n`]),
+        mappedConcat([
+          `\n![](${tempName}){width="${widthInInches}in" height="${heightInInches}in"}\n`,
+        ]),
         options,
       );
     }

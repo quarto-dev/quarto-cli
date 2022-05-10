@@ -27566,8 +27566,11 @@ async function hover(context) {
     return null;
   }
   const { doc: vd, schema: schema2 } = await createVirtualDocument(context);
+  if (schema2 === void 0) {
+    return null;
+  }
   const mappedVd = asMappedString(vd);
-  const annotation = await readAnnotatedYamlFromMappedString(mappedVd);
+  const annotation = readAnnotatedYamlFromMappedString(mappedVd);
   if (annotation === null) {
     return null;
   }
@@ -27607,7 +27610,7 @@ async function hover(context) {
     }
   };
 }
-async function createVirtualDocument(context) {
+async function createVirtualDocument(context, replacement = " ") {
   if (context.filetype === "yaml") {
     return {
       doc: asMappedString(context.code).value,
@@ -27617,35 +27620,36 @@ async function createVirtualDocument(context) {
   const nonSpace = /[^\r\n]/g;
   const { cells } = await breakQuartoMd(asMappedString(context.code));
   const chunks = [];
-  let schema2;
+  let schema2 = void 0;
   for (const cell of cells) {
-    const cellLines = rangedLines(cell.sourceVerbatim.value, true).slice(1, -1);
+    const cellLines = rangedLines(cell.sourceVerbatim.value, true);
     const size = cellLines.length;
     if (size + cell.cellStartLine > context.position.row) {
       if (cell.cell_type === "raw") {
         for (const { substring } of cellLines) {
           if (substring.trim() === "---") {
-            chunks.push(substring.replace(nonSpace, " "));
+            chunks.push(substring.replace(nonSpace, replacement));
           } else {
             chunks.push(substring);
           }
         }
         schema2 = await getFrontMatterSchema();
       } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
+        chunks.push(cell.sourceVerbatim.value.replace(/[^\r\n]/g, replacement));
       } else {
         schema2 = (await getEngineOptionsSchema())[context.engine || "markdown"];
         const commentPrefix = kLangCommentChars[cell.cell_type.language] + "| ";
         for (const { substring } of cellLines) {
           if (substring.startsWith(commentPrefix)) {
-            chunks.push(substring.replace(commentPrefix, " ".repeat(commentPrefix.length)));
+            chunks.push(substring.replace(commentPrefix, replacement.repeat(commentPrefix.length)));
           } else {
-            chunks.push(substring.replace(nonSpace, " "));
+            chunks.push(substring.replace(nonSpace, replacement));
           }
         }
       }
       break;
     } else {
-      chunks.push(cell.source.value.replace(/[^\r\n]/g, " "));
+      chunks.push(cell.sourceVerbatim.value.replace(/[^\r\n]/g, replacement));
     }
   }
   return {
@@ -27657,7 +27661,7 @@ async function locateCellWithCursor(context) {
   const result = await breakQuartoMd(asMappedString(context.code));
   let foundCell = void 0;
   for (const cell of result.cells) {
-    const size = lines(cell.source.value).length;
+    const size = lines(cell.sourceVerbatim.value).length;
     if (size + cell.cellStartLine > context.position.row) {
       foundCell = cell;
       break;

@@ -27,6 +27,7 @@ import { compareVersions, prettyVersion } from "./extension-version.ts";
 
 export interface ExtensionSource {
   type: "remote" | "local";
+  resolvedTarget: string;
 }
 const kUnversioned = "  (?)  ";
 
@@ -46,7 +47,7 @@ export async function installExtension(target: string, temp: TempContext) {
     const installDir = await determineInstallDir(currentDir);
 
     // Stage the extension locally
-    const extensionDir = await stageExtension(target, source, temp.createDir());
+    const extensionDir = await stageExtension(source, temp.createDir());
 
     // Validate the extension in in the staging dir
     const stagedExtensions = validateExtension(extensionDir);
@@ -96,7 +97,7 @@ async function isTrusted(
 // we should offer to install the extension into the project
 async function determineInstallDir(dir: string) {
   const project = await projectContext(dir);
-  if (project) {
+  if (project && project.dir !== dir) {
     const question = "Install extension into project?";
     const useProject = await Confirm.prompt(question);
     if (useProject) {
@@ -118,7 +119,6 @@ async function determineInstallDir(dir: string) {
 // - Local files (tarballs / zips)
 // - Local folders (either the path to the _extensions directory or its parent)
 async function stageExtension(
-  target: string,
   source: ExtensionSource,
   workingDir: string,
 ) {
@@ -127,7 +127,7 @@ async function stageExtension(
     const toFile = join(workingDir, "extension.tar.gz");
 
     // Download the file
-    await downloadWithProgress(target, `Downloading`, toFile);
+    await downloadWithProgress(source.resolvedTarget, `Downloading`, toFile);
 
     // Unzip the file
     await withSpinner(
@@ -144,16 +144,16 @@ async function stageExtension(
     );
 
     // Use any subdirectory inside, if appropriate
-    const subdir = extensionSubdirectory(target);
+    const subdir = extensionSubdirectory(source.resolvedTarget);
     if (subdir) {
       return join(workingDir, subdir);
     } else {
       return workingDir;
     }
   } else {
-    if (Deno.statSync(target).isDirectory) {
+    if (Deno.statSync(source.resolvedTarget).isDirectory) {
       // Copy the extension dir only
-      const srcDir = extensionDir(target);
+      const srcDir = extensionDir(source.resolvedTarget);
       if (srcDir) {
         // If there is something to stage, go for it, otherwise
         // just leave the directory empty
@@ -161,9 +161,9 @@ async function stageExtension(
         copyMinimal(srcDir, destDir);
       }
     } else {
-      copyTo(target, workingDir);
-      unzip(target);
-      Deno.removeSync(target);
+      copyTo(source.resolvedTarget, workingDir);
+      unzip(source.resolvedTarget);
+      Deno.removeSync(source.resolvedTarget);
     }
     return workingDir;
   }
@@ -223,6 +223,40 @@ async function confirmInstallation(
       return existing.id.name === extension.id.name &&
         existing.id.organization === extension.id.organization;
     });
+  };
+
+  const typeStr = (to: Extension) => {
+    const contributes = to.contributes;
+    const extTypes: string[] = [];
+    if (
+      contributes.format &&
+      Object.keys(contributes.format).length > 0
+    ) {
+      Object.keys(contributes.format).length === 1
+        ? extTypes.push("format")
+        : extTypes.push("formats");
+    }
+
+    if (
+      contributes.shortcodes &&
+      contributes.shortcodes.length > 0
+    ) {
+      contributes.shortcodes.length === 1
+        ? extTypes.push("shortcode")
+        : extTypes.push("shortcodes");
+    }
+
+    if (contributes.filters && contributes.filters.length > 0) {
+      contributes.filters.length === 1
+        ? extTypes.push("filter")
+        : extTypes.push("filters");
+    }
+
+    if (extTypes.length > 0) {
+      return `(${extTypes.join(",")})`;
+    } else {
+      return "";
+    }
   };
 
   const versionMessage = (to: Extension, from?: Extension) => {
@@ -289,6 +323,7 @@ async function confirmInstallation(
       stagedExtension,
       installedExtension,
     );
+    const types = typeStr(stagedExtension);
     if (message) {
       extensionRows.push([
         name(stagedExtension) + "  ",
@@ -296,6 +331,7 @@ async function confirmInstallation(
         message.from || "",
         message.to && message.from ? "->" : "",
         message.to || "",
+        types,
       ]);
     }
   }
@@ -353,7 +389,9 @@ const extensionDir = (path: string) => {
 };
 
 function extensionSubdirectory(url: string) {
+  console.log(url);
   const tagMatch = url.match(githubTagRegexp);
+  console.log(tagMatch);
   if (tagMatch) {
     return tagMatch[2] + "-" + tagMatch[3];
   } else {
@@ -366,14 +404,51 @@ function extensionSubdirectory(url: string) {
   }
 }
 const githubTagRegexp =
-  /^http(?:s?):\/\/github.com\/(.*?)\/(.*?)\/archive\/refs\/tags\/(?:v?)(.*)(\.tar\.gz|\.zip)$/;
+  /^http(?:s?):\/\/(?:www\.)?github.com\/(.*?)\/(.*?)\/archive\/refs\/tags\/(?:v?)(.*)(\.tar\.gz|\.zip)$/;
 const githubLatestRegexp =
-  /^http(?:s?):\/\/github.com\/(.*?)\/(.*?)\/archive\/refs\/heads\/(?:v?)(.*)(\.tar\.gz|\.zip)$/;
+  /^http(?:s?):\/\/(?:www\.)?github.com\/(.*?)\/(.*?)\/archive\/refs\/heads\/(?:v?)(.*)(\.tar\.gz|\.zip)$/;
 
 function extensionSource(target: string): ExtensionSource {
   if (existsSync(target)) {
-    return { type: "local" };
+    return { type: "local", resolvedTarget: target };
   } else {
-    return { type: "remote" };
+    let resolved;
+    for (const resolver of resolvers) {
+      resolved = resolver(target);
+      if (resolved) {
+        break;
+      }
+    }
+    return { type: "remote", resolvedTarget: resolved || target };
   }
 }
+
+const githubNameRegex =
+  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)(?:@latest)?$/;
+const githubLatest = (name: string) => {
+  const match = name.match(githubNameRegex);
+  if (match) {
+    return `https://github.com/${match[1]}/${
+      match[2]
+    }/archive/refs/heads/main.tar.gz`;
+  } else {
+    return undefined;
+  }
+};
+
+const githubVersionRegex =
+  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)@v([a-zA-Z0-9-_\.]*)$/;
+const githubVersion = (name: string) => {
+  const match = name.match(githubVersionRegex);
+  if (match) {
+    return `https://github.com/${match[1]}/${match[2]}/archive/refs/tags/v${
+      match[3]
+    }.tar.gz`;
+  } else {
+    return undefined;
+  }
+};
+
+const resolvers: ExtensionNameResolver[] = [githubLatest, githubVersion];
+
+type ExtensionNameResolver = (name: string) => string | undefined;
