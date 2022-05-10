@@ -1572,6 +1572,17 @@ nav[role="doc-toc"].slow > * {
   }
 }
 
+.btn.btn-quarto, div.cell-output-display .btn-quarto {
+  @include button-variant(
+    $btn-bg,
+    $btn-bg,
+    $btn-fg,
+    //if($btn-bg == $color-contrast-light, shade-color($btn-bg, $btn-hover-bg-shade-amount), tint-color($btn-bg, $btn-hover-bg-tint-amount)),
+    //if($btn-bg == $color-contrast-light, shade-color($btn-bg, $btn-hover-border-shade-amount), tint-color($btn-bg, $btn-hover-border-tint-amount)),
+    $hover-color:     $btn-fg,
+    );
+}
+
 // Quarto title block treatment
 nav.quarto-secondary-nav.color-navbar {
 

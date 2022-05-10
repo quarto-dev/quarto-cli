@@ -19371,6 +19371,12 @@ class QuartoOJSConnector extends OJSConnector {
               ) {
                 added.classList.add("quarto-ojs-table-fixup");
               }
+
+              const addedButtons = added.querySelectorAll("button");
+              for (const button of Array.from(addedButtons)) {
+                button.classList.add("btn");
+                button.classList.add("btn-quarto");
+              }
               //// Hide imports that aren't javascript code
               //
               // We search here for code.javascript and node span.hljs-... because
