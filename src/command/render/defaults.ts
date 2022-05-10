@@ -30,7 +30,6 @@ import { PandocOptions } from "./types.ts";
 import { crossrefFilter } from "./crossref.ts";
 import { layoutFilter } from "./layout.ts";
 import {
-  quartoInitFilter,
   quartoPostFilter,
   quartoPreFilter,
   resolveFilters,
@@ -132,8 +131,7 @@ export function pandocDefaultsMessage(
         }
       })
       .filter((filter) => {
-        return filter !== quartoInitFilter() &&
-          filter !== quartoPreFilter() &&
+        return filter !== quartoPreFilter() &&
           filter !== quartoPostFilter() &&
           filter !== layoutFilter() &&
           filter !== authorsFilter() &&

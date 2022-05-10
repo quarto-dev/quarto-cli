@@ -49,7 +49,6 @@ import { removePandocArgs } from "./flags.ts";
 import * as ld from "../../core/lodash.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
-import { isWindows } from "../../core/platform.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
 import {
@@ -63,7 +62,7 @@ const kProjectOffset = "project-offset";
 
 const kResultsFile = "results-file";
 
-export async function filterParamsJson(
+export function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
@@ -88,7 +87,7 @@ export async function filterParamsJson(
 
   const params: Metadata = {
     ...includes,
-    ...await initFilterParams(),
+    ...initFilterParams(),
     ...projectFilterParams(options),
     ...quartoColumnParams,
     ...quartoFilterParams(options),
@@ -103,10 +102,6 @@ export async function filterParamsJson(
 
 export function removeFilterParmas(metadata: Metadata) {
   delete metadata[kQuartoParams];
-}
-
-export function quartoInitFilter() {
-  return resourcePath("filters/init/init.lua");
 }
 
 export function quartoPreFilter() {
@@ -476,10 +471,6 @@ const kQuartoFilterMarker = "quarto";
 export function resolveFilters(filters: string[], options: PandocOptions) {
   // build list of quarto filters
   const quartoFilters: string[] = [];
-  // windows needs the init filter to patch utf8 filename handling
-  if (isWindows()) {
-    quartoFilters.push(quartoInitFilter());
-  }
   quartoFilters.push(quartoPreFilter());
   if (crossrefFilterActive(options)) {
     quartoFilters.push(crossrefFilter());
