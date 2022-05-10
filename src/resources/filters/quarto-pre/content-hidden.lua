@@ -59,12 +59,8 @@ end
 function clearHiddenVisibleAttributes(el)
   el.attributes["unless-format"] = nil
   el.attributes["when-format"] = nil
-  if (el.attr.classes:find("content-visible")) then
-    el.attr.classes:remove(el.attr.classes:find("content-visible")[2])
-  end
-  if (el.attr.classes:find("content-hidden")) then
-    el.attr.classes:remove(el.attr.classes:find("content-hidden")[2])
-  end
+  el.attr.classes = removeClass(el.attr.classes, "content-visible")
+  el.attr.classes = removeClass(el.attr.classes, "content-hidden")
 end
 
 function handleVisible(el)

@@ -92,10 +92,6 @@ function fixupCellOutputClasses(classes, cellOutputClass, outputClasses)
   return classes
 end
 
-function removeClass(classes, remove)
-  return classes:filter(function(clz) return clz ~= remove end)
-end
-
 function readMetadataInlines(meta, key)
   val = meta[key]
   if type(val) == "boolean" then

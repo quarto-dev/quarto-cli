@@ -133,6 +133,10 @@ function attribute(el, name, default)
   return default
 end
 
+function removeClass(classes, remove)
+  return classes:filter(function(clz) return clz ~= remove end)
+end
+
 function combineFilters(filters) 
 
   -- the final list of filters
