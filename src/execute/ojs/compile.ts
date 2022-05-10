@@ -606,28 +606,17 @@ export async function ojsCompile(
         if (innerInfo.length > 0 && srcConfig !== undefined) {
           const ourAttrs = srcConfig.attrs.slice();
           // compute offset from cell start to div start
-          const linesSkipped =
-            cellSrcStr.value.substring(0, innerInfo[0].start).split("\n")
-              .length;
           ourAttrs.push(
-            `startFrom="${
-              cellStartingLoc + cell.sourceStartLine - 1 +
-              linesSkipped
-            }"`,
+            `startFrom="${cellStartingLoc + cell.sourceStartLine - 1}"`,
           );
-          ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
+          ourAttrs.push(`source-offset="0"`);
           if (shouldEmitSource) {
             const srcDiv = pandocCode({
               attrs: ourAttrs,
               classes: srcConfig.classes,
             });
             srcDiv.push(
-              pandocRawStr(
-                cellSrcStr.value.substring(
-                  innerInfo[0].start,
-                  innerInfo[0].end,
-                ),
-              ),
+              pandocRawStr(cellSrcStr),
             );
             div.push(srcDiv);
           }
