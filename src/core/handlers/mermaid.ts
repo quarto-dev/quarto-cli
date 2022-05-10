@@ -12,7 +12,7 @@ import {
 } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { formatResourcePath } from "../resources.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { join } from "path/mod.ts";
 import {
   isJavascriptCompatible,
   isMarkdownOutput,
@@ -24,8 +24,6 @@ import {
   extractHtmlFromElements,
   extractImagesFromElements,
 } from "../puppeteer.ts";
-
-let globalFigureCounter = 0;
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
