@@ -601,6 +601,16 @@ export async function runPandoc(
     pandocArgs = removePandocArgs(pandocArgs, removeArgs);
   }
 
+  // We always use our own pandoc data-dir, so tear off the user
+  // data-dir and use ours.
+  const dataDirArgs = new Map<string, boolean>();
+  dataDirArgs.set("--data-dir", true);
+  pandocArgs = removePandocArgs(
+    pandocArgs,
+    dataDirArgs,
+  );
+  pandocArgs.push("--data-dir", resourcePath("pandoc/datadir"));
+
   // add any built-in syntax definition files
   allDefaults[kSyntaxDefinitions] = allDefaults[kSyntaxDefinitions] || [];
   const syntaxDefinitions = expandGlobSync(
