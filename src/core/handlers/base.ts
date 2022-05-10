@@ -67,8 +67,15 @@ import {
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
+import { dirname, join } from "path/mod.ts";
+import { figuresDir, inputFilesDir } from "../render.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
+
+export function getFiguresDir(
+  handlerContext: LanguageCellHandlerContext,
+): string {
+}
 
 function makeHandlerContext(
   options: LanguageCellHandlerOptions,
@@ -84,6 +91,14 @@ function makeHandlerContext(
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
     options,
+    figuresDir() {
+      const file = Deno.realPathSync(context.options.source);
+      const filesDir = join(dirname(file), inputFilesDir(file));
+      return join(
+        filesDir,
+        figuresDir(context.options.format.pandoc.to),
+      );
+    },
     addHtmlDependency(
       dependencyType: "script" | "stylesheet" | "resource",
       dependency: DependencyFile,

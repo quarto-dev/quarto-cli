@@ -108,7 +108,7 @@ const dotHandler: LanguageHandler = {
 
       const pngName = `dot-figure-${++globalFigureCounter}.png`;
 
-      const tempName = join(dirName, pngName);
+      const tempName = join(handlerContext.figuresDir(), pngName);
       await extractImagesFromElements(
         {
           url,

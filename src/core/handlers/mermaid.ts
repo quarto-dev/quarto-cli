@@ -90,7 +90,7 @@ const mermaidHandler: LanguageHandler = {
       );
     } else {
       const pngName = `mermaid-figure-${++globalFigureCounter}.png`;
-      const tempName = join(dirName, pngName);
+      const tempName = join(handlerContext.figuresDir(), pngName);
       await extractImagesFromElements(url, selector, [tempName]);
       return this.build(
         handlerContext,

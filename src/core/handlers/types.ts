@@ -25,6 +25,9 @@ export interface LanguageCellHandlerOptions {
 }
 export interface LanguageCellHandlerContext {
   options: LanguageCellHandlerOptions;
+
+  figuresDir: () => string;
+
   addResource: (name: string, contents: string) => void;
   addInclude: (content: string, where: PandocIncludeType) => void;
   addHtmlDependency: (
