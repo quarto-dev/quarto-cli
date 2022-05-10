@@ -306,6 +306,7 @@ div.sidebar-item-container {
   }
 }
 
+div.sidebar.sidebar-navigation.rollup.quarto-sidebar-toggle-contents,
 nav.sidebar.sidebar-navigation:not(.rollup) {
   @if $sidebar-bg {
     background-color: $sidebar-bg;

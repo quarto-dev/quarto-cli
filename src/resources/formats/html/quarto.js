@@ -246,11 +246,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
         // Converts the sidebar to a menu
         const convertToMenu = () => {
-          const elBackground = window
-            .getComputedStyle(window.document.body, null)
-            .getPropertyValue("background");
-          el.classList.add("rollup");
-
           for (const child of el.children) {
             child.style.opacity = 0;
           }
@@ -280,7 +275,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           toggleContainer.append(toggleTitle);
 
           const toggleContents = window.document.createElement("div");
-          toggleContents.style.background = elBackground;
           toggleContents.classList = el.classList;
           toggleContents.classList.add("zindex-over-content");
           toggleContents.classList.add("quarto-sidebar-toggle-contents");
