@@ -5,7 +5,7 @@
 *
 */
 
-import { error, info, warning } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -196,13 +196,12 @@ export async function preview(
   // serve project
   for await (const conn of listener) {
     (async () => {
-      try {
-        for await (const { request, respondWith } of Deno.serveHttp(conn)) {
+      for await (const { request, respondWith } of Deno.serveHttp(conn)) {
+        try {
           await respondWith(handler(request));
+        } catch (err) {
+          warning(err.message);
         }
-      } catch (err) {
-        error(err.message);
-        exitWithCleanup(1);
       }
     })();
   }
