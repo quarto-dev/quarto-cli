@@ -68,7 +68,8 @@ async function latestRelease() {
 }
 
 async function preparePackage(_ctx: InstallContext): Promise<PackageInfo> {
-  const revision = supportedRevision();
+  const revision = await supportedRevision();
+
   const progress = progressBar(
     100,
     `Downloading Chromium ${revision}`,
