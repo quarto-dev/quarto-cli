@@ -502,9 +502,16 @@ export function jupyterFromJSON(nbContents: string): JupyterNotebook {
   const nb = nbJSON as JupyterNotebook;
 
   // vscode doesn't write a language to the kernelspec so also try language_info
+  // google colab doesn't write a language at all, in that case try to deduce off of name
   if (!nb.metadata.kernelspec?.language) {
     if (nb.metadata.kernelspec) {
       nb.metadata.kernelspec.language = nbJSON.metadata.language_info?.name;
+      if (
+        !nb.metadata.kernelspec.language &&
+        nb.metadata.kernelspec.name?.includes("python")
+      ) {
+        nb.metadata.kernelspec.language = "python";
+      }
     } else {
       // provide default
       nb.metadata.kernelspec = jupyterDefaultPythonKernelspec();
