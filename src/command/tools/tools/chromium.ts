@@ -43,8 +43,9 @@ export const chromiumInstallable: InstallableTool = {
 
 export async function installed(): Promise<boolean> {
   const fetcherObj = await fetcher();
+  const version = await supportedRevision();
   const localRevisions = await fetcherObj.localRevisions();
-  return localRevisions.includes(supportedRevision());
+  return localRevisions.includes(version);
 }
 
 async function installedVersion(): Promise<string | undefined> {
@@ -57,8 +58,8 @@ async function installedVersion(): Promise<string | undefined> {
 
 async function latestRelease() {
   const fetcherObj = await fetcher();
-  const revisionInfo = await fetcherObj.revisionInfo(supportedRevision());
   const version = await supportedRevision();
+  const revisionInfo = await fetcherObj.revisionInfo(version);
 
   return Promise.resolve({
     url: revisionInfo.url,
@@ -112,7 +113,9 @@ async function uninstall(_ctx: InstallContext): Promise<void> {
   await withSpinner({
     message: "Removing Chromium...",
   }, async () => {
-    return (await fetcher()).remove(supportedRevision());
+    const fetcherObj = await fetcher();
+    const version = await supportedRevision();
+    return fetcherObj.remove(version);
   });
   return Promise.resolve();
 }
