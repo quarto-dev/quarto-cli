@@ -85,7 +85,7 @@ function preprocess()
           doc.blocks[i] = preprocessTable(el, nil)
         elseif el.t == "RawBlock" then
           doc.blocks[i] = preprocessRawTableBlock(el, nil)
-        else
+        elseif el.t ~= "Header" then
           local parentId = nil
           if hasFigureOrTableRef(el) then
             parentId = el.attr.identifier
