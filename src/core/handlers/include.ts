@@ -37,8 +37,9 @@ const includeHandler: LanguageHandler = {
     handlerContext: LanguageCellHandlerContext,
     directive: DirectiveCell,
   ): Promise<MappedString> {
-    const sourceDir = dirname(handlerContext.options.source);
-    const retrievedFiles: string[] = [handlerContext.options.source];
+    const source = handlerContext.options.context.target.source;
+    const sourceDir = dirname(source);
+    const retrievedFiles: string[] = [source];
     const retrievedDirectories: string[] = [sourceDir];
     const fixups: (boolean | undefined)[] = [];
 

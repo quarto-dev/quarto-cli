@@ -18,12 +18,17 @@ import {
   isMarkdownOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
+import {
+  asMappedString,
+  mappedConcat,
+  MappedString,
+} from "../lib/mapped-text.ts";
 
 import {
   extractHtmlFromElements,
   extractImagesFromElements,
 } from "../puppeteer.ts";
+import { mappedStringFromFile } from "../mapped-text.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -53,6 +58,7 @@ const mermaidHandler: LanguageHandler = {
     cell: QuartoMdCell,
     options: Record<string, unknown>,
   ) {
+    const cellContent = handlerContext.cellContent(cell);
     // create puppeteer target page
     const tempDirName = handlerContext.options.temp.createDir();
     const content = `<html>
@@ -60,7 +66,7 @@ const mermaidHandler: LanguageHandler = {
     <script src="./mermaid.min.js"></script>
     </head>
     <body>
-    <pre class="mermaid">\n${cell.source.value}\n</pre>
+    <pre class="mermaid">\n${cellContent.value}\n</pre>
     <script>
     mermaid.initialize();
     </script>
@@ -83,7 +89,7 @@ const mermaidHandler: LanguageHandler = {
       return this.build(
         handlerContext,
         cell,
-        mappedConcat(["\n``` mermaid\n", cell.source, "\n```\n"]),
+        mappedConcat(["\n``` mermaid\n", cellContent, "\n```\n"]),
         options,
       );
     } else {

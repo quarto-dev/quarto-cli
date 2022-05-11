@@ -38,13 +38,14 @@ const dotHandler: LanguageHandler = {
     cell: QuartoMdCell,
     options: Record<string, unknown>,
   ) {
+    const cellContent = handlerContext.cellContent(cell);
     const graphvizModule = await import(
       resourcePath(join("js", "graphviz-wasm.js"))
     );
     let svg;
     try {
       svg = await graphvizModule.graphviz().layout(
-        cell.source.value,
+        cellContent.value,
         "svg",
         options["graph-layout"],
       );
@@ -54,10 +55,10 @@ const dotHandler: LanguageHandler = {
       );
       if (m) {
         const number = Number(m[2]) - 1;
-        const locF = mappedIndexToRowCol(cell.source);
-        const offsets = Array.from(lineOffsets(cell.source.value));
+        const locF = mappedIndexToRowCol(cellContent);
+        const offsets = Array.from(lineOffsets(cellContent.value));
         const offset = offsets[number];
-        const mapResult = cell.source.map(offset, true);
+        const mapResult = cellContent.map(offset, true);
         const { line } = locF(offset);
         e.message = (e.message as string).replace(
           m[0],
