@@ -13,7 +13,7 @@ import { fetcher } from "../command/tools/tools/chromium.ts";
 // deno-lint-ignore no-explicit-any
 let puppeteerImport: any = undefined;
 // deno-lint-ignore prefer-const
-let puppeteerUrl = "https://deno.land/x/puppeteer@9.0.2/mod.ts";
+let puppeteerUrl = "puppeteer/mod.ts";
 export async function getPuppeteer() {
   if (puppeteerImport !== undefined) {
     return puppeteerImport;
