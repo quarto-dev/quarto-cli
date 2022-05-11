@@ -6,6 +6,14 @@
 */
 
 export function joinUrl(baseUrl: string, path: string) {
-  const joined = `${baseUrl}/${path}`;
-  return joined.replace(/\/\//g, "/");
+  const baseHasSlash = baseUrl.endsWith("/");
+  const pathHasSlash = path.startsWith("/");
+
+  if (baseHasSlash && pathHasSlash) {
+    return `${baseUrl}${path.slice(1)}`;
+  } else if (!baseHasSlash && !pathHasSlash) {
+    return `${baseUrl}/${path}`;
+  } else {
+    return `${baseUrl}${path}`;
+  }
 }
