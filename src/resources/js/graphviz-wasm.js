@@ -14,9 +14,8 @@
  *
  */
 
-import { resourcePath } from "../../core/resources.ts";
-import { join } from "path/mod.ts";
-import { asDataUrl } from "../../core/data-url.ts";
+/*import { resourcePath } from "../../core/resources.ts";
+import { asDataUrl } from "../../core/data-url.ts";*/
 
 const exportVals = {};
 
@@ -28,18 +27,19 @@ export function graphvizSync() {
   return exportVals.graphvizSync;
 }
 
+export function wasmPath() {
+  return `${Deno.env.get("QUARTO_SHARE_PATH")}/wasm/graphvizlib.wasm`;
+}
+
 export function graphvizWasmModule() {
-  const gvWasmSrc = Deno.readFileSync(
-    resourcePath(join("wasm", "graphvizlib.wasm"))
-  );
+  const gvWasmSrc = Deno.readFileSync(wasmPath());
   return new WebAssembly.Module(gvWasmSrc);
 }
 
 export function graphvizWasm() {
-  const gvWasmSrc = Deno.readFileSync(
-    resourcePath(join("wasm", "graphvizlib.wasm"))
-  ).buffer;
-  return asDataUrl(gvWasmSrc, "application/wasm");
+  throw new Error("I bet we don't trigger this.");
+  /*const gvWasmSrc = Deno.readFileSync(wasmPath()).buffer;
+  return asDataUrl(gvWasmSrc, "application/wasm");*/
 }
 
 !(function (r, e) {
@@ -3199,7 +3199,7 @@ export function graphvizWasm() {
               G(r);
             }
           }
-          C = graphvizWasm();
+          // C = graphvizWasm();
           (o.preloadedImages = {}), (o.preloadedAudios = {}); // ,
           // q(C) || ((z = C), (C = o.locateFile ? o.locateFile(z, l) : l + z));
           var J,

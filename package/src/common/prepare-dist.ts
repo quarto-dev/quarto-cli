@@ -103,7 +103,7 @@ function supportingFiles(config: Configuration) {
     },
     {
       from: join(config.directoryInfo.src, "resources", "vendor"),
-      to: config.directoryInfo.bin,
+      to: join(config.directoryInfo.bin, "vendor"),
     },
   ];
 

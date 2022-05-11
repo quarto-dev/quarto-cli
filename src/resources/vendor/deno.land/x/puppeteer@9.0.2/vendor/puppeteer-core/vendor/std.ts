@@ -1,10 +1,13 @@
 export {
   decode as base64Decode,
   encode as base64Encode,
-} from "encoding/base64.ts";
-export { concat as concatUint8Array } from "bytes/mod.ts";
-export { join as pathJoin, resolve as pathResolve } from "path/mod.ts";
-export { readLines } from "io/mod.ts";
-export { exists, existsSync } from "fs/exists.ts";
-export { copy as copyDir } from "fs/copy.ts";
-export { sprintf } from "fmt/printf.ts";
+} from "https://deno.land/std@0.93.0/encoding/base64.ts";
+export { concat as concatUint8Array } from "https://deno.land/std@0.93.0/bytes/mod.ts";
+export {
+  join as pathJoin,
+  resolve as pathResolve,
+} from "https://deno.land/std@0.93.0/path/mod.ts";
+export { readLines } from "https://deno.land/std@0.93.0/io/mod.ts";
+export { exists, existsSync } from "https://deno.land/std@0.93.0/fs/exists.ts";
+export { copy as copyDir } from "https://deno.land/std@0.93.0/fs/copy.ts";
+export { sprintf } from "https://deno.land/std@0.93.0/fmt/printf.ts";
