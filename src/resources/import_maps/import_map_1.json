@@ -1,0 +1,22 @@
+{
+  "imports": {
+    "https://dev.jspm.io/": "../../../Resources/quarto/share/vendor/dev.jspm.io/",
+    "https://dev.jspm.io/jszip@3.5.0": "../../../Resources/quarto/share/vendor/dev.jspm.io/jszip@3.5.0.js",
+    "puppeteer/": "../../../Resources/quarto/share/vendor/deno.land/x/puppeteer@9.0.2/"
+  },
+  "scopes": {
+    "../../../Resources/quarto/share/vendor/dev.jspm.io/": {
+      "/npm:@jspm/core@1.1.1/nodelibs/": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_@jspm/core@1.1.1/nodelibs/",
+      "/npm:@jspm/core@1/nodelibs/": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_@jspm/core@1/nodelibs/",
+      "/npm:immediate@3.0.6/": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_immediate@3.0.6/",
+      "/npm:immediate@3.0?dew": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_immediate@3.0.js",
+      "/npm:jszip@3.5.0/": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_jszip@3.5.0/",
+      "/npm:lie@3.3.0/": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_lie@3.3.0/",
+      "/npm:lie@3.3?dew": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_lie@3.3.js",
+      "/npm:pako@1.0.11/": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_pako@1.0.11/",
+      "/npm:pako@1.0?dew": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_pako@1.0.js",
+      "/npm:set-immediate-shim@1.0.1/": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_set-immediate-shim@1.0.1/",
+      "/npm:set-immediate-shim@1.0?dew": "../../../Resources/quarto/share/vendor/dev.jspm.io/npm_set-immediate-shim@1.0.js"
+    }
+  }
+}
