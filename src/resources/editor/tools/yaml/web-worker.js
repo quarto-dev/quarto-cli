@@ -7528,7 +7528,18 @@ try {
             tags: {
               engine: "knitr"
             },
-            schema: "string",
+            schema: {
+              anyOf: [
+                "string",
+                {
+                  schema: {
+                    null: {
+                      completions: []
+                    }
+                  }
+                }
+              ]
+            },
             description: {
               short: "Width of plot in the output document",
               long: "Width of the plot in the output document, which can be different from its physical `fig-width`,\ni.e., plots can be scaled in the output document.\nDepending on the output format, this option can take special values.\nFor example, for LaTeX output, it can be `.8\\\\linewidth`, `3in`, or `8cm`;\nfor HTML, it can be `300px`.\n"
@@ -18748,8 +18759,8 @@ try {
           }
         ],
         "handlers/languages.yml": [
-          "include",
           "mermaid",
+          "include",
           "dot"
         ],
         "handlers/lang-comment-chars.yml": {

@@ -95,7 +95,12 @@
 - name: out-width
   tags:
     engine: knitr
-  schema: string
+  schema:
+    anyOf:
+      - string
+      - schema:
+          null:
+            completions: []
   description:
     short: "Width of plot in the output document"
     long: |
