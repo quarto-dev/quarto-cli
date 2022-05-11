@@ -39,6 +39,9 @@ $navbar-bg: theme-override-value(
   $navbar-default
 ) !default;
 
+$btn-bg: if(variable-exists(secondary), $secondary, #6c757d) !default;
+$btn-fg: theme-contrast($btn-bg, $btn-bg) !default;
+
 $white: #ffffff !default;
 $gray-900: #212529 !default;
 $body-contrast-bg: if(variable-exists(body-bg), $body-bg, $white);

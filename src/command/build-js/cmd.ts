@@ -6,7 +6,6 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
-import { copy } from "fs/copy.ts";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildIntelligenceResources } from "../../core/schema/build-schema-file.ts";

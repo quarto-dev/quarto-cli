@@ -402,24 +402,20 @@ export async function extractResourceDescriptionsFromOJSChunk(
     !description.filename.endsWith(".qmd")
   );
 
-  // convert relative resolved paths to relative paths
+  // convert resolved paths to relative paths
   result = result.map((description) => {
     const { referent, resourceType, importPath, pathType } = description;
-    if (pathType === "relative") {
-      let relName = relative(mdDir, description.filename);
-      if (!relName.startsWith(".")) {
-        relName = `./${relName}`;
-      }
-      return {
-        filename: relName,
-        referent,
-        importPath,
-        pathType,
-        resourceType,
-      };
-    } else {
-      return description;
+    let relName = relative(mdDir, description.filename);
+    if (!relName.startsWith(".")) {
+      relName = `./${relName}`;
     }
+    return {
+      filename: relName,
+      referent,
+      importPath,
+      pathType,
+      resourceType,
+    };
   });
 
   result.push(...fileAttachments.map(({ filename, referent }) => {

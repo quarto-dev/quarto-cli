@@ -38,12 +38,13 @@ export async function resolveFileResources(
   fileDir: string,
   markdown: string,
   globs: string[],
+  skipOjsDiscovery?: boolean,
 ): Promise<ResolvedPathGlobs> {
   const ignore = engineIgnoreGlobs()
     .concat(kQuartoScratch + "/")
     .concat(["**/.*", "**/.*/**"]); // hidden (dot prefix))
   const resources = resolvePathGlobs(fileDir, globs, ignore);
-  if (markdown.length > 0) {
+  if (markdown.length > 0 && !skipOjsDiscovery) {
     resources.include.push(
       ...(await extractResolvedResourceFilenamesFromQmd(
         asMappedString(markdown),
@@ -67,6 +68,7 @@ export function resourceFilesFromRenderedFile(
     renderedFile.selfContained,
     renderedFile.supporting,
     partitioned,
+    true,
   );
 }
 
@@ -77,6 +79,7 @@ export async function resourceFilesFromFile(
   selfContained: boolean,
   supporting?: string[],
   partitioned?: PartitionedMarkdown,
+  skipOjsDiscovery?: boolean,
 ) {
   const resourceDir = join(baseDir, dirname(file));
   const markdown = partitioned ? partitioned.markdown : "";
@@ -86,6 +89,7 @@ export async function resourceFilesFromFile(
     resourceDir,
     markdown,
     globs,
+    skipOjsDiscovery,
   );
 
   // add the explicitly discovered files (if they exist and

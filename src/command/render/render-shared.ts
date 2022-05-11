@@ -18,7 +18,7 @@ import {
 import { renderProject } from "./project.ts";
 import { renderFiles } from "./render-files.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
-import { RenderOptions, RenderResult, RenderServices } from "./types.ts";
+import { RenderOptions, RenderResult } from "./types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import {
   isJupyterHubServer,
