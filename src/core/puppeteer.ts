@@ -212,18 +212,31 @@ async function fetchBrowser() {
   // Cook up a new instance
   const browserFetcher = await fetcher();
   const availableRevisions = await browserFetcher.localRevisions();
-  const isChromiumInstalled = availableRevisions.length > 0;
-  const executablePath = !isChromiumInstalled ? await findChrome() : undefined;
-  if (isChromiumInstalled || executablePath) {
-    const puppeteer = await getPuppeteer();
-    return await puppeteer.launch({
-      product: "chrome",
-      executablePath,
-    });
-  } else {
+
+  let executablePath: string | undefined = undefined;
+
+  if (availableRevisions.length > 0) {
+    // get the latest available revision
+    availableRevisions.sort((a: string, b: string) => Number(b) - Number(a));
+    const revision = availableRevisions[0];
+    const revisionInfo = browserFetcher.revisionInfo(revision);
+    executablePath = revisionInfo.executablePath;
+  }
+
+  if (executablePath === undefined) {
+    executablePath = await findChrome();
+  }
+
+  if (executablePath === undefined) {
     warning(
       "Capturing of embedded web content disabled (chromium not installed)",
     );
     return undefined;
   }
+
+  const puppeteer = await getPuppeteer();
+  return await puppeteer.launch({
+    product: "chrome",
+    executablePath,
+  });
 }
