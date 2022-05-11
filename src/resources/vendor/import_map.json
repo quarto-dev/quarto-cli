@@ -1,6 +1,6 @@
 {
   "imports": {
-    "puppeteer/": "./deno.land/x/puppeteer@9.0.2",
+    "puppeteer/": "./deno.land/x/puppeteer@9.0.2/",
     "https://dev.jspm.io/": "./dev.jspm.io/",
     "https://dev.jspm.io/jszip@3.5.0": "./dev.jspm.io/jszip@3.5.0.js"
   },
