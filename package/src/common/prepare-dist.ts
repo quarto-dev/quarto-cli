@@ -101,6 +101,10 @@ function supportingFiles(config: Configuration) {
       from: join(config.directoryInfo.src, "resources"),
       to: config.directoryInfo.share,
     },
+    {
+      from: join(config.directoryInfo.src, "resources", "vendor"),
+      to: config.directoryInfo.bin,
+    },
   ];
 
   // Gather supporting files
@@ -117,6 +121,7 @@ function supportingFiles(config: Configuration) {
   // compiled later
   const pathsToClean = [
     join(config.directoryInfo.share, "filters"),
+    join(config.directoryInfo.share, "vendor"),
   ];
   pathsToClean.forEach((path) => Deno.removeSync(path, { recursive: true }));
 }

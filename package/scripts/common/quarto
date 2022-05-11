@@ -66,18 +66,16 @@ else
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
   export QUARTO_BIN_PATH=$SCRIPT_PATH
 
+  QUARTO_IMPORT_ARGMAP=--importmap=$SCRIPT_PATH/vendor/import_map.json
 
   # If Quarto is bundled into an `.app` file, it will be looking for the 
   # share directory over in the resources folder.
   if [[ $SCRIPT_PATH == *"/Contents/MacOS/quarto/bin" ]]; then
     export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../Resources/quarto/share";pwd`"
-    QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SHARE_PATH/import_maps/import_map_1.json
   elif [[ $SCRIPT_PATH == *"/usr/local/bin/quarto" ]]; then
     export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../share/quarto";pwd`"
-    QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SHARE_PATH/import_maps/import_map_2.json
   else
     export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
-    QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SHARE_PATH/import_maps/import_map_3.json
   fi
 
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then

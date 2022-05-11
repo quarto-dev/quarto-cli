@@ -69,7 +69,7 @@ IF EXIST "%QUARTO_TS_PATH%" (
 	SET QUARTO_TARGET="%SCRIPT_DIR%quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_DIR%"
 	SET "QUARTO_SHARE_PATH=%SCRIPT_DIR%..\share"
-	SET QUARTO_IMPORT_ARGMAP=--importmap="%QUARTO_SHARE_PATH%\import_maps\import_map_windows.json"
+	SET QUARTO_IMPORT_ARGMAP=--importmap="%SCRIPT_DIR%\vendor\import_map.json"
 )
 
 IF "%1"=="--paths" (
