@@ -132,12 +132,12 @@ async function confirmDestructiveAction(
       }
     } else {
       info(
-        `${name} isn't installed. Please use 'quarto install ${name} to install it.`,
+        `${name} isn't installed. Please use 'quarto tools install ${name}' to install it.`,
       );
     }
   } else {
     info(
-      `${name} isn't a supported tool. Use 'quarto install help' for more information.`,
+      `${name} isn't a supported tool. Use 'quarto tools help' for more information.`,
     );
   }
 }
