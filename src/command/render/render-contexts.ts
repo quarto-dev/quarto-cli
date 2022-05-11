@@ -240,9 +240,8 @@ export async function renderContexts(
         temp: options.services.temp,
         format: context.format,
         markdown: context.target.markdown,
-        source: context.target.source,
+        context,
         stage: "pre-engine",
-        engine,
       };
 
       const { markdown, results } = await handleLanguageCells(

@@ -376,9 +376,8 @@ export async function renderFiles(
           temp: tempContext,
           format: recipe.format,
           markdown: mappedMarkdown,
-          source: context.target.source,
+          context,
           stage: "post-engine",
-          engine: context.engine,
         };
 
         // handle language cells

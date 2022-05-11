@@ -67,9 +67,11 @@ import {
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative, resolve } from "path/mod.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";
+import { mappedStringFromFile } from "../mapped-text.ts";
+import { error } from "log/mod.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -89,13 +91,39 @@ function makeHandlerContext(
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
     options,
+    cellContent(cell: QuartoMdCell): MappedString {
+      if (typeof cell?.options?.file === "string") {
+        // FIXME this file location won't be changed under include fixups...
+        try {
+          return mappedStringFromFile(
+            context.resolvePath(cell?.options?.file),
+          );
+        } catch (e) {
+          error(`Couldn't open file ${cell?.options?.file}`);
+          throw e;
+        }
+      } else {
+        return cell.source;
+      }
+    },
+    resolvePath(path: string): string {
+      const sourceDir = dirname(options.context.target.source);
+      const rootDir = options.context.project?.dir || sourceDir;
+      if (path.startsWith("/")) {
+        // it's a root-relative path
+        return resolve(rootDir, `.${path}`);
+      } else {
+        // it's a relative path
+        return resolve(sourceDir, path);
+      }
+    },
     uniqueFigureName(prefix?: string, extension?: string) {
       prefix = prefix || "figure-";
       extension = extension || ".png";
 
       const pngName = `mermaid-figure-${++globalFigureCounter}.png`;
       const tempName = join(context.figuresDir(), pngName);
-      const mdName = relative(dirname(context.options.source), tempName);
+      const mdName = relative(dirname(options.context.target.source), tempName);
 
       return {
         sourceName: mdName,
@@ -103,7 +131,7 @@ function makeHandlerContext(
       };
     },
     figuresDir() {
-      const file = Deno.realPathSync(context.options.source);
+      const file = Deno.realPathSync(options.context.target.source);
       const filesDir = join(dirname(file), inputFilesDir(file));
       const result = join(
         filesDir,

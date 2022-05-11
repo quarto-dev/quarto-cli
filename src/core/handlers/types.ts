@@ -1,3 +1,4 @@
+import { RenderContext } from "../../command/render/types.ts";
 import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -16,20 +17,55 @@ export type PandocIncludeType =
 
 export interface LanguageCellHandlerOptions {
   name: string; // language name
-  source: string;
-  format: Format;
-  markdown: MappedString;
   temp: TempContext;
   stage: "pre-engine" | "post-engine";
-  engine: ExecutionEngine;
+
+  // document format. Note that this is different from context.format
+  // when stage = "post-engine", since pre-engine handlers
+  // can cause the recipe format to change.
+  format: Format;
+
+  // document markdown. Note that this is different from
+  // context.target.markdown when stage == "post-engine", since engines and pre-engine
+  // handlers generally change the markdown
+  markdown: MappedString;
+
+  context: RenderContext;
 }
+
 export interface LanguageCellHandlerContext {
   options: LanguageCellHandlerOptions;
 
+  /**
+   * Returns the contents of a cell, using the `file` option when possible to
+   * resolve the content
+   *
+   * @param cell the md cell to extract the content from
+   */
+  cellContent(cell: QuartoMdCell): MappedString;
+
+  /**
+   * Resolves a path name. This handles root-relative paths vs relative paths as well as
+   * project contexts vs single-file contexts.
+   *
+   * @param path input path
+   * @return an absolute path in the file system
+   */
+  resolvePath(path: string): string;
+
+  /**
+   * @return
+   *   - sourceName: string. path relative to the source, to be included in the output
+   *   - fullName: string. full path, to be used to create the file
+   */
   uniqueFigureName(prefix?: string, extension?: string): {
-    sourceName: string; // path relative to the source, to be included in the output
-    fullName: string; // full path, to be used to create the file
+    sourceName: string;
+    fullName: string;
   };
+
+  /**
+   * @return the directory to be used for placing figures
+   */
   figuresDir(): string;
 
   addResource: (name: string, contents: string) => void;
