@@ -436,7 +436,6 @@ export async function extractResourceDescriptionsFromOJSChunk(
       resourceType: "FileAttachment",
     }) as ResourceDescription;
   }));
-  console.log({ result });
   return result;
 }
 
