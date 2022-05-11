@@ -483,12 +483,13 @@ knitr_plot_hook <- function(format) {
       keyvalue <- c(keyvalue, "fig-pos='H'")
     }
     fig.alt <- options[["fig.alt"]]
+    escapeAttr <- function(x) gsub("'", "\\'", x, fixed = TRUE)
     if (!is.null(fig.alt) && nzchar(fig.alt)) {
-       keyvalue <- c(keyvalue, sprintf("fig-alt='%s'", fig.alt))
+       keyvalue <- c(keyvalue, sprintf("fig-alt='%s'", escapeAttr(fig.alt)))
     }
     fig.scap <- options[['fig.scap']]
     if (!is.null(fig.scap)) {
-      keyvalue <- c(keyvalue, sprintf("fig-scap='%s'", fig.scap))
+      keyvalue <- c(keyvalue, sprintf("fig-scap='%s'", escapeAttr(fig.scap)))
     }
     resize.width <- options[['resize.width']]
     if (!is.null(resize.width)) {

@@ -1459,7 +1459,7 @@ function mdImageOutput(
           // deno-lint-ignore no-explicit-any
           const value = (figureOptions as any)[attrib];
           if (value) {
-            image += `${attrib}='${value}' `;
+            image += `${attrib}='${value.replaceAll("'", "\\'")}' `;
           }
         },
       );
