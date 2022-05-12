@@ -101,13 +101,7 @@ export async function preview(
     const services = renderServices();
     try {
       isRendering = true;
-      return await renderForPreview(
-        file,
-        services,
-        flags,
-        pandocArgs,
-        options[kProjectWatchInputs],
-      );
+      return await renderForPreview(file, services, flags, pandocArgs);
     } finally {
       isRendering = false;
       services.cleanup();
@@ -324,7 +318,6 @@ async function renderForPreview(
   services: RenderServices,
   flags: RenderFlags,
   pandocArgs: string[],
-  watchingInputs?: boolean,
 ): Promise<RenderForPreviewResult> {
   // render
   const renderResult = await render(file, {
@@ -340,9 +333,7 @@ async function renderForPreview(
   const finalOutput = handleRenderResult(file, renderResult);
 
   // notify user we are watching for reload
-  if (watchingInputs) {
-    printWatchingForChangesMessage();
-  }
+  printWatchingForChangesMessage();
 
   // determine files to watch for reload -- take the resource
   // files detected during render, chase down additional references
