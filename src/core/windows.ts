@@ -7,7 +7,8 @@
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { quartoCacheDir } from "./appdirs.ts";
-import { execProcess } from "./process.ts";
+import { removeIfExists } from "./path.ts";
+import { execProcess, ProcessResult } from "./process.ts";
 import {
   kHKeyCurrentUser,
   kHKeyLocalMachine,
@@ -19,21 +20,28 @@ export async function readRegistryKey(
   keyname: string | "(Default)",
 ) {
   // Build the the reg command
-  const cmd = ["reg.exe", "query", registryPath];
+  const args = ["query", registryPath];
   if (keyname === "(Default)") {
-    cmd.push("/ve");
+    args.push("/ve");
     keyname = "\\(Default\\)";
   } else {
-    cmd.push("/v");
-    cmd.push(keyname);
+    args.push("/v");
+    args.push(keyname);
   }
 
-  // Run the command
-  const result = await execProcess({
-    cmd,
-    stdout: "piped",
-    stderr: "piped",
-  });
+  // Run the command handling quotes on Windows
+  const safeArgs = requireQuoting(args);
+  const result = await safeWindowsExec(
+    "reg.exe",
+    safeArgs.args,
+    (cmd: string[]) => {
+      return execProcess({
+        cmd,
+        stdout: "piped",
+        stderr: "piped",
+      });
+    },
+  );
 
   // Check the result
   if (result.success) {
@@ -103,5 +111,48 @@ export function readCodePage() {
       // We couldn't read the cache at all, so just give up
       return undefined;
     }
+  }
+}
+
+// On Windows, determine and apply double quoting on args that needs it
+// Do nothing on other OS.
+export function requireQuoting(
+  args: string[],
+) {
+  let requireQuoting = false;
+  if (Deno.build.os === "windows") {
+    // On Windows, we need to check if arguments may need quoting to avoid issue with Deno.Run()
+    // https://github.com/quarto-dev/quarto-cli/issues/336
+    const shellCharReg = new RegExp("[ <>()|\\:&;#?*']");
+    args = args.map((a) => {
+      if (shellCharReg.test(a)) {
+        requireQuoting = true;
+        return `"${a}"`;
+      } else {
+        return a;
+      }
+    });
+  }
+  return {
+    status: requireQuoting,
+    args: args,
+  };
+}
+
+// Execute a program on Windows by writing command line
+// to a tempfile and execute the file with CMD
+export async function safeWindowsExec(
+  program: string,
+  args: string[],
+  fnExec: (cmdExec: string[]) => Promise<ProcessResult>,
+) {
+  const tempFile = Deno.makeTempFileSync(
+    { prefix: "quarto-safe-exec", suffix: ".bat" },
+  );
+  try {
+    Deno.writeTextFileSync(tempFile, [program, ...args].join(" ") + "\n");
+    return await fnExec(["cmd", "/c", tempFile]);
+  } finally {
+    removeIfExists(tempFile);
   }
 }
