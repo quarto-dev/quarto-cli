@@ -13,11 +13,14 @@ import { isJavascriptCompatible } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat, mappedIndexToRowCol } from "../lib/mapped-text.ts";
 
-import { extractImagesFromElements } from "../puppeteer.ts";
 import { lineOffsets } from "../lib/text.ts";
-import { kFigResponsive } from "../../config/constants.ts";
-import { makeResponsive } from "../svg.ts";
-import { DOMParser, getDomParser } from "../deno-dom.ts";
+import {
+  kFigHeight,
+  kFigResponsive,
+  kFigWidth,
+} from "../../config/constants.ts";
+import { makeResponsive, resolveSize, setSvgSize } from "../svg.ts";
+import { parseHtml } from "../deno-dom.ts";
 
 const dotHandler: LanguageHandler = {
   ...baseHandler,
@@ -76,52 +79,37 @@ const dotHandler: LanguageHandler = {
     }
 
     if (isJavascriptCompatible(handlerContext.options.format)) {
-      const responsive = handlerContext.options.context.format.metadata
-        ?.[kFigResponsive];
+      const responsive = options?.[kFigResponsive] ??
+        handlerContext.options.context.format.metadata
+          ?.[kFigResponsive];
 
-      if (responsive) {
+      svg = (await parseHtml(svg)).querySelector("svg")!.outerHTML;
+      if (
+        responsive && options[kFigWidth] === undefined &&
+        options[kFigHeight] === undefined
+      ) {
         svg = await makeResponsive(svg);
+      } else {
+        svg = await setSvgSize(svg, options);
       }
 
-      return this.build(
-        handlerContext,
-        cell,
-        mappedConcat(["```{=html}\n", svg, "\n```"]),
-        options,
-      );
+      return this.build(handlerContext, cell, svg, options);
     } else {
-      const dom = (await getDomParser()).parseFromString(svg, "text/html");
-      const svgEl = dom?.querySelector("svg");
-      const width = svgEl?.getAttribute("width");
-      const height = svgEl?.getAttribute("height");
-      if (!width || !height) {
-        throw new Error("Internal error: couldn't find figure dimensions");
-      }
-      const widthInInches = Number(width.slice(0, -2)) / 96; // https://graphviz.org/docs/attrs/dpi/
-      const heightInInches = Number(height.slice(0, -2)) / 96;
+      const {
+        filenames: [sourceName],
+      } = await handlerContext.createPngsFromHtml({
+        prefix: "dot-figure-",
+        selector: "svg",
+        count: 1,
+        deviceScaleFactor: Number(options.deviceScaleFactor) || 4,
+        html: `<!DOCTYPE html><html><body>${svg}</body></html>`,
+      });
 
-      // create puppeteer target page
-      const dirName = handlerContext.options.temp.createDir();
-      const content = `<!DOCTYPE html><html><body>${svg}</body></html>`;
-      const fileName = join(dirName, "index.html");
-      Deno.writeTextFileSync(fileName, content);
-      const url = `file://${fileName}`;
-      const selector = "svg";
+      const {
+        widthInInches,
+        heightInInches,
+      } = await resolveSize(svg, options);
 
-      const { sourceName, fullName: tempName } = handlerContext
-        .uniqueFigureName("dot-figure-", ".png");
-      await extractImagesFromElements(
-        {
-          url,
-          viewport: {
-            width: 800,
-            height: 600,
-            deviceScaleFactor: Number(options.deviceScaleFactor) || 4,
-          },
-        },
-        selector,
-        [tempName],
-      );
       return this.build(
         handlerContext,
         cell,

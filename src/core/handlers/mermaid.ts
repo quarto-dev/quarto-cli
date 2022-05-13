@@ -18,17 +18,14 @@ import {
   isMarkdownOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
+import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
+import { makeResponsive, resolveSize, setSvgSize } from "../svg.ts";
 import {
-  asMappedString,
-  mappedConcat,
-  MappedString,
-} from "../lib/mapped-text.ts";
-
-import {
-  extractHtmlFromElements,
-  extractImagesFromElements,
-} from "../puppeteer.ts";
-import { mappedStringFromFile } from "../mapped-text.ts";
+  kFigHeight,
+  kFigResponsive,
+  kFigWidth,
+} from "../../config/constants.ts";
+import { Element } from "../deno-dom.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -60,7 +57,6 @@ const mermaidHandler: LanguageHandler = {
   ) {
     const cellContent = handlerContext.cellContent(cell);
     // create puppeteer target page
-    const tempDirName = handlerContext.options.temp.createDir();
     const content = `<html>
     <head>
     <script src="./mermaid.min.js"></script>
@@ -71,18 +67,59 @@ const mermaidHandler: LanguageHandler = {
     mermaid.initialize();
     </script>
     </html>`;
-    const fileName = join(tempDirName, "index.html");
-    Deno.writeTextFileSync(fileName, content);
-    Deno.copyFileSync(
-      formatResourcePath("html", join("mermaid", "mermaid.min.js")),
-      join(tempDirName, "mermaid.min.js"),
-    );
-    const url = `file://${fileName}`;
     const selector = "pre.mermaid svg";
+    const resources: [string, string][] = [[
+      "mermaid.min.js",
+      Deno.readTextFileSync(
+        formatResourcePath("html", join("mermaid", "mermaid.min.js")),
+      ),
+    ]];
 
     if (isJavascriptCompatible(handlerContext.options.format)) {
-      const svgText = (await extractHtmlFromElements(url, selector))[0];
-      return this.build(handlerContext, cell, asMappedString(svgText), options);
+      let svg = asMappedString(
+        (await handlerContext.extractHtml({
+          html: content,
+          selector,
+          resources,
+        }))[0],
+      );
+      const responsive = handlerContext.options.context.format.metadata
+        ?.[kFigResponsive];
+
+      const fixupMermaidSvg = (svg: Element) => {
+        // replace mermaid id with a consistent one.
+        const { baseName: newId } = handlerContext.uniqueFigureName(
+          "mermaid-figure-",
+          "",
+        );
+        const oldId = svg.getAttribute("id") as string;
+        svg.setAttribute("id", newId);
+        const style = svg.querySelector("style")!;
+        style.innerHTML = style.innerHTML.replaceAll(oldId, newId);
+      };
+
+      if (
+        responsive && options[kFigWidth] === undefined &&
+        options[kFigHeight] === undefined
+      ) {
+        svg = await makeResponsive(svg, fixupMermaidSvg);
+      } else {
+        svg = await setSvgSize(svg, options, (svg: Element) => {
+          // mermaid comes with too much styling wrt to max width. remove it.
+          svg.removeAttribute("style");
+
+          fixupMermaidSvg(svg);
+        });
+      }
+
+      return this.build(
+        handlerContext,
+        cell,
+        svg,
+        options,
+        undefined,
+        new Set(["fig-width", "fig-height"]),
+      );
     } else if (
       isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
     ) {
@@ -91,16 +128,36 @@ const mermaidHandler: LanguageHandler = {
         cell,
         mappedConcat(["\n``` mermaid\n", cellContent, "\n```\n"]),
         options,
+        undefined,
+        new Set(["fig-width", "fig-height"]),
       );
     } else {
-      const { sourceName, fullName: tempName } = handlerContext
-        .uniqueFigureName("dot-figure-", ".png");
-      await extractImagesFromElements(url, selector, [tempName]);
+      const {
+        filenames: [sourceName],
+        elements: [svgText],
+      } = await handlerContext.createPngsFromHtml({
+        prefix: "mermaid-figure-",
+        selector,
+        count: 1,
+        deviceScaleFactor: Number(options.deviceScaleFactor) || 4,
+        html: content,
+        resources,
+      });
+
+      const {
+        widthInInches,
+        heightInInches,
+      } = await resolveSize(svgText, options);
+
       return this.build(
         handlerContext,
         cell,
-        mappedConcat([`\n![](${sourceName}){fig-pos='H'}\n`]),
+        mappedConcat([
+          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in" fig-pos='H'}\n`,
+        ]),
         options,
+        undefined,
+        new Set(["fig-width", "fig-height"]),
       );
     }
   },

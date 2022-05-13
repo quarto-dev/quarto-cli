@@ -33,9 +33,7 @@ import {
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 import {
   pandocBlock,
-  pandocFigCaption,
   pandocHtmlBlock,
-  PandocNode,
   pandocRawStr,
 } from "../pandoc/codegen.ts";
 
@@ -68,15 +66,19 @@ import {
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
-import { dirname, join, relative, resolve } from "path/mod.ts";
+import { basename, dirname, join, relative, resolve } from "path/mod.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
+import {
+  extractHtmlFromElements,
+  extractImagesFromElements,
+} from "../puppeteer.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
-let globalFigureCounter = 0;
+const globalFigureCounter: Record<string, number> = {};
 
 function makeHandlerContext(
   options: LanguageCellHandlerOptions,
@@ -92,6 +94,89 @@ function makeHandlerContext(
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
     options,
+
+    async extractHtml(opts: {
+      html: string;
+      selector: string;
+      resources?: [string, string][];
+    }): Promise<string[]> {
+      const {
+        html: content,
+        selector,
+      } = opts;
+      const nonEmptyHtmlResources: [string, string][] = opts.resources ||
+        [];
+      const dirName = context.options.temp.createDir();
+      // create temporary resources
+      for (const [name, content] of nonEmptyHtmlResources) {
+        Deno.writeTextFileSync(join(dirName, name), content);
+      }
+      const fileName = join(dirName, "index.html");
+      Deno.writeTextFileSync(fileName, content);
+      const url = `file://${fileName}`;
+      const result = await extractHtmlFromElements(
+        url,
+        selector,
+      );
+      return result;
+    },
+
+    async createPngsFromHtml(opts: {
+      prefix: string;
+      html: string;
+      deviceScaleFactor: number;
+      selector: string;
+      count: number;
+      resources?: [string, string][];
+    }): Promise<{
+      filenames: string[];
+      elements: string[];
+    }> {
+      const {
+        prefix,
+        html: content,
+        deviceScaleFactor,
+        selector,
+        count,
+      } = opts;
+      const nonEmptyHtmlResources: [string, string][] = opts.resources ||
+        [];
+      const dirName = context.options.temp.createDir();
+
+      // create temporary figure names
+      const tempNames: string[] = [],
+        sourceNames: string[] = [];
+      for (let i = 0; i < count; ++i) {
+        const { sourceName, fullName: tempName } = context
+          .uniqueFigureName(prefix, ".png");
+        sourceNames.push(sourceName);
+        tempNames.push(tempName);
+      }
+      // create temporary resources
+      for (const [name, content] of nonEmptyHtmlResources) {
+        Deno.writeTextFileSync(join(dirName, name), content);
+      }
+      const fileName = join(dirName, "index.html");
+      Deno.writeTextFileSync(fileName, content);
+      const url = `file://${fileName}`;
+      const elements = await extractImagesFromElements(
+        {
+          url,
+          viewport: {
+            width: 800,
+            height: 600,
+            deviceScaleFactor,
+          },
+        },
+        selector,
+        tempNames,
+      );
+      return {
+        filenames: sourceNames,
+        elements,
+      };
+    },
+
     cellContent(cell: QuartoMdCell): MappedString {
       if (typeof cell?.options?.file === "string") {
         // FIXME this file location won't be changed under include fixups...
@@ -119,14 +204,21 @@ function makeHandlerContext(
       }
     },
     uniqueFigureName(prefix?: string, extension?: string) {
-      prefix = prefix || "figure-";
-      extension = extension || ".png";
+      prefix = prefix ?? "figure-";
+      extension = extension ?? ".png";
 
-      const pngName = `mermaid-figure-${++globalFigureCounter}.png`;
+      if (!globalFigureCounter[prefix]) {
+        globalFigureCounter[prefix] = 1;
+      } else {
+        globalFigureCounter[prefix]++;
+      }
+
+      const pngName = `${prefix}${globalFigureCounter[prefix]}${extension}`;
       const tempName = join(context.figuresDir(), pngName);
       const mdName = relative(dirname(options.context.target.source), tempName);
 
       return {
+        baseName: basename(mdName),
         sourceName: mdName,
         fullName: tempName,
       };
@@ -413,6 +505,7 @@ export const baseHandler: LanguageHandler = {
     content: MappedString,
     options: Record<string, unknown>, // these include handler options
     extraCellOptions?: Record<string, unknown>, // these will be passed directly to getDivAttributes
+    skipOptions?: Set<string>, // these will _not_ be serialized in the cell even if they're in the options
   ): MappedString {
     // split content into front matter vs input
     const contentLines = mappedLines(cell.sourceWithYaml!, true);
@@ -430,17 +523,10 @@ export const baseHandler: LanguageHandler = {
       }
     }
     const inputLines = contentLines.slice(inputIndex);
-    const hasFigureLabel = () => {
-      if (!cell.options?.label) {
-        return false;
-      }
-      return (cell.options.label as string).startsWith("fig-");
-    };
-
     const { classes, attrs } = getDivAttributes({
       ...(extraCellOptions || {}),
       ...cell.options,
-    });
+    }, skipOptions);
 
     const q3 = pandocBlock(":::");
     const t3 = pandocBlock("```");
@@ -516,8 +602,18 @@ export const baseHandler: LanguageHandler = {
     });
     cellBlock.push(cellOutputDiv);
 
+    let figureLikeId: string;
+    if (typeof cell.options?.label === "string") {
+      figureLikeId = cell.options?.label;
+    } else {
+      const { baseName } = handlerContext.uniqueFigureName(
+        "cell-handler-fake-div-",
+        "",
+      );
+      figureLikeId = baseName;
+    }
     const figureLike = divBlock({
-      id: cell.options?.label as (string | undefined),
+      id: figureLikeId,
     });
     const cellOutput = paraBlock();
     figureLike.push(cellOutput);
@@ -538,8 +634,15 @@ export const baseHandler: LanguageHandler = {
 
 export function getDivAttributes(
   options: Record<string, unknown>,
+  forceSkip?: Set<string>,
 ): { attrs: string[]; classes: string[] } {
   const attrs: string[] = [];
+  if (forceSkip) {
+    options = { ...options };
+    for (const skip of forceSkip) {
+      delete options[skip];
+    }
+  }
 
   const keysToNotSerialize = new Set([
     kEcho,
