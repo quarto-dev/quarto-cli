@@ -381,6 +381,20 @@ $panel-sidebar-padding: 0.5em;
   font-size: calc(#{$revealjs-h3-font-size} / #{$presentation-font-smaller});
 }
 
+.reveal .columns > .column > * {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+}
+
+.reveal .columns > .column:first-child > * {
+  margin-right: 0.5em;
+  margin-left: 0;
+}
+.reveal .columns > .column:last-child > * {
+  margin-right: 0;
+  margin-left: 0.5em;
+}
+
 .reveal .slide-number {
   color: $link-color;
   background-color: $body-bg;
