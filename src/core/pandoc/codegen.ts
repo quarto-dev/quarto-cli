@@ -20,6 +20,7 @@ import {
 export interface PandocNode {
   emit: (s: EitherString[]) => void;
   mappedString: () => MappedString;
+  push: (n: PandocNode) => void;
 }
 
 const basePandocNode = {
@@ -31,9 +32,12 @@ const basePandocNode = {
     this.emit(ls);
     return mappedConcat(ls);
   },
+  push: () => {
+    throw new Error("unimplemented");
+  },
 };
 
-export function pandocRawStr(content: EitherString) {
+export function pandocRawStr(content: EitherString): PandocNode {
   return {
     ...basePandocNode,
     emit: (ls: EitherString[]) => ls.push(content),
@@ -46,9 +50,10 @@ export function pandocHtmlBlock(elementName: string) {
       id?: string;
       classes?: string[];
       attrs?: string[];
+      contents?: PandocNode[];
     },
-  ) {
-    let { id, classes, attrs } = opts || {};
+  ): PandocNode {
+    let { id, classes, attrs, contents } = opts || {};
     if (classes === undefined) {
       classes = [];
     }
@@ -56,7 +61,8 @@ export function pandocHtmlBlock(elementName: string) {
       attrs = [];
     }
 
-    const contents: PandocNode[] = [];
+    contents = contents || [];
+
     function attrString() {
       const strs = [];
       if (id) {
@@ -74,14 +80,14 @@ export function pandocHtmlBlock(elementName: string) {
     return {
       ...basePandocNode,
       push: function (s: PandocNode) {
-        contents.push(s);
+        contents!.push(s);
       },
       emit: function (ls: EitherString[]) {
         ls.push(`\n<${elementName} ${attrString()}>`);
         if (elementName !== "pre") {
           ls.push("\n");
         }
-        for (const entry of contents) {
+        for (const entry of contents!) {
           entry.emit(ls);
         }
         if (elementName !== "pre") {
@@ -101,9 +107,11 @@ export function pandocBlock(delimiter: string) {
       classes?: string[];
       attrs?: string[];
       skipFirstLineBreak?: boolean;
+      contents?: PandocNode[];
     } | undefined,
-  ) {
-    let { id, classes, attrs, language, skipFirstLineBreak } = opts || {};
+  ): PandocNode {
+    let { id, classes, attrs, language, skipFirstLineBreak, contents } = opts ||
+      {};
     if (classes === undefined) {
       classes = [];
     }
@@ -111,7 +119,7 @@ export function pandocBlock(delimiter: string) {
       attrs = [];
     }
 
-    const contents: PandocNode[] = [];
+    contents = contents || [];
     function attrString() {
       const strs = [];
       if (language) {
@@ -136,12 +144,12 @@ export function pandocBlock(delimiter: string) {
     return {
       ...basePandocNode,
       push: function (s: PandocNode) {
-        contents.push(s);
+        contents!.push(s);
       },
       emit: function (ls: EitherString[]) {
         const lb = skipFirstLineBreak ? "" : "\n";
         ls.push(`${lb}${delimiter}${attrString()}\n`);
-        for (const entry of contents) {
+        for (const entry of contents!) {
           entry.emit(ls);
         }
         if (!asMappedString(ls[ls.length - 1] || "\n").value.endsWith("\n")) {
