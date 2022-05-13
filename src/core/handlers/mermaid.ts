@@ -16,11 +16,18 @@ import { join } from "path/mod.ts";
 import {
   isJavascriptCompatible,
   isMarkdownOutput,
+  isRevealjsOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { asMappedString, mappedConcat } from "../lib/mapped-text.ts";
-import { makeResponsive, resolveSize, setSvgSize } from "../svg.ts";
 import {
+  fixupAlignment,
+  makeResponsive,
+  resolveSize,
+  setSvgSize,
+} from "../svg.ts";
+import {
+  kFigAlign,
   kFigHeight,
   kFigResponsive,
   kFigWidth,
@@ -86,12 +93,20 @@ const mermaidHandler: LanguageHandler = {
       const responsive = handlerContext.options.context.format.metadata
         ?.[kFigResponsive];
 
+      const fixupRevealAlignment = (svg: Element) => {
+        if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
+          const align = (options?.[kFigAlign] as string) ?? "center";
+          fixupAlignment(svg, align);
+        }
+      };
+
       const fixupMermaidSvg = (svg: Element) => {
         // replace mermaid id with a consistent one.
         const { baseName: newId } = handlerContext.uniqueFigureName(
           "mermaid-figure-",
           "",
         );
+        fixupRevealAlignment(svg);
         const oldId = svg.getAttribute("id") as string;
         svg.setAttribute("id", newId);
         const style = svg.querySelector("style")!;

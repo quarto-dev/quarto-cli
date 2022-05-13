@@ -6,6 +6,7 @@
 */
 
 import { kFigHeight, kFigWidth } from "../config/constants.ts";
+import { isRevealjsOutput } from "../config/format.ts";
 import { Element, getDomParser } from "./deno-dom.ts";
 import { EitherString, MappedString } from "./lib/text-types.ts";
 import { asMappedString, mappedDiff } from "./mapped-text.ts";
@@ -84,6 +85,23 @@ export async function resolveSize(
     heightInPoints: Math.round(heightInInches * 96),
   };
 }
+
+export const fixupAlignment = (svg: Element, align: string) => {
+  let style = svg.getAttribute("style") ?? "";
+
+  switch (align) {
+    case "left":
+      style = `${style} display: block; margin: auto auto auto 0`;
+      break;
+    case "right":
+      style = `${style} display: block; margin: auto 0 auto auto`;
+      break;
+    case "center":
+      style = `${style} display: block; margin: auto auto auto auto`;
+      break;
+  }
+  svg.setAttribute("style", style);
+};
 
 export async function setSvgSize(
   svgSrc: EitherString,

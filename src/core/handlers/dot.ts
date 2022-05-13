@@ -9,18 +9,27 @@ import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
-import { isJavascriptCompatible } from "../../config/format.ts";
+import {
+  isJavascriptCompatible,
+  isRevealjsOutput,
+} from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat, mappedIndexToRowCol } from "../lib/mapped-text.ts";
 
 import { lineOffsets } from "../lib/text.ts";
 import {
+  kFigAlign,
   kFigHeight,
   kFigResponsive,
   kFigWidth,
 } from "../../config/constants.ts";
-import { makeResponsive, resolveSize, setSvgSize } from "../svg.ts";
-import { parseHtml } from "../deno-dom.ts";
+import {
+  fixupAlignment,
+  makeResponsive,
+  resolveSize,
+  setSvgSize,
+} from "../svg.ts";
+import { Element, parseHtml } from "../deno-dom.ts";
 
 const dotHandler: LanguageHandler = {
   ...baseHandler,
@@ -78,6 +87,13 @@ const dotHandler: LanguageHandler = {
       }
     }
 
+    const fixupRevealAlignment = (svg: Element) => {
+      if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
+        const align = (options?.[kFigAlign] as string) ?? "center";
+        fixupAlignment(svg, align);
+      }
+    };
+
     if (isJavascriptCompatible(handlerContext.options.format)) {
       const responsive = options?.[kFigResponsive] ??
         handlerContext.options.context.format.metadata
@@ -88,9 +104,9 @@ const dotHandler: LanguageHandler = {
         responsive && options[kFigWidth] === undefined &&
         options[kFigHeight] === undefined
       ) {
-        svg = await makeResponsive(svg);
+        svg = await makeResponsive(svg, fixupRevealAlignment);
       } else {
-        svg = await setSvgSize(svg, options);
+        svg = await setSvgSize(svg, options, fixupRevealAlignment);
       }
 
       return this.build(handlerContext, cell, svg, options);
