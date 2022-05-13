@@ -7,7 +7,7 @@
 
 import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
-import { warning } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 import { fetcher } from "../command/tools/tools/chromium.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -228,10 +228,10 @@ async function fetchBrowser() {
   }
 
   if (executablePath === undefined) {
-    warning(
-      "Capturing of embedded web content disabled (chromium not installed)",
+    info(
+      "\nNo Chromium installation was detected.\n\nPlease run 'quarto tools install chromium' to install Chromium.\n",
     );
-    return undefined;
+    throw new Error("Chromium not found.");
   }
 
   const puppeteer = await getPuppeteer();
