@@ -65,6 +65,7 @@ IF EXIST "%QUARTO_TS_PATH%" (
 		GOTO end
 	)
 	
+	SET QUARTO_DENO_OPTIONS=--no-check
 	SET QUARTO_ACTION=run
 	SET QUARTO_TARGET="%SCRIPT_DIR%quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_DIR%"
@@ -85,7 +86,8 @@ SET NO_COLOR=TRUE
 
 set "DENO_DOM_PLUGIN=%QUARTO_BIN_PATH%\tools\deno_dom\plugin.dll"
 
-SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi
+SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi %QUARTO_DENO_OPTIONS%
+
 "%SCRIPT_DIR%\tools\deno" %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
 
 
