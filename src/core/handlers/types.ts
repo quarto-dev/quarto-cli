@@ -5,7 +5,7 @@ import {
   kIncludeInHeader,
 } from "../../config/constants.ts";
 import { DependencyFile, Format, FormatExtras } from "../../config/types.ts";
-import { ExecutionEngine, PandocIncludes } from "../../execute/types.ts";
+import { PandocIncludes } from "../../execute/types.ts";
 import { DirectiveCell, QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { EitherString, MappedString } from "../lib/text-types.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";

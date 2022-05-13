@@ -120,7 +120,7 @@ const dotHandler: LanguageHandler = {
         handlerContext,
         cell,
         mappedConcat([
-          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in"}\n`,
+          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in" fig-pos='H'}\n`,
         ]),
         options,
       );

@@ -35,6 +35,7 @@ import {
   pandocBlock,
   pandocFigCaption,
   pandocHtmlBlock,
+  PandocNode,
   pandocRawStr,
 } from "../pandoc/codegen.ts";
 
@@ -504,26 +505,31 @@ export const baseHandler: LanguageHandler = {
         break;
       }
     }
-    const cellOutput = pandocHtmlBlock("div")({
-      id: cell.options?.label as (string | undefined),
+
+    const paraBlock = pandocHtmlBlock("p");
+    const divBlock = pandocBlock(":::");
+
+    const cellOutputDiv = divBlock({
+      // id: cell.options?.label as (string | undefined),
       attrs: cellOutputAttrs,
       classes: cellOutputClasses,
     });
-    cellBlock.push(cellOutput);
+    cellBlock.push(cellOutputDiv);
+
+    const figureLike = divBlock({
+      id: cell.options?.label as (string | undefined),
+    });
+    const cellOutput = paraBlock();
+    figureLike.push(cellOutput);
+    cellOutputDiv.push(figureLike);
 
     if (options.eval === true) {
       cellOutput.push(pandocRawStr(content));
     }
     if (cell.options?.[kCellFigCap]) {
-      if (hasFigureLabel()) {
-        cellOutput.push(
-          pandocRawStr(`\n\n${cell.options[kCellFigCap] as string}`),
-        );
-      } else {
-        const cap = pandocFigCaption();
-        cap.push(pandocRawStr(`\n\n${cell.options[kCellFigCap] as string}`));
-        cellBlock.push(cap);
-      }
+      figureLike.push(
+        pandocRawStr(`\n\n${cell.options[kCellFigCap] as string}`),
+      );
     }
 
     return cellBlock.mappedString();

@@ -99,7 +99,7 @@ const mermaidHandler: LanguageHandler = {
       return this.build(
         handlerContext,
         cell,
-        mappedConcat([`\n![](${sourceName})\n`]),
+        mappedConcat([`\n![](${sourceName}){fig-pos='H'}\n`]),
         options,
       );
     }
