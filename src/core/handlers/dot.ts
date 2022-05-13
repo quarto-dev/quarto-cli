@@ -15,6 +15,9 @@ import { mappedConcat, mappedIndexToRowCol } from "../lib/mapped-text.ts";
 
 import { extractImagesFromElements } from "../puppeteer.ts";
 import { lineOffsets } from "../lib/text.ts";
+import { kFigResponsive } from "../../config/constants.ts";
+import { makeResponsive } from "../svg.ts";
+import { DOMParser, getDomParser } from "../deno-dom.ts";
 
 const dotHandler: LanguageHandler = {
   ...baseHandler,
@@ -73,26 +76,29 @@ const dotHandler: LanguageHandler = {
     }
 
     if (isJavascriptCompatible(handlerContext.options.format)) {
+      const responsive = handlerContext.options.context.format.metadata
+        ?.[kFigResponsive];
+
+      if (responsive) {
+        svg = await makeResponsive(svg);
+      }
+
       return this.build(
         handlerContext,
         cell,
-        mappedConcat(["```{=html}\n", svg, "```"]),
+        mappedConcat(["```{=html}\n", svg, "\n```"]),
         options,
       );
     } else {
-      const dims = svg.split("\n").filter((a: string) =>
-        a.indexOf("<svg") !== -1
-      );
-      if (dims.length === 0) {
+      const dom = (await getDomParser()).parseFromString(svg, "text/html");
+      const svgEl = dom?.querySelector("svg");
+      const width = svgEl?.getAttribute("width");
+      const height = svgEl?.getAttribute("height");
+      if (!width || !height) {
         throw new Error("Internal error: couldn't find figure dimensions");
       }
-      const m1 = dims[0].match(/^.*width="(\d+)pt".*$/);
-      const m2 = dims[0].match(/^.*height="(\d+)pt".*$/);
-      if (!(m1 && m2)) {
-        throw new Error("Internal error: couldn't find figure dimensions");
-      }
-      const widthInInches = Number(m1[1]) / 96; // https://graphviz.org/docs/attrs/dpi/
-      const heightInInches = Number(m2[1]) / 96;
+      const widthInInches = Number(width.slice(0, -2)) / 96; // https://graphviz.org/docs/attrs/dpi/
+      const heightInInches = Number(height.slice(0, -2)) / 96;
 
       // create puppeteer target page
       const dirName = handlerContext.options.temp.createDir();

@@ -9,6 +9,12 @@ import { debug } from "log/mod.ts";
 
 import { initParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { register } from "deno_dom/src/parser.ts";
+import { DOMParser } from "deno_dom/src/dom/dom-parser.ts";
+
+export async function getDomParser() {
+  await initDenoDom();
+  return new DOMParser();
+}
 
 let s_DenoDomInitialized = false;
 export async function initDenoDom() {
