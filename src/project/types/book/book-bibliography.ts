@@ -23,7 +23,11 @@ import { Metadata } from "../../../config/types.ts";
 
 import { kProjectRender, ProjectContext } from "../../types.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
+import {
+  inputFileForOutputFile,
+  inputTargetIndex,
+  resolveInputTarget,
+} from "../../project-index.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { bookMultiFileHtmlOutputs } from "./book-extension.ts";
 
@@ -51,10 +55,30 @@ export async function bookBibliographyPostRender(
   if (refsHtml && outputFiles.length > 0) {
     // determine the bibliography and the csl based on the first file
     const file = outputFiles[0];
-    const bibliography = file.format.metadata[kBibliography];
+    const bibliography = file.format.metadata[kBibliography] as string[];
     const csl = file.format.metadata[kCsl];
     if (!bibliography) {
       return;
+    }
+
+    // We need to be sure we're properly resolving the bibliography
+    // path from the metadata using the path of the file that provided the
+    // metadata
+    // The relative path to the output file
+    const fileRelativePath = relative(projectOutputDir(context), file.file);
+    // The path to the input file
+    const inputfile = await inputFileForOutputFile(context, fileRelativePath);
+    const bibliographyPaths: string[] = [];
+    if (inputfile) {
+      // Use the dirname from the input file to resolve the bibliography paths
+      const firstFileDir = dirname(inputfile);
+      bibliographyPaths.push(
+        ...bibliography.map((file) => join(firstFileDir, file)),
+      );
+    } else {
+      throw new Error(
+        "Unable to determine proper path to use when computing bibliography path.",
+      );
     }
 
     // find all of the refs in each document and fixup their links to point
@@ -122,7 +146,7 @@ export async function bookBibliographyPostRender(
         // genereate bibliography html
         const biblioHtml = await generateBibliographyHTML(
           context,
-          bibliography,
+          bibliographyPaths,
           csl,
           citeIds,
         );
