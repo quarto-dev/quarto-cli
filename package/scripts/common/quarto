@@ -68,6 +68,9 @@ else
 
   QUARTO_IMPORT_ARGMAP=--importmap=$SCRIPT_PATH/vendor/import_map.json
 
+  # Turn of type checking for bundled version
+  QUARTO_DENO_OPTIONS=--no-check
+
   # If Quarto is bundled into an `.app` file, it will be looking for the 
   # share directory over in the resources folder.
   if [[ $SCRIPT_PATH == *"/Contents/MacOS/quarto/bin" ]]; then
@@ -97,6 +100,7 @@ else
   export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/deno_dom/libplugin.so
 fi
 
-QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
+# Be sure to include any already defined QUARTO_DENO_OPTIONS
+QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
 
 ${SCRIPT_PATH}/tools/deno ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_TARGET} "$@"
