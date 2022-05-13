@@ -228,7 +228,7 @@ export function discoverExtensionPath(
     const extDir = join(dir, kExtensionDir);
 
     // Find the matching extension for this name
-    const paths = resolvePathGlobs(extDir, globs, [], true);
+    const paths = resolvePathGlobs(extDir, globs, [], { mode: "strict" });
 
     if (paths.include.length > 0) {
       if (paths.include.length > 1) {
