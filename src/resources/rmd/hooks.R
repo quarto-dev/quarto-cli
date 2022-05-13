@@ -676,7 +676,9 @@ normalize_options <- function(options) {
                     "ref-label",
                     "animation-hook",
                     "ffmpeg-bitrate",
-                    "ffmpeg-format")) {
+                    "ffmpeg-format",
+                    "ref-label",
+                    "opts-label")) {
       sub("-", ".", name)
     } else {
       name
