@@ -7,7 +7,7 @@
 
 import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
-import { info, warning } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import { fetcher } from "../command/tools/tools/chromium.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -228,10 +228,11 @@ async function fetchBrowser() {
   }
 
   if (executablePath === undefined) {
+    error("Chrome not found");
     info(
       "\nNo Chromium installation was detected.\n\nPlease run 'quarto tools install chromium' to install Chromium.\n",
     );
-    throw new Error("Chromium not found.");
+    throw new Error();
   }
 
   const puppeteer = await getPuppeteer();
