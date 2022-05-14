@@ -162,9 +162,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       return(x)
     }
 
-    # asis, verbatim, and comment should do nothing
-    if (identical(options[["results"]], "asis") ||
-        identical(options[["engine"]], "verbatim") ||
+    # verbatim and comment should do nothing
+    if (identical(options[["engine"]], "verbatim") ||
         identical(options[["engine"]], "comment")) {
       return(x)
     }
@@ -327,13 +326,23 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     if (!is.null(label)) {
       label <- paste0(label, " ")
     }
-    
-    # return cell
-    paste0(
-      options[["indent"]], "::: {", 
-      labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,
-      options[["indent"]], ":::"
-    )
+
+    # if there is a label, additional classes, a forwardAttr, or a cell.cap 
+    # then the user is deemed to have implicitly overridden results = "asis"
+    # (as those features don't work w/o an enclosing div)
+    needCell <- isTRUE(nzchar(label)) || 
+                length(classes) > 1 ||
+                isTRUE(nzchar(forwardAttr)) ||
+                isTRUE(nzchar(cell.cap))
+    if (identical(options[["results"]], "asis") && !needCell) {
+      x
+    } else {
+      paste0(
+        options[["indent"]], "::: {", 
+        labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,
+        options[["indent"]], ":::"
+      )
+    }
   })
   knit_hooks$source <- function(x, options) {
     x <- knitr:::one_string(c('', x))
