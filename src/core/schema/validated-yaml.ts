@@ -23,6 +23,7 @@ export async function readAndValidateYamlFromFile(
   file: string,
   schema: Schema,
   errorMessage: string,
+  defaultContents?: string,
 ): Promise<unknown> {
   if (!existsSync(file)) {
     throw new Error(`YAML file ${file} not found.`);
@@ -33,8 +34,13 @@ export async function readAndValidateYamlFromFile(
     shortFileName = relative(Deno.cwd(), shortFileName);
   }
 
+  let fileContents = Deno.readTextFileSync(file).trimEnd();
+  if ((fileContents.trim().length === 0) && defaultContents) {
+    fileContents = defaultContents;
+  }
+
   const contents = asMappedString(
-    Deno.readTextFileSync(file).trimEnd(),
+    fileContents,
     shortFileName,
   );
   const {

@@ -27,12 +27,13 @@ import { fileExecutionEngine } from "../execute/engine.ts";
 import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
 import { projectScratchPath } from "./project-scratch.ts";
 import { parsePandocTitle } from "../core/pandoc/pandoc-partition.ts";
-import { readYaml } from "../core/yaml.ts";
+import { readYamlFromString } from "../core/yaml.ts";
 import { formatKeys } from "../config/metadata.ts";
 import {
   formatsPreferHtml,
   normalizeWebsiteFormat,
 } from "./types/website/website-config.ts";
+import { kDefaultProjectFileContents } from "./types/project-default.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -119,7 +120,11 @@ export function readInputTargetIndex(
     const formats = Object.keys(index.formats);
     const projConfigFile = projectConfigFile(projectDir);
     if (projConfigFile) {
-      const config = readYaml(projConfigFile) as Metadata;
+      let contents = Deno.readTextFileSync(projConfigFile);
+      if (contents.trim().length === 0) {
+        contents = kDefaultProjectFileContents;
+      }
+      const config = readYamlFromString(contents) as Metadata;
       const projFormats = formatKeys(config);
       if (ld.isEqual(formats, projFormats)) {
         return index;

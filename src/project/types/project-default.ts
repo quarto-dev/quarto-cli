@@ -12,6 +12,8 @@ import { kJupyterEngine } from "../../execute/types.ts";
 
 import { ProjectCreate, ProjectScaffoldFile, ProjectType } from "./types.ts";
 
+export const kDefaultProjectFileContents = "{ project: { type: 'default' } }";
+
 export const defaultProjectType: ProjectType = {
   type: "default",
 
