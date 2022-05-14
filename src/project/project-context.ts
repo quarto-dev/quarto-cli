@@ -571,7 +571,9 @@ function projectInputFiles(
   const renderFiles = metadata?.project[kProjectRender];
   if (renderFiles) {
     const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
-    const resolved = resolvePathGlobs(dir, renderFiles, exclude);
+    const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
+      mode: "auto",
+    });
     (ld.difference(resolved.include, resolved.exclude) as string[])
       .forEach((file) => {
         if (Deno.statSync(file).isDirectory) {

@@ -5,7 +5,14 @@
 *
 */
 
-import { basename, dirname, extname, globToRegExp, join } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  globToRegExp,
+  isGlob,
+  join,
+} from "path/mod.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
@@ -120,11 +127,15 @@ export function filterPaths(
   return resolveGlobs(root, globs, expandGlobs);
 }
 
+export interface GlobOptions {
+  mode: "strict" | "auto" | "always";
+}
+
 export function resolvePathGlobs(
   root: string,
   globs: string[],
   exclude: string[],
-  strict?: boolean,
+  options?: GlobOptions,
 ): ResolvedPathGlobs {
   // expand a set of globs
   const expandGlobs = (targetGlobs: string[]) => {
@@ -141,7 +152,7 @@ export function resolvePathGlobs(
     }
     return ld.uniq(expanded);
   };
-  return resolveGlobs(root, globs, expandGlobs, strict);
+  return resolveGlobs(root, globs, expandGlobs, options);
 }
 
 export function pathWithForwardSlashes(path: string) {
@@ -152,7 +163,7 @@ export function resolveGlobs(
   root: string,
   globs: string[],
   expandGlobs: (targetGlobs: string[]) => string[],
-  strict?: boolean,
+  options?: GlobOptions,
 ): ResolvedPathGlobs {
   // preprocess the globs for **, negation -> exclude, etc
   const includeGlobs: string[] = [];
@@ -160,12 +171,15 @@ export function resolveGlobs(
 
   // deal with implicit ** syntax and ability to escape negation (!)
   const asFullGlob = (glob: string) => {
+    const preventSmartGlobs = options?.mode === "strict" ||
+      (options?.mode === "auto" && !isGlob(glob));
+
     // handle negation
     if (glob.startsWith("\\!")) {
       glob = glob.slice(1);
     }
     // ending w/ a slash means everything in the dir
-    if (!strict) {
+    if (!preventSmartGlobs) {
       if (glob.endsWith("/")) {
         glob = glob + "**/*";
       } else {
@@ -182,7 +196,11 @@ export function resolveGlobs(
     }
 
     if (!glob.startsWith("/")) {
-      return "**/" + glob;
+      if (!preventSmartGlobs) {
+        return "**/" + glob;
+      } else {
+        return glob;
+      }
     } else {
       return join(root, glob.slice(1));
     }

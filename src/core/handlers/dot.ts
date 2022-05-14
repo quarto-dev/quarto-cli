@@ -9,12 +9,27 @@ import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { resourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
-import { isJavascriptCompatible } from "../../config/format.ts";
+import {
+  isJavascriptCompatible,
+  isRevealjsOutput,
+} from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat, mappedIndexToRowCol } from "../lib/mapped-text.ts";
 
-import { extractImagesFromElements } from "../puppeteer.ts";
 import { lineOffsets } from "../lib/text.ts";
+import {
+  kFigAlign,
+  kFigHeight,
+  kFigResponsive,
+  kFigWidth,
+} from "../../config/constants.ts";
+import {
+  fixupAlignment,
+  makeResponsive,
+  resolveSize,
+  setSvgSize,
+} from "../svg.ts";
+import { Element, parseHtml } from "../deno-dom.ts";
 
 const dotHandler: LanguageHandler = {
   ...baseHandler,
@@ -72,55 +87,50 @@ const dotHandler: LanguageHandler = {
       }
     }
 
+    const fixupRevealAlignment = (svg: Element) => {
+      if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
+        const align = (options?.[kFigAlign] as string) ?? "center";
+        fixupAlignment(svg, align);
+      }
+    };
+
     if (isJavascriptCompatible(handlerContext.options.format)) {
-      return this.build(
-        handlerContext,
-        cell,
-        mappedConcat(["```{=html}\n", svg, "```"]),
-        options,
-      );
+      const responsive = options?.[kFigResponsive] ??
+        handlerContext.options.context.format.metadata
+          ?.[kFigResponsive];
+
+      svg = (await parseHtml(svg)).querySelector("svg")!.outerHTML;
+      if (
+        responsive && options[kFigWidth] === undefined &&
+        options[kFigHeight] === undefined
+      ) {
+        svg = await makeResponsive(svg, fixupRevealAlignment);
+      } else {
+        svg = await setSvgSize(svg, options, fixupRevealAlignment);
+      }
+
+      return this.build(handlerContext, cell, svg, options);
     } else {
-      const dims = svg.split("\n").filter((a: string) =>
-        a.indexOf("<svg") !== -1
-      );
-      if (dims.length === 0) {
-        throw new Error("Internal error: couldn't find figure dimensions");
-      }
-      const m1 = dims[0].match(/^.*width="(\d+)pt".*$/);
-      const m2 = dims[0].match(/^.*height="(\d+)pt".*$/);
-      if (!(m1 && m2)) {
-        throw new Error("Internal error: couldn't find figure dimensions");
-      }
-      const widthInInches = Number(m1[1]) / 96; // https://graphviz.org/docs/attrs/dpi/
-      const heightInInches = Number(m2[1]) / 96;
+      const {
+        filenames: [sourceName],
+      } = await handlerContext.createPngsFromHtml({
+        prefix: "dot-figure-",
+        selector: "svg",
+        count: 1,
+        deviceScaleFactor: Number(options.deviceScaleFactor) || 4,
+        html: `<!DOCTYPE html><html><body>${svg}</body></html>`,
+      });
 
-      // create puppeteer target page
-      const dirName = handlerContext.options.temp.createDir();
-      const content = `<!DOCTYPE html><html><body>${svg}</body></html>`;
-      const fileName = join(dirName, "index.html");
-      Deno.writeTextFileSync(fileName, content);
-      const url = `file://${fileName}`;
-      const selector = "svg";
+      const {
+        widthInInches,
+        heightInInches,
+      } = await resolveSize(svg, options);
 
-      const { sourceName, fullName: tempName } = handlerContext
-        .uniqueFigureName("dot-figure-", ".png");
-      await extractImagesFromElements(
-        {
-          url,
-          viewport: {
-            width: 800,
-            height: 600,
-            deviceScaleFactor: Number(options.deviceScaleFactor) || 4,
-          },
-        },
-        selector,
-        [tempName],
-      );
       return this.build(
         handlerContext,
         cell,
         mappedConcat([
-          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in"}\n`,
+          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in" fig-pos='H'}\n`,
         ]),
         options,
       );

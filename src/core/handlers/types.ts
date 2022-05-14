@@ -5,7 +5,7 @@ import {
   kIncludeInHeader,
 } from "../../config/constants.ts";
 import { DependencyFile, Format, FormatExtras } from "../../config/types.ts";
-import { ExecutionEngine, PandocIncludes } from "../../execute/types.ts";
+import { PandocIncludes } from "../../execute/types.ts";
 import { DirectiveCell, QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { EitherString, MappedString } from "../lib/text-types.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
@@ -56,9 +56,11 @@ export interface LanguageCellHandlerContext {
   /**
    * @return
    *   - sourceName: string. path relative to the source, to be included in the output
+   *   - baseName: basename(sourceName), for convenience
    *   - fullName: string. full path, to be used to create the file
    */
   uniqueFigureName(prefix?: string, extension?: string): {
+    baseName: string;
     sourceName: string;
     fullName: string;
   };
@@ -67,6 +69,44 @@ export interface LanguageCellHandlerContext {
    * @return the directory to be used for placing figures
    */
   figuresDir(): string;
+
+  /**
+   * Generate PNG images from HTML in a temporary directory for use as generated figures.
+   * Returns both images and corresponding elements.
+   *
+   * Uses puppeteer.
+   *
+   * @param opts.prefix prefix for filenames
+   * @param opts.html html content
+   * @param opts.deviceScaleFactor scale factor for generated images
+   * @param opts.selector CSS selector to extract images
+   * @param opts.count number of images to generate. Must match the size of the selector result.
+   * @param opts.resources optional [filename, content] list of resources to be created in the temporary directory
+   */
+  createPngsFromHtml(opts: {
+    prefix: string;
+    html: string;
+    deviceScaleFactor: number;
+    selector: string;
+    count: number;
+    resources?: [string, string][];
+  }): Promise<{
+    filenames: string[];
+    elements: string[];
+  }>;
+
+  /**
+   * Extract HTML elements from an HTML page. Uses puppeteer.
+   *
+   * @param opts.html html content
+   * @param opts.selector CSS selector to extract elements
+   * @param opts.resources optional [filename, content] list of resources to be created in the temporary directory
+   */
+  extractHtml(opts: {
+    html: string;
+    selector: string;
+    resources?: [string, string][];
+  }): Promise<string[]>;
 
   addResource: (name: string, contents: string) => void;
   addInclude: (content: string, where: PandocIncludeType) => void;
@@ -109,6 +149,7 @@ export interface LanguageHandler {
     content: MappedString,
     options: Record<string, unknown>,
     extraCellOptions?: Record<string, unknown>,
+    forceSkip?: Set<string>,
   ) => MappedString;
 
   type: "cell" | "directive" | "any";

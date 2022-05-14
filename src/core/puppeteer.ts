@@ -7,7 +7,7 @@
 
 import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
-import { warning } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import { fetcher } from "../command/tools/tools/chromium.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -22,13 +22,21 @@ export async function getPuppeteer() {
   return puppeteerImport;
 }
 
+/**
+ * Extracts images and elements from an URL
+ *
+ * @param urlOrOptions webpage url or page options
+ * @param selector css selector
+ * @param filenames filenames to write screenshots to
+ * @returns html content of selected results
+ */
 export async function extractImagesFromElements(
-  url: string | PageOptions,
+  urlOrOptions: string | PageOptions,
   selector: string,
   filenames: string[],
-): Promise<void> {
-  await withPuppeteerBrowserAndPage(
-    url,
+): Promise<string[]> {
+  return await withPuppeteerBrowserAndPage(
+    urlOrOptions,
     // deno-lint-ignore no-explicit-any
     async (_browser: any, page: any) => {
       const elements = await page.$$(selector);
@@ -40,7 +48,16 @@ export async function extractImagesFromElements(
       for (let i = 0; i < elements.length; ++i) {
         await elements[i].screenshot({ path: filenames[i] });
       }
-      return;
+
+      // deno-lint-ignore no-explicit-any
+      const document = (undefined as any);
+      const clientSideResult = await page.evaluate((selector: string) => {
+        // deno-lint-ignore no-explicit-any
+        return Array.from(document.querySelectorAll(selector)).map((n: any) =>
+          n.outerHTML
+        );
+      }, selector);
+      return clientSideResult;
     },
   );
 }
@@ -228,10 +245,11 @@ async function fetchBrowser() {
   }
 
   if (executablePath === undefined) {
-    warning(
-      "Capturing of embedded web content disabled (chromium not installed)",
+    error("Chrome not found");
+    info(
+      "\nNo Chromium installation was detected.\n\nPlease run 'quarto tools install chromium' to install Chromium.\n",
     );
-    return undefined;
+    throw new Error();
   }
 
   const puppeteer = await getPuppeteer();
