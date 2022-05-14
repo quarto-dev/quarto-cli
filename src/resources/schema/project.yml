@@ -4,8 +4,8 @@
     object:
       properties:
         type:
-          enum: [website, book, site]
-          completions: [website, book]
+          enum: [default, website, book, site]
+          completions: [default, website, book]
           description: "Project type (`default`, `website`, or `book`)"
         render:
           arrayOf: path

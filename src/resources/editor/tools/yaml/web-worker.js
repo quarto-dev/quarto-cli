@@ -16073,11 +16073,13 @@ try {
                 properties: {
                   type: {
                     enum: [
+                      "default",
                       "website",
                       "book",
                       "site"
                     ],
                     completions: [
+                      "default",
                       "website",
                       "book"
                     ],

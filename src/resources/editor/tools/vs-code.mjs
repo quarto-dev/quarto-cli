@@ -16072,11 +16072,13 @@ var require_yaml_intelligence_resources = __commonJS({
               properties: {
                 type: {
                   enum: [
+                    "default",
                     "website",
                     "book",
                     "site"
                   ],
                   completions: [
+                    "default",
                     "website",
                     "book"
                   ],
