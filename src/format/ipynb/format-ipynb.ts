@@ -9,8 +9,9 @@ import {
   kCellFormat,
   kCellRawMimeType,
   kDefaultImageExtension,
+  kTitle,
 } from "../../config/constants.ts";
-import { Format } from "../../config/types.ts";
+import { Format, PandocFlags } from "../../config/types.ts";
 import { jupyterFromFile } from "../../core/jupyter/jupyter.ts";
 import {
   kApplicationRtf,
@@ -26,11 +27,24 @@ export function ipynbFormat(): Format {
       standalone: true,
       [kDefaultImageExtension]: "png",
     },
-    formatExtras: () => {
+    formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
       return {
         postprocessors: [(output: string) => {
-          // convert raw cell metadata format to raw_mimetype used by jupyter
+          // read notebook
           const nb = jupyterFromFile(output);
+
+          // insert title if we have one
+          if (format.metadata[kTitle]) {
+            nb.cells.unshift({
+              cell_type: "markdown",
+              metadata: {},
+              source: [
+                `# ${format.metadata[kTitle]}`,
+              ],
+            });
+          }
+
+          // convert raw cell metadata format to raw_mimetype used by jupyter
           nb.cells = nb.cells.map((cell) => {
             if (cell.cell_type == "raw") {
               if (cell.metadata[kCellFormat]) {
