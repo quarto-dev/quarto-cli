@@ -220,7 +220,9 @@ export async function serveProject(
   ) as string[]);
 
   // render manager for tracking need to re-render outputs
+  // (record any files we just rendered)
   const renderManager = new ServeRenderManager();
+  renderManager.onRenderResult(renderResult, resourceFiles, project);
 
   // function that can return the current target pdf output file
   const pdfOutputFile = (finalOutput && pdfOutput)
