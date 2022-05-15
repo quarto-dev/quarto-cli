@@ -48,7 +48,12 @@ function processEquations(blockEl)
           targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
           targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
         else
-          eq.text = eq.text .. " \\tag{" .. inlinesToString(numberOption("eq", order)) .. "}"
+          local eqNumber = eqQquad
+          local mathMethod = param("html-math-method", nil)
+          if isHtmlOutput() and (mathMethod == "mathjax" or mathMethod == "katex") then
+            eqNumber = eqTag
+          end
+          eq.text = eq.text .. " " .. eqNumber(inlinesToString(numberOption("eq", order)))
           local span = pandoc.Span(eq, pandoc.Attr(label))
           targetInlines:insert(span)
         end
@@ -85,6 +90,13 @@ function processEquations(blockEl)
  
 end
 
+function eqTag(eq)
+  return "\\tag{" .. eq .. "}"
+end
+
+function eqQquad(eq)
+  return "\\qquad(" .. eq .. ")"
+end
 
 function isDisplayMath(el)
   return el.t == "Math" and el.mathtype == "DisplayMath"

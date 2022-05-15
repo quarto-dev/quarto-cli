@@ -19,6 +19,7 @@ import {
   kFigPos,
   kFigResponsive,
   kHeaderIncludes,
+  kHtmlMathMethod,
   kIncludeAfter,
   kIncludeAfterBody,
   kIncludeBefore,
@@ -428,6 +429,7 @@ function quartoFilterParams(
     params[kShortcodes] = params[kShortcodes] || [];
     (params[kShortcodes] as string[]).push(...extShortcodes);
   }
+  params[kHtmlMathMethod] = options.format.pandoc[kHtmlMathMethod];
 
   const figResponsive = format.metadata[kFigResponsive] === true;
   if (figResponsive) {
