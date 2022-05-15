@@ -50,7 +50,7 @@ export const serveCommand = new Command()
       );
       Deno.exit(1);
     }
-    const context = await projectContext(options.input);
+    const context = await projectContext(input);
     const result = await serve({
       input,
       render: options.render,
