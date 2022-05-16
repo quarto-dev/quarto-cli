@@ -439,10 +439,16 @@ export async function runPandoc(
         }),
       );
 
-      const stagedTemplate = await stageTemplate(extras, options.temp, {
-        template,
-        partials,
-      });
+      // Stage the template and partials
+      const stagedTemplate = await stageTemplate(
+        options,
+        extras,
+        {
+          template,
+          partials,
+        },
+      );
+
       allDefaults[kTemplate] = stagedTemplate;
     } else {
       if (userPartials.length > 0) {

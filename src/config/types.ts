@@ -151,6 +151,7 @@ import {
   kSectionTitleReferences,
   kSectionTitleReuse,
   kSelfContained,
+  kSelfContainedMath,
   kShiftHeadingLevelBy,
   kShortcodes,
   kSlideLevel,
@@ -331,6 +332,7 @@ export interface FormatRender {
   [kLinkExternalIcon]?: string | boolean;
   [kLinkExternalNewwindow]?: boolean;
   [kLinkExternalFilter]?: string;
+  [kSelfContainedMath]?: boolean;
 }
 
 export interface FormatExecute {
