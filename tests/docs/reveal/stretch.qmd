@@ -1,0 +1,185 @@
+---
+title: "test stretched"
+format: 
+  revealjs: 
+    auto-stretch: true
+---
+
+## Insert an image {#simple-image}
+
+Without stretch feature
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## Insert an image with code content below {#chunk-below}
+
+Without stretch feature
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+```{r, echo = TRUE}
+1 + 1 
+```
+
+## Insert an image with no caption {#no-caption}
+
+Without stretch feature
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## Insert an image with height defined {#height-defined}
+
+Without stretch feature
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg){height=50%}
+
+## Insert an image with right alignment {#rigth-aligned}
+
+Without stretch feature
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg){fig-align='right'}
+
+## Insert an image with caption text {#only-image}
+
+![Elephant](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/authoring/elephant.png)
+
+## Column layout {#columns}
+
+:::: {.columns}
+
+::: {.column width="40%"}
+On the right a nice elephant
+:::
+
+::: {.column width="60%"}
+![Elephant](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/authoring/elephant.png)
+:::
+
+::::
+
+## Insert an image with alt text {#alt-text}
+
+![](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/authoring/elephant.png){fig-alt="A drawing of an elephant."}
+
+## Insert an image with alt text, caption and title {#caption-title}
+
+![Elephant](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/authoring/elephant.png "Title: An elephant"){fig-alt="A drawing of an elephant."}
+
+## Insert an image specifying `.strech` explicitly (no caption) {#with-class-no-caption}
+
+With adding stretch feature
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg){.stretch}
+
+## Insert an image specifying `.strech` explicitly (with caption) {#with-class-caption}
+
+Using the `.strech` class
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg){.stretch}
+
+## No strech when more than one image {#more-than-one}
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+And another
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## No stretch when `.nostretch` is used at slide level {.nostretch #no-stretch-class}
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## Using knitr to create a plot {#knitr-plot}
+
+```{r, echo = TRUE, fig.cap = "Knitr figure"}
+plot(cars)
+```
+
+## Using knitr to create a plot without echo {#knitr-plot-no-echo}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure"}
+plot(cars)
+```
+
+## Using knitr to create a plot with other text {#knitr-and-text}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure"}
+plot(cars)
+```
+
+On this plot, we have interesting informations.
+
+## Using knitr to specify alignement {#knitr-align}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure", fig.align='right'}
+plot(cars)
+```
+
+## Using knitr to specify height {#knitr-height}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure", out.height="120px"}
+plot(cars)
+```
+
+## Using knitr to specify height in % {#knitr-height-pct}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure", out.height="50%"}
+plot(cars)
+```
+
+## Using knitr without caption {#knitr-no-caption-and-content}
+
+```{r, echo = FALSE}
+plot(cars)
+```
+
+```{r}
+1 + 1
+```
+
+## Inline images {#inline-image}
+
+And how does it works with inline images like ![](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## Using block layout {#block-layout}
+
+::: {layout-ncol=2}
+
+- Item A
+- Item B
+- Item C
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+:::
+
+## Using block layout 2 {#block-layout2}
+
+::: {layout-ncol=2}
+### List One
+
+- Item A
+- Item B
+- Item C
+
+### Image
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+:::
+
+## Using figure table layout {#fig-tab-layout}
+
+```{r}
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars), caption = "Cars")
+plot(cars)
+```
+
+## {#no-content}
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## {#no-content-caption}
+
+![A logo](https://revealjs.com/images/logo/reveal-black-text.svg)
