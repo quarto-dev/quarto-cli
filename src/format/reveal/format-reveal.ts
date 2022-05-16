@@ -680,7 +680,13 @@ function applyStretch(doc: Document, autoStretch: boolean) {
         const removeEmpty = function (el: Element) {
           const parentEl = el.parentElement;
           parentEl?.removeChild(el);
-          if (parentEl?.innerText.trim() === "") removeEmpty(parentEl);
+          if (
+            parentEl?.innerText.trim() === "" &&
+            // Stop at section leveal and do not remove empty slides
+            parentEl?.nodeName !== "SECTION"
+          ) {
+            removeEmpty(parentEl);
+          }
         };
 
         // Figure environment ? Get caption and alignment
