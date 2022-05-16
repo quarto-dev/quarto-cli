@@ -9,13 +9,13 @@ section-title-reuse: "Réutilisation"
 section-title-citation: "Citation"
 
 appendix-attribution-bibtex: "BibTeX"
-appendix-attribution-cite-as: "Veuillez citer ce travail comme suit :"
+appendix-attribution-cite-as: "Veuillez citer ce travail comme suit :"
 
 title-block-author-single: "Auteur"
 title-block-author-plural: "Auteurs"
 title-block-affiliation-single: "Association"
 title-block-affiliation-plural: "Les associations"
-title-block-published: "Date De Publication"
+title-block-published: "Date de publication"
 
 callout-tip-caption: "Astuce"
 callout-note-caption: "Note"
@@ -34,7 +34,7 @@ code-tools-source-code: "Code source"
 copy-button-tooltip: "Copier vers le presse-papier"
 copy-button-tooltip-success: "Copié"
 
-repo-action-links-edit: "Editer cette page"
+repo-action-links-edit: "Modifier cette page"
 repo-action-links-source: "Voir la source"
 repo-action-links-issue: "Faire part d'un problème"
 
@@ -70,7 +70,7 @@ environment-remark-title: "Remarque"
 environment-solution-title: "Solution"
 
 listing-page-order-by: "Trier par"
-listing-page-order-by-default: "Ordre par defaut"
+listing-page-order-by-default: "Ordre par défaut"
 listing-page-order-by-date-asc: "Le plus ancien"
 listing-page-order-by-date-desc: "Le plus récent"
 listing-page-order-by-number-desc: "Descendant"
