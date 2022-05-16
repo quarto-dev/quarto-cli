@@ -198,6 +198,15 @@ function sectionNumber(section, maxLevel)
   return num
 end
 
+function isChapterRef(section)
+  for i=2,#section do
+    if section[i] > 0 then
+      return false
+    end
+  end
+  return true
+end
+
 function formatChapterIndex(index)
   local fileMetadata = currentFileMetadataState()
   if fileMetadata.appendix then

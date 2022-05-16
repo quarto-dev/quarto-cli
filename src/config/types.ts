@@ -31,6 +31,7 @@ import {
   kCodeToolsViewSource,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
+  kCrossrefChPrefix,
   kCrossrefCnjTitle,
   kCrossrefCorTitle,
   kCrossrefDefTitle,
@@ -484,6 +485,7 @@ export interface FormatLanguage {
   [kCrossrefDefTitle]?: string;
   [kCrossrefExmTitle]?: string;
   [kCrossrefExrTitle]?: string;
+  [kCrossrefChPrefix]?: string;
   [kCrossrefSecPrefix]?: string;
   [kCrossrefEqPrefix]?: string;
   [kEnvironmentProofTitle]?: string;
