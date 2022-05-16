@@ -1,0 +1,232 @@
+---
+title: "test stretched"
+format: 
+  revealjs: 
+    auto-stretch: true
+---
+
+## Insert an image {#simple-image}
+
+Without stretch feature
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## Insert an image with code content below {#chunk-below}
+
+Without stretch feature
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+```{r, echo = TRUE}
+1 + 1 
+```
+
+## Insert an image with no caption {#no-caption}
+
+Without stretch feature
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## Insert an image with height defined {#height-defined}
+
+Without stretch feature
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg){height=50%}
+
+## Insert an image with right alignment {#rigth-aligned}
+
+Without stretch feature
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg){fig-align='right'}
+
+## Insert an image with caption text {#only-image}
+
+![Elephant](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/authoring/elephant.png)
+
+## Column layout {#columns}
+
+:::: {.columns}
+
+::: {.column width="40%"}
+On the right a nice elephant
+:::
+
+::: {.column width="60%"}
+![Elephant](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/authoring/elephant.png)
+:::
+
+::::
+
+## Insert an image with alt text {#alt-text}
+
+![](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/authoring/elephant.png){fig-alt="A drawing of an elephant."}
+
+## Insert an image with alt text, caption and title {#caption-title}
+
+![Elephant](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/authoring/elephant.png "Title: An elephant"){fig-alt="A drawing of an elephant."}
+
+## Insert an image specifying `.strech` explicitly (no caption) {#with-class-no-caption}
+
+With adding stretch feature
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg){.stretch}
+
+## Insert an image specifying `.strech` explicitly (with caption) {#with-class-caption}
+
+Using the `.strech` class
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg){.stretch}
+
+## No strech when more than one image {#more-than-one}
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+And another
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## No stretch when `.nostretch` is used at slide level {.nostretch #no-stretch-class}
+
+![revealjs logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## Using knitr to create a plot {#knitr-plot}
+
+```{r, echo = TRUE, fig.cap = "Knitr figure"}
+plot(cars)
+```
+
+## Using knitr to create a plot without echo {#knitr-plot-no-echo}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure"}
+plot(cars)
+```
+
+## Using knitr to create a plot with other text {#knitr-and-text}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure"}
+plot(cars)
+```
+
+On this plot, we have interesting informations.
+
+## Using knitr to specify alignement {#knitr-align}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure", fig.align='right'}
+plot(cars)
+```
+
+## Using knitr to specify height {#knitr-height}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure", out.height="120px"}
+plot(cars)
+```
+
+## Using knitr to specify height in % {#knitr-height-pct}
+
+```{r, echo = FALSE, fig.cap = "Knitr figure", out.height="50%"}
+plot(cars)
+```
+
+## Using knitr without caption {#knitr-no-caption}
+
+```{r, echo = FALSE}
+plot(cars)
+```
+
+```{r}
+1 + 1
+```
+
+## Inline images {#inline-image}
+
+And how does it works with inline images like ![](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## Slide with python code {#reticulate}
+
+```{python}
+#| fig-cap: "Polar axis plot"
+#| fig-alt: "A line plot on a polar axis"
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+## Is a widget breaking the feature ? {#plotly}
+
+```{r}
+library(plotly)
+fig = list(
+  data = list(
+    list(
+      x = c(1, 2, 3),
+      y = c(1, 3, 2),
+      type = 'bar'
+    )
+  ),
+  layout = list(
+    title = 'A Figure Specified By R List',
+    plot_bgcolor='#e5ecf6', 
+         xaxis = list( 
+           zerolinecolor = '#ffff', 
+           zerolinewidth = 2, 
+           gridcolor = 'ffff'), 
+         yaxis = list( 
+           zerolinecolor = '#ffff', 
+           zerolinewidth = 2, 
+           gridcolor = 'ffff')
+  )
+)
+# To display the figure defined by this list, use the plotly_build function
+plotly_build(fig)
+```
+
+## Using block layout {#block-layout}
+
+::: {layout-ncol=2}
+
+- Item A
+- Item B
+- Item C
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+:::
+
+## Using block layout 2 {block-layout2}
+
+::: {layout-ncol=2}
+### List One
+
+- Item A
+- Item B
+- Item C
+
+### Image
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+:::
+
+## Using figure table layout {#knitr-figure-table}
+
+```{r}
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars), caption = "Cars")
+plot(cars)
+```
+
+## {#no-content}
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## {#no-content-caption}
+
+![A logo](https://revealjs.com/images/logo/reveal-black-text.svg)

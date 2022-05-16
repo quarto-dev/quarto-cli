@@ -12,9 +12,8 @@ import { testRender } from "./render.ts";
 // demo file renders ok
 testRender(docs("reveal/index.qmd"), "revealjs", false);
 
-// aside and footnotes correctly moved with speaker notes ignored
-const input = docs("reveal/aside-footnotes.qmd");
-const output = outputForInput(input, "revealjs");
+let input = docs("reveal/aside-footnotes.qmd");
+let output = outputForInput(input, "revealjs");
 testRender(input, "revealjs", false, [
   ensureHtmlElements(output.outputPath, [
     // speaker notes are left not moved
@@ -27,4 +26,14 @@ testRender(input, "revealjs", false, [
     // footnotes back are removed
     "section#slide-with-footnotes > aside:last-child > ol.aside-footnotes > li > .footnote-back",
   ]),
+]);
+
+// auto-stretch feature
+input = docs("reveal/stretch.qmd");
+output = outputForInput(input, "revealjs");
+testRender(input, "revealjs", false, [
+  ensureHtmlElements(output.outputPath, [
+    "#simple-image > p + img.r-stretch",
+    "#chunk-below > p + img.r-stretch:has(+ p.caption + div.cell)",
+  ], []),
 ]);
