@@ -50,6 +50,7 @@ testRender(input, "revealjs", false, [
     "#knitr-no-caption-and-content > img.r-stretch + div.cell",
     "#no-content > img.r-stretch",
     "#no-content-caption > img.r-stretch + p.caption",
+    "#custom-divs-opt-in > img.r-stretch + p.caption",
   ], [
     "#columns img.r-stretch",
     "#more-than-one img.r-stretch",
@@ -60,5 +61,10 @@ testRender(input, "revealjs", false, [
     "#block-layout img.r-stretch",
     "#block-layout2 img.r-stretch",
     "#fig-tab-layout img.r-stretch",
+    "#custom-divs-simple img.r-stretch",
+    "#custom-divs-caption img.r-stretch",
+    "#custom-divs-caption img.r-stretch",
+    "#custom-divs-knitr img.r-stretch",
+    "#custom-divs-knitr-caption img.r-stretch",
   ]),
 ]);

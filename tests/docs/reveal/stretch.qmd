@@ -183,3 +183,53 @@ plot(cars)
 ## {#no-content-caption}
 
 ![A logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+## No auto stretch if nested {#custom-divs-simple}
+
+::: {.custom-block}
+
+Some content with an image below
+
+![](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+:::
+
+## No auto stretch if nested 2 {#custom-divs-caption}
+
+::: {.custom-block}
+
+Some content with an image below
+
+![A logo](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+:::
+
+## No auto stretch if nested 3 {#custom-divs-knitr}
+
+::: {.custom-block}
+
+```{r, echo = FALSE}
+plot(cars)
+```
+
+:::
+
+## No auto stretch if nested 4 {#custom-divs-knitr-caption}
+
+::: {.custom-block}
+
+```{r, echo = FALSE, fig.cap = "Caption"}
+plot(cars)
+```
+
+:::
+
+## Nested in div supports opt-in  {#custom-divs-opt-in}
+
+::: {.custom-block .r-stretch}
+
+```{r, echo = FALSE, fig.cap = "Caption"}
+plot(cars)
+```
+
+:::
