@@ -297,6 +297,7 @@ function latexCalloutBoxDefault(caption, type, icon)
 
   -- generate options
   local options = {
+    breakable = "",
     colframe = frameColor,
     colbacktitle = color ..'!10!white',
     coltitle = 'black',
@@ -320,7 +321,7 @@ function latexCalloutBoxDefault(caption, type, icon)
   end
 
   -- the core latex for the box
-  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[standard jigsaw,' .. tColorOptions(options) .. ']\n') }
+  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[enhanced jigsaw, ' .. tColorOptions(options) .. ']\n') }
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- Add the captions and contents
@@ -348,6 +349,7 @@ function latexCalloutBoxSimple(caption, type, icon)
 
   -- generate options
   local options = {
+    breakable = "",
     colframe = colorFrame,
     colback = 'white',
     opacityback = 0,
@@ -360,7 +362,7 @@ function latexCalloutBoxSimple(caption, type, icon)
   }
 
   -- the core latex for the box
-  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[standard jigsaw, ' .. tColorOptions(options) .. ']\n') }
+  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[enhanced jigsaw, ' .. tColorOptions(options) .. ']\n') }
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- generate the icon and use a minipage to position it
