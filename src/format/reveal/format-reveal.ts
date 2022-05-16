@@ -670,72 +670,78 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           nodeEl.nodeName === "DIV" && nodeEl.classList.contains("cell") ||
           // on other divs (custom divs) when explicitly opt-in
           nodeEl.nodeName === "DIV" && hasStretchClass(nodeEl)
-        ) {
+      ) {
 
-        // add stretch class if not already when auto-stretch is set
-        if (
-          autoStretch === true &&
-          !hasStretchClass(imageEl) &&
-          // if height is already set, we do nothing
-          !imageEl.getAttribute("style")?.match("height:") &&
-          !imageEl.hasAttribute("height")
-        ) {
-          imageEl.classList.add("r-stretch");
-        }
-
-        // If <img class="stetch"> is not a direct child of <section>, move it
-        if (
-          hasStretchClass(imageEl) &&
-          imageEl.parentNode?.nodeName !== "SECTION"
-        ) {
-          // Remove element then maybe remove its parents if empty
-          const removeEmpty = function (el: Element) {
-            const parentEl = el.parentElement;
-            parentEl?.removeChild(el);
-            if (
-              parentEl?.innerText.trim() === "" &&
-              // Stop at section leveal and do not remove empty slides
-              parentEl?.nodeName !== "SECTION"
-            ) {
-              removeEmpty(parentEl);
-            }
-          };
-
-          // Figure environment ? Get caption and alignment
-          const quartoFig = slideEl.querySelector("div.quarto-figure");
-          const caption = doc.createElement("p");
-          if (quartoFig) {
-            // Get alignment
-            const align = quartoFig.className.match(
-              "quarto-figure-(center|left|right)",
-            );
-            if (align) imageEl.classList.add(align[0]);
-            // Get Caption
-            const figCaption = nodeEl.querySelector("figcaption");
-            if (figCaption) {
-              caption.classList.add("caption");
-              caption.innerHTML = figCaption.innerHTML;
-            }
+          // for custom divs, remove stretch class as it should only be present on img
+          if (nodeEl.nodeName === "DIV" && hasStretchClass(nodeEl)) {
+            nodeEl.classList.remove("r-stretch")
+            nodeEl.classList.remove("stretch")
           }
 
-          // Target position of image
-          // first level after the element
-          const nextEl = nodeEl.nextElementSibling;
-          // Remove image from its parent
-          removeEmpty(imageEl);
-          // insert at target position
-          slideEl.insertBefore(image, nextEl);
-
-          // If there was a caption processed add it after
-          if (caption.classList.contains("caption")) {
-            slideEl.insertBefore(
-              caption,
-              imageEl.nextElementSibling,
-            );
+          // add stretch class if not already when auto-stretch is set
+          if (
+            autoStretch === true &&
+            !hasStretchClass(imageEl) &&
+            // if height is already set, we do nothing
+            !imageEl.getAttribute("style")?.match("height:") &&
+            !imageEl.hasAttribute("height")
+          ) {
+            imageEl.classList.add("r-stretch");
           }
-          // Remove container if still there
-          if (quartoFig) removeEmpty(quartoFig);
-        }
+
+          // If <img class="stetch"> is not a direct child of <section>, move it
+          if (
+            hasStretchClass(imageEl) &&
+            imageEl.parentNode?.nodeName !== "SECTION"
+          ) {
+            // Remove element then maybe remove its parents if empty
+            const removeEmpty = function (el: Element) {
+              const parentEl = el.parentElement;
+              parentEl?.removeChild(el);
+              if (
+                parentEl?.innerText.trim() === "" &&
+                // Stop at section leveal and do not remove empty slides
+                parentEl?.nodeName !== "SECTION"
+              ) {
+                removeEmpty(parentEl);
+              }
+            };
+
+            // Figure environment ? Get caption and alignment
+            const quartoFig = slideEl.querySelector("div.quarto-figure");
+            const caption = doc.createElement("p");
+            if (quartoFig) {
+              // Get alignment
+              const align = quartoFig.className.match(
+                "quarto-figure-(center|left|right)",
+              );
+              if (align) imageEl.classList.add(align[0]);
+              // Get Caption
+              const figCaption = nodeEl.querySelector("figcaption");
+              if (figCaption) {
+                caption.classList.add("caption");
+                caption.innerHTML = figCaption.innerHTML;
+              }
+            }
+
+            // Target position of image
+            // first level after the element
+            const nextEl = nodeEl.nextElementSibling;
+            // Remove image from its parent
+            removeEmpty(imageEl);
+            // insert at target position
+            slideEl.insertBefore(image, nextEl);
+
+            // If there was a caption processed add it after
+            if (caption.classList.contains("caption")) {
+              slideEl.insertBefore(
+                caption,
+                imageEl.nextElementSibling,
+              );
+            }
+            // Remove container if still there
+            if (quartoFig) removeEmpty(quartoFig);
+          }
       }
     }
   }
