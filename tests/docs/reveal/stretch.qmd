@@ -228,6 +228,8 @@ plot(cars)
 
 ::: {.custom-block .r-stretch}
 
+Some content
+
 ```{r, echo = FALSE, fig.cap = "Caption"}
 plot(cars)
 ```
