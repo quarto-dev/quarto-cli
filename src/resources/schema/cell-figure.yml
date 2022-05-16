@@ -92,6 +92,14 @@
   schema: number
   description: "Default DPI for figures"
 
+- name: fig-asp
+  tags:
+    engine: knitr
+  schema: number
+  description: |
+    The aspect ratio of the plot, i.e., the ratio of height/width. When `fig-asp` is specified, the height of a plot 
+    (the option `fig-height`) is calculated from `fig-width * fig-asp`.
+
 - name: out-width
   tags:
     engine: knitr
@@ -108,7 +116,7 @@
       i.e., plots can be scaled in the output document.
       Depending on the output format, this option can take special values.
       For example, for LaTeX output, it can be `.8\\linewidth`, `3in`, or `8cm`;
-      for HTML, it can be `300px`.
+      for HTML, it can be `300px` or `50%`.
 
 - name: out-height
   tags:
