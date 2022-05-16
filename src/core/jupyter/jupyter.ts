@@ -143,6 +143,7 @@ import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
+import { pathWithForwardSlashes } from "../path.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -574,9 +575,9 @@ export function jupyterAssets(input: string, to?: string) {
   const base_dir = dirname(input);
   return {
     base_dir,
-    files_dir: relative(base_dir, files_dir),
-    figures_dir: relative(base_dir, figures_dir),
-    supporting_dir: relative(base_dir, supporting_dir),
+    files_dir: pathWithForwardSlashes(relative(base_dir, files_dir)),
+    figures_dir: pathWithForwardSlashes(relative(base_dir, figures_dir)),
+    supporting_dir: pathWithForwardSlashes(relative(base_dir, supporting_dir)),
   };
 }
 
