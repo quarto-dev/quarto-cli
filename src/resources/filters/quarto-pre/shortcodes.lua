@@ -98,17 +98,17 @@ function transformShortcodeBlocks(blocks)
       local onlyShortcode = onlyShortcode(block.content)
       if onlyShortcode ~= nil then
         -- there is a shortcode here, process it and return the blocks
-          local shortCode = processShortCode(onlyShortcode)
-          local handler = handlerForShortcode(shortCode)
-          if handler ~= nil then
-            local transformedShortcode = callShortcodeHandler(handler, shortCode)
-            if transformedShortcode ~= nil then
-              tappend(scannedBlocks, shortcodeResultAsBlocks(transformedShortcode, shortCode.name))
-              transformed = true                  
-            end
-          else
-            warn("Shortcode " .. shortCode.name .. " is not recognized.")
+        local shortCode = processShortCode(onlyShortcode)
+        local handler = handlerForShortcode(shortCode)
+        if handler ~= nil then
+          local transformedShortcode = callShortcodeHandler(handler, shortCode)
+          if transformedShortcode ~= nil then
+            tappend(scannedBlocks, shortcodeResultAsBlocks(transformedShortcode, shortCode.name))
+            transformed = true                  
           end
+        else
+          scannedBlocks:insert(block)
+        end
       else 
         scannedBlocks:insert(block)
       end

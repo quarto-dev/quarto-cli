@@ -216,6 +216,19 @@ function hugoFormat(): Format {
       [kHtmlMathMethod]: "webtex",
       [kWrap]: "preserve",
     },
+    formatExtras: () => {
+      return {
+        postprocessors: [(output: string) => {
+          // unescape shortcodes
+          Deno.writeTextFileSync(
+            output,
+            Deno.readTextFileSync(output)
+              .replaceAll("{{\\<", "{{<")
+              .replaceAll("\\>}}", ">}}"),
+          );
+        }],
+      };
+    },
   });
 }
 
