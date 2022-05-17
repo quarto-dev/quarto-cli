@@ -35,7 +35,7 @@ export async function quartoBld(args: string[]) {
       "Utility that implements packaging and distribution of quarto cli",
     )
     .option(
-      "-s, --signing-identity=[id:string]",
+      "-s, --signing-identity [id:string]",
       "Signing identity to use when signing any files.",
       { global: true },
     )

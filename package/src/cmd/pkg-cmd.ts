@@ -15,7 +15,7 @@ export const kVersion = "setVersion";
 
 export function packageCommand(run: (config: Configuration) => Promise<void>) {
   return new Command().option(
-    "-sv, --set-version=[version:string]",
+    "-sv, --set-version [version:string]",
     "Version to set when preparing this distribution",
     // deno-lint-ignore no-explicit-any
   ).action(async (args: Record<string, any>) => {
