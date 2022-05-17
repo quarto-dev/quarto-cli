@@ -19231,14 +19231,10 @@ class QuartoOJSConnector extends OJSConnector {
           p.appendChild(tt);
           p.appendChild(document.createTextNode(" " + rest.join(" ")));
           message = p;
-        } else if (message === "circular definition") {
-          const p = document.createElement("p");
-          p.appendChild(document.createTextNode("circular definition"));
-          message = p;
         } else {
-          throw new Error(
-            `Internal error, could not parse OJS error message "${message}"`
-          );
+          const p = document.createElement("p");
+          p.appendChild(document.createTextNode(message));
+          message = p;
         }
       } else {
         heading = "OJS Error";
