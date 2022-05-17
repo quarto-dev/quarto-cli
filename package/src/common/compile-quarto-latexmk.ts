@@ -39,7 +39,8 @@ export function compileQuartoLatexmkCommand() {
       "--description <description...:string>",
       "The description of the compiled executable",
     )
-    .action(async (args) => {
+    // deno-lint-ignore no-explicit-any
+    .action(async (args: Record<string, any>) => {
       const configuration = readConfiguration();
       info("Using configuration:");
       info(configuration);

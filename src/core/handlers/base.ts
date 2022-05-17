@@ -79,7 +79,11 @@ import { withCriClient } from "../cri/cri.ts";
  */
 const handlers: Record<string, LanguageHandler> = {};
 
-const globalFigureCounter: Record<string, number> = {};
+let globalFigureCounter: Record<string, number> = {};
+
+export function resetFigureCounter() {
+  globalFigureCounter = {};
+}
 
 function makeHandlerContext(
   options: LanguageCellHandlerOptions,

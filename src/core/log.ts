@@ -37,7 +37,7 @@ export interface LogMessageOptions {
 }
 
 // deno-lint-ignore no-explicit-any
-export function appendLogOptions(cmd: Command): Command<any> {
+export function appendLogOptions(cmd: Command<any>): Command<any> {
   return cmd.option(
     "--log <level>",
     "Path to log file",

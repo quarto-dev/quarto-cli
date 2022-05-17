@@ -20,7 +20,11 @@ import { mergeConfigs } from "../../core/config.ts";
 import { setDateLocale } from "../../core/date.ts";
 import { initDenoDom } from "../../core/deno-dom.ts";
 import { HandlerContextResults } from "../../core/handlers/types.ts";
-import { handleLanguageCells, languages } from "../../core/handlers/base.ts";
+import {
+  handleLanguageCells,
+  languages,
+  resetFigureCounter,
+} from "../../core/handlers/base.ts";
 import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
 import { asMappedString, mappedDiff } from "../../core/mapped-text.ts";
 import {
@@ -320,6 +324,9 @@ export async function renderFiles(
         if (isHtmlCompatible(context.format)) {
           await initDenoDom();
         }
+
+        // reset figure counter
+        resetFigureCounter();
 
         // get output recipe
         const recipe = await outputRecipe(context);

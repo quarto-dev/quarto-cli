@@ -23,12 +23,13 @@ export function cycleDependenciesCommand() {
       "-o, --output",
       "Path to write json output",
     )
-    .action(async (args) => {
+    // deno-lint-ignore no-explicit-any
+    .action(async (args: Record<string, any>) => {
       const configuration = readConfiguration();
       info("Using configuration:");
       info(configuration);
       info("");
-      await cyclicDependencies(args.output, configuration);
+      await cyclicDependencies(args.output as string, configuration);
     });
 }
 
@@ -46,7 +47,8 @@ export function parseSwcLogCommand() {
       "-o, --output",
       "Path to write json output",
     )
-    .action((args) => {
+    // deno-lint-ignore no-explicit-any
+    .action((args: Record<string, any>) => {
       const configuration = readConfiguration();
       info("Using configuration:");
       info(configuration);
