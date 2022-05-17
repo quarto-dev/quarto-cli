@@ -100,9 +100,14 @@ export function readYamlFromMarkdown(
         (yamlBlock.trim().length > 0)
       ) {
         // surface errors immediately for invalid yaml
-        parse(yamlBlock, { json: true, schema: QuartoJSONSchema });
-        // add it
-        yaml += yamlBlock;
+        const result = parse(yamlBlock, {
+          json: true,
+          schema: QuartoJSONSchema,
+        });
+        // add it only if it's an actual block
+        if (typeof result !== "string") {
+          yaml += yamlBlock;
+        }
       }
 
       match = kRegExYAML.exec(markdown);
