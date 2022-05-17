@@ -96,8 +96,8 @@ export function readYamlFromMarkdown(
       // are entirely empty
       // (that's not valid for pandoc yaml blocks)
       if (
-        !yamlBlock.match(/$\n\s*\n/m) &&
-        !yamlBlock.match(/$\n\s*\n---/m) &&
+        !yamlBlock.match(/^\n\s*\n/m) &&
+        !yamlBlock.match(/^\n\s*\n---/m) &&
         (yamlBlock.trim().length > 0)
       ) {
         // surface errors immediately for invalid yaml
