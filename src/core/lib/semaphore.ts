@@ -36,13 +36,15 @@ export class Semaphore {
     await this.acquire();
   }
 
-  // deno-lint-ignore no-explicit-any
-  async runExclusive(fun: () => any) {
+  async runExclusive<T>(fun: () => Promise<T>) {
     await this.acquire();
     try {
-      fun();
-    } finally {
+      const result = await fun();
       this.release();
+      return result;
+    } catch (e) {
+      this.release();
+      throw e;
     }
   }
 }
