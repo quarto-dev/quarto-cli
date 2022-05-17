@@ -17,7 +17,7 @@ end
 
 -- add a header include as a raw block
 function addInclude(meta, format, includes, include)
-  if isHtmlOutput() then
+  if _quarto.format.isHtmlOutput() then
     blockFormat = "html"
   else
     blockFormat = format
@@ -35,7 +35,7 @@ function usePackageWithOption(pkg, option)
 end
 
 function metaInjectLatex(meta, func)
-  if isLatexOutput() then
+  if _quarto.format.isLatexOutput() then
     function inject(tex)
       addInclude(meta, "tex", kHeaderIncludes, tex)
     end
@@ -54,7 +54,7 @@ function metaInjectLatexAfter(meta, func)
 end
 
 function metaInjectRawLatex(meta, include, func)
-  if isLatexOutput() then
+  if _quarto.format.isLatexOutput() then
     function inject(tex)
       addInclude(meta, "tex", include, tex)
     end
@@ -64,7 +64,7 @@ end
 
 
 function metaInjectHtml(meta, func)
-  if isHtmlOutput() then
+  if _quarto.format.isHtmlOutput() then
     function inject(html)
       addInclude(meta, "html", kHeaderIncludes, html)
     end

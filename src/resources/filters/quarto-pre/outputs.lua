@@ -10,7 +10,7 @@ function outputs()
         if tcontains(div.attr.classes, "cell") then
           -- if this is PowerPoint and it's a figure panel then let it through (as
           -- we'll use PowerPoint columns to layout at least 2 figures side-by-side)
-          if isPowerPointOutput() and hasLayoutAttributes(div) then
+          if _quarto.format.isPowerPointOutput() and hasLayoutAttributes(div) then
             return nil
           end
   

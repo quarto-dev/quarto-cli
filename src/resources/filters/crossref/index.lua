@@ -120,7 +120,7 @@ function writeKeysIndex(indexFile)
   end
  
   -- write the index
-  local json = jsonEncode(index)
+  local json = json.encode(index)
   local file = io.open(indexFile, "w")
   file:write(json)
   file:close()
@@ -196,7 +196,7 @@ function writeFullIndex(indexFile)
   end
  
   -- write the index
-  local json = jsonEncode(index)
+  local json = json.encode(index)
   local file = io.open(indexFile, "w")
   file:write(json)
   file:close()

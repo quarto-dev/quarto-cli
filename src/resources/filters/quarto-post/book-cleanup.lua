@@ -36,7 +36,7 @@ function cleanupFileMetadata(el)
 end
 
 function cleanupBookPart(el)
-  if el.attr.classes:includes('quarto-book-part') and not isLatexOutput() then
+  if el.attr.classes:includes('quarto-book-part') and not _quarto.format.isLatexOutput() then
     return pandoc.Div({})
   end
 end

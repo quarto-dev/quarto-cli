@@ -56,7 +56,7 @@ function layoutMetaInject()
 
 
       -- enable column layout (packages and adjust geometry)
-      if (layoutState.hasColumns or marginReferences() or marginCitations()) and isLatexOutput() then
+      if (layoutState.hasColumns or marginReferences() or marginCitations()) and _quarto.format.isLatexOutput() then
         -- inject sidenotes package
         metaInjectLatex(meta, function(inject)
           inject(

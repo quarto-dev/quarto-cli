@@ -18,9 +18,9 @@ function wpDivFigure(div)
 
   -- determine divCaption handler (always left-align)
   local divCaption = nil
-  if isDocxOutput() then
+  if _quarto.format.isDocxOutput() then
     divCaption = docxDivCaption
-  elseif isOdtOutput() then
+  elseif _quarto.format.isOdtOutput() then
     divCaption = odtDivCaption
   end
   if divCaption then

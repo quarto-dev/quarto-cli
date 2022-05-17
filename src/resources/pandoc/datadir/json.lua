@@ -132,7 +132,7 @@ encode = function(val, stack)
 end
 
 
-function jsonEncode(val)
+local function jsonEncode(val)
   return ( encode(val) )
 end
 
@@ -373,7 +373,7 @@ parse = function(str, idx)
 end
 
 
-function jsonDecode(str)
+local function jsonDecode(str)
   if type(str) ~= "string" then
     error("expected argument of type string, got " .. type(str))
   end
@@ -386,3 +386,7 @@ function jsonDecode(str)
 end
 
 
+return {
+  encode = jsonEncode,
+  decode = jsonDecode
+}

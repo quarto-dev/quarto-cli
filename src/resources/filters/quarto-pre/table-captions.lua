@@ -48,7 +48,7 @@ function tableCaptions()
   
               -- special case: knitr::kable will generate a \begin{tablular} without
               -- a \begin{table} wrapper -- put the wrapper in here if need be
-              if isLatexOutput() then
+              if _quarto.format.isLatexOutput() then
                 el = pandoc.walk_block(el, {
                   RawBlock = function(raw)
                     if isRawLatex(raw) then
@@ -239,7 +239,7 @@ function extractTblCapAttrib(el, name, subcap)
   local value = attribute(el, name, nil)
   if value then
     if startsWith(value, "[") then
-      value = pandoc.List(jsonDecode(value))
+      value = pandoc.List(json.decode(value))
     elseif subcap and (value == "true") then
       value = pandoc.List({ "" })
     else
@@ -268,7 +268,7 @@ end
 
 
 function hasRawHtmlTable(raw)
-  if isRawHtml(raw) and isHtmlOutput() then
+  if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
     return raw.text:match(htmlTablePattern())
   else
     return false
@@ -276,7 +276,7 @@ function hasRawHtmlTable(raw)
 end
 
 function hasRawLatexTable(raw)
-  if isRawLatex(raw) and isLatexOutput() then
+  if _quarto.format.isRawLatex(raw) and _quarto.format.isLatexOutput() then
     for i,pattern in ipairs(latexTablePatterns) do
       if raw.text:match(pattern) then
         return true

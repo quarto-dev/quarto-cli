@@ -45,21 +45,6 @@
 -- Mapping tables are stored in human-unreadable compressed form to significantly reduce module size.
 
 
-
-
--- [import]
-function import(script)
-   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
-   dofile(path .. script)
-end
-import("../common/debug.lua")
-import("../common/json.lua")
-import("../common/base64.lua")
-import("../common/params.lua")
--- [/import]
- 
-initParams()
-
 local test_data_integrity = false  -- set to true if you are unsure about correctness of human-unreadable parts of this file
 
 local function modify_lua_functions(all_compressed_mappings)
@@ -191,8 +176,10 @@ local function modify_lua_functions(all_compressed_mappings)
          -- local codepage = pipe:read"*a":match"%sACP%s+REG_SZ%s+(.-)%s*$"
          -- pipe:close()
          -- return assert(codepage, "Failed to determine Windows ANSI codepage from Windows registry")
-
-         local codepage = param("windows-codepage", "1252")
+         local codepage = os.getenv("QUARTO_WIN_CODEPAGE")
+         if codepage == nil then
+          codepage = "1252"
+         end
          return codepage
       end
 
@@ -1272,37 +1259,193 @@ modify_lua_functions{
 
 }
 
--- return nil filter (this filter is executed for it's side effect of patching
--- the lua file i/o functions to accept utf8 filenames)
-return {
+-- Bootstrap our common libraries by adding our filter pandoc to the lib path
+local sharePath = os.getenv("QUARTO_SHARE_PATH");
+if sharePath ~= nil then 
+  local sep = package.config:sub(1,1)
+  package.path = package.path .. ";" .. sharePath .. sep .. 'pandoc' .. sep .. 'datadir' .. sep .. '?.lua'
+end
+
+-- dependency types that will be emitted to the dedendencies file
+-- (use streamed json to write a single line of json for each dependency with
+-- the type and the contents)
+local kDependencyTypeHtml = "html";
+local kDependencyTypeLatex = "latex";
+local kDependencyTypeFile = "file";
+local kDependencyTypeText = "text";
+
+-- locations that dependencies may be injected
+local kBeforeBody = "before-body";
+local kAfterBody = "after-body";
+local kInHeader = "in-header";
+
+-- common requires
+-- this is in the global scope - anyone downstream of init may use this
+json = require 'json'
+format = require 'format'
+
+-- determines whether a path is a relative path
+local function isRelativeRef(ref)
+  return ref:find("^/") == nil and 
+         ref:find("^%a+://") == nil and 
+         ref:find("^data:") == nil and 
+         ref:find("^#") == nil
+end
+
+-- resolves a path, providing either the original path
+-- or if relative, a path that is based upon the 
+-- script location
+local function resolvePath(path, scriptPath) 
+  if isRelativeRef(path) then
+    local wd = pandoc.system.get_working_directory();
+    return pandoc.path.join({wd, path})
+  else
+    return path    
+  end
+end
+
+-- Provides the path to the dependency file
+-- The dependency file can be used to persist dependencies across filter
+-- passes, but will also be inspected after pandoc is 
+-- done running to deterine any files that should be copied
+local function dependenciesFile()
+  local dependenciesFile = os.getenv("QUARTO_FILTER_DEPENDENCY_FILE")
+  if dependenciesFile == nil then
+    error('Missing expected dependency file environment variable QUARTO_FILTER_DEPENDENCY_FILE')
+  else
+    return pandoc.utils.stringify(dependenciesFile)
+  end
+end
+
+-- creates a dependency object
+local function dependency(dependencyType, dependency) 
+  return {
+    type = dependencyType,
+    content = dependency
+  }
+end
+
+-- writes a dependency object to the dependency file
+local function writeToDependencyFile(dependency)
+  local dependencyJson = json.encode(dependency)
+  print(dependencyJson)
+  local file = io.open(dependenciesFile(), "a")
+  file:write(dependencyJson .. "\n")
+  file:close()
+end
+
+-- process the dependencies that are present in the dependencies
+-- file, injecting appropriate meta content and replacing
+-- the contents of the dependencies file with paths to 
+-- file dependencies that should be copied by Quarto
+function processDependencies(meta) 
+  local dependenciesFile = dependenciesFile()
+  -- each line was written as a dependency.
+  -- process them and contribute the appropriate headers
+  for line in io.lines(dependenciesFile) do 
+    local dependency = json.decode(line)
+    if dependency.type == 'text' then
+      processTextDependency(dependency, meta)
+    elseif dependency.type == "file" then
+      processFileDependency(dependency, meta)
+    elseif dependency.type == "usepackage" then
+      processUsePackageDependency(dependency, meta)
+    end
+  end
+end
+
+-- process a file dependency (read the contents of the file)
+-- and include it verbatim in the specified location
+function processFileDependency(dependency, meta)
+  -- read file contents
+  local rawFile = dependency.content
+  local f = io.open(pandoc.utils.stringify(rawFile.path), "r")
+  local fileContents = f:read("*all")
+  f:close()
+
+  -- Determine the format with special treatment for verbatim HTML
+  if format.formatMatches("html") then
+    blockFormat = "html"
+  else
+    blockFormat = FORMAT
+  end  
+
+  -- place the contents of the file right where it belongs
+  meta[rawFile.location]:insert(pandoc.Blocks({ pandoc.RawBlock(blockFormat, fileContents) }))
+end
+
+-- process a text dependency, placing it in the specified location
+function processTextDependency(dependency, meta)
+  local rawText = dependency.content
+  meta[rawText.location]:insert(rawText.text)
+end
+
+-- generate a latex usepackage statement
+function processUsePackageDependency(dependency, meta)
+  local rawPackage = dependency.content
+  meta[resolveLocation(kInHeader)] = usePackage(rawPackage.package, rawPackage.options)
+end
+
+-- make the usePackage statement
+function usePackage(package, option) 
+  if option == nil then
+    text = "\\@ifpackageloaded{" .. package .. "}{}{\\usepackage{" .. package .. "}}"
+  else
+    text = "\\@ifpackageloaded{" .. package .. "}{}{\\usepackage[" .. option .. "]{" .. package .. "}}"
+  end
+  return pandoc.Blocks({ pandoc.RawBlock("latex", text) })
+end
+
+-- converts the friendly Quartio location names 
+-- in the pandoc location
+function resolveLocation(location) 
+  if (location == kInHeader) then
+    return "header-includes"
+  elseif (location == kAfterBody) then
+    return "include-after"
+  elseif (location == kBeforeBody) then
+    return "include-before"
+  else
+    error("Illegal value for dependency location. " .. location .. " is not a valid location.")
+  end
+end
+
+-- Quarto internal module - makes functions available
+-- through the filters
+_quarto = {
+   processDependencies = processDependencies,
+   format = format
+ } 
+
+-- The main exports of the quarto module
+quarto = {
+  doc = {
+
+    -- addHtmlDependency = function(name, version, meta, links, scripts, stylesheets, resources)
+    -- end
+    -- writeToDependencyFile(dependency("html", { name = name, 
+    --                                            version = version, 
+    --                                            meta = meta, 
+    --                                            -- links = resolvePaths(links), 
+    --                                            -- scripts = resolvePaths(scripts), 
+    --                                            -- stylesheets = resolvePaths(stylesheets), 
+    --                                            -- resources = resolvePaths(resources)
+    --                                           }))
   
+    useLatexPackage = function(package, options)
+      writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
+    end,
+
+    includeText = function(location, text)
+      writeToDependencyFile(dependency("text", { text = text, location = resolveLocation(location)}))
+    end,
+  
+    includeFile = function(location, path)
+      writeToDependencyFile(dependency("file", { path = resolvePath(path), location = resolveLocation(location)}))
+    end,
+
+    isFormat = format.isFormat
+  }  
 }
-
---[[
-
-MIT License
-
-Copyright (c) 2019  Egor Skriptunoff
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-]]
-
 
 

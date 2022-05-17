@@ -145,7 +145,7 @@ local kNumber = "number"
 function authorsMeta()
   return {
     Meta = function(meta)
-      if not isHtmlOutput() and not isLatexOutput() and not isIpynbOutput() then
+      if not _quarto.format.isHtmlOutput() and not _quarto.format.isLatexOutput() and not _quarto.format.isIpynbOutput() then
         return
       end
 

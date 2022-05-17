@@ -16,7 +16,7 @@ function columns()
 
     Span = function(el)
       -- a span that should be placed in the margin
-      if isLatexOutput() and hasMarginColumn(el) then 
+      if _quarto.format.isLatexOutput() and hasMarginColumn(el) then 
         tprepend(el.content, {latexBeginSidenote(false)})
         tappend(el.content, {latexEndSidenote(el, false)})
         return el
@@ -35,7 +35,7 @@ function columns()
     RawBlock = function(el) 
       -- Implements support for raw <aside> tags and replaces them with
       -- our raw latex representation
-      if isLatexOutput() then
+      if _quarto.format.isLatexOutput() then
         if el.format == 'html' then
           if el.text == '<aside>' then 
             noteHasColumns()
@@ -65,7 +65,7 @@ function renderDivColumn(el)
         removeColumnClasses(codeEl)
 
         for i, clz in ipairs(columnClasses) do 
-          if clz == kSideCaptionClass and isHtmlOutput() then
+          if clz == kSideCaptionClass and _quarto.format.isHtmlOutput() then
             -- wrap the caption if this is a margin caption
             -- only do this for HTML output since Latex captions typically appear integrated into
             -- a tabular type layout in latex documents
@@ -80,7 +80,7 @@ function renderDivColumn(el)
       end
     end
 
-  elseif isLatexOutput() and not requiresPanelLayout(el) then
+  elseif _quarto.format.isLatexOutput() and not requiresPanelLayout(el) then
 
     -- see if there are any column classes
     local columnClasses = resolveColumnClasses(el)

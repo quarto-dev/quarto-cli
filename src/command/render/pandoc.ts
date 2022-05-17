@@ -595,16 +595,18 @@ export async function runPandoc(
 
   // filter results json file
   const filterResultsFile = options.temp.createFile();
+  const filterDependenciesFile = options.temp.createFile();
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
   let pandocArgs = args;
-  const paramsJson = await filterParamsJson(
+  const paramsJson = filterParamsJson(
     pandocArgs,
     options,
     allDefaults,
     formatFilterParams,
     filterResultsFile,
+    filterDependenciesFile,
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
@@ -844,6 +846,8 @@ export async function runPandoc(
       },
     },
   );
+
+  // TODO: Process Dependencies
 
   // resolve resource files from metadata
   const resources: string[] = resourcesFromMetadata(

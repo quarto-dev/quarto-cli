@@ -43,14 +43,14 @@ function processEquations(blockEl)
         local eq = mathInlines[1]
 
         -- write equation
-        if isLatexOutput() then
+        if _quarto.format.isLatexOutput() then
           targetInlines:insert(pandoc.RawInline("latex", "\\begin{equation}"))
           targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
           targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
         else
           local eqNumber = eqQquad
           local mathMethod = param("html-math-method", nil)
-          if isHtmlOutput() and (mathMethod == "mathjax" or mathMethod == "katex") then
+          if _quarto.format.isHtmlOutput() and (mathMethod == "mathjax" or mathMethod == "katex") then
             eqNumber = eqTag
           end
           eq.text = eq.text .. " " .. eqNumber(inlinesToString(numberOption("eq", order)))

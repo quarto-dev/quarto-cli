@@ -5,7 +5,7 @@
 function parseLayoutWidths(figLayout, figureCount)
   
   -- parse json
-  figLayout = pandoc.List(jsonDecode(figLayout))
+  figLayout = pandoc.List(json.decode(figLayout))
   
   -- if there are no tables then make a table and stick the items in it
   if not figLayout:find_if(function(item) return type(item) == "table" end) then

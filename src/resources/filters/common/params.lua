@@ -6,7 +6,7 @@ quartoParams = {}
 
 function initParams()
   local paramsJson = base64_decode(os.getenv("QUARTO_FILTER_PARAMS"))
-  quartoParams = jsonDecode(paramsJson)
+  quartoParams = json.decode(paramsJson)
 end
 
 function param(name, default)

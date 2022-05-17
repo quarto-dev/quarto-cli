@@ -6,7 +6,7 @@ function citesPreprocess()
   return {
     
     Note = function(note) 
-      if isLatexOutput() and marginCitations() then
+      if _quarto.format.isLatexOutput() and marginCitations() then
         return pandoc.walk_inline(note, {
           Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
             appendAtEnd(citePlaceholderInline(citation))
@@ -17,7 +17,7 @@ function citesPreprocess()
 
     Para = function(para)
       local figure = discoverFigure(para, true)
-      if figure and isLatexOutput() and hasFigureRef(figure) then
+      if figure and _quarto.format.isLatexOutput() and hasFigureRef(figure) then
         if hasMarginColumn(figure) or hasMarginCaption(figure) then
           -- This is a figure in the margin itself, we need to append citations at the end of the caption
           -- without any floating
@@ -41,7 +41,7 @@ function citesPreprocess()
     end,
 
     Div = function(div)
-      if isLatexOutput() and hasMarginColumn(div) or marginCitations() then
+      if _quarto.format.isLatexOutput() and hasMarginColumn(div) or marginCitations() then
         if hasTableRef(div) then 
           -- inspect the table caption for refs and just mark them as resolved
           local table = discoverTable(div)
@@ -83,7 +83,7 @@ end
 function walkUnresolvedCitations(func)
   return function(inlines)
     local modified = false
-    if isLatexOutput() and marginCitations() then
+    if _quarto.format.isLatexOutput() and marginCitations() then
       for i,inline in ipairs(inlines) do
         if inline.t == 'Cite' then
           for j, citation in ipairs(inline.citations) do

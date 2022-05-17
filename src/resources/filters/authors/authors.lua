@@ -22,10 +22,9 @@ import("../common/table.lua")
 import("../common/lunacolors.lua")
 import("../common/log.lua")
 import("../common/base64.lua")
-import("../common/params.lua")
 import("../common/meta.lua")
 import("../common/debug.lua")
-import("../common/json.lua")
+import("../common/params.lua")
 -- [/import]
 
 initParams()

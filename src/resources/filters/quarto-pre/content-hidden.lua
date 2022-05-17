@@ -19,39 +19,13 @@ function handleHiddenVisible(el)
   end
 end
 
--- we have some special rules to allow formats to behave more intuitively
-function formatMatches(to)
-  if FORMAT == to then
-    return true
-  else
-    -- latex and pdf are synonyms
-    if to == "latex" or to == "pdf" then
-      return isLatexOutput()
-    -- odt and opendocument are synonyms
-    elseif to == "odt" or to == "opendocument" then
-      return isOdtOutput()
-    -- epub: epub, epub2, or epub3
-    elseif to:match 'epub' then 
-      return isEpubOutput()
-    -- html: html, html4, html4, epub*, or slides (e.g. revealjs)
-    elseif to == "html" then
-      return isHtmlOutput()
-    -- markdown: markdown*, commonmark*, gfm, markua
-    elseif to == "markdown" then
-      return isMarkdownOutput()
-    else
-      return false
-    end 
-  end
-end
-
 function attributesMatch(el)
   local match = true
   if el.attributes["when-format"] ~= nil then
-    match = match and formatMatches(el.attributes["when-format"])
+    match = match and quarto.doc.formatMatches(el.attributes["when-format"])
   end
   if el.attributes["unless-format"] ~= nil then
-    match = match and not formatMatches(el.attributes["unless-format"])
+    match = match and not quarto.doc.formatMatches(el.attributes["unless-format"])
   end
   return match
 end

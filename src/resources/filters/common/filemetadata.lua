@@ -21,7 +21,7 @@ function parseFileMetadata(el)
     local rawMetadata = string.match(el.text, "^<!%-%- quarto%-file%-metadata: ([^ ]+) %-%->$")
     if rawMetadata then
       local decoded = base64_decode(rawMetadata)
-      local file = jsonDecode(decoded)
+      local file = json.decode(decoded)
       fileMetadataState.file = file
       -- flip into appendix mode as appropriate
       if file.bookItemType == "appendix" then
