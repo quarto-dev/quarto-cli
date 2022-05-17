@@ -8,7 +8,9 @@
 
 import * as defaults from "./defaults.js";
 import externalRequest from "./external-request.js";
-import localDescriptor from "./protocol.json" assert { type: "json" };
+
+// don't load localDescriptor for now
+// import localDescriptor from "./protocol.json" assert { type: "json" };
 
 // options.path must be specified; callback(err, data)
 function devToolsInterface(options, callback) {
@@ -25,10 +27,11 @@ function devToolsInterface(options, callback) {
 }
 
 export async function Protocol(options) {
-  // if the local protocol is requested
-  if (options.local) {
+  // this version doesn't support options.local
+  /*if (options.local) {
     return localDescriptor;
-  }
+  }*/
+
   // try to fetch the protocol remotely
   options.path = "/json/protocol";
   const result = await devToolsInterface(options);
