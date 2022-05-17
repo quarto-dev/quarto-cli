@@ -7,7 +7,7 @@
 
 import { basename } from "path/mod.ts";
 
-import { Command, EnumType } from "cliffy/command/mod.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
@@ -28,11 +28,9 @@ const kProjectTypeAliases = projectTypeAliases();
 const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
 
 const kExecutionEngines = executionEngines().reverse();
-
-const editorType = new EnumType(["visual", "source"]);
+const kEditorTypes = ["source", "visual"];
 
 export const createProjectCommand = new Command()
-  .type("editor", editorType)
   .name("create-project")
   .description("Create a project for rendering multiple documents")
   .arguments("[dir:string]")
@@ -68,9 +66,9 @@ export const createProjectCommand = new Command()
       },
     },
   )
-  .option<{ editor: typeof editorType }>(
-    "--editor <editor:editor>",
-    "Default editor for project",
+  .option(
+    "--editor <editor:string>",
+    "Default editor for project ('source' or 'visual')",
   )
   .option(
     "--with-venv [packages:string]",
@@ -159,6 +157,16 @@ export const createProjectCommand = new Command()
       );
     }
 
+    // Validate the editor
+    const editorType = options.editor;
+    if (editorType && !kEditorTypes.includes(editorType)) {
+      throw new Error(
+        `Editor type must be one of ${
+          kEditorTypes.join(", ")
+        }, but got "${editorType}".`,
+      );
+    }
+
     // Validate the template
     const projType = projectType(type);
     if (projectTemplate && !projType.templates?.includes(projectTemplate)) {
@@ -182,7 +190,7 @@ export const createProjectCommand = new Command()
       scaffold: !!options.scaffold,
       engine: engine[0] || kMarkdownEngine,
       kernel: engine[1],
-      editor: options.editor,
+      editor: editorType,
       venv: !!options.withVenv,
       condaenv: !!options.withCondaenv,
       envPackages,

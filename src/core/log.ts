@@ -36,7 +36,8 @@ export interface LogMessageOptions {
   colorize?: boolean;
 }
 
-export function appendLogOptions(cmd: Command): Command {
+// deno-lint-ignore no-explicit-any
+export function appendLogOptions(cmd: Command): Command<any> {
   return cmd.option(
     "--log <level>",
     "Path to log file",

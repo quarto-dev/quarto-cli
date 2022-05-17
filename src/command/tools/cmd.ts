@@ -29,7 +29,7 @@ import {
 // The quarto install command
 export const toolsCommand = new Command()
   .name("tools")
-  .arguments("[command:string] [tool:string]")
+  .arguments("<command:string> [tool:string]")
   .description(
     `Installation and update of ancillary tools.
     
