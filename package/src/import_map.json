@@ -12,7 +12,7 @@
     "streams/": "https://deno.land/std@0.138.0/streams/",
     "textproto/": "https://deno.land/std@0.138.0/textproto/",
     "uuid/": "https://deno.land/std@0.138.0/uuid/",
-    "node/": "https://deno.land/std@0.139.0/node/",
+    "node/": "https://deno.land/std@0.138.0/node/",
     "cliffy/": "https://deno.land/x/cliffy@v0.19.3/",
     "dayjs/": "https://cdn.skypack.dev/dayjs@1.8.21/",
     "moment-guess": "https://cdn.skypack.dev/moment-guess@1.2.4",
