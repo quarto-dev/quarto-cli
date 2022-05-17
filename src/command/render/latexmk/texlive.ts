@@ -55,7 +55,7 @@ export async function findPackages(
       );
     }
     // Special case for a known package
-    // https://github.com/yihui/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
+    // https://github.com/rstudio/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
     if (searchTerm === "fandol") {
       results.push("fandol");
     } else {

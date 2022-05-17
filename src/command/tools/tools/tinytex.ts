@@ -40,7 +40,7 @@ const kDefaultRepos = [
 ];
 
 // Different packages
-const kTinyTexRepo = "yihui/tinytex-releases";
+const kTinyTexRepo = "rstudio/tinytex-releases";
 // const kPackageMinimal = "TinyTeX-0"; // smallest
 // const kPackageDefault = "TinyTeX-1"; // Compiles most RMarkdown
 const kPackageMaximal = "TinyTeX"; // Compiles 80% of documents
