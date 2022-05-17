@@ -36,11 +36,24 @@ function resolveRefs()
               ref:extend(cite.prefix)
               ref:extend({nbspString()})
             elseif cite.mode ~= pandoc.SuppressAuthor then
-              local prefix = refPrefix(type, upper)
-              if #prefix > 0 then
-                ref:extend(prefix)
-                ref:extend({nbspString()})
+              
+              -- some special handling to detect chapters and use
+              -- an alternate prefix lookup
+              local prefixType = type
+              local chapters = crossrefOption("chapters", false)
+              if chapters then
+                if resolve and type == "sec" and isChapterRef(entry.order.section) then
+                  prefixType = "ch"
+                end
               end
+              if resolve or type ~= "sec" then
+                local prefix = refPrefix(prefixType, upper)
+                if #prefix > 0 then
+                  ref:extend(prefix)
+                  ref:extend({nbspString()})
+                end
+              end
+              
             end
   
             -- for latex inject a \ref, otherwise format manually

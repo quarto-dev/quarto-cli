@@ -959,6 +959,7 @@
       crossref-fig-prefix: string
       crossref-tbl-prefix: string
       crossref-lst-prefix: string
+      crossref-ch-prefix: string
       crossref-sec-prefix: string
       crossref-eq-prefix: string
       crossref-thm-prefix: string

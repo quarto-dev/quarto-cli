@@ -41,6 +41,7 @@ import {
   isHtmlDocOutput,
   isHtmlFileOutput,
   isHtmlOutput,
+  isIpynbOutput,
   isLatexOutput,
 } from "../../config/format.ts";
 import {
@@ -451,7 +452,8 @@ export async function runPandoc(
 
       allDefaults[kTemplate] = stagedTemplate;
     } else {
-      if (userPartials.length > 0) {
+      // ipynb is allowed to have templates without warning
+      if (userPartials.length > 0 && !isIpynbOutput(options.format.pandoc)) {
         // The user passed partials to a format that doesn't support
         // staging and partials.
         throw new Error(

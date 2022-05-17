@@ -142,13 +142,13 @@ async function initialCompileLatex(
 
     // Check whether it suceeded. We'll consider it a failure if there is an error status or output is missing despite a success status
     // (PNAS Template may eat errors when missing packages exists)
-    // See: https://github.com/yihui/tinytex/blob/6c0078f2c3c1319a48b71b61753f09c3ec079c0a/R/latex.R#L216
+    // See: https://github.com/rstudio/tinytex/blob/6c0078f2c3c1319a48b71b61753f09c3ec079c0a/R/latex.R#L216
     const success = response.result.code === 0 &&
       (!response.output || existsSync(response.output));
 
     if (success) {
       // See whether there are warnings about hyphenation
-      // See (https://github.com/yihui/tinytex/commit/0f2007426f730a6ed9d45369233c1349a69ddd29)
+      // See (https://github.com/rstudio/tinytex/commit/0f2007426f730a6ed9d45369233c1349a69ddd29)
       const logText = Deno.readTextFileSync(response.log);
       const missingHyphenationFile = findMissingHyphenationFiles(logText);
       if (missingHyphenationFile) {
@@ -324,7 +324,7 @@ async function makeBibliographyIntermediates(
         //
         if (Deno.build.os === "windows") {
           if (bibCommand !== "biber" && !hasTexLive()) {
-            // See https://github.com/yihui/tinytex/blob/b2d1bae772f3f979e77fca9fb5efda05855b39d2/R/latex.R#L284
+            // See https://github.com/rstudio/tinytex/blob/b2d1bae772f3f979e77fca9fb5efda05855b39d2/R/latex.R#L284
             // Strips the '.bib' from any match and returns the string without the bib extension
             // Replace any '.bib' in bibdata in windows auxData
             const fixedAuxFileData = auxFileData.replaceAll(

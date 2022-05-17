@@ -5,11 +5,13 @@
 *
 */
 
+import { basename, join } from "path/mod.ts";
+import { readPartials } from "../../command/render/template.ts";
 import {
   kCellFormat,
   kCellRawMimeType,
   kDefaultImageExtension,
-  kTitle,
+  kIPynbTitleBlockTemplate,
 } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
 import { jupyterFromFile } from "../../core/jupyter/jupyter.ts";
@@ -19,6 +21,7 @@ import {
   kTextHtml,
   kTextLatex,
 } from "../../core/mime.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
 export function ipynbFormat(): Format {
@@ -28,21 +31,38 @@ export function ipynbFormat(): Format {
       [kDefaultImageExtension]: "png",
     },
     formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
+      // Snag the p
+
+      const resolveTemplate = () => {
+        // iPynbs have a special title-block template partial that they can provide
+        // to permit the customization of the title block
+        const titleTemplate = formatResourcePath(
+          "ipynb",
+          join("templates", "title-block.md"),
+        );
+
+        const partials = readPartials(format.metadata);
+        if (partials.length > 0) {
+          const userTitleTemplate = partials.find((part) => {
+            return basename(part) === "title-block.md";
+          });
+          if (userTitleTemplate) {
+            return userTitleTemplate;
+          } else {
+            return titleTemplate;
+          }
+        } else {
+          return titleTemplate;
+        }
+      };
+
       return {
+        metadata: {
+          [kIPynbTitleBlockTemplate]: resolveTemplate(),
+        },
         postprocessors: [(output: string) => {
           // read notebook
           const nb = jupyterFromFile(output);
-
-          // insert title if we have one
-          if (format.metadata[kTitle]) {
-            nb.cells.unshift({
-              cell_type: "markdown",
-              metadata: {},
-              source: [
-                `# ${format.metadata[kTitle]}`,
-              ],
-            });
-          }
 
           // convert raw cell metadata format to raw_mimetype used by jupyter
           nb.cells = nb.cells.map((cell) => {

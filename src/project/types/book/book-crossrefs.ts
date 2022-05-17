@@ -17,7 +17,9 @@ import {
   kCrossrefChapterId,
   kCrossrefChapters,
   kCrossrefChaptersAlpha,
+  kCrossrefChPrefix,
   kCrossrefLabels,
+  kCrossrefSecPrefix,
   kOutputFile,
 } from "../../../config/constants.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
@@ -29,6 +31,7 @@ import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { isMultiFileBookFormat } from "./book-shared.ts";
+import { Format, FormatLanguage } from "../../../config/types.ts";
 
 export async function bookCrossrefsPostRender(
   context: ProjectContext,
@@ -50,7 +53,13 @@ export async function bookCrossrefsPostRender(
       const index = bookCrossrefIndexForOutputFile(fileRelative, indexes);
       if (index) {
         // resolve crossrefs
-        resolveCrossrefs(context, fileRelative, outputFile.doc, index);
+        resolveCrossrefs(
+          context,
+          fileRelative,
+          outputFile.format,
+          outputFile.doc,
+          index,
+        );
       }
     }
   }
@@ -59,6 +68,7 @@ export async function bookCrossrefsPostRender(
 function resolveCrossrefs(
   context: ProjectContext,
   file: string,
+  format: Format,
   doc: HTMLDocument,
   index: BookCrossrefIndex,
 ) {
@@ -103,6 +113,7 @@ function resolveCrossrefs(
         type,
         index.files[entry.file],
         entry,
+        format.language,
         entry.parent ? index.entries[entry.parent] : undefined,
       );
       ref.removeAttribute("class");
@@ -260,6 +271,7 @@ function formatCrossref(
   type: string,
   options: BookCrossrefOptions,
   entry: BookCrossrefEntry,
+  language: FormatLanguage,
   parent?: BookCrossrefEntry,
 ) {
   if (parent) {
@@ -271,7 +283,16 @@ function formatCrossref(
     crossref.push(")");
     return crossref.join("");
   } else {
-    return numberOption(entry.order, options, type);
+    // if this is a section we need a prefix
+    const refNumber = numberOption(entry.order, options, type);
+    if (type === "sec") {
+      const prefix = (options[kCrossrefChapters] && isChapterRef(entry))
+        ? language[kCrossrefChPrefix]
+        : language[kCrossrefSecPrefix];
+      return prefix + "&nbsp" + refNumber;
+    } else {
+      return refNumber;
+    }
   }
 }
 

@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
@@ -150,7 +150,6 @@ export async function bookBibliographyPostRender(
           csl,
           citeIds,
         );
-
         const newRefsDiv = refsOutputFile.doc.createElement("div");
         newRefsDiv.innerHTML = biblioHtml;
         const refsDiv = refsOutputFile.doc.getElementById("refs") as Element;
@@ -169,13 +168,21 @@ export async function bookBibliographyPostRender(
 
 async function generateBibliographyHTML(
   context: ProjectContext,
-  bibliography: unknown,
+  bibliography: string[],
   csl: unknown,
   citeIds: string[],
 ) {
+  const biblioPaths = bibliography.map((biblio) => {
+    if (isAbsolute(biblio)) {
+      return relative(context.dir, biblio);
+    } else {
+      return biblio;
+    }
+  });
+
   // make the aggregated bibliography
   const yaml: Metadata = {
-    bibliography,
+    bibliography: biblioPaths,
     nocite: ld.uniq(citeIds).map((id) => "@" + id).join(", "),
   };
   if (csl) {

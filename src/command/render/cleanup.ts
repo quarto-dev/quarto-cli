@@ -57,10 +57,13 @@ export function renderCleanup(
       }
       // narrow supporting to figures dir for non-html formats
     } else {
-      const filesDir = join(
-        dirname(Deno.realPathSync(input)),
+      let filesDir = join(
+        dirname(input),
         inputFilesDir(input),
       );
+      if (existsSync(filesDir)) {
+        filesDir = Deno.realPathSync(filesDir);
+      }
       supporting = supporting.map((supportingDir) => {
         if (filesDir === supportingDir) {
           return join(filesDir, figuresDir(figureFormat));

@@ -40,6 +40,7 @@ export const kExecuteDebug = "debug";
 
 export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
+export const kIPynbTitleBlockTemplate = "ipynb-title-block";
 
 export const kShortcodes = "shortcodes";
 
@@ -201,6 +202,7 @@ export const kCrossrefExrTitle = "crossref-exr-title";
 export const kCrossrefFigPrefix = "crossref-fig-prefix";
 export const kCrossrefTblPrefix = "crossref-tbl-prefix";
 export const kCrossrefLstPrefix = "crossref-lst-prefix";
+export const kCrossrefChPrefix = "crossref-ch-prefix";
 export const kCrossrefSecPrefix = "crossref-sec-prefix";
 export const kCrossrefEqPrefix = "crossref-eq-prefix";
 export const kCrossrefThmPrefix = "crossref-thm-prefix";
@@ -289,6 +291,7 @@ export const kLanguageDefaultsKeys = [
   kCrossrefFigPrefix,
   kCrossrefTblPrefix,
   kCrossrefLstPrefix,
+  kCrossrefChPrefix,
   kCrossrefSecPrefix,
   kCrossrefEqPrefix,
   kCrossrefThmPrefix,

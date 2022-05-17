@@ -145,7 +145,7 @@ local kNumber = "number"
 function authorsMeta()
   return {
     Meta = function(meta)
-      if not isHtmlOutput() and not isLatexOutput() then
+      if not isHtmlOutput() and not isLatexOutput() and not isIpynbOutput() then
         return
       end
 

@@ -9,10 +9,11 @@ import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
-import { execProcess, safeWindowsExec } from "../../../core/process.ts";
+import { execProcess } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
 import { tinyTexInstallDir } from "../../tools/tools/tinytex-info.ts";
+import { requireQuoting, safeWindowsExec } from "../../../core/windows.ts";
 
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
@@ -55,7 +56,7 @@ export async function findPackages(
       );
     }
     // Special case for a known package
-    // https://github.com/yihui/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
+    // https://github.com/rstudio/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
     if (searchTerm === "fandol") {
       results.push("fandol");
     } else {
@@ -301,31 +302,6 @@ async function verifyPackageInstalled(
     ],
   );
   return result.stdout?.trim() === pkg;
-}
-
-// On Windows, determine and apply double quoting on args that needs it
-// Do nothing on other OS.
-function requireQuoting(
-  args: string[],
-) {
-  let requireQuoting = false;
-  if (Deno.build.os === "windows") {
-    // On Windows, we need to check if arguments may need quoting to avoid issue with Deno.Run()
-    // https://github.com/quarto-dev/quarto-cli/issues/336
-    const shellCharReg = new RegExp("[ <>()|\\:&;#?*']");
-    args = args.map((a) => {
-      if (shellCharReg.test(a)) {
-        requireQuoting = true;
-        return `"${a}"`;
-      } else {
-        return a;
-      }
-    });
-  }
-  return {
-    status: requireQuoting,
-    args: args,
-  };
 }
 
 // Execute correctly tlmgr <cmd> <args>

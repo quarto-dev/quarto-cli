@@ -3,6 +3,7 @@ import { isAbsolute, join } from "path/mod.ts";
 import { RenderResult } from "../../command/render/types.ts";
 import { md5Hash } from "../../core/hash.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
+import { isHtmlContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { projectOutputDir } from "../project-shared.ts";
 import { ProjectContext } from "../types.ts";
@@ -74,8 +75,9 @@ export class ServeRenderManager {
     }, "");
     // very large jupyter notebooks can take a long time to hash
     // (~ 2 seconds for every 10mb) so we use the slightly less
-    // robust file modification time in that case
-    if (isJupyterNotebook(inputFile)) {
+    // robust file modification time in that case. non-html
+    // content also shouldn't be read with readTextFileSync
+    if (isJupyterNotebook(inputFile) || !isHtmlContent(file)) {
       return String(Deno.statSync(file).mtime) +
         String(Deno.statSync(inputFile).mtime) +
         resourceHash;

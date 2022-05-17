@@ -91,6 +91,7 @@ return {
   tableColwidth(),
   hidden(),
   contentHidden(),
+  tableCaptions(),
   outputs(),
   outputLocation(),
   combineFilters({
@@ -101,7 +102,6 @@ return {
     resourceRefs(),
     resourceFiles(),
     figures(),
-    tableCaptions(),
     theorems(),
     callout(),
     lineNumbers(),
