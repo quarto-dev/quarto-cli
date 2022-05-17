@@ -225,7 +225,7 @@ async function findChrome(): Promise<string | undefined> {
   return path;
 }
 
-async function fetchBrowser() {
+export async function getBrowserExecutablePath() {
   // Cook up a new instance
   const browserFetcher = await fetcher();
   const availableRevisions = await browserFetcher.localRevisions();
@@ -247,11 +247,16 @@ async function fetchBrowser() {
   if (executablePath === undefined) {
     error("Chrome not found");
     info(
-      "\nNo Chromium installation was detected.\n\nPlease run 'quarto tools install chromium' to install Chromium.\n",
+      "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto tools install chromium' to install Chromium.\n",
     );
     throw new Error();
   }
 
+  return executablePath;
+}
+
+async function fetchBrowser() {
+  const executablePath = await getBrowserExecutablePath();
   const puppeteer = await getPuppeteer();
   return await puppeteer.launch({
     product: "chrome",
