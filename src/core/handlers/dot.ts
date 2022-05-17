@@ -54,17 +54,26 @@ const dotHandler: LanguageHandler = {
     options: Record<string, unknown>,
   ) {
     const cellContent = handlerContext.cellContent(cell);
+
     const graphvizModule = await import(
       resourcePath(join("js", "graphviz-wasm.js"))
     );
     let svg;
+    const oldConsoleLog = console.log;
+    const oldConsoleWarn = console.warn;
+    console.log = () => {};
+    console.warn = () => {};
     try {
       svg = await graphvizModule.graphviz().layout(
         cellContent.value,
         "svg",
         options["graph-layout"],
       );
+      console.log = oldConsoleLog;
+      console.warn = oldConsoleWarn;
     } catch (e) {
+      console.log = oldConsoleLog;
+      console.warn = oldConsoleWarn;
       const m = (e.message as string).match(
         /(.*)syntax error in line (\d+)(.*)/,
       );
