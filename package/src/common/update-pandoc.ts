@@ -24,9 +24,9 @@ import { configureDependency } from "./dependencies/dependencies.ts";
 export function updatePandoc() {
   return new Command()
     .name("update-pandoc")
-    .arguments("[version:string]")
+    .arguments("<version:string>")
     .description("Updates Pandoc to the specified version")
-    .action(async (_args, version) => {
+    .action(async (_args, version: string) => {
       info(`Updating Pandoc to ${version}`);
 
       const configuration = readConfiguration();
