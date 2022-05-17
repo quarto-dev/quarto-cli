@@ -19,7 +19,8 @@ import { inspectCommand } from "./inspect/cmd.ts";
 import { buildJsCommand } from "./build-js/cmd.ts";
 import { installCommand } from "./install/cmd.ts";
 
-export function commands(): Command[] {
+// deno-lint-ignore no-explicit-any
+export function commands(): Command<any>[] {
   return [
     renderCommand,
     previewCommand,

@@ -24,7 +24,7 @@ const kMarkdownFormat = "markdown";
 
 export const convertCommand = new Command()
   .name("convert")
-  .arguments("[input:string]")
+  .arguments("<input:string>")
   .description(
     "Convert documents to alternate representations.",
   )

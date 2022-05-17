@@ -139,8 +139,7 @@ export const buildJsCommand = new Command()
   .description(
     "Builds all the javascript assets necessary for IDE support.\n\n",
   )
-  // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, _path: string) => {
+  .action(async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
     await buildAssets();
   });

@@ -60,54 +60,12 @@ export const previewCommand = new Command()
     },
   )
   .option(
-    "--no-render",
-    "Do not re-render input files when they change.",
-    {
-      hidden: true,
-    },
-  )
-  .option(
-    "--presentation",
-    "Preview in presentation mode",
-    {
-      hidden: true,
-    },
-  )
-  .option(
-    "--navigate",
-    "Navigate the browser automatically when outputs are updated",
-    {
-      hidden: true,
-    },
-  )
-  .option(
     "--no-navigate",
     "Don't navigate the browser automatically when outputs are updated.",
   )
   .option(
-    "--browser-path",
-    "Initial path to navigate browser to",
-    {
-      hidden: true,
-    },
-  )
-  .option(
     "--no-browser",
     "Don't open a browser to preview the site.",
-  )
-  .option(
-    "--no-browse",
-    "Don't open a browser to preview the site.",
-    {
-      hidden: true,
-    },
-  )
-  .option(
-    "--watch-inputs",
-    "Re-render input files when they change.",
-    {
-      hidden: true,
-    },
   )
   .option(
     "--no-watch-inputs",
@@ -161,7 +119,7 @@ export const previewCommand = new Command()
     "quarto preview --render html",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, file: string, args: string[]) => {
+  .action(async (options: any, file?: string, args?: string[]) => {
     // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();

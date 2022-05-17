@@ -54,7 +54,7 @@ export const inspectCommand = new Command()
     "quarto inspect document.md",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, path: string) => {
+  .action(async (_options: any, path: string | undefined) => {
     // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();

@@ -41,7 +41,7 @@ export const serveCommand = new Command()
     "quarto serve dashboard.Rmd --no-render",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input: string) => {
+  .action(async (options: any, input?: string) => {
     if (!input) {
       error(
         "No input passed to serve.\n" +
