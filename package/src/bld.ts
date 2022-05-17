@@ -54,7 +54,8 @@ if (import.meta.main) {
 
 // Supported package commands
 function getCommands() {
-  const commands: Command[] = [];
+  // deno-lint-ignore no-explicit-any
+  const commands: Command<any>[] = [];
   commands.push(
     packageCommand(configure)
       .name("configure")
