@@ -8,6 +8,8 @@
 
 import cdp from "./deno-cri/index.js";
 import { decode } from "encoding/base64.ts";
+import { getBrowserExecutablePath } from "../puppeteer.ts";
+import { Semaphore } from "../lib/semaphore.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 500;
@@ -31,8 +33,36 @@ async function waitForServer(port: number, timeout = 3000) {
   return false;
 }
 
-export async function criClient(appPath: string, port = 9222) {
-  const cmd = [appPath, "--headless", `--remote-debugging-port=${port}`];
+const criSemaphore = new Semaphore(1);
+
+export function withCriClient<T>(
+  fn: (client: Awaited<ReturnType<typeof criClient>>) => Promise<T>,
+  appPath?: string,
+  port = 9222,
+): Promise<T> {
+  return criSemaphore.runExclusive(async () => {
+    const client = await criClient(appPath, port);
+    try {
+      const result = await fn(client);
+      await client.close();
+      return result;
+    } catch (e) {
+      await client.close();
+      throw e;
+    }
+  });
+}
+
+export async function criClient(appPath?: string, port = 9222) {
+  if (appPath === undefined) {
+    appPath = await getBrowserExecutablePath();
+  }
+
+  const cmd = [
+    appPath as string,
+    "--headless",
+    `--remote-debugging-port=${port}`,
+  ];
   const browser = Deno.run({ cmd, stdout: "piped", stderr: "piped" });
 
   if (!(await waitForServer(port))) {
@@ -96,8 +126,8 @@ export async function criClient(appPath: string, port = 9222) {
         let quad;
         try {
           quad = (await client.DOM.getContentQuads({ nodeId })).quads[0];
-        } catch (e) {
-          console.log(e);
+        } catch (_e) {
+          // TODO report error?
           continue;
         }
         const minX = Math.min(quad[0], quad[2], quad[4], quad[6]);
@@ -118,8 +148,8 @@ export async function criClient(appPath: string, port = 9222) {
           });
           const buf = decode(screenshot.data);
           lst.push({ nodeId, data: buf });
-        } catch (e) {
-          console.log(e);
+        } catch (_e) {
+          // TODO report error?
           continue;
         }
       }

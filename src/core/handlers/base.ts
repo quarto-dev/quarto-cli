@@ -71,11 +71,12 @@ import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
-import {
+import { withCriClient } from "../cri/cri.ts";
+/* import {
   extractHtmlFromElements,
   extractImagesFromElements,
 } from "../puppeteer.ts";
-
+ */
 const handlers: Record<string, LanguageHandler> = {};
 
 const globalFigureCounter: Record<string, number> = {};
@@ -114,11 +115,11 @@ function makeHandlerContext(
       const fileName = join(dirName, "index.html");
       Deno.writeTextFileSync(fileName, content);
       const url = `file://${fileName}`;
-      const result = await extractHtmlFromElements(
-        url,
-        selector,
-      );
-      return result;
+
+      return await withCriClient(async (client) => {
+        await client.open(url);
+        return await client.contents(selector);
+      });
     },
 
     async createPngsFromHtml(opts: {
@@ -126,7 +127,6 @@ function makeHandlerContext(
       html: string;
       deviceScaleFactor: number;
       selector: string;
-      count: number;
       resources?: [string, string][];
     }): Promise<{
       filenames: string[];
@@ -137,21 +137,11 @@ function makeHandlerContext(
         html: content,
         deviceScaleFactor,
         selector,
-        count,
       } = opts;
       const nonEmptyHtmlResources: [string, string][] = opts.resources ||
         [];
       const dirName = context.options.temp.createDir();
 
-      // create temporary figure names
-      const tempNames: string[] = [],
-        sourceNames: string[] = [];
-      for (let i = 0; i < count; ++i) {
-        const { sourceName, fullName: tempName } = context
-          .uniqueFigureName(prefix, ".png");
-        sourceNames.push(sourceName);
-        tempNames.push(tempName);
-      }
       // create temporary resources
       for (const [name, content] of nonEmptyHtmlResources) {
         Deno.writeTextFileSync(join(dirName, name), content);
@@ -159,18 +149,30 @@ function makeHandlerContext(
       const fileName = join(dirName, "index.html");
       Deno.writeTextFileSync(fileName, content);
       const url = `file://${fileName}`;
-      const elements = await extractImagesFromElements(
-        {
-          url,
-          viewport: {
-            width: 800,
-            height: 600,
-            deviceScaleFactor,
-          },
-        },
-        selector,
-        tempNames,
-      );
+
+      const { elements, images } = await withCriClient(async (client) => {
+        await client.open(url);
+        const elements = await client.contents(selector);
+        const screenshots = await client.screenshots(
+          selector,
+          deviceScaleFactor,
+        );
+        return {
+          elements,
+          images: screenshots.map((x) => x.data),
+        };
+      });
+
+      // write figures to disk
+      const sourceNames: string[] = [];
+
+      for (let i = 0; i < images.length; ++i) {
+        const { sourceName, fullName } = context
+          .uniqueFigureName(prefix, ".png");
+        sourceNames.push(sourceName);
+        Deno.writeFileSync(fullName, images[i]);
+      }
+
       return {
         filenames: sourceNames,
         elements,
