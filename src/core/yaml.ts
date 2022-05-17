@@ -88,26 +88,25 @@ export function readYamlFromMarkdown(
     kRegExYAML.lastIndex = 0;
     let match = kRegExYAML.exec(markdown);
     while (match != null) {
-      const yamlBlock = removeYamlDelimiters(match[2]);
+      let yamlBlock = removeYamlDelimiters(match[2]);
+      yamlBlock = lines(yamlBlock).map((x) => x.trimEnd()).join("\n");
 
       // exclude yaml blocks that start with a blank line, start with
       // a yaml delimiter (can occur if two "---" stack together) or
       // are entirely empty
       // (that's not valid for pandoc yaml blocks)
       if (
-        !yamlBlock.startsWith("\n\n") &&
-        !yamlBlock.startsWith("\n---") &&
+        !yamlBlock.match(/$\n\s*\n/m) &&
+        !yamlBlock.match(/$\n\s*\n---/m) &&
         (yamlBlock.trim().length > 0)
       ) {
         // surface errors immediately for invalid yaml
-        const result = parse(yamlBlock, {
+        parse(yamlBlock, {
           json: true,
           schema: QuartoJSONSchema,
         });
         // add it only if it's an actual block
-        if (typeof result !== "string") {
-          yaml += yamlBlock;
-        }
+        yaml += yamlBlock;
       }
 
       match = kRegExYAML.exec(markdown);
