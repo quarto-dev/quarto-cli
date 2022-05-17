@@ -6,13 +6,14 @@
  * Copyright (c) 2022 by RStudio, PBC.
  */
 
-import cdp from "./deno-cri/index.js";
 import { decode } from "encoding/base64.ts";
+import cdp from "./deno-cri/index.js";
 import { getBrowserExecutablePath } from "../puppeteer.ts";
 import { Semaphore } from "../lib/semaphore.ts";
+import { findOpenPort } from "../port.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
-  const interval = 500;
+  const interval = 50;
   let soFar = 0;
 
   do {
@@ -38,8 +39,12 @@ const criSemaphore = new Semaphore(1);
 export function withCriClient<T>(
   fn: (client: Awaited<ReturnType<typeof criClient>>) => Promise<T>,
   appPath?: string,
-  port = 9222,
+  port?: number,
 ): Promise<T> {
+  if (port === undefined) {
+    port = findOpenPort(9222);
+  }
+
   return criSemaphore.runExclusive(async () => {
     const client = await criClient(appPath, port);
     try {
@@ -53,7 +58,10 @@ export function withCriClient<T>(
   });
 }
 
-export async function criClient(appPath?: string, port = 9222) {
+export async function criClient(appPath?: string, port?: number) {
+  if (port === undefined) {
+    port = findOpenPort(9222);
+  }
   if (appPath === undefined) {
     appPath = await getBrowserExecutablePath();
   }
