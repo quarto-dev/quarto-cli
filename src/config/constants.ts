@@ -40,6 +40,7 @@ export const kExecuteDebug = "debug";
 
 export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
+export const kIPynbTitleBlockTemplate = "ipynb-title-block";
 
 export const kShortcodes = "shortcodes";
 

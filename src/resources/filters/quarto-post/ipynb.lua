@@ -7,35 +7,34 @@ function ipynb()
     return {
 
       Pandoc = function(doc)
-        -- pandoc doesn't handle front matter title/author/date when creating ipynb
+
+
+        -- pandoc doesn'tx handle front matter title/author/date when creating ipynb
         -- so do that manually here. note that when we make authors more 
         -- sophisticated we'll need to update this code
-        local title = readMetadataInlines(doc.meta, 'title')
-        local author = readMetadataInlines(doc.meta, 'author')
-        local date = readMetadataInlines(doc.meta, 'date')
-        if title or author or date then
-          local headerDiv = pandoc.Div({}, pandoc.Attr("", {"cell", "markdown"}))
-          if title then
-            local h1 = pandoc.Header(1, {})
-            tappend(h1.content, title)
-            headerDiv.content:insert(h1)
-          end
-          if author or date then
-            local para = pandoc.Para({})
-            if author then
-              tappend(para.content, author)
-              if date then
-                para.content:insert(pandoc.LineBreak())
-              end
-            end
-            if date then
-              tappend(para.content, date)
-            end
-            headerDiv.content:insert(para)
-          end
-          tprepend(doc.blocks, { headerDiv })
-          return doc
-        end
+
+
+        -- read the title block template
+        local titleBlockTemplate = param('ipynb-title-block')
+        local f = io.open(pandoc.utils.stringify(titleBlockTemplate), "r")
+        local contents = f:read("*all")
+        f:close()
+
+        -- compile the title block template
+        local compiledTemplate = pandoc.template.compile(contents)
+        local template_opts = pandoc.WriterOptions {template = compiledTemplate}  
+
+        -- render the current document and read it to generate an AST for the
+        -- title block
+        local metaDoc = pandoc.Pandoc(pandoc.Blocks({}), doc.meta)
+        local rendered = pandoc.write(metaDoc, 'gfm', template_opts)
+        local titleDoc = pandoc.read(rendered, 'gfm')
+
+        -- prepend the blocks to the notebook
+        tprepend(doc.blocks, titleDoc.blocks )
+
+        return doc
+        
       end,
 
       Div = function(el)
@@ -98,7 +97,7 @@ function readMetadataInlines(meta, key)
     return { pandoc.Str( tostring(val) ) } 
   elseif type(val) == "string" then
     return stringToInlines(val)     
-  elseif pandoc.utils.type(v) == "Inlines" then
+  elseif pandoc.utils.type(val) == "Inlines" then
     return val
   else
    return nil

@@ -25,6 +25,7 @@ import {
   kIncludeBefore,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kIPynbTitleBlockTemplate,
   kKeepHidden,
   kMergeIncludes,
   kOutputDivs,
@@ -57,6 +58,7 @@ import {
   Extension,
   extensionIdString,
 } from "../../extension/extension-shared.ts";
+import { kTemplatePartials } from "./template.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -90,6 +92,7 @@ export async function filterParamsJson(
   const params: Metadata = {
     ...includes,
     ...await initFilterParams(),
+    ...ipynbFilterParams(options),
     ...projectFilterParams(options),
     ...quartoColumnParams,
     ...quartoFilterParams(options),
@@ -391,6 +394,13 @@ function projectFilterParams(options: PandocOptions) {
   } else {
     return params;
   }
+}
+
+function ipynbFilterParams(options: PandocOptions) {
+  return {
+    [kIPynbTitleBlockTemplate]:
+      options.format.metadata[kIPynbTitleBlockTemplate],
+  };
 }
 
 function quartoFilterParams(
