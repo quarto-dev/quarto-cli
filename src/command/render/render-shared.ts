@@ -40,6 +40,7 @@ import { kTextPlain } from "../../core/mime.ts";
 import { execProcess } from "../../core/process.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import { createTempContext } from "../../core/temp.ts";
+import { Lifetime } from "../../core/lifetimes.ts";
 
 export async function render(
   path: string,
@@ -120,11 +121,16 @@ export async function render(
 export function renderServices() {
   const temp = createTempContext();
   const extension = createExtensionContext();
+
+  const lifetime = new Lifetime();
+  lifetime.attach(temp);
+
   return {
     temp,
     extension,
+    lifetime,
     cleanup: () => {
-      temp.cleanup();
+      lifetime.cleanup();
     },
   };
 }

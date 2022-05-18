@@ -11,6 +11,7 @@ import cdp from "./deno-cri/index.js";
 import { getBrowserExecutablePath } from "../puppeteer.ts";
 import { Semaphore } from "../lib/semaphore.ts";
 import { findOpenPort } from "../port.ts";
+import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -36,8 +37,10 @@ async function waitForServer(port: number, timeout = 3000) {
 
 const criSemaphore = new Semaphore(1);
 
+export type CriClient = Awaited<ReturnType<typeof criClient>>;
+
 export function withCriClient<T>(
-  fn: (client: Awaited<ReturnType<typeof criClient>>) => Promise<T>,
+  fn: (client: CriClient) => Promise<T>,
   appPath?: string,
   port?: number,
 ): Promise<T> {
@@ -46,15 +49,26 @@ export function withCriClient<T>(
   }
 
   return criSemaphore.runExclusive(async () => {
-    const client = await criClient(appPath, port);
-    try {
-      const result = await fn(client);
-      await client.close();
-      return result;
-    } catch (e) {
-      await client.close();
-      throw e;
+    const lifetime = getNamedLifetime("render-file");
+    if (lifetime === undefined) {
+      throw new Error("Internal Error: named lifetime render-file not found");
     }
+    let client: CriClient;
+    if (lifetime.get("cri-client") === undefined) {
+      client = await criClient(appPath, port);
+      lifetime.attach({
+        client,
+        async cleanup() {
+          await client.close();
+        },
+      } as ObjectWithLifetime, "cri-client");
+    } else {
+      // deno-lint-ignore no-explicit-any
+      client = (lifetime.get("cri-client") as any).client as CriClient;
+    }
+
+    // this must be awaited since we're in runExclusive.
+    return await fn(client);
   });
 }
 
@@ -76,7 +90,7 @@ export async function criClient(appPath?: string, port?: number) {
   ];
   const browser = Deno.run({ cmd, stdout: "piped", stderr: "piped" });
 
-  if (!(await waitForServer(port))) {
+  if (!(await waitForServer(port as number))) {
     throw new Error("Couldn't find open server");
   }
 
