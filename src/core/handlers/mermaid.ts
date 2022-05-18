@@ -135,17 +135,6 @@ const mermaidHandler: LanguageHandler = {
         undefined,
         new Set(["fig-width", "fig-height"]),
       );
-    } else if (
-      isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
-    ) {
-      return this.build(
-        handlerContext,
-        cell,
-        mappedConcat(["\n``` mermaid\n", cellContent, "\n```\n"]),
-        options,
-        undefined,
-        new Set(["fig-width", "fig-height"]),
-      );
     } else {
       const {
         filenames: [sourceName],
