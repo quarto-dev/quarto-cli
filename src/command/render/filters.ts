@@ -58,7 +58,6 @@ import {
   Extension,
   extensionIdString,
 } from "../../extension/extension-shared.ts";
-import { kTemplatePartials } from "./template.ts";
 
 const kQuartoParams = "quarto-params";
 
