@@ -13493,7 +13493,7 @@ try {
             default: false,
             description: {
               short: "Number section headings",
-              long: "Number section headings rendered ouptut. By default, sections are not numbered.\nSections with class `.unnumbered` will never be numbered, even if `number-sections`\nis specified.\n"
+              long: "Number section headings rendered output. By default, sections are not numbered.\nSections with class `.unnumbered` will never be numbered, even if `number-sections`\nis specified.\n"
             }
           },
           {

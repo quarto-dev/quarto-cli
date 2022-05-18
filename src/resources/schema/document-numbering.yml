@@ -4,7 +4,7 @@
   description:
     short: "Number section headings"
     long: |
-      Number section headings rendered ouptut. By default, sections are not numbered.
+      Number section headings rendered output. By default, sections are not numbered.
       Sections with class `.unnumbered` will never be numbered, even if `number-sections`
       is specified.
 
