@@ -53,6 +53,7 @@ import {
   kAutoAnimateEasing,
   kAutoAnimateUnmatched,
   kAutoStretch,
+  kCenter,
   kCenterTitleSlide,
   kControlsAuto,
   kHashType,
@@ -154,24 +155,32 @@ export function revealjsFormat() {
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
           // extras for all html formats
-          await htmlFormatExtras(input, flags, offset, format, temp, {
-            tabby: true,
-            anchors: false,
-            copyCode: true,
-            hoverCitations: true,
-            hoverFootnotes: true,
-            figResponsive: false,
-          }, // tippy options
-          {
-            theme: "quarto-reveal",
-            parent: "section.slide",
-            config: {
-              offset: [0, 0],
-              maxWidth: 700,
+          await htmlFormatExtras(
+            input,
+            flags,
+            offset,
+            format,
+            temp,
+            {
+              tabby: true,
+              anchors: false,
+              copyCode: true,
+              hoverCitations: true,
+              hoverFootnotes: true,
+              figResponsive: false,
+            }, // tippy options
+            {
+              theme: "quarto-reveal",
+              parent: "section.slide",
+              config: {
+                offset: [0, 0],
+                maxWidth: 700,
+              },
             },
-          }, {
-            quartoBase: false,
-          }),
+            {
+              quartoBase: false,
+            },
+          ),
           // default extras for reveal
           {
             args: [],
@@ -490,6 +499,14 @@ function revealHtmlPostprocessor(
       }
     }
 
+    // center other slides if requested
+    if (format.metadata[kCenter] === true) {
+      for (const slide of doc.querySelectorAll("section.slide")) {
+        const slideEl = slide as Element;
+        slideEl.classList.add("center");
+      }
+    }
+
     // inject css to hide assistive mml in speaker notes (have to do it for each aside b/c the asides are
     // slurped into speaker mode one at a time using innerHTML) note that we can remvoe this hack when we begin
     // defaulting to MathJax 3 (after Pandoc updates their template to support Reveal 4.2 / MathJax 3)
@@ -651,97 +668,100 @@ function applyStretch(doc: Document, autoStretch: boolean) {
       const nodeEl = selNode;
 
       // Do not apply stretch if this is an inline image among text
-      if (!nodeEl || (nodeEl.nodeName === "P" && nodeEl.childNodes.length > 1)) {
+      if (
+        !nodeEl || (nodeEl.nodeName === "P" && nodeEl.childNodes.length > 1)
+      ) {
         continue;
       }
 
       const hasStretchClass = function (el: Element): boolean {
-        return el.classList.contains("stretch") || el.classList.contains("r-stretch");
+        return el.classList.contains("stretch") ||
+          el.classList.contains("r-stretch");
       };
 
       // Only apply auto stretch on specific known structures
       // and avoid applying automatically on custom divs
       if (
-          // on <p><img> (created by Pandoc)
-          nodeEl.nodeName === "P" ||
-          // on quarto figure divs
-          nodeEl.nodeName === "DIV" && nodeEl.classList.contains("quarto-figure") ||
-          // on computation output created image
-          nodeEl.nodeName === "DIV" && nodeEl.classList.contains("cell") ||
-          // on other divs (custom divs) when explicitly opt-in
-          nodeEl.nodeName === "DIV" && hasStretchClass(nodeEl)
+        // on <p><img> (created by Pandoc)
+        nodeEl.nodeName === "P" ||
+        // on quarto figure divs
+        nodeEl.nodeName === "DIV" &&
+          nodeEl.classList.contains("quarto-figure") ||
+        // on computation output created image
+        nodeEl.nodeName === "DIV" && nodeEl.classList.contains("cell") ||
+        // on other divs (custom divs) when explicitly opt-in
+        nodeEl.nodeName === "DIV" && hasStretchClass(nodeEl)
       ) {
+        // for custom divs, remove stretch class as it should only be present on img
+        if (nodeEl.nodeName === "DIV" && hasStretchClass(nodeEl)) {
+          nodeEl.classList.remove("r-stretch");
+          nodeEl.classList.remove("stretch");
+        }
 
-          // for custom divs, remove stretch class as it should only be present on img
-          if (nodeEl.nodeName === "DIV" && hasStretchClass(nodeEl)) {
-            nodeEl.classList.remove("r-stretch")
-            nodeEl.classList.remove("stretch")
-          }
+        // add stretch class if not already when auto-stretch is set
+        if (
+          autoStretch === true &&
+          !hasStretchClass(imageEl) &&
+          // if height is already set, we do nothing
+          !imageEl.getAttribute("style")?.match("height:") &&
+          !imageEl.hasAttribute("height")
+        ) {
+          imageEl.classList.add("r-stretch");
+        }
 
-          // add stretch class if not already when auto-stretch is set
-          if (
-            autoStretch === true &&
-            !hasStretchClass(imageEl) &&
-            // if height is already set, we do nothing
-            !imageEl.getAttribute("style")?.match("height:") &&
-            !imageEl.hasAttribute("height")
-          ) {
-            imageEl.classList.add("r-stretch");
-          }
-
-          // If <img class="stetch"> is not a direct child of <section>, move it
-          if (
-            hasStretchClass(imageEl) &&
-            imageEl.parentNode?.nodeName !== "SECTION"
-          ) {
-            // Remove element then maybe remove its parents if empty
-            const removeEmpty = function (el: Element) {
-              const parentEl = el.parentElement;
-              parentEl?.removeChild(el);
-              if (
-                parentEl?.innerText.trim() === "" &&
-                // Stop at section leveal and do not remove empty slides
-                parentEl?.nodeName !== "SECTION"
-              ) {
-                removeEmpty(parentEl);
-              }
-            };
-
-            // Figure environment ? Get caption and alignment
-            const quartoFig = slideEl.querySelector("div.quarto-figure");
-            const caption = doc.createElement("p");
-            if (quartoFig) {
-              // Get alignment
-              const align = quartoFig.className.match(
-                "quarto-figure-(center|left|right)",
-              );
-              if (align) imageEl.classList.add(align[0]);
-              // Get Caption
-              const figCaption = nodeEl.querySelector("figcaption");
-              if (figCaption) {
-                caption.classList.add("caption");
-                caption.innerHTML = figCaption.innerHTML;
-              }
+        // If <img class="stetch"> is not a direct child of <section>, move it
+        if (
+          hasStretchClass(imageEl) &&
+          imageEl.parentNode?.nodeName !== "SECTION"
+        ) {
+          // Remove element then maybe remove its parents if empty
+          const removeEmpty = function (el: Element) {
+            const parentEl = el.parentElement;
+            parentEl?.removeChild(el);
+            if (
+              parentEl?.innerText.trim() === "" &&
+              // Stop at section leveal and do not remove empty slides
+              parentEl?.nodeName !== "SECTION"
+            ) {
+              removeEmpty(parentEl);
             }
+          };
 
-            // Target position of image
-            // first level after the element
-            const nextEl = nodeEl.nextElementSibling;
-            // Remove image from its parent
-            removeEmpty(imageEl);
-            // insert at target position
-            slideEl.insertBefore(image, nextEl);
-
-            // If there was a caption processed add it after
-            if (caption.classList.contains("caption")) {
-              slideEl.insertBefore(
-                caption,
-                imageEl.nextElementSibling,
-              );
+          // Figure environment ? Get caption and alignment
+          const quartoFig = slideEl.querySelector("div.quarto-figure");
+          const caption = doc.createElement("p");
+          if (quartoFig) {
+            // Get alignment
+            const align = quartoFig.className.match(
+              "quarto-figure-(center|left|right)",
+            );
+            if (align) imageEl.classList.add(align[0]);
+            // Get Caption
+            const figCaption = nodeEl.querySelector("figcaption");
+            if (figCaption) {
+              caption.classList.add("caption");
+              caption.innerHTML = figCaption.innerHTML;
             }
-            // Remove container if still there
-            if (quartoFig) removeEmpty(quartoFig);
           }
+
+          // Target position of image
+          // first level after the element
+          const nextEl = nodeEl.nextElementSibling;
+          // Remove image from its parent
+          removeEmpty(imageEl);
+          // insert at target position
+          slideEl.insertBefore(image, nextEl);
+
+          // If there was a caption processed add it after
+          if (caption.classList.contains("caption")) {
+            slideEl.insertBefore(
+              caption,
+              imageEl.nextElementSibling,
+            );
+          }
+          // Remove container if still there
+          if (quartoFig) removeEmpty(quartoFig);
+        }
       }
     }
   }

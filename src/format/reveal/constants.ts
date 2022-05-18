@@ -13,6 +13,7 @@ export const kSlideFooter = "footer";
 export const kHashType = "hash-type";
 export const kScrollable = "scrollable";
 export const kSmaller = "smaller";
+export const kCenter = "center";
 export const kCenterTitleSlide = "center-title-slide";
 export const kControlsAuto = "controlsAuto";
 export const kPreviewLinksAuto = "previewLinksAuto";
