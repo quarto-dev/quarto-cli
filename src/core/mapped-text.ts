@@ -21,7 +21,7 @@ export type StringChunk = mt.StringChunk;
 export {
   asMappedString,
   mappedConcat,
-  mappedIndexToRowCol,
+  mappedIndexToLineCol,
   mappedNormalizeNewlines,
   mappedString,
   skipRegexp,

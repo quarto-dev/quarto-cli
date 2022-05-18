@@ -5,12 +5,12 @@
 *
 */
 
-import { lines, matchAll, rowColToIndex } from "../text.ts";
+import { lineColToIndex, lines, matchAll } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
 import {
   asMappedString,
-  mappedIndexToRowCol,
+  mappedIndexToLineCol,
   MappedString,
 } from "../mapped-text.ts";
 import { getTreeSitterSync } from "./parsing.ts";
@@ -52,11 +52,11 @@ export function readAnnotatedYamlFromMappedString(
   } catch (e) {
     const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
     if (m) {
-      const f = rowColToIndex(mappedSource.value);
-      const offset = f({ row: Number(m[1]) - 1, column: Number(m[2] - 1) });
+      const f = lineColToIndex(mappedSource.value);
+      const offset = f({ line: Number(m[1]) - 1, column: Number(m[2] - 1) });
       const { originalString } = mappedSource.map(offset, true)!;
       const filename = originalString.fileName!;
-      const f2 = mappedIndexToRowCol(mappedSource);
+      const f2 = mappedIndexToLineCol(mappedSource);
       const { line, column } = f2(offset);
       const sourceContext = createSourceContext(mappedSource, {
         start: offset,

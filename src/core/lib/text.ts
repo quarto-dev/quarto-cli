@@ -43,7 +43,7 @@ export function* lineBreakPositions(text: string) {
   }
 }
 
-export function indexToRowCol(text: string) {
+export function indexToLineCol(text: string) {
   const offsets = Array.from(lineOffsets(text));
   return function (offset: number) {
     if (offset === 0) {
@@ -61,10 +61,10 @@ export function indexToRowCol(text: string) {
   };
 }
 
-export function rowColToIndex(text: string) {
+export function lineColToIndex(text: string) {
   const offsets = Array.from(lineOffsets(text));
-  return function (position: { row: number; column: number }) {
-    return offsets[position.row] + position.column;
+  return function (position: { line: number; column: number }) {
+    return offsets[position.line] + position.column;
   };
 }
 

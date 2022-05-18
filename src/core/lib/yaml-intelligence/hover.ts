@@ -11,7 +11,7 @@ import { asMappedString } from "../mapped-text.ts";
 import { MappedString } from "../text-types.ts";
 import { kLangCommentChars } from "../partition-cell-options.ts";
 import { rangedLines } from "../ranged-text.ts";
-import { indexToRowCol, lines } from "../text.ts";
+import { indexToLineCol, lines } from "../text.ts";
 import { navigateSchemaByInstancePath } from "../yaml-validation/schema-navigation.ts";
 import {
   AnnotatedParse,
@@ -78,7 +78,7 @@ function buildLineMap(
     }
   };
 
-  const f = indexToRowCol(document.value);
+  const f = indexToLineCol(document.value);
   const state: State = {
     annotation,
     path: [],

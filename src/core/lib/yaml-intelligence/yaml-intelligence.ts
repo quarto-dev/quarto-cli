@@ -20,7 +20,7 @@ import { initState, setInitializer } from "../yaml-validation/state.ts";
 
 import { guessChunkOptionsFormat } from "../guess-chunk-options-format.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
-import { lines, rowColToIndex } from "../text.ts";
+import { lineColToIndex, lines } from "../text.ts";
 import { breakQuartoMd, QuartoMdCell } from "../break-quarto-md.ts";
 import { rangedLines } from "../ranged-text.ts";
 import {
@@ -45,7 +45,7 @@ import {
   walkSchema,
 } from "../yaml-validation/schema-utils.ts";
 
-import { mappedIndexToRowCol } from "../mapped-text.ts";
+import { mappedIndexToLineCol } from "../mapped-text.ts";
 
 import { lineOffsets } from "../text.ts";
 
@@ -207,7 +207,7 @@ export async function validationFromGoodParseYAML(
   if (code.value === "") {
     return [];
   }
-  const locF = mappedIndexToRowCol(code);
+  const locF = mappedIndexToLineCol(code);
 
   // ignore bad lookups (from empty lines at the end of file)
   const ls = Array
@@ -327,8 +327,8 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       if (doc === null) {
         continue;
       }
-      const index = rowColToIndex(mappedCode.value)({
-        row: position.row,
+      const index = lineColToIndex(mappedCode.value)({
+        line: position.row,
         column: position.column - deletions,
       });
       let { withError: locateFailed, value: maybePath } = locateCursor(

@@ -111,7 +111,7 @@ export async function processDocumentAppendix(
             parentEl && parentEl.tagName === "SECTION" &&
             parentEl.childElementCount === 2 // The section has only the heading + the refs div
           ) {
-            const headingEl = parentEl.querySelector("h2, h3, h4, h5, h6");
+            const headingEl = parentEl.querySelector("h1, h2, h3, h4, h5, h6");
             if (headingEl) {
               headingEl.remove();
               return headingEl.innerText;

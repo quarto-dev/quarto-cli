@@ -9,7 +9,7 @@ import { glb } from "./binary-search.ts";
 import { rangedLines } from "./ranged-text.ts";
 
 import {
-  indexToRowCol as unmappedIndexToRowCol,
+  indexToLineCol as unmappedIndexToLineCol,
   lineBreakPositions,
   matchAll,
 } from "./text.ts";
@@ -204,8 +204,8 @@ export function mappedConcat(strings: EitherString[]): MappedString {
   };
 }
 
-// mapped version of text.ts:indexToRowCol
-export function mappedIndexToRowCol(eitherText: EitherString) {
+// mapped version of text.ts:indexToLineCol
+export function mappedIndexToLineCol(eitherText: EitherString) {
   const text = asMappedString(eitherText);
 
   return function (offset: number) {
@@ -215,7 +215,7 @@ export function mappedIndexToRowCol(eitherText: EitherString) {
     }
     const { index, originalString } = mapResult;
 
-    return unmappedIndexToRowCol(originalString.value)(index);
+    return unmappedIndexToLineCol(originalString.value)(index);
   };
 }
 

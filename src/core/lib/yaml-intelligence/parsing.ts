@@ -7,7 +7,7 @@
 
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
-import { lines, rowColToIndex } from "../text.ts";
+import { lineColToIndex, lines } from "../text.ts";
 import {
   LocateFromIndentationContext,
   YamlIntelligenceContext,
@@ -112,7 +112,7 @@ export function* attemptParsesAtLine(
   const currentLine = codeLines[position.row].substring;
   let currentColumn = position.column;
   let deletions = 0;
-  const locF = rowColToIndex(code.value);
+  const locF = lineColToIndex(code.value);
 
   while (currentColumn > 0) {
     currentColumn--;
@@ -128,15 +128,15 @@ export function* attemptParsesAtLine(
 
     if (position.column > deletions) {
       chunks.push({
-        start: locF({ row: position.row, column: 0 }),
-        end: locF({ row: position.row, column: position.column - deletions }),
+        start: locF({ line: position.row, column: 0 }),
+        end: locF({ line: position.row, column: position.column - deletions }),
       });
     }
 
     if (position.row + 1 < codeLines.length) {
       chunks.push({
-        start: locF({ row: position.row, column: currentLine.length - 1 }),
-        end: locF({ row: position.row + 1, column: 0 }),
+        start: locF({ line: position.row, column: currentLine.length - 1 }),
+        end: locF({ line: position.row + 1, column: 0 }),
       });
       chunks.push({
         start: codeLines[position.row + 1].range.start,

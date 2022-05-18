@@ -20,7 +20,7 @@ import {
 } from "../errors.ts";
 
 import {
-  mappedIndexToRowCol,
+  mappedIndexToLineCol,
   MappedString,
   mappedString,
   Range,
@@ -378,7 +378,7 @@ function expandEmptySpan(
     parse,
     true,
   )!;
-  const locF = mappedIndexToRowCol(parse.source);
+  const locF = mappedIndexToLineCol(parse.source);
   try {
     const location = {
       start: locF(lastKey.start),
@@ -769,7 +769,7 @@ export function createSourceContext(
   const startMapResult = src.map(location.start, true);
   const endMapResult = src.map(location.end, true);
 
-  const locF = mappedIndexToRowCol(src);
+  const locF = mappedIndexToLineCol(src);
 
   let sourceLocation;
   try {
@@ -856,7 +856,7 @@ export function createLocalizedError(obj: {
     message,
     schema,
   } = obj;
-  const locF = mappedIndexToRowCol(source);
+  const locF = mappedIndexToLineCol(source);
 
   let location;
   try {

@@ -37,7 +37,8 @@ import {
 } from "./types.ts";
 import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
-import { MappedString } from "../core/lib/mapped-text.ts";
+import { mappedIndexToLineCol, MappedString } from "../core/lib/mapped-text.ts";
+import { lineColToIndex } from "../core/lib/text.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -98,7 +99,24 @@ export const knitrEngine: ExecutionEngine = {
       options.quiet,
       // fixup .rmarkdown file references
       (output) => {
-        return output.replaceAll(`${inputStem}.rmarkdown`, inputBasename);
+        output = output.replaceAll(`${inputStem}.rmarkdown`, inputBasename);
+
+        const m = output.match(/^Quitting from lines (\d+)-(\d+)/m);
+        if (m) {
+          const f1 = lineColToIndex(options.target.markdown.value);
+          const f2 = mappedIndexToLineCol(options.target.markdown);
+
+          const newLine1 = f2(f1({ line: Number(m[1]) - 1, column: 0 })).line +
+            1;
+          const newLine2 = f2(f1({ line: Number(m[2]) - 1, column: 0 })).line +
+            1;
+          output = output.replace(
+            /^Quitting from lines (\d+)-(\d+)/m,
+            `Quitting from lines ${newLine1}-${newLine2}`,
+          );
+        }
+
+        return output;
       },
     );
     const includes = result.includes as unknown;

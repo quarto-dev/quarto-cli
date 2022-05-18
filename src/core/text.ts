@@ -12,7 +12,7 @@ import { lines } from "./lib/text.ts";
 
 // reexports from lib
 export {
-  indexToRowCol,
+  indexToLineCol,
   lineBreakPositions,
   lineOffsets,
   lines,
