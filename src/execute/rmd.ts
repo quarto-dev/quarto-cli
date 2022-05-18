@@ -7,6 +7,7 @@
 
 import { error, info, warning } from "log/mod.ts";
 import { existsSync } from "fs/exists.ts";
+import { basename, extname } from "path/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -81,6 +82,9 @@ export const knitrEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+    const inputBasename = basename(options.target.input);
+    const inputStem = basename(inputBasename, extname(inputBasename));
+
     const result = await callR<ExecuteResult>(
       "execute",
       {
@@ -92,6 +96,10 @@ export const knitrEngine: ExecutionEngine = {
       options.tempDir,
       options.projectDir,
       options.quiet,
+      // fixup .rmarkdown file references
+      (output) => {
+        return output.replaceAll(`${inputStem}.rmarkdown`, inputBasename);
+      },
     );
     const includes = result.includes as unknown;
     // knitr appears to return [] instead of {} as the value for includes.
@@ -128,6 +136,7 @@ export const knitrEngine: ExecutionEngine = {
         options.tempDir,
         options.projectDir,
         options.quiet,
+        undefined,
         false,
       ).then(() => {
         return Promise.resolve();
@@ -163,6 +172,7 @@ async function callR<T>(
   tempDir: string,
   projectDir?: string,
   quiet?: boolean,
+  outputFilter?: (output: string) => string,
   reportError = true,
 ): Promise<T> {
   // establish cwd for execute (the current dir if there is an renv
@@ -192,7 +202,12 @@ async function callR<T>(
       },
       input,
       "stdout>stderr",
-      colors.red,
+      (output) => {
+        if (outputFilter) {
+          output = outputFilter(output);
+        }
+        return colors.red(output);
+      },
     );
 
     if (result.success) {
