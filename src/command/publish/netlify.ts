@@ -5,21 +5,27 @@
 *
 */
 
-import { PublishOptions, publishSubcommand } from "./common.ts";
+import { Command } from "cliffy/command/mod.ts";
 
-export const kNetlify = "netlify";
+import { PublishOptions, PublishProvider } from "./provider.ts";
 
-export const netlifyCommand = publishSubcommand(kNetlify, "Publish to netlify")
-  // deno-lint-ignore no-explicit-any
-  .action((options: any, path?: string) => {
-    path = path || Deno.cwd();
-    netlifyPublish({
-      path,
-      render: !!options.render,
-    });
-  });
+export const netlifyProvider: PublishProvider = {
+  name: "netlify",
+  description: "Netlify",
+  command: (command: Command) => {
+    return command
+      // deno-lint-ignore no-explicit-any
+      .action((options: any, path?: string) => {
+        netlifyConfigure({
+          path: path || Deno.cwd(),
+          render: !!options.render,
+        });
+      });
+  },
+  configure: netlifyConfigure,
+};
 
-export function netlifyPublish(options: PublishOptions) {
+function netlifyConfigure(options: PublishOptions) {
   console.log("netlify");
   console.log(options);
 }

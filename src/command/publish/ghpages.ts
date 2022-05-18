@@ -5,26 +5,27 @@
 *
 */
 
-import { PublishOptions, publishSubcommand } from "./common.ts";
+import { Command } from "cliffy/command/mod.ts";
 
-export const kGhpages = "ghpages";
+import { PublishOptions, PublishProvider } from "./provider.ts";
 
-export const ghpagesCommand = publishSubcommand(
-  kGhpages,
-  "Publish to GitHub Pages",
-)
-  // deno-lint-ignore no-explicit-any
-  .action((options: any, path?: string) => {
-    path = path || Deno.cwd();
-    ghpagesPublish({
-      path,
-      render: !!options.render,
-    });
-    console.log("ghpages");
-    console.log(path);
-  });
+export const ghpagesProvider: PublishProvider = {
+  name: "ghpages",
+  description: "GitHub Pages",
+  command: (command: Command) => {
+    return command
+      // deno-lint-ignore no-explicit-any
+      .action((options: any, path?: string) => {
+        ghpagesConfigure({
+          path: path || Deno.cwd(),
+          render: !!options.render,
+        });
+      });
+  },
+  configure: ghpagesConfigure,
+};
 
-export function ghpagesPublish(options: PublishOptions) {
+function ghpagesConfigure(options: PublishOptions) {
   console.log("ghpages");
   console.log(options);
 }
