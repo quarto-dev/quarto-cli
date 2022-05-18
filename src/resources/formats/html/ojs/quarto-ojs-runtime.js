@@ -1,4 +1,4 @@
-// @quarto/quarto-ojs-runtime v0.0.1 Copyright 2022 undefined
+// @quarto/quarto-ojs-runtime v0.0.5 Copyright 2022 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -58,7 +58,7 @@ function formatDate$2(date) {
       : "");
 }
 
-function dsv$2(delimiter) {
+function dsv$1(delimiter) {
   var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
       DELIMITER = delimiter.charCodeAt(0);
 
@@ -164,12 +164,12 @@ function dsv$2(delimiter) {
   };
 }
 
-var csv = dsv$2(",");
+var csv = dsv$1(",");
 
 var csvParse = csv.parse;
 var csvParseRows = csv.parseRows;
 
-var tsv = dsv$2("\t");
+var tsv = dsv$1("\t");
 
 var tsvParse = tsv.parse;
 var tsvParseRows = tsv.parseRows;
@@ -195,2119 +195,11 @@ function autoType(object) {
 // https://github.com/d3/d3-dsv/issues/45
 const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours();
 
-const metas$1 = new Map;
-const queue$3 = [];
-const map$4 = queue$3.map;
-const some$1 = queue$3.some;
-const hasOwnProperty$3 = queue$3.hasOwnProperty;
-const origin$1 = "https://cdn.jsdelivr.net/npm/";
-const identifierRe$1 = /^((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.*))?$/;
-const versionRe$1 = /^\d+\.\d+\.\d+(-[\w-.+]+)?$/;
-const extensionRe$1 = /\.[^/]*$/;
-const mains$1 = ["unpkg", "jsdelivr", "browser", "main"];
-
-class RequireError$1 extends Error {
-  constructor(message) {
-    super(message);
-  }
-}
-
-RequireError$1.prototype.name = RequireError$1.name;
-
-function main$1(meta) {
-  for (const key of mains$1) {
-    const value = meta[key];
-    if (typeof value === "string") {
-      return extensionRe$1.test(value) ? value : `${value}.js`;
-    }
-  }
-}
-
-function parseIdentifier$1(identifier) {
-  const match = identifierRe$1.exec(identifier);
-  return match && {
-    name: match[1],
-    version: match[2],
-    path: match[3]
-  };
-}
-
-function resolveMeta$1(target) {
-  const url = `${origin$1}${target.name}${target.version ? `@${target.version}` : ""}/package.json`;
-  let meta = metas$1.get(url);
-  if (!meta) metas$1.set(url, meta = fetch(url).then(response => {
-    if (!response.ok) throw new RequireError$1("unable to load package.json");
-    if (response.redirected && !metas$1.has(response.url)) metas$1.set(response.url, meta);
-    return response.json();
-  }));
-  return meta;
-}
-
-async function resolve$3(name, base) {
-  if (name.startsWith(origin$1)) name = name.substring(origin$1.length);
-  if (/^(\w+:)|\/\//i.test(name)) return name;
-  if (/^[.]{0,2}\//i.test(name)) return new URL(name, base == null ? location : base).href;
-  if (!name.length || /^[\s._]/.test(name) || /\s$/.test(name)) throw new RequireError$1("illegal name");
-  const target = parseIdentifier$1(name);
-  if (!target) return `${origin$1}${name}`;
-  if (!target.version && base != null && base.startsWith(origin$1)) {
-    const meta = await resolveMeta$1(parseIdentifier$1(base.substring(origin$1.length)));
-    target.version = meta.dependencies && meta.dependencies[target.name] || meta.peerDependencies && meta.peerDependencies[target.name];
-  }
-  if (target.path && !extensionRe$1.test(target.path)) target.path += ".js";
-  if (target.path && target.version && versionRe$1.test(target.version)) return `${origin$1}${target.name}@${target.version}/${target.path}`;
-  const meta = await resolveMeta$1(target);
-  return `${origin$1}${meta.name}@${meta.version}/${target.path || main$1(meta) || "index.js"}`;
-}
-
-var require$1 = requireFrom$1(resolve$3);
-
-function requireFrom$1(resolver) {
-  const cache = new Map;
-  const requireBase = requireRelative(null);
-  let requestsInFlight = 0;
-  let prevDefine = undefined;
-    
-  function requireAbsolute(url) {
-    if (typeof url !== "string") return url;
-    let module = cache.get(url);
-    if (!module) cache.set(url, module = new Promise((resolve, reject) => {
-
-      const script = document.createElement("script");
-      script.onload = () => {
-        try { resolve(queue$3.pop()(requireRelative(url))); }
-        catch (error) { reject(new RequireError$1("invalid module")); }
-        script.remove();
-        requestsInFlight--;
-        if (requestsInFlight === 0) {
-          window.define = prevDefine;
-        }
-      };
-      script.onerror = () => {
-        reject(new RequireError$1("unable to load module"));
-        script.remove();
-        requestsInFlight--;
-        if (requestsInFlight === 0) {
-          window.define = prevDefine;
-        }
-      };
-      script.async = true;
-      script.src = url;
-      if (requestsInFlight === 0) {
-        prevDefine = window.define;
-        window.define = define$1;
-      }
-      requestsInFlight++;
-      document.head.appendChild(script);
-    }));
-    return module;
-  }
-
-  function requireRelative(base) {
-    return name => Promise.resolve(resolver(name, base)).then(requireAbsolute);
-  }
-
-  function requireAlias(aliases) {
-    return requireFrom$1((name, base) => {
-      if (name in aliases) {
-        name = aliases[name], base = null;
-        if (typeof name !== "string") return name;
-      }
-      return resolver(name, base);
-    });
-  }
-
-  function require(name) {
-    return arguments.length > 1
-        ? Promise.all(map$4.call(arguments, requireBase)).then(merge$1)
-        : requireBase(name);
-  }
-
-  require.alias = requireAlias;
-  require.resolve = resolver;
-
-  return require;
-}
-
-function merge$1(modules) {
-  const o = {};
-  for (const m of modules) {
-    for (const k in m) {
-      if (hasOwnProperty$3.call(m, k)) {
-        if (m[k] == null) Object.defineProperty(o, k, {get: getter$1(m, k)});
-        else o[k] = m[k];
-      }
-    }
-  }
-  return o;
-}
-
-function getter$1(object, name) {
-  return () => object[name];
-}
-
-function isbuiltin$1(name) {
-  name = name + "";
-  return name === "exports" || name === "module";
-}
-
-function define$1(name, dependencies, factory) {
-  const n = arguments.length;
-  if (n < 2) factory = name, dependencies = [];
-  else if (n < 3) factory = dependencies, dependencies = typeof name === "string" ? [] : name;
-  queue$3.push(some$1.call(dependencies, isbuiltin$1) ? require => {
-    const exports = {};
-    const module = {exports};
-    return Promise.all(map$4.call(dependencies, name => {
-      name = name + "";
-      return name === "exports" ? exports : name === "module" ? module : require(name);
-    })).then(dependencies => {
-      factory.apply(null, dependencies);
-      return module.exports;
-    });
-  } : require => {
-    return Promise.all(map$4.call(dependencies, require)).then(dependencies => {
-      return typeof factory === "function" ? factory.apply(null, dependencies) : factory;
-    });
-  });
-}
-
-define$1.amd = {};
-
-function dependency$1(name, version, main) {
-  return {
-    resolve(path = main) {
-      return `https://cdn.jsdelivr.net/npm/${name}@${version}/${path}`;
-    }
-  };
-}
-
-const d3$1 = dependency$1("d3", "7.4.4", "dist/d3.min.js");
-const inputs$1 = dependency$1("@observablehq/inputs", "0.10.4", "dist/inputs.min.js");
-const plot$1 = dependency$1("@observablehq/plot", "0.4.3", "dist/plot.umd.min.js");
-const graphviz$1 = dependency$1("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
-const highlight$1 = dependency$1("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
-const katex$1 = dependency$1("@observablehq/katex", "0.11.1", "dist/katex.min.js");
-const lodash$1 = dependency$1("lodash", "4.17.21", "lodash.min.js");
-const htl$1 = dependency$1("htl", "0.3.1", "dist/htl.min.js");
-const jszip$1 = dependency$1("jszip", "3.9.1", "dist/jszip.min.js");
-const marked$1 = dependency$1("marked", "0.3.12", "marked.min.js");
-const sql$1 = dependency$1("sql.js", "1.6.2", "dist/sql-wasm.js");
-const vega$1 = dependency$1("vega", "5.22.1", "build/vega.min.js");
-const vegalite$1 = dependency$1("vega-lite", "5.2.0", "build/vega-lite.min.js");
-const vegaliteApi$1 = dependency$1("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
-const arrow$1 = dependency$1("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
-const arquero$1 = dependency$1("arquero", "4.8.8", "dist/arquero.min.js");
-const topojson$1 = dependency$1("topojson-client", "3.1.0", "dist/topojson-client.min.js");
-const exceljs$1 = dependency$1("exceljs", "4.3.0", "dist/exceljs.min.js");
-const mermaid$3 = dependency$1("mermaid", "9.0.0", "dist/mermaid.min.js");
-
-function fromEntries(obj) {
-  const result = {};
-  for (const [key, value] of obj) {
-    result[key] = value;
-  }
-  return result;
-}
-
-async function sqlite$1(require) {
-  const init = await require(sql$1.resolve());
-  return init({locateFile: file => sql$1.resolve(`dist/${file}`)});
-}
-
-class SQLiteDatabaseClient$1 {
-  constructor(db) {
-    Object.defineProperties(this, {
-      _db: {value: db}
-    });
-  }
-  static async open(source) {
-    const [SQL, buffer] = await Promise.all([sqlite$1(require$1), Promise.resolve(source).then(load$2)]);
-    return new SQLiteDatabaseClient$1(new SQL.Database(buffer));
-  }
-  async query(query, params) {
-    return await exec$1(this._db, query, params);
-  }
-  async queryRow(query, params) {
-    return (await this.query(query, params))[0] || null;
-  }
-  async explain(query, params) {
-    const rows = await this.query(`EXPLAIN QUERY PLAN ${query}`, params);
-    return element$3("pre", {className: "observablehq--inspect"}, [
-      text$5(rows.map(row => row.detail).join("\n"))
-    ]);
-  }
-  async describe(object) {
-    const rows = await (object === undefined
-      ? this.query(`SELECT name FROM sqlite_master WHERE type = 'table'`)
-      : this.query(`SELECT * FROM pragma_table_info(?)`, [object]));
-    if (!rows.length) throw new Error("Not found");
-    const {columns} = rows;
-    return element$3("table", {value: rows}, [
-      element$3("thead", [element$3("tr", columns.map(c => element$3("th", [text$5(c)])))]),
-      element$3("tbody", rows.map(r => element$3("tr", columns.map(c => element$3("td", [text$5(r[c])])))))
-    ]);
-  }
-  async sql(strings, ...args) {
-    return this.query(strings.join("?"), args);
-  }
-}
-Object.defineProperty(SQLiteDatabaseClient$1.prototype, "dialect", {
-  value: "sqlite"
-});
-
-function load$2(source) {
-  return typeof source === "string" ? fetch(source).then(load$2)
-    : source instanceof Response || source instanceof Blob ? source.arrayBuffer().then(load$2)
-    : source instanceof ArrayBuffer ? new Uint8Array(source)
-    : source;
-}
-
-async function exec$1(db, query, params) {
-  const [result] = await db.exec(query, params);
-  if (!result) return [];
-  const {columns, values} = result;
-  const rows = values.map(row => fromEntries(row.map((value, i) => [columns[i], value])));
-  rows.columns = columns;
-  return rows;
-}
-
-function element$3(name, props, children) {
-  if (arguments.length === 2) children = props, props = undefined;
-  const element = document.createElement(name);
-  if (props !== undefined) for (const p in props) element[p] = props[p];
-  if (children !== undefined) for (const c of children) element.appendChild(c);
-  return element;
-}
-
-function text$5(value) {
-  return document.createTextNode(value);
-}
-
-class Workbook$1 {
-  constructor(workbook) {
-    Object.defineProperties(this, {
-      _: {value: workbook},
-      sheetNames: {
-        value: workbook.worksheets.map((s) => s.name),
-        enumerable: true,
-      },
-    });
-  }
-  sheet(name, options) {
-    const sname =
-      typeof name === "number"
-        ? this.sheetNames[name]
-        : this.sheetNames.includes((name += ""))
-        ? name
-        : null;
-    if (sname == null) throw new Error(`Sheet not found: ${name}`);
-    const sheet = this._.getWorksheet(sname);
-    return extract$1(sheet, options);
-  }
-}
-
-function extract$1(sheet, {range, headers} = {}) {
-  let [[c0, r0], [c1, r1]] = parseRange$1(range, sheet);
-  const headerRow = headers ? sheet._rows[r0++] : null;
-  let names = new Set(["#"]);
-  for (let n = c0; n <= c1; n++) {
-    const value = headerRow ? valueOf$1(headerRow.findCell(n + 1)) : null;
-    let name = (value && value + "") || toColumn$1(n);
-    while (names.has(name)) name += "_";
-    names.add(name);
-  }
-  names = new Array(c0).concat(Array.from(names));
-
-  const output = new Array(r1 - r0 + 1);
-  for (let r = r0; r <= r1; r++) {
-    const row = (output[r - r0] = Object.create(null, {"#": {value: r + 1}}));
-    const _row = sheet.getRow(r + 1);
-    if (_row.hasValues)
-      for (let c = c0; c <= c1; c++) {
-        const value = valueOf$1(_row.findCell(c + 1));
-        if (value != null) row[names[c + 1]] = value;
-      }
-  }
-
-  output.columns = names.filter(() => true); // Filter sparse columns
-  return output;
-}
-
-function valueOf$1(cell) {
-  if (!cell) return;
-  const {value} = cell;
-  if (value && typeof value === "object" && !(value instanceof Date)) {
-    if (value.formula || value.sharedFormula) {
-      return value.result && value.result.error ? NaN : value.result;
-    }
-    if (value.richText) {
-      return richText$1(value);
-    }
-    if (value.text) {
-      let {text} = value;
-      if (text.richText) text = richText$1(text);
-      return value.hyperlink && value.hyperlink !== text
-        ? `${value.hyperlink} ${text}`
-        : text;
-    }
-    return value;
-  }
-  return value;
-}
-
-function richText$1(value) {
-  return value.richText.map((d) => d.text).join("");
-}
-
-function parseRange$1(specifier = ":", {columnCount, rowCount}) {
-  specifier += "";
-  if (!specifier.match(/^[A-Z]*\d*:[A-Z]*\d*$/))
-    throw new Error("Malformed range specifier");
-  const [[c0 = 0, r0 = 0], [c1 = columnCount - 1, r1 = rowCount - 1]] =
-    specifier.split(":").map(fromCellReference$1);
-  return [
-    [c0, r0],
-    [c1, r1],
-  ];
-}
-
-// Returns the default column name for a zero-based column index.
-// For example: 0 -> "A", 1 -> "B", 25 -> "Z", 26 -> "AA", 27 -> "AB".
-function toColumn$1(c) {
-  let sc = "";
-  c++;
-  do {
-    sc = String.fromCharCode(64 + (c % 26 || 26)) + sc;
-  } while ((c = Math.floor((c - 1) / 26)));
-  return sc;
-}
-
-// Returns the zero-based indexes from a cell reference.
-// For example: "A1" -> [0, 0], "B2" -> [1, 1], "AA10" -> [26, 9].
-function fromCellReference$1(s) {
-  const [, sc, sr] = s.match(/^([A-Z]*)(\d*)$/);
-  let c = 0;
-  if (sc)
-    for (let i = 0; i < sc.length; i++)
-      c += Math.pow(26, sc.length - i - 1) * (sc.charCodeAt(i) - 64);
-  return [c ? c - 1 : undefined, sr ? +sr - 1 : undefined];
-}
-
-async function remote_fetch$1(file) {
-  const response = await fetch(await file.url());
-  if (!response.ok) throw new Error(`Unable to load file: ${file.name}`);
-  return response;
-}
-
-async function dsv$1(file, delimiter, {array = false, typed = false} = {}) {
-  const text = await file.text();
-  return (delimiter === "\t"
-      ? (array ? tsvParseRows : tsvParse)
-      : (array ? csvParseRows : csvParse))(text, typed && autoType);
-}
-
-class AbstractFile$1 {
-  constructor(name, mimeType) {
-    Object.defineProperty(this, "name", {value: name, enumerable: true});
-    if (mimeType !== undefined) Object.defineProperty(this, "mimeType", {value: mimeType + "", enumerable: true});
-  }
-  async blob() {
-    return (await remote_fetch$1(this)).blob();
-  }
-  async arrayBuffer() {
-    return (await remote_fetch$1(this)).arrayBuffer();
-  }
-  async text() {
-    return (await remote_fetch$1(this)).text();
-  }
-  async json() {
-    return (await remote_fetch$1(this)).json();
-  }
-  async stream() {
-    return (await remote_fetch$1(this)).body;
-  }
-  async csv(options) {
-    return dsv$1(this, ",", options);
-  }
-  async tsv(options) {
-    return dsv$1(this, "\t", options);
-  }
-  async image(props) {
-    const url = await this.url();
-    return new Promise((resolve, reject) => {
-      const i = new Image();
-      if (new URL(url, document.baseURI).origin !== new URL(location).origin) {
-        i.crossOrigin = "anonymous";
-      }
-      Object.assign(i, props);
-      i.onload = () => resolve(i);
-      i.onerror = () => reject(new Error(`Unable to load file: ${this.name}`));
-      i.src = url;
-    });
-  }
-  async arrow() {
-    const [Arrow, response] = await Promise.all([require$1(arrow$1.resolve()), remote_fetch$1(this)]);
-    return Arrow.Table.from(response);
-  }
-  async sqlite() {
-    return SQLiteDatabaseClient$1.open(remote_fetch$1(this));
-  }
-  async zip() {
-    const [JSZip, buffer] = await Promise.all([require$1(jszip$1.resolve()), this.arrayBuffer()]);
-    return new ZipArchive$1(await JSZip.loadAsync(buffer));
-  }
-  async xml(mimeType = "application/xml") {
-    return (new DOMParser).parseFromString(await this.text(), mimeType);
-  }
-  async html() {
-    return this.xml("text/html");
-  }
-  async xlsx() {
-    const [ExcelJS, buffer] = await Promise.all([require$1(exceljs$1.resolve()), this.arrayBuffer()]);
-    return new Workbook$1(await new ExcelJS.Workbook().xlsx.load(buffer));
-  }
-}
-
-class FileAttachment$1 extends AbstractFile$1 {
-  constructor(url, name, mimeType) {
-    super(name, mimeType);
-    Object.defineProperty(this, "_url", {value: url});
-  }
-  async url() {
-    return (await this._url) + "";
-  }
-}
-
-function NoFileAttachments$1(name) {
-  throw new Error(`File not found: ${name}`);
-}
-
-function FileAttachments$1(resolve) {
-  return Object.assign(
-    name => {
-      const result = resolve(name += "");
-      if (result == null) throw new Error(`File not found: ${name}`);
-      if (typeof result === "object" && "url" in result) {
-        const {url, mimeType} = result;
-        return new FileAttachment$1(url, name, mimeType);
-      }
-      return new FileAttachment$1(result, name);
-    },
-    {prototype: FileAttachment$1.prototype} // instanceof
-  );
-}
-
-class ZipArchive$1 {
-  constructor(archive) {
-    Object.defineProperty(this, "_", {value: archive});
-    this.filenames = Object.keys(archive.files).filter(name => !archive.files[name].dir);
-  }
-  file(path) {
-    const object = this._.file(path += "");
-    if (!object || object.dir) throw new Error(`file not found: ${path}`);
-    return new ZipArchiveEntry$1(object);
-  }
-}
-
-class ZipArchiveEntry$1 extends AbstractFile$1 {
-  constructor(object) {
-    super(object.name);
-    Object.defineProperty(this, "_", {value: object});
-    Object.defineProperty(this, "_url", {writable: true});
-  }
-  async url() {
-    return this._url || (this._url = this.blob().then(URL.createObjectURL));
-  }
-  async blob() {
-    return this._.async("blob");
-  }
-  async arrayBuffer() {
-    return this._.async("arraybuffer");
-  }
-  async text() {
-    return this._.async("text");
-  }
-  async json() {
-    return JSON.parse(await this.text());
-  }
-}
-
-function canvas$1(width, height) {
-  var canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  return canvas;
-}
-
-function context2d$1(width, height, dpi) {
-  if (dpi == null) dpi = devicePixelRatio;
-  var canvas = document.createElement("canvas");
-  canvas.width = width * dpi;
-  canvas.height = height * dpi;
-  canvas.style.width = width + "px";
-  var context = canvas.getContext("2d");
-  context.scale(dpi, dpi);
-  return context;
-}
-
-function download$1(value, name = "untitled", label = "Save") {
-  const a = document.createElement("a");
-  const b = a.appendChild(document.createElement("button"));
-  b.textContent = label;
-  a.download = name;
-
-  async function reset() {
-    await new Promise(requestAnimationFrame);
-    URL.revokeObjectURL(a.href);
-    a.removeAttribute("href");
-    b.textContent = label;
-    b.disabled = false;
-  }
-
-  a.onclick = async event => {
-    b.disabled = true;
-    if (a.href) return reset(); // Already saved.
-    b.textContent = "Saving…";
-    try {
-      const object = await (typeof value === "function" ? value() : value);
-      b.textContent = "Download";
-      a.href = URL.createObjectURL(object); // eslint-disable-line require-atomic-updates
-    } catch (ignore) {
-      b.textContent = label;
-    }
-    if (event.eventPhase) return reset(); // Already downloaded.
-    b.disabled = false;
-  };
-
-  return a;
-}
-
-var namespaces$1 = {
-  math: "http://www.w3.org/1998/Math/MathML",
-  svg: "http://www.w3.org/2000/svg",
-  xhtml: "http://www.w3.org/1999/xhtml",
-  xlink: "http://www.w3.org/1999/xlink",
-  xml: "http://www.w3.org/XML/1998/namespace",
-  xmlns: "http://www.w3.org/2000/xmlns/"
-};
-
-function element$2(name, attributes) {
-  var prefix = name += "", i = prefix.indexOf(":"), value;
-  if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
-  var element = namespaces$1.hasOwnProperty(prefix) // eslint-disable-line no-prototype-builtins
-      ? document.createElementNS(namespaces$1[prefix], name)
-      : document.createElement(name);
-  if (attributes) for (var key in attributes) {
-    prefix = key, i = prefix.indexOf(":"), value = attributes[key];
-    if (i >= 0 && (prefix = key.slice(0, i)) !== "xmlns") key = key.slice(i + 1);
-    if (namespaces$1.hasOwnProperty(prefix)) element.setAttributeNS(namespaces$1[prefix], key, value); // eslint-disable-line no-prototype-builtins
-    else element.setAttribute(key, value);
-  }
-  return element;
-}
-
-function input$3(type) {
-  var input = document.createElement("input");
-  if (type != null) input.type = type;
-  return input;
-}
-
-function range$3(min, max, step) {
-  if (arguments.length === 1) max = min, min = null;
-  var input = document.createElement("input");
-  input.min = min = min == null ? 0 : +min;
-  input.max = max = max == null ? 1 : +max;
-  input.step = step == null ? "any" : step = +step;
-  input.type = "range";
-  return input;
-}
-
-function select$1(values) {
-  var select = document.createElement("select");
-  Array.prototype.forEach.call(values, function(value) {
-    var option = document.createElement("option");
-    option.value = option.textContent = value;
-    select.appendChild(option);
-  });
-  return select;
-}
-
-function svg$3(width, height) {
-  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", [0, 0, width, height]);
-  svg.setAttribute("width", width);
-  svg.setAttribute("height", height);
-  return svg;
-}
-
-function text$4(value) {
-  return document.createTextNode(value);
-}
-
-var count$2 = 0;
-
-function uid$1(name) {
-  return new Id$1("O-" + (name == null ? "" : name + "-") + ++count$2);
-}
-
-function Id$1(id) {
-  this.id = id;
-  this.href = new URL(`#${id}`, location) + "";
-}
-
-Id$1.prototype.toString = function() {
-  return "url(" + this.href + ")";
-};
-
-var DOM$1 = {
-  canvas: canvas$1,
-  context2d: context2d$1,
-  download: download$1,
-  element: element$2,
-  input: input$3,
-  range: range$3,
-  select: select$1,
-  svg: svg$3,
-  text: text$4,
-  uid: uid$1
-};
-
-function buffer$1(file) {
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader;
-    reader.onload = function() { resolve(reader.result); };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-}
-
-function text$3(file) {
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader;
-    reader.onload = function() { resolve(reader.result); };
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
-}
-
-function url$1(file) {
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader;
-    reader.onload = function() { resolve(reader.result); };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-var Files$1 = {
-  buffer: buffer$1,
-  text: text$3,
-  url: url$1
-};
-
-function that$1() {
-  return this;
-}
-
-function disposable$1(value, dispose) {
-  let done = false;
-  if (typeof dispose !== "function") {
-    throw new Error("dispose is not a function");
-  }
-  return {
-    [Symbol.iterator]: that$1,
-    next: () => done ? {done: true} : (done = true, {done: false, value}),
-    return: () => (done = true, dispose(value), {done: true}),
-    throw: () => ({done: done = true})
-  };
-}
-
-function* filter$1(iterator, test) {
-  var result, index = -1;
-  while (!(result = iterator.next()).done) {
-    if (test(result.value, ++index)) {
-      yield result.value;
-    }
-  }
-}
-
-function observe$1(initialize) {
-  let stale = false;
-  let value;
-  let resolve;
-  const dispose = initialize(change);
-
-  if (dispose != null && typeof dispose !== "function") {
-    throw new Error(typeof dispose.then === "function"
-        ? "async initializers are not supported"
-        : "initializer returned something, but not a dispose function");
-  }
-
-  function change(x) {
-    if (resolve) resolve(x), resolve = null;
-    else stale = true;
-    return value = x;
-  }
-
-  function next() {
-    return {done: false, value: stale
-        ? (stale = false, Promise.resolve(value))
-        : new Promise(_ => (resolve = _))};
-  }
-
-  return {
-    [Symbol.iterator]: that$1,
-    throw: () => ({done: true}),
-    return: () => (dispose != null && dispose(), {done: true}),
-    next
-  };
-}
-
-function input$2(input) {
-  return observe$1(function(change) {
-    var event = eventof$1(input), value = valueof$2(input);
-    function inputted() { change(valueof$2(input)); }
-    input.addEventListener(event, inputted);
-    if (value !== undefined) change(value);
-    return function() { input.removeEventListener(event, inputted); };
-  });
-}
-
-function valueof$2(input) {
-  switch (input.type) {
-    case "range":
-    case "number": return input.valueAsNumber;
-    case "date": return input.valueAsDate;
-    case "checkbox": return input.checked;
-    case "file": return input.multiple ? input.files : input.files[0];
-    case "select-multiple": return Array.from(input.selectedOptions, o => o.value);
-    default: return input.value;
-  }
-}
-
-function eventof$1(input) {
-  switch (input.type) {
-    case "button":
-    case "submit":
-    case "checkbox": return "click";
-    case "file": return "change";
-    default: return "input";
-  }
-}
-
-function* map$3(iterator, transform) {
-  var result, index = -1;
-  while (!(result = iterator.next()).done) {
-    yield transform(result.value, ++index);
-  }
-}
-
-function queue$2(initialize) {
-  let resolve;
-  const queue = [];
-  const dispose = initialize(push);
-
-  if (dispose != null && typeof dispose !== "function") {
-    throw new Error(typeof dispose.then === "function"
-        ? "async initializers are not supported"
-        : "initializer returned something, but not a dispose function");
-  }
-
-  function push(x) {
-    queue.push(x);
-    if (resolve) resolve(queue.shift()), resolve = null;
-    return x;
-  }
-
-  function next() {
-    return {done: false, value: queue.length
-        ? Promise.resolve(queue.shift())
-        : new Promise(_ => (resolve = _))};
-  }
-
-  return {
-    [Symbol.iterator]: that$1,
-    throw: () => ({done: true}),
-    return: () => (dispose != null && dispose(), {done: true}),
-    next
-  };
-}
-
-function* range$2(start, stop, step) {
-  start = +start;
-  stop = +stop;
-  step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
-  var i = -1, n = Math.max(0, Math.ceil((stop - start) / step)) | 0;
-  while (++i < n) {
-    yield start + i * step;
-  }
-}
-
-function valueAt$1(iterator, i) {
-  if (!isFinite(i = +i) || i < 0 || i !== i | 0) return;
-  var result, index = -1;
-  while (!(result = iterator.next()).done) {
-    if (++index === i) {
-      return result.value;
-    }
-  }
-}
-
-function worker$1(source) {
-  const url = URL.createObjectURL(new Blob([source], {type: "text/javascript"}));
-  const worker = new Worker(url);
-  return disposable$1(worker, () => {
-    worker.terminate();
-    URL.revokeObjectURL(url);
-  });
-}
-
-var Generators$2 = {
-  disposable: disposable$1,
-  filter: filter$1,
-  input: input$2,
-  map: map$3,
-  observe: observe$1,
-  queue: queue$2,
-  range: range$2,
-  valueAt: valueAt$1,
-  worker: worker$1
-};
-
-function template$1(render, wrapper) {
-  return function(strings) {
-    var string = strings[0],
-        parts = [], part,
-        root = null,
-        node, nodes,
-        walker,
-        i, n, j, m, k = -1;
-
-    // Concatenate the text using comments as placeholders.
-    for (i = 1, n = arguments.length; i < n; ++i) {
-      part = arguments[i];
-      if (part instanceof Node) {
-        parts[++k] = part;
-        string += "<!--o:" + k + "-->";
-      } else if (Array.isArray(part)) {
-        for (j = 0, m = part.length; j < m; ++j) {
-          node = part[j];
-          if (node instanceof Node) {
-            if (root === null) {
-              parts[++k] = root = document.createDocumentFragment();
-              string += "<!--o:" + k + "-->";
-            }
-            root.appendChild(node);
-          } else {
-            root = null;
-            string += node;
-          }
-        }
-        root = null;
-      } else {
-        string += part;
-      }
-      string += strings[i];
-    }
-
-    // Render the text.
-    root = render(string);
-
-    // Walk the rendered content to replace comment placeholders.
-    if (++k > 0) {
-      nodes = new Array(k);
-      walker = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT, null, false);
-      while (walker.nextNode()) {
-        node = walker.currentNode;
-        if (/^o:/.test(node.nodeValue)) {
-          nodes[+node.nodeValue.slice(2)] = node;
-        }
-      }
-      for (i = 0; i < k; ++i) {
-        if (node = nodes[i]) {
-          node.parentNode.replaceChild(parts[i], node);
-        }
-      }
-    }
-
-    // Is the rendered content
-    // … a parent of a single child? Detach and return the child.
-    // … a document fragment? Replace the fragment with an element.
-    // … some other node? Return it.
-    return root.childNodes.length === 1 ? root.removeChild(root.firstChild)
-        : root.nodeType === 11 ? ((node = wrapper()).appendChild(root), node)
-        : root;
-  };
-}
-
-var html$2 = template$1(function(string) {
-  var template = document.createElement("template");
-  template.innerHTML = string.trim();
-  return document.importNode(template.content, true);
-}, function() {
-  return document.createElement("span");
-});
-
-function md$1(require) {
-  return require(marked$1.resolve()).then(function(marked) {
-    return template$1(
-      function(string) {
-        var root = document.createElement("div");
-        root.innerHTML = marked(string, {langPrefix: ""}).trim();
-        var code = root.querySelectorAll("pre code[class]");
-        if (code.length > 0) {
-          require(highlight$1.resolve()).then(function(hl) {
-            code.forEach(function(block) {
-              function done() {
-                hl.highlightBlock(block);
-                block.parentNode.classList.add("observablehq--md-pre");
-              }
-              if (hl.getLanguage(block.className)) {
-                done();
-              } else {
-                require(highlight$1.resolve("async-languages/index.js"))
-                  .then(index => {
-                    if (index.has(block.className)) {
-                      return require(highlight$1.resolve("async-languages/" + index.get(block.className))).then(language => {
-                        hl.registerLanguage(block.className, language);
-                      });
-                    }
-                  })
-                  .then(done, done);
-              }
-            });
-          });
-        }
-        return root;
-      },
-      function() {
-        return document.createElement("div");
-      }
-    );
-  });
-}
-
-async function mermaid$2(require) {
-  const mer = await require(mermaid$3.resolve());
-  mer.initialize({securityLevel: "loose", theme: "neutral"});
-  return function mermaid() {
-    const root = document.createElement("div");
-    root.innerHTML = mer.render(uid$1().id, String.raw.apply(String, arguments));
-    return root.removeChild(root.firstChild);
-  };
-}
-
-function Mutable$1(value) {
-  let change;
-  Object.defineProperties(this, {
-    generator: {value: observe$1(_ => void (change = _))},
-    value: {get: () => value, set: x => change(value = x)} // eslint-disable-line no-setter-return
-  });
-  if (value !== undefined) change(value);
-}
-
-function* now$1() {
-  while (true) {
-    yield Date.now();
-  }
-}
-
-function delay$1(duration, value) {
-  return new Promise(function(resolve) {
-    setTimeout(function() {
-      resolve(value);
-    }, duration);
-  });
-}
-
-var timeouts$1 = new Map;
-
-function timeout$1(now, time) {
-  var t = new Promise(function(resolve) {
-    timeouts$1.delete(time);
-    var delay = time - now;
-    if (!(delay > 0)) throw new Error("invalid time");
-    if (delay > 0x7fffffff) throw new Error("too long to wait");
-    setTimeout(resolve, delay);
-  });
-  timeouts$1.set(time, t);
-  return t;
-}
-
-function when$1(time, value) {
-  var now;
-  return (now = timeouts$1.get(time = +time)) ? now.then(() => value)
-      : (now = Date.now()) >= time ? Promise.resolve(value)
-      : timeout$1(now, time).then(() => value);
-}
-
-function tick$1(duration, value) {
-  return when$1(Math.ceil((Date.now() + 1) / duration) * duration, value);
-}
-
-var Promises$1 = {
-  delay: delay$1,
-  tick: tick$1,
-  when: when$1
-};
-
-function resolve$2(name, base) {
-  if (/^(\w+:)|\/\//i.test(name)) return name;
-  if (/^[.]{0,2}\//i.test(name)) return new URL(name, base == null ? location : base).href;
-  if (!name.length || /^[\s._]/.test(name) || /\s$/.test(name)) throw new Error("illegal name");
-  return "https://unpkg.com/" + name;
-}
-
-function requirer$1(resolve) {
-  return resolve == null ? require$1 : requireFrom$1(resolve);
-}
-
-var svg$2 = template$1(function(string) {
-  var root = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  root.innerHTML = string.trim();
-  return root;
-}, function() {
-  return document.createElementNS("http://www.w3.org/2000/svg", "g");
-});
-
-var raw$1 = String.raw;
-
-function style$1(href) {
-  return new Promise(function(resolve, reject) {
-    var link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = href;
-    link.onerror = reject;
-    link.onload = resolve;
-    document.head.appendChild(link);
-  });
-}
-
-function tex$1(require) {
-  return Promise.all([
-    require(katex$1.resolve()),
-    style$1(katex$1.resolve("dist/katex.min.css"))
-  ]).then(function(values) {
-    var katex = values[0], tex = renderer();
-
-    function renderer(options) {
-      return function() {
-        var root = document.createElement("div");
-        katex.render(raw$1.apply(String, arguments), root, options);
-        return root.removeChild(root.firstChild);
-      };
-    }
-
-    tex.options = renderer;
-    tex.block = renderer({displayMode: true});
-    return tex;
-  });
-}
-
-async function vl$1(require) {
-  const [v, vl, api] = await Promise.all([vega$1, vegalite$1, vegaliteApi$1].map(d => require(d.resolve())));
-  return api.register(v, vl);
-}
-
-function width$1() {
-  return observe$1(function(change) {
-    var width = change(document.body.clientWidth);
-    function resized() {
-      var w = document.body.clientWidth;
-      if (w !== width) change(width = w);
-    }
-    window.addEventListener("resize", resized);
-    return function() {
-      window.removeEventListener("resize", resized);
-    };
-  });
-}
-
-var Library$1 = Object.assign(function Library(resolver) {
-  const require = requirer$1(resolver);
-  Object.defineProperties(this, properties$1({
-    FileAttachment: () => NoFileAttachments$1,
-    Arrow: () => require(arrow$1.resolve()),
-    Inputs: () => require(inputs$1.resolve()).then(Inputs => ({...Inputs, file: Inputs.fileOf(AbstractFile$1)})),
-    Mutable: () => Mutable$1,
-    Plot: () => require(plot$1.resolve()),
-    SQLite: () => sqlite$1(require),
-    SQLiteDatabaseClient: () => SQLiteDatabaseClient$1,
-    _: () => require(lodash$1.resolve()),
-    aq: () => require.alias({"apache-arrow": arrow$1.resolve()})(arquero$1.resolve()),
-    d3: () => require(d3$1.resolve()),
-    dot: () => require(graphviz$1.resolve()),
-    htl: () => require(htl$1.resolve()),
-    html: () => html$2,
-    md: () => md$1(require),
-    mermaid: () => mermaid$2(require),
-    now: now$1,
-    require: () => require,
-    resolve: () => resolve$2,
-    svg: () => svg$2,
-    tex: () => tex$1(require),
-    topojson: () => require(topojson$1.resolve()),
-    vl: () => vl$1(require),
-    width: width$1,
-
-    // Note: these are namespace objects, and thus exposed directly rather than
-    // being wrapped in a function. This allows library.Generators to resolve,
-    // rather than needing module.value.
-    DOM: DOM$1,
-    Files: Files$1,
-    Generators: Generators$2,
-    Promises: Promises$1
-  }));
-}, {resolve: require$1.resolve});
-
-function properties$1(values) {
-  return fromEntries(Object.entries(values).map(property$1));
-  // return Object.fromEntries(Object.entries(values).map(property));
-}
-
-function property$1([key, value]) {
-  return [key, ({value, writable: true, enumerable: true})];
-}
-
-// src/main.js
-class PandocCodeDecorator {
-  constructor(node) {
-    this._node = node;
-    this._spans = [];
-    this.normalizeCodeRange();
-    this.initializeEntryPoints();
-  }
-  normalizeCodeRange() {
-    const n = this._node;
-    const lines = n.querySelectorAll("code > span");
-    for (const line of lines) {
-      Array.from(line.childNodes).filter((n2) => n2.nodeType === n2.TEXT_NODE).forEach((n2) => {
-        const newSpan = document.createElement("span");
-        newSpan.textContent = n2.wholeText;
-        n2.replaceWith(newSpan);
-      });
-    }
-  }
-  initializeEntryPoints() {
-    const lines = this._node.querySelectorAll("code > span");
-    let result = [];
-    let offset = this._node.parentElement.dataset.sourceOffset && -Number(this._node.parentElement.dataset.sourceOffset) || 0;
-    for (const line of lines) {
-      let lineNumber = Number(line.id.split("-").pop());
-      let column = 1;
-      Array.from(line.childNodes).filter((n) => n.nodeType === n.ELEMENT_NODE && n.nodeName === "SPAN").forEach((n) => {
-        result.push({
-          offset,
-          line: lineNumber,
-          column,
-          node: n
-        });
-        offset += n.textContent.length;
-        column += n.textContent.length;
-      });
-      offset += 1;
-    }
-    this._elementEntryPoints = result;
-  }
-  locateEntry(offset) {
-    let candidate;
-    if (offset === Infinity)
-      return void 0;
-    for (let i = 0; i < this._elementEntryPoints.length; ++i) {
-      const entry = this._elementEntryPoints[i];
-      if (entry.offset > offset) {
-        return { entry: candidate, index: i - 1 };
-      }
-      candidate = entry;
-    }
-    if (offset < candidate.offset + candidate.node.textContent.length) {
-      return { entry: candidate, index: this._elementEntryPoints.length - 1 };
-    } else {
-      return void 0;
-    }
-  }
-  offsetToLineColumn(offset) {
-    let entry = this.locateEntry(offset);
-    if (entry === void 0) {
-      const entries = this._elementEntryPoints;
-      const last = entries[entries.length - 1];
-      return {
-        line: last.line,
-        column: last.column + Math.min(last.node.textContent.length, offset - last.offset)
-      };
-    }
-    return {
-      line: entry.entry.line,
-      column: entry.entry.column + offset - entry.entry.offset
-    };
-  }
-  *spanSelection(start, end) {
-    this.ensureExactSpan(start, end);
-    const startEntry = this.locateEntry(start);
-    const endEntry = this.locateEntry(end);
-    if (startEntry === void 0) {
-      return;
-    }
-    const startIndex = startEntry.index;
-    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
-    for (let i = startIndex; i < endIndex; ++i) {
-      yield this._elementEntryPoints[i];
-    }
-  }
-  decorateSpan(start, end, classes) {
-    for (const entryPoint of this.spanSelection(start, end)) {
-      for (const cssClass of classes) {
-        entryPoint.node.classList.add(cssClass);
-      }
-    }
-  }
-  clearSpan(start, end, classes) {
-    for (const entryPoint of this.spanSelection(start, end)) {
-      for (const cssClass of classes) {
-        entryPoint.node.classList.remove(cssClass);
-      }
-    }
-  }
-  ensureExactSpan(start, end) {
-    const splitEntry = (entry, offset) => {
-      const newSpan = document.createElement("span");
-      for (const cssClass of entry.node.classList) {
-        newSpan.classList.add(cssClass);
-      }
-      const beforeText = entry.node.textContent.slice(0, offset - entry.offset);
-      const afterText = entry.node.textContent.slice(offset - entry.offset);
-      entry.node.textContent = beforeText;
-      newSpan.textContent = afterText;
-      entry.node.after(newSpan);
-      this._elementEntryPoints.push({
-        column: entry.column + offset - entry.offset,
-        line: entry.line,
-        node: newSpan,
-        offset
-      });
-      this._elementEntryPoints.sort((a, b) => a.offset - b.offset);
-    };
-    const startEntry = this.locateEntry(start);
-    if (startEntry !== void 0 && startEntry.entry.offset != start) {
-      splitEntry(startEntry.entry, start);
-    }
-    const endEntry = this.locateEntry(end);
-    if (endEntry !== void 0 && endEntry.entry.offset !== end) {
-      splitEntry(endEntry.entry, end);
-    }
-  }
-  clearSpan(start, end, classes) {
-    this.ensureExactSpan(start, end);
-    const startEntry = this.locateEntry(start);
-    const endEntry = this.locateEntry(end);
-    if (startEntry === void 0) {
-      return;
-    }
-    const startIndex = startEntry.index;
-    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
-    for (let i = startIndex; i < endIndex; ++i) {
-      for (const cssClass of classes) {
-        this._elementEntryPoints[i].node.classList.remove(cssClass);
-      }
-    }
-  }
-}
-
-function dispatch(node, type, detail) {
-  detail = detail || {};
-  var document = node.ownerDocument, event = document.defaultView.CustomEvent;
-  if (typeof event === "function") {
-    event = new event(type, {detail: detail});
-  } else {
-    event = document.createEvent("Event");
-    event.initEvent(type, false, false);
-    event.detail = detail;
-  }
-  node.dispatchEvent(event);
-}
-
-// TODO https://twitter.com/mbostock/status/702737065121742848
-function isarray(value) {
-  return Array.isArray(value)
-      || value instanceof Int8Array
-      || value instanceof Int16Array
-      || value instanceof Int32Array
-      || value instanceof Uint8Array
-      || value instanceof Uint8ClampedArray
-      || value instanceof Uint16Array
-      || value instanceof Uint32Array
-      || value instanceof Float32Array
-      || value instanceof Float64Array;
-}
-
-// Non-integer keys in arrays, e.g. [1, 2, 0.5: "value"].
-function isindex(key) {
-  return key === (key | 0) + "";
-}
-
-function inspectName(name) {
-  const n = document.createElement("span");
-  n.className = "observablehq--cellname";
-  n.textContent = `${name} = `;
-  return n;
-}
-
-const symbolToString = Symbol.prototype.toString;
-
-// Symbols do not coerce to strings; they must be explicitly converted.
-function formatSymbol(symbol) {
-  return symbolToString.call(symbol);
-}
-
-const {getOwnPropertySymbols, prototype: {hasOwnProperty: hasOwnProperty$2}} = Object;
-const {toStringTag} = Symbol;
-
-const FORBIDDEN = {};
-
-const symbolsof = getOwnPropertySymbols;
-
-function isown(object, key) {
-  return hasOwnProperty$2.call(object, key);
-}
-
-function tagof(object) {
-  return object[toStringTag]
-      || (object.constructor && object.constructor.name)
-      || "Object";
-}
-
-function valueof$1(object, key) {
-  try {
-    const value = object[key];
-    if (value) value.constructor; // Test for SecurityError.
-    return value;
-  } catch (ignore) {
-    return FORBIDDEN;
-  }
-}
-
-const SYMBOLS = [
-  { symbol: "@@__IMMUTABLE_INDEXED__@@", name: "Indexed", modifier: true },
-  { symbol: "@@__IMMUTABLE_KEYED__@@", name: "Keyed", modifier: true },
-  { symbol: "@@__IMMUTABLE_LIST__@@", name: "List", arrayish: true },
-  { symbol: "@@__IMMUTABLE_MAP__@@", name: "Map" },
-  {
-    symbol: "@@__IMMUTABLE_ORDERED__@@",
-    name: "Ordered",
-    modifier: true,
-    prefix: true
-  },
-  { symbol: "@@__IMMUTABLE_RECORD__@@", name: "Record" },
-  {
-    symbol: "@@__IMMUTABLE_SET__@@",
-    name: "Set",
-    arrayish: true,
-    setish: true
-  },
-  { symbol: "@@__IMMUTABLE_STACK__@@", name: "Stack", arrayish: true }
-];
-
-function immutableName(obj) {
-  try {
-    let symbols = SYMBOLS.filter(({ symbol }) => obj[symbol] === true);
-    if (!symbols.length) return;
-
-    const name = symbols.find(s => !s.modifier);
-    const prefix =
-      name.name === "Map" && symbols.find(s => s.modifier && s.prefix);
-
-    const arrayish = symbols.some(s => s.arrayish);
-    const setish = symbols.some(s => s.setish);
-
-    return {
-      name: `${prefix ? prefix.name : ""}${name.name}`,
-      symbols,
-      arrayish: arrayish && !setish,
-      setish
-    };
-  } catch (e) {
-    return null;
-  }
-}
-
-const {getPrototypeOf, getOwnPropertyDescriptors} = Object;
-const objectPrototype = getPrototypeOf({});
-
-function inspectExpanded(object, _, name, proto) {
-  let arrayish = isarray(object);
-  let tag, fields, next, n;
-
-  if (object instanceof Map) {
-    if (object instanceof object.constructor) {
-      tag = `Map(${object.size})`;
-      fields = iterateMap$1;
-    } else { // avoid incompatible receiver error for prototype
-      tag = "Map()";
-      fields = iterateObject$1;
-    }
-  } else if (object instanceof Set) {
-    if (object instanceof object.constructor) {
-      tag = `Set(${object.size})`;
-      fields = iterateSet$1;
-    } else { // avoid incompatible receiver error for prototype
-      tag = "Set()";
-      fields = iterateObject$1;
-    }
-  } else if (arrayish) {
-    tag = `${object.constructor.name}(${object.length})`;
-    fields = iterateArray$1;
-  } else if ((n = immutableName(object))) {
-    tag = `Immutable.${n.name}${n.name === "Record" ? "" : `(${object.size})`}`;
-    arrayish = n.arrayish;
-    fields = n.arrayish
-      ? iterateImArray$1
-      : n.setish
-      ? iterateImSet$1
-      : iterateImObject$1;
-  } else if (proto) {
-    tag = tagof(object);
-    fields = iterateProto;
-  } else {
-    tag = tagof(object);
-    fields = iterateObject$1;
-  }
-
-  const span = document.createElement("span");
-  span.className = "observablehq--expanded";
-  if (name) {
-    span.appendChild(inspectName(name));
-  }
-  const a = span.appendChild(document.createElement("a"));
-  a.innerHTML = `<svg width=8 height=8 class='observablehq--caret'>
-    <path d='M4 7L0 1h8z' fill='currentColor' />
-  </svg>`;
-  a.appendChild(document.createTextNode(`${tag}${arrayish ? " [" : " {"}`));
-  a.addEventListener("mouseup", function(event) {
-    event.stopPropagation();
-    replace(span, inspectCollapsed(object, null, name, proto));
-  });
-
-  fields = fields(object);
-  for (let i = 0; !(next = fields.next()).done && i < 20; ++i) {
-    span.appendChild(next.value);
-  }
-
-  if (!next.done) {
-    const a = span.appendChild(document.createElement("a"));
-    a.className = "observablehq--field";
-    a.style.display = "block";
-    a.appendChild(document.createTextNode(`  … more`));
-    a.addEventListener("mouseup", function(event) {
-      event.stopPropagation();
-      span.insertBefore(next.value, span.lastChild.previousSibling);
-      for (let i = 0; !(next = fields.next()).done && i < 19; ++i) {
-        span.insertBefore(next.value, span.lastChild.previousSibling);
-      }
-      if (next.done) span.removeChild(span.lastChild.previousSibling);
-      dispatch(span, "load");
-    });
-  }
-
-  span.appendChild(document.createTextNode(arrayish ? "]" : "}"));
-
-  return span;
-}
-
-function* iterateMap$1(map) {
-  for (const [key, value] of map) {
-    yield formatMapField$1(key, value);
-  }
-  yield* iterateObject$1(map);
-}
-
-function* iterateSet$1(set) {
-  for (const value of set) {
-    yield formatSetField(value);
-  }
-  yield* iterateObject$1(set);
-}
-
-function* iterateImSet$1(set) {
-  for (const value of set) {
-    yield formatSetField(value);
-  }
-}
-
-function* iterateArray$1(array) {
-  for (let i = 0, n = array.length; i < n; ++i) {
-    if (i in array) {
-      yield formatField$1(i, valueof$1(array, i), "observablehq--index");
-    }
-  }
-  for (const key in array) {
-    if (!isindex(key) && isown(array, key)) {
-      yield formatField$1(key, valueof$1(array, key), "observablehq--key");
-    }
-  }
-  for (const symbol of symbolsof(array)) {
-    yield formatField$1(
-      formatSymbol(symbol),
-      valueof$1(array, symbol),
-      "observablehq--symbol"
-    );
-  }
-}
-
-function* iterateImArray$1(array) {
-  let i1 = 0;
-  for (const n = array.size; i1 < n; ++i1) {
-    yield formatField$1(i1, array.get(i1), true);
-  }
-}
-
-function* iterateProto(object) {
-  for (const key in getOwnPropertyDescriptors(object)) {
-    yield formatField$1(key, valueof$1(object, key), "observablehq--key");
-  }
-  for (const symbol of symbolsof(object)) {
-    yield formatField$1(
-      formatSymbol(symbol),
-      valueof$1(object, symbol),
-      "observablehq--symbol"
-    );
-  }
-
-  const proto = getPrototypeOf(object);
-  if (proto && proto !== objectPrototype) {
-    yield formatPrototype(proto);
-  }
-}
-
-function* iterateObject$1(object) {
-  for (const key in object) {
-    if (isown(object, key)) {
-      yield formatField$1(key, valueof$1(object, key), "observablehq--key");
-    }
-  }
-  for (const symbol of symbolsof(object)) {
-    yield formatField$1(
-      formatSymbol(symbol),
-      valueof$1(object, symbol),
-      "observablehq--symbol"
-    );
-  }
-
-  const proto = getPrototypeOf(object);
-  if (proto && proto !== objectPrototype) {
-    yield formatPrototype(proto);
-  }
-}
-
-function* iterateImObject$1(object) {
-  for (const [key, value] of object) {
-    yield formatField$1(key, value, "observablehq--key");
-  }
-}
-
-function formatPrototype(value) {
-  const item = document.createElement("div");
-  const span = item.appendChild(document.createElement("span"));
-  item.className = "observablehq--field";
-  span.className = "observablehq--prototype-key";
-  span.textContent = `  <prototype>`;
-  item.appendChild(document.createTextNode(": "));
-  item.appendChild(inspect(value, undefined, undefined, undefined, true));
-  return item;
-}
-
-function formatField$1(key, value, className) {
-  const item = document.createElement("div");
-  const span = item.appendChild(document.createElement("span"));
-  item.className = "observablehq--field";
-  span.className = className;
-  span.textContent = `  ${key}`;
-  item.appendChild(document.createTextNode(": "));
-  item.appendChild(inspect(value));
-  return item;
-}
-
-function formatMapField$1(key, value) {
-  const item = document.createElement("div");
-  item.className = "observablehq--field";
-  item.appendChild(document.createTextNode("  "));
-  item.appendChild(inspect(key));
-  item.appendChild(document.createTextNode(" => "));
-  item.appendChild(inspect(value));
-  return item;
-}
-
-function formatSetField(value) {
-  const item = document.createElement("div");
-  item.className = "observablehq--field";
-  item.appendChild(document.createTextNode("  "));
-  item.appendChild(inspect(value));
-  return item;
-}
-
-function hasSelection(elem) {
-  const sel = window.getSelection();
-  return (
-    sel.type === "Range" &&
-    (sel.containsNode(elem, true) ||
-      sel.anchorNode.isSelfOrDescendant(elem) ||
-      sel.focusNode.isSelfOrDescendant(elem))
-  );
-}
-
-function inspectCollapsed(object, shallow, name, proto) {
-  let arrayish = isarray(object);
-  let tag, fields, next, n;
-
-  if (object instanceof Map) {
-    if (object instanceof object.constructor) {
-      tag = `Map(${object.size})`;
-      fields = iterateMap;
-    } else { // avoid incompatible receiver error for prototype
-      tag = "Map()";
-      fields = iterateObject;
-    }
-  } else if (object instanceof Set) {
-    if (object instanceof object.constructor) {
-      tag = `Set(${object.size})`;
-      fields = iterateSet;
-    } else { // avoid incompatible receiver error for prototype
-      tag = "Set()";
-      fields = iterateObject;
-    }
-  } else if (arrayish) {
-    tag = `${object.constructor.name}(${object.length})`;
-    fields = iterateArray;
-  } else if ((n = immutableName(object))) {
-    tag = `Immutable.${n.name}${n.name === 'Record' ? '' : `(${object.size})`}`;
-    arrayish = n.arrayish;
-    fields = n.arrayish ? iterateImArray : n.setish ? iterateImSet : iterateImObject;
-  } else {
-    tag = tagof(object);
-    fields = iterateObject;
-  }
-
-  if (shallow) {
-    const span = document.createElement("span");
-    span.className = "observablehq--shallow";
-    if (name) {
-      span.appendChild(inspectName(name));
-    }
-    span.appendChild(document.createTextNode(tag));
-    span.addEventListener("mouseup", function(event) {
-      if (hasSelection(span)) return;
-      event.stopPropagation();
-      replace(span, inspectCollapsed(object));
-    });
-    return span;
-  }
-
-  const span = document.createElement("span");
-  span.className = "observablehq--collapsed";
-  if (name) {
-    span.appendChild(inspectName(name));
-  }
-  const a = span.appendChild(document.createElement("a"));
-  a.innerHTML = `<svg width=8 height=8 class='observablehq--caret'>
-    <path d='M7 4L1 8V0z' fill='currentColor' />
-  </svg>`;
-  a.appendChild(document.createTextNode(`${tag}${arrayish ? " [" : " {"}`));
-  span.addEventListener("mouseup", function(event) {
-    if (hasSelection(span)) return;
-    event.stopPropagation();
-    replace(span, inspectExpanded(object, null, name, proto));
-  }, true);
-
-  fields = fields(object);
-  for (let i = 0; !(next = fields.next()).done && i < 20; ++i) {
-    if (i > 0) span.appendChild(document.createTextNode(", "));
-    span.appendChild(next.value);
-  }
-
-  if (!next.done) span.appendChild(document.createTextNode(", …"));
-  span.appendChild(document.createTextNode(arrayish ? "]" : "}"));
-
-  return span;
-}
-
-function* iterateMap(map) {
-  for (const [key, value] of map) {
-    yield formatMapField(key, value);
-  }
-  yield* iterateObject(map);
-}
-
-function* iterateSet(set) {
-  for (const value of set) {
-    yield inspect(value, true);
-  }
-  yield* iterateObject(set);
-}
-
-function* iterateImSet(set) {
-  for (const value of set) {
-    yield inspect(value, true);
-  }
-}
-
-function* iterateImArray(array) {
-  let i0 = -1, i1 = 0;
-  for (const n = array.size; i1 < n; ++i1) {
-    if (i1 > i0 + 1) yield formatEmpty(i1 - i0 - 1);
-    yield inspect(array.get(i1), true);
-    i0 = i1;
-  }
-  if (i1 > i0 + 1) yield formatEmpty(i1 - i0 - 1);
-}
-
-function* iterateArray(array) {
-  let i0 = -1, i1 = 0;
-  for (const n = array.length; i1 < n; ++i1) {
-    if (i1 in array) {
-      if (i1 > i0 + 1) yield formatEmpty(i1 - i0 - 1);
-      yield inspect(valueof$1(array, i1), true);
-      i0 = i1;
-    }
-  }
-  if (i1 > i0 + 1) yield formatEmpty(i1 - i0 - 1);
-  for (const key in array) {
-    if (!isindex(key) && isown(array, key)) {
-      yield formatField(key, valueof$1(array, key), "observablehq--key");
-    }
-  }
-  for (const symbol of symbolsof(array)) {
-    yield formatField(formatSymbol(symbol), valueof$1(array, symbol), "observablehq--symbol");
-  }
-}
-
-function* iterateObject(object) {
-  for (const key in object) {
-    if (isown(object, key)) {
-      yield formatField(key, valueof$1(object, key), "observablehq--key");
-    }
-  }
-  for (const symbol of symbolsof(object)) {
-    yield formatField(formatSymbol(symbol), valueof$1(object, symbol), "observablehq--symbol");
-  }
-}
-
-function* iterateImObject(object) {
-  for (const [key, value] of object) {
-    yield formatField(key, value, "observablehq--key");
-  }
-}
-
-function formatEmpty(e) {
-  const span = document.createElement("span");
-  span.className = "observablehq--empty";
-  span.textContent = e === 1 ? "empty" : `empty × ${e}`;
-  return span;
-}
-
-function formatField(key, value, className) {
-  const fragment = document.createDocumentFragment();
-  const span = fragment.appendChild(document.createElement("span"));
-  span.className = className;
-  span.textContent = key;
-  fragment.appendChild(document.createTextNode(": "));
-  fragment.appendChild(inspect(value, true));
-  return fragment;
-}
-
-function formatMapField(key, value) {
-  const fragment = document.createDocumentFragment();
-  fragment.appendChild(inspect(key, true));
-  fragment.appendChild(document.createTextNode(" => "));
-  fragment.appendChild(inspect(value, true));
-  return fragment;
-}
-
-function format(date, fallback) {
-  if (!(date instanceof Date)) date = new Date(+date);
-  if (isNaN(date)) return typeof fallback === "function" ? fallback(date) : fallback;
-  const hours = date.getUTCHours();
-  const minutes = date.getUTCMinutes();
-  const seconds = date.getUTCSeconds();
-  const milliseconds = date.getUTCMilliseconds();
-  return `${formatYear(date.getUTCFullYear())}-${pad(date.getUTCMonth() + 1, 2)}-${pad(date.getUTCDate(), 2)}${
-    hours || minutes || seconds || milliseconds ? `T${pad(hours, 2)}:${pad(minutes, 2)}${
-      seconds || milliseconds ? `:${pad(seconds, 2)}${
-        milliseconds ? `.${pad(milliseconds, 3)}` : ``
-      }` : ``
-    }Z` : ``
-  }`;
-}
-
-function formatYear(year) {
-  return year < 0 ? `-${pad(-year, 6)}`
-    : year > 9999 ? `+${pad(year, 6)}`
-    : pad(year, 4);
-}
-
-function pad(value, width) {
-  return `${value}`.padStart(width, "0");
-}
-
-function formatDate$1(date) {
-  return format(date, "Invalid Date");
-}
-
-var errorToString = Error.prototype.toString;
-
-function formatError(value) {
-  return value.stack || errorToString.call(value);
-}
-
-var regExpToString = RegExp.prototype.toString;
-
-function formatRegExp(value) {
-  return regExpToString.call(value);
-}
-
-/* eslint-disable no-control-regex */
-const NEWLINE_LIMIT = 20;
-
-function formatString(string, shallow, expanded, name) {
-  if (shallow === false) {
-    // String has fewer escapes displayed with double quotes
-    if (count$1(string, /["\n]/g) <= count$1(string, /`|\${/g)) {
-      const span = document.createElement("span");
-      if (name) span.appendChild(inspectName(name));
-      const textValue = span.appendChild(document.createElement("span"));
-      textValue.className = "observablehq--string";
-      textValue.textContent = JSON.stringify(string);
-      return span;
-    }
-    const lines = string.split("\n");
-    if (lines.length > NEWLINE_LIMIT && !expanded) {
-      const div = document.createElement("div");
-      if (name) div.appendChild(inspectName(name));
-      const textValue = div.appendChild(document.createElement("span"));
-      textValue.className = "observablehq--string";
-      textValue.textContent = "`" + templatify(lines.slice(0, NEWLINE_LIMIT).join("\n"));
-      const splitter = div.appendChild(document.createElement("span"));
-      const truncatedCount = lines.length - NEWLINE_LIMIT;
-      splitter.textContent = `Show ${truncatedCount} truncated line${truncatedCount > 1 ? "s": ""}`; splitter.className = "observablehq--string-expand";
-      splitter.addEventListener("mouseup", function (event) {
-        event.stopPropagation();
-        replace(div, inspect(string, shallow, true, name));
-      });
-      return div;
-    }
-    const span = document.createElement("span");
-    if (name) span.appendChild(inspectName(name));
-    const textValue = span.appendChild(document.createElement("span"));
-    textValue.className = `observablehq--string${expanded ? " observablehq--expanded" : ""}`;
-    textValue.textContent = "`" + templatify(string) + "`";
-    return span;
-  }
-
-  const span = document.createElement("span");
-  if (name) span.appendChild(inspectName(name));
-  const textValue = span.appendChild(document.createElement("span"));
-  textValue.className = "observablehq--string";
-  textValue.textContent = JSON.stringify(string.length > 100 ?
-    `${string.slice(0, 50)}…${string.slice(-49)}` : string);
-  return span;
-}
-
-function templatify(string) {
-  return string.replace(/[\\`\x00-\x09\x0b-\x19]|\${/g, templatifyChar);
-}
-
-function templatifyChar(char) {
-  var code = char.charCodeAt(0);
-  switch (code) {
-    case 0x8: return "\\b";
-    case 0x9: return "\\t";
-    case 0xb: return "\\v";
-    case 0xc: return "\\f";
-    case 0xd: return "\\r";
-  }
-  return code < 0x10 ? "\\x0" + code.toString(16)
-      : code < 0x20 ? "\\x" + code.toString(16)
-      : "\\" + char;
-}
-
-function count$1(string, re) {
-  var n = 0;
-  while (re.exec(string)) ++n;
-  return n;
-}
-
-var toString$2 = Function.prototype.toString,
-    TYPE_ASYNC = {prefix: "async ƒ"},
-    TYPE_ASYNC_GENERATOR = {prefix: "async ƒ*"},
-    TYPE_CLASS = {prefix: "class"},
-    TYPE_FUNCTION = {prefix: "ƒ"},
-    TYPE_GENERATOR = {prefix: "ƒ*"};
-
-function inspectFunction(f, name) {
-  var type, m, t = toString$2.call(f);
-
-  switch (f.constructor && f.constructor.name) {
-    case "AsyncFunction": type = TYPE_ASYNC; break;
-    case "AsyncGeneratorFunction": type = TYPE_ASYNC_GENERATOR; break;
-    case "GeneratorFunction": type = TYPE_GENERATOR; break;
-    default: type = /^class\b/.test(t) ? TYPE_CLASS : TYPE_FUNCTION; break;
-  }
-
-  // A class, possibly named.
-  // class Name
-  if (type === TYPE_CLASS) {
-    return formatFunction(type, "", name);
-  }
-
-  // An arrow function with a single argument.
-  // foo =>
-  // async foo =>
-  if ((m = /^(?:async\s*)?(\w+)\s*=>/.exec(t))) {
-    return formatFunction(type, "(" + m[1] + ")", name);
-  }
-
-  // An arrow function with parenthesized arguments.
-  // (…)
-  // async (…)
-  if ((m = /^(?:async\s*)?\(\s*(\w+(?:\s*,\s*\w+)*)?\s*\)/.exec(t))) {
-    return formatFunction(type, m[1] ? "(" + m[1].replace(/\s*,\s*/g, ", ") + ")" : "()", name);
-  }
-
-  // A function, possibly: async, generator, anonymous, simply arguments.
-  // function name(…)
-  // function* name(…)
-  // async function name(…)
-  // async function* name(…)
-  if ((m = /^(?:async\s*)?function(?:\s*\*)?(?:\s*\w+)?\s*\(\s*(\w+(?:\s*,\s*\w+)*)?\s*\)/.exec(t))) {
-    return formatFunction(type, m[1] ? "(" + m[1].replace(/\s*,\s*/g, ", ") + ")" : "()", name);
-  }
-
-  // Something else, like destructuring, comments or default values.
-  return formatFunction(type, "(…)", name);
-}
-
-function formatFunction(type, args, cellname) {
-  var span = document.createElement("span");
-  span.className = "observablehq--function";
-  if (cellname) {
-    span.appendChild(inspectName(cellname));
-  }
-  var spanType = span.appendChild(document.createElement("span"));
-  spanType.className = "observablehq--keyword";
-  spanType.textContent = type.prefix;
-  span.appendChild(document.createTextNode(args));
-  return span;
-}
-
-const {prototype: {toString: toString$1}} = Object;
-
-function inspect(value, shallow, expand, name, proto) {
-  let type = typeof value;
-  switch (type) {
-    case "boolean":
-    case "undefined": { value += ""; break; }
-    case "number": { value = value === 0 && 1 / value < 0 ? "-0" : value + ""; break; }
-    case "bigint": { value = value + "n"; break; }
-    case "symbol": { value = formatSymbol(value); break; }
-    case "function": { return inspectFunction(value, name); }
-    case "string": { return formatString(value, shallow, expand, name); }
-    default: {
-      if (value === null) { type = null, value = "null"; break; }
-      if (value instanceof Date) { type = "date", value = formatDate$1(value); break; }
-      if (value === FORBIDDEN) { type = "forbidden", value = "[forbidden]"; break; }
-      switch (toString$1.call(value)) {
-        case "[object RegExp]": { type = "regexp", value = formatRegExp(value); break; }
-        case "[object Error]": // https://github.com/lodash/lodash/blob/master/isError.js#L26
-        case "[object DOMException]": { type = "error", value = formatError(value); break; }
-        default: return (expand ? inspectExpanded : inspectCollapsed)(value, shallow, name, proto);
-      }
-      break;
-    }
-  }
-  const span = document.createElement("span");
-  if (name) span.appendChild(inspectName(name));
-  const n = span.appendChild(document.createElement("span"));
-  n.className = `observablehq--${type}`;
-  n.textContent = value;
-  return span;
-}
-
-function replace(spanOld, spanNew) {
-  if (spanOld.classList.contains("observablehq--inspect")) spanNew.classList.add("observablehq--inspect");
-  spanOld.parentNode.replaceChild(spanNew, spanOld);
-  dispatch(spanNew, "load");
-}
-
-const LOCATION_MATCH = /\s+\(\d+:\d+\)$/m;
-
-class Inspector {
-  constructor(node) {
-    if (!node) throw new Error("invalid node");
-    this._node = node;
-    node.classList.add("observablehq");
-  }
-  pending() {
-    const {_node} = this;
-    _node.classList.remove("observablehq--error");
-    _node.classList.add("observablehq--running");
-  }
-  fulfilled(value, name) {
-    const {_node} = this;
-    if (!isnode(value) || (value.parentNode && value.parentNode !== _node)) {
-      value = inspect(value, false, _node.firstChild // TODO Do this better.
-          && _node.firstChild.classList
-          && _node.firstChild.classList.contains("observablehq--expanded"), name);
-      value.classList.add("observablehq--inspect");
-    }
-    _node.classList.remove("observablehq--running", "observablehq--error");
-    if (_node.firstChild !== value) {
-      if (_node.firstChild) {
-        while (_node.lastChild !== _node.firstChild) _node.removeChild(_node.lastChild);
-        _node.replaceChild(value, _node.firstChild);
-      } else {
-        _node.appendChild(value);
-      }
-    }
-    dispatch(_node, "update");
-  }
-  rejected(error, name) {
-    const {_node} = this;
-    _node.classList.remove("observablehq--running");
-    _node.classList.add("observablehq--error");
-    while (_node.lastChild) _node.removeChild(_node.lastChild);
-    var div = document.createElement("div");
-    div.className = "observablehq--inspect";
-    if (name) div.appendChild(inspectName(name));
-    div.appendChild(document.createTextNode((error + "").replace(LOCATION_MATCH, "")));
-    _node.appendChild(div);
-    dispatch(_node, "error", {error: error});
-  }
-}
-
-Inspector.into = function(container) {
-  if (typeof container === "string") {
-    container = document.querySelector(container);
-    if (container == null) throw new Error("container not found");
-  }
-  return function() {
-    return new Inspector(container.appendChild(document.createElement("div")));
-  };
-};
-
-// Returns true if the given value is something that should be added to the DOM
-// by the inspector, rather than being inspected. This deliberately excludes
-// DocumentFragment since appending a fragment “dissolves” (mutates) the
-// fragment, and we wish for the inspector to not have side-effects. Also,
-// HTMLElement.prototype is an instanceof Element, but not an element!
-function isnode(value) {
-  return (value instanceof Element || value instanceof Text)
-      && (value instanceof value.constructor);
-}
-
 const metas = new Map;
 const queue$1 = [];
 const map$2 = queue$1.map;
 const some = queue$1.some;
-const hasOwnProperty$1 = queue$1.hasOwnProperty;
+const hasOwnProperty$2 = queue$1.hasOwnProperty;
 const origin = "https://cdn.jsdelivr.net/npm/";
 const identifierRe = /^((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.*))?$/;
 const versionRe = /^\d+\.\d+\.\d+(-[\w-.+]+)?$/;
@@ -2369,28 +261,43 @@ async function resolve$1(name, base) {
 }
 
 var require = requireFrom(resolve$1);
+let requestsInFlight = 0;
+let prevDefine = undefined;
 
 function requireFrom(resolver) {
   const cache = new Map;
   const requireBase = requireRelative(null);
-
+    
   function requireAbsolute(url) {
     if (typeof url !== "string") return url;
     let module = cache.get(url);
     if (!module) cache.set(url, module = new Promise((resolve, reject) => {
+
       const script = document.createElement("script");
       script.onload = () => {
         try { resolve(queue$1.pop()(requireRelative(url))); }
         catch (error) { reject(new RequireError("invalid module")); }
         script.remove();
+        requestsInFlight--;
+        if (requestsInFlight === 0) {
+          window.define = prevDefine;
+        }
       };
       script.onerror = () => {
         reject(new RequireError("unable to load module"));
         script.remove();
+        requestsInFlight--;
+        if (requestsInFlight === 0) {
+          window.define = prevDefine;
+        }
       };
       script.async = true;
       script.src = url;
-      window.define = define;
+      if (requestsInFlight === 0) {
+        prevDefine = window.define;
+        window.define = define;
+      }
+      requestsInFlight++;
       document.head.appendChild(script);
     }));
     return module;
@@ -2426,7 +333,7 @@ function merge(modules) {
   const o = {};
   for (const m of modules) {
     for (const k in m) {
-      if (hasOwnProperty$1.call(m, k)) {
+      if (hasOwnProperty$2.call(m, k)) {
         if (m[k] == null) Object.defineProperty(o, k, {get: getter(m, k)});
         else o[k] = m[k];
       }
@@ -2495,6 +402,14 @@ const topojson = dependency("topojson-client", "3.1.0", "dist/topojson-client.mi
 const exceljs = dependency("exceljs", "4.3.0", "dist/exceljs.min.js");
 const mermaid$1 = dependency("mermaid", "9.0.0", "dist/mermaid.min.js");
 
+function fromEntries(obj) {
+  const result = {};
+  for (const [key, value] of obj) {
+    result[key] = value;
+  }
+  return result;
+}
+
 async function sqlite(require) {
   const init = await require(sql.resolve());
   return init({locateFile: file => sql.resolve(`dist/${file}`)});
@@ -2552,7 +467,7 @@ async function exec(db, query, params) {
   const [result] = await db.exec(query, params);
   if (!result) return [];
   const {columns, values} = result;
-  const rows = values.map(row => Object.fromEntries(row.map((value, i) => [columns[i], value])));
+  const rows = values.map(row => fromEntries(row.map((value, i) => [columns[i], value])));
   rows.columns = columns;
   return rows;
 }
@@ -2930,10 +845,10 @@ function text$1(value) {
   return document.createTextNode(value);
 }
 
-var count = 0;
+var count$1 = 0;
 
 function uid(name) {
-  return new Id("O-" + (name == null ? "" : name + "-") + ++count);
+  return new Id("O-" + (name == null ? "" : name + "-") + ++count$1);
 }
 
 function Id(id) {
@@ -3051,15 +966,15 @@ function observe(initialize) {
 
 function input(input) {
   return observe(function(change) {
-    var event = eventof(input), value = valueof(input);
-    function inputted() { change(valueof(input)); }
+    var event = eventof(input), value = valueof$1(input);
+    function inputted() { change(valueof$1(input)); }
     input.addEventListener(event, inputted);
     if (value !== undefined) change(value);
     return function() { input.removeEventListener(event, inputted); };
   });
 }
 
-function valueof(input) {
+function valueof$1(input) {
   switch (input.type) {
     case "range":
     case "number": return input.valueAsNumber;
@@ -3447,11 +1362,945 @@ var Library = Object.assign(function Library(resolver) {
 }, {resolve: require.resolve});
 
 function properties(values) {
-  return Object.fromEntries(Object.entries(values).map(property));
+  return fromEntries(Object.entries(values).map(property));
+  // return Object.fromEntries(Object.entries(values).map(property));
 }
 
 function property([key, value]) {
   return [key, ({value, writable: true, enumerable: true})];
+}
+
+// src/main.js
+class PandocCodeDecorator {
+  constructor(node) {
+    this._node = node;
+    this._spans = [];
+    this.normalizeCodeRange();
+    this.initializeEntryPoints();
+  }
+  normalizeCodeRange() {
+    const n = this._node;
+    const lines = n.querySelectorAll("code > span");
+    for (const line of lines) {
+      Array.from(line.childNodes).filter((n2) => n2.nodeType === n2.TEXT_NODE).forEach((n2) => {
+        const newSpan = document.createElement("span");
+        newSpan.textContent = n2.wholeText;
+        n2.replaceWith(newSpan);
+      });
+    }
+  }
+  initializeEntryPoints() {
+    const lines = this._node.querySelectorAll("code > span");
+    let result = [];
+    let offset = this._node.parentElement.dataset.sourceOffset && -Number(this._node.parentElement.dataset.sourceOffset) || 0;
+    for (const line of lines) {
+      let lineNumber = Number(line.id.split("-").pop());
+      let column = 1;
+      Array.from(line.childNodes).filter((n) => n.nodeType === n.ELEMENT_NODE && n.nodeName === "SPAN").forEach((n) => {
+        result.push({
+          offset,
+          line: lineNumber,
+          column,
+          node: n
+        });
+        offset += n.textContent.length;
+        column += n.textContent.length;
+      });
+      offset += 1;
+    }
+    this._elementEntryPoints = result;
+  }
+  locateEntry(offset) {
+    let candidate;
+    if (offset === Infinity)
+      return void 0;
+    for (let i = 0; i < this._elementEntryPoints.length; ++i) {
+      const entry = this._elementEntryPoints[i];
+      if (entry.offset > offset) {
+        return { entry: candidate, index: i - 1 };
+      }
+      candidate = entry;
+    }
+    if (offset < candidate.offset + candidate.node.textContent.length) {
+      return { entry: candidate, index: this._elementEntryPoints.length - 1 };
+    } else {
+      return void 0;
+    }
+  }
+  offsetToLineColumn(offset) {
+    let entry = this.locateEntry(offset);
+    if (entry === void 0) {
+      const entries = this._elementEntryPoints;
+      const last = entries[entries.length - 1];
+      return {
+        line: last.line,
+        column: last.column + Math.min(last.node.textContent.length, offset - last.offset)
+      };
+    }
+    return {
+      line: entry.entry.line,
+      column: entry.entry.column + offset - entry.entry.offset
+    };
+  }
+  *spanSelection(start, end) {
+    this.ensureExactSpan(start, end);
+    const startEntry = this.locateEntry(start);
+    const endEntry = this.locateEntry(end);
+    if (startEntry === void 0) {
+      return;
+    }
+    const startIndex = startEntry.index;
+    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
+    for (let i = startIndex; i < endIndex; ++i) {
+      yield this._elementEntryPoints[i];
+    }
+  }
+  decorateSpan(start, end, classes) {
+    for (const entryPoint of this.spanSelection(start, end)) {
+      for (const cssClass of classes) {
+        entryPoint.node.classList.add(cssClass);
+      }
+    }
+  }
+  clearSpan(start, end, classes) {
+    for (const entryPoint of this.spanSelection(start, end)) {
+      for (const cssClass of classes) {
+        entryPoint.node.classList.remove(cssClass);
+      }
+    }
+  }
+  ensureExactSpan(start, end) {
+    const splitEntry = (entry, offset) => {
+      const newSpan = document.createElement("span");
+      for (const cssClass of entry.node.classList) {
+        newSpan.classList.add(cssClass);
+      }
+      const beforeText = entry.node.textContent.slice(0, offset - entry.offset);
+      const afterText = entry.node.textContent.slice(offset - entry.offset);
+      entry.node.textContent = beforeText;
+      newSpan.textContent = afterText;
+      entry.node.after(newSpan);
+      this._elementEntryPoints.push({
+        column: entry.column + offset - entry.offset,
+        line: entry.line,
+        node: newSpan,
+        offset
+      });
+      this._elementEntryPoints.sort((a, b) => a.offset - b.offset);
+    };
+    const startEntry = this.locateEntry(start);
+    if (startEntry !== void 0 && startEntry.entry.offset != start) {
+      splitEntry(startEntry.entry, start);
+    }
+    const endEntry = this.locateEntry(end);
+    if (endEntry !== void 0 && endEntry.entry.offset !== end) {
+      splitEntry(endEntry.entry, end);
+    }
+  }
+  clearSpan(start, end, classes) {
+    this.ensureExactSpan(start, end);
+    const startEntry = this.locateEntry(start);
+    const endEntry = this.locateEntry(end);
+    if (startEntry === void 0) {
+      return;
+    }
+    const startIndex = startEntry.index;
+    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
+    for (let i = startIndex; i < endIndex; ++i) {
+      for (const cssClass of classes) {
+        this._elementEntryPoints[i].node.classList.remove(cssClass);
+      }
+    }
+  }
+}
+
+function dispatch(node, type, detail) {
+  detail = detail || {};
+  var document = node.ownerDocument, event = document.defaultView.CustomEvent;
+  if (typeof event === "function") {
+    event = new event(type, {detail: detail});
+  } else {
+    event = document.createEvent("Event");
+    event.initEvent(type, false, false);
+    event.detail = detail;
+  }
+  node.dispatchEvent(event);
+}
+
+// TODO https://twitter.com/mbostock/status/702737065121742848
+function isarray(value) {
+  return Array.isArray(value)
+      || value instanceof Int8Array
+      || value instanceof Int16Array
+      || value instanceof Int32Array
+      || value instanceof Uint8Array
+      || value instanceof Uint8ClampedArray
+      || value instanceof Uint16Array
+      || value instanceof Uint32Array
+      || value instanceof Float32Array
+      || value instanceof Float64Array;
+}
+
+// Non-integer keys in arrays, e.g. [1, 2, 0.5: "value"].
+function isindex(key) {
+  return key === (key | 0) + "";
+}
+
+function inspectName(name) {
+  const n = document.createElement("span");
+  n.className = "observablehq--cellname";
+  n.textContent = `${name} = `;
+  return n;
+}
+
+const symbolToString = Symbol.prototype.toString;
+
+// Symbols do not coerce to strings; they must be explicitly converted.
+function formatSymbol(symbol) {
+  return symbolToString.call(symbol);
+}
+
+const {getOwnPropertySymbols, prototype: {hasOwnProperty: hasOwnProperty$1}} = Object;
+const {toStringTag} = Symbol;
+
+const FORBIDDEN = {};
+
+const symbolsof = getOwnPropertySymbols;
+
+function isown(object, key) {
+  return hasOwnProperty$1.call(object, key);
+}
+
+function tagof(object) {
+  return object[toStringTag]
+      || (object.constructor && object.constructor.name)
+      || "Object";
+}
+
+function valueof(object, key) {
+  try {
+    const value = object[key];
+    if (value) value.constructor; // Test for SecurityError.
+    return value;
+  } catch (ignore) {
+    return FORBIDDEN;
+  }
+}
+
+const SYMBOLS = [
+  { symbol: "@@__IMMUTABLE_INDEXED__@@", name: "Indexed", modifier: true },
+  { symbol: "@@__IMMUTABLE_KEYED__@@", name: "Keyed", modifier: true },
+  { symbol: "@@__IMMUTABLE_LIST__@@", name: "List", arrayish: true },
+  { symbol: "@@__IMMUTABLE_MAP__@@", name: "Map" },
+  {
+    symbol: "@@__IMMUTABLE_ORDERED__@@",
+    name: "Ordered",
+    modifier: true,
+    prefix: true
+  },
+  { symbol: "@@__IMMUTABLE_RECORD__@@", name: "Record" },
+  {
+    symbol: "@@__IMMUTABLE_SET__@@",
+    name: "Set",
+    arrayish: true,
+    setish: true
+  },
+  { symbol: "@@__IMMUTABLE_STACK__@@", name: "Stack", arrayish: true }
+];
+
+function immutableName(obj) {
+  try {
+    let symbols = SYMBOLS.filter(({ symbol }) => obj[symbol] === true);
+    if (!symbols.length) return;
+
+    const name = symbols.find(s => !s.modifier);
+    const prefix =
+      name.name === "Map" && symbols.find(s => s.modifier && s.prefix);
+
+    const arrayish = symbols.some(s => s.arrayish);
+    const setish = symbols.some(s => s.setish);
+
+    return {
+      name: `${prefix ? prefix.name : ""}${name.name}`,
+      symbols,
+      arrayish: arrayish && !setish,
+      setish
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+const {getPrototypeOf, getOwnPropertyDescriptors} = Object;
+const objectPrototype = getPrototypeOf({});
+
+function inspectExpanded(object, _, name, proto) {
+  let arrayish = isarray(object);
+  let tag, fields, next, n;
+
+  if (object instanceof Map) {
+    if (object instanceof object.constructor) {
+      tag = `Map(${object.size})`;
+      fields = iterateMap$1;
+    } else { // avoid incompatible receiver error for prototype
+      tag = "Map()";
+      fields = iterateObject$1;
+    }
+  } else if (object instanceof Set) {
+    if (object instanceof object.constructor) {
+      tag = `Set(${object.size})`;
+      fields = iterateSet$1;
+    } else { // avoid incompatible receiver error for prototype
+      tag = "Set()";
+      fields = iterateObject$1;
+    }
+  } else if (arrayish) {
+    tag = `${object.constructor.name}(${object.length})`;
+    fields = iterateArray$1;
+  } else if ((n = immutableName(object))) {
+    tag = `Immutable.${n.name}${n.name === "Record" ? "" : `(${object.size})`}`;
+    arrayish = n.arrayish;
+    fields = n.arrayish
+      ? iterateImArray$1
+      : n.setish
+      ? iterateImSet$1
+      : iterateImObject$1;
+  } else if (proto) {
+    tag = tagof(object);
+    fields = iterateProto;
+  } else {
+    tag = tagof(object);
+    fields = iterateObject$1;
+  }
+
+  const span = document.createElement("span");
+  span.className = "observablehq--expanded";
+  if (name) {
+    span.appendChild(inspectName(name));
+  }
+  const a = span.appendChild(document.createElement("a"));
+  a.innerHTML = `<svg width=8 height=8 class='observablehq--caret'>
+    <path d='M4 7L0 1h8z' fill='currentColor' />
+  </svg>`;
+  a.appendChild(document.createTextNode(`${tag}${arrayish ? " [" : " {"}`));
+  a.addEventListener("mouseup", function(event) {
+    event.stopPropagation();
+    replace(span, inspectCollapsed(object, null, name, proto));
+  });
+
+  fields = fields(object);
+  for (let i = 0; !(next = fields.next()).done && i < 20; ++i) {
+    span.appendChild(next.value);
+  }
+
+  if (!next.done) {
+    const a = span.appendChild(document.createElement("a"));
+    a.className = "observablehq--field";
+    a.style.display = "block";
+    a.appendChild(document.createTextNode(`  … more`));
+    a.addEventListener("mouseup", function(event) {
+      event.stopPropagation();
+      span.insertBefore(next.value, span.lastChild.previousSibling);
+      for (let i = 0; !(next = fields.next()).done && i < 19; ++i) {
+        span.insertBefore(next.value, span.lastChild.previousSibling);
+      }
+      if (next.done) span.removeChild(span.lastChild.previousSibling);
+      dispatch(span, "load");
+    });
+  }
+
+  span.appendChild(document.createTextNode(arrayish ? "]" : "}"));
+
+  return span;
+}
+
+function* iterateMap$1(map) {
+  for (const [key, value] of map) {
+    yield formatMapField$1(key, value);
+  }
+  yield* iterateObject$1(map);
+}
+
+function* iterateSet$1(set) {
+  for (const value of set) {
+    yield formatSetField(value);
+  }
+  yield* iterateObject$1(set);
+}
+
+function* iterateImSet$1(set) {
+  for (const value of set) {
+    yield formatSetField(value);
+  }
+}
+
+function* iterateArray$1(array) {
+  for (let i = 0, n = array.length; i < n; ++i) {
+    if (i in array) {
+      yield formatField$1(i, valueof(array, i), "observablehq--index");
+    }
+  }
+  for (const key in array) {
+    if (!isindex(key) && isown(array, key)) {
+      yield formatField$1(key, valueof(array, key), "observablehq--key");
+    }
+  }
+  for (const symbol of symbolsof(array)) {
+    yield formatField$1(
+      formatSymbol(symbol),
+      valueof(array, symbol),
+      "observablehq--symbol"
+    );
+  }
+}
+
+function* iterateImArray$1(array) {
+  let i1 = 0;
+  for (const n = array.size; i1 < n; ++i1) {
+    yield formatField$1(i1, array.get(i1), true);
+  }
+}
+
+function* iterateProto(object) {
+  for (const key in getOwnPropertyDescriptors(object)) {
+    yield formatField$1(key, valueof(object, key), "observablehq--key");
+  }
+  for (const symbol of symbolsof(object)) {
+    yield formatField$1(
+      formatSymbol(symbol),
+      valueof(object, symbol),
+      "observablehq--symbol"
+    );
+  }
+
+  const proto = getPrototypeOf(object);
+  if (proto && proto !== objectPrototype) {
+    yield formatPrototype(proto);
+  }
+}
+
+function* iterateObject$1(object) {
+  for (const key in object) {
+    if (isown(object, key)) {
+      yield formatField$1(key, valueof(object, key), "observablehq--key");
+    }
+  }
+  for (const symbol of symbolsof(object)) {
+    yield formatField$1(
+      formatSymbol(symbol),
+      valueof(object, symbol),
+      "observablehq--symbol"
+    );
+  }
+
+  const proto = getPrototypeOf(object);
+  if (proto && proto !== objectPrototype) {
+    yield formatPrototype(proto);
+  }
+}
+
+function* iterateImObject$1(object) {
+  for (const [key, value] of object) {
+    yield formatField$1(key, value, "observablehq--key");
+  }
+}
+
+function formatPrototype(value) {
+  const item = document.createElement("div");
+  const span = item.appendChild(document.createElement("span"));
+  item.className = "observablehq--field";
+  span.className = "observablehq--prototype-key";
+  span.textContent = `  <prototype>`;
+  item.appendChild(document.createTextNode(": "));
+  item.appendChild(inspect(value, undefined, undefined, undefined, true));
+  return item;
+}
+
+function formatField$1(key, value, className) {
+  const item = document.createElement("div");
+  const span = item.appendChild(document.createElement("span"));
+  item.className = "observablehq--field";
+  span.className = className;
+  span.textContent = `  ${key}`;
+  item.appendChild(document.createTextNode(": "));
+  item.appendChild(inspect(value));
+  return item;
+}
+
+function formatMapField$1(key, value) {
+  const item = document.createElement("div");
+  item.className = "observablehq--field";
+  item.appendChild(document.createTextNode("  "));
+  item.appendChild(inspect(key));
+  item.appendChild(document.createTextNode(" => "));
+  item.appendChild(inspect(value));
+  return item;
+}
+
+function formatSetField(value) {
+  const item = document.createElement("div");
+  item.className = "observablehq--field";
+  item.appendChild(document.createTextNode("  "));
+  item.appendChild(inspect(value));
+  return item;
+}
+
+function hasSelection(elem) {
+  const sel = window.getSelection();
+  return (
+    sel.type === "Range" &&
+    (sel.containsNode(elem, true) ||
+      sel.anchorNode.isSelfOrDescendant(elem) ||
+      sel.focusNode.isSelfOrDescendant(elem))
+  );
+}
+
+function inspectCollapsed(object, shallow, name, proto) {
+  let arrayish = isarray(object);
+  let tag, fields, next, n;
+
+  if (object instanceof Map) {
+    if (object instanceof object.constructor) {
+      tag = `Map(${object.size})`;
+      fields = iterateMap;
+    } else { // avoid incompatible receiver error for prototype
+      tag = "Map()";
+      fields = iterateObject;
+    }
+  } else if (object instanceof Set) {
+    if (object instanceof object.constructor) {
+      tag = `Set(${object.size})`;
+      fields = iterateSet;
+    } else { // avoid incompatible receiver error for prototype
+      tag = "Set()";
+      fields = iterateObject;
+    }
+  } else if (arrayish) {
+    tag = `${object.constructor.name}(${object.length})`;
+    fields = iterateArray;
+  } else if ((n = immutableName(object))) {
+    tag = `Immutable.${n.name}${n.name === 'Record' ? '' : `(${object.size})`}`;
+    arrayish = n.arrayish;
+    fields = n.arrayish ? iterateImArray : n.setish ? iterateImSet : iterateImObject;
+  } else {
+    tag = tagof(object);
+    fields = iterateObject;
+  }
+
+  if (shallow) {
+    const span = document.createElement("span");
+    span.className = "observablehq--shallow";
+    if (name) {
+      span.appendChild(inspectName(name));
+    }
+    span.appendChild(document.createTextNode(tag));
+    span.addEventListener("mouseup", function(event) {
+      if (hasSelection(span)) return;
+      event.stopPropagation();
+      replace(span, inspectCollapsed(object));
+    });
+    return span;
+  }
+
+  const span = document.createElement("span");
+  span.className = "observablehq--collapsed";
+  if (name) {
+    span.appendChild(inspectName(name));
+  }
+  const a = span.appendChild(document.createElement("a"));
+  a.innerHTML = `<svg width=8 height=8 class='observablehq--caret'>
+    <path d='M7 4L1 8V0z' fill='currentColor' />
+  </svg>`;
+  a.appendChild(document.createTextNode(`${tag}${arrayish ? " [" : " {"}`));
+  span.addEventListener("mouseup", function(event) {
+    if (hasSelection(span)) return;
+    event.stopPropagation();
+    replace(span, inspectExpanded(object, null, name, proto));
+  }, true);
+
+  fields = fields(object);
+  for (let i = 0; !(next = fields.next()).done && i < 20; ++i) {
+    if (i > 0) span.appendChild(document.createTextNode(", "));
+    span.appendChild(next.value);
+  }
+
+  if (!next.done) span.appendChild(document.createTextNode(", …"));
+  span.appendChild(document.createTextNode(arrayish ? "]" : "}"));
+
+  return span;
+}
+
+function* iterateMap(map) {
+  for (const [key, value] of map) {
+    yield formatMapField(key, value);
+  }
+  yield* iterateObject(map);
+}
+
+function* iterateSet(set) {
+  for (const value of set) {
+    yield inspect(value, true);
+  }
+  yield* iterateObject(set);
+}
+
+function* iterateImSet(set) {
+  for (const value of set) {
+    yield inspect(value, true);
+  }
+}
+
+function* iterateImArray(array) {
+  let i0 = -1, i1 = 0;
+  for (const n = array.size; i1 < n; ++i1) {
+    if (i1 > i0 + 1) yield formatEmpty(i1 - i0 - 1);
+    yield inspect(array.get(i1), true);
+    i0 = i1;
+  }
+  if (i1 > i0 + 1) yield formatEmpty(i1 - i0 - 1);
+}
+
+function* iterateArray(array) {
+  let i0 = -1, i1 = 0;
+  for (const n = array.length; i1 < n; ++i1) {
+    if (i1 in array) {
+      if (i1 > i0 + 1) yield formatEmpty(i1 - i0 - 1);
+      yield inspect(valueof(array, i1), true);
+      i0 = i1;
+    }
+  }
+  if (i1 > i0 + 1) yield formatEmpty(i1 - i0 - 1);
+  for (const key in array) {
+    if (!isindex(key) && isown(array, key)) {
+      yield formatField(key, valueof(array, key), "observablehq--key");
+    }
+  }
+  for (const symbol of symbolsof(array)) {
+    yield formatField(formatSymbol(symbol), valueof(array, symbol), "observablehq--symbol");
+  }
+}
+
+function* iterateObject(object) {
+  for (const key in object) {
+    if (isown(object, key)) {
+      yield formatField(key, valueof(object, key), "observablehq--key");
+    }
+  }
+  for (const symbol of symbolsof(object)) {
+    yield formatField(formatSymbol(symbol), valueof(object, symbol), "observablehq--symbol");
+  }
+}
+
+function* iterateImObject(object) {
+  for (const [key, value] of object) {
+    yield formatField(key, value, "observablehq--key");
+  }
+}
+
+function formatEmpty(e) {
+  const span = document.createElement("span");
+  span.className = "observablehq--empty";
+  span.textContent = e === 1 ? "empty" : `empty × ${e}`;
+  return span;
+}
+
+function formatField(key, value, className) {
+  const fragment = document.createDocumentFragment();
+  const span = fragment.appendChild(document.createElement("span"));
+  span.className = className;
+  span.textContent = key;
+  fragment.appendChild(document.createTextNode(": "));
+  fragment.appendChild(inspect(value, true));
+  return fragment;
+}
+
+function formatMapField(key, value) {
+  const fragment = document.createDocumentFragment();
+  fragment.appendChild(inspect(key, true));
+  fragment.appendChild(document.createTextNode(" => "));
+  fragment.appendChild(inspect(value, true));
+  return fragment;
+}
+
+function format(date, fallback) {
+  if (!(date instanceof Date)) date = new Date(+date);
+  if (isNaN(date)) return typeof fallback === "function" ? fallback(date) : fallback;
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+  const seconds = date.getUTCSeconds();
+  const milliseconds = date.getUTCMilliseconds();
+  return `${formatYear(date.getUTCFullYear())}-${pad(date.getUTCMonth() + 1, 2)}-${pad(date.getUTCDate(), 2)}${
+    hours || minutes || seconds || milliseconds ? `T${pad(hours, 2)}:${pad(minutes, 2)}${
+      seconds || milliseconds ? `:${pad(seconds, 2)}${
+        milliseconds ? `.${pad(milliseconds, 3)}` : ``
+      }` : ``
+    }Z` : ``
+  }`;
+}
+
+function formatYear(year) {
+  return year < 0 ? `-${pad(-year, 6)}`
+    : year > 9999 ? `+${pad(year, 6)}`
+    : pad(year, 4);
+}
+
+function pad(value, width) {
+  return `${value}`.padStart(width, "0");
+}
+
+function formatDate$1(date) {
+  return format(date, "Invalid Date");
+}
+
+var errorToString = Error.prototype.toString;
+
+function formatError(value) {
+  return value.stack || errorToString.call(value);
+}
+
+var regExpToString = RegExp.prototype.toString;
+
+function formatRegExp(value) {
+  return regExpToString.call(value);
+}
+
+/* eslint-disable no-control-regex */
+const NEWLINE_LIMIT = 20;
+
+function formatString(string, shallow, expanded, name) {
+  if (shallow === false) {
+    // String has fewer escapes displayed with double quotes
+    if (count(string, /["\n]/g) <= count(string, /`|\${/g)) {
+      const span = document.createElement("span");
+      if (name) span.appendChild(inspectName(name));
+      const textValue = span.appendChild(document.createElement("span"));
+      textValue.className = "observablehq--string";
+      textValue.textContent = JSON.stringify(string);
+      return span;
+    }
+    const lines = string.split("\n");
+    if (lines.length > NEWLINE_LIMIT && !expanded) {
+      const div = document.createElement("div");
+      if (name) div.appendChild(inspectName(name));
+      const textValue = div.appendChild(document.createElement("span"));
+      textValue.className = "observablehq--string";
+      textValue.textContent = "`" + templatify(lines.slice(0, NEWLINE_LIMIT).join("\n"));
+      const splitter = div.appendChild(document.createElement("span"));
+      const truncatedCount = lines.length - NEWLINE_LIMIT;
+      splitter.textContent = `Show ${truncatedCount} truncated line${truncatedCount > 1 ? "s": ""}`; splitter.className = "observablehq--string-expand";
+      splitter.addEventListener("mouseup", function (event) {
+        event.stopPropagation();
+        replace(div, inspect(string, shallow, true, name));
+      });
+      return div;
+    }
+    const span = document.createElement("span");
+    if (name) span.appendChild(inspectName(name));
+    const textValue = span.appendChild(document.createElement("span"));
+    textValue.className = `observablehq--string${expanded ? " observablehq--expanded" : ""}`;
+    textValue.textContent = "`" + templatify(string) + "`";
+    return span;
+  }
+
+  const span = document.createElement("span");
+  if (name) span.appendChild(inspectName(name));
+  const textValue = span.appendChild(document.createElement("span"));
+  textValue.className = "observablehq--string";
+  textValue.textContent = JSON.stringify(string.length > 100 ?
+    `${string.slice(0, 50)}…${string.slice(-49)}` : string);
+  return span;
+}
+
+function templatify(string) {
+  return string.replace(/[\\`\x00-\x09\x0b-\x19]|\${/g, templatifyChar);
+}
+
+function templatifyChar(char) {
+  var code = char.charCodeAt(0);
+  switch (code) {
+    case 0x8: return "\\b";
+    case 0x9: return "\\t";
+    case 0xb: return "\\v";
+    case 0xc: return "\\f";
+    case 0xd: return "\\r";
+  }
+  return code < 0x10 ? "\\x0" + code.toString(16)
+      : code < 0x20 ? "\\x" + code.toString(16)
+      : "\\" + char;
+}
+
+function count(string, re) {
+  var n = 0;
+  while (re.exec(string)) ++n;
+  return n;
+}
+
+var toString$2 = Function.prototype.toString,
+    TYPE_ASYNC = {prefix: "async ƒ"},
+    TYPE_ASYNC_GENERATOR = {prefix: "async ƒ*"},
+    TYPE_CLASS = {prefix: "class"},
+    TYPE_FUNCTION = {prefix: "ƒ"},
+    TYPE_GENERATOR = {prefix: "ƒ*"};
+
+function inspectFunction(f, name) {
+  var type, m, t = toString$2.call(f);
+
+  switch (f.constructor && f.constructor.name) {
+    case "AsyncFunction": type = TYPE_ASYNC; break;
+    case "AsyncGeneratorFunction": type = TYPE_ASYNC_GENERATOR; break;
+    case "GeneratorFunction": type = TYPE_GENERATOR; break;
+    default: type = /^class\b/.test(t) ? TYPE_CLASS : TYPE_FUNCTION; break;
+  }
+
+  // A class, possibly named.
+  // class Name
+  if (type === TYPE_CLASS) {
+    return formatFunction(type, "", name);
+  }
+
+  // An arrow function with a single argument.
+  // foo =>
+  // async foo =>
+  if ((m = /^(?:async\s*)?(\w+)\s*=>/.exec(t))) {
+    return formatFunction(type, "(" + m[1] + ")", name);
+  }
+
+  // An arrow function with parenthesized arguments.
+  // (…)
+  // async (…)
+  if ((m = /^(?:async\s*)?\(\s*(\w+(?:\s*,\s*\w+)*)?\s*\)/.exec(t))) {
+    return formatFunction(type, m[1] ? "(" + m[1].replace(/\s*,\s*/g, ", ") + ")" : "()", name);
+  }
+
+  // A function, possibly: async, generator, anonymous, simply arguments.
+  // function name(…)
+  // function* name(…)
+  // async function name(…)
+  // async function* name(…)
+  if ((m = /^(?:async\s*)?function(?:\s*\*)?(?:\s*\w+)?\s*\(\s*(\w+(?:\s*,\s*\w+)*)?\s*\)/.exec(t))) {
+    return formatFunction(type, m[1] ? "(" + m[1].replace(/\s*,\s*/g, ", ") + ")" : "()", name);
+  }
+
+  // Something else, like destructuring, comments or default values.
+  return formatFunction(type, "(…)", name);
+}
+
+function formatFunction(type, args, cellname) {
+  var span = document.createElement("span");
+  span.className = "observablehq--function";
+  if (cellname) {
+    span.appendChild(inspectName(cellname));
+  }
+  var spanType = span.appendChild(document.createElement("span"));
+  spanType.className = "observablehq--keyword";
+  spanType.textContent = type.prefix;
+  span.appendChild(document.createTextNode(args));
+  return span;
+}
+
+const {prototype: {toString: toString$1}} = Object;
+
+function inspect(value, shallow, expand, name, proto) {
+  let type = typeof value;
+  switch (type) {
+    case "boolean":
+    case "undefined": { value += ""; break; }
+    case "number": { value = value === 0 && 1 / value < 0 ? "-0" : value + ""; break; }
+    case "bigint": { value = value + "n"; break; }
+    case "symbol": { value = formatSymbol(value); break; }
+    case "function": { return inspectFunction(value, name); }
+    case "string": { return formatString(value, shallow, expand, name); }
+    default: {
+      if (value === null) { type = null, value = "null"; break; }
+      if (value instanceof Date) { type = "date", value = formatDate$1(value); break; }
+      if (value === FORBIDDEN) { type = "forbidden", value = "[forbidden]"; break; }
+      switch (toString$1.call(value)) {
+        case "[object RegExp]": { type = "regexp", value = formatRegExp(value); break; }
+        case "[object Error]": // https://github.com/lodash/lodash/blob/master/isError.js#L26
+        case "[object DOMException]": { type = "error", value = formatError(value); break; }
+        default: return (expand ? inspectExpanded : inspectCollapsed)(value, shallow, name, proto);
+      }
+      break;
+    }
+  }
+  const span = document.createElement("span");
+  if (name) span.appendChild(inspectName(name));
+  const n = span.appendChild(document.createElement("span"));
+  n.className = `observablehq--${type}`;
+  n.textContent = value;
+  return span;
+}
+
+function replace(spanOld, spanNew) {
+  if (spanOld.classList.contains("observablehq--inspect")) spanNew.classList.add("observablehq--inspect");
+  spanOld.parentNode.replaceChild(spanNew, spanOld);
+  dispatch(spanNew, "load");
+}
+
+const LOCATION_MATCH = /\s+\(\d+:\d+\)$/m;
+
+class Inspector {
+  constructor(node) {
+    if (!node) throw new Error("invalid node");
+    this._node = node;
+    node.classList.add("observablehq");
+  }
+  pending() {
+    const {_node} = this;
+    _node.classList.remove("observablehq--error");
+    _node.classList.add("observablehq--running");
+  }
+  fulfilled(value, name) {
+    const {_node} = this;
+    if (!isnode(value) || (value.parentNode && value.parentNode !== _node)) {
+      value = inspect(value, false, _node.firstChild // TODO Do this better.
+          && _node.firstChild.classList
+          && _node.firstChild.classList.contains("observablehq--expanded"), name);
+      value.classList.add("observablehq--inspect");
+    }
+    _node.classList.remove("observablehq--running", "observablehq--error");
+    if (_node.firstChild !== value) {
+      if (_node.firstChild) {
+        while (_node.lastChild !== _node.firstChild) _node.removeChild(_node.lastChild);
+        _node.replaceChild(value, _node.firstChild);
+      } else {
+        _node.appendChild(value);
+      }
+    }
+    dispatch(_node, "update");
+  }
+  rejected(error, name) {
+    const {_node} = this;
+    _node.classList.remove("observablehq--running");
+    _node.classList.add("observablehq--error");
+    while (_node.lastChild) _node.removeChild(_node.lastChild);
+    var div = document.createElement("div");
+    div.className = "observablehq--inspect";
+    if (name) div.appendChild(inspectName(name));
+    div.appendChild(document.createTextNode((error + "").replace(LOCATION_MATCH, "")));
+    _node.appendChild(div);
+    dispatch(_node, "error", {error: error});
+  }
+}
+
+Inspector.into = function(container) {
+  if (typeof container === "string") {
+    container = document.querySelector(container);
+    if (container == null) throw new Error("container not found");
+  }
+  return function() {
+    return new Inspector(container.appendChild(document.createElement("div")));
+  };
+};
+
+// Returns true if the given value is something that should be added to the DOM
+// by the inspector, rather than being inspected. This deliberately excludes
+// DocumentFragment since appending a fragment “dissolves” (mutates) the
+// fragment, and we wish for the inspector to not have side-effects. Also,
+// HTMLElement.prototype is an instanceof Element, but not an element!
+function isnode(value) {
+  return (value instanceof Element || value instanceof Text)
+      && (value instanceof value.constructor);
 }
 
 function RuntimeError(message, input) {
@@ -3847,7 +2696,9 @@ function variable_name(variable) {
   return variable._name;
 }
 
-const frame = typeof requestAnimationFrame === "function" ? requestAnimationFrame : setImmediate;
+const frame = typeof requestAnimationFrame === "function" ? requestAnimationFrame
+  : typeof setImmediate === "function" ? setImmediate
+  : f => setTimeout(f, 0);
 
 var variable_invalidation = {};
 var variable_visibility = {};
@@ -4128,12 +2979,13 @@ function variable_compute(variable) {
 
 function variable_generate(variable, version, generator) {
   const runtime = variable._module._runtime;
+  let currentValue; // so that yield resolves to the yielded value
 
   // Retrieve the next value from the generator; if successful, invoke the
   // specified callback. The returned promise resolves to the yielded value, or
   // to undefined if the generator is done.
   function compute(onfulfilled) {
-    return new Promise(resolve => resolve(generator.next())).then(({done, value}) => {
+    return new Promise(resolve => resolve(generator.next(currentValue))).then(({done, value}) => {
       return done ? undefined : Promise.resolve(value).then(onfulfilled);
     });
   }
@@ -4145,6 +2997,7 @@ function variable_generate(variable, version, generator) {
   function recompute() {
     const promise = compute((value) => {
       if (variable._version !== version) return;
+      currentValue = value;
       postcompute(value, promise).then(() => runtime._precompute(recompute));
       variable._fulfilled(value);
       return value;
@@ -4169,6 +3022,7 @@ function variable_generate(variable, version, generator) {
   // already established, so we only need to queue the next pull.
   return compute((value) => {
     if (variable._version !== version) return;
+    currentValue = value;
     runtime._precompute(recompute);
     return value;
   });
@@ -5064,7 +3918,7 @@ class ShinyInspector extends QuartoInspector {
   }
 }
 
-const { Generators } = new Library$1();
+const { Generators } = new Library();
 
 class OjsButtonInput /*extends ShinyInput*/ {
   find(_scope) {
@@ -18775,7 +17629,7 @@ async function importOjsFromURL(path) {
 
 class OJSConnector {
   constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
-    this.library = library || new Library$1();
+    this.library = library || new Library();
 
     // this map contains a mapping from resource names to data URLs
     // that governs fileAttachment and import() resolutions in the
@@ -19453,7 +18307,7 @@ function createRuntime() {
   // https://talk.observablehq.com/t/embedded-width/1063
 
   // stdlib from our fork, which uses the safe d3-require
-  const lib = new Library$1();
+  const lib = new Library();
   if (isShiny) {
     extendObservableStdlib(lib);
   }
@@ -19557,7 +18411,7 @@ function createRuntime() {
       return n;
     }
   }
-  lib.FileAttachment = () => FileAttachments$1(fileAttachmentPathResolver);
+  lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
 
   const ojsConnector = new QuartoOJSConnector({
     paths: quartoOjsGlobal.paths,
