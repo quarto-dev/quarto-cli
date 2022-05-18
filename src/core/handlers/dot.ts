@@ -14,7 +14,7 @@ import {
   isRevealjsOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
-import { mappedConcat, mappedIndexToRowCol } from "../lib/mapped-text.ts";
+import { mappedConcat, mappedIndexToLineCol } from "../lib/mapped-text.ts";
 
 import { lineOffsets } from "../lib/text.ts";
 import {
@@ -79,7 +79,7 @@ const dotHandler: LanguageHandler = {
       );
       if (m) {
         const number = Number(m[2]) - 1;
-        const locF = mappedIndexToRowCol(cellContent);
+        const locF = mappedIndexToLineCol(cellContent);
         const offsets = Array.from(lineOffsets(cellContent.value));
         const offset = offsets[number];
         const mapResult = cellContent.map(offset, true);

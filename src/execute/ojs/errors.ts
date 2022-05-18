@@ -6,7 +6,7 @@
 */
 
 import { error } from "log/mod.ts";
-import { mappedIndexToRowCol } from "../../core/lib/mapped-text.ts";
+import { mappedIndexToLineCol } from "../../core/lib/mapped-text.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
 
 export function ojsParseError(
@@ -24,9 +24,9 @@ export function ojsParseError(
   //   pos: acornError.pos
   // });
 
-  const { line, column } = mappedIndexToRowCol(ojsSource)(acornError.pos)!;
+  const { line, column } = mappedIndexToLineCol(ojsSource)(acornError.pos)!;
   /*const { index, originalString } = ojsSource.map(acornError.pos, true)!;
-  const { line, column } = indexToRowCol(
+  const { line, column } = indexToLineCol(
     originalString.value,
   )(index);*/
 

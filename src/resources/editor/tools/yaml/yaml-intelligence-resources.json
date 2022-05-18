@@ -7250,6 +7250,20 @@
       }
     },
     {
+      "name": "self-contained-math",
+      "tags": {
+        "formats": [
+          "$html-files"
+        ]
+      },
+      "schema": "boolean",
+      "default": false,
+      "description": {
+        "short": "Embed math libraries (e.g. MathJax) within `self-contained` output.",
+        "long": "Embed math libraries (e.g. MathJax) within `self-contained` output.\nNote that math libraries are not embedded by default because they are \n quite large and often time consuming to download.\n"
+      }
+    },
+    {
       "name": "filters",
       "schema": {
         "ref": "pandoc-format-filters"
@@ -11075,6 +11089,10 @@
     {
       "short": "Produce a standalone HTML file with no external dependencies",
       "long": "Produce a standalone HTML file with no external dependencies, using\n<code>data:</code> URIs to incorporate the contents of linked scripts,\nstylesheets, images, and videos. The resulting file should be\n“self-contained,” in the sense that it needs no external files and no\nnet access to be displayed properly by a browser. This option works only\nwith HTML output formats, including <code>html4</code>,\n<code>html5</code>, <code>html+lhs</code>, <code>html5+lhs</code>,\n<code>s5</code>, <code>slidy</code>, <code>slideous</code>,\n<code>dzslides</code>, and <code>revealjs</code>. Scripts, images, and\nstylesheets at absolute URLs will be downloaded; those at relative URLs\nwill be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source file is\nremote). Elements with the attribute <code>data-external=\"1\"</code> will\nbe left alone; the documents they link to will not be incorporated in\nthe document."
+    },
+    {
+      "short": "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output.",
+      "long": "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output. Note that math libraries are not\nembedded by default because they are quite large and often time\nconsuming to download."
     },
     "Specify executables or Lua scripts to be used as a filter\ntransforming the pandoc AST after the input is parsed and before the\noutput is written.",
     "Speicfy Lua scripts that implement shortcode handlers",
