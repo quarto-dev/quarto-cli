@@ -6,7 +6,7 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
-import { netlifyPublish } from "../../publish/netlify.ts";
+import { netlifyPublish } from "../../publish/netlify/netlify.ts";
 
 import { PublishOptions, PublishProvider } from "./provider.ts";
 
