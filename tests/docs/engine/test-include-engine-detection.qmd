@@ -1,0 +1,8 @@
+---
+title: "include inline test"
+format: html
+---
+
+Here's an inline r through an include:
+
+{{< include _includes-r-statements.qmd >}}

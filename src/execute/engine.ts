@@ -157,6 +157,7 @@ export function fileEngineClaimReason(
 
 export function fileExecutionEngine(
   file: string,
+  markdown?: MappedString,
 ) {
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
@@ -171,7 +172,11 @@ export function fileExecutionEngine(
     }
   }
 
-  return markdownExecutionEngine(Deno.readTextFileSync(file));
+  // if we were passed a transformed markdown, use that for the text instead
+  // of the contents of the file.
+  return markdownExecutionEngine(
+    markdown ? markdown.value : Deno.readTextFileSync(file),
+  );
 }
 
 export async function fileExecutionEngineAndTarget(
@@ -179,7 +184,7 @@ export async function fileExecutionEngineAndTarget(
   quiet?: boolean,
   markdown?: MappedString,
 ) {
-  const engine = fileExecutionEngine(file);
+  const engine = fileExecutionEngine(file, markdown);
   if (!engine) {
     throw new Error("Unable to render " + file);
   }

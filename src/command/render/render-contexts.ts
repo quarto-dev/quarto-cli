@@ -254,6 +254,9 @@ export async function renderContexts(
         context.target.preEngineExecuteResults = results;
       }
 
+      console.log("Old engine and target");
+      console.log({ engine, target, engineClaimReason });
+
       if (engineClaimReason === "markdown") {
         // since the content decided the engine, and the content now changed,
         // we need to re-evaluate the engine and target based on new content.
@@ -263,6 +266,8 @@ export async function renderContexts(
           options.flags?.quiet,
           markdown,
         );
+        console.log("New engine and target");
+        console.log({ engine, target, engineClaimReason });
         context.engine = engine;
         context.target = target;
       }
