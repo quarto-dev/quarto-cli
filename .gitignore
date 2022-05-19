@@ -10,5 +10,6 @@ package/dist/**
 /tests/cov_profile
 /tests/cov_profile.lcov
 *~
+.env
 # deno_std library
 src/resources/deno_std/cache
