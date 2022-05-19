@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class SplitTestService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -16,19 +15,19 @@ export class SplitTestService {
     siteId,
     branchTests,
   }: {
-    siteId: string,
+    siteId: string;
     branchTests: {
       branch_tests?: any;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/sites/{site_id}/traffic_splits',
+      method: "POST",
+      url: "/sites/{site_id}/traffic_splits",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
       body: branchTests,
     });
@@ -41,23 +40,25 @@ export class SplitTestService {
   public getSplitTests({
     siteId,
   }: {
-    siteId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    site_id?: string;
-    name?: string;
-    path?: string;
-    branches?: Array<any>;
-    active?: boolean;
-    created_at?: string;
-    updated_at?: string;
-    unpublished_at?: string;
-  }>> {
+    siteId: string;
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      site_id?: string;
+      name?: string;
+      path?: string;
+      branches?: Array<any>;
+      active?: boolean;
+      created_at?: string;
+      updated_at?: string;
+      unpublished_at?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/traffic_splits',
+      method: "GET",
+      url: "/sites/{site_id}/traffic_splits",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -71,21 +72,21 @@ export class SplitTestService {
     splitTestId,
     branchTests,
   }: {
-    siteId: string,
-    splitTestId: string,
+    siteId: string;
+    splitTestId: string;
     branchTests: {
       branch_tests?: any;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/sites/{site_id}/traffic_splits/{split_test_id}',
+      method: "PUT",
+      url: "/sites/{site_id}/traffic_splits/{split_test_id}",
       path: {
-        'site_id': siteId,
-        'split_test_id': splitTestId,
+        "site_id": siteId,
+        "split_test_id": splitTestId,
       },
       body: branchTests,
     });
@@ -99,8 +100,8 @@ export class SplitTestService {
     siteId,
     splitTestId,
   }: {
-    siteId: string,
-    splitTestId: string,
+    siteId: string;
+    splitTestId: string;
   }): CancelablePromise<{
     id?: string;
     site_id?: string;
@@ -113,11 +114,11 @@ export class SplitTestService {
     unpublished_at?: string;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/traffic_splits/{split_test_id}',
+      method: "GET",
+      url: "/sites/{site_id}/traffic_splits/{split_test_id}",
       path: {
-        'site_id': siteId,
-        'split_test_id': splitTestId,
+        "site_id": siteId,
+        "split_test_id": splitTestId,
       },
     });
   }
@@ -130,18 +131,18 @@ export class SplitTestService {
     siteId,
     splitTestId,
   }: {
-    siteId: string,
-    splitTestId: string,
+    siteId: string;
+    splitTestId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/sites/{site_id}/traffic_splits/{split_test_id}/publish',
+      method: "POST",
+      url: "/sites/{site_id}/traffic_splits/{split_test_id}/publish",
       path: {
-        'site_id': siteId,
-        'split_test_id': splitTestId,
+        "site_id": siteId,
+        "split_test_id": splitTestId,
       },
     });
   }
@@ -154,20 +155,19 @@ export class SplitTestService {
     siteId,
     splitTestId,
   }: {
-    siteId: string,
-    splitTestId: string,
+    siteId: string;
+    splitTestId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/sites/{site_id}/traffic_splits/{split_test_id}/unpublish',
+      method: "POST",
+      url: "/sites/{site_id}/traffic_splits/{split_test_id}/unpublish",
       path: {
-        'site_id': siteId,
-        'split_test_id': splitTestId,
+        "site_id": siteId,
+        "split_test_id": splitTestId,
       },
     });
   }
-
 }

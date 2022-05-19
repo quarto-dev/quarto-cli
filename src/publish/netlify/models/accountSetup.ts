@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -11,11 +12,8 @@ export type accountSetup = {
 };
 
 export namespace accountSetup {
-
   export enum period {
-    MONTHLY = 'monthly',
-    YEARLY = 'yearly',
+    MONTHLY = "monthly",
+    YEARLY = "yearly",
   }
-
-
 }

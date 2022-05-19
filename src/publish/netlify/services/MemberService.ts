@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class MemberService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,19 +14,21 @@ export class MemberService {
   public listMembersForAccount({
     accountSlug,
   }: {
-    accountSlug: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    full_name?: string;
-    email?: string;
-    avatar?: string;
-    role?: string;
-  }>> {
+    accountSlug: string;
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      full_name?: string;
+      email?: string;
+      avatar?: string;
+      role?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/{account_slug}/members',
+      method: "GET",
+      url: "/{account_slug}/members",
       path: {
-        'account_slug': accountSlug,
+        "account_slug": accountSlug,
       },
     });
   }
@@ -41,27 +42,28 @@ export class MemberService {
     email,
     role,
   }: {
-    accountSlug: string,
-    email: string,
-    role?: 'Owner' | 'Collaborator' | 'Controller',
-  }): CancelablePromise<Array<{
-    id?: string;
-    full_name?: string;
-    email?: string;
-    avatar?: string;
-    role?: string;
-  }>> {
+    accountSlug: string;
+    email: string;
+    role?: "Owner" | "Collaborator" | "Controller";
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      full_name?: string;
+      email?: string;
+      avatar?: string;
+      role?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/{account_slug}/members',
+      method: "POST",
+      url: "/{account_slug}/members",
       path: {
-        'account_slug': accountSlug,
+        "account_slug": accountSlug,
       },
       query: {
-        'role': role,
-        'email': email,
+        "role": role,
+        "email": email,
       },
     });
   }
-
 }

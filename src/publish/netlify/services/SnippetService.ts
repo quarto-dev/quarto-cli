@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class SnippetService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,21 +14,23 @@ export class SnippetService {
   public listSiteSnippets({
     siteId,
   }: {
-    siteId: string,
-  }): CancelablePromise<Array<{
-    id?: number;
-    site_id?: string;
-    title?: string;
-    general?: string;
-    general_position?: string;
-    goal?: string;
-    goal_position?: string;
-  }>> {
+    siteId: string;
+  }): CancelablePromise<
+    Array<{
+      id?: number;
+      site_id?: string;
+      title?: string;
+      general?: string;
+      general_position?: string;
+      goal?: string;
+      goal_position?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/snippets',
+      method: "GET",
+      url: "/sites/{site_id}/snippets",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -42,7 +43,7 @@ export class SnippetService {
     siteId,
     snippet,
   }: {
-    siteId: string,
+    siteId: string;
     snippet: {
       id?: number;
       site_id?: string;
@@ -51,16 +52,16 @@ export class SnippetService {
       general_position?: string;
       goal?: string;
       goal_position?: string;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/sites/{site_id}/snippets',
+      method: "POST",
+      url: "/sites/{site_id}/snippets",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
       body: snippet,
     });
@@ -74,8 +75,8 @@ export class SnippetService {
     siteId,
     snippetId,
   }: {
-    siteId: string,
-    snippetId: string,
+    siteId: string;
+    snippetId: string;
   }): CancelablePromise<{
     id?: number;
     site_id?: string;
@@ -86,11 +87,11 @@ export class SnippetService {
     goal_position?: string;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/snippets/{snippet_id}',
+      method: "GET",
+      url: "/sites/{site_id}/snippets/{snippet_id}",
       path: {
-        'site_id': siteId,
-        'snippet_id': snippetId,
+        "site_id": siteId,
+        "snippet_id": snippetId,
       },
     });
   }
@@ -104,8 +105,8 @@ export class SnippetService {
     snippetId,
     snippet,
   }: {
-    siteId: string,
-    snippetId: string,
+    siteId: string;
+    snippetId: string;
     snippet: {
       id?: number;
       site_id?: string;
@@ -114,17 +115,17 @@ export class SnippetService {
       general_position?: string;
       goal?: string;
       goal_position?: string;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/sites/{site_id}/snippets/{snippet_id}',
+      method: "PUT",
+      url: "/sites/{site_id}/snippets/{snippet_id}",
       path: {
-        'site_id': siteId,
-        'snippet_id': snippetId,
+        "site_id": siteId,
+        "snippet_id": snippetId,
       },
       body: snippet,
     });
@@ -138,20 +139,19 @@ export class SnippetService {
     siteId,
     snippetId,
   }: {
-    siteId: string,
-    snippetId: string,
+    siteId: string;
+    snippetId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'DELETE',
-      url: '/sites/{site_id}/snippets/{snippet_id}',
+      method: "DELETE",
+      url: "/sites/{site_id}/snippets/{snippet_id}",
       path: {
-        'site_id': siteId,
-        'snippet_id': snippetId,
+        "site_id": siteId,
+        "snippet_id": snippetId,
       },
     });
   }
-
 }

@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class XInternalService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -18,21 +17,21 @@ export class XInternalService {
     _package,
     pluginParams,
   }: {
-    siteId: string,
-    _package: string,
+    siteId: string;
+    _package: string;
     pluginParams?: {
       pinned_version?: string;
-    },
+    };
   }): CancelablePromise<{
     package?: string;
     pinned_version?: string;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/sites/{site_id}/plugins/{package}',
+      method: "PUT",
+      url: "/sites/{site_id}/plugins/{package}",
       path: {
-        'site_id': siteId,
-        'package': _package,
+        "site_id": siteId,
+        "package": _package,
       },
       body: pluginParams,
     });
@@ -48,29 +47,33 @@ export class XInternalService {
     packages,
     state,
   }: {
-    siteId: string,
-    packages: Array<string>,
-    state?: string,
-  }): CancelablePromise<Array<({
-    package?: string;
-    version?: string;
+    siteId: string;
+    packages: Array<string>;
     state?: string;
-    reporting_event?: string;
-    title?: string;
-    summary?: string;
-    text?: string;
-  } & {
-    deploy_id?: string;
-  })>> {
+  }): CancelablePromise<
+    Array<
+      ({
+        package?: string;
+        version?: string;
+        state?: string;
+        reporting_event?: string;
+        title?: string;
+        summary?: string;
+        text?: string;
+      } & {
+        deploy_id?: string;
+      })
+    >
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/plugin_runs/latest',
+      method: "GET",
+      url: "/sites/{site_id}/plugin_runs/latest",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
       query: {
-        'packages': packages,
-        'state': state,
+        "packages": packages,
+        "state": state,
       },
     });
   }
@@ -84,7 +87,7 @@ export class XInternalService {
     deployId,
     pluginRun,
   }: {
-    deployId: string,
+    deployId: string;
     pluginRun?: {
       package?: string;
       version?: string;
@@ -93,19 +96,18 @@ export class XInternalService {
       title?: string;
       summary?: string;
       text?: string;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/deploys/{deploy_id}/plugin_runs',
+      method: "POST",
+      url: "/deploys/{deploy_id}/plugin_runs",
       path: {
-        'deploy_id': deployId,
+        "deploy_id": deployId,
       },
       body: pluginRun,
     });
   }
-
 }

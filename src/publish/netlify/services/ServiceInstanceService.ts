@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class ServiceInstanceService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,26 +14,28 @@ export class ServiceInstanceService {
   public listServiceInstancesForSite({
     siteId,
   }: {
-    siteId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    url?: string;
-    config?: any;
-    external_attributes?: any;
-    service_slug?: string;
-    service_path?: string;
-    service_name?: string;
-    env?: any;
-    snippets?: Array<any>;
-    auth_url?: string;
-    created_at?: string;
-    updated_at?: string;
-  }>> {
+    siteId: string;
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      url?: string;
+      config?: any;
+      external_attributes?: any;
+      service_slug?: string;
+      service_path?: string;
+      service_name?: string;
+      env?: any;
+      snippets?: Array<any>;
+      auth_url?: string;
+      created_at?: string;
+      updated_at?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/service-instances',
+      method: "GET",
+      url: "/sites/{site_id}/service-instances",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -48,19 +49,19 @@ export class ServiceInstanceService {
     addon,
     config,
   }: {
-    siteId: string,
-    addon: string,
-    config: any,
+    siteId: string;
+    addon: string;
+    config: any;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/sites/{site_id}/services/{addon}/instances',
+      method: "POST",
+      url: "/sites/{site_id}/services/{addon}/instances",
       path: {
-        'site_id': siteId,
-        'addon': addon,
+        "site_id": siteId,
+        "addon": addon,
       },
       body: config,
     });
@@ -75,9 +76,9 @@ export class ServiceInstanceService {
     addon,
     instanceId,
   }: {
-    siteId: string,
-    addon: string,
-    instanceId: string,
+    siteId: string;
+    addon: string;
+    instanceId: string;
   }): CancelablePromise<{
     id?: string;
     url?: string;
@@ -93,12 +94,12 @@ export class ServiceInstanceService {
     updated_at?: string;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/services/{addon}/instances/{instance_id}',
+      method: "GET",
+      url: "/sites/{site_id}/services/{addon}/instances/{instance_id}",
       path: {
-        'site_id': siteId,
-        'addon': addon,
-        'instance_id': instanceId,
+        "site_id": siteId,
+        "addon": addon,
+        "instance_id": instanceId,
       },
     });
   }
@@ -113,21 +114,21 @@ export class ServiceInstanceService {
     instanceId,
     config,
   }: {
-    siteId: string,
-    addon: string,
-    instanceId: string,
-    config: any,
+    siteId: string;
+    addon: string;
+    instanceId: string;
+    config: any;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/sites/{site_id}/services/{addon}/instances/{instance_id}',
+      method: "PUT",
+      url: "/sites/{site_id}/services/{addon}/instances/{instance_id}",
       path: {
-        'site_id': siteId,
-        'addon': addon,
-        'instance_id': instanceId,
+        "site_id": siteId,
+        "addon": addon,
+        "instance_id": instanceId,
       },
       body: config,
     });
@@ -142,22 +143,21 @@ export class ServiceInstanceService {
     addon,
     instanceId,
   }: {
-    siteId: string,
-    addon: string,
-    instanceId: string,
+    siteId: string;
+    addon: string;
+    instanceId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'DELETE',
-      url: '/sites/{site_id}/services/{addon}/instances/{instance_id}',
+      method: "DELETE",
+      url: "/sites/{site_id}/services/{addon}/instances/{instance_id}",
       path: {
-        'site_id': siteId,
-        'addon': addon,
-        'instance_id': instanceId,
+        "site_id": siteId,
+        "addon": addon,
+        "instance_id": instanceId,
       },
     });
   }
-
 }

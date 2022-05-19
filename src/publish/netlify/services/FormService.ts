@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class FormService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,21 +14,23 @@ export class FormService {
   public listSiteForms({
     siteId,
   }: {
-    siteId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    site_id?: string;
-    name?: string;
-    paths?: Array<string>;
-    submission_count?: number;
-    fields?: Array<any>;
-    created_at?: string;
-  }>> {
+    siteId: string;
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      site_id?: string;
+      name?: string;
+      paths?: Array<string>;
+      submission_count?: number;
+      fields?: Array<any>;
+      created_at?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/forms',
+      method: "GET",
+      url: "/sites/{site_id}/forms",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -42,20 +43,19 @@ export class FormService {
     siteId,
     formId,
   }: {
-    siteId: string,
-    formId: string,
+    siteId: string;
+    formId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'DELETE',
-      url: '/sites/{site_id}/forms/{form_id}',
+      method: "DELETE",
+      url: "/sites/{site_id}/forms/{form_id}",
       path: {
-        'site_id': siteId,
-        'form_id': formId,
+        "site_id": siteId,
+        "form_id": formId,
       },
     });
   }
-
 }

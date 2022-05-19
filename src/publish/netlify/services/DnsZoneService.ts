@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class DnsZoneService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,42 +14,44 @@ export class DnsZoneService {
   public getDnsForSite({
     siteId,
   }: {
-    siteId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    name?: string;
-    errors?: Array<string>;
-    supported_record_types?: Array<string>;
-    user_id?: string;
-    created_at?: string;
-    updated_at?: string;
-    records?: Array<{
+    siteId: string;
+  }): CancelablePromise<
+    Array<{
       id?: string;
-      hostname?: string;
-      type?: string;
-      value?: string;
-      ttl?: number;
-      priority?: number;
-      dns_zone_id?: string;
+      name?: string;
+      errors?: Array<string>;
+      supported_record_types?: Array<string>;
+      user_id?: string;
+      created_at?: string;
+      updated_at?: string;
+      records?: Array<{
+        id?: string;
+        hostname?: string;
+        type?: string;
+        value?: string;
+        ttl?: number;
+        priority?: number;
+        dns_zone_id?: string;
+        site_id?: string;
+        flag?: number;
+        tag?: string;
+        managed?: boolean;
+      }>;
+      dns_servers?: Array<string>;
+      account_id?: string;
       site_id?: string;
-      flag?: number;
-      tag?: string;
-      managed?: boolean;
-    }>;
-    dns_servers?: Array<string>;
-    account_id?: string;
-    site_id?: string;
-    account_slug?: string;
-    account_name?: string;
-    domain?: string;
-    ipv6_enabled?: boolean;
-    dedicated?: boolean;
-  }>> {
+      account_slug?: string;
+      account_name?: string;
+      domain?: string;
+      ipv6_enabled?: boolean;
+      dedicated?: boolean;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/dns',
+      method: "GET",
+      url: "/sites/{site_id}/dns",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -62,42 +63,44 @@ export class DnsZoneService {
   public configureDnsForSite({
     siteId,
   }: {
-    siteId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    name?: string;
-    errors?: Array<string>;
-    supported_record_types?: Array<string>;
-    user_id?: string;
-    created_at?: string;
-    updated_at?: string;
-    records?: Array<{
+    siteId: string;
+  }): CancelablePromise<
+    Array<{
       id?: string;
-      hostname?: string;
-      type?: string;
-      value?: string;
-      ttl?: number;
-      priority?: number;
-      dns_zone_id?: string;
+      name?: string;
+      errors?: Array<string>;
+      supported_record_types?: Array<string>;
+      user_id?: string;
+      created_at?: string;
+      updated_at?: string;
+      records?: Array<{
+        id?: string;
+        hostname?: string;
+        type?: string;
+        value?: string;
+        ttl?: number;
+        priority?: number;
+        dns_zone_id?: string;
+        site_id?: string;
+        flag?: number;
+        tag?: string;
+        managed?: boolean;
+      }>;
+      dns_servers?: Array<string>;
+      account_id?: string;
       site_id?: string;
-      flag?: number;
-      tag?: string;
-      managed?: boolean;
-    }>;
-    dns_servers?: Array<string>;
-    account_id?: string;
-    site_id?: string;
-    account_slug?: string;
-    account_name?: string;
-    domain?: string;
-    ipv6_enabled?: boolean;
-    dedicated?: boolean;
-  }>> {
+      account_slug?: string;
+      account_name?: string;
+      domain?: string;
+      ipv6_enabled?: boolean;
+      dedicated?: boolean;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/sites/{site_id}/dns',
+      method: "PUT",
+      url: "/sites/{site_id}/dns",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -113,14 +116,14 @@ export class DnsZoneService {
       account_slug?: string;
       site_id?: string;
       name?: string;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/dns_zones',
+      method: "POST",
+      url: "/dns_zones",
       body: dnsZoneParams,
     });
   }
@@ -132,42 +135,44 @@ export class DnsZoneService {
   public getDnsZones({
     accountSlug,
   }: {
-    accountSlug?: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    name?: string;
-    errors?: Array<string>;
-    supported_record_types?: Array<string>;
-    user_id?: string;
-    created_at?: string;
-    updated_at?: string;
-    records?: Array<{
+    accountSlug?: string;
+  }): CancelablePromise<
+    Array<{
       id?: string;
-      hostname?: string;
-      type?: string;
-      value?: string;
-      ttl?: number;
-      priority?: number;
-      dns_zone_id?: string;
+      name?: string;
+      errors?: Array<string>;
+      supported_record_types?: Array<string>;
+      user_id?: string;
+      created_at?: string;
+      updated_at?: string;
+      records?: Array<{
+        id?: string;
+        hostname?: string;
+        type?: string;
+        value?: string;
+        ttl?: number;
+        priority?: number;
+        dns_zone_id?: string;
+        site_id?: string;
+        flag?: number;
+        tag?: string;
+        managed?: boolean;
+      }>;
+      dns_servers?: Array<string>;
+      account_id?: string;
       site_id?: string;
-      flag?: number;
-      tag?: string;
-      managed?: boolean;
-    }>;
-    dns_servers?: Array<string>;
-    account_id?: string;
-    site_id?: string;
-    account_slug?: string;
-    account_name?: string;
-    domain?: string;
-    ipv6_enabled?: boolean;
-    dedicated?: boolean;
-  }>> {
+      account_slug?: string;
+      account_name?: string;
+      domain?: string;
+      ipv6_enabled?: boolean;
+      dedicated?: boolean;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/dns_zones',
+      method: "GET",
+      url: "/dns_zones",
       query: {
-        'account_slug': accountSlug,
+        "account_slug": accountSlug,
       },
     });
   }
@@ -179,7 +184,7 @@ export class DnsZoneService {
   public getDnsZone({
     zoneId,
   }: {
-    zoneId: string,
+    zoneId: string;
   }): CancelablePromise<{
     id?: string;
     name?: string;
@@ -211,10 +216,10 @@ export class DnsZoneService {
     dedicated?: boolean;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/dns_zones/{zone_id}',
+      method: "GET",
+      url: "/dns_zones/{zone_id}",
       path: {
-        'zone_id': zoneId,
+        "zone_id": zoneId,
       },
     });
   }
@@ -226,16 +231,16 @@ export class DnsZoneService {
   public deleteDnsZone({
     zoneId,
   }: {
-    zoneId: string,
+    zoneId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'DELETE',
-      url: '/dns_zones/{zone_id}',
+      method: "DELETE",
+      url: "/dns_zones/{zone_id}",
       path: {
-        'zone_id': zoneId,
+        "zone_id": zoneId,
       },
     });
   }
@@ -250,13 +255,13 @@ export class DnsZoneService {
     transferAccountId,
     transferUserId,
   }: {
-    zoneId: string,
+    zoneId: string;
     /** the account of the dns zone **/
-    accountId: string,
+    accountId: string;
     /** the account you want to transfer the dns zone to **/
-    transferAccountId: string,
+    transferAccountId: string;
     /** the user you want to transfer the dns zone to **/
-    transferUserId: string,
+    transferUserId: string;
   }): CancelablePromise<{
     id?: string;
     name?: string;
@@ -288,15 +293,15 @@ export class DnsZoneService {
     dedicated?: boolean;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/dns_zones/{zone_id}/transfer',
+      method: "PUT",
+      url: "/dns_zones/{zone_id}/transfer",
       path: {
-        'zone_id': zoneId,
+        "zone_id": zoneId,
       },
       query: {
-        'account_id': accountId,
-        'transfer_account_id': transferAccountId,
-        'transfer_user_id': transferUserId,
+        "account_id": accountId,
+        "transfer_account_id": transferAccountId,
+        "transfer_user_id": transferUserId,
       },
     });
   }
@@ -308,25 +313,27 @@ export class DnsZoneService {
   public getDnsRecords({
     zoneId,
   }: {
-    zoneId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    hostname?: string;
-    type?: string;
-    value?: string;
-    ttl?: number;
-    priority?: number;
-    dns_zone_id?: string;
-    site_id?: string;
-    flag?: number;
-    tag?: string;
-    managed?: boolean;
-  }>> {
+    zoneId: string;
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      hostname?: string;
+      type?: string;
+      value?: string;
+      ttl?: number;
+      priority?: number;
+      dns_zone_id?: string;
+      site_id?: string;
+      flag?: number;
+      tag?: string;
+      managed?: boolean;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/dns_zones/{zone_id}/dns_records',
+      method: "GET",
+      url: "/dns_zones/{zone_id}/dns_records",
       path: {
-        'zone_id': zoneId,
+        "zone_id": zoneId,
       },
     });
   }
@@ -339,7 +346,7 @@ export class DnsZoneService {
     zoneId,
     dnsRecord,
   }: {
-    zoneId: string,
+    zoneId: string;
     dnsRecord: {
       type?: string;
       hostname?: string;
@@ -350,16 +357,16 @@ export class DnsZoneService {
       port?: number;
       flag?: number;
       tag?: string;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/dns_zones/{zone_id}/dns_records',
+      method: "POST",
+      url: "/dns_zones/{zone_id}/dns_records",
       path: {
-        'zone_id': zoneId,
+        "zone_id": zoneId,
       },
       body: dnsRecord,
     });
@@ -373,8 +380,8 @@ export class DnsZoneService {
     zoneId,
     dnsRecordId,
   }: {
-    zoneId: string,
-    dnsRecordId: string,
+    zoneId: string;
+    dnsRecordId: string;
   }): CancelablePromise<{
     id?: string;
     hostname?: string;
@@ -389,11 +396,11 @@ export class DnsZoneService {
     managed?: boolean;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/dns_zones/{zone_id}/dns_records/{dns_record_id}',
+      method: "GET",
+      url: "/dns_zones/{zone_id}/dns_records/{dns_record_id}",
       path: {
-        'zone_id': zoneId,
-        'dns_record_id': dnsRecordId,
+        "zone_id": zoneId,
+        "dns_record_id": dnsRecordId,
       },
     });
   }
@@ -406,20 +413,19 @@ export class DnsZoneService {
     zoneId,
     dnsRecordId,
   }: {
-    zoneId: string,
-    dnsRecordId: string,
+    zoneId: string;
+    dnsRecordId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'DELETE',
-      url: '/dns_zones/{zone_id}/dns_records/{dns_record_id}',
+      method: "DELETE",
+      url: "/dns_zones/{zone_id}/dns_records/{dns_record_id}",
       path: {
-        'zone_id': zoneId,
-        'dns_record_id': dnsRecordId,
+        "zone_id": zoneId,
+        "dns_record_id": dnsRecordId,
       },
     });
   }
-
 }

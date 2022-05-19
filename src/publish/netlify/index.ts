@@ -39,7 +39,7 @@ export type { dnsZones } from "./models/dnsZones.ts";
 export type { dnsZoneSetup } from "./models/dnsZoneSetup.ts";
 export type { error } from "./models/error.ts";
 export type { form } from "./models/form.ts";
-export type { function } from "./models/function.ts";
+export type { Function } from "./models/function.ts";
 export type { functionSchedule } from "./models/functionSchedule.ts";
 export type { hook } from "./models/hook.ts";
 export type { hookType } from "./models/hookType.ts";

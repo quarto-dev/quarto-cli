@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class BuildHookService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,20 +14,22 @@ export class BuildHookService {
   public listSiteBuildHooks({
     siteId,
   }: {
-    siteId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    title?: string;
-    branch?: string;
-    url?: string;
-    site_id?: string;
-    created_at?: string;
-  }>> {
+    siteId: string;
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      title?: string;
+      branch?: string;
+      url?: string;
+      site_id?: string;
+      created_at?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/build_hooks',
+      method: "GET",
+      url: "/sites/{site_id}/build_hooks",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -41,20 +42,20 @@ export class BuildHookService {
     siteId,
     buildHook,
   }: {
-    siteId: string,
+    siteId: string;
     buildHook: {
       title?: string;
       branch?: string;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/sites/{site_id}/build_hooks',
+      method: "POST",
+      url: "/sites/{site_id}/build_hooks",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
       body: buildHook,
     });
@@ -68,8 +69,8 @@ export class BuildHookService {
     siteId,
     id,
   }: {
-    siteId: string,
-    id: string,
+    siteId: string;
+    id: string;
   }): CancelablePromise<{
     id?: string;
     title?: string;
@@ -79,11 +80,11 @@ export class BuildHookService {
     created_at?: string;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/build_hooks/{id}',
+      method: "GET",
+      url: "/sites/{site_id}/build_hooks/{id}",
       path: {
-        'site_id': siteId,
-        'id': id,
+        "site_id": siteId,
+        "id": id,
       },
     });
   }
@@ -97,22 +98,22 @@ export class BuildHookService {
     id,
     buildHook,
   }: {
-    siteId: string,
-    id: string,
+    siteId: string;
+    id: string;
     buildHook: {
       title?: string;
       branch?: string;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/sites/{site_id}/build_hooks/{id}',
+      method: "PUT",
+      url: "/sites/{site_id}/build_hooks/{id}",
       path: {
-        'site_id': siteId,
-        'id': id,
+        "site_id": siteId,
+        "id": id,
       },
       body: buildHook,
     });
@@ -126,20 +127,19 @@ export class BuildHookService {
     siteId,
     id,
   }: {
-    siteId: string,
-    id: string,
+    siteId: string;
+    id: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'DELETE',
-      url: '/sites/{site_id}/build_hooks/{id}',
+      method: "DELETE",
+      url: "/sites/{site_id}/build_hooks/{id}",
       path: {
-        'site_id': siteId,
-        'id': id,
+        "site_id": siteId,
+        "id": id,
       },
     });
   }
-
 }

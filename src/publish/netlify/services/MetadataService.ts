@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class MetadataService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,13 +14,13 @@ export class MetadataService {
   public getSiteMetadata({
     siteId,
   }: {
-    siteId: string,
+    siteId: string;
   }): CancelablePromise<any> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/metadata',
+      method: "GET",
+      url: "/sites/{site_id}/metadata",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -34,20 +33,19 @@ export class MetadataService {
     siteId,
     metadata,
   }: {
-    siteId: string,
-    metadata: any,
+    siteId: string;
+    metadata: any;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/sites/{site_id}/metadata',
+      method: "PUT",
+      url: "/sites/{site_id}/metadata",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
       body: metadata,
     });
   }
-
 }

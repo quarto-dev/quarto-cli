@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class TicketService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,16 +14,16 @@ export class TicketService {
   public createTicket({
     clientId,
   }: {
-    clientId: string,
+    clientId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/oauth/tickets',
+      method: "POST",
+      url: "/oauth/tickets",
       query: {
-        'client_id': clientId,
+        "client_id": clientId,
       },
     });
   }
@@ -36,7 +35,7 @@ export class TicketService {
   public showTicket({
     ticketId,
   }: {
-    ticketId: string,
+    ticketId: string;
   }): CancelablePromise<{
     id?: string;
     client_id?: string;
@@ -44,12 +43,11 @@ export class TicketService {
     created_at?: string;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/oauth/tickets/{ticket_id}',
+      method: "GET",
+      url: "/oauth/tickets/{ticket_id}",
       path: {
-        'ticket_id': ticketId,
+        "ticket_id": ticketId,
       },
     });
   }
-
 }

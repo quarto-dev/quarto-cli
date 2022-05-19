@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class FileService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -15,19 +14,21 @@ export class FileService {
   public listSiteFiles({
     siteId,
   }: {
-    siteId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    path?: string;
-    sha?: string;
-    mime_type?: string;
-    size?: number;
-  }>> {
+    siteId: string;
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      path?: string;
+      sha?: string;
+      mime_type?: string;
+      size?: number;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/files',
+      method: "GET",
+      url: "/sites/{site_id}/files",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
@@ -40,8 +41,8 @@ export class FileService {
     siteId,
     filePath,
   }: {
-    siteId: string,
-    filePath: string,
+    siteId: string;
+    filePath: string;
   }): CancelablePromise<{
     id?: string;
     path?: string;
@@ -50,11 +51,11 @@ export class FileService {
     size?: number;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/files/{file_path}',
+      method: "GET",
+      url: "/sites/{site_id}/files/{file_path}",
       path: {
-        'site_id': siteId,
-        'file_path': filePath,
+        "site_id": siteId,
+        "file_path": filePath,
       },
     });
   }
@@ -69,10 +70,10 @@ export class FileService {
     fileBody,
     size,
   }: {
-    deployId: string,
-    path: string,
-    fileBody: Blob,
-    size?: number,
+    deployId: string;
+    path: string;
+    fileBody: Blob;
+    size?: number;
   }): CancelablePromise<{
     id?: string;
     path?: string;
@@ -81,17 +82,16 @@ export class FileService {
     size?: number;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/deploys/{deploy_id}/files/{path}',
+      method: "PUT",
+      url: "/deploys/{deploy_id}/files/{path}",
       path: {
-        'deploy_id': deployId,
-        'path': path,
+        "deploy_id": deployId,
+        "path": path,
       },
       query: {
-        'size': size,
+        "size": size,
       },
       body: fileBody,
     });
   }
-
 }

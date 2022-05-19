@@ -1,47 +1,48 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class AccountMembershipService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
    * @returns any OK
    * @throws ApiError
    */
-  public listAccountsForUser(): CancelablePromise<Array<{
-    id?: string;
-    name?: string;
-    slug?: string;
-    type?: string;
-    capabilities?: {
-      sites?: {
-        included?: number;
-        used?: number;
+  public listAccountsForUser(): CancelablePromise<
+    Array<{
+      id?: string;
+      name?: string;
+      slug?: string;
+      type?: string;
+      capabilities?: {
+        sites?: {
+          included?: number;
+          used?: number;
+        };
+        collaborators?: {
+          included?: number;
+          used?: number;
+        };
       };
-      collaborators?: {
-        included?: number;
-        used?: number;
-      };
-    };
-    billing_name?: string;
-    billing_email?: string;
-    billing_details?: string;
-    billing_period?: string;
-    payment_method_id?: string;
-    type_name?: string;
-    type_id?: string;
-    owner_ids?: Array<string>;
-    roles_allowed?: Array<string>;
-    created_at?: string;
-    updated_at?: string;
-  }>> {
+      billing_name?: string;
+      billing_email?: string;
+      billing_details?: string;
+      billing_period?: string;
+      payment_method_id?: string;
+      type_name?: string;
+      type_id?: string;
+      owner_ids?: Array<string>;
+      roles_allowed?: Array<string>;
+      created_at?: string;
+      updated_at?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/accounts',
+      method: "GET",
+      url: "/accounts",
     });
   }
 
@@ -56,16 +57,16 @@ export class AccountMembershipService {
       name: string;
       type_id: string;
       payment_method_id?: string;
-      period?: 'monthly' | 'yearly';
+      period?: "monthly" | "yearly";
       extra_seats_block?: number;
-    },
+    };
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/accounts',
+      method: "POST",
+      url: "/accounts",
       body: accountSetup,
     });
   }
@@ -77,39 +78,41 @@ export class AccountMembershipService {
   public getAccount({
     accountId,
   }: {
-    accountId: string,
-  }): CancelablePromise<Array<{
-    id?: string;
-    name?: string;
-    slug?: string;
-    type?: string;
-    capabilities?: {
-      sites?: {
-        included?: number;
-        used?: number;
+    accountId: string;
+  }): CancelablePromise<
+    Array<{
+      id?: string;
+      name?: string;
+      slug?: string;
+      type?: string;
+      capabilities?: {
+        sites?: {
+          included?: number;
+          used?: number;
+        };
+        collaborators?: {
+          included?: number;
+          used?: number;
+        };
       };
-      collaborators?: {
-        included?: number;
-        used?: number;
-      };
-    };
-    billing_name?: string;
-    billing_email?: string;
-    billing_details?: string;
-    billing_period?: string;
-    payment_method_id?: string;
-    type_name?: string;
-    type_id?: string;
-    owner_ids?: Array<string>;
-    roles_allowed?: Array<string>;
-    created_at?: string;
-    updated_at?: string;
-  }>> {
+      billing_name?: string;
+      billing_email?: string;
+      billing_details?: string;
+      billing_period?: string;
+      payment_method_id?: string;
+      type_name?: string;
+      type_id?: string;
+      owner_ids?: Array<string>;
+      roles_allowed?: Array<string>;
+      created_at?: string;
+      updated_at?: string;
+    }>
+  > {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/accounts/{account_id}',
+      method: "GET",
+      url: "/accounts/{account_id}",
       path: {
-        'account_id': accountId,
+        "account_id": accountId,
       },
     });
   }
@@ -122,7 +125,7 @@ export class AccountMembershipService {
     accountId,
     accountUpdateSetup,
   }: {
-    accountId: string,
+    accountId: string;
     accountUpdateSetup?: {
       name?: string;
       slug?: string;
@@ -131,7 +134,7 @@ export class AccountMembershipService {
       billing_name?: string;
       billing_email?: string;
       billing_details?: string;
-    },
+    };
   }): CancelablePromise<{
     id?: string;
     name?: string;
@@ -160,10 +163,10 @@ export class AccountMembershipService {
     updated_at?: string;
   }> {
     return this.httpRequest.request({
-      method: 'PUT',
-      url: '/accounts/{account_id}',
+      method: "PUT",
+      url: "/accounts/{account_id}",
       path: {
-        'account_id': accountId,
+        "account_id": accountId,
       },
       body: accountUpdateSetup,
     });
@@ -176,18 +179,17 @@ export class AccountMembershipService {
   public cancelAccount({
     accountId,
   }: {
-    accountId: string,
+    accountId: string;
   }): CancelablePromise<{
     code?: number;
     message: string;
   }> {
     return this.httpRequest.request({
-      method: 'DELETE',
-      url: '/accounts/{account_id}',
+      method: "DELETE",
+      url: "/accounts/{account_id}",
       path: {
-        'account_id': accountId,
+        "account_id": accountId,
       },
     });
   }
-
 }

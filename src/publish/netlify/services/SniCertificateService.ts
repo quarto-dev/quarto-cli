@@ -1,11 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from "../core/CancelablePromise.ts";
+import type { BaseHttpRequest } from "../core/BaseHttpRequest.ts";
 
 export class SniCertificateService {
-
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -18,10 +17,10 @@ export class SniCertificateService {
     key,
     caCertificates,
   }: {
-    siteId: string,
-    certificate?: string,
-    key?: string,
-    caCertificates?: string,
+    siteId: string;
+    certificate?: string;
+    key?: string;
+    caCertificates?: string;
   }): CancelablePromise<{
     state?: string;
     domains?: Array<string>;
@@ -30,15 +29,15 @@ export class SniCertificateService {
     expires_at?: string;
   }> {
     return this.httpRequest.request({
-      method: 'POST',
-      url: '/sites/{site_id}/ssl',
+      method: "POST",
+      url: "/sites/{site_id}/ssl",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
       query: {
-        'certificate': certificate,
-        'key': key,
-        'ca_certificates': caCertificates,
+        "certificate": certificate,
+        "key": key,
+        "ca_certificates": caCertificates,
       },
     });
   }
@@ -50,7 +49,7 @@ export class SniCertificateService {
   public showSiteTlsCertificate({
     siteId,
   }: {
-    siteId: string,
+    siteId: string;
   }): CancelablePromise<{
     state?: string;
     domains?: Array<string>;
@@ -59,12 +58,11 @@ export class SniCertificateService {
     expires_at?: string;
   }> {
     return this.httpRequest.request({
-      method: 'GET',
-      url: '/sites/{site_id}/ssl',
+      method: "GET",
+      url: "/sites/{site_id}/ssl",
       path: {
-        'site_id': siteId,
+        "site_id": siteId,
       },
     });
   }
-
 }
