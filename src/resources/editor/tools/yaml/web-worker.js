@@ -17993,7 +17993,7 @@ try {
           "Sets the date metadata for the document",
           {
             short: "Number section headings",
-            long: "Number section headings rendered ouptut. By default, sections are not\nnumbered. Sections with class <code>.unnumbered</code> will never be\nnumbered, even if <code>number-sections</code> is specified."
+            long: "Number section headings rendered output. By default, sections are not\nnumbered. Sections with class <code>.unnumbered</code> will never be\nnumbered, even if <code>number-sections</code> is specified."
           },
           {
             short: "The depth to which sections should be numbered.",
@@ -27094,24 +27094,25 @@ ${sourceContext}`;
   }
   function partitionCellOptionsText(language, source) {
     const commentChars = langCommentChars(language);
-    const optionPrefix = optionCommentPrefix(commentChars[0]);
+    const optionPattern = optionCommentPattern(commentChars[0]);
     const optionSuffix = commentChars[1] || "";
     const optionsSource = [];
     const yamlLines = [];
     let endOfYaml = 0;
     for (const line of rangedLines(source.value, true)) {
-      if (line.substring.startsWith(optionPrefix)) {
+      const optionMatch = line.substring.match(optionPattern);
+      if (optionMatch) {
         if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
-          let yamlOption = line.substring.substring(optionPrefix.length);
+          let yamlOption = line.substring.substring(optionMatch[0].length);
           if (optionSuffix) {
             yamlOption = yamlOption.trimRight();
             yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
           }
-          endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
+          endOfYaml = line.range.start + optionMatch[0].length + yamlOption.length - optionSuffix.length;
           const rangedYamlOption = {
             substring: yamlOption,
             range: {
-              start: line.range.start + optionPrefix.length,
+              start: line.range.start + optionMatch[0].length,
               end: endOfYaml
             }
           };
@@ -27165,8 +27166,8 @@ ${sourceContext}`;
       return chars;
     }
   }
-  function optionCommentPrefix(comment) {
-    return comment + "| ";
+  function optionCommentPattern(comment) {
+    return new RegExp("^" + comment + "\\s*\\| ");
   }
   var kLangCommentChars = {
     r: "#",

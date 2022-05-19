@@ -10968,7 +10968,7 @@
     "Sets the date metadata for the document",
     {
       "short": "Number section headings",
-      "long": "Number section headings rendered ouptut. By default, sections are not\nnumbered. Sections with class <code>.unnumbered</code> will never be\nnumbered, even if <code>number-sections</code> is specified."
+      "long": "Number section headings rendered output. By default, sections are not\nnumbered. Sections with class <code>.unnumbered</code> will never be\nnumbered, even if <code>number-sections</code> is specified."
     },
     {
       "short": "The depth to which sections should be numbered.",
