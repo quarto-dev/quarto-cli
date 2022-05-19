@@ -2,6 +2,7 @@
   "imports": {
     "async/": "https://deno.land/std@0.138.0/async/",
     "datetime/": "https://deno.land/std@0.138.0/datetime/",
+    "dotenv/": "https://deno.land/std@0.138.0/dotenv/",
     "encoding/": "https://deno.land/std@0.138.0/encoding/",
     "flags/": "https://deno.land/std@0.138.0/flags/",
     "fmt/": "https://deno.land/std@0.138.0/fmt/",
