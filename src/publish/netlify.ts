@@ -5,9 +5,11 @@
 *
 */
 
+import { NetlifyClient } from "./netlify/index.ts";
+
 export interface NetlifyOptions {
   site: string;
 }
 
-export function netlifyPublish(options: NetlifyOptions) {
+export async function netlifyPublish(_options?: NetlifyOptions) {
 }

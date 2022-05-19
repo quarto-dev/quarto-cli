@@ -17,5 +17,5 @@ export interface PublishProvider {
   description: string;
   // deno-lint-ignore no-explicit-any
   command: (command: Command<any>) => Command<any>;
-  configure: (options: PublishOptions) => void;
+  configure: (options: PublishOptions) => Promise<void>;
 }

@@ -25,7 +25,8 @@ export const ghpagesProvider: PublishProvider = {
   configure: ghpagesConfigure,
 };
 
-function ghpagesConfigure(options: PublishOptions) {
+function ghpagesConfigure(options: PublishOptions): Promise<void> {
   console.log("ghpages");
   console.log(options);
+  return Promise.resolve();
 }

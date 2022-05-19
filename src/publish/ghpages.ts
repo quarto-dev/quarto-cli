@@ -9,5 +9,6 @@ export interface GhpagesOptions {
   site: string;
 }
 
-export function ghpagesPublish(options: GhpagesOptions) {
+export function ghpagesPublish(_options: GhpagesOptions): Promise<void> {
+  return Promise.resolve();
 }

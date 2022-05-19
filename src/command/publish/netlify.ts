@@ -6,6 +6,7 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
+import { netlifyPublish } from "../../publish/netlify.ts";
 
 import { PublishOptions, PublishProvider } from "./provider.ts";
 
@@ -15,8 +16,8 @@ export const netlifyProvider: PublishProvider = {
   command: (command: Command) => {
     return command
       // deno-lint-ignore no-explicit-any
-      .action((options: any, path?: string) => {
-        netlifyConfigure({
+      .action(async (options: any, path?: string) => {
+        await netlifyConfigure({
           path: path || Deno.cwd(),
           render: !!options.render,
         });
@@ -25,7 +26,8 @@ export const netlifyProvider: PublishProvider = {
   configure: netlifyConfigure,
 };
 
-function netlifyConfigure(options: PublishOptions) {
+async function netlifyConfigure(options: PublishOptions) {
   console.log("netlify");
   console.log(options);
+  await netlifyPublish();
 }
