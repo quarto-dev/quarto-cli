@@ -1,0 +1,90 @@
+toc-title-document: "Spis treści"
+toc-title-website: "Na tej stronie"
+
+section-title-abstract: "Abstrakt"
+section-title-appendices: "Appendices" # TODO
+section-title-footnotes: "Przypisy"
+section-title-references: "Literatura"
+section-title-reuse: "Reuse" # TODO
+section-title-citation: "Wzór cytowania"
+
+appendix-attribution-cite-as: "Proszę cytować tę pracę jako:" # For attribution, please cite this work as:"
+appendix-attribution-bibtex: "Cytowanie BibTeX:" # BibTeX citation:"
+
+title-block-author-single: "Autor"
+title-block-author-plural: "Autorzy"
+title-block-affiliation-single: "Afiliacja"
+title-block-affiliation-plural: "Afiliacje"
+title-block-published: "Opublikowano"
+
+callout-tip-caption: "Tip" # TODO
+callout-note-caption: "Note" # TODO
+callout-warning-caption: "Ostrzeżenie"
+callout-important-caption: "Ważne"
+callout-caution-caption: "Uwaga"
+
+code-summary: "Kod"
+
+code-tools-menu-caption: "Kod"
+code-tools-show-all-code: "Pokaż cały kod"
+code-tools-hide-all-code: "Ukryj cały kod"
+code-tools-view-source: "Pokaż źródło"
+code-tools-source-code: "Kod źródłowy"
+
+copy-button-tooltip: "Skopiuj do Schowka"
+copy-button-tooltip-success: "Skopiowane!"
+
+repo-action-links-edit: "Edytuj tę stronę"
+repo-action-links-source: "Pokaż źródło"
+repo-action-links-issue: "Zgłoś problem"
+
+search-no-results-text: "Brak wyników"
+search-matching-documents-text: "matching documents" # TODO
+search-copy-link-title: "Copy link to search" # TODO
+search-hide-matches-text: "Hide additional matches" # TODO
+search-more-match-text: "more match in this document" # TODO
+search-more-matches-text: "more matches in this document" # TODO
+search-clear-button-title: "Wyczyść"
+search-detached-cancel-button-title: "Anuluj"
+search-submit-button-title: "Wyślij"
+
+crossref-fig-title: "Rysunek"
+crossref-tbl-title: "Tabela"
+crossref-lst-title: "Listing" # TODO Not sure
+crossref-thm-title: "Twierdzenie"
+crossref-lem-title: "Lemat"
+crossref-cor-title: "Następstwo"
+crossref-prp-title: "Propozycja" # TODO Proposition"
+crossref-cnj-title: "Przypuszczenie"
+crossref-def-title: "Definicja"
+crossref-exm-title: "Przykład"
+crossref-exr-title: "Ćwiczenie"
+crossref-ch-prefix: "Rozdział"
+crossref-sec-prefix: "Sekcja"
+crossref-eq-prefix: "Równanie"
+crossref-lof-title: "Spis rysunków"
+crossref-lot-title: "Spis tabel"
+crossref-lol-title: "Spis listingów" # TODO not sure
+
+environment-proof-title: "Dowód"
+environment-remark-title: "Uwaga"
+environment-solution-title: "Rozwiązanie"
+
+listing-page-order-by: "Sortuj po" # TODO Order By
+listing-page-order-by-default: "Domyślnie"
+listing-page-order-by-date-asc: "Najstarsze"
+listing-page-order-by-date-desc: "Najnowsze"
+listing-page-order-by-number-desc: "Malejąco"
+listing-page-order-by-number-asc: "Rosnąco"
+listing-page-field-date: "Data"
+listing-page-field-title: "Tytuł"
+listing-page-field-description: "Opis"
+listing-page-field-author: "Autor"
+listing-page-field-filename: "Nazwa pliku"
+listing-page-field-filemodified: "Zmodyfikowano"
+listing-page-field-subtitle: "Podtytuł"
+listing-page-field-readingtime: "Ten tekst przeczytasz w"
+listing-page-field-categories: "Kategorie"
+listing-page-minutes-compact: "{0} min"
+listing-page-category-all: "Wszystkie"
+listing-page-no-matches: "Brak wynikiów"
