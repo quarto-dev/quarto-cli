@@ -41,16 +41,17 @@ export function partitionCellOptions(
   source: string[],
 ) {
   const commentChars = langCommentChars(language);
-  const optionPrefix = optionCommentPrefix(commentChars[0]);
+  const optionPattern = optionCommentPattern(commentChars[0]);
   const optionSuffix = commentChars[1] || "";
 
   // find the yaml lines
   const optionsSource: string[] = [];
   const yamlLines: string[] = [];
   for (const line of source) {
-    if (line.startsWith(optionPrefix)) {
+    const optionMatch = line.match(optionPattern);
+    if (optionMatch) {
       if (!optionSuffix || line.trimRight().endsWith(optionSuffix)) {
-        let yamlOption = line.substring(optionPrefix.length);
+        let yamlOption = line.substring(optionMatch[0].length);
         if (optionSuffix) {
           yamlOption = yamlOption.trimRight();
           yamlOption = yamlOption.substring(
@@ -150,7 +151,7 @@ export function partitionCellOptionsText(
   source: MappedString,
 ) {
   const commentChars = langCommentChars(language);
-  const optionPrefix = optionCommentPrefix(commentChars[0]);
+  const optionPattern = optionCommentPattern(commentChars[0]);
   const optionSuffix = commentChars[1] || "";
 
   // find the yaml lines
@@ -159,9 +160,10 @@ export function partitionCellOptionsText(
 
   let endOfYaml = 0;
   for (const line of rangedLines(source.value, true)) {
-    if (line.substring.startsWith(optionPrefix)) {
+    const optionMatch = line.substring.match(optionPattern);
+    if (optionMatch) {
       if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
-        let yamlOption = line.substring.substring(optionPrefix.length);
+        let yamlOption = line.substring.substring(optionMatch[0].length);
         if (optionSuffix) {
           yamlOption = yamlOption.trimRight();
           yamlOption = yamlOption.substring(
@@ -169,12 +171,13 @@ export function partitionCellOptionsText(
             yamlOption.length - optionSuffix.length,
           );
         }
-        endOfYaml = line.range.start + optionPrefix.length + yamlOption.length -
+        endOfYaml = line.range.start + optionMatch[0].length +
+          yamlOption.length -
           optionSuffix.length;
         const rangedYamlOption = {
           substring: yamlOption,
           range: {
-            start: line.range.start + optionPrefix.length,
+            start: line.range.start + optionMatch[0].length,
             end: endOfYaml,
           },
         };
@@ -252,8 +255,8 @@ export function langCommentChars(lang: string): string[] {
     return chars;
   }
 }
-export function optionCommentPrefix(comment: string) {
-  return comment + "| ";
+export function optionCommentPattern(comment: string) {
+  return new RegExp("^" + comment + "\\s*\\| ");
 }
 
 // FIXME this is an awkward spot for this particular entry point
@@ -264,8 +267,8 @@ export function addLanguageComment(
   kLangCommentChars[language] = comment;
 }
 
-export function optionCommentPrefixFromLanguage(language: string) {
-  return optionCommentPrefix(langCommentChars(language)[0]);
+export function optionCommentPatternFromLanguage(language: string) {
+  return optionCommentPattern(langCommentChars(language)[0]);
 }
 
 export const kLangCommentChars: Record<string, string | [string, string]> = {

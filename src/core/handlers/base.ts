@@ -28,7 +28,7 @@ import {
 } from "../lib/mapped-text.ts";
 import {
   addLanguageComment,
-  optionCommentPrefixFromLanguage,
+  optionCommentPatternFromLanguage,
 } from "../lib/partition-cell-options.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 import {
@@ -516,10 +516,11 @@ export const baseHandler: LanguageHandler = {
     // split content into front matter vs input
     const contentLines = mappedLines(cell.sourceWithYaml!, true);
     const frontMatterLines: MappedString[] = [];
-    const comment: string = optionCommentPrefixFromLanguage(this.languageName);
+    const commentPattern = optionCommentPatternFromLanguage(this.languageName);
     let inputIndex = 0;
     for (const contentLine of contentLines) {
-      if (contentLine.value.startsWith(comment)) {
+      const commentMatch = contentLine.value.match(commentPattern);
+      if (commentMatch) {
         if (contentLine.value.indexOf("echo: fenced") === -1) {
           frontMatterLines.push(contentLine);
         }

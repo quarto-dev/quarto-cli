@@ -1,6 +1,7 @@
 # pyright: reportMissingImports=false
 
 import os
+import re
 import atexit
 import glob
 import sys
@@ -464,15 +465,16 @@ def nb_cell_yaml_options(lang, cell):
 def nb_cell_yaml_lines(lang, source):
    # determine language comment chars
    comment_chars = nb_language_comment_chars(lang)
-   option_prefix = comment_chars[0] + "| "
+   option_pattern = "^" + comment_chars[0] + "\\s*\\| "
    option_suffix = comment_chars[1] if len(comment_chars) > 1 else None
 
    # go through the lines until we've found all of the yaml
    yaml_lines = []
    for line in source.splitlines():
-      if line.startswith(option_prefix):
+      option_match = re.match(option_pattern, line) 
+      if option_match:
          if (not option_suffix) or line.rstrip().endswith(option_suffix):
-            yaml_option = line[len(option_prefix):]
+            yaml_option = line[len(option_match.group()):]
             if (option_suffix):
                yaml_option = yaml_option.rstrip()[:-len(option_suffix)]
             yaml_lines.append(yaml_option)
