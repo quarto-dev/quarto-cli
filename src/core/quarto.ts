@@ -8,6 +8,7 @@ import { existsSync } from "fs/exists.ts";
 import { extname, join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
+import { config, ConfigOptions, DotenvConfig } from "dotenv/mod.ts";
 
 import { getenv } from "./env.ts";
 import { exitWithCleanup } from "./cleanup.ts";
@@ -19,6 +20,8 @@ export interface QuartoConfig {
   sharePath(): string;
   isDebug(): boolean;
 }
+
+let dotenvConfig: DotenvConfig;
 
 export const quartoConfig = {
   binPath: () => getenv("QUARTO_BIN_PATH"),
@@ -32,6 +35,18 @@ export const quartoConfig = {
     } else {
       return kLocalDevelopment;
     }
+  },
+  dotenv: async (): Promise<DotenvConfig> => {
+    if (!dotenvConfig) {
+      const options: ConfigOptions = {
+        defaults: join(quartoConfig.sharePath(), "env", ".env.defaults"),
+      };
+      if (quartoConfig.isDebug()) {
+        options.path = join(quartoConfig.sharePath(), "..", "..", ".env");
+      }
+      dotenvConfig = await config(options);
+    }
+    return dotenvConfig;
   },
 };
 
