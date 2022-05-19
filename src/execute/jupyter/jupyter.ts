@@ -285,9 +285,10 @@ export const jupyterEngine: ExecutionEngine = {
     // by jupyterToMarkdown (we don't want to make a copy of a
     // potentially very large notebook) so should not be relied
     // on subseuqent to this call
-    const result = jupyterToMarkdown(
+    const result = await jupyterToMarkdown(
       nb,
       {
+        executeOptions: options,
         language: nb.metadata.kernelspec.language.toLowerCase(),
         assets,
         execute: options.format.execute,

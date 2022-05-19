@@ -49,6 +49,7 @@ import {
   kWarning,
 } from "../../config/constants.ts";
 import { FormatExecute, FormatPandoc, Metadata } from "../../config/types.ts";
+import { ExecuteOptions } from "../../execute/types.ts";
 
 // deno-lint-ignore-file camelcase
 
@@ -193,6 +194,7 @@ export interface JupyterOutputFigureOptions {
 }
 
 export interface JupyterToMarkdownOptions {
+  executeOptions: ExecuteOptions;
   language: string;
   assets: JupyterAssets;
   execute: FormatExecute;
