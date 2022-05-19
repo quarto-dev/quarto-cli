@@ -145,7 +145,7 @@ end
 
 
 return {
-  formatMatches = formatMatches,
+  isFormat = isFormat,
   isLatexOutput = isLatexOutput,
   isBeamerOutput = isBeamerOutput,
   isDocxOutput = isDocxOutput,

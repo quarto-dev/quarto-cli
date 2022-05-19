@@ -1304,6 +1304,20 @@ local function resolvePath(path, scriptPath)
   end
 end
 
+-- converts the friendly Quartio location names 
+-- in the pandoc location
+local function resolveLocation(location) 
+   if (location == kInHeader) then
+     return "header-includes"
+   elseif (location == kAfterBody) then
+     return "include-after"
+   elseif (location == kBeforeBody) then
+     return "include-before"
+   else
+     error("Illegal value for dependency location. " .. location .. " is not a valid location.")
+   end
+ end 
+
 -- Provides the path to the dependency file
 -- The dependency file can be used to persist dependencies across filter
 -- passes, but will also be inspected after pandoc is 
@@ -1334,11 +1348,54 @@ local function writeToDependencyFile(dependency)
   file:close()
 end
 
+-- process a file dependency (read the contents of the file)
+-- and include it verbatim in the specified location
+local function processFileDependency(dependency, meta)
+   -- read file contents
+   local rawFile = dependency.content
+   local f = io.open(pandoc.utils.stringify(rawFile.path), "r")
+   local fileContents = f:read("*all")
+   f:close()
+ 
+   -- Determine the format with special treatment for verbatim HTML
+   if format.isFormat("html") then
+     blockFormat = "html"
+   else
+     blockFormat = FORMAT
+   end  
+ 
+   -- place the contents of the file right where it belongs
+   meta[rawFile.location]:insert(pandoc.Blocks({ pandoc.RawBlock(blockFormat, fileContents) }))
+ end
+
+ -- process a text dependency, placing it in the specified location
+local function processTextDependency(dependency, meta)
+   local rawText = dependency.content
+   meta[rawText.location]:insert(rawText.text)
+ end
+
+ -- make the usePackage statement
+local function usePackage(package, option) 
+   if option == nil then
+     text = "\\@ifpackageloaded{" .. package .. "}{}{\\usepackage{" .. package .. "}}"
+   else
+     text = "\\@ifpackageloaded{" .. package .. "}{}{\\usepackage[" .. option .. "]{" .. package .. "}}"
+   end
+   return pandoc.Blocks({ pandoc.RawBlock("latex", text) })
+ end
+  
+ -- generate a latex usepackage statement
+ local function processUsePackageDependency(dependency, meta)
+   local rawPackage = dependency.content
+   meta[resolveLocation(kInHeader)] = usePackage(rawPackage.package, rawPackage.options)
+ end
+ 
+ 
 -- process the dependencies that are present in the dependencies
 -- file, injecting appropriate meta content and replacing
 -- the contents of the dependencies file with paths to 
 -- file dependencies that should be copied by Quarto
-function processDependencies(meta) 
+local function processDependencies(meta) 
   local dependenciesFile = dependenciesFile()
   -- each line was written as a dependency.
   -- process them and contribute the appropriate headers
@@ -1354,60 +1411,25 @@ function processDependencies(meta)
   end
 end
 
--- process a file dependency (read the contents of the file)
--- and include it verbatim in the specified location
-function processFileDependency(dependency, meta)
-  -- read file contents
-  local rawFile = dependency.content
-  local f = io.open(pandoc.utils.stringify(rawFile.path), "r")
-  local fileContents = f:read("*all")
-  f:close()
-
-  -- Determine the format with special treatment for verbatim HTML
-  if format.formatMatches("html") then
-    blockFormat = "html"
-  else
-    blockFormat = FORMAT
-  end  
-
-  -- place the contents of the file right where it belongs
-  meta[rawFile.location]:insert(pandoc.Blocks({ pandoc.RawBlock(blockFormat, fileContents) }))
+local function resolveDependencyFilePaths(dependencyFiles) 
+   if dependencyFiles ~= nil then
+      for i,v in ipairs(dependencyFiles) do
+         v.path = resolvePath(v.path)
+      end
+      return dependencyFiles
+   else 
+      return nil
+   end
 end
 
--- process a text dependency, placing it in the specified location
-function processTextDependency(dependency, meta)
-  local rawText = dependency.content
-  meta[rawText.location]:insert(rawText.text)
-end
-
--- generate a latex usepackage statement
-function processUsePackageDependency(dependency, meta)
-  local rawPackage = dependency.content
-  meta[resolveLocation(kInHeader)] = usePackage(rawPackage.package, rawPackage.options)
-end
-
--- make the usePackage statement
-function usePackage(package, option) 
-  if option == nil then
-    text = "\\@ifpackageloaded{" .. package .. "}{}{\\usepackage{" .. package .. "}}"
-  else
-    text = "\\@ifpackageloaded{" .. package .. "}{}{\\usepackage[" .. option .. "]{" .. package .. "}}"
-  end
-  return pandoc.Blocks({ pandoc.RawBlock("latex", text) })
-end
-
--- converts the friendly Quartio location names 
--- in the pandoc location
-function resolveLocation(location) 
-  if (location == kInHeader) then
-    return "header-includes"
-  elseif (location == kAfterBody) then
-    return "include-after"
-  elseif (location == kBeforeBody) then
-    return "include-before"
-  else
-    error("Illegal value for dependency location. " .. location .. " is not a valid location.")
-  end
+local function resolveDependencyLinkTags(linkTags)
+   if linkTags ~= nil then
+      for i, v in ipairs(linkTags) do
+         v.href = resolvePath(v.href)
+      end
+   else
+      return nil
+   end
 end
 
 -- Quarto internal module - makes functions available
@@ -1420,17 +1442,26 @@ _quarto = {
 -- The main exports of the quarto module
 quarto = {
   doc = {
+   
+    addHtmlDependency = function(name, version, meta, links, scripts, stylesheets, resources)
+      if name == nil then 
+         error("HTML dependencies must include a name")
+      end
 
-    -- addHtmlDependency = function(name, version, meta, links, scripts, stylesheets, resources)
-    -- end
-    -- writeToDependencyFile(dependency("html", { name = name, 
-    --                                            version = version, 
-    --                                            meta = meta, 
-    --                                            -- links = resolvePaths(links), 
-    --                                            -- scripts = resolvePaths(scripts), 
-    --                                            -- stylesheets = resolvePaths(stylesheets), 
-    --                                            -- resources = resolvePaths(resources)
-    --                                           }))
+      if meta == nil and links == nil and scripts == nil and stylesheets ==- nil and resources == nil then
+         error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, or resources. All appear empty.")
+      end
+
+      writeToDependencyFile(dependency("html", {
+         name = name,
+         version = version,
+         meta = meta,
+         links = resolveDependencyLinkTags(links),
+         scripts = resolveDependencyFilePaths(scripts),
+         stylesheets = resolveDependencyFilePaths(stylesheets),
+         resources = resolveDependencyFilePaths(resources)
+      }))
+    end,
   
     useLatexPackage = function(package, options)
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
