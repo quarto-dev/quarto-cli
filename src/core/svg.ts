@@ -6,7 +6,6 @@
 */
 
 import { kFigHeight, kFigWidth } from "../config/constants.ts";
-import { isRevealjsOutput } from "../config/format.ts";
 import { Element, getDomParser } from "./deno-dom.ts";
 import { EitherString, MappedString } from "./lib/text-types.ts";
 import { asMappedString, mappedDiff } from "./mapped-text.ts";
