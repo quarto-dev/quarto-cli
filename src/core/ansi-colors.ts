@@ -24,7 +24,7 @@ export async function convertToHtmlSpans(str: string) {
     const el = node as Element;
     if (el.getAttribute("style") === "font-weight:bold") {
       el.removeAttribute("style");
-      el.classList.add("ansi-highlight");
+      el.classList.add("ansi-bold");
     }
   }
   return doc.querySelector("pre")!.innerHTML;
