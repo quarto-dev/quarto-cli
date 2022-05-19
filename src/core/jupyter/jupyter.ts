@@ -144,6 +144,7 @@ import { lines } from "../text.ts";
 import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import { pathWithForwardSlashes } from "../path.ts";
+import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -581,10 +582,10 @@ export function jupyterAssets(input: string, to?: string) {
   };
 }
 
-export function jupyterToMarkdown(
+export async function jupyterToMarkdown(
   nb: JupyterNotebook,
   options: JupyterToMarkdownOptions,
-): JupyterToMarkdownResult {
+): Promise<JupyterToMarkdownResult> {
   // optional content injection / html preservation for html output
   // that isn't an ipynb
   const isHtml = options.toHtml && !options.toIpynb;
@@ -638,7 +639,7 @@ export function jupyterToMarkdown(
         md.push(...mdFromRawCell(cell));
         break;
       case "code":
-        md.push(...mdFromCodeCell(cell, ++codeCellIndex, options));
+        md.push(...(await mdFromCodeCell(cell, ++codeCellIndex, options)));
         break;
       default:
         throw new Error("Unexpected cell type " + cell.cell_type);
@@ -881,7 +882,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   dot: "//",
 };
 
-function mdFromCodeCell(
+async function mdFromCodeCell(
   cell: JupyterCellWithOptions,
   cellIndex: number,
   options: JupyterToMarkdownOptions,
@@ -1200,14 +1201,16 @@ function mdFromCodeCell(
         const caption = isCaptionableData(output)
           ? (outputCaptions.shift() || null)
           : null;
-        md.push(mdOutputDisplayData(
-          outputLabel,
-          caption,
-          outputName + "-" + (index + 1),
-          output as JupyterOutputDisplayData,
-          options,
-          figureOptions,
-        ));
+        md.push(
+          await mdOutputDisplayData(
+            outputLabel,
+            caption,
+            outputName + "-" + (index + 1),
+            output as JupyterOutputDisplayData,
+            options,
+            figureOptions,
+          ),
+        );
         // if this isn't an image and we have a caption, place it at the bottom of the div
         if (caption && !isImage(output, options)) {
           md.push(`\n${caption}\n`);
@@ -1322,7 +1325,7 @@ function mdOutputError(output: JupyterOutputError) {
   return mdCodeOutput([output.ename + ": " + output.evalue]);
 }
 
-function mdOutputDisplayData(
+async function mdOutputDisplayData(
   label: string | null,
   caption: string | null,
   filename: string,
@@ -1367,7 +1370,24 @@ function mdOutputDisplayData(
         lines[0] = lines[0].slice(1, -1);
         return mdMarkdownOutput(lines);
       } else {
-        return mdCodeOutput(lines.map(colors.stripColor));
+        if (options.toHtml) {
+          if (lines.some(hasAnsiEscapeCodes)) {
+            const html = (await Promise.all(
+              lines.map(convertToHtmlSpans),
+            ));
+            return mdMarkdownOutput(
+              [
+                "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
+                ...html,
+                "</pre>\n```\n:::\n",
+              ],
+            );
+          } else {
+            return mdCodeOutput(lines);
+          }
+        } else {
+          return mdCodeOutput(lines.map(colors.stripColor));
+        }
       }
     }
   }

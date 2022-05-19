@@ -29,6 +29,7 @@
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.20-alpha/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
     "xmlp/": "https://deno.land/x/xmlp@v0.2.8/",
+    "ansi_up": "https://cdn.skypack.dev/ansi_up@v5.1.0",
     "lodash/": "https://cdn.skypack.dev/lodash@4.17.21/",
     "acorn/acorn": "https://cdn.skypack.dev/acorn@7.4.1",
     "acorn/walk": "https://cdn.skypack.dev/acorn-walk@7.2.0",
