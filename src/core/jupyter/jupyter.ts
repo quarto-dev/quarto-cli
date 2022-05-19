@@ -1367,7 +1367,7 @@ function mdOutputDisplayData(
         lines[0] = lines[0].slice(1, -1);
         return mdMarkdownOutput(lines);
       } else {
-        return mdCodeOutput(lines);
+        return mdCodeOutput(lines.map(colors.stripColor));
       }
     }
   }
