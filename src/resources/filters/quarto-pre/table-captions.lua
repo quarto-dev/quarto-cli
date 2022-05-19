@@ -28,7 +28,7 @@ local latexTablePatterns = pandoc.List({
   latexTabularPattern,
 })
 
-local latexCaptionPattern =  "(\\caption{)(.-)(}\\?\\?\n)"
+local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
 
 function tableCaptions() 
   
@@ -218,7 +218,7 @@ function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
   -- insert caption if there is none
   local beginCaption, caption = latex:match(latexCaptionPattern)
   if not beginCaption then
-    latex = latex:gsub(tablePattern, "%1" .. "\n\\caption{ }\\\\\n" .. "%2%3", 1)
+    latex = latex:gsub(tablePattern, "%1" .. "\n\\caption{ }\\tabularnewline\n" .. "%2%3", 1)
   end
   -- apply table caption and label
   local beginCaption, captionText, endCaption = latex:match(latexCaptionPattern)
