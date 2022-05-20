@@ -134,6 +134,9 @@ local function isFormat(to)
     -- html: html, html4, html4, epub*, or slides (e.g. revealjs)
     elseif to == "html" then
       return isHtmlOutput()
+    elseif to == "html:js" then
+      -- html formats that support javascript (excluding epub)
+      return isHtmlOutput() and not isEpubOutput()
     -- markdown: markdown*, commonmark*, gfm, markua
     elseif to == "markdown" then
       return isMarkdownOutput()
