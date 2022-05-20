@@ -213,7 +213,7 @@ function hugoFormat(): Format {
     },
     pandoc: {
       to: "gfm",
-      [kHtmlMathMethod]: "webtex",
+      [kHtmlMathMethod]: "mathjax",
       [kWrap]: "preserve",
     },
     formatExtras: () => {
@@ -236,7 +236,7 @@ function gfmFormat(): Format {
   return createFormat("md", markdownFormat(), {
     pandoc: {
       to: "gfm",
-      [kHtmlMathMethod]: "webtex",
+      [kHtmlMathMethod]: "mathjax",
     },
     render: {
       [kVariant]: "+footnotes+tex_math_dollars-yaml_metadata_block",
