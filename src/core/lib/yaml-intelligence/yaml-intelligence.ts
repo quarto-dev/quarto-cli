@@ -789,7 +789,9 @@ async function automationFromGoodParseMarkdown(
   if (kind === "completions") {
     let foundCell = undefined;
     for (const cell of result.cells) {
-      const size = lines(cell.source.value).length;
+      // use sourceWithYaml when it exists (code cells)
+      // but otherwise use cell.source (metadata cells)
+      const size = lines((cell.sourceWithYaml || cell.source).value).length;
       if (size + cell.cellStartLine > position.row) {
         foundCell = cell;
         break;
