@@ -48,12 +48,13 @@ testRender(knitrTablesQmd.input, "html", false, [
   ]),
 ]);
 
-/* PDF */
+/* LaTeX */
 
 /* caption is inserted in the right place in table environment*/
 renderVerifyLatexOutput(docs("crossrefs/knitr-tables-latex.qmd"), [
   /\\begin{longtable}\[.*\]{.*}.*\n\\caption{\\label{tbl-1}.*}\\tabularnewline/,
   /\\begin{table}\n\\caption{\\label{tbl-2}.*}.*\n+\\centering\n\\begin{tabular}{.*}/,
   /\\begin{longtable}{.*}.*\n\\caption{\\label{tbl-3}.*}\\tabularnewline/,
+  /\\begin{table}\n\\caption{\\label{tbl-4}.*}.*\n+\\centering\n\\begin{tabular}\[c\]{.*}/,
   /\\begin{table}\n\\caption{\\label{tbl-4}.*}.*\n+\\centering\n\\begin{tabular}\[c\]{.*}/,
 ]);
