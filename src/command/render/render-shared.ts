@@ -139,7 +139,7 @@ export function printWatchingForChangesMessage() {
   info("Watching files for changes", { format: colors.green });
 }
 
-export async function printBrowsePreviewMessage(port: number, path: string) {
+export async function printBrowsePreviewMessage(host: string, port: number, path: string) {
   if (isJupyterHubServer()) {
     const httpReferrer = `${
       jupyterHubHttpReferrer() || "<jupyterhub-server-url>/"
@@ -154,10 +154,10 @@ export async function printBrowsePreviewMessage(port: number, path: string) {
     (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
   ) {
     const url = await rswURL(port, path);
-    info(`\nPreview server: http://localhost:${port}/`);
+    info(`\nPreview server: http://${host}:${port}/`);
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else {
-    const url = `http://localhost:${port}/${path}`;
+    const url = `http://${host}:${port}/${path}`;
     if (!isRStudioServer()) {
       info(`Browse at `, {
         newline: false,
