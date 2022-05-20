@@ -365,10 +365,23 @@ export function readRenderedContents(
     });
   }
 
+  // Cleans math tags and replaces with qquad
+  const replaceTagRegex = /\/tag\{(.*)\}/g;
+  const cleanMath = (contents?: string) => {
+    if (!contents) {
+      return undefined;
+    } else {
+      // /tag{1}   >   \qquad(1)
+      return contents.replaceAll(replaceTagRegex, (_match, content) => {
+        return `\\qquad{${content}}`;
+      });
+    }
+  };
+
   return {
     title: titleText,
-    fullContents: mainEl?.innerHTML,
-    firstPara: mainEl?.querySelector("p")?.innerHTML,
+    fullContents: cleanMath(mainEl?.innerHTML),
+    firstPara: cleanMath(mainEl?.querySelector("p")?.innerHTML),
   };
 }
 
