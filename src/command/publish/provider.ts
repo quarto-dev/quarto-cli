@@ -10,6 +10,7 @@ import { Command } from "cliffy/command/mod.ts";
 export interface PublishOptions {
   path: string;
   render: boolean;
+  prompt: boolean;
 }
 
 export interface PublishProvider {

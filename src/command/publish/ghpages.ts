@@ -19,6 +19,7 @@ export const ghpagesProvider: PublishProvider = {
         ghpagesConfigure({
           path: path || Deno.cwd(),
           render: !!options.render,
+          prompt: !!options.prompt,
         });
       });
   },
