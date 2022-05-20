@@ -191,7 +191,9 @@ export const websiteProjectType: ProjectType = {
           const listingPostProcessor =
             htmlListingDependencies[kHtmlPostprocessors];
           if (listingPostProcessor) {
-            extras.html[kHtmlPostprocessors]?.push(listingPostProcessor);
+            // Process listings early so if we inject content div, navigation and other
+            // elements will wrap around
+            extras.html[kHtmlPostprocessors]?.unshift(listingPostProcessor);
           }
 
           const listingAfterBody = htmlListingDependencies[kMarkdownAfterBody];
