@@ -11,7 +11,6 @@ import {
   kFigFormat,
   kFigHeight,
   kFigWidth,
-  kHtmlMathMethod,
   kKeepYaml,
   kOutputDivs,
   kPageWidth,

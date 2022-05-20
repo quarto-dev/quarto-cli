@@ -94,7 +94,7 @@ export async function filterParamsJson(
     ...ipynbFilterParams(options),
     ...projectFilterParams(options),
     ...quartoColumnParams,
-    ...quartoFilterParams(options),
+    ...quartoFilterParams(options, defaults),
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...languageFilterParams(options.format.language),
@@ -404,6 +404,7 @@ function ipynbFilterParams(options: PandocOptions) {
 
 function quartoFilterParams(
   options: PandocOptions,
+  defaults?: FormatPandoc,
 ) {
   const format = options.format;
   const params: Metadata = {
@@ -438,7 +439,7 @@ function quartoFilterParams(
     params[kShortcodes] = params[kShortcodes] || [];
     (params[kShortcodes] as string[]).push(...extShortcodes);
   }
-  params[kHtmlMathMethod] = options.format.pandoc[kHtmlMathMethod];
+  params[kHtmlMathMethod] = defaults?.[kHtmlMathMethod];
 
   const figResponsive = format.metadata[kFigResponsive] === true;
   if (figResponsive) {
