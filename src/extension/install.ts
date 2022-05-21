@@ -19,7 +19,6 @@ import { Extension, kExtensionDir } from "./extension-shared.ts";
 import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { readExtensions } from "./extension.ts";
-import { compareVersions, prettyVersion } from "./extension-version.ts";
 
 // dragonstyle/test-ext           test-ext-main
 // dragonstyle/test-ext@latest    test-ext-main
@@ -261,7 +260,7 @@ async function confirmInstallation(
 
   const versionMessage = (to: Extension, from?: Extension) => {
     if (to && !from) {
-      const versionStr = prettyVersion(to.version);
+      const versionStr = to.version?.format();
       // New Install
       return {
         action: "Install",
@@ -271,7 +270,7 @@ async function confirmInstallation(
     } else {
       if (to.version && from?.version) {
         // From version to version
-        const comparison = compareVersions(to.version, from?.version);
+        const comparison = to.version.compare(from.version);
         if (comparison === 0) {
           return {
             action: "No Change",
@@ -281,14 +280,14 @@ async function confirmInstallation(
         } else if (comparison > 0) {
           return {
             action: "Update ",
-            from: prettyVersion(from.version),
-            to: prettyVersion(to.version),
+            from: from.version.format(),
+            to: to.version.format(),
           };
         } else {
           return {
             action: "Revert ",
-            from: prettyVersion(from.version),
-            to: prettyVersion(to.version),
+            from: from.version.format(),
+            to: to.version.format(),
           };
         }
       } else if (to.version && !from?.version) {
@@ -296,13 +295,13 @@ async function confirmInstallation(
         return {
           action: "Update ",
           from: kUnversioned,
-          to: prettyVersion(to.version),
+          to: to.version.format(),
         };
       } else if (!to.version && from?.version) {
         // From versioned to unversioned
         return {
           action: "Update ",
-          from: prettyVersion(from.version),
+          from: from.version.format(),
           to: kUnversioned,
         };
       } else {
