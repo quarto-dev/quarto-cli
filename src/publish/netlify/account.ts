@@ -93,5 +93,5 @@ function accountsDataDir() {
 function netlifyAccessTokenPath() {
   const dir = join(accountsDataDir(), "netlify");
   ensureDirSync(dir);
-  return join(dir, "token.json");
+  return join(dir, "account.json");
 }
