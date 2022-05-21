@@ -855,7 +855,10 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
         const item = items[i];
         item.active = itemHasNavTarget(item, href);
         if (Object.keys(item).includes("contents")) {
-          if (resolveExpandedItems(href, item.contents || [])) {
+          if (
+            resolveExpandedItems(href, item.contents || []) ||
+            item.href === href
+          ) {
             item.expanded = true;
             return true;
           }
@@ -938,8 +941,9 @@ async function navbarEjsData(
     background: navbar.background || "primary",
     logo: resolveLogo(navbar.logo),
     collapse,
-    [kCollapseBelow]: !collapse ? ""
-    : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
+    [kCollapseBelow]: !collapse
+      ? ""
+      : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
 

@@ -1,0 +1,52 @@
+---
+title: "knitr-tables-latex"
+format: 
+  pdf:
+    keep-tex: true
+    keep-md: true
+knitr: 
+  opts_chunk: 
+    echo: false
+---
+
+```{r}
+#| label: tbl-1
+#| tbl-cap: "Markdown table"
+knitr::kable(head(iris))
+```
+
+```{r}
+#| label: tbl-2
+#| tbl-cap: "Tabular"
+knitr::kable(head(iris), format = "latex")
+```
+
+```{r}
+#| label: tbl-3
+#| tbl-cap: "Longtable"
+knitr::kable(
+  head(mtcars), 
+  format = "latex",
+  longtable = TRUE
+)
+```
+
+```{r}
+#| label: tbl-4
+#| tbl-cap: "Two tables placed side by side."
+d1 <- head(cars, 3)
+d2 <- head(mtcars[, 1:3], 5)
+knitr::kable(
+  list(d1, d2),
+  valign = 'c'
+)
+```
+
+
+Markdown source for @tbl-1
+
+LaTeX source with tabulat for @tbl-2
+
+LaTeX source with longtable for @tbl-3
+
+LaTeX source with table and tabular for @tbl-4
