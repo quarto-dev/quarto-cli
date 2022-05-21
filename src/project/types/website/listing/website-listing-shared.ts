@@ -223,7 +223,11 @@ export const absoluteUrl = (siteUrl: string, url: string) => {
   if (url.startsWith("http:") || url.startsWith("https:")) {
     return url;
   } else {
-    return `${siteUrl}/${url}`;
+    const baseUrl = siteUrl.endsWith("/")
+      ? siteUrl.substring(0, siteUrl.length - 1)
+      : siteUrl;
+    const path = url.startsWith("/") ? url.substring(1, url.length) : url;
+    return `${baseUrl}/${path}`;
   }
 };
 
