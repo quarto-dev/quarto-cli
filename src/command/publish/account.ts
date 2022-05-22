@@ -10,18 +10,47 @@ import { error } from "log/mod.ts";
 import { prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
-import { PublishProvider } from "./provider.ts";
+import {
+  AccountToken,
+  AccountTokenType,
+  PublishProvider,
+} from "../../publish/provider.ts";
 
-export enum AccountTokenType {
-  Environment,
-  Authorized,
+export async function resolveAccount(
+  provider: PublishProvider,
+  prompt: boolean,
+) {
+  // see what tyep of token we are going to use
+  let token: AccountToken | undefined;
+
+  // build list of account options
+  const accounts = await provider.accountTokens();
+
+  // if we aren't prompting then we need to have one at the ready
+  if (!prompt) {
+    token = accounts[0];
+    if (!token) {
+      error(
+        `No configured account available (account required for publish with --no-prompt)`,
+      );
+      throw new Error();
+    }
+  } else {
+    // prompot for account to publish with
+    if (accounts.length > 0) {
+      token = await accountPrompt(provider, accounts);
+    }
+
+    // if we don't have a token yet we need to authorize
+    if (!token) {
+      if (await authorizePrompt(provider)) {
+        token = await provider.authorizeToken();
+      }
+    }
+  }
+
+  return token;
 }
-
-export type AccountToken = {
-  type: AccountTokenType;
-  name: string;
-  token: string;
-};
 
 export async function accountPrompt(
   provider: PublishProvider,

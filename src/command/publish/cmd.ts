@@ -11,13 +11,14 @@ import { prompt } from "cliffy/prompt/mod.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
 
-import { PublishOptions } from "./provider.ts";
-
-import { ghpagesProvider } from "./ghpages.ts";
-import { netlifyProvider } from "./netlify.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 
-const kPublishProviders = [netlifyProvider, ghpagesProvider];
+import { PublishOptions, PublishProvider } from "../../publish/provider.ts";
+import { netlifyProvider } from "../../publish/netlify/netlify.ts";
+
+import { handleUnauthorized, resolveAccount } from "./account.ts";
+
+const kPublishProviders = [netlifyProvider];
 
 export const publishCommand = withProviders(
   new Command()
@@ -36,13 +37,13 @@ export const publishCommand = withProviders(
       // deno-lint-ignore no-explicit-any
     ).action(async (options: any, path?: string) => {
       // shared options
-      const publishOptions: PublishOptions = {
+      const publishOptions = {
         path: path || Deno.cwd(),
         render: !!options.render,
         prompt: !!options.prompt,
       };
 
-      // can't call base publish with no prompot
+      // can't call base publish with no prompt
       if (!publishOptions.prompt) {
         error(
           "You must specify an explicit provider (e.g. 'netlify') with --no-prompt",
@@ -65,7 +66,7 @@ export const publishCommand = withProviders(
       if (result.destination) {
         const provider = findProvider(result.destination);
         if (provider) {
-          await provider.configure(publishOptions);
+          await providerPublish(provider, publishOptions);
         }
       }
     }),
@@ -76,25 +77,66 @@ function withProviders(command: Command<any>): Command<any> {
   for (const provider of kPublishProviders) {
     command.command(
       provider.name,
-      provider.command(
-        new Command()
-          .name(provider.name)
-          .description(provider.description)
-          .arguments("[path:string]")
-          .option(
-            "--no-render",
-            "Do not render before publishing.",
-          )
-          .option(
-            "--no-prompt",
-            "Do not prompt to confirm publishing destination",
-          ),
-      ),
+      new Command()
+        .name(provider.name)
+        .description(provider.description)
+        .arguments("[path:string]")
+        .option(
+          "--no-render",
+          "Do not render before publishing.",
+        )
+        .option(
+          "--no-prompt",
+          "Do not prompt to confirm publishing destination",
+        )
+        // deno-lint-ignore no-explicit-any
+        .action(async (options: any, path?: string) => {
+          await providerPublish(provider, extractPublishOptions(options, path));
+        }),
     );
   }
   return command;
 }
 
+export async function providerPublish(
+  provider: PublishProvider,
+  options: PublishOptions,
+): Promise<boolean> {
+  // resolve account
+  const token = await resolveAccount(provider, options.prompt);
+  if (token) {
+    // attempt publish
+    if (token) {
+      try {
+        await provider.publish(options, token);
+        return true;
+      } catch (err) {
+        // attempt to recover from unauthorized
+        if (provider.isUnauthorized(err)) {
+          if (await handleUnauthorized(provider, token)) {
+            if (await provider.authorizeToken()) {
+              // recursve after re-authorization
+              return await providerPublish(provider, options);
+            }
+          }
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 function findProvider(name: string) {
   return kPublishProviders.find((provider) => provider.name === name);
+}
+
+// deno-lint-ignore no-explicit-any
+function extractPublishOptions(options: any, path?: string): PublishOptions {
+  return {
+    path: path || Deno.cwd(),
+    render: !!options.render,
+    prompt: !!options.prompt,
+  };
 }
