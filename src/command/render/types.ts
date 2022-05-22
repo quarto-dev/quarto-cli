@@ -177,6 +177,7 @@ export interface PandocOptions {
 export interface RenderFlags extends PandocFlags {
   // quarto flags
   outputDir?: string;
+  siteUrl?: string;
   executeDir?: string;
   execute?: boolean;
   executeCache?: true | false | "refresh";

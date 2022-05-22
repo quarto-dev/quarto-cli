@@ -18,7 +18,7 @@ import { Format, Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 import { kComments } from "../../../format/html/format-html-shared.ts";
 import { Sidebar } from "../../types.ts";
-
+import { RenderFlags } from "../../../command/render/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kBodyFooter,
@@ -305,6 +305,7 @@ export function websiteProjectConfig(
   _projectDir: string,
   config: ProjectConfig,
   forceHtml: boolean,
+  flags?: RenderFlags,
 ): Promise<ProjectConfig> {
   config = ld.cloneDeep(config);
   const format = config[kMetadataFormat] as
@@ -323,6 +324,10 @@ export function websiteProjectConfig(
   };
 
   const siteMeta = (config[kWebsite] || {}) as Metadata;
+
+  if (flags?.siteUrl) {
+    siteMeta[kSiteUrl] = flags.siteUrl;
+  }
   if (siteMeta[kBodyHeader]) {
     siteMeta[kBodyHeader] = ensureArray(siteMeta[kBodyHeader]);
   }

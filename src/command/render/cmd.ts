@@ -40,6 +40,10 @@ export const renderCommand = new Command()
     "Metadata value (KEY:VALUE).",
   )
   .option(
+    "--site-url",
+    "Override site-url for website or book ouptut",
+  )
+  .option(
     "--execute",
     "Execute code (--no-execute to skip execution).",
   )

@@ -58,6 +58,11 @@ export async function parseRenderFlags(args: string[]) {
         flags.outputDir = arg;
         break;
 
+      case "--site-url":
+        arg = argsStack.shift();
+        flags.siteUrl = arg;
+        break;
+
       case "--self-contained":
         flags[kSelfContained] = true;
         arg = argsStack.shift();
@@ -377,6 +382,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   // remove other args as needed
   const removeArgs = new Map<string, boolean>();
   removeArgs.set("--output-dir", true);
+  removeArgs.set("--site-url", true);
   removeArgs.set("--execute", false);
   removeArgs.set("--no-execute", false);
   removeArgs.set("-P", true);
