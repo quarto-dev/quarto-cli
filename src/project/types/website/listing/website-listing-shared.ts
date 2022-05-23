@@ -227,7 +227,7 @@ export const absoluteUrl = (siteUrl: string, url: string) => {
       ? siteUrl.substring(0, siteUrl.length - 1)
       : siteUrl;
     const path = url.startsWith("/") ? url.substring(1, url.length) : url;
-    return `${baseUrl}/${path}`;
+    return `${baseUrl}/${path.replaceAll("\\", "/")}`;
   }
 };
 
