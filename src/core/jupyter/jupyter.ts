@@ -880,6 +880,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   asy: "//",
   haskell: "--",
   dot: "//",
+  mermaid: "%%",
 };
 
 async function mdFromCodeCell(
