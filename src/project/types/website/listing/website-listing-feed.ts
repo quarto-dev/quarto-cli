@@ -207,7 +207,7 @@ export async function createFeed(
         options.type === "full",
       ),
       finalFile: finalRelPath,
-      feedLink: `${siteUrl}/${finalRelPath}`,
+      feedLink: absoluteUrl(siteUrl, finalRelPath),
     };
   });
 
@@ -396,7 +396,7 @@ async function renderFeed(
     const title = inputTarget?.outputHref
       ? placeholder(inputTarget?.outputHref)
       : "";
-    const link = `${siteUrl}${inputTarget?.outputHref}`;
+    const link = absoluteUrl(siteUrl, inputTarget?.outputHref || "");
     const description = inputTarget?.outputHref
       ? placeholder(inputTarget?.outputHref)
       : "";
