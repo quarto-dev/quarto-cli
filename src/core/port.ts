@@ -17,7 +17,7 @@ const kMaxPort = 8000;
 
 function isPortSafe(port: number): boolean {
   // excludes port numbers that chrome considers unsafe
-  return ![3659, 4045, 6000, 6665, 6666, 6667, 6668, 6669, 6697].includes(
+  return ![3659, 4045, 5000, 6000, 6665, 6666, 6667, 6668, 6669, 6697].includes(
     port,
   );
 }
