@@ -16157,6 +16157,21 @@ try {
             }
           },
           {
+            name: "publish",
+            description: "Project publishing configuration",
+            schema: {
+              object: {
+                properties: {
+                  netlify: {
+                    maybeArrayOf: "string",
+                    description: "Published Netlify site urls"
+                  }
+                },
+                additionalProperties: false
+              }
+            }
+          },
+          {
             name: "website",
             description: "MISSING_DESCRIPTION",
             schema: {
@@ -18732,7 +18747,9 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Project publishing configuration",
+          "Published Netlify site urls"
         ],
         "schema/external-schemas.yml": [
           {

@@ -34,6 +34,16 @@
           schema:
             ref: project-preview
 
+- name: publish
+  description: Project publishing configuration
+  schema:
+    object:
+      properties:
+        netlify:
+          maybeArrayOf: string
+          description: Published Netlify site urls
+      additionalProperties: false
+
 - name: website
   description: MISSING_DESCRIPTION
   schema:

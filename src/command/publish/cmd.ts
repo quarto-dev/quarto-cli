@@ -17,12 +17,14 @@ import { PublishOptions, PublishProvider } from "../../publish/provider.ts";
 import { netlifyProvider } from "../../publish/netlify/netlify.ts";
 
 import { handleUnauthorized, resolveAccount } from "./account.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
 const kPublishProviders = [netlifyProvider];
 
 export const publishCommand = withProviders(
   new Command()
     .name("publish")
+    .hidden()
     .arguments("[path:string]")
     .option(
       "--no-render",
@@ -36,6 +38,9 @@ export const publishCommand = withProviders(
       "Publish a document or project to a variety of destinations.",
       // deno-lint-ignore no-explicit-any
     ).action(async (options: any, path?: string) => {
+      // init yaml intelligence
+      await initYamlIntelligenceResourcesFromFilesystem();
+
       // shared options
       const publishOptions = {
         path: path || Deno.cwd(),

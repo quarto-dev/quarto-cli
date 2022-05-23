@@ -24,6 +24,7 @@ import {
   kProjectOutputDir,
   kProjectPostRender,
   kProjectPreRender,
+  kProjectPublish,
   kProjectRender,
   kProjectType,
   ProjectConfig,
@@ -66,6 +67,7 @@ import { gitignoreEntries } from "./project-gitignore.ts";
 import {
   ignoreFieldsForProjectType,
   projectConfigFile,
+  projectPublishFile,
   projectVarsFile,
   toInputRelativePaths,
 } from "./project-shared.ts";
@@ -150,6 +152,14 @@ export async function projectContext(
           projectConfig[kQuartoVarsKey] || {},
           vars,
         );
+      }
+
+      // read publish and merge into the project
+      const publishFile = projectPublishFile(dir);
+      if (publishFile) {
+        configFiles.push(publishFile);
+        const publish = readYaml(publishFile) as Metadata;
+        projectConfig[kProjectPublish] = publish;
       }
 
       // resolve translations
@@ -384,13 +394,16 @@ export async function projectMetadataForInputFile(
   }
 
   if (project?.dir && project?.config) {
+    // remove 'publish' from config (its not merged)
+    const projectConfig = ld.cloneDeep(project.config) as ProjectConfig;
+    delete projectConfig[kProjectPublish];
     // If there is directory and configuration information
     // process paths
     return toInputRelativePaths(
       projectType(project?.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      project.config,
+      projectConfig,
     ) as Metadata;
   } else {
     // Just return the config or empty metadata

@@ -30,7 +30,7 @@ export function commands(): Command<any>[] {
     convertCommand,
     checkCommand,
     installCommand,
-    //  publishCommand,
+    publishCommand,
     capabilitiesCommand,
     inspectCommand,
     toolsCommand,

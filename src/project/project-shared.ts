@@ -51,6 +51,12 @@ export function projectVarsFile(dir: string): string | undefined {
     .find(existsSync);
 }
 
+export function projectPublishFile(dir: string): string | undefined {
+  return ["_publish.yml", "_publish.yaml"]
+    .map((file) => join(dir, file))
+    .find(existsSync);
+}
+
 export function projectOffset(context: ProjectContext, input: string) {
   const projDir = Deno.realPathSync(context.dir);
   const inputDir = Deno.realPathSync(dirname(input));

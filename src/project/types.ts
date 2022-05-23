@@ -23,6 +23,9 @@ export const kProjectResources = "resources";
 
 export const kProjectWatchInputs = "watch-inputs";
 
+export const kProjectPublish = "publish";
+export const kProjectPublishNetlify = "netlify";
+
 export interface ProjectContext {
   dir: string;
   engines: string[];
@@ -42,6 +45,10 @@ export interface ProjectContext {
   ) => Promise<FormatExtras>;
 }
 
+export interface ProjectPublish {
+  netlify?: string | string[];
+}
+
 export interface ProjectConfig {
   project: {
     [kProjectType]?: string;
@@ -54,6 +61,7 @@ export interface ProjectConfig {
     [kProjectResources]?: string[];
     preview?: ProjectPreview;
   };
+  publish?: ProjectPublish;
   [key: string]: unknown;
 }
 
