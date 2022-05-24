@@ -5,14 +5,13 @@
 *
 */
 
-import { prompt } from "cliffy/prompt/mod.ts";
 import { Command } from "cliffy/command/mod.ts";
-import { Select } from "cliffy/prompt/select.ts";
 
-import { PublishOptions, PublishProvider } from "../../publish/provider.ts";
-import { netlifyProvider } from "../../publish/netlify/netlify.ts";
+import {
+  kPublishProviders,
+  PublishDeployment,
+} from "../../publish/provider.ts";
 
-import { handleUnauthorized, resolveAccount } from "./account.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import {
   initState,
@@ -22,14 +21,22 @@ import {
   projectContext,
   projectIsWebsite,
 } from "../../project/project-context.ts";
-import { resolveTarget } from "./target.ts";
 
-const kPublishProviders = [netlifyProvider];
+import {
+  PublishCommandOptions,
+  PublishOptions,
+  withPublishOptions,
+} from "./options.ts";
+import { resolveDeployment } from "./deployment.ts";
+import { handleUnauthorized } from "./account.ts";
+import { updateProjectPublishConfig } from "../../publish/config.ts";
+import { render, renderServices } from "../render/render-shared.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 
-interface PublishCommandOptions {
-  render?: boolean;
-  prompt?: boolean;
-}
+// TODO: don't keep re-reading the project context (accomodate non-project in various ways)
+// TODO: implement deployments functions
+// TODO: netlify methods
+// TODO: render (w/ no-render message)
 
 export const publishCommand = withProviders(
   withPublishOptions(
@@ -42,34 +49,10 @@ export const publishCommand = withProviders(
   ).action(async (options: PublishCommandOptions, path?: string) => {
     // init yaml intelligence
     await initYamlIntelligence();
-
-    // shared options
-    const publishOptions = await extractPublishOptions(options, path);
-
-    // can't call base publish with no prompt
-    if (!publishOptions.prompt) {
-      throw new Error(
-        "You must specify an explicit provider (e.g. 'netlify') with --no-prompt",
-      );
-    }
-
-    // select provider
-    const result = await prompt([{
-      name: "destination",
-      message: "Select destination:",
-      options: kPublishProviders.map((provider) => ({
-        name: provider.description,
-        value: provider.name,
-      })),
-      type: Select,
-    }]);
-
-    // call provider
-    if (result.destination) {
-      const provider = findProvider(result.destination);
-      if (provider) {
-        await providerPublish(provider, publishOptions);
-      }
+    const publishOptions = await createPublishOptions(options, path);
+    const deployment = await resolveDeployment(publishOptions);
+    if (deployment) {
+      await publish(deployment, publishOptions);
     }
   }),
 );
@@ -86,65 +69,66 @@ function withProviders(
           .description(provider.description),
       ).action(async (options: PublishCommandOptions, path?: string) => {
         await initYamlIntelligence();
-        await providerPublish(
-          provider,
-          await extractPublishOptions(options, path),
+        const publishOptions = await createPublishOptions(options, path);
+        const deployment = await resolveDeployment(
+          publishOptions,
+          provider.name,
         );
+        if (deployment) {
+          await publish(deployment, publishOptions);
+        }
       }),
     );
   }
   return command;
 }
 
-function withPublishOptions(
-  command: Command<PublishCommandOptions>,
-  // deno-lint-ignore no-explicit-any
-): Command<any> {
-  return command
-    .arguments("[path:string]")
-    .option(
-      "--no-render",
-      "Do not render before publishing.",
-    )
-    .option(
-      "--no-prompt",
-      "Do not prompt to confirm publishing destination",
-    );
-}
-
-export async function providerPublish(
-  provider: PublishProvider,
+async function publish(
+  deployment: PublishDeployment,
   options: PublishOptions,
-): Promise<boolean> {
-  // resolve account
-  const token = await resolveAccount(provider, options.prompt);
-  if (token) {
-    try {
-      const target = await resolveTarget(provider, options);
-      await provider.publish(options, target, token);
-      return true;
-    } catch (err) {
-      // attempt to recover from unauthorized
-      if (provider.isUnauthorized(err)) {
-        if (await handleUnauthorized(provider, token)) {
-          if (await provider.authorizeToken()) {
-            // recursve after re-authorization
-            return await providerPublish(provider, options);
-          }
+): Promise<void> {
+  const provider = deployment.provider;
+  try {
+    // render if requested
+    if (options.render) {
+      const services = renderServices();
+      try {
+        const result = await render(options.target, { services });
+        if (result.error) {
+          throw result.error;
         }
-      } else {
-        throw err;
+      } finally {
+        services.cleanup();
       }
     }
+
+    // get output dir
+    const project = (await projectContext(options.target))!;
+    const outputDir = projectOutputDir(project);
+
+    // publish
+    const publishedTarget = await provider.publish(outputDir, deployment);
+    if (publishedTarget) {
+      await updateProjectPublishConfig(options.target, {
+        [deployment.provider.name]: [publishedTarget.site_id],
+      });
+    }
+  } catch (err) {
+    // attempt to recover from unauthorized
+    if (provider.isUnauthorized(err) && options.prompt) {
+      if (await handleUnauthorized(deployment)) {
+        if (await provider.authorizeToken()) {
+          // recursve after re-authorization
+          return await publish(deployment, options);
+        }
+      }
+    } else {
+      throw err;
+    }
   }
-  return false;
 }
 
-function findProvider(name: string) {
-  return kPublishProviders.find((provider) => provider.name === name);
-}
-
-async function extractPublishOptions(
+async function createPublishOptions(
   options: PublishCommandOptions,
   path?: string,
 ): Promise<PublishOptions> {
@@ -157,9 +141,10 @@ async function extractPublishOptions(
     );
   }
   return {
-    target: project,
+    target: project.dir,
     render: !!options.render,
     prompt: !!options.prompt,
+    "site-id": options["site-id"],
   };
 }
 

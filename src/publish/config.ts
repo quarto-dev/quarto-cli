@@ -7,6 +7,8 @@
 
 import { stringify } from "encoding/yaml.ts";
 
+import * as ld from "../core/lodash.ts";
+
 import { Metadata } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { readYaml } from "../core/yaml.ts";
@@ -30,16 +32,23 @@ export async function projectPublishConfig(
   } else {
     project = target;
   }
-  return (project ? project?.config?.publish || {} : {}) as ProjectPublish;
+  if (project && project?.config?.publish) {
+    return normalizePublishConfig(project.config.publish);
+  } else {
+    return {} as ProjectPublish;
+  }
 }
 
 export async function updateProjectPublishConfig(
-  projectDir: string,
+  target: string | ProjectContext,
   config: ProjectPublish,
 ) {
+  const projectDir = typeof (target) === "string" ? target : target.dir;
   const publishFile = projectPublishFile(projectDir);
   if (publishFile) {
-    const baseConfig = (publishFile ? readYaml(publishFile) : {}) as Metadata;
+    const baseConfig = normalizePublishConfig(
+      (publishFile ? readYaml(publishFile) : {}) as ProjectPublish,
+    );
     const updatedConfig = mergeConfigs(baseConfig, config);
     Deno.writeTextFileSync(
       publishFile,
@@ -84,6 +93,16 @@ export async function updateProjectPublishConfig(
     }
     Deno.writeTextFileSync(projConfig, updatedYamlLines.join("\n"));
   }
+}
+
+function normalizePublishConfig(config: ProjectPublish) {
+  const publish = ld.cloneDeep(config.publish) as ProjectPublish;
+  Object.keys(publish).forEach((provider) => {
+    if (typeof (publish[provider]) === "string") {
+      publish[provider] = [publish[provider] as unknown as string];
+    }
+  });
+  return publish;
 }
 
 function stringifyPublishConfig(config: Metadata, indent: number) {

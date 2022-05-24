@@ -29,6 +29,7 @@ import {
   kProjectType,
   ProjectConfig,
   ProjectContext,
+  ProjectPublish,
 } from "./types.ts";
 
 import { isYamlPath, readYaml } from "../core/yaml.ts";
@@ -158,7 +159,7 @@ export async function projectContext(
       const publishFile = projectPublishFile(dir);
       if (publishFile) {
         configFiles.push(publishFile);
-        const publish = readYaml(publishFile) as Metadata;
+        const publish = readYaml(publishFile) as ProjectPublish;
         projectConfig[kProjectPublish] = publish;
       }
 

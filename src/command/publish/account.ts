@@ -13,6 +13,7 @@ import { Confirm } from "cliffy/prompt/confirm.ts";
 import {
   AccountToken,
   AccountTokenType,
+  PublishDeployment,
   PublishProvider,
 } from "../../publish/provider.ts";
 
@@ -30,10 +31,9 @@ export async function resolveAccount(
   if (!prompt) {
     token = accounts[0];
     if (!token) {
-      error(
+      throw new Error(
         `No configured account available (account required for publish with --no-prompt)`,
       );
-      throw new Error();
     }
   } else {
     // prompot for account to publish with
@@ -109,15 +109,17 @@ export async function reauthorizePrompt(
 }
 
 export async function handleUnauthorized(
-  provider: PublishProvider,
-  token: AccountToken,
+  deployment: PublishDeployment,
 ) {
-  if (token.type === AccountTokenType.Environment) {
+  if (deployment.account.type === AccountTokenType.Environment) {
     error(
-      `Unable to authenticate with the provided ${token.name}. Please be sure this token is valid.`,
+      `Unable to authenticate with the provided ${deployment.account.name}. Please be sure this token is valid.`,
     );
     return false;
-  } else if (token.type === AccountTokenType.Authorized) {
-    return await reauthorizePrompt(provider, token.name);
+  } else if (deployment.account.type === AccountTokenType.Authorized) {
+    return await reauthorizePrompt(
+      deployment.provider,
+      deployment.account.name,
+    );
   }
 }

@@ -45,9 +45,7 @@ export interface ProjectContext {
   ) => Promise<FormatExtras>;
 }
 
-export interface ProjectPublish {
-  netlify?: string | string[];
-}
+export type ProjectPublish = Record<string, string[]>;
 
 export interface ProjectConfig {
   project: {

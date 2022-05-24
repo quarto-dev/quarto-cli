@@ -5,29 +5,30 @@
 *
 */
 
-import { Input } from "cliffy/prompt/mod.ts";
-
 import { projectPublishConfig } from "../../publish/config.ts";
 import {
+  AccountToken,
   PublishOptions,
   PublishProvider,
   PublishTarget,
 } from "../../publish/provider.ts";
 
-export async function resolveTarget(
+export async function deployedTargets(
   provider: PublishProvider,
   options: PublishOptions,
-): Promise<PublishTarget> {
-  // read existing publish config
+  token?: AccountToken,
+): Promise<PublishTarget[]> {
   const publishConfig = await projectPublishConfig(options.target);
-
-  if (!publishConfig) {
-  } else {
-    const target: string = await Input.prompt({
-      message: "Site name",
-      hint: provider.targetHint(),
-    });
+  const targets = (publishConfig[provider.name] || []).map((site_id) => ({
+    site_id,
+  }));
+  // resolve targets if we have a token
+  if (token) {
+    const resolvedTargets: PublishTarget[] = [];
+    for (const target of targets) {
+      resolvedTargets.push(await provider.resolveTarget(token, target));
+    }
+    return resolvedTargets;
   }
-
-  return { site: "foo" };
+  return targets;
 }

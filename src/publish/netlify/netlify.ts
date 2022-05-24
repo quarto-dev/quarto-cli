@@ -17,10 +17,10 @@ import {
 import {
   AccountToken,
   AccountTokenType,
-  PublishOptions,
+  PublishDeployment,
   PublishProvider,
   PublishTarget,
-} from "../../publish/provider.ts";
+} from "../provider.ts";
 import { ApiError } from "../../publish/netlify/api/index.ts";
 
 export const netlifyProvider: PublishProvider = {
@@ -28,8 +28,7 @@ export const netlifyProvider: PublishProvider = {
   description: "Netlify",
   accountTokens,
   authorizeToken,
-  targetHint,
-  targetValidate,
+  resolveTarget,
   publish,
   isUnauthorized,
 };
@@ -68,29 +67,19 @@ async function authorizeToken() {
   }
 }
 
-function targetHint() {
-  return "Name for published site (e.g. 'sitename'). Try to pick something\n" +
-    "   distinctive -- this name must be unique across all of Netify.\n" +
-    "   (Press Enter to have a unique name chosen automatically -- you can\n" +
-    "   change the name later using the Netlify control panel).";
+export function resolveTarget(_token: AccountToken, target: PublishTarget) {
+  return Promise.resolve(target);
 }
 
-function targetValidate(target: string): Promise<boolean> {
-  return Promise.resolve(true);
-}
-
-async function publish(
-  _options: PublishOptions,
-  _target: PublishTarget,
-  token: AccountToken,
-) {
+async function publish(_target: string, deployment: PublishDeployment) {
   const client = new NetlifyClient({
-    TOKEN: token.token,
+    TOKEN: deployment.account.token,
   });
 
   const sites = await client.site.listSites({});
 
   console.log(JSON.stringify(sites, undefined, 2));
+  return deployment.target!;
 }
 
 function isUnauthorized(err: Error) {
