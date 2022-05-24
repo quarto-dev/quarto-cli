@@ -5,12 +5,13 @@
 *
 */
 
-import { dirname, relative, resolve } from "path/mod.ts";
+import { dirname, fromFileUrl, relative, resolve } from "path/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
 import { parseModule } from "observablehq/parser";
 import { parse as parseES6 } from "acorn/acorn";
+import { emit } from "emit/mod.ts";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
@@ -22,8 +23,8 @@ import {
   MappedString,
 } from "../../core/mapped-text.ts";
 import { QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
-import { lines } from "../../core/lib/text.ts";
 import { getNamedLifetime } from "../../core/lifetimes.ts";
+import { generate } from "astring/src/astring.js"; // odd import path, but that's what the docs tell us to do.
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -76,11 +77,70 @@ export function uniqueResources(
   return result;
 }
 
+interface ResolvedES6Path {
+  pathType: "root-relative" | "relative";
+  resolvedImportPath: string;
+}
+
+const resolveES6Path = (
+  path: string,
+  originDir: string,
+  projectRoot?: string,
+): ResolvedES6Path => {
+  if (path.startsWith("/")) {
+    if (projectRoot === undefined) {
+      return {
+        pathType: "root-relative",
+        resolvedImportPath: resolve(originDir, `.${path}`),
+      };
+    } else {
+      return {
+        pathType: "root-relative",
+        resolvedImportPath: resolve(projectRoot, `.${path}`),
+      };
+    }
+  } else {
+    // Here, it's always the case that path.startsWith('.')
+    return {
+      pathType: "relative",
+      resolvedImportPath: resolve(originDir, path),
+    };
+  }
+};
+
 interface DirectDependency {
   resolvedImportPath: string;
   pathType: "relative" | "root-relative";
   importPath: string;
 }
+
+/*
+ * localImports walks the AST of either OJS source code
+ * or JS source code to extract local imports
+ */
+// deno-lint-ignore no-explicit-any
+const localImports = (parse: any) => {
+  const result: string[] = [];
+  ojsSimpleWalker(parse, {
+    // deno-lint-ignore no-explicit-any
+    ExportNamedDeclaration(node: any) {
+      if (node.source?.value) {
+        const source = node.source?.value as string;
+        if (source.startsWith("/") || source.startsWith(".")) {
+          result.push(source);
+        }
+      }
+    },
+    // deno-lint-ignore no-explicit-any
+    ImportDeclaration(node: any) {
+      const source = node.source?.value as string;
+      if (source.startsWith("/") || source.startsWith(".")) {
+        result.push(source);
+      }
+    },
+  });
+  return result;
+};
 
 // Extracts the direct dependencies from a single js, ojs or qmd file
 async function directDependencies(
@@ -89,65 +149,6 @@ async function directDependencies(
   language: "js" | "ojs" | "qmd",
   projectRoot?: string,
 ): Promise<DirectDependency[]> {
-  interface ResolvedES6Path {
-    pathType: "root-relative" | "relative";
-    resolvedImportPath: string;
-  }
-
-  const resolveES6Path = (
-    path: string,
-    originDir: string,
-    projectRoot?: string,
-  ): ResolvedES6Path => {
-    if (path.startsWith("/")) {
-      if (projectRoot === undefined) {
-        return {
-          pathType: "root-relative",
-          resolvedImportPath: resolve(originDir, `.${path}`),
-        };
-      } else {
-        return {
-          pathType: "root-relative",
-          resolvedImportPath: resolve(projectRoot, `.${path}`),
-        };
-      }
-    } else {
-      // Here, it's always the case that path.startsWith('.')
-      return {
-        pathType: "relative",
-        resolvedImportPath: resolve(originDir, path),
-      };
-    }
-  };
-
-  /*
-  * localImports walks the AST of either OJS source code
-  * or JS source code to extract local imports
-  */
-  // deno-lint-ignore no-explicit-any
-  const localImports = (parse: any) => {
-    const result: string[] = [];
-    ojsSimpleWalker(parse, {
-      // deno-lint-ignore no-explicit-any
-      ExportNamedDeclaration(node: any) {
-        if (node.source?.value) {
-          const source = node.source?.value as string;
-          if (source.startsWith("/") || source.startsWith(".")) {
-            result.push(source);
-          }
-        }
-      },
-      // deno-lint-ignore no-explicit-any
-      ImportDeclaration(node: any) {
-        const source = node.source?.value as string;
-        if (source.startsWith("/") || source.startsWith(".")) {
-          result.push(source);
-        }
-      },
-    });
-    return result;
-  };
-
   let ast;
   if (language === "js") {
     try {
@@ -162,14 +163,13 @@ async function directDependencies(
       return [];
     }
   } else if (language === "ojs") {
+    // try to parse the module, and don't chase dependencies in case
+    // of a parse error. The actual dependencies will be analyzed from the ast
+    // below.
     try {
       ast = parseModule(source.value);
     } catch (e) {
-      // we don't chase dependencies if there are parse errors.
-      // we also don't report errors, because that would have happened elsewhere.
-      if (!(e instanceof SyntaxError)) {
-        throw e;
-      }
+      if (!(e instanceof SyntaxError)) throw e;
       return [];
     }
   } else {
@@ -269,6 +269,17 @@ const literalFileAttachments = (parse: any) => {
   return result;
 };
 
+/**
+ * Resolves an import, potentially compiling typescript to javascript in the process
+ *
+ * @param file filename
+ * @param referent referent file, if exists
+ * @returns {
+ *   source: string - the resulting source file of the import, used to chase dependencies
+ *   createdResources: ResourceDescription[] - when compilation happens, returns array
+ *     of created files, so that later cleanup is possible.
+ * }
+ */
 async function resolveImport(file: string, referent?: string): Promise<
   {
     source: string;
@@ -276,81 +287,78 @@ async function resolveImport(file: string, referent?: string): Promise<
   } | undefined
 > {
   let source;
-  try {
+  if (!file.endsWith(".ts")) {
     source = Deno.readTextFileSync(file);
     // file existed, everything is fine.
     return {
       source,
       createdResources: [],
     };
-  } catch (_e) {
-    // file wasn't .js, so we don't even try to compile it with tsc
-    if (!file.endsWith(".js")) {
-      return undefined;
-    }
   }
 
-  const tsFilename = file.replace(/.js$/, ".ts");
-  try {
-    // if filename doesn't exist, don't throw, but don't attempt to compile
-    Deno.readTextFileSync(tsFilename);
-  } catch (_e) {
-    return undefined;
-  }
+  // now for the hard case, it's a typescript import. We:
 
-  const baseCmd =
-    "tsc --strict true --lib esnext --target esnext --module esnext".split(" ");
+  // - use Deno.emit to compile all the dependencies into javascript
+  // - transform the import statements so they work on the browser
+  // - place the files in the right locations
+  // - report the created resources for future cleanup.
 
-  const p1 = Deno.run({
-    cmd: [...baseCmd, "--listFilesOnly", tsFilename],
-    stdout: "piped",
-    stderr: "piped",
+  // note that we "lie" about the source of a typescript import.
+  // we report the javascript compiled source that exists as the source of the created ".js" file
+  // instead of the non-existent ".ts" file. We do this because we know that
+  // the {ojs} cell will be transformed to refer to that ".js" file later.
+
+  console.log(Deno.env.toObject());
+
+  const result = await emit(file, {
+      strict: true,
+      lib: ["es2020", "dom"],
+      target: "es2020",
+      module: "es2020",
+    },
   });
-  const [_p1Result, stdout1Buf] = await Promise.all([
-    p1.status(),
-    p1.output(),
-  ]);
-  p1.close();
-  const filesToBeProcessed = lines(new TextDecoder().decode(stdout1Buf)).filter(
-    (f) =>
-      f.length &&
-      !f.startsWith("/usr/local/lib"),
-  ).map((f) => relative(dirname(file), f));
 
-  // now for the hard part. Try to compile this file from an existing ".ts"
-  const p = Deno.run({
-    cmd: [
-      ...baseCmd,
-      tsFilename,
-    ],
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const [pResult, stdout, stderr] = await Promise.all([
-    p.status(),
-    p.output(),
-    p.stderrOutput(),
-  ]);
-  p.close();
-  if (!pResult.success) {
-    // if compilation failed, then do signal an error.
-    console.error(`Typescript compilation of dependency ${file} failed`);
-    console.log(new TextDecoder().decode(stdout));
-    console.log(new TextDecoder().decode(stderr));
-    throw new Error();
-  }
+  const createdResources: ResourceDescription[] = [];
 
-  source = Deno.readTextFileSync(file.replace(/.js$/, ".ts"));
-  return {
-    source,
-    createdResources: filesToBeProcessed.map((filename) => ({
+  // FIXME handle sourcemaps
+  for (
+    const [filename, source] of Object.entries(result.files).filter(
+      (entry) => entry[0].endsWith(".ts.js"),
+    )
+  ) {
+    // FIXME we ought to refuse to write files out of the project root or the file directory
+
+    const ast = parseES6(source);
+    // patch the source to import from .js instead of .ts
+    ojsSimpleWalker(ast, {
+      // deno-lint-ignore no-explicit-any
+      ExportNamedDeclaration(node: any) {
+        if (node.source?.value.endsWith(".ts")) {
+          node.source.value = node.source.value.replace(/.ts$/, ".js");
+        }
+      },
+      // deno-lint-ignore no-explicit-any
+      ImportDeclaration(node: any) {
+        if (node.source?.value.endsWith(".ts")) {
+          node.source.value = node.source.value.replace(/.ts$/, ".js");
+        }
+      },
+    });
+
+    const transformedSource = generate(ast) as string;
+    const localFile = fromFileUrl(filename).replace(/.ts.js$/, ".js");
+    Deno.writeTextFileSync(localFile, transformedSource);
+    createdResources.push({
       pathType: "relative",
       resourceType: "import",
       referent,
-      filename: resolve(dirname(referent!), filename.replace(/.ts$/, ".js")),
-      importPath: filename.replace(/.ts$/, ".js"),
-    })),
-  };
+      filename: resolve(dirname(referent!), localFile),
+      importPath: localFile,
+    });
+  }
+
+  source = Deno.readTextFileSync(file.replace(/.ts$/, ".js"));
+  return { source, createdResources };
 }
 
 export async function extractResourceDescriptionsFromOJSChunk(
