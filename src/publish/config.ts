@@ -12,7 +12,6 @@ import * as ld from "../core/lodash.ts";
 import { Metadata } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { readYaml } from "../core/yaml.ts";
-import { projectContext } from "../project/project-context.ts";
 import {
   projectConfigFile,
   projectPublishFile,
@@ -20,19 +19,10 @@ import {
 import { ProjectContext, ProjectPublish } from "../project/types.ts";
 import { lines } from "../core/text.ts";
 
-export async function projectPublishConfig(
-  target: string | ProjectContext,
-): Promise<ProjectPublish> {
-  let project: ProjectContext | undefined;
-  if (typeof (target) === "string") {
-    if (target === ".") {
-      target = Deno.cwd();
-    }
-    project = await projectContext(target);
-  } else {
-    project = target;
-  }
-  if (project && project?.config?.publish) {
+export function projectPublishConfig(
+  project: ProjectContext,
+): ProjectPublish {
+  if (project?.config?.publish) {
     return normalizePublishConfig(project.config.publish);
   } else {
     return {} as ProjectPublish;
@@ -40,10 +30,10 @@ export async function projectPublishConfig(
 }
 
 export async function updateProjectPublishConfig(
-  target: string | ProjectContext,
+  target: ProjectContext,
   config: ProjectPublish,
 ) {
-  const projectDir = typeof (target) === "string" ? target : target.dir;
+  const projectDir = target.dir;
   const publishFile = projectPublishFile(projectDir);
   if (publishFile) {
     const baseConfig = normalizePublishConfig(
@@ -56,7 +46,7 @@ export async function updateProjectPublishConfig(
     );
   } else {
     // read existing config and merge
-    const baseConfig = await projectPublishConfig(projectDir) || {};
+    const baseConfig = await projectPublishConfig(target) || {};
     const updatedConfig = mergeConfigs(baseConfig, config) as ProjectPublish;
 
     // read proj config and detect indent level

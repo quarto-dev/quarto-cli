@@ -33,7 +33,8 @@ import { updateProjectPublishConfig } from "../../publish/config.ts";
 import { render, renderServices } from "../render/render-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 
-// TODO: don't keep re-reading the project context (accomodate non-project in various ways)
+// TODO: render result / quarto inspect for publish (see R package)
+// TOOO: site-url for render
 // TODO: implement deployments functions
 // TODO: netlify methods
 // TODO: render (w/ no-render message)
@@ -91,9 +92,12 @@ async function publish(
   try {
     // render if requested
     if (options.render) {
+      const target = typeof (options.target) === "string"
+        ? options.target
+        : options.target.dir;
       const services = renderServices();
       try {
-        const result = await render(options.target, { services });
+        const result = await render(target, { services });
         if (result.error) {
           throw result.error;
         }
@@ -103,8 +107,7 @@ async function publish(
     }
 
     // get output dir
-    const project = (await projectContext(options.target))!;
-    const outputDir = projectOutputDir(project);
+    const outputDir = projectOutputDir(options.target);
 
     // publish
     const publishedTarget = await provider.publish(outputDir, deployment);
@@ -141,7 +144,7 @@ async function createPublishOptions(
     );
   }
   return {
-    target: project.dir,
+    target: project,
     render: !!options.render,
     prompt: !!options.prompt,
     "site-id": options["site-id"],
