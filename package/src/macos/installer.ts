@@ -255,6 +255,7 @@ async function signCode(
     "--options=runtime",
     "--force",
     "--deep",
+    "--verbose",
   ];
   if (entitlements) {
     args.push("--entitlements");
