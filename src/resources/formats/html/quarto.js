@@ -168,9 +168,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return response.json().then(function (listingPaths) {
         const listingHrefs = [];
         for (const listingPath of listingPaths) {
+          const pathWithoutLeadingSlash = listingPath.listing.substring(1);
           for (const item of listingPath.items) {
             if (item === thisPath || item === thisPath + "index.html") {
-              listingHrefs.push(listingPath.listing);
+              // Resolve this path against the offset to be sure
+              // we already are using the correct path to the listing
+              // (this adjusts the listing urls to be rooted against
+              // whatever root the page is actually running against)
+              const relative = offsetRelativeUrl(pathWithoutLeadingSlash);
+              const baseUrl = window.location;
+              const resolvedPath = new URL(relative, baseUrl);
+              listingHrefs.push(resolvedPath.pathname);
               break;
             }
           }
