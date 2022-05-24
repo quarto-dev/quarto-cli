@@ -5,6 +5,8 @@
 *
 */
 
+/* Disable test for temporarily removed feature.
+
 import { ensureHtmlSelectorSatisfies } from "../../verify.ts";
 
 import { testRender } from "../render/render.ts";
@@ -35,4 +37,4 @@ testRender(test1.input, "html", false, [
       "../link.qmd",
     ]);
   }),
-]);
+]);*/

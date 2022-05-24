@@ -9,6 +9,7 @@ import { Command } from "cliffy/command/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 import { error } from "log/mod.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { projectContext } from "../../project/project-context.ts";
 
 import { serve } from "./serve.ts";
@@ -42,6 +43,7 @@ export const serveCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input?: string) => {
+    await initYamlIntelligenceResourcesFromFilesystem();
     if (!input) {
       error(
         "No input passed to serve.\n" +
