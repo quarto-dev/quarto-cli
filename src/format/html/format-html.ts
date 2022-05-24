@@ -106,6 +106,7 @@ export function htmlFormat(
       },
       formatExtras: async (
         input: string,
+        _markdown: string,
         flags: PandocFlags,
         format: Format,
         _libDir: string,

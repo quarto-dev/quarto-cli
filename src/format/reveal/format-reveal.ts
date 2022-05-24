@@ -99,6 +99,7 @@ export function revealjsFormat() {
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
         input: string,
+        _markdown: string,
         flags: PandocFlags,
         format: Format,
         libDir: string,

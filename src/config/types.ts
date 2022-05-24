@@ -281,6 +281,7 @@ export interface Format {
   resolveFormat?: (format: Format) => void;
   formatExtras?: (
     input: string,
+    markdown: string,
     flags: PandocFlags,
     format: Format,
     libDir: string,

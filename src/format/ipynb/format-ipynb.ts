@@ -30,7 +30,12 @@ export function ipynbFormat(): Format {
       standalone: true,
       [kDefaultImageExtension]: "png",
     },
-    formatExtras: (_input: string, _flags: PandocFlags, format: Format) => {
+    formatExtras: (
+      _input: string,
+      _markdown: string,
+      _flags: PandocFlags,
+      format: Format,
+    ) => {
       // Snag the p
 
       const resolveTemplate = () => {
