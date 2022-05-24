@@ -14,7 +14,6 @@
     "textproto/": "https://deno.land/std@0.138.0/textproto/",
     "uuid/": "https://deno.land/std@0.138.0/uuid/",
     "node/": "https://deno.land/std@0.138.0/node/",
-    "astring/": "https://deno.land/x/astring@v1.8.3/",
     "cliffy/": "https://deno.land/x/cliffy@v0.24.2/",
     "dayjs/": "https://cdn.skypack.dev/dayjs@1.8.21/",
     "moment-guess": "https://cdn.skypack.dev/moment-guess@1.2.4",

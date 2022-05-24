@@ -21,7 +21,6 @@
     "uuid/": "https://deno.land/std@0.138.0/uuid/",
     "node/": "https://deno.land/std@0.138.0/node/",
     "ws/": "https://deno.land/std@0.138.0/ws/",
-    "astring/": "https://deno.land/x/astring@v1.8.3/",
     "events/": "https://deno.land/x/events@v1.0.0/",
     "cache/": "https://deno.land/x/cache@0.2.12/",
     "cliffy/": "https://deno.land/x/cliffy@v0.24.2/",
