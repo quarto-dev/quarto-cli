@@ -10,7 +10,7 @@ import * as ld from "./lodash.ts";
 import { randomInt } from "./random.ts";
 import { sleep } from "./wait.ts";
 
-export const kLocalhost = "localhost";
+export const kLocalhost = "127.0.0.1";
 
 const kMinPort = 3000;
 const kMaxPort = 8000;

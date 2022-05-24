@@ -139,6 +139,14 @@ export function printWatchingForChangesMessage() {
   info("Watching files for changes", { format: colors.green });
 }
 
+
+export async function renderURL(host: string, port: number, path: string) {
+  // render 127.0.0.1 as localhost as not to break existing unit tests (see #947)
+  const showHost = host == "127.0.0.1" ? "localhost" : host;
+  const url = `http://${showHost}:${port}/${path}`;
+  return url
+}
+
 export async function printBrowsePreviewMessage(host: string, port: number, path: string) {
   if (isJupyterHubServer()) {
     const httpReferrer = `${
@@ -153,11 +161,12 @@ export async function printBrowsePreviewMessage(host: string, port: number, path
   } else if (
     (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
   ) {
+    const previewURL = renderURL(host, port, path = "")
     const url = await rswURL(port, path);
-    info(`\nPreview server: http://${host}:${port}/`);
+    info(`\nPreview server: ${previewURL}`);
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else {
-    const url = `http://${host}:${port}/${path}`;
+    const url = renderURL(host, port, path);
     if (!isRStudioServer()) {
       info(`Browse at `, {
         newline: false,
