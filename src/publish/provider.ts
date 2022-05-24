@@ -5,10 +5,16 @@
 *
 */
 
+import { ProjectContext } from "../project/types.ts";
+
 export interface PublishOptions {
-  path: string;
+  target: ProjectContext | string;
   render: boolean;
   prompt: boolean;
+}
+
+export interface PublishTarget {
+  site: string;
 }
 
 export enum AccountTokenType {
@@ -27,6 +33,12 @@ export interface PublishProvider {
   description: string;
   accountTokens: () => Promise<AccountToken[]>;
   authorizeToken: () => Promise<AccountToken | undefined>;
-  publish: (options: PublishOptions, token: AccountToken) => Promise<void>;
+  targetHint: () => string;
+  targetValidate: (target: string) => Promise<boolean>;
+  publish: (
+    options: PublishOptions,
+    target: PublishTarget,
+    token: AccountToken,
+  ) => Promise<void>;
   isUnauthorized: (error: Error) => boolean;
 }

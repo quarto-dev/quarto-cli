@@ -22,6 +22,7 @@ import {
   projectContext,
   projectIsWebsite,
 } from "../../project/project-context.ts";
+import { resolveTarget } from "./target.ts";
 
 const kPublishProviders = [netlifyProvider];
 
@@ -40,8 +41,7 @@ export const publishCommand = withProviders(
       .hidden(),
   ).action(async (options: PublishCommandOptions, path?: string) => {
     // init yaml intelligence
-    setInitializer(initYamlIntelligenceResourcesFromFilesystem);
-    await initState();
+    await initYamlIntelligence();
 
     // shared options
     const publishOptions = await extractPublishOptions(options, path);
@@ -85,6 +85,7 @@ function withProviders(
           .name(provider.name)
           .description(provider.description),
       ).action(async (options: PublishCommandOptions, path?: string) => {
+        await initYamlIntelligence();
         await providerPublish(
           provider,
           await extractPublishOptions(options, path),
@@ -97,7 +98,7 @@ function withProviders(
 
 function withPublishOptions(
   command: Command<PublishCommandOptions>,
-// deno-lint-ignore no-explicit-any
+  // deno-lint-ignore no-explicit-any
 ): Command<any> {
   return command
     .arguments("[path:string]")
@@ -119,7 +120,8 @@ export async function providerPublish(
   const token = await resolveAccount(provider, options.prompt);
   if (token) {
     try {
-      await provider.publish(options, token);
+      const target = await resolveTarget(provider, options);
+      await provider.publish(options, target, token);
       return true;
     } catch (err) {
       // attempt to recover from unauthorized
@@ -155,8 +157,13 @@ async function extractPublishOptions(
     );
   }
   return {
-    path,
+    target: project,
     render: !!options.render,
     prompt: !!options.prompt,
   };
+}
+
+async function initYamlIntelligence() {
+  setInitializer(initYamlIntelligenceResourcesFromFilesystem);
+  await initState();
 }

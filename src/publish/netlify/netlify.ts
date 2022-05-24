@@ -19,6 +19,7 @@ import {
   AccountTokenType,
   PublishOptions,
   PublishProvider,
+  PublishTarget,
 } from "../../publish/provider.ts";
 import { ApiError } from "../../publish/netlify/api/index.ts";
 
@@ -27,6 +28,8 @@ export const netlifyProvider: PublishProvider = {
   description: "Netlify",
   accountTokens,
   authorizeToken,
+  targetHint,
+  targetValidate,
   publish,
   isUnauthorized,
 };
@@ -65,7 +68,22 @@ async function authorizeToken() {
   }
 }
 
-async function publish(_options: PublishOptions, token: AccountToken) {
+function targetHint() {
+  return "Name for published site (e.g. 'sitename'). Try to pick something\n" +
+    "   distinctive -- this name must be unique across all of Netify.\n" +
+    "   (Press Enter to have a unique name chosen automatically -- you can\n" +
+    "   change the name later using the Netlify control panel).";
+}
+
+function targetValidate(target: string): Promise<boolean> {
+  return Promise.resolve(true);
+}
+
+async function publish(
+  _options: PublishOptions,
+  _target: PublishTarget,
+  token: AccountToken,
+) {
   const client = new NetlifyClient({
     TOKEN: token.token,
   });
