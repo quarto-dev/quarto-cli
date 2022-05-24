@@ -109,6 +109,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
       },
       formatExtras: (
         _input: string,
+        markdown: string,
         flags: PandocFlags,
         format: Format,
         _libDir: string,
@@ -218,8 +219,12 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           }),
         };
 
+        // Don't shift the headings if we see any H1s (we can't shift up any longer)
+        const hasLevelOneHeadings = !!markdown.match(/\n^#\s.*$/gm);
+
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (
+          !hasLevelOneHeadings &&
           autoShiftHeadings &&
           (flags?.[kNumberSections] === true ||
             format.pandoc[kNumberSections] === true) &&

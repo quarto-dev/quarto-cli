@@ -18364,6 +18364,8 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
+          "Project publishing configuration",
+          "Published Netlify site urls",
           "MISSING_DESCRIPTION",
           "MISSING_DESCRIPTION",
           "Book title",
@@ -18562,6 +18564,8 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
+          "Project publishing configuration",
+          "Published Netlify site urls",
           "MISSING_DESCRIPTION",
           "MISSING_DESCRIPTION",
           "Book title",
@@ -18747,9 +18751,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack",
-          "Project publishing configuration",
-          "Published Netlify site urls"
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
