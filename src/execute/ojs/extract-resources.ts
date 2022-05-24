@@ -22,6 +22,8 @@ import {
   MappedString,
 } from "../../core/mapped-text.ts";
 import { QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
+import { lines } from "../../core/lib/text.ts";
+import { getNamedLifetime } from "../../core/lifetimes.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -267,10 +269,10 @@ const literalFileAttachments = (parse: any) => {
   return result;
 };
 
-async function resolveImport(file: string): Promise<
+async function resolveImport(file: string, referent?: string): Promise<
   {
     source: string;
-    createdResource: boolean;
+    createdResources: ResourceDescription[];
   } | undefined
 > {
   let source;
@@ -279,7 +281,7 @@ async function resolveImport(file: string): Promise<
     // file existed, everything is fine.
     return {
       source,
-      createdResource: false,
+      createdResources: [],
     };
   } catch (_e) {
     // file wasn't .js, so we don't even try to compile it with tsc
@@ -288,12 +290,38 @@ async function resolveImport(file: string): Promise<
     }
   }
 
+  const tsFilename = file.replace(/.js$/, ".ts");
+  try {
+    // if filename doesn't exist, don't throw, but don't attempt to compile
+    Deno.readTextFileSync(tsFilename);
+  } catch (_e) {
+    return undefined;
+  }
+
+  const baseCmd =
+    "tsc --strict true --lib esnext --target esnext --module esnext".split(" ");
+
+  const p1 = Deno.run({
+    cmd: [...baseCmd, "--listFilesOnly", tsFilename],
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const [_p1Result, stdout1Buf] = await Promise.all([
+    p1.status(),
+    p1.output(),
+  ]);
+  p1.close();
+  const filesToBeProcessed = lines(new TextDecoder().decode(stdout1Buf)).filter(
+    (f) =>
+      f.length &&
+      !f.startsWith("/usr/local/lib"),
+  ).map((f) => relative(dirname(file), f));
+
   // now for the hard part. Try to compile this file from an existing ".ts"
   const p = Deno.run({
     cmd: [
-      ...("tsc --strict true --lib esnext --target esnext --module esnext"
-        .split(" ")),
-      file,
+      ...baseCmd,
+      tsFilename,
     ],
     stdout: "piped",
     stderr: "piped",
@@ -305,16 +333,23 @@ async function resolveImport(file: string): Promise<
   ]);
   p.close();
   if (!pResult.success) {
+    // if compilation failed, then do signal an error.
     console.error(`Typescript compilation of dependency ${file} failed`);
-    console.log(stdout);
-    console.log(stderr);
-    return undefined;
+    console.log(new TextDecoder().decode(stdout));
+    console.log(new TextDecoder().decode(stderr));
+    throw new Error();
   }
 
   source = Deno.readTextFileSync(file.replace(/.js$/, ".ts"));
   return {
     source,
-    createdResource: true,
+    createdResources: filesToBeProcessed.map((filename) => ({
+      pathType: "relative",
+      resourceType: "import",
+      referent,
+      filename: resolve(dirname(referent!), filename.replace(/.ts$/, ".js")),
+      importPath: filename.replace(/.ts$/, ".js"),
+    })),
   };
 }
 
@@ -363,7 +398,10 @@ export async function extractResourceDescriptionsFromOJSChunk(
       continue;
     }
     handled.add(thisResolvedImportPath);
-    const resolvedImport = await resolveImport(thisResolvedImportPath); // Deno.readTextFileSync(thisResolvedImportPath);
+    const resolvedImport = await resolveImport(
+      thisResolvedImportPath,
+      importResource.referent,
+    ); // Deno.readTextFileSync(thisResolvedImportPath);
     if (resolvedImport === undefined) {
       console.error(
         `WARNING: While following dependencies, could not resolve reference:`,
@@ -373,66 +411,18 @@ export async function extractResourceDescriptionsFromOJSChunk(
       continue;
     }
     const source = resolvedImport.source;
-    if (resolvedImport.createdResource) {
-      result.push({
-        resourceType: "import",
-        pathType: "relative",
-        importPath: importResource.importPath,
-        filename: importResource.filename.replace(/.ts$/, ".js"),
-        referent: thisResolvedImportPath,
+    result.push(...resolvedImport.createdResources);
+    // if we're in a project, then we need to clean up at end of render-files lifetime
+    if (projectRoot) {
+      getNamedLifetime("render-services")!.attach({
+        cleanup() {
+          for (const res of resolvedImport.createdResources) {
+            Deno.removeSync(res.filename);
+          }
+          return;
+        },
       });
     }
-
-    //} catch (_e) {
-    /*if (thisResolvedImportPath.endsWith(".js")) {
-        try {
-          const _tsSource = Deno.readTextFileSync(
-            thisResolvedImportPath.slice(0, -3) + ".ts",
-          );
-          // attempt to compile the TS file that exists here.
-          // tsc will attempt to write a .js file here, but that
-          // should be safe since we couldn't read it to begin with
-          //
-          // TODO we could theoretically have write permissions but
-          // no read permissions into a file we didn't intend to
-          // overwrite...
-          const p = Deno.run({
-            cmd: [
-              ...("tsc --strict true --lib esnext --target esnext --module esnext"
-                .split(" ")),
-              thisResolvedImportPath,
-            ],
-            stdout: "piped",
-            stderr: "piped",
-          });
-          const [pResult, stdout, stderr] = await Promise.all([
-            p.status(),
-            p.output(),
-            p.stderrOutput(),
-          ]);
-          p.close();
-          if (!pResult.success) {
-            console.error(`Typescript compilation of dependency ${thisResolvedImportPath} failed`);
-            console.log(stdout);
-            console.log(stderr);
-            continue;
-          }
-          const v: ResourceDescription = {
-            filename: resolvedImportPath,
-            referent: thisResolvedImportPath,
-            pathType,
-            importPath,
-            resourceType: "import",
-          };
-          result.push(v);
-          imports.set(resolvedImportPath, v);
-
-
-        } catch (_e) {
-        }
-      }*/
-    //  }
-
     let language;
     if (thisResolvedImportPath.endsWith(".js")) {
       language = "js";
@@ -547,6 +537,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
       resourceType: "FileAttachment",
     }) as ResourceDescription;
   }));
+
   return result;
 }
 
