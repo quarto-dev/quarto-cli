@@ -24,6 +24,8 @@ import {
 } from "../../core/mapped-text.ts";
 import { QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 import { getNamedLifetime } from "../../core/lifetimes.ts";
+import { resourcePath } from "../../core/resources.ts";
+import { error } from "log/mod.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -272,14 +274,20 @@ const literalFileAttachments = (parse: any) => {
  * Resolves an import, potentially compiling typescript to javascript in the process
  *
  * @param file filename
- * @param referent referent file, if exists
+ * @param referent referent file
+ * @param projectRoot project root, if it exists. Used to check for ts dependencies
+ *      that reach outside of project root, in which case we emit an error
  * @returns {
  *   source: string - the resulting source file of the import, used to chase dependencies
  *   createdResources: ResourceDescription[] - when compilation happens, returns array
  *     of created files, so that later cleanup is possible.
  * }
  */
-async function resolveImport(file: string, referent?: string): Promise<
+async function resolveImport(
+  file: string,
+  referent: string,
+  projectRoot?: string,
+): Promise<
   {
     source: string;
     createdResources: ResourceDescription[];
@@ -307,16 +315,52 @@ async function resolveImport(file: string, referent?: string): Promise<
   // instead of the non-existent ".ts" file. We do this because we know that
   // the {ojs} cell will be transformed to refer to that ".js" file later.
 
-  const result = await emit(file);
+  projectRoot = projectRoot ?? dirname(referent);
 
+  const deno = Deno.env.get("_")!;
+  const p = Deno.run({
+    cmd: [
+      deno,
+      "check",
+      file,
+      "-c",
+      resourcePath("conf/deno-ts-compile.jsonc"),
+    ],
+    stderr: "piped",
+  });
+  const [status, stderr] = await Promise.all([p.status(), p.stderrOutput()]);
+  if (!status.success) {
+    error("Compilation of typescript dependencies in ojs cell failed.");
+    console.log(new TextDecoder().decode(stderr));
+    throw new Error();
+  }
+  const result = await emit(file);
   const createdResources: ResourceDescription[] = [];
 
-  // FIXME handle sourcemaps
+  for (
+    const filename of Object.keys(result).filter((entry) =>
+      entry.endsWith(".ts")
+    )
+  ) {
+    const localFile = fromFileUrl(filename).replace(/.ts$/, ".js");
+    const fileDir = dirname(localFile);
+    if (!fileDir.startsWith(projectRoot)) {
+      error(
+        `ERROR: File ${file} has typescript import dependency ${localFile},
+outside of main folder ${projectRoot}. 
+quarto will only generate javascript files in ${projectRoot} or subfolders.`,
+      );
+      throw new Error();
+    }
+  }
+
   for (
     const [filename, source] of Object.entries(result).filter(
       (entry) => entry[0].endsWith(".ts"),
     )
   ) {
+    const localFile = fromFileUrl(filename).replace(/.ts$/, ".js");
+
     // FIXME we ought to refuse to write files out of the project root or the file directory
     let fixedSource = source;
 
@@ -352,7 +396,6 @@ async function resolveImport(file: string, referent?: string): Promise<
     });
 
     const transformedSource = fixedSource;
-    const localFile = fromFileUrl(filename).replace(/.ts$/, ".js");
     Deno.writeTextFileSync(localFile, transformedSource);
     createdResources.push({
       pathType: "relative",
@@ -414,7 +457,8 @@ export async function extractResourceDescriptionsFromOJSChunk(
     handled.add(thisResolvedImportPath);
     const resolvedImport = await resolveImport(
       thisResolvedImportPath,
-      importResource.referent,
+      importResource.referent!,
+      projectRoot,
     ); // Deno.readTextFileSync(thisResolvedImportPath);
     if (resolvedImport === undefined) {
       console.error(
@@ -515,9 +559,13 @@ export async function extractResourceDescriptionsFromOJSChunk(
   // import ... from "[...].qmd". But we don't want
   // qmd files to end up as actual resources to be copied
   // to _site, so we filter them out here.
+  //
+  // similarly, we filter out ".ts" imports, since what
+  // we need are the generated ".js" ones.
 
   result = result.filter((description) =>
-    !description.filename.endsWith(".qmd")
+    !description.filename.endsWith(".qmd") &&
+    !description.filename.endsWith(".ts")
   );
 
   // convert resolved paths to relative paths
