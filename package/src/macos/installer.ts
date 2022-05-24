@@ -261,10 +261,17 @@ async function signCode(
     args.push(entitlements);
   }
 
-  await runCmd(
+  const result = await runCmd(
     "codesign",
     [...args, input],
   );
+
+  info(result.stdout);
+  if (!result.status.success) {
+    error(result.stderr);
+  }
+
+  return result;
 }
 
 async function submitNotary(
