@@ -20,7 +20,7 @@ import { lines } from "../core/text.ts";
 
 export async function projectPublishConfig(
   target: string | ProjectContext,
-): Promise<ProjectPublish | undefined> {
+): Promise<ProjectPublish> {
   let project: ProjectContext | undefined;
   if (typeof (target) === "string") {
     if (target === ".") {
@@ -30,7 +30,7 @@ export async function projectPublishConfig(
   } else {
     project = target;
   }
-  return project ? project?.config?.publish : undefined;
+  return (project ? project?.config?.publish || {} : {}) as ProjectPublish;
 }
 
 export async function updateProjectPublishConfig(
