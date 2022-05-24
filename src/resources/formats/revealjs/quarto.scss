@@ -232,6 +232,7 @@ section.has-dark-background {
 .reveal code {
   color: $code-color;
   background-color: $code-bg;
+  white-space: pre-wrap;
 }
 
 .reveal pre.sourceCode code {
@@ -241,6 +242,7 @@ section.has-dark-background {
   background-color: $code-block-bg;
   padding: 6px 9px;
   max-height: 500px;
+  white-space: pre;
 }
 
 .reveal pre code {
