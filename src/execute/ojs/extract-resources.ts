@@ -24,7 +24,6 @@ import {
 } from "../../core/mapped-text.ts";
 import { QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 import { getNamedLifetime } from "../../core/lifetimes.ts";
-import { generate } from "astring/src/astring.js"; // odd import path, but that's what the docs tell us to do.
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -308,45 +307,52 @@ async function resolveImport(file: string, referent?: string): Promise<
   // instead of the non-existent ".ts" file. We do this because we know that
   // the {ojs} cell will be transformed to refer to that ".js" file later.
 
-  console.log(Deno.env.toObject());
-
-  const result = await emit(file, {
-      strict: true,
-      lib: ["es2020", "dom"],
-      target: "es2020",
-      module: "es2020",
-    },
-  });
+  const result = await emit(file);
 
   const createdResources: ResourceDescription[] = [];
 
   // FIXME handle sourcemaps
   for (
-    const [filename, source] of Object.entries(result.files).filter(
-      (entry) => entry[0].endsWith(".ts.js"),
+    const [filename, source] of Object.entries(result).filter(
+      (entry) => entry[0].endsWith(".ts"),
     )
   ) {
     // FIXME we ought to refuse to write files out of the project root or the file directory
+    let fixedSource = source;
 
-    const ast = parseES6(source);
+    const ast = parseES6(source, { sourceType: "module" });
     // patch the source to import from .js instead of .ts
     ojsSimpleWalker(ast, {
       // deno-lint-ignore no-explicit-any
       ExportNamedDeclaration(node: any) {
         if (node.source?.value.endsWith(".ts")) {
-          node.source.value = node.source.value.replace(/.ts$/, ".js");
+          const rawReplacement = node.source.raw.replace(/[.]ts"$/, '.js"')
+            .replace(
+              /[.]ts'$/,
+              ".js'",
+            );
+          // we patch the original source so we keep source information, etc.
+          fixedSource = fixedSource.substring(0, node.source.start) +
+            rawReplacement + fixedSource.slice(node.source.end);
         }
       },
       // deno-lint-ignore no-explicit-any
       ImportDeclaration(node: any) {
         if (node.source?.value.endsWith(".ts")) {
-          node.source.value = node.source.value.replace(/.ts$/, ".js");
+          const rawReplacement = node.source.raw.replace(/[.]ts"$/, '.js"')
+            .replace(
+              /[.]ts'$/,
+              ".js'",
+            );
+          // we patch the original source so we keep source information, etc.
+          fixedSource = fixedSource.substring(0, node.source.start) +
+            rawReplacement + fixedSource.slice(node.source.end);
         }
       },
     });
 
-    const transformedSource = generate(ast) as string;
-    const localFile = fromFileUrl(filename).replace(/.ts.js$/, ".js");
+    const transformedSource = fixedSource;
+    const localFile = fromFileUrl(filename).replace(/.ts$/, ".js");
     Deno.writeTextFileSync(localFile, transformedSource);
     createdResources.push({
       pathType: "relative",
@@ -432,7 +438,10 @@ export async function extractResourceDescriptionsFromOJSChunk(
       });
     }
     let language;
-    if (thisResolvedImportPath.endsWith(".js")) {
+    if (
+      thisResolvedImportPath.endsWith(".js") ||
+      thisResolvedImportPath.endsWith(".ts")
+    ) {
       language = "js";
     } else if (thisResolvedImportPath.endsWith(".ojs")) {
       language = "ojs";
@@ -440,7 +449,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
       language = "qmd";
     } else {
       throw new Error(
-        `Unknown language "${language}" in file "${thisResolvedImportPath}"`,
+        `Unknown language in file "${thisResolvedImportPath}"`,
       );
     }
 
