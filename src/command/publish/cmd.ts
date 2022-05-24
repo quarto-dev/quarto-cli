@@ -10,6 +10,7 @@ import { Command } from "cliffy/command/mod.ts";
 import {
   kPublishProviders,
   PublishDeployment,
+  PublishProvider,
 } from "../../publish/provider.ts";
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
@@ -33,10 +34,12 @@ import { updateProjectPublishConfig } from "../../publish/config.ts";
 import { render, renderServices } from "../render/render-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 
-// TODO: render result / quarto inspect for publish (see R package)
-// TOOO: site-url for render
 // TODO: implement deployments functions
 // TODO: netlify methods
+
+// TODO: render result / quarto inspect for publish (see R package)
+// TOOO: site-url for render
+
 // TODO: render (w/ no-render message)
 
 export const publishCommand = withProviders(
@@ -48,41 +51,9 @@ export const publishCommand = withProviders(
       )
       .hidden(),
   ).action(async (options: PublishCommandOptions, path?: string) => {
-    // init yaml intelligence
-    await initYamlIntelligence();
-    const publishOptions = await createPublishOptions(options, path);
-    const deployment = await resolveDeployment(publishOptions);
-    if (deployment) {
-      await publish(deployment, publishOptions);
-    }
+    await publishAction(options, path);
   }),
 );
-
-function withProviders(
-  command: Command<PublishCommandOptions>,
-): Command<PublishCommandOptions> {
-  for (const provider of kPublishProviders) {
-    command.command(
-      provider.name,
-      withPublishOptions(
-        new Command<PublishCommandOptions>()
-          .name(provider.name)
-          .description(provider.description),
-      ).action(async (options: PublishCommandOptions, path?: string) => {
-        await initYamlIntelligence();
-        const publishOptions = await createPublishOptions(options, path);
-        const deployment = await resolveDeployment(
-          publishOptions,
-          provider.name,
-        );
-        if (deployment) {
-          await publish(deployment, publishOptions);
-        }
-      }),
-    );
-  }
-  return command;
-}
 
 async function publish(
   deployment: PublishDeployment,
@@ -128,6 +99,40 @@ async function publish(
     } else {
       throw err;
     }
+  }
+}
+
+function withProviders(
+  command: Command<PublishCommandOptions>,
+): Command<PublishCommandOptions> {
+  for (const provider of kPublishProviders) {
+    command.command(
+      provider.name,
+      withPublishOptions(
+        new Command<PublishCommandOptions>()
+          .name(provider.name)
+          .description(provider.description),
+      ).action(async (options: PublishCommandOptions, path?: string) => {
+        await publishAction(options, path, provider);
+      }),
+    );
+  }
+  return command;
+}
+
+async function publishAction(
+  options: PublishCommandOptions,
+  path?: string,
+  provider?: PublishProvider,
+) {
+  await initYamlIntelligence();
+  const publishOptions = await createPublishOptions(options, path);
+  const deployment = await resolveDeployment(
+    publishOptions,
+    provider?.name,
+  );
+  if (deployment) {
+    await publish(deployment, publishOptions);
   }
 }
 
