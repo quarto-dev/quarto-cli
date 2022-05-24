@@ -140,7 +140,7 @@ export function printWatchingForChangesMessage() {
 }
 
 
-export async function renderURL(host: string, port: number, path: string) {
+export function renderURL(host: string, port: number, path: string) {
   // render 127.0.0.1 as localhost as not to break existing unit tests (see #947)
   const showHost = host == "127.0.0.1" ? "localhost" : host;
   const url = `http://${showHost}:${port}/${path}`;
