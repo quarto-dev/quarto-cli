@@ -51,7 +51,7 @@ function tableCaptions()
               if _quarto.format.isLatexOutput() then
                 el = pandoc.walk_block(el, {
                   RawBlock = function(raw)
-                    if isRawLatex(raw) then
+                    if _quarto.format.isRawLatex(raw) then
                       if raw.text:match(latexTabularPattern) and not raw.text:match(latexTablePattern) then
                         raw.text = raw.text:gsub(latexTabularPattern, 
                                                 "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",

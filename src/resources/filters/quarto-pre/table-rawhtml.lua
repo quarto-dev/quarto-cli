@@ -11,7 +11,7 @@ function tableMergeRawHtml()
         local pendingRaw = ''
         local merged = pandoc.List()
         for i,el in ipairs(blocks) do
-          if isRawHtml(el) and el.text:find(htmlTableTagNamePattern()) then
+          if _quarto.format.isRawHtml(el) and el.text:find(htmlTableTagNamePattern()) then
             pendingRaw = pendingRaw .. "\n" .. el.text
           else
             if #pendingRaw > 0 then
@@ -38,7 +38,7 @@ end
 function tableRenderRawHtml() 
   return {
     RawBlock = function(el)
-      if isRawHtml(el) then
+      if _quarto.format.isRawHtml(el) then
         -- if we have a raw html table in a format that doesn't handle raw_html
         -- then have pandoc parse the table into a proper AST table block
         if not _quarto.format.isHtmlOutput() and not _quarto.format.isMarkdownWithHtmlOutput() and not _quarto.format.isIpynbOutput() then

@@ -26,7 +26,7 @@ function cleanupEmptyParas(el)
 end
 
 function cleanupFileMetadata(el)
-  if isRawHtml(el) then
+  if _quarto.format.isRawHtml(el) then
     local rawMetadata = string.match(el.text, "^<!%-%- quarto%-file%-metadata: ([^ ]+) %-%->$")
     if rawMetadata then
       return {}

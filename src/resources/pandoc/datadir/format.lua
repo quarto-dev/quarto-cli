@@ -13,6 +13,18 @@ local function tcontains(t,value)
 end
 
 
+local function isRaw(el)
+  return el.t == "RawBlock" or el.t == "RawInline"
+end
+
+local function isRawHtml(rawEl)
+  return isRaw(rawEl) and string.find(rawEl.format, "^html") 
+end
+
+local function isRawLatex(rawEl)
+  return isRaw(rawEl) and (rawEl.format == "tex" or rawEl.format == "latex")
+end
+
 -- check for latex output
 local function isLatexOutput()
   return FORMAT == "latex" or FORMAT == "beamer" or FORMAT == "pdf"
@@ -148,6 +160,8 @@ end
 
 
 return {
+  isRawHtml = isRawHtml,
+  isRawLatex = isRawLatex,
   isFormat = isFormat,
   isLatexOutput = isLatexOutput,
   isBeamerOutput = isBeamerOutput,

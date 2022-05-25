@@ -17,7 +17,7 @@ function fileMetadata()
 end
 
 function parseFileMetadata(el)
-  if isRawHtml(el) then
+  if _quarto.format.isRawHtml(el) then
     local rawMetadata = string.match(el.text, "^<!%-%- quarto%-file%-metadata: ([^ ]+) %-%->$")
     if rawMetadata then
       local decoded = base64_decode(rawMetadata)
