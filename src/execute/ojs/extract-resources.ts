@@ -5,12 +5,13 @@
 *
 */
 
-import { dirname, relative, resolve } from "path/mod.ts";
+import { dirname, fromFileUrl, relative, resolve } from "path/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
 import { parseModule } from "observablehq/parser";
 import { parse as parseES6 } from "acorn/acorn";
+import { emit } from "emit/mod.ts";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
@@ -22,6 +23,9 @@ import {
   MappedString,
 } from "../../core/mapped-text.ts";
 import { QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
+import { getNamedLifetime } from "../../core/lifetimes.ts";
+import { resourcePath } from "../../core/resources.ts";
+import { error } from "log/mod.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -74,11 +78,70 @@ export function uniqueResources(
   return result;
 }
 
+interface ResolvedES6Path {
+  pathType: "root-relative" | "relative";
+  resolvedImportPath: string;
+}
+
+const resolveES6Path = (
+  path: string,
+  originDir: string,
+  projectRoot?: string,
+): ResolvedES6Path => {
+  if (path.startsWith("/")) {
+    if (projectRoot === undefined) {
+      return {
+        pathType: "root-relative",
+        resolvedImportPath: resolve(originDir, `.${path}`),
+      };
+    } else {
+      return {
+        pathType: "root-relative",
+        resolvedImportPath: resolve(projectRoot, `.${path}`),
+      };
+    }
+  } else {
+    // Here, it's always the case that path.startsWith('.')
+    return {
+      pathType: "relative",
+      resolvedImportPath: resolve(originDir, path),
+    };
+  }
+};
+
 interface DirectDependency {
   resolvedImportPath: string;
   pathType: "relative" | "root-relative";
   importPath: string;
 }
+
+/*
+ * localImports walks the AST of either OJS source code
+ * or JS source code to extract local imports
+ */
+// deno-lint-ignore no-explicit-any
+const localImports = (parse: any) => {
+  const result: string[] = [];
+  ojsSimpleWalker(parse, {
+    // deno-lint-ignore no-explicit-any
+    ExportNamedDeclaration(node: any) {
+      if (node.source?.value) {
+        const source = node.source?.value as string;
+        if (source.startsWith("/") || source.startsWith(".")) {
+          result.push(source);
+        }
+      }
+    },
+    // deno-lint-ignore no-explicit-any
+    ImportDeclaration(node: any) {
+      const source = node.source?.value as string;
+      if (source.startsWith("/") || source.startsWith(".")) {
+        result.push(source);
+      }
+    },
+  });
+  return result;
+};
 
 // Extracts the direct dependencies from a single js, ojs or qmd file
 async function directDependencies(
@@ -87,65 +150,6 @@ async function directDependencies(
   language: "js" | "ojs" | "qmd",
   projectRoot?: string,
 ): Promise<DirectDependency[]> {
-  interface ResolvedES6Path {
-    pathType: "root-relative" | "relative";
-    resolvedImportPath: string;
-  }
-
-  const resolveES6Path = (
-    path: string,
-    originDir: string,
-    projectRoot?: string,
-  ): ResolvedES6Path => {
-    if (path.startsWith("/")) {
-      if (projectRoot === undefined) {
-        return {
-          pathType: "root-relative",
-          resolvedImportPath: resolve(originDir, `.${path}`),
-        };
-      } else {
-        return {
-          pathType: "root-relative",
-          resolvedImportPath: resolve(projectRoot, `.${path}`),
-        };
-      }
-    } else {
-      // Here, it's always the case that path.startsWith('.')
-      return {
-        pathType: "relative",
-        resolvedImportPath: resolve(originDir, path),
-      };
-    }
-  };
-
-  /*
-  * localImports walks the AST of either OJS source code
-  * or JS source code to extract local imports
-  */
-  // deno-lint-ignore no-explicit-any
-  const localImports = (parse: any) => {
-    const result: string[] = [];
-    ojsSimpleWalker(parse, {
-      // deno-lint-ignore no-explicit-any
-      ExportNamedDeclaration(node: any) {
-        if (node.source?.value) {
-          const source = node.source?.value as string;
-          if (source.startsWith("/") || source.startsWith(".")) {
-            result.push(source);
-          }
-        }
-      },
-      // deno-lint-ignore no-explicit-any
-      ImportDeclaration(node: any) {
-        const source = node.source?.value as string;
-        if (source.startsWith("/") || source.startsWith(".")) {
-          result.push(source);
-        }
-      },
-    });
-    return result;
-  };
-
   let ast;
   if (language === "js") {
     try {
@@ -160,14 +164,13 @@ async function directDependencies(
       return [];
     }
   } else if (language === "ojs") {
+    // try to parse the module, and don't chase dependencies in case
+    // of a parse error. The actual dependencies will be analyzed from the ast
+    // below.
     try {
       ast = parseModule(source.value);
     } catch (e) {
-      // we don't chase dependencies if there are parse errors.
-      // we also don't report errors, because that would have happened elsewhere.
-      if (!(e instanceof SyntaxError)) {
-        throw e;
-      }
+      if (!(e instanceof SyntaxError)) throw e;
       return [];
     }
   } else {
@@ -237,41 +240,181 @@ export async function extractResolvedResourceFilenamesFromQmd(
   return Array.from(result);
 }
 
+/*
+  * literalFileAttachments walks the AST to extract the filenames
+  * in 'FileAttachment(string)' expressions
+  */
+// deno-lint-ignore no-explicit-any
+const literalFileAttachments = (parse: any) => {
+  const result: string[] = [];
+  ojsSimpleWalker(parse, {
+    // deno-lint-ignore no-explicit-any
+    CallExpression(node: any) {
+      if (node.callee?.type !== "Identifier") {
+        return;
+      }
+      if (node.callee?.name !== "FileAttachment") {
+        return;
+      }
+      // deno-lint-ignore no-explicit-any
+      const args = (node.arguments || []) as any[];
+      if (args.length < 1) {
+        return;
+      }
+      if (args[0]?.type !== "Literal") {
+        return;
+      }
+      result.push(args[0]?.value);
+    },
+  });
+  return result;
+};
+
+/**
+ * Resolves an import, potentially compiling typescript to javascript in the process
+ *
+ * @param file filename
+ * @param referent referent file
+ * @param projectRoot project root, if it exists. Used to check for ts dependencies
+ *      that reach outside of project root, in which case we emit an error
+ * @returns {
+ *   source: string - the resulting source file of the import, used to chase dependencies
+ *   createdResources: ResourceDescription[] - when compilation happens, returns array
+ *     of created files, so that later cleanup is possible.
+ * }
+ */
+async function resolveImport(
+  file: string,
+  referent: string,
+  projectRoot?: string,
+): Promise<
+  {
+    source: string;
+    createdResources: ResourceDescription[];
+  } | undefined
+> {
+  let source;
+  if (!file.endsWith(".ts")) {
+    source = Deno.readTextFileSync(file);
+    // file existed, everything is fine.
+    return {
+      source,
+      createdResources: [],
+    };
+  }
+
+  // now for the hard case, it's a typescript import. We:
+
+  // - use Deno.emit to compile all the dependencies into javascript
+  // - transform the import statements so they work on the browser
+  // - place the files in the right locations
+  // - report the created resources for future cleanup.
+
+  // note that we "lie" about the source of a typescript import.
+  // we report the javascript compiled source that exists as the source of the created ".js" file
+  // instead of the non-existent ".ts" file. We do this because we know that
+  // the {ojs} cell will be transformed to refer to that ".js" file later.
+
+  projectRoot = projectRoot ?? dirname(referent);
+
+  const deno = Deno.env.get("_")!;
+  const p = Deno.run({
+    cmd: [
+      deno,
+      "check",
+      file,
+      "-c",
+      resourcePath("conf/deno-ts-compile.jsonc"),
+    ],
+    stderr: "piped",
+  });
+  const [status, stderr] = await Promise.all([p.status(), p.stderrOutput()]);
+  if (!status.success) {
+    error("Compilation of typescript dependencies in ojs cell failed.");
+    console.log(new TextDecoder().decode(stderr));
+    throw new Error();
+  }
+  const result = await emit(file);
+  const createdResources: ResourceDescription[] = [];
+
+  for (
+    const filename of Object.keys(result).filter((entry) =>
+      entry.endsWith(".ts")
+    )
+  ) {
+    const localFile = fromFileUrl(filename).replace(/.ts$/, ".js");
+    const fileDir = dirname(localFile);
+    if (!fileDir.startsWith(projectRoot)) {
+      error(
+        `ERROR: File ${file} has typescript import dependency ${localFile},
+outside of main folder ${projectRoot}. 
+quarto will only generate javascript files in ${projectRoot} or subfolders.`,
+      );
+      throw new Error();
+    }
+  }
+
+  for (
+    const [filename, source] of Object.entries(result).filter(
+      (entry) => entry[0].endsWith(".ts"),
+    )
+  ) {
+    const localFile = fromFileUrl(filename).replace(/.ts$/, ".js");
+
+    // FIXME we ought to refuse to write files out of the project root or the file directory
+    let fixedSource = source;
+
+    const ast = parseES6(source, { sourceType: "module" });
+    // patch the source to import from .js instead of .ts
+    ojsSimpleWalker(ast, {
+      // deno-lint-ignore no-explicit-any
+      ExportNamedDeclaration(node: any) {
+        if (node.source?.value.endsWith(".ts")) {
+          const rawReplacement = node.source.raw.replace(/[.]ts"$/, '.js"')
+            .replace(
+              /[.]ts'$/,
+              ".js'",
+            );
+          // we patch the original source so we keep source information, etc.
+          fixedSource = fixedSource.substring(0, node.source.start) +
+            rawReplacement + fixedSource.slice(node.source.end);
+        }
+      },
+      // deno-lint-ignore no-explicit-any
+      ImportDeclaration(node: any) {
+        if (node.source?.value.endsWith(".ts")) {
+          const rawReplacement = node.source.raw.replace(/[.]ts"$/, '.js"')
+            .replace(
+              /[.]ts'$/,
+              ".js'",
+            );
+          // we patch the original source so we keep source information, etc.
+          fixedSource = fixedSource.substring(0, node.source.start) +
+            rawReplacement + fixedSource.slice(node.source.end);
+        }
+      },
+    });
+
+    const transformedSource = fixedSource;
+    Deno.writeTextFileSync(localFile, transformedSource);
+    createdResources.push({
+      pathType: "relative",
+      resourceType: "import",
+      referent,
+      filename: resolve(dirname(referent!), localFile),
+      importPath: localFile,
+    });
+  }
+
+  source = Deno.readTextFileSync(file.replace(/.ts$/, ".js"));
+  return { source, createdResources };
+}
+
 export async function extractResourceDescriptionsFromOJSChunk(
   ojsSource: MappedString,
   mdDir: string,
   projectRoot?: string,
 ) {
-  /*
-  * literalFileAttachments walks the AST to extract the filenames
-  * in 'FileAttachment(string)' expressions
-  */
-  // deno-lint-ignore no-explicit-any
-  const literalFileAttachments = (parse: any) => {
-    const result: string[] = [];
-    ojsSimpleWalker(parse, {
-      // deno-lint-ignore no-explicit-any
-      CallExpression(node: any) {
-        if (node.callee?.type !== "Identifier") {
-          return;
-        }
-        if (node.callee?.name !== "FileAttachment") {
-          return;
-        }
-        // deno-lint-ignore no-explicit-any
-        const args = (node.arguments || []) as any[];
-        if (args.length < 1) {
-          return;
-        }
-        if (args[0]?.type !== "Literal") {
-          return;
-        }
-        result.push(args[0]?.value);
-      },
-    });
-    return result;
-  };
-
   let result: ResourceDescription[] = [];
   const handled: Set<string> = new Set();
   const imports: Map<string, ResourceDescription> = new Map();
@@ -303,17 +446,21 @@ export async function extractResourceDescriptionsFromOJSChunk(
   }
 
   while (imports.size > 0) {
-    const [thisResolvedImportPath, importResource] =
-      imports.entries().next().value;
+    const [thisResolvedImportPath, importResource]: [
+      string,
+      ResourceDescription,
+    ] = imports.entries().next().value;
     imports.delete(thisResolvedImportPath);
     if (handled.has(thisResolvedImportPath)) {
       continue;
     }
     handled.add(thisResolvedImportPath);
-    let source;
-    try {
-      source = Deno.readTextFileSync(thisResolvedImportPath);
-    } catch (_e) {
+    const resolvedImport = await resolveImport(
+      thisResolvedImportPath,
+      importResource.referent!,
+      projectRoot,
+    ); // Deno.readTextFileSync(thisResolvedImportPath);
+    if (resolvedImport === undefined) {
       console.error(
         `WARNING: While following dependencies, could not resolve reference:`,
       );
@@ -321,9 +468,24 @@ export async function extractResourceDescriptionsFromOJSChunk(
       console.error(`  In file: ${importResource.referent}`);
       continue;
     }
-
+    const source = resolvedImport.source;
+    result.push(...resolvedImport.createdResources);
+    // if we're in a project, then we need to clean up at end of render-files lifetime
+    if (projectRoot) {
+      getNamedLifetime("render-services")!.attach({
+        cleanup() {
+          for (const res of resolvedImport.createdResources) {
+            Deno.removeSync(res.filename);
+          }
+          return;
+        },
+      });
+    }
     let language;
-    if (thisResolvedImportPath.endsWith(".js")) {
+    if (
+      thisResolvedImportPath.endsWith(".js") ||
+      thisResolvedImportPath.endsWith(".ts")
+    ) {
       language = "js";
     } else if (thisResolvedImportPath.endsWith(".ojs")) {
       language = "ojs";
@@ -331,7 +493,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
       language = "qmd";
     } else {
       throw new Error(
-        `Unknown language "${language}" in file "${thisResolvedImportPath}"`,
+        `Unknown language in file "${thisResolvedImportPath}"`,
       );
     }
 
@@ -397,9 +559,13 @@ export async function extractResourceDescriptionsFromOJSChunk(
   // import ... from "[...].qmd". But we don't want
   // qmd files to end up as actual resources to be copied
   // to _site, so we filter them out here.
+  //
+  // similarly, we filter out ".ts" imports, since what
+  // we need are the generated ".js" ones.
 
   result = result.filter((description) =>
-    !description.filename.endsWith(".qmd")
+    !description.filename.endsWith(".qmd") &&
+    !description.filename.endsWith(".ts")
   );
 
   // convert resolved paths to relative paths
@@ -436,6 +602,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
       resourceType: "FileAttachment",
     }) as ResourceDescription;
   }));
+
   return result;
 }
 

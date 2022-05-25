@@ -40,7 +40,11 @@ import { kTextPlain } from "../../core/mime.ts";
 import { execProcess } from "../../core/process.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import { createTempContext } from "../../core/temp.ts";
-import { Lifetime } from "../../core/lifetimes.ts";
+import {
+  createNamedLifetime,
+  getNamedLifetime,
+  Lifetime,
+} from "../../core/lifetimes.ts";
 
 export async function render(
   path: string,
@@ -122,17 +126,26 @@ export function renderServices() {
   const temp = createTempContext();
   const extension = createExtensionContext();
 
-  const lifetime = new Lifetime();
-  lifetime.attach(temp);
+  if (getNamedLifetime("render-services")) {
+    return {
+      temp,
+      extension,
+      lifetime: getNamedLifetime("render-services"),
+      cleanup: () => {},
+    };
+  } else {
+    const lifetime = createNamedLifetime("render-services");
+    lifetime.attach(temp);
 
-  return {
-    temp,
-    extension,
-    lifetime,
-    cleanup: () => {
-      lifetime.cleanup();
-    },
-  };
+    return {
+      temp,
+      extension,
+      lifetime,
+      cleanup: () => {
+        lifetime.cleanup();
+      },
+    };
+  }
 }
 
 export function printWatchingForChangesMessage() {
