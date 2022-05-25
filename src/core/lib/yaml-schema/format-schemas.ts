@@ -1,9 +1,9 @@
 /*
-* from-yaml.ts
+* format-schemas.ts
 *
-* Functions to convert YAML to JSON Schema
+* Functions to define JSON Schemas for quarto formats
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2022 by RStudio, PBC
 *
 */
 
