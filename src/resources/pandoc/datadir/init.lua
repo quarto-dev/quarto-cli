@@ -1284,6 +1284,19 @@ local kInHeader = "in-header";
 json = require 'json'
 format = require 'format'
 
+-- does the table contain a value
+local function tcontains(t,value)
+   if t and type(t)=="table" and value then
+     for _, v in ipairs (t) do
+       if v == value then
+         return true
+       end
+     end
+     return false
+   end
+   return false
+ end
+ 
 -- determines whether a path is a relative path
 local function isRelativeRef(ref)
   return ref:find("^/") == nil and 
@@ -1342,7 +1355,6 @@ end
 -- writes a dependency object to the dependency file
 local function writeToDependencyFile(dependency)
   local dependencyJson = json.encode(dependency)
-  print(dependencyJson)
   local file = io.open(dependenciesFile(), "a")
   file:write(dependencyJson .. "\n")
   file:close()
@@ -1396,21 +1408,39 @@ local function usePackage(package, option)
 -- the contents of the dependencies file with paths to 
 -- file dependencies that should be copied by Quarto
 local function processDependencies(meta) 
-  local dependenciesFile = dependenciesFile()
+   local dependenciesFile = dependenciesFile()
+
+   -- holds a list of hashes for dependencies that
+   -- have been processed. Process each dependency
+   -- only once
+   local injectedText = {}
+   local injectedFile = {}
+   local injectedPackage = {}
+
   -- each line was written as a dependency.
   -- process them and contribute the appropriate headers
   for line in io.lines(dependenciesFile) do 
     local dependency = json.decode(line)
     if dependency.type == 'text' then
-      processTextDependency(dependency, meta)
+      if not tcontains(injectedText, dependency.content) then
+         processTextDependency(dependency, meta)
+         injectedText[#injectedText + 1] = dependency.content   
+      end
     elseif dependency.type == "file" then
-      processFileDependency(dependency, meta)
+      if not tcontains(injectedFile, dependency.content.path) then
+         processFileDependency(dependency, meta)
+         injectedFile[#injectedFile + 1] = dependency.content.path
+      end
     elseif dependency.type == "usepackage" then
-      processUsePackageDependency(dependency, meta)
+      if not tcontains(injectedPackage, dependency.content.package) then
+         processUsePackageDependency(dependency, meta)
+         injectedPackage[#injectedPackage + 1] = dependency.content.package
+      end
     end
   end
 end
 
+-- resolves the file paths for an array/list of depependency files
 local function resolveDependencyFilePaths(dependencyFiles) 
    if dependencyFiles ~= nil then
       for i,v in ipairs(dependencyFiles) do
@@ -1422,6 +1452,7 @@ local function resolveDependencyFilePaths(dependencyFiles)
    end
 end
 
+-- resolves the hrefs for an array/list of link tags
 local function resolveDependencyLinkTags(linkTags)
    if linkTags ~= nil then
       for i, v in ipairs(linkTags) do
@@ -1443,23 +1474,32 @@ _quarto = {
 quarto = {
   doc = {
    
-    addHtmlDependency = function(name, version, meta, links, scripts, stylesheets, resources)
-      if name == nil then 
+    addHtmlDependency = function(htmlDependency)
+      
+      -- validate the dependency
+      if htmlDependency.name == nil then 
          error("HTML dependencies must include a name")
       end
 
-      if meta == nil and links == nil and scripts == nil and stylesheets ==- nil and resources == nil then
+      if htmlDependency.meta == nil and 
+         htmlDependency.links == nil and 
+         htmlDependency.scripts == nil and 
+         htmlDependency.stylesheets ==- nil and 
+         htmlDependency.resources == nil and
+         htmlDependency.head == nil then
          error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, or resources. All appear empty.")
       end
 
+      -- pass the dependency through to the file
       writeToDependencyFile(dependency("html", {
-         name = name,
-         version = version,
-         meta = meta,
-         links = resolveDependencyLinkTags(links),
-         scripts = resolveDependencyFilePaths(scripts),
-         stylesheets = resolveDependencyFilePaths(stylesheets),
-         resources = resolveDependencyFilePaths(resources)
+         name = htmlDependency.name,
+         version = htmlDependency.version,
+         meta = htmlDependency.meta,
+         links = resolveDependencyLinkTags(htmlDependency.links),
+         scripts = resolveDependencyFilePaths(htmlDependency.scripts),
+         stylesheets = resolveDependencyFilePaths(htmlDependency.stylesheets),
+         resources = resolveDependencyFilePaths(htmlDependency.resources),
+         head = htmlDependency.head,
       }))
     end,
   
