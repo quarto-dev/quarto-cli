@@ -333,6 +333,15 @@ function lineDependencyInjector(
     }
   };
 
+  const formatAttribs = (attribs?: Record<string, string>) => {
+    return attribs
+      ? Object.entries(attribs).map((entry) => {
+        const attrib = `${entry[0]}="${entry[1]}"`;
+        return attrib;
+      }).join(" ")
+      : "";
+  };
+
   const injectScript = (
     href: string,
     attribs?: Record<string, string>,
@@ -340,7 +349,7 @@ function lineDependencyInjector(
   ) => {
     inject(
       scriptTemplate(
-        { href: pathWithForwardSlashes(href), attribs },
+        { href: pathWithForwardSlashes(href), attribs: formatAttribs(attribs) },
         afterBody,
       ),
     );
@@ -353,7 +362,7 @@ function lineDependencyInjector(
   ) => {
     inject(
       stylesheetTempate(
-        { href: pathWithForwardSlashes(href), attribs },
+        { href: pathWithForwardSlashes(href), attribs: formatAttribs(attribs) },
         afterBody,
       ),
     );
