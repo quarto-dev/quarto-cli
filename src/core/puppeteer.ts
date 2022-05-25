@@ -209,17 +209,26 @@ async function findChrome(): Promise<string | undefined> {
     }
   } else if (Deno.build.os === "windows") {
     // Try the HKLM key
-    path = await readRegistryKey(
-      "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe",
-      "(Default)",
-    );
+    const programs = ["chrome.exe", "msedge.exe"];
+    for (let i = 0; i < programs.length; i++) {
+      path = await readRegistryKey(
+        "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\" +
+          programs[i],
+        "(Default)",
+      );
+      if (path) break;
+    }
 
     // Try the HKCR key
     if (!path) {
-      path = await readRegistryKey(
-        "HKCR\\ChromeHTML\\shell\\open\\command",
-        "(Default)",
-      );
+      const regKeys = ["ChromeHTML", "MSEdgeHTM"];
+      for (let i = 0; i < regKeys.length; i++) {
+        path = await readRegistryKey(
+          `HKCR\\${regKeys[i]}\\shell\\open\\command`,
+          "(Default)",
+        );
+        if (path) break;
+      }
     }
   }
   return path;
