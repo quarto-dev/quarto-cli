@@ -144,6 +144,7 @@ function inlineFilters(config: Configuration) {
     { name: "quarto-post" },
     { name: "authors" },
     { name: "pagebreak", dir: "rmarkdown" },
+    { name: "quarto-finalize" },
   ];
 
   filtersToInline.forEach((filter) => {
