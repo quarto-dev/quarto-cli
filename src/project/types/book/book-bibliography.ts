@@ -12,7 +12,7 @@ import * as ld from "../../../core/lodash.ts";
 import { stringify } from "encoding/yaml.ts";
 import { error } from "log/mod.ts";
 
-import { Document, DOMParser, Element } from "../../../core/deno-dom.ts";
+import { Document, Element, parseHtml } from "../../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { execProcess } from "../../../core/process.ts";
@@ -120,15 +120,12 @@ export async function bookBibliographyPostRender(
         // aren't already included in the cite ids passed to us (this would happen e.g.
         // in an incremental render by the dev server)
         const bookHtmlOutputs = await bookMultiFileHtmlOutputs(context);
-        bookHtmlOutputs.forEach((htmlOutput) => {
+        for (const htmlOutput of bookHtmlOutputs) {
           if (
             outputFiles.findIndex((file) => file.file === htmlOutput) === -1
           ) {
             if (existsSync(htmlOutput)) {
-              const doc = new DOMParser().parseFromString(
-                Deno.readTextFileSync(htmlOutput),
-                "text/html",
-              );
+              const doc = await parseHtml(Deno.readTextFileSync(htmlOutput));
               if (doc) {
                 forEachCite(doc, (cite: Element) => {
                   citeIds.push(...citeIdsFromCite(cite));
@@ -136,7 +133,7 @@ export async function bookBibliographyPostRender(
               }
             }
           }
-        });
+        }
       }
 
       if (citeIds.length > 0) {

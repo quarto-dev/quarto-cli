@@ -11,7 +11,7 @@ import { DOMParser, HTMLDocument } from "../../../core/deno-dom.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
-import { contentType, isHtmlContent } from "../../../core/mime.ts";
+import { contentType } from "../../../core/mime.ts";
 
 import { kProject404File, ProjectContext } from "../../types.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
@@ -27,7 +27,7 @@ import {
 } from "../../../config/types.ts";
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 
-import { isHtmlOutput } from "../../../config/format.ts";
+import { isHtmlCompatible, isHtmlOutput } from "../../../config/format.ts";
 
 import {
   kIncludeInHeader,
@@ -318,7 +318,7 @@ export async function websitePostRender(
   await updateSitemap(context, outputFiles, incremental);
 
   // update search index
-  updateSearchIndex(context, outputFiles, incremental);
+  await updateSearchIndex(context, outputFiles, incremental);
 
   // Any full content feeds need to be 'completed'
   completeListingGeneration(context, outputFiles, incremental);
@@ -333,7 +333,7 @@ export async function websitePostRender(
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
   return outputFiles
     .filter((outputFile) => {
-      return isHtmlContent(outputFile.file);
+      return isHtmlCompatible(outputFile.format);
     })
     .map((outputFile) => {
       const contents = Deno.readTextFileSync(outputFile.file);

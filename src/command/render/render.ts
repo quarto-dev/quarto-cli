@@ -9,7 +9,7 @@ import { existsSync } from "fs/mod.ts";
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
-import { Document, DOMParser } from "../../core/deno-dom.ts";
+import { Document, parseHtml } from "../../core/deno-dom.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
@@ -342,7 +342,7 @@ async function runHtmlPostprocessors(
       : join(dirname(options.source), options.output);
     const htmlInput = Deno.readTextFileSync(outputFile);
     const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
-    const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+    const doc = await parseHtml(htmlInput);
     for (let i = 0; i < htmlPostprocessors.length; i++) {
       const postprocessor = htmlPostprocessors[i];
       const result = await postprocessor(doc, inputMetadata);

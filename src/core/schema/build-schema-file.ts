@@ -15,7 +15,7 @@ import {
 } from "../lib/yaml-validation/schema.ts";
 import { ensureSchemaResources } from "./yaml-schema.ts";
 import { revealPluginSchema } from "../../format/reveal/schemas.ts";
-import { DOMParser, Element, initDenoDom } from "../deno-dom.ts";
+import { Element, initDenoDom, parseHtml } from "../deno-dom.ts";
 
 import { pandocBinaryPath } from "../resources.ts";
 
@@ -138,10 +138,7 @@ async function createHtmlDescriptions(): Promise<
 
   await initDenoDom();
 
-  const doc = new DOMParser().parseFromString(
-    pandocResult.stdout!,
-    "text/html",
-  )!;
+  const doc = await parseHtml(pandocResult.stdout!);
 
   for (const entryNode of doc.querySelectorAll("h2")) {
     const entry = entryNode as Element;

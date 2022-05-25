@@ -12,7 +12,7 @@ import { basename, join, relative } from "path/mod.ts";
 // @deno-types="fuse/dist/fuse.d.ts"
 // import Fuse from "fuse/dist/fuse.esm.min.js";
 
-import { DOMParser, Element } from "../../../core/deno-dom.ts";
+import { DOMParser, Element, initDenoDom } from "../../../core/deno-dom.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
@@ -50,6 +50,7 @@ import {
 } from "./website-analytics.ts";
 import { kLanguageDefaults } from "../../../config/constants.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
+import { isHtmlCompatible } from "../../../config/format.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -124,7 +125,7 @@ interface SearchDoc {
   text: string;
 }
 
-export function updateSearchIndex(
+export async function updateSearchIndex(
   context: ProjectContext,
   outputFiles: ProjectOutputFile[],
   incremental: boolean,
@@ -147,6 +148,7 @@ export function updateSearchIndex(
   }
 
   // create search docs
+  await initDenoDom();
   const updatedSearchDocs: SearchDoc[] = outputFiles.reduce(
     (searchDocs: SearchDoc[], outputFile) => {
       // find file/href
@@ -166,7 +168,7 @@ export function updateSearchIndex(
       }
 
       // if this isn't html then skip it
-      if (!isHtmlContent(file)) {
+      if (!isHtmlCompatible(outputFile.format)) {
         return searchDocs;
       }
 
