@@ -15,7 +15,6 @@ import { basename, join, relative } from "path/mod.ts";
 import { DOMParser, Element, initDenoDom } from "../../../core/deno-dom.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
-import { isHtmlContent } from "../../../core/mime.ts";
 
 import {
   DependencyFile,
@@ -50,7 +49,7 @@ import {
 } from "./website-analytics.ts";
 import { kLanguageDefaults } from "../../../config/constants.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
-import { isHtmlCompatible } from "../../../config/format.ts";
+import { isHtmlOutput } from "../../../config/format.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -168,7 +167,7 @@ export async function updateSearchIndex(
       }
 
       // if this isn't html then skip it
-      if (!isHtmlCompatible(outputFile.format)) {
+      if (!isHtmlOutput(outputFile.format.pandoc)) {
         return searchDocs;
       }
 

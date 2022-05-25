@@ -333,7 +333,7 @@ export async function websitePostRender(
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
   return outputFiles
     .filter((outputFile) => {
-      return isHtmlCompatible(outputFile.format);
+      return isHtmlOutput(outputFile.format.pandoc);
     })
     .map((outputFile) => {
       const contents = Deno.readTextFileSync(outputFile.file);
