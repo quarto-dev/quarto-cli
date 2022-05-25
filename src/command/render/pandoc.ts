@@ -148,6 +148,7 @@ import {
   parseSpecialDate,
 } from "../../core/date.ts";
 import { copyFileIfNewer } from "../../core/copy.ts";
+import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -304,9 +305,17 @@ export async function runPandoc(
     // Save finalizers
     htmlFinalizers.push(...(extras.html?.[kHtmlFinalizers] || []));
 
-    // add a post-processor for fixing overflow-x in cell output display
     if (isHtmlFileOutput(options.format.pandoc)) {
+      // add a post-processor for fixing overflow-x in cell output display
       htmlPostprocessors.push(selectInputPostprocessor);
+
+      // katex post-processor
+      if (
+        options.flags?.katex ||
+        options.format.pandoc[kHtmlMathMethod] === "katex"
+      ) {
+        htmlPostprocessors.push(katexPostProcessor());
+      }
 
       // add a resource discovery postProcessor if we are not in a website project
       if (!projectIsWebsite(options.project)) {
