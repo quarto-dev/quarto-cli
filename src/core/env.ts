@@ -28,7 +28,6 @@ export function suggestUserBinPaths() {
       "/usr/local/bin",
       "~/.local/bin",
       "~/bin",
-      "/var/lib/jenkins/bin", // could be a jenkins build
     ];
 
     // Read the user path
