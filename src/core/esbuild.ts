@@ -24,7 +24,7 @@ export async function esbuildCompile(
   return await esbuildCommand(fullArgs, input, workingDir);
 }
 
-async function esbuildCommand(
+export async function esbuildCommand(
   args: string[],
   input: string,
   workingDir: string,

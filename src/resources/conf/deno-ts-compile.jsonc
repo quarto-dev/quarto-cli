@@ -2,6 +2,11 @@
   "compilerOptions": {
     "allowJs": true,
     "lib": ["DOM", "ES2020"],
-    "strict": true
+    "strict": true,
+
+    /* these are strictly for deno check; we never use deno to emit */
+    "jsx": "react-jsx",
+    // "jsxImportSource": "5ac3b908-e9b5-4da9-87db-cb2251556334"
+    "jsxImportSource": "quarto-tsx"
   }
 }

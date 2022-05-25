@@ -17451,7 +17451,7 @@ async function defaultResolveImportPath(path) {
   specifier to mean an ES module; If the extension is "ojs", we take
   the specifier to mean an "ojs" module (a collection of observable
   statements packaged into a module, suitable for reuse). If the 
-  extension is "ts", then this is an import that was actually transpiled 
+  extension is "ts" or "tsx", then this is an import that was actually transpiled 
   into js during quarto render, and we change the extension to .js and
   resolve that. Finally, if the extension is "qmd", we take the specifier
   to mean an "implicit ojs module", equivalent to extracting all
@@ -17548,7 +17548,7 @@ function importPathResolver(paths, localResolverMap) {
     } else {
       // we have a relative URL here
       const resourceURL = new URL(path, window.location);
-      moduleType = resourceURL.pathname.match(/\.(ojs|js|ts|qmd)$/)[1];
+      moduleType = resourceURL.pathname.match(/\.(ojs|js|ts|tsx|qmd)$/)[1];
 
       // resolve path according to quarto path resolution rules.
       if (path.startsWith("/")) {
@@ -17560,9 +17560,9 @@ function importPathResolver(paths, localResolverMap) {
       }
     }
 
-    if (moduleType === "ts") {
+    if (moduleType === "ts" || moduleType === "tsx") {
       try {
-        const m = await import(importPath.replace(/\.ts$/, ".js"));
+        const m = await import(importPath.replace(/\.ts$/, ".js").replace(/\.tsx$/, ".js"));
         return es6ImportAsObservableModule(m);
       } catch (e) {
         // record the error on the browser console to make debugging
@@ -18608,6 +18608,33 @@ function createRuntime() {
   return result;
 }
 
+function createQuartoJsxShim()
+{
+  return {
+    createElement(tag, attrs, ...children) {
+      if (typeof tag === "function") {
+        return tag({...attrs, children });
+      }
+
+      const el = document.createElement(tag); // we should try to play nice with svg etc a la d3
+      for (const [key, val] of Object.entries(attrs || {})) {
+        el.setAttribute(key, val);
+      }
+      while (children.length) {
+        const child = children.shift();
+        if (Array.isArray(child)) {
+          children.unshift(...child);
+        } else if (typeof child === "string") {
+          el.appendChild(document.createTextNode(child));
+        } else {
+          el.appendChild(child);
+        }
+      }
+      return el;
+    }
+  };
+}
+
 function initializeRuntime()
 {
   // TODO "obs" or "ojs"? Inconsistent naming.
@@ -18623,6 +18650,7 @@ function initializeRuntime()
     // via DOM
   };
   window._ojs.runtime = createRuntime();
+  window._ojs.jsx = createQuartoJsxShim();
 }
 
 initializeRuntime();

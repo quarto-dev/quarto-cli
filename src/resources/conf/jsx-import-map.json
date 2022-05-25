@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "quarto-tsx/jsx-runtime": "./jsx-runtime.ts"
+  }
+}
