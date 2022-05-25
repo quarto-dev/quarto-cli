@@ -50,8 +50,11 @@ export function outputRecipe(
   // could be within metadata)
   let output = options.flags?.output;
   if (!output) {
-    const outputFile = format.pandoc[kOutputFile];
+    let outputFile = format.pandoc[kOutputFile];
     if (outputFile) {
+      if (!outputFile.match(/\..+$/) && format.render[kOutputExt]) {
+        outputFile = `${outputFile}.${format.render[kOutputExt]}`;
+      }
       if (isAbsolute(outputFile)) {
         output = outputFile;
       } else {
