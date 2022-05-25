@@ -227,6 +227,9 @@ async function findChrome(): Promise<string | undefined> {
           `HKCR\\${regKeys[i]}\\shell\\open\\command`,
           "(Default)",
         );
+        // TODO: simplify this
+        if (path) path = path.match(/".*"/);
+        if (path) path = path[0];
         if (path) break;
       }
     }
