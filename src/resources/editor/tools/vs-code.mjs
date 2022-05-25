@@ -18750,7 +18750,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Custom tools for navbar or sidebar",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document."
       ],
       "schema/external-schemas.yml": [
         {
@@ -18951,7 +18952,19 @@ var require_yaml_intelligence_resources = __commonJS({
         dot: "//",
         ojs: "//",
         mermaid: "%%"
-      }
+      },
+      "schema/document-ojs.yml": [
+        {
+          name: "ojs-engine",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
+          schema: "boolean",
+          description: "If `true`, force the presence of the OJS runtime. If `false`, force the absence instead.\nIf unset, the OJS runtime is included only if OJS cells are present in the document.\n"
+        }
+      ]
     };
   }
 });
