@@ -49,7 +49,7 @@ import {
 } from "./website-analytics.ts";
 import { kLanguageDefaults } from "../../../config/constants.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
-import { isHtmlOutput } from "../../../config/format.ts";
+import { isHtmlFileOutput } from "../../../config/format.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -167,7 +167,7 @@ export async function updateSearchIndex(
       }
 
       // if this isn't html then skip it
-      if (!isHtmlOutput(outputFile.format.pandoc)) {
+      if (!isHtmlFileOutput(outputFile.format.pandoc)) {
         return searchDocs;
       }
 

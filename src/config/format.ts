@@ -84,7 +84,10 @@ export function isHtmlDocOutput(format?: string | FormatPandoc) {
   ].includes(format);
 }
 
-export function isHtmlSlideOutput(format: string) {
+export function isHtmlSlideOutput(format?: string | FormatPandoc) {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
   return [
     "s5",
     "dzslides",

@@ -27,7 +27,7 @@ import {
 } from "../../../config/types.ts";
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 
-import { isHtmlCompatible, isHtmlOutput } from "../../../config/format.ts";
+import { isHtmlFileOutput } from "../../../config/format.ts";
 
 import {
   kIncludeInHeader,
@@ -120,7 +120,7 @@ export const websiteProjectType: ProjectType = {
     format: Format,
     temp: TempContext,
   ): Promise<FormatExtras> => {
-    if (isHtmlOutput(format.pandoc)) {
+    if (isHtmlFileOutput(format.pandoc)) {
       // navigation extras for bootstrap enabled formats
       const extras = formatHasBootstrap(format)
         ? await websiteNavigationExtras(project, source, flags, format, temp)
@@ -333,7 +333,7 @@ export async function websitePostRender(
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
   return outputFiles
     .filter((outputFile) => {
-      return isHtmlOutput(outputFile.format.pandoc);
+      return isHtmlFileOutput(outputFile.format.pandoc);
     })
     .map((outputFile) => {
       const contents = Deno.readTextFileSync(outputFile.file);
