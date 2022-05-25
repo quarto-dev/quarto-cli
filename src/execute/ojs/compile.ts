@@ -62,7 +62,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 
-import { MappedString, mappedString } from "../../core/mapped-text.ts";
+import { MappedString } from "../../core/mapped-text.ts";
 import { languagesInMarkdown } from "../engine-shared.ts";
 
 import {
@@ -107,11 +107,21 @@ export async function ojsCompile(
 ): Promise<OjsCompileResult> {
   const { markdown, project, ojsBlockLineNumbers } = options;
 
-  if (!isJavascriptCompatible(options.format)) {
+  // if ojs-engine is explicitly `false` or it's an unsupported format,
+  // do nothing
+  if (
+    !isJavascriptCompatible(options.format) ||
+    options.format.metadata?.["ojs-engine"] === false
+  ) {
     return { markdown: markdown };
   }
+
   const languages = languagesInMarkdown(markdown.value);
-  if (!languages.has("ojs") && !languages.has("dot")) {
+  // if ojs-engine is not explicitly `true` and we couldn't detect an ojs cell,
+  // do nothing
+  if (
+    (options.format.metadata?.["ojs-engine"] !== true) && !languages.has("ojs")
+  ) {
     return { markdown: markdown };
   }
 
@@ -645,18 +655,6 @@ export async function ojsCompile(
     ) {
       // The lua filter is in charge of this, we're a NOP.
       ls.push(cell.sourceVerbatim);
-    } else if (cell.cell_type?.language === "dot") {
-      const newCell = {
-        ...cell,
-        "cell_type": {
-          language: "ojs",
-        },
-        source: mappedString(cell.source, ["dot`\n", {
-          start: 0,
-          end: cell.source.value.length,
-        }, "\n`"]),
-      };
-      await handleOJSCell(newCell, ["dot", "cell-code"]);
     } else if (cell.cell_type?.language === "ojs") {
       await handleOJSCell(cell);
     } else {
