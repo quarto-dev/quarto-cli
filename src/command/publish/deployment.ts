@@ -5,10 +5,13 @@
 *
 */
 
-import { warning } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
+
+import * as colors from "fmt/colors.ts";
 
 import { prompt } from "cliffy/prompt/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
+import { Table } from "cliffy/table/table.ts";
 
 import {
   findProvider,
@@ -116,7 +119,7 @@ export async function publishDeployments(
     }
     const provider = findProvider(providerName);
     if (provider) {
-      const account = await resolveAccount(provider, !!options.prompt);
+      const account = await resolveAccount(provider, false);
       if (account) {
         for (const site of config[providerName]) {
           const target = await provider.resolveTarget(account, {
@@ -137,10 +140,29 @@ export async function publishDeployments(
   return deployments;
 }
 
-export function confirmDeployment(
-  _deployment: PublishDeployment,
+export async function confirmDeployment(
+  deployment: PublishDeployment,
 ): Promise<boolean> {
-  return Promise.resolve(true);
+  info(colors.bold("\n   Update published site:\n"));
+  const table: Table = Table.from([
+    [colors.bold("   Service"), deployment.provider.description],
+    [colors.bold("   Account"), deployment.account.name],
+    [
+      colors.bold("   Site"),
+      deployment.target?.site_url || "(Create new site)",
+    ],
+  ]);
+  info(table.toString());
+
+  const confirm = await Select.prompt({
+    message: "Confirm publish",
+    options: [
+      { name: "Publish existing", value: "update" },
+      { name: "Publish other", value: "other" },
+    ],
+  });
+
+  return confirm === "update";
 }
 
 export function chooseDeployment(

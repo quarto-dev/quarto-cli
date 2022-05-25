@@ -10,6 +10,8 @@ import { error } from "log/mod.ts";
 import { prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
+// TODO: how to handle no account on initial scan
+
 import {
   AccountToken,
   AccountTokenType,

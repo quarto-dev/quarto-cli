@@ -86,7 +86,7 @@ export async function updateProjectPublishConfig(
 }
 
 function normalizePublishConfig(config: ProjectPublish) {
-  const publish = ld.cloneDeep(config.publish) as ProjectPublish;
+  const publish = ld.cloneDeep(config) as ProjectPublish;
   Object.keys(publish).forEach((provider) => {
     if (typeof (publish[provider]) === "string") {
       publish[provider] = [publish[provider] as unknown as string];
