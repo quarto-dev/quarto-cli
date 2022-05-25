@@ -9,7 +9,7 @@ import { Command } from "cliffy/command/command.ts";
 import { ProjectContext } from "../../project/types.ts";
 
 export type PublishOptions = {
-  target: ProjectContext;
+  project: ProjectContext;
   render: boolean;
   prompt: boolean;
   ["site-id"]?: string;

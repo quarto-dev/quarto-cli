@@ -5,12 +5,9 @@
 *
 */
 
-import { info, warning } from "log/mod.ts";
-
-import * as colors from "fmt/colors.ts";
+import { warning } from "log/mod.ts";
 
 import { Select } from "cliffy/prompt/select.ts";
-import { Table } from "cliffy/table/table.ts";
 
 import { findProvider, PublishDeployment } from "../../publish/provider.ts";
 
@@ -67,7 +64,7 @@ export async function publishDeployments(
   providerFilter?: string,
 ): Promise<PublishDeployment[]> {
   const deployments: PublishDeployment[] = [];
-  const config = projectPublishConfig(options.target);
+  const config = projectPublishConfig(options.project);
   for (const providerName of Object.keys(config)) {
     if (providerFilter && (providerName !== providerFilter)) {
       continue;
@@ -107,6 +104,7 @@ export async function chooseDeployment(
   });
 
   const confirm = await Select.prompt({
+    indent: "",
     message: "Publish to destination:",
     options,
   });

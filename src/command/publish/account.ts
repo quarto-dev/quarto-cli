@@ -65,6 +65,7 @@ export async function accountPrompt(
   });
 
   const result = await prompt([{
+    indent: "",
     name: "token",
     message: `${provider.description} account:`,
     options,

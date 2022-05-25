@@ -5,6 +5,8 @@
 *
 */
 
+import { info } from "log/mod.ts";
+
 import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
 import { prompt } from "cliffy/prompt/mod.ts";
@@ -41,6 +43,7 @@ import { updateProjectPublishConfig } from "../../publish/config.ts";
 import { render, renderServices } from "../render/render-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { PublishRecord } from "../../publish/types.ts";
+import { renderProgress } from "../render/render-info.ts";
 
 export const publishCommand = withProviders(
   withPublishOptions(
@@ -64,12 +67,15 @@ async function publish(
   try {
     // render if requested
     if (options.render) {
-      const target = typeof (options.target) === "string"
-        ? options.target
-        : options.target.dir;
+      renderProgress("\nRendering for publish:\n");
       const services = renderServices();
       try {
-        const result = await render(target, { services });
+        const result = await render(options.project.dir, {
+          services,
+          flags: {
+            siteUrl: target?.url,
+          },
+        });
         if (result.error) {
           throw result.error;
         }
@@ -79,7 +85,7 @@ async function publish(
     }
 
     // get output dir
-    const outputDir = projectOutputDir(options.target);
+    const outputDir = projectOutputDir(options.project);
 
     // publish
     const publishedTarget = await provider.publish(
@@ -88,7 +94,7 @@ async function publish(
       target,
     );
     if (publishedTarget) {
-      await updateProjectPublishConfig(options.target, {
+      await updateProjectPublishConfig(options.project, {
         [provider.name]: [publishedTarget],
       });
     }
@@ -203,7 +209,7 @@ async function createPublishOptions(
     );
   }
   return {
-    target: project,
+    project: project,
     render: !!options.render,
     prompt: !!options.prompt,
     "site-id": options["site-id"],
