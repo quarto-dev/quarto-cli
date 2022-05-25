@@ -35,13 +35,14 @@
             ref: project-preview
 
 - name: publish
-  description: Project publishing configuration
+  description: Sites published from project
   schema:
     object:
       properties:
         netlify:
-          maybeArrayOf: string
-          description: Published Netlify site urls
+          arrayOf:
+            ref: publish-record
+        description: "Sites published to Netlify"
       additionalProperties: false
 
 - name: website

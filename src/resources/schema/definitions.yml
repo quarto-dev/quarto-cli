@@ -441,6 +441,17 @@
         number:
           description: Time (in seconds) after which to exit if there are no active clients
 
+- id: publish-record
+  object:
+    properties:
+      id:
+        string:
+          description: "Unique identifier for site"
+      url:
+        string:
+          description: "Published URL for site"
+    additionalProperties: false
+
 - id: base-website
   object:
     properties:

@@ -6,10 +6,13 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
+import { Select } from "cliffy/prompt/select.ts";
+import { prompt } from "cliffy/prompt/mod.ts";
 
 import {
+  AccountToken,
+  findProvider,
   kPublishProviders,
-  PublishDeployment,
   PublishProvider,
 } from "../../publish/provider.ts";
 
@@ -29,18 +32,15 @@ import {
   withPublishOptions,
 } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";
-import { handleUnauthorized } from "./account.ts";
+import {
+  AccountPrompt,
+  handleUnauthorized,
+  resolveAccount,
+} from "./account.ts";
 import { updateProjectPublishConfig } from "../../publish/config.ts";
 import { render, renderServices } from "../render/render-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-
-// TODO: implement deployments functions
-// TODO: netlify methods
-
-// TODO: render result / quarto inspect for publish (see R package)
-// TOOO: site-url for render
-
-// TODO: render (w/ no-render message)
+import { PublishRecord } from "../../publish/types.ts";
 
 export const publishCommand = withProviders(
   withPublishOptions(
@@ -56,10 +56,11 @@ export const publishCommand = withProviders(
 );
 
 async function publish(
-  deployment: PublishDeployment,
+  provider: PublishProvider,
+  account: AccountToken,
   options: PublishOptions,
+  target?: PublishRecord,
 ): Promise<void> {
-  const provider = deployment.provider;
   try {
     // render if requested
     if (options.render) {
@@ -81,19 +82,23 @@ async function publish(
     const outputDir = projectOutputDir(options.target);
 
     // publish
-    const publishedTarget = await provider.publish(outputDir, deployment);
+    const publishedTarget = await provider.publish(
+      outputDir,
+      account,
+      target,
+    );
     if (publishedTarget) {
       await updateProjectPublishConfig(options.target, {
-        [deployment.provider.name]: [publishedTarget.site_id],
+        [provider.name]: [publishedTarget],
       });
     }
   } catch (err) {
     // attempt to recover from unauthorized
     if (provider.isUnauthorized(err) && options.prompt) {
-      if (await handleUnauthorized(deployment)) {
+      if (await handleUnauthorized(provider, account)) {
         if (await provider.authorizeToken()) {
           // recursve after re-authorization
-          return await publish(deployment, options);
+          return await publish(provider, account, options, target);
         }
       }
     } else {
@@ -126,13 +131,62 @@ async function publishAction(
   provider?: PublishProvider,
 ) {
   await initYamlIntelligence();
+
+  // coalesce options
   const publishOptions = await createPublishOptions(options, path);
+
+  // helper to publish (w/ account confirmation)
+  const doPublish = async (
+    publishProvider: PublishProvider,
+    accountPrompt: AccountPrompt,
+    publishTarget?: PublishRecord,
+  ) => {
+    const account = await resolveAccount(
+      publishProvider,
+      publishOptions.prompt ? accountPrompt : "never",
+    );
+    if (account) {
+      await publish(
+        publishProvider,
+        account,
+        publishOptions,
+        publishTarget,
+      );
+    }
+  };
+
+  // see if we are redeploying
   const deployment = await resolveDeployment(
     publishOptions,
     provider?.name,
   );
   if (deployment) {
-    await publish(deployment, publishOptions);
+    // existing deployment
+    await doPublish(deployment.provider, "multiple", deployment.target);
+  } else if (publishOptions.prompt) {
+    // new deployment, determine provider if needed
+    if (!provider) {
+      // select provider
+      const result = await prompt([{
+        name: "provider",
+        message: "Select destination:",
+        options: kPublishProviders.map((provider) => ({
+          name: provider.description,
+          value: provider.name,
+        })),
+        type: Select,
+      }]);
+      if (result.provider) {
+        provider = findProvider(result.provider);
+      }
+    }
+    if (provider) {
+      await doPublish(provider, "always");
+    }
+  } else {
+    throw new Error(
+      "No re-publishing target found (--no-prompt requires an existing 'publish' config to update)",
+    );
   }
 }
 

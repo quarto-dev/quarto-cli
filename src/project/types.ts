@@ -11,6 +11,7 @@ import { mergeConfigs } from "../core/config.ts";
 import { isRStudio } from "../core/platform.ts";
 import { findOpenPort, kLocalhost, waitForPort } from "../core/port.ts";
 import { TempContext } from "../core/temp-types.ts";
+import { ProjectPublish } from "../publish/types.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
@@ -44,8 +45,6 @@ export interface ProjectContext {
     temp: TempContext,
   ) => Promise<FormatExtras>;
 }
-
-export type ProjectPublish = Record<string, string[]>;
 
 export interface ProjectConfig {
   project: {

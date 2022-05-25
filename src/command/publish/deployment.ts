@@ -9,15 +9,10 @@ import { info, warning } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { prompt } from "cliffy/prompt/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
 import { Table } from "cliffy/table/table.ts";
 
-import {
-  findProvider,
-  kPublishProviders,
-  PublishDeployment,
-} from "../../publish/provider.ts";
+import { findProvider, PublishDeployment } from "../../publish/provider.ts";
 
 import { projectPublishConfig } from "../../publish/config.ts";
 
@@ -38,7 +33,7 @@ export async function resolveDeployment(
     const siteId = options["site-id"];
     if (siteId) {
       const deployment = deployments.find((deployment) => {
-        return deployment.target?.site_id === siteId;
+        return deployment.target?.id === siteId;
       });
       if (deployment) {
         return deployment;
@@ -47,62 +42,22 @@ export async function resolveDeployment(
           `No previous publish with site-id ${siteId} was found`,
         );
       }
+    } else if (options.prompt) {
+      return await chooseDeployment(deployments);
     } else if (deployments.length === 1) {
-      if (!options.prompt) {
-        return deployments[0];
-      } else {
-        if (await confirmDeployment(deployments[0])) {
-          return deployments[0];
-        }
-      }
+      return deployments[0];
     } else {
-      if (options.prompt) {
-        const deployment = await chooseDeployment(deployments);
-        if (deployment) {
-          return deployment;
-        }
-      } else {
-        throw new Error(
-          `Multiple previous site publishes exists (specify one with --site-id when using --no-prompt)`,
-        );
-      }
+      throw new Error(
+        `Multiple previous site publishes exists (specify one with --site-id when using --no-prompt)`,
+      );
     }
-  }
-
-  // if we get this far then an existing deployment has not been chosen,
-  // if --no-prompt is specified then this is an error state
-  if (!options.prompt) {
-    throw new Error(
-      `No previous publishes available to re-publish (previous publish required with --no-prompt)`,
-    );
-  }
-
-  // determine provider
-  let provider = providerFilter ? findProvider(providerFilter) : undefined;
-  if (!provider) {
-    // select provider
-    const result = await prompt([{
-      name: "provider",
-      message: "Select destination:",
-      options: kPublishProviders.map((provider) => ({
-        name: provider.description,
-        value: provider.name,
-      })),
-      type: Select,
-    }]);
-    if (result.provider) {
-      provider = findProvider(result.provider);
-    }
-  }
-
-  if (provider) {
-    // determine account
-    const account = await resolveAccount(provider, !!options.prompt);
-    if (account) {
-      return {
-        provider,
-        account,
-      };
+  } else if (!options.prompt) {
+    // if we get this far then an existing deployment has not been chosen,
+    // if --no-prompt is specified then this is an error state
+    if (!options.prompt) {
+      throw new Error(
+        `No previous publishes available to re-publish (previous publish required with --no-prompt)`,
+      );
     }
   }
 }
@@ -112,24 +67,21 @@ export async function publishDeployments(
   providerFilter?: string,
 ): Promise<PublishDeployment[]> {
   const deployments: PublishDeployment[] = [];
-  const config = await projectPublishConfig(options.target);
+  const config = projectPublishConfig(options.target);
   for (const providerName of Object.keys(config)) {
     if (providerFilter && (providerName !== providerFilter)) {
       continue;
     }
     const provider = findProvider(providerName);
     if (provider) {
-      const account = await resolveAccount(provider, false);
-      if (account) {
-        for (const site of config[providerName]) {
-          const target = await provider.resolveTarget(account, {
-            site_id: site,
-          });
-          deployments.push({
-            provider,
-            account,
-            target,
-          });
+      // try to update urls if we have an account to bind to
+      const account = await resolveAccount(provider, "never");
+      for (const record of config[providerName]) {
+        if (account) {
+          const target = await provider.resolveTarget(account, record);
+          deployments.push({ provider, target });
+        } else {
+          deployments.push({ provider, target: record });
         }
       }
     } else {
@@ -140,33 +92,28 @@ export async function publishDeployments(
   return deployments;
 }
 
-export async function confirmDeployment(
-  deployment: PublishDeployment,
-): Promise<boolean> {
-  info(colors.bold("\n   Update published site:\n"));
-  const table: Table = Table.from([
-    [colors.bold("   Service"), deployment.provider.description],
-    [colors.bold("   Account"), deployment.account.name],
-    [
-      colors.bold("   Site"),
-      deployment.target?.site_url || "(Create new site)",
-    ],
-  ]);
-  info(table.toString());
-
-  const confirm = await Select.prompt({
-    message: "Confirm publish",
-    options: [
-      { name: "Publish existing", value: "update" },
-      { name: "Publish other", value: "other" },
-    ],
+export async function chooseDeployment(
+  depoyments: PublishDeployment[],
+): Promise<PublishDeployment | undefined> {
+  const options = depoyments.map((deployment) => {
+    return {
+      name: `${deployment.target.url} (${deployment.provider.description})`,
+      value: deployment.target.url,
+    };
+  });
+  options.push({
+    name: "Publish to another location...",
+    value: "other",
   });
 
-  return confirm === "update";
-}
+  const confirm = await Select.prompt({
+    message: "Publish to destination:",
+    options,
+  });
 
-export function chooseDeployment(
-  _depoyments: PublishDeployment[],
-): Promise<PublishDeployment | undefined> {
-  return Promise.resolve(undefined);
+  if (confirm !== "other") {
+    return depoyments.find((deployment) => deployment.target.url === confirm);
+  } else {
+    return undefined;
+  }
 }

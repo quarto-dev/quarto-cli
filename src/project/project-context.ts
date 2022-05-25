@@ -29,7 +29,6 @@ import {
   kProjectType,
   ProjectConfig,
   ProjectContext,
-  ProjectPublish,
 } from "./types.ts";
 
 import { isYamlPath, readYaml } from "../core/yaml.ts";
@@ -80,6 +79,7 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
+import { ProjectPublish } from "../publish/types.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed

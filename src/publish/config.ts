@@ -16,14 +16,15 @@ import {
   projectConfigFile,
   projectPublishFile,
 } from "../project/project-shared.ts";
-import { ProjectContext, ProjectPublish } from "../project/types.ts";
+import { ProjectContext } from "../project/types.ts";
 import { lines } from "../core/text.ts";
+import { ProjectPublish } from "./types.ts";
 
 export function projectPublishConfig(
   project: ProjectContext,
 ): ProjectPublish {
   if (project?.config?.publish) {
-    return normalizePublishConfig(project.config.publish);
+    return project.config.publish;
   } else {
     return {} as ProjectPublish;
   }
@@ -36,9 +37,8 @@ export async function updateProjectPublishConfig(
   const projectDir = target.dir;
   const publishFile = projectPublishFile(projectDir);
   if (publishFile) {
-    const baseConfig = normalizePublishConfig(
-      (publishFile ? readYaml(publishFile) : {}) as ProjectPublish,
-    );
+    const baseConfig =
+      (publishFile ? readYaml(publishFile) : {}) as ProjectPublish;
     const updatedConfig = mergeConfigs(baseConfig, config);
     Deno.writeTextFileSync(
       publishFile,
@@ -83,16 +83,6 @@ export async function updateProjectPublishConfig(
     }
     Deno.writeTextFileSync(projConfig, updatedYamlLines.join("\n"));
   }
-}
-
-function normalizePublishConfig(config: ProjectPublish) {
-  const publish = ld.cloneDeep(config) as ProjectPublish;
-  Object.keys(publish).forEach((provider) => {
-    if (typeof (publish[provider]) === "string") {
-      publish[provider] = [publish[provider] as unknown as string];
-    }
-  });
-  return publish;
 }
 
 function stringifyPublishConfig(config: Metadata, indent: number) {

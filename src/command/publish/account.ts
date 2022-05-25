@@ -10,18 +10,17 @@ import { error } from "log/mod.ts";
 import { prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
-// TODO: how to handle no account on initial scan
-
 import {
   AccountToken,
   AccountTokenType,
-  PublishDeployment,
   PublishProvider,
 } from "../../publish/provider.ts";
 
+export type AccountPrompt = "always" | "never" | "multiple";
+
 export async function resolveAccount(
   provider: PublishProvider,
-  prompt: boolean,
+  prompt: AccountPrompt,
 ) {
   // see what tyep of token we are going to use
   let token: AccountToken | undefined;
@@ -30,15 +29,12 @@ export async function resolveAccount(
   const accounts = await provider.accountTokens();
 
   // if we aren't prompting then we need to have one at the ready
-  if (!prompt) {
-    token = accounts[0];
-    if (!token) {
-      throw new Error(
-        `No configured account available (account required for publish with --no-prompt)`,
-      );
-    }
+  if (prompt === "never") {
+    return accounts[0];
+  } else if (prompt === "multiple" && accounts.length === 1) {
+    return accounts[0];
   } else {
-    // prompot for account to publish with
+    // prompt for account to publish with
     if (accounts.length > 0) {
       token = await accountPrompt(provider, accounts);
     }
@@ -49,9 +45,9 @@ export async function resolveAccount(
         token = await provider.authorizeToken();
       }
     }
-  }
 
-  return token;
+    return token;
+  }
 }
 
 export async function accountPrompt(
@@ -111,17 +107,18 @@ export async function reauthorizePrompt(
 }
 
 export async function handleUnauthorized(
-  deployment: PublishDeployment,
+  provider: PublishProvider,
+  account: AccountToken,
 ) {
-  if (deployment.account.type === AccountTokenType.Environment) {
+  if (account.type === AccountTokenType.Environment) {
     error(
-      `Unable to authenticate with the provided ${deployment.account.name}. Please be sure this token is valid.`,
+      `Unable to authenticate with the provided ${account.name}. Please be sure this token is valid.`,
     );
     return false;
-  } else if (deployment.account.type === AccountTokenType.Authorized) {
+  } else if (account.type === AccountTokenType.Authorized) {
     return await reauthorizePrompt(
-      deployment.provider,
-      deployment.account.name,
+      provider,
+      account.name,
     );
   }
 }

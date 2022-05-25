@@ -17,11 +17,10 @@ import {
 import {
   AccountToken,
   AccountTokenType,
-  PublishDeployment,
   PublishProvider,
-  PublishTarget,
 } from "../provider.ts";
 import { ApiError } from "../../publish/netlify/api/index.ts";
+import { PublishRecord } from "../types.ts";
 
 export const netlifyProvider: PublishProvider = {
   name: "netlify",
@@ -67,19 +66,33 @@ async function authorizeToken() {
   }
 }
 
-export function resolveTarget(_token: AccountToken, target: PublishTarget) {
-  return Promise.resolve(target);
+export async function resolveTarget(
+  account: AccountToken,
+  target: PublishRecord,
+) {
+  const client = new NetlifyClient({
+    TOKEN: account.token,
+  });
+  const site = await client.site.getSite({ siteId: target.id });
+  if (site?.url) {
+    target.url = site.url;
+  }
+  return target;
 }
 
-async function publish(_target: string, deployment: PublishDeployment) {
+async function publish(
+  _target: string,
+  account: AccountToken,
+  target?: PublishRecord,
+) {
   const client = new NetlifyClient({
-    TOKEN: deployment.account.token,
+    TOKEN: account.token,
   });
 
   const sites = await client.site.listSites({});
 
   console.log(JSON.stringify(sites, undefined, 2));
-  return deployment.target!;
+  return target!;
 }
 
 function isUnauthorized(err: Error) {

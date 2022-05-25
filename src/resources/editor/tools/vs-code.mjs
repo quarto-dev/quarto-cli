@@ -8790,6 +8790,24 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "publish-record",
+          object: {
+            properties: {
+              id: {
+                string: {
+                  description: "Unique identifier for site"
+                }
+              },
+              url: {
+                string: {
+                  description: "Published URL for site"
+                }
+              }
+            },
+            additionalProperties: false
+          }
+        },
+        {
           id: "base-website",
           object: {
             properties: {
@@ -16157,14 +16175,16 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "publish",
-          description: "Project publishing configuration",
+          description: "Sites published from project",
           schema: {
             object: {
               properties: {
                 netlify: {
-                  maybeArrayOf: "string",
-                  description: "Published Netlify site urls"
-                }
+                  arrayOf: {
+                    ref: "publish-record"
+                  }
+                },
+                description: "Sites published to Netlify"
               },
               additionalProperties: false
             }
@@ -18750,7 +18770,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Custom tools for navbar or sidebar",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Unique identifier for site",
+        "Published URL for site"
       ],
       "schema/external-schemas.yml": [
         {

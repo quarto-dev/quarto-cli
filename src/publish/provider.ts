@@ -6,17 +6,13 @@
 */
 
 import { netlifyProvider } from "./netlify/netlify.ts";
+import { PublishRecord } from "./types.ts";
 
 export const kPublishProviders = [netlifyProvider];
 
 export function findProvider(name: string) {
   return kPublishProviders.find((provider) => provider.name === name);
 }
-
-export type PublishTarget = {
-  site_id: string;
-  site_url?: string;
-};
 
 export enum AccountTokenType {
   Environment,
@@ -31,8 +27,7 @@ export type AccountToken = {
 
 export type PublishDeployment = {
   provider: PublishProvider;
-  account: AccountToken;
-  target?: PublishTarget;
+  target: PublishRecord;
 };
 
 export interface PublishProvider {
@@ -41,12 +36,13 @@ export interface PublishProvider {
   accountTokens: () => Promise<AccountToken[]>;
   authorizeToken: () => Promise<AccountToken | undefined>;
   resolveTarget: (
-    token: AccountToken,
-    target: PublishTarget,
-  ) => Promise<PublishTarget>;
+    account: AccountToken,
+    target: PublishRecord,
+  ) => Promise<PublishRecord>;
   publish: (
-    target: string,
-    deployment: PublishDeployment,
-  ) => Promise<PublishTarget>;
+    output: string,
+    account: AccountToken,
+    target?: PublishRecord,
+  ) => Promise<PublishRecord>;
   isUnauthorized: (error: Error) => boolean;
 }
