@@ -31,6 +31,7 @@
     "lodash/": "https://cdn.skypack.dev/lodash@4.17.21/",
     "acorn/acorn": "https://cdn.skypack.dev/acorn@7.4.1",
     "acorn/walk": "https://cdn.skypack.dev/acorn-walk@7.2.0",
+    "semver/": "https://deno.land/x/semver@v1.4.0/",
     "https://deno.land/std@0.105.0/": "https://deno.land/std@0.138.0/",
     "https://deno.land/std@0.101.0/": "https://deno.land/std@0.138.0/",
     "https://dev.jspm.io/": "./resources/vendor/dev-jspm-io/",
