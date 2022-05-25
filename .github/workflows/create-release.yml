@@ -188,6 +188,8 @@ jobs:
 
     - name: Prepare Distribution
       run: |
+        security find-identity
+        security find-certificate -a
         pushd package/src/
         ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
         popd
