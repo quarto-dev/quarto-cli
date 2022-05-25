@@ -5,8 +5,6 @@
 *
 */
 
-import { info } from "log/mod.ts";
-
 import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
 import { prompt } from "cliffy/prompt/mod.ts";
@@ -28,11 +26,7 @@ import {
   projectIsWebsite,
 } from "../../project/project-context.ts";
 
-import {
-  PublishCommandOptions,
-  PublishOptions,
-  withPublishOptions,
-} from "./options.ts";
+import { PublishCommandOptions, PublishOptions } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";
 import {
   AccountPrompt,
@@ -46,16 +40,32 @@ import { PublishRecord } from "../../publish/types.ts";
 import { renderProgress } from "../render/render-info.ts";
 
 export const publishCommand = withProviders(
-  withPublishOptions(
-    new Command<PublishCommandOptions>()
-      .name("publish")
-      .description(
-        "Publish a document or project to a variety of destinations.",
-      )
-      .hidden(),
-  ).action(async (options: PublishCommandOptions, path?: string) => {
-    await publishAction(options, path);
-  }),
+  // deno-lint-ignore no-explicit-any
+  new Command<any>()
+    .name("publish")
+    .hidden()
+    .description(
+      "Publish a document or project to a variety of destinations.",
+    )
+    .arguments("[path:string]")
+    .option(
+      "--no-render",
+      "Do not render before publishing.",
+      { global: true },
+    )
+    .option(
+      "--no-prompt",
+      "Do not prompt to confirm publishing destination",
+      { global: true },
+    )
+    .option(
+      "--site-id <id:string>",
+      "Identifier of site to publish",
+      { global: true },
+    )
+    .action(async (options: PublishCommandOptions, path?: string) => {
+      await publishAction(options, path);
+    }),
 );
 
 async function publish(
@@ -119,13 +129,12 @@ function withProviders(
   for (const provider of kPublishProviders) {
     command.command(
       provider.name,
-      withPublishOptions(
-        new Command<PublishCommandOptions>()
-          .name(provider.name)
-          .description(provider.description),
-      ).action(async (options: PublishCommandOptions, path?: string) => {
-        await publishAction(options, path, provider);
-      }),
+      new Command<PublishCommandOptions>()
+        .name(provider.name)
+        .description(provider.description)
+        .action(async (options: PublishCommandOptions, path?: string) => {
+          await publishAction(options, path, provider);
+        }),
     );
   }
   return command;
@@ -212,7 +221,7 @@ async function createPublishOptions(
     project: project,
     render: !!options.render,
     prompt: !!options.prompt,
-    "site-id": options["site-id"],
+    siteId: options.siteId,
   };
 }
 

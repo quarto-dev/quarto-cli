@@ -91,7 +91,8 @@ async function publish(
 
   const sites = await client.site.listSites({});
 
-  console.log(JSON.stringify(sites, undefined, 2));
+  console.log("publish completed");
+
   return target!;
 }
 

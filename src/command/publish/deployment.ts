@@ -8,6 +8,7 @@
 import { warning } from "log/mod.ts";
 
 import { Select } from "cliffy/prompt/select.ts";
+import { Confirm } from "cliffy/prompt/confirm.ts";
 
 import { findProvider, PublishDeployment } from "../../publish/provider.ts";
 
@@ -27,12 +28,21 @@ export async function resolveDeployment(
   );
   if (deployments && deployments.length > 0) {
     // if a site-id was passed then try to match it
-    const siteId = options["site-id"];
+    const siteId = options.siteId;
     if (siteId) {
       const deployment = deployments.find((deployment) => {
-        return deployment.target?.id === siteId;
+        return deployment.target.id === siteId;
       });
       if (deployment) {
+        if (options.prompt) {
+          const confirmed = await Confirm.prompt({
+            message: `Update site at ${deployment.target.url}?`,
+            default: true,
+          });
+          if (!confirmed) {
+            throw new Error();
+          }
+        }
         return deployment;
       } else {
         throw new Error(
