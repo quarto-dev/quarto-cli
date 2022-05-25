@@ -1,0 +1,7 @@
+- name: ojs-engine
+  tags:
+    formats: [$html-files]
+  schema: boolean
+  description: |
+    If `true`, force the presence of the OJS runtime. If `false`, force the absence instead.
+    If unset, the OJS runtime is included only if OJS cells are present in the document.
