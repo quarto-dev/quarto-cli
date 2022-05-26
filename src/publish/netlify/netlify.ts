@@ -177,6 +177,7 @@ async function publish(
         url: site.ssl_url || site.url!,
       };
     });
+    info("");
   }
   target = target!;
 
