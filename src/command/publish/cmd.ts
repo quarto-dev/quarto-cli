@@ -40,6 +40,7 @@ import { PublishRecord } from "../../publish/types.ts";
 import { renderProgress } from "../render/render-info.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
+import { openUrl } from "../../core/shell.ts";
 
 export const publishCommand = withProviders(
   // deno-lint-ignore no-explicit-any
@@ -82,46 +83,55 @@ async function publish(
   target?: PublishRecord,
 ): Promise<void> {
   try {
-    // render if requested
-    if (options.render) {
-      renderProgress("\nRendering for publish:\n");
-      const services = renderServices();
-      try {
-        const result = await render(options.project.dir, {
-          services,
-          flags: {
-            siteUrl: target?.url,
-          },
-        });
-        if (result.error) {
-          throw result.error;
-        }
-      } finally {
-        services.cleanup();
-      }
-    }
-
     // get output dir
     const outputDir = projectOutputDir(options.project);
 
+    // create render function
+    const renderForPublish = async (siteUrl: string) => {
+      if (options.render) {
+        renderProgress("Rendering for publish:\n");
+        const services = renderServices();
+        try {
+          const result = await render(options.project.dir, {
+            services,
+            flags: {
+              siteUrl,
+            },
+          });
+          if (result.error) {
+            throw result.error;
+          }
+        } finally {
+          services.cleanup();
+        }
+      }
+      return outputDir;
+    };
+
     // publish
-    const publishedTarget = await provider.publish(
-      outputDir,
+    const [publishRecord, siteUrl] = await provider.publish(
       account,
+      renderForPublish,
       target,
     );
-    if (publishedTarget) {
+    if (publishRecord) {
       await updateProjectPublishConfig(options.project, {
-        [provider.name]: [publishedTarget],
+        [provider.name]: [publishRecord],
       });
+    }
+
+    // open browser if requested
+    if (options.browser) {
+      await openUrl(siteUrl.toString());
     }
   } catch (err) {
     // attempt to recover from unauthorized
     if (provider.isUnauthorized(err) && options.prompt) {
       if (await handleUnauthorized(provider, account)) {
-        if (await provider.authorizeToken()) {
+        const authorizedAccount = await provider.authorizeToken();
+        if (authorizedAccount) {
           // recursve after re-authorization
-          return await publish(provider, account, options, target);
+          return await publish(provider, authorizedAccount, options, target);
         }
       }
     } else {

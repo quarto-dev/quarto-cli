@@ -39,11 +39,11 @@ export interface PublishProvider {
   resolveTarget: (
     account: AccountToken,
     target: PublishRecord,
-  ) => Promise<PublishRecord>;
+  ) => Promise<PublishRecord | undefined>;
   publish: (
-    output: string,
     account: AccountToken,
+    render: (siteUrl: string) => Promise<string>,
     target?: PublishRecord,
-  ) => Promise<PublishRecord>;
+  ) => Promise<[PublishRecord, URL]>;
   isUnauthorized: (error: Error) => boolean;
 }

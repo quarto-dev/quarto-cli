@@ -106,11 +106,11 @@ export function resolveTarget(
 }
 
 function publish(
-  _outputDir: string,
   _account: AccountToken,
+  _render: (siteUrl: string) => Promise<string>,
   target?: PublishRecord,
-): Promise<PublishRecord> {
-  return Promise.resolve(target!);
+): Promise<[PublishRecord, URL]> {
+  return Promise.resolve([target!, new URL(target!.url!)]);
 }
 
 function isUnauthorized(_err: Error) {

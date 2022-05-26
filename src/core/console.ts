@@ -57,7 +57,7 @@ export function progressBar(total: number, prefixMessage?: string): {
 }
 
 export interface SpinnerOptions {
-  message: string;
+  message: string | (() => string);
   doneMessage?: string | boolean;
 }
 
@@ -76,17 +76,20 @@ export async function withSpinner(
 // A spinner in the console. Displays a message with a spinner
 // and when canceled can disappear or display a completed message.
 export function spinner(
-  status: string,
+  status: string | (() => string),
   timeInterval = 100,
 ): (finalMsg?: string | boolean) => void {
   // Used to spin the spinner
   let spin = 0;
 
+  // status fn
+  const statusFn = typeof (status) === "string" ? () => status : status;
+
   // Increment the spinner every timeInterval
   const id = setInterval(() => {
     // Display the message
     const char = kSpinnerChars[spin % kSpinnerChars.length];
-    const msg = `${spinContainer(char)} ${status}`;
+    const msg = `${spinContainer(char)} ${statusFn()}`;
     info(`\r${msg}`, {
       newline: false,
     });
@@ -106,7 +109,7 @@ export function spinner(
       completeMessage(finalMsg);
     } else {
       if (finalMsg !== false) {
-        completeMessage(status);
+        completeMessage(statusFn());
       }
     }
   };

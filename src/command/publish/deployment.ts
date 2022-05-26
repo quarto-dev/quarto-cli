@@ -86,7 +86,9 @@ export async function publishDeployments(
       for (const record of config[providerName]) {
         if (account) {
           const target = await provider.resolveTarget(account, record);
-          deployments.push({ provider, target });
+          if (target) {
+            deployments.push({ provider, target });
+          }
         } else {
           deployments.push({ provider, target: record });
         }
