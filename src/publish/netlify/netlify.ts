@@ -5,14 +5,7 @@
 *
 */
 
-import { NetlifyClient } from "./api/index.ts";
-
-import {
-  authorizeNetlifyAccessToken,
-  kNetlifyAuthTokenVar,
-  netlifyAccessToken,
-  netlifyEnvironmentAuthToken,
-} from "../../publish/netlify/account.ts";
+import { AccessToken, NetlifyClient, Ticket } from "./api/index.ts";
 
 import {
   AccountToken,
@@ -21,9 +14,19 @@ import {
 } from "../provider.ts";
 import { ApiError } from "../../publish/netlify/api/index.ts";
 import { PublishRecord } from "../types.ts";
+import {
+  AuthorizationProvider,
+  authorizeAccessToken,
+  readAccessToken,
+} from "../account.ts";
+import { quartoConfig } from "../../core/quarto.ts";
+
+export const kNetlify = "netlify";
+
+export const kNetlifyAuthTokenVar = "NETLIFY_AUTH_TOKEN";
 
 export const netlifyProvider: PublishProvider = {
-  name: "netlify",
+  name: kNetlify,
   description: "Netlify",
   accountTokens,
   authorizeToken,
@@ -33,22 +36,22 @@ export const netlifyProvider: PublishProvider = {
 };
 
 function accountTokens() {
-  const envToken = netlifyEnvironmentAuthToken();
-  const accessToken = netlifyAccessToken();
+  const envTk = environmentAuthToken();
+  const accessTk = accessToken();
 
   const accounts: AccountToken[] = [];
-  if (envToken) {
+  if (envTk) {
     accounts.push({
       type: AccountTokenType.Environment,
       name: kNetlifyAuthTokenVar,
-      token: envToken,
+      token: envTk,
     });
   }
-  if (accessToken?.access_token) {
+  if (accessTk?.access_token) {
     accounts.push({
       type: AccountTokenType.Authorized,
-      name: accessToken.email!,
-      token: accessToken?.access_token,
+      name: accessTk.email!,
+      token: accessTk?.access_token,
     });
   }
 
@@ -66,7 +69,45 @@ async function authorizeToken() {
   }
 }
 
-export async function resolveTarget(
+function environmentAuthToken() {
+  return Deno.env.get(kNetlifyAuthTokenVar);
+}
+
+function accessToken(): AccessToken | undefined {
+  return readAccessToken<AccessToken>(kNetlify);
+}
+
+async function authorizeNetlifyAccessToken(): Promise<
+  AccessToken | undefined
+> {
+  // create provider for authorization
+  const client = new NetlifyClient({});
+  const clientId = (await quartoConfig.dotenv())["NETLIFY_APP_CLIENT_ID"];
+  const provider: AuthorizationProvider<AccessToken, Ticket> = {
+    name: kNetlify,
+    createTicket: function (): Promise<Ticket> {
+      return client.ticket.createTicket({
+        clientId,
+      }) as unknown as Promise<Ticket>;
+    },
+    authorizationUrl: function (ticket: Ticket): string {
+      return `https://app.netlify.com/authorize?response_type=ticket&ticket=${ticket.id}`;
+    },
+    checkTicket: function (ticket: Ticket): Promise<Ticket> {
+      return client.ticket.showTicket({ ticketId: ticket.id! });
+    },
+    exchangeTicket: function (ticket: Ticket): Promise<AccessToken> {
+      return client.accessToken
+        .exchangeTicket({
+          ticketId: ticket.id!,
+        }) as unknown as Promise<AccessToken>;
+    },
+  };
+
+  return authorizeAccessToken(provider);
+}
+
+async function resolveTarget(
   account: AccountToken,
   target: PublishRecord,
 ) {

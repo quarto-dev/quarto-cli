@@ -78,13 +78,14 @@ export async function accountPrompt(
 
 export async function authorizePrompt(provider: PublishProvider) {
   const result = await prompt([{
+    indent: "",
     name: "confirmed",
     message: "Authorize account",
     default: true,
     hint:
       `In order to publish to ${provider.description} you need to authorize your account.\n` +
-      `   Please be sure you are logged into the correct ${provider.description} account in your\n` +
-      "   default web browser, then press Enter or 'Y' to authorize.",
+      `  Please be sure you are logged into the correct ${provider.description} account in your\n` +
+      "  default web browser, then press Enter or 'Y' to authorize.",
     type: Confirm,
   }]);
   return !!result.confirmed;
@@ -95,13 +96,14 @@ export async function reauthorizePrompt(
   accountName: string,
 ) {
   const result = await prompt([{
+    indent: "",
     name: "confirmed",
     message: "Re-authorize account",
     default: true,
     hint:
       `The authorization saved for account ${accountName} is no longer valid.\n` +
-      `   Please be sure you are logged into the correct ${provider.description} account in your\n` +
-      "   default web browser, then press Enter to re-authorize.",
+      `  Please be sure you are logged into the correct ${provider.description} account in your\n` +
+      "  default web browser, then press Enter to re-authorize.",
     type: Confirm,
   }]);
   return !!result.confirmed;

@@ -7,8 +7,6 @@
 
 import { stringify } from "encoding/yaml.ts";
 
-import * as ld from "../core/lodash.ts";
-
 import { Metadata } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { readYaml } from "../core/yaml.ts";

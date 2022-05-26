@@ -183,6 +183,7 @@ async function publishAction(
     if (!provider) {
       // select provider
       const result = await prompt([{
+        indent: "",
         name: "provider",
         message: "Select destination:",
         options: kPublishProviders.map((provider) => ({
