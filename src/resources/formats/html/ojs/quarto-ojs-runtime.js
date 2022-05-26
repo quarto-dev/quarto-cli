@@ -17451,7 +17451,7 @@ async function defaultResolveImportPath(path) {
   specifier to mean an ES module; If the extension is "ojs", we take
   the specifier to mean an "ojs" module (a collection of observable
   statements packaged into a module, suitable for reuse). If the 
-  extension is "ts", then this is an import that was actually transpiled 
+  extension is "ts" or "tsx", then this is an import that was actually transpiled 
   into js during quarto render, and we change the extension to .js and
   resolve that. Finally, if the extension is "qmd", we take the specifier
   to mean an "implicit ojs module", equivalent to extracting all
@@ -17548,7 +17548,7 @@ function importPathResolver(paths, localResolverMap) {
     } else {
       // we have a relative URL here
       const resourceURL = new URL(path, window.location);
-      moduleType = resourceURL.pathname.match(/\.(ojs|js|ts|qmd)$/)[1];
+      moduleType = resourceURL.pathname.match(/\.(ojs|js|ts|tsx|qmd)$/)[1];
 
       // resolve path according to quarto path resolution rules.
       if (path.startsWith("/")) {
@@ -17560,9 +17560,9 @@ function importPathResolver(paths, localResolverMap) {
       }
     }
 
-    if (moduleType === "ts") {
+    if (moduleType === "ts" || moduleType === "tsx") {
       try {
-        const m = await import(importPath.replace(/\.ts$/, ".js"));
+        const m = await import(importPath.replace(/\.ts$/, ".js").replace(/\.tsx$/, ".js"));
         return es6ImportAsObservableModule(m);
       } catch (e) {
         // record the error on the browser console to make debugging
@@ -17800,6 +17800,138 @@ class OJSConnector {
     };
     return this.interpretWithRunner(src, runCell);
   }
+}
+
+function createHtmlElement(tag, attrs, ...children) {
+  const el = document.createElement(tag); // we should try to play nice with svg etc a la d3
+  for (const [key, val] of Object.entries(attrs || {})) {
+    el.setAttribute(key, val);
+  }
+  while (children.length) {
+    const child = children.shift();
+    if (Array.isArray(child)) {
+      children.unshift(...child);
+    } else if (typeof child === "string") {
+      el.appendChild(document.createTextNode(child));
+    } else {
+      el.appendChild(child);
+    }
+  }
+  return el;
+}
+
+function createNamespacedElement(ns, tag, attrs, ...children) {
+  const el = document.createElementNS(ns, tag); // we should try to play nice with svg etc a la d3
+  for (const [key, val] of Object.entries(attrs || {})) {
+    el.setAttribute(key, val);
+  }
+  while (children.length) {
+    const child = children.shift();
+    if (Array.isArray(child)) {
+      children.unshift(...child);
+    } else if (typeof child === "string") {
+      el.appendChild(document.createTextNode(child));
+    } else {
+      el.appendChild(child);
+    }
+  }
+  return el;
+}
+
+const resolver = {
+  a: "svg",
+  animate: "svg",
+  animateMotion: "svg",
+  animateTransform: "svg",
+  circle: "svg",
+  clipPath: "svg",
+  defs: "svg",
+  desc: "svg",
+  discard: "svg",
+  ellipse: "svg",
+  feBlend: "svg",
+  feColorMatrix: "svg",
+  feComponentTransfer: "svg",
+  feComposite: "svg",
+  feConvolveMatrix: "svg",
+  feDiffuseLighting: "svg",
+  feDisplacementMap: "svg",
+  feDistantLight: "svg",
+  feDropShadow: "svg",
+  feFlood: "svg",
+  feFuncA: "svg",
+  feFuncB: "svg",
+  feFuncG: "svg",
+  feFuncR: "svg",
+  feGaussianBlur: "svg",
+  feImage: "svg",
+  feMerge: "svg",
+  feMergeNode: "svg",
+  feMorphology: "svg",
+  feOffset: "svg",
+  fePointLight: "svg",
+  feSpecularLighting: "svg",
+  feSpotLight: "svg",
+  feTile: "svg",
+  feTurbulence: "svg",
+  filter: "svg",
+  foreignObject: "svg",
+  g: "svg",
+  image: "svg",
+  line: "svg",
+  linearGradient: "svg",
+  marker: "svg",
+  mask: "svg",
+  metadata: "svg",
+  mpath: "svg",
+  path: "svg",
+  pattern: "svg",
+  polygon: "svg",
+  polyline: "svg",
+  radialGradient: "svg",
+  rect: "svg",
+  script: "svg",
+  set: "svg",
+  stop: "svg",
+  style: "svg",
+  svg: "svg",
+  switch: "svg",
+  symbol: "svg",
+  text: "svg",
+  textPath: "svg",
+  title: "svg",
+  tspan: "svg",
+  use: "svg",
+  view: "svg",  
+};
+
+const nss = {
+  "svg": "http://www.w3.org/2000/svg"
+};
+
+function resolveCreator(tag) {
+  const nsKey = resolver[tag];
+  if (nsKey === undefined) {
+    return createHtmlElement;
+  }
+  const namespace = nss[nsKey];
+
+  return function(tag, attrs, ...children) {
+    return createNamespacedElement(namespace, tag, attrs, children);
+  }
+}
+
+function createQuartoJsxShim()
+{
+  return {
+    createElement(tag, attrs, ...children) {
+      if (typeof tag === "function") {
+        return tag({...attrs, children });
+      }
+
+      return resolveCreator(tag)(tag, attrs, ...children);
+    }
+  };
 }
 
 /*global Shiny, $, DOMParser, MutationObserver, URL
@@ -18608,6 +18740,7 @@ function createRuntime() {
   return result;
 }
 
+
 function initializeRuntime()
 {
   // TODO "obs" or "ojs"? Inconsistent naming.
@@ -18623,6 +18756,7 @@ function initializeRuntime()
     // via DOM
   };
   window._ojs.runtime = createRuntime();
+  window._ojs.jsx = createQuartoJsxShim();
 }
 
 initializeRuntime();

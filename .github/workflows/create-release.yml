@@ -172,14 +172,6 @@ jobs:
 
     - uses: ./.github/workflows/actions/keychain
       with:
-        certificate-value: ${{ secrets.APPLE_SIGN_CERT }}
-        certificate-password: ${{ secrets.APPLE_SIGN_PW }}
-        keychain: 'build.keychain'
-        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
-        certificate-file: certificate.cer
-
-    - uses: ./.github/workflows/actions/keychain
-      with:
         certificate-value: ${{ secrets.APPLE_INSTALLER_P12 }}
         certificate-password: ${{ secrets.APPLE_INSTALLER_PW }}
         keychain: 'build.keychain'
