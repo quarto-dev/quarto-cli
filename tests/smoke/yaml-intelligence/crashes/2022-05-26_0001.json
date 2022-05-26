@@ -1,0 +1,19 @@
+{
+  "kind": "validation",
+  "context": {
+    "path": "~/Desktop/daily-log/2022/05/26/mybook/index.qmd",
+    "filetype": "markdown",
+    "embedded": false,
+    "formats": [],
+    "project_formats": [],
+    "engine": "markdown",
+    "line": "",
+    "code": "# Preface {.unnumbered}\n\nThis is a Quarto book.\n\nTo learn more about Quarto books visit <https://quarto.org/docs/books>.\n\n{{< include README.md >}}",
+    "position": {
+      "row": 0,
+      "column": 0
+    },
+    "explicit": false,
+    "client": "rstudio"
+  }
+}
