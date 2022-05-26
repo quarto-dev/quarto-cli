@@ -7,7 +7,7 @@ function quartoPreMetaInject()
     Meta = function(meta)
 
       -- injection awesomebox for captions, if needed
-      if preState.hasCallouts and isLatexOutput() then
+      if preState.hasCallouts and _quarto.format.isLatexOutput() then
         metaInjectLatex(meta, function(inject)
           inject(
             usePackageWithOption("tcolorbox", "many")

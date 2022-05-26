@@ -198,6 +198,7 @@ export interface FormatDependency {
   links?: { rel: string; href: string; type?: string }[];
   scripts?: DependencyFile[];
   stylesheets?: DependencyFile[];
+  head?: string;
   resources?: DependencyFile[];
 }
 

@@ -7,7 +7,7 @@ function delink()
   return {
     -- Removes links from any divs marked with 'delink' class
     Div = function(div)
-      if isHtmlOutput() and div.attr.classes:includes(kDelinkClass) then
+      if _quarto.format.isHtmlOutput() and div.attr.classes:includes(kDelinkClass) then
 
         -- remove the delink class 
         for i, clz in ipairs(div.attr.classes) do 

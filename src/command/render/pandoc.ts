@@ -16,7 +16,7 @@ import { encode as base64Encode } from "encoding/base64.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { Document } from "../../core/deno-dom.ts";
+import { Document, Element } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
@@ -25,6 +25,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import {
   DependencyFile,
   Format,
+  FormatDependency,
   FormatExtras,
   FormatPandoc,
   kBodyEnvelope,
@@ -115,7 +116,12 @@ import { TempContext } from "../../core/temp.ts";
 import { discoverResourceRefs } from "../../core/html.ts";
 
 import { kDefaultHighlightStyle } from "./constants.ts";
-import { HtmlPostProcessor, PandocOptions, RunPandocResult } from "./types.ts";
+import {
+  HtmlPostProcessor,
+  HtmlPostProcessResult,
+  PandocOptions,
+  RunPandocResult,
+} from "./types.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 import { selectInputPostprocessor } from "./layout.ts";
 import {
@@ -149,6 +155,11 @@ import {
 } from "../../core/date.ts";
 import { copyFileIfNewer } from "../../core/copy.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
+import { lines } from "../../core/lib/text.ts";
+import {
+  readAndInjectDependencies,
+  writeDependencies,
+} from "./pandoc-html-dependencies.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -253,6 +264,8 @@ export async function runPandoc(
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
+  const htmlDependenciesFile = options.temp.createFile();
+
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
     options.project?.formatExtras
@@ -286,6 +299,7 @@ export async function runPandoc(
       cwd,
       options.libDir,
       options.temp,
+      htmlDependenciesFile,
       options.project,
     );
 
@@ -599,12 +613,13 @@ export async function runPandoc(
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
   let pandocArgs = args;
-  const paramsJson = await filterParamsJson(
+  const paramsJson = filterParamsJson(
     pandocArgs,
     options,
     allDefaults,
     formatFilterParams,
     filterResultsFile,
+    htmlDependenciesFile,
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
@@ -845,6 +860,8 @@ export async function runPandoc(
     },
   );
 
+  // TODO: Process Dependencies
+
   // resolve resource files from metadata
   const resources: string[] = resourcesFromMetadata(
     options.format.metadata[kResources],
@@ -907,6 +924,7 @@ async function resolveExtras(
   inputDir: string,
   libDir: string,
   temp: TempContext,
+  htmlDependenciesFile: string,
   project?: ProjectContext,
 ) {
   // start with the merge
@@ -932,7 +950,30 @@ async function resolveExtras(
     );
 
     // resolve dependencies
-    extras = resolveDependencies(extras, inputDir, libDir, temp);
+    writeDependencies(htmlDependenciesFile, extras);
+
+    const dependenciesPostProcesor = (
+      doc: Document,
+      _inputMedata: Metadata,
+    ): Promise<HtmlPostProcessResult> => {
+      return readAndInjectDependencies(
+        htmlDependenciesFile,
+        inputDir,
+        libDir,
+        doc,
+      );
+    };
+
+    // Add a post processor to resolve dependencies
+    extras.html = extras.html || {};
+    extras.html[kHtmlPostprocessors] = extras.html?.[kHtmlPostprocessors] || [];
+    if (isHtmlFileOutput(format.pandoc)) {
+      extras.html[kHtmlPostprocessors]!.push(dependenciesPostProcesor);
+    }
+
+    // Remove the dependencies which will now process in the post
+    // processor
+    delete extras.html?.[kDependencies];
   } else {
     delete extras.html;
   }
@@ -943,128 +984,6 @@ async function resolveExtras(
     extras,
     format.pandoc,
   );
-
-  return extras;
-}
-
-export function resolveDependencies(
-  extras: FormatExtras,
-  inputDir: string,
-  libDir: string,
-  temp: TempContext,
-) {
-  // deep copy to not mutate caller's object
-  extras = ld.cloneDeep(extras);
-
-  // resolve dependencies
-  const metaTemplate = ld.template(
-    `<meta name="<%- name %>" content="<%- value %>"/>`,
-  );
-  const scriptTemplate = ld.template(
-    `<script <%= attribs %> src="<%- href %>"></script>`,
-  );
-  const stylesheetTempate = ld.template(
-    `<link <%= attribs %> href="<%- href %>" rel="stylesheet" />`,
-  );
-  const rawLinkTemplate = ld.template(
-    `<link href="<%- href %>" rel="<%- rel %>"<% if (type) { %> type="<%- type %>"<% } %> />`,
-  );
-
-  const lines: string[] = [];
-  const afterBodyLines: string[] = [];
-  if (extras.html?.[kDependencies]) {
-    const copiedDependencies: string[] = [];
-    for (const dependency of extras.html?.[kDependencies]!) {
-      // Ensure that we copy (and render HTML for) each named dependency only once
-      if (copiedDependencies.includes(dependency.name)) {
-        continue;
-      }
-
-      const dir = dependency.version
-        ? `${dependency.name}-${dependency.version}`
-        : dependency.name;
-      const targetDir = join(inputDir, libDir, dir);
-      const copyDep = (
-        file: DependencyFile,
-        // deno-lint-ignore no-explicit-any
-        template?: any,
-      ) => {
-        const targetPath = join(targetDir, file.name);
-        copyFileIfNewer(file.path, targetPath);
-        if (template) {
-          const attribs = file.attribs
-            ? Object.entries(file.attribs).map((entry) => {
-              const attrib = `${entry[0]}="${entry[1]}"`;
-              return attrib;
-            }).join(" ")
-            : "";
-          const href = join(libDir, dir, file.name);
-          if (file.afterBody) {
-            afterBodyLines.push(
-              template({ href: pathWithForwardSlashes(href), attribs }),
-            );
-          } else {
-            lines.push(
-              template({ href: pathWithForwardSlashes(href), attribs }),
-            );
-          }
-        }
-      };
-      if (dependency.meta) {
-        Object.keys(dependency.meta).forEach((name) => {
-          lines.push(metaTemplate({ name, value: dependency.meta![name] }));
-        });
-      }
-      if (dependency.scripts) {
-        dependency.scripts.forEach((script) => copyDep(script, scriptTemplate));
-      }
-      if (dependency.stylesheets) {
-        dependency.stylesheets.forEach((stylesheet) => {
-          copyDep(
-            stylesheet,
-            stylesheetTempate,
-          );
-        });
-      }
-      if (dependency.links) {
-        dependency.links.forEach((link) => {
-          if (!link.type) {
-            link.type = "";
-          }
-          lines.push(rawLinkTemplate(link));
-        });
-      }
-      if (dependency.resources) {
-        dependency.resources.forEach((resource) => copyDep(resource));
-      }
-
-      // Note that we've copied this dependency
-      copiedDependencies.push(dependency.name);
-    }
-    delete extras.html?.[kDependencies];
-
-    // write to external file
-    const dependenciesHead = temp.createFile({
-      prefix: "dependencies",
-      suffix: ".html",
-    });
-    Deno.writeTextFileSync(dependenciesHead, lines.join("\n"));
-    extras[kIncludeInHeader] = [dependenciesHead].concat(
-      extras[kIncludeInHeader] || [],
-    );
-
-    // after body
-    if (afterBodyLines.length > 0) {
-      const dependenciesAfter = temp.createFile({
-        prefix: "dependencies-after",
-        suffix: ".html",
-      });
-      Deno.writeTextFileSync(dependenciesAfter, afterBodyLines.join("\n"));
-      extras[kIncludeAfterBody] = [dependenciesAfter].concat(
-        extras[kIncludeAfterBody] || [],
-      );
-    }
-  }
 
   return extras;
 }

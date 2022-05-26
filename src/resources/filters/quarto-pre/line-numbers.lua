@@ -11,7 +11,7 @@ function lineNumbers()
           -- use the pandoc line numbering class
           el.attr.classes:insert("number-lines")
           -- remove for all formats except reveal
-          if not isRevealJsOutput() then
+          if not _quarto.format.isRevealJsOutput() then
             el.attr.attributes["code-line-numbers"] = nil
           end
           return el

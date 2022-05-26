@@ -38,7 +38,7 @@ function processFigure(el, captionContent)
     prependSubrefNumber(captionContent, order)
   else
     order = indexNextOrder("fig")
-    if isLatexOutput() then
+    if _quarto.format.isLatexOutput() then
       tprepend(captionContent, {
         pandoc.RawInline('latex', '\\label{' .. label .. '}')
       })

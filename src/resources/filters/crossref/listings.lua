@@ -22,7 +22,7 @@ function listings()
         -- add the listing to the index
         indexAddEntry(label, nil, order, captionContent)
        
-        if isLatexOutput() then
+        if _quarto.format.isLatexOutput() then
 
           -- add listing class to the code block
           el.attr.classes:insert("listing")

@@ -7,6 +7,8 @@
 
 import { existsSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
+import { coerce } from "semver/mod.ts";
+
 import { kProjectType, ProjectContext } from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
 
@@ -29,7 +31,6 @@ import {
   kTitle,
   kVersion,
 } from "./extension-shared.ts";
-import { parseVersion } from "./extension-version.ts";
 
 // Create an extension context that can be used to load extensions
 // Provides caching such that directories will not be rescanned
@@ -302,7 +303,9 @@ function readExtension(
 
   const title = yaml[kTitle] as string;
   const author = yaml[kAuthor] as string;
-  const version = parseVersion(yaml[kVersion] as string | undefined);
+  const versionRaw = yaml[kVersion] as string | undefined;
+  const versionParsed = versionRaw ? coerce(versionRaw) : undefined;
+  const version = versionParsed ? versionParsed : undefined;
 
   // The items that can be contributed
   const shortcodes = contributes?.shortcodes as string[] || [];

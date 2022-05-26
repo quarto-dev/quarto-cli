@@ -30,7 +30,7 @@ function theorems()
         local order = indexNextOrder(type)
         indexAddEntry(label, nil, order, name)
       
-        if isLatexOutput() then
+        if _quarto.format.isLatexOutput() then
           local preamble = pandoc.Para(pandoc.RawInline("latex", 
             "\\begin{" .. theoremType.env .. "}"))
           preamble.content:insert(pandoc.RawInline("latex", "["))
@@ -93,7 +93,7 @@ function theorems()
           el.attr.attributes["name"] = nil 
 
           -- output
-          if isLatexOutput() then
+          if _quarto.format.isLatexOutput() then
             local preamble = pandoc.Para(pandoc.RawInline("latex", 
               "\\begin{" .. proof.env .. "}"))
             if name ~= nil then

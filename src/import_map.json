@@ -24,6 +24,7 @@
     "events/": "https://deno.land/x/events@v1.0.0/",
     "cache/": "https://deno.land/x/cache@0.2.12/",
     "cliffy/": "https://deno.land/x/cliffy@v0.24.2/",
+    "semver/": "https://deno.land/x/semver@v1.4.0/",
     "dayjs/": "https://cdn.skypack.dev/dayjs@1.8.21/",
     "emit/": "https://deno.land/x/emit@0.1.0/",
     "moment-guess": "https://cdn.skypack.dev/moment-guess@1.2.4",

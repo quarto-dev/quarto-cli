@@ -4,6 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import SemVer from "semver/mod.ts";
 import { Metadata } from "../config/types.ts";
 import { ProjectContext } from "../project/types.ts";
 
@@ -19,7 +20,7 @@ export interface Extension extends Record<string, unknown> {
   id: ExtensionId;
   title: string;
   author: string;
-  version?: ExtensionVersion;
+  version?: SemVer;
   path: string;
   [kContributes]: {
     shortcodes?: string[];

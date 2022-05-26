@@ -8,7 +8,7 @@ function callout()
   
     -- Insert paragraphs between consecutive callouts or tables for docx
     Blocks = function(blocks)
-      if isDocxOutput() then
+      if _quarto.format.isDocxOutput() then
         local lastWasCallout = false
         local lastWasTable = false
         local newBlocks = pandoc.List()
@@ -57,13 +57,13 @@ function callout()
     Div = function(div)
       if div.attr.classes:find_if(isCallout) then
         preState.hasCallouts = true
-        if isHtmlOutput() and hasBootstrap() then
+        if _quarto.format.isHtmlOutput() and hasBootstrap() then
           return calloutDiv(div) 
-        elseif isLatexOutput() then
+        elseif _quarto.format.isLatexOutput() then
           return calloutLatex(div)
-        elseif isDocxOutput() then
+        elseif _quarto.format.isDocxOutput() then
           return calloutDocx(div)
-        elseif isEpubOutput() or isRevealJsOutput() then
+        elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
           return epubCallout(div)
         else
           return simpleCallout(div)
@@ -531,7 +531,7 @@ function calloutDocxDefault(div, type, hasIcon)
 
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
-    return el.t == "Div" and el.attr.classes:find_if(isDocxOutput) ~= nil 
+    return el.t == "Div" and el.attr.classes:find_if(_quarto.format.isDocxOutput) ~= nil 
   end) ~= nil then
     fail("Found a nested callout in the document. Please fix this issue and try again.")
   end
@@ -616,7 +616,7 @@ function calloutDocxSimple(div, type, hasIcon)
   
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
-    return el.t == "Div" and el.attr.classes:find_if(isDocxOutput) ~= nil 
+    return el.t == "Div" and el.attr.classes:find_if(_quarto.format.isDocxOutput) ~= nil 
   end) ~= nil then
     fail("Found a nested callout in the document. Please fix this issue and try again.")
   end
