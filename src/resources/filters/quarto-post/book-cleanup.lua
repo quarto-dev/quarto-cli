@@ -26,7 +26,7 @@ function cleanupEmptyParas(el)
 end
 
 function cleanupFileMetadata(el)
-  if isRawHtml(el) then
+  if _quarto.format.isRawHtml(el) then
     local rawMetadata = string.match(el.text, "^<!%-%- quarto%-file%-metadata: ([^ ]+) %-%->$")
     if rawMetadata then
       return {}
@@ -36,7 +36,7 @@ function cleanupFileMetadata(el)
 end
 
 function cleanupBookPart(el)
-  if el.attr.classes:includes('quarto-book-part') and not isLatexOutput() then
+  if el.attr.classes:includes('quarto-book-part') and not _quarto.format.isLatexOutput() then
     return pandoc.Div({})
   end
 end

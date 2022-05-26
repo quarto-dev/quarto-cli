@@ -41,7 +41,6 @@ import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
 import { ExecuteResult, MappedExecuteResult } from "../../execute/types.ts";
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { outputRecipe } from "./output.ts";
-import { resolveDependencies } from "./pandoc.ts";
 import { renderPandoc } from "./render.ts";
 import { renderContexts } from "./render-contexts.ts";
 import { renderProgress } from "./render-info.ts";
@@ -77,6 +76,7 @@ import {
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
 import { createNamedLifetime } from "../../core/lifetimes.ts";
+import { resolveDependencies } from "./pandoc-html-dependencies.ts";
 
 export async function renderExecute(
   context: RenderContext,

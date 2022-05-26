@@ -54,7 +54,7 @@ function preprocessRawTableBlock(rawEl, parentId)
     return div
   end
   
-  if isRawHtml(rawEl) and isHtmlOutput() then
+  if _quarto.format.isRawHtml(rawEl) and _quarto.format.isHtmlOutput() then
     local captionPattern = htmlTableCaptionPattern()
     local _, caption, _ = string.match(rawEl.text, captionPattern) 
     if caption then
@@ -71,7 +71,7 @@ function preprocessRawTableBlock(rawEl, parentId)
         return divWrap(rawEl, label)
       end
     end
-  elseif isRawLatex(rawEl) and isLatexOutput() then
+  elseif _quarto.format.isRawLatex(rawEl) and _quarto.format.isLatexOutput() then
     
     -- remove knitr label
     local knitrLabelPattern = "\\label{tab:[^}]+} ?"
@@ -188,7 +188,7 @@ function processRawTable(divEl)
     if rawEl then
       local label = divEl.attr.identifier
       -- html table
-      if isRawHtml(rawEl) then
+      if _quarto.format.isRawHtml(rawEl) then
         local captionPattern = htmlTableCaptionPattern()
         local _, caption, _ = string.match(rawEl.text, captionPattern)
         if caption then
@@ -213,7 +213,7 @@ function processRawTable(divEl)
           return divEl
         end
       -- latex table
-      elseif isRawLatex(rawEl) then
+      elseif _quarto.format.isRawLatex(rawEl) then
         
         -- look for raw latex with a caption
         captionPattern = "\\caption{([^}]+)}"
@@ -268,7 +268,7 @@ function processLatexTable(divEl, el, captionPattern, label, caption)
 end
 
 function prependTitlePrefix(caption, label, order)
-  if isLatexOutput() then
+  if _quarto.format.isLatexOutput() then
      tprepend(caption.content, {
        pandoc.RawInline('latex', '\\label{' .. label .. '}')
      })

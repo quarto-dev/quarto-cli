@@ -4,7 +4,7 @@
 function panelSidebar() 
   return {
     Blocks = function(blocks)
-      if hasBootstrap() or isRevealJsOutput() then
+      if hasBootstrap() or _quarto.format.isRevealJsOutput() then
 
         -- functions to determine if an element has a layout class
         function isSidebar(el)
@@ -37,7 +37,7 @@ function panelSidebar()
 
         -- create sidebar handler and get attr
         local sidebarHandler = bootstrapSidebar()
-        if isRevealJsOutput() then
+        if _quarto.format.isRevealJsOutput() then
           sidebarHandler = revealSidebar()
         end
         local sidebarAttr = sidebarHandler.sidebarAttr()

@@ -17,7 +17,7 @@ function resourceRefs()
 end
 
 function handleRawElementResourceRef(el)
-  if isRawHtml(el) then
+  if _quarto.format.isRawHtml(el) then
     local file = currentFileMetadataState().file
     if file ~= nil and file.resourceDir ~= nil then
       handlePaths(el, file.resourceDir, resourceRef)

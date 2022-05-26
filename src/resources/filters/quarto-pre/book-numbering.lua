@@ -14,7 +14,7 @@ function bookNumbering()
           end
 
           -- handle latex "part" and "appendix" headers
-          if el.level == 1 and isLatexOutput() then
+          if el.level == 1 and _quarto.format.isLatexOutput() then
             if bookItemType == "part" then
               local partPara = pandoc.Para({
                 pandoc.RawInline('latex', '\\part{')
@@ -33,7 +33,7 @@ function bookNumbering()
           end
 
           -- mark appendix chapters for epub
-          if el.level == 1 and isEpubOutput() then
+          if el.level == 1 and _quarto.format.isEpubOutput() then
             if file.appendix == true and bookItemType == "chapter" then
               el.attr.attributes["epub:type"] = "appendix"
             end

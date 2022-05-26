@@ -5,7 +5,7 @@ function responsive()
   return {
     -- make images responsive (unless they have an explicit height attribute)
     Image = function(image)
-      if isHtmlOutput() and param('fig-responsive', false) then
+      if _quarto.format.isHtmlOutput() and param('fig-responsive', false) then
         if not image.attr.attributes["height"] and not image.attr.attributes["data-no-responsive"] then
           image.attr.classes:insert("img-fluid")
           return image

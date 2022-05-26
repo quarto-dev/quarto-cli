@@ -15,7 +15,7 @@ function hidden()
 end
 
 function stripHidden(el)
-  if not isHtmlOutput() and el.attr.classes:find("hidden") then
+  if not _quarto.format.isHtmlOutput() and el.attr.classes:find("hidden") then
     return pandoc.Null()
   end
 end

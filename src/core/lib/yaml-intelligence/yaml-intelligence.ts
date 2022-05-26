@@ -864,8 +864,8 @@ async function automationFromGoodParseMarkdown(
         // nothing to lint in markdown or math cells
         continue;
       } else if (cell.cell_type.language) {
-        if (cell.sourceWithYaml === undefined) {
-          console.log({ cell });
+        if (cell.cell_type.language === "_directive") {
+          return noIntelligence(kind);
         }
         const innerLints = await automationFromGoodParseScript(kind, {
           ...context,
@@ -905,11 +905,7 @@ async function automationFromGoodParseYAML(
   if (guessChunkOptionsFormat(asMappedString(context.code).value) === "knitr") {
     // if the chunk options are in knitr format, don't validate or
     // autocomplete
-    if (kind === "validation") {
-      return [];
-    } else {
-      return noCompletions;
-    }
+    return noIntelligence(kind);
   }
 
   const func = (
@@ -924,6 +920,9 @@ async function automationFromGoodParseScript(
   kind: AutomationKind,
   context: YamlIntelligenceContext,
 ): Promise<CompletionResult | ValidationResult[]> {
+  if (context.language === "_directive") {
+    return noIntelligence(kind);
+  }
   const codeLines = rangedLines(asMappedString(context.code).value);
   let language;
   let codeStartLine;
@@ -932,20 +931,12 @@ async function automationFromGoodParseScript(
     if (codeLines.length < 2) {
       // need both language and code to autocomplete. length < 2 implies
       // we're missing one of them at least: skip.
-      if (kind === "completions") {
-        return noCompletions;
-      } else {
-        return [];
-      }
+      return noIntelligence(kind);
     }
     const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
     if (!m) {
       // couldn't recognize language in script, return no intelligence
-      if (kind === "completions") {
-        return noCompletions;
-      } else {
-        return [];
-      }
+      return noIntelligence(kind);
     }
     codeStartLine = 1;
     language = m[1];
@@ -967,11 +958,7 @@ async function automationFromGoodParseScript(
   } = partitionCellOptionsText(language, mappedCode);
 
   if (yaml === undefined) {
-    if (kind === "completions") {
-      return noCompletions;
-    } else {
-      return [];
-    }
+    return noIntelligence(kind);
   }
 
   const engines = await getEngineOptionsSchema();
@@ -1104,6 +1091,14 @@ initialization does not contain language extensions`);
     patchMarkdownDescriptions();
   }
 }
+
+const noIntelligence = (kind: string) => {
+  if (kind === "completions") {
+    return noCompletions;
+  } else {
+    return [];
+  }
+};
 
 async function init(
   context: YamlIntelligenceContext,

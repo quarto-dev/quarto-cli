@@ -51,7 +51,7 @@ function figures()
 
     Image = function(image)
       -- propagate fig-alt
-      if isHtmlOutput() then
+      if _quarto.format.isHtmlOutput() then
         -- read the fig-alt text and set the image alt
         local altText = attribute(image, kFigAlt, nil);
         if altText ~= nil then
@@ -60,7 +60,7 @@ function figures()
           return image
         end
       -- provide default fig-pos or fig-env if specified
-      elseif isLatexOutput() then
+      elseif _quarto.format.isLatexOutput() then
         local figPos = param(kFigPos)
         if figPos and not image.attr.attributes[kFigPos] then
           image.attr.attributes[kFigPos] = figPos

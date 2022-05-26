@@ -160,7 +160,7 @@ end
 
 
 function latexIsTikzImage(image)
-  return isLatexOutput() and string.find(image.src, "%.tex$")
+  return _quarto.format.isLatexOutput() and string.find(image.src, "%.tex$")
 end
 
 function latexFigureInline(image, state)

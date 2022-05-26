@@ -16,7 +16,7 @@ function latexDiv()
       end
       
       -- if the output format is not latex, remove the attr and return
-      if not isLatexOutput() then
+      if not _quarto.format.isLatexOutput() then
         divEl.attributes['latex'] = nil
         divEl.attributes['data-latex'] = nil
         return divEl

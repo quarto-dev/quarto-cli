@@ -42,7 +42,7 @@ local function tblColwidthValues(tbl, tblColwidths)
     return noWidths(#tbl.colspecs)
   else
     if type(tblColwidths) == "string" then
-      tblColwidths = jsonDecode(tblColwidths)
+      tblColwidths = json.decode(tblColwidths)
     end
     if type(tblColwidths) == "table" then
       local totalWidth = 0

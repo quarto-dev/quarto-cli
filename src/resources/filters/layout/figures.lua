@@ -8,11 +8,11 @@ function extendedFigures()
     Para = function(el)
       local image = discoverFigure(el, false)
       if image and shouldHandleExtendedImage(image) then
-        if isHtmlOutput() then
+        if _quarto.format.isHtmlOutput() then
           return htmlImageFigure(image)
-        elseif isLatexOutput() then
+        elseif _quarto.format.isLatexOutput() then
           return latexImageFigure(image)
-        elseif isDocxOutput() then
+        elseif _quarto.format.isDocxOutput() then
           return wpDivFigure(createFigureDiv(el, image))
         end
       end
@@ -20,11 +20,11 @@ function extendedFigures()
     
     Div = function(el)
       if isFigureDiv(el) and shouldHandleExtended(el) then
-        if isLatexOutput() then
+        if _quarto.format.isLatexOutput() then
           return latexDivFigure(el)
-        elseif isHtmlOutput() then
+        elseif _quarto.format.isHtmlOutput() then
           return htmlDivFigure(el)
-        elseif isDocxOutput() then
+        elseif _quarto.format.isDocxOutput() then
           return wpDivFigure(el)
         end
       end

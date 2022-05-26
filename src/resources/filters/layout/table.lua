@@ -23,7 +23,7 @@ function tablePanel(divEl, layout, caption, options)
       -- this alignment will force all columns in embedded tables to follow it.
       -- if the alignment is center this won't make for very nice tables, so
       -- we force it to pandoc.AlignDefault
-      if tableFromLayoutCell(cell) and isDocxOutput() and align == "center" then
+      if tableFromLayoutCell(cell) and _quarto.format.isDocxOutput() and align == "center" then
         return pandoc.AlignDefault
       else
         return layoutTableAlign(align) 
@@ -96,7 +96,7 @@ function tableCellContent(cell, align, options)
     end
     
     -- rtf and odt don't write captions in tables so make this explicit
-    if #image.caption > 0 and (isRtfOutput() or isOdtOutput()) then
+    if #image.caption > 0 and (_quarto.format.isRtfOutput() or _quarto.format.isOdtOutput()) then
       local caption = image.caption:clone()
       tclear(image.caption)
       local captionPara = pandoc.Para(caption)
@@ -135,7 +135,7 @@ function tableCellContent(cell, align, options)
       -- above (see the comment in tablePanel for rationale). Forcing the 
       -- table to 100$% width (done right above) makes it appear "centered" so
       -- do the same for the caption
-      if isDocxOutput() then
+      if _quarto.format.isDocxOutput() then
         local caption = pandoc.utils.blocks_to_inlines(tbl.caption.long)
         tclear(tbl.caption.long)
         if tbl.caption.short then
@@ -146,7 +146,7 @@ function tableCellContent(cell, align, options)
     end
     
     -- workaround issue w/ docx nested tables: https://github.com/jgm/pandoc/issues/6983
-    if isDocxOutput() then
+    if _quarto.format.isDocxOutput() then
       if PANDOC_VERSION < pandoc.types.Version("2.11.3.2") then
         cell.content:insert(options.rowBreak())
       end
