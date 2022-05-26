@@ -81,7 +81,7 @@ export async function resolveTarget(
 }
 
 async function publish(
-  _target: string,
+  _outputDir: string,
   account: AccountToken,
   target?: PublishRecord,
 ) {
