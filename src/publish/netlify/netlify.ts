@@ -37,11 +37,9 @@ import { sleep } from "../../core/wait.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { fileProgress } from "../../core/progress.ts";
 
-// TODO: retry on upload
-//  (https://github.com/netlify/js-client/blob/960089a289288233bd2a17fcbd8ab4730ca49135/src/deploy/upload-files.js#L70)
-//  https://deno.land/x/retried@1.0.1/mod.ts
 // TODO: team sites
 // TODO: docuents
+// TODO: check http status for quartopub api
 
 export const kNetlify = "netlify";
 
@@ -249,11 +247,12 @@ async function publish(
     for (const requiredFile of required) {
       const filePath = join(outputDir, requiredFile);
       const fileArray = Deno.readFileSync(filePath);
-      await client.file.uploadDeployFile({
-        deployId: siteDeploy?.id!,
-        path: requiredFile,
-        fileBody: new Blob([fileArray.buffer]),
-      });
+      await uploadWithRetry(
+        client,
+        siteDeploy?.id!,
+        requiredFile,
+        new Blob([fileArray.buffer]),
+      );
       progress.next();
     }
   });
@@ -287,4 +286,30 @@ function isUnauthorized(err: Error) {
 
 function isNotFound(err: Error) {
   return err instanceof ApiError && err.status === 404;
+}
+
+async function uploadWithRetry(
+  client: NetlifyClient,
+  deployId: string,
+  path: string,
+  fileBody: Blob,
+): Promise<void> {
+  const kMaxAttempts = 10;
+  let attempt = 0;
+  while (true) {
+    try {
+      await client.file.uploadDeployFile({
+        deployId,
+        path,
+        fileBody,
+      });
+      return;
+    } catch (err) {
+      if (attempt++ >= kMaxAttempts) {
+        throw err;
+      }
+      const delay = 1000 + Math.floor(Math.random() * 3000);
+      await sleep(delay);
+    }
+  }
 }
