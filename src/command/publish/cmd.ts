@@ -38,6 +38,8 @@ import { render, renderServices } from "../render/render-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { PublishRecord } from "../../publish/types.ts";
 import { renderProgress } from "../render/render-info.ts";
+import { isInteractiveTerminal } from "../../core/platform.ts";
+import { runningInCI } from "../../core/ci-info.ts";
 
 export const publishCommand = withProviders(
   // deno-lint-ignore no-explicit-any
@@ -56,6 +58,11 @@ export const publishCommand = withProviders(
     .option(
       "--no-prompt",
       "Do not prompt to confirm publishing destination",
+      { global: true },
+    )
+    .option(
+      "--no-browser",
+      "Do not open a browser to the site after publishing",
       { global: true },
     )
     .option(
@@ -218,10 +225,12 @@ async function createPublishOptions(
       `The specified path (${path}) is not a website or book project so cannot be published.`,
     );
   }
+  const interactive = isInteractiveTerminal() && !runningInCI();
   return {
     project: project,
     render: !!options.render,
-    prompt: !!options.prompt,
+    prompt: !!options.prompt && interactive,
+    browser: !!options.browser && interactive,
     siteId: options.siteId,
   };
 }
