@@ -300,7 +300,12 @@ async function resolveImport(
   let source: string;
   const createdResources: ResourceDescription[] = [];
   if (!file.endsWith(".ts") && !file.endsWith(".tsx")) {
-    source = Deno.readTextFileSync(file);
+    try {
+      source = Deno.readTextFileSync(file);
+    } catch (_e) {
+      error(`OJS dependency ${file} (from ${referent}) not found.`);
+      throw new Error();
+    }
     // file existed, everything is fine.
     return {
       source,
