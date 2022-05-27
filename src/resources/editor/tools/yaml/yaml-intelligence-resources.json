@@ -2627,16 +2627,16 @@
             }
           },
           "contents": {
-            "anyOf": [
-              {
-                "maybeArrayOf": "string"
-              },
-              {
-                "object": {
-                  "additionalProperties": true
+            "maybeArrayOf": {
+              "anyOf": [
+                "string",
+                {
+                  "object": {
+                    "additionalProperties": true
+                  }
                 }
-              }
-            ],
+              ]
+            },
             "description": "The files or path globs of Quarto documents or YAML files that should be included in the listing."
           },
           "sort": {
@@ -9881,6 +9881,8 @@
     "Re-render input files when they change (defaults to true)",
     "Navigate the browser automatically when outputs are updated (defaults\nto true)",
     "Time (in seconds) after which to exit if there are no active\nclients",
+    "Unique identifier for site",
+    "Published URL for site",
     "Website title",
     "Website description",
     "The path to the favicon for this website",
@@ -11362,8 +11364,7 @@
     "Additional file resources to be copied to output directory",
     "Additional file resources to be copied to output directory",
     "Options for <code>quarto preview</code>",
-    "Project publishing configuration",
-    "Published Netlify site urls",
+    "Sites published from project",
     "MISSING_DESCRIPTION",
     "MISSING_DESCRIPTION",
     "Book title",
@@ -11563,8 +11564,7 @@
     "Additional file resources to be copied to output directory",
     "Additional file resources to be copied to output directory",
     "Options for <code>quarto preview</code>",
-    "Project publishing configuration",
-    "Published Netlify site urls",
+    "Sites published from project",
     "MISSING_DESCRIPTION",
     "MISSING_DESCRIPTION",
     "Book title",
@@ -11750,9 +11750,7 @@
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
     "Custom tools for navbar or sidebar",
-    "internal-schema-hack",
-    "Unique identifier for site",
-    "Published URL for site"
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {

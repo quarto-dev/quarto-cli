@@ -1065,10 +1065,11 @@
             - `table`: A table of items
             - `grid`: A grid of item cards
       contents:
-        anyOf:
-          - maybeArrayOf: string
-          - object:
-              additionalProperties: true
+        maybeArrayOf:
+          anyOf:
+            - string
+            - object:
+                additionalProperties: true
         description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
       sort:
         maybeArrayOf: string
