@@ -27,6 +27,7 @@ export interface PublishDeploy {
   id?: string;
   state?: string;
   required?: string[];
+  url?: string;
   admin_url?: string;
 }
 
@@ -103,12 +104,7 @@ export async function publishSite<
     // wait for it to be ready
     while (true) {
       siteDeploy = await handler.getDeploy(siteDeploy.id!);
-      if (siteDeploy.state === "prepared") {
-        if (!siteDeploy.required) {
-          throw new Error(
-            "Site deploy prepared but no required files provided",
-          );
-        }
+      if (siteDeploy.state === "prepared" || siteDeploy.state === "ready") {
         break;
       }
       await sleep(250);
@@ -141,6 +137,7 @@ export async function publishSite<
   completeMessage(`Uploading files (complete)`);
 
   // wait on ready
+  let targetUrl = target.url;
   let adminUrl = target.url;
   await withSpinner({
     message: "Deploying published site",
@@ -148,6 +145,7 @@ export async function publishSite<
     while (true) {
       const deployReady = await handler.getDeploy(siteDeploy?.id!);
       if (deployReady.state === "ready") {
+        targetUrl = deployReady.url || targetUrl;
         adminUrl = deployReady.admin_url || adminUrl;
         break;
       }
@@ -155,7 +153,7 @@ export async function publishSite<
     }
   });
 
-  completeMessage(`Published: ${target.url}\n`);
+  completeMessage(`Published: ${targetUrl}\n`);
 
-  return [target, new URL(adminUrl)];
+  return [{ ...target, url: targetUrl }, new URL(adminUrl)];
 }

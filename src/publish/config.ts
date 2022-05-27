@@ -7,46 +7,57 @@
 
 import { stringify } from "encoding/yaml.ts";
 import { join } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { Metadata } from "../config/types.ts";
-import { mergeConfigs } from "../core/config.ts";
 import { readYaml, readYamlFromString } from "../core/yaml.ts";
-import {
-  kDefaultProjectPublishFile,
-  projectPublishFile,
-} from "../project/project-shared.ts";
 import { ProjectContext } from "../project/types.ts";
-import { ProjectPublish } from "./types.ts";
+import { PublishDeployments, PublishRecord } from "./types.ts";
 
-export function projectPublishConfig(
+export function projectPublishDeployments(
   project: ProjectContext,
-): ProjectPublish {
-  const projectDir = project.dir;
-  const publishFile = projectPublishFile(projectDir);
-  if (publishFile) {
-    return readYaml(publishFile) as ProjectPublish;
+): PublishDeployments {
+  const deplomentsFile = publishDeploymentsFile(project.dir);
+  if (deplomentsFile) {
+    return readYaml(deplomentsFile) as PublishDeployments;
   } else {
-    return {} as ProjectPublish;
+    return {} as PublishDeployments;
   }
 }
 
-export function updateProjectPublishConfig(
-  target: ProjectContext,
-  updateConfig: ProjectPublish,
+export function recordProjectPublishDeployment(
+  project: ProjectContext,
+  provider: string,
+  publish: PublishRecord,
 ) {
+  // read base config
   let indent = 2;
-  let baseConfig: Metadata = {};
-  const projectDir = target.dir;
-  const publishFile = projectPublishFile(projectDir);
-  if (publishFile) {
-    const publishFileYaml = Deno.readTextFileSync(publishFile);
-    indent = detectIndentLevel(publishFileYaml);
-    baseConfig = readYamlFromString(publishFileYaml) as Metadata;
+  let deployments: PublishDeployments = {};
+  const projectDir = project.dir;
+  const deploymentsFile = publishDeploymentsFile(project.dir);
+  if (deploymentsFile) {
+    const deploymentsFileYaml = Deno.readTextFileSync(deploymentsFile);
+    indent = detectIndentLevel(deploymentsFileYaml);
+    deployments = readYamlFromString(deploymentsFileYaml) as PublishDeployments;
   }
-  const updatedConfig = mergeConfigs(baseConfig, updateConfig);
+
+  // update as required
+  if (deployments[provider]) {
+    const deploymentIdx = deployments[provider].findIndex(
+      (published) => published.id === publish.id,
+    );
+    if (deploymentIdx !== -1) {
+      deployments[provider][deploymentIdx] = publish;
+    } else {
+      deployments[provider].push(publish);
+    }
+  } else {
+    deployments[provider] = [publish];
+  }
+
   Deno.writeTextFileSync(
-    publishFile || join(projectDir, kDefaultProjectPublishFile),
-    stringifyPublishConfig(updatedConfig, indent),
+    deploymentsFile || join(projectDir, kDefaultPublishDeploymetsFile),
+    stringifyPublishConfig(deployments, indent),
   );
 }
 
@@ -64,4 +75,12 @@ function stringifyPublishConfig(config: Metadata, indent: number) {
 function detectIndentLevel(yaml: string) {
   const spaceMatch = yaml.match(/\n(\s+)/);
   return spaceMatch ? spaceMatch[1].length : 2;
+}
+
+const kDefaultPublishDeploymetsFile = "_publish.yml";
+
+export function publishDeploymentsFile(dir: string): string | undefined {
+  return [kDefaultPublishDeploymetsFile, "_publish.yaml"]
+    .map((file) => join(dir, file))
+    .find(existsSync);
 }

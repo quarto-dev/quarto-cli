@@ -38,7 +38,7 @@ import {
   handleUnauthorized,
   resolveAccount,
 } from "./account.ts";
-import { updateProjectPublishConfig } from "../../publish/config.ts";
+import { recordProjectPublishDeployment } from "../../publish/config.ts";
 import { render, renderServices } from "../render/render-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { PublishRecord } from "../../publish/types.ts";
@@ -130,9 +130,11 @@ async function publish(
       target,
     );
     if (publishRecord) {
-      await updateProjectPublishConfig(options.project, {
-        [provider.name]: [publishRecord],
-      });
+      recordProjectPublishDeployment(
+        options.project,
+        provider.name,
+        publishRecord,
+      );
     }
 
     // open browser if requested

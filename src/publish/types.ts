@@ -5,7 +5,7 @@
 *
 */
 
-export type ProjectPublish = Record<string, Array<PublishRecord>>;
+export type PublishDeployments = Record<string, Array<PublishRecord>>;
 
 export type PublishRecord = {
   id: string;
