@@ -28,7 +28,7 @@ export async function dartCompile(
 ): Promise<string | undefined> {
   // Write the scss to a file
   // We were previously passing it via stdin, but that can be overflowed
-  const inputFilePath = temp.createFile({ suffix: "scss" });
+  const inputFilePath = temp.createFile({ suffix: ".scss" });
 
   // Write the css itself to a file
   Deno.writeTextFileSync(inputFilePath, input);

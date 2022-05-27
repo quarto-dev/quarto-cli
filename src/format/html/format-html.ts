@@ -288,7 +288,7 @@ export async function htmlFormatExtras(
       afterBody: true,
     });
 
-    const zenscrollStyle = temp.createFile({ suffix: ".html" });
+    const zenscrollStyle = temp.createFile({ suffix: "-zen.html" });
     Deno.writeTextFileSync(
       zenscrollStyle,
       "<style>html{ scroll-behavior: smooth; }</style>",
@@ -396,7 +396,7 @@ export async function htmlFormatExtras(
 
   // hypothesis
   if (options.hypothesis) {
-    const hypothesisHeader = temp.createFile({ suffix: ".html" });
+    const hypothesisHeader = temp.createFile({ suffix: "-hypoth.html" });
     Deno.writeTextFileSync(
       hypothesisHeader,
       renderEjs(
@@ -438,7 +438,7 @@ export async function htmlFormatExtras(
     }
     utterances["issue-term"] = utterances["issue-term"] || "pathname";
     utterances["theme"] = utterances["theme"] || "github-light";
-    const utterancesAfterBody = temp.createFile({ suffix: ".html" });
+    const utterancesAfterBody = temp.createFile({ suffix: "-utter.html" });
     Deno.writeTextFileSync(
       utterancesAfterBody,
       renderEjs(
@@ -483,7 +483,7 @@ export async function htmlFormatExtras(
       }
     }
 
-    const giscusAfterBody = temp.createFile({ suffix: ".html" });
+    const giscusAfterBody = temp.createFile({ suffix: "-giscus.html" });
     Deno.writeTextFileSync(
       giscusAfterBody,
       renderEjs(
