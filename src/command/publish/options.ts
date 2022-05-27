@@ -8,7 +8,7 @@
 import { ProjectContext } from "../../project/types.ts";
 
 export type PublishOptions = {
-  project: ProjectContext;
+  input: ProjectContext | string;
   render: boolean;
   prompt: boolean;
   browser: boolean;

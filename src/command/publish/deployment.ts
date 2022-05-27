@@ -12,7 +12,10 @@ import { Confirm } from "cliffy/prompt/confirm.ts";
 
 import { findProvider, PublishDeployment } from "../../publish/provider.ts";
 
-import { projectPublishDeployments } from "../../publish/config.ts";
+import {
+  documentPublishDeployments,
+  projectPublishDeployments,
+} from "../../publish/config.ts";
 
 import { resolveAccount } from "./account.ts";
 import { PublishOptions } from "./options.ts";
@@ -74,7 +77,9 @@ export async function publishDeployments(
   providerFilter?: string,
 ): Promise<PublishDeployment[]> {
   const deployments: PublishDeployment[] = [];
-  const config = projectPublishDeployments(options.project);
+  const config = typeof (options.input) === "string"
+    ? documentPublishDeployments(options.input)
+    : projectPublishDeployments(options.input);
   for (const providerName of Object.keys(config)) {
     if (providerFilter && (providerName !== providerFilter)) {
       continue;

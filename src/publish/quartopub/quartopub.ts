@@ -12,7 +12,7 @@ import {
   authorizeAccessToken,
   readAccessToken,
 } from "../common/account.ts";
-import { PublishHandler, publishSite } from "../common/publish.ts";
+import { handlePublish, PublishHandler } from "../common/publish.ts";
 import {
   AccountToken,
   AccountTokenType,
@@ -112,6 +112,7 @@ export function resolveTarget(
 
 function publish(
   _account: AccountToken,
+  type: "document" | "site",
   render: (siteUrl: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
@@ -140,7 +141,7 @@ function publish(
     },
   };
 
-  return publishSite(handler, render, target);
+  return handlePublish(handler, type, render, target);
 }
 
 function isUnauthorized(_err: Error) {

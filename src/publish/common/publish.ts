@@ -49,11 +49,12 @@ export interface PublishHandler<
   ) => Promise<void>;
 }
 
-export async function publishSite<
+export async function handlePublish<
   Site extends PublishSite,
   Deploy extends PublishDeploy,
 >(
   handler: PublishHandler<Site, Deploy>,
+  type: "document" | "site",
   render: (siteDir: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
@@ -80,7 +81,7 @@ export async function publishSite<
   let siteDeploy: Deploy | undefined;
   const files: Array<[string, string]> = [];
   await withSpinner({
-    message: "Preparing to publish site",
+    message: `Preparing to publish ${type}`,
   }, async () => {
     const textDecoder = new TextDecoder();
     for (const file of publishFiles.files) {
@@ -140,7 +141,7 @@ export async function publishSite<
   let targetUrl = target.url;
   let adminUrl = target.url;
   await withSpinner({
-    message: "Deploying published site",
+    message: `Deploying published ${type}`,
   }, async () => {
     while (true) {
       const deployReady = await handler.getDeploy(siteDeploy?.id!);

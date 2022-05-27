@@ -30,7 +30,7 @@ import {
 } from "../common/account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { withRetry } from "../../core/retry.ts";
-import { PublishHandler, publishSite } from "../common/publish.ts";
+import { handlePublish, PublishHandler } from "../common/publish.ts";
 
 // TODO: documents
 
@@ -146,6 +146,7 @@ async function resolveTarget(
 
 function publish(
   account: AccountToken,
+  type: "document" | "site",
   render: (siteDir: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
@@ -198,7 +199,7 @@ function publish(
     },
   };
 
-  return publishSite<Site, Deploy>(handler, render, target);
+  return handlePublish<Site, Deploy>(handler, type, render, target);
 }
 
 function withSslUrl(obj: { ssl_url?: string; url?: string }) {

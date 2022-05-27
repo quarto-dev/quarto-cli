@@ -5,9 +5,9 @@
 *
 */
 
-import { walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
 
-import { relative } from "path/mod.ts";
+import { dirname, isAbsolute, relative } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
@@ -38,7 +38,10 @@ import {
   handleUnauthorized,
   resolveAccount,
 } from "./account.ts";
-import { recordProjectPublishDeployment } from "../../publish/config.ts";
+import {
+  recordDocumentPublishDeployment,
+  recordProjectPublishDeployment,
+} from "../../publish/config.ts";
 import { render, renderServices } from "../render/render-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { PublishRecord } from "../../publish/types.ts";
@@ -46,6 +49,7 @@ import { renderProgress } from "../render/render-info.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 import { openUrl } from "../../core/shell.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export const publishCommand = withProviders(
   // deno-lint-ignore no-explicit-any
@@ -88,54 +92,21 @@ async function publish(
   target?: PublishRecord,
 ): Promise<void> {
   try {
-    // get output dir
-    const outputDir = projectOutputDir(options.project);
-
-    // create render function
-    const renderForPublish = async (siteUrl: string): Promise<PublishFiles> => {
-      if (options.render) {
-        renderProgress("Rendering for publish:\n");
-        const services = renderServices();
-        try {
-          const result = await render(options.project.dir, {
-            services,
-            flags: {
-              siteUrl,
-            },
-          });
-          if (result.error) {
-            throw result.error;
-          }
-        } finally {
-          services.cleanup();
-        }
-      }
-      // return PublishFiles
-      const files: string[] = [];
-      for (const walk of walkSync(outputDir)) {
-        if (walk.isFile) {
-          files.push(relative(outputDir, walk.path));
-        }
-      }
-      return {
-        baseDir: outputDir,
-        files,
-      };
-    };
-
-    // publish
-    const [publishRecord, siteUrl] = await provider.publish(
-      account,
-      renderForPublish,
-      target,
-    );
-    if (publishRecord) {
-      recordProjectPublishDeployment(
-        options.project,
-        provider.name,
-        publishRecord,
+    const siteUrl = typeof (options.input) !== "string"
+      ? await publishSite(
+        options.input,
+        provider,
+        account,
+        options,
+        target,
+      )
+      : await publishDocument(
+        options.input,
+        provider,
+        account,
+        options,
+        target,
       );
-    }
 
     // open browser if requested
     if (options.browser) {
@@ -155,6 +126,144 @@ async function publish(
       throw err;
     }
   }
+}
+
+async function publishSite(
+  project: ProjectContext,
+  provider: PublishProvider,
+  account: AccountToken,
+  options: PublishOptions,
+  target?: PublishRecord,
+) {
+  // create render function
+  const renderForPublish = async (siteUrl: string): Promise<PublishFiles> => {
+    if (options.render) {
+      renderProgress("Rendering for publish:\n");
+      const services = renderServices();
+      try {
+        const result = await render(project.dir, {
+          services,
+          flags: {
+            siteUrl,
+          },
+          setProjectDir: true,
+        });
+        if (result.error) {
+          throw result.error;
+        }
+      } finally {
+        services.cleanup();
+      }
+    }
+    // return PublishFiles
+    const outputDir = projectOutputDir(project);
+    const files: string[] = [];
+    for (const walk of walkSync(outputDir)) {
+      if (walk.isFile) {
+        files.push(relative(outputDir, walk.path));
+      }
+    }
+    return {
+      baseDir: outputDir,
+      files,
+    };
+  };
+
+  // publish
+  const [publishRecord, siteUrl] = await provider.publish(
+    account,
+    "site",
+    renderForPublish,
+    target,
+  );
+  if (publishRecord) {
+    recordProjectPublishDeployment(
+      project,
+      provider.name,
+      publishRecord,
+    );
+  }
+
+  // return url
+  return siteUrl;
+}
+
+async function publishDocument(
+  document: string,
+  provider: PublishProvider,
+  account: AccountToken,
+  options: PublishOptions,
+  target?: PublishRecord,
+) {
+  // create render function
+  const renderForPublish = async (): Promise<PublishFiles> => {
+    const files: string[] = [];
+    if (options.render) {
+      renderProgress("Rendering for publish:\n");
+      const services = renderServices();
+      try {
+        const result = await render(document, {
+          services,
+          setProjectDir: true,
+        });
+        if (result.error) {
+          throw result.error;
+        }
+
+        // populate files
+        const baseDir = result.baseDir || dirname(document);
+        const asRelative = (file: string) => {
+          if (isAbsolute(file)) {
+            return relative(baseDir, file);
+          } else {
+            return file;
+          }
+        };
+        for (const resultFile of result.files) {
+          files.push(asRelative(resultFile.file));
+          if (resultFile.supporting) {
+            files.push(...resultFile.supporting.map(asRelative));
+          }
+          files.push(...resultFile.resourceFiles.map(asRelative));
+        }
+        return {
+          baseDir,
+          files,
+        };
+      } finally {
+        services.cleanup();
+      }
+    } else {
+      // not rendering so we inspect
+
+      // TODO: use inspect to approximate
+      // TODO: create _redirects file in netlify
+      // TODO: set file permissions on account.json
+
+      return {
+        baseDir: dirname(document),
+        files,
+      };
+    }
+  };
+
+  // publish
+  const [publishRecord, siteUrl] = await provider.publish(
+    account,
+    "document",
+    renderForPublish,
+    target,
+  );
+  if (publishRecord) {
+    recordDocumentPublishDeployment(
+      document,
+      provider.name,
+      publishRecord,
+    );
+  }
+
+  // return url
+  return siteUrl;
 }
 
 function withProviders(
@@ -244,17 +353,39 @@ async function createPublishOptions(
   options: PublishCommandOptions,
   path?: string,
 ): Promise<PublishOptions> {
+  // validate path exists
   path = path || Deno.cwd();
-  // ensure that we have a project to publish
-  const project = await projectContext(path);
-  if (!project || !projectIsWebsite(project)) {
+  if (!existsSync(path)) {
     throw new Error(
-      `The specified path (${path}) is not a website or book project so cannot be published.`,
+      `The specified path (${path}) does not exist so cannot be published.`,
     );
   }
+  // determine publish input
+  let input: ProjectContext | string;
+
+  // check for website project
+  const project = await projectContext(path);
+  if (Deno.statSync(path).isDirectory) {
+    if (!project || !projectIsWebsite(project)) {
+      throw new Error(
+        `The specified path (${path}) is not a website or book project so cannot be published.`,
+      );
+    }
+    input = project;
+  } // single file path
+  else {
+    // if there is a project associated with this file then it can't be a website or book
+    if (project && projectIsWebsite(project)) {
+      throw new Error(
+        `The specified path (${path}) is within a website or book project so cannot be published individually`,
+      );
+    }
+    input = path;
+  }
+
   const interactive = isInteractiveTerminal() && !runningInCI();
   return {
-    project: project,
+    input,
     render: !!options.render,
     prompt: !!options.prompt && interactive,
     browser: !!options.browser && interactive,
