@@ -9669,11 +9669,7 @@ try {
                   maybeArrayOf: {
                     anyOf: [
                       "string",
-                      {
-                        object: {
-                          additionalProperties: true
-                        }
-                      }
+                      "object"
                     ]
                   },
                   description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
@@ -16903,6 +16899,7 @@ try {
           "Re-render input files when they change (defaults to true)",
           "Navigate the browser automatically when outputs are updated (defaults\nto true)",
           "Time (in seconds) after which to exit if there are no active\nclients",
+          "Sites published from project",
           "Unique identifier for site",
           "Published URL for site",
           "Website title",
@@ -18386,7 +18383,6 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
-          "Sites published from project",
           "MISSING_DESCRIPTION",
           "MISSING_DESCRIPTION",
           "Book title",
@@ -18586,7 +18582,6 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
-          "Sites published from project",
           "MISSING_DESCRIPTION",
           "MISSING_DESCRIPTION",
           "Book title",
@@ -18772,8 +18767,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack",
-          "Sites published from project"
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -24264,6 +24258,7 @@ ${heading}`;
       }
     };
     const inner = (subschema, index) => {
+      subschema = resolveSchema(subschema);
       if (subschema === void 0) {
         throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`);
       }
@@ -25027,6 +25022,7 @@ ${heading}`;
         end: { line: 0, column: 0 }
       };
     }
+    console.log({ schemaPath });
     return {
       source: mappedString(source, [{
         start: violatingObject.start,

@@ -9668,11 +9668,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 maybeArrayOf: {
                   anyOf: [
                     "string",
-                    {
-                      object: {
-                        additionalProperties: true
-                      }
-                    }
+                    "object"
                   ]
                 },
                 description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
@@ -16902,6 +16898,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Re-render input files when they change (defaults to true)",
         "Navigate the browser automatically when outputs are updated (defaults\nto true)",
         "Time (in seconds) after which to exit if there are no active\nclients",
+        "Sites published from project",
         "Unique identifier for site",
         "Published URL for site",
         "Website title",
@@ -18385,7 +18382,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
         "Options for <code>quarto preview</code>",
-        "Sites published from project",
         "MISSING_DESCRIPTION",
         "MISSING_DESCRIPTION",
         "Book title",
@@ -18585,7 +18581,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
         "Options for <code>quarto preview</code>",
-        "Sites published from project",
         "MISSING_DESCRIPTION",
         "MISSING_DESCRIPTION",
         "Book title",
@@ -18771,8 +18766,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Custom tools for navbar or sidebar",
-        "internal-schema-hack",
-        "Sites published from project"
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -24250,6 +24244,7 @@ function navigateSchemaBySchemaPathSingle(schema2, path) {
     }
   };
   const inner = (subschema, index) => {
+    subschema = resolveSchema(subschema);
     if (subschema === void 0) {
       throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`);
     }
@@ -25013,6 +25008,7 @@ function createLocalizedError(obj) {
       end: { line: 0, column: 0 }
     };
   }
+  console.log({ schemaPath });
   return {
     source: mappedString(source, [{
       start: violatingObject.start,
