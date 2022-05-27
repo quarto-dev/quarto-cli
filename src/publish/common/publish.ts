@@ -18,7 +18,22 @@ import { fileProgress } from "../../core/progress.ts";
 
 import { PublishRecord } from "../types.ts";
 
-export interface PublishHandler<Site, Deploy> {
+export interface PublishSite {
+  id?: string;
+  url?: string;
+}
+
+export interface PublishDeploy {
+  id?: string;
+  state?: string;
+  required?: string[];
+  admin_url?: string;
+}
+
+export interface PublishHandler<
+  Site extends PublishSite = PublishSite,
+  Deploy extends PublishDeploy = PublishDeploy,
+> {
   name: string;
   createSite: () => Promise<Site>;
   createDeploy: (
@@ -34,13 +49,8 @@ export interface PublishHandler<Site, Deploy> {
 }
 
 export async function publishSite<
-  Site extends { id?: string; url?: string },
-  Deploy extends {
-    id?: string;
-    state?: string;
-    required?: string[];
-    admin_url?: string;
-  },
+  Site extends PublishSite,
+  Deploy extends PublishDeploy,
 >(
   handler: PublishHandler<Site, Deploy>,
   render: (siteDir: string) => Promise<string>,

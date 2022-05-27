@@ -6,11 +6,13 @@
 */
 
 import { quartoConfig } from "../../core/quarto.ts";
+import { withRetry } from "../../core/retry.ts";
 import {
   AuthorizationHandler,
   authorizeAccessToken,
   readAccessToken,
 } from "../common/account.ts";
+import { PublishHandler, publishSite } from "../common/publish.ts";
 import {
   AccountToken,
   AccountTokenType,
@@ -109,10 +111,35 @@ export function resolveTarget(
 
 function publish(
   _account: AccountToken,
-  _render: (siteUrl: string) => Promise<string>,
+  render: (siteUrl: string) => Promise<string>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
-  return Promise.resolve([target!, new URL(target!.url!)]);
+  // create client
+  // const client = new QuartopubClient();
+
+  const handler: PublishHandler = {
+    name: kQuartopub,
+    createSite: () => {
+      return Promise.resolve({});
+    },
+    createDeploy: (_siteId: string, _files: Record<string, string>) => {
+      return Promise.resolve({});
+    },
+    getDeploy: (_deployId: string) => {
+      return Promise.resolve({});
+    },
+    uploadDeployFile: async (
+      _deployId: string,
+      _path: string,
+      _fileBody: Blob,
+    ) => {
+      await withRetry(async () => {
+        // upload file
+      });
+    },
+  };
+
+  return publishSite(handler, render, target);
 }
 
 function isUnauthorized(_err: Error) {

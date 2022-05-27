@@ -31,7 +31,6 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { withRetry } from "../../core/retry.ts";
 import { PublishHandler, publishSite } from "../common/publish.ts";
 
-// TODO: team sites
 // TODO: documents
 
 export const kNetlify = "netlify";
@@ -144,7 +143,7 @@ async function resolveTarget(
   return target;
 }
 
-async function publish(
+function publish(
   account: AccountToken,
   render: (siteDir: string) => Promise<string>,
   target?: PublishRecord,
@@ -192,7 +191,7 @@ async function publish(
     },
   };
 
-  return await publishSite<Site, Deploy>(handler, render, target);
+  return publishSite<Site, Deploy>(handler, render, target);
 }
 
 function isUnauthorized(err: Error) {
