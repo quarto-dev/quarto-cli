@@ -18,6 +18,7 @@ import {
 import {
   AccountToken,
   AccountTokenType,
+  PublishFiles,
   PublishProvider,
 } from "../provider.ts";
 import { ApiError } from "../../publish/netlify/api/index.ts";
@@ -145,7 +146,7 @@ async function resolveTarget(
 
 function publish(
   account: AccountToken,
-  render: (siteDir: string) => Promise<string>,
+  render: (siteDir: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
   // create client

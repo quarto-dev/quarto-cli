@@ -5,6 +5,10 @@
 *
 */
 
+import { walkSync } from "fs/mod.ts";
+
+import { relative } from "path/mod.ts";
+
 import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
 import { prompt } from "cliffy/prompt/mod.ts";
@@ -13,6 +17,7 @@ import {
   AccountToken,
   findProvider,
   kPublishProviders,
+  PublishFiles,
   PublishProvider,
 } from "../../publish/provider.ts";
 
@@ -87,7 +92,7 @@ async function publish(
     const outputDir = projectOutputDir(options.project);
 
     // create render function
-    const renderForPublish = async (siteUrl: string) => {
+    const renderForPublish = async (siteUrl: string): Promise<PublishFiles> => {
       if (options.render) {
         renderProgress("Rendering for publish:\n");
         const services = renderServices();
@@ -105,7 +110,17 @@ async function publish(
           services.cleanup();
         }
       }
-      return outputDir;
+      // return PublishFiles
+      const files: string[] = [];
+      for (const walk of walkSync(outputDir)) {
+        if (walk.isFile) {
+          files.push(relative(outputDir, walk.path));
+        }
+      }
+      return {
+        baseDir: outputDir,
+        files,
+      };
     };
 
     // publish

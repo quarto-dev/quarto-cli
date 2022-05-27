@@ -31,6 +31,11 @@ export type PublishDeployment = {
   target: PublishRecord;
 };
 
+export type PublishFiles = {
+  baseDir: string;
+  files: string[];
+};
+
 export interface PublishProvider {
   name: string;
   description: string;
@@ -42,7 +47,7 @@ export interface PublishProvider {
   ) => Promise<PublishRecord | undefined>;
   publish: (
     account: AccountToken,
-    render: (siteUrl: string) => Promise<string>,
+    render: (siteUrl: string) => Promise<PublishFiles>,
     target?: PublishRecord,
   ) => Promise<[PublishRecord, URL]>;
   isUnauthorized: (error: Error) => boolean;

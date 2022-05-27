@@ -7,8 +7,7 @@
 
 import { info } from "log/mod.ts";
 
-import { walkSync } from "fs/mod.ts";
-import { join, relative } from "path/mod.ts";
+import { join } from "path/mod.ts";
 import { crypto } from "crypto/mod.ts";
 import { encode as hexEncode } from "encoding/hex.ts";
 
@@ -17,6 +16,7 @@ import { completeMessage, withSpinner } from "../../core/console.ts";
 import { fileProgress } from "../../core/progress.ts";
 
 import { PublishRecord } from "../types.ts";
+import { PublishFiles } from "../provider.ts";
 
 export interface PublishSite {
   id?: string;
@@ -53,7 +53,7 @@ export async function publishSite<
   Deploy extends PublishDeploy,
 >(
   handler: PublishHandler<Site, Deploy>,
-  render: (siteDir: string) => Promise<string>,
+  render: (siteDir: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
   // determine target (create new site if necessary)
@@ -73,7 +73,7 @@ export async function publishSite<
   target = target!;
 
   // render
-  const outputDir = await render(target.url);
+  const publishFiles = await render(target.url);
 
   // build file list
   let siteDeploy: Deploy | undefined;
@@ -82,16 +82,13 @@ export async function publishSite<
     message: "Preparing to publish site",
   }, async () => {
     const textDecoder = new TextDecoder();
-    for (const walk of walkSync(outputDir)) {
-      if (walk.isFile) {
-        const path = relative(outputDir, walk.path);
-        const sha1 = await crypto.subtle.digest(
-          "SHA-1",
-          Deno.readFileSync(walk.path),
-        );
-        const encodedSha1 = hexEncode(new Uint8Array(sha1));
-        files.push([path, textDecoder.decode(encodedSha1)]);
-      }
+    for (const file of publishFiles.files) {
+      const sha1 = await crypto.subtle.digest(
+        "SHA-1",
+        Deno.readFileSync(join(publishFiles.baseDir, file)),
+      );
+      const encodedSha1 = hexEncode(new Uint8Array(sha1));
+      files.push([file, textDecoder.decode(encodedSha1)]);
     }
 
     // create deploy
@@ -131,7 +128,7 @@ export async function publishSite<
     doneMessage: false,
   }, async () => {
     for (const requiredFile of required) {
-      const filePath = join(outputDir, requiredFile);
+      const filePath = join(publishFiles.baseDir, requiredFile);
       const fileArray = Deno.readFileSync(filePath);
       await handler.uploadDeployFile(
         siteDeploy?.id!,

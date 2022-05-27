@@ -83,7 +83,14 @@ export function spinner(
   let spin = 0;
 
   // status fn
-  const statusFn = typeof (status) === "string" ? () => status : status;
+  const statusFn = typeof (status) === "string"
+    ? () => {
+      return status;
+    }
+    : () => {
+      clearLine();
+      return status();
+    };
 
   // Increment the spinner every timeInterval
   const id = setInterval(() => {

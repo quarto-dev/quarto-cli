@@ -16,6 +16,7 @@ import { PublishHandler, publishSite } from "../common/publish.ts";
 import {
   AccountToken,
   AccountTokenType,
+  PublishFiles,
   PublishProvider,
 } from "../provider.ts";
 import { PublishRecord } from "../types.ts";
@@ -111,7 +112,7 @@ export function resolveTarget(
 
 function publish(
   _account: AccountToken,
-  render: (siteUrl: string) => Promise<string>,
+  render: (siteUrl: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
   // create client
