@@ -189,13 +189,25 @@ export function templateMarkdownHandler(
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       // See if there is a target div already in the page
+      // This will match our default page layout
       let listingEl = doc.querySelector(`div[id='${listing.id}']`);
       if (listingEl === null) {
         // No target div, cook one up
         const content = doc.querySelector("#quarto-content main.content");
+        listingEl = doc.createElement("div");
         if (content) {
-          listingEl = doc.createElement("div");
           content.appendChild(listingEl);
+        } else {
+          // Custom page layout doesn't have a main.content, so 
+          // just use the quarto-content div directly
+          const customContent = doc.querySelector("#quarto-content");
+          if (customContent) {
+            customContent.appendChild(listingEl);
+          } else {
+            // Couldn't find anywhere to put the listing el, just
+            // stick at the bottom of the body 
+            doc.body.appendChild(listingEl);
+          }
         }
       }
 
@@ -215,7 +227,9 @@ export function templateMarkdownHandler(
       }
 
       const renderedEl = rendered[pipelineId(listing.id)];
-      listingEl!.innerHTML = renderedEl.innerHTML;
+      if (renderedEl) {
+        listingEl.innerHTML = renderedEl.innerHTML;
+      }
     },
   };
 }
