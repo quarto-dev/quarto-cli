@@ -111,6 +111,7 @@ export function navigateSchemaBySchemaPathSingle(
 
   // deno-lint-ignore no-explicit-any
   const inner = (subschema: any, index: number): any => {
+    subschema = resolveSchema(subschema);
     if (subschema === undefined) {
       throw new Error(
         `Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`,
