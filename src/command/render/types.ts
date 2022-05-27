@@ -17,6 +17,7 @@ import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { ExtensionContext } from "../../extension/extension-shared.ts";
+import { kPositionedRefs } from "../../config/constants.ts";
 
 // options for render
 export interface RenderOptions {
@@ -49,15 +50,21 @@ export interface RenderContext {
 
 export interface RunPandocResult {
   inputMetadata: Metadata;
+  inputTraits: PandocInputTraits;
   resources: string[];
   postprocessors?: Array<(output: string) => Promise<void>>;
   htmlPostprocessors: Array<HtmlPostProcessor>;
   htmlFinalizers?: Array<(doc: Document) => Promise<void>>;
 }
 
+export interface PandocInputTraits {
+  [kPositionedRefs]?: boolean;
+}
+
 export type HtmlPostProcessor = (
   doc: Document,
   inputMedata: Metadata,
+  inputTraits: PandocInputTraits,
 ) => Promise<HtmlPostProcessResult>;
 
 export interface HtmlPostProcessResult {

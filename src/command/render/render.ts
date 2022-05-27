@@ -22,7 +22,12 @@ import {
   executionEngineKeepMd,
 } from "../../execute/engine.ts";
 
-import { HtmlPostProcessResult, PandocOptions } from "./types.ts";
+import {
+  HtmlPostProcessor,
+  HtmlPostProcessResult,
+  PandocInputTraits,
+  PandocOptions,
+} from "./types.ts";
 import { runPandoc } from "./pandoc.ts";
 import { renderCleanup } from "./cleanup.ts";
 import { projectOffset } from "../../project/project-shared.ts";
@@ -140,6 +145,7 @@ export async function renderPandoc(
 
   const htmlPostProcessResult = await runHtmlPostprocessors(
     pandocResult.inputMetadata,
+    pandocResult.inputTraits,
     pandocOptions,
     htmlPostProcessors,
     htmlFinalizers,
@@ -326,10 +332,9 @@ function mergePandocIncludes(
 
 async function runHtmlPostprocessors(
   inputMetadata: Metadata,
+  inputTraits: PandocInputTraits,
   options: PandocOptions,
-  htmlPostprocessors: Array<
-    (doc: Document, inputMetadata: Metadata) => Promise<HtmlPostProcessResult>
-  >,
+  htmlPostprocessors: Array<HtmlPostProcessor>,
   htmlFinalizers: Array<(doc: Document) => Promise<void>>,
 ): Promise<HtmlPostProcessResult> {
   const postProcessResult: HtmlPostProcessResult = {
@@ -345,7 +350,7 @@ async function runHtmlPostprocessors(
     const doc = await parseHtml(htmlInput);
     for (let i = 0; i < htmlPostprocessors.length; i++) {
       const postprocessor = htmlPostprocessors[i];
-      const result = await postprocessor(doc, inputMetadata);
+      const result = await postprocessor(doc, inputMetadata, inputTraits);
 
       postProcessResult.resources.push(...result.resources);
       postProcessResult.supporting.push(...result.supporting);

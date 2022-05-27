@@ -5,10 +5,12 @@
 *
 */
 
+import { PandocInputTraits } from "../../command/render/types.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
   kLang,
+  kPositionedRefs,
   kSectionTitleCitation,
   kSectionTitleReuse,
 } from "../../config/constants.ts";
@@ -51,6 +53,7 @@ const kAppendixId = "quarto-appendix";
 
 export async function processDocumentAppendix(
   input: string,
+  inputTraits: PandocInputTraits,
   format: Format,
   flags: PandocFlags,
   doc: Document,
@@ -102,7 +105,7 @@ export async function processDocumentAppendix(
     };
 
     // Move the refs into the appendix
-    if (!hasMarginCites(format)) {
+    if (!hasMarginCites(format) && !inputTraits[kPositionedRefs]) {
       const refsEl = doc.getElementById("refs");
       if (refsEl) {
         const findRefTitle = (refsEl: Element) => {

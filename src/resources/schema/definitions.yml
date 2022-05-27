@@ -1079,8 +1079,7 @@
         maybeArrayOf:
           anyOf:
             - string
-            - object:
-                additionalProperties: true
+            - object
         description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
       sort:
         maybeArrayOf: string

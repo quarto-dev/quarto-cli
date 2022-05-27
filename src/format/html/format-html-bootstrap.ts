@@ -28,6 +28,7 @@ import {
   kHtmlFinalizers,
   kHtmlPostprocessors,
   kSassBundles,
+  Metadata,
   SassLayer,
 } from "../../config/types.ts";
 import { PandocFlags } from "../../config/types.ts";
@@ -49,6 +50,7 @@ import {
 import {
   HtmlPostProcessor,
   HtmlPostProcessResult,
+  PandocInputTraits,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
@@ -211,6 +213,8 @@ function bootstrapHtmlPostprocessor(
 ): HtmlPostProcessor {
   return async (
     doc: Document,
+    _inputMedata: Metadata,
+    inputTraits: PandocInputTraits,
   ): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
@@ -356,7 +360,7 @@ function bootstrapHtmlPostprocessor(
       format.metadata[kAppendixStyle] !== false &&
       format.metadata[kAppendixStyle] !== "none"
     ) {
-      await processDocumentAppendix(input, format, flags, doc, offset);
+      await processDocumentAppendix(input, inputTraits, format, flags, doc, offset);
     }
 
     // no resource refs
