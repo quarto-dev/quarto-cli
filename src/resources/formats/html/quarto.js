@@ -146,8 +146,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   function offsetAbsoluteUrl(url) {
     const offset = getMeta("quarto:offset");
     const baseUrl = new URL(offset, window.location);
+
     const projRelativeUrl = url.replace(baseUrl, "");
-    return "/" + projRelativeUrl;
+    if (projRelativeUrl.startsWith("/")) {
+      return projRelativeUrl;
+    } else {
+      return "/" + projRelativeUrl;
+    }
   }
 
   // read a meta tag value
@@ -162,7 +167,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   }
 
   async function findAndActivateCategories() {
-    const thisPath = window.location.pathname;
+    const currentPagePath = offsetAbsoluteUrl(window.location.href);
     const response = await fetch(offsetRelativeUrl("listings.json"));
     if (response.status == 200) {
       return response.json().then(function (listingPaths) {
@@ -170,7 +175,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         for (const listingPath of listingPaths) {
           const pathWithoutLeadingSlash = listingPath.listing.substring(1);
           for (const item of listingPath.items) {
-            if (item === thisPath || item === thisPath + "index.html") {
+            if (
+              item === currentPagePath ||
+              item === currentPagePath + "index.html"
+            ) {
               // Resolve this path against the offset to be sure
               // we already are using the correct path to the listing
               // (this adjusts the listing urls to be rooted against
