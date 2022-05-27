@@ -20,16 +20,21 @@ export type AccessToken = {
   createdTimestamp: string;
 };
 
-const kQuartopubApi = `https://quartodev.pub/api`;
+const kQuartopubApi = `https://quartodev.pub/api/v1`;
 
 export class QuartopubClient {
   constructor(private readonly token_?: string) {
   }
 
-  public async createTicket(): Promise<Ticket> {
-    const response = await fetch(`${kQuartopubApi}/tickets`, {
-      method: "POST",
-    });
+  public async createTicket(clientId: string): Promise<Ticket> {
+    const response = await fetch(
+      `${kQuartopubApi}/tickets?` + new URLSearchParams({
+        applicationId: clientId,
+      }),
+      {
+        method: "POST",
+      },
+    );
     return response.json() as unknown as Ticket;
   }
 
@@ -40,10 +45,10 @@ export class QuartopubClient {
     return response.json() as unknown as Ticket;
   }
 
-  public async exchangeTicket(id: string) : Promise<AccessToken> {
+  public async exchangeTicket(id: string): Promise<AccessToken> {
     const response = await fetch(`${kQuartopubApi}/tickets/${id}/exchange`, {
       method: "POST",
     });
     return response.json() as unknown as AccessToken;
-  } 
+  }
 }

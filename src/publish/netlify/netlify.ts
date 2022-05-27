@@ -38,7 +38,7 @@ import { completeMessage, withSpinner } from "../../core/console.ts";
 import { fileProgress } from "../../core/progress.ts";
 
 // TODO: team sites
-// TODO: docuents
+// TODO: documents
 // TODO: check http status for quartopub api
 
 export const kNetlify = "netlify";

@@ -5,6 +5,7 @@
 *
 */
 
+import { quartoConfig } from "../../core/quarto.ts";
 import {
   AuthorizationProvider,
   authorizeAccessToken,
@@ -74,15 +75,16 @@ function accessToken(): AccessToken | undefined {
   return readAccessToken<AccessToken>(kQuartopub);
 }
 
-function authorizeQuartopubAccessToken(): Promise<
+async function authorizeQuartopubAccessToken(): Promise<
   AccessToken | undefined
 > {
   // create provider
   const client = new QuartopubClient();
+  const clientId = (await quartoConfig.dotenv())["QUARTOPUB_APP_CLIENT_ID"];
   const provider: AuthorizationProvider<AccessToken, Ticket> = {
     name: kQuartopub,
     createTicket: function (): Promise<Ticket> {
-      return client.createTicket();
+      return client.createTicket(clientId);
     },
     authorizationUrl: function (ticket: Ticket): string {
       return ticket.authorizationURL;
