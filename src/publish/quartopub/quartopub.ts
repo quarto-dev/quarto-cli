@@ -7,10 +7,10 @@
 
 import { quartoConfig } from "../../core/quarto.ts";
 import {
-  AuthorizationProvider,
+  AuthorizationHandler,
   authorizeAccessToken,
   readAccessToken,
-} from "../account.ts";
+} from "../common/account.ts";
 import {
   AccountToken,
   AccountTokenType,
@@ -81,7 +81,7 @@ async function authorizeQuartopubAccessToken(): Promise<
   // create provider
   const client = new QuartopubClient();
   const clientId = (await quartoConfig.dotenv())["QUARTOPUB_APP_CLIENT_ID"];
-  const provider: AuthorizationProvider<AccessToken, Ticket> = {
+  const provider: AuthorizationHandler<AccessToken, Ticket> = {
     name: kQuartopub,
     createTicket: function (): Promise<Ticket> {
       return client.createTicket(clientId);

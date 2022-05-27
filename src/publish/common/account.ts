@@ -7,11 +7,11 @@
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { quartoDataDir } from "../core/appdirs.ts";
-import { openUrl } from "../core/shell.ts";
-import { sleep } from "../core/wait.ts";
+import { quartoDataDir } from "../../core/appdirs.ts";
+import { openUrl } from "../../core/shell.ts";
+import { sleep } from "../../core/wait.ts";
 
-export interface AuthorizationProvider<Token, Ticket> {
+export interface AuthorizationHandler<Token, Ticket> {
   name: string;
   createTicket: () => Promise<Ticket>;
   authorizationUrl: (ticket: Ticket) => string;
@@ -22,17 +22,17 @@ export interface AuthorizationProvider<Token, Ticket> {
 export async function authorizeAccessToken<
   Token,
   Ticket extends { id?: string; authorized?: boolean },
->(provider: AuthorizationProvider<Token, Ticket>): Promise<
+>(handler: AuthorizationHandler<Token, Ticket>): Promise<
   Token | undefined
 > {
   // create ticket for authorization
-  const ticket = await provider.createTicket() as unknown as Ticket;
-  await openUrl(provider.authorizationUrl(ticket));
+  const ticket = await handler.createTicket() as unknown as Ticket;
+  await openUrl(handler.authorizationUrl(ticket));
 
   // poll for ticket to be authoried
   let authorizedTicket: Ticket | undefined;
   const checkTicket = async () => {
-    const t = await provider.checkTicket(ticket);
+    const t = await handler.checkTicket(ticket);
     if (t.authorized) {
       authorizedTicket = t;
     }
@@ -49,10 +49,10 @@ export async function authorizeAccessToken<
   }
   if (authorizedTicket) {
     // exechange ticket for the token
-    const accessToken = await provider.exchangeTicket(authorizedTicket);
+    const accessToken = await handler.exchangeTicket(authorizedTicket);
 
     // save the token
-    writeAccessToken<Token>(provider.name, accessToken);
+    writeAccessToken<Token>(handler.name, accessToken);
 
     // return it
     return accessToken;

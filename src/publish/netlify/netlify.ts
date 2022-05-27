@@ -5,12 +5,7 @@
 *
 */
 
-import { info, warning } from "log/mod.ts";
-
-import { walkSync } from "fs/mod.ts";
-import { join, relative } from "path/mod.ts";
-import { crypto } from "crypto/mod.ts";
-import { encode as hexEncode } from "encoding/hex.ts";
+import { warning } from "log/mod.ts";
 
 import {
   AccessToken,
@@ -28,16 +23,16 @@ import {
 import { ApiError } from "../../publish/netlify/api/index.ts";
 import { PublishRecord } from "../types.ts";
 import {
-  AuthorizationProvider,
+  AuthorizationHandler,
   authorizeAccessToken,
   readAccessToken,
-} from "../account.ts";
+} from "../common/account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { sleep } from "../../core/wait.ts";
-import { completeMessage, withSpinner } from "../../core/console.ts";
-import { fileProgress } from "../../core/progress.ts";
+import { withRetry } from "../../core/retry.ts";
+import { PublishHandler, publishSite } from "../common/publish.ts";
 
 // TODO: team sites
+// TODO: factor out publish
 // TODO: documents
 // TODO: check http status for quartopub api
 
@@ -103,7 +98,7 @@ async function authorizeNetlifyAccessToken(): Promise<
   // create provider for authorization
   const client = new NetlifyClient({});
   const clientId = (await quartoConfig.dotenv())["NETLIFY_APP_CLIENT_ID"];
-  const provider: AuthorizationProvider<AccessToken, Ticket> = {
+  const provider: AuthorizationHandler<AccessToken, Ticket> = {
     name: kNetlify,
     createTicket: function (): Promise<Ticket> {
       return client.ticket.createTicket({
@@ -161,124 +156,45 @@ async function publish(
     TOKEN: account.token,
   });
 
-  // determine target (create new site if necessary)
-  info("");
-  if (!target?.id) {
-    await withSpinner({
-      message: "Creating Netlify site",
-    }, async () => {
-      const site = await client.site.createSite({
+  const handler: PublishHandler<Site, Deploy> = {
+    name: kNetlify,
+    createSite: async () => {
+      return await client.site.createSite({
         site: {
           force_ssl: true,
         },
       }) as unknown as Site;
-      target = {
-        id: site.id!,
-        url: site.ssl_url || site.url!,
-      };
-    });
-    info("");
-  }
-  target = target!;
-
-  // render
-  const outputDir = await render(target.url);
-
-  // build file list
-  let siteDeploy: Deploy | undefined;
-  const files: Array<[string, string]> = [];
-  await withSpinner({
-    message: "Preparing to publish site",
-  }, async () => {
-    const textDecoder = new TextDecoder();
-    for (const walk of walkSync(outputDir)) {
-      if (walk.isFile) {
-        const path = relative(outputDir, walk.path);
-        const sha1 = await crypto.subtle.digest(
-          "SHA-1",
-          Deno.readFileSync(walk.path),
-        );
-        const encodedSha1 = hexEncode(new Uint8Array(sha1));
-        files.push([path, textDecoder.decode(encodedSha1)]);
-      }
-    }
-
-    // create deploy
-    const deploy = {
-      files: {} as Record<string, string>,
-      async: true,
-    };
-    for (const file of files) {
-      deploy.files[`/${file[0]}`] = file[1];
-    }
-    siteDeploy = await client.deploy.createSiteDeploy({
-      siteId: target!.id,
-      deploy,
-    });
-
-    // wait for it to be ready
-    while (true) {
-      siteDeploy = await client.deploy.getDeploy({
-        deployId: siteDeploy?.id!,
+    },
+    createDeploy: async (siteId: string, files: Record<string, string>) => {
+      return await client.deploy.createSiteDeploy({
+        siteId,
+        deploy: {
+          files,
+          async: true,
+        },
       });
-      if (siteDeploy.state === "prepared") {
-        if (!siteDeploy.required) {
-          throw new Error(
-            "Site deploy prepared but no required files provided",
-          );
-        }
-        break;
-      }
-      await sleep(250);
-    }
-  });
-
-  // compute required files
-  const required = siteDeploy?.required!.map((sha1) => {
-    const file = files.find((file) => file[1] === sha1);
-    return file ? file[0] : null;
-  }).filter((file) => file) as string[];
-
-  // upload with progress
-  const progress = fileProgress(required);
-  await withSpinner({
-    message: () => `Uploading files ${progress.status()}`,
-    doneMessage: false,
-  }, async () => {
-    for (const requiredFile of required) {
-      const filePath = join(outputDir, requiredFile);
-      const fileArray = Deno.readFileSync(filePath);
-      await uploadWithRetry(
-        client,
-        siteDeploy?.id!,
-        requiredFile,
-        new Blob([fileArray.buffer]),
-      );
-      progress.next();
-    }
-  });
-  completeMessage(`Uploading files (complete)`);
-
-  // wait on ready
-  let adminUrl = target.url;
-  await withSpinner({
-    message: "Deploying published site",
-  }, async () => {
-    while (true) {
-      const deployReady = await client.deploy.getDeploy({
-        deployId: siteDeploy?.id!,
+    },
+    getDeploy: async (deployId: string) => {
+      return await client.deploy.getDeploy({
+        deployId,
       });
-      if (deployReady.state === "ready") {
-        adminUrl = deployReady.admin_url || adminUrl;
-        break;
-      }
-      await sleep(500);
-    }
-  });
+    },
+    uploadDeployFile: async (
+      deployId: string,
+      path: string,
+      fileBody: Blob,
+    ) => {
+      await withRetry(async () => {
+        await client.file.uploadDeployFile({
+          deployId,
+          path,
+          fileBody,
+        });
+      });
+    },
+  };
 
-  completeMessage(`Published: ${target.url}\n`);
-
-  return [target, new URL(adminUrl)];
+  return await publishSite<Site, Deploy>(handler, render, target);
 }
 
 function isUnauthorized(err: Error) {
@@ -287,30 +203,4 @@ function isUnauthorized(err: Error) {
 
 function isNotFound(err: Error) {
   return err instanceof ApiError && err.status === 404;
-}
-
-async function uploadWithRetry(
-  client: NetlifyClient,
-  deployId: string,
-  path: string,
-  fileBody: Blob,
-): Promise<void> {
-  const kMaxAttempts = 10;
-  let attempt = 0;
-  while (true) {
-    try {
-      await client.file.uploadDeployFile({
-        deployId,
-        path,
-        fileBody,
-      });
-      return;
-    } catch (err) {
-      if (attempt++ >= kMaxAttempts) {
-        throw err;
-      }
-      const delay = 1000 + Math.floor(Math.random() * 3000);
-      await sleep(delay);
-    }
-  }
 }
