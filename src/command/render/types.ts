@@ -49,15 +49,21 @@ export interface RenderContext {
 
 export interface RunPandocResult {
   inputMetadata: Metadata;
+  inputTraits: PandocInputTraits;
   resources: string[];
   postprocessors?: Array<(output: string) => Promise<void>>;
   htmlPostprocessors: Array<HtmlPostProcessor>;
   htmlFinalizers?: Array<(doc: Document) => Promise<void>>;
 }
 
+export interface PandocInputTraits {
+  bibliographyTarget?: boolean;
+}
+
 export type HtmlPostProcessor = (
   doc: Document,
   inputMedata: Metadata,
+  inputTraits: PandocInputTraits,
 ) => Promise<HtmlPostProcessResult>;
 
 export interface HtmlPostProcessResult {
