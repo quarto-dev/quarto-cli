@@ -9649,16 +9649,16 @@ try {
                   }
                 },
                 contents: {
-                  anyOf: [
-                    {
-                      maybeArrayOf: "string"
-                    },
-                    {
-                      object: {
-                        additionalProperties: true
+                  maybeArrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        object: {
+                          additionalProperties: true
+                        }
                       }
-                    }
-                  ],
+                    ]
+                  },
                   description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
                 },
                 sort: {
@@ -16903,6 +16903,8 @@ try {
           "Re-render input files when they change (defaults to true)",
           "Navigate the browser automatically when outputs are updated (defaults\nto true)",
           "Time (in seconds) after which to exit if there are no active\nclients",
+          "Unique identifier for site",
+          "Published URL for site",
           "Website title",
           "Website description",
           "The path to the favicon for this website",
@@ -18384,8 +18386,7 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
-          "Project publishing configuration",
-          "Published Netlify site urls",
+          "Sites published from project",
           "MISSING_DESCRIPTION",
           "MISSING_DESCRIPTION",
           "Book title",
@@ -18585,8 +18586,7 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
-          "Project publishing configuration",
-          "Published Netlify site urls",
+          "Sites published from project",
           "MISSING_DESCRIPTION",
           "MISSING_DESCRIPTION",
           "Book title",
@@ -18772,9 +18772,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack",
-          "Unique identifier for site",
-          "Published URL for site"
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -28132,8 +28130,8 @@ ${sourceContext}`;
         } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
           continue;
         } else if (cell.cell_type.language) {
-          if (cell.sourceWithYaml === void 0) {
-            console.log({ cell });
+          if (cell.cell_type.language === "_directive") {
+            return noIntelligence(kind);
           }
           const innerLints = await automationFromGoodParseScript(kind, {
             ...context,
@@ -28159,34 +28157,25 @@ ${sourceContext}`;
     }
     context = trimTicks(context);
     if (guessChunkOptionsFormat(asMappedString(context.code).value) === "knitr") {
-      if (kind === "validation") {
-        return [];
-      } else {
-        return noCompletions;
-      }
+      return noIntelligence(kind);
     }
     const func = kind === "completions" ? completionsFromGoodParseYAML : validationFromGoodParseYAML;
     return func(context);
   }
   async function automationFromGoodParseScript(kind, context) {
+    if (context.language === "_directive") {
+      return noIntelligence(kind);
+    }
     const codeLines = rangedLines(asMappedString(context.code).value);
     let language;
     let codeStartLine;
     if (!context.language) {
       if (codeLines.length < 2) {
-        if (kind === "completions") {
-          return noCompletions;
-        } else {
-          return [];
-        }
+        return noIntelligence(kind);
       }
       const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
       if (!m) {
-        if (kind === "completions") {
-          return noCompletions;
-        } else {
-          return [];
-        }
+        return noIntelligence(kind);
       }
       codeStartLine = 1;
       language = m[1];
@@ -28202,11 +28191,7 @@ ${sourceContext}`;
       yaml
     } = partitionCellOptionsText(language, mappedCode);
     if (yaml === void 0) {
-      if (kind === "completions") {
-        return noCompletions;
-      } else {
-        return [];
-      }
+      return noIntelligence(kind);
     }
     const engines = await getEngineOptionsSchema();
     const schema2 = engines[context.engine || "markdown"];
@@ -28289,6 +28274,13 @@ initialization does not contain language extensions`);
       patchMarkdownDescriptions();
     }
   }
+  var noIntelligence = (kind) => {
+    if (kind === "completions") {
+      return noCompletions;
+    } else {
+      return [];
+    }
+  };
   async function init(context) {
     const ideInit = async () => {
       const resourceModule = (await Promise.resolve().then(() => __toESM(require_yaml_intelligence_resources()))).default;
