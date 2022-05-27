@@ -24,7 +24,6 @@ import {
   kProjectOutputDir,
   kProjectPostRender,
   kProjectPreRender,
-  kProjectPublish,
   kProjectRender,
   kProjectType,
   ProjectConfig,
@@ -67,7 +66,6 @@ import { gitignoreEntries } from "./project-gitignore.ts";
 import {
   ignoreFieldsForProjectType,
   projectConfigFile,
-  projectPublishFile,
   projectVarsFile,
   toInputRelativePaths,
 } from "./project-shared.ts";
@@ -79,7 +77,6 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
-import { ProjectPublish } from "../publish/types.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -153,14 +150,6 @@ export async function projectContext(
           projectConfig[kQuartoVarsKey] || {},
           vars,
         );
-      }
-
-      // read publish and merge into the project
-      const publishFile = projectPublishFile(dir);
-      if (publishFile) {
-        configFiles.push(publishFile);
-        const publish = readYaml(publishFile) as ProjectPublish;
-        projectConfig[kProjectPublish] = publish;
       }
 
       // resolve translations
@@ -395,16 +384,13 @@ export async function projectMetadataForInputFile(
   }
 
   if (project?.dir && project?.config) {
-    // remove 'publish' from config (its not merged)
-    const projectConfig = ld.cloneDeep(project.config) as ProjectConfig;
-    delete projectConfig[kProjectPublish];
     // If there is directory and configuration information
     // process paths
     return toInputRelativePaths(
       projectType(project?.config?.project?.[kProjectType]),
       project.dir,
       dirname(input),
-      projectConfig,
+      project.config,
     ) as Metadata;
   } else {
     // Just return the config or empty metadata

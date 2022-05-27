@@ -11,7 +11,6 @@ import { mergeConfigs } from "../core/config.ts";
 import { isRStudio } from "../core/platform.ts";
 import { findOpenPort, kLocalhost, waitForPort } from "../core/port.ts";
 import { TempContext } from "../core/temp-types.ts";
-import { ProjectPublish } from "../publish/types.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
@@ -23,9 +22,6 @@ export const kProjectLibDir = "lib-dir";
 export const kProjectResources = "resources";
 
 export const kProjectWatchInputs = "watch-inputs";
-
-export const kProjectPublish = "publish";
-export const kProjectPublishNetlify = "netlify";
 
 export interface ProjectContext {
   dir: string;
@@ -58,7 +54,6 @@ export interface ProjectConfig {
     [kProjectResources]?: string[];
     preview?: ProjectPreview;
   };
-  publish?: ProjectPublish;
   [key: string]: unknown;
 }
 

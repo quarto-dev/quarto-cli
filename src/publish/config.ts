@@ -6,81 +6,48 @@
 */
 
 import { stringify } from "encoding/yaml.ts";
+import { join } from "path/mod.ts";
 
 import { Metadata } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { readYaml } from "../core/yaml.ts";
+import { readYaml, readYamlFromString } from "../core/yaml.ts";
 import {
-  projectConfigFile,
+  kDefaultProjectPublishFile,
   projectPublishFile,
 } from "../project/project-shared.ts";
 import { ProjectContext } from "../project/types.ts";
-import { lines } from "../core/text.ts";
 import { ProjectPublish } from "./types.ts";
 
 export function projectPublishConfig(
   project: ProjectContext,
 ): ProjectPublish {
-  if (project?.config?.publish) {
-    return project.config.publish;
+  const projectDir = project.dir;
+  const publishFile = projectPublishFile(projectDir);
+  if (publishFile) {
+    return readYaml(publishFile) as ProjectPublish;
   } else {
     return {} as ProjectPublish;
   }
 }
 
-export async function updateProjectPublishConfig(
+export function updateProjectPublishConfig(
   target: ProjectContext,
-  config: ProjectPublish,
+  updateConfig: ProjectPublish,
 ) {
+  let indent = 2;
+  let baseConfig: Metadata = {};
   const projectDir = target.dir;
   const publishFile = projectPublishFile(projectDir);
   if (publishFile) {
-    const baseConfig =
-      (publishFile ? readYaml(publishFile) : {}) as ProjectPublish;
-    const updatedConfig = mergeConfigs(baseConfig, config);
-    Deno.writeTextFileSync(
-      publishFile,
-      stringifyPublishConfig(updatedConfig, 2),
-    );
-  } else {
-    // read existing config and merge
-    const baseConfig = await projectPublishConfig(target) || {};
-    const updatedConfig = mergeConfigs(baseConfig, config) as ProjectPublish;
-
-    // read proj config and detect indent level
-    const projConfig = projectConfigFile(projectDir)!;
-    const projConfigYaml = Deno.readTextFileSync(projConfig);
-    const indent = detectIndentLevel(projConfigYaml);
-
-    // yaml to write
-    const configYaml = stringifyPublishConfig(
-      { publish: updatedConfig },
-      indent,
-    );
-
-    // do line based scan for update
-    const yamlLines = lines(projConfigYaml.trimEnd());
-    const publishLine = yamlLines.findIndex((line) =>
-      line.match(/^publish:\s*$/)
-    );
-    let updatedYamlLines = yamlLines;
-    if (publishLine !== -1) {
-      updatedYamlLines = yamlLines.slice(0, publishLine).concat(configYaml);
-      // find the next top level key
-      const nextKeyLine = yamlLines.slice(publishLine + 1).findIndex((line) =>
-        line.match(/^[^ \t]/)
-      );
-      if (nextKeyLine !== -1) {
-        updatedYamlLines.push(
-          ...yamlLines.slice(publishLine + 1 + nextKeyLine),
-        );
-      }
-    } else {
-      updatedYamlLines.push("");
-      updatedYamlLines = yamlLines.concat(configYaml);
-    }
-    Deno.writeTextFileSync(projConfig, updatedYamlLines.join("\n"));
+    const publishFileYaml = Deno.readTextFileSync(publishFile);
+    indent = detectIndentLevel(publishFileYaml);
+    baseConfig = readYamlFromString(publishFileYaml) as Metadata;
   }
+  const updatedConfig = mergeConfigs(baseConfig, updateConfig);
+  Deno.writeTextFileSync(
+    publishFile || join(projectDir, kDefaultProjectPublishFile),
+    stringifyPublishConfig(updatedConfig, indent),
+  );
 }
 
 function stringifyPublishConfig(config: Metadata, indent: number) {

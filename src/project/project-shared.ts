@@ -51,8 +51,10 @@ export function projectVarsFile(dir: string): string | undefined {
     .find(existsSync);
 }
 
+export const kDefaultProjectPublishFile = "_publish.yml";
+
 export function projectPublishFile(dir: string): string | undefined {
-  return ["_publish.yml", "_publish.yaml"]
+  return [kDefaultProjectPublishFile, "_publish.yaml"]
     .map((file) => join(dir, file))
     .find(existsSync);
 }

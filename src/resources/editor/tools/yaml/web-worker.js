@@ -8791,6 +8791,23 @@ try {
             }
           },
           {
+            id: "publish",
+            description: "Sites published from project",
+            schema: {
+              object: {
+                properties: {
+                  netlify: {
+                    arrayOf: {
+                      ref: "publish-record"
+                    }
+                  },
+                  description: "Sites published to Netlify"
+                },
+                additionalProperties: false
+              }
+            }
+          },
+          {
             id: "publish-record",
             object: {
               properties: {
@@ -16175,23 +16192,6 @@ try {
             }
           },
           {
-            name: "publish",
-            description: "Sites published from project",
-            schema: {
-              object: {
-                properties: {
-                  netlify: {
-                    arrayOf: {
-                      ref: "publish-record"
-                    }
-                  },
-                  description: "Sites published to Netlify"
-                },
-                additionalProperties: false
-              }
-            }
-          },
-          {
             name: "website",
             description: "MISSING_DESCRIPTION",
             schema: {
@@ -18772,7 +18772,8 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Sites published from project"
         ],
         "schema/external-schemas.yml": [
           {

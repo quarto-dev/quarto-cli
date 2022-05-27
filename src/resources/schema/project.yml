@@ -34,17 +34,6 @@
           schema:
             ref: project-preview
 
-- name: publish
-  description: Sites published from project
-  schema:
-    object:
-      properties:
-        netlify:
-          arrayOf:
-            ref: publish-record
-        description: "Sites published to Netlify"
-      additionalProperties: false
-
 - name: website
   description: MISSING_DESCRIPTION
   schema:
