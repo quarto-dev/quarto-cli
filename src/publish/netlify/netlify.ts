@@ -32,9 +32,7 @@ import { withRetry } from "../../core/retry.ts";
 import { PublishHandler, publishSite } from "../common/publish.ts";
 
 // TODO: team sites
-// TODO: factor out publish
 // TODO: documents
-// TODO: check http status for quartopub api
 
 export const kNetlify = "netlify";
 
