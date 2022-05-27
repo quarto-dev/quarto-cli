@@ -443,6 +443,9 @@ export const kTblCapLoc = "tbl-cap-location";
 export const kCapTop = "top";
 export const kCapBottom = "bottom";
 
+// Pandoc Input Traits
+export const kPositionedRefs = "positioned-refs";
+
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca
 // they are known to be valid in metadata. this includes:

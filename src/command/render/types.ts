@@ -17,6 +17,7 @@ import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { ExtensionContext } from "../../extension/extension-shared.ts";
+import { kPositionedRefs } from "../../config/constants.ts";
 
 // options for render
 export interface RenderOptions {
@@ -57,7 +58,7 @@ export interface RunPandocResult {
 }
 
 export interface PandocInputTraits {
-  bibliographyTarget?: boolean;
+  [kPositionedRefs]?: boolean;
 }
 
 export type HtmlPostProcessor = (
