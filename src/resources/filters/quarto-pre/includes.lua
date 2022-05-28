@@ -56,7 +56,6 @@ function readIncludeFiles(meta, includes, target)
       f:close()
       -- write as as raw include
       addInclude(meta, FORMAT, target, contents)
-      dump(file)
     end)
 
     if not status then
