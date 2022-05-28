@@ -16,16 +16,14 @@ import { encode as base64Encode } from "encoding/base64.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { Document, Element } from "../../core/deno-dom.ts";
+import { Document } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
-import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
+import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
-  DependencyFile,
   Format,
-  FormatDependency,
   FormatExtras,
   FormatPandoc,
   kBodyEnvelope,
