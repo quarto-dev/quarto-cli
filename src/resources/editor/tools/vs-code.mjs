@@ -25008,7 +25008,6 @@ function createLocalizedError(obj) {
       end: { line: 0, column: 0 }
     };
   }
-  console.log({ schemaPath });
   return {
     source: mappedString(source, [{
       start: violatingObject.start,
@@ -27200,7 +27199,7 @@ function langCommentChars(lang) {
   }
 }
 function optionCommentPattern(comment) {
-  return new RegExp("^" + comment + "\\s*\\| ");
+  return new RegExp("^" + comment + "\\s*\\| ?");
 }
 var kLangCommentChars = {
   r: "#",

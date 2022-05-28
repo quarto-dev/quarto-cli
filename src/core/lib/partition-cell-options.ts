@@ -256,7 +256,7 @@ export function langCommentChars(lang: string): string[] {
   }
 }
 export function optionCommentPattern(comment: string) {
-  return new RegExp("^" + comment + "\\s*\\| ");
+  return new RegExp("^" + comment + "\\s*\\| ?");
 }
 
 // FIXME this is an awkward spot for this particular entry point

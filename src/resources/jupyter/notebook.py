@@ -465,7 +465,7 @@ def nb_cell_yaml_options(lang, cell):
 def nb_cell_yaml_lines(lang, source):
    # determine language comment chars
    comment_chars = nb_language_comment_chars(lang)
-   option_pattern = "^" + comment_chars[0] + "\\s*\\| "
+   option_pattern = "^" + comment_chars[0] + "\\s*\\| ?"
    option_suffix = comment_chars[1] if len(comment_chars) > 1 else None
 
    # go through the lines until we've found all of the yaml
