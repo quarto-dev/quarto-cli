@@ -972,7 +972,7 @@ async function resolveExtras(
     extras.html = extras.html || {};
     extras.html[kHtmlPostprocessors] = extras.html?.[kHtmlPostprocessors] || [];
     if (isHtmlFileOutput(format.pandoc)) {
-      extras.html[kHtmlPostprocessors]!.push(dependenciesPostProcesor);
+      extras.html[kHtmlPostprocessors]!.unshift(dependenciesPostProcesor);
     }
 
     // Remove the dependencies which will now process in the post

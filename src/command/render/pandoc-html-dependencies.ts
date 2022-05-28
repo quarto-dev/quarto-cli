@@ -240,8 +240,10 @@ function domDependencyInjector(
     }
     if (!afterBody) {
       doc.head.appendChild(el);
+      doc.head.appendChild(doc.createTextNode("\n"));
     } else {
       doc.body.appendChild(el);
+      doc.head.appendChild(doc.createTextNode("\n"));
     }
   };
 
