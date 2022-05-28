@@ -8,6 +8,7 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { quartoDataDir } from "../../core/appdirs.ts";
+import { isWindows } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { sleep } from "../../core/wait.ts";
 
@@ -72,10 +73,16 @@ export function readAccessToken<T>(provider: string): T | undefined {
 }
 
 export function writeAccessToken<T>(provider: string, token: T) {
+  // write token
+  const tokenPath = accessTokenPath(provider);
   Deno.writeTextFileSync(
-    accessTokenPath(provider),
+    tokenPath,
     JSON.stringify(token, undefined, 2),
   );
+  // set file permissions
+  if (!isWindows()) {
+    Deno.chmod(tokenPath, 0o600);
+  }
 }
 
 function accessTokenPath(provider: string) {

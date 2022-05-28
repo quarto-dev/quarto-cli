@@ -40,11 +40,7 @@ import { kTextPlain } from "../../core/mime.ts";
 import { execProcess } from "../../core/process.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import { createTempContext } from "../../core/temp.ts";
-import {
-  createNamedLifetime,
-  getNamedLifetime,
-  Lifetime,
-} from "../../core/lifetimes.ts";
+import { createNamedLifetime, getNamedLifetime } from "../../core/lifetimes.ts";
 
 export async function render(
   path: string,

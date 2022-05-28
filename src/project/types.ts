@@ -26,12 +26,7 @@ export const kProjectWatchInputs = "watch-inputs";
 export interface ProjectContext {
   dir: string;
   engines: string[];
-  files: {
-    input: string[];
-    resources?: string[];
-    config?: string[];
-    configResources?: string[];
-  };
+  files: ProjectFiles;
   config?: ProjectConfig;
   formatExtras?: (
     project: ProjectContext,
@@ -40,6 +35,13 @@ export interface ProjectContext {
     format: Format,
     temp: TempContext,
   ) => Promise<FormatExtras>;
+}
+
+export interface ProjectFiles {
+  input: string[];
+  resources?: string[];
+  config?: string[];
+  configResources?: string[];
 }
 
 export interface ProjectConfig {

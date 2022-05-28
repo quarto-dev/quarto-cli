@@ -7,7 +7,8 @@
 
 import { info } from "log/mod.ts";
 
-import { join } from "path/mod.ts";
+import { walkSync } from "fs/mod.ts";
+import { join, relative } from "path/mod.ts";
 import { crypto } from "crypto/mod.ts";
 import { encode as hexEncode } from "encoding/hex.ts";
 
@@ -77,6 +78,44 @@ export async function handlePublish<
   // render
   const publishFiles = await render(target.url);
 
+  // expand directories
+  publishFiles.files = publishFiles.files.reduce((files, file) => {
+    const filePath = join(publishFiles.baseDir, file);
+    if (Deno.statSync(filePath).isDirectory) {
+      for (const walk of walkSync(filePath)) {
+        if (walk.isFile) {
+          files.push(relative(publishFiles.baseDir, walk.path));
+        }
+      }
+    } else {
+      files.push(file);
+    }
+    return files;
+  }, new Array<string>());
+
+  // add a _redirects file if necessary
+  const kRedirects = "_redirects";
+  let redirectsFile: string | undefined;
+  if (
+    publishFiles.rootFile !== "index.html" &&
+    !publishFiles.files.includes(kRedirects)
+  ) {
+    redirectsFile = Deno.makeTempFileSync();
+    Deno.writeTextFileSync(
+      redirectsFile,
+      `/          /${publishFiles.rootFile}\n`,
+    );
+    publishFiles.files.push(kRedirects);
+  }
+
+  // function to resolve the full path of a file
+  // (given that redirects could be in play)
+  const publishFilePath = (file: string) => {
+    return ((file === kRedirects) && redirectsFile)
+      ? redirectsFile
+      : join(publishFiles.baseDir, file);
+  };
+
   // build file list
   let siteDeploy: Deploy | undefined;
   const files: Array<[string, string]> = [];
@@ -85,9 +124,10 @@ export async function handlePublish<
   }, async () => {
     const textDecoder = new TextDecoder();
     for (const file of publishFiles.files) {
+      const filePath = publishFilePath(file);
       const sha1 = await crypto.subtle.digest(
         "SHA-1",
-        Deno.readFileSync(join(publishFiles.baseDir, file)),
+        Deno.readFileSync(filePath),
       );
       const encodedSha1 = hexEncode(new Uint8Array(sha1));
       files.push([file, textDecoder.decode(encodedSha1)]);
@@ -125,7 +165,7 @@ export async function handlePublish<
     doneMessage: false,
   }, async () => {
     for (const requiredFile of required) {
-      const filePath = join(publishFiles.baseDir, requiredFile);
+      const filePath = publishFilePath(requiredFile);
       const fileArray = Deno.readFileSync(filePath);
       await handler.uploadDeployFile(
         siteDeploy?.id!,

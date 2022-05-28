@@ -18,7 +18,7 @@ import {
 } from "../../publish/config.ts";
 
 import { resolveAccount } from "./account.ts";
-import { PublishOptions } from "./options.ts";
+import { PublishOptions } from "../../publish/types.ts";
 
 export async function resolveDeployment(
   options: PublishOptions,

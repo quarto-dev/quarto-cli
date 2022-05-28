@@ -33,6 +33,7 @@ export type PublishDeployment = {
 
 export type PublishFiles = {
   baseDir: string;
+  rootFile: string;
   files: string[];
 };
 
@@ -48,7 +49,7 @@ export interface PublishProvider {
   publish: (
     account: AccountToken,
     type: "document" | "site",
-    render: (siteUrl: string) => Promise<PublishFiles>,
+    render: (siteUrl?: string) => Promise<PublishFiles>,
     target?: PublishRecord,
   ) => Promise<[PublishRecord, URL]>;
   isUnauthorized: (error: Error) => boolean;

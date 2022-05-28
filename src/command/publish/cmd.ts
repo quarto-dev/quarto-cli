@@ -5,9 +5,7 @@
 *
 */
 
-import { existsSync, walkSync } from "fs/mod.ts";
-
-import { dirname, isAbsolute, relative } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
@@ -17,7 +15,6 @@ import {
   AccountToken,
   findProvider,
   kPublishProviders,
-  PublishFiles,
   PublishProvider,
 } from "../../publish/provider.ts";
 
@@ -31,25 +28,20 @@ import {
   projectIsWebsite,
 } from "../../project/project-context.ts";
 
-import { PublishCommandOptions, PublishOptions } from "./options.ts";
+import { PublishCommandOptions } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";
 import {
   AccountPrompt,
   handleUnauthorized,
   resolveAccount,
 } from "./account.ts";
-import {
-  recordDocumentPublishDeployment,
-  recordProjectPublishDeployment,
-} from "../../publish/config.ts";
-import { render, renderServices } from "../render/render-shared.ts";
-import { projectOutputDir } from "../../project/project-shared.ts";
-import { PublishRecord } from "../../publish/types.ts";
-import { renderProgress } from "../render/render-info.ts";
+
+import { PublishOptions, PublishRecord } from "../../publish/types.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
-import { openUrl } from "../../core/shell.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { openUrl } from "../../core/shell.ts";
+import { publishDocument, publishSite } from "../../publish/publish.ts";
 
 export const publishCommand = withProviders(
   // deno-lint-ignore no-explicit-any
@@ -84,204 +76,6 @@ export const publishCommand = withProviders(
       await publishAction(options, path);
     }),
 );
-
-async function publish(
-  provider: PublishProvider,
-  account: AccountToken,
-  options: PublishOptions,
-  target?: PublishRecord,
-): Promise<void> {
-  try {
-    const siteUrl = typeof (options.input) !== "string"
-      ? await publishSite(
-        options.input,
-        provider,
-        account,
-        options,
-        target,
-      )
-      : await publishDocument(
-        options.input,
-        provider,
-        account,
-        options,
-        target,
-      );
-
-    // open browser if requested
-    if (options.browser) {
-      await openUrl(siteUrl.toString());
-    }
-  } catch (err) {
-    // attempt to recover from unauthorized
-    if (provider.isUnauthorized(err) && options.prompt) {
-      if (await handleUnauthorized(provider, account)) {
-        const authorizedAccount = await provider.authorizeToken();
-        if (authorizedAccount) {
-          // recursve after re-authorization
-          return await publish(provider, authorizedAccount, options, target);
-        }
-      }
-    } else {
-      throw err;
-    }
-  }
-}
-
-async function publishSite(
-  project: ProjectContext,
-  provider: PublishProvider,
-  account: AccountToken,
-  options: PublishOptions,
-  target?: PublishRecord,
-) {
-  // create render function
-  const renderForPublish = async (siteUrl: string): Promise<PublishFiles> => {
-    if (options.render) {
-      renderProgress("Rendering for publish:\n");
-      const services = renderServices();
-      try {
-        const result = await render(project.dir, {
-          services,
-          flags: {
-            siteUrl,
-          },
-          setProjectDir: true,
-        });
-        if (result.error) {
-          throw result.error;
-        }
-      } finally {
-        services.cleanup();
-      }
-    }
-    // return PublishFiles
-    const outputDir = projectOutputDir(project);
-    const files: string[] = [];
-    for (const walk of walkSync(outputDir)) {
-      if (walk.isFile) {
-        files.push(relative(outputDir, walk.path));
-      }
-    }
-    return {
-      baseDir: outputDir,
-      files,
-    };
-  };
-
-  // publish
-  const [publishRecord, siteUrl] = await provider.publish(
-    account,
-    "site",
-    renderForPublish,
-    target,
-  );
-  if (publishRecord) {
-    recordProjectPublishDeployment(
-      project,
-      provider.name,
-      publishRecord,
-    );
-  }
-
-  // return url
-  return siteUrl;
-}
-
-async function publishDocument(
-  document: string,
-  provider: PublishProvider,
-  account: AccountToken,
-  options: PublishOptions,
-  target?: PublishRecord,
-) {
-  // create render function
-  const renderForPublish = async (): Promise<PublishFiles> => {
-    const files: string[] = [];
-    if (options.render) {
-      renderProgress("Rendering for publish:\n");
-      const services = renderServices();
-      try {
-        const result = await render(document, {
-          services,
-          setProjectDir: true,
-        });
-        if (result.error) {
-          throw result.error;
-        }
-
-        // populate files
-        const baseDir = result.baseDir || dirname(document);
-        const asRelative = (file: string) => {
-          if (isAbsolute(file)) {
-            return relative(baseDir, file);
-          } else {
-            return file;
-          }
-        };
-        for (const resultFile of result.files) {
-          files.push(asRelative(resultFile.file));
-          if (resultFile.supporting) {
-            files.push(...resultFile.supporting.map(asRelative));
-          }
-          files.push(...resultFile.resourceFiles.map(asRelative));
-        }
-        return {
-          baseDir,
-          files,
-        };
-      } finally {
-        services.cleanup();
-      }
-    } else {
-      // not rendering so we inspect
-
-      // TODO: use inspect to approximate
-      // TODO: create _redirects file in netlify
-      // TODO: set file permissions on account.json
-
-      return {
-        baseDir: dirname(document),
-        files,
-      };
-    }
-  };
-
-  // publish
-  const [publishRecord, siteUrl] = await provider.publish(
-    account,
-    "document",
-    renderForPublish,
-    target,
-  );
-  if (publishRecord) {
-    recordDocumentPublishDeployment(
-      document,
-      provider.name,
-      publishRecord,
-    );
-  }
-
-  // return url
-  return siteUrl;
-}
-
-function withProviders(
-  command: Command<PublishCommandOptions>,
-): Command<PublishCommandOptions> {
-  for (const provider of kPublishProviders) {
-    command.command(
-      provider.name,
-      new Command<PublishCommandOptions>()
-        .name(provider.name)
-        .description(provider.description)
-        .action(async (options: PublishCommandOptions, path?: string) => {
-          await publishAction(options, path, provider);
-        }),
-    );
-  }
-  return command;
-}
 
 async function publishAction(
   options: PublishCommandOptions,
@@ -349,6 +143,49 @@ async function publishAction(
   }
 }
 
+async function publish(
+  provider: PublishProvider,
+  account: AccountToken,
+  options: PublishOptions,
+  target?: PublishRecord,
+): Promise<void> {
+  try {
+    const siteUrl = typeof (options.input) !== "string"
+      ? await publishSite(
+        options.input,
+        provider,
+        account,
+        options,
+        target,
+      )
+      : await publishDocument(
+        options.input,
+        provider,
+        account,
+        options,
+        target,
+      );
+
+    // open browser if requested
+    if (options.browser) {
+      await openUrl(siteUrl.toString());
+    }
+  } catch (err) {
+    // attempt to recover from unauthorized
+    if (provider.isUnauthorized(err) && options.prompt) {
+      if (await handleUnauthorized(provider, account)) {
+        const authorizedAccount = await provider.authorizeToken();
+        if (authorizedAccount) {
+          // recursve after re-authorization
+          return await publish(provider, authorizedAccount, options, target);
+        }
+      }
+    } else {
+      throw err;
+    }
+  }
+}
+
 async function createPublishOptions(
   options: PublishCommandOptions,
   path?: string,
@@ -391,6 +228,23 @@ async function createPublishOptions(
     browser: !!options.browser && interactive,
     siteId: options.siteId,
   };
+}
+
+function withProviders(
+  command: Command<PublishCommandOptions>,
+): Command<PublishCommandOptions> {
+  for (const provider of kPublishProviders) {
+    command.command(
+      provider.name,
+      new Command<PublishCommandOptions>()
+        .name(provider.name)
+        .description(provider.description)
+        .action(async (options: PublishCommandOptions, path?: string) => {
+          await publishAction(options, path, provider);
+        }),
+    );
+  }
+  return command;
 }
 
 async function initYamlIntelligence() {
