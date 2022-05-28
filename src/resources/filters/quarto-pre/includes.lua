@@ -48,12 +48,21 @@ function readIncludeFiles(meta, includes, target)
   -- process include files
   local files = param(includes, {})
   for _,file in ipairs(files) do
-    -- read file contents
-    local f = io.open(pandoc.utils.stringify(file), "r")
-    local contents = f:read("*all")
-    f:close()
-    -- write as as raw include
-    addInclude(meta, FORMAT, target, contents)
+
+    local status, err = pcall(function () 
+      -- read file contents
+      local f = io.open(pandoc.utils.stringify(file), "r")
+      local contents = f:read("*all")
+      f:close()
+      -- write as as raw include
+      addInclude(meta, FORMAT, target, contents)
+      dump(file)
+    end)
+
+    if not status then
+      dump("FAILED TO READ FILE " .. file)
+      error(err)
+    end
   end
 
   

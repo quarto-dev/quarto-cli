@@ -458,7 +458,7 @@ export function websiteSearchIncludeInHeader(
 ) {
   // Generates a script tag that contains the options for configuring search
   // which is ready in quarto-search.js
-  const websiteSearchScript = temp.createFile({ suffix: "html" });
+  const websiteSearchScript = temp.createFile({ suffix: "-search.html" });
   const options = searchOptions(project) || {} as SearchOptions;
   options[kLanguageDefaults] = {} as FormatLanguage;
   Object.keys(format.language).forEach((key) => {

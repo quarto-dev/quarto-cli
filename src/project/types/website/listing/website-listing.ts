@@ -406,7 +406,7 @@ function listingPostProcess(
 const kMarginSidebarId = "quarto-margin-sidebar";
 
 function scriptFileForScripts(scripts: string[], temp: TempContext) {
-  const scriptFile = temp.createFile({ suffix: "html" });
+  const scriptFile = temp.createFile({ suffix: "-listing.html" });
   const contents = `<script>\n${scripts.join("\n")}</script>`;
   Deno.writeTextFileSync(scriptFile, contents);
   return scriptFile;
