@@ -329,7 +329,9 @@ const aboutLinksMarkdownHandler = (aboutPage: AboutPage) => {
       rendered: Record<string, Element>,
       doc: Document,
     ): void => {
-      const aboutLinkNodes = doc.querySelectorAll(".about-links .about-link");
+      const aboutLinkNodes = doc.querySelectorAll(
+        ".about-links .about-link .about-link-text",
+      );
       for (const aboutLinkNode of aboutLinkNodes) {
         const aboutLinkEl = aboutLinkNode as Element;
         const aboutLinkRendered = rendered[aboutLinkEl.innerText.trim()];
