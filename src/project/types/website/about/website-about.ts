@@ -20,7 +20,10 @@ import { quartoConfig } from "../../../../core/quarto.ts";
 import { projectTypeResourcePath } from "../../../../core/resources.ts";
 import { sassLayerFile } from "../../../../core/sass.ts";
 import { TempContext } from "../../../../core/temp.ts";
-import { kBootstrapDependencyName } from "../../../../format/html/format-html-shared.ts";
+import {
+  kAnchorSections,
+  kBootstrapDependencyName,
+} from "../../../../format/html/format-html-shared.ts";
 import { NavItem, ProjectContext } from "../../../types.ts";
 import { kImage } from "../website-constants.ts";
 import { navigationItem } from "../website-navigation.ts";
@@ -91,6 +94,7 @@ export async function aboutHtmlDependencies(
   if (aboutPage) {
     // About pages do not allow TOCs
     format.pandoc[kToc] = false;
+    format.metadata[kAnchorSections] = false;
   }
 
   // Compute any scss that should be included

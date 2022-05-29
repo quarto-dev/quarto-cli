@@ -71,6 +71,14 @@ div.quarto-about-jolla {
   }
   @include image-shapes();
 
+  .quarto-title h1.title {
+    text-align: center;
+  }
+
+  .quarto-title .description {
+    text-align: center;
+  }
+
   h2 {
     border-bottom: none;
   }
