@@ -12,6 +12,7 @@ export const kSitePath = "site-path";
 export const kSiteTitle = "title";
 export const kSiteFavicon = "favicon";
 export const kSiteRepoUrl = "repo-url";
+export const kSiteRepoSubdir = "repo-subdir";
 export const kSiteRepoBranch = "repo-branch";
 export const kSiteRepoActions = "repo-actions";
 export const kSiteReaderMode = "reader-mode";

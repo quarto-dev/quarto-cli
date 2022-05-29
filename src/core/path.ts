@@ -159,6 +159,14 @@ export function pathWithForwardSlashes(path: string) {
   return path.replace(/\\/g, "/");
 }
 
+export function ensureTrailingSlash(path: string) {
+  if (!path.endsWith("/")) {
+    return path + "/";
+  } else {
+    return path;
+  }
+}
+
 export function resolveGlobs(
   root: string,
   globs: string[],

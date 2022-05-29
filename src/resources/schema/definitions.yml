@@ -485,6 +485,9 @@
       repo-url:
         string:
           description: "Base URL for website source code repository"
+      repo-subdir:
+        string:
+          description: "Subdirectory of repository containing website"
       repo-branch:
         string:
           description: "Branch of website source code (defaults to `main`)"

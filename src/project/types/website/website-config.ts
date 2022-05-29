@@ -28,6 +28,7 @@ import {
   kMarginHeader,
   kSitePath,
   kSiteRepoBranch,
+  kSiteRepoSubdir,
   kSiteRepoUrl,
   kSiteSidebar,
   kSiteSidebarFooter,
@@ -36,6 +37,7 @@ import {
   kSiteUrl,
   kWebsite,
 } from "./website-constants.ts";
+import { ensureTrailingSlash } from "../../../core/path.ts";
 type WebsiteConfigKey =
   | "title"
   | "image"
@@ -44,6 +46,7 @@ type WebsiteConfigKey =
   | "site-url"
   | "site-path"
   | "repo-url"
+  | "repo-subdir"
   | "repo-branch"
   | "repo-actions"
   | "navbar"
@@ -182,21 +185,28 @@ export function websiteRepoInfo(
 ): WebsiteRepoInfo | undefined {
   let repoUrl = websiteConfigString(kSiteRepoUrl, project);
   if (repoUrl) {
-    if (!repoUrl.endsWith("/")) {
-      repoUrl = repoUrl + "/";
-    }
-    // extract into base and path
-    const match = repoUrl.match(/(https?:\/\/(?:[^\/]+\/){3})(.*)/);
-    if (match) {
-      return {
-        baseUrl: match[1],
-        path: match[2] || "",
-      };
-    } else {
+    repoUrl = ensureTrailingSlash(repoUrl);
+    // is there an explicit subdir?
+    const repoSubdir = websiteConfigString(kSiteRepoSubdir, project);
+    if ((repoSubdir)) {
       return {
         baseUrl: repoUrl,
-        path: "",
+        path: ensureTrailingSlash(repoSubdir),
       };
+    } else {
+      // extract into base and path
+      const match = repoUrl.match(/(https?:\/\/(?:[^\/]+\/){3})(.*)/);
+      if (match) {
+        return {
+          baseUrl: match[1],
+          path: ensureTrailingSlash(match[2]) || "",
+        };
+      } else {
+        return {
+          baseUrl: repoUrl,
+          path: "",
+        };
+      }
     }
   } else {
     return undefined;

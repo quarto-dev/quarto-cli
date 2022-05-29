@@ -8858,6 +8858,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Base URL for website source code repository"
                 }
               },
+              "repo-subdir": {
+                string: {
+                  description: "Subdirectory of repository containing website"
+                }
+              },
               "repo-branch": {
                 string: {
                   description: "Branch of website source code (defaults to `main`)"
@@ -16907,6 +16912,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
         "Base URL for website source code repository",
+        "Subdirectory of repository containing website or book",
         "Branch of website source code (defaults to <code>main</code>)",
         {
           short: "Links to source repository actions",
@@ -18390,6 +18396,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
         "Base URL for website source code repository",
+        "Subdirectory of repository containing website or book",
         "Branch of website source code (defaults to <code>main</code>)",
         {
           short: "Links to source repository actions",
@@ -18589,6 +18596,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
         "Base URL for website source code repository",
+        "Subdirectory of repository containing website or book",
         "Branch of website source code (defaults to <code>main</code>)",
         {
           short: "Links to source repository actions",

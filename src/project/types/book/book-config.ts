@@ -10,7 +10,11 @@ import { basename, join } from "path/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
-import { safeExistsSync } from "../../../core/path.ts";
+import {
+  ensureTrailingSlash,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../../../core/path.ts";
 import { FormatLanguage, Metadata } from "../../../config/types.ts";
 
 import {
@@ -44,6 +48,7 @@ import {
   kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoBranch,
+  kSiteRepoSubdir,
   kSiteRepoUrl,
   kSiteSidebar,
   kSiteSidebarStyle,
@@ -118,6 +123,7 @@ export async function bookProjectConfig(
     site[kSiteUrl] = book[kSiteUrl];
     site[kSitePath] = book[kSitePath];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
+    site[kSiteRepoSubdir] = book[kSiteRepoSubdir];
     site[kSiteRepoBranch] = book[kSiteRepoBranch];
     site[kSiteRepoActions] = book[kSiteRepoActions];
     site[kSiteNavbar] = book[kSiteNavbar];
@@ -190,7 +196,7 @@ export async function bookProjectConfig(
   // code tools
   const tools = [];
   if (site[kSiteRepoUrl]) {
-    const repoUrl = site[kSiteRepoUrl] as string;
+    const repoUrl = siteRepoUrl(site);
     const icon = repoUrlIcon(repoUrl);
     tools.push({
       text: "Source Code",
@@ -226,6 +232,19 @@ export async function bookProjectConfig(
 
   // return config (inherit website config behavior)
   return websiteProjectConfig(projectDir, config, forceHtml);
+}
+
+function siteRepoUrl(site: Metadata) {
+  const repoUrl = site[kSiteRepoUrl] as string;
+  if (site[kSiteRepoSubdir]) {
+    const subdir = ensureTrailingSlash(site[kSiteRepoSubdir] as string);
+    const branch = site[kSiteRepoBranch] || "main";
+    return pathWithForwardSlashes(
+      join(repoUrl, `tree/${branch}/${subdir}`),
+    );
+  } else {
+    return repoUrl;
+  }
 }
 
 const variableRegex = /{{<\s*var\s+(.*?)\s*>}}/gm;
