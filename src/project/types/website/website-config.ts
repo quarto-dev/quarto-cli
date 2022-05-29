@@ -197,25 +197,13 @@ export function websiteRepoInfo(
         path: ensureTrailingSlash(repoSubdir),
       };
     } else {
-      return websiteRepoInfoFromUrl(repoUrl);
+      return {
+        baseUrl: repoUrl,
+        path: "",
+      };
     }
   } else {
     return undefined;
-  }
-}
-
-export function websiteRepoInfoFromUrl(repoUrl: string) {
-  const match = repoUrl.match(/(https?:\/\/(?:[^\/]+\/){3})(.*)/);
-  if (match) {
-    return {
-      baseUrl: match[1],
-      path: ensureTrailingSlash(match[2]) || "",
-    };
-  } else {
-    return {
-      baseUrl: repoUrl,
-      path: "",
-    };
   }
 }
 

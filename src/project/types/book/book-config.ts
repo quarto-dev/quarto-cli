@@ -62,7 +62,6 @@ import {
   repoUrlIcon,
   websiteConfigActions,
   websiteProjectConfig,
-  websiteRepoInfoFromUrl,
 } from "../website/website-config.ts";
 
 import { kSidebarLogo } from "../website/website-navigation.ts";
@@ -244,14 +243,7 @@ function siteRepoUrl(site: Metadata) {
       join(repoUrl, `tree/${branch}/${subdir}`),
     );
   } else {
-    const repoInfo = websiteRepoInfoFromUrl(repoUrl);
-    if (repoInfo.path) {
-      return pathWithForwardSlashes(
-        join(repoInfo.baseUrl, `tree/${branch}`, repoInfo.path),
-      );
-    } else {
-      return repoInfo.baseUrl;
-    }
+    return repoUrl;
   }
 }
 
