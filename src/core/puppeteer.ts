@@ -9,6 +9,7 @@ import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
 import { error, info } from "log/mod.ts";
 import { fetcher } from "../command/tools/tools/chromium.ts";
+import { existsSync } from "https://deno.land/std@0.138.0/fs/mod.ts";
 
 // deno-lint-ignore no-explicit-any
 let puppeteerImport: any = undefined;
@@ -209,17 +210,28 @@ async function findChrome(): Promise<string | undefined> {
     }
   } else if (Deno.build.os === "windows") {
     // Try the HKLM key
-    path = await readRegistryKey(
-      "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe",
-      "(Default)",
-    );
+    const programs = ["chrome.exe", "msedge.exe"];
+    for (let i = 0; i < programs.length; i++) {
+      path = await readRegistryKey(
+        "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\" +
+          programs[i],
+        "(Default)",
+      );
+      if (path && existsSync(path)) break;
+    }
 
     // Try the HKCR key
     if (!path) {
-      path = await readRegistryKey(
-        "HKCR\\ChromeHTML\\shell\\open\\command",
-        "(Default)",
-      );
+      const regKeys = ["ChromeHTML", "MSEdgeHTM"];
+      for (let i = 0; i < regKeys.length; i++) {
+        path = await readRegistryKey(
+          `HKCR\\${regKeys[i]}\\shell\\open\\command`,
+          "(Default)",
+        );
+        path = path?.match(/"(.*)"/);
+        path = path ? path[1] : undefined;
+        if (path && existsSync(path)) break;
+      }
     }
   }
   return path;
