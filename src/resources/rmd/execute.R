@@ -159,7 +159,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   } else {
     preserve <- NA
   }
-  postProcess <- !is.na(preserve) || isTRUE(format$render$`code-link`)
+  postProcess <- !identical(preserve, NA) || isTRUE(format$render$`code-link`)
 
   # read and then delete the rendered output file
   markdown <- xfun::read_utf8(output_file)
