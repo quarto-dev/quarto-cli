@@ -160,8 +160,16 @@ export function pathWithForwardSlashes(path: string) {
 }
 
 export function ensureTrailingSlash(path: string) {
-  if (!path.endsWith("/")) {
+  if (path && !path.endsWith("/")) {
     return path + "/";
+  } else {
+    return path;
+  }
+}
+
+export function removeTrailingSlash(path: string) {
+  if (path && path.endsWith("/")) {
+    return path.slice(0, path.length - 1);
   } else {
     return path;
   }

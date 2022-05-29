@@ -62,6 +62,7 @@ import {
   repoUrlIcon,
   websiteConfigActions,
   websiteProjectConfig,
+  websiteRepoInfoFromUrl,
 } from "../website/website-config.ts";
 
 import { kSidebarLogo } from "../website/website-navigation.ts";
@@ -236,14 +237,21 @@ export async function bookProjectConfig(
 
 function siteRepoUrl(site: Metadata) {
   const repoUrl = site[kSiteRepoUrl] as string;
+  const branch = site[kSiteRepoBranch] || "main";
   if (site[kSiteRepoSubdir]) {
     const subdir = ensureTrailingSlash(site[kSiteRepoSubdir] as string);
-    const branch = site[kSiteRepoBranch] || "main";
     return pathWithForwardSlashes(
       join(repoUrl, `tree/${branch}/${subdir}`),
     );
   } else {
-    return repoUrl;
+    const repoInfo = websiteRepoInfoFromUrl(repoUrl);
+    if (repoInfo.path) {
+      return pathWithForwardSlashes(
+        join(repoInfo.baseUrl, `tree/${branch}`, repoInfo.path),
+      );
+    } else {
+      return repoInfo.baseUrl;
+    }
   }
 }
 

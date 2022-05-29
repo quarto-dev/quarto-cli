@@ -37,7 +37,10 @@ import {
   kSiteUrl,
   kWebsite,
 } from "./website-constants.ts";
-import { ensureTrailingSlash } from "../../../core/path.ts";
+import {
+  ensureTrailingSlash,
+  removeTrailingSlash,
+} from "../../../core/path.ts";
 type WebsiteConfigKey =
   | "title"
   | "image"
@@ -194,22 +197,25 @@ export function websiteRepoInfo(
         path: ensureTrailingSlash(repoSubdir),
       };
     } else {
-      // extract into base and path
-      const match = repoUrl.match(/(https?:\/\/(?:[^\/]+\/){3})(.*)/);
-      if (match) {
-        return {
-          baseUrl: match[1],
-          path: ensureTrailingSlash(match[2]) || "",
-        };
-      } else {
-        return {
-          baseUrl: repoUrl,
-          path: "",
-        };
-      }
+      return websiteRepoInfoFromUrl(repoUrl);
     }
   } else {
     return undefined;
+  }
+}
+
+export function websiteRepoInfoFromUrl(repoUrl: string) {
+  const match = repoUrl.match(/(https?:\/\/(?:[^\/]+\/){3})(.*)/);
+  if (match) {
+    return {
+      baseUrl: match[1],
+      path: ensureTrailingSlash(match[2]) || "",
+    };
+  } else {
+    return {
+      baseUrl: repoUrl,
+      path: "",
+    };
   }
 }
 
