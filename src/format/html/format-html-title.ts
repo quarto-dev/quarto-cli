@@ -88,7 +88,7 @@ export function documentTitleIncludeInHeader(
 
   if (variables.length > 0) {
     const styles = `<style>
-    .quarto-title-banner {
+    .quarto-title-block .quarto-title-banner {
       ${variables.join("\n")}
     }
     </style>`;
