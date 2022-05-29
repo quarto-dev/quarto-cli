@@ -52,16 +52,15 @@ function readIncludeFiles(meta, includes, target)
     local status, err = pcall(function () 
       -- read file contents
       local f = io.open(pandoc.utils.stringify(file), "r")
+      if f == nil then 
+        error("Error resolving " .. target .. "- unable to open file " .. file)
+        os.exit(1)
+      end
       local contents = f:read("*all")
       f:close()
       -- write as as raw include
       addInclude(meta, FORMAT, target, contents)
     end)
-
-    if not status then
-      dump("FAILED TO READ FILE " .. file)
-      error(err)
-    end
   end
 
   
