@@ -9,6 +9,7 @@ import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
 import { error, info } from "log/mod.ts";
 import { fetcher } from "../command/tools/tools/chromium.ts";
+import { existsSync } from "https://deno.land/std@0.138.0/fs/mod.ts";
 
 // deno-lint-ignore no-explicit-any
 let puppeteerImport: any = undefined;
@@ -216,7 +217,7 @@ async function findChrome(): Promise<string | undefined> {
           programs[i],
         "(Default)",
       );
-      if (path) break;
+      if (path && existsSync(path)) break;
     }
 
     // Try the HKCR key
@@ -229,7 +230,7 @@ async function findChrome(): Promise<string | undefined> {
         );
         path = path?.match(/"(.*)"/);
         path = path ? path[1] : undefined;
-        if (path) break;
+        if (path && existsSync(path)) break;
       }
     }
   }
