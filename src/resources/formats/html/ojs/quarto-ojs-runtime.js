@@ -18132,6 +18132,10 @@ class QuartoOJSConnector extends OJSConnector {
   }
 
   decorateSource(cellDiv, ojsDiv) {
+    if (!cellDiv) {
+      // no div in inline spans
+      return;
+    }
     this.clearErrorPinpoints(cellDiv, ojsDiv);
     const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
     // sometimes the source code is not echoed.
