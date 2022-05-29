@@ -620,6 +620,12 @@
         window.parent.postMessage(event, '*');
       });
     }
+    // listen for execCommand messages
+    window.addEventListener("message", function (event) {
+      if (event.data.type === "devhost-exec-command") {
+        window.document.execCommand(event.data.data);
+      } 
+    }, true);
 
     const logEntries = new Array(1000);
     logEntries.offset = 0;
