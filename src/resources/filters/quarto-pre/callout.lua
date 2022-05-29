@@ -143,8 +143,9 @@ function calloutDiv(div)
   local collapse = div.attr.attributes["collapse"]
   div.attr.attributes["collapse"] = nil
 
-  -- Make an outer card div and transfer classes
+  -- Make an outer card div and transfer classes and id
   local calloutDiv = pandoc.Div({})
+  calloutDiv.attr.identifier = div.attr.identifier
   calloutDiv.attr.classes = div.attr.classes:clone()
   div.attr.classes = pandoc.List() 
   div.attr.classes:insert("callout-body-container")
@@ -680,13 +681,13 @@ function epubCallout(div)
   end
   attributes:insert("callout-style-" .. calloutAppearance)
 
-  return pandoc.Div({calloutBody}, pandoc.Attr("", attributes))
+  return pandoc.Div({calloutBody}, pandoc.Attr(div.attr.identifier, attributes))
 end
 
 function simpleCallout(div) 
   local icon, type, contents = resolveCalloutContents(div, true)
   local callout = pandoc.BlockQuote(contents)
-  return pandoc.Div(callout)
+  return pandoc.Div(callout, pandoc.Attr(div.attr.identifier))
 end
 
 function resolveCalloutContents(div, requireCaption)
