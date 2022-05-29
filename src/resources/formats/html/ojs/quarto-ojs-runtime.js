@@ -18074,7 +18074,7 @@ class QuartoOJSConnector extends OJSConnector {
       ojsDiv = ojsDiv.parentElement;
     }
     if (!ojsDiv) {
-      throw new Error("Internal error: couldn't find output display div");
+      return null;
     }
     return ojsDiv;
   }
@@ -18116,6 +18116,10 @@ class QuartoOJSConnector extends OJSConnector {
 
   decorateOjsDivWithErrorPinpoint(ojsDiv, start, end, line, column) {
     const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
+    // if ojs element is inline, there's no div.
+    if (!cellOutputDisplay) {
+      return;
+    }
     if (cellOutputDisplay._errorSpans === undefined) {
       cellOutputDisplay._errorSpans = [];
     }
@@ -18162,7 +18166,9 @@ class QuartoOJSConnector extends OJSConnector {
 
   clearError(ojsDiv) {
     const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
-    cellOutputDisplay._errorSpans = [];
+    // if ojs element is inline, there's no div.
+    if (cellOutputDisplay)
+      cellOutputDisplay._errorSpans = [];
   }
 
   signalError(cellDiv, ojsDiv, ojsAst) {
