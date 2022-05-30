@@ -6,7 +6,7 @@
 */
 
 import { netlifyProvider } from "./netlify/netlify.ts";
-import { quartopubProvider } from "./quartopub/quartopub.ts";
+import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { PublishRecord } from "./types.ts";
 
 export enum AccountTokenType {
@@ -20,7 +20,7 @@ export type AccountToken = {
   token: string;
 };
 
-export const kPublishProviders = [netlifyProvider, quartopubProvider];
+export const kPublishProviders = [netlifyProvider, quartoPubProvider];
 
 export function findProvider(name: string) {
   return kPublishProviders.find((provider) => provider.name === name);
