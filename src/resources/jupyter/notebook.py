@@ -529,7 +529,7 @@ def nb_language_comment_chars(lang):
    )
    if lang in langs:
       chars = langs[lang]
-      if not isinstance(chars, list):
+      if not isinstance(chars, type([])):
          chars = [chars]
       return chars
    else:
