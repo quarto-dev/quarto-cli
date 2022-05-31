@@ -253,7 +253,7 @@ function domDependencyInjector(
     afterBody?: boolean,
   ) => {
     const scriptEl = doc.createElement("script");
-    scriptEl.setAttribute("src", href);
+    scriptEl.setAttribute("src", pathWithForwardSlashes(href));
     injectEl(scriptEl, attribs, afterBody);
   };
 
@@ -263,7 +263,7 @@ function domDependencyInjector(
     afterBody?: boolean,
   ) => {
     const linkEl = doc.createElement("link");
-    linkEl.setAttribute("href", href);
+    linkEl.setAttribute("href", pathWithForwardSlashes(href));
     linkEl.setAttribute("rel", "stylesheet");
     injectEl(linkEl, attribs, afterBody);
   };
@@ -274,7 +274,7 @@ function domDependencyInjector(
     type?: string,
   ) => {
     const linkEl = doc.createElement("link");
-    linkEl.setAttribute("href", href);
+    linkEl.setAttribute("href", pathWithForwardSlashes(href));
     linkEl.setAttribute("rel", rel);
     if (type) {
       linkEl.setAttribute("type", type);
@@ -378,7 +378,9 @@ function lineDependencyInjector(
     if (!type) {
       type = "";
     }
-    lines.push(rawLinkTemplate({ href, type, rel }));
+    lines.push(
+      rawLinkTemplate({ href: pathWithForwardSlashes(href), type, rel }),
+    );
   };
 
   const injectHtml = (html: string) => {

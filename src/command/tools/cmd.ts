@@ -56,7 +56,7 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
   )
   .example(
     "Show tool status",
-    "quarto tools",
+    "quarto tools list",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, command: string, tool?: string) => {
