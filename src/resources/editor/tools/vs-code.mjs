@@ -10522,7 +10522,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   "treaty",
                   "webpage"
                 ],
-                description: "The type of the item."
+                description: "The [type](https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types) of the item."
               },
               url: {
                 string: {
@@ -13272,7 +13272,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Whether to use document class settings for indentation.",
-            long: "Wheher to use document class settings for indentation. If the document \nclass settings are not used, the default LaTeX template removes indentation \nand adds space between paragraphs\n\nFor groff (`ms`) documents, the paragraph indent, for example, `2m`.\n"
+            long: "Whether to use document class settings for indentation. If the document \nclass settings are not used, the default LaTeX template removes indentation \nand adds space between paragraphs\n\nFor groff (`ms`) documents, the paragraph indent, for example, `2m`.\n"
           }
         },
         {
@@ -13617,6 +13617,18 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.\n",
             long: "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.  \n\nThe default behavior is to determine the\nbest division type via heuristics: unless other conditions\napply, `section` is chosen. When the `documentclass`\nvariable is set to `report`, `book`, or `memoir` (unless the\n`article` option is specified), `chapter` is implied as the\nsetting for this option. If `beamer` is the output format,\nspecifying either `chapter` or `part` will cause top-level\nheadings to become `\\part{..}`, while second-level headings\nremain as their default type.\n"
           }
+        }
+      ],
+      "schema/document-ojs.yml": [
+        {
+          name: "ojs-engine",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
+          schema: "boolean",
+          description: "If `true`, force the presence of the OJS runtime. If `false`, force the absence instead.\nIf unset, the OJS runtime is included only if OJS cells are present in the document.\n"
         }
       ],
       "schema/document-options.yml": [
@@ -16912,7 +16924,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
         "Base URL for website source code repository",
-        "Subdirectory of repository containing website or book",
+        "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
         {
           short: "Links to source repository actions",
@@ -17083,7 +17095,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text describing the creator or contributor (for example, creator\nname).",
         {
           short: "The role of this creator or contributor.",
-          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
+          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\uFFFD\uFFFD\uFFFDauthor\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
         },
         "An alternate version of the creator or contributor text used for\nalphabatizing.",
         "The text describing the creator or contributor (for example, creator\nname).",
@@ -17360,7 +17372,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The primary title of the item.",
         "Short/abbreviated form of<code>title</code>.",
         "Translator",
-        "The type of the item.",
+        'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
         "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
         "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
         {
@@ -17996,7 +18008,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Whether to use document class settings for indentation.",
-          long: "Wheher to use document class settings for indentation. If the\ndocument class settings are not used, the default LaTeX template removes\nindentation and adds space between paragraphs\nFor groff (<code>ms</code>) documents, the paragraph indent, for\nexample, <code>2m</code>."
+          long: "Whether to use document class settings for indentation. If the\ndocument class settings are not used, the default LaTeX template removes\nindentation and adds space between paragraphs\nFor groff (<code>ms</code>) documents, the paragraph indent, for\nexample, <code>2m</code>."
         },
         {
           short: "Make <code>\\paragraph</code> and <code>\\subparagraph</code>\nfree-standing rather than run-in.",
@@ -18052,6 +18064,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Treat top-level headings as the given division type\n(<code>default</code>, <code>section</code>, <code>chapter</code>, or\n<code>part</code>). The hierarchy order is part, chapter, then section;\nall headings are shifted such that the top-level heading becomes the\nspecified type.",
           long: "Treat top-level headings as the given division type\n(<code>default</code>, <code>section</code>, <code>chapter</code>, or\n<code>part</code>). The hierarchy order is part, chapter, then section;\nall headings are shifted such that the top-level heading becomes the\nspecified type.\nThe default behavior is to determine the best division type via\nheuristics: unless other conditions apply, <code>section</code> is\nchosen. When the <code>documentclass</code> variable is set to\n<code>report</code>, <code>book</code>, or <code>memoir</code> (unless\nthe <code>article</code> option is specified), <code>chapter</code> is\nimplied as the setting for this option. If <code>beamer</code> is the\noutput format, specifying either <code>chapter</code> or\n<code>part</code> will cause top-level headings to become\n<code>\\part{..}</code>, while second-level headings remain as their\ndefault type."
         },
+        "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
         "Theme name, theme scss file, or a mix of both.",
         "The light theme name, theme scss file, or a mix of both.",
@@ -18396,7 +18409,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
         "Base URL for website source code repository",
-        "Subdirectory of repository containing website or book",
+        "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
         {
           short: "Links to source repository actions",
@@ -18575,7 +18588,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
         "Custom tools for navbar or sidebar",
         "internal-schema-hack",
-        "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "MISSING_DESCRIPTION",
         "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
         "Files to render (defaults to all files)",
@@ -18596,7 +18608,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for published website",
         "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
         "Base URL for website source code repository",
-        "Subdirectory of repository containing website or book",
+        "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
         {
           short: "Links to source repository actions",
@@ -18976,18 +18988,36 @@ var require_yaml_intelligence_resources = __commonJS({
         ojs: "//",
         mermaid: "%%"
       },
-      "schema/document-ojs.yml": [
-        {
-          name: "ojs-engine",
-          tags: {
-            formats: [
-              "$html-files"
-            ]
-          },
-          schema: "boolean",
-          description: "If `true`, force the presence of the OJS runtime. If `false`, force the absence instead.\nIf unset, the OJS runtime is included only if OJS cells are present in the document.\n"
-        }
-      ]
+      "handlers/mermaid/schema.yml": {
+        type: "object",
+        description: "be an object",
+        properties: {
+          "mermaid-dev": {
+            type: "enum",
+            enum: [
+              "png",
+              "svg"
+            ],
+            description: "be one of: `png`, `svg`",
+            completions: [
+              "png",
+              "svg"
+            ],
+            exhaustiveCompletions: true
+          }
+        },
+        patternProperties: {},
+        propertyNames: {
+          type: "string",
+          pattern: "^(?!(mermaid_dev|mermaidDev))"
+        },
+        tags: {
+          "case-convention": [
+            "dash-case"
+          ]
+        },
+        $id: "handlers/mermaid"
+      }
     };
   }
 });

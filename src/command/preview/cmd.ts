@@ -39,7 +39,6 @@ import {
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-shared.ts";
-
 export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
