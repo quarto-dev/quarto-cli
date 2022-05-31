@@ -210,6 +210,7 @@ jobs:
         path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
 
     - name: Cleanup Keychain
+      if: ${{ always() }}
       run: |
         security delete-keychain build.keychain
         
