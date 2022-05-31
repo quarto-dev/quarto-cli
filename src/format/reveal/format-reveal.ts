@@ -645,15 +645,17 @@ function applyStretch(doc: Document, autoStretch: boolean) {
       const image = images[0];
       const imageEl = image as Element;
 
-      // screen out early specials divs (layout panels, columns, fragments, ...)
       if (
+        // screen out early specials divs (layout panels, columns, fragments, ...)
         findParent(imageEl, (el: Element) => {
           return el.classList.contains("column") ||
             el.classList.contains("quarto-layout-panel") ||
             el.classList.contains("fragment") ||
             el.classList.contains(kOutputLocationSlide) ||
             !!el.className.match(/panel-/);
-        })
+        }) ||
+        // Do not autostrech if an aside is used
+        slideEl.querySelectorAll("aside").length !== 0
       ) {
         continue;
       }

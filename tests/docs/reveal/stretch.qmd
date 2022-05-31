@@ -235,3 +235,11 @@ plot(cars)
 ```
 
 :::
+
+## With aside on slide  {#aside}
+
+![Caption](https://revealjs.com/images/logo/reveal-black-text.svg)
+
+::: {.aside}
+Something here as an aside
+:::

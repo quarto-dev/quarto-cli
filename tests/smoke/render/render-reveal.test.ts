@@ -66,5 +66,6 @@ testRender(input, "revealjs", false, [
     "#custom-divs-caption img.r-stretch",
     "#custom-divs-knitr img.r-stretch",
     "#custom-divs-knitr-caption img.r-stretch",
+    "#aside img.r-stretch",
   ]),
 ]);
