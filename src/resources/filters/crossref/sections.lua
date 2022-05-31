@@ -55,6 +55,8 @@ function sections()
         if appendix then
           el.content:insert(1, pandoc.Space())
           tprepend(el.content, crossrefOption("appendix-delim", stringToInlines(" —")))
+        elseif level == 1 and not _quarto.format.isHtmlOutput() then
+          el.content:insert(1, pandoc.Str(". "))
         else
           el.content:insert(1, pandoc.Space())
         end
