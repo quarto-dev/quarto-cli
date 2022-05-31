@@ -31,11 +31,23 @@ import {
   kFigHeight,
   kFigResponsive,
   kFigWidth,
+  kMermaidDev,
 } from "../../config/constants.ts";
 import { Element } from "../deno-dom.ts";
+import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
+import { readYamlFromString } from "../yaml.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
+
+  schema() {
+    return Promise.resolve(convertFromYaml(readYamlFromString(`
+object:
+  properties:
+    mermaid-dev:
+      enum: [png, svg]
+`)));
+  },
 
   type: "cell",
   stage: "post-engine",
@@ -82,7 +94,7 @@ const mermaidHandler: LanguageHandler = {
       ),
     ]];
 
-    if (isJavascriptCompatible(handlerContext.options.format)) {
+    const makeSvg = async () => {
       let svg = asMappedString(
         (await handlerContext.extractHtml({
           html: content,
@@ -135,7 +147,9 @@ const mermaidHandler: LanguageHandler = {
         undefined,
         new Set(["fig-width", "fig-height"]),
       );
-    } else {
+    };
+
+    const makePng = async () => {
       const {
         filenames: [sourceName],
         elements: [svgText],
@@ -163,6 +177,29 @@ const mermaidHandler: LanguageHandler = {
         undefined,
         new Set(["fig-width", "fig-height"]),
       );
+    };
+
+    if (isJavascriptCompatible(handlerContext.options.format)) {
+      return await makeSvg();
+    } else if (
+      isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
+    ) {
+      if (options[kMermaidDev] === "svg") {
+        return await makeSvg();
+      } else if (options[kMermaidDev] === "png") {
+        return await makePng();
+      } else {
+        return this.build(
+          handlerContext,
+          cell,
+          mappedConcat(["\n``` mermaid\n", cellContent, "\n```\n"]),
+          options,
+          undefined,
+          new Set(["fig-width", "fig-height"]),
+        );
+      }
+    } else {
+      return await makePng();
     }
   },
 };
