@@ -27,6 +27,6 @@ When filing a _bug report_, please check the boxes below to confirm that you hav
 
 - [ ] included a minimal, self-contained, and reproducible example?
 
-- [ ] documented the quarto version you're running, by pasting the first line produced by `quarto render` in a terminal in your issue? ("This is quarto ...")
+- [ ] documented the quarto version you're running, by providing the output produced by `quarto check` in a terminal in your issue?
 
 - [ ] upgraded to the latest version (including your versions of R, the RStudio IDE, and relevant R packages)?
