@@ -577,3 +577,5 @@ export const kLayoutVAlign = "layout-valign";
 export const kLayoutNcol = "layout-ncol";
 export const kLayoutNrow = "layout-nrow";
 export const kLayout = "layout";
+
+export const kMermaidDev = "mermaid-dev";
