@@ -178,7 +178,7 @@ export async function preview(
       relative(projectOutputDir(project), result.outputFile),
     )
     : "";
-  const url = `http://localhost:${options.port}/${initialPath}`;
+  const url = `http://${options.host}:${options.port}/${initialPath}`;
   if (
     options.browser &&
     !isRStudioServer() && !isRStudioWorkbench() && !isJupyterHubServer() &&
@@ -188,7 +188,7 @@ export async function preview(
   }
 
   // print status
-  await printBrowsePreviewMessage(options.port!, initialPath);
+  await printBrowsePreviewMessage(options.host!, options.port!, initialPath);
 
   // watch for src changes in dev mode
   monitorQuartoSrcChanges(stopServer);
