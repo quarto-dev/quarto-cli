@@ -13272,7 +13272,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Whether to use document class settings for indentation.",
-            long: "Wheher to use document class settings for indentation. If the document \nclass settings are not used, the default LaTeX template removes indentation \nand adds space between paragraphs\n\nFor groff (`ms`) documents, the paragraph indent, for example, `2m`.\n"
+            long: "Whether to use document class settings for indentation. If the document \nclass settings are not used, the default LaTeX template removes indentation \nand adds space between paragraphs\n\nFor groff (`ms`) documents, the paragraph indent, for example, `2m`.\n"
           }
         },
         {
@@ -17095,7 +17095,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text describing the creator or contributor (for example, creator\nname).",
         {
           short: "The role of this creator or contributor.",
-          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
+          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\uFFFD\uFFFD\uFFFDauthor\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
         },
         "An alternate version of the creator or contributor text used for\nalphabatizing.",
         "The text describing the creator or contributor (for example, creator\nname).",
@@ -18008,7 +18008,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Whether to use document class settings for indentation.",
-          long: "Wheher to use document class settings for indentation. If the\ndocument class settings are not used, the default LaTeX template removes\nindentation and adds space between paragraphs\nFor groff (<code>ms</code>) documents, the paragraph indent, for\nexample, <code>2m</code>."
+          long: "Whether to use document class settings for indentation. If the\ndocument class settings are not used, the default LaTeX template removes\nindentation and adds space between paragraphs\nFor groff (<code>ms</code>) documents, the paragraph indent, for\nexample, <code>2m</code>."
         },
         {
           short: "Make <code>\\paragraph</code> and <code>\\subparagraph</code>\nfree-standing rather than run-in.",
@@ -18987,6 +18987,36 @@ var require_yaml_intelligence_resources = __commonJS({
         dot: "//",
         ojs: "//",
         mermaid: "%%"
+      },
+      "handlers/mermaid/schema.yml": {
+        type: "object",
+        description: "be an object",
+        properties: {
+          "mermaid-dev": {
+            type: "enum",
+            enum: [
+              "png",
+              "svg"
+            ],
+            description: "be one of: `png`, `svg`",
+            completions: [
+              "png",
+              "svg"
+            ],
+            exhaustiveCompletions: true
+          }
+        },
+        patternProperties: {},
+        propertyNames: {
+          type: "string",
+          pattern: "^(?!(mermaid_dev|mermaidDev))"
+        },
+        tags: {
+          "case-convention": [
+            "dash-case"
+          ]
+        },
+        $id: "handlers/mermaid"
       }
     };
   }
