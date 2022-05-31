@@ -5,6 +5,8 @@
 *
 */
 
+import { Command } from "cliffy/command/command.ts";
+
 import { existsSync } from "fs/exists.ts";
 import { error } from "log/mod.ts";
 import { handlerForScript } from "../../core/run/run.ts";
@@ -26,3 +28,15 @@ export async function runScript(args: string[]) {
   }
   return await handler.run(script, args.slice(1));
 }
+
+// run 'command' (this is a fake command that is here just for docs,
+// the actual processing of 'run' bypasses cliffy entirely)
+export const runCommand = new Command()
+  .name("run")
+  .stopEarly()
+  .arguments("[script:string] [...args]")
+  .description(
+    "Run a TypeScript, R, Python, or Lua script.\n\n" +
+      "Run a utility script written in a variety of languages. For details, see:\n" +
+      "https://quarto.org/docs/projects/quarto-projects.html#periodic-scripts",
+  );
