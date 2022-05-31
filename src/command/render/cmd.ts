@@ -15,7 +15,6 @@ import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 import { renderResultFinalOutput } from "./render.ts";
 import { render, renderServices } from "./render-shared.ts";
 import { RenderResult } from "./types.ts";
-import { resourcePath } from "../../core/resources.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -119,15 +118,6 @@ export const renderCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input?: string, args?: string[]) => {
-    if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
-      try {
-        const version = Deno.readTextFileSync(resourcePath("version"));
-        info(`This is quarto version ${version}.`);
-      } catch (_e) {
-        info(`This is quarto version 99.9.9.`);
-      }
-    }
-
     args = args || [];
 
     // remove implicit clean argument (re-injected based on what the user

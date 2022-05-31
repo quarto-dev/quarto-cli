@@ -39,9 +39,6 @@ import {
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-shared.ts";
-import { resourcePath } from "../../core/resources.ts";
-import { info } from "log/mod.ts";
-
 export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
@@ -122,15 +119,6 @@ export const previewCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, file?: string, args?: string[]) => {
-    if (!options.flags?.quiet) {
-      try {
-        const version = Deno.readTextFileSync(resourcePath("version"));
-        info(`This is quarto version ${version}.`);
-      } catch (_e) {
-        info(`This is quarto version 99.9.9.`);
-      }
-    }
-
     // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();

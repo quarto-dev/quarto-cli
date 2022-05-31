@@ -8,8 +8,7 @@
 import { Command } from "cliffy/command/mod.ts";
 
 import * as colors from "fmt/colors.ts";
-import { error, info } from "log/mod.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { error } from "log/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { projectContext } from "../../project/project-context.ts";
 
@@ -44,15 +43,6 @@ export const serveCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input?: string) => {
-    if (!options.flags?.quiet) {
-      try {
-        const version = Deno.readTextFileSync(resourcePath("version"));
-        info(`This is quarto version ${version}.`);
-      } catch (_e) {
-        info(`This is quarto version 99.9.9.`);
-      }
-    }
-
     await initYamlIntelligenceResourcesFromFilesystem();
     if (!input) {
       error(
