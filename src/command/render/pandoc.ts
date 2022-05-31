@@ -100,6 +100,7 @@ import {
   kResources,
   kRevealJsScripts,
   kSectionTitleAbstract,
+  kSelfContained,
   kSyntaxDefinitions,
   kTemplate,
   kTitle,
@@ -682,6 +683,17 @@ export async function runPandoc(
         join("pandoc", "templates", "default.markdown"),
       );
     }
+  }
+
+  // "Hide" self contained from pandoc. Since we inject dependencies
+  // during post processing, we need to implement self-contained ourselves
+  // so don't allow pandoc to see this flag (but still print it)
+  if (isHtmlFileOutput(options.format.pandoc)) {
+    // Hide self-contained argument
+    pandocArgs = pandocArgs.filter((arg) => arg !== "--self-contained");
+
+    // Remove from defaults
+    delete allDefaults[kSelfContained];
   }
 
   // write the defaults file

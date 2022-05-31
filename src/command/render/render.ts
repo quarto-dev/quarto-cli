@@ -7,12 +7,16 @@
 
 import { existsSync } from "fs/mod.ts";
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { Document, parseHtml } from "../../core/deno-dom.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
-import { resourcePath } from "../../core/resources.ts";
+import {
+  formatResourcePath,
+  pandocBinaryPath,
+  resourcePath,
+} from "../../core/resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
@@ -38,6 +42,7 @@ import { Metadata } from "../../config/types.ts";
 import { isHtmlFileOutput } from "../../config/format.ts";
 
 import { isSelfContainedOutput } from "./render-info.ts";
+import { execProcess } from "../../core/process.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -151,11 +156,13 @@ export async function renderPandoc(
     htmlFinalizers,
   );
 
+  // Compute the path to the output file
+  const outputFile = isAbsolute(pandocOptions.output)
+    ? pandocOptions.output
+    : join(dirname(pandocOptions.source), pandocOptions.output);
+
   // run generic postprocessors
   if (pandocResult.postprocessors) {
-    const outputFile = isAbsolute(pandocOptions.output)
-      ? pandocOptions.output
-      : join(dirname(pandocOptions.source), pandocOptions.output);
     for (const postprocessor of pandocResult.postprocessors) {
       await postprocessor(outputFile);
     }
@@ -173,6 +180,12 @@ export async function renderPandoc(
     format,
     finalOutput,
   );
+
+  // If this is self-contained, run pandoc to 'suck in' the dependencies
+  // which may have been added in the post processor
+  if (selfContained && isHtmlFileOutput(format.pandoc)) {
+    await pandocIngestSelfContainedContent(outputFile);
+  }
 
   // compute the relative path to the files dir
   let filesDir: string | undefined = inputFilesDir(context.target.source);
@@ -369,3 +382,41 @@ async function runHtmlPostprocessors(
   }
   return postProcessResult;
 }
+
+const pandocIngestSelfContainedContent = async (file: string) => {
+  const filename = basename(file);
+  const workingDir = dirname(file);
+
+  // The template
+  const template = formatResourcePath(
+    "html",
+    "pandoc-selfcontained/selfcontained.html",
+  );
+
+  // The raw html contents
+  const contents = Deno.readTextFileSync(file);
+  const input: string[] = [];
+  input.push("````````{=html}");
+  input.push(contents);
+  input.push("````````");
+
+  // Run pandoc to suck in dependencies
+  const cmd = [pandocBinaryPath()];
+  cmd.push("--to", "html");
+  cmd.push("--from", "markdown");
+  cmd.push("--template", template);
+  cmd.push("--output", filename);
+  cmd.push("--metadata", "title=placeholder");
+  cmd.push("--self-contained");
+  const result = await execProcess({
+    cmd,
+    stdout: "piped",
+    cwd: workingDir,
+  }, input.join("\n"));
+
+  if (result.success) {
+    return result.stdout;
+  } else {
+    throw new Error();
+  }
+};
