@@ -418,7 +418,7 @@ html_dependencies_as_string <- function(dependencies, files_dir) {
   dependencies <- lapply(dependencies, function(dependency) {
     dir <- dependency$src$file
     if (!is.null(dir)) {
-      dependency$src$file <- paste(files_dir, basename(dir), sep = "/")
+      dependency$src$file <- gsub("\\\\", "/", paste(files_dir, basename(dir), sep = "/"))
     }
     dependency
   })
